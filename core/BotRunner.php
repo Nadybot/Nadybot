@@ -19,7 +19,7 @@ function isWindows() {
 class BotRunner {
 
 	// budabot's current version
-	public $version = "4";
+	public $version = "4-Nady";
 
 	private $argv = array();
 
@@ -89,9 +89,8 @@ class BotRunner {
 **************************************************
 Budabot {$this->version}
 
-Project Site:     https://github.com/Budabot/Budabot
-Support Forum:    http://www.budabot.com/forum
-In-Game Contact:  Tyrence
+Project Site:     https://github.com/Nadyita/Budabot
+In-Game Contact:  Nadychat
 **************************************************
 \n";
 	}
