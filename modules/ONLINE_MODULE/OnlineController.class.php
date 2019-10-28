@@ -118,7 +118,7 @@ class OnlineController {
 					$blob .= "| ($row->name)\n";
 				} else {
 					$prof = $this->util->getProfessionAbbreviation($row->profession);
-					$blob.= "| $row->name - $row->level/<green>$row->ai_level<end> $prof";
+					$blob.= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($row->profession)."> $row->name - $row->level/<green>$row->ai_level<end> $prof";
 				}
 				if ($row->online == 1) {
 					$blob .= " <green>Online<end>";
@@ -418,7 +418,7 @@ class OnlineController {
 				} else {
 					$prof = $this->util->getProfessionAbbreviation($row->profession);
 					$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $row->guild, $row->guild_rank);
-					$blob.= "| $row->name - $row->level/<green>$row->ai_level<end> $prof$orgRank$admin$afk\n";
+					$blob.= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($row->profession)."> $row->name - $row->level/<green>$row->ai_level<end> $prof$orgRank$admin$afk\n";
 				}
 			}
 		}
@@ -435,5 +435,25 @@ class OnlineController {
 			WHERE o.channel_type = ?
 			ORDER BY COALESCE(a.main, o.name) ASC";
 		return $this->db->query($sql, $channelType);
+	}
+
+	public function getProfessionId($profession) {
+		$profToID = array(
+			"Adventurer" => 6,
+			"Agent" => 5,
+			"Bureaucrat" => 8,
+			"Doctor" => 10,
+			"Enforcer" => 9,
+			"Engineer" => 3,
+			"Fixer" => 4,
+			"Keeper" => 14,
+			"Martial Artist" => 2,
+			"Meta-Physicist" => 12,
+			"Nano-Technician" => 11,
+			"Soldier" => 1,
+			"Shade" => 15,
+			"Trader" => 7,
+		);
+		return $profToID[$profession];
 	}
 }
