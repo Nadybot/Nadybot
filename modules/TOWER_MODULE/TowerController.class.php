@@ -815,29 +815,29 @@ class TowerController {
 			$this->logger->log('error', "ERROR! Could not find closest site: ({$playfield_name}) '{$playfield->id}' '{$x_coords}' '{$y_coords}'");
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
-		
+
 			$this->recordAttack($whois, $def_side, $def_guild, $x_coords, $y_coords, $closest_site);
 			$this->logger->log('debug', "Site being attacked: ({$playfield_name}) '{$closest_site->playfield_id}' '{$closest_site->site_number}'");
-		
+
 			// Beginning of the 'more' window
 			$link = "Attacker: <highlight>";
 			if ($whois->firstname) {
 				$link .= $whois->firstname . " ";
 			}
-		
+
 			$link .= '"' . $att_player . '"';
 			if ($whois->lastname)  {
 				$link .= " " . $whois->lastname;
 			}
 			$link .= "<end>\n";
-		
+
 			if ($whois->breed) {
 				$link .= "Breed: <highlight>$whois->breed<end>\n";
 			}
 			if ($whois->gender) {
 				$link .= "Gender: <highlight>$whois->gender<end>\n";
 			}
-		
+
 			if ($whois->profession) {
 				$link .= "Profession: <highlight>$whois->profession<end>\n";
 			}
@@ -845,70 +845,55 @@ class TowerController {
 				$level_info = $this->levelController->getLevelInfo($whois->level);
 				$link .= "Level: <highlight>{$whois->level}/<green>{$whois->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
 			}
-		
+
 			$link .= "Alignment: <highlight>$whois->faction<end>\n";
-		
+
 			if ($whois->guild) {
 				$link .= "Organization: <highlight>$whois->guild<end>\n";
 				if ($whois->guild_rank) {
 					$link .= "Organization Rank: <highlight>$whois->guild_rank<end>\n";
 				}
 			}
-		
+
 			$link .= "\n";
-		
+
 			$link .= "Defender: <highlight>$def_guild<end>\n";
 			$link .= "Alignment: <highlight>$def_side<end>\n\n";
-		
+
 			$base_link = $this->text->makeChatcmd("{$playfield->short_name} {$closest_site->site_number}", "/tell <myname> lc {$playfield->short_name} {$closest_site->site_number}");
 			$attack_waypoint = $this->text->makeChatcmd("{$x_coords}x{$y_coords}", "/waypoint {$x_coords} {$y_coords} {$playfield->id}");
 			$link .= "Playfield: <highlight>{$base_link} ({$closest_site->min_ql}-{$closest_site->max_ql})<end>\n";
 			$link .= "Location: <highlight>{$closest_site->site_name} ({$attack_waypoint})<end>\n";
-		
+
 			$more = $this->text->makeBlob("{$playfield->short_name} {$closest_site->site_number}", $link, 'Advanced Tower Info');
 		}
-		
+
 		$targetorg = "<".strtolower($def_side).">".$def_guild."<end>";
-		
+
 		// Starting tower message to org/private chat
-		$msg .= "";
-		
-		// tower_attack_spam >= 2 (normal) includes attacker stats
-		if ($this->settingManager->get("tower_attack_spam") >= 2) {
-		
-			if ($whois->profession == "") {
-				$msg .= "<".strtolower($whois->faction).">$att_player<end> (Unknown";
-			} else {
-				if (!$whois->guild){
-					$msg .= "<".strtolower($whois->faction).">$att_player<end>";
-				} else {
-					$msg .= "<font color=#AAAAAA>$att_player<end>";
-				}
-				$msg .= " (<font color=#AAAAAA>$whois->level<end>";
-				if ($whois->ai_level) {
-					$msg .= "/<green>$whois->ai_level<end>";
-				}
-				$msg .= ", $whois->breed <font color=#AAAAAA>$whois->profession<end>";
-			}
-		
-			if (!$whois->guild) {
-				$msg .= ")";
-			} else if (!$whois->guild_rank) {
-				$msg .= "<".strtolower($whois->faction).">$whois->guild<end>)";
-			} else {
-				$msg .= ", $whois->guild_rank of <".strtolower($whois->faction).">$whois->guild<end>)";
-			}
-		
-		} else if ($whois->guild) {
+		$msg .= "<font color=#F06AED>[TOWERS]<end> ";
+		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {
 			$msg .= "<".strtolower($whois->faction).">$att_player<end>";
 		}
-		
-		$msg .= " attacked $targetorg [$more]";
-		
+		$msg .= " attacked $targetorg";
+
+		// tower_attack_spam >= 2 (normal) includes attacker stats
+		if ($this->settingManager->get("tower_attack_spam") && $whois->type != 'npc') {
+			$msg .= " - ".preg_replace("/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
+			                           '',
+			                           preg_replace("/ of <(omni|neutral|clan)>.+?<end>/i",
+			                                        '',
+                                                                $this->playerManager->getInfo($whois, false)
+			                                       )
+			                          );
+		}
+
+		$msg .= " [$more]";
+
 		$s = $this->settingManager->get("tower_attack_spam");
-		
+
 		if ($s > 0) {
 			$this->chatBot->sendGuild($msg, true);
 		}
