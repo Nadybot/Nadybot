@@ -85,8 +85,7 @@ class CommandSearchController {
 		$data = $this->db->query($sqlquery);
 
 		forEach ($data as $row) {
-			$keywords = explode(' ', $row->description);
-			array_push($keywords, $row->cmd);
+			$keywords = array($row->cmd);
 			$keywords = array_unique($keywords);
 			$row->distance = 0;
 			forEach ($wordArray as $searchWord) {
