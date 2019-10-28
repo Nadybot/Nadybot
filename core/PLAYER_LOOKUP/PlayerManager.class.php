@@ -198,7 +198,7 @@ class PlayerManager {
 
 		$msg .= "(<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end>";
 		$msg .= ", {$whois->gender} {$whois->breed} <highlight>{$whois->profession}<end>";
-		$msg .= ", <" . strtolower($whois->faction) . ">$whois->faction<end>";
+		$msg .= ", {$whois->guild_rank} of <" . strtolower($whois->faction) . ">{$whois->guild}<end>)";
 
 		if ($whois->guild) {
 			$msg .= ", {$whois->guild_rank} of <highlight>{$whois->guild}<end>)";
