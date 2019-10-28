@@ -121,7 +121,7 @@ class ItemsController {
 
 		// get list of files in ITEMS_MODULE
 		$response = $this->http
-			->get("https://api.github.com/repos/Budabot/Budabot/contents/modules/ITEMS_MODULE")
+			->get("https://api.github.com/repos/Nadyita/Budabot/contents/modules/ITEMS_MODULE")
 			->withHeader("Accept", "application/vnd.github.v3+json")
 			->withHeader('User-Agent', 'Budabot')
 			->waitAndReturnResponse();
@@ -153,7 +153,7 @@ class ItemsController {
 			if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
 				// download server version and save to ITEMS_MODULE directory
 				$contents = $this->http
-					->get("https://raw.githubusercontent.com/Budabot/Budabot/master/modules/ITEMS_MODULE/aodb{$latestVersion}.sql")
+					->get("https://raw.githubusercontent.com/Nadyita/Budabot/master/modules/ITEMS_MODULE/aodb{$latestVersion}.sql")
 					->withHeader('User-Agent', 'Budabot')
 					->waitAndReturnResponse()
 					->body;
