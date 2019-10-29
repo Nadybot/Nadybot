@@ -4,7 +4,7 @@ Budabot is a next-generation chatbot for Anarchy Online.
 
 ## Support & Bug Reports ##
 
-For all support questions and bug reports please contact me in-game (Nadychat)
+For all support questions and bug reports please contact me in-game (Nadychat) or via email nadyita@hodorraid.org.
 
 ## Installation ##
 
