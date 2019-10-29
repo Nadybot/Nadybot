@@ -1,8 +1,13 @@
 .*
+Dockerfile
+README.md
+chatbot.sh
+mainloop.php
+*.bat
 docs
 tools
 win32
 php-win.ini
 composer*
 conf/config.template.php
-mainloop.php
+modules/GIT_MODULE
