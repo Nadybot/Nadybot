@@ -1,10 +1,31 @@
-FROM php:7.3.1-cli-alpine
+FROM alpine:3.10
 
-RUN apk update && apk upgrade && apk add bash
+LABEL maintainer="nadyita@hodorraid.org" \
+      description="self-sustaining docker image to run latest Budabot"
 
-# mbstring, xml, pdo_sqlite, curl already included in base image
-RUN docker-php-ext-install sockets bcmath pdo_mysql
+ENTRYPOINT ["/budabot/docker-entrypoint.sh"]
 
-WORKDIR /app
+RUN apk --no-cache add \
+    php7-cli \
+    php7-sqlite3 \
+    php7-gmp \
+    php7-curl \
+    php7-sockets \
+    php7-pdo \
+    php7-pdo_sqlite \
+    php7-pdo_mysql \
+    php7-bcmath \
+    php7-json \
+    php7-openssl \
+    php7-xml \
+    php7-simplexml \
+    php7-dom \
+    php7-pcntl \
+    && \
+    adduser -h /budabot -s /bin/false -D -H budabot
 
-CMD ["/app/chatbot.sh"]
+COPY --chown=budabot:budabot . /budabot
+
+USER budabot
+
+WORKDIR /budabot
