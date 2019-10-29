@@ -176,9 +176,25 @@ class Budabot extends AOChat {
 	public function run() {
 		$loop = new EventLoop();
 		Registry::injectDependencies($loop);
-		while (true) {
-			$loop->execSingleLoop();
+
+		$continue = true;
+		$signalHandler = function ($sigNo) use (&$continue) {
+			$this->logger->log('INFO', 'Shutdown requested.');
+			$continue = false;
+		};
+		pcntl_signal(SIGINT, $signalHandler);
+		pcntl_signal(SIGTERM, $signalHandler);
+		$callDispatcher = true;
+		if (function_exists('pcntl_async_signals')) {
+			pcntl_async_signals(true);
+			$callDispatcher = false;
 		}
+
+		while ($continue) {
+			$loop->execSingleLoop();
+			$callDispatcher && pcntl_signal_dispatch();
+		}
+		$this->logger->log('INFO', 'Graceful shutdown.');
 	}
 
 	public function processAllPackets() {
