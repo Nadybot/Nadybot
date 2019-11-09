@@ -2489,7 +2489,6 @@ INSERT INTO aodb VALUES (252158, 252158, 1, 1, 'Blackmane''s Belt Component Plat
 INSERT INTO aodb VALUES (257383, 257383, 300, 300, 'Blackmane''s Combined Officer''s Headwear', 256323);
 INSERT INTO aodb VALUES (206732, 206732, 1, 1, 'Blackmane''s Flight Enabler', 84064);
 INSERT INTO aodb VALUES (248893, 248893, 1, 1, 'Blackmane''s Leather Cloak of Balance', 255296);
-INSERT INTO aodb VALUES (206704, 206704, 1, 1, 'Blackmane''s Stat Buffer', 84065);
 INSERT INTO aodb VALUES (295769, 295769, 1, 1, 'Blackmane''s Upgraded Belt Component Platform', 119142);
 INSERT INTO aodb VALUES (245657, 245657, 150, 150, 'Blackpack', 224100);
 INSERT INTO aodb VALUES (152712, 152712, 110, 110, 'Blackshirt of Zuwadza', 13239);
