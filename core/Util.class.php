@@ -24,7 +24,7 @@ class Util {
 		return round($bytes, 2) ." ". $ext[$unitCount];
 	}
 
-	public function unixtimeToReadable($time, $showSeconds = true) {
+	public function unixtimeToReadable($time, $showSeconds=true) {
 		if ($time == 0) {
 			return '0 secs';
 		}
@@ -45,8 +45,8 @@ class Util {
 			}
 			if ($unit != "sec" || $showSeconds || $timeshift == '') {
 				if ($length > 1) {
-					$timeshift .= $length . " " . $unit . "s "; 
-				} else if ($length == 1) {
+					$timeshift .= $length . " " . $unit . "s ";
+				} elseif ($length == 1) {
 					$timeshift .= $length . " " . $unit . " ";
 				}
 			}
@@ -122,14 +122,14 @@ class Util {
 		for ($i = 0; $i < count($ver1Array) && $i < count($ver2Array); $i++) {
 			if ($ver1Array[$i] > $ver2Array[$i]) {
 				return 1;
-			} else if ($ver1Array[$i] < $ver2Array[$i]) {
+			} elseif ($ver1Array[$i] < $ver2Array[$i]) {
 				return -1;
 			}
 		}
 
 		if (count($ver1Array) > count($ver2Array)) {
 			return 1;
-		} else if (count($ver1Array) < count($ver2Array)) {
+		} elseif (count($ver1Array) < count($ver2Array)) {
 			return -1;
 		} else {
 			return 0;
@@ -291,7 +291,7 @@ class Util {
 		return "";
 	}
 
-	public function getAbility($ability, $getFullName = false) {
+	public function getAbility($ability, $getFullName=false) {
 		$abilities = array(
 			'agi' => 'Agility',
 			'int' => 'Intelligence',
@@ -328,7 +328,7 @@ class Util {
 	}
 
 	// taken from: http://www.lost-in-code.com/programming/php-code/php-random-string-with-numbers-and-letters/
-	public function genRandomString($length = 10, $characters = '0123456789abcdefghijklmnopqrstuvwxyz') {
+	public function genRandomString($length=10, $characters='0123456789abcdefghijklmnopqrstuvwxyz') {
 		$string = '';
 		for ($p = 0; $p < $length; $p++) {
 			$string .= $characters[mt_rand(0, strlen($characters))];
@@ -493,12 +493,12 @@ class Util {
 	}
 
 	public function getDirectoriesInDirectory($path) {
-	   return array_filter(scandir($path), function ($f) use($path) {
-		   return $f != '.' && $f != '..' && is_dir($path . DIRECTORY_SEPARATOR . $f);
-	   });
+		return array_filter(scandir($path), function ($f) use ($path) {
+			return $f != '.' && $f != '..' && is_dir($path . DIRECTORY_SEPARATOR . $f);
+		});
 	}
 
-	public function isInteger($input){
+	public function isInteger($input) {
 		return(ctype_digit(strval($input)));
 	}
 }

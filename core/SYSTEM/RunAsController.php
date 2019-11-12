@@ -5,16 +5,16 @@ namespace Budabot\User\Modules;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'runas', 
- *		accessLevel = 'superadmin', 
- *		description = 'Execute a command as another character', 
+ *		command     = 'runas',
+ *		accessLevel = 'superadmin',
+ *		description = 'Execute a command as another character',
  *		help        = 'runas.txt'
  *	)
  */
@@ -30,7 +30,6 @@ class RunAsController extends AutoInject {
 	 * @Setup
 	 */
 	public function setup() {
-		
 	}
 
 	/**

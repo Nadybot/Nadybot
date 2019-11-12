@@ -38,7 +38,7 @@ class CommandAlias {
 	 * @name: register
 	 * @description: Registers a command alias
 	 */
-	public function register($module, $command, $alias, $status = 1) {
+	public function register($module, $command, $alias, $status=1) {
 		$module = strtoupper($module);
 		$command = strtolower($command);
 		$alias = strtolower($alias);

@@ -46,7 +46,7 @@ class RecipeController {
 	 * @Event("connect")
 	 * @Description("Initializes the recipe database")
 	 * @DefaultStatus("1")
-	 * 
+	 *
 	 * This is a Event("connect") instead of Setup since it depends on the items db being loaded
 	 */
 	public function connectEvent() {
@@ -63,7 +63,7 @@ class RecipeController {
 					$author = substr(trim(array_shift($lines)), 8);
 					$data = implode("", $lines);
 					$this->db->exec("INSERT INTO recipes (id, name, author, recipe) VALUES (?, ?, ?, ?)", $id, $name, $author, $data);
-				} else if (preg_match("/(\d+)\.json/", $fileName, $args)) {
+				} elseif (preg_match("/(\d+)\.json/", $fileName, $args)) {
 					$recipe = json_decode(file_get_contents($this->path . $fileName));
 					if ($recipe === null) {
 						throw new Exception("Could not read '$fileName', invalid JSON");
@@ -73,7 +73,7 @@ class RecipeController {
 					$name = $recipe->name;
 					$author = $recipe->author;
 					$items = array();
-					forEach($recipe->items as $item) {
+					forEach ($recipe->items as $item) {
 						$dbItem = $this->itemsController->findById($item->item_id);
 						if ($dbItem === null) {
 							throw Exception("Could not find item '{$item->item_id}'");
@@ -86,10 +86,10 @@ class RecipeController {
 					$data .= "<font color=#FF0000>Ingredients</font>\n";
 					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
 					$ingredients = $items;
-					forEach($recipe->steps as $step) {
+					forEach ($recipe->steps as $step) {
 						unset($ingredients[$step->result]);
 					}
-					forEach($ingredients as $ingredient) {
+					forEach ($ingredients as $ingredient) {
 						$data .= $this->text->makeImage($ingredient->icon) . "\n";
 						$data .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
 					}
@@ -97,7 +97,7 @@ class RecipeController {
 					$data .= "<font color=#FFFF00>------------------------------</font>\n";
 					$data .= "<font color=#FF0000>Recipe</font>\n";
 					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
-					forEach($recipe->steps as $step) {
+					forEach ($recipe->steps as $step) {
 						$source = $items[$step->source];
 						$target = $items[$step->target];
 						$result = $items[$step->result];
@@ -160,7 +160,7 @@ class RecipeController {
 
 		if ($count == 0) {
 			$msg = "Could not find any recipes matching your search criteria.";
-		} else if ($count == 1) {
+		} elseif ($count == 1) {
 			$msg = $this->createRecipeBlob($data[0]);
 		} else {
 			$blob = '';
@@ -191,7 +191,7 @@ class RecipeController {
 		$recipe_name = $row->name;
 		$author = empty($row->author) ? "Unknown" : $row->author;
 
-		$recipeText = "Recipe Id: <highlight>$row->id<end>\n"; 
+		$recipeText = "Recipe Id: <highlight>$row->id<end>\n";
 		$recipeText .= "Author: <highlight>$author<end>\n\n";
 		$recipeText .= $this->formatRecipeText($row->recipe);
 
@@ -209,4 +209,3 @@ class RecipeController {
 		return $output;
 	}
 }
-

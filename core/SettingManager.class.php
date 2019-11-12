@@ -43,7 +43,7 @@ class SettingManager {
 	 * @param: $help - a help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
 	 * @description: Adds a new setting
 	 */
-	public function add($module, $name, $description, $mode, $type, $value, $options = '', $intoptions = '', $accessLevel = 'mod', $help = '') {
+	public function add($module, $name, $description, $mode, $type, $value, $options='', $intoptions='', $accessLevel='mod', $help='') {
 		$name = strtolower($name);
 		$type = strtolower($type);
 
@@ -160,13 +160,13 @@ class SettingManager {
 	 *	} );
 	 * </code>
 	 *
-	 * @param string   $settingName changed setting's name 
+	 * @param string   $settingName changed setting's name
 	 * @param callback $callback    the callback function to call
 	 * $param mixed    $data        any data which will be passed to to the callback (optional)
 	 *
 	 * In the event of an invalid setting value, throw an exception with a message indicating why the value is invalid.
 	 */
-	public function registerChangeListener($settingName, $callback, $data = null) {
+	public function registerChangeListener($settingName, $callback, $data=null) {
 		if (!is_callable($callback)) {
 			$this->logger->log('ERROR', 'Given callback is not valid.');
 			return;

@@ -28,7 +28,7 @@ class PlayerLookupController {
 	public function setup() {
 		if ($this->db->getType() == DB::MYSQL) {
 			$this->db->loadSQLFile($this->moduleName, 'players_mysql');
-		} else if ($this->db->getType() == DB::SQLITE) {
+		} elseif ($this->db->getType() == DB::SQLITE) {
 			$this->db->loadSQLFile($this->moduleName, 'players_sqlite');
 		}
 	}

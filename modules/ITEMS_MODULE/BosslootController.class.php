@@ -73,7 +73,7 @@ class BosslootController {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Boss Search Results ($count)", $blob);
-		} else if ($count == 1) {
+		} elseif ($count == 1) {
 			//If single match found, output full loot table
 			$row = $bosses[0];
 
@@ -138,4 +138,3 @@ class BosslootController {
 		return $blob;
 	}
 }
-

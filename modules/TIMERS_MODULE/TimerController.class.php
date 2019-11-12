@@ -7,7 +7,7 @@ use Exception;
 use Budabot\Core\Registry;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -85,7 +85,7 @@ class TimerController {
 		$this->settingManager->registerChangeListener('timer_alert_times', array($this, 'changeTimerAlertTimes'));
 	}
 
-	public function changeTimerAlertTimes($settingName, $oldValue, $newValue, $data)  {
+	public function changeTimerAlertTimes($settingName, $oldValue, $newValue, $data) {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
 		forEach ($alertTimes as $alertTime) {
@@ -93,7 +93,7 @@ class TimerController {
 			if ($time == 0) {
 				// invalid time
 				throw new Exception("Error saving setting: invalid alert time('$alertTime'). For more info type !help timer_alert_times.");
-			} else if ($time <= $oldTime) {
+			} elseif ($time <= $oldTime) {
 				// invalid alert order
 				throw new Exception("Error saving setting: invalid alert order('$alertTime'). For more info type !help timer_alert_times.");
 			}
@@ -119,7 +119,7 @@ class TimerController {
 				continue;
 			}
 
-			forEach($timer->alerts as $alert) {
+			forEach ($timer->alerts as $alert) {
 				if ($alert->time > $time) {
 					break;
 				}
@@ -160,7 +160,7 @@ class TimerController {
 		$mode = $timer->mode;
 		if ('priv' == $mode) {
 			$this->chatBot->sendPrivate($msg);
-		} else if ('guild' == $mode) {
+		} elseif ('guild' == $mode) {
 			$this->chatBot->sendGuild($msg);
 		} else {
 			$this->chatBot->sendTell($msg, $timer->owner);
@@ -240,7 +240,7 @@ class TimerController {
 		$timer = $this->get($name);
 		if ($timer == null) {
 			$msg = "Could not find a timer named <highlight>$name<end>.";
-		} else if ($timer->owner != $sender && !$this->accessManager->checkAccess($sender, "mod")) {
+		} elseif ($timer->owner != $sender && !$this->accessManager->checkAccess($sender, "mod")) {
 			$msg = "You must own this timer or have moderator access in order to remove it.";
 		} else {
 			$this->remove($name);
@@ -334,7 +334,7 @@ class TimerController {
 		return $alerts;
 	}
 
-	public function addTimer($sender, $name, $runTime, $channel, $alerts = null) {
+	public function addTimer($sender, $name, $runTime, $channel, $alerts=null) {
 		if ($name == '') {
 			return;
 		}
@@ -363,7 +363,7 @@ class TimerController {
 		return "Timer <highlight>$name<end> has been set for $timerset.";
 	}
 
-	public function add($name, $owner, $mode, $alerts, $callback, $data = null) {
+	public function add($name, $owner, $mode, $alerts, $callback, $data=null) {
 		usort($alerts, function($a, $b) {
 			return $a->time - $b->time;
 		});

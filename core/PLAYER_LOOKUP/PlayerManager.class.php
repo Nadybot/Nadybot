@@ -23,7 +23,7 @@ class PlayerManager {
 	/** @Inject */
 	public $http;
 
-	public function getByName($name, $rk_num = 0, $forceUpdate = false) {
+	public function getByName($name, $rk_num=0, $forceUpdate=false) {
 		if ($rk_num == 0) {
 			$rk_num = $this->chatBot->vars['dimension'];
 		}
@@ -46,7 +46,7 @@ class PlayerManager {
 				$player->charid = $charid;
 				$this->update($player);
 			}
-		} else if ($player->last_update < (time() - 86400)) {
+		} elseif ($player->last_update < (time() - 86400)) {
 			$player2 = $this->lookup($name, $rk_num);
 			if ($player2 !== null) {
 				$player = $player2;
@@ -178,12 +178,34 @@ class PlayerManager {
 				?
 			)";
 
-		$this->db->exec($sql, $char->charid, $char->firstname, $char->name, $char->lastname, $char->level, $char->breed, $char->gender, $char->faction,
-			$char->profession, $char->prof_title, $char->ai_rank, $char->ai_level, $char->guild_id, $char->guild, $char->guild_rank, $char->guild_rank_id,
-			$char->dimension, $char->head_id, $char->pvp_rating, $char->pvp_title, $char->source, time());
+		$this->db->exec(
+			$sql,
+			$char->charid,
+			$char->firstname,
+			$char->name,
+			$char->lastname,
+			$char->level,
+			$char->breed,
+			$char->gender,
+			$char->faction,
+			$char->profession,
+			$char->prof_title,
+			$char->ai_rank,
+			$char->ai_level,
+			$char->guild_id,
+			$char->guild,
+			$char->guild_rank,
+			$char->guild_rank_id,
+			$char->dimension,
+			$char->head_id,
+			$char->pvp_rating,
+			$char->pvp_title,
+			$char->source,
+			time()
+		);
 	}
 
-	public function getInfo($whois, $showFirstAndLastName = true) {
+	public function getInfo($whois, $showFirstAndLastName=true) {
 		$msg = '';
 
 		if ($showFirstAndLastName && $whois->firstname) {
@@ -209,7 +231,7 @@ class PlayerManager {
 		return $msg;
 	}
 	
-	public function searchForPlayers($search, $rkNum = null) {
+	public function searchForPlayers($search, $rkNum=null) {
 		$searchTerms = explode(' ', $search);
 		list($query, $params) = $this->util->generateQueryFromParams($searchTerms, 'name');
 

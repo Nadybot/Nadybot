@@ -77,7 +77,7 @@ class CommandSearchController {
 		return $results;
 	}
 	
-	public function findSimilarCommands($wordArray, $includeDisabled = false) {
+	public function findSimilarCommands($wordArray, $includeDisabled=false) {
 		$sqlquery = "SELECT DISTINCT module, cmd, help, description, admin FROM cmdcfg_<myname>";
 		if (!$includeDisabled) {
 			$sqlquery .= " WHERE status = 1";

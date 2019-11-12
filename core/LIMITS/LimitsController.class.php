@@ -52,9 +52,9 @@ class LimitsController {
 	public function check($sender, $message) {
 		if (preg_match("/^about$/i", $message)) {
 			$msg = true;
-		} else if ($this->whitelistController->check($sender) || $sender == ucfirst(strtolower($this->settingManager->get("relaybot")))) {
+		} elseif ($this->whitelistController->check($sender) || $sender == ucfirst(strtolower($this->settingManager->get("relaybot")))) {
 			$msg = true;
-		} else if ($this->accessManager->checkAccess($sender, 'member')) {
+		} elseif ($this->accessManager->checkAccess($sender, 'member')) {
 			// if access level is at least member, skip checks
 			$msg = true;
 		} else {
@@ -85,7 +85,7 @@ class LimitsController {
 	public function handleLimitCheckFail($msg, $sender) {
 		if ($this->settingManager->get('tell_error_msg_type') == 2) {
 			$this->chatBot->sendTell($msg, $sender);
-		} else if ($this->settingManager->get('tell_error_msg_type') == 1) {
+		} elseif ($this->settingManager->get('tell_error_msg_type') == 1) {
 			$msg = "Error! You do not have access to this bot.";
 			$this->chatBot->sendTell($msg, $sender);
 		} else {
@@ -109,7 +109,7 @@ class LimitsController {
 			// check faction limit
 			if (($this->settingManager->get("tell_req_faction") == "Omni" || $this->settingManager->get("tell_req_faction") == "Clan" || $this->settingManager->get("tell_req_faction") == "Neutral") && $this->settingManager->get("tell_req_faction") != $whois->faction) {
 				return "Error! You must be <highlight>" . $this->settingManager->get("tell_req_faction") . "<end>.";
-			} else if ($this->settingManager->get("tell_req_faction") == "not Omni" || $this->settingManager->get("tell_req_faction") == "not Clan" || $this->settingManager->get("tell_req_faction") == "not Neutral") {
+			} elseif ($this->settingManager->get("tell_req_faction") == "not Omni" || $this->settingManager->get("tell_req_faction") == "not Clan" || $this->settingManager->get("tell_req_faction") == "not Neutral") {
 				$tmp = explode(" ", $this->settingManager->get("tell_req_faction"));
 				if ($tmp[1] == $whois->faction) {
 					return "Error! You must not be <highlight>{$tmp[1]}<end>.";

@@ -8,7 +8,7 @@ use \stdClass;
 use PDO;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -145,7 +145,7 @@ class ImplantDesignerController extends AutoInject {
 		$modAmount = $this->util->interpolate($minQl, $maxQl, $minVal, $maxVal, $ql);
 		if ($grade == 'bright') {
 			$modAmount = round($modAmount * 0.6, 0);
-		} else if ($grade == 'faded') {
+		} elseif ($grade == 'faded') {
 			$modAmount = round($modAmount * 0.4, 0);
 		}
 
@@ -196,11 +196,11 @@ class ImplantDesignerController extends AutoInject {
 			$blob .= "<header2>Requirements<end>\n";
 			$blob .= "Treatment: {$symb->Treatment}\n";
 			$blob .= "Level: {$symb->Level}\n";
-			forEach ($symb->reqs as $req){
+			forEach ($symb->reqs as $req) {
 				$blob .= "{$req->Name}: {$req->Amount}\n";
 			}
 			$blob .= "\n<header2>Modifications<end>\n";
-			forEach ($symb->mods as $mod){
+			forEach ($symb->mods as $mod) {
 				$blob .= "{$mod->Name}: {$mod->Amount}\n";
 			}
 			$blob .= "\n\n";
@@ -265,7 +265,7 @@ class ImplantDesignerController extends AutoInject {
 		$slotObj = &$design->$slot;
 		
 		if ($type == 'symb') {
-			$sql = 
+			$sql =
 				"SELECT
 					s.ID,
 					s.Name,
@@ -387,11 +387,11 @@ class ImplantDesignerController extends AutoInject {
 		$slotObj = $design->$slot;
 		if (empty($slotObj)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
-		} else if (!empty($slotObj->symb)) {
+		} elseif (!empty($slotObj->symb)) {
 			$msg = "You cannot require an ability for a symbiant.";
-		} else if (empty($slotObj->shiny) && empty($slotObj->bright) && empty($slotObj->faded)) {
+		} elseif (empty($slotObj->shiny) && empty($slotObj->bright) && empty($slotObj->faded)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
-		} else if (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
+		} elseif (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
 			$msg = "You must have at least one empty cluster to require an ability.";
 		} else {
 			$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
@@ -423,11 +423,11 @@ class ImplantDesignerController extends AutoInject {
 		$slotObj = $design->$slot;
 		if (empty($slotObj)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
-		} else if (!empty($slotObj->symb)) {
+		} elseif (!empty($slotObj->symb)) {
 			$msg = "You cannot require an ability for a symbiant.";
-		} else if (empty($slotObj->shiny) && empty($slotObj->bright) && empty($slotObj->faded)) {
+		} elseif (empty($slotObj->shiny) && empty($slotObj->bright) && empty($slotObj->faded)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
-		} else if (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
+		} elseif (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
 			$msg = "You must have at least one empty cluster to require an ability.";
 		} else {
 			$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
@@ -438,7 +438,7 @@ class ImplantDesignerController extends AutoInject {
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Combinations for <highlight>$slot<end> that will require $ability:\n";
 			$params = [$ability];
-			$sql = 
+			$sql =
 				"SELECT
 					i.AbilityQL1,
 					i.AbilityQL200,
@@ -491,7 +491,7 @@ class ImplantDesignerController extends AutoInject {
 				if (empty($slotObj->faded)) {
 					$results []= ['faded', $row->FadedEffect];
 				}
-				$results = array_map(function($item) use($slot) {
+				$results = array_map(function($item) use ($slot) {
 					return (empty($item[1]) ? '-Empty-' : $this->text->makeChatcmd($item[1], "/tell <myname> implantdesigner $slot {$item[0]} {$item[1]}"));
 				}, $results);
 				if ($results[0] != $primary) {
@@ -557,7 +557,6 @@ class ImplantDesignerController extends AutoInject {
 				forEach ($symb->mods as $mod) {
 					$mods[$mod->Name] += $mod->Amount;
 				}
-				
 			} else {
 				$ql = 300;
 				if (!empty($slotObj->ql)) {
@@ -603,7 +602,7 @@ class ImplantDesignerController extends AutoInject {
 		
 		// sort clusters by name alphabetically, and then by grade, shiny first
 		$grades = $this->grades;
-		usort($clusters, function($cluster1, $cluster2) use($grades) {
+		usort($clusters, function($cluster1, $cluster2) use ($grades) {
 			$val = strcmp($cluster1->name, $cluster2->name);
 			if ($val == 0) {
 				$val1 = array_search($cluster1->grade, $grades);
@@ -648,7 +647,7 @@ class ImplantDesignerController extends AutoInject {
 		$bright = empty($bright) ? '' : $bright;
 		$faded = empty($faded) ? '' : $faded;
 
-		$sql = 
+		$sql =
 			"SELECT
 				i.AbilityQL1,
 				i.AbilityQL200,
@@ -709,7 +708,7 @@ class ImplantDesignerController extends AutoInject {
 	}
 	
 	public function getClustersForSlot($implantType, $clusterType) {
-		$sql = 
+		$sql =
 			"SELECT
 				LongName AS skill
 			FROM

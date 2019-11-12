@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
@@ -77,4 +77,3 @@ class OrgMembersController {
 		$sendto->reply($msg);
 	}
 }
-

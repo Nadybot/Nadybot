@@ -5,7 +5,7 @@ namespace Budabot\Core\Modules;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -46,7 +46,6 @@ class LogsController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		
 	}
 
 	/**

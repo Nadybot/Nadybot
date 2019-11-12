@@ -59,11 +59,11 @@ class BuddylistManager {
 		}
 	}
 
-	public function remove($name, $type = '') {
+	public function remove($name, $type='') {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false) {
 			return false;
-		} else if (isset($this->buddyList[$uid])) {
+		} elseif (isset($this->buddyList[$uid])) {
 			if (isset($this->buddyList[$uid]['types'][$type])) {
 				unset($this->buddyList[$uid]['types'][$type]);
 				$this->logger->log('debug', "$name buddy type removed (type: $type)");

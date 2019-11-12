@@ -8,7 +8,7 @@ use Budabot\Core\Registry;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -236,7 +236,7 @@ class TestController extends AutoInject {
 		$instance = Registry::getInstance($instanceName);
 		if ($instance == null) {
 			$sendto->reply("Instance <highlight>$instanceName<end> does not exist.");
-		} else if (!method_exists($instance, $methodName)) {
+		} elseif (!method_exists($instance, $methodName)) {
 			$sendto->reply("Method <highlight>$methodName<end> does not exist on instance <highlight>$instanceName<end>.");
 		} else {
 			$this->eventManager->callEventHandler(null, $event);

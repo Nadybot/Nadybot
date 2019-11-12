@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Mindrila (RK1)
  *  - Tyrence (RK2)
  *
@@ -172,7 +172,7 @@ class RaffleController {
 	 * @Matches("/^raffle result$/i")
 	 */
 	public function raffleResultCommand($message, $channel, $sender, $sendto, $args) {
-		if (!isset ($this->raffles["lastresult"])) {
+		if (!isset($this->raffles["lastresult"])) {
 			$msg = "Last raffles result could not be retrieved.";
 			$sendto->reply($msg);
 			return;
@@ -214,7 +214,7 @@ class RaffleController {
 			return;
 		}
 
-		if (!isset( $this->raffles["rafflees"][$sender])) {
+		if (!isset($this->raffles["rafflees"][$sender])) {
 			$msg = "You are not currently signed up for the raffle.";
 			$sendto->reply($msg);
 			return;
@@ -232,9 +232,9 @@ class RaffleController {
 	public function checkRaffleEvent($eventObj) {
 		if (!$this->raffles["running"]) {
 			// no raffle running, do nothing
-		} else if (time() < $this->raffles["nextmsgtime"]) {
+		} elseif (time() < $this->raffles["nextmsgtime"]) {
 			// not time to display another reminder yet
-		} else if ($this->raffles["time"] == $this->raffles["nextmsgtime"]) {
+		} elseif ($this->raffles["time"] == $this->raffles["nextmsgtime"]) {
 			// if there is no time left or we even skipped over the time, end raffle
 			$this->endraffle();
 		} else {
@@ -242,7 +242,7 @@ class RaffleController {
 		}
 	}
 	
-	function endraffle() {
+	public function endraffle() {
 		// just to make sure there is a raffle to end
 		if (!$this->raffles["running"]) {
 			return;
@@ -317,15 +317,15 @@ class RaffleController {
 		$this->raffles["sendto"]->reply($msg);
 	}
 
-	function getNextTime($endtime) {
+	public function getNextTime($endtime) {
 		$tleft = $endtime - time();
 		if ($tleft <= 0) {
 			$ret = false;
-		} else if ($tleft <= 30) {
+		} elseif ($tleft <= 30) {
 			$ret = $endtime;
-		} else if ($tleft <= 60) {
+		} elseif ($tleft <= 60) {
 			$ret = $endtime - 30;
-		} else if ($tleft <= 120) {
+		} elseif ($tleft <= 120) {
 			$ret = $endtime - 60;
 		} else {
 			$ret = $endtime - floor(($tleft - 30) / 60) * 60;
@@ -333,7 +333,7 @@ class RaffleController {
 		return $ret;
 	}
 
-	function showRaffleReminder() {
+	public function showRaffleReminder() {
 		// there is a raffle running
 		$time_string = $this->util->unixtimeToReadable($this->raffles["time"] - $this->raffles["nextmsgtime"]);
 		$item = $this->raffles["item"];

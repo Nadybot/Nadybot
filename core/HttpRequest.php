@@ -20,7 +20,7 @@ class HttpRequest {
 
 	// user for integration tests
 	/** @internal */
-	static public $overridePathPrefix = null;
+	public static $overridePathPrefix = null;
 
 	public function __construct($method, $uri, $queryParams, $extraHeaders) {
 		$this->method = $method;
@@ -45,7 +45,7 @@ class HttpRequest {
 	private function extractStreamScheme() {
 		if ($this->uriComponents['scheme'] == 'http') {
 			$this->streamScheme = 'tcp';
-		} else if ($this->uriComponents['scheme'] == 'https') {
+		} elseif ($this->uriComponents['scheme'] == 'https') {
 			$this->streamScheme = 'ssl';
 		} else {
 			throw new InvalidHttpRequest("URI has no valid scheme: '{$this->uri}'");
@@ -59,7 +59,7 @@ class HttpRequest {
 			} else {
 				$this->streamPort = 80;
 			}
-		} else if ($this->uriComponents['scheme'] == 'https') {
+		} elseif ($this->uriComponents['scheme'] == 'https') {
 			if (isset($this->uriComponents['port'])) {
 				$this->streamPort = $this->uriComponents['port'];
 			} else {
@@ -118,7 +118,7 @@ class HttpRequest {
 			parse_str($queryStr, $queryArray);
 			$queryArray = array_merge($queryArray, $this->queryParams);
 			$queryStr = http_build_query($queryArray);
-		} else if ($this->method == 'post') {
+		} elseif ($this->method == 'post') {
 		} else {
 			throw new InvalidHttpRequest("Invalid http method: '{$this->method}'");
 		}

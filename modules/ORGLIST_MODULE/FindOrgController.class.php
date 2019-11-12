@@ -5,16 +5,16 @@ namespace Budabot\User\Modules;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'findorg', 
- *		accessLevel = 'all', 
- *		description = 'Find orgs by name', 
+ *		command     = 'findorg',
+ *		accessLevel = 'all',
+ *		description = 'Find orgs by name',
  *		help        = 'findorg.txt'
  *	)
  */
@@ -70,7 +70,7 @@ class FindOrgController {
 		$sendto->reply($msg);
 	}
 	
-	public function lookupOrg($search, $limit = 50) {
+	public function lookupOrg($search, $limit=50) {
 		$tmp = explode(" ", $search);
 		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'name');
 		
@@ -129,4 +129,3 @@ class FindOrgController {
 		$this->logger->log("DEBUG", "Finished downloading orgs");
 	}
 }
-

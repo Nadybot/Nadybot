@@ -113,5 +113,4 @@ class ChatSayController {
 			$this->chatBot->sendPrivate("<yellow>$args[1]<end>", true);
 		}
 	}
-
 }

@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -46,7 +46,6 @@ class ClusterController {
 
 		forEach ($data as $cluster) {
 			$blob .= $this->text->makeChatcmd($cluster->LongName, "/tell <myname> cluster $cluster->LongName") . "\n";
-
 		}
 		$msg = $this->text->makeBlob("Cluster List ($count)", $blob);
 		$sendto->reply($msg);

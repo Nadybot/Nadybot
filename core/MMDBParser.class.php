@@ -109,7 +109,7 @@ class MMDBParser {
 		return $categories;
 	}
 
-	private function openFile($filename = "data/text.mdb") {
+	private function openFile($filename="data/text.mdb") {
 		$in = fopen($filename, 'rb');
 		if (!$in) {
 			$this->logger->log('error', "Could not open file: '{$filename}'");

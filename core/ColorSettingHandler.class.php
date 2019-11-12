@@ -15,14 +15,14 @@ class ColorSettingHandler extends SettingHandler {
 	/**
 	 * @return String
 	 */
-	function displayValue() {
+	public function displayValue() {
 		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
 	}
 	
 	/**
 	 * @return String
 	 */
-	function getDescription() {
+	public function getDescription() {
 		$msg = "For this setting you can set any Color in the HTML Hexadecimal Color Format.\n";
 		$msg .= "You can change it manually with the command: \n\n";
 		$msg .= "/tell <myname> settings save {$this->row->name} <i>HTML-Color</i>\n\n";
@@ -51,7 +51,7 @@ class ColorSettingHandler extends SettingHandler {
 	/**
 	 * @return String of new value or false if $newValue is invalid
 	 */
-	function save($newValue) {
+	public function save($newValue) {
 		if (preg_match("/^#([0-9a-f]{6})$/i", $newValue)) {
 			return "<font color='$newValue'>";
 		} else {

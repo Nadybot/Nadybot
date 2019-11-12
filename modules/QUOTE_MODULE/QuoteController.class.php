@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Lucier (RK1)
  *	- Tyrence (RK2)
  *
@@ -11,9 +11,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'quote', 
- *		accessLevel = 'all', 
- *		description = 'Add/Remove/View Quotes', 
+ *		command     = 'quote',
+ *		accessLevel = 'all',
+ *		description = 'Add/Remove/View Quotes',
  *		help        = 'quote.txt'
  *	)
  */
@@ -187,7 +187,7 @@ class QuoteController {
 		return $row->max_id;
 	}
 
-	public function getQuoteInfo($id = null) {
+	public function getQuoteInfo($id=null) {
 		$count = $this->getMaxId();
 
 		if ($count == 0) {

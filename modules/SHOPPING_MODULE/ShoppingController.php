@@ -6,16 +6,16 @@ use Budabot\Core\StopExecutionException;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'shop', 
- *		accessLevel = 'all', 
- *		description = 'Search for things that have been posted to the shopping channels', 
+ *		command     = 'shop',
+ *		accessLevel = 'all',
+ *		description = 'Search for things that have been posted to the shopping channels',
  *		help        = 'shop.txt'
  *	)
  */
@@ -77,7 +77,7 @@ class ShoppingController {
 			$minQl = $args[1];
 			$maxQl = $args[2];
 			$search = $args[3];
-		} else if (count($args) == 3) {
+		} elseif (count($args) == 3) {
 			$minQl = $args[1];
 			$maxQl = $args[1];
 			$search = $args[2];
@@ -122,7 +122,7 @@ class ShoppingController {
 		$response = $this->http->get($url)->withQueryParams($params)->waitAndReturnResponse();
 		if (!empty($response->error)) {
 			throw new Exception($response->error);
-		} else if (substr($response->body, 0, 5) == 'Error') {
+		} elseif (substr($response->body, 0, 5) == 'Error') {
 			throw new Exception($response->body);
 		} else {
 			return json_decode($response->body);
@@ -210,9 +210,9 @@ class ShoppingController {
 		$messageType = 1;
 		if (preg_match("/^(.{0,3})wtb/i", $message)) {
 			$messageType = 2;
-		} else if (preg_match("/^(.{0,3})wtt/i", $message)) {
+		} elseif (preg_match("/^(.{0,3})wtt/i", $message)) {
 			$messageType = 3;
-		} else if (preg_match("/^(.{0,3})wth/i", $message)) {
+		} elseif (preg_match("/^(.{0,3})wth/i", $message)) {
 			$messageType = 4;
 		}
 		

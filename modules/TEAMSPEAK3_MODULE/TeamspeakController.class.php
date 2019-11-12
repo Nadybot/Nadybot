@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -75,7 +75,8 @@ class TeamspeakController {
 			$this->settingManager->get('ts_password'),
 			$this->settingManager->get('ts_server'),
 			$this->settingManager->get('ts_queryport'),
-			$this->settingManager->get('ts_server_id'));
+			$this->settingManager->get('ts_server_id')
+		);
 
 		try {
 			$server = $this->settingManager->get('ts_server');
@@ -84,27 +85,26 @@ class TeamspeakController {
 
 			$users = $ts->exec('clientlist');
 			$tmp = $ts->exec('channellist');
-			$channels = Array();
-			foreach($tmp as $c) {
+			$channels = array();
+			foreach ($tmp as $c) {
 				$channels[$c['cid']]['name'] = str_replace('\s', ' ', $c['channel_name']);
-				$channels[$c['cid']]['users'] = Array();
+				$channels[$c['cid']]['users'] = array();
 			}
 			$count = 0;
-			foreach($users as $u) {
-				if($u['client_type'] == 0) {
+			foreach ($users as $u) {
+				if ($u['client_type'] == 0) {
 					$channels[$u['cid']]['users'][] = str_replace('\s', ' ', $u['client_nickname']);
 					$count++;
 				}
 			}
-			$msg = Array();
-			if($count) {
-				foreach($channels as $c) {
-					if(count($c['users'])) {
+			$msg = array();
+			if ($count) {
+				foreach ($channels as $c) {
+					if (count($c['users'])) {
 						$msg[] = sprintf("<highlight>%s<end>:\n<tab>%s", $c['name'], implode(', ', $c['users']));
 					}
 				}
-			}
-			else {
+			} else {
 				$msg[] = '<i>No users connected</i>';
 			}
 			$msg = sprintf("Server: %s\nDescription: <highlight>%s<end>\n\n%s\n\nTeamspeak 3 support by Tshaar (RK2)", $serverLink, $this->settingManager->get('ts_description'), implode("\n\n", $msg));

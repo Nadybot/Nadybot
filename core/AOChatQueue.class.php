@@ -51,13 +51,13 @@ define('AOC_PRIORITY_LOW',             100);
 
 class AOChatQueue {
 
-	var $queue;
-	var $qsize;  // the number of items in the queue for any priority
-	var $point;  // the next time we can send a message
-	var $limit;  // the amount of messages that can be sent before metering kicks in
-	var $increment;  // the amount of time in seconds to wait after the limit has been reached
+	public $queue;
+	public $qsize;  // the number of items in the queue for any priority
+	public $point;  // the next time we can send a message
+	public $limit;  // the amount of messages that can be sent before metering kicks in
+	public $increment;  // the amount of time in seconds to wait after the limit has been reached
 
-	function __construct($limit, $increment) {
+	public function __construct($limit, $increment) {
 		$this->limit = $limit;
 		$this->increment = $increment;
 		$this->point = 0;
@@ -65,7 +65,7 @@ class AOChatQueue {
 		$this->qsize = 0;
 	}
 
-	function push($priority, $item) {
+	public function push($priority, $item) {
 		$now = time();
 
 		if (isset($this->queue[$priority])) {
@@ -77,7 +77,7 @@ class AOChatQueue {
 		$this->qsize++;
 	}
 
-	function getNext() {
+	public function getNext() {
 		if ($this->qsize === 0) {
 			return null;
 		}

@@ -67,7 +67,7 @@ class NewsController {
 				$blob .= $this->text->makeChatcmd("Remove", "/tell <myname> news rem $row->id") . " ";
 				if ($row->sticky == 1) {
 					$blob .= $this->text->makeChatcmd("Unsticky", "/tell <myname> news unsticky $row->id")."\n";
-				} else if ($row->sticky == 0) {
+				} elseif ($row->sticky == 0) {
 					$blob .= $this->text->makeChatcmd("Sticky", "/tell <myname> news sticky $row->id")."\n";
 				}
 				$sticky = $row->sticky;
@@ -194,7 +194,7 @@ class NewsController {
 
 		if ($row->sticky == 0) {
 			$msg = "News ID $id is not stickied.";
-		} else if ($row->sticky == 1) {
+		} elseif ($row->sticky == 1) {
 			$this->db->exec("UPDATE `news` SET `sticky` = 0 WHERE `id` = ?", $id);
 			$msg = "News ID $id successfully unstickied.";
 		}

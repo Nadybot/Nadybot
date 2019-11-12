@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *	- Jaqueme
  *
@@ -11,9 +11,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'research', 
- *		accessLevel = 'all', 
- *		description = 'Show info on Research', 
+ *		command     = 'research',
+ *		accessLevel = 'all',
+ *		description = 'Show info on Research',
  *		help        = 'research.txt'
  *	)
  */

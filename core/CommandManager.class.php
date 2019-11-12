@@ -53,7 +53,7 @@ class CommandManager {
 	 * @name: register
 	 * @description: Registers a command
 	 */
-	public function register($module, $channel, $filename, $command, $accessLevel, $description, $help = '', $defaultStatus = null) {
+	public function register($module, $channel, $filename, $command, $accessLevel, $description, $help='', $defaultStatus=null) {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
@@ -112,7 +112,7 @@ class CommandManager {
 	 * @name: activate
 	 * @description: Activates a command
 	 */
-	public function activate($channel, $filename, $command, $accessLevel = 'all') {
+	public function activate($channel, $filename, $command, $accessLevel='all') {
 		$command = strtolower($command);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$channel = strtolower($channel);
@@ -180,7 +180,7 @@ class CommandManager {
 		forEach ($data as $row) {
 			if ($status == 1) {
 				$this->activate($row->type, $row->file, $row->cmd, $admin);
-			} else if ($status == 0) {
+			} elseif ($status == 0) {
 				$this->deactivate($row->type, $row->file, $row->cmd);
 			}
 		}
@@ -201,7 +201,7 @@ class CommandManager {
 		}
 	}
 
-	public function get($command, $channel = null) {
+	public function get($command, $channel=null) {
 		$command = strtolower($command);
 
 		if ($channel !== null) {
@@ -216,7 +216,7 @@ class CommandManager {
 		return $sc->cmd;
 	}
 
-	function process($channel, $message, $sender, CommandReply $sendto) {
+	public function process($channel, $message, $sender, CommandReply $sendto) {
 		list($cmd, $params) = explode(' ', $message, 2);
 		$cmd = strtolower($cmd);
 

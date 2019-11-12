@@ -9,7 +9,7 @@ use stdClass;
  *
  * This class should not be instanced as it is, but instead Http class's
  * get() or post() method should be used to create instance of the
- * AsyncHttp class. 
+ * AsyncHttp class.
  */
 class AsyncHttp {
 
@@ -49,9 +49,9 @@ class AsyncHttp {
 
 	// user for integration tests
 	/** @internal */
-	static public $overrideAddress = null;
+	public static $overrideAddress = null;
 	/** @internal */
-	static public $overridePort    = null;
+	public static $overridePort    = null;
 
 	/**
 	 * @internal
@@ -158,8 +158,11 @@ class AsyncHttp {
 			$this->timeout = $this->setting->http_timeout;
 		}
 
-		$this->timeoutEvent = $this->timer->callLater($this->timeout, array($this, 'abortWithMessage'),
-			"Timeout error after waiting {$this->timeout} seconds");
+		$this->timeoutEvent = $this->timer->callLater(
+			$this->timeout,
+			array($this, 'abortWithMessage'),
+			"Timeout error after waiting {$this->timeout} seconds"
+		);
 	}
 
 	private function createStream() {
@@ -235,10 +238,10 @@ class AsyncHttp {
 		if ($this->isBodyLengthKnown()) {
 			if ($this->isBodyFullyReceived()) {
 				$this->finish();
-			} else if ($this->isStreamClosed()) {
+			} elseif ($this->isStreamClosed()) {
 				$this->abortWithMessage("Stream closed before receiving all data");
 			}
-		} else if ($this->isStreamClosed()) {
+		} elseif ($this->isStreamClosed()) {
 			$this->finish();
 		}
 	}
@@ -317,7 +320,7 @@ class AsyncHttp {
 			$written = fwrite($this->stream, $this->requestData);
 			if ($written === false) {
 				$this->abortWithMessage("Cannot write request headers for uri '{$this->uri}' to stream");
-			} else if ($written > 0) {
+			} elseif ($written > 0) {
 				$this->requestData = substr($this->requestData, $written);
 
 				// since data was written, reset timeout
@@ -362,7 +365,7 @@ class AsyncHttp {
 	 * @param mixed    $data     extra data which will be passed as second argument to the callback
 	 * @return AsyncHttp
 	 */
-	public function withCallback($callback, $data = null) {
+	public function withCallback($callback, $data=null) {
 		$this->callback = $callback;
 		$this->data     = $data;
 		return $this;

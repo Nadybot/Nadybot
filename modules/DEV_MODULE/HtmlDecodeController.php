@@ -5,16 +5,16 @@ namespace Budabot\User\Modules;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'htmldecode', 
- *		accessLevel = 'all', 
- *		description = 'Execute a command by first decoding html entities', 
+ *		command     = 'htmldecode',
+ *		accessLevel = 'all',
+ *		description = 'Execute a command by first decoding html entities',
  *		help        = 'htmldecode.txt'
  *	)
  */

@@ -3,16 +3,16 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'track', 
- *		accessLevel = 'all', 
- *		description = 'Show and manage tracked players', 
+ *		command     = 'track',
+ *		accessLevel = 'all',
+ *		description = 'Show and manage tracked players',
  *		help        = 'track.txt'
  *	)
  */
@@ -131,7 +131,7 @@ class TrackerController {
 
 				if ($row2->event == 'logon') {
 					$status = "<green>logon<end>";
-				} else if ($row2->event == 'logoff') {
+				} elseif ($row2->event == 'logoff') {
 					$status = "<orange>logoff<end>";
 				} else {
 					$status = "<grey>None<end>";
@@ -216,7 +216,7 @@ class TrackerController {
 				forEach ($data as $row) {
 					if ($row->event == 'logon') {
 						$status = "<green>logon<end>";
-					} else if ($row->event == 'logoff') {
+					} elseif ($row->event == 'logoff') {
 						$status = "<orange>logoff<end>";
 					} else {
 						$status = "<grey>unknown<end>";

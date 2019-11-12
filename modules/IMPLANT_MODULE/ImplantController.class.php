@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *	- Imoutochan (RK1)
  *
@@ -243,11 +243,8 @@ class ImplantController {
 
 
 		if ($obj->ql > 250) {
-
 			$msg .= "\n\nRequires Title Level 6";
-
-		} else if ($obj->ql > 200) {
-
+		} elseif ($obj->ql > 200) {
 			$msg .= "\n\nRequires Title Level 5";
 		}
 
@@ -297,9 +294,9 @@ class ImplantController {
 	public function getClusterMinQl($ql, $grade) {
 		if ($grade == 'shiny') {
 			return floor($ql * 0.86);
-		} else if ($grade == 'bright') {
+		} elseif ($grade == 'bright') {
 			return floor($ql * 0.84);
-		} else if ($grade == 'faded') {
+		} elseif ($grade == 'faded') {
 			return floor($ql * 0.82);
 		} else {
 			throw new Exception("Invalid grade: '$grade'.  Must be one of: 'shiny', 'bright', 'faded'");

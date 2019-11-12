@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * Guides compiled by Plugsz (RK1)
@@ -12,9 +12,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'guides', 
- *		accessLevel = 'all', 
- *		description = 'Guides for AO', 
+ *		command     = 'guides',
+ *		accessLevel = 'all',
+ *		description = 'Guides for AO',
  *		help        = 'guides.txt'
  *	)
  */

@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Marinerecon (RK2)
  *  - Derroylo (RK2)
  *  - Tyrence (RK2)
@@ -397,7 +397,7 @@ class LootListsController {
 		$itemlink["VNGW"] = $this->text->makeItem(257123, 257123, 300, "Vektor ND Grand Wyrm");
 		$list = '';
 
-		switch($sector) {
+		switch ($sector) {
 			case "7":
 				$raid = "APF";
 				$category = "Sector 7";

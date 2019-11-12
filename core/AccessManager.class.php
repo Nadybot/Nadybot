@@ -40,15 +40,15 @@ class AccessManager {
 	 * The bot will automatically restrict access to commands based on the
 	 * access level setting on the command and the access level of the user
 	 * trying to access the command.
-	 * 
+	 *
 	 * However, there are some cases where you may need this functionality.
 	 * For instance, you may have a command that displays the names of the last
 	 * ten people to send a tell to the bot.  You may wish to display a "ban"
 	 * link when a moderator or higher uses that command.
-	 * 
+	 *
 	 * To check if a character named 'Tyrence' has moderator access,
 	 * you would do:
-	 * 
+	 *
 	 * <code>
 	 * if ($this->accessManager->checkAccess("Tyrence", "moderator")) {
 	 *    // Tyrence has [at least] moderator access level
@@ -56,14 +56,14 @@ class AccessManager {
 	 *    // Tyrence does not have moderator access level
 	 * }
 	 * </code>
-	 * 
+	 *
 	 * Note that this will return true if 'Tyrence' is a moderator on your
 	 * bot, but also if he is anything higher, such as administrator, or superadmin.
 	 *
 	 * This command will check the character's "effective" access level, meaning
 	 * the higher of it's own access level and that of it's main, if it has a main
 	 * and if it has been validated as an alt.
-	 * 
+	 *
 	 * @param string $sender - the name of the person you want to check access on
 	 * @param string $accessLevel - can be one of: superadmin, admininistrator, moderator, guild, member, raidleader, all
 	 * @return bool true if $sender has at least $accessLevel, false otherwise
@@ -117,7 +117,7 @@ class AccessManager {
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
 	 */
 	public function getSingleAccessLevel($sender) {
-		if ($this->chatBot->vars["SuperAdmin"] == $sender){
+		if ($this->chatBot->vars["SuperAdmin"] == $sender) {
 			return "superadmin";
 		}
 		if (isset($this->adminManager->admins[$sender])) {

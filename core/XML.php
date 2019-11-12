@@ -33,7 +33,7 @@ namespace Budabot\Core;
 */
 
 //class provide some basic function to splice XML Files or getting an XML file from a URL
-class xml {
+class XML {
 	//Extracts one entry of the XML file
 	public static function spliceData($sourcefile, $start, $end) {
 		$data = explode($start, $sourcefile, 2);
@@ -54,7 +54,7 @@ class xml {
 		$sourcedata = explode($start, $sourcefile);
 		array_shift($sourcedata);
 		forEach ($sourcedata as $indsplit) {
-		$target = explode($end, $indsplit, 2);
+			$target = explode($end, $indsplit, 2);
 			$targetdata[] = $target[0];
 		}
 		return $targetdata;

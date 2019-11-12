@@ -28,7 +28,7 @@ class AltInfo {
 			return array($sender);
 		} else {
 			$arr = array($this->main);
-			forEach($this->alts as $alt => $validated) {
+			forEach ($this->alts as $alt => $validated) {
 				if ($validated) {
 					$arr []= $alt;
 				}
@@ -37,7 +37,7 @@ class AltInfo {
 		}
 	}
 
-	public function getAltsBlob($showValidateLinks = false, $firstPageOnly = false) {
+	public function getAltsBlob($showValidateLinks=false, $firstPageOnly=false) {
 		$db = Registry::getInstance('db');
 		$settingManager = Registry::getInstance('settingManager');
 		$playerManager = Registry::getInstance('playerManager');

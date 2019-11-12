@@ -3,28 +3,28 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'random', 
- *		accessLevel = 'all', 
- *		description = 'Randomize a list of names/items', 
+ *		command     = 'random',
+ *		accessLevel = 'all',
+ *		description = 'Randomize a list of names/items',
  *		help        = 'random.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'roll', 
- *		accessLevel = 'all', 
- *		description = 'Roll a random number', 
+ *		command     = 'roll',
+ *		accessLevel = 'all',
+ *		description = 'Roll a random number',
  *		help        = 'roll.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'verify', 
- *		accessLevel = 'all', 
- *		description = 'Verifies a roll', 
+ *		command     = 'verify',
+ *		accessLevel = 'all',
+ *		description = 'Verifies a roll',
  *		help        = 'roll.txt'
  *	)
  */

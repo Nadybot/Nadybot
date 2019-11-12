@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *  - Mindrila (RK1)
  *
@@ -11,65 +11,65 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'members', 
- *		accessLevel = 'all', 
- *		description = "Member list", 
+ *		command     = 'members',
+ *		accessLevel = 'all',
+ *		description = "Member list",
  *		help        = 'private_channel.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'adduser', 
- *		accessLevel = 'guild', 
- *		description = "Adds a player to the members list", 
+ *		command     = 'adduser',
+ *		accessLevel = 'guild',
+ *		description = "Adds a player to the members list",
  *		help        = 'private_channel.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'remuser', 
- *		accessLevel = 'guild', 
- *		description = "Removes a player from the members list", 
+ *		command     = 'remuser',
+ *		accessLevel = 'guild',
+ *		description = "Removes a player from the members list",
  *		help        = 'private_channel.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'invite', 
- *		accessLevel = 'guild', 
- *		description = "Invite players to the private channel", 
+ *		command     = 'invite',
+ *		accessLevel = 'guild',
+ *		description = "Invite players to the private channel",
  *		help        = 'private_channel.txt',
  *		alias       = 'inviteuser'
  *	)
  *	@DefineCommand(
- *		command     = 'kick', 
- *		accessLevel = 'guild', 
- *		description = "Kick players from the private channel", 
+ *		command     = 'kick',
+ *		accessLevel = 'guild',
+ *		description = "Kick players from the private channel",
  *		help        = 'private_channel.txt',
  *		alias       = 'kickuser'
  *	)
  *	@DefineCommand(
- *		command     = 'autoinvite', 
- *		accessLevel = 'member', 
- *		description = "Enable or disable autoinvite", 
+ *		command     = 'autoinvite',
+ *		accessLevel = 'member',
+ *		description = "Enable or disable autoinvite",
  *		help        = 'autoinvite.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'count', 
- *		accessLevel = 'all', 
- *		description = "Shows how many characters are in the private channel", 
+ *		command     = 'count',
+ *		accessLevel = 'all',
+ *		description = "Shows how many characters are in the private channel",
  *		help        = 'count.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'kickall', 
- *		accessLevel = 'guild', 
- *		description = "Kicks all from the private channel", 
+ *		command     = 'kickall',
+ *		accessLevel = 'guild',
+ *		description = "Kicks all from the private channel",
  *		help        = 'kickall.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'join', 
- *		accessLevel = 'member', 
- *		description = "Join command for characters who want to join the private channel", 
+ *		command     = 'join',
+ *		accessLevel = 'member',
+ *		description = "Join command for characters who want to join the private channel",
  *		help        = 'private_channel.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'leave', 
- *		accessLevel = 'all', 
- *		description = "Leave command for characters in private channel", 
+ *		command     = 'leave',
+ *		accessLevel = 'all',
+ *		description = "Leave command for characters in private channel",
  *		help        = 'private_channel.txt'
  *	)
  */
@@ -144,9 +144,9 @@ class PrivateChannelController {
 				$online = $this->buddylistManager->isOnline($row->name);
 				if (isset($this->chatBot->chatlist[$row->name])) {
 					$status = "(<green>Online and in channel<end>)";
-				} else if ($online === 1) {
+				} elseif ($online === 1) {
 					$status = "(<green>Online<end>)";
-				} else if ($online === 0) {
+				} elseif ($online === 0) {
 					$status = "(<red>Offline<end>)";
 				} else {
 					$status = "(<orange>Unknown<end>)";
@@ -191,7 +191,7 @@ class PrivateChannelController {
 		$uid = $this->chatBot->get_uid($name);
 		if ($this->chatBot->vars["name"] == $name) {
 			$msg = "You cannot invite the bot to its own private channel.";
-		} else if ($uid) {
+		} elseif ($uid) {
 			if (isset($this->chatBot->chatlist[$name])) {
 				$msg = "<highlight>$name<end> is already in the private channel.";
 			} else {
@@ -217,7 +217,7 @@ class PrivateChannelController {
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
-		} else if (!isset($this->chatBot->chatlist[$name])) {
+		} elseif (!isset($this->chatBot->chatlist[$name])) {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
 			if ($this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
@@ -273,17 +273,17 @@ class PrivateChannelController {
 		forEach ($data as $row) {
 			if ($row->level > 1 && $row->level <= 14) {
 				$tl1++;
-			} else if ($row->level >= 15 && $row->level <= 49) {
+			} elseif ($row->level >= 15 && $row->level <= 49) {
 				$tl2++;
-			} else if ($row->level >= 50 && $row->level <= 99) {
+			} elseif ($row->level >= 50 && $row->level <= 99) {
 				$tl3++;
-			} else if ($row->level >= 100 && $row->level <= 149) {
+			} elseif ($row->level >= 100 && $row->level <= 149) {
 				$tl4++;
-			} else if ($row->level >= 150 && $row->level <= 189) {
+			} elseif ($row->level >= 150 && $row->level <= 189) {
 				$tl5++;
-			} else if ($row->level >= 190 && $row->level <= 204) {
+			} elseif ($row->level >= 190 && $row->level <= 204) {
 				$tl6++;
-			} else if ($row->level >= 205 && $row->level <= 220) {
+			} elseif ($row->level >= 205 && $row->level <= 220) {
 				$tl7++;
 			}
 		}
@@ -595,12 +595,12 @@ class PrivateChannelController {
 		$this->chatBot->sendTell($msg, $sender);
 	}
 	
-	public function addUser($name, $autoInvite = 1) {
+	public function addUser($name, $autoInvite=1) {
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
 		if ($this->chatBot->vars["name"] == $name) {
 			$msg = "You cannot add the bot as a member of itself.";
-		} else if (!$uid) {
+		} elseif (!$uid) {
 			$msg = "Character <highlight>$name<end> does not exist.";
 		} else {
 			$data = $this->db->query("SELECT * FROM members_<myname> WHERE `name` = ?", $name);
@@ -632,4 +632,3 @@ class PrivateChannelController {
 		return $msg;
 	}
 }
-

@@ -7,15 +7,15 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'topic', 
- *		accessLevel = 'all', 
- *		description = 'Shows Topic', 
+ *		command     = 'topic',
+ *		accessLevel = 'all',
+ *		description = 'Shows Topic',
  *		help        = 'topic.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'topic .+', 
- *		accessLevel = 'rl', 
- *		description = 'Changes Topic', 
+ *		command     = 'topic .+',
+ *		accessLevel = 'rl',
+ *		description = 'Changes Topic',
  *		help        = 'topic.txt'
  *	)
  */

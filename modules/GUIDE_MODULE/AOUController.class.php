@@ -6,16 +6,16 @@ use stdClass;
 use DOMDocument;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'aou', 
- *		accessLevel = 'all', 
- *		description = 'Search for or view a guide from AO-Universe.com', 
+ *		command     = 'aou',
+ *		accessLevel = 'all',
+ *		description = 'Search for or view a guide from AO-Universe.com',
  *		help        = 'aou.txt'
  *	)
  */

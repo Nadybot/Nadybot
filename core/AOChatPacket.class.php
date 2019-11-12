@@ -161,7 +161,7 @@ class AOChatPacket {
 		)
 	);
 
-	function __construct($dir, $type, $data) {
+	public function __construct($dir, $type, $data) {
 		$this->args = array();
 		$this->type = $type;
 		$this->dir  = $dir;

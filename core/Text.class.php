@@ -18,7 +18,7 @@ class Text {
 
 	public function makeHeaderLinks($links) {
 		$output = '';
-		forEach ($links as $title => $command){
+		forEach ($links as $title => $command) {
 			$output .= " ::: " . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . " ::: ";
 		}
 		return $output;
@@ -28,7 +28,7 @@ class Text {
 	 * @name: makeBlob
 	 * @description: creates an info window
 	 */
-	public function makeBlob($name, $content, $header = null) {
+	public function makeBlob($name, $content, $header=null) {
 		if ($header === null) {
 			$header = $name;
 		}
@@ -124,7 +124,7 @@ class Text {
 
 				$newResult = $this->paginate($line, $maxLength, $symbols);
 				$result = array_merge($result, $newResult);
-			} else if ($pageSize + $lineLength < $maxLength) {
+			} elseif ($pageSize + $lineLength < $maxLength) {
 				$currentPage .= $line;
 				$pageSize += $lineLength;
 			} else {
@@ -148,7 +148,7 @@ class Text {
 	 * @param: $content - the chatcmd to execute
 	 * @param: $style (optional) - any styling you want applied to the link
 	 */
-	public function makeChatcmd($name, $content, $style = null) {
+	public function makeChatcmd($name, $content, $style=null) {
 		$content = str_replace("'", '&#39;', $content);
 		return "<a $style href='chatcmd://$content'>$name</a>";
 	}
@@ -159,7 +159,7 @@ class Text {
 	 * @param: $name - the name the user to create a link for
 	 * @param: $style (optional) - any styling you want applied to the link
 	 */
-	public function makeUserlink($user, $style = null) {
+	public function makeUserlink($user, $style=null) {
 		return "<a $style href='user://$user'>$user</a>";
 	}
 
@@ -177,7 +177,7 @@ class Text {
 	 * @param $imageId id of the image
 	 * @param $db (optional) image database to use, by default uses rdb
 	 */
-	public function makeImage($imageId, $db = "rdb") {
+	public function makeImage($imageId, $db="rdb") {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 

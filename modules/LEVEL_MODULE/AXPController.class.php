@@ -3,16 +3,16 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'axp', 
- *		accessLevel = 'all', 
- *		description = 'Show axp needed for specified level(s)', 
+ *		command     = 'axp',
+ *		accessLevel = 'all',
+ *		description = 'Show axp needed for specified level(s)',
  *		help        = 'xp.txt'
  *	)
  */

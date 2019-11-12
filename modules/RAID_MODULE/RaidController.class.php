@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *	- Derroylo (RK2)
  *  - Marinerecon (RK2)
  *  - Tyrence (RK2)
@@ -210,7 +210,7 @@ class RaidController {
 			$item_highid = $arr[1];
 			$item_lowid = $arr[2];
 			$item_name = $arr[4];
-		} else if (preg_match("|^(.+)<a href=\"itemref://(\\d+)/(\\d+)/(\\d+)\">(.+)</a>(.*)$|i", $input, $arr)){
+		} elseif (preg_match("|^(.+)<a href=\"itemref://(\\d+)/(\\d+)/(\\d+)\">(.+)</a>(.*)$|i", $input, $arr)) {
 			$item_ql = $arr[4];
 			$item_highid = $arr[2];
 			$item_lowid = $arr[3];
@@ -289,7 +289,7 @@ class RaidController {
 			} else {
 				// remove the item by shifting lower items up one slot and remove last slot
 				$loop = $key;
-				while($loop < count($this->loot)){
+				while ($loop < count($this->loot)) {
 					$this->loot[$loop] = $this->loot[$loop+1];
 					$loop++;
 				}
@@ -538,7 +538,7 @@ class RaidController {
 	
 	public function getLootItem($name) {
 		forEach ($this->loot as $key => $item) {
-			if ($item->name == $name){
+			if ($item->name == $name) {
 				return $key;
 			}
 		}

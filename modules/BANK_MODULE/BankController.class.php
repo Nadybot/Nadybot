@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *	- Marebone (RK2)
  *
@@ -11,15 +11,15 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'bank', 
- *		accessLevel = 'guild', 
- *		description = 'Browse and search the bank characters', 
+ *		command     = 'bank',
+ *		accessLevel = 'guild',
+ *		description = 'Browse and search the bank characters',
  *		help        = 'bank.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'bank update',
- *		accessLevel = 'admin', 
- *		description = 'Reloads the bank database from the AO Items Assistant file', 
+ *		accessLevel = 'admin',
+ *		description = 'Reloads the bank database from the AO Items Assistant file',
  *		help        = 'bank.txt',
  *		alias		= 'updatebank'
  *	)

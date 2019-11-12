@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Legendadv (RK2)
  *	- Tyrence (RK2)
  *
@@ -123,7 +123,7 @@ class EventsController {
 		$row = $this->db->queryRow("SELECT * FROM events WHERE `id` = ?", $id);
 		if (time() < ($row->event_date + (3600 * 3))) {
 			// cannot leave an event after 3 hours past its starttime
-			if (strpos($row->event_attendees,$sender) !== false) {
+			if (strpos($row->event_attendees, $sender) !== false) {
 				$event = explode(",", $row->event_attendees);
 				forEach ($event as $i => $value) {
 					if ($value == $sender) {
@@ -272,7 +272,7 @@ class EventsController {
 					$upcoming .= "Event Name: <highlight>$row->event_name<end>     [Event ID $row->id]\n";
 					$upcoming .= "Author: <highlight>$row->submitter_name<end>\n";
 					$upcoming .= "Attendance: <highlight>" . $this->text->makeChatcmd("$attendance signed up", "/tell <myname> events list $row->id") . "<end>" .
-						" [" . $this->text->makeChatcmd("Join", "/tell <myname> events join $row->id") . "/" . 
+						" [" . $this->text->makeChatcmd("Join", "/tell <myname> events join $row->id") . "/" .
 						$this->text->makeChatcmd("Leave", "/tell <myname> events leave $row->id") . "]\n";
 					$upcoming .= "Description: <highlight>" . $row->event_desc . "<end>\n";
 					$upcoming .= "Date Submitted: <highlight>" . $this->util->date($row->time_submitted) . "<end>\n\n";
@@ -334,4 +334,3 @@ class EventsController {
 		return $row !== null;
 	}
 }
-

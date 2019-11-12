@@ -122,9 +122,9 @@ class RelayController {
 			$relayMessage = '';
 			if ($this->settingManager->get('relay_symbol_method') == '0') {
 				$relayMessage = $message;
-			} else if ($this->settingManager->get('relay_symbol_method') == '1' && $message[0] == $this->settingManager->get('relaysymbol')) {
+			} elseif ($this->settingManager->get('relay_symbol_method') == '1' && $message[0] == $this->settingManager->get('relaysymbol')) {
 				$relayMessage = substr($message, 1);
-			} else if ($this->settingManager->get('relay_symbol_method') == '2' && $message[0] != $this->settingManager->get('relaysymbol')) {
+			} elseif ($this->settingManager->get('relay_symbol_method') == '2' && $message[0] != $this->settingManager->get('relaysymbol')) {
 				$relayMessage = $message;
 			} else {
 				return;
@@ -138,7 +138,7 @@ class RelayController {
 
 			if ($type == "guild") {
 				$msg = "grc [<myguild>]{$sender_link} {$relayMessage}";
-			} else if ($type == "priv") {
+			} elseif ($type == "priv") {
 				$msg = "grc [<myguild>] [Guest]{$sender_link} {$relayMessage}";
 			} else {
 				$this->logger->log('WARN', "Invalid type; expecting 'guild' or 'priv'.  Actual: '$type'");
@@ -253,7 +253,7 @@ class RelayController {
 		}
 	}
 	
-	function sendMessageToRelay($message) {
+	public function sendMessageToRelay($message) {
 		$relayBot = $this->settingManager->get('relaybot');
 		$message = str_ireplace("<myguild>", $this->getGuildAbbreviation(), $message);
 
@@ -263,7 +263,7 @@ class RelayController {
 		// we use the aochat methods so the bot doesn't prepend default colors
 		if ($this->settingManager->get('relaytype') == 2) {
 			$this->chatBot->send_privgroup($relayBot, $message);
-		} else if ($this->settingManager->get('relaytype') == 1) {
+		} elseif ($this->settingManager->get('relaytype') == 1) {
 			$this->chatBot->send_tell($relayBot, $message);
 
 			// manual logging is only needed for tell relay
@@ -271,7 +271,7 @@ class RelayController {
 		}
 	}
 
-	function getGuildAbbreviation() {
+	public function getGuildAbbreviation() {
 		if ($this->settingManager->get('relay_guild_abbreviation') != 'none') {
 			return $this->settingManager->get('relay_guild_abbreviation');
 		} else {
@@ -279,4 +279,3 @@ class RelayController {
 		}
 	}
 }
-

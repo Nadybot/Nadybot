@@ -91,7 +91,7 @@ class FunController {
 		$this->db->loadSQLFile($this->moduleName, "pirates");
 	}
 	
-	public function getFunItem($type, $sender, $number = null) {
+	public function getFunItem($type, $sender, $number=null) {
 		$data = $this->db->query("SELECT * FROM fun WHERE type = ?", $type);
 		if ($number === null) {
 			$row = $this->util->randomArrayValue($data);
@@ -196,7 +196,7 @@ class FunController {
 	 * @Matches("/^homer (\d+)$/i")
 	 *
 	 * Author: Derroylo (RK2)
-	 * 
+	 *
 	 * Some entries taken from a module developed by MysterF aka Floryn from Band of Brothers - CROM originally for Bebot: http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
 	 */
 	public function homerCommand($message, $channel, $sender, $sendto, $args) {

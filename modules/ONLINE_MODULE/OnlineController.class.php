@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Budabot\Core\StopExecutionException;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *  - Mindrila (RK1)
  *	- Naturarum (Paradise, RK2)
@@ -277,7 +277,7 @@ class OnlineController {
 				
 				if ('priv' == $type) {
 					$this->chatBot->sendPrivate($msg);
-				} else if ('guild' == $type) {
+				} elseif ('guild' == $type) {
 					$this->chatBot->sendGuild($msg);
 				}
 			}
@@ -289,12 +289,12 @@ class OnlineController {
 			$reason = time();
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
-		} else if (preg_match("/^.?brb(.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^.?brb(.*)$/i", $message, $arr)) {
 			$msg = trim($arr[1]);
 			$reason = time() . '|brb ' . $msg;
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
-		} else if (preg_match("/^.?afk (.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^.?afk (.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
@@ -303,7 +303,7 @@ class OnlineController {
 		if ('' != $msg) {
 			if ('priv' == $type) {
 				$this->chatBot->sendPrivate($msg);
-			} else if ('guild' == $type) {
+			} elseif ('guild' == $type) {
 				$this->chatBot->sendGuild($msg);
 			}
 			
@@ -362,10 +362,14 @@ class OnlineController {
 
 	public function getOrgInfo($show_org_info, $fancyColon, $guild, $guild_rank) {
 		switch ($show_org_info) {
-			case  3: return $guild != "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
-			case  2: return $guild != "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
-			case  1: return $guild != "" ? " $fancyColon {$guild_rank}":"";
-			default: return "";
+			case 3:
+				  return $guild != "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
+			case 2:
+				  return $guild != "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
+			case 1:
+				  return $guild != "" ? " $fancyColon {$guild_rank}":"";
+			default:
+				  return "";
 		}
 	}
 
@@ -375,10 +379,14 @@ class OnlineController {
 		}
 
 		switch ($this->accessManager->getAccessLevelForCharacter($name)) {
-			case 'superadmin': return " $fancyColon <red>SuperAdmin<end>";
-			case 'admin'     : return " $fancyColon <red>Admin<end>";
-			case 'mod'       : return " $fancyColon <green>Mod<end>";
-			case 'rl'        : return " $fancyColon <orange>RL<end>";
+			case 'superadmin':
+				  return " $fancyColon <red>SuperAdmin<end>";
+			case 'admin':
+				  return " $fancyColon <red>Admin<end>";
+			case 'mod':
+				  return " $fancyColon <green>Mod<end>";
+			case 'rl':
+				  return " $fancyColon <orange>RL<end>";
 		}
 	}
 
@@ -386,7 +394,7 @@ class OnlineController {
 		list($time, $reason) = explode("|", $afk);
 		if (empty($afk)) {
 			return '';
-		} else if (empty($reason)) {
+		} elseif (empty($reason)) {
 			$timeString = $this->util->unixtimeToReadable(time() - $time, false);
 			return " $fancyColon <highlight>AFK for $timeString<end>";
 		} else {

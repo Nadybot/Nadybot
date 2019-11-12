@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -11,8 +11,8 @@ namespace Budabot\User\Modules;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'history',
- *		accessLevel = 'all', 
- *		description = 'Show history of a player', 
+ *		accessLevel = 'all',
+ *		description = 'Show history of a player',
  *		help        = 'history.txt'
  *	)
  */
@@ -65,7 +65,7 @@ class PlayerHistoryController {
 
 					if ($entry->faction == "Omni") {
 						$faction = "<omni>Omni<end>";
-					} else if ($entry->faction == "Clan") {
+					} elseif ($entry->faction == "Clan") {
 						$faction = "<clan>Clan<end>";
 					} else {
 						$faction = "<neutral>Neutral<end>";

@@ -3,11 +3,11 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Blackruby (RK2),
- *  - Mdkdoc420 (RK2), 
- *  - Wolfbiter (RK1), 
- *  - Gatester (RK2), 
+ *  - Mdkdoc420 (RK2),
+ *  - Wolfbiter (RK1),
+ *  - Gatester (RK2),
  *  - Marebone (RK2)
  *
  * @Instance
@@ -15,15 +15,15 @@ namespace Budabot\User\Modules;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'bio',
- *		accessLevel = 'all', 
- *		description = "Identifies Solid Clump of Kyr'Ozch Bio-Material", 
+ *		accessLevel = 'all',
+ *		description = "Identifies Solid Clump of Kyr'Ozch Bio-Material",
  *		help        = 'bio.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'bioinfo',
  *      alias       = 'biotype',
- *		accessLevel = 'all', 
- *		description = 'Shows info about a particular bio type', 
+ *		accessLevel = 'all',
+ *		description = 'Shows info about a particular bio type',
  *		help        = 'bioinfo.txt'
  *	)
  */
@@ -223,19 +223,19 @@ class AlienBioController {
 		}
 		if ($ql < 1) {
 			$ql = 1;
-		} else if ($ql > 300) {
+		} elseif ($ql > 300) {
 			$ql = 300;
 		}
 
 		if (in_array($bio, $this->leArmorTypes)) {
 			$msg = $this->ofabArmorBio($ql, $bio);
-		} else if (in_array($bio, $this->leWeaponTypes)) {
+		} elseif (in_array($bio, $this->leWeaponTypes)) {
 			$msg = $this->ofabWeaponBio($ql, $bio);
-		} else if (in_array($bio, $this->aiArmorTypes)) {
+		} elseif (in_array($bio, $this->aiArmorTypes)) {
 			$msg = $this->alienArmorBio($ql, $bio);
-		} else if (in_array($bio, $this->aiWeaponTypes)) {
+		} elseif (in_array($bio, $this->aiWeaponTypes)) {
 			$msg = $this->alienWeaponBio($ql, $bio);
-		} else if ($bio == 'serum') {
+		} elseif ($bio == 'serum') {
 			$msg = $this->serumBio($ql, $bio);
 		} else {
 			$msg = "Unknown Bio-Material";
@@ -359,7 +359,7 @@ class AlienBioController {
 			$name = "Mutated Kyr'Ozch Bio-Material";
 			$chem = floor($ql * 7);
 			$chem_msg = "7 * QL";
-		} else if (strtolower($type) == "pristine") {
+		} elseif (strtolower($type) == "pristine") {
 			$name = "Pristine Kyr'Ozch Bio-Material";
 			$chem = floor($ql * 4.5);
 			$chem_msg = "4.5 * QL";

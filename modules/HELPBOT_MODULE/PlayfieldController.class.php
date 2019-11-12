@@ -3,22 +3,22 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'playfields', 
- *		accessLevel = 'all', 
- *		description = 'Show playfield ids, long names, and short names', 
+ *		command     = 'playfields',
+ *		accessLevel = 'all',
+ *		description = 'Show playfield ids, long names, and short names',
  *		help        = 'waypoint.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'waypoint', 
- *		accessLevel = 'all', 
- *		description = 'Create a waypoint link', 
+ *		command     = 'waypoint',
+ *		accessLevel = 'all',
+ *		description = 'Create a waypoint link',
  *		help        = 'waypoint.txt'
  *	)
  */
@@ -92,7 +92,7 @@ class PlayfieldController {
 			}
 
 			$msg = $this->text->makeBlob("Playfields ($count)", $blob);
-		} else if ($count == 1) {
+		} elseif ($count == 1) {
 			$row = $data[0];
 			$msg = "[<highlight>$row->id<end>] $row->long_name";
 		} else {

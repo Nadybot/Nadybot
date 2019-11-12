@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Jaqueme
  *  Database adapted from one originally compiled by Malosar for BeBot
  *
@@ -11,9 +11,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'whereis', 
- *		accessLevel = 'all', 
- *		description = 'Shows where places and NPCs are', 
+ *		command     = 'whereis',
+ *		accessLevel = 'all',
+ *		description = 'Shows where places and NPCs are',
  *		help        = 'whereis.txt'
  *	)
  */

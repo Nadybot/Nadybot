@@ -32,7 +32,6 @@ class AliasController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		
 	}
 
 	/**
@@ -62,15 +61,15 @@ class AliasController {
 		$row = $this->commandAlias->get($alias);
 		if ($enabled) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since there is already an active command with that name.";
-		} else if ($row === null) {
+		} elseif ($row === null) {
 			$this->commandAlias->add($alias_obj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
-		} else if ($row->status == 0 || ($row->status == 1 && $row->cmd == $cmd)) {
+		} elseif ($row->status == 0 || ($row->status == 1 && $row->cmd == $cmd)) {
 			$this->commandAlias->update($alias_obj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
-		} else if ($row->status == 1 && $row->cmd != $cmd) {
+		} elseif ($row->status == 1 && $row->cmd != $cmd) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
 		}
 		$sendto->reply($msg);

@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * Originally Written for Budabot By Jaqueme
@@ -13,9 +13,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'spirits', 
- *		accessLevel = 'all', 
- *		description = 'Search for spirits', 
+ *		command     = 'spirits',
+ *		accessLevel = 'all',
+ *		description = 'Search for spirits',
  *		help        = 'spirits.txt'
  *	)
  */
@@ -56,14 +56,13 @@ class SpiritsController {
 			} else {
 				$spirits .= $this->formatSpiritOutput($data);
 			}
-		}
 			//If searched by name and slot
-		else if (preg_match("/^spirits ([^0-9]+),([^0-9]+)$/i", $message, $arr)) {
+		} elseif (preg_match("/^spirits ([^0-9]+),([^0-9]+)$/i", $message, $arr)) {
 			if (preg_match("/(chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist)/i", $arr[1])) {
 				$slot = $arr[1];
 				$name = $arr[2];
 				$title = "Spirits Database for $name $slot";
-			} else if (preg_match("/(chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist)/i", $arr[2])) {
+			} elseif (preg_match("/(chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist)/i", $arr[2])) {
 				$name = $arr[1];
 				$slot = $arr[2];
 				$title = "Spirits Database for $name $slot";
@@ -77,11 +76,10 @@ class SpiritsController {
 			$slot = trim($slot);
 			$data = $this->db->query("SELECT * FROM spiritsdb WHERE name LIKE ? AND spot = ? ORDER BY level", '%'.$name.'%', $slot);
 			$spirits .= $this->formatSpiritOutput($data);
-		}
 			// If searched by ql
-		else if (preg_match("/^spirits ([0-9]+)$/i", $message, $arr)) {
+		} elseif (preg_match("/^spirits ([0-9]+)$/i", $message, $arr)) {
 			$ql = $arr[1];
-			if ($ql <= 1 OR $ql >= 300) {
+			if ($ql <= 1 or $ql >= 300) {
 				$msg = "Invalid Ql specified.";
 				$sendto->reply($msg);
 				return;
@@ -89,12 +87,11 @@ class SpiritsController {
 			$title = "Spirits QL $ql";
 			$data = $this->db->query("SELECT * FROM spiritsdb where ql = ? ORDER BY ql", $ql);
 			$spirits .= $this->formatSpiritOutput($data);
-		}
 			// If searched by ql range
-		else if (preg_match("/^spirits ([0-9]+)-([0-9]+)$/i", $message, $arr)) {
+		} elseif (preg_match("/^spirits ([0-9]+)-([0-9]+)$/i", $message, $arr)) {
 			$qllorange = $arr[1];
 			$qlhirange = $arr[2];
-			if ($qllorange < 1 OR $qlhirange > 219 OR $qllorange >= $qlhirange) {
+			if ($qllorange < 1 or $qlhirange > 219 or $qllorange >= $qlhirange) {
 				$msg = "Invalid Ql range specified.";
 				$sendto->reply($msg);
 				return;
@@ -102,35 +99,33 @@ class SpiritsController {
 			$title = "Spirits QL $qllorange to $qlhirange";
 			$data = $this->db->query("SELECT * FROM spiritsdb where ql >= ? AND ql <= ? ORDER BY ql", $qllorange, $qlhirange);
 			$spirits .= $this->formatSpiritOutput($data);
-		}
 			// If searched by ql and slot
-		else if (preg_match("/^spirits ([0-9]+) (.+)$/i", $message, $arr)) {
+		} elseif (preg_match("/^spirits ([0-9]+) (.+)$/i", $message, $arr)) {
 			$ql = $arr[1];
 			$slot = ucwords(strtolower($arr[2]));
 			$title = "$slot Spirits QL $ql";
-			if ($ql < 1 OR $ql > 300) {
+			if ($ql < 1 or $ql > 300) {
 				$msg = "Invalid Ql specified.";
 				$sendto->reply($msg);
 				return;
-			} else if (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
+			} elseif (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
 				$spirits .= "Invalid Input\n\n";
 				$spirits .= $this->getValidSlotTypes();
 			} else {
 				$data = $this->db->query("SELECT * FROM spiritsdb where spot = ? AND ql = ? ORDER BY ql", $slot, $ql);
 				$spirits .= $this->formatSpiritOutput($data);
 			}
-		}
 			// If searched by ql range and slot
-		else if (preg_match("/^spirits ([0-9]+)-([0-9]+) (.+)$/i", $message, $arr)) {
+		} elseif (preg_match("/^spirits ([0-9]+)-([0-9]+) (.+)$/i", $message, $arr)) {
 			$qllorange = $arr[1];
 			$qlhirange = $arr[2];
 			$slot = ucwords(strtolower($arr[3]));
 			$title = "$slot Spirits QL $qllorange to $qlhirange";
-			if ($qllorange < 1 OR $qlhirange > 300 OR $qllorange >= $qlhirange) {
+			if ($qllorange < 1 or $qlhirange > 300 or $qllorange >= $qlhirange) {
 				$msg = "Invalid Ql range specified.";
 				$sendto->reply($msg);
 				return;
-			} else if (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
+			} elseif (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
 				$spirits .= "Invalid Input\n\n";
 				$spirits .= $this->getValidSlotTypes();
 			} else {
@@ -159,7 +154,9 @@ class SpiritsController {
 			$agi = $row->agility;
 
 			$data2 = $this->db->query("SELECT * FROM aodb WHERE lowid = ?", $lowid);
-			forEach ($data2 as $row); {
+			forEach ($data2 as $row) {
+				;
+			} {
 				$highid = $row->highid;
 				$icon = $row->icon;
 				$name = $row->name;

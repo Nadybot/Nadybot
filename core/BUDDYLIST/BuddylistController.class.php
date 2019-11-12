@@ -3,7 +3,7 @@
 namespace Budabot\Core\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
@@ -11,8 +11,8 @@ namespace Budabot\Core\Modules;
  * Commands this controller contains:
 *	@DefineCommand(
  *		command     = 'buddylist',
- *		accessLevel = 'admin', 
- *		description = 'Shows and manages buddies on the buddylist', 
+ *		accessLevel = 'admin',
+ *		description = 'Shows and manages buddies on the buddylist',
  *		help        = 'buddylist.txt',
  *		alias		= 'friendlist'
  *	)

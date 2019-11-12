@@ -77,7 +77,7 @@ class ConfigController {
 	 * @Matches("/^config$/i")
 	 */
 	public function configCommand($message, $channel, $sender, $sendto, $args) {
-		$blob = 
+		$blob =
 			"Org Commands - " .
 				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable guild') . " " .
 				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable guild') . "\n" .
@@ -112,7 +112,7 @@ class ConfigController {
 		forEach ($data as $row) {
 			if ($row->count_enabled > 0 && $row->count_disabled > 0) {
 				$a = "(<yellow>Partial<end>)";
-			} else if ($row->count_disabled == 0) {
+			} elseif ($row->count_disabled == 0) {
 				$a = "(<green>Running<end>)";
 			} else {
 				$a = "(<red>Disabled<end>)";
@@ -170,7 +170,7 @@ class ConfigController {
 			$temp = explode(" ", $args[2]);
 			$event_type = strtolower($temp[0]);
 			$file = $temp[1];
-		} else if ($args[1] == 'cmd' || $args[1] == 'subcmd') {
+		} elseif ($args[1] == 'cmd' || $args[1] == 'subcmd') {
 			$cmd = strtolower($args[2]);
 			$type = $args[4];
 		} else { // $args[1] == 'mod'
@@ -188,19 +188,19 @@ class ConfigController {
 			$sql = "SELECT status, type, file, cmd, admin, cmdevent FROM cmdcfg_<myname> WHERE `module` = '$module'
 						UNION
 					SELECT status, type, file, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM eventcfg_<myname> WHERE `module` = '$module' AND `type` <> 'setup'";
-		} else if ($args[1] == "mod" && $type != "all") {
+		} elseif ($args[1] == "mod" && $type != "all") {
 			$sql = "SELECT status, type, file, cmd, admin, cmdevent FROM cmdcfg_<myname> WHERE `module` = '$module' AND `type` = '$type'
 						UNION
 					SELECT status, type, file, cmd AS '', admin AS '', cmdevent AS 'event' FROM eventcfg_<myname> WHERE `module` = '$module' AND `type` = '$event_type' AND `type` <> 'setup'";
-		} else if ($args[1] == "cmd" && $type != "all") {
+		} elseif ($args[1] == "cmd" && $type != "all") {
 			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = '$cmd' AND `type` = '$type' AND `cmdevent` = 'cmd'";
-		} else if ($args[1] == "cmd" && $type == "all") {
+		} elseif ($args[1] == "cmd" && $type == "all") {
 			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = '$cmd' AND `cmdevent` = 'cmd'";
-		} else if ($args[1] == "subcmd" && $type != "all") {
+		} elseif ($args[1] == "subcmd" && $type != "all") {
 			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = '$cmd' AND `type` = '$type' AND `cmdevent` = 'subcmd'";
-		} else if ($args[1] == "subcmd" && $type == "all") {
+		} elseif ($args[1] == "subcmd" && $type == "all") {
 			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = '$cmd' AND `cmdevent` = 'subcmd'";
-		} else if ($args[1] == "event" && $file != "") {
+		} elseif ($args[1] == "event" && $file != "") {
 			$sql = "SELECT *, 'event' AS cmdevent FROM eventcfg_<myname> WHERE `file` = '$file' AND `type` = '$event_type' AND `type` <> 'setup'";
 		} else {
 			$syntax_error = true;
@@ -220,17 +220,17 @@ class ConfigController {
 		if (count($data) == 0) {
 			if ($args[1] == "mod" && $type == "all") {
 				$msg = "Could not find Module <highlight>$module<end>.";
-			} else if ($args[1] == "mod" && $type != "all") {
+			} elseif ($args[1] == "mod" && $type != "all") {
 				$msg = "Could not find module <highlight>$module<end> for channel <highlight>$type<end>.";
-			} else if ($args[1] == "cmd" && $type != "all") {
+			} elseif ($args[1] == "cmd" && $type != "all") {
 				$msg = "Could not find command <highlight>$cmd<end> for channel <highlight>$type<end>.";
-			} else if ($args[1] == "cmd" && $type == "all") {
+			} elseif ($args[1] == "cmd" && $type == "all") {
 				$msg = "Could not find command <highlight>$cmd<end>.";
-			} else if ($args[1] == "subcmd" && $type != "all") {
+			} elseif ($args[1] == "subcmd" && $type != "all") {
 				$msg = "Could not find subcommand <highlight>$cmd<end> for channel <highlight>$type<end>.";
-			} else if ($args[1] == "subcmd" && $type == "all") {
+			} elseif ($args[1] == "subcmd" && $type == "all") {
 				$msg = "Could not find subcommand <highlight>$cmd<end>.";
-			} else if ($args[1] == "event" && $file != "") {
+			} elseif ($args[1] == "event" && $file != "") {
 				$msg = "Could not find event <highlight>$event_type<end> for handler <highlight>$file<end>.";
 			}
 			$sendto->reply($msg);
@@ -239,17 +239,17 @@ class ConfigController {
 	
 		if ($args[1] == "mod" && $type == "all") {
 			$msg = "Updated status of module <highlight>$module<end> to <highlight>".$args[3]."d<end>.";
-		} else if ($args[1] == "mod" && $type != "all") {
+		} elseif ($args[1] == "mod" && $type != "all") {
 			$msg = "Updated status of module <highlight>$module<end> in channel <highlight>$type<end> to <highlight>".$args[3]."d<end>.";
-		} else if ($args[1] == "cmd" && $type != "all") {
+		} elseif ($args[1] == "cmd" && $type != "all") {
 			$msg = "Updated status of command <highlight>$cmd<end> to <highlight>".$args[3]."d<end> in channel <highlight>$type<end>.";
-		} else if ($args[1] == "cmd" && $type == "all") {
+		} elseif ($args[1] == "cmd" && $type == "all") {
 			$msg = "Updated status of command <highlight>$cmd<end> to <highlight>".$args[3]."d<end>.";
-		} else if ($args[1] == "subcmd" && $type != "all") {
+		} elseif ($args[1] == "subcmd" && $type != "all") {
 			$msg = "Updated status of subcommand <highlight>$cmd<end> to <highlight>".$args[3]."d<end> in channel <highlight>$type<end>.";
-		} else if ($args[1] == "subcmd" && $type == "all") {
+		} elseif ($args[1] == "subcmd" && $type == "all") {
 			$msg = "Updated status of subcommand <highlight>$cmd<end> to <highlight>".$args[3]."d<end>.";
-		} else if ($args[1] == "event" && $file != "") {
+		} elseif ($args[1] == "event" && $file != "") {
 			$msg = "Updated status of event <highlight>$event_type<end> to <highlight>".$args[3]."d<end>.";
 		}
 	
@@ -264,7 +264,7 @@ class ConfigController {
 					} else {
 						$this->eventManager->deactivate($row->type, $row->file);
 					}
-				} else if ($row->cmdevent == "cmd") {
+				} elseif ($row->cmdevent == "cmd") {
 					if ($status == 1) {
 						$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
 					} else {
@@ -277,18 +277,18 @@ class ConfigController {
 		if ($args[1] == "mod" && $type == "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `module` = ?", $status, $module);
 			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` <> 'setup'", $status, $module);
-		} else if ($args[1] == "mod" && $type != "all") {
+		} elseif ($args[1] == "mod" && $type != "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` = ?", $status, $module, $type);
 			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` = ? AND `type` <> 'setup'", $status, $module, $event_type);
-		} else if ($args[1] == "cmd" && $type != "all") {
+		} elseif ($args[1] == "cmd" && $type != "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'", $status, $cmd, $type);
-		} else if ($args[1] == "cmd" && $type == "all") {
+		} elseif ($args[1] == "cmd" && $type == "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `cmdevent` = 'cmd'", $status, $cmd);
-		} else if ($args[1] == "subcmd" && $type != "all") {
+		} elseif ($args[1] == "subcmd" && $type != "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $status, $cmd, $type);
-		} else if ($args[1] == "subcmd" && $type == "all") {
+		} elseif ($args[1] == "subcmd" && $type == "all") {
 			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `cmdevent` = 'subcmd'", $status, $cmd);
-		} else if ($args[1] == "event" && $file != "") {
+		} elseif ($args[1] == "event" && $file != "") {
 			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `type` = ? AND `file` = ? AND `type` <> 'setup'", $status, $event_type, $file);
 		}
 	
@@ -322,9 +322,9 @@ class ConfigController {
 				} else {
 					$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
 				}
-			} else if (!$this->checkCommandAccessLevels($data, $sender)) {
+			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
 				$msg = "You do not have the required access level to change this command.";
-			} else if (!$this->accessManager->checkAccess($sender, $accessLevel)) {
+			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 				$msg = "You may not set the access level for a command above your own access level.";
 			} else {
 				$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
@@ -340,9 +340,9 @@ class ConfigController {
 			$data = $this->db->query($sql, $channel, $command);
 			if (count($data) == 0) {
 				$msg = "Could not find subcommand <highlight>$command<end> for channel <highlight>$channel<end>.";
-			} else if (!$this->checkCommandAccessLevels($data, $sender)) {
+			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
 				$msg = "You do not have the required access level to change this subcommand.";
-			} else if (!$this->accessManager->checkAccess($sender, $accessLevel)) {
+			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 				$msg = "You may not set the access level for a subcommand above your own access level.";
 			} else {
 				$this->db->exec("UPDATE cmdcfg_<myname> SET `admin` = ? WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?", $accessLevel, $channel, $command);
@@ -511,7 +511,7 @@ class ConfigController {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");
 				$cmdNameLink = $this->text->makeChatcmd($row->cmd, "/tell <myname> config cmd $row->cmd");
-			} else if ($row->cmdevent == 'subcmd') {
+			} elseif ($row->cmdevent == 'subcmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config subcmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config subcmd $row->cmd disable all");
 				$cmdNameLink = $row->cmd;
@@ -519,7 +519,7 @@ class ConfigController {
 	
 			if ($row->msg_avail == 0) {
 				$tell = "|_";
-			} else if ($row->msg_status == 1) {
+			} elseif ($row->msg_status == 1) {
 				$tell = "<green>T<end>";
 			} else {
 				$tell = "<red>T<end>";
@@ -527,7 +527,7 @@ class ConfigController {
 	
 			if ($row->guild_avail == 0) {
 				$guild = "|_";
-			} else if ($row->guild_status == 1) {
+			} elseif ($row->guild_status == 1) {
 				$guild = "|<green>G<end>";
 			} else {
 				$guild = "|<red>G<end>";
@@ -535,7 +535,7 @@ class ConfigController {
 	
 			if ($row->priv_avail == 0) {
 				$priv = "|_";
-			} else if ($row->priv_status == 1) {
+			} elseif ($row->priv_status == 1) {
 				$priv = "|<green>P<end>";
 			} else {
 				$priv = "|<red>P<end>";
@@ -594,7 +594,7 @@ class ConfigController {
 		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `type` = ?", $cmd, $type);
 		if (count($data) == 0) {
 			$msg .= "<red>Unused<end>\n";
-		} else if (count($data) == 1) {
+		} elseif (count($data) == 1) {
 			$row = $data[0];
 
 			$found_msg = 1;

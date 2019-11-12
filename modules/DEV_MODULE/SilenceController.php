@@ -5,22 +5,22 @@ namespace Budabot\User\Modules;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'silence', 
- *		accessLevel = 'mod', 
- *		description = 'Silence commands in a particular channel', 
+ *		command     = 'silence',
+ *		accessLevel = 'mod',
+ *		description = 'Silence commands in a particular channel',
  *		help        = 'silence.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'unsilence', 
- *		accessLevel = 'mod', 
- *		description = 'Unsilence commands in a particular channel', 
+ *		command     = 'unsilence',
+ *		accessLevel = 'mod',
+ *		description = 'Unsilence commands in a particular channel',
  *		help        = 'silence.txt'
  *	)
  */
@@ -72,7 +72,7 @@ class SilenceController extends AutoInject {
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) == 0) {
 			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} else if ($this->isSilencedCommand($data[0])){
+		} elseif ($this->isSilencedCommand($data[0])) {
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has already been silenced.";
 		} else {
 			$this->addSilencedCommand($data[0]);
@@ -92,7 +92,7 @@ class SilenceController extends AutoInject {
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) == 0) {
 			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} else if (!$this->isSilencedCommand($data[0])){
+		} elseif (!$this->isSilencedCommand($data[0])) {
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has not been silenced.";
 		} else {
 			$this->removeSilencedCommand($data[0]);

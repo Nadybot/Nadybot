@@ -3,16 +3,16 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'reputation', 
- *		accessLevel = 'guild', 
- *		description = 'Allows people to see and add reputation of other players', 
+ *		command     = 'reputation',
+ *		accessLevel = 'guild',
+ *		description = 'Allows people to see and add reputation of other players',
  *		help        = 'reputation.txt'
  *	)
  */

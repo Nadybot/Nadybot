@@ -26,7 +26,7 @@ class Registry {
 		return isset(Registry::$repo[$name]);
 	}
 
-	public static function getInstance($name, $reload = false) {
+	public static function getInstance($name, $reload=false) {
 		$name = strtolower($name);
 		LegacyLogger::log("DEBUG", "Registry", "Requesting instance for '$name'");
 
@@ -54,7 +54,7 @@ class Registry {
 				} else {
 					$instance->{$property->name} = $dependency;
 				}
-			} else if ($property->hasAnnotation('Logger')) {
+			} elseif ($property->hasAnnotation('Logger')) {
 				if (@$property->getAnnotation('Logger')->value != '') {
 					$tag = $property->getAnnotation('Logger')->value;
 				} else {

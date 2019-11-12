@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
@@ -96,7 +96,7 @@ class BuffPerksController {
 			if (!empty($first)) {
 				$profession = $first;
 				$minLevel = $args[2];
-			} else if (!empty($second)) {
+			} elseif (!empty($second)) {
 				$profession = $second;
 				$minLevel = $args[1];
 			} else {

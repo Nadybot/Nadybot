@@ -5,7 +5,7 @@ namespace Budabot\Core\Modules;
 use Budabot\Core\PrivateMessageCommandReply;
 
 /**
- * Authors: 
+ * Authors:
  *  - Sebuda (RK2)
  *  - Tyrence (RK2)
  *

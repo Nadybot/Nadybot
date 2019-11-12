@@ -9,9 +9,9 @@ use Exception;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'settings', 
- *		accessLevel = 'mod', 
- *		description = 'Change settings on the bot', 
+ *		command     = 'settings',
+ *		accessLevel = 'mod',
+ *		description = 'Change settings on the bot',
  *		help        = 'settings.txt',
  *		defaultStatus = '1'
  *	)

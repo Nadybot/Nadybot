@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *  - Mindrila (RK1)
  *
@@ -11,9 +11,9 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = "inactivemem", 
- *		accessLevel = "guild", 
- *		description = "Check for inactive members", 
+ *		command     = "inactivemem",
+ *		accessLevel = "guild",
+ *		description = "Check for inactive members",
  *		help        = "inactivemem.txt"
  *	)
  */
@@ -38,7 +38,6 @@ class InactiveMemberController {
 	 * @Setup
 	 */
 	public function setup() {
-
 	}
 
 	/**
@@ -104,4 +103,3 @@ class InactiveMemberController {
 		$sendto->reply($msg);
 	}
 }
-

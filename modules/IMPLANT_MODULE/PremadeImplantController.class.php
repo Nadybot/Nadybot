@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -56,7 +56,7 @@ class PremadeImplantController {
 		if ($profession != '') {
 			$searchTerms = $profession;
 			$results = $this->searchByProfession($profession);
-		} else if (in_array($searchTerms, $this->slots)) {
+		} elseif (in_array($searchTerms, $this->slots)) {
 			$results = $this->searchBySlot($searchTerms);
 		} else {
 			$results = $this->searchByModifier($searchTerms);

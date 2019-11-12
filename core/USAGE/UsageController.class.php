@@ -169,9 +169,9 @@ class UsageController {
 		forEach ($data as $row) {
 			if ($row->type == "msg") {
 				$blob .= "Number of commands executed in tells: <highlight>$row->cnt<end>\n";
-			} else if ($row->type == "priv") {
+			} elseif ($row->type == "priv") {
 				$blob .= "Number of commands executed in private channel: <highlight>$row->cnt<end>\n";
-			} else if ($row->type == "guild") {
+			} elseif ($row->type == "guild") {
 				$blob .= "Number of commands executed in guild channel: <highlight>$row->cnt<end>\n";
 			}
 		}
@@ -230,7 +230,7 @@ class UsageController {
 		$this->settingManager->save($settingName, $time);
 	}
 
-	public function getUsageInfo($lastSubmittedStats, $now, $debug = false) {
+	public function getUsageInfo($lastSubmittedStats, $now, $debug=false) {
 		global $version;
 
 		$botid = $this->settingManager->get('botid');
@@ -279,17 +279,17 @@ class UsageController {
 		$guildClass = "";
 		if ($size == 0) {
 			$guildClass = "class0";
-		} else if ($size < 10) {
+		} elseif ($size < 10) {
 			$guildClass = "class1";
-		} else if ($size < 30) {
+		} elseif ($size < 30) {
 			$guildClass = "class2";
-		} else if ($size < 150) {
+		} elseif ($size < 150) {
 			$guildClass = "class3";
-		} else if ($size < 300) {
+		} elseif ($size < 300) {
 			$guildClass = "class4";
-		} else if ($size < 650) {
+		} elseif ($size < 650) {
 			$guildClass = "class5";
-		} else if ($size < 1000) {
+		} elseif ($size < 1000) {
 			$guildClass = "class6";
 		} else {
 			$guildClass = "class7";

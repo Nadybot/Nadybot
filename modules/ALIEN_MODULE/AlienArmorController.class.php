@@ -3,11 +3,11 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Blackruby (RK2),
- *  - Mdkdoc420 (RK2), 
- *  - Wolfbiter (RK1), 
- *  - Gatester (RK2), 
+ *  - Mdkdoc420 (RK2),
+ *  - Wolfbiter (RK1),
+ *  - Gatester (RK2),
  *  - Marebone (RK2)
  *
  * @Instance
@@ -15,8 +15,8 @@ namespace Budabot\User\Modules;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'aiarmor',
- *		accessLevel = 'all', 
- *		description = 'Shows tradeskill process for Alien Armor', 
+ *		accessLevel = 'all',
+ *		description = 'Shows tradeskill process for Alien Armor',
  *		help        = 'aiarmor.txt'
  *	)
  */

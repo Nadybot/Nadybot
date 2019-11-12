@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *	- Healnjoo (RK2)
  *	- Mdkdoc420 (RK2)
@@ -12,22 +12,22 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'nano', 
- *		accessLevel = 'all', 
- *		description = 'Searches for a nano and tells you were to get it', 
+ *		command     = 'nano',
+ *		accessLevel = 'all',
+ *		description = 'Searches for a nano and tells you were to get it',
  *		help        = 'nano.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'nanolines', 
- *		accessLevel = 'all', 
- *		description = 'Shows nanos based on nanoline', 
+ *		command     = 'nanolines',
+ *		accessLevel = 'all',
+ *		description = 'Shows nanos based on nanoline',
  *		help        = 'nanolines.txt',
  *		alias		= 'nl'
  *	)
  *	@DefineCommand(
- *		command     = 'nanoloc', 
- *		accessLevel = 'all', 
- *		description = 'Browse nanos by location', 
+ *		command     = 'nanoloc',
+ *		accessLevel = 'all',
+ *		description = 'Browse nanos by location',
  *		help        = 'nano.txt'
  *	)
  */
@@ -154,7 +154,7 @@ class NanoController {
 		} else {
 			$this->nanolinesList($args[1], $sendto);
 		}
-	}	
+	}
 	
 	private function nanolinesShow($nanolineId, $sendto) {
 		$sql = "SELECT * FROM nanolines WHERE id = ?";

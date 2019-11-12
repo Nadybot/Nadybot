@@ -6,16 +6,16 @@ use Budabot\Core\CommandReply;
 use Exception;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'profile', 
- *		accessLevel = 'admin', 
- *		description = 'View, add, remove, and load profiles', 
+ *		command     = 'profile',
+ *		accessLevel = 'admin',
+ *		description = 'View, add, remove, and load profiles',
  *		help        = 'profile.txt',
  *		alias       = 'profiles'
  *	)

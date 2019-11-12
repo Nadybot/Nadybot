@@ -43,7 +43,7 @@ class EventManager {
 	 * @name: register
 	 * @description: Registers an event on the bot so it can be configured
 	 */
-	public function register($module, $type, $filename, $description = 'none', $help = '', $defaultStatus = null) {
+	public function register($module, $type, $filename, $description='none', $help='', $defaultStatus=null) {
 		$type = strtolower($type);
 
 		$this->logger->log('DEBUG', "Registering event Type:($type) Handler:($filename) Module:($module)");
@@ -101,7 +101,7 @@ class EventManager {
 			$eventObj->type = 'setup';
 
 			$this->callEventHandler($eventObj, $filename);
-		} else if ($this->isValidEventType($type)) {
+		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
 			} else {

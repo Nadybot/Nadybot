@@ -151,8 +151,8 @@ class AdminController {
 		}
 
 		$blob .= "<header2>Moderators<end>\n";
-		forEach ($this->adminManager->admins as $who => $data){
-			if ($this->adminManager->admins[$who]["level"] == 3){
+		forEach ($this->adminManager->admins as $who => $data) {
+			if ($this->adminManager->admins[$who]["level"] == 3) {
 				if ($who != "") {
 					$blob .= "<tab>$who" . $this->getOnlineStatus($who) . "\n" . $this->getAltAdminInfo($who, $showOfflineAlts);
 				}
@@ -178,7 +178,7 @@ class AdminController {
 	private function getOnlineStatus($who) {
 		if ($this->buddylistManager->isOnline($who) == 1 && isset($this->chatBot->chatlist[$who])) {
 			return " (<green>Online and in chat<end>)";
-		} else if ($this->buddylistManager->isOnline($who) == 1) {
+		} elseif ($this->buddylistManager->isOnline($who) == 1) {
 			return " (<green>Online<end>)";
 		} else {
 			return " (<red>Offline<end>)";
@@ -199,7 +199,7 @@ class AdminController {
 	}
 	
 	public function add($who, $sender, $sendto, $intlevel, $rank) {
-		if ($this->chatBot->get_uid($who) == null){
+		if ($this->chatBot->get_uid($who) == null) {
 			$sendto->reply("Character <highlight>$who<end> does not exist.");
 			return;
 		}

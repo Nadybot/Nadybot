@@ -3,16 +3,16 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'trickle', 
- *		accessLevel = 'all', 
- *		description = 'Shows how much skills you will gain by increasing an ability', 
+ *		command     = 'trickle',
+ *		accessLevel = 'all',
+ *		description = 'Shows how much skills you will gain by increasing an ability',
  *		help        = 'trickle.txt'
  *	)
  */
@@ -100,7 +100,7 @@ class TrickleController {
 		$count = count($data);
 		if ($count == 0) {
 			$msg = "Could not find any skills for search '$search'";
-		} else if ($count == 1) { 
+		} elseif ($count == 1) {
 			$row = $data[0];
 			$msg = $this->getTrickleAmounts($row);
 		} else {
@@ -139,7 +139,7 @@ class TrickleController {
 			} else {
 				return $that->util->getAbility($ability, true) . " <highlight>" . $value . "<end>";
 			}
-		}); 
+		});
 
 		$results = $this->getTrickleResults($abilities);
 		$blob .= $this->formatOutput($results, $amount, $abilities);
@@ -147,7 +147,7 @@ class TrickleController {
 		return $this->text->makeBlob("Trickle Results: $abilitiesHeader", $blob);
 	}
 	
-	function getTrickleResults($abilities) {
+	public function getTrickleResults($abilities) {
 		$sql = "
 			SELECT
 				groupName,
@@ -183,11 +183,10 @@ class TrickleController {
 		return $this->db->query($sql);
 	}
 	
-	function formatOutput($results, $amount, $abilities) {
+	public function formatOutput($results, $amount, $abilities) {
 		$msg = "";
 		$groupName = "";
-		forEach($results as $result) {
-
+		forEach ($results as $result) {
 			if ($result->groupName != $groupName) {
 				$groupName = $result->groupName;
 				$msg .= "\n<header2>$groupName<end>\n";

@@ -66,5 +66,9 @@ namespace Budabot\Core;
 */
 
 class AOExtMsg {
-	public $args, $category, $instance, $message_string, $message;
+	public $args;
+	public $category;
+	public $instance;
+	public $message_string;
+	public $message;
 }

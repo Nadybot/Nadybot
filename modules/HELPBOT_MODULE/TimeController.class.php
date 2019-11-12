@@ -6,16 +6,16 @@ use stdClass;
 use DateTime;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'time', 
- *		accessLevel = 'all', 
- *		description = 'Show the time in the different timezones', 
+ *		command     = 'time',
+ *		accessLevel = 'all',
+ *		description = 'Show the time in the different timezones',
  *		help        = 'time.txt'
  *	)
  */

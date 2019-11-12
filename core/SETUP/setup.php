@@ -33,7 +33,7 @@ namespace Budabot\Core\Modules;
 
 global $configFile;
 
-function read_input ($output = "") {
+function read_input($output="") {
 	echo $output;
 	return trim(fgets(STDIN));
 }
@@ -153,7 +153,7 @@ if (strtolower($mansetupdb) == "yes") {
 		$vars["DB Type"] = read_input($msg);
 	} while (strtolower($vars["DB Type"]) != "1" && strtolower($vars["DB Type"]) != "2");
 
-	switch($vars["DB Type"]) {
+	switch ($vars["DB Type"]) {
 		case "1":
 			$vars["DB Type"] = "sqlite";
 		break;
@@ -178,7 +178,7 @@ if (strtolower($mansetupdb) == "yes") {
 
 	if ($vars["DB Name"] == "" && $vars["DB Type"] == "sqlite") {
 		$vars["DB Name"] = "budabot.db";
-	} else if ($vars["DB Name"] == "" && $vars["DB Type"] == "mysql") {
+	} elseif ($vars["DB Name"] == "" && $vars["DB Type"] == "mysql") {
 		$vars["DB Name"] = "budabot";
 	}
 

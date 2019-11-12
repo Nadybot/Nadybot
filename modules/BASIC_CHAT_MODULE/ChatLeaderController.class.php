@@ -7,21 +7,21 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'leader', 
- *		accessLevel = 'all', 
- *		description = 'Sets the Leader of the raid', 
+ *		command     = 'leader',
+ *		accessLevel = 'all',
+ *		description = 'Sets the Leader of the raid',
  *		help        = 'leader.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'leader (.+)', 
- *		accessLevel = 'rl', 
- *		description = 'Sets a specific Leader', 
+ *		command     = 'leader (.+)',
+ *		accessLevel = 'rl',
+ *		description = 'Sets a specific Leader',
  *		help        = 'leader.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'leaderecho', 
- *		accessLevel = 'rl', 
- *		description = 'Set if the text of the leader will be repeated', 
+ *		command     = 'leaderecho',
+ *		accessLevel = 'rl',
+ *		description = 'Set if the text of the leader will be repeated',
  *		help        = 'leader.txt'
  *	)
  */
@@ -94,7 +94,7 @@ class ChatLeaderController {
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
-		} else if (!isset($this->chatBot->chatlist[$name])) {
+		} elseif (!isset($this->chatBot->chatlist[$name])) {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
 			if (!isset($this->leader) || $sender == $this->leader || $this->accessManager->compareCharacterAccessLevels($sender, $this->leader) > 0) {
@@ -200,9 +200,9 @@ class ChatLeaderController {
 	public function checkLeaderAccess($sender) {
 		if (empty($this->leader)) {
 			return true;
-		} else if ($this->leader == $sender) {
+		} elseif ($this->leader == $sender) {
 			return true;
-		} else if ($this->accessManager->checkAccess($sender, "moderator")) {
+		} elseif ($this->accessManager->checkAccess($sender, "moderator")) {
 			return true;
 		} else {
 			return false;

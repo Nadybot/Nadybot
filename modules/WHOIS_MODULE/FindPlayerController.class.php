@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -11,8 +11,8 @@ namespace Budabot\User\Modules;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'findplayer',
- *		accessLevel = 'all', 
- *		description = 'Find a player by name', 
+ *		accessLevel = 'all',
+ *		description = 'Find a player by name',
  *		help        = 'findplayer.txt'
  *	)
  */

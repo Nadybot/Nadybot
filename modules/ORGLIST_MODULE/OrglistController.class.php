@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *  - Lucier (RK1)
  *
@@ -91,7 +91,7 @@ class OrglistController {
 			if ($count == 0) {
 				$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
 				$sendto->reply($msg);
-			} else if ($count == 1) {
+			} elseif ($count == 1) {
 				$this->checkOrglist($orgs[0]->id, $sendto);
 			} else {
 				$blob = $this->findOrgController->formatResults($orgs);
@@ -104,7 +104,7 @@ class OrglistController {
 	public function getMatches($search) {
 		$orgs = $this->findOrgController->lookupOrg($search);
 
-		// check if search is a character and add character's org to org list if it's not already in the list		
+		// check if search is a character and add character's org to org list if it's not already in the list
 		$name = ucfirst(strtolower($search));
 		$whois = $this->playerManager->getByName($name);
 		if ($whois !== null && $whois->guild_id != 0) {
@@ -212,7 +212,7 @@ class OrglistController {
 			$buddy_online_status = $this->buddylistManager->isOnline($member->name);
 			if ($buddy_online_status !== null) {
 				$this->orglist["result"][$member->name]["online"] = $buddy_online_status;
-			} else if ($this->chatBot->vars["name"] == $member->name) {
+			} elseif ($this->chatBot->vars["name"] == $member->name) {
 				$this->orglist["result"][$member->name]["online"] = 1;
 			} else {
 				// check if they exist
@@ -248,7 +248,7 @@ class OrglistController {
 		unset($this->orglist);
 	}
 	
-	function orgmatesformat($memberlist, $orgcolor, $timestart, $orgname) {
+	public function orgmatesformat($memberlist, $orgcolor, $timestart, $orgname) {
 		$map = $memberlist["orgtype"];
 
 		$totalonline = 0;
@@ -325,7 +325,7 @@ class OrglistController {
 		if (isset($this->orglist["added"][$sender])) {
 			if ($type == "logon") {
 				$this->orglist["result"][$sender]["online"] = 1;
-			} else if ($type == "logoff") {
+			} elseif ($type == "logoff") {
 				$this->orglist["result"][$sender]["online"] = 0;
 			}
 
@@ -342,4 +342,3 @@ class OrglistController {
 		return count($this->buddylistManager->buddyList) < ($this->chatBot->getBuddyListSize() - 5);
 	}
 }
-

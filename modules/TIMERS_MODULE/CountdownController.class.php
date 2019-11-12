@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -64,13 +64,13 @@ class CountdownController {
 		for ($i = 5; $i > 0; $i--) {
 			if ($i == 5) {
 				$color = "<red>";
-			} else if ($i == 4) {
+			} elseif ($i == 4) {
 				$color = "<red>";
-			} else if ($i == 3) {
+			} elseif ($i == 3) {
 				$color = "<orange>";
-			} else if ($i == 2) {
+			} elseif ($i == 2) {
 				$color = "<orange>";
-			} else if ($i == 1) {
+			} elseif ($i == 1) {
 				$color = "<orange>";
 			}
 			$msg = "$color-------&gt; $i &lt;-------<end>";

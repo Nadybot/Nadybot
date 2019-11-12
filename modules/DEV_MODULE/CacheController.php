@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -30,7 +30,6 @@ class CacheController extends AutoInject {
 	 * @Setup
 	 */
 	public function setup() {
-
 	}
 
 	/**
@@ -93,7 +92,7 @@ class CacheController extends AutoInject {
 		
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file);
-			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars ($contents));
+			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars($contents));
 		} else {
 			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
 		}

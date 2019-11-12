@@ -5,7 +5,7 @@ namespace Budabot\Core\Modules;
 use Budabot\Core\SQLException;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -53,7 +53,6 @@ class SQLController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-
 	}
 	
 	/**

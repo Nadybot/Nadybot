@@ -13,7 +13,7 @@ class LoggerWrapper {
 		$this->chatLogger = Logger::getLogger('CHAT');
 	}
 
-	public function log($category, $message, $throwable = null) {
+	public function log($category, $message, $throwable=null) {
 		$level = LegacyLogger::getLoggerLevel($category);
 		$this->logger->log($level, $message, $throwable);
 	}
@@ -30,7 +30,7 @@ class LoggerWrapper {
 
 		if ($channel == "Buddy") {
 			$line = "[$channel] $sender $message";
-		} else if ($sender == '-1' || $sender == '4294967295') {
+		} elseif ($sender == '-1' || $sender == '4294967295') {
 			$line = "[$channel] $message";
 		} else {
 			$line = "[$channel] $sender: $message";

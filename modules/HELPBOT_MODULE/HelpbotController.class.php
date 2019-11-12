@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use ParseError;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *	- Neksus (RK2)
  *	- Mdkdoc420 (RK2)
@@ -14,21 +14,21 @@ use ParseError;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'dyna', 
- *		accessLevel = 'all', 
- *		description = 'Search for RK Dynabosses', 
+ *		command     = 'dyna',
+ *		accessLevel = 'all',
+ *		description = 'Search for RK Dynabosses',
  *		help        = 'dyna.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'oe', 
- *		accessLevel = 'all', 
- *		description = 'Over-equipped calculation', 
+ *		command     = 'oe',
+ *		accessLevel = 'all',
+ *		description = 'Over-equipped calculation',
  *		help        = 'oe.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'calc', 
- *		accessLevel = 'all', 
- *		description = 'Calculator', 
+ *		command     = 'calc',
+ *		accessLevel = 'all',
+ *		description = 'Calculator',
  *		help        = 'calculator.txt'
  *	)
  */
@@ -99,7 +99,7 @@ class HelpbotController {
 	
 	private function formatResults($data) {
 		$blob = '';
-		forEach($data as $row) {
+		forEach ($data as $row) {
 			$coordLink = $this->text->makeChatcmd("{$row->long_name} {$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
 			$blob .="<pagebreak>$coordLink\n";
 			$blob .="$row->mob - Level <highlight>{$row->minQl}-{$row->maxQl}<end>\n\n";

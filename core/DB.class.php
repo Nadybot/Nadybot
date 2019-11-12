@@ -36,7 +36,7 @@ class DB {
 		$this->logger = new LoggerWrapper('SQL');
 	}
 
-	function connect($type, $dbName, $host = null, $user = null, $pass = null) {
+	public function connect($type, $dbName, $host=null, $user=null, $pass=null) {
 		global $vars;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
@@ -53,12 +53,12 @@ class DB {
 
 			// for MySQL 5.5 and later, use 'default_storage_engine'
 			// for previous versions use 'storage_engine'
-			if (version_compare($mysqlVersion,  "5.5") >= 0) {
+			if (version_compare($mysqlVersion, "5.5") >= 0) {
 				$this->exec("SET default_storage_engine = MyISAM");
 			} else {
 				$this->exec("SET storage_engine = MyISAM");
 			}
-		} else if ($this->type == self::SQLITE) {
+		} elseif ($this->type == self::SQLITE) {
 			if ($host == null || $host == "" || $host == "localhost") {
 				$dbName = "./data/$dbName";
 			} else {
@@ -72,11 +72,11 @@ class DB {
 		}
 	}
 
-	function getType() {
+	public function getType() {
 		return $this->type;
 	}
 
-	function queryRow($sql) {
+	public function queryRow($sql) {
 		$sql = $this->formatSql($sql);
 
 		$args = $this->getParameters(func_get_args());
@@ -91,7 +91,7 @@ class DB {
 		}
 	}
 
-	function query($sql) {
+	public function query($sql) {
 		$sql = $this->formatSql($sql);
 
 		$args = $this->getParameters(func_get_args());
@@ -100,13 +100,13 @@ class DB {
 		return $ps->fetchAll(PDO::FETCH_CLASS, 'budabot\core\DBRow');
 	}
 
-	function exec($sql) {
+	public function exec($sql) {
 		$sql = $this->formatSql($sql);
 
 		if (substr_compare($sql, "create", 0, 6, true) == 0) {
 			if ($this->type == self::MYSQL) {
 				$sql = str_ireplace("AUTOINCREMENT", "AUTO_INCREMENT", $sql);
-			} else if ($this->type == self::SQLITE) {
+			} elseif ($this->type == self::SQLITE) {
 				$sql = str_ireplace("AUTO_INCREMENT", "AUTOINCREMENT", $sql);
 				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
 			}
@@ -138,7 +138,7 @@ class DB {
 			forEach ($params as $param) {
 				if ($param === "NULL") {
 					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
-				} else if (is_int($param)) {
+				} elseif (is_int($param)) {
 					$ps->bindValue($count++, $param, PDO::PARAM_INT);
 				} else {
 					$ps->bindValue($count++, $param);
@@ -156,35 +156,35 @@ class DB {
 	}
 
 	//Start of an transaction
-	function beginTransaction() {
+	public function beginTransaction() {
 		$this->logger->log('DEBUG', "Starting transaction");
 		$this->inTransaction = true;
 		$this->sql->beginTransaction();
 	}
 
 	//Commit an transaction
-	function commit() {
+	public function commit() {
 		$this->logger->log('DEBUG', "Committing transaction");
 		$this->inTransaction = false;
 		$this->sql->Commit();
 	}
 
-	function rollback() {
+	public function rollback() {
 		$this->logger->log('DEBUG', "Rolling back transaction");
 		$this->inTransaction = false;
 		$this->sql->rollback();
 	}
 
-	function inTransaction() {
+	public function inTransaction() {
 		return $this->inTransaction;
 	}
 
 	//Return the last inserted ID
-	function lastInsertId() {
+	public function lastInsertId() {
 		return $this->sql->lastInsertId();
 	}
 
-	function formatSql($sql) {
+	public function formatSql($sql) {
 		$sql = str_replace("<dim>", $this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
 		$sql = str_replace("<myguild>", $this->guild, $sql);
@@ -192,7 +192,7 @@ class DB {
 		return $sql;
 	}
 
-	function getLastQuery() {
+	public function getLastQuery() {
 		return $this->lastQuery;
 	}
 
@@ -202,7 +202,7 @@ class DB {
 	 *    Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
 	 *    If there is an sql file with name $name.sql it would load that one every time
 	 */
-	public function loadSQLFile($module, $name, $forceUpdate = false) {
+	public function loadSQLFile($module, $name, $forceUpdate=false) {
 		$name = strtolower($name);
 
 		// only letters, numbers, underscores are allowed
@@ -236,7 +236,6 @@ class DB {
 		if ($d) {
 			while (false !== ($entry = $d->read())) {
 				if (is_file("$dir/$entry") && preg_match("/^" . $name . "([0-9.]*)\\.sql$/i", $entry, $arr)) {
-
 					// If the file has no versioning in its filename, then we go off the modified timestamp
 					if ($arr[1] == '') {
 						$file = $entry;

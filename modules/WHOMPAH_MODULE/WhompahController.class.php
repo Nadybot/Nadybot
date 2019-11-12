@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use stdClass;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -13,8 +13,8 @@ use stdClass;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'whompah',
- *		accessLevel = 'all', 
- *		description = 'Shows the whompah route from one city to another', 
+ *		accessLevel = 'all',
+ *		description = 'Shows the whompah route from one city to another',
  *		help        = 'whompah.txt'
  *	)
  */
@@ -125,7 +125,9 @@ class WhompahController {
 		$data = $this->db->query($sql, $city->id);
 
 		$msg = "From {$city->city_name} you can get to: " .
-			implode(", ", array_map(function($row) { return "<highlight>{$row->city_name}<end> ({$row->short_name})"; }, $data));
+			implode(", ", array_map(function($row) {
+				return "<highlight>{$row->city_name}<end> ({$row->short_name})";
+			}, $data));
 
 		$sendto->reply($msg);
 	}

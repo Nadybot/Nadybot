@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use DOMDocument;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -13,68 +13,68 @@ use DOMDocument;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'aggdef',
- *		accessLevel = 'all', 
- *		description = 'Agg/Def: Calculates weapon inits for your Agg/Def bar', 
+ *		accessLevel = 'all',
+ *		description = 'Agg/Def: Calculates weapon inits for your Agg/Def bar',
  *		help        = 'aggdef.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'aimshot',
- *		accessLevel = 'all', 
- *		description = 'Aim Shot: Calculates Aimed Shot', 
+ *		accessLevel = 'all',
+ *		description = 'Aim Shot: Calculates Aimed Shot',
  *		help        = 'aimshot.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'nanoinit',
- *		accessLevel = 'all', 
- *		description = 'Nanoinit: Calculates Nano Init', 
+ *		accessLevel = 'all',
+ *		description = 'Nanoinit: Calculates Nano Init',
  *		help        = 'nanoinit.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'fullauto',
- *		accessLevel = 'all', 
- *		description = 'Fullauto: Calculates Full Auto recharge', 
+ *		accessLevel = 'all',
+ *		description = 'Fullauto: Calculates Full Auto recharge',
  *		help        = 'fullauto.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'burst',
- *		accessLevel = 'all', 
- *		description = 'Burst: Calculates Burst', 
+ *		accessLevel = 'all',
+ *		description = 'Burst: Calculates Burst',
  *		help        = 'burst.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'fling',
- *		accessLevel = 'all', 
- *		description = 'Fling: Calculates Fling', 
+ *		accessLevel = 'all',
+ *		description = 'Fling: Calculates Fling',
  *		help        = 'fling.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'mafist',
- *		accessLevel = 'all', 
- *		description = 'MA Fist: Calculates your fist speed', 
+ *		accessLevel = 'all',
+ *		description = 'MA Fist: Calculates your fist speed',
  *		help        = 'mafist.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'dimach',
- *		accessLevel = 'all', 
- *		description = 'Dimach: Calculates dimach facts', 
+ *		accessLevel = 'all',
+ *		description = 'Dimach: Calculates dimach facts',
  *		help        = 'dimach.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'brawl',
- *		accessLevel = 'all', 
- *		description = 'Brawl: Calculates brawl facts', 
+ *		accessLevel = 'all',
+ *		description = 'Brawl: Calculates brawl facts',
  *		help        = 'brawl.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'fastattack',
- *		accessLevel = 'all', 
- *		description = 'Fastattack: Calculates Fast Attack recharge', 
+ *		accessLevel = 'all',
+ *		description = 'Fastattack: Calculates Fast Attack recharge',
  *		help        = 'fastattack.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'weapon',
- *		accessLevel = 'all', 
- *		description = 'Shows weapon info (skill cap specials recycle and aggdef positions)', 
+ *		accessLevel = 'all',
+ *		description = 'Shows weapon info (skill cap specials recycle and aggdef positions)',
  *		help        = 'weapon.txt'
  *	)
  */
@@ -149,7 +149,7 @@ class SkillsController {
 		}
 		if ($InitResult < 0) {
 			$InitResult = 0;
-		} else if ($InitResult > 100 ) {
+		} elseif ($InitResult > 100 ) {
 			$InitResult = 100;
 		}
 
@@ -161,7 +161,7 @@ class SkillsController {
 		$blob .= "Recharge: <highlight>". $RechT ." <end>second(s)\n";
 		$blob .= "Init Skill: <highlight>". $InitS ."<end>\n";
 		$blob .= "Def/Agg: <highlight>". $InitResult ."%<end>\n";
-		$blob .= "You must set your AGG bar at <highlight>". $InitResult ."% (". round($InitResult*8/100,2) .") <end>to wield your weapon at 1/1.\n\n";
+		$blob .= "You must set your AGG bar at <highlight>". $InitResult ."% (". round($InitResult*8/100, 2) .") <end>to wield your weapon at 1/1.\n\n";
 		$blob .= "Init needed for max speed at Full Agg (100%): <highlight>". $initsFullAgg ." <end>inits\n";
 		$blob .= "Init needed for max speed at Neutral (88%): <highlight>". $initsNeutral ." <end>inits\n";
 		$blob .= "Init needed for max speed at Full Def (0%): <highlight>". $initsFullDef ." <end>inits\n\n";
@@ -238,7 +238,7 @@ class SkillsController {
 		if ($ASRech < $cap) {
 			$ASRech = $cap;
 		}
-		$MultiP	= round($InitS / 95,0);
+		$MultiP	= round($InitS / 95, 0);
 
 		$blob = "Attack: <highlight>". $AttTim ." <end>second(s)\n";
 		$blob .= "Recharge: <highlight>". $RechT ." <end>second(s)\n";
@@ -266,7 +266,7 @@ class SkillsController {
 
 		if ($brawl_skill < 1001) {
 			$i = 0;
-		} else if ($brawl_skill < 2001) {
+		} elseif ($brawl_skill < 2001) {
 			$i = 2;
 		} else {
 			$i = 4;
@@ -336,7 +336,7 @@ class SkillsController {
 
 		if ($dim_skill < 1001) {
 			$i = 0;
-		} else if ($dim_skill < 2001) {
+		} elseif ($dim_skill < 2001) {
 			$i = 2;
 		} else {
 			$i = 4;
@@ -344,26 +344,26 @@ class SkillsController {
 
 		$blob = "Dimach Skill: <highlight>".$dim_skill."<end>\n\n";
 
-		$MA_dmg = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $MA_dmg_list[$i],  $MA_dmg_list[($i+1)],  $dim_skill);
+		$MA_dmg = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $MA_dmg_list[$i], $MA_dmg_list[($i+1)], $dim_skill);
 		$MA_dim_rech = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $MA_rech_list[$i], $MA_rech_list[($i+1)], $dim_skill);
 		$blob .= "Profession: <highlight>Martial Artist<end>\n";
 		$blob .= "Damage: <highlight>".$MA_dmg."<end>-<highlight>".$MA_dmg."<end>(<highlight>1<end>)\n";
 		$blob .= "Recharge ".$this->util->unixtimeToReadable($MA_dim_rech)."\n\n";
 
-		$keep_heal	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $keep_heal_list[$i],$keep_heal_list[($i+1)], $dim_skill);
+		$keep_heal	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $keep_heal_list[$i], $keep_heal_list[($i+1)], $dim_skill);
 		$blob .= "Profession: <highlight>Keeper<end>\n";
 		$blob .= "Self heal: <font color=#ff9999>".$keep_heal."</font> HP\n";
 		$blob .= "Recharge: <highlight>5<end> minutes <font color=#ccccc>(constant)</font>\n\n";
 
-		$shad_dmg	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $shad_dmg_list[$i], $shad_dmg_list[($i+1)],  $dim_skill);
-		$shad_rec	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $shad_rec_list[$i], $shad_rec_list[($i+1)],  $dim_skill);
+		$shad_dmg	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $shad_dmg_list[$i], $shad_dmg_list[($i+1)], $dim_skill);
+		$shad_rec	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $shad_rec_list[$i], $shad_rec_list[($i+1)], $dim_skill);
 		$shad_dim_rech	= $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $shad_rech_list[$i], $shad_rech_list[($i+1)], $dim_skill);
 		$blob .= "Profession: <highlight>Shade<end>\n";
 		$blob .= "Damage: <highlight>".$shad_dmg."<end>-<highlight>".$shad_dmg."<end>(<highlight>1<end>)\n";
 		$blob .= "HP drain: <font color=#ff9999>".$shad_rec."</font>%\n";
 		$blob .= "Recharge ".$this->util->unixtimeToReadable($shad_dim_rech)."\n\n";
 
-		$gen_dmg = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $gen_dmg_list[$i],  $gen_dmg_list[($i+1)], $dim_skill);
+		$gen_dmg = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $gen_dmg_list[$i], $gen_dmg_list[($i+1)], $dim_skill);
 		$blob .= "Profession: <highlight>All professions besides MA, Shade and Keeper<end>\n";
 		$blob .= "Damage: <highlight>".$gen_dmg."<end>-<highlight>".$gen_dmg."<end>(<highlight>1<end>)\n";
 		$blob .= "Recharge: <highlight>30<end> minutes <font color=#ccccc>(constant)</font>\n\n";
@@ -485,9 +485,9 @@ class SkillsController {
 
 		if ($MaSkill < 200) {
 			$i = 0;
-		} else if ($MaSkill < 1001) {
+		} elseif ($MaSkill < 1001) {
 			$i = 1;
-		} else if ($MaSkill < 2001) {
+		} elseif ($MaSkill < 2001) {
 			$i = 3;
 		} else {
 			$i = 5;
@@ -496,14 +496,14 @@ class SkillsController {
 		$fistql = round($MaSkill / 2, 0);
 		if ($fistql <= 200) {
 			$speed = 1.25;
-		} else if ($fistql <= 500) {
+		} elseif ($fistql <= 500) {
 			$speed = 1.25 + (0.2 * (($fistql - 200) / 300));
-		} else if ($fistql <= 1000)	{
+		} elseif ($fistql <= 1000) {
 			$speed = 1.45 + (0.2 * (($fistql - 500) / 500));
 		} else { //} else if ($fistql <= 1500)	{
 			$speed = 1.65 + (0.2 * (($fistql - 1000) / 500));
 		}
-		$speed = round($speed,2);
+		$speed = round($speed, 2);
 
 		$blob = "MA Skill: <highlight>". $MaSkill ."<end>\n\n";
 		
@@ -564,7 +564,7 @@ class SkillsController {
 		$blob = "Attack: <highlight>". $attack_time ." <end>second(s)\n";
 		$blob .= "Init Skill: <highlight>". $init_skill ."<end>\n";
 		$blob .= "Def/Agg: <highlight>". $bar_setting ."%<end>\n";
-		$blob .= "You must set your AGG bar at <highlight>". $bar_setting ."% (". round($bar_setting * 8 / 100,2) .") <end>to instacast your nano.\n\n";
+		$blob .= "You must set your AGG bar at <highlight>". $bar_setting ."% (". round($bar_setting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
 		$blob .= "NanoC. Init needed to instacast at Full Agg (100%):<highlight> ". $Init1 ." <end>inits\n";
 		$blob .= "NanoC. Init needed to instacast at Half (50%):<highlight> ". $Init2 ." <end>inits\n";
 		$blob .= "NanoC. Init needed to instacast at Full Def (0%):<highlight> ". $Init3 ." <end>inits";
@@ -680,7 +680,7 @@ class SkillsController {
 	public function calcBarSetting($effective_attack_time) {
 		if ($effective_attack_time < 0) {
 			return 88 + (88 * $effective_attack_time);
-		} else if ($effective_attack_time > 0) {
+		} elseif ($effective_attack_time > 0) {
 			return 88 + (12 * $effective_attack_time);
 		} else {
 			return 88;
@@ -690,7 +690,7 @@ class SkillsController {
 	public function calcInits($attack_time) {
 		if ($attack_time < 0) {
 			return 0;
-		} else if ($attack_time < 6) {
+		} elseif ($attack_time < 6) {
 			return round($attack_time * 200, 2);
 		} else {
 			return round(1200 + ($attack_time - 6) * 600, 2);
@@ -705,7 +705,7 @@ class SkillsController {
 	}
 
 	public function capBurst($attack_time, $recharge_time, $burst_recharge) {
-		$hard_cap = round($attack_time + 8,0);
+		$hard_cap = round($attack_time + 8, 0);
 		$skill_cap = floor((($recharge_time * 20) + ($burst_recharge / 100) - 8) * 25);
 
 		return array($hard_cap, $skill_cap);
@@ -734,7 +734,7 @@ class SkillsController {
 		return array($hard_cap, $skill_cap);
 	}
 
-    public function fireinit($n) {
+	public function fireinit($n) {
 		if ($n < 0) {
 			return 1;
 		} else {
@@ -742,7 +742,7 @@ class SkillsController {
 		}
 	}
 
-    public function rechargeinit($n) {
+	public function rechargeinit($n) {
 		if ($n < 0) {
 			return 1;
 		} else {

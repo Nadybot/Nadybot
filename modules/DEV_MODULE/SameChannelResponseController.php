@@ -9,9 +9,9 @@ use Budabot\Core\CommandReply;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'demo', 
- *		accessLevel = 'all', 
- *		description = 'Execute a command so that links will execute in the same channel', 
+ *		command     = 'demo',
+ *		accessLevel = 'all',
+ *		description = 'Execute a command so that links will execute in the same channel',
  *		help        = 'demo.txt'
  *	)
  */
@@ -54,7 +54,7 @@ class DemoResponseCommandReply implements CommandReply {
 	public function reply($msg) {
 		if ($this->channel == 'priv') {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g {$this->botname} <symbol>demo ", $msg);
-		} else if ($this->channel == 'guild') {
+		} elseif ($this->channel == 'guild') {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///o <symbol>demo ", $msg);
 		}
 		$this->sendto->reply($msg);

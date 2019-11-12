@@ -17,14 +17,14 @@ class TimeSettingHandler extends SettingHandler {
 	/**
 	 * @return String
 	 */
-	function displayValue() {
+	public function displayValue() {
 		return "<highlight>" . $this->util->unixtimeToReadable($this->row->value) . "<end>";
 	}
 	
 	/**
 	 * @return String
 	 */
-	function getDescription() {
+	public function getDescription() {
 		$msg = "For this setting you must enter a time value. See <a href='chatcmd:///tell <myname> help budatime'>budatime</a> for info on the format of the 'time' parameter.\n\n";
 		$msg .= "To change this setting:\n\n";
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>time</i><end>\n\n";
@@ -34,7 +34,7 @@ class TimeSettingHandler extends SettingHandler {
 	/**
 	 * @return String of new value or false if $newValue is invalid
 	 */
-	function save($newValue) {
+	public function save($newValue) {
 		$time = $this->util->parseTime($newValue);
 		if ($time > 0) {
 			return $time;

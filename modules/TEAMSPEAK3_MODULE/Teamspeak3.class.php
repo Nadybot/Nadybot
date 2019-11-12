@@ -14,7 +14,7 @@ class Teamspeak3 {
 	private $port;
 	private $serverId;
 
-	public function __construct($username, $password, $address = '127.0.0.1', $port = 10011, $serverId = 1) {
+	public function __construct($username, $password, $address='127.0.0.1', $port=10011, $serverId=1) {
 		$this->username = $username; // Set to false for guest access
 		$this->password = $password;
 		$this->address = $address;

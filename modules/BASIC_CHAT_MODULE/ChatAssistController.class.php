@@ -14,7 +14,7 @@ namespace Budabot\User\Modules;
  *      alias       = 'callers'
  *	)
  *	@DefineCommand(
- *		command     = 'assist .+', 
+ *		command     = 'assist .+',
  *		accessLevel = 'rl',
  *		description = 'Sets a new assist',
  *		help        = 'assist.txt'
@@ -88,7 +88,7 @@ class ChatAssistController {
 			if (!$uid) {
 				$msg = "Character <highlight>$name<end> does not exist.";
 				$sendto->reply($msg);
-			} else if ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
+			} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$msg = "Character <highlight>$name<end> is not in this bot.";
 				$sendto->reply($msg);
 			}
@@ -102,7 +102,7 @@ class ChatAssistController {
 				if (!$uid) {
 					$msg = "Character <highlight>$name<end> does not exist.";
 					$sendto->reply($msg);
-				} else if ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
+				} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
 					$msg = "Character <highlight>$name<end> is not in this bot.";
 					$sendto->reply($msg);
 				}

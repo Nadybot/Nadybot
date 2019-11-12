@@ -30,7 +30,7 @@ class CacheManager {
 		}
 	}
 
-	public function lookup($url, $groupName, $filename, $isValidCallback, $maxCacheAge = 86400, $forceUpdate = false) {
+	public function lookup($url, $groupName, $filename, $isValidCallback, $maxCacheAge=86400, $forceUpdate=false) {
 		if (empty($groupName)) {
 			throw new Exception("Cache group name cannot be empty");
 		}

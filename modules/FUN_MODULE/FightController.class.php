@@ -73,7 +73,7 @@ class FightController {
 		if ($fighter1->hp > $fighter2->hp) {
 			$list .= "\nAnd the winner is ..... <highlight>$player1!<end>";
 			$msg = $this->text->makeBlob("$player1 vs $player2....$player1 wins!", $list);
-		} else if ($fighter2->hp > $fighter1->hp) {
+		} elseif ($fighter2->hp > $fighter1->hp) {
 			$list .= "\nAnd the winner is ..... <highlight>$player2!<end>";
 			$msg = $this->text->makeBlob("$player1 vs $player2....$player2 wins!", $list);
 		} else {
@@ -92,7 +92,7 @@ class FightController {
 			$fighter->minDamage = 6001;
 			$fighter->maxDamage = 7000;
 			$fighter->hp = 20000;
-		} else if ($this->isChuckNorris($name)) {
+		} elseif ($this->isChuckNorris($name)) {
 			$fighter->weapon = "round house kick";
 			$fighter->minDamage = 4001;
 			$fighter->maxDamage = 6000;

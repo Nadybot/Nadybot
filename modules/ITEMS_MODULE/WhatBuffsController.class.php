@@ -135,7 +135,7 @@ class WhatBuffsController {
 
 		if ($count == 0) {
 			$msg = "Could not find skill <highlight>$skill<end>.";
-		} else if ($count > 1) {
+		} elseif ($count > 1) {
 			$blob .= "Choose a skill:\n\n";
 			forEach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> whatbuffs $row->name") . "\n";
@@ -197,7 +197,7 @@ class WhatBuffsController {
 	
 	public function searchForSkill($skill) {
 		// check for exact match first, in order to disambiguate
-		// between Bow and Bow special attack 
+		// between Bow and Bow special attack
 		$results = $this->db->query("SELECT DISTINCT id, name FROM skills WHERE name LIKE ?", $skill);
 		if (count($results) == 1) {
 			return $results;
@@ -215,7 +215,7 @@ class WhatBuffsController {
 			$blob .= $this->text->makeItem($item->lowid, $item->highid, $item->highql, $item->name) . " ($item->amount)\n";
 		}
 
-		$count = count($items);		
+		$count = count($items);
 		if ($count > 0) {
 			return array($count, $blob);
 		} else {
@@ -231,7 +231,7 @@ class WhatBuffsController {
 		
 		if ($count == 0) {
 			$msg = "Could not find any skills matching <highlight>$skill<end>.";
-		} else if ($count == 1) {
+		} elseif ($count == 1) {
 			$row = $data[0];
 			$msg = $this->getSearchResults($category, $row);
 		} else {

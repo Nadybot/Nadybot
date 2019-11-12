@@ -3,39 +3,39 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Blackruby (RK2),
- *  - Mdkdoc420 (RK2), 
- *  - Wolfbiter (RK1), 
- *  - Gatester (RK2), 
+ *  - Mdkdoc420 (RK2),
+ *  - Wolfbiter (RK1),
+ *  - Gatester (RK2),
  *  - Marebone (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'leprocs', 
- *		accessLevel = 'all', 
- *		description = "Shows each profession's LE procs", 
+ *		command     = 'leprocs',
+ *		accessLevel = 'all',
+ *		description = "Shows each profession's LE procs",
  *		help        = 'leprocs.txt',
  *		alias       = 'leproc'
  *	)
  *	@DefineCommand(
  *		command     = 'ofabarmor',
- *		accessLevel = 'all', 
- *		description = 'Shows ofab armors available to a given profession and their VP cost', 
+ *		accessLevel = 'all',
+ *		description = 'Shows ofab armors available to a given profession and their VP cost',
  *		help        = 'ofabarmor.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'ofabweapons',
- *		accessLevel = 'all', 
- *		description = 'Shows Ofab weapons, their marks, and VP cost', 
+ *		accessLevel = 'all',
+ *		description = 'Shows Ofab weapons, their marks, and VP cost',
  *		help        = 'ofabweapons.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'aigen',
- *		accessLevel = 'all', 
- *		description = 'Shows info about Alien City Generals', 
+ *		accessLevel = 'all',
+ *		description = 'Shows info about Alien City Generals',
  *		help        = 'aigen.txt'
  *	)
  */

@@ -3,28 +3,28 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'kos', 
- *		accessLevel = 'guild', 
- *		description = 'Shows the kill-on-sight list', 
+ *		command     = 'kos',
+ *		accessLevel = 'guild',
+ *		description = 'Shows the kill-on-sight list',
  *		help        = 'kos.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'kos add .+', 
- *		accessLevel = 'guild', 
- *		description = 'Adds a character to the kill-on-sight list', 
+ *		command     = 'kos add .+',
+ *		accessLevel = 'guild',
+ *		description = 'Adds a character to the kill-on-sight list',
  *		help        = 'kos.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'kos rem .+', 
- *		accessLevel = 'mod', 
- *		description = 'Removes a character from the kill-on-sight list', 
+ *		command     = 'kos rem .+',
+ *		accessLevel = 'mod',
+ *		description = 'Removes a character from the kill-on-sight list',
  *		help        = 'kos.txt'
  *	)
  */

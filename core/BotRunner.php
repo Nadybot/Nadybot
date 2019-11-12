@@ -207,13 +207,13 @@ In-Game Contact:  Nadychat
 			// For use with the AO chat proxy ONLY!
 			$server = $vars['proxy_server'];
 			$port = $vars['proxy_port'];
-		} else if ($vars["dimension"] == 4) {
+		} elseif ($vars["dimension"] == 4) {
 			$server = "chat.dt.funcom.com";
 			$port = 7109;
-		} else if ($vars["dimension"] == 5) {
+		} elseif ($vars["dimension"] == 5) {
 			$server = "chat.d1.funcom.com";
 			$port = 7105;
-		} else if ($vars["dimension"] == 6) {
+		} elseif ($vars["dimension"] == 6) {
 			$server = "chat.d1.funcom.com";
 			$port = 7106;
 		} else {

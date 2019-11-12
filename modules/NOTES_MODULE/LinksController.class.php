@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -95,7 +95,7 @@ class LinksController {
 		$obj = $this->db->queryRow("SELECT * FROM links WHERE id = ?", $id);
 		if (empty($obj)) {
 			$msg = "Link with ID <highlight>$id<end> could not be found.";
-		} else if ($obj->name == $sender || $this->accessManager->compareCharacterAccessLevels($sender, $obj->name) > 0) {
+		} elseif ($obj->name == $sender || $this->accessManager->compareCharacterAccessLevels($sender, $obj->name) > 0) {
 			$this->db->exec("DELETE FROM links WHERE id = ?", $id);
 			$msg = "Link with ID <highlight>$id<end> deleted successfully.";
 		} else {

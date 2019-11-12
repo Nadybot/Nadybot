@@ -6,7 +6,7 @@ use Budabot\Core\AutoInject;
 use \DateTimeZone;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -32,7 +32,6 @@ class TimezoneController extends AutoInject {
 	 * @Setup
 	 */
 	public function setup() {
-
 	}
 	
 	/**

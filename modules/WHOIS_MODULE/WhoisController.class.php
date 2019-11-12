@@ -5,7 +5,7 @@ namespace Budabot\User\Modules;
 use Budabot\Core\DB;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -13,14 +13,14 @@ use Budabot\Core\DB;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'whois',
- *		accessLevel = 'member', 
- *		description = 'Show character info, online status, and name history', 
+ *		accessLevel = 'member',
+ *		description = 'Show character info, online status, and name history',
  *		help        = 'whois.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'lookup',
- *		accessLevel = 'all', 
- *		description = 'Find the charId for a character', 
+ *		accessLevel = 'all',
+ *		description = 'Find the charId for a character',
  *		help        = 'lookup.txt'
  *	)
  */

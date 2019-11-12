@@ -5,16 +5,16 @@ namespace Budabot\User\Modules;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'sendtell', 
- *		accessLevel = 'superadmin', 
- *		description = 'Send a tell to another character from the bot', 
+ *		command     = 'sendtell',
+ *		accessLevel = 'superadmin',
+ *		description = 'Send a tell to another character from the bot',
  *		help        = 'sendtell.txt'
  *	)
  */
@@ -30,7 +30,6 @@ class SendTellController extends AutoInject {
 	 * @Setup
 	 */
 	public function setup() {
-		
 	}
 	
 	/**

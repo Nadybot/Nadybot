@@ -135,7 +135,7 @@ class ItemsController {
 				if (preg_match("/^aodb(.*)\\.sql$/i", $item->name, $arr)) {
 					if ($latestVersion === null) {
 						$latestVersion = $arr[1];
-					} else if ($this->util->compareVersionNumbers($arr[1], $currentVersion)) {
+					} elseif ($this->util->compareVersionNumbers($arr[1], $currentVersion)) {
 						$latestVersion = $arr[1];
 					}
 				}
@@ -228,7 +228,7 @@ class ItemsController {
 		return $data;
 	}
 	
-	public function createItemsBlob($data, $search, $ql, $version, $server, $footer, $elapsed = null) {
+	public function createItemsBlob($data, $search, $ql, $version, $server, $footer, $elapsed=null) {
 		$num = count($data);
 		if ($num == 0) {
 			if ($ql) {
@@ -237,7 +237,7 @@ class ItemsController {
 				$msg = "No items found matching <highlight>$search<end>.";
 			}
 			return $msg;
-		} else if ($num < 4) {
+		} elseif ($num < 4) {
 			return trim($this->formatSearchResults($data, $ql, false));
 		} else {
 			$blob = "Version: <highlight>$version<end>\n";
@@ -321,7 +321,7 @@ class ItemsController {
 		return "<description>" . htmlspecialchars($arr[1]) . "</description>";
 	}
 	
-	public function findByName($name, $ql = null) {
+	public function findByName($name, $ql=null) {
 		if ($ql === null) {
 			return $this->db->queryRow("SELECT * FROM aodb WHERE name = ? ORDER BY highql DESC, highid DESC", $name);
 		} else {
@@ -329,7 +329,7 @@ class ItemsController {
 		}
 	}
 
-	public function getItem($name, $ql = null) {
+	public function getItem($name, $ql=null) {
 		$row = $this->findByName($name, $ql);
 		$ql = ($ql === null ? $row->highql : $ql);
 		if ($row === null) {
@@ -339,7 +339,7 @@ class ItemsController {
 		}
 	}
 	
-	public function getItemAndIcon($name, $ql = null) {
+	public function getItemAndIcon($name, $ql=null) {
 		$row = $this->findByName($name, $ql);
 		$ql = ($ql === null ? $row->highql : $ql);
 		if ($row === null) {

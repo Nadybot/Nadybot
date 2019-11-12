@@ -3,7 +3,7 @@
 namespace Budabot\Core\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -134,9 +134,9 @@ class AltsController {
 	
 		if ($altInfo->main == $name) {
 			$msg = "You cannot remove <highlight>{$name}<end> as your main.";
-		} else if (!array_key_exists($name, $altInfo->alts)) {
+		} elseif (!array_key_exists($name, $altInfo->alts)) {
 			$msg = "<highlight>{$name}<end> is not registered as your alt.";
-		} else if (!$altInfo->isValidated($sender) && $altInfo->isValidated($name)) {
+		} elseif (!$altInfo->isValidated($sender) && $altInfo->isValidated($name)) {
 			$msg = "You must be on a validated alt to remove another alt that is validated.";
 		} else {
 			$this->remAlt($altInfo->main, $name);

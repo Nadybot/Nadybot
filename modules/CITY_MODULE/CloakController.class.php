@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
@@ -68,11 +68,11 @@ class CloakController {
 
 			if ($timeSinceChange >= 3600 && $row->action == "off") {
 				$msg = "The cloaking device is <orange>disabled<end>. It is possible to enable it.";
-			} else if ($timeSinceChange < 3600 && $row->action == "off") {
+			} elseif ($timeSinceChange < 3600 && $row->action == "off") {
 				$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
-			} else if ($timeSinceChange >= 3600 && $row->action == "on") {
+			} elseif ($timeSinceChange >= 3600 && $row->action == "on") {
 				$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
-			} else if ($timeSinceChange < 3600 && $row->action == "on") {
+			} elseif ($timeSinceChange < 3600 && $row->action == "on") {
 				$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
 			}
 
@@ -133,7 +133,7 @@ class CloakController {
 					$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 					$this->chatBot->sendGuild("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
 				}
-			} else if ($row->action == "on") {
+			} elseif ($row->action == "on") {
 				if ($timeSinceChange >= 60*60 && $timeSinceChange < 61*60) {
 					$this->chatBot->sendGuild("The cloaking device was enabled one hour ago. Alien attacks can now be initiated.");
 				}
@@ -158,10 +158,10 @@ class CloakController {
 				// 10 minutes before, send tell to player
 				if ($timeSinceChange >= 49*60 && $timeSinceChange <= 50*60) {
 					$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
-				} else if ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
+				} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 					// 1 minute before send tell to player
 					$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
-				} else if ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
+				} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
 					// when cloak can be raised, send tell to player and
 					// every 5 minutes after, send tell to player
 					$msg = "The cloaking device is <orange>disabled<end>. Please enable it now.";
@@ -194,16 +194,16 @@ class CloakController {
 				if ($timeSinceChange >= 60*60 && $row->action == "off") {
 					$case = 1;
 					$msg = "The cloaking device is <orange>disabled<end>. It is possible to enable it.";
-				} else if ($timeSinceChange < 60*30 && $row->action == "off") {
+				} elseif ($timeSinceChange < 60*30 && $row->action == "off") {
 					$case = 1;
 					$msg = "<red>RAID IN PROGRESS!  DO NOT ENTER CITY!</red>";
-				} else if ($timeSinceChange < 60*60 && $row->action == "off") {
+				} elseif ($timeSinceChange < 60*60 && $row->action == "off") {
 					$msg = "Cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
 					$case = 1;
-				} else if ($timeSinceChange >= 60*60 && $row->action == "on") {
+				} elseif ($timeSinceChange >= 60*60 && $row->action == "on") {
 					$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
 					$case = 2;
-				} else if ($timeSinceChange < 60*60 && $row->action == "on") {
+				} elseif ($timeSinceChange < 60*60 && $row->action == "on") {
 					$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
 					$case = 2;
 				} else {

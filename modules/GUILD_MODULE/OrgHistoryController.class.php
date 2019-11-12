@@ -3,16 +3,16 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *
  * @Instance
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = "orghistory", 
- *		accessLevel = "guild", 
- *		description = "Shows the org history (invites and kicks and leaves) for a character", 
+ *		command     = "orghistory",
+ *		accessLevel = "guild",
+ *		description = "Shows the org history (invites and kicks and leaves) for a character",
  *		help        = "orghistory.txt"
  *	)
  */
@@ -124,7 +124,7 @@ class OrgHistoryController {
 
 			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
 			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} else if (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr)) {
+		} elseif (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr)) {
 			$actor = $arr[1];
 			$actee = $arr[2];
 			$action = "kicked";
@@ -132,7 +132,7 @@ class OrgHistoryController {
 
 			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
 			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} else if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
+		} elseif (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$actor = $arr[1];
 			$actee = $arr[2];
 			$action = "invited";
@@ -140,7 +140,7 @@ class OrgHistoryController {
 
 			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
 			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} else if (preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
+		} elseif (preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
 			$actor = $arr[1];
 			$actee = $arr[2];
 			$action = "removed";
@@ -151,4 +151,3 @@ class OrgHistoryController {
 		}
 	}
 }
-

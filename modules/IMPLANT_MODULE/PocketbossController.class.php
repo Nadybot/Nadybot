@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *	- Tyrence (RK2)
  *
  * @Instance
@@ -59,7 +59,7 @@ class PocketbossController {
 		$numrows = count($data);
 		if ($numrows == 0) {
 			$msg = "Could not find any pocket bosses that matched your search criteria.";
-		} else if ($numrows == 1) {
+		} elseif ($numrows == 1) {
 			$name = $data[0]->pb;
 			$blob .= $this->singlePbBlob($name);
 			$msg = $this->text->makeBlob("Remains of $name", $blob);
@@ -186,13 +186,13 @@ class PocketbossController {
 					// check if it's a type
 					if (preg_match("/^art/i", $args[$i])) {
 						$symbtype = "Artillery";
-					} else if (preg_match("/^sup/i", $args[$i])) {
+					} elseif (preg_match("/^sup/i", $args[$i])) {
 						$symbtype = "Support";
-					} else if (preg_match("/^inf/i", $args[$i])) {
+					} elseif (preg_match("/^inf/i", $args[$i])) {
 						$symbtype = "Infantry";
-					} else if (preg_match("/^ext/i", $args[$i])) {
+					} elseif (preg_match("/^ext/i", $args[$i])) {
 						$symbtype = "Extermination";
-					} else if (preg_match("/^control/i", $args[$i])) {
+					} elseif (preg_match("/^control/i", $args[$i])) {
 						$symbtype = "Control";
 					} else {
 						return false;

@@ -86,7 +86,7 @@ class CommandlistController {
 		
 				if ($row->msg_avail == 0) {
 					$tell = "_";
-				} else if ($row->msg_status == 1) {
+				} elseif ($row->msg_status == 1) {
 					$tell = "<green>T<end>";
 				} else {
 					$tell = "<red>T<end>";
@@ -94,7 +94,7 @@ class CommandlistController {
 		
 				if ($row->guild_avail == 0) {
 					$guild = "_";
-				} else if ($row->guild_status == 1) {
+				} elseif ($row->guild_status == 1) {
 					$guild = "<green>G<end>";
 				} else {
 					$guild = "<red>G<end>";
@@ -102,7 +102,7 @@ class CommandlistController {
 		
 				if ($row->priv_avail == 0) {
 					$priv = "_";
-				} else if ($row->priv_status == 1) {
+				} elseif ($row->priv_status == 1) {
 					$priv = "<green>P<end>";
 				} else {
 					$priv = "<red>P<end>";

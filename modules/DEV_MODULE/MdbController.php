@@ -37,7 +37,6 @@ class MdbController {
 
 	/** @Setup */
 	public function setup() {
-		
 	}
 	
 	/**
@@ -90,4 +89,3 @@ class MdbController {
 		$sendto->reply($msg);
 	}
 }
-

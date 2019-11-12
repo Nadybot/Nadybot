@@ -147,7 +147,7 @@ class TowerController {
 	/**
 	 * Adds listener callback which will be called when tower attacks occur.
 	 */
-	public function registerAttackListener($callback, $data = null) {
+	public function registerAttackListener($callback, $data=null) {
 		if (!is_callable($callback)) {
 			$this->logger->log('ERROR', 'Given callback is not valid.');
 			return;
@@ -769,7 +769,7 @@ class TowerController {
 			$playfield_name = $arr[6];
 			$x_coords = $arr[7];
 			$y_coords = $arr[8];
-		} else if (preg_match("/^(.+) just attacked the (Clan|Neutral|Omni) organization (.+)'s tower in (.+) at location \(([0-9]+), ([0-9]+)\).(.*)$/i", $eventObj->message, $arr)) {
+		} elseif (preg_match("/^(.+) just attacked the (Clan|Neutral|Omni) organization (.+)'s tower in (.+) at location \(([0-9]+), ([0-9]+)\).(.*)$/i", $eventObj->message, $arr)) {
 			$att_player = $arr[1];
 			$def_side = ucfirst(strtolower($arr[2]));  // comes across as a string instead of a reference, so convert to title case
 			$def_guild = $arr[3];
@@ -815,7 +815,6 @@ class TowerController {
 			$this->logger->log('error', "ERROR! Could not find closest site: ({$playfield_name}) '{$playfield->id}' '{$x_coords}' '{$y_coords}'");
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
-
 			$this->recordAttack($whois, $def_side, $def_guild, $x_coords, $y_coords, $closest_site);
 			$this->logger->log('debug', "Site being attacked: ({$playfield_name}) '{$closest_site->playfield_id}' '{$closest_site->site_number}'");
 
@@ -826,7 +825,7 @@ class TowerController {
 			}
 
 			$link .= '"' . $att_player . '"';
-			if ($whois->lastname)  {
+			if ($whois->lastname) {
 				$link .= " " . $whois->lastname;
 			}
 			$link .= "<end>\n";
@@ -881,13 +880,15 @@ class TowerController {
 
 		// tower_attack_spam >= 2 (normal) includes attacker stats
 		if ($this->settingManager->get("tower_attack_spam") && $whois->type != 'npc') {
-			$msg .= " - ".preg_replace("/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
-			                           '',
-			                           preg_replace("/ of <(omni|neutral|clan)>.+?<end>/i",
-			                                        '',
-                                                                $this->playerManager->getInfo($whois, false)
-			                                       )
-			                          );
+			$msg .= " - ".preg_replace(
+				"/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
+				'',
+				preg_replace(
+					"/ of <(omni|neutral|clan)>.+?<end>/i",
+					'',
+					$this->playerManager->getInfo($whois, false)
+				)
+			);
 		}
 
 		$msg .= " [$more]";
@@ -912,7 +913,7 @@ class TowerController {
 			$lose_faction = $arr[3];
 			$lose_guild_name = $arr[4];
 			$playfield_name = $arr[5];
-		} else if (preg_match("/^Notum Wars Update: The (clan|neutral|omni) organization (.+) lost their base in (.+).$/i", $eventObj->message, $arr)) {
+		} elseif (preg_match("/^Notum Wars Update: The (clan|neutral|omni) organization (.+) lost their base in (.+).$/i", $eventObj->message, $arr)) {
 			$win_faction = '';
 			$win_guild_name = '';
 			$lose_faction = ucfirst($arr[1]);  // capitalize the faction name to match the other messages
@@ -947,7 +948,7 @@ class TowerController {
 	protected function attacksCommandHandler($page_label, $search, $cmd, $sendto) {
 		if (is_numeric($page_label) == false) {
 			$page_label = 1;
-		} else if ($page_label < 1) {
+		} elseif ($page_label < 1) {
 			$msg = "You must choose a page number greater than 0";
 			$sendto->reply($msg);
 			return;
@@ -999,7 +1000,7 @@ class TowerController {
 
 				if ($row->att_profession == 'Unknown') {
 					$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_faction})\n";
-				} else if ($row->att_guild_name == '') {
+				} elseif ($row->att_guild_name == '') {
 					$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) ({$row->att_faction})\n";
 				} else {
 					$blob .= "Attacker: {$row->att_player} ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end> ({$row->att_faction})\n";
@@ -1020,7 +1021,7 @@ class TowerController {
 	protected function victoryCommandHandler($page_label, $search, $cmd, $sendto) {
 		if (is_numeric($page_label) == false) {
 			$page_label = 1;
-		} else if ($page_label < 1) {
+		} elseif ($page_label < 1) {
 			$msg = "You must choose a page number greater than 0";
 			$sendto->reply($msg);
 			return;
@@ -1186,8 +1187,22 @@ class TowerController {
 				?
 			)";
 
-		return $this->db->exec($sql, time(), $whois->guild, $whois->faction, $whois->name, $whois->level, $whois->ai_level, $whois->profession,
-			$def_guild_name, $def_faction, $closest_site->playfield_id, $closest_site->site_number, $x_coords, $y_coords);
+		return $this->db->exec(
+			$sql,
+			time(),
+			$whois->guild,
+			$whois->faction,
+			$whois->name,
+			$whois->level,
+			$whois->ai_level,
+			$whois->profession,
+			$def_guild_name,
+			$def_faction,
+			$closest_site->playfield_id,
+			$closest_site->site_number,
+			$x_coords,
+			$y_coords
+		);
 	}
 
 	protected function findAllScoutedSites() {
@@ -1323,7 +1338,7 @@ class TowerController {
 			$site->gas_level = '5%';
 			$site->next_state = 'closes';
 			$site->color = "<orange>";
-		} else if ($time_until_close_time < 3600 * 6) {
+		} elseif ($time_until_close_time < 3600 * 6) {
 			$site->gas_change = $time_until_close_time;
 			$site->gas_level = '25%';
 			$site->next_state = 'closes';

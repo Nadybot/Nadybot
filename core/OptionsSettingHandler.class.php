@@ -15,7 +15,7 @@ class OptionsSettingHandler extends SettingHandler {
 	/**
 	 * @return String
 	 */
-	function getDescription() {
+	public function getDescription() {
 		$msg = "For this setting you must choose one of the options from the list below.\n\n";
 		return $msg;
 	}
@@ -23,7 +23,7 @@ class OptionsSettingHandler extends SettingHandler {
 	/**
 	 * @return String of new value or false if $newValue is invalid
 	 */
-	function save($newValue) {
+	public function save($newValue) {
 		$options = explode(";", $this->row->options);
 		if ($this->row->intoptions != '') {
 			$intoptions = explode(";", $this->row->intoptions);

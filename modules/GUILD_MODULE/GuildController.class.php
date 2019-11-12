@@ -3,7 +3,7 @@
 namespace Budabot\User\Modules;
 
 /**
- * Authors: 
+ * Authors:
  *  - Tyrence (RK2)
  *  - Mindrila (RK1)
  *  - Derroylo (RK2)
@@ -12,39 +12,39 @@ namespace Budabot\User\Modules;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = "logon", 
- *		accessLevel = "guild", 
- *		description = "Set logon message", 
+ *		command     = "logon",
+ *		accessLevel = "guild",
+ *		description = "Set logon message",
  *		help        = "logon_msg.txt"
  *	)
  *	@DefineCommand(
- *		command     = "logoff", 
- *		accessLevel = "guild", 
- *		description = "Set logoff message", 
+ *		command     = "logoff",
+ *		accessLevel = "guild",
+ *		description = "Set logoff message",
  *		help        = "logoff_msg.txt"
  *	)
  *	@DefineCommand(
- *		command     = "lastseen", 
- *		accessLevel = "guild", 
- *		description = "Shows the last logoff time of a character", 
+ *		command     = "lastseen",
+ *		accessLevel = "guild",
+ *		description = "Shows the last logoff time of a character",
  *		help        = "lastseen.txt"
  *	)
  *	@DefineCommand(
- *		command     = "recentseen", 
- *		accessLevel = "guild", 
- *		description = "Shows org members who have logged off recently", 
+ *		command     = "recentseen",
+ *		accessLevel = "guild",
+ *		description = "Shows org members who have logged off recently",
  *		help        = "recentseen.txt"
  *	)
  *	@DefineCommand(
- *		command     = "notify", 
- *		accessLevel = "mod", 
- *		description = "Adds a character to the notify list manually", 
+ *		command     = "notify",
+ *		accessLevel = "mod",
+ *		description = "Adds a character to the notify list manually",
  *		help        = "notify.txt"
  *	)
  *	@DefineCommand(
- *		command     = "updateorg", 
- *		accessLevel = "mod", 
- *		description = "Force an update of the org roster", 
+ *		command     = "updateorg",
+ *		accessLevel = "mod",
+ *		description = "Force an update of the org roster",
  *		help        = "updateorg.txt"
  *	)
  */
@@ -134,7 +134,7 @@ class GuildController {
 		if ($logon_msg == 'clear') {
 			$this->preferences->save($sender, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} else if (strlen($logon_msg) <= $this->settingManager->get('max_logon_msg_size')) {
+		} elseif (strlen($logon_msg) <= $this->settingManager->get('max_logon_msg_size')) {
 			$this->preferences->save($sender, 'logon_msg', $logon_msg);
 			$msg = "Your logon message has been set.";
 		} else {
@@ -168,7 +168,7 @@ class GuildController {
 		if ($logoff_msg == 'clear') {
 			$this->preferences->save($sender, 'logoff_msg', '');
 			$msg = "Your logoff message has been cleared.";
-		} else if (strlen($logoff_msg) <= $this->settingManager->get('max_logoff_msg_size')) {
+		} elseif (strlen($logoff_msg) <= $this->settingManager->get('max_logoff_msg_size')) {
 			$this->preferences->save($sender, 'logoff_msg', $logoff_msg);
 			$msg = "Your logoff message has been set.";
 		} else {
@@ -195,14 +195,16 @@ class GuildController {
 				$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
 			}
 			
-			$namesSql = implode(",", array_map(function($alt) { return "'$alt'";}, $altInfo->getAllAlts()));
+			$namesSql = implode(",", array_map(function($alt) {
+				return "'$alt'";
+			}, $altInfo->getAllAlts()));
 			$data = $this->db->query("SELECT * FROM org_members_<myname> WHERE `name` IN ($namesSql) AND `mode` != 'del' ORDER BY logged_off DESC");
 
 			forEach ($data as $row) {
 				if (in_array($row->name, $onlineAlts)) {
 					// skip
 					continue;
-				} else if ($row->logged_off == 0) {
+				} elseif ($row->logged_off == 0) {
 					$blob .= "<highlight>$row->name<end> has never logged on.\n";
 				} else {
 					$blob .= "<highlight>$row->name<end> last seen at " . $this->util->date($row->logged_off) . ".\n";
@@ -239,7 +241,7 @@ class GuildController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$data = $this->db->query("SELECT case when a.main is null then o.name else a.main end as main ,o.logged_off,o.name FROM org_members_<myname> o LEFT JOIN alts a ON o.name = a.alt WHERE `mode` != 'del' AND `logged_off` > ? ORDER BY 1, o.logged_off desc, o.name", $time); 
+		$data = $this->db->query("SELECT case when a.main is null then o.name else a.main end as main ,o.logged_off,o.name FROM org_members_<myname> o LEFT JOIN alts a ON o.name = a.alt WHERE `mode` != 'del' AND `logged_off` > ? ORDER BY 1, o.logged_off desc, o.name", $time);
 
 		if (count($data) == 0) {
 			$sendto->reply("No members recorded.");
@@ -268,7 +270,7 @@ class GuildController {
 					$blob .= $character;
 					$highlight = 1;
 				}
-			} 
+			}
 		}
 		$msg = $this->text->makeBlob("$numrecentcount recently seen org members", $blob);
 		$sendto->reply($msg);
@@ -328,7 +330,7 @@ class GuildController {
 
 		if ($row === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
-		} else if ($row->mode == "del") {
+		} elseif ($row->mode == "del") {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
 			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
@@ -482,7 +484,7 @@ class GuildController {
 
 			// update character info
 			$this->playerManager->getByName($name);
-		} else if (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr) || preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
+		} elseif (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr) || preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
 
 			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
@@ -490,7 +492,7 @@ class GuildController {
 
 			unset($this->chatBot->guildmembers[$name]);
 			$this->buddylistManager->remove($name, 'org');
-		} else if (preg_match("/^(.+) just left your organization.$/", $message, $arr) || preg_match("/^(.+) kicked from organization \\(alignment changed\\).$/", $message, $arr)) {
+		} elseif (preg_match("/^(.+) just left your organization.$/", $message, $arr) || preg_match("/^(.+) kicked from organization \\(alignment changed\\).$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[1]));
 
 			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
@@ -619,4 +621,3 @@ class GuildController {
 		return null;
 	}
 }
-
