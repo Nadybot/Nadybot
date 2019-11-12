@@ -15,5 +15,8 @@
 	"config": {
 		"bin-dir": "..",
 		"vendor-dir": "lib/vendor"
+	},
+	"require-dev": {
+		"squizlabs/php_codesniffer": "^3.5"
 	}
 }

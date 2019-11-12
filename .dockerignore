@@ -11,3 +11,4 @@ php-win.ini
 composer*
 conf/config.template.php
 modules/GIT_MODULE
+lib/vendor/squizlabs
