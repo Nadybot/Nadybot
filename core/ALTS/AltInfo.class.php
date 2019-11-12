@@ -58,7 +58,11 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		$sql = "SELECT `alt`, `main`, `validated`, p.* FROM `alts` a LEFT JOIN players p ON (a.alt = p.name AND p.dimension = '<dim>') WHERE `main` LIKE ? ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
+		$sql = "SELECT `alt`, `main`, `validated`, p.* ".
+			"FROM `alts` a ".
+			"LEFT JOIN players p ON (a.alt = p.name AND p.dimension = '<dim>') ".
+			"WHERE `main` LIKE ? ".
+			"ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
 		$data = $db->query($sql, $this->main);
 		$count = count($data) + 1;
 		forEach ($data as $row) {

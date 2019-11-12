@@ -355,27 +355,6 @@ class Util {
 		return $str;
 	}
 
-	/**
-	 * Finds all occurrences of multiple strings in a string and returns them in an array
-	 * with the key indicating the offset and the value indicating the string found.
-	 *
-	 * @param string   $haystack the string to search
-	 * @param array    $needles an array of strings to search for
-	 */
-	public function strpos_r($haystack, $needles) {
-		$seeks = array();
-		
-		forEach ($needles as $needle) {
-			$search = $haystack;
-			while ($seek = strrpos($search, $needle)) {
-				$seeks[$seek] = $needle;
-				$search = substr($search, 0, $seek);
-			}
-		}
-		ksort($seeks);
-		return $seeks;
-	}
-	
 	public function date($unixtime) {
 		return date(self::DATETIME, $unixtime);
 	}

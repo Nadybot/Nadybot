@@ -57,7 +57,10 @@ class SubcommandManager {
 				$sql = "UPDATE cmdcfg_<myname> SET `module` = ?, `verify` = ?, `file` = ?, `description` = ?, `dependson` = ?, `help` = ? WHERE `cmd` = ? AND `type` = ?";
 				$this->db->exec($sql, $module, '1', $filename, $description, $parent_command, $help, $command, $channel[$i]);
 			} else {
-				$sql = "INSERT INTO cmdcfg_<myname> (`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `dependson`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				$sql = "INSERT INTO cmdcfg_<myname> ".
+					"(`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `dependson`, `status`, `help`) ".
+					"VALUES ".
+					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				$this->db->exec($sql, $module, $channel[$i], $filename, $command, $admin[$i], $description, '1', 'subcmd', $parent_command, $status, $help);
 			}
 		}

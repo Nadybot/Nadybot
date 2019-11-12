@@ -241,7 +241,14 @@ class GuildController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$data = $this->db->query("SELECT case when a.main is null then o.name else a.main end as main ,o.logged_off,o.name FROM org_members_<myname> o LEFT JOIN alts a ON o.name = a.alt WHERE `mode` != 'del' AND `logged_off` > ? ORDER BY 1, o.logged_off desc, o.name", $time);
+		$data = $this->db->query(
+			"SELECT CASE WHEN a.main IS NULL THEN o.name ELSE a.main END AS main, o.logged_off, o.name ".
+			"FROM org_members_<myname> o ".
+			"LEFT JOIN alts a ON o.name = a.alt ".
+			"WHERE `mode` != 'del' AND `logged_off` > ? ".
+			"ORDER BY 1, o.logged_off desc, o.name",
+			$time
+		);
 
 		if (count($data) == 0) {
 			$sendto->reply("No members recorded.");

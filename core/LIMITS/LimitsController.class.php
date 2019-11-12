@@ -43,10 +43,46 @@ class LimitsController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->settingManager->add($this->moduleName, "tell_req_lvl", "Minimum level required to send tell to bot", "edit", "number", "0", "0;10;50;100;150;190;205;215");
-		$this->settingManager->add($this->moduleName, "tell_req_faction", "Faction required to send tell to bot", "edit", "options", "all", "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan");
-		$this->settingManager->add($this->moduleName, "tell_min_player_age", "Minimum age of player to send tell to bot", "edit", "time", "1s", "1s;7days;14days;1month;2months;6months;1year;2years", '', 'mod', 'limits.txt');
-		$this->settingManager->add($this->moduleName, "tell_error_msg_type", "How to show error messages when limit requirements are not met", "edit", "options", "2", "Specific;Generic;None", "2;1;0");
+		$this->settingManager->add(
+			$this->moduleName,
+			"tell_req_lvl",
+			"Minimum level required to send tell to bot",
+			"edit",
+			"number",
+			"0",
+			"0;10;50;100;150;190;205;215"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tell_req_faction",
+			"Faction required to send tell to bot",
+			"edit",
+			"options",
+			"all",
+			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tell_min_player_age",
+			"Minimum age of player to send tell to bot",
+			"edit",
+			"time",
+			"1s",
+			"1s;7days;14days;1month;2months;6months;1year;2years",
+			'',
+			'mod',
+			'limits.txt'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tell_error_msg_type",
+			"How to show error messages when limit requirements are not met",
+			"edit",
+			"options",
+			"2",
+			"Specific;Generic;None",
+			"2;1;0"
+		);
 	}
 	
 	public function check($sender, $message) {

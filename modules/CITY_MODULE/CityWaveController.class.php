@@ -55,7 +55,18 @@ class CityWaveController {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 		
-		$this->settingManager->add($this->moduleName, 'city_wave_times', 'Times to display timer alerts', 'edit', 'text', '105s 150s 90s 120s 120s 120s 120s 120s 120s', '105s 150s 90s 120s 120s 120s 120s 120s 120s', '', 'mod', 'city_wave_times.txt');
+		$this->settingManager->add(
+			$this->moduleName,
+			'city_wave_times',
+			'Times to display timer alerts',
+			'edit',
+			'text',
+			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
+			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
+			'',
+			'mod',
+			'city_wave_times.txt'
+		);
 		$this->settingManager->registerChangeListener('city_wave_times', array($this, 'changeWaveTimes'));
 	}
 	

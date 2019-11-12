@@ -287,7 +287,14 @@ class PrivateChannelController {
 				$tl7++;
 			}
 		}
-		$msg = "<highlight>$numonline<end> in total: TL1 <highlight>$tl1<end>, TL2 <highlight>$tl2<end>, TL3 <highlight>$tl3<end>, TL4 <highlight>$tl4<end>, TL5 <highlight>$tl5<end>, TL6 <highlight>$tl6<end>, TL7 <highlight>$tl7<end>";
+		$msg = "<highlight>$numonline<end> in total: ".
+			"TL1 <highlight>$tl1<end>, ".
+			"TL2 <highlight>$tl2<end>, ".
+			"TL3 <highlight>$tl3<end>, ".
+			"TL4 <highlight>$tl4<end>, ".
+			"TL5 <highlight>$tl5<end>, ".
+			"TL6 <highlight>$tl6<end>, ".
+			"TL7 <highlight>$tl7<end>";
 		$sendto->reply($msg);
 	}
 	
@@ -311,7 +318,13 @@ class PrivateChannelController {
 		$online["Trader"] = 0;
 		$online["Shade"] = 0;
 
-		$data = $this->db->query("SELECT count(*) AS count, profession FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv' GROUP BY `profession`");
+		$data = $this->db->query(
+			"SELECT count(*) AS count, profession ".
+			"FROM online o ".
+			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+			"GROUP BY `profession`"
+		);
 		$numonline = count($data);
 		$msg = "<highlight>$numonline<end> in total: ";
 
@@ -349,7 +362,12 @@ class PrivateChannelController {
 		if ($numonline == 0) {
 			$msg = "No characters in channel.";
 		} else {
-			$sql = "SELECT `guild`, count(*) AS cnt, AVG(level) AS avg_level FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv' GROUP BY `guild` ORDER BY `cnt` DESC, `avg_level` DESC";
+			$sql = "SELECT `guild`, count(*) AS cnt, AVG(level) AS avg_level ".
+				"FROM online o ".
+				"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+				"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+				"GROUP BY `guild` ".
+				"ORDER BY `cnt` DESC, `avg_level` DESC";
 			$data = $this->db->query($sql);
 			$numorgs = count($data);
 
@@ -378,7 +396,13 @@ class PrivateChannelController {
 		if ($prof == '') {
 			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all";
 		} else {
-			$data = $this->db->query("SELECT * FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv' AND `profession` = ? ORDER BY `level`", $prof);
+			$data = $this->db->query(
+				"SELECT * FROM online o ".
+				"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+				"WHERE added_by = '<myname>' AND channel_type = 'priv' AND `profession` = ? ".
+				"ORDER BY `level`",
+				$prof
+			);
 			$numonline = count($data);
 			$msg = "<highlight>$numonline<end> $prof:";
 

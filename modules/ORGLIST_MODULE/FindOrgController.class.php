@@ -44,7 +44,12 @@ class FindOrgController {
 	/** @Logger */
 	public $logger;
 	
-	private $searches = array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'others');
+	private $searches = array(
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+		'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+		'others'
+	);
 
 	/** @Setup */
 	public function setup() {
@@ -106,7 +111,18 @@ class FindOrgController {
 			forEach ($this->searches as $search) {
 				$response = $this->http->get($url)->withQueryParams(array('l' => $search))->waitAndReturnResponse();
 			
-				$pattern = '@<tr>\s*<td align="left">\s*<a href="http://people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*([^<]+)</a></td>\s*<td align="right">(\d+)</td>\s*<td align="right">(\d+)</td>\s*<td align="left">([^<]+)</td>\s*<td align="left">([^<]+)</td>\s*<td align="left" class="dim">RK5</td>\s*</tr>@s';
+				$pattern = '@<tr>\s*'.
+					'<td align="left">\s*'.
+						'<a href="http://people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
+							'([^<]+)'.
+						'</a>'.
+					'</td>\s*'.
+					'<td align="right">(\d+)</td>\s*'.
+					'<td align="right">(\d+)</td>\s*'.
+					'<td align="left">([^<]+)</td>\s*'.
+					'<td align="left">([^<]+)</td>\s*'.
+					'<td align="left" class="dim">RK5</td>\s*'.
+					'</tr>@s';
 
 				preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
 				forEach ($arr as $match) {

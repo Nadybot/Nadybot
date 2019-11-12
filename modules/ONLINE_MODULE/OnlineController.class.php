@@ -64,10 +64,47 @@ class OnlineController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "online");
 		
-		$this->settingManager->add($this->moduleName, "online_expire", "How long to wait before clearing online list", "edit", "time", "15m", "2m;5m;10m;15m;20m", '', "mod");
-		$this->settingManager->add($this->moduleName, "online_show_org_guild", "Show org/rank for players in guild channel", "edit", "options", "1", "Show org and rank;Show rank only;Show org only;Show no org info", "2;1;3;0");
-		$this->settingManager->add($this->moduleName, "online_show_org_priv", "Show org/rank for players in private channel", "edit", "options", "2", "Show org and rank;Show rank only;Show org only;Show no org info", "2;1;3;0");
-		$this->settingManager->add($this->moduleName, "online_admin", "Show admin levels in online list", "edit", "options", "0", "true;false", "1;0");
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_expire",
+			"How long to wait before clearing online list",
+			"edit",
+			"time",
+			"15m",
+			"2m;5m;10m;15m;20m",
+			'',
+			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_show_org_guild",
+			"Show org/rank for players in guild channel",
+			"edit",
+			"options",
+			"1",
+			"Show org and rank;Show rank only;Show org only;Show no org info",
+			"2;1;3;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_show_org_priv",
+			"Show org/rank for players in private channel",
+			"edit",
+			"options",
+			"2",
+			"Show org and rank;Show rank only;Show org only;Show no org info",
+			"2;1;3;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_admin",
+			"Show admin levels in online list",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 
 		$this->commandAlias->register($this->moduleName, "online", "o");
 		$this->commandAlias->register($this->moduleName, "online", "sm");

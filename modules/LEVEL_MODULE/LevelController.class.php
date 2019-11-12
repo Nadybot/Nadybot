@@ -64,7 +64,13 @@ class LevelController {
 	public function levelCommand($message, $channel, $sender, $sendto, $args) {
 		$level = $args[1];
 		if (($row = $this->getLevelInfo($level)) != false) {
-			$msg = "<white>L $row->level: Team {$row->teamMin}-{$row->teamMax}<end><highlight> | <end><cyan>PvP {$row->pvpMin}-{$row->pvpMax}<end><highlight> | <end><orange>Missions {$row->missions}<end><highlight> | <end><blue>{$row->tokens} token(s)<end>";
+			$msg = "<white>L $row->level: Team {$row->teamMin}-{$row->teamMax}<end>".
+				"<highlight> | <end>".
+				"<cyan>PvP {$row->pvpMin}-{$row->pvpMax}<end>".
+				"<highlight> | <end>".
+				"<orange>Missions {$row->missions}<end>".
+				"<highlight> | <end>".
+				"<blue>{$row->tokens} token(s)<end>";
 		} else {
 			$msg = "Level must be between <highlight>1<end> and <highlight>220<end>.";
 		}
@@ -134,11 +140,18 @@ class LevelController {
 					}
 				}
 				if ($sk > 0 && $xp > 0) {
-					$msg = "From the beginning of level <highlight>$minLevel<end> you need <highlight>".number_format($xp)."<end> XP and <highlight>".number_format($sk)."<end> SK to reach level <highlight>$maxLevel<end>.";
+					$msg = "From the beginning of level <highlight>$minLevel<end> ".
+						"you need <highlight>".number_format($xp)."<end> XP ".
+						"and <highlight>".number_format($sk)."<end> SK ".
+						"to reach level <highlight>$maxLevel<end>.";
 				} elseif ($sk > 0) {
-					$msg = "From the beginning of level <highlight>$minLevel<end> you need <highlight>".number_format($sk)."<end> SK to reach level <highlight>$maxLevel<end>.";
+					$msg = "From the beginning of level <highlight>$minLevel<end> ".
+						"you need <highlight>".number_format($sk)."<end> SK ".
+						"to reach level <highlight>$maxLevel<end>.";
 				} elseif ($xp > 0) {
-					$msg = "From the beginning of level <highlight>$minLevel<end> you need <highlight>".number_format($xp)."<end> XP to reach level <highlight>$maxLevel<end>.";
+					$msg = "From the beginning of level <highlight>$minLevel<end> ".
+						"you need <highlight>".number_format($xp)."<end> XP ".
+						"to reach level <highlight>$maxLevel<end>.";
 				}
 			} else {
 				$msg = "The start level cannot be higher than the end level.";

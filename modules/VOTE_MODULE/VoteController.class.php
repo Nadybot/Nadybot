@@ -64,7 +64,18 @@ class VoteController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'vote');
 		
-		$this->settingManager->add($this->moduleName, "vote_channel_spam", "Showing Vote status messages in", "edit", "options", "2", "Private Channel;Guild;Private Channel and Guild;Neither", "0;1;2;3", "mod", "votesettings.txt");
+		$this->settingManager->add(
+			$this->moduleName,
+			"vote_channel_spam",
+			"Showing Vote status messages in",
+			"edit",
+			"options",
+			"2",
+			"Private Channel;Guild;Private Channel and Guild;Neither",
+			"0;1;2;3",
+			"mod",
+			"votesettings.txt"
+		);
 		
 		$data = $this->db->query("SELECT * FROM vote_<myname> WHERE `status` <> ? AND `duration` IS NOT NULL", self::STATUS_ENDED);
 		forEach ($data as $row) {
@@ -335,7 +346,18 @@ class VoteController {
 				$status = self::STATUS_CREATED;
 				$data = $this->db->query("SELECT * FROM $this->table WHERE `question` = ?", $question);
 				if (count($data) == 0) {
-					$this->db->exec("INSERT INTO $this->table (`question`, `author`, `started`, `duration`, `answer`, `status`) VALUES (?, ?, ?, ?, ?, ?)", $question, $sender, time(), $newtime, $answers, $status);
+					$this->db->exec(
+						"INSERT INTO $this->table ".
+						"(`question`, `author`, `started`, `duration`, `answer`, `status`) ".
+						"VALUES ".
+						"(?, ?, ?, ?, ?, ?)",
+						$question,
+						$sender,
+						time(),
+						$newtime,
+						$answers,
+						$status
+					);
 					$obj = new stdClass;
 					$obj->question = $question;
 					$obj->author = $sender;

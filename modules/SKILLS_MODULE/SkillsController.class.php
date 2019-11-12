@@ -275,8 +275,14 @@ class SkillsController {
 		$min  = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $min_list[$i], $min_list[($i+1)], $brawl_skill);
 		$max  = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $max_list[$i], $max_list[($i+1)], $brawl_skill);
 		$crit = $this->util->interpolate($skill_list[$i], $skill_list[($i+1)], $crit_list[$i], $crit_list[($i+1)], $brawl_skill);
-		$stunC = (($brawl_skill < 1000) ? "<orange>10<end>%, <font color=#cccccc>will become </font>20<font color=#cccccc>% above </font>1000<font color=#cccccc> brawl skill</font>" : "<orange>20<end>%");
-		$stunD = (($brawl_skill < 2001) ?  "<orange>3<end>s, <font color=#cccccc>will become </font>4<font color=#cccccc>s above </font>2001<font color=#cccccc> brawl skill</font>" :  "<orange>4<end>s");
+		$stunC = "<orange>20<end>%";
+		if ($brawl_skill < 1000) {
+			$stunC = "<orange>10<end>%, <font color=#cccccc>will become </font>20<font color=#cccccc>% above </font>1000<font color=#cccccc> brawl skill</font>";
+		}
+		$stunD = "<orange>4<end>s";
+		if ($brawl_skill < 2001) {
+			$stunD = "<orange>3<end>s, <font color=#cccccc>will become </font>4<font color=#cccccc>s above </font>2001<font color=#cccccc> brawl skill</font>";
+		}
 
 		$blob = "Brawl Skill: <highlight>".$brawl_skill."<end>\n";
 		$blob .= "Brawl recharge: <highlight>15<end> seconds <font color=#ccccc>(constant)</font>\n";

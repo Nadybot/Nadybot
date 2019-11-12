@@ -760,7 +760,15 @@ class TowerController {
 	 * @Description("Record attack messages")
 	 */
 	public function attackMessagesEvent($eventObj) {
-		if (preg_match("/^The (Clan|Neutral|Omni) organization (.+) just entered a state of war! (.+) attacked the (Clan|Neutral|Omni) organization (.+)'s tower in (.+) at location \\((\\d+),(\\d+)\\)\\.$/i", $eventObj->message, $arr)) {
+		if (preg_match(
+			"/^The (Clan|Neutral|Omni) organization ".
+			"(.+) just entered a state of war! ".
+			"(.+) attacked the (Clan|Neutral|Omni) organization ".
+			"(.+)'s tower in ".
+			"(.+) at location \\((\\d+),(\\d+)\\)\\.$/i",
+			$eventObj->message,
+			$arr
+		)) {
 			$att_side = ucfirst(strtolower($arr[1]));  // comes across as a string instead of a reference, so convert to title case
 			$att_guild = $arr[2];
 			$att_player = $arr[3];
@@ -769,7 +777,13 @@ class TowerController {
 			$playfield_name = $arr[6];
 			$x_coords = $arr[7];
 			$y_coords = $arr[8];
-		} elseif (preg_match("/^(.+) just attacked the (Clan|Neutral|Omni) organization (.+)'s tower in (.+) at location \(([0-9]+), ([0-9]+)\).(.*)$/i", $eventObj->message, $arr)) {
+		} elseif (preg_match(
+			"/^(.+) just attacked the (Clan|Neutral|Omni) organization ".
+			"(.+)'s tower in ".
+			"(.+) at location \(([0-9]+), ([0-9]+)\).(.*)$/i",
+			$eventObj->message,
+			$arr
+		)) {
 			$att_player = $arr[1];
 			$def_side = ucfirst(strtolower($arr[2]));  // comes across as a string instead of a reference, so convert to title case
 			$def_guild = $arr[3];

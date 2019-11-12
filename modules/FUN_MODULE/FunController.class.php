@@ -197,7 +197,10 @@ class FunController {
 	 *
 	 * Author: Derroylo (RK2)
 	 *
-	 * Some entries taken from a module developed by MysterF aka Floryn from Band of Brothers - CROM originally for Bebot: http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
+	 * Some entries taken from a module developed by MysterF aka Floryn
+	 * from Band of Brothers
+	 * CROM originally for Bebot:
+	 * http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
 	 */
 	public function homerCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('homer', $sender, $args[1]);

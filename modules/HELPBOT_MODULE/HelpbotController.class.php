@@ -84,7 +84,16 @@ class HelpbotController {
 	 */
 	public function dynaNameCommand($message, $channel, $sender, $sendto, $args) {
 		$search = str_replace(" ", "%", $args[1]);
-		$data = $this->db->query("SELECT * FROM dynadb d JOIN playfields p ON d.playfield_id = p.id WHERE long_name LIKE ? OR short_name LIKE ? OR mob LIKE ? ORDER BY `minQl`", "%{$search}%", "%{$search}%", "%{$search}%");
+		$data = $this->db->query(
+			"SELECT * ".
+			"FROM dynadb d ".
+			"JOIN playfields p ON d.playfield_id = p.id ".
+			"WHERE long_name LIKE ? OR short_name LIKE ? OR mob LIKE ? ".
+			"ORDER BY `minQl`",
+			"%{$search}%",
+			"%{$search}%",
+			"%{$search}%"
+		);
 		$count = count($data);
 
 		$blob = "Results of Dynacamp Search for '$search'\n\n";
