@@ -26,13 +26,22 @@ class MdbController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
 	/** @Setup */

@@ -26,13 +26,22 @@ class GuideController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 	
 	private $path;

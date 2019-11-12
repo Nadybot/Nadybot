@@ -16,10 +16,16 @@ class OSController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\TimerController $timerController
+	 * @Inject
+	 */
 	public $timerController;
 	
 	/**

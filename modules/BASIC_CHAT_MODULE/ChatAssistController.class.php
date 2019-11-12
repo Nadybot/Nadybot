@@ -28,13 +28,22 @@ class ChatAssistController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ChatLeaderController $chatLeaderController
+	 * @Inject
+	 */
 	public $chatLeaderController;
 	
 	/**

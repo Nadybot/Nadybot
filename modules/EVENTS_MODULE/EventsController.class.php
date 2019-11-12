@@ -49,22 +49,40 @@ class EventsController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AltsController $altsController
+	 * @Inject
+	 */
 	public $altsController;
 	
 	private $apisocket = null;

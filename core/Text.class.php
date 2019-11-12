@@ -7,10 +7,16 @@ namespace Budabot\Core;
  */
 class Text {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 	
 	/** @Logger */

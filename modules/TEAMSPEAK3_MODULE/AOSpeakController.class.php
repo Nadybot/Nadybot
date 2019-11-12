@@ -24,16 +24,28 @@ class AOSpeakController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
 	public $http;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
 	/**

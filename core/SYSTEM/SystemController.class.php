@@ -65,43 +65,82 @@ class SystemController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AdminManager $adminManager
+	 * @Inject
+	 */
 	public $adminManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @Inject
+	 */
 	public $commandManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\EventManager $eventManager
+	 * @Inject
+	 */
 	public $eventManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @Inject
+	 */
 	public $subcommandManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @Inject
+	 */
 	public $helpManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @Inject
+	 */
 	public $buddylistManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 
 	/** @Logger */

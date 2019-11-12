@@ -9,19 +9,34 @@ use stdClass;
  */
 class HelpManager {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ConfigController $configController
+	 * @Inject
+	 */
 	public $configController;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 
 	/** @Logger */

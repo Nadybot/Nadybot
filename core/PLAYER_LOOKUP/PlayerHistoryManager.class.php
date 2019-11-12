@@ -9,10 +9,16 @@ use stdClass;
  */
 class PlayerHistoryManager {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CacheManager $cacheManager
+	 * @Inject
+	 */
 	public $cacheManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
 	public $http;
 	
 	public function lookup($name, $rk_num) {

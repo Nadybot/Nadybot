@@ -16,13 +16,22 @@ namespace Budabot\Core\Modules;
  */
 class CommandlistController {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
 	/**

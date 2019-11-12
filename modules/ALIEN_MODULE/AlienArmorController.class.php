@@ -22,10 +22,16 @@ namespace Budabot\User\Modules;
  */
 class AlienArmorController {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ItemsController $itemsController
+	 * @Inject
+	 */
 	public $itemsController;
 
 	/**

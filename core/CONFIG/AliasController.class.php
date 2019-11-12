@@ -18,13 +18,22 @@ use stdClass;
  */
 class AliasController {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @Inject
+	 */
 	public $commandManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
 	/**

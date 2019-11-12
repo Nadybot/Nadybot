@@ -4,16 +4,28 @@ namespace Budabot\Core;
 
 class EventLoop {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\EventManager $eventManager
+	 * @Inject
+	 */
 	public $eventManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SocketManager $socketManager
+	 * @Inject
+	 */
 	public $socketManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Timer $timer
+	 * @Inject
+	 */
 	public $timer;
 	
 	public function execSingleLoop() {

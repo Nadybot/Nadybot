@@ -24,16 +24,28 @@ class OrgMembersController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerManager $playerManager
+	 * @Inject
+	 */
 	public $playerManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\GuildManager $guildManager
+	 * @Inject
+	 */
 	public $guildManager;
 	
 	/**

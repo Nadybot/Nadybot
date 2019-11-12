@@ -3,7 +3,10 @@
 namespace Budabot\Core;
 
 class SettingHandler {
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
 	protected $row;

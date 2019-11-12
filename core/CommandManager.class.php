@@ -11,37 +11,70 @@ use Exception;
  */
 class CommandManager {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @Inject
+	 */
 	public $helpManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @Inject
+	 */
 	public $subcommandManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandSearchController $commandSearchController
+	 * @Inject
+	 */
 	public $commandSearchController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\UsageController $usageController
+	 * @Inject
+	 */
 	public $usageController;
 
 	/** @Logger */

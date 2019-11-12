@@ -26,19 +26,34 @@ class FindOrgController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
 	public $http;
 	
 	/** @Logger */

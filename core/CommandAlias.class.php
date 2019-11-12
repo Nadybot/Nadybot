@@ -7,13 +7,22 @@ namespace Budabot\Core;
  */
 class CommandAlias {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @Inject
+	 */
 	public $commandManager;
 
 	/** @Logger */

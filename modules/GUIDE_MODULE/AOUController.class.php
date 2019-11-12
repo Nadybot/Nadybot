@@ -27,13 +27,22 @@ class AOUController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ItemsController $itemsController
+	 * @Inject
+	 */
 	public $itemsController;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
 	public $http;
 
 	const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=budabot";

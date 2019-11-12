@@ -86,22 +86,40 @@ class SkillsController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
 	public $http;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ItemsController $itemsController
+	 * @Inject
+	 */
 	public $itemsController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 	
 	/**

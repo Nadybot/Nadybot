@@ -7,7 +7,10 @@ use Exception;
 require_once 'SettingHandler.class.php';
 
 class TimeSettingHandler extends SettingHandler {
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
 	public function __construct(DBRow $row) {

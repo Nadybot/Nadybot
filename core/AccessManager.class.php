@@ -12,25 +12,43 @@ use Exception;
 class AccessManager {
 	private static $ACCESS_LEVELS = array('none' => 0, 'superadmin' => 1,  'admin' => 2, 'mod' => 3, 'guild' => 4, 'member' => 5, 'rl' => 6, 'all' => 7);
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingObject $setting
+	 * @Inject
+	 */
 	public $setting;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AdminManager $adminManager
+	 * @Inject
+	 */
 	public $adminManager;
 
 	/** @Logger */
 	public $logger;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AltsController $altsController
+	 * @Inject
+	 */
 	public $altsController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ChatLeaderController $chatLeaderController
+	 * @Inject
+	 */
 	public $chatLeaderController;
 
 	/**

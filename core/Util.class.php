@@ -7,7 +7,10 @@ namespace Budabot\Core;
  */
 class Util {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
 	/** @Logger */

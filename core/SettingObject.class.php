@@ -6,7 +6,10 @@ namespace Budabot\Core;
  * @Instance("setting")
  */
 class SettingObject {
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 
 	public function __set($name, $value) {

@@ -28,22 +28,40 @@ class CityWaveController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @Inject
+	 */
 	public $commandAlias;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\TimerController $timerController
+	 * @Inject
+	 */
 	public $timerController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingObject $setting
+	 * @Inject
+	 */
 	public $setting;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
 	const TIMER_NAME = "City Raid";

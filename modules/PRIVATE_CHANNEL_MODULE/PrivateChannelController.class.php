@@ -81,40 +81,76 @@ class PrivateChannelController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @Inject
+	 */
 	public $buddylistManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AltsController $altsController
+	 * @Inject
+	 */
 	public $altsController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\OnlineController $onlineController
+	 * @Inject
+	 */
 	public $onlineController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\RelayController $relayController
+	 * @Inject
+	 */
 	public $relayController;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Timer $timer
+	 * @Inject
+	 */
 	public $timer;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerManager $playerManager
+	 * @Inject
+	 */
 	public $playerManager;
 	
 	/**

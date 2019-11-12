@@ -15,25 +15,46 @@ class LimitsController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
 	public $accessManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerManager $playerManager
+	 * @Inject
+	 */
 	public $playerManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerHistoryManager $playerHistoryManager
+	 * @Inject
+	 */
 	public $playerHistoryManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\WhitelistController $whitelistController
+	 * @Inject
+	 */
 	public $whitelistController;
 	
 	/** @Logger */

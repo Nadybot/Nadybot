@@ -24,13 +24,22 @@ class PlayerHistoryController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerHistoryManager $playerHistoryManager
+	 * @Inject
+	 */
 	public $playerHistoryManager;
 
 	/**

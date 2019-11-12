@@ -27,19 +27,34 @@ class ChatTopicController {
 	 */
 	public $moduleName;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
 	public $settingManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ChatRallyController $chatRallyController
+	 * @Inject
+	 */
 	public $chatRallyController;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\ChatLeaderController $chatLeaderController
+	 * @Inject
+	 */
 	public $chatLeaderController;
 
 	/**

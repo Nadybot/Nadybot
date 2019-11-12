@@ -13,13 +13,22 @@ use stdClass;
  */
 class AsyncHttp {
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SettingObject $setting
+	 * @Inject
+	 */
 	public $setting;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\SocketManager $socketManager
+	 * @Inject
+	 */
 	public $socketManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Timer $timer
+	 * @Inject
+	 */
 	public $timer;
 
 	/** @Logger */

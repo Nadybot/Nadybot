@@ -12,16 +12,28 @@ use Budabot\Core\AOChatPacket;
  * @Instance
  */
 class GuildManager {
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\CacheManager $cacheManager
+	 * @Inject
+	 */
 	public $cacheManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerManager $playerManager
+	 * @Inject
+	 */
 	public $playerManager;
 
 	public function getById($guild_id, $rk_num=0, $forceUpdate=false) {

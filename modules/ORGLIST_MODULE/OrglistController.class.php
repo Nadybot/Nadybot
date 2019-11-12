@@ -27,28 +27,52 @@ class OrglistController {
 	 */
 	public $moduleName;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
 	public $db;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
 	public $chatBot;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @Inject
+	 */
 	public $buddylistManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\GuildManager $guildManager
+	 * @Inject
+	 */
 	public $guildManager;
 
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
 	public $text;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
 	public $util;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\PlayerManager $playerManager
+	 * @Inject
+	 */
 	public $playerManager;
 	
-	/** @Inject */
+	/**
+	 * @var \Budabot\Core\FindOrgController $findOrgController
+	 * @Inject
+	 */
 	public $findOrgController;
 	
 	protected $orglist = null;
