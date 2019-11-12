@@ -143,9 +143,20 @@ class LimitsController {
 			}
 
 			// check faction limit
-			if (($this->settingManager->get("tell_req_faction") == "Omni" || $this->settingManager->get("tell_req_faction") == "Clan" || $this->settingManager->get("tell_req_faction") == "Neutral") && $this->settingManager->get("tell_req_faction") != $whois->faction) {
+			if (
+				(
+					$this->settingManager->get("tell_req_faction") == "Omni"
+					|| $this->settingManager->get("tell_req_faction") == "Clan"
+					|| $this->settingManager->get("tell_req_faction") == "Neutral"
+				)
+				&& $this->settingManager->get("tell_req_faction") != $whois->faction
+			) {
 				return "Error! You must be <highlight>" . $this->settingManager->get("tell_req_faction") . "<end>.";
-			} elseif ($this->settingManager->get("tell_req_faction") == "not Omni" || $this->settingManager->get("tell_req_faction") == "not Clan" || $this->settingManager->get("tell_req_faction") == "not Neutral") {
+			} elseif (
+				$this->settingManager->get("tell_req_faction") == "not Omni"
+				|| $this->settingManager->get("tell_req_faction") == "not Clan"
+				|| $this->settingManager->get("tell_req_faction") == "not Neutral"
+			) {
 				$tmp = explode(" ", $this->settingManager->get("tell_req_faction"));
 				if ($tmp[1] == $whois->faction) {
 					return "Error! You must not be <highlight>{$tmp[1]}<end>.";
