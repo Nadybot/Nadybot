@@ -44,22 +44,26 @@ class SettingManager {
 	 */
 	public $logger;
 
+	/** @var mixed[] $settings */
 	public $settings = array();
 
+	/** @var \StdClass[] $changeListeners */
 	private $changeListeners = array();
 
 	/**
-	 * @name: add
-	 * @param: $module - the module name
-	 * @param: $name - the name of the setting
-	 * @param: $description - a description for the setting (will appear in the config)
-	 * @param: $mode - 'edit', 'noedit'
-	 * @param: $type - 'color', 'number', 'text', 'options', or 'time'
-	 * @param: $options - a list of values that the setting can be, semi-colon delimited (optional)
-	 * @param: $intoptions - int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
-	 * @param: $admin - the permission level needed to change this setting (default: mod) (optional)
-	 * @param: $help - a help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
-	 * @description: Adds a new setting
+	 * Register a setting for a module
+	 *
+	 * @param string $module The module name
+	 * @param string $name The name of the setting
+	 * @param string $description A description for the setting (will appear in the config)
+	 * @param string $mode 'edit' or 'noedit'
+	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
+	 * @param string $options An optional list of values that the setting can be, semi-colon delimited
+	 * @param string $intoptions Int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
+	 * @param string $admin The permission level needed to change this setting (default: mod) (optional)
+	 * @param string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 * @return void
+	 * @throws \SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
 	public function add($module, $name, $description, $mode, $type, $value, $options='', $intoptions='', $accessLevel='mod', $help='') {
 		$name = strtolower($name);
@@ -105,18 +109,20 @@ class SettingManager {
 	}
 	
 	/**
-	 * @name: exists
-	 * @description: Determine if a setting with a given name exists
-	 * @return: true if the setting exists, false otherwise
+	 * Determine if a setting with a given name exists
+	 *
+	 * @param string $name Setting to check
+	 * @return bool true if the setting exists, false otherwise
 	 */
 	public function exists($name) {
 		return array_key_exists($name, $this->settings);
 	}
 
 	/**
-	 * @name: get
-	 * @description: Gets the value of a setting
-	 * @return: the value of the setting, or false if a setting with that name does not exist
+	 * Gets the value of a setting
+	 *
+	 * @param string $name name of the setting to read
+	 * @return string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
 	public function get($name) {
 		$name = strtolower($name);
@@ -129,11 +135,11 @@ class SettingManager {
 	}
 
 	/**
-	 * @name: save
-	 * @description: Saves a new value for a setting
-	 * @param: $name - the name of the setting
-	 * @param: @value - the new value to set the setting to
-	 * @return: false if the setting with that name does not exist, true otherwise
+	 * Saves a new value for a setting
+	 *
+	 * @param string $name The name of the setting
+	 * @param string|int $value The new value to set the setting to
+	 * @return bool false if the setting with that name does not exist, true otherwise
 	 */
 	public function save($name, $value) {
 		$name = strtolower($name);
@@ -156,6 +162,11 @@ class SettingManager {
 		}
 	}
 
+	/**
+	 * Load settings from the database
+	 *
+	 * @return void
+	 */
 	public function upload() {
 		$this->settings = array();
 
@@ -182,10 +193,8 @@ class SettingManager {
 	 * </code>
 	 *
 	 * @param string   $settingName changed setting's name
-	 * @param callback $callback    the callback function to call
-	 * $param mixed    $data        any data which will be passed to to the callback (optional)
-	 *
-	 * In the event of an invalid setting value, throw an exception with a message indicating why the value is invalid.
+	 * @param callable $callback    the callback function to call
+	 * @param mixed    $data        any data which will be passed to to the callback (optional)
 	 */
 	public function registerChangeListener($settingName, $callback, $data=null) {
 		if (!is_callable($callback)) {
@@ -200,6 +209,12 @@ class SettingManager {
 		$this->changeListeners[$settingName] []= $listener;
 	}
 	
+	/**
+	 * Get the handler for a setting
+	 *
+	 * @param \StdClass $row The database row with the setting
+	 * @return \Budabot\Core\SettingHandler|null null if none found for the setting type
+	 */
 	public function getSettingHandler($row) {
 		$handler = null;
 		switch ($row->type) {

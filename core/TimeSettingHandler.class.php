@@ -6,6 +6,9 @@ use Exception;
 
 require_once 'SettingHandler.class.php';
 
+/**
+ * Class to represent a time setting for BudaBot
+ */
 class TimeSettingHandler extends SettingHandler {
 	/**
 	 * @var \Budabot\Core\Util $util
@@ -13,19 +16,26 @@ class TimeSettingHandler extends SettingHandler {
 	 */
 	public $util;
 	
+	/**
+	 * Construct a new handler out of a given database row
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row
+	 */
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
 	}
 
 	/**
-	 * @return String
+	 * @inheritDoc
 	 */
 	public function displayValue() {
 		return "<highlight>" . $this->util->unixtimeToReadable($this->row->value) . "<end>";
 	}
 	
 	/**
-	 * @return String
+	 * Describe the valid values for this setting
+	 *
+	 * @return string
 	 */
 	public function getDescription() {
 		$msg = "For this setting you must enter a time value. See <a href='chatcmd:///tell <myname> help budatime'>budatime</a> for info on the format of the 'time' parameter.\n\n";
@@ -35,7 +45,7 @@ class TimeSettingHandler extends SettingHandler {
 	}
 	
 	/**
-	 * @return String of new value or false if $newValue is invalid
+	 * @inheritDoc
 	 */
 	public function save($newValue) {
 		$time = $this->util->parseTime($newValue);

@@ -6,14 +6,24 @@ use Exception;
 
 require_once 'SettingHandler.class.php';
 
+/**
+ * Class to represent a setting with a text value for BudaBot
+ */
 class TextSettingHandler extends SettingHandler {
 
+	/**
+	 * Construct a new handler out of a given database row
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row
+	 */
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
 	}
 	
 	/**
-	 * @return String
+	 * Describe the valid values for this setting
+	 *
+	 * @return string
 	 */
 	public function getDescription() {
 		$msg = "For this setting you can enter any text you want (max. 255 chararacters).\n";
@@ -23,7 +33,11 @@ class TextSettingHandler extends SettingHandler {
 	}
 	
 	/**
-	 * @return String of new value or false if $newValue is invalid
+	 * Change this setting
+	 *
+	 * @param string $newValue The new value
+	 * @return string The new value
+	 * @throws \Exception when the string is too long
 	 */
 	public function save($newValue) {
 		if (strlen($newValue) > 255) {

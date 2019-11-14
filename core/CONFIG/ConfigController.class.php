@@ -354,7 +354,7 @@ class ConfigController {
 				}
 			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
 				$msg = "You do not have the required access level to change this command.";
-			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
+			} elseif (!$this->accessManager->checkAccess($sender, gaccessLevel)) {
 				$msg = "You may not set the access level for a command above your own access level.";
 			} else {
 				$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);

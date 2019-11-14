@@ -151,7 +151,7 @@ class DB {
 	 * Execute an SQL statement and return all rows as an array of objects
 	 *
 	 * @param string $sql The SQL query
-	 * @return \StdClass[] All returned rows
+	 * @return \Budabot\Core\DBRow[] All returned rows
 	 */
 	public function query($sql) {
 		$sql = $this->formatSql($sql);

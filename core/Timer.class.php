@@ -9,9 +9,15 @@ class Timer {
 	/**
 	 * @internal
 	 * Array of waiting timer events.
+	 * @var \Budabot\Core\TimerEvent[] $timerEvents
 	 */
 	private $timerEvents = array();
 
+	/**
+	 * Execute all timer events that are due now
+	 *
+	 * @return void
+	 */
 	public function executeTimerEvents() {
 		// execute timer events
 		$time = time();
@@ -40,18 +46,18 @@ class Timer {
 	 *
 	 * @param integer  $delay time in seconds to delay the call
 	 * @param callback $callback callback which is called after timeout
-	 * @internal param $ ... any additional parameters are passed to the callback
+	 * @param mixed $additionalArgs Any additional parameters are passed to the callback
 	 * @return TimerEvent
 	 */
-	public function callLater($delay, $callback) {
-		$additionalArgs = func_get_args();
-		array_shift($additionalArgs); // remove $delay
-		array_shift($additionalArgs); // remove $callback
+	public function callLater($delay, $callback, ...$additionalArgs) {
 		return $this->addTimerEvent($delay, $callback, $additionalArgs);
 	}
 
 	/**
-	 * @internal
+	 * Abort an already times event
+	 *
+	 * @param \Budabot\Core\TimerEvent $event The event to remove from the queue
+	 * @return void
 	 */
 	public function abortEvent($event) {
 		$key = array_search($event, $this->timerEvents, true);
@@ -62,7 +68,10 @@ class Timer {
 	}
 
 	/**
-	 * @internal
+	 * Run an event again with the  configured amount of delay
+	 *
+	 * @param\Budabot\Core\TimerEvent $event
+	 * @return void
 	 */
 	public function restartEvent($event) {
 		$event->time = intval($event->delay) + time();
@@ -71,7 +80,13 @@ class Timer {
 
 	/**
 	 * Adds new timer event.
+	 *
 	 * $callback will be called with arguments $args array after $delay seconds.
+	 *
+	 * @param int $delay Delay between runs of this event
+	 * @param callable $callback Function to call when this event fires
+	 * @param mixed[] $args Arguments to pass to your callback function when the event fires
+	 * @return \Budabot\Core\TimerEvent
 	 */
 	private function addTimerEvent($delay, $callback, $args) {
 		$event = new TimerEvent(time() + $delay, $delay, $callback, $args);
@@ -80,6 +95,12 @@ class Timer {
 		return $event;
 	}
 
+	/**
+	 * Sort all registered events by their next event time, ascending
+	 *
+	 * @return void
+	 * @internal
+	 */
 	private function sortEventsByTime() {
 		usort($this->timerEvents, function($a, $b) {
 			if ($a->time == $b->time) {

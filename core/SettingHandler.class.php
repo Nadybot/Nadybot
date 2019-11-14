@@ -9,14 +9,22 @@ class SettingHandler {
 	 */
 	public $text;
 
+	/** @var \Budabot\Core\DBRow $row */
 	protected $row;
 
+	/**
+	 * Construct a new handler out of a given database row
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row
+	 */
 	public function __construct(DBRow $row) {
 		$this->row = $row;
 	}
 
 	/**
-	 * @return String
+	 * Get a displayable representation of the setting
+	 *
+	 * @return string
 	 */
 	public function displayValue() {
 		if ($this->row->intoptions != "") {
@@ -31,7 +39,9 @@ class SettingHandler {
 	}
 	
 	/**
-	 * @return String or false if no options are available
+	 * Get all options for this setting or false if no options are available
+	 *
+	 * @return string|false false if no options are available
 	 */
 	public function getOptions() {
 		if ($this->row->options != '') {
@@ -59,7 +69,11 @@ class SettingHandler {
 	}
 	
 	/**
-	 * @return String of new value or false if $newValue is invalid
+	 * Change this setting
+	 *
+	 * @param string $newValue The new value
+	 * @return string The new value or false if $newValue is invalid
+	 * @throws \Exception on certain errors
 	 */
 	public function save($newValue) {
 		return $newValue;
