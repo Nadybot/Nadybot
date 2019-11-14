@@ -25,14 +25,42 @@ class DB {
 	 */
 	public $util;
 
+	/**
+	 * The database type: mysql/sqlite
+	 *
+	 * @var string $type
+	 */
 	private $type;
+
+	/**
+	 * The PDO object to talk to the database
+	 *
+	 * @var \PDO $sql
+	 */
 	private $sql;
+
+	/**
+	 * The name of the bot
+	 *
+	 * @var string $botname
+	 */
 	private $botname;
+
+	/**
+	 * The dimension
+	 *
+	 * @var int $dim
+	 */
 	private $dim;
+
+	/** @var string $guild */
 	private $guild;
+	/** @var string $lastQuery */
 	private $lastQuery;
+	/** @var bool $inTransaction */
 	private $inTransaction = false;
 	
+	/** @var \LoggerWrapper $logger */
 	private $logger;
 	
 	const MYSQL = 'mysql';
@@ -42,6 +70,17 @@ class DB {
 		$this->logger = new LoggerWrapper('SQL');
 	}
 
+	/**
+	 * Connect to the database
+	 *
+	 * @param string $type Database type: mysql or sqlite
+	 * @param string $dbName Name of the database
+	 * @param string $host Hostname (mysql) or directory (sqlite)
+	 * @param string $user username
+	 * @param string $pass Password
+	 * @return void
+	 * @throws Exception for unsupported database types
+	 */
 	public function connect($type, $dbName, $host=null, $user=null, $pass=null) {
 		global $vars;
 		$this->type = strtolower($type);
@@ -78,10 +117,21 @@ class DB {
 		}
 	}
 
+	/**
+	 * Get the configurd database type
+	 *
+	 * @return string
+	 */
 	public function getType() {
 		return $this->type;
 	}
 
+	/**
+	 * Execute an SQL statement and return the first row as object or null if no results
+	 *
+	 * @param string $sql The SQL query
+	 * @return \StdClass|null The first row or null if no results
+	 */
 	public function queryRow($sql) {
 		$sql = $this->formatSql($sql);
 
@@ -97,6 +147,12 @@ class DB {
 		}
 	}
 
+	/**
+	 * Execute an SQL statement and return all rows as an array of objects
+	 *
+	 * @param string $sql The SQL query
+	 * @return \StdClass[] All returned rows
+	 */
 	public function query($sql) {
 		$sql = $this->formatSql($sql);
 
@@ -106,6 +162,12 @@ class DB {
 		return $ps->fetchAll(PDO::FETCH_CLASS, 'budabot\core\DBRow');
 	}
 
+	/**
+	 * Execute a query and return the number of affected rows
+	 *
+	 * @param string $sql The query to execute
+	 * @return int Number of affected rows
+	 */
 	public function exec($sql) {
 		$sql = $this->formatSql($sql);
 
@@ -125,6 +187,12 @@ class DB {
 		return $ps->rowCount();
 	}
 	
+	/**
+	 * Internal function to get additional parameters passed to exec()
+	 *
+	 * @param mixed[] $args
+	 * @return mixed[]
+	 */
 	private function getParameters($args) {
 		array_shift($args);
 		if (isset($args[0]) && is_array($args[0])) {
@@ -134,6 +202,14 @@ class DB {
 		}
 	}
 
+	/**
+	 * Execute an SQL query, returning the statement object
+	 *
+	 * @param string $sql The SQL query, optionally containing placeholders
+	 * @param mixed[] $params An array of parameters to fill the placeholders in $sql
+	 * @return \PDOStatement The statement object
+	 * @throws \SQLException when the query errors
+	 */
 	private function executeQuery($sql, $params) {
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
@@ -161,35 +237,63 @@ class DB {
 		}
 	}
 
-	//Start of an transaction
+	/**
+	 * Start a transaction
+	 *
+	 * @return void
+	 */
 	public function beginTransaction() {
 		$this->logger->log('DEBUG', "Starting transaction");
 		$this->inTransaction = true;
 		$this->sql->beginTransaction();
 	}
 
-	//Commit an transaction
+	/**
+	 * Commit a transaction
+	 *
+	 * @return void
+	 */
 	public function commit() {
 		$this->logger->log('DEBUG', "Committing transaction");
 		$this->inTransaction = false;
 		$this->sql->Commit();
 	}
 
+	/**
+	 * Roll back a transaction
+	 *
+	 * @return void
+	 */
 	public function rollback() {
 		$this->logger->log('DEBUG', "Rolling back transaction");
 		$this->inTransaction = false;
 		$this->sql->rollback();
 	}
 
+	/**
+	 * Check if we're currently in a transaction
+	 *
+	 * @return bool
+	 */
 	public function inTransaction() {
 		return $this->inTransaction;
 	}
 
-	//Return the last inserted ID
+	/**
+	 * Returns the ID of the last inserted row or sequence value
+	 *
+	 * @return string
+	 */
 	public function lastInsertId() {
 		return $this->sql->lastInsertId();
 	}
 
+	/**
+	 * Format SQL code by replacing placeholders like <myname>
+	 *
+	 * @param string $sql The SQL query to format
+	 * @return string The formatted SQL query
+	 */
 	public function formatSql($sql) {
 		$sql = str_replace("<dim>", $this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
@@ -198,15 +302,25 @@ class DB {
 		return $sql;
 	}
 
+	/**
+	 * Get the SQL query that was executed last
+	 *
+	 * @return string The last SQL query
+	 */
 	public function getLastQuery() {
 		return $this->lastQuery;
 	}
 
 	/**
-	 * @name: loadSQLFile
-	 * @description: Loads an sql file if there is an update
-	 *    Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
-	 *    If there is an sql file with name $name.sql it would load that one every time
+	 * Loads an sql file if there is an update
+	 *
+	 * Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
+	 * If there is an sql file with name $name.sql it would load that one every time
+	 *
+	 * @param string $module The name of the module for which to load an SQL file
+	 * @param string $name The name of the SQL file to load
+	 * @param bool $forceUpdate Set this to true to always load the file, even if this version is already installed
+	 * @return string A message describing what happened
 	 */
 	public function loadSQLFile($module, $name, $forceUpdate=false) {
 		$name = strtolower($name);
