@@ -19,9 +19,18 @@ class Text {
 	 */
 	public $settingManager;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
+	/**
+	 * Create an interactive string from a list of commands and titles
+	 *
+	 * @param string[] $links An array in the form ["title" => "chat command (/tell ...)"]
+	 * @return string A string that combines all links into one
+	 */
 	public function makeHeaderLinks($links) {
 		$output = '';
 		forEach ($links as $title => $command) {
@@ -31,8 +40,12 @@ class Text {
 	}
 
 	/**
-	 * @name: makeBlob
-	 * @description: creates an info window
+	 * Creates an info window, supporting pagination
+	 *
+	 * @param string $name The text part of the clickable link
+	 * @param string $content The content of the info window
+	 * @param string|null $header If set, use $header as header, otherwise $name
+	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
 	public function makeBlob($name, $content, $header=null) {
 		if ($header === null) {
@@ -73,6 +86,13 @@ class Text {
 		}
 	}
 
+	/**
+	 * Creates an info window
+	 *
+	 * @param string $name The text part of the clickable link
+	 * @param string $content The content of the info window
+	 * @return string The string with link and reference or an array of strings if the message would be too big
+	 */
 	public function makeLegacyBlob($name, $content) {
 		// escape double quotes
 		$content = str_replace('"', '&quot;', $content);
@@ -102,6 +122,14 @@ class Text {
 		}
 	}
 
+	/**
+	 * Convert a single long string into multiple pages of maximum $maxLength size
+	 *
+	 * @param string $input The text to paginate
+	 * @param int $maxLength The maximum allowed length of one page
+	 * @param string[] $symbols An array of strings at which we allow page breaks
+	 * @return string[] An array of strings with the resulting pages
+	 */
 	public function paginate($input, $maxLength, $symbols) {
 		if (count($symbols) == 0) {
 			$this->logger->log('ERROR', "Could not successfully page blob due to lack of paging symbols");
@@ -148,11 +176,12 @@ class Text {
 	}
 
 	/**
-	 * @name: makeChatcmd
-	 * @description: creates a chatcmd link
-	 * @param: $name - the name the link will show
-	 * @param: $content - the chatcmd to execute
-	 * @param: $style (optional) - any styling you want applied to the link
+	 * Creates a chatcmd link
+	 *
+	 * @param string $name The name the link will show
+	 * @param string $content The chatcmd to execute
+	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
+	 * @return string The link
 	 */
 	public function makeChatcmd($name, $content, $style=null) {
 		$content = str_replace("'", '&#39;', $content);
@@ -160,36 +189,48 @@ class Text {
 	}
 
 	/**
-	 * @name: makeUserlink
-	 * @description: creates a user link which adds support for right clicking usernames in chat, providing you with a menu of options (ignore etc.) (see 18.1 AO patchnotes)
-	 * @param: $name - the name the user to create a link for
-	 * @param: $style (optional) - any styling you want applied to the link
+	 * Creates a user link
+	 *
+	 * This adds support for right clicking usernames in chat,
+	 * providing you with a menu of options (ignore etc.)
+	 * (see 18.1 AO patchnotes)
+	 *
+	 * @param string $name The name of the user to create a link for
+	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
+	 * @return string The link to the user
 	 */
 	public function makeUserlink($user, $style=null) {
 		return "<a $style href='user://$user'>$user</a>";
 	}
 
 	/**
-	 * @name: makeItem
-	 * @description: creates an item link
+	 * Creates a link to an item in a specific QL
+	 *
+	 * @param int $lowId The Item ID of the low QL version
+	 * @param int $highId The Imtem ID of the high QL version
+	 * @param int $ql The QL to show the  item at
+	 * @param string $name The name of the item as it should appear in the created link
+	 * @return string A link to the given item
 	 */
 	public function makeItem($lowId, $highId, $ql, $name) {
 		return "<a href='itemref://{$lowId}/{$highId}/{$ql}'>{$name}</a>";
 	}
 
 	/**
-	 * @name: makeImage
-	 * @description: creates an image.
-	 * @param $imageId id of the image
-	 * @param $db (optional) image database to use, by default uses rdb
+	 * Creates an image
+	 * @param int $imageId The id of the image, e.g. 205508
+	 * @param string $db (optional) image database to use, default is the resource database "rdb"
+	 * @return string The image as <img> tag
 	 */
 	public function makeImage($imageId, $db="rdb") {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
 	/**
-	 * @name: formatMessage
-	 * @description: formats a message with colors, bot name, symbol, etc
+	 * Formats a message with colors, bot name, symbol, by replacing special tags
+	 *
+	 * @param string $message The message to format
+	 * @return string The formatted message
 	 */
 	public function formatMessage($message) {
 		$array = array(

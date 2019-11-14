@@ -13,7 +13,10 @@ class BuddylistManager {
 	 */
 	public $chatBot;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	public $buddyList = array();

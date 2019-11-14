@@ -116,7 +116,10 @@ class GuildController {
 	 */
 	public $preferences;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	/**

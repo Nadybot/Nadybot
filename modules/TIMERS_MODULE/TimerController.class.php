@@ -77,7 +77,10 @@ class TimerController {
 	 */
 	public $setting;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	private $timers = array();

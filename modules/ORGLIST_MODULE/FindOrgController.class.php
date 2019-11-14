@@ -56,7 +56,10 @@ class FindOrgController {
 	 */
 	public $http;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	private $searches = array(

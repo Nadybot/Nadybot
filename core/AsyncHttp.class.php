@@ -31,7 +31,10 @@ class AsyncHttp {
 	 */
 	public $timer;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	// parameters

@@ -5,7 +5,10 @@ namespace Budabot\Core;
 use ReflectionAnnotatedClass;
 
 class ClassLoader {
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	private $moduleLoadPaths;

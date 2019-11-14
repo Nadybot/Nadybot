@@ -120,7 +120,10 @@ class TowerController {
 	 */
 	public $levelController;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	protected $attackListeners = array();

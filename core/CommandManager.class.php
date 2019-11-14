@@ -77,7 +77,10 @@ class CommandManager {
 	 */
 	public $usageController;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	public $commands;

@@ -81,7 +81,10 @@ class ShoppingController {
 	 */
 	public $itemsController;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	/** @Setup */

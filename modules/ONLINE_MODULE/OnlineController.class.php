@@ -82,7 +82,10 @@ class OnlineController {
 	 */
 	public $commandAlias;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	/**

@@ -25,8 +25,17 @@ class AdminManager {
 	 */
 	public $buddylistManager;
 
+	/**
+	 * Admin access levels of our admin users
+	 * @var array $admins
+	 */
 	public $admins = array();
 
+	/**
+	 * Load the bot admins from database into $admins
+	 *
+	 * @return void
+	 */
 	public function uploadAdmins() {
 		$this->db->exec("CREATE TABLE IF NOT EXISTS admin_<myname> (`name` VARCHAR(25) NOT NULL PRIMARY KEY, `adminlevel` INT)");
 
@@ -45,12 +54,25 @@ class AdminManager {
 		}
 	}
 
+	/**
+	 * Demote someone from the admin position
+	 *
+	 * @param string $who Name of the person to demote
+	 * @return void
+	 */
 	public function removeFromLists($who) {
 		unset($this->admins[$who]);
 		$this->db->exec("DELETE FROM admin_<myname> WHERE `name` = ?", $who);
 		$this->buddylistManager->remove($who, 'admin');
 	}
 
+	/**
+	 * Set the admin level of a user
+	 *
+	 * @param string $who The username to change
+	 * @param int $intlevel The new accesslevel
+	 * @return string Either "demoted" or "promoted"
+	 */
 	public function addToLists($who, $intlevel) {
 		$action = '';
 		if (isset($this->admins[$who])) {
@@ -71,6 +93,13 @@ class AdminManager {
 		return $action;
 	}
 	
+	/**
+	 * Check if a user $who has admin level $level
+	 *
+	 * @param string $who name of the user to check
+	 * @param int $level Admin level to check
+	 * @return bool
+	 */
 	public function checkExisting($who, $level) {
 		if ($this->admins[$who]["level"] != $level) {
 			return false;

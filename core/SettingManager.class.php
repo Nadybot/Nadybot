@@ -38,7 +38,10 @@ class SettingManager {
 	 */
 	public $accessManager;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	public $settings = array();

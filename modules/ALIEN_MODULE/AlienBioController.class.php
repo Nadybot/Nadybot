@@ -53,7 +53,10 @@ class AlienBioController {
 	 */
 	public $itemsController;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	private $leArmorTypes = array('64', '295', '468', '935');

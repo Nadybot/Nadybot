@@ -71,7 +71,10 @@ class AlienMiscController {
 	 */
 	public $itemsController;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	/**

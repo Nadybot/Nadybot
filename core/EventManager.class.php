@@ -34,7 +34,10 @@ class EventManager {
 	 */
 	public $util;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	public $events = array();

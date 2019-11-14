@@ -97,22 +97,59 @@ class Budabot extends AOChat {
 	 */
 	public $setting;
 
-	/** @Logger("Core") */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger("Core")
+	 */
 	public $logger;
 
+	/** @var bool $ready */
 	public $ready = false;
 
+	/** @var array[string]bool $chatlist */
 	public $chatlist = array();
+
+	/**
+	 * The rank for each member of this bot's guild/org
+	 * [(string)name => (int)rank]
+	 * @var array[string]int $guildmembers
+	 */
 	public $guildmembers = array();
+
+	/**
+	 * The configuration variables of this bot as given in the config file
+	 * [(string)var => (mixed)value]
+	 *
+	 * @var array[string]mixed $vars
+	 */
 	public $vars;
 	
+	/**
+	 * How many buddies can this bot hld
+	 *
+	 * @var integer $buddyListSize
+	 */
 	private $buddyListSize = 0;
 
-	//Ignore Messages from Vicinity/IRRK New Wire/OT OOC/OT Newbie OOC...
-	public $channelsToIgnore = array("", 'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
+	/**
+	 * A list of channels that we ignore messages from
+	 *
+	 * Ignore Messages from Vicinity/IRRK New Wire/OT OOC/OT Newbie OOC...
+	 *
+	 * @var string[] $channelsToIgnore
+	 */
+	public $channelsToIgnore = array(
+		'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
 		'Tour Announcements', 'Neu. Newbie OOC', 'Neu. shopping 11-50', 'Neu. OOC', 'Clan OOC',
-		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC');
+		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC'
+	);
 	
+	/**
+	 * Initialize the bot
+	 *
+	 * @param array[string]mixed $vars The configuration variables of the bot
+	 * @return void
+	 */
 	public function init(&$vars) {
 		$this->vars = $vars;
 
@@ -240,8 +277,13 @@ class Budabot extends AOChat {
 	}
 
 	/**
-	 * @name: connect
-	 * @description: connect to AO chat servers
+	 * Connect to AO chat servers
+	 *
+	 * @param string $login The username to connect with
+	 * @param string $password The password to connect with
+	 * @param string $server Hostname of the login server
+	 * @param string|int $port The port of the login server to connect to
+	 * @return void
 	 */
 	public function connectAO($login, $password, $server, $port) {
 		// Begin the login process
@@ -270,6 +312,11 @@ class Budabot extends AOChat {
 		$this->logger->log('INFO', "All Systems ready!");
 	}
 
+	/**
+	 * The main endless-loop of the bot
+	 *
+	 * @return void
+	 */
 	public function run() {
 		$loop = new EventLoop();
 		Registry::injectDependencies($loop);
@@ -294,11 +341,21 @@ class Budabot extends AOChat {
 		$this->logger->log('INFO', 'Graceful shutdown.');
 	}
 
+	/**
+	 * Process all packets in an endless loop
+	 *
+	 * @return void
+	 */
 	public function processAllPackets() {
 		while ($this->processNextPacket()) {
 		}
 	}
 	
+	/**
+	 * Wait for the next packet and process it
+	 *
+	 * @return bool true if a package was processed, otherwise false
+	 */
 	public function processNextPacket() {
 		// when bot isn't ready we wait for packets
 		// to make sure the server has finished sending them
@@ -313,6 +370,14 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Send a message to a private channel
+	 *
+	 * @param string|string[] $message One or more messages to send
+	 * @param boolean $disable_relay Set to true to disable relaying the message into the org/guild channel
+	 * @param string $group Name of the private group to send message into or null for the bot's own
+	 * @return void
+	 */
 	public function sendPrivate($message, $disable_relay=false, $group=null) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
@@ -346,6 +411,14 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Send one or more messages into the org/guild channel
+	 *
+	 * @param string|string[] $message One or more messages to send
+	 * @param boolean $disable_relay Set to true to disable relaying the message into the bot's private channel
+	 * @param int $priority The priority of the message or medium if unset
+	 * @return void
+	 */
 	public function sendGuild($message, $disable_relay=false, $priority=null) {
 		if ($this->settingManager->get('guild_channel_status') != 1) {
 			return;
@@ -382,6 +455,15 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Send one or more messages to another player/bot
+	 *
+	 * @param string|string[] $message One or more messages to send
+	 * @param string $character Name of the person to send the tell to
+	 * @param int $priority The priority of the message or medium if unset
+	 * @param boolean $formatMessage If set, replace tags with their corresponding colors
+	 * @return void
+	 */
 	public function sendTell($message, $character, $priority=null, $formatMessage=true) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
@@ -404,6 +486,14 @@ class Budabot extends AOChat {
 		$this->send_tell($character, $tellColor.$message, "\0", $priority);
 	}
 
+	/**
+	 * Send one or more messages into a public channel
+	 *
+	 * @param string|string[] $message One or more messages to send
+	 * @param string $channel Name of the channel to send the message to
+	 * @param int $priority The priority of the message or medium if unset
+	 * @return void
+	 */
 	public function sendPublic($message, $channel, $priority=null) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
@@ -424,8 +514,11 @@ class Budabot extends AOChat {
 	}
 
 	/**
-	 * @name: processCommandType
-	 * @description: returns a command type in the proper format
+	 * Returns a command type in the proper format
+	 *
+	 * @param string $type A space-separate list of any combination of "msg", "priv" and "guild"
+	 * @param string $admin A space-separate list of access rights needed
+	 * @return bool Success
 	 */
 	public function processCommandArgs(&$type, &$admin) {
 		if ($type == "") {
@@ -445,8 +538,10 @@ class Budabot extends AOChat {
 	}
 
 	/**
-	 * @name: process_packet
-	 * @description: Proccess all incoming messages that bot recives
+	 * Proccess an incoming message packet that the bot receives
+	 *
+	 * @param \Budabot\Core\AOChatPacket $packet The packet to process
+	 * @return void
 	 */
 	public function process_packet($packet) {
 		try {
@@ -490,6 +585,12 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Fire associated events for a received packet
+	 *
+	 * @param \Budabot\Core\AOChatPacket $packet The received packet
+	 * @return void
+	 */
 	public function process_all_packets($packet) {
 		// fire individual packets event
 		$eventObj = new stdClass;
@@ -498,15 +599,32 @@ class Budabot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
+	/**
+	 * Handle an incoming AOCP_GROUP_ANNOUNCE packet
+	 *
+	 * @param string[] $args [
+	 * 	0 => Name of the org,
+	 * 	1 => The message
+	 * ]
+	 * @return void
+	 */
 	public function process_group_announce($args) {
 		$orgId = $this->getOrgId($args[0]);
 		$this->logger->log('DEBUG', "AOCP_GROUP_ANNOUNCE => name: '$args[1]'");
 		if ($orgId) {
 			$this->vars["my_guild_id"] = $orgId;
-			//$this->vars["my_guild"] = $args[1];
 		}
 	}
 
+	/**
+	 * Handle a player joining a private group
+	 *
+	 * @param int[] $args [
+	 * 	0 => UserID of the channel
+	 * 	1 => UserID who joined
+	 * ]
+	 * @return void
+	 */
 	public function process_private_channel_join($args) {
 		$eventObj = new stdClass;
 		$channel = $this->lookup_user($args[0]);
@@ -535,6 +653,15 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Handle a player leaving a private group
+	 *
+	 * @param int[] $args [
+	 * 	0 => UserID of the channel,
+	 * 	1 => UserID who left
+	 * ]
+	 * @return void
+	 */
 	public function process_private_channel_leave($args) {
 		$eventObj = new stdClass;
 		$channel = $this->lookup_user($args[0]);
@@ -556,6 +683,15 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Handle logon/logoff events of friends
+	 *
+	 * @param int[] $args [
+	 * 	0 => UserID logging on/off,
+	 * 	1 => 0 == logoff, 1 == login
+	 * ]
+	 * @return void
+	 */
 	public function process_buddy_update($args) {
 		$sender	= $this->lookup_user($args[0]);
 		$status	= 0 + $args[1];
@@ -588,6 +724,12 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Handle that a friend was removed from the friendlist
+	 *
+	 * @param int[] $args [0 => UserID who was removed]
+	 * @return void
+	 */
 	public function process_buddy_removed($args) {
 		$sender	= $this->lookup_user($args[0]);
 
@@ -596,6 +738,15 @@ class Budabot extends AOChat {
 		$this->buddylistManager->updateRemoved($args);
 	}
 
+	/**
+	 * Handle an incoming tell
+	 *
+	 * @param mixed[] $args [
+	 * 	0 => UserID of the sender,
+	 * 	1 => The message
+	 * ]
+	 * @return void
+	 */
 	public function process_private_message($args) {
 		$type = "msg";
 		$charId = $args[0];
@@ -656,6 +807,16 @@ class Budabot extends AOChat {
 		$this->commandManager->process($type, $message, $sender, $sendto);
 	}
 
+	/**
+	 * Handle a message on a private channel
+	 *
+	 * @param mixed[] $args [
+	 * 	0 => UserID of the channel,
+	 * 	1 => UserID of the sender
+	 * 	2 => The message
+	 * ]
+	 * @return void
+	 */
 	public function process_private_channel_message($args) {
 		$charId = $args[1];
 		$sender	= $this->lookup_user($charId);
@@ -693,6 +854,16 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Handle a message on a public channel
+	 *
+	 * @param mixed[] $args [
+	 * 	0 => GroupID of the channel,
+	 * 	1 => UserID of the sender
+	 * 	2 => The message
+	 * ]
+	 * @return void
+	 */
 	public function process_public_channel_message($args) {
 		$charId = $args[1];
 		$sender	 = $this->lookup_user($charId);
@@ -753,6 +924,12 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Handle an invite to a private channel
+	 *
+	 * @param int[] $args [0 => UserID of the channel]
+	 * @return void
+	 */
 	public function process_private_channel_invite($args) {
 		$type = "extjoinprivrequest"; // Set message type.
 		$uid = $args[0];
@@ -769,6 +946,16 @@ class Budabot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
+	/**
+	 * Register a module
+	 *
+	 * In order to later easily find a module, it registers here
+	 * and other modules can get the instance by querying for $name
+	 *
+	 * @param string $name The name by which this module shall be known
+	 * @param \Object $obj The object that's registering. Must provide an attribute $moduleName
+	 * @return void
+	 */
 	public function registerInstance($name, $obj) {
 		$this->logger->log('DEBUG', "Registering instance name '$name' for module '$moduleName'");
 		$moduleName = $obj->moduleName;
@@ -889,6 +1076,13 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Call the setup method for an object
+	 *
+	 * @param string $name The name by which the module is registered
+	 * @param \Object $obj The object
+	 * @return void
+	 */
 	public function callSetupMethod($name, $obj) {
 		$reflection = new ReflectionAnnotatedClass($obj);
 		forEach ($reflection->getMethods() as $method) {
@@ -900,10 +1094,21 @@ class Budabot extends AOChat {
 		}
 	}
 
+	/**
+	 * Get the amount of people allowed on our friendlist
+	 *
+	 * @return int
+	 */
 	public function getBuddyListSize() {
 		return $this->buddyListSize;
 	}
 
+	/**
+	 * Get the OrgID for a ChannelID
+	 *
+	 * @param int $channelId The ChannelID for which to find the OrgID
+	 * @return int|bool The OrgID or false if there was an error calculating it
+	 */
 	public function getOrgId($channelId) {
 		$b = unpack("C*", $channelId);
 		if ($b[1] == 3) {
@@ -914,13 +1119,20 @@ class Budabot extends AOChat {
 	}
 
 	/**
-	 * @name: isReady
-	 * @description: tells when the bot is logged on and all the start up events have finished
+	 * Tells when the bot is logged on and all the start up events have finished
+	 *
+	 * @return bool
 	 */
 	public function isReady() {
 		return $this->ready;
 	}
 	
+	/**
+	 * Check if a private channel is this bot's private channel
+	 *
+	 * @param string $channel
+	 * @return boolean
+	 */
 	public function isDefaultPrivateChannel($channel) {
 		return $channel == $this->setting->default_private_channel;
 	}

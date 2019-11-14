@@ -10,7 +10,19 @@ use Exception;
  * @Instance
  */
 class AccessManager {
-	private static $ACCESS_LEVELS = array('none' => 0, 'superadmin' => 1,  'admin' => 2, 'mod' => 3, 'guild' => 4, 'member' => 5, 'rl' => 6, 'all' => 7);
+	/**
+	 * @var array[string]int $ACCESS_LEVELS
+	 */
+	private static $ACCESS_LEVELS = array(
+		'none'       => 0,
+		'superadmin' => 1,
+		'admin'      => 2,
+		'mod'        => 3,
+		'guild'      => 4,
+		'member'     => 5,
+		'rl'         => 6,
+		'all'        => 7,
+	);
 
 	/**
 	 * @var \Budabot\Core\DB $db
@@ -36,7 +48,10 @@ class AccessManager {
 	 */
 	public $adminManager;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	/**

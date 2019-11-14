@@ -39,7 +39,10 @@ class HelpManager {
 	 */
 	public $util;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	/**

@@ -25,7 +25,10 @@ class CommandAlias {
 	 */
 	public $commandManager;
 
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	const ALIAS_HANDLER = "CommandAlias.process";

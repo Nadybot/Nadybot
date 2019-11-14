@@ -26,7 +26,10 @@ class BroadcastController {
 	 */
 	public $moduleName;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	/**

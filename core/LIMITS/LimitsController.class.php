@@ -57,7 +57,10 @@ class LimitsController {
 	 */
 	public $whitelistController;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 	
 	/**

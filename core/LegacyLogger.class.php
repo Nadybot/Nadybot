@@ -5,15 +5,33 @@ namespace Budabot\Core;
 use Logger;
 use LoggerLevel;
 
+/**
+ * A compatibility layer for logging
+ */
 class LegacyLogger {
+	/**
+	 * Log a message according to log settings
+	 *
+	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
+	 * @param string $tag The log tag (e.g. Core, Registry, StartUp, etc.)
+	 * @param mixed $message The message to log
+	 * @return void
+	 */
 	public static function log($category, $tag, $message) {
 		$logger = Logger::getLogger($tag);
 		$level = LegacyLogger::getLoggerLevel($category);
 		$logger->log($level, $message);
 	}
 
-	public static function getLoggerLevel($level) {
-		switch (strtolower($level)) {
+	/**
+	 * Get the log4php log level for a Budabot logging category
+	 *
+	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
+	 * @return int The log4php log level
+	 */
+	public static function getLoggerLevel($category) {
+		$level = LoggerLevel::getLevelOff();
+		switch (strtolower($category)) {
 			case 'trace':
 				$level = LoggerLevel::getLevelTrace();
 				break;

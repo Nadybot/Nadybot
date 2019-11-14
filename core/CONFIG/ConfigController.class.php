@@ -70,7 +70,10 @@ class ConfigController {
 	 */
 	public $accessManager;
 	
-	/** @Logger */
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
 	public $logger;
 
 	/**
