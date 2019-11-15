@@ -31,7 +31,7 @@ class SettingManager {
 	 * @Inject
 	 */
 	public $helpManager;
-	
+
 	/**
 	 * @var \Budabot\Core\AccessManager $accessManager
 	 * @Inject
@@ -107,7 +107,7 @@ class SettingManager {
 			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name): " . $e->getMessage());
 		}
 	}
-	
+
 	/**
 	 * Determine if a setting with a given name exists
 	 *
@@ -208,7 +208,7 @@ class SettingManager {
 		$listener->data = $data;
 		$this->changeListeners[$settingName] []= $listener;
 	}
-	
+
 	/**
 	 * Get the handler for a setting
 	 *

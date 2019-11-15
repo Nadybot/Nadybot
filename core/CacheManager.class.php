@@ -117,7 +117,7 @@ class CacheManager {
 		fwrite($fp, $contents);
 		fclose($fp);
 	}
-	
+
 	public function retrieve($groupName, $filename) {
 		$cacheFile = "{$this->cacheDir}/$groupName/$filename";
 

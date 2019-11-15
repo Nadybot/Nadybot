@@ -92,7 +92,7 @@ class AdminManager {
 
 		return $action;
 	}
-	
+
 	/**
 	 * Check if a user $who has admin level $level
 	 *

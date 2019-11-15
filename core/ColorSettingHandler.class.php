@@ -18,7 +18,7 @@ class ColorSettingHandler extends SettingHandler {
 	public function displayValue() {
 		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
 	}
-	
+
 	/**
 	 * @return String
 	 */
@@ -47,7 +47,7 @@ class ColorSettingHandler extends SettingHandler {
 		$msg .= "Dark Orange: <font color='#FF8C00'>Example Text</font> (<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FF8C00'>Save it</a>) \n";
 		return $msg;
 	}
-	
+
 	/**
 	 * @return String of new value or false if $newValue is invalid
 	 */

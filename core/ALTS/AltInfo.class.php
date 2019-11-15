@@ -47,7 +47,7 @@ class AltInfo {
 		if (count($this->alts) == 0) {
 			return "No registered alts.";
 		}
-		
+
 		$online = $buddylistManager->isOnline($this->main);
 		$blob .= $this->formatCharName($this->main, $online);
 
@@ -126,7 +126,7 @@ class AltInfo {
 		}
 		return false;
 	}
-	
+
 	public function getValidatedMain($sender) {
 		if ($this->isValidated($sender)) {
 			return $this->main;
@@ -134,7 +134,7 @@ class AltInfo {
 			return $sender;
 		}
 	}
-	
+
 	public function formatCharName($name, $online) {
 		if ($online == 1) {
 			$text = Registry::getInstance('text');
@@ -143,7 +143,7 @@ class AltInfo {
 			return $name;
 		}
 	}
-	
+
 	public function formatOnlineStatus($online) {
 		if ($online == 1) {
 			return " - <green>Online<end>";

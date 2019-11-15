@@ -6,7 +6,7 @@ namespace Budabot\Core;
  * @Instance
  */
 class Http {
-	
+
 	/**
 	 * @var \Budabot\Core\Timer $timer
 	 * @Inject

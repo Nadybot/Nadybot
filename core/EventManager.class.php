@@ -170,7 +170,7 @@ class EventManager {
 			$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($filename). The event is not active or doesn't exist!");
 		}
 	}
-	
+
 	/**
 	 * Activates events that are annotated on one or more method names
 	 * if the events are not already activated
@@ -196,7 +196,7 @@ class EventManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Deactivates events that are annotated on one or more method names
 	 * if the events are not already deactivated
@@ -222,7 +222,7 @@ class EventManager {
 			}
 		}
 	}
-	
+
 	public function getEventTypeByMethod($obj, $methodName) {
 		$method = new ReflectionAnnotatedMethod($obj, $methodName);
 		if ($method->hasAnnotation('Event')) {
@@ -343,10 +343,10 @@ class EventManager {
 			$this->logger->log('ERROR', "Error calling event handler '$handler': " . $e->getMessage(), $e);
 		}
 	}
-	
+
 	public function addEventType($eventType) {
 		$eventType = strtolower($eventType);
-		
+
 		if (in_array($eventType, $this->eventTypes)) {
 			$this->logger->log('WARN', "Event type already registered: '$eventType'");
 			return false;

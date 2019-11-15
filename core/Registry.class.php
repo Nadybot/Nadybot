@@ -13,7 +13,7 @@ class Registry {
 		LegacyLogger::log("DEBUG", "Registry", "Adding instance '$name'");
 		Registry::$repo[$name] = $obj;
 	}
-	
+
 	public static function formatName($name) {
 		$name = strtolower($name);
 		$array = explode("\\", $name);
@@ -65,7 +65,7 @@ class Registry {
 			}
 		}
 	}
-	
+
 	public static function getAllInstances() {
 		return self::$repo;
 	}

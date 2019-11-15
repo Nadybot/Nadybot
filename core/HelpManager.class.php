@@ -88,7 +88,7 @@ class HelpManager {
 				SELECT module, admin, name, file FROM hlpcfg_<myname> WHERE name = ? AND file != '') t
 			GROUP BY module, file";
 		$data = $this->db->query($sql, $helpcmd, $helpcmd, $helpcmd);
-		
+
 		if (count($data) == 0) {
 			$helpcmd = strtoupper($helpcmd);
 			$sql = "
@@ -101,7 +101,7 @@ class HelpManager {
 			GROUP BY module, file";
 			$data = $this->db->query($sql, $helpcmd, $helpcmd, $helpcmd);
 		}
-		
+
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
 
 		$output = '';
@@ -159,7 +159,7 @@ class HelpManager {
 
 		return $topics;
 	}
-	
+
 	public function checkAccessLevels($accessLevel1, $accessLevelsArray) {
 		forEach ($accessLevelsArray as $accessLevel2) {
 			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {

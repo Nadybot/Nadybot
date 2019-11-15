@@ -64,13 +64,13 @@ class CommandManager {
 	 * @Inject
 	 */
 	public $subcommandManager;
-	
+
 	/**
 	 * @var \Budabot\Core\CommandSearchController $commandSearchController
 	 * @Inject
 	 */
 	public $commandSearchController;
-	
+
 	/**
 	 * @var \Budabot\Core\UsageController $usageController
 	 * @Inject
@@ -294,7 +294,7 @@ class CommandManager {
 		$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? {$type_sql}";
 		return $this->db->query($sql, $command);
 	}
-	
+
 	/**
 	 * Get the name of a similar command
 	 *
@@ -362,7 +362,7 @@ class CommandManager {
 			$this->logger->log("ERROR", "Error executing '$message': " . $e->getMessage(), $e);
 			$sendto->reply("There was an error executing your command: " . $e->getMessage());
 		}
-		
+
 		try {
 			// record usage stats (in try/catch block in case there is an error)
 			if ($this->settingManager->get('record_usage_stats') == 1) {
@@ -395,7 +395,7 @@ class CommandManager {
 					$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
 				}
 			}
-		
+
 			// if they've disabled feedback for guild or private channel, just return
 			if (($channel == 'guild' && $this->settingManager->get('guild_channel_cmd_feedback') == 0) || ($channel == 'priv' && $this->settingManager->get('private_channel_cmd_feedback') == 0)) {
 				return false;
@@ -434,7 +434,7 @@ class CommandManager {
 					$syntaxError = ($instance->$method($message, $channel, $sender, $sendto, $arr) === false);
 					if ($syntaxError == false) {
 						// we can stop looking, command was handled successfully
-						
+
 						$successfulHandler = $handler;
 						break;
 					}

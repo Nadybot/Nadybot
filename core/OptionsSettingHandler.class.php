@@ -7,11 +7,11 @@ use Exception;
 require_once 'SettingHandler.class.php';
 
 class OptionsSettingHandler extends SettingHandler {
-	
+
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
 	}
-	
+
 	/**
 	 * @return String
 	 */
@@ -19,7 +19,7 @@ class OptionsSettingHandler extends SettingHandler {
 		$msg = "For this setting you must choose one of the options from the list below.\n\n";
 		return $msg;
 	}
-	
+
 	/**
 	 * @return String of new value or false if $newValue is invalid
 	 */

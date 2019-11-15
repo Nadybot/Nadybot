@@ -79,7 +79,7 @@ class LoggerWrapper {
 		global $vars;
 		return "./logs/{$vars['name']}.{$vars['dimension']}";
 	}
-	
+
 	/**
 	 * Check if logging is enabled for a given category
 	 *

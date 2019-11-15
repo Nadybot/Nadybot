@@ -76,7 +76,7 @@ class GuildManager {
 		forEach ($members as $member) {
 			$name = $member->NAME;
 			if (!isset($this->chatBot->id[$name])) {
-				$this->chatBot->send_packet(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name));
+				$this->chatBot->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name));
 			}
 		}
 

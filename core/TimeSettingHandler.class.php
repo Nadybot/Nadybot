@@ -15,7 +15,7 @@ class TimeSettingHandler extends SettingHandler {
 	 * @Inject
 	 */
 	public $util;
-	
+
 	/**
 	 * Construct a new handler out of a given database row
 	 *
@@ -31,7 +31,7 @@ class TimeSettingHandler extends SettingHandler {
 	public function displayValue() {
 		return "<highlight>" . $this->util->unixtimeToReadable($this->row->value) . "<end>";
 	}
-	
+
 	/**
 	 * Describe the valid values for this setting
 	 *
@@ -43,7 +43,7 @@ class TimeSettingHandler extends SettingHandler {
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>time</i><end>\n\n";
 		return $msg;
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 */

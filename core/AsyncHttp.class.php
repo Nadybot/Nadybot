@@ -44,7 +44,7 @@ class AsyncHttp {
 	private $headers = array();
 	private $timeout = null;
 	private $queryParams = array();
-	
+
 	// stream
 	private $stream;
 	private $notifier;
@@ -299,12 +299,12 @@ class AsyncHttp {
 			}
 			$data .= $chunk;
 		}
-		
+
 		if (!empty($data)) {
 			// since data was read, reset timeout
 			$this->timer->restartEvent($this->timeoutEvent);
 		}
-		
+
 		return $data;
 	}
 

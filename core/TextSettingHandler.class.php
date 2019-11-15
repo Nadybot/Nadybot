@@ -19,7 +19,7 @@ class TextSettingHandler extends SettingHandler {
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
 	}
-	
+
 	/**
 	 * Describe the valid values for this setting
 	 *
@@ -31,7 +31,7 @@ class TextSettingHandler extends SettingHandler {
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>text</i><end>\n\n";
 		return $msg;
 	}
-	
+
 	/**
 	 * Change this setting
 	 *

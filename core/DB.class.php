@@ -59,13 +59,13 @@ class DB {
 	private $lastQuery;
 	/** @var bool $inTransaction */
 	private $inTransaction = false;
-	
+
 	/** @var \LoggerWrapper $logger */
 	private $logger;
-	
+
 	const MYSQL = 'mysql';
 	const SQLITE = 'sqlite';
-	
+
 	public function __construct() {
 		$this->logger = new LoggerWrapper('SQL');
 	}
@@ -186,7 +186,7 @@ class DB {
 
 		return $ps->rowCount();
 	}
-	
+
 	/**
 	 * Internal function to get additional parameters passed to exec()
 	 *
@@ -376,10 +376,10 @@ class DB {
 			$this->logger->log('ERROR', $msg);
 			return $msg;
 		}
-		
+
 		// make sure setting is verified so it doesn't get deleted
 		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', 0);
-		
+
 		if ($forceUpdate || $this->util->compareVersionNumbers($maxFileVersion, $currentVersion) > 0) {
 			$handle = @fopen("$dir/$file", "r");
 			if ($handle) {

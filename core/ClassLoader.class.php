@@ -10,9 +10,9 @@ class ClassLoader {
 	 * @Logger
 	 */
 	public $logger;
-	
+
 	private $moduleLoadPaths;
-	
+
 	public function __construct($moduleLoadPaths) {
 		$this->moduleLoadPaths = $moduleLoadPaths;
 	}
@@ -22,16 +22,16 @@ class ClassLoader {
 		forEach ($newInstances as $name => $className) {
 			Registry::setInstance($name, new $className);
 		}
-		
+
 		$this->loadCoreModules();
 		$this->loadUserModules();
-		
+
 		$this->logger->log('DEBUG', "Inject dependencies for all instances");
 		forEach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
 		}
 	}
-	
+
 	private function loadCoreModules() {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->log('INFO', "Loading CORE modules...");
@@ -40,7 +40,7 @@ class ClassLoader {
 			$this->registerModule("./core", $MODULE_NAME);
 		}
 	}
-	
+
 	/**
 	 * @name: loadUserModules
 	 * @description: load all user modules
@@ -68,7 +68,7 @@ class ClassLoader {
 	private function isValidModuleName($name) {
 		return $name != '.' && $name != '..';
 	}
-	
+
 	public function registerModule($baseDir, $MODULE_NAME) {
 		// read module.ini file (if it exists) from module's directory
 		if (file_exists("{$baseDir}/{$MODULE_NAME}/module.ini")) {
@@ -102,7 +102,7 @@ class ClassLoader {
 			return;
 		}
 	}
-	
+
 	public static function getNewInstancesInDir($path) {
 		$original = get_declared_classes();
 		if ($dir = dir($path)) {

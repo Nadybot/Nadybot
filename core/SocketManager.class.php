@@ -8,13 +8,13 @@ namespace Budabot\Core;
 class SocketManager {
 	private $socketNotifiers = array();
 	private $monitoredSocketsByType = array();
-	
+
 	public function __construct() {
 		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] = array();
 		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] = array();
 		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] = array();
 	}
-	
+
 	public function checkMonitoredSockets() {
 		$read = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ];
 		$write = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE];
@@ -38,7 +38,7 @@ class SocketManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds given socket notifier to list of sockets which are
 	 * monitored for activity.
@@ -78,7 +78,7 @@ class SocketManager {
 			$this->removeOne($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR], $socketNotifier->getSocket());
 		}
 	}
-	
+
 	private function removeOne(&$array, $value) {
 		$key = array_search($value, $array, true);
 		if ($key !== false) {

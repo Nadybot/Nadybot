@@ -12,7 +12,7 @@ class Util {
 	 * @Inject
 	 */
 	public $chatBot;
-	
+
 	/**
 	 * @var \Budabot\Core\LoggerWrapper $logger
 	 * @Logger
@@ -442,7 +442,7 @@ class Util {
 	public function date($unixtime) {
 		return date(self::DATETIME, $unixtime);
 	}
-	
+
 	/**
 	 * Checks if $string ends with string $test
 	 *
@@ -459,7 +459,7 @@ class Util {
 		}
 		return substr_compare($string, $test, -$testlen) === 0;
 	}
-	
+
 	/**
 	 * Checks if $haystack starts with $needle
 	 *
@@ -471,7 +471,7 @@ class Util {
 	public function startsWith($haystack, $needle) {
 		return !strncmp($haystack, $needle, strlen($needle));
 	}
-	
+
 	/**
 	 * Remove all colors from $msg
 	 *
@@ -483,7 +483,7 @@ class Util {
 		$msg = preg_replace("~</font>~", "", $msg);
 		return $msg;
 	}
-	
+
 	/**
 	 * Generate an SQL query from a column and a list of criterias
 	 *

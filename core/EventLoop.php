@@ -27,7 +27,7 @@ class EventLoop {
 	 * @Inject
 	 */
 	public $timer;
-	
+
 	public function execSingleLoop() {
 		$this->chatBot->processAllPackets();
 

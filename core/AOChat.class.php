@@ -43,6 +43,12 @@ namespace Budabot\Core;
 *
 */
 
+/**
+ * Ignore non-camelCaps named methods as a lot of external calls rely on
+ * them and we can't simply rename them
+ *
+ * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+ */
 require_once 'MMDBParser.class.php';
 require_once 'AOChatQueue.class.php';
 require_once 'AOChatExtMsg.class.php';
@@ -255,13 +261,13 @@ class AOChat {
 		if ($this->chatqueue !== null) {
 			$packet = $this->chatqueue->getNext();
 			while ($packet !== null) {
-				$this->send_packet($packet);
+				$this->sendPacket($packet);
 				$packet = $this->chatqueue->getNext();
 			}
 		}
 
 		if (($now - $this->last_packet) > 60 && ($now - $this->last_ping) > 60) {
-			$this->send_ping();
+			$this->sendPing();
 		}
 	}
 
@@ -385,7 +391,7 @@ class AOChat {
 	 * @param \Budabot\Core\AOChatPacket $packet The packet to send
 	 * @return true
 	 */
-	public function send_packet($packet) {
+	public function sendPacket($packet) {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 		
 		$this->logger->log('debug', $data);
@@ -410,7 +416,7 @@ class AOChat {
 
 		$key = $this->generateLoginKey($serverseed, $username, $password);
 		$pak = new AOChatPacket("out", AOCP_LOGIN_REQUEST, array(0, $username, $key));
-		$this->send_packet($pak);
+		$this->sendPacket($pak);
 		$packet = $this->getPacket();
 		if ($packet->type != AOCP_LOGIN_CHARLIST) {
 			return false;
@@ -462,7 +468,7 @@ class AOChat {
 		}
 
 		$loginSelect = new AOChatPacket("out", AOCP_LOGIN_SELECT, $char["id"]);
-		$this->send_packet($loginSelect);
+		$this->sendPacket($loginSelect);
 		$packet = $this->getPacket();
 		if ($packet->type != AOCP_LOGIN_OK) {
 			return false;
@@ -490,7 +496,7 @@ class AOChat {
 			return $this->id[$u];
 		}
 
-		$this->send_packet(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
+		$this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
 			$packet = $this->waitForPacket(1);
@@ -509,13 +515,13 @@ class AOChat {
 	 * @return int|false false on error, otherwise the UID
 	 */
 	public function get_uid($user) {
-		if ($this->is_really_numeric($user)) {
+		if ($this->isReallyNumeric($user)) {
 			return $this->fixunsigned($user);
 		}
 
 		$uid = $this->lookup_user($user);
 
-		if ($uid === false || $uid == 0 || $uid == -1 || $uid == 0xffffffff || !$this->is_really_numeric($uid)) {
+		if ($uid === false || $uid == 0 || $uid == -1 || $uid == 0xffffffff || !$this->isReallyNumeric($uid)) {
 			return false;
 		}
 
@@ -529,7 +535,7 @@ class AOChat {
 	 * @return int
 	 */
 	public function fixunsigned($num) {
-		if ($this->is_really_numeric($num) && bcdiv("" . $num, "2147483648", 0)) {
+		if ($this->isReallyNumeric($num) && bcdiv("" . $num, "2147483648", 0)) {
 			$num2 = -1 * bcsub("4294967296", "" . $num);
 			return (int)$num2;
 		}
@@ -543,7 +549,7 @@ class AOChat {
 	 * @param string|int $num The number/string to check
 	 * @return bool
 	 */
-	public function is_really_numeric($num) {
+	public function isReallyNumeric($num) {
 		if (preg_match("/^([0-9\-]+)$/", "" . $num)) {
 			return true;
 		}
@@ -596,9 +602,9 @@ class AOChat {
 	 *
 	 * @return true
 	 */
-	public function send_ping() {
+	public function sendPing() {
 		$this->last_ping = time();
-		return $this->send_packet(new AOChatPacket("out", AOCP_PING, "AOChat.php"));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PING, "AOChat.php"));
 	}
 
 	/**
@@ -681,7 +687,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] & ~AOC_GROUP_MUTE, "\0")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] & ~AOC_GROUP_MUTE, "\0")));
 	}
 
 	/**
@@ -695,7 +701,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] | AOC_GROUP_MUTE, "\0")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] | AOC_GROUP_MUTE, "\0")));
 	}
 
 	/**
@@ -725,7 +731,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, array($gid, $msg, $blob)));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, array($gid, $msg, $blob)));
 	}
 
 	/**
@@ -739,7 +745,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_JOIN, $gid));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_JOIN, $gid));
 	}
 
 	/**
@@ -753,7 +759,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_INVITE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_INVITE, $uid));
 	}
 
 	/**
@@ -767,7 +773,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_KICK, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_KICK, $uid));
 	}
 
 	/**
@@ -781,7 +787,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_PART, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_PART, $uid));
 	}
 
 	/**
@@ -790,7 +796,7 @@ class AOChat {
 	 * @return true
 	 */
 	public function privategroup_kick_all() {
-		return $this->send_packet(new AOChatPacket("out", AOCP_PRIVGRP_KICKALL, ""));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_KICKALL, ""));
 	}
 
 	/**
@@ -804,7 +810,7 @@ class AOChat {
 		if ($uid == $this->char['id']) {
 			return false;
 		} else {
-			return $this->send_packet(new AOChatPacket("out", AOCP_BUDDY_ADD, array($uid, $type)));
+			return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, array($uid, $type)));
 		}
 	}
 
@@ -815,7 +821,7 @@ class AOChat {
 	 * @return true
 	 */
 	public function buddy_remove($uid) {
-		return $this->send_packet(new AOChatPacket("out", AOCP_BUDDY_REMOVE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_REMOVE, $uid));
 	}
 
 	/**
@@ -824,7 +830,7 @@ class AOChat {
 	 * @return true
 	 */
 	public function buddy_remove_unknown() {
-		return $this->send_packet(new AOChatPacket("out", AOCP_CC, array(array("rembuddy", "?"))));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_CC, array(array("rembuddy", "?"))));
 	}
 
 	/**
@@ -833,7 +839,7 @@ class AOChat {
 	 * @param int $bits
 	 * @return string A random hexstring in textform
 	 */
-	public function get_random_hex_key($bits) {
+	public function getRandomHexKey($bits) {
 		$str = "";
 		do {
 			$str .= sprintf('%02x', mt_rand(0, 0xff));
@@ -902,7 +908,7 @@ class AOChat {
 	 * @param string|int $value The value to convert
 	 * @return string The converted value
 	 */
-	public function NegativeToUnsigned($value) {
+	public function negativeToUnsigned($value) {
 		if (bccomp($value, 0) != -1) {
 			return $value;
 		}
@@ -934,7 +940,7 @@ class AOChat {
 	 * @param string|int $value The value to encode
 	 * @return string The packed data
 	 */
-	public function SafeDecHexReverseEndian($value) {
+	public function safeDecHexReverseEndian($value) {
 		$result = "";
 		$value = (int)$this->reduceTo32Bit($value);
 		$hex   = substr("00000000".dechex($value), -8);
@@ -962,7 +968,7 @@ class AOChat {
 	public function reduceTo32Bit($value) {
 		// If its negative, lets go positive ... its easier to do everything as positive.
 		if (bccomp($value, 0) == -1) {
-			$value = $this->NegativeToUnsigned($value);
+			$value = $this->negativeToUnsigned($value);
 		}
 
 		$bit  = 0x80000000;
@@ -1015,7 +1021,7 @@ class AOChat {
 			"e84caa8a91cecbdb1aa7c816e8be343246f80c637abc653b893fd91686cf8d".
 			"32d6cfe5f2a6f";
 		$dhG = "0x5";
-		$dhx = "0x".$this->get_random_hex_key(256);
+		$dhx = "0x".$this->getRandomHexKey(256);
 
 		$dhX = $this->bcmath_powm($dhG, $dhx, $dhN);
 		$dhK = $this->bcmath_powm($dhY, $dhx, $dhN);
@@ -1028,7 +1034,7 @@ class AOChat {
 			$dhK = substr($dhK, 0, 32);
 		}
 
-		$prefix = pack("H16", $this->get_random_hex_key(64));
+		$prefix = pack("H16", $this->getRandomHexKey(64));
 		$length = 8 + 4 + strlen($str); /* prefix, int, ... */
 		$pad    = str_repeat(" ", (8 - $length % 8) % 8);
 		$strlen = pack("N", strlen($str));
@@ -1063,8 +1069,8 @@ class AOChat {
 			$now[1] = (int)$this->reduceTo32Bit($dataarr[$i+1]) ^ (int)$this->reduceTo32Bit(@$prev[1]);
 			$prev   = $this->aoCryptPermute($now, $keyarr);
 
-			$ret .= $this->SafeDecHexReverseEndian($prev[0]);
-			$ret .= $this->SafeDecHexReverseEndian($prev[1]);
+			$ret .= $this->safeDecHexReverseEndian($prev[0]);
+			$ret .= $this->safeDecHexReverseEndian($prev[1]);
 		}
 
 		return $ret;

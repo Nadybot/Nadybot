@@ -59,7 +59,7 @@ class AccessManager {
 	 * @Inject
 	 */
 	public $altsController;
-	
+
 	/**
 	 * @var \Budabot\Core\ChatLeaderController $chatLeaderController
 	 * @Inject
@@ -223,6 +223,7 @@ class AccessManager {
 	 * Returns a positive number if $accessLevel1 is a greater access level than $accessLevel2,
 	 * a negative number if $accessLevel1 is a lesser access level than $accessLevel2,
 	 * and 0 if the access levels are equal.
+	 *
 	 * @param string $accessLevel1
 	 * @param string $accessLevel2
 	 * @return int 1 if $accessLevel1 is greater, -1 it $accessLevel1 is lesser and 0 if both are equal
@@ -230,7 +231,7 @@ class AccessManager {
 	public function compareAccessLevels($accessLevel1, $accessLevel2) {
 		$accessLevel1 = $this->getAccessLevel($accessLevel1);
 		$accessLevel2 = $this->getAccessLevel($accessLevel2);
-		
+
 		$accessLevels = $this->getAccessLevels();
 
 		return $accessLevels[$accessLevel2] - $accessLevels[$accessLevel1];
@@ -256,7 +257,7 @@ class AccessManager {
 
 		return $this->compareAccessLevels($char1AccessLevel, $char2AccessLevel);
 	}
-	
+
 	/**
 	 * Get the short version of the accesslevel, e.g. raidleaver => rl
 	 *
@@ -276,7 +277,7 @@ class AccessManager {
 				$accessLevel = "admin";
 				break;
 		}
-	
+
 		$accessLevels = $this->getAccessLevels();
 		if (isset($accessLevels[$accessLevel])) {
 			return strtolower($accessLevel);
@@ -284,7 +285,7 @@ class AccessManager {
 			throw new Exception("Invalid access level '$accessLevel'.");
 		}
 	}
-	
+
 	/**
 	 * Return all allowed and known access levels
 	 *

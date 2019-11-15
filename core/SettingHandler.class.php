@@ -37,7 +37,7 @@ class SettingHandler {
 			return "<highlight>" . htmlspecialchars($this->row->value) . "<end>";
 		}
 	}
-	
+
 	/**
 	 * Get all options for this setting or false if no options are available
 	 *
@@ -67,7 +67,7 @@ class SettingHandler {
 		}
 		return $msg;
 	}
-	
+
 	/**
 	 * Change this setting
 	 *
