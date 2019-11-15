@@ -97,8 +97,8 @@ class AccessManager {
 	 * the higher of it's own access level and that of it's main, if it has a main
 	 * and if it has been validated as an alt.
 	 *
-	 * @param string $sender - the name of the person you want to check access on
-	 * @param string $accessLevel - can be one of: superadmin, admininistrator, moderator, guild, member, raidleader, all
+	 * @param string $sender The name of the person you want to check access on
+	 * @param string $accessLevel Can be one of: superadmin, admininistrator, moderator, guild, member, raidleader, all
 	 * @return bool true if $sender has at least $accessLevel, false otherwise
 	 */
 	public function checkAccess($sender, $accessLevel) {
@@ -122,6 +122,15 @@ class AccessManager {
 		return $returnVal;
 	}
 
+	/**
+	 * This method checks if given $sender has at least $accessLevel rights.
+	 *
+	 * This is the same checkAccess() but doesn't check alt
+	 *
+	 * @param string $sender The name of the person you want to check access on
+	 * @param string $accessLevel Can be one of: superadmin, admininistrator, moderator, guild, member, raidleader, all
+	 * @return bool true if $sender has at least $accessLevel, false otherwise
+	 */
 	public function checkSingleAccess($sender, $accessLevel) {
 		$sender = ucfirst(strtolower($sender));
 
@@ -129,6 +138,12 @@ class AccessManager {
 		return ($this->compareAccessLevels($charAccessLevel, $accessLevel) >= 0);
 	}
 
+	/**
+	 * Turn the short accesslevel (rl, mod, admin) into the long version
+	 *
+	 * @param string $accessLevel The short version
+	 * @return string The long version
+	 */
 	public function getDisplayName($accessLevel) {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
@@ -148,6 +163,9 @@ class AccessManager {
 
 	/**
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
+	 *
+	 * @param string $sender The name of the user to check
+	 * @return string One of "superadmin", "admin", "mod", "r", "guild", "member" or "all"
 	 */
 	public function getSingleAccessLevel($sender) {
 		if ($this->chatBot->vars["SuperAdmin"] == $sender) {
@@ -179,6 +197,9 @@ class AccessManager {
 
 	/**
 	 * Returns the access level of $sender, accounting for guild admin and inheriting access level from main
+	 *
+	 * @param string $sender The name of the user to check
+	 * @return string One of "superadmin", "admin", "mod", "r", "guild", "member" or "all"
 	 */
 	public function getAccessLevelForCharacter($sender) {
 		$sender = ucfirst(strtolower($sender));
@@ -197,9 +218,14 @@ class AccessManager {
 	}
 
 	/**
+	 * Compare 2 access levels
+	 *
 	 * Returns a positive number if $accessLevel1 is a greater access level than $accessLevel2,
 	 * a negative number if $accessLevel1 is a lesser access level than $accessLevel2,
 	 * and 0 if the access levels are equal.
+	 * @param string $accessLevel1
+	 * @param string $accessLevel2
+	 * @return int 1 if $accessLevel1 is greater, -1 it $accessLevel1 is lesser and 0 if both are equal
 	 */
 	public function compareAccessLevels($accessLevel1, $accessLevel2) {
 		$accessLevel1 = $this->getAccessLevel($accessLevel1);
@@ -211,9 +237,15 @@ class AccessManager {
 	}
 
 	/**
+	 * Compare the access levels of 2 characters
+	 *
 	 * Returns a positive number if the access level of $char1 is greater than the access level of $char2,
 	 * a negative number if the access level of $char1 is less than the access level of $char2,
 	 * and 0 if the access levels of $char1 and $char2 are equal.
+	 *
+	 * @param string $char1
+	 * @param string $char2
+	 * @return int 1 if access for $char1 is greater, -1 if lesser and 0 if equal to access of $char2
 	 */
 	public function compareCharacterAccessLevels($char1, $char2) {
 		$char1 = ucfirst(strtolower($char1));
@@ -225,6 +257,12 @@ class AccessManager {
 		return $this->compareAccessLevels($char1AccessLevel, $char2AccessLevel);
 	}
 	
+	/**
+	 * Get the short version of the accesslevel, e.g. raidleaver => rl
+	 *
+	 * @param string $accessLevel The long access level
+	 * @return string The short version
+	 */
 	public function getAccessLevel($accessLevel) {
 		$accessLevel = strtolower($accessLevel);
 		switch ($accessLevel) {
@@ -247,6 +285,11 @@ class AccessManager {
 		}
 	}
 	
+	/**
+	 * Return all allowed and known access levels
+	 *
+	 * @return int[] All access levels with the name as key and the number as value
+	 */
 	public function getAccessLevels() {
 		return self::$ACCESS_LEVELS;
 	}
