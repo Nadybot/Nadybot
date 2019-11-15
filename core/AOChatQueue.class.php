@@ -51,12 +51,47 @@ define('AOC_PRIORITY_LOW',             100);
 
 class AOChatQueue {
 
+	/**
+	 * The packet queue for each priority (low, med, high)
+	 *
+	 * @var \Budabot\Core\AOChatPacket[] $queue
+	 */
 	public $queue;
-	public $qsize;  // the number of items in the queue for any priority
-	public $point;  // the next time we can send a message
-	public $limit;  // the amount of messages that can be sent before metering kicks in
-	public $increment;  // the amount of time in seconds to wait after the limit has been reached
 
+	/**
+	 * The number of items in the queue for any priority
+	 *
+	 * @var int $qesize
+	 */
+	public $qsize;
+
+	/**
+	 * The next time we can send a message as UNIX timestamp
+	 *
+	 * @var int $point
+	 */
+	public $point;
+
+	/**
+	 * The amount of messages that can be sent before metering kicks in
+	 *
+	 * @var int $limit
+	 */
+	public $limit;
+
+	/**
+	 * The amount of time in seconds to wait after the limit has been reached
+	 *
+	 * @var int $increment
+	 */
+	public $increment;
+
+	/**
+	 * Create a new Chat Queue with a burst of $limit messages and $increment seconds between messages after burst
+	 *
+	 * @param int $limit     How many messages can be sent before rate limit kicks in
+	 * @param int $increment How long to wait between messages when rate limit is active
+	 */
 	public function __construct($limit, $increment) {
 		$this->limit = $limit;
 		$this->increment = $increment;
@@ -65,6 +100,13 @@ class AOChatQueue {
 		$this->qsize = 0;
 	}
 
+	/**
+	 * Add a packet to the end of the chat queue with priority $priority
+	 *
+	 * @param int $priority
+	 * @param \Budabot\Core\AOChatPacket $item
+	 * @return void
+	 */
 	public function push($priority, $item) {
 		$now = time();
 
@@ -77,6 +119,13 @@ class AOChatQueue {
 		$this->qsize++;
 	}
 
+	/**
+	 * Get the next packet to process
+	 *
+	 * Takes queue priorities into account
+	 *
+	 * @return \Budabot\Core\AOChatPacket|null Either a packet or NULL if the queues are empty
+	 */
 	public function getNext() {
 		if ($this->qsize === 0) {
 			return null;

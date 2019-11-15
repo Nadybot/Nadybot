@@ -161,6 +161,42 @@ class AOChatPacket {
 		)
 	);
 
+	/**
+	 * The decoded arguments of the chat packet
+	 *
+	 * @var mixed[] $args
+	 */
+	public $args = array();
+
+	/**
+	 * The package type as in AOCP_LOGIN_REQUEST or AOCP_PRIVGROUP_JOIN
+	 *
+	 * @var int $type
+	 */
+	public $type;
+
+	/**
+	 * The direction of the packet (in or out)
+	 *
+	 * @var string $dir
+	 */
+	public $dir;
+
+	/**
+	 * The encoded binary packet data
+	 *
+	 * @var string $data
+	 */
+	public $data;
+
+	/**
+	 * Create a new packet, either for parsing incoming or encoding outgoing ones
+	 *
+	 * @param string         $dir  Either "in" for received packages or "out" for those we want to send
+	 * @param int            $type Something like AOCP_PRIVGRP_INVITE
+	 * @param string|mixed[] $data Either the data to decode (if $type == "in")
+	 *                           or the data to encode(if $type == "out")
+	 */
 	public function __construct($dir, $type, $data) {
 		$this->args = array();
 		$this->type = $type;
