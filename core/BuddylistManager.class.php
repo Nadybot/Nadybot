@@ -22,8 +22,10 @@ class BuddylistManager {
 	public $buddyList = array();
 
 	/**
-	 * @name: isOnline
-	 * @description: Returns null when online status is unknown, 1 when buddy is online, 0 when buddy is offline
+	 * Check if a friend is online
+	 *
+	 * @param string $name The name of the friend
+	 * @return int|null null when online status is unknown, 1 when buddy is online, 0 when buddy is offline
 	 */
 	public function isOnline($name) {
 		if (strtolower($this->chatBot->vars['name']) == strtolower($name)) {
@@ -34,6 +36,19 @@ class BuddylistManager {
 		}
 	}
 
+	/**
+	 * Get information stored about a friend
+	 *
+	 * The information is [
+	 *   "uid"    => The UID,
+	 *   "name"   => The name,
+	 *   "online" => 1 or 0
+	 *   "known"  => 1 or 0
+	 * ]
+	 *
+	 * @param string $name
+	 * @return mixed[] ["uid" => uid, "name" => name, "online" => 1/0, "known" => 1/0]
+	 */
 	public function getBuddy($name) {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || !isset($this->buddyList[$uid])) {
@@ -43,6 +58,13 @@ class BuddylistManager {
 		}
 	}
 
+	/**
+	 * Add a user to the bot's friendlist for a given purpose
+	 *
+	 * @param string $name The name of the player
+	 * @param string $type The reason why to add ("member", "admin", "org", "onlineorg", "is_online", "tracking")
+	 * @return bool true on success, otherwise false
+	 */
 	public function add($name, $type) {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || $type === null || $type == '') {
@@ -65,6 +87,17 @@ class BuddylistManager {
 		}
 	}
 
+	/**
+	 * Remove a user to the bot's friendlist for a given purpose
+	 *
+	 * This does not necessarily remove the user from the friendlist, because
+	 * they might be on it for more than 1 reason. The user is oly really removed
+	 * when the last reason to be on the list was removed.
+	 *
+	 * @param string $name The name of the player
+	 * @param string $type The reason for which to remove ("member", "admin", "org", "onlineorg", "is_online", "tracking")
+	 * @return bool true on success, otherwise false
+	 */
 	public function remove($name, $type='') {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false) {
@@ -86,6 +119,12 @@ class BuddylistManager {
 		}
 	}
 
+	/**
+	 * Update the cached information in the friendlist
+	 *
+	 * @param mixed[] $args [(int)User ID, (int)online, (int)known]
+	 * @return void
+	 */
 	public function update($args) {
 		$sender	= $this->chatBot->lookup_user($args[0]);
 
@@ -97,6 +136,12 @@ class BuddylistManager {
 		$this->buddyList[$bid]['known'] = (ord($btype) ? 1 : 0);
 	}
 
+	/**
+	 * Forcefully delete cached information in the friendlist
+	 *
+	 * @param mixed[] $args [(int)User ID]
+	 * @return void
+	 */
 	public function updateRemoved($args) {
 		$bid = $args[0];
 		unset($this->buddyList[$bid]);

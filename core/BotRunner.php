@@ -18,11 +18,26 @@ function isWindows() {
 
 class BotRunner {
 
-	// budabot's current version
+	/**
+	 * Budabot's current version
+	 *
+	 * @var string $version
+	 */
 	public $version = "4-Nady";
 
+	/**
+	 * The command line arguments
+	 *
+	 * @var string[] $argv
+	 */
 	private $argv = array();
 
+	/**
+	 * Create a new instance
+	 *
+	 * @param string[] $argv
+	 * @return self
+	 */
 	public function __construct($argv) {
 		$this->argv = $argv;
 
@@ -30,6 +45,11 @@ class BotRunner {
 		$version = $this->version;
 	}
 
+	/**
+	 * Run the bot in an endless loop
+	 *
+	 * @return void
+	 */
 	public function run() {
 		// set default timezone
 		date_default_timezone_set("UTC");
@@ -84,6 +104,11 @@ class BotRunner {
 		$chatBot->run();
 	}
 
+	/**
+	 * Get a message describing the bot's codebase
+	 *
+	 * @return string
+	 */
 	private function getInitialInfoMessage() {
 		return "\n\n\n\n\n
 **************************************************
@@ -95,6 +120,11 @@ In-Game Contact:  Nadychat
 \n";
 	}
 
+	/**
+	 * Load all required PHP modules
+	 *
+	 * @return void
+	 */
 	private function loadPhpExtensions() {
 		if (isWindows()) {
 			// Load database and socket extensions
@@ -113,6 +143,11 @@ In-Game Contact:  Nadychat
 		}
 	}
 
+	/**
+	 * Parse and load our configuration and returnn it
+	 *
+	 * @return mixed[]
+	 */
 	protected function getConfigVars() {
 		require_once 'ConfigFile.class.php';
 
@@ -125,6 +160,12 @@ In-Game Contact:  Nadychat
 		return $vars;
 	}
 
+	/**
+	 * Setup proper error-reporting, -handling and -logging
+	 *
+	 * @param string $logFolderName Subdirectory in the logs-folder where to log to
+	 * @return void
+	 */
 	private function setErrorHandling($logFolderName) {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 		ini_set("log_errors", 1);
@@ -132,11 +173,21 @@ In-Game Contact:  Nadychat
 		ini_set("error_log", "./logs/" . $logFolderName . "/php_errors.log");
 	}
 
+	/**
+	 * Load external classes that we need
+	 *
+	 * @return void
+	 */
 	private function loadPhpLibraries() {
 		require_once './lib/addendum-0.4.1/annotations.php';
 		require_once './lib/vendor/autoload.php';
 	}
 
+	/**
+	 * Load the classes needed to load our other classes
+	 *
+	 * @return void
+	 */
 	private function loadEssentialCoreClasses() {
 		require_once './core/Registry.class.php';
 		require_once './core/ClassLoader.class.php';
@@ -145,6 +196,11 @@ In-Game Contact:  Nadychat
 		require_once './core/annotations.php';
 	}
 
+	/**
+	 * Guide customer through setup if needed
+	 *
+	 * @return void
+	 */
 	private function showSetupDialog() {
 		if ($this->shouldShowSetup()) {
 			global $vars;
@@ -152,17 +208,32 @@ In-Game Contact:  Nadychat
 		}
 	}
 
+	/**
+	 * Is information missing to run the bot?
+	 *
+	 * @return boolean true if login, password or name are not given, false if everything's good to go
+	 */
 	private function shouldShowSetup() {
 		global $vars;
 		return $vars['login'] == "" || $vars['password'] == "" || $vars['name'] == "";
 	}
 
+	/**
+	 * Canonicaize the botname: starts with capital letter, rest lowercase
+	 *
+	 * @return void
+	 */
 	private function canonicalizeBotCharacterName() {
 		global $vars;
 		$vars["name"] = ucfirst(strtolower($vars["name"]));
 	}
 
-	// Configure log files to be separate for each bot
+	/**
+	 * Configure log files to be separate for each bot
+	 *
+	 * @param string $logFolderName The subfolder where to put the logs into
+	 * @return void
+	 */
 	private function configureLogger($logFolderName) {
 		$configurator = new LoggerConfiguratorDefault();
 		$config = $configurator->parse('conf/log4php.xml');
@@ -172,20 +243,34 @@ In-Game Contact:  Nadychat
 		Logger::configure($config);
 	}
 
+	/**
+	 * Set the title of the command prompt window in Windows
+	 *
+	 * @return void
+	 */
 	private function setWindowTitle() {
-		// Set the title of the command prompt window in Windows
 		if (isWindows()) {
 			global $vars;
 			system("title {$vars['name']} - Budabot");
 		}
 	}
 
+	/**
+	 * Connect to the database
+	 *
+	 * @return void
+	 */
 	private function connectToDatabase() {
 		global $vars;
 		$db = Registry::getInstance('db');
 		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
 	}
 
+	/**
+	 * Delete all database-related information from memory
+	 *
+	 * @return void
+	 */
 	private function clearDatabaseInformation() {
 		global $vars;
 		unset($vars["DB Type"]);
@@ -195,12 +280,23 @@ In-Game Contact:  Nadychat
 		unset($vars["DB password"]);
 	}
 
+	/**
+	 * Runs upgrade.php, which is needed if the SQL schema has changed between releases.
+	 *
+	 * @return void
+	 */
 	private function runUpgradeScripts() {
 		if (file_exists('upgrade.php')) {
 			include 'upgrade.php';
 		}
 	}
 
+	/**
+	 * Get AO's chat server hostname and port
+	 *
+	 * @param mixed[] $vars The configuration variables from our config file
+	 * @return (string|int)[] [(string)Server, (int)Port]
+	 */
 	protected function getServerAndPort($vars) {
 		// Choose server
 		if ($vars['use_proxy'] == 1) {

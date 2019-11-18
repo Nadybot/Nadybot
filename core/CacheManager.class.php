@@ -5,6 +5,7 @@ namespace Budabot\Core;
 use Exception;
 
 /**
+ * Read-through cache to URLs
  * @Instance
  */
 class CacheManager {
@@ -27,9 +28,18 @@ class CacheManager {
 	 */
 	public $util;
 
+	/**
+	 * The directory where to store the cache information
+	 *
+	 * @var string $cacheDir
+	 */
 	private $cacheDir;
 
-	/** @Setup */
+	/**
+	 * Initialize the cache on disk
+	 *
+	 * @return void
+	 */
 	public function init() {
 		$this->cacheDir = $this->chatBot->vars["cachefolder"];
 
@@ -39,6 +49,18 @@ class CacheManager {
 		}
 	}
 
+	/**
+	 * Lookup information in the cache or retrieve it when outdated
+	 *
+	 * @param string $url               The URL to load the data from if the cache is outdate
+	 * @param string $groupName         The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename          Filename to cache the information in when retrieved
+	 * @param callable $isValidCallback Function to run on the body of the URL to check if the data is valid:
+	 *                                  function($data) { return !json_decode($data) !== null }
+	 * @param integer $maxCacheAge      Age of the cache entry in seconds after which the data will be considered outdated
+	 * @param boolean $forceUpdate      Set to true to ignore the existing cache and always update
+	 * @return \Budabot\Core\CacheResult
+	 */
 	public function lookup($url, $groupName, $filename, $isValidCallback, $maxCacheAge=86400, $forceUpdate=false) {
 		if (empty($groupName)) {
 			throw new Exception("Cache group name cannot be empty");
@@ -102,6 +124,14 @@ class CacheManager {
 		return $cacheResult;
 	}
 
+	/**
+	 * Store content in the cache
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename  Filename of the cache
+	 * @param string $contents  The string to store
+	 * @return void
+	 */
 	public function store($groupName, $filename, $contents) {
 		if (!dir($this->cacheDir . '/' . $groupName)) {
 			mkdir($this->cacheDir . '/' . $groupName, 0777);
@@ -118,6 +148,13 @@ class CacheManager {
 		fclose($fp);
 	}
 
+	/**
+	 * Retrieve content from the cache
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename  Filename of the cache
+	 * @return string|null null on error or if the cache doresn't exist, otherwise the string that was cached
+	 */
 	public function retrieve($groupName, $filename) {
 		$cacheFile = "{$this->cacheDir}/$groupName/$filename";
 
@@ -128,6 +165,13 @@ class CacheManager {
 		}
 	}
 
+	/**
+	 * Check how old the information in a cache file is
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename  Filename of the cache
+	 * @return int|null null if the cache doresn't exist, otherwise the age of the cache in seconds
+	 */
 	public function getCacheAge($groupName, $filename) {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
@@ -138,33 +182,94 @@ class CacheManager {
 		}
 	}
 
+	/**
+	 * Check if the cache already exists
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename  Filename of the cache
+	 * @return bool
+	 */
 	public function cacheExists($groupName, $filename) {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
 		return file_exists($cacheFile);
 	}
 
+	/**
+	 * Delete a cache
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @param string $filename  Filename of the cache
+	 * @return void
+	 */
 	public function remove($groupName, $filename) {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
 		@unlink($cacheFile);
 	}
 
+	/**
+	 * Get a list of all files with cached information that belong to a group
+	 *
+	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
+	 * @return string[]
+	 */
 	public function getFilesInGroup($groupName) {
 		$path = "$this->cacheDir/$groupName/";
 
 		return $this->util->getFilesInDirectory($path);
 	}
 
+	/**
+	 * Get a list of all existing cache groups
+	 *
+	 * @return string[]
+	 */
 	public function getGroups() {
 		return $this->util->getDirectoriesInDirectory($this->cacheDir);
 	}
 }
 
 class CacheResult {
+	/**
+	 * Is the cache valid?
+	 *
+	 * @var boolean $success
+	 */
 	public $success = false;
+
+	/**
+	 * Did this data come from the cache (true) or was it  fetched (false)?
+	 *
+	 * @var boolean $usedCache
+	 */
 	public $usedCache = false;
+
+	/**
+	 * Is this cached infromation outdated?
+	 *
+	 * Usually, this should not be true, but if the cache
+	 * is outdated and we were unable to renew the information
+	 * from the URL, because of timeout or invalid content,
+	 * then we consider outdated data to be better than none.
+	 *
+	 * @var boolean $oldCache
+	 */
 	public $oldCache = false;
+
+	/**
+	 * The age of the information in the cache in seconds
+	 *
+	 * 0 if just refreshed
+	 *
+	 * @var integer $cacheAge
+	 */
 	public $cacheAge = 0;
+
+	/**
+	 * The cached data as retrieved from the URL's body
+	 *
+	 * @var string $data
+	 */
 	public $data;
 }

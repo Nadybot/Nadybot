@@ -11,12 +11,28 @@ class ClassLoader {
 	 */
 	public $logger;
 
+	/**
+	 * Relative directories where to look for modules
+	 *
+	 * @var string[] $moduleLoadPaths
+	 */
 	private $moduleLoadPaths;
 
+	/**
+	 * Initialize the class loader
+	 *
+	 * @param string[] $moduleLoadPaths Relative paths where to look for modules
+	 * @return self
+	 */
 	public function __construct($moduleLoadPaths) {
 		$this->moduleLoadPaths = $moduleLoadPaths;
 	}
 
+	/**
+	 * Load all classes that provide an @Instance
+	 *
+	 * @return void
+	 */
 	public function loadInstances() {
 		$newInstances = $this->getNewInstancesInDir("./core");
 		forEach ($newInstances as $name => $className) {
@@ -32,27 +48,33 @@ class ClassLoader {
 		}
 	}
 
+	/**
+	 * Parse and load all core modules
+	 *
+	 * @return void
+	 */
 	private function loadCoreModules() {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->log('INFO', "Loading CORE modules...");
 		$core_modules = array('CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS', 'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE', 'COLORS');
-		forEach ($core_modules as $MODULE_NAME) {
-			$this->registerModule("./core", $MODULE_NAME);
+		forEach ($core_modules as $moduleName) {
+			$this->registerModule("./core", $moduleName);
 		}
 	}
 
 	/**
-	 * @name: loadUserModules
-	 * @description: load all user modules
+	 * Parse and load all user modules
+	 *
+	 * @return void
 	 */
 	private function loadUserModules() {
 		$this->logger->log('INFO', "Loading USER modules...");
 		forEach ($this->moduleLoadPaths as $path) {
 			$this->logger->log('DEBUG', "Loading modules in path '$path'");
 			if (file_exists($path) && $d = dir($path)) {
-				while (false !== ($MODULE_NAME = $d->read())) {
-					if ($this->isModuleDir($path, $MODULE_NAME)) {
-						$this->registerModule($path, $MODULE_NAME);
+				while (false !== ($moduleName = $d->read())) {
+					if ($this->isModuleDir($path, $moduleName)) {
+						$this->registerModule($path, $moduleName);
 					}
 				}
 				$d->close();
@@ -60,19 +82,39 @@ class ClassLoader {
 		}
 	}
 
+	/**
+	 * Test if $moduleName is a module in $path
+	 *
+	 * @param string $path relative direcotry
+	 * @param string $moduleName Name of the module
+	 * @return boolean
+	 */
 	private function isModuleDir($path, $moduleName) {
 		return $this->isValidModuleName($moduleName)
 			&& is_dir("$path/$moduleName");
 	}
 
+	/**
+	 * Check if $name is a valid module name
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
 	private function isValidModuleName($name) {
 		return $name != '.' && $name != '..';
 	}
 
-	public function registerModule($baseDir, $MODULE_NAME) {
+	/**
+	 * Register a modue in a basedir and check compatibility
+	 *
+	 * @param string $baseDir The base module dir (modules/extras)
+	 * @param string $moduleName Name of the module (WHOIS_MODULE)
+	 * @return void
+	 */
+	public function registerModule($baseDir, $moduleName) {
 		// read module.ini file (if it exists) from module's directory
-		if (file_exists("{$baseDir}/{$MODULE_NAME}/module.ini")) {
-			$entries = parse_ini_file("{$baseDir}/{$MODULE_NAME}/module.ini");
+		if (file_exists("{$baseDir}/{$moduleName}/module.ini")) {
+			$entries = parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
 			if (isset($entries["minimum_php_version"])) {
@@ -80,17 +122,17 @@ class ClassLoader {
 				$current = phpversion();
 				if (strnatcmp($minimum, $current) > 0) {
 					$this->logger->log('WARN', "Could not load module"
-					." {$MODULE_NAME} as it requires at least PHP version '$minimum',"
+					." {$moduleName} as it requires at least PHP version '$minimum',"
 					." but current PHP version is '$current'");
 					return;
 				}
 			}
 		}
 
-		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$MODULE_NAME}");
+		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		forEach ($newInstances as $name => $className) {
 			$obj = new $className;
-			$obj->moduleName = $MODULE_NAME;
+			$obj->moduleName = $moduleName;
 			if (Registry::instanceExists($name)) {
 				$this->logger->log('WARN', "Instance with name '$name' already registered--replaced with new instance");
 			}
@@ -98,11 +140,17 @@ class ClassLoader {
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->log('ERROR', "Could not load module {$MODULE_NAME}. No classes found with @Instance annotation!");
+			$this->logger->log('ERROR', "Could not load module {$moduleName}. No classes found with @Instance annotation!");
 			return;
 		}
 	}
 
+	/**
+	 * Get a list of all module which provide an @Instance for a directory
+	 *
+	 * @param string $path The relative path where to look
+	 * @return string[] A mapping [module name => class name]
+	 */
 	public static function getNewInstancesInDir($path) {
 		$original = get_declared_classes();
 		if ($dir = dir($path)) {

@@ -6,21 +6,34 @@ use Exception;
 
 require_once 'SettingHandler.class.php';
 
+/**
+ * Class to represent a setting with a color value for BudaBot
+ */
 class ColorSettingHandler extends SettingHandler {
 
+	/**
+	 * Construct a new handler out of a given database row
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row
+	 * @return self
+	 */
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
 	}
 
 	/**
-	 * @return String
+	 * Get a displayable representation of the setting
+	 *
+	 * @return string
 	 */
 	public function displayValue() {
 		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
 	}
 
 	/**
-	 * @return String
+	 * Describe the valid values for this setting
+	 *
+	 * @return string
 	 */
 	public function getDescription() {
 		$msg = "For this setting you can set any Color in the HTML Hexadecimal Color Format.\n";
@@ -49,7 +62,11 @@ class ColorSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @return String of new value or false if $newValue is invalid
+	 * Change this setting
+	 *
+	 * @param string $newValue The new color value
+	 * @return string The new value in a font tag
+	 * @throws \Exception when the string is not a valid HTML color
 	 */
 	public function save($newValue) {
 		if (preg_match("/^#([0-9a-f]{6})$/i", $newValue)) {

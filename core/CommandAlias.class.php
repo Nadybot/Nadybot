@@ -34,8 +34,9 @@ class CommandAlias {
 	const ALIAS_HANDLER = "CommandAlias.process";
 
 	/**
-	 * @name: load
-	 * @description: loads active aliases into memory to activate them
+	 * Loads active aliases into memory to activate them
+	 *
+	 * @return void
 	 */
 	public function load() {
 		$this->logger->log('DEBUG', "Loading enabled command aliases");
@@ -47,8 +48,13 @@ class CommandAlias {
 	}
 
 	/**
-	 * @name: register
-	 * @description: Registers a command alias
+	 * Registers a command alias
+	 *
+	 * @param string $module  Name of the module that defines the alias
+	 * @param string $command Command for which to create an alias
+	 * @param string $alias   The alias to register
+	 * @param int    $status  1 for live and 0 for off
+	 * @return void
 	 */
 	public function register($module, $command, $alias, $status=1) {
 		$module = strtoupper($module);
@@ -71,8 +77,11 @@ class CommandAlias {
 	}
 
 	/**
-	 * @name: activate
-	 * @description: Activates a command alias
+	 * Activates a command alias
+	 *
+	 * @param string $command Command for which to activate an alias
+	 * @param string $alias   The alias to register
+	 * @return void
 	 */
 	public function activate($command, $alias) {
 		$alias = strtolower($alias);
@@ -85,8 +94,10 @@ class CommandAlias {
 	}
 
 	/**
-	 * @name: deactivate
-	 * @description: Deactivates a command alias
+	 * Deactivates a command alias
+	 *
+	 * @param string $alias The alias to deactivate
+	 * @return void
 	 */
 	public function deactivate($alias) {
 		$alias = strtolower($alias);
@@ -98,6 +109,15 @@ class CommandAlias {
 		$this->commandManager->deactivate('guild', self::ALIAS_HANDLER, $alias);
 	}
 
+	/**
+	 * Check incoming commands if they are aliases for commands and execute them
+	 *
+	 * @param string $message The incoming command
+	 * @param string $channel The message where this command was received (guild, priv or tell)
+	 * @param string $sender The name of the command sender
+	 * @param \Budabot\Core\CommandReply $sendto Who to send the commands to
+	 * @return bool
+	 */
 	public function process($message, $channel, $sender, CommandReply $sendto) {
 		list($alias, $params) = explode(' ', $message, 2);
 		$alias = strtolower($alias);
@@ -142,8 +162,9 @@ class CommandAlias {
 	}
 
 	/**
-	 * @name: add
-	 * @description: Adds a command alias to the db
+	 * Adds a command alias to the db
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row to process
 	 */
 	public function add($row) {
 		$this->logger->log('DEBUG', "Adding alias: '{$alias}' for command: '$command'");
@@ -153,8 +174,10 @@ class CommandAlias {
 	}
 
 	/**
-	 * @name: update
-	 * @description: Updates a command alias in the db
+	 * Updates a command alias in the db
+	 *
+	 * @param \Budabot\Core\DBRow $row The database row to update
+	 * @return int Number of affected rows
 	 */
 	public function update($row) {
 		$this->logger->log('DEBUG', "Updating alias :($row->alias)");
@@ -163,6 +186,12 @@ class CommandAlias {
 		return $this->db->exec($sql, $row->module, $row->cmd, $row->status, $row->alias);
 	}
 
+	/**
+	 * Read the database entry for an alias
+	 *
+	 * @param string $alias
+	 * @return \Budabot\Core\DBRow
+	 */
 	public function get($alias) {
 		$alias = strtolower($alias);
 
@@ -170,6 +199,12 @@ class CommandAlias {
 		return $this->db->queryRow($sql, $alias);
 	}
 
+	/**
+	 * Get the command for which an alias actually is an alias
+	 *
+	 * @param string $alias The alias to look up
+	 * @return string|null Null if no alias was found, otherwise the aliased command
+	 */
 	public function getBaseCommandForAlias($alias) {
 		$row = $this->get($alias);
 
@@ -181,11 +216,22 @@ class CommandAlias {
 		return $cmd;
 	}
 
+	/**
+	 * Find all aliases for a command
+	 *
+	 * @param string $command The command to check
+	 * @return \Budabot\Core\DBRow[]
+	 */
 	public function findAliasesByCommand($command) {
 		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE cmd LIKE ?";
 		return $this->db->query($sql, $command);
 	}
 
+	/**
+	 * Get a list of all currently enabled aliases
+	 *
+	 * @return \Budabot\Core\DBRow[]
+	 */
 	public function getEnabledAliases() {
 		return $this->db->query("SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE status = 1 ORDER BY alias ASC");
 	}

@@ -15,6 +15,7 @@ class TextSettingHandler extends SettingHandler {
 	 * Construct a new handler out of a given database row
 	 *
 	 * @param \Budabot\Core\DBRow $row The database row
+	 * @return self
 	 */
 	public function __construct(DBRow $row) {
 		parent::__construct($row);
