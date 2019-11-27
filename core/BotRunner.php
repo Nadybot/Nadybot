@@ -110,14 +110,13 @@ class BotRunner {
 	 * @return string
 	 */
 	private function getInitialInfoMessage() {
-		return "\n\n\n\n\n
-**************************************************
-Budabot {$this->version}
-
-Project Site:     https://github.com/Nadyita/Budabot
-In-Game Contact:  Nadychat
-**************************************************
-\n";
+		return "**************************************************\n".
+			"Budabot {$this->version}\n".
+			"\n".
+			"Project Site:     https://github.com/Nadyita/Budabot\n".
+			"In-Game Contact:  Nadychat\n".
+			"**************************************************\n".
+			"\n";
 	}
 
 	/**
