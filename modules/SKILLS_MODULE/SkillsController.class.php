@@ -152,12 +152,12 @@ class SkillsController {
 	
 	public function getAggDefOutput($AttTim, $RechT, $InitS) {
 		if ($InitS < 1200) {
-			$AttCalc	= round(((($AttTim - ($InitS / 600)) - 1)/0.02) + 87.5, 0);
-			$RechCalc	= round(((($RechT - ($InitS / 300)) - 1)/0.02) + 87.5, 0);
+			$AttCalc	= round(((($AttTim - ($InitS / 600)) - 1)/0.02) + 87.5, 2);
+			$RechCalc	= round(((($RechT - ($InitS / 300)) - 1)/0.02) + 87.5, 2);
 		} else {
 			$InitSk = $InitS - 1200;
-			$AttCalc = round(((($AttTim - (1200/600) - ($InitSk / 600 / 3)) - 1)/0.02) + 87.5, 0);
-			$RechCalc = round(((($RechT - (1200/300) - ($InitSk / 300 / 3)) - 1)/0.02) + 87.5, 0);
+			$AttCalc = round(((($AttTim - (1200/600) - ($InitSk / 600 / 3)) - 1)/0.02) + 87.5, 2);
+			$RechCalc = round(((($RechT - (1200/300) - ($InitSk / 300 / 3)) - 1)/0.02) + 87.5, 2);
 		}
 
 		if ($AttCalc < $RechCalc) {
@@ -174,16 +174,23 @@ class SkillsController {
 		$initsFullAgg = $this->getInitsNeededFullAgg($AttTim, $RechT);
 		$initsNeutral = $this->getInitsNeededNeutral($AttTim, $RechT);
 		$initsFullDef = $this->getInitsNeededFullDef($AttTim, $RechT);
+		$bar = "llllllllllllllllllllllllllllllllllllllllllllllllll";
 
-		$blob = "Attack:<highlight> ". $AttTim ." <end>second(s)\n";
-		$blob .= "Recharge: <highlight>". $RechT ." <end>second(s)\n";
-		$blob .= "Init Skill: <highlight>". $InitS ."<end>\n";
-		$blob .= "Def/Agg: <highlight>". $InitResult ."%<end>\n";
-		$blob .= "You must set your AGG bar at <highlight>". $InitResult ."% (". round($InitResult*8/100, 2) .") <end>to wield your weapon at 1/1.\n\n";
-		$blob .= "Init needed for max speed at Full Agg (100%): <highlight>". $initsFullAgg ." <end>inits\n";
-		$blob .= "Init needed for max speed at Neutral (88%): <highlight>". $initsNeutral ." <end>inits\n";
-		$blob .= "Init needed for max speed at Full Def (0%): <highlight>". $initsFullDef ." <end>inits\n\n";
-		$blob .= "Note that at the neutral position (88%), your attack and recharge time will match that of the weapon you are using.";
+		$blob = "Attack:    <highlight>". $AttTim ." <end>second(s).\n";
+		$blob .= "Recharge: <highlight>". $RechT ." <end>second(s).\n";
+		$blob .= "Init Skill:   <highlight>". $InitS ."<end>.\n\n";
+		$blob .= "You must set your AGG bar at <highlight>". round($InitResult, 0) ."% (". round($InitResult*8/100, 0) .") <end>to wield your weapon at <highlight>1/1<end>.\n";
+		$blob .= "(<a href=skillid://51>Agg/def-Slider</a> should read <highlight>".round($InitResult*2-100, 0)."<end>).\n\n";
+		$blob .= "Init needed for max speed at:\n";
+		$blob .= "  Full Agg (100%): <highlight>". $initsFullAgg ." <end>inits\n";
+		$blob .= "  Neutral (87.5%): <highlight>". $initsNeutral ." <end>inits\n";
+		$blob .= "  Full Def (0%):     <highlight>". $initsFullDef ." <end>inits\n\n";
+		$markerPos = round($InitResult/100*strlen($bar), 0);
+		$leftBar    = substr($bar, 0, $markerPos);
+		$rightBar   = substr($bar, $markerPos+1);
+		$blob .= "<highlight>${initsFullDef}<end> DEF <green>${leftBar}<end><red>│<end><green>${rightBar}<end> AGG <highlight>${initsFullAgg}<end>\n";
+		$blob .= "                         You: <highlight>${InitS}<end>\n\n";
+		$blob .= "Note that at the neutral position (87.5%), your attack and recharge time will match that of the weapon you are using.";
 		$blob .= "\n\nBased upon a RINGBOT module made by NoGoal(RK2)\n";
 		$blob .= "Modified for Budabot by Healnjoo(RK2)";
 		
