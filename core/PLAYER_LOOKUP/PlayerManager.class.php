@@ -51,7 +51,7 @@ class PlayerManager {
 
 		if ($player === null || $forceUpdate) {
 			$player = $this->lookup($name, $rk_num);
-			if ($player !== null) {
+			if ($player !== null && $charid !== null) {
 				$player->charid = $charid;
 				$this->update($player);
 			}
