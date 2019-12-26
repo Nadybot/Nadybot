@@ -51,7 +51,7 @@ class PlayerManager {
 
 		if ($player === null || $forceUpdate) {
 			$player = $this->lookup($name, $rk_num);
-			if ($player !== null && $charid !== null) {
+			if ($player !== null && $charid !== false) {
 				$player->charid = $charid;
 				$this->update($player);
 			}
@@ -59,8 +59,10 @@ class PlayerManager {
 			$player2 = $this->lookup($name, $rk_num);
 			if ($player2 !== null) {
 				$player = $player2;
-				$player->charid = $charid;
-				$this->update($player);
+				if ($charid !== false) {
+					$player->charid = $charid;
+					$this->update($player);
+				}
 			} else {
 				$player->source .= ' (old-cache)';
 			}
