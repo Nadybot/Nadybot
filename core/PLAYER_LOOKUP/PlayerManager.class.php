@@ -45,9 +45,6 @@ class PlayerManager {
 		$charid = '';
 		if ($rk_num == $this->chatBot->vars['dimension']) {
 			$charid = $this->chatBot->get_uid($name);
-			if ($charid == null) {
-				return null;
-			}
 		}
 
 		$player = $this->findInDb($name, $rk_num);
@@ -235,7 +232,7 @@ class PlayerManager {
 		$msg .= ", <" . strtolower($whois->faction) . ">$whois->faction<end>";
 
 		if ($whois->guild) {
-			$msg .= ", {$whois->guild_rank} of <highlight>{$whois->guild}<end>)";
+			$msg .= ", {$whois->guild_rank} of <" . strtolower($whois->faction) . ">{$whois->guild}<end>)";
 		} else {
 			$msg .= ", Not in a guild)";
 		}

@@ -195,6 +195,7 @@ class WhoisController {
 	public function whoisNameCommand($message, $channel, $sender, $sendto, $args) {
 		$name = ucfirst(strtolower($args[1]));
 		$uid = $this->chatBot->get_uid($name);
+		$rk_num = $this->chatBot->vars['dimension'];
 		if ($uid) {
 			$online = $this->buddylistManager->isOnline($name);
 			if ($online === null) {
@@ -204,6 +205,10 @@ class WhoisController {
 			} else {
 				$sendto->reply($this->getOutput($name, $online));
 			}
+		} elseif (($whois = $this->playerManager->lookup($name, $rk_num)) !== null) {
+			$output = $this->getOutput($name, false);
+			$output = str_replace('<red>Offline<end>', '<red>Inactive<end>', $output);
+			$sendto->reply($output);
 		} else {
 			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
 		}
@@ -217,7 +222,9 @@ class WhoisController {
 		if ($whois === null) {
 			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
 			$blob .= "Name: <highlight>{$name}<end> {$lookupNameLink}\n";
-			$blob .= "Character ID: <highlight>{$charId}<end> {$lookupCharIdLink}\n\n";
+			if ($charId !== false) {
+				$blob .= "Character ID: <highlight>{$charId}<end> {$lookupCharIdLink}\n\n";
+			}
 			$blob .= $this->getNameHistory($charId, $this->chatBot->vars['dimension']);
 
 			$msg = $this->text->makeBlob("Basic Info for $name", $blob);
@@ -241,10 +248,14 @@ class WhoisController {
 			$blob .= "Status: ";
 			if ($online) {
 				$blob .= "<green>Online<end>\n";
+			} elseif ($charId === false) {
+				$blob .= "<red>Inactive<end>\n";
 			} else {
 				$blob .= "<red>Offline<end>\n";
 			}
-			$blob .= "Character ID: <highlight>{$whois->charid}<end> {$lookupCharIdLink}\n\n";
+			if ($charId !== false) {
+				$blob .= "Character ID: <highlight>{$whois->charid}<end> {$lookupCharIdLink}\n\n";
+			}
 
 			$blob .= "Source: $whois->source\n\n";
 
