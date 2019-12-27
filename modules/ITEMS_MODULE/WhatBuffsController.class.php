@@ -98,7 +98,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists)$/i")
+	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use)$/i")
 	 */
 	public function whatbuffs2Command($message, $channel, $sender, $sendto, $args) {
 		$type = ucfirst(strtolower($args[1]));
@@ -130,7 +130,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists) (.+)$/i")
+	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use) (.+)$/i")
 	 */
 	public function whatbuffs3Command($message, $channel, $sender, $sendto, $args) {
 		$type = $args[1];
@@ -146,7 +146,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists)$/i")
+	 * @Matches("/^whatbuffs (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use)$/i")
 	 */
 	public function whatbuffs4Command($message, $channel, $sender, $sendto, $args) {
 		$skill = $args[1];

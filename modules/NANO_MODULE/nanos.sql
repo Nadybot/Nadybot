@@ -2452,7 +2452,7 @@ INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (210796, 180
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (218067, 205, 'Nano Crystal (Shuffle Step)', 'Martial Artist', 'Inferno Sanctuary');
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (226405, 201, 'Nano Crystal (Sickening Shock)', 'Agent', 'Inferno Sanctuary');
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (211165, 40, 'Nano Crystal (Sidestep)', 'Keeper', 'RK Store');
-INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (210790, 66, 'Nano Crystal (Silent Dagger)', 'Shade', 'Jobe Market IPS');
+INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (210790, 66, 'Nano Crystal (Silent Dagger)', 'Shade', 'RK Store');
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (300572, 1, 'Nano Crystal (Silvertail)', 'General', 'No longer drops');
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (100449, 162, 'Nano Crystal (Simple Mind, Simple Pleasures)', 'Trader', 'Mission reward');
 INSERT INTO nanos (lowid, lowql, name, profession, location) VALUES (302361, 126, 'Nano Crystal (Simple Viral Agent)', 'Doctor', 'Greedy Shade');
