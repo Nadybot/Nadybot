@@ -67,6 +67,21 @@ class WhatBuffsController {
 	}
 
 	/**
+	 * Get a WHERE statement (without the actual "where") which parts of aodb to ignore
+	 *
+	 * @return string
+	 */
+	public function getItemsToExclude() {
+		$excludes = array(
+			"aodb.name NOT LIKE 'Supercharged % Nano Crystal'",
+			"aodb.name NOT LIKE 'Tainted Shadow Crystal %'",
+			"aodb.name NOT LIKE 'Severly Corroded Shadow Crystal %'",
+			"aodb.name != 'Brad Test Nano'",
+		);
+		return implode(" AND ", $excludes);
+	}
+
+	/**
 	 * @HandlesCommand("whatbuffs")
 	 * @Matches("/^whatbuffs$/i")
 	 */
@@ -96,6 +111,7 @@ class WhatBuffsController {
 				JOIN item_buffs b ON aodb.highid = b.item_id
 				JOIN skills s ON b.attribute_id = s.id
 				WHERE i.item_type = ?
+				AND ".$this->getItemsToExclude()."
 				GROUP BY skill
 				HAVING num > 0
 				ORDER BY skill ASC";
@@ -173,6 +189,7 @@ class WhatBuffsController {
 				JOIN item_buffs b ON aodb.highid = b.item_id
 				JOIN skills s ON b.attribute_id = s.id
 				WHERE s.id = ?
+				AND ".$this->getItemsToExclude()."
 				GROUP BY item_type
 				HAVING num > 0
 				ORDER BY item_type ASC";
@@ -195,6 +212,7 @@ class WhatBuffsController {
 			JOIN item_buffs b ON aodb.highid = b.item_id
 			JOIN skills s ON b.attribute_id = s.id
 			WHERE i.item_type = ? AND s.id = ?
+			AND ".$this->getItemsToExclude()."
 			ORDER BY amount DESC";
 		$data = $this->db->query($sql, $category, $skill->id);
 
