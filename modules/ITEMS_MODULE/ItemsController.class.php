@@ -140,6 +140,8 @@ class ItemsController {
 	public function downloadNewestItemsdb() {
 		$this->logger->log('DEBUG', "Starting items db update");
 
+		$databases = array('aodb', 'item_buffs', 'item_types');
+
 		// get list of files in ITEMS_MODULE
 		$response = $this->http
 			->get("https://api.github.com/repos/Nadyita/Budabot/contents/modules/ITEMS_MODULE")
@@ -147,63 +149,66 @@ class ItemsController {
 			->withHeader('User-Agent', 'Budabot')
 			->waitAndReturnResponse();
 
-		try {
-			$json = json_decode($response->body);
-		
-			// find the latest items db version on the server
-			$latestVersion = null;
-			forEach ($json as $item) {
-				if (preg_match("/^aodb(.*)\\.sql$/i", $item->name, $arr)) {
-					if ($latestVersion === null) {
-						$latestVersion = $arr[1];
-					} elseif ($this->util->compareVersionNumbers($arr[1], $currentVersion)) {
-						$latestVersion = $arr[1];
+		$msg = array();
+		foreach ($databases as $currentDB) {
+			try {
+				$json = json_decode($response->body);
+			
+				// find the latest items db version on the server
+				$latestVersion = null;
+				forEach ($json as $item) {
+					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $item->name, $arr)) {
+						if ($latestVersion === null) {
+							$latestVersion = $arr[1];
+						} elseif ($this->util->compareVersionNumbers($arr[1], $currentVersion)) {
+							$latestVersion = $arr[1];
+						}
 					}
 				}
+			} catch (Exception $e) {
+				$msg = "Error updating items db: " . $e->getMessage();
+				$this->logger->log('ERROR', $msg);
+				return $msg;
 			}
-		} catch (Exception $e) {
-			$msg = "Error updating items db: " . $e->getMessage();
-			$this->logger->log('ERROR', $msg);
-			return $msg;
-		}
 
-		if ($latestVersion !== null) {
-			$currentVersion = $this->settingManager->get("aodb_db_version");
+			if ($latestVersion !== null) {
+				$currentVersion = $this->settingManager->get("${currentDB}_db_version");
 
-			// if server version is greater than current version, download and load server version
-			if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
-				// download server version and save to ITEMS_MODULE directory
-				$contents = $this->http
-					->get("https://raw.githubusercontent.com/Nadyita/Budabot/master/modules/ITEMS_MODULE/aodb{$latestVersion}.sql")
-					->withHeader('User-Agent', 'Budabot')
-					->waitAndReturnResponse()
-					->body;
+				// if server version is greater than current version, download and load server version
+				if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
+					// download server version and save to ITEMS_MODULE directory
+					$contents = $this->http
+						->get("https://raw.githubusercontent.com/Nadyita/Budabot/master/modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
+						->withHeader('User-Agent', 'Budabot')
+						->waitAndReturnResponse()
+						->body;
 
-				$fh = fopen("./modules/ITEMS_MODULE/aodb{$latestVersion}.sql", 'w');
-				fwrite($fh, $contents);
-				fclose($fh);
+					$fh = fopen("./modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql", 'w');
+					fwrite($fh, $contents);
+					fclose($fh);
 
-				$this->db->beginTransaction();
+					$this->db->beginTransaction();
 
-				// load the sql file into the db
-				$this->db->loadSQLFile("ITEMS_MODULE", "aodb");
+					// load the sql file into the db
+					$this->db->loadSQLFile("ITEMS_MODULE", $currentDB);
 
-				$this->db->commit();
+					$this->db->commit();
 
-				$this->logger->log('INFO', "Items db updated from '$currentVersion' to '$latestVersion'");
-				$msg = "The items database has been updated to the latest version.  Version: $latestVersion";
+					$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
+					$msg []= "The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>";
+				} else {
+					$this->logger->log('DEBUG', "Items db $currentDB already up to date '$currentVersion'");
+					$msg []= "The items database <highlight>$currentDB<end> is already up to date at version <green>$currentVersion<end>";
+				}
 			} else {
-				$this->logger->log('DEBUG', "Items db already up to date '$currentVersion'");
-				$msg = "The items database is already up to date.  Version: $currentVersion";
+				$this->logger->log('ERROR', "Could not find latest items db $currentDB on server");
+				$msg []= "There was a problem finding the latest version of $currentDB on the server";
 			}
-		} else {
-			$this->logger->log('ERROR', "Could not find latest items db on server");
-			$msg = "There was a problem finding the latest version on the server";
 		}
 
 		$this->logger->log('DEBUG', "Finished items db update");
 
-		return $msg;
+		return implode("\n", $msg);
 	}
 
 	public function findItems($args) {
