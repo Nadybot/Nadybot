@@ -209,6 +209,10 @@ class WhoisController {
 			$output = $this->getOutput($name, false);
 			$output = str_replace('<red>Offline<end>', '<red>Inactive<end>', $output);
 			$sendto->reply($output);
+		} elseif (strlen($name) < 4) {
+			$sendto->reply("<highlight>{$name}<end> is too short. Minimum length is 4 characters.");
+		} elseif (strlen($name) > 12) {
+			$sendto->reply("<highlight>{$name}<end> is too long. Maximum length is 12 characters.");
 		} else {
 			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
 		}
