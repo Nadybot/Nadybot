@@ -88,7 +88,7 @@ class RecipeController {
 					forEach ($recipe->items as $item) {
 						$dbItem = $this->itemsController->findById($item->item_id);
 						if ($dbItem === null) {
-							throw Exception("Could not find item '{$item->item_id}'");
+							throw new Exception("Could not find item '{$item->item_id}'");
 						}
 						$items[$item->alias] = $dbItem;
 						$items[$item->alias]->ql = $item->ql;
