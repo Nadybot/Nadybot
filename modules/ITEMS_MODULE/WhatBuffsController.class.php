@@ -46,6 +46,12 @@ class WhatBuffsController {
 	 * @Inject
 	 */
 	public $commandAlias;
+
+	/**
+	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @Inject
+	 */
+	public $commandManager;
 	
 	/**
 	 * @var \Budabot\Core\ItemsController $itemsController
@@ -64,6 +70,7 @@ class WhatBuffsController {
 		$this->db->loadSQLFile($this->moduleName, "item_buffs");
 		$this->db->loadSQLFile($this->moduleName, "skills");
 		$this->db->loadSQLFile($this->moduleName, "item_types");
+		$this->db->loadSQLFile($this->moduleName, "buffs");
 	}
 
 	/**
@@ -73,9 +80,6 @@ class WhatBuffsController {
 	 */
 	public function getItemsToExclude() {
 		$excludes = array(
-			"aodb.name NOT LIKE 'Supercharged % Nano Crystal'",
-			"aodb.name NOT LIKE 'Tainted Shadow Crystal %'",
-			"aodb.name NOT LIKE 'Severly Corroded Shadow Crystal %'",
 			"aodb.name != 'Brad Test Nano'",
 		);
 		return implode(" AND ", $excludes);
@@ -104,18 +108,31 @@ class WhatBuffsController {
 		$type = ucfirst(strtolower($args[1]));
 		
 		if ($this->verifySlot($type)) {
-			$sql = "
-				SELECT s.name AS skill, COUNT(1) AS num
-				FROM aodb
-				JOIN item_types i ON aodb.highid = i.item_id
-				JOIN item_buffs b ON aodb.highid = b.item_id
-				JOIN skills s ON b.attribute_id = s.id
-				WHERE i.item_type = ?
-				AND ".$this->getItemsToExclude()."
-				GROUP BY skill
-				HAVING num > 0
-				ORDER BY skill ASC";
-			$data = $this->db->query($sql, $type);
+			if ($category === 'Nanoprogram') {
+				$sql = "
+					SELECT s.name AS skill, COUNT(1) AS num
+					FROM buffs b
+					JOIN item_buffs ib ON b.id = ib.item_id
+					JOIN skills s ON ib.attribute_id = s.id
+					WHERE ib.amount > 0
+					GROUP BY skill
+					HAVING num > 0
+					ORDER BY skill ASC";
+				$data = $this->db->query($sql);
+			} else {
+				$sql = "
+					SELECT s.name AS skill, COUNT(1) AS num
+					FROM aodb
+					JOIN item_types i ON aodb.highid = i.item_id
+					JOIN item_buffs b ON aodb.highid = b.item_id
+					JOIN skills s ON b.attribute_id = s.id
+					WHERE i.item_type = ?
+					AND ".$this->getItemsToExclude()."
+					GROUP BY skill
+					HAVING num > 0
+					ORDER BY skill ASC";
+				$data = $this->db->query($sql, $type);
+			}
 			$blob = '';
 			forEach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> whatbuffs $type $row->skill") . " ($row->num)\n";
@@ -183,17 +200,28 @@ class WhatBuffsController {
 			$skillId = $data[0]->id;
 			$skillName = $data[0]->name;
 			$sql = "
-				SELECT i.item_type, COUNT(1) AS num
-				FROM aodb
-				JOIN item_types i ON aodb.highid = i.item_id
-				JOIN item_buffs b ON aodb.highid = b.item_id
-				JOIN skills s ON b.attribute_id = s.id
-				WHERE s.id = ?
-				AND ".$this->getItemsToExclude()."
+			SELECT item_type, COUNT(*) AS num FROM (
+				SELECT it.item_type
+				FROM aodb a
+				JOIN item_types it ON a.highid = it.item_id
+				JOIN item_buffs ib ON a.highid = ib.item_id
+				JOIN skills s ON ib.attribute_id = s.id
+				WHERE s.id = ? AND ib.amount > 0
+				GROUP BY a.name,a.lowql,a.highql,ib.amount
+				HAVING ib.amount > 0
+
+				UNION ALL
+
+				SELECT 'Nanoprogram' AS item_type
+				FROM buffs b
+				JOIN item_buffs ib ON ib.item_id = b.id
+				JOIN skills s ON ib.attribute_id = s.id
+				WHERE s.id = ? AND ib.amount > 0
+				) AS FOO
 				GROUP BY item_type
-				HAVING num > 0
-				ORDER BY item_type ASC";
-			$data = $this->db->query($sql, $skillId);
+				ORDER BY item_type ASC
+			";
+			$data = $this->db->query($sql, $skillId, $skillId);
 			$blob = '';
 			forEach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> whatbuffs $row->item_type $skillName") . " ($row->num)\n";
@@ -205,18 +233,35 @@ class WhatBuffsController {
 	}
 	
 	public function getSearchResults($category, $skill) {
-		$sql = "
-			SELECT aodb.*, b.amount
-			FROM aodb
-			JOIN item_types i ON aodb.highid = i.item_id
-			JOIN item_buffs b ON aodb.highid = b.item_id
-			JOIN skills s ON b.attribute_id = s.id
-			WHERE i.item_type = ? AND s.id = ?
-			AND ".$this->getItemsToExclude()."
-			ORDER BY amount DESC";
-		$data = $this->db->query($sql, $category, $skill->id);
-
-		$result = $this->formatItems($data);
+		if ($category === 'Nanoprogram') {
+			$sql = "
+				SELECT buffs.*, b.amount,aodb.lowid,aodb.highid,aodb.lowql,aodb.name AS use_name
+				FROM buffs
+				JOIN item_buffs b ON buffs.id = b.item_id
+				JOIN skills s ON b.attribute_id = s.id
+				LEFT JOIN aodb ON (aodb.lowid=buffs.use_id)
+				WHERE s.id = ? AND b.amount > 0
+				ORDER BY b.amount DESC, buffs.name ASC
+			";
+			$data = $this->db->query($sql, $skill->id);
+			$result = $this->formatBuffs($data);
+		} else {
+			$sql = "
+				SELECT aodb.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r
+				FROM aodb
+				JOIN item_types i ON aodb.highid = i.item_id
+				JOIN item_buffs b ON aodb.highid = b.item_id
+				LEFT JOIN item_buffs b2 ON aodb.lowid = b2.item_id
+				LEFT JOIN weapon_attributes wa ON aodb.highid = wa.id
+				JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id
+				WHERE i.item_type = ? AND s.id = ? AND b.amount > 0
+				AND ".$this->getItemsToExclude()."
+				GROUP BY aodb.name,aodb.lowql,aodb.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r
+				ORDER BY b.amount DESC, name DESC
+			";
+			$data = $this->db->query($sql, $category, $skill->id);
+			$result = $this->formatItems($data);
+		}
 
 		if ($result === null) {
 			$msg = "No items found of type <highlight>$category<end> that buff <highlight>$skill->name<end>.";
@@ -247,11 +292,84 @@ class WhatBuffsController {
 		
 		return $this->db->query("SELECT DISTINCT id, name FROM skills WHERE $query", $params);
 	}
+
+	public function formatBuffs($items) {
+		$blob = '';
+		$maxBuff = 0;
+		forEach ($items as $item) {
+			$maxBuff = max($maxBuff, $item->amount);
+		}
+		$maxDigits = strlen((string)$maxBuff);
+		forEach ($items as $item) {
+			if ($item->ncu == 999) {
+				$item->ncu = 0;
+			}
+			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
+			$blob .= $prefix . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ($item->ncu NCU)";
+			if ($item->lowid > 0) {
+				$blob .= " (from " . $this->text->makeItem($item->lowid, $item->highid, $item->lowql, $item->use_name) . ")";
+			}
+			$blob .= "\n";
+		}
+
+		$count = count($items);
+		if ($count > 0) {
+			return array($count, $blob);
+		} else {
+			return null;
+		}
+	}
 	
 	public function formatItems($items) {
 		$blob = '';
+		$maxBuff = 0;
+		$itemMapping = array();
 		forEach ($items as $item) {
-			$blob .= $this->text->makeItem($item->lowid, $item->highid, $item->highql, $item->name) . " ($item->amount)\n";
+			if (
+				$item->highql > 250 &&
+				(strpos($item->name, " Filigree Ring set with a ") !== false ||
+				strncmp($item->name, "Universal Advantage - ", 22) === 0)
+			) {
+				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount, $item->amount, 250);
+				$item->highql = 250;
+			}
+			if ($item->amount === $item->low_amount) {
+				$item->highql = $item->lowql;
+			}
+			$maxBuff = max($maxBuff, $item->amount);
+			$itemMapping[$item->lowid] = $item;
+		}
+		$ignoreItems = array();
+		forEach ($items as $item) {
+			if ($item->highid != $item->lowid && array_key_exists($item->highid, $itemMapping)) {
+				$item->highid = $itemMapping[$item->highid]->highid;
+				$item->highql = $itemMapping[$item->highid]->highql;
+				$ignoreItems []= $itemMapping[$item->highid];
+			}
+		}
+		$maxDigits = strlen((string)$maxBuff);
+		forEach ($items as $item) {
+			if (in_array($item, $ignoreItems)) {
+				continue;
+			}
+			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
+			$blob .= $prefix . "  ";
+			if ($item->multi_m !== null || $item->multi_r !== null) {
+				$blob .= "2x ";
+			}
+			$blob .= $this->text->makeItem($item->lowid, $item->highid, $item->highql, $item->name);
+			if ($item->amount > $item->low_amount) {
+				$blob .= " ($item->low_amount - $item->amount)";
+				if ($this->commandManager->get('bestql')) {
+					$link = $this->text->makeItem($item->lowid, $item->highid, 0, $item->name);
+					$blob .= " " . $this->text->makeChatcmd(
+						"Breakpoints",
+						"/tell <myname> bestql $item->lowql $item->low_amount $item->highql $item->amount ".
+						$link
+					);
+				}
+			}
+			$blob .= "\n";
 		}
 
 		$count = count($items);

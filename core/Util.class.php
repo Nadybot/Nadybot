@@ -80,7 +80,7 @@ class Util {
 
 	/**
 	 * Try to parse a duration into seconds
-	 * 
+	 *
 	 * Convert "1h, 2mins 10s" into 3730
 	 *
 	 * @param string $budatime A humanm readable duration

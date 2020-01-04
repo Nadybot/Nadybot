@@ -264,4 +264,21 @@ class Text {
 
 		return $message;
 	}
+
+	/**
+	 * Align a number to $digits number of digits by prefixing it with black zeroes
+	 *
+	 * @param int $number The number to align
+	 * @param int $digits To how many digits to align
+	 * @param string $colortag (optional) The color/tag to assign, e.g. "highlight"
+	 * @return string The zero-prefixed $number
+	 */
+	public function alignNumber($number, $digits, $colortag=null) {
+		$prefixedNumber = sprintf("%0${digits}d", $number);
+		if (is_string($colortag)) {
+			$prefixedNumber = preg_replace('/([1-9]\d*)$/', "<$colortag>$1<end>", $prefixedNumber);
+		}
+		$alignedNumber = preg_replace("/^(0+)/", "<black>$1<end>", $prefixedNumber);
+		return $alignedNumber;
+	}
 }

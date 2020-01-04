@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Budabot"
