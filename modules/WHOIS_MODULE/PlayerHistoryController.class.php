@@ -58,35 +58,37 @@ class PlayerHistoryController {
 		if ($history === null) {
 			$msg = "Could not get History of $name on RK$rk_num.";
 		} else {
-			$blob = "Date           Level    AI     Faction    Breed        Guild (rank)\n";
-			$blob .= "________________________________________________ \n";
+			$blob = "Date            Level    AI    Faction    Breed     Guild (rank)\n";
+			$blob .= "<highlight>_________________________________________________________________<end>\n";
 			forEach ($history->data as $entry) {
-				$date = date("d-M-Y", $entry->last_changed);
+				$date = date("Y-m-d", $entry->last_changed);
 
 				if ($entry->deleted == 1) {
-					$blob .= "$date |   <red>DELETED<end>\n";
+					$blob .= "$date <highlight>|<end>   <red>DELETED<end>\n";
 				} else {
 					if ($entry->defender_rank == "") {
-						$ailevel = "<green>0<end>";
+						$ailevel = 0;
 					} else {
-						$ailevel = "<green>$entry->defender_rank<end>";
+						$ailevel = $entry->defender_rank;
 					}
+					$ailevel = $this->text->alignNumber($ailevel, 2, 'green');
 
 					if ($entry->faction == "Omni") {
-						$faction = "<omni>Omni<end>";
+						$faction = "<omni>Omni<end>    ";
 					} elseif ($entry->faction == "Clan") {
-						$faction = "<clan>Clan<end>";
+						$faction = "<clan>Clan<end>     ";
 					} else {
-						$faction = "<neutral>Neutral<end>";
+						$faction = "<neutral>Neutral<end>  ";
 					}
 
 					if ($entry->guild_name == "") {
 						$guild = "Not in a guild";
 					} else {
-						$guild = $entry->guild_name . " (" . $entry->guild_rank_name . ")";
+						$guild = $entry->guild_name . " (<highlight>" . $entry->guild_rank_name . "<end>)";
 					}
+					$level = $this->text->alignNumber($entry->level, 3);
 
-					$blob .= "$date |  $entry->level  | $ailevel | $faction | $entry->breed | $guild\n";
+					$blob .= "$date <highlight>|<end>  $level  <highlight>|<end> $ailevel <highlight>|<end> $faction <highlight>|<end> $entry->breed <highlight>|<end> $guild\n";
 				}
 			}
 			$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
