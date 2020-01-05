@@ -278,7 +278,7 @@ class Text {
 		if (is_string($colortag)) {
 			$prefixedNumber = preg_replace('/([1-9]\d*)$/', "<$colortag>$1<end>", $prefixedNumber);
 		}
-		$alignedNumber = preg_replace("/^(0+)/", "<black>$1<end>", $prefixedNumber);
+		$alignedNumber = preg_replace("/^(0+)(?!$)/", "<black>$1<end>", $prefixedNumber);
 		return $alignedNumber;
 	}
 }
