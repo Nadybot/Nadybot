@@ -240,7 +240,7 @@ class WhatBuffsController {
 				JOIN item_buffs b ON buffs.id = b.item_id
 				JOIN skills s ON b.attribute_id = s.id
 				LEFT JOIN aodb ON (aodb.lowid=buffs.use_id)
-				WHERE s.id = ? AND b.amount > 0
+				WHERE s.id = ? AND b.amount > 0 AND buffs.name NOT IN ('Ineptitude Transfer', 'Accumulated Interest', 'Unforgiven Debts', 'Payment Plan')
 				ORDER BY b.amount DESC, buffs.name ASC
 			";
 			$data = $this->db->query($sql, $skill->id);
@@ -293,51 +293,30 @@ class WhatBuffsController {
 		return $this->db->query("SELECT DISTINCT id, name FROM skills WHERE $query", $params);
 	}
 
-	public function formatBuffs($items) {
-		$blob = '';
-		$maxBuff = 0;
-		forEach ($items as $item) {
-			$maxBuff = max($maxBuff, $item->amount);
-		}
-		$maxDigits = strlen((string)$maxBuff);
-		forEach ($items as $item) {
-			if ($item->ncu == 999) {
-				$item->ncu = 0;
-			}
-			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
-			$blob .= $prefix . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ($item->ncu NCU)";
-			if ($item->lowid > 0) {
-				$blob .= " (from " . $this->text->makeItem($item->lowid, $item->highid, $item->lowql, $item->use_name) . ")";
-			}
-			$blob .= "\n";
-		}
-
-		$count = count($items);
-		if ($count > 0) {
-			return array($count, $blob);
-		} else {
-			return null;
-		}
-	}
-	
 	public function formatItems($items) {
 		$blob = '';
 		$maxBuff = 0;
-		$itemMapping = array();
 		forEach ($items as $item) {
+			if ($item->amount === $item->low_amount) {
+				$item->highql = $item->lowql;
+			}
+			// Some items are not in game with the maximum possible QL
+			// Replace the shown QL with the maximum possible QL
+			$item->maxql = $item->highql;
+			$item->maxamount = $item->amount;
 			if (
-				$item->highql > 250 &&
-				(strpos($item->name, " Filigree Ring set with a ") !== false ||
-				strncmp($item->name, "Universal Advantage - ", 22) === 0)
+				$item->highql > 250 && (
+					strpos($item->name, " Filigree Ring set with a ") !== false ||
+					strncmp($item->name, "Universal Advantage - ", 22) === 0
+				)
 			) {
 				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount, $item->amount, 250);
 				$item->highql = 250;
 			}
-			if ($item->amount === $item->low_amount) {
-				$item->highql = $item->lowql;
-			}
 			$maxBuff = max($maxBuff, $item->amount);
-			$itemMapping[$item->lowid] = $item;
+			if ($item->lowid == $item->highid) {
+				$itemMapping[$item->lowid] = $item;
+			}
 		}
 		$ignoreItems = array();
 		forEach ($items as $item) {
@@ -349,7 +328,7 @@ class WhatBuffsController {
 		}
 		$maxDigits = strlen((string)$maxBuff);
 		forEach ($items as $item) {
-			if (in_array($item, $ignoreItems)) {
+			if (in_array($item, $ignoreItems, true)) {
 				continue;
 			}
 			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
@@ -364,10 +343,73 @@ class WhatBuffsController {
 					$link = $this->text->makeItem($item->lowid, $item->highid, 0, $item->name);
 					$blob .= " " . $this->text->makeChatcmd(
 						"Breakpoints",
-						"/tell <myname> bestql $item->lowql $item->low_amount $item->highql $item->amount ".
+						"/tell <myname> bestql $item->lowql $item->low_amount $item->maxql $item->maxamount ".
 						$link
 					);
 				}
+			}
+			$blob .= "\n";
+		}
+
+		$count = count($items);
+		if ($count > 0) {
+			return array($count, $blob);
+		} else {
+			return null;
+		}
+	}
+
+	public function groupDrainsAndWrangles($items) {
+		$result = array();
+		$groups = array(
+			'/(Divest|Deprive) Skills.*Transfer/',
+			'/(Ransack|Plunder) Skills.*Transfer/',
+			'/^Umbral Wrangler/',
+			'/^Team Skill Wrangler/',
+			'/^Skill Wrangler/',
+		);
+		$highestOfGroup = array();
+		foreach ($items as $item) {
+			$skip = false;
+			foreach ($groups as $group) {
+				if (preg_match($group, $item->name)) {
+					if (array_key_exists($group, $highestOfGroup)) {
+						$highestOfGroup[$group]->low_ncu = $item->ncu;
+						$highestOfGroup[$group]->low_amount = $item->amount;
+						$skip = true;
+					} else {
+						$highestOfGroup[$group] = $item;
+					}
+				}
+			}
+			if ($skip === false) {
+				$result []= $item;
+			}
+		}
+		return $result;
+	}
+
+	public function formatBuffs($items) {
+		$blob = '';
+		$maxBuff = 0;
+		forEach ($items as $item) {
+			$maxBuff = max($maxBuff, $item->amount);
+		}
+		$maxDigits = strlen((string)$maxBuff);
+		$items = $this->groupDrainsAndWrangles($items);
+		foreach ($items as $item) {
+			if ($item->ncu == 999) {
+				$item->ncu = 0;
+			}
+			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
+			$blob .= $prefix . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
+			if (isset($item->low_ncu)) {
+				$blob .= "($item->low_ncu NCU (<highlight>$item->low_amount<end>) - $item->ncu NCU (<highlight>$item->amount<end>))";
+			} else {
+				$blob .= "($item->ncu NCU)";
+			}
+			if ($item->lowid > 0) {
+				$blob .= " (from " . $this->text->makeItem($item->lowid, $item->highid, $item->lowql, $item->use_name) . ")";
 			}
 			$blob .= "\n";
 		}
