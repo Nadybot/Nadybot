@@ -374,13 +374,18 @@ class ItemsController {
 				$lastQL = null;
 				$newGroup = true;
 				if ($list !== '') {
-					$list .= "\n\n";
+					$list .= "\n";
 				}
 				if ($showImages) {
-					$list .= "<pagebreak>" . $this->text->makeImage($row->icon) . "\n";
+					$list .= "\n<pagebreak>" . $this->text->makeImage($row->icon) . "\n";
 				}
 				if ($row->group_id !== null) {
-					$list .= $row->name . "\n";
+					$list .= $row->name;
+					if ($showImages) {
+						$list .= "\n";
+					} else {
+						$list .= " - ";
+					}
 				}
 			}
 			$oldGroup = $row->group_id;
