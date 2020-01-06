@@ -79,6 +79,7 @@ class ItemsController {
 	/** @Setup */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "aodb");
+		$this->db->loadSQLFile($this->moduleName, "item_groups");
 		
 		$this->settingManager->add($this->moduleName, 'maxitems', 'Number of items shown on the list', 'edit', 'number', '40', '30;40;50;60');
 	}
@@ -241,21 +242,61 @@ class ItemsController {
 		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'name');
 
 		if ($ql) {
-			$query .= " AND `lowql` <= ? AND `highql` >= ?";
+			$query .= " AND aodb.lowql <= ? AND aodb.highql >= ?";
 			$params []= $ql;
 			$params []= $ql;
 		}
-
-		$sql = "SELECT * FROM aodb WHERE $query ORDER BY `name` ASC, highql DESC LIMIT 1000";
+		$sql = "
+			SELECT
+				COALESCE(a2.name,a1.name,foo.name) AS name,
+				foo.icon,
+				g.group_id,
+				COALESCE(a1.lowid,a2.lowid,foo.lowid) AS lowid,
+				COALESCE(a1.highid,a2.highid,foo.highid) AS highid,
+				COALESCE(a1.lowql,a2.highql,foo.highql,foo.lowql) AS ql,
+				COALESCE(a1.lowql,a2.lowql,foo.lowql) AS lowql,
+				COALESCE(a1.highql,a2.highql,foo.highql) AS highql
+			FROM (
+				SELECT
+					aodb.*,
+					g.group_id
+				FROM aodb
+				LEFT JOIN item_groups g ON (g.item_id=aodb.lowid)
+				WHERE $query
+				GROUP BY COALESCE(g.group_id,aodb.lowid)
+				ORDER BY
+					aodb.name ASC,
+					aodb.highql DESC
+				LIMIT ".$this->settingManager->get('maxitems')."
+			) AS foo
+			LEFT JOIN item_groups g ON(foo.group_id=g.group_id)
+			LEFT JOIN aodb a1 ON(g.item_id=a1.lowid)
+			LEFT JOIN aodb a2 ON(g.item_id=a2.highid)
+			ORDER BY g.id ASC
+		";
 		$data = $this->db->query($sql, $params);
-		$data = $this->orderSearchResults($data, $search);
-		$data = array_slice($data, 0, $this->settingManager->get("maxitems"));
+		// $data = $this->orderSearchResults($data, $search);
 		
 		return $data;
 	}
 	
 	public function createItemsBlob($data, $search, $ql, $version, $server, $footer, $elapsed=null) {
 		$num = count($data);
+		$groups = count(
+			array_unique(
+				array_diff(
+					array_map(function($row) {
+						return $row->group_id;
+					}, $data),
+					array(null),
+				)
+			)
+		) + count(
+			array_filter($data, function($row) {
+				return $row->group_id === null;
+			})
+		);
+
 		if ($num == 0) {
 			if ($ql) {
 				$msg = "No QL <highlight>$ql<end> items found matching <highlight>$search<end>.";
@@ -263,7 +304,7 @@ class ItemsController {
 				$msg = "No items found matching <highlight>$search<end>.";
 			}
 			return $msg;
-		} elseif ($num < 4) {
+		} elseif ($groups < 4) {
 			return trim($this->formatSearchResults($data, $ql, false));
 		} else {
 			$blob = "Version: <highlight>$version<end>\n";
@@ -322,22 +363,55 @@ class ItemsController {
 
 	public function formatSearchResults($data, $ql, $showImages) {
 		$list = '';
-		forEach ($data as $row) {
-			if ($showImages) {
-				$list .= $this->text->makeImage($row->icon) . "\n";
+		$oldGroup = null;
+		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
+			$row = $data[$itemNum];
+			$newGroup = false;
+			if ($row->group_id === null && $ql && $ql !== $row->ql) {
+				continue;
 			}
-			if ($ql) {
-				$list .= "QL $ql " . $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
+			if ($row->group_id === null || $row->group_id !== $oldGroup) {
+				$lastQL = null;
+				$newGroup = true;
+				if ($list !== '') {
+					$list .= "\n\n";
+				}
+				if ($showImages) {
+					$list .= "<pagebreak>" . $this->text->makeImage($row->icon) . "\n";
+				}
+				if ($row->group_id !== null) {
+					$list .= $row->name . "\n";
+				}
+			}
+			$oldGroup = $row->group_id;
+			if ($row->group_id === null) {
+				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+				$list .= " (QL $row->ql)";
 			} else {
-				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->highql, $row->name);
-			}
-			if ($row->lowql != $row->highql) {
-				$list .= " (QL" . $row->lowql . " - " . $row->highql . ")\n";
-			} else {
-				$list .= " (QL" . $row->lowql . ")\n";
-			}
-			if ($showImages) {
-				$list .= "\n<pagebreak>";
+				if ($newGroup === true) {
+					$list .= "QL ";
+				} elseif ($lastQL === $row->ql) {
+					continue;
+				} else {
+					$list .= ", ";
+				}
+				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->ql);
+				if ($ql === $row->ql) {
+					$list .= "<yellow>[<end>$item<yellow>]<end>";
+				} elseif ($ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
+					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $ql) . "<yellow>]<end>";
+					$list .= ", $item";
+				} elseif (
+					$ql > $row->lowql && $ql < $row->highql && $ql > $row->ql &&
+					isset($data[$itemNum+1]) && $data[$itemNum+1]->group_id === $row->group_id &&
+					$data[$itemNum+1]->lowql > $ql
+				) {
+					$list .= $item;
+					$list .= ", <yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $ql) . "<yellow>]<end>";
+				} else {
+					$list .= $item;
+				}
+				$lastQL = $row->ql;
 			}
 		}
 		return $list;
