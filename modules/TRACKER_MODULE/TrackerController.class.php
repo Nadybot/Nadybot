@@ -83,7 +83,7 @@ class TrackerController {
 	public function trackedUsersConnectEvent($eventObj) {
 		$sql = "SELECT name FROM tracked_users_<myname>";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->buddylistManager->add($row->name, 'tracking');
 		}
 	}
@@ -143,7 +143,7 @@ class TrackerController {
 		$numrows = count($data);
 		if ($numrows != 0) {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$row2 = $this->db->queryRow("SELECT `event`, `dt` FROM tracking_<myname> WHERE `uid` = ? ORDER BY `dt` DESC LIMIT 1", $row->uid);
 				$last_action = '';
 				if ($row2 != null) {
@@ -234,7 +234,7 @@ class TrackerController {
 			$data = $this->db->query("SELECT `event`, `dt` FROM tracking_<myname> WHERE `uid` = $uid ORDER BY `dt` DESC");
 			if (count($data) > 0) {
 				$blob = '';
-				forEach ($data as $row) {
+				foreach ($data as $row) {
 					if ($row->event == 'logon') {
 						$status = "<green>logon<end>";
 					} elseif ($row->event == 'logoff') {

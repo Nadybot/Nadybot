@@ -99,7 +99,7 @@ class WhoisController {
 	public function saveCharIds($eventObj) {
 		if (!empty($this->nameHistoryCache) && !$this->db->inTransaction()) {
 			$this->db->beginTransaction();
-			forEach ($this->nameHistoryCache as $entry) {
+			foreach ($this->nameHistoryCache as $entry) {
 				list($charid, $name) = $entry;
 				if ($this->db->getType() == DB::SQLITE) {
 					$this->db->exec("INSERT OR IGNORE INTO name_history (name, charid, dimension, dt) VALUES (?, ?, <dim>, ?)", $name, $charid, time());
@@ -136,7 +136,7 @@ class WhoisController {
 
 		$blob = '';
 		if ($count > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$link = $this->text->makeChatcmd($row->name, "/tell <myname> lookup $row->name");
 				$blob .= "$link " . $this->util->date($row->dt) . "\n";
 			}
@@ -160,7 +160,7 @@ class WhoisController {
 
 		$blob = '';
 		if ($count > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$link = $this->text->makeChatcmd($row->charid, "/tell <myname> lookup $row->charid");
 				$blob .= "$link " . $this->util->date($row->dt) . "\n";
 			}
@@ -178,7 +178,7 @@ class WhoisController {
 
 		$blob = "<header2>Name History<end>\n\n";
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= "<highlight>{$row->name}<end> " . $this->util->date($row->dt) . "\n";
 			}
 		} else {

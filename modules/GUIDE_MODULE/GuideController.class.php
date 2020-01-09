@@ -86,7 +86,7 @@ class GuideController {
 			sort($topicList);
 
 			$linkContents = '';
-			forEach ($topicList as $topic) {
+			foreach ($topicList as $topic) {
 				$linkContents .= $this->text->makeChatcmd($topic, "/tell <myname> guides $topic") . "\n";
 			}
 

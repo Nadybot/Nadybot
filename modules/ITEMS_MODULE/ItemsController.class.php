@@ -157,7 +157,7 @@ class ItemsController {
 			
 				// find the latest items db version on the server
 				$latestVersion = null;
-				forEach ($json as $item) {
+				foreach ($json as $item) {
 					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $item->name, $arr)) {
 						if ($latestVersion === null) {
 							$latestVersion = $arr[1];
@@ -332,14 +332,14 @@ class ItemsController {
 	// sort by exact word matches higher than partial word matches
 	public function orderSearchResults($data, $search) {
 		$searchTerms = explode(" ", $search);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if (strcasecmp($search, $row->name) == 0) {
 				$numExactMatches = 100;
 			} else {
 				$itemKeywords = preg_split("/\s/", $row->name);
 				$numExactMatches = 0;
-				forEach ($itemKeywords as $keyword) {
-					forEach ($searchTerms as $searchWord) {
+				foreach ($itemKeywords as $keyword) {
+					foreach ($searchTerms as $searchWord) {
 						if (strcasecmp($keyword, $searchWord) == 0) {
 							$numExactMatches++;
 							break;

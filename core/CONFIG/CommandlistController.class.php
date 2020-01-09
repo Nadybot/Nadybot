@@ -75,7 +75,7 @@ class CommandlistController {
 	
 		if ($count > 0) {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$guild = '';
 				$priv = '';
 				$msg = '';

@@ -73,7 +73,7 @@ class BankController {
 	public function bankBrowseCommand($message, $channel, $sender, $sendto, $args) {
 		$blob = '';
 		$data = $this->db->query("SELECT DISTINCT player FROM bank ORDER BY player ASC");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$character_link = $this->text->makeChatcmd($row->player, "/tell <myname> bank browse {$row->player}");
 			$blob .= $character_link . "\n";
 		}
@@ -92,7 +92,7 @@ class BankController {
 		$blob = '';
 		$data = $this->db->query("SELECT DISTINCT container_id, container, player FROM bank WHERE player = ? ORDER BY container ASC", $name);
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$container_link = $this->text->makeChatcmd($row->container, "/tell <myname> bank browse {$row->player} {$row->container_id}");
 				$blob .= "{$container_link}\n";
 			}
@@ -118,7 +118,7 @@ class BankController {
 		$data = $this->db->query($sql, $name, $containerId, intval($limit));
 
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 				$blob .= "{$item_link} ({$row->ql})\n";
 			}
@@ -146,7 +146,7 @@ class BankController {
 		$data = $this->db->query("SELECT * FROM bank WHERE {$where_sql} ORDER BY name ASC, ql ASC LIMIT ?", $params);
 
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 				$blob .= "{$item_link} ({$row->ql}) (<highlight>{$row->player}<end>, {$row->container})\n";
 			}
@@ -177,7 +177,7 @@ class BankController {
 		$this->db->beginTransaction();
 		$this->db->exec("DELETE FROM bank");
 
-		forEach ($lines as $line) {
+		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
 			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
 			list($name, $ql, $player, $container, $location, $lowId, $highId, $containerId) = str_getcsv($line);

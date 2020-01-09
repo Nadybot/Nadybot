@@ -80,7 +80,7 @@ class HelpController {
 		} else {
 			$blob = '';
 			$current_module = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($current_module != $row->module) {
 					$blob .= "\n<pagebreak><header2>{$row->module}:<end>\n";
 					$current_module = $row->module;

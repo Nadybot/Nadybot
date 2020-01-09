@@ -92,7 +92,7 @@ class WhatBuffsController {
 	public function whatbuffsCommand($message, $channel, $sender, $sendto, $args) {
 		$blob = '';
 		$data = $this->db->query("SELECT DISTINCT name FROM skills ORDER BY name ASC");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> whatbuffs $row->name") . "\n";
 		}
 		$blob .= "\nItem Extraction Info provided by Unk";
@@ -134,7 +134,7 @@ class WhatBuffsController {
 				$data = $this->db->query($sql, $type);
 			}
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> whatbuffs $type $row->skill") . " ($row->num)\n";
 			}
 			$blob .= "\nItem Extraction Info provided by Unk";
@@ -191,7 +191,7 @@ class WhatBuffsController {
 			$msg = "Could not find skill <highlight>$skill<end>.";
 		} elseif ($count > 1) {
 			$blob .= "Choose a skill:\n\n";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> whatbuffs $row->name") . "\n";
 			}
 			$blob .= "\nItem Extraction Info provided by Unk";
@@ -223,7 +223,7 @@ class WhatBuffsController {
 			";
 			$data = $this->db->query($sql, $skillId, $skillId);
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> whatbuffs $row->item_type $skillName") . " ($row->num)\n";
 			}
 			$blob .= "\nItem Extraction Info provided by Unk";
@@ -296,7 +296,7 @@ class WhatBuffsController {
 	public function formatItems($items) {
 		$blob = '';
 		$maxBuff = 0;
-		forEach ($items as $item) {
+		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
 				$item->highql = $item->lowql;
 			}
@@ -319,7 +319,7 @@ class WhatBuffsController {
 			}
 		}
 		$ignoreItems = array();
-		forEach ($items as $item) {
+		foreach ($items as $item) {
 			if ($item->highid != $item->lowid && array_key_exists($item->highid, $itemMapping)) {
 				$item->highid = $itemMapping[$item->highid]->highid;
 				$item->highql = $itemMapping[$item->highid]->highql;
@@ -327,7 +327,7 @@ class WhatBuffsController {
 			}
 		}
 		$maxDigits = strlen((string)$maxBuff);
-		forEach ($items as $item) {
+		foreach ($items as $item) {
 			if (in_array($item, $ignoreItems, true)) {
 				continue;
 			}
@@ -392,7 +392,7 @@ class WhatBuffsController {
 	public function formatBuffs($items) {
 		$blob = '';
 		$maxBuff = 0;
-		forEach ($items as $item) {
+		foreach ($items as $item) {
 			$maxBuff = max($maxBuff, $item->amount);
 		}
 		$maxDigits = strlen((string)$maxBuff);
@@ -435,7 +435,7 @@ class WhatBuffsController {
 			$msg = $this->getSearchResults($category, $row);
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> whatbuffs $category $row->skill") . "\n";
 			}
 			$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);

@@ -176,7 +176,7 @@ class PrivateChannelController {
 		$count = count($data);
 		if ($count != 0) {
 			$list = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$online = $this->buddylistManager->isOnline($row->name);
 				if (isset($this->chatBot->chatlist[$row->name])) {
 					$status = "(<green>Online and in channel<end>)";
@@ -306,7 +306,7 @@ class PrivateChannelController {
 
 		$data = $this->db->query("SELECT * FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv'");
 		$numonline = count($data);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->level > 1 && $row->level <= 14) {
 				$tl1++;
 			} elseif ($row->level >= 15 && $row->level <= 49) {
@@ -364,7 +364,7 @@ class PrivateChannelController {
 		$numonline = count($data);
 		$msg = "<highlight>$numonline<end> in total: ";
 
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$online[$row->profession] = $row->count;
 		}
 
@@ -408,7 +408,7 @@ class PrivateChannelController {
 			$numorgs = count($data);
 
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$guild = '(none)';
 				if ($row->guild != '') {
 					$guild = $row->guild;
@@ -442,7 +442,7 @@ class PrivateChannelController {
 			$numonline = count($data);
 			$msg = "<highlight>$numonline<end> $prof:";
 
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->afk != "") {
 					$afk = "<red>*AFK*<end>";
 				} else {
@@ -502,7 +502,7 @@ class PrivateChannelController {
 	public function connectEvent($eventObj) {
 		$sql = "SELECT name FROM members_<myname> WHERE autoinv = 1";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->buddylistManager->add($row->name, 'member');
 		}
 	}

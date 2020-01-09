@@ -144,7 +144,7 @@ class WeatherController {
 		if (count($alertitems) == 0) {
 			$blob .= "\n<header2>Alerts:<end> None reported.\n\n";
 		} else {
-			forEach ($alertitems as $thisalert) {
+			foreach ($alertitems as $thisalert) {
 				$blob .= "\n<header2>Alert: ".XML::spliceData($thisalert, "<description>", "</description>")."<end>\n\n";
 				// gotta find date/expire manually.
 				$start = strpos($thisalert, ">", strpos($thisalert, "<date epoch="))+1;
@@ -162,7 +162,7 @@ class WeatherController {
 		$simpleforecast = XML::spliceData($forecast, "<simpleforecast>", "</simpleforecast>");
 		$forecastday = XML::spliceMultiData($simpleforecast, "<forecastday>", "</forecastday>");
 		if (count($forecastday)>0) {
-			forEach ($forecastday as $day) {
+			foreach ($forecastday as $day) {
 				if (!($condition = XML::spliceData($day, "<conditions>", "</conditions>"))) {
 					break;
 				}

@@ -337,7 +337,7 @@ class RaidController {
 		}
 
 		// Readd remaining loot
-		forEach ($this->residual as $key => $item) {
+		foreach ($this->residual as $key => $item) {
 			$this->loot[$key] = $item;
 			$this->loot[$key]->added_by = $sender;
 		}
@@ -378,7 +378,7 @@ class RaidController {
 		$list = '';
 		//Roll the loot
 		$resnum = 1;
-		forEach ($this->loot as $key => $item) {
+		foreach ($this->loot as $key => $item) {
 			$list .= "Item: <orange>{$item->name}<end>\n";
 			$list .= "Winner(s): ";
 			$users = count($item->users);
@@ -446,7 +446,7 @@ class RaidController {
 
 			//Remove the player from other slots if set
 			$found = false;
-			forEach ($this->loot as $key => $item) {
+			foreach ($this->loot as $key => $item) {
 				if ($this->loot[$key]->users[$sender] == true) {
 					unset($this->loot[$key]->users[$sender]);
 					$found = true;
@@ -474,7 +474,7 @@ class RaidController {
 	 */
 	public function remCommand($message, $channel, $sender, $sendto, $args) {
 		if (count($this->loot) > 0) {
-			forEach ($this->loot as $key => $item) {
+			foreach ($this->loot as $key => $item) {
 				if ($this->loot[$key]->users[$sender] == true) {
 					unset($this->loot[$key]->users[$sender]);
 				}
@@ -492,7 +492,7 @@ class RaidController {
 			$list = "Use <symbol>flatroll to roll.\n\n";
 			$players = 0;
 			$items = count($this->loot);
-			forEach ($this->loot as $key => $item) {
+			foreach ($this->loot as $key => $item) {
 				$add = $this->text->makeChatcmd("Add", "/tell <myname> add $key");
 				$rem = $this->text->makeChatcmd("Remove", "/tell <myname> rem");
 				$added_players = count($item->users);
@@ -512,7 +512,7 @@ class RaidController {
 				$list .= "\n<header2>Slot #$key<end> $add / $rem";
 				$list .= "\nPlayers added (<highlight>$added_players<end>):";
 				if (count($item->users) > 0) {
-					forEach ($item->users as $key => $value) {
+					foreach ($item->users as $key => $value) {
 						$list .= " [<yellow>$key<end>]";
 					}
 				}
@@ -539,7 +539,7 @@ class RaidController {
 			return false;
 		}
 
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 			if (empty($row->comment)) {
 				$row->display = $item;
@@ -555,7 +555,7 @@ class RaidController {
 	}
 	
 	public function getLootItem($name) {
-		forEach ($this->loot as $key => $item) {
+		foreach ($this->loot as $key => $item) {
 			if ($item->name == $name) {
 				return $key;
 			}

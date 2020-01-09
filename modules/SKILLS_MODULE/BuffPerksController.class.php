@@ -62,17 +62,17 @@ class BuffPerksController {
 
 		$perkId = 1;
 		$perkLevelId = 1;
-		forEach ($perkInfo as $perk) {
+		foreach ($perkInfo as $perk) {
 			$this->db->exec("INSERT INTO perk (id, name) VALUES (?, ?)", $perkId, $perk->name);
 			
-			forEach ($perk->levels as $level) {
+			foreach ($perk->levels as $level) {
 				$this->db->exec("INSERT INTO perk_level (id, perk_id, number, min_level) VALUES (?, ?, ?, ?)", $perkLevelId, $perkId, $level->perkLevel, $level->minLevel);
 				
-				forEach ($level->professions as $profession) {
+				foreach ($level->professions as $profession) {
 					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $perkLevelId, $profession);
 				}
 
-				forEach ($level->buffs as $buff => $amount) {
+				foreach ($level->buffs as $buff => $amount) {
 					$this->db->exec("INSERT INTO perk_level_buffs (perk_level_id, skill, amount) VALUES (?, ?, ?)", $perkLevelId, $buff, $amount);
 				}
 				
@@ -152,7 +152,7 @@ class BuffPerksController {
 		} else {
 			$currentPerk = '';
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->perk_name != $currentPerk) {
 					$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}<end>\n";
 					$currentPerk = $row->perk_name;
@@ -170,7 +170,7 @@ class BuffPerksController {
 		$path = getcwd() . "/modules/" . $this->moduleName . "/perks.csv";
 		$lines = explode("\n", file_get_contents($path));
 		$perks = array();
-		forEach ($lines as $line) {
+		foreach ($lines as $line) {
 			$line = trim($line);
 			
 			if (empty($line)) {
@@ -193,7 +193,7 @@ class BuffPerksController {
 			
 			$level->professions = array();
 			$professions = explode(",", $profs);
-			forEach ($professions as $prof) {
+			foreach ($professions as $prof) {
 				$profession = $this->util->getProfessionName(trim($prof));
 				if (empty($profession)) {
 					echo "Error parsing profession: '$prof'\n";
@@ -204,7 +204,7 @@ class BuffPerksController {
 			
 			$level->buffs = array();
 			$buffs = explode(",", $buffs);
-			forEach ($buffs as $buff) {
+			foreach ($buffs as $buff) {
 				$buff = trim($buff);
 				$pos = strrpos($buff, " ");
 

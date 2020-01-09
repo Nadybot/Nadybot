@@ -30,10 +30,10 @@ class Teamspeak3 {
 		while (!feof($this->stream)) {
 			$data = explode('|', fgets($this->stream));
 			if (substr($data[0], 1, 8) != 'error id' && substr($data[0], 1, 7) != 'Welcome' && substr($data[0], 1, 2) != 'S3') {
-				forEach ($data as $outputVar) {
+				foreach ($data as $outputVar) {
 					$outputLine = explode(' ', $outputVar);
 					unset($outputVar);
-					forEach ($outputLine as $line) {
+					foreach ($outputLine as $line) {
 						$fragment = explode('=', $line);
 						@$outputVar[trim($fragment[0])] = trim($fragment[1]);
 					}

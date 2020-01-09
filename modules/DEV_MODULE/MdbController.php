@@ -56,7 +56,7 @@ class MdbController {
 		$categories = $this->chatBot->mmdbParser->getCategories();
 		
 		$blob = '';
-		forEach ($categories as $category) {
+		foreach ($categories as $category) {
 			$blob .= $this->text->makeChatcmd($category['id'], "/tell <myname> mdb " . $category['id']) . "\n";
 		}
 		
@@ -75,7 +75,7 @@ class MdbController {
 		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
 
 		$blob = '';
-		forEach ($instances as $instance) {
+		foreach ($instances as $instance) {
 			$blob .= $this->text->makeChatcmd($instance['id'], "/tell <myname> mdb $categoryId " . $instance['id']) . "\n";
 		}
 		

@@ -78,7 +78,7 @@ class BosslootController {
 		if ($count > 1) {
 			$blob = "Results of Search for '$search'\n\n";
 			//If multiple matches found output list of bosses
-			forEach ($bosses as $row) {
+			foreach ($bosses as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Boss Search Results ($count)", $blob);
@@ -92,7 +92,7 @@ class BosslootController {
 			$data = $this->db->query("SELECT * FROM boss_lootdb b LEFT JOIN
 				aodb a ON (b.itemname = a.name)
 				WHERE b.bossid = ?", $row->bossid);
-			forEach ($data as $row2) {
+			foreach ($data as $row2) {
 				$blob .= $this->text->makeImage($row2->icon) . "\n";
 				$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
 			}
@@ -122,7 +122,7 @@ class BosslootController {
 		$count = count($loot);
 
 		if ($count != 0) {
-			forEach ($loot as $row) {
+			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
@@ -140,7 +140,7 @@ class BosslootController {
 		$blob = '<pagebreak>' . $this->text->makeChatcmd($row->bossname, "/tell <myname> boss $row->bossname") . "\n";
 		$blob .= "Location: <highlight>{$row->answer}<end>\n";
 		$blob .= "Loot: ";
-		forEach ($data as $row2) {
+		foreach ($data as $row2) {
 			$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . ', ';
 		}
 		$blob .= "\n\n";

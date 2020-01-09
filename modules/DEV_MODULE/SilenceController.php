@@ -52,7 +52,7 @@ class SilenceController extends AutoInject {
 			$msg = "No commands have been silenced.";
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence $row->cmd $row->channel");
 				$blob .= "<highlight>$row->cmd<end> ($row->channel) - $unsilenceLink\n";
 			}
@@ -130,7 +130,7 @@ class SilenceController extends AutoInject {
 	public function overwriteCommandHandlersEvent($eventObj) {
 		$sql = "SELECT * FROM silence_cmd_<myname>";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		}
 	}

@@ -71,7 +71,7 @@ class LogsController {
 		$files = $this->util->getFilesInDirectory($this->logger->getLoggingDirectory());
 		sort($files);
 		$blob = '';
-		forEach ($files as $file) {
+		foreach ($files as $file) {
 			$file_link = $this->text->makeChatcmd($file, "/tell <myname> logs $file");
 			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs $file ERROR");
 			$chatLink = $this->text->makeChatcmd("CHAT", "/tell <myname> logs $file CHAT");
@@ -101,7 +101,7 @@ class LogsController {
 			preg_match_all("/.*({$search}).*/i", $fileContents, $matches);
 			$matches = array_reverse($matches[0]);
 			$contents = '';
-			forEach ($matches as $line) {
+			foreach ($matches as $line) {
 				if (strlen($contents . $line) > $readsize) {
 					break;
 				}

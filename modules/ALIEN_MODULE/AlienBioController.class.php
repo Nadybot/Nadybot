@@ -88,7 +88,7 @@ class AlienBioController {
 
 		$bios = explode("*", preg_replace("/> *</", ">*<", $arr[1]));
 		$blob = '';
-		forEach ($bios as $bio) {
+		foreach ($bios as $bio) {
 			preg_match("|^${bio_regex}$|i", trim($bio), $arr2);
 			$highid = $arr2[2];
 			$ql = $arr2[3];
@@ -215,7 +215,7 @@ class AlienBioController {
 	
 	public function getTypeBlob($types) {
 		$blob = '';
-		forEach ($types as $type) {
+		foreach ($types as $type) {
 			$blob .= $this->text->makeChatcmd($type, "/tell <myname> bioinfo $type") . "\n";
 		}
 		return $blob;
@@ -283,7 +283,7 @@ class AlienBioController {
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab armor for:<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd($row->profession, "/tell <myname> ofabarmor {$row->profession}") . "\n";
 		}
 
@@ -302,7 +302,7 @@ class AlienBioController {
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab weapons:<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd("Ofab {$row->name} Mk 1", "/tell <myname> ofabweapons {$row->name}") . "\n";
 		}
 
@@ -335,7 +335,7 @@ class AlienBioController {
 		$blob .= "It will take <highlight>$ts_bio<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "<highlight>Adds {$specials} to:<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->itemsController->getItem($row->name, $maxaitype) . "\n";
 		}
 

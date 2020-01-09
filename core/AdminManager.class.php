@@ -49,7 +49,7 @@ class AdminManager {
 		}
 
 		$data = $this->db->query("SELECT * FROM admin_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->admins[$row->name]["level"] = $row->adminlevel;
 		}
 	}

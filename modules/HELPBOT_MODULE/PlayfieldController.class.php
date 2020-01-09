@@ -73,7 +73,7 @@ class PlayfieldController {
 
 		$sql = "SELECT * FROM playfields ORDER BY long_name";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
 		}
 
@@ -99,7 +99,7 @@ class PlayfieldController {
 
 		if ($count > 1) {
 			$blob = "Result of Playfield Search for '$search'\n\n";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= "[<highlight>$row->id<end>] $row->long_name\n\n";
 			}
 

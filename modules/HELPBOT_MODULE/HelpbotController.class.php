@@ -117,7 +117,7 @@ class HelpbotController {
 	
 	private function formatResults($data) {
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$coordLink = $this->text->makeChatcmd("{$row->long_name} {$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
 			$blob .="<pagebreak>$coordLink\n";
 			$blob .="$row->mob - Level <highlight>{$row->minQl}-{$row->maxQl}<end>\n\n";

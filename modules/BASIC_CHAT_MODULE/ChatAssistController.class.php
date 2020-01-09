@@ -105,7 +105,7 @@ class ChatAssistController {
 			$link = $this->text->makeChatcmd("Click here to make an assist $name macro", "/macro $name /assist $name");
 			$this->assistMessage = $this->text->makeBlob("Assist $name Macro", $link);
 		} else {
-			forEach ($nameArray as $key => $name) {
+			foreach ($nameArray as $key => $name) {
 				$name = ucfirst(strtolower($name));
 				$uid = $this->chatBot->get_uid($name);
 				if (!$uid) {

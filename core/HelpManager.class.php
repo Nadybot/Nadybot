@@ -105,7 +105,7 @@ class HelpManager {
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
 
 		$output = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$output .= trim(file_get_contents($row->file)) . "\n\n";
@@ -147,7 +147,7 @@ class HelpManager {
 		}
 
 		$topics = array();
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($char === null || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$obj = new stdClass;
 				$obj->module = $row->module;
@@ -161,7 +161,7 @@ class HelpManager {
 	}
 
 	public function checkAccessLevels($accessLevel1, $accessLevelsArray) {
-		forEach ($accessLevelsArray as $accessLevel2) {
+		foreach ($accessLevelsArray as $accessLevel2) {
 			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {
 				return true;
 			}

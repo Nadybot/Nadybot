@@ -299,7 +299,7 @@ class RaffleController {
 		}
 
 		$i = 0;
-		forEach ($this->raffles["rafflees"] as $char => $rolls) {
+		foreach ($this->raffles["rafflees"] as $char => $rolls) {
 			$i++;
 			$blob .= "\n$i. $char got $rolls rolls.";
 			if ($i == $count) {
@@ -315,7 +315,7 @@ class RaffleController {
 		}
 
 		$i = 0;
-		forEach ($this->raffles["rafflees"] as $char => $rolls) {
+		foreach ($this->raffles["rafflees"] as $char => $rolls) {
 			$i++;
 			$msg .= "{$char}!";
 			if ($i != $count) {
@@ -353,7 +353,7 @@ class RaffleController {
 
 		// generate an info window
 		$blob = "<header2>Current Members:<end>";
-		forEach (array_keys($this->raffles["rafflees"]) as $tempName) {
+		foreach (array_keys($this->raffles["rafflees"]) as $tempName) {
 			$blob .= "\n$tempName";
 		}
 		if (count($this->raffles["rafflees"]) == 0) {

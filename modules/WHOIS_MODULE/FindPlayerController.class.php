@@ -54,7 +54,7 @@ class FindPlayerController {
 
 		if ($count > 0) {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->playerManager->getInfo($row, false) . "\n\n";
 			}
 			$msg = $this->text->makeBlob("Search results for '$search' ($count)", $blob);

@@ -93,7 +93,7 @@ class TimerController {
 
 		$this->timers = array();
 		$data = $this->db->query("SELECT * FROM timers_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$row->alerts = json_decode($row->alerts);
 
 			// remove alerts that have already passed
@@ -112,7 +112,7 @@ class TimerController {
 	public function changeTimerAlertTimes($settingName, $oldValue, $newValue, $data) {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
-		forEach ($alertTimes as $alertTime) {
+		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			if ($time == 0) {
 				// invalid time
@@ -137,13 +137,13 @@ class TimerController {
 
 		$time = time();
 
-		forEach ($this->timers as $timer) {
+		foreach ($this->timers as $timer) {
 			if (count($timer->alerts) == 0) {
 				$this->remove($timer->name);
 				continue;
 			}
 
-			forEach ($timer->alerts as $alert) {
+			foreach ($timer->alerts as $alert) {
 				if ($alert->time > $time) {
 					break;
 				}
@@ -308,7 +308,7 @@ class TimerController {
 			$msg = "No timers currently running.";
 		} else {
 			$blob = '';
-			forEach ($timers as $timer) {
+			foreach ($timers as $timer) {
 				$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
 				$name = $timer->name;
 				$owner = $timer->owner;
@@ -333,7 +333,7 @@ class TimerController {
 	public function generateAlerts($sender, $name, $endTime, $alertTimes) {
 		$alerts = array();
 		
-		forEach ($alertTimes as $alertTime) {
+		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$timeString = $this->util->unixtimeToReadable($time);
 			if ($endTime - $time > time()) {

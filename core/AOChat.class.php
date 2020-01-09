@@ -453,7 +453,7 @@ class AOChat {
 			if (empty($field)) {
 				return false;
 			} else {
-				forEach ($this->chars as $e) {
+				foreach ($this->chars as $e) {
 					if ($e[$field] == $char) {
 						$char = $e;
 						break;
@@ -638,7 +638,7 @@ class AOChat {
 	 */
 	public function send_guild($msg, $blob="\0", $priority=null) {
 		$guild_gid = false;
-		forEach ($this->grp as $gid => $status) {
+		foreach ($this->grp as $gid => $status) {
 			if (ord(substr($gid, 0, 1)) == 3) {
 				$guild_gid = $gid;
 				break;

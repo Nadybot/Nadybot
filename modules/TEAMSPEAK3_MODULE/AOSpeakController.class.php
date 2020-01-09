@@ -69,7 +69,7 @@ class AOSpeakController {
 		} else {
 			$blob = "Server: <highlight>voice.aospeak.com<end>";
 			$blob .= "\n\nUsers:\n";
-			forEach ($users as $user) {
+			foreach ($users as $user) {
 				if ($user->idleTime >= 300000) {
 					// if idle for at least 5 minutes
 					$blob .= "<highlight>{$user->name}<end> ({$user->country}, idle for " . $this->util->unixtimeToReadable($user->idleTime / 1000, false) . ")\n";
@@ -107,13 +107,13 @@ class AOSpeakController {
 			$blob = "Server: <highlight>voice.aospeak.com<end>\n";
 
 			$channels = array();
-			forEach ($users as $user) {
+			foreach ($users as $user) {
 				$channels[$user->channelName] []= $user;
 			}
 
-			forEach ($channels as $name => $users) {
+			foreach ($channels as $name => $users) {
 				$blob .= "\n<header2>$name<end>\n";
-				forEach ($users as $user) {
+				foreach ($users as $user) {
 					$country = empty($user->country) ? "Unknown" : $user->country;
 					if ($user->idleTime >= 300000) {
 						// if idle for at least 5 minutes

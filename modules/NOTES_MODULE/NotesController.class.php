@@ -72,7 +72,7 @@ class NotesController {
 			$blob = '';
 			$current = '';
 			$count = count($data);
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->added_by != $current) {
 					$blob .= "\n<header2>$row->added_by<end>\n\n";
 					$current = $row->added_by;

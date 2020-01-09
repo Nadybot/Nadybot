@@ -96,7 +96,7 @@ class TestController extends AutoInject {
 		$count = count($files);
 		sort($files);
 		$blob = $this->text->makeChatcmd("All Tests", "/tell <myname> test all") . "\n";
-		forEach ($files as $file) {
+		foreach ($files as $file) {
 			$name = str_replace(".txt", "", $file);
 			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test $name") . "\n";
 		}
@@ -119,7 +119,7 @@ class TestController extends AutoInject {
 		$files = $this->util->getFilesInDirectory($this->path);
 		$starttime = time();
 		$sendto->reply("Starting tests...");
-		forEach ($files as $file) {
+		foreach ($files as $file) {
 			$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
 			$this->runTests($lines, $sender, $type, $mockSendto);
 		}
@@ -154,7 +154,7 @@ class TestController extends AutoInject {
 	}
 	
 	public function runTests($commands, $sender, $type, $sendto) {
-		forEach ($commands as $line) {
+		foreach ($commands as $line) {
 			if ($line[0] == "!") {
 				if ($this->setting->show_test_commands == 1) {
 					$this->chatBot->sendTell($line, $sender);
@@ -308,7 +308,7 @@ class MessageInfoCommandReply implements CommandReply {
 			$msg = array($msg);
 		}
 		
-		forEach ($msg as $page) {
+		foreach ($msg as $page) {
 			$elapsed = round($endTime - $this->startTime, 4);
 			$this->sendto->reply($page);
 			$this->sendto->reply("Size: " . strlen($page));

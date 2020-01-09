@@ -217,7 +217,7 @@ class DB {
 		try {
 			$ps = $this->sql->prepare($sql);
 			$count = 1;
-			forEach ($params as $param) {
+			foreach ($params as $param) {
 				if ($param === "NULL") {
 					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
 				} elseif (is_int($param)) {

@@ -36,7 +36,7 @@ class ChatCheckController {
 	 */
 	public function checkAllCommand($message, $channel, $sender, $sendto, $args) {
 		$data = $this->db->query("SELECT name FROM online WHERE added_by = '<myname>' AND channel_type = ?", self::CHANNEL_TYPE);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$content .= " \\n /assist $row->name";
 		}
 

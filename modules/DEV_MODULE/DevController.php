@@ -94,7 +94,7 @@ class DevController extends AutoInject {
 
 		// get regexes for calls
 		$regexes = array();
-		forEach ($calls as $call) {
+		foreach ($calls as $call) {
 			list($name, $method) = explode(".", $call);
 			$instance = Registry::getInstance($name);
 			try {
@@ -108,7 +108,7 @@ class DevController extends AutoInject {
 		$count = count($regexes);
 		if ($count > 0) {
 			$blob = '';
-			forEach ($regexes as $regex) {
+			foreach ($regexes as $regex) {
 				$blob .= $regex . "\n";
 			}
 			$msg = $this->text->makeBlob("Regexes for $cmd ($count)", $blob);
@@ -124,7 +124,7 @@ class DevController extends AutoInject {
 			$handlers []= $this->commandManager->commands[$channel][$cmd];
 		}
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
-			forEach ($this->subcommandManager->subcommands[$cmd] as $handler) {
+			foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
 				if ($handler->type == $channel) {
 					$handlers []= $handler;
 				}
@@ -179,7 +179,7 @@ class DevController extends AutoInject {
 		$blob = '';
 
 		// command
-		forEach ($this->commandManager->commands as $channelName => $channel) {
+		foreach ($this->commandManager->commands as $channelName => $channel) {
 			if (isset($channel[$cmd])) {
 				$blob .= "<header2>$channelName ($cmd)<end>\n";
 				$blob .= $channel[$cmd]->file . "\n\n";
@@ -187,7 +187,7 @@ class DevController extends AutoInject {
 		}
 
 		// subcommand
-		forEach ($this->subcommandManager->subcommands[$cmd] as $row) {
+		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
 			$blob .= "<header2>$row->type ($row->cmd)<end>\n";
 			$blob .= $row->file . "\n\n";
 		}

@@ -85,7 +85,7 @@ class RecipeController {
 					$name = $recipe->name;
 					$author = $recipe->author;
 					$items = array();
-					forEach ($recipe->items as $item) {
+					foreach ($recipe->items as $item) {
 						$dbItem = $this->itemsController->findById($item->item_id);
 						if ($dbItem === null) {
 							throw new Exception("Could not find item '{$item->item_id}'");
@@ -98,10 +98,10 @@ class RecipeController {
 					$data .= "<font color=#FF0000>Ingredients</font>\n";
 					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
 					$ingredients = $items;
-					forEach ($recipe->steps as $step) {
+					foreach ($recipe->steps as $step) {
 						unset($ingredients[$step->result]);
 					}
-					forEach ($ingredients as $ingredient) {
+					foreach ($ingredients as $ingredient) {
 						$data .= $this->text->makeImage($ingredient->icon) . "\n";
 						$data .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
 					}
@@ -109,7 +109,7 @@ class RecipeController {
 					$data .= "<font color=#FFFF00>------------------------------</font>\n";
 					$data .= "<font color=#FF0000>Recipe</font>\n";
 					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
-					forEach ($recipe->steps as $step) {
+					foreach ($recipe->steps as $step) {
 						$source = $items[$step->source];
 						$target = $items[$step->target];
 						$result = $items[$step->result];
@@ -176,7 +176,7 @@ class RecipeController {
 			$msg = $this->createRecipeBlob($data[0]);
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> recipe $row->id") . "\n";
 			}
 

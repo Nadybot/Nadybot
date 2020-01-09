@@ -65,7 +65,7 @@ class LinksController {
 
 		$sql = "SELECT * FROM links ORDER BY name ASC";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> <symbol>links rem $row->id");
 			if ($this->settingManager->get('showfullurls') == 1) {
 				$website = $this->text->makeChatcmd($row->website, "/start $row->website");

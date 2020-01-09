@@ -165,7 +165,7 @@ class AdminController {
 		}
 
 		$blob .= "<header2>Administrators<end>\n";
-		forEach ($this->adminManager->admins as $who => $data) {
+		foreach ($this->adminManager->admins as $who => $data) {
 			if ($this->adminManager->admins[$who]["level"] == 4) {
 				if ($who != "") {
 					$blob .= "<tab>$who";
@@ -178,7 +178,7 @@ class AdminController {
 		}
 
 		$blob .= "<header2>Moderators<end>\n";
-		forEach ($this->adminManager->admins as $who => $data) {
+		foreach ($this->adminManager->admins as $who => $data) {
 			if ($this->adminManager->admins[$who]["level"] == 3) {
 				if ($who != "") {
 					$blob .= "<tab>$who" . $this->getOnlineStatus($who) . "\n" . $this->getAltAdminInfo($who, $showOfflineAlts);
@@ -197,7 +197,7 @@ class AdminController {
 	 */
 	public function checkAdminsEvent($eventObj) {
 		$data = $this->db->query("SELECT * FROM admin_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->buddylistManager->add($row->name, 'admin');
 		}
 	}
@@ -216,7 +216,7 @@ class AdminController {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main == $who) {
-			forEach ($altInfo->alts as $alt => $validated) {
+			foreach ($altInfo->alts as $alt => $validated) {
 				if ($validated == 1 && ($showOfflineAlts || $this->buddylistManager->isOnline($alt))) {
 					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
 				}

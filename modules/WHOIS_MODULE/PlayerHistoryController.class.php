@@ -60,7 +60,7 @@ class PlayerHistoryController {
 		} else {
 			$blob = "Date            Level    AI    Faction    Breed     Guild (rank)\n";
 			$blob .= "<highlight>_________________________________________________________________<end>\n";
-			forEach ($history->data as $entry) {
+			foreach ($history->data as $entry) {
 				$date = date("Y-m-d", $entry->last_changed);
 
 				if ($entry->deleted == 1) {

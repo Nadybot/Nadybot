@@ -88,7 +88,7 @@ class ReputationController {
 		}
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$details_link = $this->text->makeChatcmd('Details', "/tell <myname> reputation $row->name");
 			$blob .= "$row->name  <green>+{$row->pos_rep}<end> <orange>-{$row->neg_rep}<end>   {$details_link}\n";
 		}
@@ -185,7 +185,7 @@ class ReputationController {
 
 			$sql = "SELECT * FROM reputation WHERE name = ? ORDER BY `dt` DESC LIMIT ?";
 			$data = $this->db->query($sql, $name, $limit);
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->reputation == '-1') {
 					$blob .= "<orange>";
 				} else {

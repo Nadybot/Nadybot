@@ -102,7 +102,7 @@ class HttpRequest {
 		$path = $this->getRequestPath();
 		$data = strtoupper($this->method) . " $path HTTP/1.0\r\n";
 
-		forEach ($this->getHeaders() as $header => $value) {
+		foreach ($this->getHeaders() as $header => $value) {
 			$data .= "$header: $value\r\n";
 		}
 

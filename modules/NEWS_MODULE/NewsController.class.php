@@ -68,7 +68,7 @@ class NewsController {
 		if (count($data) != 0) {
 			$blob = '';
 			$sticky = "";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($sticky != '') {
 					if ($sticky != $row->sticky) {
 						$blob .= "____________________________\n\n";

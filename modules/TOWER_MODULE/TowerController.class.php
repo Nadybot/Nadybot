@@ -275,7 +275,7 @@ class TowerController {
 		$data = $this->db->query($sql);
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$baseLink = $this->text->makeChatcmd($row->long_name, "/tell <myname> lc $row->short_name");
 			$blob .= "$baseLink <highlight>($row->short_name)<end>\n";
 		}
@@ -305,7 +305,7 @@ class TowerController {
 		$data = $this->db->query($sql, $playfield->id);
 		if (count($data)) {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= "<pagebreak>" . $this->formatSiteInfo($row) . "\n\n";
 			}
 
@@ -358,7 +358,7 @@ class TowerController {
 					dt DESC
 				LIMIT 10";
 			$data = $this->db->query($sql, $playfield->id, $site_number);
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if (empty($row->attack_id)) {
 					// attack
 					if (!empty($row->att_guild_name)) {
@@ -398,7 +398,7 @@ class TowerController {
 				guild_name ASC";
 		$data = $this->db->query($sql);
 		$contractQls = array();
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$contractQls[$row->guild_name] = $row->total_ql;
 		}
 	
@@ -417,7 +417,7 @@ class TowerController {
 		if (count($data) > 0) {
 			$blob = '';
 			$currentGuildName = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->guild_name != $currentGuildName) {
 					$contractQl = $contractQls[$row->guild_name];
 					$contractQl = ($contractQl * 2);
@@ -473,7 +473,7 @@ class TowerController {
 		if (count($data) > 0) {
 			$blob = '';
 			$current_faction = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($current_faction != $row->att_faction) {
 					$blob .= "\n<header2>{$row->att_faction}<end>\n";
 					$current_faction = $row->att_faction;
@@ -682,7 +682,7 @@ class TowerController {
 				num DESC";
 
 		$data = $this->db->query($sql, time() - $time);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "<{$row->att_faction}>{$row->att_faction}<end> have attacked <highlight>{$row->num}<end> times.\n";
 		}
 		if (count($data) > 0) {
@@ -702,7 +702,7 @@ class TowerController {
 				num DESC";
 
 		$data = $this->db->query($sql, time() - $time);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "<{$row->lose_faction}>{$row->lose_faction}<end> have lost <highlight>{$row->num}<end> tower sites.\n";
 		}
 
@@ -848,7 +848,7 @@ class TowerController {
 		$defender->playfield = $playfield;
 		$defender->site      = $closest_site;
 
-		forEach ($this->attackListeners as $listener) {
+		foreach ($this->attackListeners as $listener) {
 			call_user_func($listener->callback, $whois, $defender, $listener->data);
 		}
 
@@ -1024,7 +1024,7 @@ class TowerController {
 			$blob = "The last $page_size Tower Attacks (page $page_label)\n\n";
 			$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
 
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time);
 				$blob .= "Time: " . $this->util->date($row->time) . " (<highlight>$timeString<end> ago)\n";
 				if ($row->att_faction == '') {
@@ -1099,7 +1099,7 @@ class TowerController {
 
 			$blob = "The last $page_size Tower Results (page $page_label)\n\n";
 			$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->victory_time);
 				$blob .= "Time: " . $this->util->date($row->victory_time) . " (<highlight>$timeString<end> ago)\n";
 

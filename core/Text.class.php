@@ -33,7 +33,7 @@ class Text {
 	 */
 	public function makeHeaderLinks($links) {
 		$output = '';
-		forEach ($links as $title => $command) {
+		foreach ($links as $title => $command) {
 			$output .= " ::: " . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . " ::: ";
 		}
 		return $output;
@@ -76,7 +76,7 @@ class Text {
 			return $page;
 		} else {
 			$i = 1;
-			forEach ($pages as $key => $page) {
+			foreach ($pages as $key => $page) {
 				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n";
 				$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
 				$pages[$key] = $page;
@@ -108,7 +108,7 @@ class Text {
 			return $page;
 		} else {
 			$i = 1;
-			forEach ($pages as $key => $page) {
+			foreach ($pages as $key => $page) {
 				if ($i > 1) {
 					$header = "<header>$name (Page $i / $num)<end>\n\n";
 				} else {
@@ -142,7 +142,7 @@ class Text {
 		$symbol = array_shift($symbols);
 
 		$lines = explode($symbol, $input);
-		forEach ($lines as $line) {
+		foreach ($lines as $line) {
 			// retain new lines and spaces in output
 			if ($symbol == "\n" || $symbol == " ") {
 				$line .= $symbol;

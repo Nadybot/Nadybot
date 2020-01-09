@@ -96,7 +96,7 @@ class VoteController {
 		);
 		
 		$data = $this->db->query("SELECT * FROM vote_<myname> WHERE `status` <> ? AND `duration` IS NOT NULL", self::STATUS_ENDED);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->votes[$row->question] = $row;
 		}
 	}
@@ -112,7 +112,7 @@ class VoteController {
 			return;
 		}
 
-		forEach ($this->votes as $key => $row) {
+		foreach ($this->votes as $key => $row) {
 			$author = $row->author;
 			$question = $row->question;
 			$started = $row->started;
@@ -176,7 +176,7 @@ class VoteController {
 	public function voteCommand($message, $channel, $sender, $sendto, $args) {
 		$data = $this->db->query("SELECT * FROM $this->table WHERE `duration` IS NOT NULL ORDER BY `started`");
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$question = $row->question;
 				$started = $row->started;
 				$duration = $row->duration;
@@ -401,7 +401,7 @@ class VoteController {
 		}
 		
 		$results = array();
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->duration) {
 				$question = $row->question;
 				$author = $row->author;
@@ -421,7 +421,7 @@ class VoteController {
 			} else {
 				// Main topic: $answer = "yes;no";
 				$ans = explode($this->delimiter, $answer);
-				forEach ($ans as $value) {
+				foreach ($ans as $value) {
 					if (!isset($results[$value])) {
 						$results[$value] = 0;
 					}
@@ -436,7 +436,7 @@ class VoteController {
 			$blob .= "<red>This vote has ended " . $this->util->unixtimeToReadable(time() - ($started + $duration), 1) . " ago.<end>\n\n";
 		}
 
-		forEach ($results as $key => $value) {
+		foreach ($results as $key => $value) {
 			if ($totalresults == 0) {
 				$val = 0;
 			} else {

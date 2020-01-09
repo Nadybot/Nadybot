@@ -119,7 +119,7 @@ class WhoisOrgController {
 		$lvl_max = 1;
 
 		$num_members = count($org->members);
-		forEach ($org->members as $member) {
+		foreach ($org->members as $member) {
 			if ($member->guild_rank_id == 0) {
 				$president_name = $member->name;
 				$president_prof = $member->profession;

@@ -65,7 +65,7 @@ class WhompahController {
 		$data = $this->db->query($sql);
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$cityLink = $this->text->makeChatcmd($row->short_name, "/tell <myname> whompah {$row->short_name}");
 			$blob .= "{$row->city_name} ({$cityLink})\n";
 		}
@@ -161,7 +161,7 @@ class WhompahController {
 			return $currentWhompah;
 		}
 
-		forEach ($whompahs[$currentWhompah->id]->connections as $city2Id) {
+		foreach ($whompahs[$currentWhompah->id]->connections as $city2Id) {
 			if ($whompahs[$city2Id]->visited !== true) {
 				$whompahs[$city2Id]->visited = true;
 				$nextWhompah = new stdClass;
@@ -186,7 +186,7 @@ class WhompahController {
 
 		$sql = "SELECT * FROM `whompah_cities`";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$whompahs[$row->id] = $row;
 			$whompahs[$row->id]->connections = array();
 			$whompahs[$row->id]->visited = false;
@@ -194,7 +194,7 @@ class WhompahController {
 
 		$sql = "SELECT city1_id, city2_id FROM whompah_cities_rel";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$whompahs[$row->city1_id]->connections[] = $row->city2_id;
 		}
 

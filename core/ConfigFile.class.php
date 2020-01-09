@@ -44,7 +44,7 @@ class ConfigFile {
 		$vars = $this->vars;
 		$this->copyFromTemplateIfNeeded();
 		$lines = file($this->filePath);
-		forEach ($lines as $key => $line) {
+		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
 				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]\"{$vars[$arr[3]]}\";$arr[8]";
 				unset($vars[$arr[3]]);
@@ -60,7 +60,7 @@ class ConfigFile {
 		// file or in template file then add them at end of the config file
 		if (!empty($vars)) {
 			$lines []= "<?php\n";
-			forEach ($vars as $name => $value) {
+			foreach ($vars as $name => $value) {
 				if (is_string($value)) {
 					$lines []= "\$vars['$name'] = \"$value\";\n";
 				} else {

@@ -72,7 +72,7 @@ class OrgMembersController {
 		$blob = '';
 
 		$currentLetter = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($currentLetter != $row->name[0]) {
 				$currentLetter = $row->name[0];
 				$blob .= "\n\n<header2>$currentLetter<end>\n";

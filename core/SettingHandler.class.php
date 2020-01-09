@@ -54,12 +54,12 @@ class SettingHandler {
 		if ($options) {
 			$msg = "Predefined Options:\n";
 			if ($intoptions) {
-				forEach ($options_map as $key => $label) {
+				foreach ($options_map as $key => $label) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
 					$msg .= "<tab> <highlight>{$label}<end> ({$save_link})\n";
 				}
 			} else {
-				forEach ($options as $char) {
+				foreach ($options as $char) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$char}");
 					$msg .= "<tab> <highlight>{$char}<end> ({$save_link})\n";
 				}

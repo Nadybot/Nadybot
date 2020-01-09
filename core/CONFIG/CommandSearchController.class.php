@@ -81,7 +81,7 @@ class CommandSearchController {
 	public function filterResultsByAccessLevel($sender, $data) {
 		$results = array();
 		$charAccessLevel = $this->accessManager->getSingleAccessLevel($sender);
-		forEach ($data as $key => $row) {
+		foreach ($data as $key => $row) {
 			if ($this->accessManager->compareAccessLevels($charAccessLevel, $row->admin) >= 0) {
 				$results []= $row;
 			}
@@ -96,13 +96,13 @@ class CommandSearchController {
 		}
 		$data = $this->db->query($sqlquery);
 
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$keywords = array($row->cmd);
 			$keywords = array_unique($keywords);
 			$row->distance = 0;
-			forEach ($wordArray as $searchWord) {
+			foreach ($wordArray as $searchWord) {
 				$distance = 9999;
-				forEach ($keywords as $keyword) {
+				foreach ($keywords as $keyword) {
 					$distance = min($distance, levenshtein($keyword, $searchWord));
 				}
 				$row->distance += $distance;
@@ -125,7 +125,7 @@ class CommandSearchController {
 
 	public function render($results, $hasAccess, $exactMatch) {
 		$blob = '';
-		forEach ($results as $row) {
+		foreach ($results as $row) {
 			if ($row->help != '') {
 				$helpLink = ' (' . $this->text->makeChatcmd("Help", "/tell <myname> help $row->cmd") . ')';
 			}

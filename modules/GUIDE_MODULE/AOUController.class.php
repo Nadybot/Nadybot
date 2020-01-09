@@ -137,13 +137,13 @@ class AOUController {
 		$sections = $dom->getElementsByTagName('section');
 		$blob = '';
 		$count = 0;
-		forEach ($sections as $section) {
+		foreach ($sections as $section) {
 			$category = $this->getSearchResultCategory($section);
 		
 			$guides = $section->getElementsByTagName('guide');
 			$tempBlob = '';
 			$found = false;
-			forEach ($guides as $guide) {
+			foreach ($guides as $guide) {
 				$guideObj = $this->getGuideObject($guide);
 				// since aou returns guides that have keywords in the guide body, we filter the results again
 				// to only include guides that contain the keywords in the category, name, or description
@@ -180,7 +180,7 @@ class AOUController {
 	}
 	
 	private function striposarray($haystack, $needles) {
-		forEach ($needles as $needle) {
+		foreach ($needles as $needle) {
 			if (stripos($haystack, $needle) === false) {
 				return false;
 			}
@@ -191,7 +191,7 @@ class AOUController {
 	private function getSearchResultCategory($section) {
 		$folders = $section->getElementsByTagName('folder');
 		$output = array();
-		forEach ($folders as $folder) {
+		foreach ($folders as $folder) {
 			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue;
 		}
 		return implode(" - ", array_reverse($output));
@@ -223,7 +223,7 @@ class AOUController {
 	private function replaceWaypoint($arr) {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
-		forEach ($params as $param) {
+		foreach ($params as $param) {
 			list($name, $value) = explode("=", $param);
 			$$name = $value;
 		}
@@ -260,7 +260,7 @@ class AOUController {
 		$matches = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
-		forEach ($matches as $match) {
+		foreach ($matches as $match) {
 			$output .= $this->processTag($match);
 		}
 

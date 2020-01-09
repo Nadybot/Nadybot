@@ -106,7 +106,7 @@ class FindOrgController {
 	
 	public function formatResults($orgs) {
 		$blob = '';
-		forEach ($orgs as $row) {
+		foreach ($orgs as $row) {
 			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$row->id}");
 			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$row->id}");
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$row->id}");
@@ -126,7 +126,7 @@ class FindOrgController {
 		try {
 			$this->db->beginTransaction();
 			$this->db->exec("DELETE FROM organizations");
-			forEach ($this->searches as $search) {
+			foreach ($this->searches as $search) {
 				$response = $this->http->get($url)->withQueryParams(array('l' => $search))->waitAndReturnResponse();
 			
 				$pattern = '@<tr>\s*'.
@@ -143,7 +143,7 @@ class FindOrgController {
 					'</tr>@s';
 
 				preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
-				forEach ($arr as $match) {
+				foreach ($arr as $match) {
 					$obj = new stdClass;
 					//$obj->server = $match[1]; unused
 					$obj->id = $match[2];

@@ -133,7 +133,7 @@ class OrglistController {
 		$whois = $this->playerManager->getByName($name);
 		if ($whois !== null && $whois->guild_id != 0) {
 			$found = false;
-			forEach ($orgs as $org) {
+			foreach ($orgs as $org) {
 				if ($org->id == $whois->guild_id) {
 					$found = true;
 					break;
@@ -180,7 +180,7 @@ class OrglistController {
 
 		// Check each name if they are already on the buddylist (and get online status now)
 		// Or make note of the name so we can add it to the buddylist later.
-		forEach ($org->members as $member) {
+		foreach ($org->members as $member) {
 			// Writing the whois info for all names
 			// Name (Level 1/1, Sex Breed Profession)
 			$thismember  = '<highlight>'.$member->name.'<end>';
@@ -213,8 +213,8 @@ class OrglistController {
 	public function getOrgGoverningForm($members) {
 		$governingForm = '';
 		$forms = $this->orgrankmap;
-		forEach ($members as $member) {
-			forEach ($forms as $name => $ranks) {
+		foreach ($members as $member) {
+			foreach ($forms as $name => $ranks) {
 				if ($ranks[$member->guild_rank_id] != $member->guild_rank) {
 					unset($forms[$name]);
 				}
@@ -232,7 +232,7 @@ class OrglistController {
 	}
 	
 	public function checkOnline($members) {
-		forEach ($members as $member) {
+		foreach ($members as $member) {
 			$buddy_online_status = $this->buddylistManager->isOnline($member->name);
 			if ($buddy_online_status !== null) {
 				$this->orglist["result"][$member->name]["online"] = $buddy_online_status;
@@ -248,7 +248,7 @@ class OrglistController {
 	}
 	
 	public function addOrgMembersToBuddylist() {
-		forEach ($this->orglist["check"] as $name => $value) {
+		foreach ($this->orglist["check"] as $name => $value) {
 			if (!$this->checkBuddylistSize()) {
 				break;
 			}
@@ -266,7 +266,7 @@ class OrglistController {
 		$this->orglist["sendto"]->reply($msg);
 
 		// in case it was ended early
-		forEach ($this->orglist["added"] as $name => $value) {
+		foreach ($this->orglist["added"] as $name => $value) {
 			$this->buddylistManager->remove($name, 'onlineorg');
 		}
 		unset($this->orglist);
@@ -277,7 +277,7 @@ class OrglistController {
 
 		$totalonline = 0;
 		$totalcount = count($memberlist["result"]);
-		forEach ($memberlist["result"] as $amember) {
+		foreach ($memberlist["result"] as $amember) {
 			$newlist[$amember["rank_id"]][] = $amember["name"];
 		}
 

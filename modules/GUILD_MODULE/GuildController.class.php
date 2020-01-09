@@ -137,7 +137,7 @@ class GuildController {
 			FROM org_members_<myname> o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>' AND p.guild = '<myguild>')
 			WHERE mode != 'del'";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->chatBot->guildmembers[$row->name] = $row->guild_rank_id;
 		}
 	}
@@ -224,7 +224,7 @@ class GuildController {
 			$onlineAlts = $altInfo->getOnlineAlts();
 
 			$blob = "";
-			forEach ($onlineAlts as $onlineAlt) {
+			foreach ($onlineAlts as $onlineAlt) {
 				$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
 			}
 			
@@ -233,7 +233,7 @@ class GuildController {
 			}, $altInfo->getAllAlts()));
 			$data = $this->db->query("SELECT * FROM org_members_<myname> WHERE `name` IN ($namesSql) AND `mode` != 'del' ORDER BY logged_off DESC");
 
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if (in_array($row->name, $onlineAlts)) {
 					// skip
 					continue;
@@ -294,7 +294,7 @@ class GuildController {
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
 		
 		$prevtoon = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->main != $prevtoon) {
 				$prevtoon = $row->main;
 				$numrecentcount++;
@@ -418,7 +418,7 @@ class GuildController {
 				$restart = true;
 			} else {
 				$restart = false;
-				forEach ($data as $row) {
+				foreach ($data as $row) {
 					$dbentrys[$row->name]["name"] = $row->name;
 					$dbentrys[$row->name]["mode"] = $row->mode;
 				}
@@ -429,7 +429,7 @@ class GuildController {
 			$this->db->beginTransaction();
 
 			// Going through each member of the org and add or update his/her
-			forEach ($org->members as $member) {
+			foreach ($org->members as $member) {
 				// don't do anything if $member is the bot itself
 				if (strtolower($member->name) == strtolower($this->chatBot->vars["name"])) {
 					continue;
@@ -465,7 +465,7 @@ class GuildController {
 			$this->db->commit();
 
 			// remove buddies who are no longer org members
-			forEach ($dbentrys as $buddy) {
+			foreach ($dbentrys as $buddy) {
 				if ($buddy['mode'] != 'add') {
 					$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $buddy['name']);
 					$this->db->exec("DELETE FROM org_members_<myname> WHERE `name` = ?", $buddy['name']);
@@ -652,7 +652,7 @@ class GuildController {
 	}
 	
 	public function getOrgChannelIdByOrgId($orgId) {
-		forEach ($this->chatBot->grp as $gid => $status) {
+		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr($gid, 1));
 			if (ord(substr($gid, 0, 1)) == 3 && $string[1] == $orgId) {
 				return $gid;

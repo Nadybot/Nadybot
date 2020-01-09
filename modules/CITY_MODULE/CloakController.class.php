@@ -98,7 +98,7 @@ class CloakController {
 			$list .= "Action: <highlight>Cloaking device turned " . $row->action . "<end>\n";
 			$list .= "Character: <highlight>" . $row->player . "<end>\n\n";
 
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$list .= "Time: <highlight>" . $this->util->date($row->time) . "<end>\n";
 				$list .= "Action: <highlight>Cloaking device turned " . $row->action . "<end>\n";
 				$list .= "Character: <highlight>" . $row->player . "<end>\n\n";
@@ -188,7 +188,7 @@ class CloakController {
 				if ($msg) {
 					// send message to all online alts
 					$altInfo = $this->altsController->getAltInfo($row->player);
-					forEach ($altInfo->getOnlineAlts() as $name) {
+					foreach ($altInfo->getOnlineAlts() as $name) {
 						$this->chatBot->sendTell($msg, $name);
 					}
 				}

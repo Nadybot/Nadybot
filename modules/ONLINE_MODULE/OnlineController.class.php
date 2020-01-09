@@ -174,7 +174,7 @@ class OnlineController {
 		$currentMain = "";
 
 		if ($count > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($currentMain != $row->pmain) {
 					$mainCount++;
 					$blob .= "\n<highlight>$row->pmain<end> has\n";
@@ -247,7 +247,7 @@ class OnlineController {
 			$guildArray = array();
 			$privArray = array();
 
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				switch ($row->channel_type) {
 					case 'guild':
 						$guildArray []= $row->name;
@@ -262,7 +262,7 @@ class OnlineController {
 
 			$time = time();
 
-			forEach ($this->chatBot->guildmembers as $name => $rank) {
+			foreach ($this->chatBot->guildmembers as $name => $rank) {
 				if ($this->buddylistManager->isOnline($name)) {
 					if (in_array($name, $guildArray)) {
 						$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'guild'";
@@ -274,7 +274,7 @@ class OnlineController {
 				}
 			}
 
-			forEach ($this->chatBot->chatlist as $name => $value) {
+			foreach ($this->chatBot->chatlist as $name => $value) {
 				if (in_array($name, $privArray)) {
 					$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'priv'";
 					$this->db->exec($sql, $time, $name);
@@ -478,7 +478,7 @@ class OnlineController {
 		$separator = "-";
 
 		if ($count > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($currentMain != $row->pmain) {
 					$mainCount++;
 					$blob .= "\n<pagebreak><highlight>$row->pmain<end> on\n";

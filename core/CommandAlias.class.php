@@ -42,7 +42,7 @@ class CommandAlias {
 		$this->logger->log('DEBUG', "Loading enabled command aliases");
 
 		$data = $this->db->query("SELECT cmd, alias FROM cmd_alias_<myname> WHERE status = 1");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->activate($row->cmd, $row->alias);
 		}
 	}

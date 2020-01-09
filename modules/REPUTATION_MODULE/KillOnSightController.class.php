@@ -81,7 +81,7 @@ class KillOnSightController {
 			$msg = "There are no characters on the KOS list.";
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$comment = "";
 				if (!empty($row->comment)) {
 					$comment = " - $row->comment";

@@ -143,7 +143,7 @@ class EventsController {
 			// cannot leave an event after 3 hours past its starttime
 			if (strpos($row->event_attendees, $sender) !== false) {
 				$event = explode(",", $row->event_attendees);
-				forEach ($event as $i => $value) {
+				foreach ($event as $i => $value) {
 					if ($value == $sender) {
 						unset($event[$i]);
 						$event = array_values($event);
@@ -177,7 +177,7 @@ class EventsController {
 			} else {
 				$eventlist = explode(",", $row->event_attendees);
 				sort($eventlist);
-				forEach ($eventlist as $key => $name) {
+				foreach ($eventlist as $key => $name) {
 					$row = $this->db->queryRow("SELECT * FROM players WHERE name = ? AND dimension = '<dim>'", $name);
 					$info = '';
 					if ($row !== null) {
@@ -275,7 +275,7 @@ class EventsController {
 			$upcoming_title = "<header2>Upcoming Events<end>\n\n";
 			$past_title = "<header2>Past Events<end>\n\n";
 			$updated = 0;
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($row->event_attendees == '') {
 					$attendance = 0;
 				} else {

@@ -76,7 +76,7 @@ class ImplantDesignerController extends AutoInject {
 		$blob .= $this->text->makeChatcmd("Clear All", "/tell <myname> implantdesigner clear");
 		$blob .= "\n-----------------\n\n";
 
-		forEach ($this->slots as $slot) {
+		foreach ($this->slots as $slot) {
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
 			if (!empty($design->$slot)) {
 				$blob .= $this->getImplantSummary($design->$slot);
@@ -101,7 +101,7 @@ class ImplantDesignerController extends AutoInject {
 			}
 			$msg .= "\n";
 			
-			forEach ($this->grades as $grade) {
+			foreach ($this->grades as $grade) {
 				if (empty($slotObj->$grade)) {
 					$msg .= "<tab><highlight>-Empty-<end>\n";
 				} else {
@@ -181,7 +181,7 @@ class ImplantDesignerController extends AutoInject {
 		$blob .= $this->text->makeChatcmd("Require Ability", "/tell <myname> implantdesigner $slot require");
 		$blob .= "\n-------------------------\n";
 		$blob .= "<header2>Implants<end>  ";
-		forEach (array(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300) as $ql) {
+		foreach (array(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300) as $ql) {
 			$blob .= $this->text->makeChatcmd($ql, "/tell <myname> implantdesigner $slot $ql") . " ";
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
@@ -196,11 +196,11 @@ class ImplantDesignerController extends AutoInject {
 			$blob .= "<header2>Requirements<end>\n";
 			$blob .= "Treatment: {$symb->Treatment}\n";
 			$blob .= "Level: {$symb->Level}\n";
-			forEach ($symb->reqs as $req) {
+			foreach ($symb->reqs as $req) {
 				$blob .= "{$req->Name}: {$req->Amount}\n";
 			}
 			$blob .= "\n<header2>Modifications<end>\n";
-			forEach ($symb->mods as $mod) {
+			foreach ($symb->mods as $mod) {
 				$blob .= "{$mod->Name}: {$mod->Amount}\n";
 			}
 			$blob .= "\n\n";
@@ -245,7 +245,7 @@ class ImplantDesignerController extends AutoInject {
 		$msg .= "\n";
 		$msg .= $this->text->makeChatcmd("-Empty-", "/tell <myname> implantdesigner $slot $grade clear") . "\n";
 		$data = $this->getClustersForSlot($slot, $grade);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$msg .= $this->text->makeChatcmd($row->skill, "/tell <myname> implantdesigner $slot $grade $row->skill") . "\n";
 		}
 		$msg .= "\n\n";
@@ -402,7 +402,7 @@ class ImplantDesignerController extends AutoInject {
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Which ability do you want to require for $slot?\n\n";
 			$data = $this->db->query("SELECT Name FROM Ability");
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd($row->Name, "/tell <myname> implantdesigner $slot require $row->Name") . "\n";
 			}
 			$msg = $this->text->makeBlob("Implant Designer Require Ability ($slot)", $blob);
@@ -480,7 +480,7 @@ class ImplantDesignerController extends AutoInject {
 
 			$data = $this->db->query($sql, $params);
 			$primary = null;
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$results = [];
 				if (empty($slotObj->shiny)) {
 					$results []= ['shiny', $row->ShinyEffect];
@@ -529,7 +529,7 @@ class ImplantDesignerController extends AutoInject {
 		$implants = array();
 		$clusters = array();
 		
-		forEach ($this->slots as $slot) {
+		foreach ($this->slots as $slot) {
 			$slotObj = $design->$slot;
 			
 			// skip empty slots
@@ -547,14 +547,14 @@ class ImplantDesignerController extends AutoInject {
 				if ($symb->Level > $reqs['Level']) {
 					$reqs['Level'] = $symb->Level;
 				}
-				forEach ($symb->reqs as $req) {
+				foreach ($symb->reqs as $req) {
 					if ($req->Amount > $reqs[$req->Name]) {
 						$reqs[$req->Name] = $req->Amount;
 					}
 				}
 				
 				// add mods
-				forEach ($symb->mods as $mod) {
+				foreach ($symb->mods as $mod) {
 					$mods[$mod->Name] += $mod->Amount;
 				}
 			} else {
@@ -579,7 +579,7 @@ class ImplantDesignerController extends AutoInject {
 				$implants []= $obj;
 				
 				// add mods
-				forEach ($this->grades as $grade) {
+				foreach ($this->grades as $grade) {
 					if (!empty($slotObj->$grade)) {
 						$effectTypeIdName = ucfirst(strtolower($grade)) . 'EffectTypeID';
 						$effectId = $implant->$effectTypeIdName;
@@ -617,25 +617,25 @@ class ImplantDesignerController extends AutoInject {
 		$blob .= "\n---------\n\n";
 		
 		$blob .= "<header2>Requirements to Equip<end>\n";
-		forEach ($reqs as $requirement => $amount) {
+		foreach ($reqs as $requirement => $amount) {
 			$blob .= "$requirement: <highlight>$amount<end>\n";
 		}
 		$blob .= "\n";
 		
 		$blob .= "<header2>Skills Gained<end>\n";
-		forEach ($mods as $skill => $amount) {
+		foreach ($mods as $skill => $amount) {
 			$blob .= "$skill: <highlight>$amount<end>\n";
 		}
 		$blob .= "\n";
 		
 		$blob .= "<header2>Basic Implants Needed<end>\n";
-		forEach ($implants as $implant) {
+		foreach ($implants as $implant) {
 			$blob .= "<highlight>$implant->slot<end> ($implant->ql)\n";
 		}
 		$blob .= "\n";
 		
 		$blob .= "<header2>Clusters Needed<end>\n";
-		forEach ($clusters as $cluster) {
+		foreach ($clusters as $cluster) {
 			$blob .= "<highlight>{$cluster->name}<end>, {$cluster->grade} ({$cluster->ql}+)\n";
 		}
 		

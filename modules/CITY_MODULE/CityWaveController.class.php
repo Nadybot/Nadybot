@@ -93,7 +93,7 @@ class CityWaveController {
 		if (count($alertTimes) != 9) {
 			throw new Exception("Error saving setting: must have 9 spawn times. For more info type !help city_wave_times.");
 		}
-		forEach ($alertTimes as $alertTime) {
+		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			if ($time == 0) {
 				// invalid time
@@ -175,7 +175,7 @@ class CityWaveController {
 		$wave = 1;
 		$alerts = array();
 		$alertTimes = explode(' ', $this->setting->city_wave_times);
-		forEach ($alertTimes as $alertTime) {
+		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;
 

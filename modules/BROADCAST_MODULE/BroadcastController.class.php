@@ -87,7 +87,7 @@ class BroadcastController {
 		//Upload broadcast bots to memory
 		$data = $this->db->query("SELECT * FROM broadcast_<myname>");
 		$this->broadcastList = array();
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->broadcastList[$row->name] = $row;
 		}
 	}
@@ -101,7 +101,7 @@ class BroadcastController {
 
 		$sql = "SELECT * FROM broadcast_<myname> ORDER BY dt DESC";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> <symbol>broadcast rem $row->name");
 			$dt = $this->util->date($row->dt);
 			$blob .= "<highlight>{$row->name}<end> [added by {$row->added_by}] {$dt} {$remove}\n";

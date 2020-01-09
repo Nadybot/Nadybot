@@ -887,7 +887,7 @@ class LootListsController {
 		}
 
 		$blob = "\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "<pagebreak>";
 			if ($row->lowid) {
 				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, "<img src=rdb://{$row->icon}>");

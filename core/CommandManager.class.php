@@ -118,7 +118,7 @@ class CommandManager {
 			return;
 		}
 
-		forEach (explode(',', $filename) as $handler) {
+		foreach (explode(',', $filename) as $handler) {
 			list($name, $method) = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
 				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
@@ -177,7 +177,7 @@ class CommandManager {
 
 		$this->logger->log('DEBUG', "Activate Command:($command) Admin Type:($accessLevel) File:($filename) Channel:($channel)");
 
-		forEach (explode(',', $filename) as $handler) {
+		foreach (explode(',', $filename) as $handler) {
 			list($name, $method) = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
 				$this->logger->log('ERROR', "Error activating method $handler for command $command.  Could not find instance '$name'.");
@@ -251,7 +251,7 @@ class CommandManager {
 			return 0;
 		}
 
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($status == 1) {
 				$this->activate($row->type, $row->file, $row->cmd, $admin);
 			} elseif ($status == 0) {
@@ -271,7 +271,7 @@ class CommandManager {
 		$this->logger->log('DEBUG', "Loading enabled commands");
 
 		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'cmd'");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->activate($row->type, $row->file, $row->cmd, $row->admin);
 		}
 	}
@@ -421,7 +421,7 @@ class CommandManager {
 	public function callCommandHandler($commandHandler, $message, $channel, $sender, CommandReply $sendto) {
 		$successfulHandler = null;
 
-		forEach (explode(',', $commandHandler->file) as $handler) {
+		foreach (explode(',', $commandHandler->file) as $handler) {
 			list($name, $method) = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
@@ -457,7 +457,7 @@ class CommandManager {
 	public function getActiveCommandHandler($cmd, $channel, $message) {
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
-			forEach ($this->subcommandManager->subcommands[$cmd] as $row) {
+			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
 				if ($row->type == $channel && preg_match("/^{$row->cmd}$/i", $message)) {
 					return $row;
 				}
@@ -511,7 +511,7 @@ class CommandManager {
 		$regexes = $this->retrieveRegexes($reflectedMethod);
 
 		if (count($regexes) > 0) {
-			forEach ($regexes as $regex) {
+			foreach ($regexes as $regex) {
 				if (preg_match($regex, $message, $arr)) {
 					return $arr;
 				}
@@ -531,7 +531,7 @@ class CommandManager {
 	public function retrieveRegexes($reflectedMethod) {
 		$regexes = array();
 		if ($reflectedMethod->hasAnnotation('Matches')) {
-			forEach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
+			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
 				$regexes []= $annotation->value;
 			}
 		}

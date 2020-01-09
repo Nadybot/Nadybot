@@ -145,7 +145,7 @@ class ShoppingController {
 			$msg = "No results were found matching your search criteria.";
 		} else {
 			$blob = '';
-			forEach ($results as $result) {
+			foreach ($results as $result) {
 				$senderLink = $this->text->makeUserlink($result->sender);
 				$timeString = $this->util->unixtimeToReadable(time() - $result->time, false);
 				$post = preg_replace('|<a href="itemref://(\d+)/(\d+)/(\d+)">([^<]+)</a>|', "<a href='itemref://\\1/\\2/\\3'>\\4</a>", $result->message);
@@ -270,7 +270,7 @@ class ShoppingController {
 		$this->db->exec($sql, $messageType, $channel, $sender, time(), $message);
 		$id = $this->db->lastInsertId();
 		
-		forEach ($matches as $match) {
+		foreach ($matches as $match) {
 			$lowid = $match[1];
 			$highid = $match[2];
 			$ql = $match[3];
@@ -300,7 +300,7 @@ class ShoppingController {
 	
 	private function parseSpambotMessage($eventObj) {
 		$arr = $this->parseSpamMessage($eventObj->message);
-		forEach ($arr as $entry) {
+		foreach ($arr as $entry) {
 			$channel = $entry[1];
 			$text = $entry[2];
 			$sender = $entry[3];

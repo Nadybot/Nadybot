@@ -73,14 +73,14 @@ class GuildManager {
 		$guild->orgside	= $orgInfo->SIDE_NAME;
 
 		// pre-fetch the charids...this speeds things up immensely
-		forEach ($members as $member) {
+		foreach ($members as $member) {
 			$name = $member->NAME;
 			if (!isset($this->chatBot->id[$name])) {
 				$this->chatBot->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name));
 			}
 		}
 
-		forEach ($members as $member) {
+		foreach ($members as $member) {
 			$name = $member->NAME;
 			$charid = $this->chatBot->get_uid($name);
 			if ($charid == null) {
@@ -120,7 +120,7 @@ class GuildManager {
 			$sql = "UPDATE players SET guild_id = 0, guild = '' WHERE guild_id = ? AND dimension = ?";
 			$this->db->exec($sql, $guild->guild_id, $rk_num);
 
-			forEach ($guild->members as $member) {
+			foreach ($guild->members as $member) {
 				$this->playerManager->update($member);
 			}
 

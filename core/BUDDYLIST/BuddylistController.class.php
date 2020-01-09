@@ -58,7 +58,7 @@ class BuddylistController {
 			$msg = "There are no players on the buddy list.";
 		} else {
 			$count = 0;
-			forEach ($this->getSortedBuddyList() as $value) {
+			foreach ($this->getSortedBuddyList() as $value) {
 				if (!isset($value['name'])) {
 					// skip the characters that have been added but the server hasn't sent back an update yet
 					continue;
@@ -119,7 +119,7 @@ class BuddylistController {
 	 * @Matches("/^buddylist rem all$/i")
 	 */
 	public function buddylistRemAllCommand($message, $channel, $sender, $sendto, $args) {
-		forEach ($this->buddylistManager->buddyList as $uid => $buddy) {
+		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
 
@@ -156,7 +156,7 @@ class BuddylistController {
 		} else {
 			$count = 0;
 			$blob = "Buddy list Search: '{$search}'\n\n";
-			forEach ($this->getSortedBuddyList() as $value) {
+			foreach ($this->getSortedBuddyList() as $value) {
 				$removed = '';
 				if (preg_match("/$search/i", $value['name'])) {
 					$count++;

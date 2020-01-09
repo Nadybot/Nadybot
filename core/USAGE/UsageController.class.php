@@ -109,7 +109,7 @@ class UsageController {
 
 		if ($count > 0) {
 			$blob .= '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= "<highlight>{$row->command}<end> ({$row->count})\n";
 			}
 
@@ -149,7 +149,7 @@ class UsageController {
 
 		if ($count > 0) {
 			$blob .= '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= "<highlight>{$row->sender}<end> ({$row->count})\n";
 			}
 
@@ -187,7 +187,7 @@ class UsageController {
 		$data = $this->db->query($sql, $time);
 		
 		$blob = "<header2>Channel Usage<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->type == "msg") {
 				$blob .= "Number of commands executed in tells: <highlight>$row->cnt<end>\n";
 			} elseif ($row->type == "priv") {
@@ -203,7 +203,7 @@ class UsageController {
 		$data = $this->db->query($sql, $time, $limit);
 
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$commandLink = $this->text->makeChatcmd($row->command, "/tell <myname> usage cmd $row->command");
 			$blob .= "{$commandLink} ({$row->count})\n";
 		}
@@ -213,7 +213,7 @@ class UsageController {
 		$data = $this->db->query($sql, $time, $limit);
 
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$senderLink = $this->text->makeChatcmd($row->sender, "/tell <myname> usage player $row->sender");
 			$blob .= "{$senderLink} ({$row->count})\n";
 		}

@@ -76,12 +76,12 @@ class InactiveMemberController {
 
 		$blob = "Org members who have not logged off since <highlight>{$timeString}<end> ago.\n\n";
 
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$logged = 0;
 			$main = $row->main;
 			if ($row->main != "") {
 				$data1 = $this->db->query("SELECT * FROM alts a JOIN org_members_<myname> o ON a.alt = o.name WHERE `main` = ?", $row->main);
-				forEach ($data1 as $row1) {
+				foreach ($data1 as $row1) {
 					if ($row1->logged_off > $time) {
 						continue 2;
 					}

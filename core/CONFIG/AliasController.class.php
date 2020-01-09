@@ -61,7 +61,7 @@ class AliasController {
 	
 		$commands = $this->commandManager->get($alias);
 		$enabled = false;
-		forEach ($commands as $command) {
+		foreach ($commands as $command) {
 			if ($command->status == 1) {
 				$enabled = true;
 				break;
@@ -96,7 +96,7 @@ class AliasController {
 		$a = $this->padRow("Alias", $paddingSize);
 		$blob = "<header2>{$a}Command<end>\n\n";
 		$count = 0;
-		forEach ($this->commandAlias->getEnabledAliases() as $alias) {
+		foreach ($this->commandAlias->getEnabledAliases() as $alias) {
 			if ($count++ % 2 == 0) {
 				$color = "white";
 			} else {

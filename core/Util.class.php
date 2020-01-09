@@ -59,7 +59,7 @@ class Util {
 		];
 
 		$timeshift = '';
-		forEach ($units as $unit => $seconds) {
+		foreach ($units as $unit => $seconds) {
 			if ($time > 0) {
 				$length = floor($time / $seconds);
 			} else {
@@ -93,7 +93,7 @@ class Util {
 		$pattern = '/([0-9]+)([a-z]+)/';
 		preg_match_all($pattern, $budatime, $matches, PREG_SET_ORDER);
 
-		forEach ($matches as $match) {
+		foreach ($matches as $match) {
 			switch ($match[2]) {
 				case 'y':
 				case 'yr':
@@ -324,7 +324,7 @@ class Util {
 		$filename = str_replace("\\", "/", $filename);
 
 		//check if the file exists
-		forEach (array_reverse($this->chatBot->vars['module_load_paths']) as $modulePath) {
+		foreach (array_reverse($this->chatBot->vars['module_load_paths']) as $modulePath) {
 			if (file_exists("$modulePath/$filename")) {
 				return "$modulePath/$filename";
 			}
@@ -418,7 +418,7 @@ class Util {
 		$trace = debug_backtrace();
 		$arr1 = array();
 		$arr2 = array();
-		forEach ($trace as $obj) {
+		foreach ($trace as $obj) {
 			$file = str_replace(getcwd(), "", $obj['file']);
 			$arr1 []= "{$file}({$obj['line']})";
 			$arr2 []= "{$obj['function']}()";
@@ -494,7 +494,7 @@ class Util {
 	public function generateQueryFromParams($params, $column) {
 		$queryParams = array();
 		$first = true;
-		forEach ($params as $key => $value) {
+		foreach ($params as $key => $value) {
 			if ($value[0] == "-" && strlen($value) > 1) {
 				$value = substr($value, 1);
 				$op = "NOT LIKE";
@@ -588,7 +588,7 @@ class Util {
 	 */
 	public function mapFilterCombine($arr, $glue, $func) {
 		$newArr = array();
-		forEach ($arr as $key => $value) {
+		foreach ($arr as $key => $value) {
 			$result = call_user_func($func, $key, $value);
 			if ($result !== null) {
 				$newArr []= $result;

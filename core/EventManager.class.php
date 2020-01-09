@@ -182,7 +182,7 @@ class EventManager {
 	public function activateIfDeactivated($obj) {
 		$eventMethods = func_get_args();
 		array_shift($eventMethods);
-		forEach ($eventMethods as $eventMethod) {
+		foreach ($eventMethods as $eventMethod) {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
 			if ($type !== null) {
@@ -208,7 +208,7 @@ class EventManager {
 	public function deactivateIfActivated($obj) {
 		$eventMethods = func_get_args();
 		array_shift($eventMethods);
-		forEach ($eventMethods as $eventMethod) {
+		foreach ($eventMethods as $eventMethod) {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
 			if ($type !== null) {
@@ -233,7 +233,7 @@ class EventManager {
 	}
 
 	public function getKeyForCronEvent($time, $filename) {
-		forEach ($this->cronevents as $key => $event) {
+		foreach ($this->cronevents as $key => $event) {
 			if ($time == $event['time'] && $event['filename'] == $filename) {
 				return $key;
 			}
@@ -249,7 +249,7 @@ class EventManager {
 		$this->logger->log('DEBUG', "Loading enabled events");
 
 		$data = $this->db->query("SELECT * FROM eventcfg_<myname> WHERE `status` = '1'");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->activate($row->type, $row->file);
 		}
 	}
@@ -267,7 +267,7 @@ class EventManager {
 		$this->lastCronTime = $time;
 
 		$this->logger->log('DEBUG', "Executing cron events at '$time'");
-		forEach ($this->cronevents as $key => $event) {
+		foreach ($this->cronevents as $key => $event) {
 			if ($this->cronevents[$key]['nextevent'] <= $time) {
 				$this->logger->log('DEBUG', "Executing cron event '${event['filename']}'");
 
@@ -320,7 +320,7 @@ class EventManager {
 
 	public function fireEvent($eventObj) {
 		if (isset($this->events[$eventObj->type])) {
-			forEach ($this->events[$eventObj->type] as $filename) {
+			foreach ($this->events[$eventObj->type] as $filename) {
 				$this->callEventHandler($eventObj, $filename);
 			}
 		}

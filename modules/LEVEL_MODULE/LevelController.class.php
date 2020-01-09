@@ -94,7 +94,7 @@ class LevelController {
 		if ($missionQl > 0 && $missionQl <= 250) {
 			$msg = "QL{$missionQl} missions can be rolled from these levels:";
 
-			forEach ($this->findAllLevels() as $row) {
+			foreach ($this->findAllLevels() as $row) {
 				$array = explode(",", $row->missions);
 				if (in_array($missionQl, $array)) {
 					$msg .= " " . $row->level;
@@ -138,7 +138,7 @@ class LevelController {
 				$data = $this->db->query("SELECT * FROM levels WHERE level >= ? AND level < ?", $minLevel, $maxLevel);
 				$xp = 0;
 				$sk = 0;
-				forEach ($data as $row) {
+				foreach ($data as $row) {
 					if ($row->level < 200) {
 						$xp += $row->xpsk;
 					} else {

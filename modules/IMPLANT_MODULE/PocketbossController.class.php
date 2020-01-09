@@ -74,7 +74,7 @@ class PocketbossController {
 			$msg = $this->text->makeBlob("Remains of $name", $blob);
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$pbLink = $this->text->makeChatcmd($row->pb, "/tell <myname> pocketboss $row->pb");
 				$blob .= $pbLink . "\n";
 			}
@@ -86,7 +86,7 @@ class PocketbossController {
 	public function singlePbBlob($name) {
 		$data = $this->db->query("SELECT * FROM pocketboss WHERE pb = ? ORDER BY ql", $name);
 		$symbs = '';
-		forEach ($data as $symb) {
+		foreach ($data as $symb) {
 			$name = "$symb->line $symb->slot Symbiant, $symb->type Unit Aban";
 			$symbs .= $this->text->makeItem($symb->itemid, $symb->itemid, $symb->ql, $name) . " ($symb->ql)\n";
 		}
@@ -185,7 +185,7 @@ class PocketbossController {
 					break;
 				default:
 					// check if it's a line
-					forEach ($lines as $l) {
+					foreach ($lines as $l) {
 						if (strtolower($l->line) == strtolower($args[$i])) {
 							$line = $l->line;
 							break 2;
@@ -214,7 +214,7 @@ class PocketbossController {
 		if ($numrows != 0) {
 			$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
 			$blob = "Click 'Add' to add symbiant to $implantDesignerLink.\n\n";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
 				$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
 				$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql) $impDesignerAddLink\n";

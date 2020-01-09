@@ -86,7 +86,7 @@ class ConfigController {
 		$filename = array();
 		$reflectedClass = new ReflectionClass($this);
 		$className = Registry::formatName(get_class($this));
-		forEach ($reflectedClass->getMethods() as $reflectedMethod) {
+		foreach ($reflectedClass->getMethods() as $reflectedMethod) {
 			if (preg_match('/command$/i', $reflectedMethod->name)) {
 				$filename []= "{$className}.{$reflectedMethod->name}";
 			}
@@ -139,7 +139,7 @@ class ConfigController {
 	
 		$data = $this->db->query($sql);
 		$count = count($data);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->count_enabled > 0 && $row->count_disabled > 0) {
 				$a = "(<yellow>Partial<end>)";
 			} elseif ($row->count_disabled == 0) {
@@ -171,7 +171,7 @@ class ConfigController {
 	
 		$sql = "SELECT type, file, cmd, admin FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' AND ($typeSql)";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
 				continue;
 			}
@@ -285,7 +285,7 @@ class ConfigController {
 	
 		$sendto->reply($msg);
 	
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			// only update the status if the status is different
 			if ($row->status != $status) {
 				if ($row->cmdevent == "event") {
@@ -384,7 +384,7 @@ class ConfigController {
 	}
 	
 	public function checkCommandAccessLevels($data, $sender) {
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
 				return false;
 			}
@@ -465,7 +465,7 @@ class ConfigController {
 	public function getAliasInfo($cmd) {
 		$aliases = $this->commandAlias->findAliasesByCommand($cmd);
 		$count = 0;
-		forEach ($aliases as $row) {
+		foreach ($aliases as $row) {
 			if ($row->status == 1) {
 				$count++;
 				$aliases_blob .= "{$row->alias}, ";
@@ -500,7 +500,7 @@ class ConfigController {
 			$blob .= "\n<header2>Settings<end>\n";
 		}
 	
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $row->description;
 	
 			if ($row->mode == "edit") {
@@ -532,7 +532,7 @@ class ConfigController {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
 		}
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$guild = '';
 			$priv = '';
 			$msg = '';
@@ -583,7 +583,7 @@ class ConfigController {
 			$found = true;
 			$blob .= "\n<header2>Events<end>\n";
 		}
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$on = $this->text->makeChatcmd("ON", "/tell <myname> config event ".$row->type." ".$row->file." enable all");
 			$off = $this->text->makeChatcmd("OFF", "/tell <myname> config event ".$row->type." ".$row->file." disable all");
 	
@@ -643,7 +643,7 @@ class ConfigController {
 			$msg .= $this->text->makeChatcmd("Disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "\n";
 
 			$msg .= "Set access level: ";
-			forEach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
+			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 				if ($accessLevel == 'none') {
 					continue;
 				}
@@ -662,7 +662,7 @@ class ConfigController {
 	private function getSubCommandInfo($cmd, $type) {
 		$subcmd_list = '';
 		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE dependson = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $cmd, $type);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$subcmd_list .= "Command: $row->cmd\n";
 			if ($row->description != "") {
 				$subcmd_list .= "Description: $row->description\n";
@@ -682,7 +682,7 @@ class ConfigController {
 			$subcmd_list .= $this->text->makeChatcmd("Disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "\n";
 
 			$subcmd_list .= "Set access level: ";
-			forEach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
+			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 				if ($accessLevel == 'none') {
 					continue;
 				}

@@ -68,7 +68,7 @@ class OrgHistoryController {
 		$sql = "SELECT actor, actee, action, organization, time FROM `org_history` ORDER BY time DESC LIMIT ?, ?";
 		$data = $this->db->query($sql, intval($startingRecord), intval($pageSize));
 		if (count($data) != 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->formatOrgAction($row);
 			}
 
@@ -93,7 +93,7 @@ class OrgHistoryController {
 		$data = $this->db->query($sql, $player);
 		$count = count($data);
 		$blob .= "\n<header2>Actions on $player ($count)<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
 		}
 
@@ -101,7 +101,7 @@ class OrgHistoryController {
 		$data = $this->db->query($sql, $player);
 		$count = count($data);
 		$blob .= "\n<header2>Actions by $player ($count)<end>\n";
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
 		}
 

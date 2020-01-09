@@ -212,7 +212,7 @@ class BanController {
 			$msg = "No one is currently banned from this bot.";
 		} else {
 			$blob = '';
-			forEach ($banlist as $ban) {
+			foreach ($banlist as $ban) {
 				$blob .= "Name: <highlight>{$ban->name}<end>\n";
 				$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
 				$blob .= "<tab>By: <highlight>{$ban->admin}<end>\n";
@@ -331,7 +331,7 @@ class BanController {
 			SELECT b.*, IFNULL(p.name, b.charid) AS name
 			FROM banlist_<myname> b LEFT JOIN players p ON b.charid = p.charid";
 		$data = $this->db->query($sql);
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->banlist[$row->charid] = $row;
 		}
 	}

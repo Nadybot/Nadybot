@@ -135,7 +135,7 @@ class AOChatQueue {
 			return null;
 		}
 
-		forEach (array_keys($this->queue) as $priority) {
+		foreach (array_keys($this->queue) as $priority) {
 			while (true) {
 				$item = array_shift($this->queue[$priority]);
 				if ($item === null) {

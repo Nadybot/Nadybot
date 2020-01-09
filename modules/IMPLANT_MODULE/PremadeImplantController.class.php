@@ -149,7 +149,7 @@ class PremadeImplantController {
 	}
 
 	public function formatResults($implants) {
-		forEach ($implants as $implant) {
+		foreach ($implants as $implant) {
 			$blob .= $this->getFormattedLine($implant);
 		}
 

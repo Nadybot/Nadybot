@@ -85,7 +85,7 @@ class AltsController {
 		$success = 0;
 	
 		// Pop a name from the array until none are left
-		forEach ($names as $name) {
+		foreach ($names as $name) {
 			$name = ucfirst(strtolower($name));
 	
 			$uid = $this->chatBot->get_uid($name);
@@ -185,7 +185,7 @@ class AltsController {
 		$this->addAlt($sender, $altInfo->main, 1);
 	
 		// add current alts to new main
-		forEach ($altInfo->alts as $alt => $validated) {
+		foreach ($altInfo->alts as $alt => $validated) {
 			if ($alt != $sender) {
 				$this->addAlt($sender, $alt, $validated);
 			}
@@ -280,7 +280,7 @@ class AltsController {
 	
 		// Make sure the character being validated is an alt of the person sending the command
 		$isAlt = false;
-		forEach ($altInfo->alts as $a => $validated) {
+		foreach ($altInfo->alts as $a => $validated) {
 			if ($a == $alt) {
 				$isAlt = true;
 	
@@ -324,7 +324,7 @@ class AltsController {
 		$data = $this->db->query($sql, $player, $player);
 
 		if (count($data) > 0) {
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$ai->main = $row->main;
 				$ai->alts[$row->alt] = $row->validated;
 			}

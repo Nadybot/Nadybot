@@ -77,7 +77,7 @@ class SettingsController {
 		$blob .= "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
 		$data = $this->db->query("SELECT * FROM settings_<myname> ORDER BY `module`");
 		$cur = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($row->module != $cur) {
 				$blob .= "\n<pagebreak><header2>".str_replace("_", " ", $row->module)."<end>\n";
 				$cur = $row->module;

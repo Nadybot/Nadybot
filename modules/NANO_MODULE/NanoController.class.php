@@ -116,7 +116,7 @@ class NanoController {
 		} else {
 			$blob = '';
 			$currentNanoline = -1;
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($currentNanoline != $row->nanoline_id) {
 					if (!empty($row->nanoline_name)) {
 						$nanolineLink = $this->text->makeChatcmd($row->nanoline_name, "/tell <myname> nanolines $row->nanoline_id");
@@ -146,7 +146,7 @@ class NanoController {
 		$data = $this->db->query($sql);
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd($row->profession, "/tell <myname> nanolines $row->profession");
 			$blob .= "\n";
 		}
@@ -192,7 +192,7 @@ class NanoController {
 					lowql DESC, name ASC";
 			$data = $this->db->query($sql, $nanolineId);
 
-			forEach ($data as $nano) {
+			foreach ($data as $nano) {
 				$blob .= $this->text->makeItem($nano->lowid, $nano->lowid, $nano->lowql, $nano->name);
 				$blob .= " [$nano->lowql] $nano->location\n";
 			}
@@ -217,7 +217,7 @@ class NanoController {
 		$data = $this->db->query($sql, $profession);
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($this->settingManager->get("shownanolineicons") == "1") {
 				$blob .= $this->text->makeImage($row->image_id) . "\n";
 			}
@@ -238,7 +238,7 @@ class NanoController {
 		$data = $this->db->query("SELECT location, count(location) AS count FROM nanos GROUP BY location ORDER BY location ASC");
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd($row->location, "/tell <myname> nanoloc $row->location") . " ($row->count) \n";
 		}
 		$blob .= $this->getFooter();
@@ -277,7 +277,7 @@ class NanoController {
 			$msg = "No nanos found.";
 		} else {
 			$blob = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->text->makeItem($row->lowid, $row->lowid, $row->lowql, $row->name);
 				$blob .= " [$row->lowql] $row->location";
 				if ($row->profession) {

@@ -95,7 +95,7 @@ class ProfileController {
 			sort($profileList);
 
 			$linkContents = '';
-			forEach ($profileList as $profile) {
+			foreach ($profileList as $profile) {
 				$name = ucfirst(strtolower($profile));
 				$viewLink = $this->text->makeChatcmd("View", "/tell <myname> profile view $profile");
 				$loadLink = $this->text->makeChatcmd("Load", "/tell <myname> profile load $profile");
@@ -141,14 +141,14 @@ class ProfileController {
 			$msg = "Profile <highlight>$profileName<end> already exists.";
 		} else {
 			$contents = "# Settings\n";
-			forEach ($this->settingManager->settings as $name => $value) {
+			foreach ($this->settingManager->settings as $name => $value) {
 				if ($name != "botid" && $name != "version" && !$this->util->endsWith($name, "_db_version")) {
 					$contents .= "!settings save $name $value\n";
 				}
 			}
 			$contents .= "\n# Events\n";
 			$data = $this->db->query("SELECT * FROM eventcfg_<myname>");
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$status = "disable";
 				if ($row->status == 1) {
 					$status = "enable";
@@ -157,7 +157,7 @@ class ProfileController {
 			}
 			$contents .= "\n# Commands\n";
 			$data = $this->db->query("SELECT * FROM cmdcfg_<myname>");
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$status = "disable";
 				if ($row->status == 1) {
 					$status = "enable";
@@ -166,7 +166,7 @@ class ProfileController {
 			}
 			$contents .= "\n# Aliases\n";
 			$data = $this->db->query("SELECT * FROM cmd_alias_<myname> WHERE `status` = '1' ORDER BY alias ASC");
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$contents .= "!alias rem {$row->alias}\n";
 				$contents .= "!alias add {$row->alias} {$row->cmd}\n";
 			}
@@ -224,7 +224,7 @@ class ProfileController {
 		$this->db->beginTransaction();
 		try {
 			$profileSendTo = new ProfileCommandReply();
-			forEach ($lines as $line) {
+			foreach ($lines as $line) {
 				if ($line[0] == "!") {
 					$profileSendTo->reply("<pagebreak>" . $line);
 					$line = substr(trim($line), 1);

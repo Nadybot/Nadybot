@@ -41,7 +41,7 @@ class Registry {
 	public static function injectDependencies($instance) {
 		// inject other instances that are annotated with @Inject
 		$reflection = new ReflectionAnnotatedClass($instance);
-		forEach ($reflection->getProperties() as $property) {
+		foreach ($reflection->getProperties() as $property) {
 			if ($property->hasAnnotation('Inject')) {
 				if ($property->getAnnotation('Inject')->value != '') {
 					$dependencyName = $property->getAnnotation('Inject')->value;

@@ -42,7 +42,7 @@ class TimezoneController extends AutoInject {
 		$timezoneAreas = $this->getTimezoneAreas();
 		
 		$blob = '';
-		forEach ($timezoneAreas as $area => $code) {
+		foreach ($timezoneAreas as $area => $code) {
 			$blob .= $this->text->makeChatcmd($area, "/tell <myname> timezone $area") . "\n";
 		}
 		$msg = $this->text->makeBlob("Timezone Areas", $blob);
@@ -83,7 +83,7 @@ class TimezoneController extends AutoInject {
 		$count = count($timezone);
 		
 		$blob = '';
-		forEach ($timezones as $timezone) {
+		foreach ($timezones as $timezone) {
 			$blob .= $this->text->makeChatcmd($timezone, "/tell <myname> timezone set $timezone") . "\n";
 		}
 		$msg = $this->text->makeBlob("Timezones for $area ($count)", $blob);

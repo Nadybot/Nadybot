@@ -17,7 +17,7 @@ function describeTable($db, $table) {
 		case DB::MYSQL:
 			$rows = $db->query("DESCRIBE $table");
 			// normalize the output somewhat to make it more compatible with sqlite
-			forEach ($rows as $row) {
+			foreach ($rows as $row) {
 				$row->name = $row->Field;
 				unset($row->Field);
 				$row->type = $row->Type;
@@ -43,7 +43,7 @@ function describeTable($db, $table) {
 function getColumnType($db, $table, $column) {
 	$column = strtolower($column);
 	$columns = describeTable($db, $table);
-	forEach ($columns as $col) {
+	foreach ($columns as $col) {
 		if (strtolower($col->name) == $column) {
 			return strtolower($col->type);
 		}

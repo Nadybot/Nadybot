@@ -88,7 +88,7 @@ class SubcommandManager {
 		$this->subcommands = array();
 
 		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'subcmd'");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->subcommands[$row->dependson] []= $row;
 		}
 	}

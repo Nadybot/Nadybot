@@ -235,27 +235,27 @@ class Budabot extends AOChat {
 
 		// To reduce queries load core items into memory
 		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = 'subcmd'");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->existing_subcmds[$row->type][$row->cmd] = true;
 		}
 
 		$data = $this->db->query("SELECT * FROM eventcfg_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->existing_events[$row->type][$row->file] = true;
 		}
 
 		$data = $this->db->query("SELECT * FROM hlpcfg_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->existing_helps[$row->name] = true;
 		}
 
 		$data = $this->db->query("SELECT * FROM settings_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->existing_settings[$row->name] = true;
 		}
 
 		$this->db->beginTransaction();
-		forEach (Registry::getAllInstances() as $name => $instance) {
+		foreach (Registry::getAllInstances() as $name => $instance) {
 			if (isset($instance->moduleName)) {
 				$this->registerInstance($name, $instance);
 			} else {
@@ -387,7 +387,7 @@ class Budabot extends AOChat {
 	public function sendPrivate($message, $disable_relay=false, $group=null) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
-			forEach ($message as $page) {
+			foreach ($message as $page) {
 				$this->sendPrivate($page, $disable_relay, $group);
 			}
 			return;
@@ -432,7 +432,7 @@ class Budabot extends AOChat {
 
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
-			forEach ($message as $page) {
+			foreach ($message as $page) {
 				$this->sendGuild($page, $disable_relay, $priority);
 			}
 			return;
@@ -473,7 +473,7 @@ class Budabot extends AOChat {
 	public function sendTell($message, $character, $priority=null, $formatMessage=true) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
-			forEach ($message as $page) {
+			foreach ($message as $page) {
 				$this->sendTell($page, $character, $priority);
 			}
 			return;
@@ -503,7 +503,7 @@ class Budabot extends AOChat {
 	public function sendPublic($message, $channel, $priority=null) {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
-			forEach ($message as $page) {
+			foreach ($message as $page) {
 				$this->sendPublic($page, $channel, $priority);
 			}
 			return;
@@ -968,7 +968,7 @@ class Budabot extends AOChat {
 
 		// register settings annotated on the class
 		$reflection = new ReflectionAnnotatedClass($obj);
-		forEach ($reflection->getProperties() as $property) {
+		foreach ($reflection->getProperties() as $property) {
 			if ($property->hasAnnotation('Setting')) {
 				$this->settingManager->add(
 					$moduleName,
@@ -988,7 +988,7 @@ class Budabot extends AOChat {
 		// register commands, subcommands, and events annotated on the class
 		$commands = array();
 		$subcommands = array();
-		forEach ($reflection->getAllAnnotations() as $annotation) {
+		foreach ($reflection->getAllAnnotations() as $annotation) {
 			if ($annotation instanceof DefineCommand) {
 				if (!$annotation->command) {
 					$this->logger->log('WARN', "Cannot parse @DefineCommand annotation in '$name'.");
@@ -1016,7 +1016,7 @@ class Budabot extends AOChat {
 			}
 		}
 
-		forEach ($reflection->getMethods() as $method) {
+		foreach ($reflection->getMethods() as $method) {
 			if ($method->hasAnnotation('Setup')) {
 				if (call_user_func(array($obj, $method->name)) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");
@@ -1033,7 +1033,7 @@ class Budabot extends AOChat {
 					$this->logger->log('WARN', "Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
 				}
 			} elseif ($method->hasAnnotation('Event')) {
-				forEach ($method->getAllAnnotations('Event') as $eventAnnotation) {
+				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
 					$this->eventManager->register(
 						$moduleName,
 						$eventAnnotation->value,
@@ -1046,7 +1046,7 @@ class Budabot extends AOChat {
 			}
 		}
 
-		forEach ($commands as $command => $definition) {
+		foreach ($commands as $command => $definition) {
 			if (count($definition['handlers']) == 0) {
 				$this->logger->log('ERROR', "No handlers defined for command '$command' in module '$moduleName'.");
 				continue;
@@ -1063,7 +1063,7 @@ class Budabot extends AOChat {
 			);
 		}
 
-		forEach ($subcommands as $subcommand => $definition) {
+		foreach ($subcommands as $subcommand => $definition) {
 			if (count($definition['handlers']) == 0) {
 				$this->logger->log('ERROR', "No handlers defined for subcommand '$subcommand' in module '$moduleName'.");
 				continue;
@@ -1091,7 +1091,7 @@ class Budabot extends AOChat {
 	 */
 	public function callSetupMethod($name, $obj) {
 		$reflection = new ReflectionAnnotatedClass($obj);
-		forEach ($reflection->getMethods() as $method) {
+		foreach ($reflection->getMethods() as $method) {
 			if ($method->hasAnnotation('Setup')) {
 				if (call_user_func(array($obj, $method->name)) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");

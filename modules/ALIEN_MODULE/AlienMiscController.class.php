@@ -97,7 +97,7 @@ class AlienMiscController {
 		$data = $this->db->query("SELECT DISTINCT profession FROM leprocs ORDER BY profession ASC");
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
 			$blob .= $professionLink . "\n";
 		}
@@ -125,7 +125,7 @@ class AlienMiscController {
 		} else {
 			$blob = '';
 			$type = '';
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				if ($type != $row->proc_type) {
 					$type = $row->proc_type;
 					$blob .= "\n<tab><yellow>$type<end>\n";
@@ -153,9 +153,9 @@ class AlienMiscController {
 		$data = $this->db->query("SELECT `type`, `profession` FROM ofabarmortype ORDER BY profession ASC");
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "<pagebreak>{$row->profession} - Type {$row->type}\n";
-			forEach ($qls as $row2) {
+			foreach ($qls as $row2) {
 				$ql_link = $this->text->makeChatcmd($row2->ql, "/tell <myname> ofabarmor {$row->profession} {$row2->ql}");
 				$blob .= "[{$ql_link}] ";
 			}
@@ -198,7 +198,7 @@ class AlienMiscController {
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
 		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabarmorcost ORDER BY ql ASC");
-		forEach ($qls as $row2) {
+		foreach ($qls as $row2) {
 			if ($row2->ql == $ql) {
 				$blob .= "[{$row2->ql}] ";
 			} else {
@@ -209,7 +209,7 @@ class AlienMiscController {
 		$blob .= "\n";
 
 		$current_upgrade = $row->upgrade;
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			if ($current_upgrade != $row->upgrade) {
 				$current_upgrade = $row->upgrade;
 				$blob .= "\n";
@@ -239,9 +239,9 @@ class AlienMiscController {
 		$data = $this->db->query("SELECT `type`, `name` FROM ofabweapons ORDER BY name ASC");
 
 		$blob = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$blob .= "<pagebreak>{$row->name} - Type {$row->type}\n";
-			forEach ($qls as $row2) {
+			foreach ($qls as $row2) {
 				$ql_link = $this->text->makeChatcmd($row2->ql, "/tell <myname> ofabweapons {$row->name} {$row2->ql}");
 				$blob .= "[{$ql_link}] ";
 			}
@@ -274,7 +274,7 @@ class AlienMiscController {
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
 		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabweaponscost ORDER BY ql ASC");
-		forEach ($qls as $row2) {
+		foreach ($qls as $row2) {
 			if ($row2->ql == $ql) {
 				$blob .= "[{$row2->ql}] ";
 			} else {

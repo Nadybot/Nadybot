@@ -53,7 +53,7 @@ class XML {
 		$targetdata = array();
 		$sourcedata = explode($start, $sourcefile);
 		array_shift($sourcedata);
-		forEach ($sourcedata as $indsplit) {
+		foreach ($sourcedata as $indsplit) {
 			$target = explode($end, $indsplit, 2);
 			$targetdata[] = $target[0];
 		}

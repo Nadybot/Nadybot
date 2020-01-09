@@ -153,14 +153,14 @@ class SpiritsController {
 		}
 
 		$msg = '';
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$slot = $row->spot;
 			$lvl = $row->level;
 			$lowid = $row->id;
 			$agi = $row->agility;
 
 			$data2 = $this->db->query("SELECT * FROM aodb WHERE lowid = ?", $lowid);
-			forEach ($data2 as $row) {
+			foreach ($data2 as $row) {
 				;
 			} {
 				$highid = $row->highid;

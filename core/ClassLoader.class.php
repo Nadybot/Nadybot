@@ -35,7 +35,7 @@ class ClassLoader {
 	 */
 	public function loadInstances() {
 		$newInstances = $this->getNewInstancesInDir("./core");
-		forEach ($newInstances as $name => $className) {
+		foreach ($newInstances as $name => $className) {
 			Registry::setInstance($name, new $className);
 		}
 
@@ -43,7 +43,7 @@ class ClassLoader {
 		$this->loadUserModules();
 
 		$this->logger->log('DEBUG', "Inject dependencies for all instances");
-		forEach (Registry::getAllInstances() as $instance) {
+		foreach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
 		}
 	}
@@ -57,7 +57,7 @@ class ClassLoader {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->log('INFO', "Loading CORE modules...");
 		$core_modules = array('CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS', 'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE', 'COLORS');
-		forEach ($core_modules as $moduleName) {
+		foreach ($core_modules as $moduleName) {
 			$this->registerModule("./core", $moduleName);
 		}
 	}
@@ -69,7 +69,7 @@ class ClassLoader {
 	 */
 	private function loadUserModules() {
 		$this->logger->log('INFO', "Loading USER modules...");
-		forEach ($this->moduleLoadPaths as $path) {
+		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->log('DEBUG', "Loading modules in path '$path'");
 			if (file_exists($path) && $d = dir($path)) {
 				while (false !== ($moduleName = $d->read())) {
@@ -130,7 +130,7 @@ class ClassLoader {
 		}
 
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
-		forEach ($newInstances as $name => $className) {
+		foreach ($newInstances as $name => $className) {
 			$obj = new $className;
 			$obj->moduleName = $moduleName;
 			if (Registry::instanceExists($name)) {
@@ -164,7 +164,7 @@ class ClassLoader {
 		$new = array_diff(get_declared_classes(), $original);
 
 		$newInstances = array();
-		forEach ($new as $className) {
+		foreach ($new as $className) {
 			$reflection = new ReflectionAnnotatedClass($className);
 			if ($reflection->hasAnnotation('Instance')) {
 				if ($reflection->getAnnotation('Instance')->value != '') {

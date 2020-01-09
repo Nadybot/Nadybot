@@ -300,7 +300,7 @@ class SystemController {
 		$num_player_cache = $row->count;
 
 		$num_buddylist = 0;
-		forEach ($this->buddylistManager->buddyList as $key => $value) {
+		foreach ($this->buddylistManager->buddyList as $key => $value) {
 			if (!isset($value['name'])) {
 				// skip the buddies that have been added but the server hasn't sent back an update yet
 				continue;
@@ -329,7 +329,7 @@ class SystemController {
 		$blob .= "Uptime: <highlight>$date_string<end>\n\n";
 
 		$eventnum = 0;
-		forEach ($this->eventManager->events as $type => $events) {
+		foreach ($this->eventManager->events as $type => $events) {
 			$eventnum += count($events);
 		}
 
@@ -351,7 +351,7 @@ class SystemController {
 		$blob .= "Messages in the chat queue: <highlight>" . count($this->chatBot->chatqueue->queue) . "<end>\n\n";
 
 		$blob .= "Public Channels:\n";
-		forEach ($this->chatBot->grp as $gid => $status) {
+		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr($gid, 1));
 			$blob .= "<tab><highlight>'{$this->chatBot->gid[$gid]}'<end> (" . ord(substr($gid, 0, 1)) . " " . $string[1] . ")\n";
 		}
@@ -389,7 +389,7 @@ class SystemController {
 	 */
 	public function clearqueueCommand($message, $channel, $sender, $sendto, $args) {
 		$num = 0;
-		forEach ($this->chatBot->chatqueue->queue as $priority) {
+		foreach ($this->chatBot->chatqueue->queue as $priority) {
 			$num += count($priority);
 		}
 		$this->chatBot->chatqueue->queue = array();
@@ -405,7 +405,7 @@ class SystemController {
 	 */
 	public function macroCommand($message, $channel, $sender, $sendto, $args) {
 		$commands = explode("|", $args[1]);
-		forEach ($commands as $commandString) {
+		foreach ($commands as $commandString) {
 			$this->commandManager->process($channel, $commandString, $sender, $sendto);
 		}
 	}
@@ -429,7 +429,7 @@ class SystemController {
 	 */
 	public function onConnectEvent($eventObj) {
 		// send Admin(s) a tell that the bot is online
-		forEach ($this->adminManager->admins as $name => $info) {
+		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] == 4 && $this->buddylistManager->isOnline($name) == 1) {
 				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help use the Budabot Forums <highlight>http://budabot.com<end>", $name);
 			}

@@ -114,7 +114,7 @@ class TrickleController {
 			$msg = $this->getTrickleAmounts($row);
 		} else {
 			$blob = "";
-			forEach ($data as $row) {
+			foreach ($data as $row) {
 				$blob .= $this->getTrickleAmounts($row) . "\n";
 			}
 			$msg = $this->text->makeBlob("Trickle Info: $search", $blob);
@@ -126,7 +126,7 @@ class TrickleController {
 	public function getTrickleAmounts($row) {
 		$arr = ['agi', 'int', 'psy', 'sta', 'str', 'sen'];
 		$msg = "<highlight>$row->name<end> ";
-		forEach ($arr as $ability) {
+		foreach ($arr as $ability) {
 			$fieldName = "amount" . ucfirst($ability);
 			if ($row->$fieldName > 0) {
 				$abilityName = $this->util->getAbility($ability, true);
@@ -195,7 +195,7 @@ class TrickleController {
 	public function formatOutput($results, $amount, $abilities) {
 		$msg = "";
 		$groupName = "";
-		forEach ($results as $result) {
+		foreach ($results as $result) {
 			if ($result->groupName != $groupName) {
 				$groupName = $result->groupName;
 				$msg .= "\n<header2>$groupName<end>\n";
@@ -205,7 +205,7 @@ class TrickleController {
 			$msg .= "$result->name <highlight>$amount<end>";
 
 			/*
-			forEach ($abilities as $ability => $value) {
+			foreach ($abilities as $ability => $value) {
 				$ability = ucfirst($ability);
 				$abilityField = "amount" . $ability;
 				$abilityAmount = $result->$abilityField * 100;

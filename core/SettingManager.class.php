@@ -148,7 +148,7 @@ class SettingManager {
 			if ($this->settings[$name] !== $value) {
 				// notify any listeners
 				if (isset($this->changeListeners[$name])) {
-					forEach ($this->changeListeners[$name] as $listener) {
+					foreach ($this->changeListeners[$name] as $listener) {
 						call_user_func($listener->callback, $name, $this->settings[$name], $value, $listener->data);
 					}
 				}
@@ -172,7 +172,7 @@ class SettingManager {
 
 		//Upload Settings from the db that are set by modules
 		$data = $this->db->query("SELECT * FROM settings_<myname>");
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$this->settings[$row->name] = $row->value;
 		}
 	}

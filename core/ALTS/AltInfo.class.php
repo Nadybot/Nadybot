@@ -13,7 +13,7 @@ class AltInfo {
 			return true;
 		}
 
-		forEach ($this->alts as $alt => $validated) {
+		foreach ($this->alts as $alt => $validated) {
 			if ($sender == $alt) {
 				return ($validated == 1);
 			}
@@ -28,7 +28,7 @@ class AltInfo {
 			return array($sender);
 		} else {
 			$arr = array($this->main);
-			forEach ($this->alts as $alt => $validated) {
+			foreach ($this->alts as $alt => $validated) {
 				if ($validated) {
 					$arr []= $alt;
 				}
@@ -65,7 +65,7 @@ class AltInfo {
 			"ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
 		$data = $db->query($sql, $this->main);
 		$count = count($data) + 1;
-		forEach ($data as $row) {
+		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);
 			$blob .= $this->formatCharName($row->alt, $online);
 			if ($row->profession !== null) {
@@ -97,7 +97,7 @@ class AltInfo {
 			$online_list []= $this->main;
 		}
 
-		forEach ($this->alts as $name => $validated) {
+		foreach ($this->alts as $name => $validated) {
 			if ($buddylistManager->isOnline($name)) {
 				$online_list []= $name;
 			}
@@ -111,7 +111,7 @@ class AltInfo {
 
 		$online_list []= $this->main;
 
-		forEach ($this->alts as $name => $validated) {
+		foreach ($this->alts as $name => $validated) {
 			$online_list []= $name;
 		}
 
@@ -119,7 +119,7 @@ class AltInfo {
 	}
 
 	public function hasUnvalidatedAlts() {
-		forEach ($this->getAllAlts() as $alt) {
+		foreach ($this->getAllAlts() as $alt) {
 			if (!$this->isValidated($alt)) {
 				return true;
 			}
