@@ -275,7 +275,7 @@ class ItemsController {
 			ORDER BY g.id ASC
 		";
 		$data = $this->db->query($sql, $params);
-		// $data = $this->orderSearchResults($data, $search);
+		$data = $this->orderSearchResults($data, $search);
 		
 		return $data;
 	}
@@ -350,6 +350,7 @@ class ItemsController {
 			$row->numExactMatches = $numExactMatches;
 		}
 		
+		/*
 		$this->util->mergesort($data, function($a, $b) {
 			if ($a->numExactMatches == $b->numExactMatches) {
 				return 0;
@@ -357,7 +358,8 @@ class ItemsController {
 				return ($a->numExactMatches > $b->numExactMatches) ? -1 : 1;
 			}
 		});
-		
+		*/
+
 		return $data;
 	}
 
