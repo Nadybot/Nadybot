@@ -100,6 +100,7 @@ class WhompahController {
 		$whompah = new stdClass;
 		$whompah->id = $endCity->id;
 		$whompah->city_name = $whompahs[$endCity->id]->city_name;
+		$whompah->faction = $whompahs[$endCity->id]->faction;
 		$whompah->previous = null;
 		$whompah->visited = true;
 		$obj = $this->findWhompahPath($q = array($whompah), $whompahs, $startCity->id);
@@ -107,11 +108,19 @@ class WhompahController {
 		if ($obj === false) {
 			$msg = "There was an error while trying to find the whompah path.";
 		} else {
-			while ($obj->previous !== null) {
-				$msg .= "$obj->city_name -> ";
+			$cities = array();
+			while ($obj !== null) {
+				$cities []= $obj;
 				$obj = $obj->previous;
 			}
-			$msg .= "$obj->city_name";
+			$cities = array_map(function($city) {
+				$faction = strtolower($city->faction);
+				if ($faction === 'neutral') {
+					$faction = 'green';
+				}
+				return "<$faction>$city->city_name<end>";
+			}, $cities);
+			$msg = implode(" -> ", $cities);
 		}
 
 		$sendto->reply($msg);
@@ -158,6 +167,7 @@ class WhompahController {
 				$nextWhompah = new stdClass;
 				$nextWhompah->id = $city2Id;
 				$nextWhompah->city_name = $whompahs[$city2Id]->city_name;
+				$nextWhompah->faction = $whompahs[$city2Id]->faction;
 				$nextWhompah->previous = $currentWhompah;
 				$queue []= $nextWhompah;
 			}
