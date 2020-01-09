@@ -1,4 +1,30 @@
 *****************************
+	Version 4.1:
+*****************************
+- Introduce a global PHP codingstyle for the project and fix all files so they adhere to it
+- Remove the API documentation for now as the tool used to build it currently doesn't work anymore
+- Add typehints to variables where possible and document functions and their return value, while still sticking to PHP5 compaibility
+- Colorize the whompah-cities according to factions
+- Group search results for items
+- Better alignment for !history
+- !whatbuffs now works with nanos and not nano crystals and can show what provides the buff
+- !whatbuffs now supports towers, contracts and use-items (tutoring devices, extruder nutrition bar)
+- !whatbuffs caps contracts and filigree rings at QL250
+- !whatbuffs now works for nano resist
+- !whois now supports and shows inactive players, so you can better check if a name is free
+- Upgrade item databases to the latest version
+- The items database now supports updating the item_buffs and item_types as well
+- !aggdef now shows a visual slider and makes it easier to set the calculated value
+- Add a bunch of new NPCs to !whereis
+- Remove Blackmane's Stat Buffer as it's annoying as hell when you try to find buffs
+- Provide a compact and useful docker image to run BudaBot
+- Allow gracefully shutting down the bot by listening to SIGINT and SIGTERM, thus allowing the bot to be run as a service
+- More concise tower messages
+- Add profession symbol to online list
+- Color the whois org-name according to the org's faction
+- Make mistyped command suggestions more reasonable
+
+*****************************
 	Version 4+:
 *****************************
 updated !nano (thanks Saavick)
