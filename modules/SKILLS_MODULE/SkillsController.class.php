@@ -542,7 +542,7 @@ class SkillsController {
 		$max = $this->util->interpolate($skill_list[$i], $skill_list[($i + 1)], $MA_max_list[$i], $MA_max_list[($i + 1)], $MaSkill);
 		$crit = $this->util->interpolate($skill_list[$i], $skill_list[($i + 1)], $MA_crit_list[$i], $MA_crit_list[($i + 1)], $MaSkill);
 		//$ma_speed = $this->util->interpolate($skill_list[$i], $skill_list[($i + 1)], $MA_fist_speed[$i], $MA_fist_speed[($i + 1)], $MaSkill);
-		$ma_spd = (($maskill - $skill_list[$i]) * ($MA_fist_speed[($i + 1)] - $MA_fist_speed[$i])) / ($skill_list[($i + 1)] - $skill_list[$i]) + $MA_fist_speed[$i];
+		$ma_spd = (($MaSkill - $skill_list[$i]) * ($MA_fist_speed[($i + 1)] - $MA_fist_speed[$i])) / ($skill_list[($i + 1)] - $skill_list[$i]) + $MA_fist_speed[$i];
 		$ma_speed = round($ma_spd, 2);
 		$dmg = "<highlight>".$min."<end>-<highlight>".$max."<end>(<highlight>".$crit."<end>)";
 		$blob .= "Profession: <highlight>Martial Artist<end>\n";
@@ -592,13 +592,22 @@ class SkillsController {
 		$Init2 = $this->calcInits($attack_time);
 		$Init3 = $this->calcInits($attack_time + 1);
 
-		$blob = "Attack: <highlight>". $attack_time ." <end>second(s)\n";
-		$blob .= "Init Skill: <highlight>". $init_skill ."<end>\n";
-		$blob .= "Def/Agg: <highlight>". $bar_setting ."%<end>\n";
-		$blob .= "You must set your AGG bar at <highlight>". $bar_setting ."% (". round($bar_setting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
-		$blob .= "NanoC. Init needed to instacast at Full Agg (100%):<highlight> ". $Init1 ." <end>inits\n";
-		$blob .= "NanoC. Init needed to instacast at Half (50%):<highlight> ". $Init2 ." <end>inits\n";
-		$blob .= "NanoC. Init needed to instacast at Full Def (0%):<highlight> ". $Init3 ." <end>inits";
+		$blob = "Attack:    <highlight>${attack_time}<end> second(s)\n";
+		$blob .= "Init Skill:  <highlight>${init_skill}<end>\n";
+		$blob .= "Def/Agg:  <highlight>" . round($bar_setting, 0) . "%<end>\n";
+		$blob .= "You must set your AGG bar at <highlight>" . round($bar_setting, 0) ."% (". round($bar_setting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
+		$blob .= "(<a href=skillid://51>Agg/def-Slider</a> should read <highlight>" . round($bar_setting*2-100, 0) . "<end>).\n\n";
+		$blob .= "Init needed to instacast at:\n";
+		$blob .= "  Full Agg (100%): <highlight>${Init1}<end> inits\n";
+		$blob .= "  Neutral (87.5%): <highlight>${Init2}<end> inits\n";
+		$blob .= "  Full Def (0%):     <highlight>${Init3}<end> inits\n\n";
+		
+		$bar = "llllllllllllllllllllllllllllllllllllllllllllllllll";
+		$markerPos = round($bar_setting/100*strlen($bar), 0);
+		$leftBar    = substr($bar, 0, $markerPos);
+		$rightBar   = substr($bar, $markerPos+1);
+		$blob .= "<highlight>${Init3}<end> DEF <green>${leftBar}<end><red>│<end><green>${rightBar}<end> AGG <highlight>${Init1}<end>\n";
+		$blob .= "                         You: <highlight>${init_skill}<end>\n\n";
 
 		$msg = $this->text->makeBlob("Nano Init Results", $blob);
 		$sendto->reply($msg);
@@ -710,11 +719,11 @@ class SkillsController {
 
 	public function calcBarSetting($effective_attack_time) {
 		if ($effective_attack_time < 0) {
-			return 88 + (88 * $effective_attack_time);
+			return 87.5 + (87.5 * $effective_attack_time);
 		} elseif ($effective_attack_time > 0) {
-			return 88 + (12 * $effective_attack_time);
+			return 87.5 + (12 * $effective_attack_time);
 		} else {
-			return 88;
+			return 87.5;
 		}
 	}
 
