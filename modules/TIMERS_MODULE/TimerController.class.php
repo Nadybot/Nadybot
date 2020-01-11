@@ -308,6 +308,16 @@ class TimerController {
 			$msg = "No timers currently running.";
 		} else {
 			$blob = '';
+			// Sort timers by time until going off
+			usort($timers, function($a, $b) {
+				return ($a->endtime > $b->endtime)
+					? 1
+					: (
+						($a->endtime < $b->endtime)
+							? -1
+							: 0
+					);
+			});
 			foreach ($timers as $timer) {
 				$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
 				$name = $timer->name;
