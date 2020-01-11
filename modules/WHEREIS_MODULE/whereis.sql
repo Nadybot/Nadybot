@@ -282,6 +282,11 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ithaki', 'Inferno, 255 Incarnator', '', 4605, 3129, 3096);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Iziris Agathon', 'Omni-Trade, NE', NULL, 710, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper', 'Varmint Woods', NULL, 600, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #1', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 2828, 2719);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #2', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 2168, 1107);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #3', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 3754, 1006);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #4', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 2511, 437);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #5', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 4081, 349);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Janella Gheron', 'Cyborg Barracks, Greater Tir County', NULL, 647, 3200, 2300);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jeuru the Defiler', 'Inner Sanctum, 3rd Floor', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Joo', 'Omni Forest Area, Sunken Swamps', NULL, 716, 500, 2700);
