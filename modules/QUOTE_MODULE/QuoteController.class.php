@@ -211,9 +211,14 @@ class QuoteController {
 
 		if ($id == null) {
 			$id = rand(1, $count);
+			if ($this->db->getType() === \Budabot\Core\DB::SQLITE) {
+				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RANDOM() LIMIT 1");
+			} else {
+				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RAND() LIMIT 1");
+			}
+		} else {
+			$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `id` = ?", $id);
 		}
-
-		$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `id` = ?", $id);
 		if ($row === null) {
 			return null;
 		}
