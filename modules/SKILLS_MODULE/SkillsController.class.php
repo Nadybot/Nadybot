@@ -419,12 +419,15 @@ class SkillsController {
 
 		if ($fastrech < $fasthardcap) {
 			$fastrech = $fasthardcap;
+		} else {
+			$fastrech = ceil($fastrech);
 		}
 
-		$blob = "Attack: <highlight>". $AttTim ." <end>second(s)\n";
+		$blob  = "Attack: <highlight>". $AttTim ." <end>s\n";
 		$blob .= "Fast Attack Skill: <highlight>". $fastSkill ."<end>\n";
 		$blob .= "Fast Attack Recharge: <highlight>". $fastrech ."<end>s\n";
-		$blob .= "You need <highlight>".$fastskillcap."<end> Fast Attack Skill to cap your fast attack at <highlight>".$fasthardcap."<end>s.";
+		$blob .= "You need <highlight>".$fastskillcap."<end> Fast Attack Skill to cap your fast attack at <highlight>".$fasthardcap."<end>s.\n";
+		$blob .= "Every 100 points in Fast Attack skill less than this will increase the recharge by 1s.";
 
 		$msg = $this->text->makeBlob("Fast Attack Results", $blob);
 		$sendto->reply($msg);
@@ -759,7 +762,7 @@ class SkillsController {
 	}
 
 	public function capFastAttack($attack_time) {
-		$hard_cap = 5 + $attack_time;
+		$hard_cap = floor(5 + $attack_time);
 		$skill_cap = (($attack_time * 16) - $hard_cap) * 100;
 
 		return array($hard_cap, $skill_cap);
