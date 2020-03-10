@@ -108,7 +108,7 @@ class WhatBuffsController {
 		$type = ucfirst(strtolower($args[1]));
 		
 		if ($this->verifySlot($type)) {
-			if ($category === 'Nanoprogram') {
+			if ($type === 'Nanoprogram') {
 				$sql = "
 					SELECT s.name AS skill, COUNT(1) AS num
 					FROM buffs b
@@ -293,6 +293,10 @@ class WhatBuffsController {
 		return $this->db->query("SELECT DISTINCT id, name FROM skills WHERE $query", $params);
 	}
 
+	public function showItemLink($lowid, $highid, $ql, $name) {
+			return $this->text->makeItem($lowid, $highid, $ql, $name);
+	}
+
 	public function formatItems($items) {
 		$blob = '';
 		$maxBuff = 0;
@@ -336,7 +340,7 @@ class WhatBuffsController {
 			if ($item->multi_m !== null || $item->multi_r !== null) {
 				$blob .= "2x ";
 			}
-			$blob .= $this->text->makeItem($item->lowid, $item->highid, $item->highql, $item->name);
+			$blob .= $this->showItemLink($item->lowid, $item->highid, $item->highql, $item->name);
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ($item->low_amount - $item->amount)";
 				if ($this->commandManager->get('bestql')) {
