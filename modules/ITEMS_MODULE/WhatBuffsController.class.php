@@ -114,7 +114,7 @@ class WhatBuffsController {
 					FROM buffs b
 					JOIN item_buffs ib ON b.id = ib.item_id
 					JOIN skills s ON ib.attribute_id = s.id
-					WHERE ib.amount > 0
+					WHERE (s.name='SkillLockModifier' OR ib.amount > 0)
 					GROUP BY skill
 					HAVING num > 0
 					ORDER BY skill ASC";
@@ -206,9 +206,9 @@ class WhatBuffsController {
 				JOIN item_types it ON a.highid = it.item_id
 				JOIN item_buffs ib ON a.highid = ib.item_id
 				JOIN skills s ON ib.attribute_id = s.id
-				WHERE s.id = ? AND ib.amount > 0
+				WHERE s.id = ? AND (s.name='SkillLockModifier' OR ib.amount > 0)
 				GROUP BY a.name,a.lowql,a.highql,ib.amount
-				HAVING ib.amount > 0
+				HAVING (s.name='SkillLockModifier' OR ib.amount > 0)
 
 				UNION ALL
 
@@ -216,10 +216,10 @@ class WhatBuffsController {
 				FROM buffs b
 				JOIN item_buffs ib ON ib.item_id = b.id
 				JOIN skills s ON ib.attribute_id = s.id
-				WHERE s.id = ? AND ib.amount > 0
-				) AS FOO
-				GROUP BY item_type
-				ORDER BY item_type ASC
+				WHERE s.id = ? AND (s.name='SkillLockModifier' OR ib.amount > 0)
+			) AS FOO
+			GROUP BY item_type
+			ORDER BY item_type ASC
 			";
 			$data = $this->db->query($sql, $skillId, $skillId);
 			$blob = '';
@@ -240,7 +240,7 @@ class WhatBuffsController {
 				JOIN item_buffs b ON buffs.id = b.item_id
 				JOIN skills s ON b.attribute_id = s.id
 				LEFT JOIN aodb ON (aodb.lowid=buffs.use_id)
-				WHERE s.id = ? AND b.amount > 0 AND buffs.name NOT IN ('Ineptitude Transfer', 'Accumulated Interest', 'Unforgiven Debts', 'Payment Plan')
+				WHERE s.id = ? AND (s.name='SkillLockModifier' OR b.amount > 0) AND buffs.name NOT IN ('Ineptitude Transfer', 'Accumulated Interest', 'Unforgiven Debts', 'Payment Plan')
 				ORDER BY b.amount DESC, buffs.name ASC
 			";
 			$data = $this->db->query($sql, $skill->id);
@@ -254,7 +254,7 @@ class WhatBuffsController {
 				LEFT JOIN item_buffs b2 ON aodb.lowid = b2.item_id
 				LEFT JOIN weapon_attributes wa ON aodb.highid = wa.id
 				JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id
-				WHERE i.item_type = ? AND s.id = ? AND b.amount > 0
+				WHERE i.item_type = ? AND s.id = ? AND (s.name='SkillLockModifier' OR b.amount > 0)
 				AND ".$this->getItemsToExclude()."
 				GROUP BY aodb.name,aodb.lowql,aodb.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r
 				ORDER BY b.amount DESC, name DESC
