@@ -208,7 +208,6 @@ class WhatBuffsController {
 				JOIN skills s ON ib.attribute_id = s.id
 				WHERE s.id = ? AND (s.name='SkillLockModifier' OR ib.amount > 0)
 				GROUP BY a.name,a.lowql,a.highql,ib.amount
-				HAVING (s.name='SkillLockModifier' OR ib.amount > 0)
 
 				UNION ALL
 
@@ -293,8 +292,8 @@ class WhatBuffsController {
 		return $this->db->query("SELECT DISTINCT id, name FROM skills WHERE $query", $params);
 	}
 
-	public function showItemLink($lowid, $highid, $ql, $name) {
-			return $this->text->makeItem($lowid, $highid, $ql, $name);
+	public function showItemLink(\Budabot\Core\DBRow $item, $ql) {
+			return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 
 	public function formatItems($items) {
@@ -340,7 +339,8 @@ class WhatBuffsController {
 			if ($item->multi_m !== null || $item->multi_r !== null) {
 				$blob .= "2x ";
 			}
-			$blob .= $this->showItemLink($item->lowid, $item->highid, $item->highql, $item->name);
+			/* $blob .= $this->showItemLink($item->lowid, $item->highid, $item->highql, $item->name); */
+			$blob .= $this->showItemLink($item, $item->highql);
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ($item->low_amount - $item->amount)";
 				if ($this->commandManager->get('bestql')) {
