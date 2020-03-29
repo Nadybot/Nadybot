@@ -70,13 +70,11 @@ class ReputationController {
 	public function reputationListCommand($message, $channel, $sender, $sendto, $args) {
 		$sql = "
 			SELECT
-				name,
-				SUM(CASE WHEN reputation = '+1' THEN 1 ELSE 0 END) pos_rep,
-				SUM(CASE WHEN reputation = '-1' THEN 1 ELSE 0 END) neg_rep
+				*
 			FROM
 				reputation
-			GROUP BY
-				name";
+			ORDER BY
+				dt DESC";
 
 		$data = $this->db->query($sql);
 		$count = count($data);
@@ -88,9 +86,30 @@ class ReputationController {
 		}
 
 		$blob = '';
+		$charReputation = [];
 		foreach ($data as $row) {
-			$details_link = $this->text->makeChatcmd('Details', "/tell <myname> reputation $row->name");
-			$blob .= "$row->name  <green>+{$row->pos_rep}<end> <orange>-{$row->neg_rep}<end>   {$details_link}\n";
+			if (!array_key_exists($row->name, $charReputation)) {
+				$charReputation[$row->name] = (object)['total' => 0, 'comments' => []];
+			}
+			$charReputation[$row->name]->comments[] = $row;
+			$charReputation[$row->name]->total += ($row->reputation === '+1') ? 1 : -1;
+		}
+		$count = 0;
+		foreach ($charReputation as $char => $charData) {
+			$count++;
+			$blob .= $char . " (" . sprintf('%+d', $charData->total) . ")\n";
+			$comments = array_slice($charData->comments, 0, 3);
+			foreach ($comments as $row) {
+				$color = ($row->reputation === '+1') ? 'green' : 'red';
+				$blob .= "  <$color>{$row->comment}<end> ".
+					"(<highlight>{$row->by}<end>, ".
+					$this->util->date($row->dt) . ")\n";
+			}
+			if (count($charData->comments) > 3) {
+				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation $row->name all");
+				$blob .= "  $details_link\n";
+			}
+			$blob .= "\n<pagebreak>";
 		}
 		$msg = $this->text->makeBlob("Reputation List ($count)", $blob);
 		$sendto->reply($msg);
@@ -123,8 +142,8 @@ class ReputationController {
 		$row = $this->db->queryRow($sql, $sender, $name, $time);
 		if ($row !== null) {
 			$timeString = $this->util->unixtimeToReadable($row->dt - $time);
-			$sendto->reply("You must wait $timeString before submitting more reputation for $name.");
-			return;
+			/* $sendto->reply("You must wait $timeString before submitting more reputation for $name."); */
+			/* return; */
 		}
 
 		$sql = "
@@ -187,17 +206,17 @@ class ReputationController {
 			$data = $this->db->query($sql, $name, $limit);
 			foreach ($data as $row) {
 				if ($row->reputation == '-1') {
-					$blob .= "<orange>";
+					$blob .= "<red>";
 				} else {
 					$blob .= "<green>";
 				}
 
 				$time = $this->util->unixtimeToReadable(time() - $row->dt);
-				$blob .= "({$row->reputation}) $row->comment <end> $row->by <white>{$time} ago<end>\n\n";
+				$blob .= "  $row->comment<end> ($row->by, <white>{$time} ago<end>)\n";
 			}
 			
-			if ($limit != 1000) {
-				$blob .= $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
+			if ($limit != 1000 && count($data) >= $limit) {
+				$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
 			}
 
 			$msg = $this->text->makeBlob("Reputation for {$name} (+$num_positive -$num_negative)", $blob);
