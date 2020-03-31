@@ -49,9 +49,12 @@ class AltInfo {
 		}
 
 		$online = $buddylistManager->isOnline($this->main);
+		$character = $playerManager->getByName($this->main);
+		if ($character->profession !== null) {
+			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($character->profession)."> ";
+		}
 		$blob .= $this->formatCharName($this->main, $online);
 
-		$character = $playerManager->getByName($this->main);
 		if ($character !== null) {
 			$blob .= " ({$character->level}/<green>{$character->ai_level}<end> {$character->profession})";
 		}
@@ -67,6 +70,9 @@ class AltInfo {
 		$count = count($data) + 1;
 		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);
+			if ($row->profession !== null) {
+				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($row->profession)."> ";
+			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			if ($row->profession !== null) {
 				$blob .= " ({$row->level}/<green>{$row->ai_level}<end> {$row->profession})";
