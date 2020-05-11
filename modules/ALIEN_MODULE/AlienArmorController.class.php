@@ -71,14 +71,14 @@ class AlienArmorController {
 
 		$list = "Note: All tradeskill processes are based on the lowest QL items usable.\n\n";
 		$list .= "<header2>You need the following items to build $armortype Armor:<end>\n";
-		$list .= "- Kyr'Ozch Viralbots\n";
+		$list .= "- Kyr'Ozch Viralbots (QL$misc_ql+)\n";
 		$list .= "- Kyr'Ozch Atomic Re-Structulazing Tool\n";
-		$list .= "- Solid Clump of Kyr'Ozch Biomaterial\n";
-		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots\n\n";
+		$list .= "- Solid Clump of Kyr'Ozch Biomaterial (QL$ql)\n";
+		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots (QL$misc_ql+)\n\n";
 
 		$list .= "<header2>Step 1<end>\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Viralbots", $misc_ql);
-		$list .= " (<highlight>Drops from Alien City Generals<end>)\n";
+		$list .= " QL$misc_ql+ (<highlight>Drops from Alien City Generals<end>)\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Atomic Re-Structuralizing Tool", 100);
 		$list .= " (<highlight>Drops from every Alien<end>)\n";
