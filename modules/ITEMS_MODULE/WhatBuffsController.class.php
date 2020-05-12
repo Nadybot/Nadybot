@@ -207,7 +207,7 @@ class WhatBuffsController {
 				JOIN item_buffs ib ON a.highid = ib.item_id
 				JOIN skills s ON ib.attribute_id = s.id
 				WHERE s.id = ? AND (s.name='SkillLockModifier' OR ib.amount > 0)
-				GROUP BY a.name,a.lowql,a.highql,ib.amount
+				GROUP BY a.name,it.item_type,a.lowql,a.highql,ib.amount
 
 				UNION ALL
 
