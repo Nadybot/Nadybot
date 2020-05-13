@@ -431,7 +431,7 @@ class SystemController {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] == 4 && $this->buddylistManager->isOnline($name) == 1) {
-				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help use the Budabot Forums <highlight>http://budabot.com<end>", $name);
+				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help, see the Webpage at <highlight>https://github.com/Nadyita/Budabot<end>", $name);
 			}
 		}
 		
