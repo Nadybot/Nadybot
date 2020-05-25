@@ -375,7 +375,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Notum Tree', 'Avalon', NULL, 505, 2450, 1300);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Noxious Eremite', 'Inferno', '', 4605, 2615, 2233);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Numiel', 'Inferno, Fronter', NULL, 4605, 2821, 2454);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nuts & Bolts', 'Aegean, Wartorn Valley', NULL, 585, 790, 680);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nuts & Bolts', 'Aegean, Wartorn Valley', NULL, 586, 790, 680);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Abettor', '', '', 4005, 717, 445);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Drudge', '', '', 4005, 1851, 1761);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Obediency Inspector', 'Eastern Fouls Plain, at the lake', NULL, 620, 1225, 2800);
