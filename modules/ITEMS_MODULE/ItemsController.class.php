@@ -3,8 +3,6 @@
 namespace Budabot\User\Modules;
 
 use Exception;
-use stdClass;
-use DOMDocument;
 
 /**
  * @Instance
@@ -172,6 +170,7 @@ class ItemsController {
 				return $msg;
 			}
 
+			$msg = array();
 			if ($latestVersion !== null) {
 				$currentVersion = $this->settingManager->get("${currentDB}_db_version");
 
@@ -229,8 +228,8 @@ class ItemsController {
 		// local database
 		$data = $this->findItemsFromLocal($search, $ql);
 
-		$budabotItemsExtractorLink = $this->text->makeChatcmd("Budabot Items Extractor", "/start https://github.com/Budabot/ItemsExtractor");
-		$footer = "Item DB rips created using the $budabotItemsExtractorLink tool.";
+		$aoiaPlusLink = $this->text->makeChatcmd("AOIA+", "/start https://sourceforge.net/projects/aoiaplus");
+		$footer = "Item DB rips created using the $aoiaPlusLink tool.";
 
 		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->get('aodb_db_version'), 'local', $footer);
 
@@ -375,6 +374,18 @@ class ItemsController {
 			if ($row->group_id === null || $row->group_id !== $oldGroup) {
 				$lastQL = null;
 				$newGroup = true;
+				// If this is a group of items, name them by their longest common name
+				if ($row->group_id !== null) {
+					$itemNames = array();
+					for ($j=$itemNum; $j < count($data); $j++) {
+						if ($data[$j]->group_id === $row->group_id) {
+							$itemNames []= $data[$j]->name;
+						} else {
+							break;
+						}
+					}
+					$row->name = $this->getLongestCommonStringOfWords($itemNames);
+				}
 				if ($list !== '') {
 					$list .= "\n";
 				}
@@ -455,5 +466,72 @@ class ItemsController {
 			return $this->text->makeImage($row->icon) . "\n" .
 				$this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 		}
+	}
+
+	/**
+	 * Get the longest common string of 2 strings
+	 *
+	 * The LCS of "Cheap Caterwaul X-17" and "Exceptional Caterwaul X-17"
+	 * would be " Caterwaul X-17", so mind the included space!
+	 *
+	 * @param string $first  The first word to compare
+	 * @param string $second The second word to compare
+	 * @return string The longest common string of $first and $second
+	 */
+	public function getLongestCommonString($first, $second) {
+		$first = explode(" ", $first);
+		$second = explode(" ", $second);
+		$longestCommonSubstringIndexInFirst = 0;
+		$table = array();
+		$largestFound = 0;
+	
+		$firstLength = count($first);
+		$secondLength = count($second);
+		for ($i = 0; $i < $firstLength; $i++) {
+			for ($j = 0; $j < $secondLength; $j++) {
+				if ($first[$i] === $second[$j]) {
+					if (!isset($table[$i])) {
+						$table[$i] = array();
+					}
+	
+					$table[$i][$j] = 1;
+					if ($i > 0 && $j > 0 && isset($table[$i-1][$j-1])) {
+						$table[$i][$j] = $table[$i-1][$j-1] + 1;
+					}
+	
+					if ($table[$i][$j] > $largestFound) {
+						$largestFound = $table[$i][$j];
+						$longestCommonSubstringIndexInFirst = $i - $largestFound + 1;
+					}
+				}
+			}
+		}
+		if ($largestFound === 0) {
+			return "";
+		} else {
+			return implode(" ", array_slice($first, $longestCommonSubstringIndexInFirst, $largestFound));
+		}
+	}
+
+	/**
+	 * Get the longest common string of X words
+	 *
+	 * The LCS of
+	 *  "Cheap Caterwaul X-17"
+	 *  "Exceptional Caterwaul X-17"
+	 *  and "Crappy Caterwaul"
+	 * would be "Caterwaul", without the leading space!
+	 *
+	 * @param string[] $words The words to compare
+	 * @return string  The longest common string of all given words
+	 */
+	public function getLongestCommonStringOfWords($words) {
+		return trim(
+			array_reduce(
+				$words,
+				[$this, 'getLongestCommonString'],
+				array_shift($words)
+			)
+		);
 	}
 }
