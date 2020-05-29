@@ -261,7 +261,7 @@ class RelayController {
 				}
 			} else {
 				if (count($altInfo->alts) > 0) {
-					$msg .= "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
+					$msg = "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
 				} else {
 					$msg = "$sender has joined the private channel.";
 				}
