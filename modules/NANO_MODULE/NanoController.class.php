@@ -4,6 +4,7 @@ namespace Budabot\User\Modules;
 
 /**
  * Authors:
+ *	- Nadyita (RK5)
  *	- Tyrence (RK2)
  *	- Healnjoo (RK2)
  *	- Mdkdoc420 (RK2)
@@ -69,8 +70,6 @@ class NanoController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'nanos');
-		$this->db->loadSQLFile($this->moduleName, 'nanolines');
-		$this->db->loadSQLFile($this->moduleName, 'nanos_nanolines_ref');
 		
 		$this->settingManager->add($this->moduleName, 'maxnano', 'Number of Nanos shown on the list', 'edit', "number", '40', '30;40;50;60', "", "mod");
 		$this->settingManager->add($this->moduleName, "shownanolineicons", "Show icons for the nanolines", "edit", "options", "0", "true;false", "1;0");
@@ -85,26 +84,25 @@ class NanoController {
 
 		$search = htmlspecialchars_decode($search);
 		$tmp = explode(" ", $search);
-		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'n1.`name`');
+		list($query, $params) = $this->util->generateQueryFromParams($tmp, '`nano_name`');
 		array_push($params, intval($this->settingManager->get("maxnano")));
 
 		$sql =
 			"SELECT
-				n1.lowid,
-				n1.lowql,
-				n1.name,
-				n1.location,
-				n1.profession,
-				n3.id AS nanoline_id,
-				n3.name AS nanoline_name
+				crystal_id,
+				nano_id,
+				ql,
+				crystal_name,
+				nano_name,
+				location,
+				professions,
+				strain AS nanoline_name
 			FROM
-				nanos n1
-				LEFT JOIN nanos_nanolines_ref n2 ON n1.lowid = n2.lowid
-				LEFT JOIN nanolines n3 ON n2.nanolines_id = n3.id
+				nanos
 			WHERE
 				$query
 			ORDER BY
-				n1.profession, n3.name, n1.lowql DESC, n1.name ASC
+				strain, ql DESC, nano_name ASC
 			LIMIT
 				?";
 
@@ -117,18 +115,21 @@ class NanoController {
 			$blob = '';
 			$currentNanoline = -1;
 			foreach ($data as $row) {
-				if ($currentNanoline != $row->nanoline_id) {
+				if ($currentNanoline !== $row->nanoline_name) {
 					if (!empty($row->nanoline_name)) {
-						$nanolineLink = $this->text->makeChatcmd($row->nanoline_name, "/tell <myname> nanolines $row->nanoline_id");
-						$blob .= "\n<header2>$row->profession<end> - $nanolineLink\n";
+						$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines $row->nanoline_name");
+						$blob .= "\n<header2>$row->nanoline_name<end> - [$nanolineLink]\n";
 					} else {
 						$blob .= "\n<header2>Unknown/General<end>\n";
 					}
-					$currentNanoline = $row->nanoline_id;
+					$currentNanoline = $row->nanoline_name;
 				}
-				$blob .= $this->text->makeItem($row->lowid, $row->lowid, $row->lowql, $row->name);
-				$blob .= " [$row->lowql] $row->location";
-				$blob .= "\n";
+				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
+				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "uploaded from");
+				// $blob .= "$nanoLink ($crystalLink) [$row->ql] $row->location\n";
+				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
+				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
+				$blob .= "<tab>" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)\n";
 			}
 			$blob .= $this->getFooter();
 			$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
@@ -142,12 +143,12 @@ class NanoController {
 	 * @Matches("/^nanolines$/i")
 	 */
 	public function nanolinesListProfsCommand($message, $channel, $sender, $sendto, $args) {
-		$sql = "SELECT DISTINCT profession FROM nanolines ORDER BY profession ASC";
+		$sql = "SELECT DISTINCT professions FROM nanos WHERE professions NOT LIKE '%:%' ORDER BY professions ASC";
 		$data = $this->db->query($sql);
 
-		$blob = '';
+		$blob = "<header2>Choose a profession<end>\n";
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd($row->profession, "/tell <myname> nanolines $row->profession");
+			$blob .= "<tab>" . $this->text->makeChatcmd($row->professions, "/tell <myname> nanolines $row->professions");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
@@ -158,70 +159,72 @@ class NanoController {
 	
 	/**
 	 * @HandlesCommand("nanolines")
-	 * @Matches("/^nanolines (.*)$/i")
+	 * @Matches("/^nanolines (.+)$/i")
 	 */
 	public function nanolinesListCommand($message, $channel, $sender, $sendto, $args) {
-		if (preg_match("/^[0-9]+$/", $args[1])) {
-			$this->nanolinesShow($args[1], $sendto);
+		$nanoArgs = explode(" ", $args[1]);
+		$profArg = array_shift($nanoArgs);
+		$profession = $this->util->getProfessionName($profArg);
+		if ($profession === '') {
+			$this->nanolinesShow($args[1], null, $sendto);
+		} elseif (count($nanoArgs)) {
+			$this->nanolinesShow(implode(" ", $nanoArgs), $profession, $sendto);
 		} else {
-			$this->nanolinesList($args[1], $sendto);
+			$this->nanolinesList($profession, $sendto);
 		}
 	}
 	
-	private function nanolinesShow($nanolineId, $sendto) {
-		$sql = "SELECT * FROM nanolines WHERE id = ?";
-		$nanoline = $this->db->queryRow($sql, $nanolineId);
-
-		$msg = '';
-		if ($nanoline !== null) {
-			$blob = '';
-
-			$sql = "
-				SELECT
-					n1.lowid,
-					lowql,
-					n1.name,
-					location
-				FROM
-					nanos n1
-					JOIN nanos_nanolines_ref n2
-						ON (n1.lowid = n2.lowid)
-				WHERE
-					n2.nanolines_id = ?
-				ORDER BY
-					lowql DESC, name ASC";
-			$data = $this->db->query($sql, $nanolineId);
-
-			foreach ($data as $nano) {
-				$blob .= $this->text->makeItem($nano->lowid, $nano->lowid, $nano->lowql, $nano->name);
-				$blob .= " [$nano->lowql] $nano->location\n";
-			}
-			$blob .= $this->getFooter();
-			$msg = $this->text->makeBlob("$nanoline->profession $nanoline->name Nanos", $blob);
+	private function nanolinesShow($nanoline, $prof, $sendto) {
+		if ($prof !== null) {
+			$sql = "SELECT * FROM nanos WHERE strain = ? AND professions LIKE ? ORDER BY sub_strain ASC, ql DESC, nano_name ASC";
+			$data = $this->db->query($sql, $nanoline, "%$prof%");
 		} else {
-			$msg = "No nanoline found.";
+			$sql = "SELECT * FROM nanos WHERE strain = ? ORDER BY ql DESC, nano_name ASC";
+			$data = $this->db->query($sql, $nanoline);
+		}
+		if (!count($data)) {
+			$msg = "No nanoline named <highlight>$nanoline<end> found.";
+			if ($prof !== null) {
+				$msg = "No nanoline named <highlight>$nanoline<end> found for <highlight>$prof<end>.";
+			}
+			$sendto->reply($msg);
+			return;
+		}
+
+		$lastSubStrain = null;
+		$blob = "<header2>{$data[0]->strain}<end>\n";
+		foreach ($data as $nano) {
+			if ($nano->sub_strain !== null && $nano->sub_strain !== '' && $nano->sub_strain !== $lastSubStrain) {
+				$blob .= "\n<highlight>{$nano->sub_strain}<end>\n";
+				$lastSubStrain = $nano->sub_strain;
+			}
+			$nanoLink = "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
+			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
+			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
+		}
+		$blob .= $this->getFooter();
+		$msg = $this->text->makeBlob("All $nano->strain Nanos", $blob);
+		if ($prof !== null) {
+			$msg = $this->text->makeBlob("All $nano->strain Nanos for $prof", $blob);
 		}
 
 		$sendto->reply($msg);
 	}
 
 	private function nanolinesList($profession, $sendto) {
-		$profession = $this->util->getProfessionName($profession);
-		if ($profession == '') {
-			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, or trader";
-			$sendto->reply($msg);
-			return;
-		}
+		$sql = "SELECT distinct school,strain FROM nanos WHERE professions LIKE ? GROUP BY school,strain ORDER BY school ASC, strain ASC";
+		$data = $this->db->query($sql, "%${profession}%");
 
-		$sql = "SELECT * FROM nanolines WHERE profession LIKE ? ORDER BY name ASC";
-		$data = $this->db->query($sql, $profession);
-
+		$shortProf = $this->util->getProfessionAbbreviation($profession);
 		$blob = '';
+		$lastSchool = null;
 		foreach ($data as $row) {
-			if ($this->settingManager->get("shownanolineicons") == "1") {
-				$blob .= $this->text->makeImage($row->image_id) . "\n";
+			$strain = $row->strain;
+			if ($lastSchool === null || $lastSchool !== $row->school) {
+				$blob .= "<header2>{$row->school}<end>\n";
+				$lastSchool = $row->school;
 			}
-			$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> nanolines $row->id");
+			$blob .= "<tab>" . $this->text->makeChatcmd($strain, "/tell <myname> nanolines $shortProf $row->strain");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
@@ -255,20 +258,19 @@ class NanoController {
 
 		$sql =
 			"SELECT
-				n1.lowid,
-				n1.lowql,
-				n1.name,
-				n1.location,
-				n3.profession
+				crystal_id,
+				nano_id,
+				ql,
+				nano_name,
+				crystal_name,
+				location,
+				professions
 			FROM
-				nanos n1
-				LEFT JOIN nanos_nanolines_ref n2 ON n1.lowid = n2.lowid
-				LEFT JOIN nanolines n3 ON n2.nanolines_id = n3.id
+				nanos
 			WHERE
-				n1.location LIKE ?
+				location LIKE ?
 			ORDER BY
-				n1.profession ASC,
-				n1.name ASC";
+				nano_name ASC";
 
 		$data = $this->db->query($sql, $location);
 
@@ -278,10 +280,11 @@ class NanoController {
 		} else {
 			$blob = '';
 			foreach ($data as $row) {
-				$blob .= $this->text->makeItem($row->lowid, $row->lowid, $row->lowql, $row->name);
-				$blob .= " [$row->lowql] $row->location";
-				if ($row->profession) {
-					$blob .= " - <highlight>$row->profession<end>";
+				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
+				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
+				$blob .= "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink";
+				if ($row->professions) {
+					$blob .= " - <highlight>" . join("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
 				}
 				$blob .= "\n";
 			}
@@ -293,6 +296,6 @@ class NanoController {
 	}
 
 	private function getFooter() {
-		return "\n\nNanos DB provided by Saavick & Lucier";
+		return "\n\nNanos DB originally provided by Saavick & Lucier";
 	}
 }
