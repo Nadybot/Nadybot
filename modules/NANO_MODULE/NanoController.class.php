@@ -169,13 +169,14 @@ class NanoController {
 	 * @Matches("/^nanolines (.+)$/i")
 	 */
 	public function nanolinesListCommand($message, $channel, $sender, $sendto, $args) {
-		$nanoArgs = explode(" ", $args[1]);
+		$args[1] = html_entity_decode($args[1]);
+		$nanoArgs = explode(" > ", $args[1]);
 		$profArg = array_shift($nanoArgs);
 		$profession = $this->util->getProfessionName($profArg);
 		if ($profession === '') {
 			$this->nanolinesShow($args[1], null, $sendto);
 		} elseif (count($nanoArgs)) {
-			$this->nanolinesShow(implode(" ", $nanoArgs), $profession, $sendto);
+			$this->nanolinesShow(implode(" > ", $nanoArgs), $profession, $sendto);
 		} else {
 			$this->nanolinesList($profession, $sendto);
 		}
@@ -246,7 +247,7 @@ class NanoController {
 				$blob .= "<header2>{$row->school}<end>\n";
 				$lastSchool = $row->school;
 			}
-			$blob .= "<tab>" . $this->text->makeChatcmd($strain, "/tell <myname> nanolines $shortProf $row->strain");
+			$blob .= "<tab>" . $this->text->makeChatcmd($strain, "/tell <myname> nanolines $shortProf > $row->strain");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
