@@ -94,9 +94,9 @@ class RelayController {
 		$this->settingManager->add($this->moduleName, 'relay_color_priv', "Color of messages from relay to private channel", 'edit', "color", "<font color='#C3C3C3'>");
 		$this->settingManager->add($this->moduleName, 'relay_guild_abbreviation', 'Abbreviation to use for org name', 'edit', 'text', 'none', 'none');
 		$this->settingManager->add($this->moduleName, 'relay_ignore', 'Semicolon-separated list of people not to relay away', 'edit', 'text', '', 'none');
-		$this->settingManager->add($this->moduleName, 'relay_filter_out', 'Regular expression that prevents matching messages from being relayed away', 'edit', 'text', '', 'none');
-		$this->settingManager->add($this->moduleName, 'relay_filter_in', 'Regular expression that prevents matching messages from being relayed to org chat', 'edit', 'text', '', 'none');
-		$this->settingManager->add($this->moduleName, 'relay_filter_in_priv', 'Regular expression that prevents matching messages from being relayed to private channel', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_out', 'RegExp filtering outgoing messages', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_in', 'RegExp filtering messages to org chat', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_in_priv', 'RegExp filtering messages to priv chat', 'edit', 'text', '', 'none');
 		
 		$this->commandAlias->register($this->moduleName, "macro settings save relaytype 1|settings save relaysymbol Always relay|settings save relaybot", "tellrelay");
 	}
