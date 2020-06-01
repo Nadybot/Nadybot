@@ -96,13 +96,18 @@ class NanoController {
 				nano_name,
 				location,
 				professions,
+				school,
 				strain AS nanoline_name
 			FROM
 				nanos
 			WHERE
 				$query
 			ORDER BY
-				strain, ql DESC, nano_name ASC
+				strain ASC,
+				ql DESC,
+				nano_cost DESC,
+				nano_name LIKE 'Improved%' DESC,
+				nano_name ASC
 			LIMIT
 				?";
 
@@ -118,18 +123,17 @@ class NanoController {
 				if ($currentNanoline !== $row->nanoline_name) {
 					if (!empty($row->nanoline_name)) {
 						$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines $row->nanoline_name");
-						$blob .= "\n<header2>$row->nanoline_name<end> - [$nanolineLink]\n";
+						$blob .= "\n<header2>$row->school &gt; $row->nanoline_name<end> - [$nanolineLink]\n";
 					} else {
 						$blob .= "\n<header2>Unknown/General<end>\n";
 					}
 					$currentNanoline = $row->nanoline_name;
 				}
-				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
-				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "uploaded from");
-				// $blob .= "$nanoLink ($crystalLink) [$row->ql] $row->location\n";
-				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
+				$nanoLink = $this->makeNano($row->nano_id, $row->nano_name);
 				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
-				$blob .= "<tab>" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)\n";
+				$blob .= "<tab>QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
+				$blob .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
+				$blob .= "\n";
 			}
 			$blob .= $this->getFooter();
 			$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
@@ -175,11 +179,26 @@ class NanoController {
 	}
 	
 	private function nanolinesShow($nanoline, $prof, $sendto) {
+		$profWhere = "";
 		if ($prof !== null) {
-			$sql = "SELECT * FROM nanos WHERE strain = ? AND professions LIKE ? ORDER BY sub_strain ASC, ql DESC, nano_name ASC";
+			$profWhere = "AND professions LIKE ?";
+		}
+		$sql = "SELECT * 
+			FROM
+				nanos
+			WHERE
+				strain = ?
+			$profWhere
+			ORDER BY
+				sub_strain ASC,
+				ql DESC,
+				nano_cost DESC,
+				nano_name LIKE 'Improved%' DESC,
+				nano_name ASC
+		";
+		if ($prof !== null) {
 			$data = $this->db->query($sql, $nanoline, "%$prof%");
 		} else {
-			$sql = "SELECT * FROM nanos WHERE strain = ? ORDER BY ql DESC, nano_name ASC";
 			$data = $this->db->query($sql, $nanoline);
 		}
 		if (!count($data)) {
@@ -198,7 +217,7 @@ class NanoController {
 				$blob .= "\n<highlight>{$nano->sub_strain}<end>\n";
 				$lastSubStrain = $nano->sub_strain;
 			}
-			$nanoLink = "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
+			$nanoLink = $this->makeNano($nano->nano_id, $nano->nano_name);
 			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
 			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
 		}
@@ -280,7 +299,7 @@ class NanoController {
 		} else {
 			$blob = '';
 			foreach ($data as $row) {
-				$nanoLink = "<a href='itemid://53019/{$row->nano_id}'>{$row->nano_name}</a>";
+				$nanoLink = $this->makeNano($row->nano_id, $row->nano_name);
 				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
 				$blob .= "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink";
 				if ($row->professions) {
@@ -297,5 +316,16 @@ class NanoController {
 
 	private function getFooter() {
 		return "\n\nNanos DB originally provided by Saavick & Lucier";
+	}
+
+	/**
+	 * Creates a link to a nano - not a crystal
+	 *
+	 * @param  int    $id   The ID of the nano
+	 * @param  string $name The name of the name to display
+	 * @return string       A link to the nano
+	 */
+	public function makeNano($id, $name) {
+		return "<a href='itemid://53019/${id}'>${name}</a>";
 	}
 }
