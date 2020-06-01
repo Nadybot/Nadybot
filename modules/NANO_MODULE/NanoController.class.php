@@ -123,7 +123,7 @@ class NanoController {
 				if ($currentNanoline !== $row->nanoline_name) {
 					if (!empty($row->nanoline_name)) {
 						$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines $row->nanoline_name");
-						$blob .= "\n<header2>$row->school &gt; $row->nanoline_name<end> - [$nanolineLink]\n";
+						$blob .= "\n<header2>$row->school<end> &gt; <header2>$row->nanoline_name<end> - [$nanolineLink]\n";
 					} else {
 						$blob .= "\n<header2>Unknown/General<end>\n";
 					}
@@ -131,12 +131,15 @@ class NanoController {
 				}
 				$nanoLink = $this->makeNano($row->nano_id, $row->nano_name);
 				$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
-				$blob .= "<tab>QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
-				$blob .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
-				$blob .= "\n";
+				$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
+				$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
+				$blob .= "<tab>$info\n";
 			}
 			$blob .= $this->getFooter();
 			$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
+			if (count($data) === 1) {
+				$msg = $info . " [" . $this->text->makeBlob("details", $blob) . "]";
+			}
 		}
 
 		$sendto->reply($msg);
