@@ -1,0 +1,11 @@
+To show all froob professions that have nanolines:
+<highlight><tab><symbol>nlf<end>
+
+To show the froob nanolines for a particular profession:
+<highlight><tab><symbol>nlf 'profession'<end>
+
+To show the nanos in a particular nanoline that froobs can use:
+<highlight><tab><symbol>nlf 'nanoline'<end>
+
+To show the nanos in a particular nanoline that a froob profession can use:
+<highlight><tab><symbol>nlf 'profession' > 'nanoline'<end>
