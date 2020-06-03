@@ -273,12 +273,15 @@ class Text {
 	 * @param string $colortag (optional) The color/tag to assign, e.g. "highlight"
 	 * @return string The zero-prefixed $number
 	 */
-	public function alignNumber($number, $digits, $colortag=null) {
+	public function alignNumber($number, $digits, $colortag=null, $grouping=false) {
 		$prefixedNumber = sprintf("%0${digits}d", $number);
-		if (is_string($colortag)) {
-			$prefixedNumber = preg_replace('/([1-9]\d*)$/', "<$colortag>$1<end>", $prefixedNumber);
+		if ($grouping) {
+			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ",")), 1);
 		}
-		$alignedNumber = preg_replace("/^(0+)(?!$)/", "<black>$1<end>", $prefixedNumber);
+		if (is_string($colortag)) {
+			$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<$colortag>$1<end>", $prefixedNumber);
+		}
+		$alignedNumber = preg_replace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
 		return $alignedNumber;
 	}
 }
