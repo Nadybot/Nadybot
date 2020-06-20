@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS buffs;
-CREATE TABLE buffs (id INT NOT NULL PRIMARY KEY UNIQUE, nano_id INT, disc_id INT, use_id INT, name VARCHAR(255), ncu INT, nanocost INT, school INT, strain INT, duration INT, attack INT, recharge INT, range INT, initskill INT);
+CREATE TABLE buffs (id INT NOT NULL PRIMARY KEY UNIQUE, nano_id INT, disc_id INT, use_id INT, name VARCHAR(255), ncu INT, nanocost INT, school INT, strain INT, duration INT, attack INT, recharge INT, `range` INT, initskill INT);
 INSERT INTO buffs VALUES (304849, 0, 0, null, 'Wrecked', 20, 0, 1, 887, 900, 0, 0, 0, 0);
 INSERT INTO buffs VALUES (304850, 0, 0, null, 'Stunned by Wrecking Ball', 20, 0, 4, 147, 200, 0, 0, 1, 0);
 INSERT INTO buffs VALUES (304852, 0, 0, null, 'The First Sun', 20, 0, 4, 884, 100, 0, 0, 1, 0);
