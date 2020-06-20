@@ -612,3 +612,4 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zodiac', 'Pandemonium Caina, NE of the garden statues. Portal boss for entering pandemonium', '', 4328, 190, 85);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zoftig Blimp', 'Mort, City of Hope', NULL, 560, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zyvania Bagh', 'ICC', 'steps of madness som', 655, 3158, 900);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Loren Warr', 'West of Newland Lake', NULL, 567, 345, 508);
