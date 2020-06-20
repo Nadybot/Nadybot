@@ -50,13 +50,16 @@ class AltInfo {
 
 		$online = $buddylistManager->isOnline($this->main);
 		$character = $playerManager->getByName($this->main);
+		$blob = '';
 		if ($character->profession !== null) {
 			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($character->profession)."> ";
 		}
 		$blob .= $this->formatCharName($this->main, $online);
 
 		if ($character !== null) {
-			$blob .= " ({$character->level}/<green>{$character->ai_level}<end> {$character->profession})";
+			$factionColor = strtolower($character->faction);
+			$orgName = strlen($character->guild) ? $character->guild : $character->faction;
+			$blob .= " (<highlight>{$character->level}<end>/<green>{$character->ai_level}<end> {$character->profession}, <{$factionColor}>{$orgName}<end>)";
 		}
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
@@ -75,7 +78,9 @@ class AltInfo {
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			if ($row->profession !== null) {
-				$blob .= " ({$row->level}/<green>{$row->ai_level}<end> {$row->profession})";
+				$factionColor = strtolower($row->faction);
+				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
+				$blob .= " (<highlight>{$row->level}<end>/<green>{$row->ai_level}<end> {$row->profession}, <{$factionColor}>{$orgName}<end>)";
 			}
 			$blob .= $this->formatOnlineStatus($online);
 
