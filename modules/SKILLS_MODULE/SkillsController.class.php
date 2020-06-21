@@ -149,6 +149,18 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Agg/Def Results", $blob);
 		$sendto->reply($msg);
 	}
+
+	protected function getAggdefBar($percent, $length=50) {
+		$bar = str_repeat("l", $length);
+		$markerPos = round($percent / 100 * $length, 0);
+		$leftBar   = substr($bar, 0, $markerPos);
+		$rightBar  = substr($bar, $markerPos + 1);
+		$fancyBar = "<green>${leftBar}<end><red>│<end><green>${rightBar}<end>";
+		if ($percent != 100) {
+			$fancyBar .= "<black>l<end>";
+		}
+		return $fancyBar;
+	}
 	
 	public function getAggDefOutput($AttTim, $RechT, $InitS) {
 		if ($InitS < 1200) {
@@ -174,7 +186,6 @@ class SkillsController {
 		$initsFullAgg = $this->getInitsNeededFullAgg($AttTim, $RechT);
 		$initsNeutral = $this->getInitsNeededNeutral($AttTim, $RechT);
 		$initsFullDef = $this->getInitsNeededFullDef($AttTim, $RechT);
-		$bar = "llllllllllllllllllllllllllllllllllllllllllllllllll";
 
 		$blob = "Attack:    <highlight>". $AttTim ." <end>second(s).\n";
 		$blob .= "Recharge: <highlight>". $RechT ." <end>second(s).\n";
@@ -185,10 +196,9 @@ class SkillsController {
 		$blob .= "  Full Agg (100%): <highlight>". $initsFullAgg ." <end>inits\n";
 		$blob .= "  Neutral (87.5%): <highlight>". $initsNeutral ." <end>inits\n";
 		$blob .= "  Full Def (0%):     <highlight>". $initsFullDef ." <end>inits\n\n";
-		$markerPos = round($InitResult/100*strlen($bar), 0);
-		$leftBar    = substr($bar, 0, $markerPos);
-		$rightBar   = substr($bar, $markerPos+1);
-		$blob .= "<highlight>${initsFullDef}<end> DEF <green>${leftBar}<end><red>│<end><green>${rightBar}<end> AGG <highlight>${initsFullAgg}<end>\n";
+		$blob .= "<highlight>${initsFullDef}<end> DEF ";
+		$blob .= $this->getAggdefBar($InitResult);
+		$blob .= " AGG <highlight>${initsFullAgg}<end>\n";
 		$blob .= "                         You: <highlight>${InitS}<end>\n\n";
 		$blob .= "Note that at the neutral position (87.5%), your attack and recharge time will match that of the weapon you are using.";
 		$blob .= "\n\nBased upon a RINGBOT module made by NoGoal(RK2)\n";
@@ -196,56 +206,30 @@ class SkillsController {
 		
 		return $blob;
 	}
-	
-	public function getInitsNeededFullAgg($AttTim, $RechT) {
-		$Initatta1 = round((((100 - 87.5) * 0.02) + 1 - $AttTim) * -600, 0);
-		$Initrech1 = round((((100 - 87.5) * 0.02) + 1 - $RechT) * -300, 0);
-		if ($Initatta1 > 1200) {
-			$Initatta1 = round(((((100 - 87.5) * 0.02) + 1 - $AttTim + 2) * -1800) + 1200, 0);
+
+	public function getInitsForPercent($percent, $attackTime, $rechargeTime) {
+		$initAttack   = ($attackTime   - ($percent - 87.5) / 50 - 1) * 600;
+		$initRecharge = ($rechargeTime - ($percent - 87.5) / 50 - 1) * 300;
+
+		if ($initAttack > 1200) {
+			$initAttack = ($attackTime - ($percent - 37.5) / 50 - 2) * 1800 + 1200;
 		}
-		if ($Initrech1 > 1200) {
-			$Initrech1 = round(((((100 - 87.5) * 0.02) + 1 - $AttTim + 4) * -900) + 1200, 0);
+		if ($initRecharge > 1200) {
+			$initRecharge = ($rechargeTime - ($percent - 37.5) / 50 - 4) * 900 + 1200;
 		}
-		if ($Initatta1 < $Initrech1) {
-			$Init1 = $Initrech1;
-		} else {
-			$Init1 = $Initatta1;
-		}
-		return $Init1;
+		return round(max(max($initAttack, $initRecharge), 0), 0);
 	}
 	
-	public function getInitsNeededNeutral($AttTim, $RechT) {
-		$Initatta2 = round((((87.5 - 87.5) * 0.02) + 1 - $AttTim) * (-600), 0);
-		$Initrech2 = round((((87.5 - 87.5) * 0.02) + 1 - $RechT) * (-300), 0);
-		if ($Initatta2 > 1200) {
-			$Initatta2 = round(((((87.5 - 87.5) * 0.02) + 1 - $AttTim + 2) * -1800) + 1200, 0);
-		}
-		if ($Initrech2 > 1200) {
-			$Initrech2 = round(((((87.5 - 87.5) * 0.02) + 1 - $AttTim + 4) * -900) + 1200, 0);
-		}
-		if ($Initatta2 < $Initrech2) {
-			$Init2 = $Initrech2;
-		} else {
-			$Init2 = $Initatta2;
-		}
-		return $Init2;
+	public function getInitsNeededFullAgg($attackTime, $rechargeTime) {
+		return $this->getInitsForPercent(100, $attackTime, $rechargeTime);
 	}
 	
-	public function getInitsNeededFullDef($AttTim, $RechT) {
-		$Initatta3 = round(((-87.5 * 0.02) + 1 - $AttTim) * -600, 0);
-		$Initrech3 = round(((-87.5 * 0.02) + 1 - $RechT) * -300, 0);
-		if ($Initatta3 > 1200) {
-			$Initatta3 = round((((-87.5 * 0.02) + 1 - $AttTim + 2) * -1800) + 1200, 0);
-		}
-		if ($Initrech3 > 1200) {
-			$Initrech3 = round((((-87.5 * 0.02) + 1 - $AttTim + 4) * -900) + 1200, 0);
-		}
-		if ($Initatta3 < $Initrech3) {
-			$Init3 = $Initrech3;
-		} else {
-			$Init3 = $Initatta3;
-		}
-		return $Init3;
+	public function getInitsNeededNeutral($attackTime, $rechargeTime) {
+		return $this->getInitsForPercent(87.5, $attackTime, $rechargeTime);
+	}
+	
+	public function getInitsNeededFullDef($attackTime, $rechargeTime) {
+		return $this->getInitsForPercent(0, $attackTime, $rechargeTime);
 	}
 	
 	/**
@@ -661,38 +645,45 @@ class SkillsController {
 
 		$blob = '';
 
-		$blob .= "Attack: <highlight>$attack_time<end>\n";
-		$blob .= "Recharge: <highlight>$recharge_time<end>\n\n";
+		$blob .= "<header2>Stats<end>\n";
+		$blob .= "<tab>Attack: <highlight>" . sprintf("%.2f", $attack_time) . "<end>s\n";
+		$blob .= "<tab>Recharge: <highlight> " . sprintf("%.2f", $recharge_time) . "<end>s\n\n";
 
 		// inits
+		$blob .= "<header2>Agg/Def<end>\n";
 		$blob .= $this->getInitDisplay($attack_time, $recharge_time);
-		$blob .= "\n\n";
+		$blob .= "\n";
 
 		if ($highAttributes->full_auto !== null) {
 			$full_auto_recharge = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->full_auto, $highAttributes->full_auto, $ql);
 			list($hard_cap, $skill_cap) = $this->capFullAuto($attack_time, $recharge_time, $full_auto_recharge);
-			$blob .= "FullAutoRecharge: $full_auto_recharge -- You need <highlight>".$skill_cap."<end> Full Auto skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
+			$blob .= "<header2>Full Auto<end>\n";
+			$blob .= "<tab>You need <highlight>".$skill_cap."<end> Full Auto skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->burst !== null) {
 			$burst_recharge = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->burst, $highAttributes->burst, $ql);
 			list($hard_cap, $skill_cap) = $this->capBurst($attack_time, $recharge_time, $burst_recharge);
-			$blob .= "BurstRecharge: $burst_recharge -- You need <highlight>".$skill_cap."<end> Burst skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
+			$blob .= "<header2>Burst<end>\n";
+			$blob .= "<tab>You need <highlight>".$skill_cap."<end> Burst skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->fling_shot == 1) {
 			list($hard_cap, $skill_cap) = $this->capFlingShot($attack_time);
-			$blob .= "FlingRecharge: You need <highlight>".$skill_cap."<end> Fling Shot skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
+			$blob .= "<header2>Fligh Shot<end>\n";
+			$blob .= "<tab>You need <highlight>".$skill_cap."<end> Fling Shot skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->fast_attack == 1) {
 			list($hard_cap, $skill_cap) = $this->capFastAttack($attack_time);
-			$blob .= "FastAttackRecharge: You need <highlight>".$skill_cap."<end> Fast Attack skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
+			$blob .= "<header2>Fast Attack<end>\n";
+			$blob .= "<tab>You need <highlight>".$skill_cap."<end> Fast Attack skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->aimed_shot == 1) {
 			list($hard_cap, $skill_cap) = $this->capAimedShot($attack_time, $recharge_time);
-			$blob .= "AimedShotRecharge: You need <highlight>".$skill_cap."<end> Aimed Shot skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
+			$blob .= "<header2>Aimed Shot<end>\n";
+			$blob .= "<tab>You need <highlight>".$skill_cap."<end> Aimed Shot skill to cap your recharge at <highlight>".$hard_cap."<end>s.\n\n";
 			$found = true;
 		}
 
@@ -703,7 +694,7 @@ class SkillsController {
 			$blob .= "There are no specials on this weapon that could be calculated.\n\n";
 		}
 
-		$blob .= "Written by Tyrence (RK2)\n";
+		$blob .= "Rewritten by Nadyita (RK5)\n";
 		$msg = $this->text->makeBlob("Weapon Info for $name", $blob);
 
 		$sendto->reply($msg);
@@ -793,31 +784,16 @@ class SkillsController {
 		}
 	}
 	
-	// taken from: https://bitbucket.org/Kilmanagh/ao-central/src/233fc3d9ce77d5004ef97d858136a21b87f50e8c/inits/inits.php?at=default
 	public function getInitDisplay($attack, $recharge) {
-		// 12 positions...
 		$blob = '';
-		for ($i = 11; $i > -1; $i--) {
-			$perc = floor((100 / 11) * $i);
-			$diminish = 1 / 3;
-			$scale = 2 / 12;
-			$factor = -1.25 + ($scale * (12 - $i));
-			$init = max($this->fireinit($attack + $factor), $this->rechargeinit($recharge + $factor));
-			if ($init > 1200) {
-				$init = 1200 + (($init - 1200) / $diminish);
-			}
-			$init = ceil($init);
+		for ($percent = 100; $percent >= 0; $percent -= 10) {
+			$init = $this->getInitsForPercent($percent, $attack, $recharge);
 
-			$blob .= "DEF&gt;";
-			for ($x = 0; $x < $i; $x++) {
-				$blob .= "=";
-			}
-			$blob .= "][";
-			for ($x = 12; $x > ($i + 1); $x--) {
-				$blob .= "=";
-			}
-			$blob .= "&lt;AGG";
-			$blob .= " $init ($perc%)\n";
+			$blob .= "<tab>DEF ";
+			$blob .= $this->getAggdefBar($percent);
+			$blob .= " AGG ";
+			$blob .= $this->text->alignNumber($init, 4, "highlight");
+			$blob .= " (" . $this->text->alignNumber($percent, 3) . "%)\n";
 		}
 		return $blob;
 	}
