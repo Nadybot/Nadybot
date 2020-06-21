@@ -271,6 +271,7 @@ class Text {
 	 * @param int $number The number to align
 	 * @param int $digits To how many digits to align
 	 * @param string $colortag (optional) The color/tag to assign, e.g. "highlight"
+	 * @param bool $grouping (optional) Set to group in chunks of thousands/millions, etc.
 	 * @return string The zero-prefixed $number
 	 */
 	public function alignNumber($number, $digits, $colortag=null, $grouping=false) {
@@ -279,7 +280,11 @@ class Text {
 			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ",")), 1);
 		}
 		if (is_string($colortag)) {
-			$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<$colortag>$1<end>", $prefixedNumber);
+			if ($number == 0) {
+				$prefixedNumber = preg_replace('/(0)$/', "<$colortag>$1<end>", $prefixedNumber);
+			} else {
+				$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<$colortag>$1<end>", $prefixedNumber);
+			}
 		}
 		$alignedNumber = preg_replace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
 		return $alignedNumber;
