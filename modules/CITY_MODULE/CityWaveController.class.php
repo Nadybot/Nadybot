@@ -41,7 +41,7 @@ class CityWaveController {
 	public $commandAlias;
 	
 	/**
-	 * @var \Budabot\Core\TimerController $timerController
+	 * @var \Budabot\User\Modules\TimerController $timerController
 	 * @Inject
 	 */
 	public $timerController;
@@ -84,6 +84,17 @@ class CityWaveController {
 			'',
 			'mod',
 			'city_wave_times.txt'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'city_wave_announce',
+			'Where to show city waves events',
+			'edit',
+			'text',
+			'org',
+			'org;priv;both;none',
+			'',
+			'mod'
 		);
 		$this->settingManager->registerChangeListener('city_wave_times', array($this, 'changeWaveTimes'));
 	}
@@ -164,12 +175,28 @@ class CityWaveController {
 			return $timer->alerts[0]->wave;
 		}
 	}
+
+	public function announce($msg, $announceWhere=null) {
+		if ($announceWhere === null) {
+			$announceWhere = $this->settingManager->get('city_wave_announce');
+		}
+		if ($announceWhere === "both" || $announceWhere === "org") {
+			$this->chatBot->sendGuild($msg, true);
+		}
+		if ($announceWhere === "both" || $announceWhere === "priv") {
+			$this->chatBot->sendPrivate($msg, true);
+		}
+	}
+
+	public function sendAlertMessage($timer, $alert) {
+		$this->announce($alert->message, $timer->mode);
+	}
 	
 	public function startWaveCounter($name=null) {
 		if ($name === null) {
-			$this->chatBot->sendGuild("Wave counter started.");
+			$this->announce("Wave counter started.");
 		} else {
-			$this->chatBot->sendGuild("Wave counter started by $name.");
+			$this->announce("Wave counter started by $name.");
 		}
 		$lastTime = time();
 		$wave = 1;
@@ -192,6 +219,13 @@ class CityWaveController {
 			$wave++;
 		}
 		$this->timerController->remove(self::TIMER_NAME);
-		$this->timerController->add(self::TIMER_NAME, $this->chatBot->vars['name'], "guild", $alerts, 'timercontroller.timerCallback');
+		$announceWhere = $this->settingManager->get('city_wave_announce');
+		$this->timerController->add(
+			self::TIMER_NAME,
+			$this->chatBot->vars['name'],
+			$announceWhere,
+			$alerts,
+			'citywavecontroller.sendAlertMessage'
+		);
 	}
 }
