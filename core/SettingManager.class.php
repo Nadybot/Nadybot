@@ -212,7 +212,7 @@ class SettingManager {
 	/**
 	 * Get the handler for a setting
 	 *
-	 * @param \StdClass $row The database row with the setting
+	 * @param \Budabot\Core\DBRow $row The database row with the setting
 	 * @return \Budabot\Core\SettingHandler|null null if none found for the setting type
 	 */
 	public function getSettingHandler($row) {
