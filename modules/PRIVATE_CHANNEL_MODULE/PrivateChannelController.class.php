@@ -630,10 +630,9 @@ class PrivateChannelController {
 				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 			}
 		} else {
+			$msg = "$sender has joined the private channel.";
 			if (count($altInfo->alts) > 0) {
-				$msg .= "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
-			} else {
-				$msg = "$sender has joined the private channel.";
+				$msg .= " " . $altInfo->getAltsBlob(false, true);
 			}
 		}
 

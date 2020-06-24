@@ -53,6 +53,7 @@ class ClusterController {
 		$data = $this->db->query($sql);
 		$count = count($data);
 
+		$blob = "";
 		foreach ($data as $cluster) {
 			$blob .= $this->text->makeChatcmd($cluster->LongName, "/tell <myname> cluster $cluster->LongName") . "\n";
 		}

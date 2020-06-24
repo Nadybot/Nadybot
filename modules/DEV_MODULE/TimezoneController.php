@@ -80,7 +80,7 @@ class TimezoneController extends AutoInject {
 		}
 		
 		$timezones = DateTimeZone::listIdentifiers($code);
-		$count = count($timezone);
+		$count = count($timezones);
 		
 		$blob = '';
 		foreach ($timezones as $timezone) {

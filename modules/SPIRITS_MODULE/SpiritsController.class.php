@@ -51,6 +51,7 @@ class SpiritsController {
 	 * @Matches("/^spirits (.+)$/i")
 	 */
 	public function spiritsCommand($message, $channel, $sender, $sendto, $args) {
+		$spirits = "";
 		if (preg_match("/^spirits ([^0-9,]+)$/i", $message, $arr)) {
 			$name = $arr[1];
 			$name = ucwords(strtolower($name));
@@ -73,6 +74,8 @@ class SpiritsController {
 				$slot = $arr[2];
 				$title = "Spirits Database for $name $slot";
 			} else {
+				$name = $arr[1];
+				$slot = $arr[2];
 				$spirits .= "No matches were found for $name $slot\n\n";
 				$spirits .= $this->getValidSlotTypes();
 			}

@@ -171,6 +171,7 @@ class HelpbotController {
 
 		if ($calc_check == strlen($calc)) {
 			try {
+				$result = 0;
 				$calc = "\$result = ".$calc.";";
 				eval($calc);
 				

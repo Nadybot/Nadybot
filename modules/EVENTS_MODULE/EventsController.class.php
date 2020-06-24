@@ -285,6 +285,8 @@ class EventsController {
 					$updated = $row->time_submitted;
 				}
 
+				$upcoming_events = "";
+				$past_events = "";
 				if ($row->event_date > time()) {
 					$upcoming = "Event Date: <highlight>" . $this->util->date($row->event_date) . "<end>\n";
 					$upcoming .= "Event Name: <highlight>$row->event_name<end>     [Event ID $row->id]\n";

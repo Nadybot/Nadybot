@@ -159,7 +159,7 @@ class ItemsController {
 					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $item->name, $arr)) {
 						if ($latestVersion === null) {
 							$latestVersion = $arr[1];
-						} elseif ($this->util->compareVersionNumbers($arr[1], $currentVersion)) {
+						} elseif ($this->util->compareVersionNumbers($arr[1], $latestVersion)) {
 							$latestVersion = $arr[1];
 						}
 					}

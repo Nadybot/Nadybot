@@ -175,6 +175,9 @@ class VoteController {
 	 */
 	public function voteCommand($message, $channel, $sender, $sendto, $args) {
 		$data = $this->db->query("SELECT * FROM $this->table WHERE `duration` IS NOT NULL ORDER BY `started`");
+		$running = "";
+		$over = "";
+		$blob = "";
 		if (count($data) > 0) {
 			foreach ($data as $row) {
 				$question = $row->question;
@@ -293,7 +296,13 @@ class VoteController {
 		
 		$blob = $this->getVoteBlob($question);
 	
-		$row = $this->db->queryRow("SELECT * FROM $this->table WHERE `author` = ? AND `question` = ? AND `duration` IS NULL", $sender, $question);
+		$row = $this->db->queryRow(
+			"SELECT * FROM $this->table WHERE ".
+			"`author` = ? AND `question` = ? AND `duration` IS NULL",
+			$sender,
+			$question
+		);
+		$timeleft = $row->started + $row->duration - time();
 		if ($row->answer && $timeleft > 0) {
 			$privmsg = "You voted: <highlight>(".$row->answer.")<end>.";
 		} elseif ($timeleft > 0) {
@@ -407,14 +416,11 @@ class VoteController {
 				$author = $row->author;
 				$started = $row->started;
 				$duration = $row->duration;
-				$status = $row->status;
 				$timeleft = $started + $duration - time();
-			}
-			if ($sender == $author) {
-				$didvote = 1;
 			}
 			$answer = $row->answer;
 
+			$totalresults = 0;
 			if (strpos($answer, $this->delimiter) === false) { // A Vote: $answer = "yes";
 				$results[$answer]++;
 				$totalresults++;
@@ -457,7 +463,6 @@ class VoteController {
 			}
 		}
 
-		//if ($didvote && $timeleft > 0) {
 		if ($timeleft > 0) { // Want this option avaiable for everyone if its run from org/priv chat.
 			$blob .= "\n" . $this->text->makeChatcmd('Remove yourself from this vote', "/tell <myname> vote remove $question") . "\n";
 		}

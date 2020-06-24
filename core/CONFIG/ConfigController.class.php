@@ -354,7 +354,7 @@ class ConfigController {
 				}
 			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
 				$msg = "You do not have the required access level to change this command.";
-			} elseif (!$this->accessManager->checkAccess($sender, gaccessLevel)) {
+			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 				$msg = "You may not set the access level for a command above your own access level.";
 			} else {
 				$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
@@ -465,6 +465,7 @@ class ConfigController {
 	public function getAliasInfo($cmd) {
 		$aliases = $this->commandAlias->findAliasesByCommand($cmd);
 		$count = 0;
+		$aliases_blob = "";
 		foreach ($aliases as $row) {
 			if ($row->status == 1) {
 				$count++;
@@ -572,9 +573,9 @@ class ConfigController {
 			}
 	
 			if ($row->description != "") {
-				$blob .= "$cmdNameLink ($adv$tell$guild$priv): $on  $off - ($row->description)\n";
+				$blob .= "$cmdNameLink ($tell$guild$priv): $on  $off - ($row->description)\n";
 			} else {
-				$blob .= "$cmdNameLink - ($adv$tell$guild$priv): $on  $off\n";
+				$blob .= "$cmdNameLink - ($tell$guild$priv): $on  $off\n";
 			}
 		}
 	

@@ -172,6 +172,7 @@ class OnlineController {
 		$count = count($data);
 		$mainCount = 0;
 		$currentMain = "";
+		$blob = "";
 
 		if ($count > 0) {
 			foreach ($data as $row) {

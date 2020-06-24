@@ -758,7 +758,7 @@ class LootListsController {
 	 * @Matches("/^pande$/i")
 	 */
 	public function pandeCommand($message, $channel, $sender, $sendto, $args) {
-		$list .= "<header2>The Beast<end>\n";
+		$list  = "<header2>The Beast<end>\n";
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Armor\n", "/tell <myname> beastarmor");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Weapons\n", "/tell <myname> beastweaps");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Stars\n", "/tell <myname> beaststars");

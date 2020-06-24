@@ -44,7 +44,7 @@ class TimeController {
 	 * @Matches("/^time$/i")
 	 */
 	public function timeListCommand($message, $channel, $sender, $sendto, $args) {
-		$link .= "<header2>Australia<end>\n";
+		$link  = "<header2>Australia<end>\n";
 		$link .= "<tab><highlight>Western Australia</end>\n";
 		$link .= "<tab><tab>Standard Time (AWST = GMT +8:00): " . $this->getTimezone("AWST")->time . "\n";
 		$link .= "<tab><highlight>Northern Territory/South Australia<end>\n";

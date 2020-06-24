@@ -963,7 +963,7 @@ class Budabot extends AOChat {
 	 * @return void
 	 */
 	public function registerInstance($name, $obj) {
-		$this->logger->log('DEBUG', "Registering instance name '$name' for module '$moduleName'");
+		$this->logger->log('DEBUG', "Registering instance name '$name' for module '{$obj->moduleName}'");
 		$moduleName = $obj->moduleName;
 
 		// register settings annotated on the class

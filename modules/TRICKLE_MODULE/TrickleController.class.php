@@ -138,9 +138,6 @@ class TrickleController {
 	}
 	
 	private function processAbilities($abilities) {
-		$msg = "";
-
-		
 		$that = $this;
 		$abilitiesHeader = $this->util->mapFilterCombine($abilities, ", ", function($ability, $value) use ($that) {
 			if ($value == 0) {
@@ -151,7 +148,7 @@ class TrickleController {
 		});
 
 		$results = $this->getTrickleResults($abilities);
-		$blob .= $this->formatOutput($results, $amount, $abilities);
+		$blob = $this->formatOutput($results);
 		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
 		return $this->text->makeBlob("Trickle Results: $abilitiesHeader", $blob);
 	}
@@ -192,7 +189,7 @@ class TrickleController {
 		return $this->db->query($sql);
 	}
 	
-	public function formatOutput($results, $amount, $abilities) {
+	public function formatOutput($results) {
 		$msg = "";
 		$groupName = "";
 		foreach ($results as $result) {
@@ -203,17 +200,6 @@ class TrickleController {
 
 			$amount = $result->amount / 4;
 			$msg .= "$result->name <highlight>$amount<end>";
-
-			/*
-			foreach ($abilities as $ability => $value) {
-				$ability = ucfirst($ability);
-				$abilityField = "amount" . $ability;
-				$abilityAmount = $result->$abilityField * 100;
-				if ($abilityAmount != 0) {
-					$msg .= " (" . $ability . " " . $abilityAmount . "%)";
-				}
-			}
-			*/
 
 			$msg .= "\n";
 		}

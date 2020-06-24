@@ -631,6 +631,7 @@ class TowerController {
 		$closing_time_array = explode(':', $closing_time);
 		$closing_time_seconds = $closing_time_array[0] * 3600 + $closing_time_array[1] * 60 + $closing_time_array[2];
 	
+		$check_blob = "";
 		if (!$skip_checks && $this->settingManager->get('check_close_time_on_scout') == 1) {
 			$last_victory = $this->getLastVictory($tower_info->playfield_id, $tower_info->site_number);
 			if ($last_victory !== null) {
@@ -930,7 +931,7 @@ class TowerController {
 		$targetorg = "<".strtolower($def_side).">".$def_guild."<end>";
 
 		// Starting tower message to org/private chat
-		$msg .= "<font color=#F06AED>[TOWERS]<end> ";
+		$msg = "<font color=#F06AED>[TOWERS]<end> ";
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {

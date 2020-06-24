@@ -42,7 +42,6 @@ class GuildManager {
 			$rk_num = $this->chatBot->vars["dimension"];
 		}
 		
-		$name = ucfirst(strtolower($name));
 		$url = "http://people.anarchy-online.com/org/stats/d/$rk_num/name/$guild_id/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
 		$filename = "$guild_id.$rk_num.json";

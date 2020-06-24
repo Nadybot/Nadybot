@@ -503,7 +503,7 @@ class CommandManager {
 	public function checkMatches($instance, $method, $message) {
 		try {
 			$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-		} catch (ReflectionException $e) {
+		} catch (\ReflectionException $e) {
 			// method doesn't exist (probably handled dynamically)
 			return true;
 		}

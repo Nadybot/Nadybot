@@ -290,7 +290,8 @@ class ShoppingController {
 	}
 
 	public function parseSpamMessage($message) {
-		$rawmsg = $this->stripColors($message);
+		$rawmsg = preg_replace("|<font(.+)>|U", "", $message);
+		$rawmsg = preg_replace("|</font>|U", "", $rawmsg);
 		if (preg_match_all("/\\[([^\\]]+)\\] (.+?) \\[([^\\]]+)\\]/s", $rawmsg, $arr, PREG_SET_ORDER) > 0) {
 		} else {
 			$this->logger->log("WARN", "Invalid spam message format: $rawmsg");
