@@ -268,21 +268,26 @@ class VoteController {
 
 		if ($row === null) {
 			$msg = "Either this vote does not exist, or you did not create it.";
-		} else {
-			$started = $row->started;
-			$duration = $row->duration;
-			$timeleft = $started + $duration - time();
+			$sendto->reply($msg);
+			return;
+		}
+		$started = $row->started;
+		$duration = $row->duration;
+		$timeleft = $started + $duration - time();
 
-			if ($timeleft > 60) {
-				$duration = (time() - $started) + 61;
-				$this->db->exec("UPDATE $this->table SET `duration` = ? WHERE `question` = ?", $duration, $question);
-				$this->votes[$question]->duration = $duration;
-				$msg = "Vote duration reduced to 60 seconds.";
-			} elseif ($timeleft <= 0) {
-				$msg = "This vote has already finished.";
-			} else {
-				$msg = "There is only <highlight>$timeleft<end> seconds left.";
-			}
+		if ($timeleft > 60) {
+			$duration = (time() - $started) + 61;
+			$this->db->exec(
+				"UPDATE {$this->table} SET `duration` = ? WHERE `question` = ? AND duration IS NOT NULL",
+				$duration,
+				$question
+			);
+			$this->votes[$question]->duration = $duration;
+			$msg = "Vote duration reduced to 60 seconds.";
+		} elseif ($timeleft <= 0) {
+			$msg = "This vote has already finished.";
+		} else {
+			$msg = "There is only <highlight>$timeleft<end> seconds left.";
 		}
 		$sendto->reply($msg);
 	}
@@ -294,7 +299,7 @@ class VoteController {
 	public function voteShowCommand($message, $channel, $sender, $sendto, $args) {
 		$question = $args[1];
 		
-		$blob = $this->getVoteBlob($question);
+		$blob = $this->getVoteBlob($question, $sender);
 	
 		$row = $this->db->queryRow(
 			"SELECT * FROM $this->table WHERE ".
@@ -403,7 +408,7 @@ class VoteController {
 		$sendto->reply($msg);
 	}
 	
-	public function getVoteBlob($question) {
+	public function getVoteBlob($question, $sender=null) {
 		$data = $this->db->query("SELECT * FROM $this->table WHERE `question` = ?", $question);
 		if (count($data) == 0) {
 			return "Could not find any votes with this topic.";
@@ -439,7 +444,7 @@ class VoteController {
 		if ($timeleft > 0) {
 			$blob .= $this->util->unixtimeToReadable($timeleft)." till this vote closes!\n\n";
 		} else {
-			$blob .= "<red>This vote has ended " . $this->util->unixtimeToReadable(time() - ($started + $duration), 1) . " ago.<end>\n\n";
+			$blob .= "<red>This vote has ended " . $this->util->unixtimeToReadable($timeleft * -1, 1) . " ago.<end>\n\n";
 		}
 
 		foreach ($results as $key => $value) {
@@ -448,13 +453,7 @@ class VoteController {
 			} else {
 				$val = number_format(100 * ($value / $totalresults), 0);
 			}
-			if ($val < 10) {
-				$blob .= "<black>__<end>$val% ";
-			} elseif ($val < 100) {
-				$blob .= "<black>_<end>$val% ";
-			} else {
-				$blob .= "$val% ";
-			}
+			$blob .= $this->text->alignNumber($val, 3) . "% ";
 
 			if ($timeleft > 0) {
 				$blob .= $this->text->makeChatcmd($key, "/tell <myname> vote choose $question{$this->delimiter}$key") . " (Votes: $value)\n";
@@ -469,10 +468,16 @@ class VoteController {
 
 		$blob .="\nDon't like these choices?  Add your own:\n<tab>/tell <myname> vote $question{$this->delimiter}<highlight>your choice<end>\n";
 
-		$blob .="\nIf you started this vote, you can:\n";
-		$blob .="<tab>" . $this->text->makeChatcmd('Kill the vote completely', "/tell <myname> vote kill $question") . "\n";
-		if ($timeleft > 0) {
-			$blob .="<tab>" . $this->text->makeChatcmd('End the vote early', "/tell <myname> vote end $question");
+		if ($sender === null) {
+			$blob .="\nIf you started this vote, you can:\n";
+		} elseif ($sender === $author) {
+			$blob .="\nAs the creator of this vote, you can:\n";
+		}
+		if ($sender === null || $sender === $author) {
+			$blob .="<tab>" . $this->text->makeChatcmd('Kill the vote completely', "/tell <myname> vote kill $question") . "\n";
+			if ($timeleft > 0) {
+				$blob .="<tab>" . $this->text->makeChatcmd('End the vote early', "/tell <myname> vote end $question");
+			}
 		}
 
 		return $blob;
