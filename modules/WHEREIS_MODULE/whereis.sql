@@ -13,6 +13,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Afreet Ellis', 'Inferno, NE of Frontier Garden', NULL, 4605, 2560, 2910);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ahomac', 'Inferno, Fronter', NULL, 4605, 2745, 2341);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Akshk''i', 'Inferno, South of Frontier', 'Akshki', 4605, 2294, 2253);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Alappa', 'Northeast of Blue Mist.', NULL, 4320, 1201, 503);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Albtraum', 'Inferno, Burning Mashes', NULL, 4005, 1135, 756);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Algid Slither', 'Adonis, Abyss N', NULL, 4873, 1510, 3320);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Alpha Skincrawler', 'Crypt of Home, Broken Shores', NULL, 0, 0, 0);
@@ -38,6 +39,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Aniitap''s Shadow', 'Inferno, North of Frontier', NULL, 4605, 2416, 3238);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Aniitap', 'Inferno', '', 4605, 2453, 3357);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Another Face In The Sand', 'Mort', NULL, 560, 1300, 2650);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Anticipating Six', 'Northeast of Blue Mist.', NULL, 4320, 1201, 503);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Apprentice Beasthandler', 'Inferno, 255 Incarnator', NULL, 4605, 3325, 3134);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Aquarius', 'Pandemonium, East Node', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Architect Striker', 'in the Subway Dungeon, usually on the bridge.', NULL, 0, 0, 0);
