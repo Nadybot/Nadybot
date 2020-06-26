@@ -489,11 +489,11 @@ class Util {
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
 	 * @param string $column The table column to test agains
-	 * @return string[] ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", '%a%', '%b%', '%c%']
+	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 */
 	public function generateQueryFromParams($params, $column) {
 		$queryParams = array();
-		$first = true;
+		$statements = array();
 		foreach ($params as $key => $value) {
 			if ($value[0] == "-" && strlen($value) > 1) {
 				$value = substr($value, 1);
@@ -501,15 +501,10 @@ class Util {
 			} else {
 				$op = "LIKE";
 			}
-			if ($first) {
-				$query .= "$column $op ?";
-				$first = false;
-			} else {
-				$query .= " AND $column $op ?";
-			}
+			$statements []= "$column $op ?";
 			$queryParams []= '%' . $value . '%';
 		}
-		return array($query, $queryParams);
+		return array(join(" AND ", $statements), $queryParams);
 	}
 
 	/**

@@ -100,7 +100,7 @@ class DevController extends AutoInject {
 			try {
 				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
 				$regexes = array_merge($regexes, $this->commandManager->retrieveRegexes($reflectedMethod));
-			} catch (ReflectionException $e) {
+			} catch (\ReflectionException $e) {
 				continue;
 			}
 		}

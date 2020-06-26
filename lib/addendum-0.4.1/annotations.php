@@ -205,6 +205,9 @@
 			return $this->createReflectionAnnotatedMethod(parent::getMethod($name));
 		}
 		
+		/**
+		 * @return \ReflectionAnnotatedMethod[]
+		 */
 		public function getMethods($filter = -1) {
 			$result = array();
 			foreach(parent::getMethods($filter) as $method) {
@@ -213,10 +216,16 @@
 			return $result;
 		}
 		
+		/**
+		 * @return \ReflectionAnnotatedProperty
+		 */
 		public function getProperty($name) {
 			return $this->createReflectionAnnotatedProperty(parent::getProperty($name));
 		}
 		
+		/**
+		 * @return \ReflectionAnnotatedProperty[]
+		 */
 		public function getProperties($filter = -1) {
 			$result = array();
 			foreach(parent::getProperties($filter) as $property) {
@@ -250,6 +259,9 @@
 			return ($method !== null) ? new ReflectionAnnotatedMethod($this->getName(), $method->getName()) : null;
 		}
 		
+		/**
+		 * @return \ReflectionAnnotatedProperty|null
+		 */
 		private function createReflectionAnnotatedProperty($property) {
 			return ($property !== null) ? new ReflectionAnnotatedProperty($this->getName(), $property->getName()) : null;
 		}

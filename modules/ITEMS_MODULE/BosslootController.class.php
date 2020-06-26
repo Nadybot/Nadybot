@@ -86,7 +86,7 @@ class BosslootController {
 			//If single match found, output full loot table
 			$row = $bosses[0];
 
-			$blob .= "Location: <highlight>{$row->answer}<end>\n\n";
+			$blob  = "Location: <highlight>{$row->answer}<end>\n\n";
 			$blob .= "Loot:\n\n";
 
 			$data = $this->db->query("SELECT * FROM boss_lootdb b LEFT JOIN
@@ -121,13 +121,12 @@ class BosslootController {
 			LEFT JOIN whereis w ON w.name = b2.bossname WHERE $query", $params);
 		$count = count($loot);
 
+		$output = "There were no matches for your search.";
 		if ($count != 0) {
 			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
-		} else {
-			$output .= "There were no matches for your search.";
 		}
 		$sendto->reply($output);
 	}

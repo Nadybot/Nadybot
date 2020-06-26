@@ -138,7 +138,7 @@ class QuoteController {
 			$list .= $this->text->makeChatcmd($row->id, "/tell <myname> quote $row->id") . ", ";
 		}
 		if ($list) {
-			$msg .= "<tab>Quotes posted by <highlight>$search<end>: ";
+			$msg  = "<tab>Quotes posted by <highlight>$search<end>: ";
 			$msg .= substr($list, 0, strlen($list) - 2);
 		}
 

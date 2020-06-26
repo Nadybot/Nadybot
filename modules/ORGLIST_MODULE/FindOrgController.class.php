@@ -156,7 +156,7 @@ class FindOrgController {
 				}
 			}
 			$this->db->commit();
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			$this->logger->log("ERROR", "Error downloading orgs");
 			$this->db->rollback();
 		}

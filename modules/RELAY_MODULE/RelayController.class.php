@@ -93,6 +93,10 @@ class RelayController {
 		$this->settingManager->add($this->moduleName, 'relay_color_guild', "Color of messages from relay to guild channel", 'edit', "color", "<font color='#C3C3C3'>");
 		$this->settingManager->add($this->moduleName, 'relay_color_priv', "Color of messages from relay to private channel", 'edit', "color", "<font color='#C3C3C3'>");
 		$this->settingManager->add($this->moduleName, 'relay_guild_abbreviation', 'Abbreviation to use for org name', 'edit', 'text', 'none', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_ignore', 'Semicolon-separated list of people not to relay away', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_out', 'RegExp filtering outgoing messages', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_in', 'RegExp filtering messages to org chat', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, 'relay_filter_in_priv', 'RegExp filtering messages to priv chat', 'edit', 'text', '', 'none');
 		
 		$this->commandAlias->register($this->moduleName, "macro settings save relaytype 1|settings save relaysymbol Always relay|settings save relaybot", "tellrelay");
 	}
@@ -121,11 +125,17 @@ class RelayController {
 	}
 	
 	public function processIncomingRelayMessage($sender, $message) {
-		if ($sender == ucfirst(strtolower($this->settingManager->get('relaybot'))) && preg_match("/^grc (.+)$/s", $message, $arr)) {
-			$msg = $arr[1];
+		if ($sender !== ucfirst(strtolower($this->settingManager->get('relaybot')))
+			|| !preg_match("/^grc (.+)$/s", $message, $arr)) {
+			return;
+		}
+		$msg = $arr[1];
+		if (!$this->matchesFilter($this->settingManager->get('relay_filter_in'), $message)) {
 			$this->chatBot->sendGuild($this->settingManager->get('relay_color_guild') . $msg, true);
+		}
 
-			if ($this->settingManager->get("guest_relay") == 1) {
+		if ($this->settingManager->get("guest_relay") == 1) {
+			if (!$this->matchesFilter($this->settingManager->get('relay_filter_in_priv'), $message)) {
 				$this->chatBot->sendPrivate($this->settingManager->get('relay_color_priv') . $msg, true);
 			}
 		}
@@ -146,36 +156,78 @@ class RelayController {
 	public function privChatToRelayEvent($eventObj) {
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
+
+	/**
+	 * Check if a message by a sender should not be relayed due to filters
+	 *
+	 * @param string $sender Name of the person sending the message
+	 * @param string $message The message that wants to be relayed
+	 * @return bool
+	 */
+	public function isFilteredMessage($sender, $message) {
+		$toIgnore = array_diff(
+			explode(";", strtolower($this->settingManager->get('relay_ignore'))),
+			[""]
+		);
+		if (in_array(strtolower($sender), $toIgnore)) {
+			return true;
+		}
+		return $this->matchesFilter($this->settingManager->get('relay_filter_out'), $message);
+	}
+
+	/**
+	 * Checks if a message matches a filter
+	 *
+	 * @param string $filter  The filter
+	 * @param string $message The message to check
+	 * @return bool
+	 */
+	public function matchesFilter($filter, $message) {
+		if (!strlen($filter)) {
+			return false;
+		}
+		$escapedFilter = str_replace("/", "\\/", $filter);
+		return (bool)@preg_match("/$escapedFilter/", $message);
+	}
 	
 	public function processOutgoingRelayMessage($sender, $message, $type) {
-		if (($this->settingManager->get("relaybot") != "Off") && ($this->settingManager->get("bot_relay_commands") == 1 || $message[0] != $this->settingManager->get("symbol"))) {
-			$relayMessage = '';
-			if ($this->settingManager->get('relay_symbol_method') == '0') {
-				$relayMessage = $message;
-			} elseif ($this->settingManager->get('relay_symbol_method') == '1' && $message[0] == $this->settingManager->get('relaysymbol')) {
-				$relayMessage = substr($message, 1);
-			} elseif ($this->settingManager->get('relay_symbol_method') == '2' && $message[0] != $this->settingManager->get('relaysymbol')) {
-				$relayMessage = $message;
-			} else {
-				return;
-			}
-
-			if (!$this->util->isValidSender($sender)) {
-				$sender_link = '';
-			} else {
-				$sender_link = ' ' . $this->text->makeUserlink($sender) . ':';
-			}
-
-			if ($type == "guild") {
-				$msg = "grc [<myguild>]{$sender_link} {$relayMessage}";
-			} elseif ($type == "priv") {
-				$msg = "grc [<myguild>] [Guest]{$sender_link} {$relayMessage}";
-			} else {
-				$this->logger->log('WARN', "Invalid type; expecting 'guild' or 'priv'.  Actual: '$type'");
-				return;
-			}
-			$this->sendMessageToRelay($msg);
+		if ($this->settingManager->get("relaybot") == "Off") {
+			return;
 		}
+		// Don't relay commands if bot_relay_commands is turned off
+		if ($this->settingManager->get("bot_relay_commands") == 0
+			&& $message[0] == $this->settingManager->get("symbol")) {
+			return;
+		}
+		if ($this->isFilteredMessage($sender, $message)) {
+			return;
+		}
+		$relayMessage = '';
+		if ($this->settingManager->get('relay_symbol_method') == '0') {
+			$relayMessage = $message;
+		} elseif ($this->settingManager->get('relay_symbol_method') == '1' && $message[0] == $this->settingManager->get('relaysymbol')) {
+			$relayMessage = substr($message, 1);
+		} elseif ($this->settingManager->get('relay_symbol_method') == '2' && $message[0] != $this->settingManager->get('relaysymbol')) {
+			$relayMessage = $message;
+		} else {
+			return;
+		}
+
+		if (!$this->util->isValidSender($sender)) {
+			$sender_link = '';
+		} else {
+			$sender_link = ' ' . $this->text->makeUserlink($sender) . ':';
+		}
+
+		if ($type == "guild") {
+			$msg = "grc [<myguild>]{$sender_link} {$relayMessage}";
+		} elseif ($type == "priv") {
+			$msg = "grc [<myguild>] [Guest]{$sender_link} {$relayMessage}";
+		} else {
+			$this->logger->log('WARN', "Invalid type; expecting 'guild' or 'priv'.  Actual: '$type'");
+			return;
+		}
+		$this->sendMessageToRelay($msg);
 	}
 	
 	/**
@@ -261,7 +313,7 @@ class RelayController {
 				}
 			} else {
 				if (count($altInfo->alts) > 0) {
-					$msg .= "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
+					$msg = "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
 				} else {
 					$msg = "$sender has joined the private channel.";
 				}

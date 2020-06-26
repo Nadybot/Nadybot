@@ -60,9 +60,8 @@ class ChatAssistController {
 			$msg = "No assist set.";
 			$sendto->reply($msg);
 			return;
-		} else {
-			$sendto->reply($this->assistMessage);
 		}
+		$sendto->reply($this->assistMessage);
 	}
 	
 	/**
@@ -89,7 +88,7 @@ class ChatAssistController {
 			return;
 		}
 
-		$nameArray = explode(' ', $args[1]);
+		$nameArray = preg_split("/\s+|,\s*/", $args[1]);
 		
 		if (count($nameArray) == 1) {
 			$name = ucfirst(strtolower($args[1]));
@@ -97,32 +96,38 @@ class ChatAssistController {
 			if (!$uid) {
 				$msg = "Character <highlight>$name<end> does not exist.";
 				$sendto->reply($msg);
+				return;
 			} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$msg = "Character <highlight>$name<end> is not in this bot.";
 				$sendto->reply($msg);
+				return;
 			}
 
 			$link = $this->text->makeChatcmd("Click here to make an assist $name macro", "/macro $name /assist $name");
 			$this->assistMessage = $this->text->makeBlob("Assist $name Macro", $link);
-		} else {
-			foreach ($nameArray as $key => $name) {
-				$name = ucfirst(strtolower($name));
-				$uid = $this->chatBot->get_uid($name);
-				if (!$uid) {
-					$msg = "Character <highlight>$name<end> does not exist.";
-					$sendto->reply($msg);
-				} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
-					$msg = "Character <highlight>$name<end> is not in this bot.";
-					$sendto->reply($msg);
-				}
-
-				$nameArray[$key] = "/assist $name";
+			$sendto->reply($this->assistMessage);
+			return;
+		}
+		$errors = array();
+		foreach ($nameArray as $key => $name) {
+			$name = ucfirst(strtolower($name));
+			$uid = $this->chatBot->get_uid($name);
+			if (!$uid) {
+				$errors []= "Character <highlight>$name<end> does not exist.";
+			} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
+				$errors []= "Character <highlight>$name<end> is not in this bot.";
 			}
 
-			// reverse array so that the first character will be the primary assist, and so on
-			$nameArray = array_reverse($nameArray);
-			$this->assistMessage = '/macro assist ' . implode(" \\n ", $nameArray);
+			$nameArray[$key] = "/assist $name";
 		}
+		if (count($errors)) {
+			$sendto->reply(join("\n", $errors));
+			return;
+		}
+
+		// reverse array so that the first character will be the primary assist, and so on
+		$nameArray = array_reverse($nameArray);
+		$this->assistMessage = '/macro assist ' . implode(" \\n ", $nameArray);
 
 		$sendto->reply($this->assistMessage);
 	}

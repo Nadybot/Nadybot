@@ -86,7 +86,10 @@ class ChatSayController {
 			return;
 		}
 
-		$msg = "\n<yellow>---------------------\n<red>$args[1]<end>\n<yellow>---------------------";
+		$msg = "\n".
+			"<yellow>------------------------------------------\n".
+			"<tab><red>$args[1]<end>\n".
+			"<yellow>------------------------------------------";
 
 		if ($channel == 'msg') {
 			$this->chatBot->sendGuild($msg, true);

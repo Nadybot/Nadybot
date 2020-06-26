@@ -2,7 +2,7 @@
 
 namespace Budabot\User\Modules;
 
-use stdClass;
+use StdClass;
 
 /**
  * @Instance
@@ -73,7 +73,7 @@ class TowerController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\PlayfieldController $playfieldController
+	 * @var \Budabot\User\Modules\PlayfieldController $playfieldController
 	 * @Inject
 	 */
 	public $playfieldController;
@@ -126,6 +126,12 @@ class TowerController {
 	 */
 	public $logger;
 
+	/**
+	 * @var \Budabot\User\Modules\TimerController $timerController
+	 * @Inject
+	 */
+	public $timerController;
+
 	protected $attackListeners = array();
 
 	/**
@@ -172,6 +178,19 @@ class TowerController {
 	public $defaultCheckGuildNameOnScout = "1";
 
 	/**
+	 * @Setting("tower_plant_timer")
+	 * @Description("Start a timer for planting whenever a tower site goes down")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("off;priv;guild")
+	 * @Intoptions("0;1;2")
+	 * @AccessLevel("mod")
+	 */
+	public $defaultTowerPlantTimer = "0";
+
+	const TIMER_NAME = "Towerbattles";
+
+	/**
 	 * Adds listener callback which will be called when tower attacks occur.
 	 */
 	public function registerAttackListener($callback, $data=null) {
@@ -179,7 +198,7 @@ class TowerController {
 			$this->logger->log('ERROR', 'Given callback is not valid.');
 			return;
 		}
-		$listener = new stdClass();
+		$listener = new StdClass();
 		$listener->callback = $callback;
 		$listener->data = $data;
 		$this->attackListeners []= $listener;
@@ -612,10 +631,11 @@ class TowerController {
 		$closing_time_array = explode(':', $closing_time);
 		$closing_time_seconds = $closing_time_array[0] * 3600 + $closing_time_array[1] * 60 + $closing_time_array[2];
 	
+		$check_blob = "";
 		if (!$skip_checks && $this->settingManager->get('check_close_time_on_scout') == 1) {
 			$last_victory = $this->getLastVictory($tower_info->playfield_id, $tower_info->site_number);
 			if ($last_victory !== null) {
-				$victory_time_of_day = $last_attack->time % 86400;
+				$victory_time_of_day = $last_victory->time % 86400;
 				if ($victory_time_of_day > $closing_time_seconds) {
 					$victory_time_of_day -= 86400;
 				}
@@ -722,7 +742,7 @@ class TowerController {
 	 * @Matches("/^victory$/i")
 	 */
 	public function victoryCommand($message, $channel, $sender, $sendto, $args) {
-		$this->victoryCommandHandler($args[1], $search, "", $sendto);
+		$this->victoryCommandHandler($args[1], "", "", $sendto);
 	}
 
 	/**
@@ -825,7 +845,7 @@ class TowerController {
 		// attack message where applicable because that will always be most up to date
 		$whois = $this->playerManager->getByName($att_player);
 		if ($whois === null) {
-			$whois = new stdClass;
+			$whois = new StdClass;
 			$whois->type = 'npc';
 			
 			// in case it's not a player who causes attack message (pet, mob, etc)
@@ -842,7 +862,7 @@ class TowerController {
 		$playfield = $this->playfieldController->getPlayfieldByName($playfield_name);
 		$closest_site = $this->getClosestSite($playfield->id, $x_coords, $y_coords);
 
-		$defender = new stdClass();
+		$defender = new StdClass();
 		$defender->faction   = $def_side;
 		$defender->guild     = $def_guild;
 		$defender->playfield = $playfield;
@@ -911,7 +931,7 @@ class TowerController {
 		$targetorg = "<".strtolower($def_side).">".$def_guild."<end>";
 
 		// Starting tower message to org/private chat
-		$msg .= "<font color=#F06AED>[TOWERS]<end> ";
+		$msg = "<font color=#F06AED>[TOWERS]<end> ";
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {
@@ -942,6 +962,48 @@ class TowerController {
 	}
 
 	/**
+	 * Set a timer to warn 1m, 5s and 0s before you can plant
+	 */
+	protected function setPlantTimer($timerLocation) {
+		$start = time();
+		$alerts = array();
+
+		$alert = new StdClass();
+		$alert->time = $start;
+		$alert->message = "Started countdown for planting $timerLocation";
+		$alerts []= $alert;
+
+		$alert = new StdClass();
+		$alert->time = $start + 19*60;
+		$alert->message = "<highlight>1 minute<end> remaining to plant $timerLocation";
+		$alerts []= $alert;
+
+		$countdown = [5, 4, 3, 2, 1];
+		if ($this->settingManager->get('tower_plant_timer') === "2") {
+			$countdown = [5];
+		}
+		foreach ($countdown as $remaining) {
+			$alert = new StdClass();
+			$alert->time = $start + 20*60-$remaining;
+			$alert->message = "<highlight>${remaining}s<end> remaining to plant ".strip_tags($timerLocation);
+			$alerts []= $alert;
+		}
+		
+		$alertPlant = new StdClass();
+		$alertPlant->time = $start + 20*60;
+		$alertPlant->message = "Plant $timerLocation <highlight>NOW<end>";
+		$alerts []= $alertPlant;
+
+		$this->timerController->add(
+			"Plant " . strip_tags($timerLocation),
+			$this->chatBot->vars['name'],
+			$this->settingManager->get('tower_plant_timer') === "1" ? "priv": "guild",
+			$alerts,
+			'timercontroller.timerCallback'
+		);
+	}
+
+	/**
 	 * This event handler record victory messages.
 	 *
 	 * @Event("towers")
@@ -963,18 +1025,36 @@ class TowerController {
 		} else {
 			return;
 		}
-		
+
 		$playfield = $this->playfieldController->getPlayfieldByName($playfield_name);
 		if ($playfield === null) {
 			$this->logger->log('error', "Could not find playfield for name '$playfield_name'");
 			return;
 		}
-		
+
 		$last_attack = $this->getLastAttack($win_faction, $win_guild_name, $lose_faction, $lose_guild_name, $playfield->id);
+
+		if ($this->settingManager->get('tower_plant_timer') !== "0") {
+			$timerLocation = "unknown field in " . $playfield->short_name;
+			if ($last_attack !== null) {
+				$towerInfo = $this->getTowerInfo($playfield->id, $last_attack->site_number);
+				$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$last_attack->x_coords} {$last_attack->y_coords} {$playfield->id}");
+				$timerLocation = $this->text->makeBlob(
+					"{$playfield->short_name} {$last_attack->site_number}",
+					"Name: <highlight>{$towerInfo->site_name}<end><br>".
+					"QL: <highlight>{$towerInfo->min_ql}<end> - <highlight>{$towerInfo->max_ql}<end><br>".
+					"Action: $waypointLink",
+					"Information about {$playfield->short_name} {$last_attack->site_number}"
+				);
+			}
+
+			$this->setPlantTimer($timerLocation);
+		}
+
 		if ($last_attack !== null) {
 			$this->remScoutSite($last_attack->playfield_id, $last_attack->site_number);
 		} else {
-			$last_attack = new stdClass;
+			$last_attack = new StdClass;
 			$last_attack->att_guild_name = $win_guild_name;
 			$last_attack->def_guild_name = $lose_guild_name;
 			$last_attack->att_faction = $win_faction;
@@ -1363,7 +1443,7 @@ class TowerController {
 	protected function getGasLevel($close_time) {
 		$current_time = time() % 86400;
 
-		$site = new stdClass();
+		$site = new StdClass();
 		$site->current_time = $current_time;
 		$site->close_time = $close_time;
 

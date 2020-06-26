@@ -174,7 +174,7 @@ class ImplantDesignerController extends AutoInject {
 	public function implantdesignerSlotCommand($message, $channel, $sender, $sendto, $args) {
 		$slot = strtolower($args[1]);
 
-		$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
+		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 		$blob .= "<tab>";
 		$blob .= $this->text->makeChatcmd("Clear this slot", "/tell <myname> implantdesigner $slot clear");
 		$blob .= "<tab>";
@@ -394,7 +394,7 @@ class ImplantDesignerController extends AutoInject {
 		} elseif (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
 			$msg = "You must have at least one empty cluster to require an ability.";
 		} else {
-			$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
+			$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 			$blob .= "<tab>";
 			$blob .= $this->text->makeChatcmd("Clear this slot", "/tell <myname> implantdesigner $slot clear");
 			$blob .= "\n-------------------------\n\n";
@@ -430,7 +430,7 @@ class ImplantDesignerController extends AutoInject {
 		} elseif (!empty($slotObj->shiny) && !empty($slotObj->bright) && !empty($slotObj->faded)) {
 			$msg = "You must have at least one empty cluster to require an ability.";
 		} else {
-			$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
+			$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 			$blob .= "<tab>";
 			$blob .= $this->text->makeChatcmd("Clear this slot", "/tell <myname> implantdesigner $slot clear");
 			$blob .= "\n-------------------------\n\n";
@@ -613,7 +613,7 @@ class ImplantDesignerController extends AutoInject {
 			}
 		});
 		
-		$blob .= $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
+		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 		$blob .= "\n---------\n\n";
 		
 		$blob .= "<header2>Requirements to Equip<end>\n";

@@ -224,7 +224,7 @@ class EventManager {
 	}
 
 	public function getEventTypeByMethod($obj, $methodName) {
-		$method = new ReflectionAnnotatedMethod($obj, $methodName);
+		$method = new \ReflectionAnnotatedMethod($obj, $methodName);
 		if ($method->hasAnnotation('Event')) {
 			return strtolower($method->getAnnotation('Event')->value);
 		} else {

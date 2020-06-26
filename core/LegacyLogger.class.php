@@ -27,7 +27,7 @@ class LegacyLogger {
 	 * Get the log4php log level for a Budabot logging category
 	 *
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @return int The log4php log level
+	 * @return \LoggerLevel The log4php log level
 	 */
 	public static function getLoggerLevel($category) {
 		$level = LoggerLevel::getLevelOff();

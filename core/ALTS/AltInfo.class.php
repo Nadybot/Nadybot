@@ -38,25 +38,51 @@ class AltInfo {
 	}
 
 	public function getAltsBlob($showValidateLinks=false, $firstPageOnly=false) {
+		/** @var \Budabot\Core\DB */
 		$db = Registry::getInstance('db');
+		/** @var \Budabot\Core\SettingManager */
 		$settingManager = Registry::getInstance('settingManager');
+		/** @var \Budabot\Core\PlayerManager */
 		$playerManager = Registry::getInstance('playerManager');
+		/** @var \Budabot\Core\BuddylistManager */
 		$buddylistManager = Registry::getInstance('buddylistManager');
+		/** @var \Budabot\Core\Text */
 		$text = Registry::getInstance('text');
+		/** @var \Budabot\Core\Util */
+		$util = Registry::getInstance('util');
 
 		if (count($this->alts) == 0) {
 			return "No registered alts.";
 		}
+		$profDisplay = $settingManager->get('alts_profession_display');
 
 		$online = $buddylistManager->isOnline($this->main);
 		$character = $playerManager->getByName($this->main);
-		if ($character->profession !== null) {
+		$blob  = $text->alignNumber($character->level, 3, "highlight");
+		$blob .= " ";
+		$blob .= $text->alignNumber($character->ai_level, 2, "green");
+		$blob .= " ";
+		if ($profDisplay & 1 && $character->profession !== null) {
 			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($character->profession)."> ";
+		} elseif ($profDisplay & 1) {
+			$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 		}
 		$blob .= $this->formatCharName($this->main, $online);
 
-		if ($character !== null) {
-			$blob .= " ({$character->level}/<green>{$character->ai_level}<end> {$character->profession})";
+		$extraInfo = array();
+		if ($profDisplay & 2 && $character->profession !== null) {
+			$extraInfo []= $util->getProfessionAbbreviation($character->profession);
+		}
+		if ($profDisplay & 4 && $character->profession !== null) {
+			$extraInfo []= $character->profession;
+		}
+		if ($settingManager->get('alts_show_org') && $character->faction !== null) {
+			$factionColor = strtolower($character->faction);
+			$orgName = strlen($character->guild) ? $character->guild : $character->faction;
+			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
+		}
+		if (count($extraInfo)) {
+			$blob .= " - " .join(", ", $extraInfo);
 		}
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
@@ -64,18 +90,40 @@ class AltInfo {
 		$sql = "SELECT `alt`, `main`, `validated`, p.* ".
 			"FROM `alts` a ".
 			"LEFT JOIN players p ON (a.alt = p.name AND p.dimension = '<dim>') ".
-			"WHERE `main` LIKE ? ".
-			"ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
+			"WHERE `main` LIKE ? ";
+		if ($settingManager->get('alts_sort') === 'level') {
+			$sql .= "ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
+		} elseif ($settingManager->get('alts_sort') === 'name') {
+			$sql .= "ORDER BY name ASC";
+		}
 		$data = $db->query($sql, $this->main);
 		$count = count($data) + 1;
 		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);
-			if ($row->profession !== null) {
+			$blob .= $text->alignNumber($row->level, 3, "highlight");
+			$blob .= " ";
+			$blob .= $text->alignNumber($row->ai_level, 2, "green");
+			$blob .= " ";
+			if ($profDisplay & 1 && $row->profession !== null) {
 				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($row->profession)."> ";
+			} elseif ($profDisplay & 1) {
+				$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
-			if ($row->profession !== null) {
-				$blob .= " ({$row->level}/<green>{$row->ai_level}<end> {$row->profession})";
+			$extraInfo = array();
+			if ($profDisplay & 2 && $row->profession !== null) {
+				$extraInfo []= $util->getProfessionAbbreviation($row->profession);
+			}
+			if ($profDisplay & 4 && $row->profession !== null) {
+				$extraInfo []= $row->profession;
+			}
+			if ($settingManager->get('alts_show_org') && $row->faction !== null) {
+				$factionColor = strtolower($row->faction);
+				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
+				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
+			}
+			if (count($extraInfo)) {
+				$blob .= " - " .join(", ", $extraInfo);
 			}
 			$blob .= $this->formatOnlineStatus($online);
 

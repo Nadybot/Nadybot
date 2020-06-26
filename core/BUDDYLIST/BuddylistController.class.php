@@ -56,44 +56,46 @@ class BuddylistController {
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) == 0) {
 			$msg = "There are no players on the buddy list.";
-		} else {
-			$count = 0;
-			foreach ($this->getSortedBuddyList() as $value) {
-				if (!isset($value['name'])) {
-					// skip the characters that have been added but the server hasn't sent back an update yet
-					continue;
-				}
-
-				$count++;
-				$removed = '';
-				if (count($value['types']) == 0) {
-					$orphanCount++;
-					if ($cleanup) {
-						$this->buddylistManager->remove($value['name']);
-						$removed = "<red>REMOVED<end>";
-						
-						// don't count removed characters
-						$count--;
-					}
-				}
-
-				$blob .= $value['name'] . " $removed " . implode(' ', array_keys($value['types'])) . "\n";
-			}
-
-			if ($cleanup) {
-				$blob .="\n\nRemoved: ($orphanCount)";
-			} else {
-				$blob .= "\n\nUnknown: ($orphanCount) ";
-				if ($orphanCount > 0) {
-					$blob .= $this->text->makeChatcmd('Remove Orphans', '/tell <myname> <symbol>buddylist clean');
-				}
-			}
-
-			if ($cleanup) {
-				$sendto->reply("Removed $orphanCount characters from the buddy list.");
-			}
-			$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$count = 0;
+		$blob = "";
+		foreach ($this->getSortedBuddyList() as $value) {
+			if (!isset($value['name'])) {
+				// skip the characters that have been added but the server hasn't sent back an update yet
+				continue;
+			}
+
+			$count++;
+			$removed = '';
+			if (count($value['types']) == 0) {
+				$orphanCount++;
+				if ($cleanup) {
+					$this->buddylistManager->remove($value['name']);
+					$removed = "<red>REMOVED<end>";
+					
+					// don't count removed characters
+					$count--;
+				}
+			}
+
+			$blob .= $value['name'] . " $removed " . implode(' ', array_keys($value['types'])) . "\n";
+		}
+
+		if ($cleanup) {
+			$blob .="\n\nRemoved: ($orphanCount)";
+		} else {
+			$blob .= "\n\nUnknown: ($orphanCount) ";
+			if ($orphanCount > 0) {
+				$blob .= $this->text->makeChatcmd('Remove Orphans', '/tell <myname> <symbol>buddylist clean');
+			}
+		}
+
+		if ($cleanup) {
+			$sendto->reply("Removed $orphanCount characters from the buddy list.");
+		}
+		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
 		$sendto->reply($msg);
 	}
 	

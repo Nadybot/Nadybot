@@ -104,7 +104,7 @@ class WhoisOrgController {
 		$num_adv = 0;
 		$num_agent = 0;
 		$num_crat = 0;
-		$num_crat = 0;
+		$num_doc = 0;
 		$num_enf = 0;
 		$num_eng = 0;
 		$num_fix = 0;
@@ -119,6 +119,7 @@ class WhoisOrgController {
 		$lvl_max = 1;
 
 		$num_members = count($org->members);
+		$lvl_tot = 0;
 		foreach ($org->members as $member) {
 			if ($member->guild_rank_id == 0) {
 				$president_name = $member->name;

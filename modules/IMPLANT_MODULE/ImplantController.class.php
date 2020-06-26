@@ -234,7 +234,7 @@ class ImplantController {
 	}
 
 	public function formatClusterBonuses($obj) {
-		$msg .= "You will gain for most skills:\n" .
+		$msg = "You will gain for most skills:\n" .
 			"<tab>Shiny    <highlight>$obj->skillShiny<end> ($obj->lowestSkillShiny - $obj->highestSkillShiny)\n" .
 			"<tab>Bright    <highlight>$obj->skillBright<end> ($obj->lowestSkillBright - $obj->highestSkillBright)\n" .
 			"<tab>Faded   <highlight>$obj->skillFaded<end> ($obj->lowestSkillFaded - $obj->highestSkillFaded)\n" .

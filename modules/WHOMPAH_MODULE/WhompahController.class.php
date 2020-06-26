@@ -107,21 +107,22 @@ class WhompahController {
 
 		if ($obj === false) {
 			$msg = "There was an error while trying to find the whompah path.";
-		} else {
-			$cities = array();
-			while ($obj !== null) {
-				$cities []= $obj;
-				$obj = $obj->previous;
-			}
-			$cities = array_map(function($city) {
-				$faction = strtolower($city->faction);
-				if ($faction === 'neutral') {
-					$faction = 'green';
-				}
-				return "<$faction>$city->city_name<end>";
-			}, $cities);
-			$msg = implode(" -> ", $cities);
+			$sendto->reply($msg);
+			return;
 		}
+		$cities = array();
+		while ($obj !== null) {
+			$cities []= $obj;
+			$obj = $obj->previous;
+		}
+		$cities = array_map(function($city) {
+			$faction = strtolower($city->faction);
+			if ($faction === 'neutral') {
+				$faction = 'green';
+			}
+			return "<$faction>$city->city_name<end>";
+		}, $cities);
+		$msg = implode(" -> ", $cities);
 
 		$sendto->reply($msg);
 	}

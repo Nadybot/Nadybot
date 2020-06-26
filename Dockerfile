@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Budabot"
@@ -14,6 +14,8 @@ RUN apk --no-cache add \
     php7-pdo \
     php7-pdo_sqlite \
     php7-pdo_mysql \
+    php7-mbstring \
+    php7-ctype \
     php7-bcmath \
     php7-json \
     php7-openssl \

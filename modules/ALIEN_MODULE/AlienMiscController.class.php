@@ -208,7 +208,7 @@ class AlienMiscController {
 		}
 		$blob .= "\n";
 
-		$current_upgrade = $row->upgrade;
+		$current_upgrade = null;
 		foreach ($data as $row) {
 			if ($current_upgrade != $row->upgrade) {
 				$current_upgrade = $row->upgrade;
@@ -216,9 +216,10 @@ class AlienMiscController {
 			}
 			$blob .=  $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 
+			$total_vp = 0;
 			if ($row->upgrade == 0 || $row->upgrade == 3) {
 				$blob .= "  (<highlight>$row->vp<end> VP)";
-				$total_vp = $total_vp + $row->vp;
+				$total_vp += $row->vp;
 			}
 			$blob .= "\n";
 		}

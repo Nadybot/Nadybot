@@ -65,6 +65,39 @@ class AltsController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'alts');
+		$this->settingManager->add(
+			$this->moduleName,
+			'alts_show_org',
+			'Show the org in the altlist',
+			'edit',
+			'options',
+			'1',
+			'yes;no',
+			'1;0',
+			'mod'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'alts_profession_display',
+			'How to show profession in alts list',
+			'edit',
+			'options',
+			'1',
+			'off;icon;short;full;icon+short;icon+full',
+			'0;1;2;4;3;5',
+			'mod'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'alts_sort',
+			'By what to sort the alts list',
+			'edit',
+			'options',
+			'level',
+			'level;name',
+			'',
+			'mod'
+		);
 	}
 
 	/**

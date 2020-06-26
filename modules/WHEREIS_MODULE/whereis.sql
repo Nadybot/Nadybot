@@ -227,7 +227,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Gnuff', 'in the Will to Fight dungeon, in the center at 1111 x 833. He drops a Crystal of Rift Power, which will give you a random buff, like when you open a shrine.', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Good Time Party Mixer', 'Newland City. And one for Clans is located at Reets Retreat', NULL, 566, 463, 339);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Gouger Scorpiod', 'Pleasant Meadows (within a fairly large area of)', 'Bronto', 630, 2188, 1938);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Greasy Joints', 'Newland Desert', 'Greasy Gears Jints Joings Joint Joints Now Jones Greasyjoints Greazy Greazyjoints', 565, 890, 950);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Greasy Joints', 'Newland, Fixer Grid 2', 'Greasy Gears Jints Joings Joint Joints Now Jones Greasyjoints Greazy Greazyjoints', 565, 890, 950);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Greater Omni Forest', 'in the southeast part of the world. No grid or whompa.', 'Greater Omni Foreset Forest Forrest Greateromniforest', 717, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Greater Tir County Hotsprings', 'Greater Tir County', 'Hot spring Springs Hotsprings', 647, 2850, 1650);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Greater Tir County', 'in the northeast part of the world. Grid access in Tir City at 555 x 527 and a whompa in Tir City at 475 x 466 to Newland City. To the south of Greater Tir County is Tir County, west is Varmint Woods, no zones avail to north or east.', 'Greatertircounty', 647, 0, 0);
@@ -375,7 +375,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Notum Tree', 'Avalon', NULL, 505, 2450, 1300);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Noxious Eremite', 'Inferno', '', 4605, 2615, 2233);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Numiel', 'Inferno, Fronter', NULL, 4605, 2821, 2454);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nuts & Bolts', 'Aegean, Wartorn Valley', NULL, 585, 790, 680);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nuts & Bolts', 'Aegean, Wartorn Valley', NULL, 586, 790, 680);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Abettor', '', '', 4005, 717, 445);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Drudge', '', '', 4005, 1851, 1761);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Obediency Inspector', 'Eastern Fouls Plain, at the lake', NULL, 620, 1225, 2800);
@@ -612,3 +612,4 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zodiac', 'Pandemonium Caina, NE of the garden statues. Portal boss for entering pandemonium', '', 4328, 190, 85);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zoftig Blimp', 'Mort, City of Hope', NULL, 560, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Zyvania Bagh', 'ICC', 'steps of madness som', 655, 3158, 900);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Loren Warr', 'West of Newland Lake', NULL, 567, 345, 508);

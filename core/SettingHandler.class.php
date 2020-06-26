@@ -78,4 +78,13 @@ class SettingHandler {
 	public function save($newValue) {
 		return $newValue;
 	}
+
+	/**
+	 * Get a description of the setting
+	 *
+	 * @return string
+	 */
+	public function getDescription() {
+		return "No description yet";
+	}
 }

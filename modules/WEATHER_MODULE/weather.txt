@@ -1,4 +1,27 @@
-To search for weather data based on City/Zip/Airport:
-<highlight><tab><symbol>weather 'city or zip or airport'<end>
+To search for weather data based on City, Region, Zip or country:
+<tab><highlight><symbol>weather 'city, region, zip or country'<end>
 
-If a list of choices is replied back, choose one of the places for a closer match. If some links show redundant multiple results, you may have to go to wunderground.com and look for an airport code. For example, both links for Beijing show the same links.  On the website, you could find an airport 'zbaa'.  <highlight><symbol>weather zbaa<end> should reply back with weather from beijing.
+If the location found is not the right one, try adding country codes or other information like state, region, zip, etc. separated with a comma.
+You can search for anything in any language, down to house numbers, streets and objects but also for countries, states and so on. Basically everything that has a name in OpenStreetMap.
+
+<header2>Examples<end>
+<tab><highlight><symbol>weather uk<end>
+to get the weather for the UK. Want it more precise?
+
+<tab><highlight><symbol>weather london<end>
+to get the weather for London. Want it more precise?
+
+<tab><highlight><symbol>weather westminster<end>
+to get the weather for the City of Westminster in London.
+
+<tab><highlight><symbol>weather hannover,us<end>
+to get the weather for Hannover in North Dakota
+
+<tab><highlight><symbol>weather Cologne cathedral<end>
+to get the weather for the Cologne cathedral. No, the weather isn't that exact ;o)
+
+<tab><highlight><symbol>weather athens,ga<end>
+to get the weather for Athens in Georgia
+
+<tab><highlight><symbol>weather neustadt,hessen<end>
+to get the weather for Neustadt near Marburg

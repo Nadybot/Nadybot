@@ -93,6 +93,8 @@ class RandomController {
 		$text = explode(" ", trim($args[1]));
 		$low = 0;
 		$high = count($text) - 1;
+		$count = 0;
+		$marked = array();
 		while (true) {
 			$random = rand($low, $high);
 			if (!isset($marked[$random])) {
@@ -199,7 +201,14 @@ class RandomController {
 	
 	public function roll($sender, $options) {
 		$result = $this->util->randomArrayValue($options);
-		$this->db->exec("INSERT INTO roll (`time`, `name`, `options`, `result`) VALUES (?, ?, ?, ?)", time(), $sender, implode($options, "|"), $result);
+		$this->db->exec(
+			"INSERT INTO roll (`time`, `name`, `options`, `result`) ".
+			"VALUES (?, ?, ?, ?)",
+			time(),
+			$sender,
+			implode("|", $options),
+			$result
+		);
 		return array($this->db->lastInsertId(), $result);
 	}
 }

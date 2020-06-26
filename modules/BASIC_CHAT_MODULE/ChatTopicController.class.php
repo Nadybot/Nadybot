@@ -44,6 +44,12 @@ class ChatTopicController {
 	 * @Inject
 	 */
 	public $util;
+
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
+	public $text;
 	
 	/**
 	 * @var \Budabot\Core\ChatRallyController $chatRallyController
@@ -171,7 +177,9 @@ class ChatTopicController {
 		$date_string = $this->util->unixtimeToReadable(time() - $this->settingManager->get('topic_time'), false);
 		$topic = $this->settingManager->get('topic');
 		$set_by = $this->settingManager->get('topic_setby');
-		$msg = "Topic: <highlight>{$topic}<end> [set by <highlight>{$set_by}<end>][<highlight>{$date_string} ago<end>]";
+		$msg = "Topic: <red>{$topic}<end> (set by ".
+			$this->text->makeUserlink($set_by).
+			", <highlight>{$date_string} ago<end>)";
 		return $msg;
 	}
 }

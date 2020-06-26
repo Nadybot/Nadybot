@@ -219,36 +219,36 @@ class GuildController {
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>$name<end> does not exist.";
-		} else {
-			$altInfo = $this->altsController->getAltInfo($name);
-			$onlineAlts = $altInfo->getOnlineAlts();
+			$sendto->reply($msg);
+			return;
+		}
+		$altInfo = $this->altsController->getAltInfo($name);
+		$onlineAlts = $altInfo->getOnlineAlts();
 
-			$blob = "";
-			foreach ($onlineAlts as $onlineAlt) {
-				$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
-			}
-			
-			$namesSql = implode(",", array_map(function($alt) {
-				return "'$alt'";
-			}, $altInfo->getAllAlts()));
-			$data = $this->db->query("SELECT * FROM org_members_<myname> WHERE `name` IN ($namesSql) AND `mode` != 'del' ORDER BY logged_off DESC");
+		$blob = "";
+		foreach ($onlineAlts as $onlineAlt) {
+			$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
+		}
+		
+		$namesSql = implode(",", array_map(function($alt) {
+			return "'$alt'";
+		}, $altInfo->getAllAlts()));
+		$data = $this->db->query("SELECT * FROM org_members_<myname> WHERE `name` IN ($namesSql) AND `mode` != 'del' ORDER BY logged_off DESC");
 
-			foreach ($data as $row) {
-				if (in_array($row->name, $onlineAlts)) {
-					// skip
-					continue;
-				} elseif ($row->logged_off == 0) {
-					$blob .= "<highlight>$row->name<end> has never logged on.\n";
-				} else {
-					$blob .= "<highlight>$row->name<end> last seen at " . $this->util->date($row->logged_off) . ".\n";
-				}
-			}
-
-			if (count($data) == 0) {
-				$msg .= "Character <highlight>$name<end> is not a member of the org.";
+		foreach ($data as $row) {
+			if (in_array($row->name, $onlineAlts)) {
+				// skip
+				continue;
+			} elseif ($row->logged_off == 0) {
+				$blob .= "<highlight>$row->name<end> has never logged on.\n";
 			} else {
-				$msg = $this->text->makeBlob("Last Seen Info for $altInfo->main", $blob);
+				$blob .= "<highlight>$row->name<end> last seen at " . $this->util->date($row->logged_off) . ".\n";
 			}
+		}
+
+		$msg = "Character <highlight>$name<end> is not a member of the org.";
+		if (count($data) !== 0) {
+			$msg = $this->text->makeBlob("Last Seen Info for $altInfo->main", $blob);
 		}
 
 		$sendto->reply($msg);
@@ -288,7 +288,7 @@ class GuildController {
 			return;
 		}
 
-		$numinactive = 0;
+		$numrecentcount = 0;
 		$highlight = 0;
 
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
@@ -440,7 +440,7 @@ class GuildController {
 					if ($dbentrys[$member->name]["mode"] == "del") {
 						// members who are not on notify should not be on the buddy list but should remain in the database
 						$this->buddylistManager->remove($member->name, 'org');
-						unset($this->chatBot->guildmembers[$name]);
+						unset($this->chatBot->guildmembers[$member->name]);
 					} else {
 						// add org members who are on notify to buddy list
 						$this->buddylistManager->add($member->name, 'org');

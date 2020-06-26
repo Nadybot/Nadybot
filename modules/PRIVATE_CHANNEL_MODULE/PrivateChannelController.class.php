@@ -165,6 +165,8 @@ class PrivateChannelController {
 		$this->settingManager->add($this->moduleName, "guest_relay", "Relay the Private Channel with the Guild Channel", "edit", "options", "1", "true;false", "1;0");
 		$this->settingManager->add($this->moduleName, "guest_relay_commands", "Relay commands and results from/to Private Channel", "edit", "options", "1", "true;false", "1;0");
 		$this->settingManager->add($this->moduleName, "add_member_on_join", "Automatically add player as member when they join", "edit", "options", "0", "true;false", "1;0");
+		$this->settingManager->add($this->moduleName, "guest_relay_ignore", 'Names of people not to relay into the private channel', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, "guest_relay_filter", 'RegEx filter for relaying into Private Channel', 'edit', 'text', '', 'none');
 	}
 
 	/**
@@ -506,6 +508,30 @@ class PrivateChannelController {
 			$this->buddylistManager->add($row->name, 'member');
 		}
 	}
+
+	/**
+	 * Check if a message by a sender should not be relayed due to filters
+	 *
+	 * @param string $sender Name of the person sending the message
+	 * @param string $message The message that wants to be relayed
+	 * @return bool
+	 */
+	public function isFilteredMessage($sender, $message) {
+		$toIgnore = array_diff(
+			explode(";", strtolower($this->settingManager->get('guest_relay_ignore'))),
+			[""]
+		);
+		if (in_array(strtolower($sender), $toIgnore)) {
+			return true;
+		}
+		if (strlen($regexpFilter = $this->settingManager->get('guest_relay_filter'))) {
+			$escapedFilter = str_replace("/", "\\/", $regexpFilter);
+			if (@preg_match("/$escapedFilter/", $message)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	/**
 	 * @Event("guild")
@@ -522,6 +548,10 @@ class PrivateChannelController {
 
 		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
 		if ($message[0] == $this->settingManager->get("symbol") && $this->settingManager->get("guest_relay_commands") != 1) {
+			return;
+		}
+
+		if ($this->isFilteredMessage($sender, $message)) {
 			return;
 		}
 
@@ -600,10 +630,9 @@ class PrivateChannelController {
 				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 			}
 		} else {
+			$msg = "$sender has joined the private channel.";
 			if (count($altInfo->alts) > 0) {
-				$msg .= "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
-			} else {
-				$msg = "$sender has joined the private channel.";
+				$msg .= " " . $altInfo->getAltsBlob(false, true);
 			}
 		}
 

@@ -197,7 +197,7 @@ class AlienBioController {
 	 * @Matches("/^bioinfo$/i")
 	 */
 	public function bioinfoListCommand($message, $channel, $sender, $sendto, $args) {
-		$blob .= "<header2>OFAB Armor Types<end>\n";
+		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob($this->leArmorTypes);
 		
 		$blob .= "\n<header2>OFAB Weapon Types<end>\n";
@@ -262,7 +262,7 @@ class AlienBioController {
 	 */
 	private function getWeaponInfo($ql) {
 		$ts_wep = floor($ql * 6);
-		$text .= "\n\n<highlight>QL $ql<end> is the highest weapon this type will combine into.";
+		$text = "\n\n<highlight>QL $ql<end> is the highest weapon this type will combine into.";
 		if ($ql != 300) {
 			$text .= "\nNote: <highlight>The weapon can bump several QL's.<end>";
 		}

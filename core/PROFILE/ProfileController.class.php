@@ -205,7 +205,7 @@ class ProfileController {
 		} else {
 			$sendto->reply("Loading profile <highlight>$profileName<end>...");
 			$output = $this->loadProfile($filename, $sender);
-			if ($ouptput === false) {
+			if ($output === false) {
 				$msg = "There was an error loading the profile <highlight>$profileName<end>.";
 			} else {
 				$msg = $this->text->makeBlob("Profile Results: $profileName", $output);

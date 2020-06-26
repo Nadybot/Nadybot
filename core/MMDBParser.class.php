@@ -75,6 +75,7 @@ class MMDBParser {
 		// find all instances
 		$instances = array();
 		$instance = $this->readEntry($in);
+		$previousInstance = null;
 		while ($previousInstance == null || $instance['id'] > $previousInstance['id']) {
 			$instances[] = $instance;
 			$previousInstance = $instance;
@@ -98,6 +99,7 @@ class MMDBParser {
 		// find all categories
 		$categories = array();
 		$category = $this->readEntry($in);
+		$previousCategory = null;
 		while ($previousCategory == null || $category['id'] > $previousCategory['id']) {
 			$categories[] = $category;
 			$previousCategory = $category;
@@ -130,6 +132,7 @@ class MMDBParser {
 
 	private function findEntry($in, $id, $offset) {
 		fseek($in, $offset);
+		$entry = null;
 
 		do {
 			$previousEntry = $entry;

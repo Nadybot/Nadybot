@@ -164,7 +164,7 @@ class AdminController {
 			$showOfflineAlts = false;
 		}
 
-		$blob .= "<header2>Administrators<end>\n";
+		$blob = "<header2>Administrators<end>\n";
 		foreach ($this->adminManager->admins as $who => $data) {
 			if ($this->adminManager->admins[$who]["level"] == 4) {
 				if ($who != "") {
