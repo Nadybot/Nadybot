@@ -325,7 +325,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Marcus Poet Laureate', 'Broken Shores', NULL, 665, 1500, 2900);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Marcus Robicheaux', 'Broken Shores', NULL, 665, 1500, 2900);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Marvin', 'Southern Artery Valley', NULL, 610, 1250, 2350);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Mary-Ann', 'Newland', 'AI Quest Social Clothing Thermo Vest combined armor', 567, 1144, 388);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Mary-Ann', 'Newland', 'AI Quest Social Clothing Thermo Vest combined armor', 567, 1440, 380);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Master Divenchy', 'Newland, near the crash site north of the lake', 'AI Quest Social Clothing Combined Armor', 567, 900, 860);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Maychwaham', 'Inferno, South of Frontier', '', 4605, 2068, 2155);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Maychwyawi', 'Inferno', '', 4605, 2648, 2962);
