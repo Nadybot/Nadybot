@@ -78,11 +78,11 @@ class ChatLeaderController {
 		if ($this->leader == $sender) {
 			unset($this->leader);
 			$this->chatBot->sendPrivate("Raid Leader cleared.");
-		} else {
-			$msg = $this->setLeader($sender, $sender);
-			if (!empty($msg)) {
-				$sendto->reply($msg);
-			}
+			return;
+		}
+		$msg = $this->setLeader($sender, $sender);
+		if (!empty($msg)) {
+			$sendto->reply($msg);
 		}
 	}
 
@@ -213,8 +213,7 @@ class ChatLeaderController {
 			return true;
 		} elseif ($this->accessManager->checkAccess($sender, "moderator")) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 }
