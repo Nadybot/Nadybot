@@ -2,12 +2,11 @@
 
 namespace Budabot\User\Modules;
 
-use Budabot\Core\XML;
+use StdClass;
 
 /**
  * Authors:
- *	- Tyrence (RK2)
- *	- Lucier (RK1) ?
+ *	- Nadyita (RK5)
  *
  * @Instance
  *
@@ -32,6 +31,29 @@ class WeatherController {
 	 * @Inject
 	 */
 	public $text;
+
+	/**
+	 * @var \Budabot\Core\Http $http
+	 * @Inject
+	 */
+	public $http;
+
+	/**
+	 * Convert a StdClass to something more specific
+	 *
+	 * @param \StdClass $obj The object to typecast
+	 * @param string $newClass The class to typecast into
+	 */
+	protected function castClass(StdClass $obj, $newClass) {
+		return unserialize(
+			sprintf(
+				'O:%d:"%s"%s',
+				\strlen($newClass),
+				$newClass,
+				strstr(strstr(serialize($obj), '"'), ':')
+			)
+		);
+	}
 	
 	/**
 	 * @HandlesCommand("weather")
@@ -39,160 +61,376 @@ class WeatherController {
 	 */
 	public function weatherCommand($message, $channel, $sender, $sendto, $args) {
 		$location = $args[1];
-		$blob = '';
-
-		$geolookup = "http://api.wunderground.com/auto/wui/geo/GeoLookupXML/index.xml?query=".urlencode($location);
-		$current   = "http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query=".urlencode($location);
-		$forecast  = "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=".urlencode($location);
-		$alerts    = "http://api.wunderground.com/auto/wui/geo/AlertsXML/index.xml?query=".urlencode($location);
-
-		$geolookup = file_get_contents($geolookup);
-
-		// Geolookup
-		if (XML::spliceData($geolookup, "<wui_error>", "</wui_error>") != "") {
-			$sendto->reply("No information is available for <highlight>".$location."<end>.");
-			return;
-		}
-
-		$locations = XML::spliceMultiData($geolookup, "<name>", "</name>");
-		if (count($locations) > 1) {
-			$blob .= "Multiple hits for $location.\n\n";
-			foreach ($locations as $spot) {
-				$blob .= $this->text->makeChatcmd($spot, "/tell <myname> weather $spot")."\n";
-			}
-
-			$msg = $this->text->makeBlob('Weather Locations', $blob);
+		$nominatim = $this->lookupLocation($location);
+		if ($nominatim === null) {
+			$msg = "Unable to find <highlight>$location<end>.";
 			$sendto->reply($msg);
 			return;
 		}
-
-		$sendto->reply("Collecting data for <highlight>".$location."<end>.");
-
-		$current   = file_get_contents($current);
-		$forecast  = file_get_contents($forecast);
-		$alerts    = file_get_contents($alerts);
-
-		// CURRENT
-		$updated = XML::spliceData($current, "<observation_time_rfc822>", "</observation_time_rfc822>");
-
-		if ($updated == ", :: GMT") {
-			$sendto->reply("No information is available for <highlight>".$location."<end>.");
+		$weather = $this->lookupWeatherForCoords($nominatim->lat, $nominatim->lon);
+		if ($weather === null) {
+			$msg = "Unable to get weather information for <highlight>$location<end>.";
+			$sendto->reply($msg);
 			return;
 		}
-
-		$credit = XML::spliceData($current, "<credit>", "</credit>");
-		$crediturl = XML::spliceData($current, "<credit_URL>", "</credit_URL>");
-		$observeLoc = XML::spliceData($current, "<observation_location>", "</observation_location>");
-		$fullLoc = XML::spliceData($observeLoc, "<full>", "</full>");
-		$country = XML::spliceData($observeLoc, "<country>", "</country>");
-		$lat = XML::spliceData($observeLoc, "<latitude>", "</latitude>");
-		$lon = XML::spliceData($observeLoc, "<longitude>", "</longitude>");
-		$elevation = XML::spliceData($observeLoc, "<elevation>", "</elevation>");
-		$weather = XML::spliceData($current, "<weather>", "</weather>");
-		$tempstr = XML::spliceData($current, "<temperature_string>", "</temperature_string>");
-		$humidity = XML::spliceData($current, "<relative_humidity>", "</relative_humidity>");
-		$windstr = XML::spliceData($current, "<wind_string>", "</wind_string>");
-		$windgust = XML::spliceData($current, "<wind_gust_mph>", "</wind_gust_mph>");
-		$pressurestr = XML::spliceData($current, "<pressure_string>", "</pressure_string>");
-		$dewstr = XML::spliceData($current, "<dewpoint_string>", "</dewpoint_string>");
-		$heatstr = XML::spliceData($current, "<heat_index_string>", "</heat_index_string>");
-		$windchillstr = XML::spliceData($current, "<windchill_string>", "</windchill_string>");
-		$visibilitymi = XML::spliceData($current, "<visibility_mi>", "</visibility_mi>");
-		$visibilitykm = XML::spliceData($current, "<visibility_km>", "</visibility_km>");
-
-		$latlonstr  = number_format(abs($lat), 1);
-		if (abs($lat) == $lat) {
-			$latlonstr .= "N ";
-		} else {
-			$latlonstr .= "S ";
+		$blob = $this->renderWeather($nominatim, $weather);
+		$placeParts = explode(", ", $nominatim->display_name);
+		$header = "The current weather for <highlight>{$placeParts[0]}<end>";
+		if (count($placeParts) > 2 && $nominatim->address->country_code === "us") {
+			$header .= ", " . $nominatim->address->state;
+		} elseif (count($placeParts) > 1) {
+			$header .= ", " . $nominatim->address->country;
 		}
-		$latlonstr .= number_format(abs($lon), 1);
-		if (abs($lon) == $lon) {
-			$latlonstr .= "E ";
-		} else {
-			$latlonstr .= "W ";
-		}
-		$latlonstr .= $this->text->makeChatcmd("Google Map", "/start http://maps.google.com/maps?q=$lat,$lon")." ";
-		$latlonstr .= $this->text->makeChatcmd("Wunder Map", "/start http://www.wunderground.com/wundermap/?lat=$lat&lon=$lon&zoom=10")."\n\n";
-		$blob .= "Credit: <highlight>".$this->text->makeChatcmd($credit, "/start $crediturl")."<end>\n";
-		$blob .= "Last Updated: <highlight>$updated<end>\n\n";
-		$blob .= "Location: <highlight>$fullLoc, $country<end>\n";
-		$blob .= "Lat/Lon: <highlight>$latlonstr<end>";
+		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours->summary->symbol_code;
+		$currentSummary = $this->iconToForecastSummary($currentIcon);
+		$currentTemp = $weather->properties->timeseries[0]->data->instant->details->air_temperature;
+		$tempUnit =  $this->nameToDegree($weather->properties->meta->units->air_temperature);
+		$blob = $this->text->makeBlob("details", $blob, strip_tags($header));
 
-		$blob .= "Currently: <highlight>$tempstr, $weather<end>\n";
-		$blob .= "Humidity: <highlight>$humidity<end>\n";
-		$blob .= "Dew Point: <highlight>$dewstr<end>\n";
-		$blob .= "Wind: <highlight>$windstr<end>";
-		if ($windgust) {
-			$blob .= " (Gust:$windgust mph)\n";
-		} else {
-			$blob .= "\n";
-		}
-		if ($heatstr != "NA") {
-			$blob .= "Heat Index: <highlight>$heatstr<end>\n";
-		}
-		if ($windchillstr != "NA") {
-			$blob .= "Windchill: <highlight>$windchillstr<end>\n";
-		}
-		$blob .= "Pressure: <highlight>$pressurestr<end>\n";
-		$blob .= "Visibility: <highlight>$visibilitymi miles, $visibilitykm km<end>\n";
-		$blob .= "Elevation: <highlight>$elevation<end>\n";
-
-		// ALERTS
-		$alertitems = XML::spliceMultiData($alerts, "<AlertItem>", "</AlertItem>");
-
-		if (count($alertitems) == 0) {
-			$blob .= "\n<header2>Alerts:<end> None reported.\n\n";
-		} else {
-			foreach ($alertitems as $thisalert) {
-				$blob .= "\n<header2>Alert: ".XML::spliceData($thisalert, "<description>", "</description>")."<end>\n\n";
-				// gotta find date/expire manually.
-				$start = strpos($thisalert, ">", strpos($thisalert, "<date epoch="))+1;
-				$end = strpos($thisalert, "<", $start);
-				$blob .= "Issued:<highlight>" . substr($thisalert, $start, $end - $start) . "<end>\n";
-
-				$start = strpos($thisalert, ">", strpos($thisalert, "<expires epoch="))+1;
-				$end = strpos($thisalert, "<", $start);
-				$blob .= "Expires:<highlight>" . substr($thisalert, $start, $end - $start) . "<end>\n";
-				$blob .= XML::spliceData($thisalert, "<message>", "</message>")."";
-			}
-		}
-
-		// FORECAST
-		$simpleforecast = XML::spliceData($forecast, "<simpleforecast>", "</simpleforecast>");
-		$forecastday = XML::spliceMultiData($simpleforecast, "<forecastday>", "</forecastday>");
-		if (count($forecastday)>0) {
-			foreach ($forecastday as $day) {
-				if (!($condition = XML::spliceData($day, "<conditions>", "</conditions>"))) {
-					break;
-				}
-
-				$low[0] = XML::spliceData($day, "<low>", "</low>");
-				$low[1] = XML::spliceData($low[0], "<fahrenheit>", "</fahrenheit");
-				$low[2] = XML::spliceData($low[0], "<celsius>", "</celsius");
-				$high[0] = XML::spliceData($day, "<high>", "</high>");
-				$high[1] = XML::spliceData($high[0], "<fahrenheit>", "</fahrenheit");
-				$high[2] = XML::spliceData($high[0], "<celsius>", "</celsius");
-				$pop = XML::spliceData($day, "<pop>", "</pop>");
-
-				$blob .= XML::spliceData($day, "<weekday>", "</weekday>").": <highlight>$condition<end>";
-				if (0 == $pop) {
-					$blob .= "\n";
-				} else {
-					$blob .= " ($pop% Precip)\n";
-				}
-
-				$blob .= "High: <highlight>";
-				$blob .= $high[1]."F";
-				$blob .= $high[2]."C<end>    ";
-
-				$blob .= "Low: <highlight>".$low[1]."F";
-				$blob .= $low[2]."C<end>\n\n";
-			}
-		}
-
-		$msg = $this->text->makeBlob('Weather: '.$location, $blob);
-
+		$msg = "$header: <highlight>{$currentTemp}{$tempUnit}<end>, ".
+			"<highlight>{$currentSummary}<end> [{$blob}]";
 		$sendto->reply($msg);
 	}
+
+	/**
+	 * Lookup the coordinates of a location
+	 *
+	 * @param string $location Name of the place, country, city... any location
+	 * @return \Budabot\User\Modules\Weather\Nominatim|null
+	 */
+	public function lookupLocation($location) {
+		$apiEndpoint = "https://nominatim.openstreetmap.org/search?";
+		$apiEndpoint .= http_build_query([
+			"format" => "jsonv2",
+			"q" => $location,
+			"namedetails" => 1,
+			"addressdetails" => 1,
+			"extratags" => 1,
+			"limit" => 1,
+		]);
+		$httpResult = $this->http
+			->get($apiEndpoint)
+			->withTimeout(10)
+			->withHeader('User-Agent', 'Budabot-Nady')
+			->withHeader('accept-language', 'en')
+			->waitAndReturnResponse();
+		$data = @json_decode($httpResult->body);
+		if ($data === false || !is_array($data) || !count($data)) {
+			return null;
+		}
+		return $this->castClass($data[0], Weather\Nominatim::class);
+	}
+
+	/**
+	 * Lookup the weather for a location
+	 *
+	 * @param string $lat Latitude
+	 * @param string $lon Longitude
+	 * @return \Budabot\User\Modules\Weather\Weather|null
+	 */
+	public function lookupWeatherForCoords($lat, $lon) {
+		$apiEndpoint = "https://api.met.no/weatherapi/locationforecast/2.0/compact?";
+		$apiEndpoint .= http_build_query([
+			"lat" => sprintf("%.4f", $lat),
+			"lon" => sprintf("%.4f", $lon),
+		]);
+		$httpResult = $this->http
+			->get($apiEndpoint)
+			->withTimeout(10)
+			->withHeader('User-Agent', 'Budabot-Nady')
+			->withHeader('accept-language', 'en')
+			->waitAndReturnResponse();
+		$data = @json_decode($httpResult->body);
+		if ($data === null || $data === false || !is_object($data)) {
+			return null;
+		}
+		return $this->castClass($data, Weather\Weather::class);
+	}
+
+	/**
+	 * Try to convert a wind degree into a wind direction
+	 */
+	public function degreeToDirection($degree) {
+		$mapping = [
+			  0 => "N",
+			 22 => "NNE",
+			 45 => "NE",
+			 67 => "ENE",
+			 90 => "E",
+			112 => "ESE",
+			135 => "SE",
+			157 => "SSE",
+			180 => "S",
+			202 => "SSW",
+			225 => "SW",
+			247 => "WSW",
+			270 => "W",
+			292 => "WNW",
+			315 => "NW",
+			337 => "NNW",
+			360 => "N",
+		];
+		$current = "unknown";
+		$currentDiff = 360;
+		foreach ($mapping as $mapDeg => $mapDir) {
+			if (abs($degree-$mapDeg) < $currentDiff) {
+				$current = $mapDir;
+				$currentDiff = abs($degree-$mapDeg);
+			}
+		}
+		return $current;
+	}
+
+	/**
+	 * Convert the windspeed in m/s into the wind's strength according to beaufort
+	 */
+	public function getWindStrength($speed) {
+		$beaufortScale = [
+			32.7 => 'hurricane',
+			28.5 => 'violent storm',
+			24.5 => 'storm',
+			20.8 => 'strong gale',
+			17.2 => 'gale',
+			13.9 => 'high wind',
+			10.8 => 'strong breeze',
+			 8.0 => 'fresh breeze',
+			 5.5 => 'moderate breeze',
+			 3.4 => 'gentle breeze',
+			 1.6 => 'light breeze',
+			 0.5 => 'light air',
+			 0.0 => 'calm',
+		];
+		foreach ($beaufortScale as $windSpeed => $windStrength) {
+			if ($speed >= $windSpeed) {
+				return $windStrength;
+			}
+		}
+		return 'unknown';
+	}
+
+	/**
+	 * Return a link to OpenStreetMap at the given coordinates
+	 *
+	 * @param \Budabot\User\Modules\Weather\Nominatim $nominatim The location object
+	 * @return string The URL to OSM
+	 */
+	public function getOSMLink(Weather\Nominatim $nominatim) {
+		$zoom = 12; // Zoom is 1 to 20 (full in)
+		$lat = number_format($nominatim->lat, 4);
+		$lon = number_format($nominatim->lon, 4);
+
+		return "https://www.openstreetmap.org/#map=$zoom/$lat/$lon";
+	}
+
+	/**
+	 * Convert the written temperature unit to short
+	 *
+	 * @param string $name Name of the unit ("celsius", "fahrenheit")
+	 * @return string
+	 */
+	protected function nameToDegree($name) {
+		if ($name === 'fahrenheit') {
+			return "°F";
+		}
+		return "°C";
+	}
+
+	/**
+	 * Convert a forecast icon (e.g. "heavysnowshowersandthunder") into a sentence
+	 *
+	 * @param string $icon The icon name
+	 * @return string A forecast summary
+	 */
+	public function iconToForecastSummary($icon) {
+		$icon = preg_replace("/_.+/", "", $icon);
+		preg_match_all(
+			"/(and|clear|cloudy|fair|fog|heavy|light|partly|rain|showers|sky|sleet|snow|thunder)/",
+			$icon,
+			$matches
+		);
+		return implode(" ", $matches[1]);
+	}
+
+	public function renderWeather(Weather\Nominatim $nominatim, Weather\Weather $weather) {
+		$units = $weather->properties->meta->units;
+		$currentWeather = $weather->properties->timeseries[0]->data->instant->details;
+		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours->summary->symbol_code;
+		$forecastIcon = $weather->properties->timeseries[0]->data->next_6_hours->summary->symbol_code;
+		$currentSummary = $this->iconToForecastSummary($currentIcon);
+		$forecastSummary = $this->iconToForecastSummary($forecastIcon);
+		$precipitation = $weather->properties->timeseries[0]->data->next_1_hours->details->precipitation_amount;
+		$precipitationForecast = $weather->properties->timeseries[0]->data->next_6_hours->details->precipitation_amount;
+		$mapCommand = $this->text->makeChatcmd("OpenStreetMap", "/start ".$this->getOSMLink($nominatim));
+		$lastUpdated = $weather->properties->timeseries[0]->time;
+		$lastUpdated = str_replace("T", " ", $lastUpdated);
+		$lastUpdated = str_replace("Z", " UTC", $lastUpdated);
+		$tempDegree = $this->nameToDegree($units->air_temperature);
+		$windDirection = $this->degreeToDirection($currentWeather->wind_from_direction);
+		$windStrength = $this->getWindStrength($currentWeather->wind_speed);
+		$osmLicence = preg_replace_callback(
+			"/(http[^ ]+)/",
+			function($matched) {
+				return $this->text->makeChatcmd($matched[1], "/start ".$matched[1]);
+			},
+			lcfirst($nominatim->licence)
+		);
+		$blob = "Last Updated: <highlight>$lastUpdated<end><br>" .
+			"<br>" .
+			"Location: <highlight>{$nominatim->display_name}<end><br>";
+		if ($nominatim->extratags->population) {
+			$blob .= "Population: <highlight>".
+				number_format($nominatim->extratags->population).
+				"<end><br>";
+		}
+		$blob .= "Lat/Lon: <highlight>{$nominatim->lat}° {$nominatim->lon}°<end> {$mapCommand}<br>" .
+			"Height: <highlight>{$weather->geometry->coordinates[2]}m<end><br>" .
+			"<br>" .
+			"Currently: <highlight>{$currentWeather->air_temperature}{$tempDegree}<end>, <highlight>$currentSummary<end>";
+		if ($precipitation > 0) {
+			$blob .= " (<highlight>{$precipitation}{$units->precipitation_amount}<end> precipitation)";
+		}
+		$blob .= "<br>";
+		$blob .= "Forecast: <highlight>{$forecastSummary}<end>";
+		if ($precipitationForecast > 0) {
+			$blob .= " (<highlight>{$precipitationForecast}{$units->precipitation_amount}<end> precipitation)";
+		}
+		$blob .= "<br>";
+		$blob .= "Clouds: <highlight>{$currentWeather->cloud_area_fraction} {$units->cloud_area_fraction}<end><br>" .
+			"Pressure: <highlight>{$currentWeather->air_pressure_at_sea_level} {$units->air_pressure_at_sea_level}<end><br>" .
+			"Humidity: <highlight>{$currentWeather->relative_humidity} {$units->relative_humidity}<end><br>" .
+			"Wind: <highlight>{$windStrength}<end> (<highlight>{$currentWeather->wind_speed} {$units->wind_speed}<end>) from <highlight>$windDirection<end><br>" .
+			"<br><br>".
+			"Location search " . $osmLicence . "<br>".
+			"Weather forecast data by Meteorologisk institutt of Norway";
+		return $blob;
+	}
+}
+
+namespace Budabot\User\Modules\Weather;
+
+class Nominatim {
+	/** @var string */
+	public $lat;
+	/** @var string */
+	public $lon;
+	/** @var string */
+	public $display_name;
+	/** @var string[] */
+	public $boundingbox;
+	/** @var int */
+	public $place_id;
+	/** @var string */
+	public $licence;
+	/** @var string */
+	public $osm_type;
+	/** @var int */
+	public $osm_id;
+	/** @var \StdClass */
+	public $namedetails;
+	/** @var string */
+	public $type;
+	/** @var string */
+	public $category;
+	/** @var \Budabot\User\Modules\Weather\NominatimAddress */
+	public $address;
+	/** @var \StdClass */
+	public $extratags;
+}
+
+class NominatimAddress {
+	/** @var string */
+	public $suburb;
+	/** @var string */
+	public $town;
+	/** @var string */
+	public $county;
+	/** @var string */
+	public $state;
+	/** @var string */
+	public $postcode;
+	/** @var string */
+	public $country;
+	/** @var string */
+	public $country_code;
+}
+
+class Weather {
+	/** @var string */
+	public $type;
+	/** @var \Budabot\User\Modules\Weather\Geometry */
+	public $geometry;
+	/** @var \Budabot\User\Modules\Weather\Properties */
+	public $properties;
+}
+
+class Properties {
+	/** @var \Budabot\User\Modules\Weather\Meta */
+	public $meta;
+	/** @var \Budabot\User\Modules\Weather\Timeseries[] */
+	public $timeseries;
+}
+
+class Meta {
+	/** @var string */
+	public $updated_at;
+	/** @var \Budabot\User\Modules\Weather\Units */
+	public $units;
+}
+
+class Units {
+	/** @var string */
+	public $air_pressure_at_sea_level;
+	/** @var string */
+	public $air_temperature;
+	/** @var string */
+	public $cloud_area_fraction;
+	/** @var string */
+	public $precipitation_amount;
+	/** @var string */
+	public $relative_humidity;
+	/** @var string */
+	public $wind_from_direction;
+	/** @var string */
+	public $wind_speed;
+}
+
+class Timeseries {
+	/** @var string */
+	public $time;
+	/** @var \Budabot\User\Modules\Weather\WeatherData */
+	public $data;
+}
+
+class WeatherData {
+	/** @var \Budabot\User\Modules\Weather\Instant */
+	public $instant;
+}
+
+class Instant {
+	/** @var \Budabot\User\Modules\Weather\InstantDetails */
+	public $details;
+}
+
+class InstantDetails {
+	/** @var float */
+	public $air_pressure_at_sea_level;
+	/** @var float */
+	public $air_temperature;
+	/** @var float */
+	public $cloud_area_fraction;
+	/** @var float */
+	public $dew_point_temperature;
+	/** @var float */
+	public $relative_humidity;
+	/** @var float */
+	public $wind_from_direction;
+	/** @var float */
+	public $wind_speed;
+}
+
+class Geometry {
+	/** @var string */
+	public $type;
+	/** @var array<float,float,int> */
+	public $coordinates;
 }
