@@ -150,11 +150,6 @@ class TimerController {
 	 * @Description("Checks timers and periodically updates chat with time left")
 	 */
 	public function checkTimers() {
-		//Check if at least one timer is running
-		if (count($this->timers) == 0) {
-			return;
-		}
-
 		$time = time();
 
 		foreach ($this->timers as $timer) {
@@ -201,10 +196,7 @@ class TimerController {
 
 	public function sendAlertMessage($timer, $alert) {
 		$msg = $alert->message;
-		$mode = $timer->mode;
-		if (!is_array($mode)) {
-			$mode = array($mode);
-		}
+		$mode = explode(",", $timer->mode);
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ('priv' == $sendMode) {
