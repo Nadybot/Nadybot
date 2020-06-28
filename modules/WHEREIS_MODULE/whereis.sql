@@ -34,6 +34,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Anansi''s Left Hand', 'South West of Oasis, East of Sorrow in Inferno. Calmer reccomended.', NULL, 4005, 1939, 1760);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Anansi''s Right Hand', 'Inferno, East of Sorrow', NULL, 4005, 1914, 1603);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ancient Tombstone', 'North of Yutto''s Mashes, surrounded by spirits', NULL, 4005, 2327, 1390);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Andrea Machioni', 'Inside the War Academy', NULL, 550, 1695, 1956);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Andromeda', 'in the southwest part of the world. Whompas to Tir, Newland, and Omni Trade. To the north (east) of Andromeda is 4 Holes, to the north (west) is Stret East Bank. To the east is Milky Way, south (east) is Lush Fields, south Clondyke. No zone avail to the west.', '655 Andromada Andromedia Andromida Icc', 655, 3250, 900);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Angel''s Trumpet', 'Clondyke (seems to be in multiple locations nearby)', 'Bronto Datura Inoxia', 670, 2359, 3656);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Aniitap''s Shadow', 'Inferno, North of Frontier', NULL, 4605, 2416, 3238);
@@ -50,6 +51,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Asase''s Drudge', '', '', 4005, 632, 297);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Asperous Imp', 'Elysium, Near Ergo', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Assault Commander Pax', 'Southern Artillery Valley near Fixer Grid 7M', 'dreadlochs dreads', 610, 2047, 645);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Assault Commander Sleek', 'In the War Academy in Athen Shire. Closest Fixer grid is Athen', 'dreadlochs dread dreads', 550, 1720, 1911);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Astypalia', 'Inferno, West of Razors Lair', NULL, 4605, 1777, 2715);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Atakirh', 'Inferno, South of Frontier', NULL, 4605, 1961, 2451);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Athen Old', 'in the NW part of the world. It has a whompa to Tir, Wailing Wastes and Bliss at 445 x 318. Out the east gate is Wartorn Valley and out west gate is West Athen', NULL, 540, 512, 573);
@@ -83,6 +85,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Borealis', 'in the central-west part of the world. Whompa to Stret West Bank at 682 x 531. Whompa to Newland right next to that. East of Borealis is Holes in the Wall. No zones currently available to the north, south, and west.', 'Bor Borealis Approach City Grid', 800, 635, 727);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Brainy Ant Woods', 'Greater Tir County', 'Ants Biniary', 647, 1300, 1500);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Brenda Diamond', 'at the ruins near Home in Broken Shores', NULL, 665, 430, 2200);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Brigadier Crux', 'South-East corner of Belian Forest. Closest Fixer grid is 8L', 'dreadlochs dread dreads', 605, 1538, 1086);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Brimstone Demon', 'East-North-East of Sorrow and spawns among the other demons.  Sometimes it''s bugged and spawns inside the nearby mountain, petition to get them killed/moved out.', NULL, 4005, 1650, 1625);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Broken Shores', 'in the southwest corner of the world. It has a grid access point in City of Home. In the north is a Whompah at 1000 x 3760 to Bliss and to Wine. There is a Whompah to Rome Red and 4 Holes Trade at 2340 x 2250', 'Broken Shord Shore Shores Brokenshores Bs Grid', 665, 644, 1313);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Brumal Slither', ' Adonis, Abyss N', NULL, 4873, 1440, 3414);
@@ -97,10 +100,12 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Capricorn', 'Pandemonium, North Node', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Captain Lewison', 'Reet retreat, Stret West Bank', NULL, 790, 1206, 2807);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Cardboard Palm', 'Clondyke', 'Bronto Zamia Furfuracea', 670, 1684, 1516);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Carillion Thunder', 'Upper Stret East Bank. North of Fixer Grid exit 7M', 'dreadlochs dreads dread', 650, 1799, 2207);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Catervauling Minx', 'Elysium, Near Ergo & Fallen Forest', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Cenobite Shadow', 'Crypt of Home, Broken Shores', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Central Artery Valley', 'in the mideastern part of the world. No grid or whompa. North of Central Artery Valley is Varmint Woods, south is Southern Artery Valley, east is Deep Artery Valley, west is Upper Stret East Bank. NE corner is Greater Tir Cnty and SW corner is Stret East Bank.', 'Cav Base Central Art Valley Centralarteryvalley', 590, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Cerubin The Rejected', 'Crypt of Home, Broken Shores', NULL, 0, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Chief Gunner Kyle Swan', 'The Longest Road, South-East of Fixer Grid exit 6M', 'dreadlochs dreads dread', 795, 3652, 574);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Chilly Slither', 'Adonis, Abyss N', NULL, 4873, 1465, 3373);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Chimera Aberrant', 'around the +10 ring dungeon just inside Inf', NULL, 4005, 1091, 380);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Chimera Crusher', 'East of the Portal to Pen, around the +10 ring dungeon just inside Inf', NULL, 4005, 1090, 400);
@@ -149,6 +154,13 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Deidre Lux', 'in the East Last Ditch area of Stret West Bank.', 'Bazzit''s Alien Library Hacker Tool Vanguard Node Access Card', 790, 1260, 2845);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Delinquent Spirit', 'Adonis, S', NULL, 4872, 1579, 433);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Den Smuggler Pilot', 'Smugglers Den, Southern Fouls Hills', NULL, 615, 1755, 872);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 30', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6300, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 60', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6301, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 100', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6302, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 150', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6303, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 200', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6304, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 214', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6305, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Desert Nomad Commando lvl 220', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6306, 346, 556);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Devoted Spirit Hunter', 'Inferno, West of Sorrow', NULL, 4005, 645, 1314);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Diamondine Soldier', 'Eastern Fouls Plain', NULL, 620, 1925, 1450);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Diamondine Trainee', 'Eastern Fouls Plain', NULL, 620, 1925, 1450);
@@ -185,7 +197,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ergo, Penumbra Guardian of Shadows', '', '', 4321, 2171, 2446);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Eric Mendelson Outpost', 'Varmint Woods, there are mission terms, insure term and shopping terms', 'Erik Ericmendelsonoutpost', 600, 2450, 2100);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Eroded Ancient Statue', '', '', 610, 1033, 2005);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Escaped Gargantula', 'Galway County', NULL, 685, 2160, 1150);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Escaped Gargantula', 'Galway County', NULL, 685, 2160, 1150);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Estella Fire', 'Inferno', '', 4605, 3554, 2030);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ethel Anthony', 'near the Newland Desert Whompah, standing next to Jens Stoltenberg', 'AI Quest Social Clothing Combined Armor', 565, 2179, 1547);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Eumenides', 'Condemned Subway, at the end of the one rail way hall, past the slum runners but before the infectors', NULL, 0, 0, 0);
@@ -204,6 +216,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Fire Flea', 'Inferno, it''s the first creature you will encounter. When killed, a Fiery Imp will appear.', '', 4005, 836, 186);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('First Brood Champion', 'Hollow Island', NULL, 605, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Fly Agaric', 'Clondyke', 'Bronto Amanita Muscaria', 670, 588, 3441);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Force Recon Commander 191', 'Clondyke, south of fixer grid 4R', 'dreadlochs dreads', 670, 1088, 2757);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Forefather', 'Smuggler''s Den, Southern Fouls Hills', NULL, 615, 1755, 872);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Fourth Brood Champion', 'Hollow Island', NULL, 605, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Freedom Outpost', 'Athen Shire. Insure terms, shops and mission terms and banks are available here. Directly beside the outpost is the zone to Wailing Wastes.', 'Freedomoutpost', 550, 1553, 370);
@@ -212,13 +225,20 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Galway Castle Model', 'Galway County', NULL, 685, 1110, 1000);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Galway County', 'in the southwest part of the world. It has a grid access point at 1416 x 1091 and whompas at 2530 x 1175 to Outpost 10-3, Omni-1 Trade, and Rome . West is Galway Shire, east is Clondyke, no zones avail to north and south.', 'Galaway County Galway Country Galwaycounty', 685, 2530, 1175);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Galway Shire', 'in the southwest part of the world. No grid access or whompa. East is Galway County, west is Broken Shores, no zones avail to north and south. Rome is located midway in Galway Shire on far west side.', 'Galaway Shire Galwayshire', 687, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 30', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6300, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 60', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6301, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 100', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6302, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 150', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6303, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 200', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6304, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 214', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6305, 346, 556);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ganking Uncle Pumpkin-Head lvl 220', 'Inside SBC-Xpm Site Alpha-Romeo', NULL, 6306, 346, 556);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Gartua The Doorkeeper', 'Temple Of The Three Winds, Greater Tir County', NULL, 647, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Gashing Soul Dredge', 'Adonis, NE', NULL, 4872, 2899, 2580);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Gemini', 'Pandemonium, East Node', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Freewheeler', 'Avalon, at the Main OT Base', NULL, 505, 1800, 1200);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Hardcastle', 'Avalon, at the Main OT Base', NULL, 505, 1800, 1200);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Kaehler Jr', 'Avalon, Secondary Base', NULL, 505, 0, 0);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Kronilis', 'Perpetual Wastelands', NULL, 570, 2000, 2500);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Kronillis', 'Perpetual Wastelands', NULL, 570, 2000, 2500);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Nirtox', 'Perpetual Wastelands', NULL, 570, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Serverus', 'Cyborg Barracks, Greater Tir County', NULL, 647, 3232, 2340);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('General Vivyan', 'Perpetual Wastelands', NULL, 570, 2120, 1760);
@@ -245,7 +265,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Hezak The Immortal', 'Inner Sanctum, 3rd Floor', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Brock', 'Tir, SE OP', NULL, 646, 2861, 738);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Fielding', 'Wailing Wastes, NE corner', NULL, 551, 2700, 3500);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Frederickson', 'Wailing Wastes', NULL, 551, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Fredrickson', 'Wailing Wastes, NE corder', 'commander frederickson', 551, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Hoover', 'Wailing Wastes, NE corner', NULL, 551, 2700, 3500);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Jameson', 'The Reck', "commander jameson", 750, 1311, 1472);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('High Commander Riker', 'The Reck', "commander riker", 750, 676, 314);
@@ -283,7 +303,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Iskop the Idolator', 'Inner Sanctum, 3rd Floor', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ithaki', 'Inferno, 255 Incarnator', '', 4605, 3129, 3096);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Iziris Agathon', 'Omni-Trade, NE', NULL, 710, 0, 0);
-INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper', 'Varmint Woods', NULL, 600, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack "Leg-Chopper" Menendez', 'Varmint Woods', NULL, 600, 3198, 1446);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #1', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 2828, 2719);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #2', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 2168, 1107);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Jack Legchopper Clone #3', 'Varmint Woods', 'legchopper leg-chopper leg chopper clone', 600, 3754, 1006);
@@ -380,6 +400,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nuts & Bolts', 'Aegean, Wartorn Valley', NULL, 586, 790, 680);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Abettor', '', '', 4005, 717, 445);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Nyame''s Drudge', '', '', 4005, 1851, 1761);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Obediency Enforcer', 'Eastern Fouls Plain, at the lake', NULL, 620, 1225, 2800);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Obediency Inspector', 'Eastern Fouls Plain, at the lake', NULL, 620, 1225, 2800);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Obsolete Soul Dredge', 'Inferno', '', 4605, 3149, 3217);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Ofoz', 'Newland city, to avoid the attention of the Unicorn forces. You can find him near the north city gate by the mission terminals.', NULL, 566, 0, 0);
@@ -431,6 +452,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Primus Outlaw', 'Primus Camp, Eastern Fouls Plain', NULL, 620, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Primus Scrap Pillager', 'Primus Camp, Eastern Fouls Plain', NULL, 620, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Professor Van Horn', 'Newland Desert', NULL, 565, 2900, 1600);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Prototype A-9000 Guardbot', 'Holes in the Wall, NW of Last Ditch', NULL, 791, 841, 1891);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Prototype Inferno', 'Cyborg Barracks, Greater Tir County', NULL, 647, 3232, 2340);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Punctilious Hiathlin', 'Inferno, 255 Incarnator', 'Punctlious', 4605, 3332, 2968);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Pursued Spirit', 'Inferno', '', 4005, 722, 1063);
@@ -445,6 +467,12 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Red', 'Aegean', NULL, 585, 650, 1450);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Redeemed Temple Inferno', '', '', 4605, 2320, 3242);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Reet Retreat', 'Stret West Bank, Last Ditch. A club.', 'Leet Retreat Reet Retrat', 790, 1206, 2807);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Research Dome 1 Warden', 'Belial Forest', 'biodome warden bio dome', 605, 1408, 2540);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Research Dome 2 Warden', 'Belial Forest', 'biodome warden bio dome', 605, 1451, 2054);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Research Dome 3 Warden', 'Belial Forest', 'biodome warden bio dome', 605, 1538, 1086);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Resurrecting Swamp Hag Clan #1', 'Belial Forest', '', 605, 1381, 2170);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Resurrecting Swamp Hag Clan #2', 'Belial Forest', '', 605, 1338, 1945);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Resurrecting Swamp Hag Clan #3', 'Belial Forest', '', 605, 1310, 1392);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Rhino Cockpit', 'Newland Desert. You can get there by going NE from Newland City, zone and continue NE once in Newland Desert. Rhino Cockpit has become a pretty popular site for L 25-35 groups', 'Rhino Pit', 565, 3140, 1920);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Rhompa Bar', 'Omni-Ent', 'Rhompa Club', 705, 714, 698);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Richelieu', 'Southern Artery Valley', NULL, 610, 1850, 2550);
@@ -499,6 +527,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Somphos Sorlivet', 'North West of Dark Marshes and spawns around a large rock (Spawns on the East Side of the rock)', NULL, 4005, 1770, 900);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('South Fouls Hills', 'in the southeast corner of the world. No grid and no whompa.North of S.Fouls Hills is Eastern Foul Plains, west is Omni Forest, northwest is Pleasant Meadows. No zones avail to south or east.', NULL, 615, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Southern Artery Valley', 'in the mideastern part of the world. No grid access. Whompas to Galway Castle, 2HO, and 20K at 1150 x 2340. North of S.Artery Valley is Central Artery Valley, south is Milky Way (but a force field will not allow you to zone south), west is Stret East Bank and east is (ne) Deep Artery Valley (se) Belial Forest.', NULL, 610, 1150, 2340);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Special Agent Deko', 'North-East corner of Broken Shores. Closest fixer grid is 9R. Be careful, this is a 25% gas area.', 'dreadlochs dreads dread', 665, 2238, 4767);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Special Agent Lamb', 'Deep Artery Valley', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Special Agent Moxy', 'Eastern Fouls Plains', 'moxi dreadlochs dreads', 620, 976, 3741);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Spetses', 'Inferno, 255 Incarnator', NULL, 4605, 3261, 3163);
@@ -533,6 +562,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Techleader Praetor', 'Cyborg Barracks, Greater Tir County', NULL, 647, 3232, 2340);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Technologist Frank Jobin', 'Lower Scheol', NULL, 4881, 1066, 1813);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Temple Of The Three Winds', 'Greater Tir County, out the Tir west gate and go north. There is a shortcut teleportal in the SE part of Rome Green near 420 x 240 (behind some red boxes). You must be L 60 or below to enter.', 'Totw', 647, 420, 240);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Temporal Prisoner', "Milky Way", '', 625, 3172, 2140);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Tenth Brood Champion', 'Hollow Island', NULL, 605, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Beast', 'Pandemonium', NULL, 0, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Broken Falls', 'Broken Shores', NULL, 665, 1450, 3100);
@@ -549,6 +579,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Forestwatch Trees', 'Southern Fouls Hills', NULL, 615, 1650, 1650);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Happy Rebel', 'Tir City', NULL, 640, 550, 550);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Hollow Island Suzerain', 'Hollow Island', NULL, 605, 0, 0);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Hollow Reaper', 'Golem Island, north of Fixer Grid exit DAV 9M', NULL, 595, 1760, 2840);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Iron Reet', 'Mutant Domain', NULL, 696, 857, 986);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Longest Road', 'in the northwest part of the world. No grid access, has woompa access to Avalon, Athen Old, and Broken Shores at 3700 x 1615 in the town of Bliss. Athen Shire is to the east. No zones to the north, south, or west. There is a neutral outpost at 3650 x 560 with an ICC scanner and more. Biomare (dungeon) is located at 1930 x 775', 'Logest Road lLngest Raod', 795, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('The Nightheart', 'Pandemonium', NULL, 0, 0, 0);
@@ -585,6 +616,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Uklesh The Frozen', 'Temple Of The Three Winds, Greater Tir County', NULL, 647, 0, 0);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Umbral Prisoner', "Milky Way", 'umbral prisoner', 625, 4956, 816);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Uncle Bazzit', 'Newland Desert, in his workshop (Meetmedere grid exit)', 'AI Quest Social Clothing', 565, 1545, 2725);
+INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Unicorn Access Supervisor', 'Unicorn Outpost, in front of S42', NULL, 4364, 241, 344);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Unicorn Landing Beacon', 'Andromoda, Nepal, north of ICC HQ', NULL, 655, 3440, 1308);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Unredeemed Temple Inferno', 'Inferno', '', 4605, 3724, 3414);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES ('Upper Stret East Bank', 'in the central part of the world. No grid access or whompa. To the north (w) of Upper Stret East Bank is Aegean and north (e) Varmint Woods, to the east is Central Artery Valley, to the west is Stret West Bank, southeast is 4Holes, south is Stret East Bank, se is S.Artery Valley.', 'Upper East Stret Bank Upperstreteastbank Upper Stret Eastbank', 650, 0, 0);
