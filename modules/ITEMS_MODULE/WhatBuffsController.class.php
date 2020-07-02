@@ -69,6 +69,7 @@ class WhatBuffsController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "item_buffs");
 		$this->db->loadSQLFile($this->moduleName, "skills");
+		$this->db->loadSQLFile($this->moduleName, "skill_aliases");
 		$this->db->loadSQLFile($this->moduleName, "item_types");
 		$this->db->loadSQLFile($this->moduleName, "buffs");
 	}
@@ -91,11 +92,20 @@ class WhatBuffsController {
 	 */
 	public function whatbuffsCommand($message, $channel, $sender, $sendto, $args) {
 		$blob = '';
-		$data = $this->db->query("SELECT DISTINCT name FROM skills ORDER BY name ASC");
+		$data = $this->db->query(
+			"SELECT
+				DISTINCT s.name
+			FROM
+				skills s
+			JOIN
+				item_buffs b ON (b.attribute_id=s.id)
+			ORDER BY
+				name ASC"
+		);
 		foreach ($data as $row) {
 			$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> whatbuffs $row->name") . "\n";
 		}
-		$blob .= "\nItem Extraction Info provided by Unk";
+		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);
 		$sendto->reply($msg);
 	}
@@ -187,6 +197,7 @@ class WhatBuffsController {
 		$data = $this->searchForSkill($skill);
 		$count = count($data);
 
+		$blob = "";
 		if ($count == 0) {
 			$msg = "Could not find skill <highlight>$skill<end>.";
 		} elseif ($count > 1) {
@@ -221,6 +232,11 @@ class WhatBuffsController {
 			ORDER BY item_type ASC
 			";
 			$data = $this->db->query($sql, $skillId, $skillId);
+			if (count($data) === 0) {
+				$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
+				$sendto->reply($msg);
+				return;
+			}
 			$blob = '';
 			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> whatbuffs $row->item_type $skillName") . " ($row->num)\n";
@@ -281,7 +297,13 @@ class WhatBuffsController {
 	public function searchForSkill($skill) {
 		// check for exact match first, in order to disambiguate
 		// between Bow and Bow special attack
-		$results = $this->db->query("SELECT DISTINCT id, name FROM skills WHERE name LIKE ?", $skill);
+		$results = $this->db->query(
+			"SELECT DISTINCT id, name FROM skills WHERE name LIKE ? ".
+			" UNION ".
+			"SELECT DISTINCT a.id, s.name FROM skill_alias a JOIN skills s USING(id) WHERE a.name LIKE ?",
+			$skill,
+			$skill
+		);
 		if (count($results) == 1) {
 			return $results;
 		}
@@ -289,11 +311,18 @@ class WhatBuffsController {
 		$tmp = explode(" ", $skill);
 		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'name');
 		
-		return $this->db->query("SELECT DISTINCT id, name FROM skills WHERE $query", $params);
+		return $this->db->query(
+			"SELECT id, name FROM (
+				SELECT DISTINCT id, name FROM skills WHERE $query
+				UNION
+				SELECT DISTINCT id, name FROM skill_alias WHERE $query
+			) AS foo GROUP BY id ORDER BY name ASC",
+			array_merge($params, $params)
+		);
 	}
 
 	public function showItemLink(\Budabot\Core\DBRow $item, $ql) {
-			return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
+		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 
 	public function formatItems($items) {
