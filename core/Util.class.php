@@ -314,10 +314,10 @@ class Util {
 	}
 
 	/**
-	 * Checks if filename matches budabot naming convention
+	 * Completes a filename or directory by searching for it in modules and core paths
 	 *
 	 * @param string $filename
-	 * @return bool true if filename matches budabot naming convention and false otherwise
+	 * @return string Either the full filename or an empty string
 	 */
 	public function verifyFilename($filename) {
 		//Replace all \ characters with /
