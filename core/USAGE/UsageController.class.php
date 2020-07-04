@@ -235,7 +235,7 @@ class UsageController {
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Submits anonymous usage stats to Budabot website")
-	 * @DefaultStatus("1")
+	 * @DefaultStatus("0")
 	 */
 	public function submitAnonymousUsage($eventObj) {
 		$debug = false;
