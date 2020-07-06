@@ -46,7 +46,7 @@ class EventManager {
 	private $eventTypes = array(
 		'msg','priv','extpriv','guild','joinpriv','leavepriv',
 		'orgmsg','extjoinprivrequest','logon','logoff','towers',
-		'connect','setup'
+		'connect','setup','amqp'
 	);
 
 	private $lastCronTime = 0;

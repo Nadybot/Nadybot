@@ -28,6 +28,14 @@ RUN apk --no-cache add \
 
 COPY --chown=budabot:budabot . /budabot
 
+RUN apk --no-cache add composer && \
+    cd /budabot && \
+    composer install --no-dev --no-suggest && \
+    composer dumpautoload --no-dev --optimize && \
+    composer clear-cache && \
+    chown -R budabot:budabot lib/vendor && \
+    apk del --no-cache composer
+
 USER budabot
 
 WORKDIR /budabot

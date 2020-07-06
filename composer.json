@@ -1,5 +1,5 @@
 {
-	"name":"Nadyita/Budabot",
+	"name":"nadyita/budabot",
 	"type":"project",
 	"repositories": [
 		{
@@ -9,7 +9,8 @@
 	],
 
 	"require": {
-		"apache/log4php": "2.3.0"
+		"apache/log4php": "2.3.0",
+		"php-amqplib/php-amqplib": "2.11.3"
 	},
 
 	"config": {

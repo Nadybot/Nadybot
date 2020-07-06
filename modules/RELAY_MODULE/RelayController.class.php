@@ -76,6 +76,12 @@ class RelayController {
 	 * @Inject
 	 */
 	public $commandAlias;
+
+	/**
+	 * @var \Budabot\Core\AMQP $amqp
+	 * @Inject
+	 */
+	public $amqp;
 	
 	/**
 	 * @var \Budabot\Core\LoggerWrapper $logger
@@ -85,10 +91,10 @@ class RelayController {
 
 	/** @Setup */
 	public function setup() {
-		$this->settingManager->add($this->moduleName, 'relaytype', "Type of relay", "edit", "options", "1", "tell;private channel", '1;2');
+		$this->settingManager->add($this->moduleName, 'relaytype', "Type of relay", "edit", "options", "1", "tell;private channel;amqp", '1;2;3');
 		$this->settingManager->add($this->moduleName, 'relaysymbol', "Symbol for external relay", "edit", "options", "@", "!;#;*;@;$;+;-");
 		$this->settingManager->add($this->moduleName, 'relay_symbol_method', "When to relay messages", "edit", "options", "0", "Always relay;Relay when symbol;Relay unless symbol", '0;1;2');
-		$this->settingManager->add($this->moduleName, 'relaybot', "Bot for Guildrelay", "edit", "text", "Off", "Off", '', "mod", "relaybot.txt");
+		$this->settingManager->add($this->moduleName, 'relaybot', "Bot or AMQP exchange for Guildrelay", "edit", "text", "Off", "Off", '', "mod", "relaybot.txt");
 		$this->settingManager->add($this->moduleName, 'bot_relay_commands', "Relay commands and results over the bot relay", "edit", "options", "1", "true;false", "1;0");
 		$this->settingManager->add($this->moduleName, 'relay_color_guild', "Color of messages from relay to guild channel", 'edit', "color", "<font color='#C3C3C3'>");
 		$this->settingManager->add($this->moduleName, 'relay_color_priv', "Color of messages from relay to private channel", 'edit', "color", "<font color='#C3C3C3'>");
@@ -99,6 +105,66 @@ class RelayController {
 		$this->settingManager->add($this->moduleName, 'relay_filter_in_priv', 'RegExp filtering messages to priv chat', 'edit', 'text', '', 'none');
 		
 		$this->commandAlias->register($this->moduleName, "macro settings save relaytype 1|settings save relaysymbol Always relay|settings save relaybot", "tellrelay");
+		$relayBot = $this->settingManager->get('relaybot');
+		if ($this->settingManager->get('relaytype') == 3 && $relayBot !== 'off') {
+			foreach (explode(",", $relayBot) as $exchange) {
+				$this->amqp->connectExchange($exchange);
+			}
+		}
+		$this->settingManager->registerChangeListener('relaybot', [$this, 'relayBotChanges']);
+		$this->settingManager->registerChangeListener('relaytype', [$this, 'relayTypeChanges']);
+	}
+
+	/**
+	 * When the relaytype changes from/to AMQP relay, (un)subscribe to the exchanges
+	 *
+	 * @param string $setting   "relaytype"
+	 * @param string $oldValue  The old setting value
+	 * @param string $newValue  The new setting value about to be set
+	 * @param mixed  $extraData Extra parameters given when setting the listener
+	 */
+	public function relayTypeChanges($setting, $oldValue, $newValue, $extraData) {
+		$relayBot = $this->settingManager->get('relaybot');
+		if (($oldValue != 3 && $newValue != 3) || $relayBot === 'off') {
+			return;
+		}
+
+		$exchanges = explode(",", $relayBot);
+		if ($oldValue == 3) {
+			foreach ($exchanges as $unsub) {
+				$this->amqp->disconnectExchange($unsub);
+			}
+			return;
+		}
+		foreach ($exchanges as $sub) {
+			$this->amqp->connectExchange($sub);
+		}
+	}
+
+	/**
+	 * When the relaybot changes for AMQP relays, (un)subscribe from the exchanges
+	 *
+	 * @param string $setting   "relaybot"
+	 * @param string $oldValue  The old setting value
+	 * @param string $newValue  The new setting value about to be set
+	 * @param mixed  $extraData Extra parameters given when setting the listener
+	 */
+	public function relayBotChanges($setting, $oldValue, $newValue, $extraData) {
+		if ($this->settingManager->get('relaytype') != 3) {
+			return;
+		}
+		$oldExchanges = explode(",", $oldValue);
+		$newExchanges = explode(",", $newValue);
+		if ($newValue === 'off') {
+			$newExchanges = [];
+		}
+
+		foreach (array_values(array_diff($oldExchanges, $newExchanges)) as $unsub) {
+			$this->amqp->disconnectExchange($unsub);
+		}
+		foreach (array_values(array_diff($newExchanges, $oldExchanges)) as $sub) {
+			$this->amqp->connectExchange($sub);
+		}
 	}
 	
 	/**
@@ -106,6 +172,14 @@ class RelayController {
 	 */
 	public function grcCommand($message, $channel, $sender, $sendto, $args) {
 		$this->processIncomingRelayMessage($sender, $message);
+	}
+
+	/**
+	 * @Event("amqp")
+	 * @Description("Receive relay messages from other bots via AMQP")
+	 */
+	public function receiveRelayMessageAMQP($eventObj) {
+		$this->processIncomingRelayMessage($eventObj->channel, $eventObj->message);
 	}
 	
 	/**
@@ -125,7 +199,7 @@ class RelayController {
 	}
 	
 	public function processIncomingRelayMessage($sender, $message) {
-		if ($sender !== ucfirst(strtolower($this->settingManager->get('relaybot')))
+		if (!in_array(strtolower($sender), explode(",", strtolower($this->settingManager->get('relaybot'))))
 			|| !preg_match("/^grc (.+)$/s", $message, $arr)) {
 			return;
 		}
@@ -345,11 +419,17 @@ class RelayController {
 		// we use the aochat methods so the bot doesn't prepend default colors
 		if ($this->settingManager->get('relaytype') == 2) {
 			$this->chatBot->send_privgroup($relayBot, $message);
+		} elseif ($this->settingManager->get('relaytype') == 3) {
+			foreach (explode(",", $relayBot) as $exchange) {
+				$this->amqp->sendMessage($exchange, $message);
+			}
 		} elseif ($this->settingManager->get('relaytype') == 1) {
-			$this->chatBot->send_tell($relayBot, $message);
+			foreach (explode(",", $relayBot) as $recipient) {
+				$this->chatBot->send_tell($recipient, $message);
 
-			// manual logging is only needed for tell relay
-			$this->logger->logChat("Out. Msg.", $relayBot, $message);
+				// manual logging is only needed for tell relay
+				$this->logger->logChat("Out. Msg.", $recipient, $message);
+			}
 		}
 	}
 

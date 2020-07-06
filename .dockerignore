@@ -8,7 +8,9 @@ docs
 tools
 win32
 php-win.ini
-composer*
+composer_install.bat
 conf/config.template.php
 modules/GIT_MODULE
-lib/vendor/squizlabs
+lib/vendor
+logs
+tags

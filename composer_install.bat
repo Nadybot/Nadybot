@@ -1,7 +1,6 @@
-.\win32\php -c php-win.ini composer.phar self-update
-.\win32\php -c php-win.ini composer.phar update
-.\win32\php -c php-win.ini composer.phar install
-.\win32\php -c php-win.ini composer.phar dumpautoload --optimize
+composer update
+composer install
+composer dumpautoload --optimize
 pause
 
 :: This file is part of Budabot.

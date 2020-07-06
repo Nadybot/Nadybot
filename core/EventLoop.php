@@ -23,6 +23,12 @@ class EventLoop {
 	public $socketManager;
 
 	/**
+	 * @var \Budabot\Core\AMQP
+	 * @Inject
+	 */
+	public $amqp;
+
+	/**
 	 * @var \Budabot\Core\Timer $timer
 	 * @Inject
 	 */
@@ -35,6 +41,7 @@ class EventLoop {
 			$this->socketManager->checkMonitoredSockets();
 			$this->eventManager->executeConnectEvents();
 			$this->timer->executeTimerEvents();
+			$this->amqp->processMessages();
 			$this->eventManager->crons();
 
 			usleep(10000);

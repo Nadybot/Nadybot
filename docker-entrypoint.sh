@@ -42,6 +42,11 @@ cat > conf/config.php << DONE
   \$vars['module_load_paths'] = [
     './modules', './extras'
   ];
+  \$vars['amqp_server'] = "${CONFIG_AMQP_SERVER}";
+  \$vars['amqp_port'] = ${CONFIG_AMQP_PORT:-5672};
+  \$vars['amqp_user'] = "${CONFIG_AMQP_USER}";
+  \$vars['amqp_password'] = "${CONFIG_AMQP_PASSWORD}";
+  \$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
   // This should only be enabled during development and only if you understand the implications
   // seen here: <http://code.google.com/p/budabot2/wiki/CompilingRunkit>
   define("USE_RUNKIT_CLASS_LOADING", false);
