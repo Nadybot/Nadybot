@@ -134,7 +134,6 @@ class AMQP {
 		$this->lastConnectTry = time();
 		$vars = $this->chatBot->vars;
 		if (!strlen($vars['amqp_server']) || !strlen($vars['amqp_user']) || !strlen($vars['amqp_password'])) {
-			$this->logger->log('INFO', 'No AMQP server configured.');
 			return null;
 		}
 		try {

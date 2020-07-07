@@ -158,3 +158,167 @@ podman run \
     -e CONFIG_DB_NAME=testdb \
     -e CONFIG_DB_HOST=/tmp \
     quay.io/nadyita/budabot
+```
+
+## Configuration ##
+
+### Relays between orgs ###
+
+In order to relay messages between orgs, you will need 1 bot in each org configured in the same way.
+
+There are 3 ways to link the org chats together:
+
+#### tell-relay between 2 bots ####
+
+Pro:
+
+* simplest solution, no additional bot or software required
+
+Contra:
+
+* Old Budabot versions only support links between 2 orgs
+* Tell-relays suffer from the heavy rate-limiting imposed on tells
+
+In order to configure a tell relay between bot `Alice` in org `The First Ones` and bot `Bobby` in the org `We can read you`, which will relay **all** messages without any prefix whatsoever between the 2 orgs, you need to do the following on `Alice`:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 1
+!settings save relaybot Bobby
+!settings save relay_guild_abbreviation 1st
+```
+
+and the following on `Bobby`:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 1
+!settings save relaybot Alice
+!settings save relay_guild_abbreviation read
+```
+
+This will then bridge org and private chat of both orgs together. The result looks like this:
+
+```ini
+[The First Ones] Tester: Testing 123...
+[We can read you] Bobby: [1st] Tester: Testing 123
+
+[We can read you] Tester2: Replying 123
+[The First Ones] Alice: [read] Tester2: Replying 123...
+```
+
+Notice how the name of the orgs are abbreviated as configured in the `relay_guild_abbreviation` setting.
+
+#### private-channel-relay between X bots ####
+
+Pro:
+
+* Can link a sheer endless amount of bots/orgs together
+* No external program needed
+* Access control to the relay is inside Anarchy Online on the dedicated bot
+
+Contra:
+
+* Requires a dedicated bot for providing the private channel used as a relay
+* If a bot restarts, the messages sent while it was down are not relayed retroactively
+
+In order to configure a private-channel-relay between bot `Alice` in org `The First Ones` and bot `Bobby` in the org `We can read you`, which will relay **all** messages without any prefix whatsoever between the 2 orgs, we will first need to setup the bot `Relayer`, providing the dedicated private channel. 
+
+```text
+!config mod PRIVATE_CHANNEL_MODULE enable all
+!adduser Alice
+!adduser Bobby
+```
+
+Once the `Relayer` has been setup, they will auto-invite `Alice` and `Bobby`, but for now they won't join until we configure them to.
+
+`Alice`'s configuration looks like this:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 2
+!settings save relaybot Relayer
+!settings save relay_guild_abbreviation 1st
+```
+
+`Bobby`'s configuration looks like this:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 2
+!settings save relaybot Relayer
+!settings save relay_guild_abbreviation read
+```
+
+Notice how they are identical except for the `relay_guild_abbreviation`. If you then either restart `Alice` and `Bobby` or `!invite` them again on the `Relayer`, they will start relaying messages.
+
+#### AMQP-relay between X bots ####
+
+Pro:
+
+* Can link an endless amount of bots/orgs together with literally no delay
+* Multiple relay networks can be managed simultaneously
+* Messages are kept between bot restarts, configurable on the AMQP server
+* Allows to link non-AO-bots to the  network as well
+
+Contra:
+
+* Access control to the relay is outside Anarchy Online on the AMQP server
+* Requires a dedicated AMQP server
+
+In order to configure a private-channel-relay between bot `Alice` in org `The First Ones` and bot `Bobby` in the org `We can read you`, which will relay **all** messages without any prefix whatsoever between the 2 orgs, we will first need to setup the AMQP server. If you don't know what this actually is, don't do it. Period.
+
+We start by creating 2 users, each with a unique username and password. For simplicity, we are also assuming that you are using RabbitMQ, but any AMQP server will work.
+
+```console
+rabbitmq@host:~$ rabbitmqctl add_vhost /my_relay
+Adding vhost "/my_relay" ...
+
+rabbitmq@host:~$ rabbitmqctl add_user alice
+Adding user "alice" ...
+Password: ******
+
+rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay alice budabot budabot budabot
+Setting permissions for user "alice" in vhost "/my_relay" ...
+
+rabbitmq@host:~$ rabbitmqctl add_user bobby
+Adding user "alice" ...
+Password: ******
+
+rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay bob budabot budabot budabot
+Setting permissions for user "bob" in vhost "/my_relay" ...
+```
+
+Now you will need to change the bots' configuration to connect to the AMQP server using your vhost `/my_relay`:
+
+```php
+  $vars['amqp_server'] = "your server";
+  $vars['amqp_port'] = 5672;
+  $vars['amqp_user'] = "alice/bobby";
+  $vars['amqp_password'] = "your password";
+  $vars['amqp_vhost'] = "/my_relay";
+```
+
+Restart the bots and check the logs if the connection is established. Now it's time to make your bots use this conection:
+
+`Alice`'s configuration looks like this:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 3
+!settings save relaybot budabot
+!settings save relay_guild_abbreviation 1st
+```
+
+`Bobby`'s configuration looks like this:
+
+```text
+!config mod RELAY_MODULE enable all
+!settings save relaytype 3
+!settings save relaybot budabot
+!settings save relay_guild_abbreviation read
+```
+
+Notice how they are identical except for the `relay_guild_abbreviation`. Relaying should start immediately after changing the settings.
+
+The value for `relaybot` has to mimic the AMQP exchange you want your network to use.
