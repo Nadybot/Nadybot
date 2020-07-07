@@ -32,23 +32,39 @@ Alternatively you can clone the Budabot git repository. The advantage to doing t
 
 ### Regular setup ###
 
+Before you are able to run the bot, you need to install the required composer packages:
+
+```bash
+composer install --no-dev
+composer dumpautoload --no-dev
+```
+
 To start the bot, run the ```chatbot.bat``` file (on linux run the ```chatbot.sh``` file). If it is your first time running the bot, it will take you through the configuration wizard to configure the bot. You will need to have a character name that you you want to run the bot as along with the username and password for the account that has that character. If you want to run this bot as an org bot, you will also need the EXACT org name of the org and the character that the bot runs as will need to have already been invited to the org.
 
 ### With Docker ###
 
-In order to run the bot in Docker, first compile the image by issuing `docker build -t budabot .`.
-You can then run the bot in test-mode like this:
+You can either use the already pre-made Docker images that I provide at <https://quay.io/repository/nadyita/budabot> or you can build it yourself. To use the pre-made images, address them as `quay.io/nadyita/budabot`
 
-```bash
-docker run --rm \
-  -e CONFIG_LOGIN=myaccount \
-  -e CONFIG_PASSWORD=mypassword \
-  -e CONFIG_BOTNAME=Mybot \
-  -e CONFIG_SUPERADMIN=Myplayer \
-  -e CONFIG_DB_TYPE=sqlite \
-  -e CONFIG_DB_NAME=testdb \
-  -e CONFIG_DB_HOST=/tmp \
-  budabot
+In order to build the Docker image, issue
+
+```shell
+docker build -t budabot .
+```
+
+Either way, you can then run the bot in test-mode like this:
+
+```shell
+docker run \
+    --rm \
+    -it \
+    -e CONFIG_LOGIN=myaccount \
+    -e CONFIG_PASSWORD=mypassword \
+    -e CONFIG_BOTNAME=Mybot \
+    -e CONFIG_SUPERADMIN=Myplayer \
+    -e CONFIG_DB_TYPE=sqlite \
+    -e CONFIG_DB_NAME=testdb \
+    -e CONFIG_DB_HOST=/tmp \
+    quay.io/nadyita/budabot
 ```
 
 The database in this approach will be fresh on every start and you will expose your bot's password in the process list. Only use this for testing!
@@ -67,11 +83,11 @@ Type=simple
 ExecStartPre=-/usr/bin/docker stop "%n"
 ExecStartPre=-/usr/bin/docker rm -f "%n"
 ExecStart=/usr/bin/docker run \
-	--rm \
-	--name "%n" \
-	--env-file /etc/sysconfig/mycoolbot \
-	--link mariadb.service:mariadb \
-	budabot
+    --rm \
+    --name "%n" \
+    --env-file /etc/sysconfig/mycoolbot \
+    --link mariadb.service:mariadb \
+    quay.io/nadyita/budabot
 ExecStop=-/usr/bin/docker stop "%n"
 ExecReload=/usr/bin/docker stop "%n"
 Restart=always
@@ -95,6 +111,50 @@ CONFIG_DB_HOST=mariadb
 CONFIG_DB_NAME=my_db_name
 CONFIG_DB_USER=my_db_username
 CONFIG_DB_PASS=my_db_pass_for_dbuser
+#CONFIG_AMQP_SERVER=127.0.0.1
+#CONFIG_AMQP_USER=guest
+#CONFIG_AMQP_PASSWORD=guest
 ```
 
 This prevents passwords from showing up anywhere in the process list, but make sure you set the permissions of this file to `0600`, so no one except root can see your password.
+
+### Developing with Containers ###
+
+Developing the bot using Containers (Docker, Podman, etc.) is very easy. You basically run the container and mount your local checkout over `/budabot`.
+
+You don't need php or composer installed for this setup since the docker image will already contain everything you need to get started.
+
+#### Docker ####
+
+```shell
+docker run \
+    --rm \
+    -it \
+    -v "$(pwd)":/budabot \
+    -e CONFIG_LOGIN=myaccount \
+    -e CONFIG_PASSWORD=mypassword \
+    -e CONFIG_BOTNAME=Mybot \
+    -e CONFIG_SUPERADMIN=Myplayer \
+    -e CONFIG_DB_TYPE=sqlite \
+    -e CONFIG_DB_NAME=testdb \
+    -e CONFIG_DB_HOST=/tmp \
+    quay.io/nadyita/budabot
+```
+
+#### Rootless Podman #####
+
+```shell
+podman run \
+    --user root \
+    --security-opt label=disable \
+    -v "$(pwd)":/budabot \
+    --rm \
+    -it \
+    -e CONFIG_LOGIN=myaccount \
+    -e CONFIG_PASSWORD=mypassword \
+    -e CONFIG_BOTNAME=Mybot \
+    -e CONFIG_SUPERADMIN=Myplayer \
+    -e CONFIG_DB_TYPE=sqlite \
+    -e CONFIG_DB_NAME=testdb \
+    -e CONFIG_DB_HOST=/tmp \
+    quay.io/nadyita/budabot
