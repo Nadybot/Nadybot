@@ -10,8 +10,9 @@ use PhpAmqpLib\Exception\AMQPIOException;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
+use Budabot\Core\Event;
 use ErrorException;
-use stdClass;
+use Exception;
 
 /**
  * The AMQP class provides an interface to a central AMQP hub like RabbitMQ.
@@ -86,7 +87,7 @@ class AMQP {
 		try {
 			$this->channel->exchange_declare($exchange, AMQPExchangeType::FANOUT, false, false, true);
 			$this->channel->queue_bind($this->queueName, $exchange);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->exchanges[] = $exchange;
 			return false;
 		}
@@ -111,7 +112,7 @@ class AMQP {
 		}
 		try {
 			$this->channel->queue_unbind($this->queueName, $exchange);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			return false;
 		}
 		$this->logger->log("INFO", "No longer listening for AMQP messages on exchange {$exchange}.");
@@ -255,7 +256,7 @@ class AMQP {
 			return;
 		}
 		$this->logger->logChat('Inc. AMQP Msg.', $sender, $message->body);
-		$eventObj = new stdClass();
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $exchange;
 		$eventObj->type = 'amqp';
@@ -291,7 +292,7 @@ class AMQP {
 				$this->channel = null;
 				return;
 			} catch (AMQPIOException $e) {
-				$this->logger->log('INFO', 'AMQP IO Exception.');
+				$this->logger->log('INFO', 'AMQP IO exception.');
 				$this->channel = null;
 				return;
 			} catch (ErrorException $e) {

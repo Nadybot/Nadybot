@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -501,7 +503,7 @@ class PrivateChannelController {
 	 * @Event("connect")
 	 * @Description("Adds all members as buddies who have auto-invite enabled")
 	 */
-	public function connectEvent($eventObj) {
+	public function connectEvent(Event $eventObj) {
 		$sql = "SELECT name FROM members_<myname> WHERE autoinv = 1";
 		$data = $this->db->query($sql);
 		foreach ($data as $row) {
@@ -537,7 +539,7 @@ class PrivateChannelController {
 	 * @Event("guild")
 	 * @Description("Private channel relay from guild channel")
 	 */
-	public function relayPrivateChannelEvent($eventObj) {
+	public function relayPrivateChannelEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$message = $eventObj->message;
 	
@@ -576,7 +578,7 @@ class PrivateChannelController {
 	 * @Event("priv")
 	 * @Description("Guild channel relay from priv channel")
 	 */
-	public function relayGuildChannelEvent($eventObj) {
+	public function relayGuildChannelEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$message = $eventObj->message;
 		
@@ -603,7 +605,7 @@ class PrivateChannelController {
 	 * @Event("logOn")
 	 * @Description("Auto-invite members on logon")
 	 */
-	public function logonAutoinviteEvent($eventObj) {
+	public function logonAutoinviteEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$data = $this->db->query("SELECT * FROM members_<myname> WHERE name = ? AND autoinv = ?", $sender, '1');
 		if (count($data) != 0) {
@@ -617,7 +619,7 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Displays a message when a character joins the private channel")
 	 */
-	public function joinPrivateChannelMessageEvent($eventObj) {
+	public function joinPrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$whois = $this->playerManager->getByName($sender);
 
@@ -646,7 +648,7 @@ class PrivateChannelController {
 	 * @Event("leavePriv")
 	 * @Description("Displays a message when a character leaves the private channel")
 	 */
-	public function leavePrivateChannelMessageEvent($eventObj) {
+	public function leavePrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$msg = "$sender has left the private channel.";
 
@@ -659,7 +661,7 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Updates the database when a character joins the private channel")
 	 */
-	public function joinPrivateChannelRecordEvent($eventObj) {
+	public function joinPrivateChannelRecordEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$this->onlineController->addPlayerToOnlineList($sender, $this->chatBot->vars['guild'] . ' Guests', 'priv');
 	}
@@ -668,7 +670,7 @@ class PrivateChannelController {
 	 * @Event("leavePriv")
 	 * @Description("Updates the database when a character leaves the private channel")
 	 */
-	public function leavePrivateChannelRecordEvent($eventObj) {
+	public function leavePrivateChannelRecordEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$this->onlineController->removePlayerFromOnlineList($sender, 'priv');
 	}
@@ -677,7 +679,7 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Sends the online list to people as they join the private channel")
 	 */
-	public function joinPrivateChannelShowOnlineEvent($eventObj) {
+	public function joinPrivateChannelShowOnlineEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		$msg = "";
 		$msg = $this->onlineController->getOnlineList();

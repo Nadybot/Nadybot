@@ -2,6 +2,8 @@
 
 namespace Budabot\Core\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -336,7 +338,7 @@ class AltsController {
 	 * @Event("logOn")
 	 * @Description("Reminds players logging in to validate alts")
 	 */
-	public function checkUnvalidatedAltsEvent($eventObj) {
+	public function checkUnvalidatedAltsEvent(Event $eventObj) {
 		if ($this->chatBot->isReady()) {
 			$altInfo = $this->getAltInfo($eventObj->sender);
 		

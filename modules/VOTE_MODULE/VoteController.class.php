@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use stdClass;
 
 /**
@@ -107,7 +108,7 @@ class VoteController {
 	 * @Event("timer(2sec)")
 	 * @Description("Checks votes and periodically updates chat with time left")
 	 */
-	public function checkVote($eventObj) {
+	public function checkVote(Event $eventObj) {
 		if (count($this->votes) == 0) {
 			return;
 		}

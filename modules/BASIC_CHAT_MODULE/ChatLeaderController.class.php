@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -161,7 +163,7 @@ class ChatLeaderController {
 	 * @Event("priv")
 	 * @Description("Repeats what the leader says in the color of leaderecho_color setting")
 	 */
-	public function privEvent($eventObj) {
+	public function privEvent(Event $eventObj) {
 		if ($this->settingManager->get("leaderecho") == 1 && $this->leader == $eventObj->sender && $eventObj->message[0] != $this->settingManager->get("symbol")) {
 			$msg = $this->settingManager->get("leaderecho_color") . $eventObj->message . "<end>";
 			$this->chatBot->sendPrivate($msg);
@@ -172,7 +174,7 @@ class ChatLeaderController {
 	 * @Event("leavePriv")
 	 * @Description("Removes leader when the leader leaves the channel")
 	 */
-	public function leavePrivEvent($eventObj) {
+	public function leavePrivEvent(Event $eventObj) {
 		if ($this->leader == $eventObj->sender) {
 			unset($this->leader);
 			$msg = "Raid Leader cleared.";

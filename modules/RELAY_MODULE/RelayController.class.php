@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence
@@ -178,7 +180,7 @@ class RelayController {
 	 * @Event("amqp")
 	 * @Description("Receive relay messages from other bots via AMQP")
 	 */
-	public function receiveRelayMessageAMQP($eventObj) {
+	public function receiveRelayMessageAMQP(Event $eventObj) {
 		$this->processIncomingRelayMessage($eventObj->channel, $eventObj->message);
 	}
 	
@@ -186,7 +188,7 @@ class RelayController {
 	 * @Event("extPriv")
 	 * @Description("Receive relay messages from other bots in the relay bot private channel")
 	 */
-	public function receiveRelayMessageExtPrivEvent($eventObj) {
+	public function receiveRelayMessageExtPrivEvent(Event $eventObj) {
 		$this->processIncomingRelayMessage($eventObj->channel, $eventObj->message);
 	}
 	
@@ -194,7 +196,7 @@ class RelayController {
 	 * @Event("priv")
 	 * @Description("Receive relay messages from other bots in this bot's own private channel")
 	 */
-	public function receiveRelayMessagePrivEvent($eventObj) {
+	public function receiveRelayMessagePrivEvent(Event $eventObj) {
 		$this->processIncomingRelayMessage($eventObj->sender, $eventObj->message);
 	}
 	
@@ -219,7 +221,7 @@ class RelayController {
 	 * @Event("guild")
 	 * @Description("Sends org chat to relay")
 	 */
-	public function orgChatToRelayEvent($eventObj) {
+	public function orgChatToRelayEvent(Event $eventObj) {
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	
@@ -227,7 +229,7 @@ class RelayController {
 	 * @Event("priv")
 	 * @Description("Sends private channel chat to relay")
 	 */
-	public function privChatToRelayEvent($eventObj) {
+	public function privChatToRelayEvent(Event $eventObj) {
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -308,7 +310,7 @@ class RelayController {
 	 * @Event("extJoinPrivRequest")
 	 * @Description("Accept private channel join invitation from the relay bot")
 	 */
-	public function acceptPrivJoinEvent($eventObj) {
+	public function acceptPrivJoinEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get("relaytype") == 2 && strtolower($sender) == strtolower($this->settingManager->get("relaybot"))) {
 			$this->chatBot->privategroup_join($sender);
@@ -319,7 +321,7 @@ class RelayController {
 	 * @Event("orgmsg")
 	 * @Description("Relay Org Messages")
 	 */
-	public function relayOrgMessagesEvent($eventObj) {
+	public function relayOrgMessagesEvent(Event $eventObj) {
 		if ($this->settingManager->get("relaybot") != "Off") {
 			$msg = "grc [<myguild>] {$eventObj->message}<end>";
 			$this->sendMessageToRelay($msg);
@@ -330,7 +332,7 @@ class RelayController {
 	 * @Event("logOn")
 	 * @Description("Sends Logon messages over the relay")
 	 */
-	public function relayLogonMessagesEvent($eventObj) {
+	public function relayLogonMessagesEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get("relaybot") != "Off" && isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$whois = $this->playerManager->getByName($sender);
@@ -362,7 +364,7 @@ class RelayController {
 	 * @Event("logOff")
 	 * @Description("Sends Logoff messages over the relay")
 	 */
-	public function relayLogoffMessagesEvent($eventObj) {
+	public function relayLogoffMessagesEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get("relaybot") != "Off" && isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$this->sendMessageToRelay("grc [<myguild>] <highlight>{$sender}<end> logged off");
@@ -373,7 +375,7 @@ class RelayController {
 	 * @Event("joinPriv")
 	 * @Description("Sends a message to the relay when someone joins the private channel")
 	 */
-	public function relayJoinPrivMessagesEvent($eventObj) {
+	public function relayJoinPrivMessagesEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get('relaybot') != 'Off') {
 			$whois = $this->playerManager->getByName($sender);
@@ -401,7 +403,7 @@ class RelayController {
 	 * @Event("leavePriv")
 	 * @Description("Sends a message to the relay when someone leaves the private channel")
 	 */
-	public function relayLeavePrivMessagesEvent($eventObj) {
+	public function relayLeavePrivMessagesEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get('relaybot') != 'Off') {
 			$msg = "<highlight>{$sender}<end> has left the private channel.";

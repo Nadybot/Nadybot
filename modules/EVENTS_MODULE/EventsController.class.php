@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *	- Legendadv (RK2)
@@ -326,7 +328,7 @@ class EventsController {
 	 * @Event("logOn")
 	 * @Description("Show events to org members logging on")
 	 */
-	public function logonEvent($eventObj) {
+	public function logonEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 
 		if ($this->chatBot->isReady() && isset($this->chatBot->guildmembers[$sender])) {
@@ -340,7 +342,7 @@ class EventsController {
 	 * @Event("joinPriv")
 	 * @Description("Show events to characters joining the private channel")
 	 */
-	public function joinPrivEvent($eventObj) {
+	public function joinPrivEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 
 		if ($this->hasRecentEvents()) {

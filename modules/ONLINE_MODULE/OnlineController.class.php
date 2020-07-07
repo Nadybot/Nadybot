@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use Budabot\Core\StopExecutionException;
 
 /**
@@ -206,7 +207,7 @@ class OnlineController {
 	 * @Event("logOn")
 	 * @Description("Records an org member login in db")
 	 */
-	public function recordLogonEvent($eventObj) {
+	public function recordLogonEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->addPlayerToOnlineList($sender, $this->chatBot->vars['guild'], 'guild');
@@ -217,7 +218,7 @@ class OnlineController {
 	 * @Event("logOff")
 	 * @Description("Records an org member logoff in db")
 	 */
-	public function recordLogoffEvent($eventObj) {
+	public function recordLogoffEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
@@ -228,7 +229,7 @@ class OnlineController {
 	 * @Event("logOn")
 	 * @Description("Sends a tell to players on logon showing who is online in org")
 	 */
-	public function showOnlineOnLogonEvent($eventObj) {
+	public function showOnlineOnLogonEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$msg = $this->getOnlineList();
@@ -240,7 +241,7 @@ class OnlineController {
 	 * @Event("timer(10mins)")
 	 * @Description("Online check")
 	 */
-	public function onlineCheckEvent($eventObj) {
+	public function onlineCheckEvent(Event $eventObj) {
 		if ($this->chatBot->isReady()) {
 			//$this->db->beginTransaction();
 			$data = $this->db->query("SELECT name, channel_type FROM `online`");
@@ -296,7 +297,7 @@ class OnlineController {
 	 * @Description("Afk check")
 	 * @Help("afk")
 	 */
-	public function afkCheckPrivateChannelEvent($eventObj) {
+	public function afkCheckPrivateChannelEvent(Event $eventObj) {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	
@@ -305,7 +306,7 @@ class OnlineController {
 	 * @Description("Afk check")
 	 * @Help("afk")
 	 */
-	public function afkCheckGuildChannelEvent($eventObj) {
+	public function afkCheckGuildChannelEvent(Event $eventObj) {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	
@@ -314,7 +315,7 @@ class OnlineController {
 	 * @Description("Sets a member afk")
 	 * @Help("afk")
 	 */
-	public function afkPrivateChannelEvent($eventObj) {
+	public function afkPrivateChannelEvent(Event $eventObj) {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	
@@ -323,7 +324,7 @@ class OnlineController {
 	 * @Description("Sets a member afk")
 	 * @Help("afk")
 	 */
-	public function afkGuildChannelEvent($eventObj) {
+	public function afkGuildChannelEvent(Event $eventObj) {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	

@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use Budabot\Core\DB;
 
 /**
@@ -96,7 +97,7 @@ class WhoisController {
 	 * @Event("timer(1min)")
 	 * @Description("Save cache of names and charIds to database")
 	 */
-	public function saveCharIds($eventObj) {
+	public function saveCharIds(Event $eventObj) {
 		if (!empty($this->nameHistoryCache) && !$this->db->inTransaction()) {
 			$this->db->beginTransaction();
 			foreach ($this->nameHistoryCache as $entry) {
@@ -118,7 +119,7 @@ class WhoisController {
 	 * @Event("packet(21)")
 	 * @Description("Records names and charIds")
 	 */
-	public function recordCharIds($eventObj) {
+	public function recordCharIds(Event $eventObj) {
 		$packet = $eventObj->packet;
 		if ($this->util->isValidSender($packet->args[0])) {
 			$this->nameHistoryCache []= $packet->args;
@@ -301,7 +302,7 @@ class WhoisController {
 	 * @Event("logOn")
 	 * @Description("Gets online status of character")
 	 */
-	public function logonEvent($eventObj) {
+	public function logonEvent(Event $eventObj) {
 		$name = $eventObj->sender;
 		if ($this->replyInfo !== null && $name == $this->replyInfo['charname']) {
 			$this->replyInfo['sendto']->reply($this->getOutput($name, 1));
@@ -314,7 +315,7 @@ class WhoisController {
 	 * @Event("logOff")
 	 * @Description("Gets offline status of character")
 	 */
-	public function logoffEvent($eventObj) {
+	public function logoffEvent(Event $eventObj) {
 		$name = $eventObj->sender;
 		if ($this->replyInfo !== null && $name == $this->replyInfo['charname']) {
 			$this->replyInfo['sendto']->reply($this->getOutput($name, 0));

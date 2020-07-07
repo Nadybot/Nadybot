@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use stdClass;
 
 /**
@@ -119,7 +120,7 @@ class FindOrgController {
 	 * @Event("timer(24hrs)")
 	 * @Description("Parses all orgs from People of Rubi Ka")
 	 */
-	public function parseAllOrgsEvent($eventObj) {
+	public function parseAllOrgsEvent(Event $eventObj) {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
 		
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");

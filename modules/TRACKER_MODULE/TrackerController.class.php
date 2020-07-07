@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *	- Tyrence (RK2)
@@ -80,7 +82,7 @@ class TrackerController {
 	 * @Event("connect")
 	 * @Description("Adds all players on the track list to the buddy list")
 	 */
-	public function trackedUsersConnectEvent($eventObj) {
+	public function trackedUsersConnectEvent(Event $eventObj) {
 		$sql = "SELECT name FROM tracked_users_<myname>";
 		$data = $this->db->query($sql);
 		foreach ($data as $row) {
@@ -92,7 +94,7 @@ class TrackerController {
 	 * @Event("logOn")
 	 * @Description("Records a tracked user logging on")
 	 */
-	public function trackLogonEvent($eventObj) {
+	public function trackLogonEvent(Event $eventObj) {
 		if ($this->chatBot->isReady()) {
 			$uid = $this->chatBot->get_uid($eventObj->sender);
 			$data = $this->db->query("SELECT * FROM tracked_users_<myname> WHERE uid = ?", $uid);
@@ -115,7 +117,7 @@ class TrackerController {
 	 * @Event("logOff")
 	 * @Description("Records a tracked user logging off")
 	 */
-	public function trackLogoffEvent($eventObj) {
+	public function trackLogoffEvent(Event $eventObj) {
 		if ($this->chatBot->isReady()) {
 			$uid = $this->chatBot->get_uid($eventObj->sender);
 			$data = $this->db->query("SELECT * FROM tracked_users_<myname> WHERE uid = ?", $uid);

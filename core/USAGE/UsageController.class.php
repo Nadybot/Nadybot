@@ -2,6 +2,7 @@
 
 namespace Budabot\Core\Modules;
 
+use Budabot\Core\Event;
 use stdClass;
 use Budabot\Core\CommandAlias;
 
@@ -237,7 +238,7 @@ class UsageController {
 	 * @Description("Submits anonymous usage stats to Budabot website")
 	 * @DefaultStatus("0")
 	 */
-	public function submitAnonymousUsage($eventObj) {
+	public function submitAnonymousUsage(Event $eventObj) {
 		$debug = false;
 		$time = time();
 		$settingName = 'last_submitted_stats';

@@ -5,6 +5,7 @@ namespace Budabot\Core;
 use ReflectionAnnotatedClass;
 use stdClass;
 use DefineCommand;
+use Budabot\Core\Event;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -599,7 +600,7 @@ class Budabot extends AOChat {
 	 */
 	public function process_all_packets($packet) {
 		// fire individual packets event
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->type = "packet({$packet->type})";
 		$eventObj->packet = $packet;
 		$this->eventManager->fireEvent($eventObj);
@@ -632,7 +633,7 @@ class Budabot extends AOChat {
 	 * @return void
 	 */
 	public function processPrivateChannelJoin($args) {
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$channel = $this->lookup_user($args[0]);
 		$charId = $args[1];
 		$sender = $this->lookup_user($charId);
@@ -669,7 +670,7 @@ class Budabot extends AOChat {
 	 * @return void
 	 */
 	public function processPrivateChannelLeave($args) {
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$channel = $this->lookup_user($args[0]);
 		$sender = $this->lookup_user($args[1]);
 		$eventObj->channel = $channel;
@@ -702,7 +703,7 @@ class Budabot extends AOChat {
 		$sender	= $this->lookup_user($args[0]);
 		$status	= 0 + $args[1];
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
@@ -767,7 +768,7 @@ class Budabot extends AOChat {
 			$message = $args[1];
 		}
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 		$eventObj->message = $message;
@@ -829,7 +830,7 @@ class Budabot extends AOChat {
 		$channel = $this->lookup_user($args[0]);
 		$message = $args[2];
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
@@ -876,7 +877,7 @@ class Budabot extends AOChat {
 		$message = $args[2];
 		$channel = $this->get_gname($args[0]);
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
@@ -941,7 +942,7 @@ class Budabot extends AOChat {
 		$uid = $args[0];
 		$sender = $this->lookup_user($uid);
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 

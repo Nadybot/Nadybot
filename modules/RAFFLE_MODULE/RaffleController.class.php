@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *	- Mindrila (RK1)
@@ -241,7 +243,7 @@ class RaffleController {
 	 * @Event("timer(2sec)")
 	 * @Description("Checks to see if raffle is over")
 	 */
-	public function checkRaffleEvent($eventObj) {
+	public function checkRaffleEvent(Event $eventObj) {
 		if (!$this->raffles["running"]) {
 			// no raffle running, do nothing
 		} elseif (time() < $this->raffles["nextmsgtime"]) {

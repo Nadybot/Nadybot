@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use Exception;
 
 /**
@@ -62,7 +63,7 @@ class TeamspeakController {
 	 * @Description("Sends TS status to org members logging on")
 	 * @DefaultStatus("0")
 	 */
-	public function sendTSStatusLogonEvent($eventObj) {
+	public function sendTSStatusLogonEvent(Event $eventObj) {
 		if ($this->chatBot->isReady() && isset($this->chatBot->guildmembers[$eventObj->sender])) {
 			$msg = $this->getTeamspeak3Status();
 			$this->chatBot->sendTell($msg, $eventObj->sender);

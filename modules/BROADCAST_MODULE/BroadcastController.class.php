@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use Budabot\Core\StopExecutionException;
 
 /**
@@ -172,7 +173,7 @@ class BroadcastController {
 	 * @Event("msg")
 	 * @Description("Relays incoming messages to the guild/private channel")
 	 */
-	public function incomingMessageEvent($eventObj) {
+	public function incomingMessageEvent(Event $eventObj) {
 		if ($this->isValidBroadcastSender($eventObj->sender)) {
 			$this->processIncomingMessage($eventObj->sender, $eventObj->message);
 			

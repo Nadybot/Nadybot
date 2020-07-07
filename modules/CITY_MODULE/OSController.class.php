@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -32,7 +34,7 @@ class OSController {
 	 * @Event("orgmsg")
 	 * @Description("Sets a timer when an OS/AS is launched")
 	 */
-	public function osTimerEvent($eventObj) {
+	public function osTimerEvent(Event $eventObj) {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!
 

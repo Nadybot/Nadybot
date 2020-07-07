@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -138,7 +140,7 @@ class ChatTopicController {
 	 * @Event("logOn")
 	 * @Description("Shows topic on logon of members")
 	 */
-	public function logonEvent($eventObj) {
+	public function logonEvent(Event $eventObj) {
 		if ($this->settingManager->get('topic') == '') {
 			return;
 		}
@@ -152,7 +154,7 @@ class ChatTopicController {
 	 * @Event("joinPriv")
 	 * @Description("Shows topic when someone joins the private channel")
 	 */
-	public function joinPrivEvent($eventObj) {
+	public function joinPrivEvent(Event $eventObj) {
 		if ($this->settingManager->get('topic') == '') {
 			return;
 		}

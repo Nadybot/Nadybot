@@ -2,6 +2,8 @@
 
 namespace Budabot\Core\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -98,7 +100,7 @@ class BanController {
 	 * @Description("Upload banlist into memory")
 	 * @DefaultStatus("1")
 	 */
-	public function initializeBanList($eventObj) {
+	public function initializeBanList(Event $eventObj) {
 		$this->uploadBanlist();
 	}
 
@@ -263,7 +265,7 @@ class BanController {
 	 * @Description("Check temp bans to see if they have expired")
 	 * @DefaultStatus("1")
 	 */
-	public function checkTempBan($eventObj) {
+	public function checkTempBan(Event $eventObj) {
 		$numRows = $this->db->exec("DELETE FROM banlist_<myname> WHERE banend != 0 AND banend < ?", time());
 
 		if ($numRows > 0) {

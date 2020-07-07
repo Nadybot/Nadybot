@@ -2,6 +2,8 @@
 
 namespace Budabot\Core\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -195,7 +197,7 @@ class AdminController {
 	 * @Description("Add administrators and moderators to the buddy list")
 	 * @DefaultStatus("1")
 	 */
-	public function checkAdminsEvent($eventObj) {
+	public function checkAdminsEvent(Event $eventObj) {
 		$data = $this->db->query("SELECT * FROM admin_<myname>");
 		foreach ($data as $row) {
 			$this->buddylistManager->add($row->name, 'admin');

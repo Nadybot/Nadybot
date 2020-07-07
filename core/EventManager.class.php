@@ -2,8 +2,8 @@
 
 namespace Budabot\Core;
 
-use stdClass;
 use Exception;
+use Budabot\Core\Event;
 
 /**
  * @Instance
@@ -112,7 +112,7 @@ class EventManager {
 		}
 
 		if ($type == "setup") {
-			$eventObj = new stdClass;
+			$eventObj = new Event();
 			$eventObj->type = 'setup';
 
 			$this->callEventHandler($eventObj, $filename);
@@ -271,7 +271,7 @@ class EventManager {
 			if ($this->cronevents[$key]['nextevent'] <= $time) {
 				$this->logger->log('DEBUG', "Executing cron event '${event['filename']}'");
 
-				$eventObj = new stdClass;
+				$eventObj = new Event();
 				$eventObj->type = strtolower($event['time']);
 
 				$this->cronevents[$key]['nextevent'] = $time + $event['time'];
@@ -293,7 +293,7 @@ class EventManager {
 
 		$this->logger->log('DEBUG', "Executing connected events");
 
-		$eventObj = new stdClass;
+		$eventObj = new Event();
 		$eventObj->type = 'connect';
 
 		$this->fireEvent($eventObj);
@@ -318,7 +318,7 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent($eventObj) {
+	public function fireEvent(Event $eventObj) {
 		if (isset($this->events[$eventObj->type])) {
 			foreach ($this->events[$eventObj->type] as $filename) {
 				$this->callEventHandler($eventObj, $filename);
@@ -326,7 +326,7 @@ class EventManager {
 		}
 	}
 
-	public function callEventHandler($eventObj, $handler) {
+	public function callEventHandler(Event $eventObj, $handler) {
 		$this->logger->log('DEBUG', "Executing handler '$handler' for event type '$eventObj->type'");
 
 		try {

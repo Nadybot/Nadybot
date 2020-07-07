@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -99,7 +101,7 @@ class NewsController {
 	 * @Event("logOn")
 	 * @Description("Sends news to org members logging in")
 	 */
-	public function logonEvent($eventObj) {
+	public function logonEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 
 		if ($this->chatBot->isReady() && isset($this->chatBot->guildmembers[$sender])) {
@@ -113,7 +115,7 @@ class NewsController {
 	 * @Event("joinPriv")
 	 * @Description("Sends news to players joining private channel")
 	 */
-	public function privateChannelJoinEvent($eventObj) {
+	public function privateChannelJoinEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 
 		if ($this->hasRecentNews()) {

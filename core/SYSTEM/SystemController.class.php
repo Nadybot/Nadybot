@@ -2,6 +2,7 @@
 
 namespace Budabot\Core\Modules;
 
+use Budabot\Core\Event;
 use Budabot\Core\PrivateMessageCommandReply;
 
 /**
@@ -415,7 +416,7 @@ class SystemController {
 	 * @Description("This event handler is called every hour to keep MySQL connection active")
 	 * @DefaultStatus("1")
 	 */
-	public function refreshMySQLConnectionEvent($eventObj) {
+	public function refreshMySQLConnectionEvent(Event $eventObj) {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->log('DEBUG', "Pinging database");
 		$sql = "SELECT * FROM settings_<myname>";
@@ -427,7 +428,7 @@ class SystemController {
 	 * @Description("Notify private channel, guild channel, and admins that bot is online")
 	 * @DefaultStatus("1")
 	 */
-	public function onConnectEvent($eventObj) {
+	public function onConnectEvent(Event $eventObj) {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] == 4 && $this->buddylistManager->isOnline($name) == 1) {

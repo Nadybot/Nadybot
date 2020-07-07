@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use StdClass;
 
 /**
@@ -806,7 +807,7 @@ class TowerController {
 	 * @Event("towers")
 	 * @Description("Record attack messages")
 	 */
-	public function attackMessagesEvent($eventObj) {
+	public function attackMessagesEvent(Event $eventObj) {
 		if (preg_match(
 			"/^The (Clan|Neutral|Omni) organization ".
 			"(.+) just entered a state of war! ".
@@ -1009,7 +1010,7 @@ class TowerController {
 	 * @Event("towers")
 	 * @Description("Record victory messages")
 	 */
-	public function victoryMessagesEvent($eventObj) {
+	public function victoryMessagesEvent(Event $eventObj) {
 		if (preg_match("/^The (Clan|Neutral|Omni) organization (.+) attacked the (Clan|Neutral|Omni) (.+) at their base in (.+). The attackers won!!$/i", $eventObj->message, $arr)) {
 			$win_faction = $arr[1];
 			$win_guild_name = $arr[2];

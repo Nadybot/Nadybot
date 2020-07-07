@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -129,7 +131,7 @@ class CloakController {
 	 * @Event("guild")
 	 * @Description("Records when the cloak is raised or lowered")
 	 */
-	public function recordCloakChangesEvent($eventObj) {
+	public function recordCloakChangesEvent(Event $eventObj) {
 		if (!$this->util->isValidSender($eventObj->sender) && preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)) {
 			$this->db->exec("INSERT INTO org_city_<myname> (`time`, `action`, `player`) VALUES (?, ?, ?)", time(), $arr[2], $arr[1]);
 		}
@@ -139,7 +141,7 @@ class CloakController {
 	 * @Event("timer(1min)")
 	 * @Description("Checks timer to see if cloak can be raised or lowered")
 	 */
-	public function checkTimerEvent($eventObj) {
+	public function checkTimerEvent(Event $eventObj) {
 		$row = $this->db->queryRow("SELECT * FROM org_city_<myname> ORDER BY `time` DESC LIMIT 1");
 		if ($row !== null) {
 			$timeSinceChange = time() - $row->time;
@@ -163,7 +165,7 @@ class CloakController {
 	 * @Event("timer(1min)")
 	 * @Description("Reminds the player who lowered cloak to raise it")
 	 */
-	public function cloakReminderEvent($eventObj) {
+	public function cloakReminderEvent(Event $eventObj) {
 		// valid states for action are: 'on', 'off'
 		$row = $this->db->queryRow("SELECT * FROM org_city_<myname> WHERE `action` = 'on' OR `action` = 'off' ORDER BY `time` DESC LIMIT 1");
 		if ($row !== null) {
@@ -200,7 +202,7 @@ class CloakController {
 	 * @Event("logOn")
 	 * @Description("Show cloak status to guild members logging in")
 	 */
-	public function cityGuildLogonEvent($eventObj) {
+	public function cityGuildLogonEvent(Event $eventObj) {
 		if ($this->chatBot->isReady() && isset($this->chatBot->guildmembers[$eventObj->sender])) {
 			$row = $this->db->queryRow("SELECT * FROM org_city_<myname> WHERE `action` = 'on' OR `action` = 'off' ORDER BY `time` DESC LIMIT 0, 20 ");
 

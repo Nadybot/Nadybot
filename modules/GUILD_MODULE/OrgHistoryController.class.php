@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -123,7 +125,7 @@ class OrgHistoryController {
 	 * @Event("orgmsg")
 	 * @Description("Capture Org Invite/Kick/Leave messages for orghistory")
 	 */
-	public function captureOrgMessagesEvent($eventObj) {
+	public function captureOrgMessagesEvent(Event $eventObj) {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) just left your organization.$/", $message, $arr)) {
 			$actor = $arr[1];

@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * Authors:
  *  - Tyrence (RK2)
@@ -494,7 +496,7 @@ class GuildController {
 	 * @Event("timer(24hrs)")
 	 * @Description("Download guild roster xml and update guild members")
 	 */
-	public function downloadOrgRosterEvent($eventObj) {
+	public function downloadOrgRosterEvent(Event $eventObj) {
 		$this->updateOrgRoster();
 	}
 	
@@ -502,7 +504,7 @@ class GuildController {
 	 * @Event("orgmsg")
 	 * @Description("Automatically update guild roster as characters join and leave the guild")
 	 */
-	public function autoNotifyOrgMembersEvent($eventObj) {
+	public function autoNotifyOrgMembersEvent(Event $eventObj) {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
@@ -547,7 +549,7 @@ class GuildController {
 	 * @Event("logOn")
 	 * @Description("Shows an org member logon in chat")
 	 */
-	public function orgMemberLogonMessageEvent($eventObj) {
+	public function orgMemberLogonMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			if ($this->settingManager->get('first_and_last_alt_only') == 1) {
@@ -592,7 +594,7 @@ class GuildController {
 	 * @Event("logOff")
 	 * @Description("Shows an org member logoff in chat")
 	 */
-	public function orgMemberLogoffMessageEvent($eventObj) {
+	public function orgMemberLogoffMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			if ($this->settingManager->get('first_and_last_alt_only') == 1) {
@@ -622,7 +624,7 @@ class GuildController {
 	 * @Event("logOff")
 	 * @Description("Record org member logoff for lastseen command")
 	 */
-	public function orgMemberLogoffRecordEvent($eventObj) {
+	public function orgMemberLogoffRecordEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$this->db->exec("UPDATE org_members_<myname> SET `logged_off` = ? WHERE `name` = ?", time(), $sender);
@@ -637,7 +639,7 @@ class GuildController {
 	 * @Event("connect")
 	 * @Description("Verifies that org name is correct")
 	 */
-	public function verifyOrgNameEvent($eventObj) {
+	public function verifyOrgNameEvent(Event $eventObj) {
 		if (!empty($this->chatBot->vars["my_guild"])) {
 			if (empty($this->chatBot->vars["my_guild_id"])) {
 				$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");

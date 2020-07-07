@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use stdClass;
 
 /**
@@ -331,7 +332,7 @@ class OrglistController {
 	 * @Event("logOff")
 	 * @Description("Records online status of org members")
 	 */
-	public function orgMemberLogonEvent($eventObj) {
+	public function orgMemberLogonEvent(Event $eventObj) {
 		$this->updateOrglist($eventObj->sender, $eventObj->type);
 	}
 
@@ -339,7 +340,7 @@ class OrglistController {
 	 * @Event("packet(41)")
 	 * @Description("Records online status of org members")
 	 */
-	public function buddyRemovedEvent($eventObj) {
+	public function buddyRemovedEvent(Event $eventObj) {
 		if (isset($this->orglist)) {
 			$this->addOrgMembersToBuddylist();
 		}

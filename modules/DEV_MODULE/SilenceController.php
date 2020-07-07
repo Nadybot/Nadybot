@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use Budabot\Core\AutoInject;
 
 /**
@@ -127,7 +128,7 @@ class SilenceController extends AutoInject {
 	 * @Event("connect")
 	 * @Description("Overwrite command handlers for silenced commands")
 	 */
-	public function overwriteCommandHandlersEvent($eventObj) {
+	public function overwriteCommandHandlersEvent(Event $eventObj) {
 		$sql = "SELECT * FROM silence_cmd_<myname>";
 		$data = $this->db->query($sql);
 		foreach ($data as $row) {

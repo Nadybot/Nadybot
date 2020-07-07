@@ -2,6 +2,7 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
 use stdClass;
 use Exception;
 
@@ -161,7 +162,7 @@ class CityWaveController {
 	 * @Event("guild")
 	 * @Description("Starts a wave counter when cloak is lowered")
 	 */
-	public function autoStartWaveCounterEvent($eventObj) {
+	public function autoStartWaveCounterEvent(Event $eventObj) {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();
 		}

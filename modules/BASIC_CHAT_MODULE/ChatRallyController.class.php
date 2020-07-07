@@ -2,6 +2,8 @@
 
 namespace Budabot\User\Modules;
 
+use Budabot\Core\Event;
+
 /**
  * @Instance
  *
@@ -159,7 +161,7 @@ class ChatRallyController {
 	 * @Event("joinpriv")
 	 * @Description("Sends rally to players joining the private channel")
 	 */
-	public function sendRally($eventObj) {
+	public function sendRally(Event $eventObj) {
 		$sender = $eventObj->sender;
 
 		$rally = $this->get();
