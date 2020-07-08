@@ -2,9 +2,8 @@
 
 namespace Budabot\Core;
 
-use ReflectionAnnotatedClass;
-use stdClass;
-use DefineCommand;
+use Addendum\ReflectionAnnotatedClass;
+use Budabot\Core\Annotations\DefineCommand;
 use Budabot\Core\Event;
 
 /**
@@ -970,6 +969,7 @@ class Budabot extends AOChat {
 		// register settings annotated on the class
 		$reflection = new ReflectionAnnotatedClass($obj);
 		foreach ($reflection->getProperties() as $property) {
+			/** @var \Addendum\ReflectionAnnotatedProperty $property */
 			if ($property->hasAnnotation('Setting')) {
 				$this->settingManager->add(
 					$moduleName,
@@ -1018,6 +1018,7 @@ class Budabot extends AOChat {
 		}
 
 		foreach ($reflection->getMethods() as $method) {
+			/** @var \Addendum\ReflectionAnnotatedMethod $method */
 			if ($method->hasAnnotation('Setup')) {
 				if (call_user_func(array($obj, $method->name)) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");
@@ -1093,6 +1094,7 @@ class Budabot extends AOChat {
 	public function callSetupMethod($name, $obj) {
 		$reflection = new ReflectionAnnotatedClass($obj);
 		foreach ($reflection->getMethods() as $method) {
+			/** @var \Addendum\ReflectionAnnotatedMethod $method */
 			if ($method->hasAnnotation('Setup')) {
 				if (call_user_func(array($obj, $method->name)) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");

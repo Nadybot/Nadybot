@@ -5,17 +5,6 @@ namespace Budabot\Core;
 use LoggerConfiguratorDefault;
 use Logger;
 
-// isWindows is a little utility function to check
-// whether the bot is running Windows or something
-// else: returns true if under Windows, else false
-function isWindows() {
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 class BotRunner {
 
 	/**
@@ -105,6 +94,15 @@ class BotRunner {
 	}
 
 	/**
+	 * Utility function to check whether the bot is running Windows
+	 *
+	 * @return bool true if running Windows, else false
+	 */
+	public static function isWindows() {
+		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	/**
 	 * Get a message describing the bot's codebase
 	 *
 	 * @return string
@@ -125,7 +123,7 @@ class BotRunner {
 	 * @return void
 	 */
 	private function loadPhpExtensions() {
-		if (isWindows()) {
+		if ($this->isWindows()) {
 			// Load database and socket extensions
 			dl("php_sockets.dll");
 			dl("php_pdo_sqlite.dll");
@@ -178,8 +176,8 @@ class BotRunner {
 	 * @return void
 	 */
 	private function loadPhpLibraries() {
-		require_once './lib/addendum-0.4.1/annotations.php';
 		require_once './lib/vendor/autoload.php';
+		require_once './core/annotations.php';
 	}
 
 	/**
@@ -192,7 +190,6 @@ class BotRunner {
 		require_once './core/ClassLoader.class.php';
 		require_once './core/LegacyLogger.class.php';
 		require_once './core/LoggerWrapper.class.php';
-		require_once './core/annotations.php';
 	}
 
 	/**
@@ -248,10 +245,11 @@ class BotRunner {
 	 * @return void
 	 */
 	private function setWindowTitle() {
-		if (isWindows()) {
-			global $vars;
-			system("title {$vars['name']} - Budabot");
+		if ($this->isWindows() === false) {
+			return;
 		}
+		global $vars;
+		system("title {$vars['name']} - Budabot");
 	}
 
 	/**

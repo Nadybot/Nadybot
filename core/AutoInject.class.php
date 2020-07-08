@@ -13,6 +13,7 @@ namespace Budabot\Core;
  *
  * @todo Get rid of this anti-pattern
  * @property \Budabot\Core\AccessManager $accessManager
+ * @property \Budabot\Core\AMQP $amqp
  * @property \Budabot\Core\AdminManager $adminManager
  * @property \Budabot\Core\Budabot $chatBot
  * @property \Budabot\Core\BuddylistManager $buddylistManager

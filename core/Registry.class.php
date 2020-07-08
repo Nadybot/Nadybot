@@ -2,7 +2,7 @@
 
 namespace Budabot\Core;
 
-use ReflectionAnnotatedClass;
+use Addendum\ReflectionAnnotatedClass;
 
 class Registry {
 	private static $repo = array();
@@ -41,6 +41,7 @@ class Registry {
 		// inject other instances that are annotated with @Inject
 		$reflection = new ReflectionAnnotatedClass($instance);
 		foreach ($reflection->getProperties() as $property) {
+			/** @var \Addendum\ReflectionAnnotatedProperty $property */
 			if ($property->hasAnnotation('Inject')) {
 				if ($property->getAnnotation('Inject')->value != '') {
 					$dependencyName = $property->getAnnotation('Inject')->value;

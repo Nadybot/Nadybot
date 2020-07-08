@@ -1,5 +1,9 @@
 <?php
 
+namespace Budabot\Core\Annotations;
+
+use Addendum\Annotation;
+
 class Description extends Annotation {
 
 }
@@ -17,6 +21,10 @@ class Type extends Annotation {
 }
 
 class Inject extends Annotation {
+
+}
+
+class Logger extends Annotation {
 
 }
 

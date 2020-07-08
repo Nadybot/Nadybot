@@ -1,23 +1,38 @@
 {
 	"name":"nadyita/budabot",
+	"description": "The successor of the original Budabot by Tyrence",
 	"type":"project",
 	"repositories": [
 		{
-            "type": "vcs",
-            "url": "https://github.com/apache/logging-log4php"
-        }
+			"type": "vcs",
+			"url": "https://github.com/apache/logging-log4php"
+		}
 	],
 
 	"require": {
 		"apache/log4php": "2.3.0",
-		"php-amqplib/php-amqplib": "2.11.3"
+		"php-amqplib/php-amqplib": "2.11.3",
+		"niktux/addendum": "0.4.4"
 	},
-
+	"autoload": {
+		"psr-4": {
+			"Budabot\\": "./"
+		}
+	},
 	"config": {
 		"bin-dir": "..",
 		"vendor-dir": "lib/vendor"
 	},
 	"require-dev": {
-		"squizlabs/php_codesniffer": "^3.5"
+		"squizlabs/php_codesniffer": "^3.5",
+		"composer/composer": "1.10.8"
+	},
+	"scripts": {
+		"post-package-install": [
+			"Budabot\\Patcher::patch"
+		],
+		"post-package-update": [
+			"Budabot\\Patcher::patch"
+		]
 	}
 }

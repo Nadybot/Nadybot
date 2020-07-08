@@ -2,7 +2,7 @@
 
 namespace Budabot\Core;
 
-use ReflectionAnnotatedClass;
+use Addendum\ReflectionAnnotatedClass;
 
 class ClassLoader {
 	/**

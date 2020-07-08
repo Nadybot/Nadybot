@@ -167,7 +167,7 @@ class CommandAlias {
 	 * @param \Budabot\Core\DBRow $row The database row to process
 	 */
 	public function add($row) {
-		$this->logger->log('DEBUG', "Adding alias: '{$alias}' for command: '$command'");
+		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 
 		$sql = "INSERT INTO cmd_alias_<myname> (module, cmd, alias, status) VALUES (?, ?, ?, ?)";
 		return $this->db->exec($sql, $row->module, $row->cmd, $row->alias, $row->status);

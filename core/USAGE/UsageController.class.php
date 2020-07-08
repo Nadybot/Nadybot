@@ -109,7 +109,7 @@ class UsageController {
 		$count = count($data);
 
 		if ($count > 0) {
-			$blob .= '';
+			$blob = '';
 			foreach ($data as $row) {
 				$blob .= "<highlight>{$row->command}<end> ({$row->count})\n";
 			}
@@ -149,7 +149,7 @@ class UsageController {
 		$count = count($data);
 
 		if ($count > 0) {
-			$blob .= '';
+			$blob = '';
 			foreach ($data as $row) {
 				$blob .= "<highlight>{$row->sender}<end> ({$row->count})\n";
 			}
@@ -272,7 +272,7 @@ class UsageController {
 		$settings['db_type'] = $this->db->getType();
 		$settings['bot_version'] = $version;
 		$settings['using_git'] = (file_exists("./modules/GIT_MODULE/GitController.class.php") === true ? '1' : '0');
-		$settings['os'] = (\budabot\core\isWindows() === true ? 'Windows' : 'Other');
+		$settings['os'] = (\Budabot\Core\BotRunner::isWindows() === true ? 'Windows' : 'Other');
 		
 		$settings['symbol'] = $this->settingManager->get('symbol');
 		$settings['relay_enabled'] = ($this->settingManager->get('relaybot') == 'Off' ? '0' : '1');

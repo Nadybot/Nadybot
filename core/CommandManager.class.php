@@ -3,7 +3,7 @@
 namespace Budabot\Core;
 
 use stdClass;
-use ReflectionAnnotatedMethod;
+use Addendum\ReflectionAnnotatedMethod;
 use Exception;
 
 /**
@@ -525,7 +525,7 @@ class CommandManager {
 	/**
 	 * Get all stored regular expression Matches for a function
 	 *
-	 * @param \ReflectionAnnotatedMethod $reflectedMethod
+	 * @param \Addendum\ReflectionAnnotatedMethod $reflectedMethod
 	 * @return string[]
 	 */
 	public function retrieveRegexes($reflectedMethod) {

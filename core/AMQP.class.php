@@ -42,7 +42,7 @@ class AMQP {
 	 */
 	public $eventManager;
 
-	/** @var AMQPChannel */
+	/** @var \PhpAmqpLib\Channel\AMQPChannel */
 	protected $channel;
 
 	/**
