@@ -64,7 +64,6 @@ INSERT INTO skills (id, name) VALUES (535, 'Healing Efficiency');
 INSERT INTO skills (id, name) VALUES (110, 'Heavy Weapons');
 INSERT INTO skills (id, name) VALUES (90, 'Imp/Proj AC');
 INSERT INTO skills (id, name) VALUES (19, 'Intelligence');
-INSERT INTO skills (id, name) VALUES (53, 'Intelligence');
 INSERT INTO skills (id, name) VALUES (615, 'InvadersKilled');
 INSERT INTO skills (id, name) VALUES (140, 'Map Navig.');
 INSERT INTO skills (id, name) VALUES (100, 'Martial Arts');
