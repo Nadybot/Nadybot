@@ -384,11 +384,19 @@ class DB {
 			$handle = @fopen("$dir/$file", "r");
 			if ($handle) {
 				try {
+					$oldLine = '';
 					while (($line = fgets($handle)) !== false) {
 						$line = trim($line);
 						// don't process comment lines or blank lines
 						if ($line != '' && substr($line, 0, 1) != "#" && substr($line, 0, 2) != "--") {
-							$this->exec($line);
+							// If the line doesn't end with a ; we keep the value and add new lines
+							// to it until we hit a ;
+							if (substr($line, -1) !== ';') {
+								$oldLine .= "$line\n";
+							} else {
+								$this->exec($oldLine.$line);
+								$oldLine = '';
+							}
 						}
 					}
 

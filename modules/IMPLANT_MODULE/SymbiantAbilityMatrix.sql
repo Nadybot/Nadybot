@@ -1,3338 +1,3339 @@
 DROP TABLE IF EXISTS SymbiantAbilityMatrix;
 CREATE TABLE SymbiantAbilityMatrix (SymbiantID INT NOT NULL, AbilityID INT NOT NULL, Amount INT NOT NULL);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (945,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (945,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (945,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (948,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (948,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (948,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (947,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (947,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (947,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (949,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (949,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (949,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (946,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (946,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (946,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (580,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (580,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (580,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (583,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (583,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (583,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (582,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (582,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (582,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (584,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (584,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (584,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (581,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (581,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (581,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (359,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (359,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (359,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (360,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (360,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (360,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (481,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (481,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (481,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (672,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (672,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (672,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (858,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (858,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (858,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (860,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (860,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (860,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (859,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (859,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (859,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (887,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (887,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (887,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (890,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (890,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (890,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (889,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (889,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (889,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (891,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (891,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (891,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (888,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (888,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (888,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (221,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (221,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (221,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (222,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (222,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (222,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (540,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (540,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (540,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (541,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (541,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (541,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (542,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (542,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (542,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (62,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (62,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (62,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (63,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (63,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (63,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (61,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (61,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (61,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (641,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (641,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (641,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (642,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (642,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (642,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1006,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1006,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1006,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1005,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1005,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1005,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1007,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1007,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1007,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (122,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (122,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (122,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (123,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (123,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (123,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (124,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (124,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (124,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (706,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (706,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (706,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (708,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (708,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (708,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (707,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (707,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (707,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (772,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (772,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (772,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (800,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (800,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (800,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (801,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (801,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (801,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (833,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (833,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (833,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (835,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (835,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (835,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (834,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (834,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (834,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (906,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (906,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (906,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (908,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (908,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (908,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (907,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (907,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (907,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1090,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1090,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1090,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1089,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1089,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1089,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1091,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1091,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1091,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1088,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1088,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1088,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (7,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (7,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (7,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (9,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (9,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (9,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (8,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (8,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (8,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (96,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (96,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (96,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (98,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (98,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (98,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (99,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (99,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (99,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (97,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (97,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (97,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (276,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (276,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (276,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (275,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (275,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (275,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (336,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (336,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (336,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (335,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (335,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (335,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (337,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (337,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (337,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (509,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (509,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (509,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (508,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (508,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (508,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (739,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (739,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (739,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (738,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (738,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (738,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1034,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1034,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1034,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (248,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (248,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (248,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (307,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (307,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (307,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (306,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (306,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (306,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1061,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1061,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1061,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1062,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1062,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1062,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (157,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (157,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (157,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (160,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (160,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (160,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (159,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (159,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (159,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (158,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (158,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (158,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (42,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (42,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (42,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (423,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (423,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (423,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (426,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (426,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (426,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (425,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (425,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (425,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (427,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (427,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (427,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (424,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (424,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (424,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (990,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (990,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (990,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (993,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (993,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (993,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (992,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (992,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (992,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (994,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (994,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (994,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (991,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (991,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (991,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (625,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (625,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (625,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (628,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (628,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (628,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (627,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (627,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (627,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (629,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (629,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (629,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (626,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (626,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (626,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (380,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (380,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (380,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (381,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (381,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (381,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (408,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (408,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (408,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (409,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (409,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (409,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (410,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (410,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (410,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (502,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (502,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (502,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (504,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (504,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (504,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (503,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (503,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (503,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (693,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (693,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (693,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (695,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (695,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (695,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (696,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (696,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (696,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (694,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (694,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (694,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (879,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (879,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (879,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (241,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (241,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (241,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (565,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (565,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (565,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (84,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (84,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (84,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (85,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (85,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (85,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (83,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (83,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (83,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (662,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (662,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (662,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (665,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (665,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (665,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (664,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (664,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (664,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (663,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (663,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (663,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1028,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1028,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1028,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1027,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1027,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1027,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1026,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1026,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1026,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (149,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (149,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (149,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (148,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (148,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (148,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (727,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (727,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (727,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (728,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (728,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (728,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (822,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (822,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (822,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (821,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (821,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (821,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (850,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (850,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (850,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (849,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (849,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (849,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (929,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (929,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (929,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (930,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (930,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (930,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1111,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1111,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1111,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1110,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1110,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1110,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (33,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (33,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (33,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (32,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (32,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (32,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (34,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (34,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (34,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (31,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (31,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (31,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (115,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (115,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (115,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (114,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (114,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (114,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (116,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (116,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (116,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (113,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (113,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (113,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (295,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (295,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (295,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (352,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (352,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (352,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (354,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (354,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (354,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (355,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (355,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (355,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (353,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (353,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (353,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (529,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (529,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (529,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (531,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (531,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (531,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (530,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (530,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (530,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (764,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (764,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (764,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (763,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (763,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (763,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1051,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1051,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1051,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1052,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1052,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1052,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (269,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (269,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (269,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (270,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (270,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (270,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (324,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (324,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (324,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (326,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (326,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (326,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (327,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (327,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (327,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (325,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (325,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (325,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1080,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1080,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1080,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (181,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (181,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (181,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (183,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (183,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (183,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (182,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (182,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (182,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (55,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (55,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (55,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (210,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (210,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (210,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (212,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (212,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (212,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (213,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (213,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (213,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (211,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (211,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (211,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (468,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (468,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (468,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (471,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (471,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (471,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (470,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (470,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (470,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (472,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (472,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (472,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (469,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (469,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (469,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (975,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (975,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (975,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (978,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (978,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (978,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (977,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (977,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (977,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (979,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (979,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (979,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (976,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (976,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (976,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (610,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (610,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (610,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (613,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (613,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (613,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (612,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (612,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (612,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (614,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (614,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (614,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (611,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (611,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (611,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (373,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (373,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (373,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (375,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (375,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (375,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (374,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (374,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (374,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (401,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (401,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (401,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (400,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (400,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (400,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (492,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (492,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (492,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (491,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (491,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (491,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (683,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (683,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (683,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (685,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (685,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (685,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (686,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (686,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (686,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (684,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (684,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (684,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (875,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (875,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (875,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (896,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (896,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (896,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (898,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (898,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (898,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (897,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (897,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (897,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (237,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (237,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (237,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (238,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (238,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (238,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (557,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (557,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (557,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (558,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (558,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (558,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (74,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (74,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (74,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (75,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (75,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (75,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (654,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (654,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (654,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (655,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (655,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (655,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1022,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1022,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1022,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1021,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1021,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1021,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (138,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (138,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (138,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (140,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (140,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (140,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (141,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (141,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (141,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (139,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (139,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (139,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (786,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (786,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (786,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (788,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (788,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (788,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (787,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (787,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (787,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (789,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (789,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (789,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (813,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (813,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (813,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (815,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (815,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (815,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (814,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (814,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (814,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (924,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (924,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (924,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (923,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (923,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (923,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1102,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1102,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1102,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1103,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1103,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1103,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (22,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (22,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (22,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (21,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (21,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (21,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (23,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (23,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (23,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (108,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (108,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (108,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (109,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (109,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (109,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (110,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (110,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (110,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (289,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (289,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (289,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (290,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (290,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (290,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (350,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (350,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (350,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (349,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (349,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (349,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (521,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (521,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (521,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (522,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (522,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (522,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (754,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (754,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (754,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (756,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (756,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (756,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (755,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (755,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (755,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1043,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1043,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1043,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1042,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1042,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1042,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (265,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (265,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (265,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (264,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (264,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (264,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (266,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (266,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (266,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (263,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (263,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (263,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (319,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (319,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (319,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (318,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (318,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (318,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1073,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1073,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1073,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1074,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1074,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1074,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1072,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1072,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1072,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (177,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (177,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (177,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (176,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (176,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (176,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (52,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (52,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (52,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (203,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (203,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (203,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (204,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (204,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (204,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (453,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (453,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (453,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (456,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (456,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (456,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (455,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (455,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (455,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (457,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (457,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (457,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (454,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (454,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (454,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (970,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (970,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (970,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (973,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (973,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (973,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (972,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (972,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (972,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (974,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (974,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (974,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (971,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (971,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (971,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (605,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (605,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (605,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (608,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (608,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (608,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (607,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (607,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (607,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (609,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (609,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (609,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (606,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (606,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (606,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (372,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (372,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (372,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (397,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (397,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (397,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (398,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (398,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (398,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (399,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (399,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (399,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (490,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (490,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (490,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (682,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (682,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (682,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (872,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (872,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (872,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (873,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (873,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (873,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (874,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (874,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (874,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (895,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (895,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (895,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (894,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (894,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (894,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (234,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (234,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (234,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (235,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (235,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (235,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (236,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (236,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (236,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (556,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (556,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (556,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (555,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (555,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (555,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (554,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (554,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (554,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (69,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (69,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (69,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (72,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (72,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (72,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (71,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (71,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (71,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (73,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (73,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (73,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (70,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (70,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (70,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (653,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (653,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (653,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (652,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (652,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (652,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1020,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1020,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1020,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (136,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (136,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (136,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (137,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (137,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (137,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (721,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (721,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (721,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (784,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (784,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (784,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (785,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (785,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (785,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (812,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (812,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (812,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (841,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (841,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (841,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (843,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (843,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (843,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (842,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (842,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (842,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (920,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (920,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (920,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (921,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (921,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (921,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (922,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (922,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (922,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1101,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1101,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1101,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1100,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1100,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1100,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (18,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (18,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (18,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (19,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (19,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (19,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (20,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (20,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (20,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (288,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (288,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (288,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (347,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (347,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (347,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (346,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (346,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (346,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (348,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (348,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (348,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (519,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (519,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (519,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (520,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (520,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (520,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (518,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (518,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (518,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (751,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (751,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (751,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (753,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (753,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (753,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (752,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (752,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (752,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1040,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1040,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1040,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1041,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1041,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1041,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (262,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (262,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (262,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (261,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (261,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (261,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (316,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (316,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (316,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (317,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (317,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (317,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1070,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1070,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1070,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1071,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1071,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1071,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (175,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (175,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (175,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (174,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (174,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (174,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (51,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (51,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (51,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (50,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (50,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (50,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (49,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (49,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (49,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (201,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (201,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (201,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (202,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (202,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (202,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (448,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (448,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (448,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (451,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (451,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (451,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (450,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (450,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (450,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (452,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (452,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (452,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (449,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (449,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (449,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (995,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (995,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (995,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (998,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (998,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (998,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (997,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (997,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (997,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (999,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (999,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (999,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (996,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (996,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (996,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (630,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (630,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (630,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (633,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (633,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (633,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (632,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (632,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (632,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (634,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (634,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (634,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (631,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (631,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (631,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (383,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (383,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (383,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (382,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (382,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (382,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (384,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (384,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (384,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (412,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (412,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (412,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (411,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (411,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (411,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (505,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (505,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (505,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (697,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (697,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (697,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (698,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (698,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (698,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (699,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (699,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (699,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (880,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (880,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (880,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (882,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (882,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (882,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (881,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (881,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (881,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (903,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (903,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (903,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (242,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (242,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (242,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (244,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (244,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (244,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (245,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (245,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (245,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (243,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (243,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (243,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (566,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (566,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (566,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (568,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (568,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (568,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (569,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (569,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (569,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (567,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (567,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (567,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (86,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (86,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (86,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (87,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (87,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (87,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (666,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (666,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (666,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1029,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1029,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1029,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1030,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1030,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1030,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (150,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (150,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (150,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (151,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (151,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (151,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (729,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (729,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (729,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (731,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (731,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (731,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (732,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (732,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (732,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (730,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (730,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (730,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (793,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (793,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (793,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (794,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (794,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (794,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (795,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (795,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (795,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (823,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (823,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (823,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (824,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (824,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (824,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (851,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (851,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (851,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (931,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (931,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (931,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (933,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (933,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (933,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (934,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (934,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (934,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (932,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (932,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (932,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1112,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1112,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1112,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (35,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (35,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (35,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (37,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (37,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (37,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (36,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (36,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (36,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (38,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (38,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (38,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (118,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (118,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (118,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (117,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (117,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (117,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (296,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (296,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (296,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (297,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (297,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (297,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (356,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (356,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (356,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (532,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (532,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (532,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (533,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (533,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (533,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (766,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (766,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (766,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (767,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (767,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (767,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (765,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (765,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (765,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1054,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1054,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1054,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1053,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1053,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1053,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (272,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (272,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (272,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (271,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (271,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (271,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (328,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (328,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (328,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1081,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1081,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1081,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1083,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1083,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1083,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1082,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1082,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1082,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (184,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (184,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (184,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (56,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (56,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (56,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (57,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (57,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (57,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (58,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (58,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (58,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (214,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (214,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (214,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (216,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (216,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (216,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (215,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (215,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (215,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (473,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (473,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (473,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (476,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (476,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (476,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (475,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (475,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (475,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (477,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (477,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (477,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (474,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (474,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (474,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (955,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (955,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (955,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (958,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (958,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (958,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (957,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (957,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (957,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (959,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (959,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (959,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (956,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (956,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (956,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (590,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (590,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (590,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (593,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (593,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (593,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (592,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (592,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (592,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (594,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (594,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (594,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (591,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (591,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (591,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (364,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (364,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (364,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (366,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (366,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (366,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (365,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (365,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (365,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (391,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (391,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (391,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (390,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (390,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (390,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (392,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (392,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (392,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (389,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (389,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (389,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (483,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (483,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (483,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (674,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (674,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (674,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (675,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (675,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (675,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (864,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (864,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (864,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (867,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (867,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (867,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (866,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (866,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (866,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (868,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (868,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (868,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (865,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (865,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (865,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (893,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (893,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (893,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (226,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (226,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (226,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (227,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (227,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (227,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (546,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (546,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (546,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (547,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (547,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (547,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (548,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (548,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (548,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (66,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (66,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (66,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (646,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (646,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (646,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (647,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (647,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (647,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1011,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1011,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1011,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1014,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1014,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1014,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1013,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1013,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1013,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1012,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1012,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1012,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (126,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (126,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (126,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (128,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (128,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (128,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (129,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (129,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (129,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (127,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (127,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (127,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (714,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (714,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (714,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (713,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (713,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (713,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (712,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (712,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (712,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (776,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (776,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (776,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (777,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (777,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (777,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (805,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (805,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (805,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (836,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (836,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (836,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (910,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (910,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (910,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (912,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (912,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (912,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (911,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (911,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (911,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1095,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1095,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1095,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (15,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (15,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (15,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (14,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (14,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (14,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (101,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (101,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (101,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (102,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (102,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (102,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (103,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (103,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (103,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (281,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (281,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (281,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (340,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (340,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (340,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (512,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (512,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (512,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (513,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (513,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (513,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (742,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (742,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (742,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (744,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (744,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (744,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (743,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (743,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (743,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1035,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1035,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1035,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1036,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1036,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1036,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (253,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (253,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (253,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (255,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (255,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (255,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (254,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (254,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (254,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (311,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (311,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (311,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (310,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (310,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (310,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1066,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1066,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1066,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1067,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1067,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1067,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1065,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1065,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1065,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (167,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (167,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (167,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (166,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (166,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (166,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (168,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (168,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (168,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (165,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (165,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (165,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (44,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (44,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (44,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (194,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (194,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (194,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (195,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (195,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (195,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (433,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (433,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (433,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (436,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (436,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (436,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (435,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (435,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (435,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (437,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (437,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (437,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (434,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (434,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (434,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (985,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (985,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (985,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (988,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (988,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (988,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (987,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (987,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (987,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (989,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (989,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (989,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (986,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (986,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (986,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (620,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (620,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (620,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (623,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (623,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (623,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (622,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (622,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (622,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (624,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (624,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (624,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (621,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (621,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (621,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (378,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (378,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (378,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (379,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (379,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (379,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (406,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (406,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (406,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (407,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (407,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (407,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (405,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (405,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (405,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (497,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (497,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (497,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (500,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (500,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (500,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (499,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (499,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (499,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (501,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (501,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (501,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (498,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (498,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (498,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (689,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (689,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (689,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (692,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (692,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (692,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (691,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (691,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (691,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (690,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (690,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (690,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (877,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (877,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (877,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (878,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (878,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (878,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (902,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (902,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (902,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (563,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (563,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (563,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (562,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (562,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (562,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (564,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (564,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (564,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (78,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (78,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (78,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (81,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (81,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (81,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (80,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (80,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (80,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (82,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (82,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (82,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (79,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (79,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (79,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (660,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (660,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (660,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (659,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (659,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (659,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (661,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (661,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (661,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1025,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1025,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1025,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1024,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1024,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1024,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (147,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (147,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (147,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (725,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (725,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (725,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (726,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (726,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (726,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (792,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (792,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (792,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (791,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (791,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (791,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (819,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (819,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (819,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (820,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (820,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (820,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (847,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (847,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (847,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (848,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (848,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (848,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (926,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (926,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (926,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (928,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (928,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (928,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (927,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (927,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (927,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1108,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1108,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1108,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1109,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1109,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1109,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (29,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (29,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (29,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (30,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (30,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (30,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (28,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (28,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (28,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (294,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (294,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (294,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (293,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (293,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (293,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (526,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (526,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (526,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (528,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (528,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (528,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (527,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (527,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (527,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (762,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (762,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (762,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (761,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (761,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (761,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1047,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1047,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1047,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1049,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1049,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1049,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1050,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1050,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1050,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1048,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1048,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1048,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (268,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (268,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (268,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (322,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (322,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (322,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (323,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (323,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (323,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1078,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1078,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1078,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1079,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1079,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1079,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1077,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1077,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1077,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (179,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (179,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (179,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (180,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (180,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (180,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (54,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (54,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (54,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (209,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (209,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (209,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (208,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (208,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (208,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (207,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (207,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (207,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (463,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (463,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (463,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (466,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (466,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (466,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (465,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (465,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (465,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (467,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (467,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (467,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (464,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (464,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (464,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (965,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (965,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (965,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (968,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (968,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (968,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (967,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (967,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (967,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (969,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (969,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (969,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (966,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (966,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (966,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (600,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (600,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (600,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (603,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (603,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (603,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (602,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (602,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (602,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (604,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (604,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (604,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (601,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (601,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (601,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (369,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (369,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (369,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (370,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (370,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (370,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (371,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (371,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (371,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (395,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (395,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (395,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (396,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (396,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (396,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (486,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (486,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (486,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (488,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (488,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (488,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (489,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (489,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (489,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (487,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (487,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (487,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (679,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (679,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (679,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (680,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (680,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (680,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (681,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (681,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (681,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (870,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (870,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (870,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (871,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (871,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (871,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (232,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (232,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (232,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (233,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (233,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (233,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (231,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (231,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (231,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (551,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (551,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (551,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (552,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (552,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (552,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (553,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (553,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (553,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (68,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (68,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (68,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (651,6,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (651,5,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (651,4,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1018,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1018,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1018,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1019,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1019,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1019,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1017,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1017,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1017,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (133,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (133,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (133,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (134,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (134,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (134,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (135,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (135,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (135,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (719,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (719,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (719,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (720,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (720,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (720,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (781,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (781,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (781,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (783,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (783,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (783,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (782,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (782,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (782,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (811,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (811,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (811,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (810,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (810,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (810,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (809,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (809,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (809,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (840,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (840,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (840,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (839,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (839,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (839,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (917,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (917,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (917,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (918,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (918,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (918,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (919,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (919,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (919,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1098,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1098,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1098,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1099,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1099,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1099,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (17,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (17,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (17,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (106,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (106,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (106,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (105,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (105,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (105,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (107,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (107,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (107,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (285,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (285,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (285,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (287,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (287,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (287,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (286,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (286,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (286,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (345,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (345,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (345,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (344,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (344,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (344,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (516,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (516,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (516,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (517,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (517,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (517,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (749,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (749,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (749,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (750,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (750,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (750,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (748,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (748,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (748,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1038,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1038,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1038,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1039,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1039,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1039,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (260,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (260,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (260,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (259,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (259,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (259,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (315,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (315,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (315,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (314,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (314,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (314,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1069,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1069,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1069,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (171,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (171,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (171,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (172,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (172,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (172,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (173,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (173,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (173,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (47,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (47,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (47,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (48,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (48,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (48,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (198,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (198,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (198,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (200,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (200,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (200,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (199,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (199,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (199,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (443,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (443,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (443,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (446,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (446,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (446,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (445,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (445,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (445,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (447,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (447,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (447,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (444,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (444,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (444,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (980,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (980,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (980,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (983,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (983,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (983,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (982,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (982,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (982,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (984,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (984,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (984,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (981,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (981,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (981,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (615,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (615,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (615,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (618,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (618,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (618,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (617,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (617,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (617,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (619,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (619,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (619,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (616,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (616,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (616,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (376,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (376,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (376,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (377,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (377,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (377,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (402,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (402,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (402,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (404,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (404,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (404,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (403,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (403,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (403,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (495,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (495,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (495,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (494,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (494,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (494,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (496,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (496,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (496,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (493,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (493,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (493,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (687,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (687,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (687,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (688,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (688,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (688,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (876,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (876,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (876,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (899,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (899,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (899,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (901,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (901,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (901,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (900,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (900,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (900,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (240,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (240,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (240,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (239,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (239,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (239,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (559,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (559,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (559,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (560,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (560,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (560,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (561,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (561,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (561,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (76,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (76,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (76,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (77,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (77,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (77,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (656,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (656,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (656,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (658,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (658,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (658,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (657,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (657,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (657,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1023,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1023,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1023,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (142,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (142,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (142,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (145,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (145,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (145,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (144,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (144,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (144,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (146,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (146,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (146,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (143,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (143,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (143,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (722,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (722,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (722,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (724,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (724,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (724,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (723,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (723,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (723,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (790,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (790,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (790,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (817,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (817,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (817,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (818,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (818,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (818,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (816,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (816,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (816,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (845,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (845,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (845,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (844,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (844,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (844,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (846,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (846,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (846,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (925,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (925,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (925,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1104,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1104,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1104,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1107,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1107,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1107,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1106,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1106,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1106,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1105,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1105,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1105,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (24,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (24,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (24,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (26,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (26,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (26,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (27,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (27,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (27,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (25,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (25,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (25,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (112,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (112,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (112,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (111,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (111,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (111,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (292,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (292,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (292,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (291,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (291,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (291,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (351,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (351,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (351,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (523,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (523,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (523,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (525,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (525,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (525,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (524,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (524,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (524,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (757,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (757,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (757,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (760,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (760,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (760,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (759,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (759,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (759,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (758,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (758,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (758,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1044,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1044,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1044,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1045,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1045,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1045,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1046,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1046,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1046,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (267,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (267,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (267,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (321,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (321,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (321,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (320,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (320,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (320,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1075,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1075,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1075,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1076,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1076,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1076,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (178,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (178,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (178,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (53,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (53,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (53,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (206,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (206,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (206,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (205,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (205,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (205,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (458,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (458,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (458,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (461,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (461,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (461,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (460,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (460,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (460,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (462,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (462,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (462,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (459,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (459,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (459,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (960,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (960,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (960,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (963,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (963,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (963,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (962,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (962,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (962,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (964,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (964,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (964,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (961,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (961,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (961,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (595,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (595,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (595,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (598,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (598,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (598,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (597,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (597,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (597,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (599,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (599,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (599,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (596,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (596,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (596,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (368,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (368,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (368,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (367,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (367,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (367,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (393,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (393,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (393,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (394,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (394,4,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (394,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (485,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (485,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (485,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (484,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (484,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (484,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (676,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (676,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (676,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (678,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (678,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (678,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (677,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (677,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (677,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (869,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (869,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (869,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (230,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (230,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (230,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (229,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (229,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (229,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (228,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (228,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (228,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (549,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (549,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (549,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (550,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (550,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (550,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (67,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (67,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (67,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (648,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (648,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (648,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (649,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (649,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (649,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (650,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (650,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (650,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1015,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1015,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1015,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1016,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1016,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1016,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (131,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (131,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (131,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (132,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (132,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (132,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (130,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (130,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (130,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (715,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (715,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (715,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (717,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (717,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (717,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (718,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (718,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (718,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (716,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (716,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (716,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (778,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (778,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (778,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (779,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (779,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (779,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (780,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (780,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (780,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (806,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (806,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (806,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (808,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (808,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (808,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (807,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (807,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (807,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (837,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (837,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (837,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (838,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (838,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (838,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (913,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (913,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (913,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (915,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (915,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (915,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (914,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (914,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (914,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (916,1,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (916,4,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (916,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1097,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1097,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1097,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1096,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1096,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1096,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (16,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (16,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (16,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (104,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (104,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (104,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (283,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (283,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (283,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (282,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (282,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (282,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (284,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (284,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (284,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (343,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (343,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (343,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (342,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (342,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (342,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (341,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (341,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (341,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (514,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (514,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (514,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (515,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (515,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (515,3,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (745,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (745,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (745,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (746,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (746,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (746,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (747,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (747,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (747,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1037,6,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1037,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1037,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (256,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (256,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (256,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (258,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (258,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (258,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (257,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (257,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (257,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (312,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (312,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (312,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (313,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (313,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (313,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1068,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1068,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1068,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (169,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (169,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (169,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (170,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (170,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (170,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (46,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (46,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (46,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (45,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (45,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (45,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (197,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (197,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (197,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (196,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (196,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (196,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (438,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (438,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (438,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (441,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (441,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (441,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (440,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (440,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (440,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (442,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (442,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (442,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (439,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (439,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (439,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (940,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (940,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (940,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (943,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (943,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (943,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (942,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (942,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (942,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (944,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (944,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (944,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (941,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (941,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (941,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (575,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (575,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (575,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (578,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (578,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (578,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (577,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (577,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (577,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (579,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (579,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (579,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (576,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (576,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (576,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (358,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (358,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (358,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (386,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (386,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (386,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (387,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (387,1,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (387,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (479,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (479,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (479,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (480,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (480,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (480,3,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (671,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (671,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (671,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (856,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (856,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (856,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (857,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (857,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (857,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (855,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (855,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (855,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (885,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (885,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (885,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (886,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (886,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (886,4,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (884,5,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (884,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (884,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (218,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (218,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (218,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (219,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (219,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (219,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (220,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (220,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (220,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (538,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (538,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (538,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (539,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (539,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (539,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (60,6,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (60,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (60,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (638,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (638,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (638,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (640,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (640,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (640,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (639,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (639,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (639,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1002,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1002,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1002,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1003,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1003,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1003,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1004,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1004,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1004,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (121,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (121,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (121,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (704,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (704,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (704,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (705,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (705,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (705,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (703,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (703,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (703,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (771,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (771,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (771,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (798,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (798,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (798,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (799,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (799,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (799,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (828,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (828,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (828,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (831,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (831,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (831,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (830,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (830,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (830,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (832,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (832,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (832,4,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (829,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (829,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (829,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (905,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (905,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (905,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1087,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1087,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1087,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (3,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (3,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (3,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (6,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (6,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (6,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (5,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (5,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (5,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (4,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (4,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (4,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (91,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (91,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (91,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (94,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (94,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (94,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (93,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (93,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (93,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (95,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (95,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (95,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (92,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (92,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (92,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (274,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (274,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (274,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (332,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (332,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (332,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (334,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (334,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (334,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (333,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (333,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (333,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (507,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (507,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (507,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (737,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (737,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (737,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (736,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (736,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (736,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (247,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (247,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (247,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (246,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (246,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (246,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (302,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (302,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (302,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (304,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (304,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (304,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (305,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (305,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (305,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (303,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (303,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (303,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1057,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1057,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1057,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1059,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1059,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1059,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1058,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1058,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1058,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1060,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1060,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1060,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (155,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (155,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (155,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (156,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (156,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (156,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (154,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (154,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (154,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (41,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (41,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (41,3,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (187,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (187,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (187,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (188,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (188,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (188,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (189,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (189,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (189,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (418,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (418,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (418,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (421,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (421,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (421,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (420,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (420,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (420,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (422,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (422,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (422,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (419,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (419,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (419,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (935,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (935,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (935,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (938,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (938,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (938,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (937,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (937,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (937,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (939,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (939,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (939,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (936,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (936,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (936,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (570,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (570,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (570,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (573,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (573,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (573,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (572,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (572,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (572,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (574,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (574,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (574,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (571,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (571,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (571,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (357,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (357,5,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (357,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (385,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (385,2,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (385,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (478,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (478,5,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (478,2,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (669,6,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (669,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (669,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (668,5,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (668,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (668,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (670,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (670,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (670,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (667,1,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (667,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (667,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (852,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (852,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (852,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (854,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (854,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (854,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (853,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (853,2,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (853,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (883,6,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (883,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (883,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (217,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (217,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (217,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (534,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (534,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (534,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (536,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (536,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (536,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (537,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (537,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (537,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (535,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (535,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (535,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (59,5,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (59,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (59,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (637,1,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (637,2,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (637,4,369);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (635,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (635,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (635,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (636,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (636,2,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (636,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1001,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1001,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1001,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1000,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1000,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1000,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (119,6,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (119,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (119,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (120,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (120,2,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (120,3,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (700,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (700,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (700,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (702,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (702,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (702,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (701,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (701,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (701,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (768,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (768,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (768,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (769,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (769,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (769,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (770,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (770,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (770,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (796,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (796,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (796,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (797,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (797,5,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (797,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (825,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (825,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (825,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (827,6,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (827,5,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (827,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (826,1,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (826,2,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (826,3,316);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (904,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (904,2,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (904,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1085,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1085,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1085,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1086,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1086,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1086,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1084,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1084,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1084,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (2,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (2,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (2,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (88,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (88,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (88,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (90,6,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (90,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (90,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (89,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (89,2,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (89,3,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (273,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (273,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (273,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (329,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (329,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (329,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (331,5,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (331,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (331,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (330,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (330,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (330,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (506,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (506,2,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (506,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (733,6,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (733,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (733,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (734,5,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (734,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (734,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (735,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (735,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (735,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1031,1,1059);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1031,2,1059);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1031,3,1059);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1032,5,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1032,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1032,3,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1033,1,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1033,2,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1033,4,749);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (298,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (298,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (298,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (300,5,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (300,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (300,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (301,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (301,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (301,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (299,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (299,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (299,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1055,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1055,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1055,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1056,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1056,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1056,4,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (153,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (153,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (153,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (152,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (152,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (152,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (39,6,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (39,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (39,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (40,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (40,2,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (40,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (185,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (185,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (185,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (186,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (186,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (186,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (413,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (413,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (413,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (416,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (416,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (416,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (415,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (415,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (415,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (417,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (417,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (417,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (414,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (414,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (414,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (10,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (10,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (10,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (11,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (11,2,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (11,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (12,6,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (12,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (12,3,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (13,1,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (13,5,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (13,4,383);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (43,1,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (43,5,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (43,4,1191);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (64,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (64,4,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (64,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (65,1,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (65,2,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (65,3,159);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (100,1,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (100,5,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (100,4,406);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (125,1,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (125,5,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (125,4,226);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (161,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (161,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (161,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (162,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (162,2,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (162,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (163,6,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (163,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (163,3,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (164,1,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (164,5,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (164,4,1149);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (190,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (190,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (190,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (191,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (191,2,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (191,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (192,6,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (192,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (192,3,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (193,1,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (193,5,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (193,4,1233);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (223,6,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (223,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (223,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (224,2,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (224,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (224,3,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (225,1,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (225,5,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (225,4,113);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (249,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (249,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (249,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (250,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (250,2,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (250,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (251,6,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (251,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (251,3,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (252,1,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (252,5,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (252,4,781);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (277,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (277,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (277,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (278,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (278,4,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (278,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (279,1,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (279,2,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (279,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (280,6,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (280,5,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (280,3,429);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (308,6,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (308,1,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (308,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (309,2,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (309,4,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (309,3,1063);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (338,6,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (338,1,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (338,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (339,2,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (339,4,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (339,3,451);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (361,6,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (361,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (361,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (362,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (362,4,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (362,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (363,1,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (363,2,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (363,3,23);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (388,6,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (388,5,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (388,3,35);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (428,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (428,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (428,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (429,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (429,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (429,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (430,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (430,2,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (430,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (431,6,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (431,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (431,3,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (432,1,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (432,5,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (432,4,1276);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (482,6,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (482,1,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (482,4,46);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (510,6,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (510,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (510,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (511,1,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (511,5,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (511,4,683);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (543,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (543,2,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (543,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (544,6,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (544,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (544,3,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (545,1,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (545,5,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (545,4,136);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (585,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (585,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (585,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (586,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (586,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (586,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (587,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (587,2,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (587,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (588,6,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (588,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (588,3,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (589,1,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (589,5,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (589,4,12);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (643,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (643,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (643,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (644,6,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (644,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (644,3,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (645,1,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (645,5,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (645,4,181);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (673,2,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (673,4,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (673,3,57);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (709,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (709,4,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (709,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (710,1,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (710,2,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (710,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (711,6,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (711,5,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (711,3,249);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (740,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (740,4,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (740,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (741,1,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (741,2,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (741,3,716);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (773,2,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (773,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (773,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (774,6,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (774,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (774,3,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (775,1,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (775,5,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (775,4,271);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (802,6,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (802,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (802,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (803,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (803,4,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (803,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (804,1,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (804,2,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (804,3,293);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (861,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (861,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (861,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (862,6,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (862,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (862,3,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (863,1,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (863,5,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (863,4,69);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (892,1,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (892,2,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (892,3,91);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (909,6,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (909,5,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (909,3,339);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (950,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (950,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (950,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (951,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (951,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (951,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (952,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (952,2,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (952,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (953,6,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (953,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (953,3,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (954,1,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (954,5,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (954,4,3);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1008,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1008,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1008,4,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1009,1,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1009,2,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1009,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1010,6,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1010,5,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1010,3,203);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1063,1,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1063,2,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1063,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1064,6,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1064,5,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1064,3,1106);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1092,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1092,1,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1092,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1093,2,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1093,4,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1093,3,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1094,6,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1094,5,361);
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES (1094,3,361);
+INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES
+(945,6,3),
+(945,1,3),
+(945,4,3),
+(948,6,3),
+(948,5,3),
+(948,4,3),
+(947,6,3),
+(947,2,3),
+(947,3,3),
+(949,1,3),
+(949,2,3),
+(949,4,3),
+(946,1,3),
+(946,2,3),
+(946,3,3),
+(580,6,12),
+(580,1,12),
+(580,4,12),
+(583,6,12),
+(583,5,12),
+(583,4,12),
+(582,6,12),
+(582,2,12),
+(582,3,12),
+(584,1,12),
+(584,2,12),
+(584,4,12),
+(581,1,12),
+(581,2,12),
+(581,3,12),
+(359,6,23),
+(359,1,23),
+(359,4,23),
+(360,1,23),
+(360,2,23),
+(360,3,23),
+(481,6,46),
+(481,1,46),
+(481,4,46),
+(672,6,57),
+(672,5,57),
+(672,4,57),
+(858,6,69),
+(858,1,69),
+(858,4,69),
+(860,1,69),
+(860,2,69),
+(860,4,69),
+(859,1,69),
+(859,2,69),
+(859,3,69),
+(887,6,91),
+(887,1,91),
+(887,4,91),
+(890,6,91),
+(890,5,91),
+(890,4,91),
+(889,6,91),
+(889,2,91),
+(889,3,91),
+(891,1,91),
+(891,2,91),
+(891,4,91),
+(888,1,91),
+(888,2,91),
+(888,3,91),
+(221,6,113),
+(221,2,113),
+(221,3,113),
+(222,1,113),
+(222,2,113),
+(222,4,113),
+(540,6,136),
+(540,1,136),
+(540,4,136),
+(541,6,136),
+(541,2,136),
+(541,3,136),
+(542,1,136),
+(542,2,136),
+(542,4,136),
+(62,6,159),
+(62,5,159),
+(62,4,159),
+(63,1,159),
+(63,2,159),
+(63,4,159),
+(61,1,159),
+(61,2,159),
+(61,3,159),
+(641,6,181),
+(641,1,181),
+(641,4,181),
+(642,6,181),
+(642,2,181),
+(642,3,181),
+(1006,6,203),
+(1006,5,203),
+(1006,4,203),
+(1005,6,203),
+(1005,2,203),
+(1005,3,203),
+(1007,1,203),
+(1007,2,203),
+(1007,4,203),
+(122,6,226),
+(122,1,226),
+(122,4,226),
+(123,6,226),
+(123,5,226),
+(123,4,226),
+(124,1,226),
+(124,2,226),
+(124,4,226),
+(706,6,249),
+(706,1,249),
+(706,4,249),
+(708,1,249),
+(708,2,249),
+(708,4,249),
+(707,1,249),
+(707,2,249),
+(707,3,249),
+(772,6,271),
+(772,2,271),
+(772,3,271),
+(800,6,293),
+(800,1,293),
+(800,4,293),
+(801,6,293),
+(801,5,293),
+(801,4,293),
+(833,6,316),
+(833,1,316),
+(833,4,316),
+(835,6,316),
+(835,5,316),
+(835,4,316),
+(834,1,316),
+(834,2,316),
+(834,3,316),
+(906,6,339),
+(906,1,339),
+(906,4,339),
+(908,1,339),
+(908,2,339),
+(908,4,339),
+(907,1,339),
+(907,2,339),
+(907,3,339),
+(1090,6,361),
+(1090,5,361),
+(1090,4,361),
+(1089,6,361),
+(1089,2,361),
+(1089,3,361),
+(1091,1,361),
+(1091,2,361),
+(1091,4,361),
+(1088,1,361),
+(1088,2,361),
+(1088,3,361),
+(7,6,383),
+(7,1,383),
+(7,4,383),
+(9,6,383),
+(9,5,383),
+(9,4,383),
+(8,1,383),
+(8,2,383),
+(8,3,383),
+(96,6,406),
+(96,1,406),
+(96,4,406),
+(98,6,406),
+(98,2,406),
+(98,3,406),
+(99,1,406),
+(99,2,406),
+(99,4,406),
+(97,1,406),
+(97,2,406),
+(97,3,406),
+(276,6,429),
+(276,2,429),
+(276,3,429),
+(275,1,429),
+(275,2,429),
+(275,3,429),
+(336,6,451),
+(336,5,451),
+(336,4,451),
+(335,6,451),
+(335,2,451),
+(335,3,451),
+(337,1,451),
+(337,2,451),
+(337,4,451),
+(509,6,683),
+(509,5,683),
+(509,4,683),
+(508,6,683),
+(508,2,683),
+(508,3,683),
+(739,1,716),
+(739,2,716),
+(739,4,716),
+(738,1,716),
+(738,2,716),
+(738,3,716),
+(1034,6,749),
+(1034,2,749),
+(1034,3,749),
+(248,1,781),
+(248,2,781),
+(248,4,781),
+(307,6,1063),
+(307,5,1063),
+(307,4,1063),
+(306,6,1063),
+(306,2,1063),
+(306,3,1063),
+(1061,6,1106),
+(1061,1,1106),
+(1061,4,1106),
+(1062,1,1106),
+(1062,2,1106),
+(1062,3,1106),
+(157,6,1149),
+(157,1,1149),
+(157,4,1149),
+(160,6,1149),
+(160,5,1149),
+(160,4,1149),
+(159,6,1149),
+(159,2,1149),
+(159,3,1149),
+(158,1,1149),
+(158,2,1149),
+(158,3,1149),
+(42,6,1191),
+(42,5,1191),
+(42,4,1191),
+(423,6,1276),
+(423,1,1276),
+(423,4,1276),
+(426,6,1276),
+(426,5,1276),
+(426,4,1276),
+(425,6,1276),
+(425,2,1276),
+(425,3,1276),
+(427,1,1276),
+(427,2,1276),
+(427,4,1276),
+(424,1,1276),
+(424,2,1276),
+(424,3,1276),
+(990,6,3),
+(990,1,3),
+(990,5,3),
+(993,6,3),
+(993,5,3),
+(993,2,3),
+(992,2,3),
+(992,4,3),
+(992,3,3),
+(994,1,3),
+(994,2,3),
+(994,4,3),
+(991,1,3),
+(991,2,3),
+(991,3,3),
+(625,6,12),
+(625,1,12),
+(625,5,12),
+(628,6,12),
+(628,5,12),
+(628,2,12),
+(627,2,12),
+(627,4,12),
+(627,3,12),
+(629,1,12),
+(629,2,12),
+(629,4,12),
+(626,1,12),
+(626,2,12),
+(626,3,12),
+(380,6,23),
+(380,5,23),
+(380,2,23),
+(381,1,23),
+(381,2,23),
+(381,4,23),
+(408,6,35),
+(408,1,35),
+(408,5,35),
+(409,2,35),
+(409,4,35),
+(409,3,35),
+(410,1,35),
+(410,2,35),
+(410,4,35),
+(502,6,46),
+(502,1,46),
+(502,5,46),
+(504,2,46),
+(504,4,46),
+(504,3,46),
+(503,1,46),
+(503,2,46),
+(503,3,46),
+(693,6,57),
+(693,1,57),
+(693,5,57),
+(695,6,57),
+(695,5,57),
+(695,2,57),
+(696,1,57),
+(696,2,57),
+(696,4,57),
+(694,1,57),
+(694,2,57),
+(694,3,57),
+(879,1,69),
+(879,2,69),
+(879,3,69),
+(241,2,113),
+(241,4,113),
+(241,3,113),
+(565,1,136),
+(565,2,136),
+(565,4,136),
+(84,2,159),
+(84,4,159),
+(84,3,159),
+(85,1,159),
+(85,2,159),
+(85,4,159),
+(83,1,159),
+(83,2,159),
+(83,3,159),
+(662,6,181),
+(662,1,181),
+(662,5,181),
+(665,6,181),
+(665,5,181),
+(665,2,181),
+(664,2,181),
+(664,4,181),
+(664,3,181),
+(663,1,181),
+(663,2,181),
+(663,3,181),
+(1028,6,203),
+(1028,5,203),
+(1028,2,203),
+(1027,2,203),
+(1027,4,203),
+(1027,3,203),
+(1026,1,203),
+(1026,2,203),
+(1026,3,203),
+(149,6,226),
+(149,5,226),
+(149,2,226),
+(148,2,226),
+(148,4,226),
+(148,3,226),
+(727,6,249),
+(727,1,249),
+(727,5,249),
+(728,6,249),
+(728,5,249),
+(728,2,249),
+(822,1,293),
+(822,2,293),
+(822,4,293),
+(821,1,293),
+(821,2,293),
+(821,3,293),
+(850,2,316),
+(850,4,316),
+(850,3,316),
+(849,1,316),
+(849,2,316),
+(849,3,316),
+(929,6,339),
+(929,1,339),
+(929,5,339),
+(930,6,339),
+(930,5,339),
+(930,2,339),
+(1111,6,361),
+(1111,5,361),
+(1111,2,361),
+(1110,2,361),
+(1110,4,361),
+(1110,3,361),
+(33,6,383),
+(33,5,383),
+(33,2,383),
+(32,2,383),
+(32,4,383),
+(32,3,383),
+(34,1,383),
+(34,2,383),
+(34,4,383),
+(31,1,383),
+(31,2,383),
+(31,3,383),
+(115,6,406),
+(115,5,406),
+(115,2,406),
+(114,2,406),
+(114,4,406),
+(114,3,406),
+(116,1,406),
+(116,2,406),
+(116,4,406),
+(113,1,406),
+(113,2,406),
+(113,3,406),
+(295,6,429),
+(295,1,429),
+(295,5,429),
+(352,6,451),
+(352,1,451),
+(352,5,451),
+(354,2,451),
+(354,4,451),
+(354,3,451),
+(355,1,451),
+(355,2,451),
+(355,4,451),
+(353,1,451),
+(353,2,451),
+(353,3,451),
+(529,6,683),
+(529,1,683),
+(529,5,683),
+(531,1,683),
+(531,2,683),
+(531,4,683),
+(530,1,683),
+(530,2,683),
+(530,3,683),
+(764,6,716),
+(764,5,716),
+(764,2,716),
+(763,1,716),
+(763,2,716),
+(763,3,716),
+(1051,6,749),
+(1051,1,749),
+(1051,5,749),
+(1052,1,749),
+(1052,2,749),
+(1052,4,749),
+(269,2,781),
+(269,4,781),
+(269,3,781),
+(270,1,781),
+(270,2,781),
+(270,4,781),
+(324,6,1063),
+(324,1,1063),
+(324,5,1063),
+(326,6,1063),
+(326,5,1063),
+(326,2,1063),
+(327,1,1063),
+(327,2,1063),
+(327,4,1063),
+(325,1,1063),
+(325,2,1063),
+(325,3,1063),
+(1080,6,1106),
+(1080,5,1106),
+(1080,2,1106),
+(181,6,1149),
+(181,1,1149),
+(181,5,1149),
+(183,6,1149),
+(183,5,1149),
+(183,2,1149),
+(182,2,1149),
+(182,4,1149),
+(182,3,1149),
+(55,6,1191),
+(55,1,1191),
+(55,5,1191),
+(210,6,1233),
+(210,1,1233),
+(210,5,1233),
+(212,2,1233),
+(212,4,1233),
+(212,3,1233),
+(213,1,1233),
+(213,2,1233),
+(213,4,1233),
+(211,1,1233),
+(211,2,1233),
+(211,3,1233),
+(468,6,1276),
+(468,1,1276),
+(468,5,1276),
+(471,6,1276),
+(471,5,1276),
+(471,2,1276),
+(470,2,1276),
+(470,4,1276),
+(470,3,1276),
+(472,1,1276),
+(472,2,1276),
+(472,4,1276),
+(469,1,1276),
+(469,2,1276),
+(469,3,1276),
+(975,6,3),
+(975,1,3),
+(975,5,3),
+(978,6,3),
+(978,1,3),
+(978,5,3),
+(977,1,3),
+(977,2,3),
+(977,3,3),
+(979,6,3),
+(979,1,3),
+(979,4,3),
+(976,6,3),
+(976,2,3),
+(976,3,3),
+(610,6,12),
+(610,1,12),
+(610,5,12),
+(613,6,12),
+(613,1,12),
+(613,5,12),
+(612,1,12),
+(612,2,12),
+(612,3,12),
+(614,6,12),
+(614,1,12),
+(614,4,12),
+(611,6,12),
+(611,2,12),
+(611,3,12),
+(373,6,23),
+(373,1,23),
+(373,5,23),
+(375,1,23),
+(375,2,23),
+(375,3,23),
+(374,6,23),
+(374,2,23),
+(374,3,23),
+(401,1,35),
+(401,2,35),
+(401,3,35),
+(400,6,35),
+(400,2,35),
+(400,3,35),
+(492,6,46),
+(492,1,46),
+(492,4,46),
+(491,6,46),
+(491,2,46),
+(491,3,46),
+(683,6,57),
+(683,1,57),
+(683,5,57),
+(685,1,57),
+(685,2,57),
+(685,3,57),
+(686,6,57),
+(686,1,57),
+(686,4,57),
+(684,6,57),
+(684,2,57),
+(684,3,57),
+(875,1,69),
+(875,2,69),
+(875,3,69),
+(896,6,91),
+(896,1,91),
+(896,5,91),
+(898,1,91),
+(898,2,91),
+(898,3,91),
+(897,6,91),
+(897,2,91),
+(897,3,91),
+(237,6,113),
+(237,1,113),
+(237,5,113),
+(238,6,113),
+(238,1,113),
+(238,5,113),
+(557,6,136),
+(557,1,136),
+(557,5,136),
+(558,6,136),
+(558,2,136),
+(558,3,136),
+(74,6,159),
+(74,1,159),
+(74,5,159),
+(75,1,159),
+(75,2,159),
+(75,3,159),
+(654,6,181),
+(654,1,181),
+(654,5,181),
+(655,6,181),
+(655,1,181),
+(655,5,181),
+(1022,6,203),
+(1022,1,203),
+(1022,5,203),
+(1021,6,203),
+(1021,2,203),
+(1021,3,203),
+(138,6,226),
+(138,1,226),
+(138,5,226),
+(140,6,226),
+(140,1,226),
+(140,5,226),
+(141,6,226),
+(141,1,226),
+(141,4,226),
+(139,6,226),
+(139,2,226),
+(139,3,226),
+(786,6,271),
+(786,1,271),
+(786,5,271),
+(788,6,271),
+(788,1,271),
+(788,5,271),
+(787,1,271),
+(787,2,271),
+(787,3,271),
+(789,6,271),
+(789,1,271),
+(789,4,271),
+(813,6,293),
+(813,1,293),
+(813,5,293),
+(815,6,293),
+(815,1,293),
+(815,5,293),
+(814,6,293),
+(814,2,293),
+(814,3,293),
+(924,6,339),
+(924,1,339),
+(924,5,339),
+(923,1,339),
+(923,2,339),
+(923,3,339),
+(1102,6,361),
+(1102,1,361),
+(1102,5,361),
+(1103,6,361),
+(1103,1,361),
+(1103,4,361),
+(22,6,383),
+(22,1,383),
+(22,5,383),
+(21,1,383),
+(21,2,383),
+(21,3,383),
+(23,6,383),
+(23,1,383),
+(23,4,383),
+(108,6,406),
+(108,1,406),
+(108,5,406),
+(109,6,406),
+(109,1,406),
+(109,5,406),
+(110,6,406),
+(110,1,406),
+(110,4,406),
+(289,6,429),
+(289,1,429),
+(289,5,429),
+(290,6,429),
+(290,1,429),
+(290,4,429),
+(350,1,451),
+(350,2,451),
+(350,3,451),
+(349,6,451),
+(349,2,451),
+(349,3,451),
+(521,6,683),
+(521,1,683),
+(521,5,683),
+(522,6,683),
+(522,1,683),
+(522,4,683),
+(754,6,716),
+(754,1,716),
+(754,5,716),
+(756,6,716),
+(756,1,716),
+(756,5,716),
+(755,6,716),
+(755,2,716),
+(755,3,716),
+(1043,6,749),
+(1043,1,749),
+(1043,5,749),
+(1042,6,749),
+(1042,2,749),
+(1042,3,749),
+(265,6,781),
+(265,1,781),
+(265,5,781),
+(264,1,781),
+(264,2,781),
+(264,3,781),
+(266,6,781),
+(266,1,781),
+(266,4,781),
+(263,6,781),
+(263,2,781),
+(263,3,781),
+(319,6,1063),
+(319,1,1063),
+(319,5,1063),
+(318,1,1063),
+(318,2,1063),
+(318,3,1063),
+(1073,1,1106),
+(1073,2,1106),
+(1073,3,1106),
+(1074,6,1106),
+(1074,1,1106),
+(1074,4,1106),
+(1072,6,1106),
+(1072,2,1106),
+(1072,3,1106),
+(177,6,1149),
+(177,1,1149),
+(177,4,1149),
+(176,6,1149),
+(176,2,1149),
+(176,3,1149),
+(52,1,1191),
+(52,2,1191),
+(52,3,1191),
+(203,1,1233),
+(203,2,1233),
+(203,3,1233),
+(204,6,1233),
+(204,1,1233),
+(204,4,1233),
+(453,6,1276),
+(453,1,1276),
+(453,5,1276),
+(456,6,1276),
+(456,1,1276),
+(456,5,1276),
+(455,1,1276),
+(455,2,1276),
+(455,3,1276),
+(457,6,1276),
+(457,1,1276),
+(457,4,1276),
+(454,6,1276),
+(454,2,1276),
+(454,3,1276),
+(970,6,3),
+(970,1,3),
+(970,4,3),
+(973,6,3),
+(973,5,3),
+(973,4,3),
+(972,2,3),
+(972,4,3),
+(972,3,3),
+(974,6,3),
+(974,1,3),
+(974,4,3),
+(971,2,3),
+(971,4,3),
+(971,3,3),
+(605,6,12),
+(605,1,12),
+(605,4,12),
+(608,6,12),
+(608,5,12),
+(608,4,12),
+(607,2,12),
+(607,4,12),
+(607,3,12),
+(609,6,12),
+(609,1,12),
+(609,4,12),
+(606,2,12),
+(606,4,12),
+(606,3,12),
+(372,2,23),
+(372,4,23),
+(372,3,23),
+(397,6,35),
+(397,1,35),
+(397,4,35),
+(398,2,35),
+(398,4,35),
+(398,3,35),
+(399,6,35),
+(399,1,35),
+(399,4,35),
+(490,6,46),
+(490,1,46),
+(490,4,46),
+(682,6,57),
+(682,5,57),
+(682,4,57),
+(872,6,69),
+(872,1,69),
+(872,4,69),
+(873,6,69),
+(873,5,69),
+(873,4,69),
+(874,6,69),
+(874,1,69),
+(874,4,69),
+(895,6,91),
+(895,5,91),
+(895,4,91),
+(894,2,91),
+(894,4,91),
+(894,3,91),
+(234,6,113),
+(234,1,113),
+(234,4,113),
+(235,2,113),
+(235,4,113),
+(235,3,113),
+(236,6,113),
+(236,1,113),
+(236,4,113),
+(556,6,136),
+(556,5,136),
+(556,4,136),
+(555,2,136),
+(555,4,136),
+(555,3,136),
+(554,2,136),
+(554,4,136),
+(554,3,136),
+(69,6,159),
+(69,1,159),
+(69,4,159),
+(72,6,159),
+(72,5,159),
+(72,4,159),
+(71,2,159),
+(71,4,159),
+(71,3,159),
+(73,6,159),
+(73,1,159),
+(73,4,159),
+(70,2,159),
+(70,4,159),
+(70,3,159),
+(653,6,181),
+(653,1,181),
+(653,4,181),
+(652,2,181),
+(652,4,181),
+(652,3,181),
+(1020,6,203),
+(1020,1,203),
+(1020,4,203),
+(136,6,226),
+(136,1,226),
+(136,4,226),
+(137,6,226),
+(137,1,226),
+(137,4,226),
+(721,2,249),
+(721,4,249),
+(721,3,249),
+(784,6,271),
+(784,5,271),
+(784,4,271),
+(785,6,271),
+(785,1,271),
+(785,4,271),
+(812,2,293),
+(812,4,293),
+(812,3,293),
+(841,6,316),
+(841,1,316),
+(841,4,316),
+(843,6,316),
+(843,5,316),
+(843,4,316),
+(842,2,316),
+(842,4,316),
+(842,3,316),
+(920,6,339),
+(920,1,339),
+(920,4,339),
+(921,2,339),
+(921,4,339),
+(921,3,339),
+(922,6,339),
+(922,1,339),
+(922,4,339),
+(1101,6,361),
+(1101,1,361),
+(1101,4,361),
+(1100,2,361),
+(1100,4,361),
+(1100,3,361),
+(18,6,383),
+(18,1,383),
+(18,4,383),
+(19,2,383),
+(19,4,383),
+(19,3,383),
+(20,6,383),
+(20,1,383),
+(20,4,383),
+(288,6,429),
+(288,1,429),
+(288,4,429),
+(347,6,451),
+(347,5,451),
+(347,4,451),
+(346,2,451),
+(346,4,451),
+(346,3,451),
+(348,6,451),
+(348,1,451),
+(348,4,451),
+(519,6,683),
+(519,5,683),
+(519,4,683),
+(520,6,683),
+(520,1,683),
+(520,4,683),
+(518,2,683),
+(518,4,683),
+(518,3,683),
+(751,6,716),
+(751,1,716),
+(751,4,716),
+(753,6,716),
+(753,5,716),
+(753,4,716),
+(752,2,716),
+(752,4,716),
+(752,3,716),
+(1040,6,749),
+(1040,1,749),
+(1040,4,749),
+(1041,6,749),
+(1041,5,749),
+(1041,4,749),
+(262,2,781),
+(262,4,781),
+(262,3,781),
+(261,2,781),
+(261,4,781),
+(261,3,781),
+(316,6,1063),
+(316,5,1063),
+(316,4,1063),
+(317,6,1063),
+(317,1,1063),
+(317,4,1063),
+(1070,6,1106),
+(1070,5,1106),
+(1070,4,1106),
+(1071,6,1106),
+(1071,1,1106),
+(1071,4,1106),
+(175,2,1149),
+(175,4,1149),
+(175,3,1149),
+(174,2,1149),
+(174,4,1149),
+(174,3,1149),
+(51,6,1191),
+(51,5,1191),
+(51,4,1191),
+(50,2,1191),
+(50,4,1191),
+(50,3,1191),
+(49,2,1191),
+(49,4,1191),
+(49,3,1191),
+(201,6,1233),
+(201,1,1233),
+(201,4,1233),
+(202,2,1233),
+(202,4,1233),
+(202,3,1233),
+(448,6,1276),
+(448,1,1276),
+(448,4,1276),
+(451,6,1276),
+(451,5,1276),
+(451,4,1276),
+(450,2,1276),
+(450,4,1276),
+(450,3,1276),
+(452,6,1276),
+(452,1,1276),
+(452,4,1276),
+(449,2,1276),
+(449,4,1276),
+(449,3,1276),
+(995,6,3),
+(995,1,3),
+(995,5,3),
+(998,6,3),
+(998,5,3),
+(998,2,3),
+(997,6,3),
+(997,2,3),
+(997,3,3),
+(999,6,3),
+(999,1,3),
+(999,4,3),
+(996,1,3),
+(996,2,3),
+(996,3,3),
+(630,6,12),
+(630,1,12),
+(630,5,12),
+(633,6,12),
+(633,5,12),
+(633,2,12),
+(632,6,12),
+(632,2,12),
+(632,3,12),
+(634,6,12),
+(634,1,12),
+(634,4,12),
+(631,1,12),
+(631,2,12),
+(631,3,12),
+(383,6,23),
+(383,5,23),
+(383,2,23),
+(382,6,23),
+(382,2,23),
+(382,3,23),
+(384,6,23),
+(384,1,23),
+(384,4,23),
+(412,6,35),
+(412,2,35),
+(412,3,35),
+(411,1,35),
+(411,2,35),
+(411,3,35),
+(505,6,46),
+(505,1,46),
+(505,4,46),
+(697,6,57),
+(697,1,57),
+(697,5,57),
+(698,6,57),
+(698,5,57),
+(698,2,57),
+(699,6,57),
+(699,1,57),
+(699,4,57),
+(880,6,69),
+(880,1,69),
+(880,5,69),
+(882,6,69),
+(882,2,69),
+(882,3,69),
+(881,1,69),
+(881,2,69),
+(881,3,69),
+(903,1,91),
+(903,2,91),
+(903,3,91),
+(242,6,113),
+(242,1,113),
+(242,5,113),
+(244,6,113),
+(244,2,113),
+(244,3,113),
+(245,6,113),
+(245,1,113),
+(245,4,113),
+(243,1,113),
+(243,2,113),
+(243,3,113),
+(566,6,136),
+(566,1,136),
+(566,5,136),
+(568,6,136),
+(568,5,136),
+(568,2,136),
+(569,6,136),
+(569,1,136),
+(569,4,136),
+(567,1,136),
+(567,2,136),
+(567,3,136),
+(86,6,159),
+(86,5,159),
+(86,2,159),
+(87,6,159),
+(87,1,159),
+(87,4,159),
+(666,1,181),
+(666,2,181),
+(666,3,181),
+(1029,6,203),
+(1029,1,203),
+(1029,5,203),
+(1030,6,203),
+(1030,2,203),
+(1030,3,203),
+(150,6,226),
+(150,5,226),
+(150,2,226),
+(151,6,226),
+(151,1,226),
+(151,4,226),
+(729,6,249),
+(729,1,249),
+(729,5,249),
+(731,6,249),
+(731,5,249),
+(731,2,249),
+(732,6,249),
+(732,1,249),
+(732,4,249),
+(730,1,249),
+(730,2,249),
+(730,3,249),
+(793,6,271),
+(793,1,271),
+(793,5,271),
+(794,6,271),
+(794,2,271),
+(794,3,271),
+(795,6,271),
+(795,1,271),
+(795,4,271),
+(823,6,293),
+(823,5,293),
+(823,2,293),
+(824,6,293),
+(824,1,293),
+(824,4,293),
+(851,1,316),
+(851,2,316),
+(851,3,316),
+(931,6,339),
+(931,1,339),
+(931,5,339),
+(933,6,339),
+(933,2,339),
+(933,3,339),
+(934,6,339),
+(934,1,339),
+(934,4,339),
+(932,1,339),
+(932,2,339),
+(932,3,339),
+(1112,6,361),
+(1112,1,361),
+(1112,5,361),
+(35,6,383),
+(35,1,383),
+(35,5,383),
+(37,6,383),
+(37,5,383),
+(37,2,383),
+(36,6,383),
+(36,2,383),
+(36,3,383),
+(38,6,383),
+(38,1,383),
+(38,4,383),
+(118,6,406),
+(118,5,406),
+(118,2,406),
+(117,1,406),
+(117,2,406),
+(117,3,406),
+(296,6,429),
+(296,1,429),
+(296,5,429),
+(297,1,429),
+(297,2,429),
+(297,3,429),
+(356,1,451),
+(356,2,451),
+(356,3,451),
+(532,6,683),
+(532,1,683),
+(532,5,683),
+(533,6,683),
+(533,5,683),
+(533,2,683),
+(766,6,716),
+(766,5,716),
+(766,2,716),
+(767,6,716),
+(767,1,716),
+(767,4,716),
+(765,1,716),
+(765,2,716),
+(765,3,716),
+(1054,6,749),
+(1054,5,749),
+(1054,2,749),
+(1053,6,749),
+(1053,2,749),
+(1053,3,749),
+(272,6,781),
+(272,5,781),
+(272,2,781),
+(271,6,781),
+(271,2,781),
+(271,3,781),
+(328,6,1063),
+(328,2,1063),
+(328,3,1063),
+(1081,6,1106),
+(1081,1,1106),
+(1081,5,1106),
+(1083,6,1106),
+(1083,2,1106),
+(1083,3,1106),
+(1082,1,1106),
+(1082,2,1106),
+(1082,3,1106),
+(184,1,1149),
+(184,2,1149),
+(184,3,1149),
+(56,6,1191),
+(56,1,1191),
+(56,5,1191),
+(57,6,1191),
+(57,2,1191),
+(57,3,1191),
+(58,6,1191),
+(58,1,1191),
+(58,4,1191),
+(214,6,1233),
+(214,1,1233),
+(214,5,1233),
+(216,6,1233),
+(216,5,1233),
+(216,2,1233),
+(215,6,1233),
+(215,2,1233),
+(215,3,1233),
+(473,6,1276),
+(473,1,1276),
+(473,5,1276),
+(476,6,1276),
+(476,5,1276),
+(476,2,1276),
+(475,6,1276),
+(475,2,1276),
+(475,3,1276),
+(477,6,1276),
+(477,1,1276),
+(477,4,1276),
+(474,1,1276),
+(474,2,1276),
+(474,3,1276),
+(955,6,3),
+(955,1,3),
+(955,3,3),
+(958,6,3),
+(958,5,3),
+(958,3,3),
+(957,6,3),
+(957,2,3),
+(957,3,3),
+(959,1,3),
+(959,4,3),
+(959,3,3),
+(956,2,3),
+(956,4,3),
+(956,3,3),
+(590,6,12),
+(590,1,12),
+(590,3,12),
+(593,6,12),
+(593,5,12),
+(593,3,12),
+(592,6,12),
+(592,2,12),
+(592,3,12),
+(594,1,12),
+(594,4,12),
+(594,3,12),
+(591,2,12),
+(591,4,12),
+(591,3,12),
+(364,6,23),
+(364,1,23),
+(364,3,23),
+(366,6,23),
+(366,5,23),
+(366,3,23),
+(365,6,23),
+(365,2,23),
+(365,3,23),
+(391,6,35),
+(391,5,35),
+(391,3,35),
+(390,6,35),
+(390,2,35),
+(390,3,35),
+(392,1,35),
+(392,4,35),
+(392,3,35),
+(389,2,35),
+(389,4,35),
+(389,3,35),
+(483,6,46),
+(483,1,46),
+(483,3,46),
+(674,6,57),
+(674,5,57),
+(674,3,57),
+(675,1,57),
+(675,4,57),
+(675,3,57),
+(864,6,69),
+(864,1,69),
+(864,3,69),
+(867,6,69),
+(867,5,69),
+(867,3,69),
+(866,6,69),
+(866,2,69),
+(866,3,69),
+(868,1,69),
+(868,4,69),
+(868,3,69),
+(865,2,69),
+(865,4,69),
+(865,3,69),
+(893,2,91),
+(893,4,91),
+(893,3,91),
+(226,6,113),
+(226,1,113),
+(226,3,113),
+(227,1,113),
+(227,4,113),
+(227,3,113),
+(546,6,136),
+(546,1,136),
+(546,3,136),
+(547,6,136),
+(547,2,136),
+(547,3,136),
+(548,1,136),
+(548,4,136),
+(548,3,136),
+(66,6,159),
+(66,5,159),
+(66,3,159),
+(646,6,181),
+(646,1,181),
+(646,3,181),
+(647,6,181),
+(647,5,181),
+(647,3,181),
+(1011,6,203),
+(1011,1,203),
+(1011,3,203),
+(1014,6,203),
+(1014,5,203),
+(1014,3,203),
+(1013,6,203),
+(1013,2,203),
+(1013,3,203),
+(1012,2,203),
+(1012,4,203),
+(1012,3,203),
+(126,6,226),
+(126,1,226),
+(126,3,226),
+(128,6,226),
+(128,5,226),
+(128,3,226),
+(129,1,226),
+(129,4,226),
+(129,3,226),
+(127,2,226),
+(127,4,226),
+(127,3,226),
+(714,6,249),
+(714,5,249),
+(714,3,249),
+(713,6,249),
+(713,2,249),
+(713,3,249),
+(712,2,249),
+(712,4,249),
+(712,3,249),
+(776,6,271),
+(776,2,271),
+(776,3,271),
+(777,1,271),
+(777,4,271),
+(777,3,271),
+(805,1,293),
+(805,4,293),
+(805,3,293),
+(836,6,316),
+(836,5,316),
+(836,3,316),
+(910,6,339),
+(910,1,339),
+(910,3,339),
+(912,1,339),
+(912,4,339),
+(912,3,339),
+(911,2,339),
+(911,4,339),
+(911,3,339),
+(1095,6,361),
+(1095,2,361),
+(1095,3,361),
+(15,6,383),
+(15,2,383),
+(15,3,383),
+(14,2,383),
+(14,4,383),
+(14,3,383),
+(101,6,406),
+(101,1,406),
+(101,3,406),
+(102,6,406),
+(102,2,406),
+(102,3,406),
+(103,1,406),
+(103,4,406),
+(103,3,406),
+(281,6,429),
+(281,2,429),
+(281,3,429),
+(340,2,451),
+(340,4,451),
+(340,3,451),
+(512,6,683),
+(512,5,683),
+(512,3,683),
+(513,1,683),
+(513,4,683),
+(513,3,683),
+(742,6,716),
+(742,1,716),
+(742,3,716),
+(744,6,716),
+(744,5,716),
+(744,3,716),
+(743,2,716),
+(743,4,716),
+(743,3,716),
+(1035,6,749),
+(1035,1,749),
+(1035,3,749),
+(1036,2,749),
+(1036,4,749),
+(1036,3,749),
+(253,6,781),
+(253,1,781),
+(253,3,781),
+(255,1,781),
+(255,4,781),
+(255,3,781),
+(254,2,781),
+(254,4,781),
+(254,3,781),
+(311,6,1063),
+(311,2,1063),
+(311,3,1063),
+(310,2,1063),
+(310,4,1063),
+(310,3,1063),
+(1066,6,1106),
+(1066,5,1106),
+(1066,3,1106),
+(1067,1,1106),
+(1067,4,1106),
+(1067,3,1106),
+(1065,2,1106),
+(1065,4,1106),
+(1065,3,1106),
+(167,6,1149),
+(167,5,1149),
+(167,3,1149),
+(166,6,1149),
+(166,2,1149),
+(166,3,1149),
+(168,1,1149),
+(168,4,1149),
+(168,3,1149),
+(165,2,1149),
+(165,4,1149),
+(165,3,1149),
+(44,6,1191),
+(44,2,1191),
+(44,3,1191),
+(194,6,1233),
+(194,1,1233),
+(194,3,1233),
+(195,1,1233),
+(195,4,1233),
+(195,3,1233),
+(433,6,1276),
+(433,1,1276),
+(433,3,1276),
+(436,6,1276),
+(436,5,1276),
+(436,3,1276),
+(435,6,1276),
+(435,2,1276),
+(435,3,1276),
+(437,1,1276),
+(437,4,1276),
+(437,3,1276),
+(434,2,1276),
+(434,4,1276),
+(434,3,1276),
+(985,6,3),
+(985,1,3),
+(985,4,3),
+(988,6,3),
+(988,5,3),
+(988,3,3),
+(987,2,3),
+(987,4,3),
+(987,3,3),
+(989,1,3),
+(989,4,3),
+(989,3,3),
+(986,6,3),
+(986,2,3),
+(986,3,3),
+(620,6,12),
+(620,1,12),
+(620,4,12),
+(623,6,12),
+(623,5,12),
+(623,3,12),
+(622,2,12),
+(622,4,12),
+(622,3,12),
+(624,1,12),
+(624,4,12),
+(624,3,12),
+(621,6,12),
+(621,2,12),
+(621,3,12),
+(378,6,23),
+(378,1,23),
+(378,4,23),
+(379,6,23),
+(379,2,23),
+(379,3,23),
+(406,2,35),
+(406,4,35),
+(406,3,35),
+(407,1,35),
+(407,4,35),
+(407,3,35),
+(405,6,35),
+(405,2,35),
+(405,3,35),
+(497,6,46),
+(497,1,46),
+(497,4,46),
+(500,6,46),
+(500,5,46),
+(500,3,46),
+(499,2,46),
+(499,4,46),
+(499,3,46),
+(501,1,46),
+(501,4,46),
+(501,3,46),
+(498,6,46),
+(498,2,46),
+(498,3,46),
+(689,6,57),
+(689,1,57),
+(689,4,57),
+(692,6,57),
+(692,5,57),
+(692,3,57),
+(691,2,57),
+(691,4,57),
+(691,3,57),
+(690,6,57),
+(690,2,57),
+(690,3,57),
+(877,6,69),
+(877,1,69),
+(877,4,69),
+(878,1,69),
+(878,4,69),
+(878,3,69),
+(902,2,91),
+(902,4,91),
+(902,3,91),
+(563,6,136),
+(563,5,136),
+(563,3,136),
+(562,2,136),
+(562,4,136),
+(562,3,136),
+(564,1,136),
+(564,4,136),
+(564,3,136),
+(78,6,159),
+(78,1,159),
+(78,4,159),
+(81,6,159),
+(81,5,159),
+(81,3,159),
+(80,2,159),
+(80,4,159),
+(80,3,159),
+(82,1,159),
+(82,4,159),
+(82,3,159),
+(79,6,159),
+(79,2,159),
+(79,3,159),
+(660,6,181),
+(660,5,181),
+(660,3,181),
+(659,2,181),
+(659,4,181),
+(659,3,181),
+(661,1,181),
+(661,4,181),
+(661,3,181),
+(1025,2,203),
+(1025,4,203),
+(1025,3,203),
+(1024,6,203),
+(1024,2,203),
+(1024,3,203),
+(147,6,226),
+(147,1,226),
+(147,4,226),
+(725,2,249),
+(725,4,249),
+(725,3,249),
+(726,1,249),
+(726,4,249),
+(726,3,249),
+(792,6,271),
+(792,5,271),
+(792,3,271),
+(791,2,271),
+(791,4,271),
+(791,3,271),
+(819,6,293),
+(819,1,293),
+(819,4,293),
+(820,6,293),
+(820,5,293),
+(820,3,293),
+(847,6,316),
+(847,1,316),
+(847,4,316),
+(848,1,316),
+(848,4,316),
+(848,3,316),
+(926,6,339),
+(926,1,339),
+(926,4,339),
+(928,6,339),
+(928,5,339),
+(928,3,339),
+(927,6,339),
+(927,2,339),
+(927,3,339),
+(1108,2,361),
+(1108,4,361),
+(1108,3,361),
+(1109,1,361),
+(1109,4,361),
+(1109,3,361),
+(29,2,383),
+(29,4,383),
+(29,3,383),
+(30,1,383),
+(30,4,383),
+(30,3,383),
+(28,6,383),
+(28,2,383),
+(28,3,383),
+(294,1,429),
+(294,4,429),
+(294,3,429),
+(293,6,429),
+(293,2,429),
+(293,3,429),
+(526,6,683),
+(526,1,683),
+(526,4,683),
+(528,6,683),
+(528,5,683),
+(528,3,683),
+(527,6,683),
+(527,2,683),
+(527,3,683),
+(762,1,716),
+(762,4,716),
+(762,3,716),
+(761,6,716),
+(761,2,716),
+(761,3,716),
+(1047,6,749),
+(1047,1,749),
+(1047,4,749),
+(1049,2,749),
+(1049,4,749),
+(1049,3,749),
+(1050,1,749),
+(1050,4,749),
+(1050,3,749),
+(1048,6,749),
+(1048,2,749),
+(1048,3,749),
+(268,6,781),
+(268,1,781),
+(268,4,781),
+(322,6,1063),
+(322,1,1063),
+(322,4,1063),
+(323,6,1063),
+(323,5,1063),
+(323,3,1063),
+(1078,6,1106),
+(1078,5,1106),
+(1078,3,1106),
+(1079,1,1106),
+(1079,4,1106),
+(1079,3,1106),
+(1077,6,1106),
+(1077,2,1106),
+(1077,3,1106),
+(179,6,1149),
+(179,1,1149),
+(179,4,1149),
+(180,6,1149),
+(180,2,1149),
+(180,3,1149),
+(54,6,1191),
+(54,5,1191),
+(54,3,1191),
+(209,6,1233),
+(209,5,1233),
+(209,3,1233),
+(208,2,1233),
+(208,4,1233),
+(208,3,1233),
+(207,6,1233),
+(207,2,1233),
+(207,3,1233),
+(463,6,1276),
+(463,1,1276),
+(463,4,1276),
+(466,6,1276),
+(466,5,1276),
+(466,3,1276),
+(465,2,1276),
+(465,4,1276),
+(465,3,1276),
+(467,1,1276),
+(467,4,1276),
+(467,3,1276),
+(464,6,1276),
+(464,2,1276),
+(464,3,1276),
+(965,6,3),
+(965,1,3),
+(965,2,3),
+(968,6,3),
+(968,5,3),
+(968,4,3),
+(967,1,3),
+(967,2,3),
+(967,3,3),
+(969,1,3),
+(969,2,3),
+(969,4,3),
+(966,2,3),
+(966,4,3),
+(966,3,3),
+(600,6,12),
+(600,1,12),
+(600,2,12),
+(603,6,12),
+(603,5,12),
+(603,4,12),
+(602,1,12),
+(602,2,12),
+(602,3,12),
+(604,1,12),
+(604,2,12),
+(604,4,12),
+(601,2,12),
+(601,4,12),
+(601,3,12),
+(369,6,23),
+(369,1,23),
+(369,2,23),
+(370,1,23),
+(370,2,23),
+(370,3,23),
+(371,1,23),
+(371,2,23),
+(371,4,23),
+(395,1,35),
+(395,2,35),
+(395,3,35),
+(396,1,35),
+(396,2,35),
+(396,4,35),
+(486,6,46),
+(486,1,46),
+(486,2,46),
+(488,1,46),
+(488,2,46),
+(488,3,46),
+(489,1,46),
+(489,2,46),
+(489,4,46),
+(487,2,46),
+(487,4,46),
+(487,3,46),
+(679,6,57),
+(679,1,57),
+(679,2,57),
+(680,6,57),
+(680,5,57),
+(680,4,57),
+(681,1,57),
+(681,2,57),
+(681,4,57),
+(870,6,69),
+(870,1,69),
+(870,2,69),
+(871,6,69),
+(871,5,69),
+(871,4,69),
+(232,6,113),
+(232,5,113),
+(232,4,113),
+(233,1,113),
+(233,2,113),
+(233,4,113),
+(231,2,113),
+(231,4,113),
+(231,3,113),
+(551,6,136),
+(551,1,136),
+(551,2,136),
+(552,6,136),
+(552,5,136),
+(552,4,136),
+(553,1,136),
+(553,2,136),
+(553,4,136),
+(68,6,159),
+(68,5,159),
+(68,4,159),
+(651,6,369),
+(651,5,369),
+(651,4,369),
+(1018,1,203),
+(1018,2,203),
+(1018,3,203),
+(1019,1,203),
+(1019,2,203),
+(1019,4,203),
+(1017,2,203),
+(1017,4,203),
+(1017,3,203),
+(133,6,226),
+(133,1,226),
+(133,2,226),
+(134,6,226),
+(134,5,226),
+(134,4,226),
+(135,1,226),
+(135,2,226),
+(135,4,226),
+(719,1,249),
+(719,2,249),
+(719,3,249),
+(720,1,249),
+(720,2,249),
+(720,4,249),
+(781,6,271),
+(781,1,271),
+(781,2,271),
+(783,1,271),
+(783,2,271),
+(783,3,271),
+(782,2,271),
+(782,4,271),
+(782,3,271),
+(811,6,293),
+(811,5,293),
+(811,4,293),
+(810,1,293),
+(810,2,293),
+(810,3,293),
+(809,2,293),
+(809,4,293),
+(809,3,293),
+(840,1,316),
+(840,2,316),
+(840,4,316),
+(839,2,316),
+(839,4,316),
+(839,3,316),
+(917,6,339),
+(917,1,339),
+(917,2,339),
+(918,6,339),
+(918,5,339),
+(918,4,339),
+(919,1,339),
+(919,2,339),
+(919,4,339),
+(1098,6,361),
+(1098,5,361),
+(1098,4,361),
+(1099,1,361),
+(1099,2,361),
+(1099,4,361),
+(17,1,383),
+(17,2,383),
+(17,3,383),
+(106,6,406),
+(106,5,406),
+(106,4,406),
+(105,1,406),
+(105,2,406),
+(105,3,406),
+(107,1,406),
+(107,2,406),
+(107,4,406),
+(285,6,429),
+(285,1,429),
+(285,2,429),
+(287,1,429),
+(287,2,429),
+(287,3,429),
+(286,2,429),
+(286,4,429),
+(286,3,429),
+(345,6,451),
+(345,5,451),
+(345,4,451),
+(344,1,451),
+(344,2,451),
+(344,3,451),
+(516,6,683),
+(516,1,683),
+(516,2,683),
+(517,2,683),
+(517,4,683),
+(517,3,683),
+(749,1,716),
+(749,2,716),
+(749,3,716),
+(750,1,716),
+(750,2,716),
+(750,4,716),
+(748,2,716),
+(748,4,716),
+(748,3,716),
+(1038,6,749),
+(1038,1,749),
+(1038,2,749),
+(1039,2,749),
+(1039,4,749),
+(1039,3,749),
+(260,6,781),
+(260,5,781),
+(260,4,781),
+(259,2,781),
+(259,4,781),
+(259,3,781),
+(315,1,1063),
+(315,2,1063),
+(315,3,1063),
+(314,2,1063),
+(314,4,1063),
+(314,3,1063),
+(1069,2,1106),
+(1069,4,1106),
+(1069,3,1106),
+(171,6,1149),
+(171,1,1149),
+(171,2,1149),
+(172,1,1149),
+(172,2,1149),
+(172,3,1149),
+(173,1,1149),
+(173,2,1149),
+(173,4,1149),
+(47,6,1191),
+(47,1,1191),
+(47,2,1191),
+(48,1,1191),
+(48,2,1191),
+(48,3,1191),
+(198,6,1233),
+(198,1,1233),
+(198,2,1233),
+(200,6,1233),
+(200,5,1233),
+(200,4,1233),
+(199,2,1233),
+(199,4,1233),
+(199,3,1233),
+(443,6,1276),
+(443,1,1276),
+(443,2,1276),
+(446,6,1276),
+(446,5,1276),
+(446,4,1276),
+(445,1,1276),
+(445,2,1276),
+(445,3,1276),
+(447,1,1276),
+(447,2,1276),
+(447,4,1276),
+(444,2,1276),
+(444,4,1276),
+(444,3,1276),
+(980,6,3),
+(980,1,3),
+(980,3,3),
+(983,6,3),
+(983,5,3),
+(983,4,3),
+(982,5,3),
+(982,2,3),
+(982,3,3),
+(984,6,3),
+(984,1,3),
+(984,4,3),
+(981,6,3),
+(981,2,3),
+(981,3,3),
+(615,6,12),
+(615,1,12),
+(615,3,12),
+(618,6,12),
+(618,5,12),
+(618,4,12),
+(617,5,12),
+(617,2,12),
+(617,3,12),
+(619,6,12),
+(619,1,12),
+(619,4,12),
+(616,6,12),
+(616,2,12),
+(616,3,12),
+(376,6,23),
+(376,1,23),
+(376,3,23),
+(377,6,23),
+(377,2,23),
+(377,3,23),
+(402,6,35),
+(402,1,35),
+(402,3,35),
+(404,6,35),
+(404,5,35),
+(404,4,35),
+(403,6,35),
+(403,2,35),
+(403,3,35),
+(495,6,46),
+(495,5,46),
+(495,4,46),
+(494,5,46),
+(494,2,46),
+(494,3,46),
+(496,6,46),
+(496,1,46),
+(496,4,46),
+(493,6,46),
+(493,2,46),
+(493,3,46),
+(687,6,57),
+(687,1,57),
+(687,3,57),
+(688,6,57),
+(688,1,57),
+(688,4,57),
+(876,5,69),
+(876,2,69),
+(876,3,69),
+(899,6,91),
+(899,1,91),
+(899,3,91),
+(901,6,91),
+(901,5,91),
+(901,4,91),
+(900,6,91),
+(900,2,91),
+(900,3,91),
+(240,5,113),
+(240,2,113),
+(240,3,113),
+(239,6,113),
+(239,2,113),
+(239,3,113),
+(559,6,136),
+(559,1,136),
+(559,3,136),
+(560,6,136),
+(560,5,136),
+(560,4,136),
+(561,6,136),
+(561,1,136),
+(561,4,136),
+(76,6,159),
+(76,5,159),
+(76,4,159),
+(77,6,159),
+(77,1,159),
+(77,4,159),
+(656,6,181),
+(656,1,181),
+(656,3,181),
+(658,6,181),
+(658,5,181),
+(658,4,181),
+(657,5,181),
+(657,2,181),
+(657,3,181),
+(1023,6,203),
+(1023,1,203),
+(1023,4,203),
+(142,6,226),
+(142,1,226),
+(142,3,226),
+(145,6,226),
+(145,5,226),
+(145,4,226),
+(144,5,226),
+(144,2,226),
+(144,3,226),
+(146,6,226),
+(146,1,226),
+(146,4,226),
+(143,6,226),
+(143,2,226),
+(143,3,226),
+(722,6,249),
+(722,1,249),
+(722,3,249),
+(724,6,249),
+(724,1,249),
+(724,4,249),
+(723,6,249),
+(723,2,249),
+(723,3,249),
+(790,5,271),
+(790,2,271),
+(790,3,271),
+(817,5,293),
+(817,2,293),
+(817,3,293),
+(818,6,293),
+(818,1,293),
+(818,4,293),
+(816,6,293),
+(816,2,293),
+(816,3,293),
+(845,6,316),
+(845,5,316),
+(845,4,316),
+(844,5,316),
+(844,2,316),
+(844,3,316),
+(846,6,316),
+(846,1,316),
+(846,4,316),
+(925,6,339),
+(925,2,339),
+(925,3,339),
+(1104,6,361),
+(1104,1,361),
+(1104,3,361),
+(1107,6,361),
+(1107,5,361),
+(1107,4,361),
+(1106,5,361),
+(1106,2,361),
+(1106,3,361),
+(1105,6,361),
+(1105,2,361),
+(1105,3,361),
+(24,6,383),
+(24,1,383),
+(24,3,383),
+(26,5,383),
+(26,2,383),
+(26,3,383),
+(27,6,383),
+(27,1,383),
+(27,4,383),
+(25,6,383),
+(25,2,383),
+(25,3,383),
+(112,6,406),
+(112,1,406),
+(112,4,406),
+(111,6,406),
+(111,2,406),
+(111,3,406),
+(292,6,429),
+(292,5,429),
+(292,4,429),
+(291,5,429),
+(291,2,429),
+(291,3,429),
+(351,6,451),
+(351,2,451),
+(351,3,451),
+(523,6,683),
+(523,1,683),
+(523,3,683),
+(525,6,683),
+(525,5,683),
+(525,4,683),
+(524,5,683),
+(524,2,683),
+(524,3,683),
+(757,6,716),
+(757,1,716),
+(757,3,716),
+(760,6,716),
+(760,5,716),
+(760,4,716),
+(759,5,716),
+(759,2,716),
+(759,3,716),
+(758,6,716),
+(758,2,716),
+(758,3,716),
+(1044,6,749),
+(1044,1,749),
+(1044,3,749),
+(1045,5,749),
+(1045,2,749),
+(1045,3,749),
+(1046,6,749),
+(1046,1,749),
+(1046,4,749),
+(267,6,781),
+(267,1,781),
+(267,3,781),
+(321,6,1063),
+(321,5,1063),
+(321,4,1063),
+(320,6,1063),
+(320,2,1063),
+(320,3,1063),
+(1075,6,1106),
+(1075,5,1106),
+(1075,4,1106),
+(1076,6,1106),
+(1076,1,1106),
+(1076,4,1106),
+(178,6,1149),
+(178,1,1149),
+(178,4,1149),
+(53,6,1191),
+(53,1,1191),
+(53,3,1191),
+(206,6,1233),
+(206,5,1233),
+(206,4,1233),
+(205,5,1233),
+(205,2,1233),
+(205,3,1233),
+(458,6,1276),
+(458,1,1276),
+(458,3,1276),
+(461,6,1276),
+(461,5,1276),
+(461,4,1276),
+(460,5,1276),
+(460,2,1276),
+(460,3,1276),
+(462,6,1276),
+(462,1,1276),
+(462,4,1276),
+(459,6,1276),
+(459,2,1276),
+(459,3,1276),
+(960,6,3),
+(960,1,3),
+(960,2,3),
+(963,6,3),
+(963,1,3),
+(963,5,3),
+(962,6,3),
+(962,2,3),
+(962,3,3),
+(964,1,3),
+(964,4,3),
+(964,3,3),
+(961,5,3),
+(961,2,3),
+(961,3,3),
+(595,6,12),
+(595,1,12),
+(595,2,12),
+(598,6,12),
+(598,1,12),
+(598,5,12),
+(597,6,12),
+(597,2,12),
+(597,3,12),
+(599,1,12),
+(599,4,12),
+(599,3,12),
+(596,5,12),
+(596,2,12),
+(596,3,12),
+(368,6,23),
+(368,1,23),
+(368,5,23),
+(367,5,23),
+(367,2,23),
+(367,3,23),
+(393,6,35),
+(393,1,35),
+(393,2,35),
+(394,1,35),
+(394,4,35),
+(394,3,35),
+(485,6,46),
+(485,1,46),
+(485,5,46),
+(484,6,46),
+(484,2,46),
+(484,3,46),
+(676,6,57),
+(676,1,57),
+(676,2,57),
+(678,1,57),
+(678,4,57),
+(678,3,57),
+(677,5,57),
+(677,2,57),
+(677,3,57),
+(869,5,69),
+(869,2,69),
+(869,3,69),
+(230,6,113),
+(230,1,113),
+(230,5,113),
+(229,6,113),
+(229,2,113),
+(229,3,113),
+(228,5,113),
+(228,2,113),
+(228,3,113),
+(549,6,136),
+(549,2,136),
+(549,3,136),
+(550,1,136),
+(550,4,136),
+(550,3,136),
+(67,6,159),
+(67,2,159),
+(67,3,159),
+(648,6,181),
+(648,1,181),
+(648,2,181),
+(649,6,181),
+(649,1,181),
+(649,5,181),
+(650,1,181),
+(650,4,181),
+(650,3,181),
+(1015,6,203),
+(1015,1,203),
+(1015,2,203),
+(1016,5,203),
+(1016,2,203),
+(1016,3,203),
+(131,6,226),
+(131,2,226),
+(131,3,226),
+(132,1,226),
+(132,4,226),
+(132,3,226),
+(130,5,226),
+(130,2,226),
+(130,3,226),
+(715,6,249),
+(715,1,249),
+(715,2,249),
+(717,6,249),
+(717,2,249),
+(717,3,249),
+(718,1,249),
+(718,4,249),
+(718,3,249),
+(716,5,249),
+(716,2,249),
+(716,3,249),
+(778,6,271),
+(778,1,271),
+(778,2,271),
+(779,6,271),
+(779,1,271),
+(779,5,271),
+(780,1,271),
+(780,4,271),
+(780,3,271),
+(806,6,293),
+(806,1,293),
+(806,2,293),
+(808,6,293),
+(808,1,293),
+(808,5,293),
+(807,5,293),
+(807,2,293),
+(807,3,293),
+(837,6,316),
+(837,1,316),
+(837,5,316),
+(838,1,316),
+(838,4,316),
+(838,3,316),
+(913,6,339),
+(913,1,339),
+(913,2,339),
+(915,6,339),
+(915,1,339),
+(915,5,339),
+(914,6,339),
+(914,2,339),
+(914,3,339),
+(916,1,339),
+(916,4,339),
+(916,3,339),
+(1097,6,361),
+(1097,1,361),
+(1097,5,361),
+(1096,5,361),
+(1096,2,361),
+(1096,3,361),
+(16,1,383),
+(16,4,383),
+(16,3,383),
+(104,6,406),
+(104,2,406),
+(104,3,406),
+(283,6,429),
+(283,1,429),
+(283,5,429),
+(282,6,429),
+(282,2,429),
+(282,3,429),
+(284,1,429),
+(284,4,429),
+(284,3,429),
+(343,6,451),
+(343,1,451),
+(343,5,451),
+(342,6,451),
+(342,2,451),
+(342,3,451),
+(341,5,451),
+(341,2,451),
+(341,3,451),
+(514,6,683),
+(514,1,683),
+(514,2,683),
+(515,1,683),
+(515,4,683),
+(515,3,683),
+(745,6,716),
+(745,1,716),
+(745,2,716),
+(746,6,716),
+(746,2,716),
+(746,3,716),
+(747,1,716),
+(747,4,716),
+(747,3,716),
+(1037,6,749),
+(1037,1,749),
+(1037,5,749),
+(256,6,781),
+(256,1,781),
+(256,2,781),
+(258,6,781),
+(258,2,781),
+(258,3,781),
+(257,5,781),
+(257,2,781),
+(257,3,781),
+(312,6,1063),
+(312,1,1063),
+(312,2,1063),
+(313,5,1063),
+(313,2,1063),
+(313,3,1063),
+(1068,6,1106),
+(1068,1,1106),
+(1068,2,1106),
+(169,6,1149),
+(169,1,1149),
+(169,2,1149),
+(170,6,1149),
+(170,1,1149),
+(170,5,1149),
+(46,6,1191),
+(46,2,1191),
+(46,3,1191),
+(45,5,1191),
+(45,2,1191),
+(45,3,1191),
+(197,6,1233),
+(197,1,1233),
+(197,5,1233),
+(196,6,1233),
+(196,2,1233),
+(196,3,1233),
+(438,6,1276),
+(438,1,1276),
+(438,2,1276),
+(441,6,1276),
+(441,1,1276),
+(441,5,1276),
+(440,6,1276),
+(440,2,1276),
+(440,3,1276),
+(442,1,1276),
+(442,4,1276),
+(442,3,1276),
+(439,5,1276),
+(439,2,1276),
+(439,3,1276),
+(940,6,3),
+(940,1,3),
+(940,3,3),
+(943,6,3),
+(943,1,3),
+(943,5,3),
+(942,5,3),
+(942,2,3),
+(942,3,3),
+(944,1,3),
+(944,5,3),
+(944,4,3),
+(941,5,3),
+(941,2,3),
+(941,3,3),
+(575,6,12),
+(575,1,12),
+(575,3,12),
+(578,6,12),
+(578,1,12),
+(578,5,12),
+(577,5,12),
+(577,2,12),
+(577,3,12),
+(579,1,12),
+(579,5,12),
+(579,4,12),
+(576,5,12),
+(576,2,12),
+(576,3,12),
+(358,5,23),
+(358,2,23),
+(358,3,23),
+(386,6,35),
+(386,1,35),
+(386,3,35),
+(387,6,35),
+(387,1,35),
+(387,5,35),
+(479,6,46),
+(479,1,46),
+(479,3,46),
+(480,5,46),
+(480,2,46),
+(480,3,46),
+(671,5,57),
+(671,2,57),
+(671,3,57),
+(856,6,69),
+(856,1,69),
+(856,5,69),
+(857,1,69),
+(857,5,69),
+(857,4,69),
+(855,5,69),
+(855,2,69),
+(855,3,69),
+(885,6,91),
+(885,1,91),
+(885,5,91),
+(886,1,91),
+(886,5,91),
+(886,4,91),
+(884,5,91),
+(884,2,91),
+(884,3,91),
+(218,6,113),
+(218,1,113),
+(218,3,113),
+(219,5,113),
+(219,2,113),
+(219,3,113),
+(220,1,113),
+(220,5,113),
+(220,4,113),
+(538,5,136),
+(538,2,136),
+(538,3,136),
+(539,1,136),
+(539,5,136),
+(539,4,136),
+(60,6,159),
+(60,1,159),
+(60,3,159),
+(638,6,181),
+(638,1,181),
+(638,3,181),
+(640,6,181),
+(640,1,181),
+(640,5,181),
+(639,5,181),
+(639,2,181),
+(639,3,181),
+(1002,6,203),
+(1002,1,203),
+(1002,3,203),
+(1003,6,203),
+(1003,1,203),
+(1003,5,203),
+(1004,1,203),
+(1004,5,203),
+(1004,4,203),
+(121,5,226),
+(121,2,226),
+(121,3,226),
+(704,5,249),
+(704,2,249),
+(704,3,249),
+(705,1,249),
+(705,5,249),
+(705,4,249),
+(703,5,249),
+(703,2,249),
+(703,3,249),
+(771,1,271),
+(771,5,271),
+(771,4,271),
+(798,6,293),
+(798,1,293),
+(798,3,293),
+(799,5,293),
+(799,2,293),
+(799,3,293),
+(828,6,316),
+(828,1,316),
+(828,3,316),
+(831,6,316),
+(831,1,316),
+(831,5,316),
+(830,5,316),
+(830,2,316),
+(830,3,316),
+(832,1,316),
+(832,5,316),
+(832,4,316),
+(829,5,316),
+(829,2,316),
+(829,3,316),
+(905,5,339),
+(905,2,339),
+(905,3,339),
+(1087,1,361),
+(1087,5,361),
+(1087,4,361),
+(3,6,383),
+(3,1,383),
+(3,3,383),
+(6,6,383),
+(6,1,383),
+(6,5,383),
+(5,5,383),
+(5,2,383),
+(5,3,383),
+(4,5,383),
+(4,2,383),
+(4,3,383),
+(91,6,406),
+(91,1,406),
+(91,3,406),
+(94,6,406),
+(94,1,406),
+(94,5,406),
+(93,5,406),
+(93,2,406),
+(93,3,406),
+(95,1,406),
+(95,5,406),
+(95,4,406),
+(92,5,406),
+(92,2,406),
+(92,3,406),
+(274,6,429),
+(274,1,429),
+(274,3,429),
+(332,6,451),
+(332,1,451),
+(332,3,451),
+(334,6,451),
+(334,1,451),
+(334,5,451),
+(333,5,451),
+(333,2,451),
+(333,3,451),
+(507,6,683),
+(507,1,683),
+(507,5,683),
+(737,6,716),
+(737,1,716),
+(737,5,716),
+(736,5,716),
+(736,2,716),
+(736,3,716),
+(247,1,781),
+(247,5,781),
+(247,4,781),
+(246,5,781),
+(246,2,781),
+(246,3,781),
+(302,6,1063),
+(302,1,1063),
+(302,3,1063),
+(304,5,1063),
+(304,2,1063),
+(304,3,1063),
+(305,1,1063),
+(305,5,1063),
+(305,4,1063),
+(303,5,1063),
+(303,2,1063),
+(303,3,1063),
+(1057,6,1106),
+(1057,1,1106),
+(1057,3,1106),
+(1059,6,1106),
+(1059,1,1106),
+(1059,5,1106),
+(1058,5,1106),
+(1058,2,1106),
+(1058,3,1106),
+(1060,1,1106),
+(1060,5,1106),
+(1060,4,1106),
+(155,6,1149),
+(155,1,1149),
+(155,5,1149),
+(156,1,1149),
+(156,5,1149),
+(156,4,1149),
+(154,5,1149),
+(154,2,1149),
+(154,3,1149),
+(41,5,1191),
+(41,2,1191),
+(41,3,1191),
+(187,6,1233),
+(187,1,1233),
+(187,3,1233),
+(188,5,1233),
+(188,2,1233),
+(188,3,1233),
+(189,1,1233),
+(189,5,1233),
+(189,4,1233),
+(418,6,1276),
+(418,1,1276),
+(418,3,1276),
+(421,6,1276),
+(421,1,1276),
+(421,5,1276),
+(420,5,1276),
+(420,2,1276),
+(420,3,1276),
+(422,1,1276),
+(422,5,1276),
+(422,4,1276),
+(419,5,1276),
+(419,2,1276),
+(419,3,1276),
+(935,6,3),
+(935,1,3),
+(935,2,3),
+(938,6,3),
+(938,5,3),
+(938,2,3),
+(937,5,3),
+(937,2,3),
+(937,3,3),
+(939,1,3),
+(939,2,3),
+(939,4,3),
+(936,1,3),
+(936,2,3),
+(936,3,3),
+(570,6,12),
+(570,1,12),
+(570,2,12),
+(573,6,12),
+(573,5,12),
+(573,2,12),
+(572,5,12),
+(572,2,12),
+(572,3,12),
+(574,1,12),
+(574,2,12),
+(574,4,12),
+(571,1,12),
+(571,2,12),
+(571,3,12),
+(357,6,23),
+(357,5,23),
+(357,2,23),
+(385,5,35),
+(385,2,35),
+(385,3,35),
+(478,6,46),
+(478,5,46),
+(478,2,46),
+(669,6,57),
+(669,5,57),
+(669,2,57),
+(668,5,57),
+(668,2,57),
+(668,3,57),
+(670,1,57),
+(670,2,57),
+(670,4,57),
+(667,1,57),
+(667,2,57),
+(667,3,57),
+(852,6,69),
+(852,1,69),
+(852,2,69),
+(854,1,69),
+(854,2,69),
+(854,4,69),
+(853,1,69),
+(853,2,69),
+(853,3,69),
+(883,6,91),
+(883,1,91),
+(883,2,91),
+(217,1,113),
+(217,2,113),
+(217,4,113),
+(534,6,136),
+(534,1,136),
+(534,2,136),
+(536,6,136),
+(536,5,136),
+(536,2,136),
+(537,1,136),
+(537,2,136),
+(537,4,136),
+(535,1,136),
+(535,2,136),
+(535,3,136),
+(59,5,159),
+(59,2,159),
+(59,3,159),
+(637,1,369),
+(637,2,369),
+(637,4,369),
+(635,6,181),
+(635,1,181),
+(635,2,181),
+(636,1,181),
+(636,2,181),
+(636,3,181),
+(1001,6,203),
+(1001,5,203),
+(1001,2,203),
+(1000,5,203),
+(1000,2,203),
+(1000,3,203),
+(119,6,226),
+(119,1,226),
+(119,2,226),
+(120,5,226),
+(120,2,226),
+(120,3,226),
+(700,6,249),
+(700,1,249),
+(700,2,249),
+(702,6,249),
+(702,5,249),
+(702,2,249),
+(701,1,249),
+(701,2,249),
+(701,3,249),
+(768,6,271),
+(768,1,271),
+(768,2,271),
+(769,5,271),
+(769,2,271),
+(769,3,271),
+(770,1,271),
+(770,2,271),
+(770,4,271),
+(796,6,293),
+(796,1,293),
+(796,2,293),
+(797,6,293),
+(797,5,293),
+(797,2,293),
+(825,6,316),
+(825,1,316),
+(825,2,316),
+(827,6,316),
+(827,5,316),
+(827,2,316),
+(826,1,316),
+(826,2,316),
+(826,3,316),
+(904,5,339),
+(904,2,339),
+(904,3,339),
+(1085,6,361),
+(1085,5,361),
+(1085,2,361),
+(1086,1,361),
+(1086,2,361),
+(1086,4,361),
+(1084,1,361),
+(1084,2,361),
+(1084,3,361),
+(2,5,383),
+(2,2,383),
+(2,3,383),
+(1,1,383),
+(1,2,383),
+(1,3,383),
+(88,6,406),
+(88,1,406),
+(88,2,406),
+(90,6,406),
+(90,5,406),
+(90,2,406),
+(89,5,406),
+(89,2,406),
+(89,3,406),
+(273,1,429),
+(273,2,429),
+(273,4,429),
+(329,6,451),
+(329,1,451),
+(329,2,451),
+(331,5,451),
+(331,2,451),
+(331,3,451),
+(330,1,451),
+(330,2,451),
+(330,3,451),
+(506,1,683),
+(506,2,683),
+(506,4,683),
+(733,6,716),
+(733,1,716),
+(733,2,716),
+(734,5,716),
+(734,2,716),
+(734,3,716),
+(735,1,716),
+(735,2,716),
+(735,4,716),
+(1031,1,1059),
+(1031,2,1059),
+(1031,3,1059),
+(1032,5,749),
+(1032,2,749),
+(1032,3,749),
+(1033,1,749),
+(1033,2,749),
+(1033,4,749),
+(298,6,1063),
+(298,1,1063),
+(298,2,1063),
+(300,5,1063),
+(300,2,1063),
+(300,3,1063),
+(301,1,1063),
+(301,2,1063),
+(301,4,1063),
+(299,1,1063),
+(299,2,1063),
+(299,3,1063),
+(1055,6,1106),
+(1055,1,1106),
+(1055,2,1106),
+(1056,1,1106),
+(1056,2,1106),
+(1056,4,1106),
+(153,5,1149),
+(153,2,1149),
+(153,3,1149),
+(152,1,1149),
+(152,2,1149),
+(152,3,1149),
+(39,6,1191),
+(39,5,1191),
+(39,2,1191),
+(40,1,1191),
+(40,2,1191),
+(40,4,1191),
+(185,6,1233),
+(185,1,1233),
+(185,2,1233),
+(186,6,1233),
+(186,5,1233),
+(186,2,1233),
+(413,6,1276),
+(413,1,1276),
+(413,2,1276),
+(416,6,1276),
+(416,5,1276),
+(416,2,1276),
+(415,5,1276),
+(415,2,1276),
+(415,3,1276),
+(417,1,1276),
+(417,2,1276),
+(417,4,1276),
+(414,1,1276),
+(414,2,1276),
+(414,3,1276),
+(10,6,383),
+(10,1,383),
+(10,4,383),
+(11,1,383),
+(11,2,383),
+(11,3,383),
+(12,6,383),
+(12,5,383),
+(12,3,383),
+(13,1,383),
+(13,5,383),
+(13,4,383),
+(43,1,1191),
+(43,5,1191),
+(43,4,1191),
+(64,2,159),
+(64,4,159),
+(64,3,159),
+(65,1,159),
+(65,2,159),
+(65,3,159),
+(100,1,406),
+(100,5,406),
+(100,4,406),
+(125,1,226),
+(125,5,226),
+(125,4,226),
+(161,2,1149),
+(161,4,1149),
+(161,3,1149),
+(162,1,1149),
+(162,2,1149),
+(162,3,1149),
+(163,6,1149),
+(163,5,1149),
+(163,3,1149),
+(164,1,1149),
+(164,5,1149),
+(164,4,1149),
+(190,6,1233),
+(190,1,1233),
+(190,4,1233),
+(191,1,1233),
+(191,2,1233),
+(191,3,1233),
+(192,6,1233),
+(192,5,1233),
+(192,3,1233),
+(193,1,1233),
+(193,5,1233),
+(193,4,1233),
+(223,6,113),
+(223,1,113),
+(223,4,113),
+(224,2,113),
+(224,4,113),
+(224,3,113),
+(225,1,113),
+(225,5,113),
+(225,4,113),
+(249,6,781),
+(249,1,781),
+(249,4,781),
+(250,1,781),
+(250,2,781),
+(250,3,781),
+(251,6,781),
+(251,5,781),
+(251,3,781),
+(252,1,781),
+(252,5,781),
+(252,4,781),
+(277,6,429),
+(277,1,429),
+(277,4,429),
+(278,2,429),
+(278,4,429),
+(278,3,429),
+(279,1,429),
+(279,2,429),
+(279,3,429),
+(280,6,429),
+(280,5,429),
+(280,3,429),
+(308,6,1063),
+(308,1,1063),
+(308,4,1063),
+(309,2,1063),
+(309,4,1063),
+(309,3,1063),
+(338,6,451),
+(338,1,451),
+(338,4,451),
+(339,2,451),
+(339,4,451),
+(339,3,451),
+(361,6,23),
+(361,1,23),
+(361,4,23),
+(362,2,23),
+(362,4,23),
+(362,3,23),
+(363,1,23),
+(363,2,23),
+(363,3,23),
+(388,6,35),
+(388,5,35),
+(388,3,35),
+(428,6,1276),
+(428,1,1276),
+(428,4,1276),
+(429,2,1276),
+(429,4,1276),
+(429,3,1276),
+(430,1,1276),
+(430,2,1276),
+(430,3,1276),
+(431,6,1276),
+(431,5,1276),
+(431,3,1276),
+(432,1,1276),
+(432,5,1276),
+(432,4,1276),
+(482,6,46),
+(482,1,46),
+(482,4,46),
+(510,6,683),
+(510,1,683),
+(510,4,683),
+(511,1,683),
+(511,5,683),
+(511,4,683),
+(543,1,136),
+(543,2,136),
+(543,3,136),
+(544,6,136),
+(544,5,136),
+(544,3,136),
+(545,1,136),
+(545,5,136),
+(545,4,136),
+(585,6,12),
+(585,1,12),
+(585,4,12),
+(586,2,12),
+(586,4,12),
+(586,3,12),
+(587,1,12),
+(587,2,12),
+(587,3,12),
+(588,6,12),
+(588,5,12),
+(588,3,12),
+(589,1,12),
+(589,5,12),
+(589,4,12),
+(643,6,181),
+(643,1,181),
+(643,4,181),
+(644,6,181),
+(644,5,181),
+(644,3,181),
+(645,1,181),
+(645,5,181),
+(645,4,181),
+(673,2,57),
+(673,4,57),
+(673,3,57),
+(709,2,249),
+(709,4,249),
+(709,3,249),
+(710,1,249),
+(710,2,249),
+(710,3,249),
+(711,6,249),
+(711,5,249),
+(711,3,249),
+(740,2,716),
+(740,4,716),
+(740,3,716),
+(741,1,716),
+(741,2,716),
+(741,3,716),
+(773,2,271),
+(773,4,271),
+(773,3,271),
+(774,6,271),
+(774,5,271),
+(774,3,271),
+(775,1,271),
+(775,5,271),
+(775,4,271),
+(802,6,293),
+(802,1,293),
+(802,4,293),
+(803,2,293),
+(803,4,293),
+(803,3,293),
+(804,1,293),
+(804,2,293),
+(804,3,293),
+(861,6,69),
+(861,1,69),
+(861,4,69),
+(862,6,69),
+(862,5,69),
+(862,3,69),
+(863,1,69),
+(863,5,69),
+(863,4,69),
+(892,1,91),
+(892,2,91),
+(892,3,91),
+(909,6,339),
+(909,5,339),
+(909,3,339),
+(950,6,3),
+(950,1,3),
+(950,4,3),
+(951,2,3),
+(951,4,3),
+(951,3,3),
+(952,1,3),
+(952,2,3),
+(952,3,3),
+(953,6,3),
+(953,5,3),
+(953,3,3),
+(954,1,3),
+(954,5,3),
+(954,4,3),
+(1008,6,203),
+(1008,1,203),
+(1008,4,203),
+(1009,1,203),
+(1009,2,203),
+(1009,3,203),
+(1010,6,203),
+(1010,5,203),
+(1010,3,203),
+(1063,1,1106),
+(1063,2,1106),
+(1063,3,1106),
+(1064,6,1106),
+(1064,5,1106),
+(1064,3,1106),
+(1092,6,361),
+(1092,1,361),
+(1092,4,361),
+(1093,2,361),
+(1093,4,361),
+(1093,3,361),
+(1094,6,361),
+(1094,5,361),
+(1094,3,361);

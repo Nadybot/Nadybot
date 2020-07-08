@@ -1,5116 +1,5117 @@
 DROP TABLE IF EXISTS SymbiantProfessionMatrix;
 CREATE TABLE SymbiantProfessionMatrix (SymbiantID INT NOT NULL, ProfessionID INT NOT NULL);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (469,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (469,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (469,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (469,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (975,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (975,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (975,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (975,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (975,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (978,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (978,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (978,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (978,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (977,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (977,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (977,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (979,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (976,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (976,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (976,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (976,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (610,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (610,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (610,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (610,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (610,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (613,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (613,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (613,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (613,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (612,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (612,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (612,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (614,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (611,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (611,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (611,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (611,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (373,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (373,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (373,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (373,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (373,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (375,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (375,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (375,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (374,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (374,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (374,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (374,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (401,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (401,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (401,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (400,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (400,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (400,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (400,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (492,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (491,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (491,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (491,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (491,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (683,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (683,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (683,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (683,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (683,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (685,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (685,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (685,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (686,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (684,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (684,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (684,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (684,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (875,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (875,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (875,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (896,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (896,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (896,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (896,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (896,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (898,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (898,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (898,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (897,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (897,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (897,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (897,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (237,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (237,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (237,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (237,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (237,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (238,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (238,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (238,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (238,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (557,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (557,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (557,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (557,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (557,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (558,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (558,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (558,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (558,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (74,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (74,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (74,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (74,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (74,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (75,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (75,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (75,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (654,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (654,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (654,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (654,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (654,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (655,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (655,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (655,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (655,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1022,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1022,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1022,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1022,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1021,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1021,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1021,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1021,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (138,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (138,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (138,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (138,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (138,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (140,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (140,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (140,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (140,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (141,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (139,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (139,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (139,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (139,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (786,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (786,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (786,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (786,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (786,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (788,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (788,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (788,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (788,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (787,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (787,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (787,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (789,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (813,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (813,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (813,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (813,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (813,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (815,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (815,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (815,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (815,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (814,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (814,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (814,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (814,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (924,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (924,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (924,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (924,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (923,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (923,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (923,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1102,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1102,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1102,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1102,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1102,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1103,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (22,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (22,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (22,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (22,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (21,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (21,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (21,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (23,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (108,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (108,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (108,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (108,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (108,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (109,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (109,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (109,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (109,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (110,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (289,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (289,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (289,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (289,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (289,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (290,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (350,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (350,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (350,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (349,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (349,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (349,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (349,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (521,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (521,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (521,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (521,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (522,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (754,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (754,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (754,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (754,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (754,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (756,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (756,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (756,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (756,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (755,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (755,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (755,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (755,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1043,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1043,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1043,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1043,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1042,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1042,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1042,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1042,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (265,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (265,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (265,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (265,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (264,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (264,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (264,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (266,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (263,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (263,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (263,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (263,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (319,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (319,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (319,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (319,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (318,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (318,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (318,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1073,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1073,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1073,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1074,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1072,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1072,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1072,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1072,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (177,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (176,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (176,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (176,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (176,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (52,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (52,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (52,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (203,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (203,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (203,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (204,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (453,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (453,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (453,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (453,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (453,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (456,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (456,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (456,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (456,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (455,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (455,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (455,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (457,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (454,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (454,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (454,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (454,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (970,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (970,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (970,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (970,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (970,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (973,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (973,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (973,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (973,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (972,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (972,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (972,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (974,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (971,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (971,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (971,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (971,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (605,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (605,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (605,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (605,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (605,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (608,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (608,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (608,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (608,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (607,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (607,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (607,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (609,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (606,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (606,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (606,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (606,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (372,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (372,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (372,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (397,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (397,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (397,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (397,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (397,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (398,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (398,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (398,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (399,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (490,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (490,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (490,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (490,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (490,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (682,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (682,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (682,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (682,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (872,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (872,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (872,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (872,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (872,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (873,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (873,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (873,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (873,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (874,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (895,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (895,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (895,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (895,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (894,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (894,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (894,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (894,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (234,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (234,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (234,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (234,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (234,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (235,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (235,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (235,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (236,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (15,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (15,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (14,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (14,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (14,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (14,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (101,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (101,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (101,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (101,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (101,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (102,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (102,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (102,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (103,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (281,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (281,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (281,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (340,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (340,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (340,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (340,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (512,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (512,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (512,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (512,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (513,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (742,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (742,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (742,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (742,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (742,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (744,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (744,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (744,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (744,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (743,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (743,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (743,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (743,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1035,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1035,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1035,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1035,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1035,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1036,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1036,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1036,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1036,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (253,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (253,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (253,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (253,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (253,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (255,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (254,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (254,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (254,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (254,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (311,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (311,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (311,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (310,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (310,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (310,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (310,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1066,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1066,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1066,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1066,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1067,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1065,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1065,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1065,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1065,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (167,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (167,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (167,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (167,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (166,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (166,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (166,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (168,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (165,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (165,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (165,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (165,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (44,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (44,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (44,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (194,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (194,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (194,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (194,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (194,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (195,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (433,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (433,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (433,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (433,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (433,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (436,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (436,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (436,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (436,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (435,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (435,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (435,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (437,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (434,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (434,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (434,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (434,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (985,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (985,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (985,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (985,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (985,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (988,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (988,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (988,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (988,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (987,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (987,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (987,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (989,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (986,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (986,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (986,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (986,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (620,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (620,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (620,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (620,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (620,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (623,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (623,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (623,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (623,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (622,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (622,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (622,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (624,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (621,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (621,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (621,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (621,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (378,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (378,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (378,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (378,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (378,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (379,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (379,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (379,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (379,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (406,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (406,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (406,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (407,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (405,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (405,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (405,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (405,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (497,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (497,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (497,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (497,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (497,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (500,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (500,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (500,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (500,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (945,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (945,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (945,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (945,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (945,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (948,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (948,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (948,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (948,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (947,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (947,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (947,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (949,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (946,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (946,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (946,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (946,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (580,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (580,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (580,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (580,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (580,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (583,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (583,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (583,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (583,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (582,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (582,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (582,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (584,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (581,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (581,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (581,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (581,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (359,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (359,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (359,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (359,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (359,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (360,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (360,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (360,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (360,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (481,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (481,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (481,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (481,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (481,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (672,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (672,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (672,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (672,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (858,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (858,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (858,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (858,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (858,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (860,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (859,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (859,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (859,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (859,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (887,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (887,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (887,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (887,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (887,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (890,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (890,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (890,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (890,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (889,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (889,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (889,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (891,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (888,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (888,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (888,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (888,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (221,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (221,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (221,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (222,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (540,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (540,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (540,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (540,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (540,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (541,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (541,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (541,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (542,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (62,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (62,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (62,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (62,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (63,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (61,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (61,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (61,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (61,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (641,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (641,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (641,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (641,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (641,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (642,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (642,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (642,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1006,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1006,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1006,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1006,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1005,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1005,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1005,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1007,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (122,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (122,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (122,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (122,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (122,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (123,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (123,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (123,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (123,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (124,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (706,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (706,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (706,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (706,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (706,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (708,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (707,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (707,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (707,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (707,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (772,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (772,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (772,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (800,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (800,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (800,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (800,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (800,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (801,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (801,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (801,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (801,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (833,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (833,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (833,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (833,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (833,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (835,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (835,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (835,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (835,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (834,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (834,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (834,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (834,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (906,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (906,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (906,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (906,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (906,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (908,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (907,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (907,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (907,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (907,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1090,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1090,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1090,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1090,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1089,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1089,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1089,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1091,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1088,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1088,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1088,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1088,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (7,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (7,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (7,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (7,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (7,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (9,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (9,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (9,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (9,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (8,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (8,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (8,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (8,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (96,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (96,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (96,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (96,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (96,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (98,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (98,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (98,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (99,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (97,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (97,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (97,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (97,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (276,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (276,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (276,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (275,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (275,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (275,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (275,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (336,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (336,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (336,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (336,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (335,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (335,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (335,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (337,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (509,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (509,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (509,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (509,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (508,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (508,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (508,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (739,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (738,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (738,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (738,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (738,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1034,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1034,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1034,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (248,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (307,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (307,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (307,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (307,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (306,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (306,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (306,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1061,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1061,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1061,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1061,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1061,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1062,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1062,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1062,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1062,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (157,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (157,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (157,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (157,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (157,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (160,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (160,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (160,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (160,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (159,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (159,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (159,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (158,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (158,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (158,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (158,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (42,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (42,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (42,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (42,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (423,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (423,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (423,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (423,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (423,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (426,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (426,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (426,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (426,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (425,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (425,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (425,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (427,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (424,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (424,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (424,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (424,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (990,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (990,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (990,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (990,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (990,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (993,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (993,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (993,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (993,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (992,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (992,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (992,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (994,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (991,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (991,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (991,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (991,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (625,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (625,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (625,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (625,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (625,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (628,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (628,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (628,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (628,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (627,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (627,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (627,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (629,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (626,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (626,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (626,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (626,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (380,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (380,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (380,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (380,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (381,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (408,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (408,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (408,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (408,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (408,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (409,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (409,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (409,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (410,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (502,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (502,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (502,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (502,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (502,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (504,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (504,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (504,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (503,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (503,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (503,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (503,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (693,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (693,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (693,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (693,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (693,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (695,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (695,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (695,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (695,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (696,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (694,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (694,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (694,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (694,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (879,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (879,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (879,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (879,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (241,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (241,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (241,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (565,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (84,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (84,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (84,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (85,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (83,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (83,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (83,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (83,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (662,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (662,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (662,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (662,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (662,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (665,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (665,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (665,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (665,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (664,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (664,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (664,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (663,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (663,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (663,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (663,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1028,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1028,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1028,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1028,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1027,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1027,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1027,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1026,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1026,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1026,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1026,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (149,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (149,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (149,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (149,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (148,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (148,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (148,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (727,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (727,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (727,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (727,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (727,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (728,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (728,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (728,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (728,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (822,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (821,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (821,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (821,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (821,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (850,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (850,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (850,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (849,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (849,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (849,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (849,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (929,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (929,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (929,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (929,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (929,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (930,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (930,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (930,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (930,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1111,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1111,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1111,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1111,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1110,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1110,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1110,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (33,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (33,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (33,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (33,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (32,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (32,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (32,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (34,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (31,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (31,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (31,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (31,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (115,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (115,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (115,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (115,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (114,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (114,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (114,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (116,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (113,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (113,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (113,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (113,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (295,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (295,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (295,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (295,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (295,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (352,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (352,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (352,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (352,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (352,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (354,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (354,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (354,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (355,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (353,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (353,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (353,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (353,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (529,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (529,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (529,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (529,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (529,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (531,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (530,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (530,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (530,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (530,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (764,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (764,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (764,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (764,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (763,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (763,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (763,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (763,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1051,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1051,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1051,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1051,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1051,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1052,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (269,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (269,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (269,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (270,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (324,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (324,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (324,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (324,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (324,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (326,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (326,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (326,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (326,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (327,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (325,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (325,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (325,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (325,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1080,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1080,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1080,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1080,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (181,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (181,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (181,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (181,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (181,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (183,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (183,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (183,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (183,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (182,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (182,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (182,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (55,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (55,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (55,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (55,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (55,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (210,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (210,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (210,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (210,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (210,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (212,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (212,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (212,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (213,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (211,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (211,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (211,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (211,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (468,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (468,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (468,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (468,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (468,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (471,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (471,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (471,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (471,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (470,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (470,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (470,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (472,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (556,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (556,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (556,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (556,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (555,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (555,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (555,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (554,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (554,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (554,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (554,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (69,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (69,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (69,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (69,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (69,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (72,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (72,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (72,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (72,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (71,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (71,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (71,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (73,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (70,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (70,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (70,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (70,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (653,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (652,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (652,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (652,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (652,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1020,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1020,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1020,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1020,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1020,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (136,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (136,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (136,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (136,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (136,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (137,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (721,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (721,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (721,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (784,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (784,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (784,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (784,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (785,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (812,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (812,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (812,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (812,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (841,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (841,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (841,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (841,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (841,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (843,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (843,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (843,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (843,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (842,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (842,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (842,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (842,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (920,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (920,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (920,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (920,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (920,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (921,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (921,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (921,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (922,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1101,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1100,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1100,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1100,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1100,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (18,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (18,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (18,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (18,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (18,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (19,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (19,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (19,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (20,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (288,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (288,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (288,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (288,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (288,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (347,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (347,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (347,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (347,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (346,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (346,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (346,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (348,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (519,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (519,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (519,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (519,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (520,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (518,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (518,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (518,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (518,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (751,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (751,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (751,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (751,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (751,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (753,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (753,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (753,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (753,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (752,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (752,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (752,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (752,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1040,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1040,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1040,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1040,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1040,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1041,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1041,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1041,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1041,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (262,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (262,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (262,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (261,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (261,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (261,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (261,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (316,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (316,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (316,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (316,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (317,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1070,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1070,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1070,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1070,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1048,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1048,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1048,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1048,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (268,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (268,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (268,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (268,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (268,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (322,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (322,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (322,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (322,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (322,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (323,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (323,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (323,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (323,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1078,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1078,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1078,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1078,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1079,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1077,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1077,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1077,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1077,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (179,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (179,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (179,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (179,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (179,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (180,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (180,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (180,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (180,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (54,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (54,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (54,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (54,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (209,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (209,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (209,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (209,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (208,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (208,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (208,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (207,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (207,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (207,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (207,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (463,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (463,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (463,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (463,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (463,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (466,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (466,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (466,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (466,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (465,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (465,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (465,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (467,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (464,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (464,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (464,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (464,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (965,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (965,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (965,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (965,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (965,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (968,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (968,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (968,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (968,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (967,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (967,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (967,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (969,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (966,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (966,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (966,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (966,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (600,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (600,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (600,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (600,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (600,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (603,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (603,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (603,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (603,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (602,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (602,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (602,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1071,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (175,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (175,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (175,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (174,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (174,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (174,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (174,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (51,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (51,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (51,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (51,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (50,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (50,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (50,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (49,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (49,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (49,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (49,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (201,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (201,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (201,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (201,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (201,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (202,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (202,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (202,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (448,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (448,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (448,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (448,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (448,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (451,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (451,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (451,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (451,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (450,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (450,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (450,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (452,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (449,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (449,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (449,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (449,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (995,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (995,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (995,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (995,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (995,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (998,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (998,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (998,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (998,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (997,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (997,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (997,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (999,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (996,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (996,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (996,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (996,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (630,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (630,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (630,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (630,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (630,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (633,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (633,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (633,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (633,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (632,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (632,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (632,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (634,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (631,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (631,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (631,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (631,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (383,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (383,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (383,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (383,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (382,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (382,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (382,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (384,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (412,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (412,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (412,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (411,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (411,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (411,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (411,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (505,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (697,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (697,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (697,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (697,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (697,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (698,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (698,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (698,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (698,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (699,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (880,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (880,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (880,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (880,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (880,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (882,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (882,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (882,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (881,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (881,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (881,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (881,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (903,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (903,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (903,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (903,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (242,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (242,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (242,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (242,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (242,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (244,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (244,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (244,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (245,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (243,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (243,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (243,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (243,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (566,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (566,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (566,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (566,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (566,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (568,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (568,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (568,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (568,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (569,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (567,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (567,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (567,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (567,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (86,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (86,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (86,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (86,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (87,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (666,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (666,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (666,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (666,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1029,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1029,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1029,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1029,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1029,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1030,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1030,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1030,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (150,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (150,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (150,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (150,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (151,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (729,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (729,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (729,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (729,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (729,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (731,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (731,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (731,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (731,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (732,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (730,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (730,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (730,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (730,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (793,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (793,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (793,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (793,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (793,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (794,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (794,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (794,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (795,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (823,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (823,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (823,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (823,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (824,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (851,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (851,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (851,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (851,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (931,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (931,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (931,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (931,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (931,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (933,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (933,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (933,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (934,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (932,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (932,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (932,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (932,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1112,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1112,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1112,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1112,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1112,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (35,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (35,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (35,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (35,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (35,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (37,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (37,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (37,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (37,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (36,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (36,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (36,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (38,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (118,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (118,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (118,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (118,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (117,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (117,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (117,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (117,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (296,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (296,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (296,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (296,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (296,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (297,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (297,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (297,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (297,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (356,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (356,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (356,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (356,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (532,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (532,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (532,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (532,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (532,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (533,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (533,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (533,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (533,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (766,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (766,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (766,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (766,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (767,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (765,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (765,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (765,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (765,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1054,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1054,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1054,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1054,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1053,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1053,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1053,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (272,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (272,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (272,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (272,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (271,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (271,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (271,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (328,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (328,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (328,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1081,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1081,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1081,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1081,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1081,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1083,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1083,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1083,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1082,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1082,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1082,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1082,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (184,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (184,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (184,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (184,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (56,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (56,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (56,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (56,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (56,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (57,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (57,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (57,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (58,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (214,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (214,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (214,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (214,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (214,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (216,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (216,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (216,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (216,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (215,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (215,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (215,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (473,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (473,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (473,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (473,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (473,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (476,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (476,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (476,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (476,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (475,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (475,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (475,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (477,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (474,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (474,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (474,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (474,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (955,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (955,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (955,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (955,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (955,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (958,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (958,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (958,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (958,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (957,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (957,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (957,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (959,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (956,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (956,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (956,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (956,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (590,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (590,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (590,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (590,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (590,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (593,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (593,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (593,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (593,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (592,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (592,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (592,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (594,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (591,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (591,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (591,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (591,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (364,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (364,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (364,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (364,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (364,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (366,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (366,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (366,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (366,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (365,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (365,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (365,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (391,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (391,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (391,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (391,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (390,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (390,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (390,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (392,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (389,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (389,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (389,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (389,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (483,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (483,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (483,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (483,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (483,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (674,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (674,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (674,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (674,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (675,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (864,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (864,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (864,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (864,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (864,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (867,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (867,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (867,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (867,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (866,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (866,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (866,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (868,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (865,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (865,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (865,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (865,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (893,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (893,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (893,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (893,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (226,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (226,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (226,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (226,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (226,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (227,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (546,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (546,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (546,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (546,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (546,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (547,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (547,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (547,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (548,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (66,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (66,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (66,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (66,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (646,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (646,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (646,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (646,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (646,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (647,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (647,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (647,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (647,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1011,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1011,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1011,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1011,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1011,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1014,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1014,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1014,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1014,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1013,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1013,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1013,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1012,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1012,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1012,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1012,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (126,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (126,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (126,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (126,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (126,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (128,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (128,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (128,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (128,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (129,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (127,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (127,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (127,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (127,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (714,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (714,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (714,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (714,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (713,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (713,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (713,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (712,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (712,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (712,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (712,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (776,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (776,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (776,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (777,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (805,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (836,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (836,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (836,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (836,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (910,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (910,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (910,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (910,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (910,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (912,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (911,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (911,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (911,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (911,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1095,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1095,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1095,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (15,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (499,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (499,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (499,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (501,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (498,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (498,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (498,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (498,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (689,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (689,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (689,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (689,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (689,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (692,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (692,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (692,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (692,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (691,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (691,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (691,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (690,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (690,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (690,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (690,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (877,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (877,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (877,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (877,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (877,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (878,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (902,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (902,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (902,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (563,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (563,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (563,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (563,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (562,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (562,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (562,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (564,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (78,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (78,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (78,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (78,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (78,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (81,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (81,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (81,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (81,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (80,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (80,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (80,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (82,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (79,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (79,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (79,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (79,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (660,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (660,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (660,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (660,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (659,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (659,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (659,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (661,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1025,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1025,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1025,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1024,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1024,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1024,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1024,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (147,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (147,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (147,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (147,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (147,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (725,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (725,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (725,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (726,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (792,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (792,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (792,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (792,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (791,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (791,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (791,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (819,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (819,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (819,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (819,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (819,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (820,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (820,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (820,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (820,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (847,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (847,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (847,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (847,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (847,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (848,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (926,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (926,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (926,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (926,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (926,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (928,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (928,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (928,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (928,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (927,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (927,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (927,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (927,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1108,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1108,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1108,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1109,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (29,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (29,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (29,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (30,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (28,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (28,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (28,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (28,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (294,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (293,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (293,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (293,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (293,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (526,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (526,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (526,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (526,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (526,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (528,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (528,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (528,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (528,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (527,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (527,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (527,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (527,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (762,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (761,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (761,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (761,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (761,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1047,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1047,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1047,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1047,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1047,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1049,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1049,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1049,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1050,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (604,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (601,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (601,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (601,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (601,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (369,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (369,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (369,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (369,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (369,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (370,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (370,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (370,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (371,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (395,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (395,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (395,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (396,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (486,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (486,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (486,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (486,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (486,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (488,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (488,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (488,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (489,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (487,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (487,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (487,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (487,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (679,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (679,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (679,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (679,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (679,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (680,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (680,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (680,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (680,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (681,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (870,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (870,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (870,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (870,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (870,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (871,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (871,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (871,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (871,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (232,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (232,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (232,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (232,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (233,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (231,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (231,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (231,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (231,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (551,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (551,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (551,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (551,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (551,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (552,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (552,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (552,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (552,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (553,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (68,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (68,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (68,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (68,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (651,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (651,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (651,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (651,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1018,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1018,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1018,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1019,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1017,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1017,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1017,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1017,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (133,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (133,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (133,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (133,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (133,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (134,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (134,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (134,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (134,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (135,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (719,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (719,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (719,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (720,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (781,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (781,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (781,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (781,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (781,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (783,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (783,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (783,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (782,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (782,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (782,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (782,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (811,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (811,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (811,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (811,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (810,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (810,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (810,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (809,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (809,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (809,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (809,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (840,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (839,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (839,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (839,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (839,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (917,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (917,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (917,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (917,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (917,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (918,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (918,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (918,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (918,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (919,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1098,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1098,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1098,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1098,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1099,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (17,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (17,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (17,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (106,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (106,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (106,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (106,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (105,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (105,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (105,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (107,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (285,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (285,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (285,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (285,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (285,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (287,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (287,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (287,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (286,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (286,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (286,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (286,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (345,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (345,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (345,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (345,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (344,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (344,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (344,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (516,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (516,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (516,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (516,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (516,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (517,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (517,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (517,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (517,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (749,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (749,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (749,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (750,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (748,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (748,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (748,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (748,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1038,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1038,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1038,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1038,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1038,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1039,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1039,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1039,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1039,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (260,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (260,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (260,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (260,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (259,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (259,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (259,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (259,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (315,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (315,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (315,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (314,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (314,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (314,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (314,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1069,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1069,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1069,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1069,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (171,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (171,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (171,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (171,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (171,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (172,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (172,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (172,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (173,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (47,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (47,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (47,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (47,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (47,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (48,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (48,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (48,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (198,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (198,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (198,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (198,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (198,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (200,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (200,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (200,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (200,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (199,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (199,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (199,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (199,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (443,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (443,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (443,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (443,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (443,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (446,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (446,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (446,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (446,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (445,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (445,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (445,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (447,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (444,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (444,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (444,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (444,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (980,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (980,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (980,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (980,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (980,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (983,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (983,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (983,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (983,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (982,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (982,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (982,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (984,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (981,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (981,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (981,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (981,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (615,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (615,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (615,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (615,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (615,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (618,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (618,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (618,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (618,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (617,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (617,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (617,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (619,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (616,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (616,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (616,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (616,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (376,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (376,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (376,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (376,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (376,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (377,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (377,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (377,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (377,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (402,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (402,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (402,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (402,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (402,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (404,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (404,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (404,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (404,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (403,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (403,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (403,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (403,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (495,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (495,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (495,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (495,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (494,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (494,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (494,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (496,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (493,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (493,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (493,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (493,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (687,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (687,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (687,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (687,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (687,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (688,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (876,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (876,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (876,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (899,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (899,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (899,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (899,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (899,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (901,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (901,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (901,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (901,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (900,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (900,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (900,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (900,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (240,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (240,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (240,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (239,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (239,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (239,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (239,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (559,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (559,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (559,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (559,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (559,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (560,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (560,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (560,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (560,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (561,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (76,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (76,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (76,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (76,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (77,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (656,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (656,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (656,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (656,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (656,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (658,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (658,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (658,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (658,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (657,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (657,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (657,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1023,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (142,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (142,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (142,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (142,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (142,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (145,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (145,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (145,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (145,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (144,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (144,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (144,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (146,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (143,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (143,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (143,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (143,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (722,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (722,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (722,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (722,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (722,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (724,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (723,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (723,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (723,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (723,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (790,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (790,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (790,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (817,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (817,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (817,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (818,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (816,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (816,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (816,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (816,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (845,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (845,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (845,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (845,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (844,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (844,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (844,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (846,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (925,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (925,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (925,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (925,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1104,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1104,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1104,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1104,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1104,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1107,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1107,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1107,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1107,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1106,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1106,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1106,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1105,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1105,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1105,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1105,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (24,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (24,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (24,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (24,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (24,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (26,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (26,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (26,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (27,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (25,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (25,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (25,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (25,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (112,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (111,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (111,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (111,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (111,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (292,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (292,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (292,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (292,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (291,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (291,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (291,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (351,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (351,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (351,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (351,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (523,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (523,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (523,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (523,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (523,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (525,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (525,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (525,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (525,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (524,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (524,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (524,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (757,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (757,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (757,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (757,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (757,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (760,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (760,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (760,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (760,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (759,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (759,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (759,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (758,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (758,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (758,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (758,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1044,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1044,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1044,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1044,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1044,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1045,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1045,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1045,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1046,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (267,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (267,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (267,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (267,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (267,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (321,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (321,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (321,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (321,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (320,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (320,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (320,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (320,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1075,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1075,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1075,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1075,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1076,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (178,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (53,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (53,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (53,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (53,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (53,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (206,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (206,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (206,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (206,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (205,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (205,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (205,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (458,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (458,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (458,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (458,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (458,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (461,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (461,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (461,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (461,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (460,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (460,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (460,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (462,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (459,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (459,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (459,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (459,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (960,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (960,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (960,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (960,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (960,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (963,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (963,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (963,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (963,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (962,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (962,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (962,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (964,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (961,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (961,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (961,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (961,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (595,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (595,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (595,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (595,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (595,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (598,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (598,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (598,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (598,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (597,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (597,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (597,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (599,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (596,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (596,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (596,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (596,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (368,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (368,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (368,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (368,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (367,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (367,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (367,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (367,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (393,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (393,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (393,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (393,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (393,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (394,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (485,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (485,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (485,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (485,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (484,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (484,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (484,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (676,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (676,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (676,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (676,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (676,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (678,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (677,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (677,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (677,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (677,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (869,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (869,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (869,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (869,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (230,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (230,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (230,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (230,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (229,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (229,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (229,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (228,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (228,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (228,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (228,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (549,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (549,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (549,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (550,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (67,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (67,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (67,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (648,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (648,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (648,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (648,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (648,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (649,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (649,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (649,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (649,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (650,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1015,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1015,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1015,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1015,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1015,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1016,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1016,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1016,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1016,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (131,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (131,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (131,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (132,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (130,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (130,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (130,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (130,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (715,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (715,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (715,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (715,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (715,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (717,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (717,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (717,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (718,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (716,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (716,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (716,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (716,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (778,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (778,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (778,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (778,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (778,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (779,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (779,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (779,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (779,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (780,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (806,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (806,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (806,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (806,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (806,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (808,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (808,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (808,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (808,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (807,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (807,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (807,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (807,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (837,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (837,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (837,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (837,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (838,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (913,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (913,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (913,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (913,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (913,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (915,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (915,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (915,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (915,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (914,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (914,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (914,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (916,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1097,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1097,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1097,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1097,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1096,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1096,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1096,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1096,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (16,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (104,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (104,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (104,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (283,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (283,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (283,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (283,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (282,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (282,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (282,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (284,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (343,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (343,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (343,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (343,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (342,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (342,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (342,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (341,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (341,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (341,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (341,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (514,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (514,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (514,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (514,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (514,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (515,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (745,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (745,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (745,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (745,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (745,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (746,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (746,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (746,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (747,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1037,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1037,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1037,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1037,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (256,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (256,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (256,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (256,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (256,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (258,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (258,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (258,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (257,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (257,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (257,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (257,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (312,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (312,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (312,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (312,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (312,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (313,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (313,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (313,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (313,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1068,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1068,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1068,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1068,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1068,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (169,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (169,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (169,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (169,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (169,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (170,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (170,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (170,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (170,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (46,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (46,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (46,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (45,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (45,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (45,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (45,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (197,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (197,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (197,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (197,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (196,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (196,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (196,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (438,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (438,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (438,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (438,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (438,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (441,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (441,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (441,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (441,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (440,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (440,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (440,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (442,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (439,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (439,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (439,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (439,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (940,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (940,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (940,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (940,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (940,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (943,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (943,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (943,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (943,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (942,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (942,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (942,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (944,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (941,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (941,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (941,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (941,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (575,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (575,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (575,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (575,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (575,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (578,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (578,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (578,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (578,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (577,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (577,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (577,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (579,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (576,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (576,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (576,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (576,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (358,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (358,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (358,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (358,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (386,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (386,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (386,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (386,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (386,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (387,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (387,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (387,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (387,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (479,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (479,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (479,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (479,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (479,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (480,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (480,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (480,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (480,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (671,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (671,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (671,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (856,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (856,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (856,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (856,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (857,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (855,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (855,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (855,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (855,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (885,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (885,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (885,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (885,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (886,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (884,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (884,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (884,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (884,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (218,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (218,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (218,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (218,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (218,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (219,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (219,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (219,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (220,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (538,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (538,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (538,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (539,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (60,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (60,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (60,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (60,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (60,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (638,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (638,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (638,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (638,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (638,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (640,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (640,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (640,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (640,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (639,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (639,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (639,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (639,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1002,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1002,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1002,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1002,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1002,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1003,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1003,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1003,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1003,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1004,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (121,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (121,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (121,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (704,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (704,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (704,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (705,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (703,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (703,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (703,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (703,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (771,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (798,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (798,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (798,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (798,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (798,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (799,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (799,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (799,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (828,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (828,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (828,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (828,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (828,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (831,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (831,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (831,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (831,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (830,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (830,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (830,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (832,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (829,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (829,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (829,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (829,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (905,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (905,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (905,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (905,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1087,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (3,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (3,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (3,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (3,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (3,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (6,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (6,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (6,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (6,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (5,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (5,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (5,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (4,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (4,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (4,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (4,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (91,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (91,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (91,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (91,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (91,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (94,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (94,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (94,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (94,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (93,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (93,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (93,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (95,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (92,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (92,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (92,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (92,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (274,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (274,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (274,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (274,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (274,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (332,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (332,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (332,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (332,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (332,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (334,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (334,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (334,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (334,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (333,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (333,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (333,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (507,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (507,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (507,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (507,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (737,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (737,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (737,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (737,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (736,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (736,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (736,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (247,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (246,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (246,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (246,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (246,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (302,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (302,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (302,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (302,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (302,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (304,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (304,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (304,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (305,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (303,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (303,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (303,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (303,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1057,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1057,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1057,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1057,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1057,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1059,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1059,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1059,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1059,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1058,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1058,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1058,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1060,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (155,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (155,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (155,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (155,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (156,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (154,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (154,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (154,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (154,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (41,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (41,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (41,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (41,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (187,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (187,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (187,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (187,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (187,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (188,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (188,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (188,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (189,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (418,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (418,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (418,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (418,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (418,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (421,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (421,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (421,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (421,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (420,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (420,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (420,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (422,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (419,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (419,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (419,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (419,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (935,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (935,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (935,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (935,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (935,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (938,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (938,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (938,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (938,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (937,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (937,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (937,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (939,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (936,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (936,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (936,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (936,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (570,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (570,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (570,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (570,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (570,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (573,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (573,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (573,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (573,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (572,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (572,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (572,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (574,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (571,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (571,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (571,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (571,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (357,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (357,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (357,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (357,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (385,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (385,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (385,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (478,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (478,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (478,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (478,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (669,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (669,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (669,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (669,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (668,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (668,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (668,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (670,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (667,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (667,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (667,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (667,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (852,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (852,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (852,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (852,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (852,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (854,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (853,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (853,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (853,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (853,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (883,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (883,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (883,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (883,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (883,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (217,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (534,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (534,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (534,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (534,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (534,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (536,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (536,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (536,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (536,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (537,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (535,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (535,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (535,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (535,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (59,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (59,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (59,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (637,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (635,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (635,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (635,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (635,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (635,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (636,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (636,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (636,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (636,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1001,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1001,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1001,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1001,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1000,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1000,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1000,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (119,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (119,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (119,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (119,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (119,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (120,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (120,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (120,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (700,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (700,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (700,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (700,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (700,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (702,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (702,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (702,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (702,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (701,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (701,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (701,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (701,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (768,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (768,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (768,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (768,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (768,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (769,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (769,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (769,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (770,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (796,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (796,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (796,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (796,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (796,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (797,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (797,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (797,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (797,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (825,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (825,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (825,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (825,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (825,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (827,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (827,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (827,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (827,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (826,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (826,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (826,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (826,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (904,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (904,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (904,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1085,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1085,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1085,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1085,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1086,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1084,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1084,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1084,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1084,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (2,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (2,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (2,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (88,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (88,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (88,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (88,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (88,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (90,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (90,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (90,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (90,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (89,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (89,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (89,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (273,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (329,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (329,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (329,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (329,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (329,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (331,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (331,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (331,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (330,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (330,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (330,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (330,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (506,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (733,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (733,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (733,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (733,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (733,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (734,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (734,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (734,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (735,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1031,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1031,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1031,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1031,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1032,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1032,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1032,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1033,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (298,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (298,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (298,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (298,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (298,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (300,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (300,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (300,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (301,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (299,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (299,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (299,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (299,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1055,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1055,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1055,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1055,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1055,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1056,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (153,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (153,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (153,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (152,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (152,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (152,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (152,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (39,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (39,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (39,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (39,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (40,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (185,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (185,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (185,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (185,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (185,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (186,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (186,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (186,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (186,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (413,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (413,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (413,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (413,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (413,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (416,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (416,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (416,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (416,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (415,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (415,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (415,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (417,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (414,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (414,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (414,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (414,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (10,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (10,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (10,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (10,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (10,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (11,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (11,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (11,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (12,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (12,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (12,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (12,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (13,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (43,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (64,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (64,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (64,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (64,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (65,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (65,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (65,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (100,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (125,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (161,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (161,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (161,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (161,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (162,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (162,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (162,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (163,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (163,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (163,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (163,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (164,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (190,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (190,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (190,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (190,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (190,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (191,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (191,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (191,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (192,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (192,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (192,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (192,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (193,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (223,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (223,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (223,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (223,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (223,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (224,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (224,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (224,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (224,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (225,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (249,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (249,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (249,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (249,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (249,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (250,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (250,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (250,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (251,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (251,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (251,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (251,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (252,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (277,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (277,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (277,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (277,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (277,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (278,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (278,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (278,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (278,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (279,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (279,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (279,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (280,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (280,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (280,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (280,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (308,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (308,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (308,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (308,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (308,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (309,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (309,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (309,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (309,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (338,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (338,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (338,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (338,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (338,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (339,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (339,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (339,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (339,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (361,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (361,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (361,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (361,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (361,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (362,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (362,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (362,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (362,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (363,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (363,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (363,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (388,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (388,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (388,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (388,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (428,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (428,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (428,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (428,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (428,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (429,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (429,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (429,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (429,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (430,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (430,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (430,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (431,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (431,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (431,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (431,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (432,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (482,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (482,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (482,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (482,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (482,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (510,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (510,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (510,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (510,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (510,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (511,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (543,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (543,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (543,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (544,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (544,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (544,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (544,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (545,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (585,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (585,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (585,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (585,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (585,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (586,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (586,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (586,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (586,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (587,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (587,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (587,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (588,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (588,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (588,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (588,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (589,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (643,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (643,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (643,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (643,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (643,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (644,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (644,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (644,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (644,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (645,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (673,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (673,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (673,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (673,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (709,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (709,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (709,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (709,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (710,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (710,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (710,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (711,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (711,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (711,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (711,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (740,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (740,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (740,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (740,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (741,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (741,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (741,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (773,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (773,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (773,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (773,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (774,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (774,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (774,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (774,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (775,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (802,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (802,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (802,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (802,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (802,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (803,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (803,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (803,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (803,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (804,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (804,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (804,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (861,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (861,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (861,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (861,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (861,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (862,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (862,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (862,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (862,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (863,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (892,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (892,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (892,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (909,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (909,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (909,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (909,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (950,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (950,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (950,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (950,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (950,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (951,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (951,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (951,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (951,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (952,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (952,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (952,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (953,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (953,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (953,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (953,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,4);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (954,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1008,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1008,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1008,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1008,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1008,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1009,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1009,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1009,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1010,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1010,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1010,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1010,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1063,11);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1063,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1063,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1064,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1064,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1064,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1064,8);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1092,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1092,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1092,2);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1092,13);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1092,7);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1093,14);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1093,3);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1093,10);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1093,6);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1094,1);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1094,5);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1094,9);
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES (1094,8);
+INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES
+(472,8),
+(472,4),
+(472,7),
+(469,14),
+(469,3),
+(469,10),
+(469,6),
+(975,14),
+(975,1),
+(975,2),
+(975,13),
+(975,7),
+(978,1),
+(978,5),
+(978,9),
+(978,8),
+(977,11),
+(977,3),
+(977,10),
+(979,14),
+(979,1),
+(979,10),
+(979,9),
+(979,8),
+(979,4),
+(979,7),
+(976,14),
+(976,3),
+(976,10),
+(976,6),
+(610,14),
+(610,1),
+(610,2),
+(610,13),
+(610,7),
+(613,1),
+(613,5),
+(613,9),
+(613,8),
+(612,11),
+(612,3),
+(612,10),
+(614,14),
+(614,1),
+(614,10),
+(614,9),
+(614,8),
+(614,4),
+(614,7),
+(611,14),
+(611,3),
+(611,10),
+(611,6),
+(373,14),
+(373,1),
+(373,2),
+(373,13),
+(373,7),
+(375,11),
+(375,3),
+(375,10),
+(374,14),
+(374,3),
+(374,10),
+(374,6),
+(401,11),
+(401,3),
+(401,10),
+(400,14),
+(400,3),
+(400,10),
+(400,6),
+(492,14),
+(492,1),
+(492,10),
+(492,9),
+(492,8),
+(492,4),
+(492,7),
+(491,14),
+(491,3),
+(491,10),
+(491,6),
+(683,14),
+(683,1),
+(683,2),
+(683,13),
+(683,7),
+(685,11),
+(685,3),
+(685,10),
+(686,14),
+(686,1),
+(686,10),
+(686,9),
+(686,8),
+(686,4),
+(686,7),
+(684,14),
+(684,3),
+(684,10),
+(684,6),
+(875,11),
+(875,3),
+(875,10),
+(896,14),
+(896,1),
+(896,2),
+(896,13),
+(896,7),
+(898,11),
+(898,3),
+(898,10),
+(897,14),
+(897,3),
+(897,10),
+(897,6),
+(237,14),
+(237,1),
+(237,2),
+(237,13),
+(237,7),
+(238,1),
+(238,5),
+(238,9),
+(238,8),
+(557,14),
+(557,1),
+(557,2),
+(557,13),
+(557,7),
+(558,14),
+(558,3),
+(558,10),
+(558,6),
+(74,14),
+(74,1),
+(74,2),
+(74,13),
+(74,7),
+(75,11),
+(75,3),
+(75,10),
+(654,14),
+(654,1),
+(654,2),
+(654,13),
+(654,7),
+(655,1),
+(655,5),
+(655,9),
+(655,8),
+(1022,1),
+(1022,5),
+(1022,9),
+(1022,8),
+(1021,14),
+(1021,3),
+(1021,10),
+(1021,6),
+(138,14),
+(138,1),
+(138,2),
+(138,13),
+(138,7),
+(140,1),
+(140,5),
+(140,9),
+(140,8),
+(141,14),
+(141,1),
+(141,10),
+(141,9),
+(141,8),
+(141,4),
+(141,7),
+(139,14),
+(139,3),
+(139,10),
+(139,6),
+(786,14),
+(786,1),
+(786,2),
+(786,13),
+(786,7),
+(788,1),
+(788,5),
+(788,9),
+(788,8),
+(787,11),
+(787,3),
+(787,10),
+(789,14),
+(789,1),
+(789,10),
+(789,9),
+(789,8),
+(789,4),
+(789,7),
+(813,14),
+(813,1),
+(813,2),
+(813,13),
+(813,7),
+(815,1),
+(815,5),
+(815,9),
+(815,8),
+(814,14),
+(814,3),
+(814,10),
+(814,6),
+(924,1),
+(924,5),
+(924,9),
+(924,8),
+(923,11),
+(923,3),
+(923,10),
+(1102,14),
+(1102,1),
+(1102,2),
+(1102,13),
+(1102,7),
+(1103,14),
+(1103,1),
+(1103,10),
+(1103,9),
+(1103,8),
+(1103,4),
+(1103,7),
+(22,1),
+(22,5),
+(22,9),
+(22,8),
+(21,11),
+(21,3),
+(21,10),
+(23,14),
+(23,1),
+(23,10),
+(23,9),
+(23,8),
+(23,4),
+(23,7),
+(108,14),
+(108,1),
+(108,2),
+(108,13),
+(108,7),
+(109,1),
+(109,5),
+(109,9),
+(109,8),
+(110,14),
+(110,1),
+(110,10),
+(110,9),
+(110,8),
+(110,4),
+(110,7),
+(289,14),
+(289,1),
+(289,2),
+(289,13),
+(289,7),
+(290,14),
+(290,1),
+(290,10),
+(290,9),
+(290,8),
+(290,4),
+(290,7),
+(350,11),
+(350,3),
+(350,10),
+(349,14),
+(349,3),
+(349,10),
+(349,6),
+(521,1),
+(521,5),
+(521,9),
+(521,8),
+(522,14),
+(522,1),
+(522,10),
+(522,9),
+(522,8),
+(522,4),
+(522,7),
+(754,14),
+(754,1),
+(754,2),
+(754,13),
+(754,7),
+(756,1),
+(756,5),
+(756,9),
+(756,8),
+(755,14),
+(755,3),
+(755,10),
+(755,6),
+(1043,1),
+(1043,5),
+(1043,9),
+(1043,8),
+(1042,14),
+(1042,3),
+(1042,10),
+(1042,6),
+(265,1),
+(265,5),
+(265,9),
+(265,8),
+(264,11),
+(264,3),
+(264,10),
+(266,14),
+(266,1),
+(266,10),
+(266,9),
+(266,8),
+(266,4),
+(266,7),
+(263,14),
+(263,3),
+(263,10),
+(263,6),
+(319,1),
+(319,5),
+(319,9),
+(319,8),
+(318,11),
+(318,3),
+(318,10),
+(1073,11),
+(1073,3),
+(1073,10),
+(1074,14),
+(1074,1),
+(1074,10),
+(1074,9),
+(1074,8),
+(1074,4),
+(1074,7),
+(1072,14),
+(1072,3),
+(1072,10),
+(1072,6),
+(177,14),
+(177,1),
+(177,10),
+(177,9),
+(177,8),
+(177,4),
+(177,7),
+(176,14),
+(176,3),
+(176,10),
+(176,6),
+(52,11),
+(52,3),
+(52,10),
+(203,11),
+(203,3),
+(203,10),
+(204,14),
+(204,1),
+(204,10),
+(204,9),
+(204,8),
+(204,4),
+(204,7),
+(453,14),
+(453,1),
+(453,2),
+(453,13),
+(453,7),
+(456,1),
+(456,5),
+(456,9),
+(456,8),
+(455,11),
+(455,3),
+(455,10),
+(457,14),
+(457,1),
+(457,10),
+(457,9),
+(457,8),
+(457,4),
+(457,7),
+(454,14),
+(454,3),
+(454,10),
+(454,6),
+(970,14),
+(970,1),
+(970,2),
+(970,13),
+(970,7),
+(973,1),
+(973,5),
+(973,9),
+(973,8),
+(972,11),
+(972,3),
+(972,10),
+(974,14),
+(974,1),
+(974,10),
+(974,9),
+(974,8),
+(974,4),
+(974,7),
+(971,14),
+(971,3),
+(971,10),
+(971,6),
+(605,14),
+(605,1),
+(605,2),
+(605,13),
+(605,7),
+(608,1),
+(608,5),
+(608,9),
+(608,8),
+(607,11),
+(607,3),
+(607,10),
+(609,14),
+(609,1),
+(609,10),
+(609,9),
+(609,8),
+(609,4),
+(609,7),
+(606,14),
+(606,3),
+(606,10),
+(606,6),
+(372,11),
+(372,3),
+(372,10),
+(397,14),
+(397,1),
+(397,2),
+(397,13),
+(397,7),
+(398,11),
+(398,3),
+(398,10),
+(399,14),
+(399,1),
+(399,10),
+(399,9),
+(399,8),
+(399,4),
+(399,7),
+(490,14),
+(490,1),
+(490,2),
+(490,13),
+(490,7),
+(682,1),
+(682,5),
+(682,9),
+(682,8),
+(872,14),
+(872,1),
+(872,2),
+(872,13),
+(872,7),
+(873,1),
+(873,5),
+(873,9),
+(873,8),
+(874,14),
+(874,1),
+(874,10),
+(874,9),
+(874,8),
+(874,4),
+(874,7),
+(895,1),
+(895,5),
+(895,9),
+(895,8),
+(894,14),
+(894,3),
+(894,10),
+(894,6),
+(234,14),
+(234,1),
+(234,2),
+(234,13),
+(234,7),
+(235,11),
+(235,3),
+(235,10),
+(236,14),
+(236,1),
+(236,10),
+(236,9),
+(236,8),
+(236,4),
+(236,7),
+(15,3),
+(15,10),
+(14,14),
+(14,3),
+(14,10),
+(14,6),
+(101,14),
+(101,1),
+(101,2),
+(101,13),
+(101,7),
+(102,11),
+(102,3),
+(102,10),
+(103,14),
+(103,1),
+(103,10),
+(103,9),
+(103,8),
+(103,4),
+(103,7),
+(281,11),
+(281,3),
+(281,10),
+(340,14),
+(340,3),
+(340,10),
+(340,6),
+(512,1),
+(512,5),
+(512,9),
+(512,8),
+(513,14),
+(513,1),
+(513,10),
+(513,9),
+(513,8),
+(513,4),
+(513,7),
+(742,14),
+(742,1),
+(742,2),
+(742,13),
+(742,7),
+(744,1),
+(744,5),
+(744,9),
+(744,8),
+(743,14),
+(743,3),
+(743,10),
+(743,6),
+(1035,14),
+(1035,1),
+(1035,2),
+(1035,13),
+(1035,7),
+(1036,14),
+(1036,3),
+(1036,10),
+(1036,6),
+(253,14),
+(253,1),
+(253,2),
+(253,13),
+(253,7),
+(255,14),
+(255,1),
+(255,10),
+(255,9),
+(255,8),
+(255,4),
+(255,7),
+(254,14),
+(254,3),
+(254,10),
+(254,6),
+(311,11),
+(311,3),
+(311,10),
+(310,14),
+(310,3),
+(310,10),
+(310,6),
+(1066,1),
+(1066,5),
+(1066,9),
+(1066,8),
+(1067,14),
+(1067,1),
+(1067,10),
+(1067,9),
+(1067,8),
+(1067,4),
+(1067,7),
+(1065,14),
+(1065,3),
+(1065,10),
+(1065,6),
+(167,1),
+(167,5),
+(167,9),
+(167,8),
+(166,11),
+(166,3),
+(166,10),
+(168,14),
+(168,1),
+(168,10),
+(168,9),
+(168,8),
+(168,4),
+(168,7),
+(165,14),
+(165,3),
+(165,10),
+(165,6),
+(44,11),
+(44,3),
+(44,10),
+(194,14),
+(194,1),
+(194,2),
+(194,13),
+(194,7),
+(195,14),
+(195,1),
+(195,10),
+(195,9),
+(195,8),
+(195,4),
+(195,7),
+(433,14),
+(433,1),
+(433,2),
+(433,13),
+(433,7),
+(436,1),
+(436,5),
+(436,9),
+(436,8),
+(435,11),
+(435,3),
+(435,10),
+(437,14),
+(437,1),
+(437,10),
+(437,9),
+(437,8),
+(437,4),
+(437,7),
+(434,14),
+(434,3),
+(434,10),
+(434,6),
+(985,14),
+(985,1),
+(985,2),
+(985,13),
+(985,7),
+(988,1),
+(988,5),
+(988,9),
+(988,8),
+(987,11),
+(987,3),
+(987,10),
+(989,14),
+(989,1),
+(989,10),
+(989,9),
+(989,8),
+(989,4),
+(989,7),
+(986,14),
+(986,3),
+(986,10),
+(986,6),
+(620,14),
+(620,1),
+(620,2),
+(620,13),
+(620,7),
+(623,1),
+(623,5),
+(623,9),
+(623,8),
+(622,11),
+(622,3),
+(622,10),
+(624,14),
+(624,1),
+(624,10),
+(624,9),
+(624,8),
+(624,4),
+(624,7),
+(621,14),
+(621,3),
+(621,10),
+(621,6),
+(378,14),
+(378,1),
+(378,2),
+(378,13),
+(378,7),
+(379,14),
+(379,3),
+(379,10),
+(379,6),
+(406,11),
+(406,3),
+(406,10),
+(407,14),
+(407,1),
+(407,10),
+(407,9),
+(407,8),
+(407,4),
+(407,7),
+(405,14),
+(405,3),
+(405,10),
+(405,6),
+(497,14),
+(497,1),
+(497,2),
+(497,13),
+(497,7),
+(500,1),
+(500,5),
+(500,9),
+(500,8),
+(945,14),
+(945,1),
+(945,2),
+(945,13),
+(945,7),
+(948,1),
+(948,5),
+(948,9),
+(948,8),
+(947,11),
+(947,3),
+(947,10),
+(949,14),
+(949,1),
+(949,10),
+(949,9),
+(949,8),
+(949,4),
+(949,7),
+(946,14),
+(946,3),
+(946,10),
+(946,6),
+(580,14),
+(580,1),
+(580,2),
+(580,13),
+(580,7),
+(583,1),
+(583,5),
+(583,9),
+(583,8),
+(582,11),
+(582,3),
+(582,10),
+(584,14),
+(584,1),
+(584,10),
+(584,9),
+(584,8),
+(584,4),
+(584,7),
+(581,14),
+(581,3),
+(581,10),
+(581,6),
+(359,14),
+(359,1),
+(359,2),
+(359,13),
+(359,7),
+(360,14),
+(360,3),
+(360,10),
+(360,6),
+(481,14),
+(481,1),
+(481,2),
+(481,13),
+(481,7),
+(672,1),
+(672,5),
+(672,9),
+(672,8),
+(858,14),
+(858,1),
+(858,2),
+(858,13),
+(858,7),
+(860,14),
+(860,1),
+(860,10),
+(860,9),
+(860,8),
+(860,4),
+(860,7),
+(859,14),
+(859,3),
+(859,10),
+(859,6),
+(887,14),
+(887,1),
+(887,2),
+(887,13),
+(887,7),
+(890,1),
+(890,5),
+(890,9),
+(890,8),
+(889,11),
+(889,3),
+(889,10),
+(891,14),
+(891,1),
+(891,10),
+(891,9),
+(891,8),
+(891,4),
+(891,7),
+(888,14),
+(888,3),
+(888,10),
+(888,6),
+(221,11),
+(221,3),
+(221,10),
+(222,14),
+(222,1),
+(222,10),
+(222,9),
+(222,8),
+(222,4),
+(222,7),
+(540,14),
+(540,1),
+(540,2),
+(540,13),
+(540,7),
+(541,11),
+(541,3),
+(541,10),
+(542,14),
+(542,1),
+(542,10),
+(542,9),
+(542,8),
+(542,4),
+(542,7),
+(62,1),
+(62,5),
+(62,9),
+(62,8),
+(63,14),
+(63,1),
+(63,10),
+(63,9),
+(63,8),
+(63,4),
+(63,7),
+(61,14),
+(61,3),
+(61,10),
+(61,6),
+(641,14),
+(641,1),
+(641,2),
+(641,13),
+(641,7),
+(642,11),
+(642,3),
+(642,10),
+(1006,1),
+(1006,5),
+(1006,9),
+(1006,8),
+(1005,11),
+(1005,3),
+(1005,10),
+(1007,14),
+(1007,1),
+(1007,10),
+(1007,9),
+(1007,8),
+(1007,4),
+(1007,7),
+(122,14),
+(122,1),
+(122,2),
+(122,13),
+(122,7),
+(123,1),
+(123,5),
+(123,9),
+(123,8),
+(124,14),
+(124,1),
+(124,10),
+(124,9),
+(124,8),
+(124,4),
+(124,7),
+(706,14),
+(706,1),
+(706,2),
+(706,13),
+(706,7),
+(708,14),
+(708,1),
+(708,10),
+(708,9),
+(708,8),
+(708,4),
+(708,7),
+(707,14),
+(707,3),
+(707,10),
+(707,6),
+(772,11),
+(772,3),
+(772,10),
+(800,14),
+(800,1),
+(800,2),
+(800,13),
+(800,7),
+(801,1),
+(801,5),
+(801,9),
+(801,8),
+(833,14),
+(833,1),
+(833,2),
+(833,13),
+(833,7),
+(835,1),
+(835,5),
+(835,9),
+(835,8),
+(834,14),
+(834,3),
+(834,10),
+(834,6),
+(906,14),
+(906,1),
+(906,2),
+(906,13),
+(906,7),
+(908,14),
+(908,1),
+(908,10),
+(908,9),
+(908,8),
+(908,4),
+(908,7),
+(907,14),
+(907,3),
+(907,10),
+(907,6),
+(1090,1),
+(1090,5),
+(1090,9),
+(1090,8),
+(1089,11),
+(1089,3),
+(1089,10),
+(1091,14),
+(1091,1),
+(1091,10),
+(1091,9),
+(1091,8),
+(1091,4),
+(1091,7),
+(1088,14),
+(1088,3),
+(1088,10),
+(1088,6),
+(7,14),
+(7,1),
+(7,2),
+(7,13),
+(7,7),
+(9,1),
+(9,5),
+(9,9),
+(9,8),
+(8,14),
+(8,3),
+(8,10),
+(8,6),
+(96,14),
+(96,1),
+(96,2),
+(96,13),
+(96,7),
+(98,11),
+(98,3),
+(98,10),
+(99,14),
+(99,1),
+(99,10),
+(99,9),
+(99,8),
+(99,4),
+(99,7),
+(97,14),
+(97,3),
+(97,10),
+(97,6),
+(276,11),
+(276,3),
+(276,10),
+(275,14),
+(275,3),
+(275,10),
+(275,6),
+(336,1),
+(336,5),
+(336,9),
+(336,8),
+(335,11),
+(335,3),
+(335,10),
+(337,14),
+(337,1),
+(337,10),
+(337,9),
+(337,8),
+(337,4),
+(337,7),
+(509,1),
+(509,5),
+(509,9),
+(509,8),
+(508,11),
+(508,3),
+(508,10),
+(739,14),
+(739,1),
+(739,10),
+(739,9),
+(739,8),
+(739,4),
+(739,7),
+(738,14),
+(738,3),
+(738,10),
+(738,6),
+(1034,11),
+(1034,3),
+(1034,10),
+(248,14),
+(248,1),
+(248,10),
+(248,9),
+(248,8),
+(248,4),
+(248,7),
+(307,1),
+(307,5),
+(307,9),
+(307,8),
+(306,11),
+(306,3),
+(306,10),
+(1061,14),
+(1061,1),
+(1061,2),
+(1061,13),
+(1061,7),
+(1062,14),
+(1062,3),
+(1062,10),
+(1062,6),
+(157,14),
+(157,1),
+(157,2),
+(157,13),
+(157,7),
+(160,1),
+(160,5),
+(160,9),
+(160,8),
+(159,11),
+(159,3),
+(159,10),
+(158,14),
+(158,3),
+(158,10),
+(158,6),
+(42,1),
+(42,5),
+(42,9),
+(42,8),
+(423,14),
+(423,1),
+(423,2),
+(423,13),
+(423,7),
+(426,1),
+(426,5),
+(426,9),
+(426,8),
+(425,11),
+(425,3),
+(425,10),
+(427,14),
+(427,1),
+(427,10),
+(427,9),
+(427,8),
+(427,4),
+(427,7),
+(424,14),
+(424,3),
+(424,10),
+(424,6),
+(990,14),
+(990,1),
+(990,2),
+(990,13),
+(990,7),
+(993,1),
+(993,5),
+(993,9),
+(993,8),
+(992,11),
+(992,3),
+(992,10),
+(994,14),
+(994,1),
+(994,10),
+(994,9),
+(994,8),
+(994,4),
+(994,7),
+(991,14),
+(991,3),
+(991,10),
+(991,6),
+(625,14),
+(625,1),
+(625,2),
+(625,13),
+(625,7),
+(628,1),
+(628,5),
+(628,9),
+(628,8),
+(627,11),
+(627,3),
+(627,10),
+(629,14),
+(629,1),
+(629,10),
+(629,9),
+(629,8),
+(629,4),
+(629,7),
+(626,14),
+(626,3),
+(626,10),
+(626,6),
+(380,1),
+(380,5),
+(380,9),
+(380,8),
+(381,14),
+(381,1),
+(381,10),
+(381,9),
+(381,8),
+(381,4),
+(381,7),
+(408,14),
+(408,1),
+(408,2),
+(408,13),
+(408,7),
+(409,11),
+(409,3),
+(409,10),
+(410,14),
+(410,1),
+(410,10),
+(410,9),
+(410,8),
+(410,4),
+(410,7),
+(502,14),
+(502,1),
+(502,2),
+(502,13),
+(502,7),
+(504,11),
+(504,3),
+(504,10),
+(503,14),
+(503,3),
+(503,10),
+(503,6),
+(693,14),
+(693,1),
+(693,2),
+(693,13),
+(693,7),
+(695,1),
+(695,5),
+(695,9),
+(695,8),
+(696,14),
+(696,1),
+(696,10),
+(696,9),
+(696,8),
+(696,4),
+(696,7),
+(694,14),
+(694,3),
+(694,10),
+(694,6),
+(879,14),
+(879,3),
+(879,10),
+(879,6),
+(241,11),
+(241,3),
+(241,10),
+(565,14),
+(565,1),
+(565,10),
+(565,9),
+(565,8),
+(565,4),
+(565,7),
+(84,11),
+(84,3),
+(84,10),
+(85,14),
+(85,1),
+(85,10),
+(85,9),
+(85,8),
+(85,4),
+(85,7),
+(83,14),
+(83,3),
+(83,10),
+(83,6),
+(662,14),
+(662,1),
+(662,2),
+(662,13),
+(662,7),
+(665,1),
+(665,5),
+(665,9),
+(665,8),
+(664,11),
+(664,3),
+(664,10),
+(663,14),
+(663,3),
+(663,10),
+(663,6),
+(1028,1),
+(1028,5),
+(1028,9),
+(1028,8),
+(1027,11),
+(1027,3),
+(1027,10),
+(1026,14),
+(1026,3),
+(1026,10),
+(1026,6),
+(149,1),
+(149,5),
+(149,9),
+(149,8),
+(148,11),
+(148,3),
+(148,10),
+(727,14),
+(727,1),
+(727,2),
+(727,13),
+(727,7),
+(728,1),
+(728,5),
+(728,9),
+(728,8),
+(822,14),
+(822,1),
+(822,10),
+(822,9),
+(822,8),
+(822,4),
+(822,7),
+(821,14),
+(821,3),
+(821,10),
+(821,6),
+(850,11),
+(850,3),
+(850,10),
+(849,14),
+(849,3),
+(849,10),
+(849,6),
+(929,14),
+(929,1),
+(929,2),
+(929,13),
+(929,7),
+(930,1),
+(930,5),
+(930,9),
+(930,8),
+(1111,1),
+(1111,5),
+(1111,9),
+(1111,8),
+(1110,11),
+(1110,3),
+(1110,10),
+(33,1),
+(33,5),
+(33,9),
+(33,8),
+(32,11),
+(32,3),
+(32,10),
+(34,14),
+(34,1),
+(34,10),
+(34,9),
+(34,8),
+(34,4),
+(34,7),
+(31,14),
+(31,3),
+(31,10),
+(31,6),
+(115,1),
+(115,5),
+(115,9),
+(115,8),
+(114,11),
+(114,3),
+(114,10),
+(116,14),
+(116,1),
+(116,10),
+(116,9),
+(116,8),
+(116,4),
+(116,7),
+(113,14),
+(113,3),
+(113,10),
+(113,6),
+(295,14),
+(295,1),
+(295,2),
+(295,13),
+(295,7),
+(352,14),
+(352,1),
+(352,2),
+(352,13),
+(352,7),
+(354,11),
+(354,3),
+(354,10),
+(355,14),
+(355,1),
+(355,10),
+(355,9),
+(355,8),
+(355,4),
+(355,7),
+(353,14),
+(353,3),
+(353,10),
+(353,6),
+(529,14),
+(529,1),
+(529,2),
+(529,13),
+(529,7),
+(531,14),
+(531,1),
+(531,10),
+(531,9),
+(531,8),
+(531,4),
+(531,7),
+(530,14),
+(530,3),
+(530,10),
+(530,6),
+(764,1),
+(764,5),
+(764,9),
+(764,8),
+(763,14),
+(763,3),
+(763,10),
+(763,6),
+(1051,14),
+(1051,1),
+(1051,2),
+(1051,13),
+(1051,7),
+(1052,14),
+(1052,1),
+(1052,10),
+(1052,9),
+(1052,8),
+(1052,4),
+(1052,7),
+(269,11),
+(269,3),
+(269,10),
+(270,14),
+(270,1),
+(270,10),
+(270,9),
+(270,8),
+(270,4),
+(270,7),
+(324,14),
+(324,1),
+(324,2),
+(324,13),
+(324,7),
+(326,1),
+(326,5),
+(326,9),
+(326,8),
+(327,14),
+(327,1),
+(327,10),
+(327,9),
+(327,8),
+(327,4),
+(327,7),
+(325,14),
+(325,3),
+(325,10),
+(325,6),
+(1080,1),
+(1080,5),
+(1080,9),
+(1080,8),
+(181,14),
+(181,1),
+(181,2),
+(181,13),
+(181,7),
+(183,1),
+(183,5),
+(183,9),
+(183,8),
+(182,11),
+(182,3),
+(182,10),
+(55,14),
+(55,1),
+(55,2),
+(55,13),
+(55,7),
+(210,14),
+(210,1),
+(210,2),
+(210,13),
+(210,7),
+(212,11),
+(212,3),
+(212,10),
+(213,14),
+(213,1),
+(213,10),
+(213,9),
+(213,8),
+(213,4),
+(213,7),
+(211,14),
+(211,3),
+(211,10),
+(211,6),
+(468,14),
+(468,1),
+(468,2),
+(468,13),
+(468,7),
+(471,1),
+(471,5),
+(471,9),
+(471,8),
+(470,11),
+(470,3),
+(470,10),
+(472,14),
+(472,1),
+(472,10),
+(472,9),
+(556,1),
+(556,5),
+(556,9),
+(556,8),
+(555,11),
+(555,3),
+(555,10),
+(554,14),
+(554,3),
+(554,10),
+(554,6),
+(69,14),
+(69,1),
+(69,2),
+(69,13),
+(69,7),
+(72,1),
+(72,5),
+(72,9),
+(72,8),
+(71,11),
+(71,3),
+(71,10),
+(73,14),
+(73,1),
+(73,10),
+(73,9),
+(73,8),
+(73,4),
+(73,7),
+(70,14),
+(70,3),
+(70,10),
+(70,6),
+(653,14),
+(653,1),
+(653,10),
+(653,9),
+(653,8),
+(653,4),
+(653,7),
+(652,14),
+(652,3),
+(652,10),
+(652,6),
+(1020,14),
+(1020,1),
+(1020,2),
+(1020,13),
+(1020,7),
+(136,14),
+(136,1),
+(136,2),
+(136,13),
+(136,7),
+(137,14),
+(137,1),
+(137,10),
+(137,9),
+(137,8),
+(137,4),
+(137,7),
+(721,11),
+(721,3),
+(721,10),
+(784,1),
+(784,5),
+(784,9),
+(784,8),
+(785,14),
+(785,1),
+(785,10),
+(785,9),
+(785,8),
+(785,4),
+(785,7),
+(812,14),
+(812,3),
+(812,10),
+(812,6),
+(841,14),
+(841,1),
+(841,2),
+(841,13),
+(841,7),
+(843,1),
+(843,5),
+(843,9),
+(843,8),
+(842,14),
+(842,3),
+(842,10),
+(842,6),
+(920,14),
+(920,1),
+(920,2),
+(920,13),
+(920,7),
+(921,11),
+(921,3),
+(921,10),
+(922,14),
+(922,1),
+(922,10),
+(922,9),
+(922,8),
+(922,4),
+(922,7),
+(1101,14),
+(1101,1),
+(1101,10),
+(1101,9),
+(1101,8),
+(1101,4),
+(1101,7),
+(1100,14),
+(1100,3),
+(1100,10),
+(1100,6),
+(18,14),
+(18,1),
+(18,2),
+(18,13),
+(18,7),
+(19,11),
+(19,3),
+(19,10),
+(20,14),
+(20,1),
+(20,10),
+(20,9),
+(20,8),
+(20,4),
+(20,7),
+(288,14),
+(288,1),
+(288,2),
+(288,13),
+(288,7),
+(347,1),
+(347,5),
+(347,9),
+(347,8),
+(346,11),
+(346,3),
+(346,10),
+(348,14),
+(348,1),
+(348,10),
+(348,9),
+(348,8),
+(348,4),
+(348,7),
+(519,1),
+(519,5),
+(519,9),
+(519,8),
+(520,14),
+(520,1),
+(520,10),
+(520,9),
+(520,8),
+(520,4),
+(520,7),
+(518,14),
+(518,3),
+(518,10),
+(518,6),
+(751,14),
+(751,1),
+(751,2),
+(751,13),
+(751,7),
+(753,1),
+(753,5),
+(753,9),
+(753,8),
+(752,14),
+(752,3),
+(752,10),
+(752,6),
+(1040,14),
+(1040,1),
+(1040,2),
+(1040,13),
+(1040,7),
+(1041,1),
+(1041,5),
+(1041,9),
+(1041,8),
+(262,11),
+(262,3),
+(262,10),
+(261,14),
+(261,3),
+(261,10),
+(261,6),
+(316,1),
+(316,5),
+(316,9),
+(316,8),
+(317,14),
+(317,1),
+(317,10),
+(317,9),
+(317,8),
+(317,4),
+(317,7),
+(1070,1),
+(1070,5),
+(1070,9),
+(1070,8),
+(1071,14),
+(1071,1),
+(1071,10),
+(1071,9),
+(1071,8),
+(1050,4),
+(1050,7),
+(1048,14),
+(1048,3),
+(1048,10),
+(1048,6),
+(268,14),
+(268,1),
+(268,2),
+(268,13),
+(268,7),
+(322,14),
+(322,1),
+(322,2),
+(322,13),
+(322,7),
+(323,1),
+(323,5),
+(323,9),
+(323,8),
+(1078,1),
+(1078,5),
+(1078,9),
+(1078,8),
+(1079,14),
+(1079,1),
+(1079,10),
+(1079,9),
+(1079,8),
+(1079,4),
+(1079,7),
+(1077,14),
+(1077,3),
+(1077,10),
+(1077,6),
+(179,14),
+(179,1),
+(179,2),
+(179,13),
+(179,7),
+(180,14),
+(180,3),
+(180,10),
+(180,6),
+(54,1),
+(54,5),
+(54,9),
+(54,8),
+(209,1),
+(209,5),
+(209,9),
+(209,8),
+(208,11),
+(208,3),
+(208,10),
+(207,14),
+(207,3),
+(207,10),
+(207,6),
+(463,14),
+(463,1),
+(463,2),
+(463,13),
+(463,7),
+(466,1),
+(466,5),
+(466,9),
+(466,8),
+(465,11),
+(465,3),
+(465,10),
+(467,14),
+(467,1),
+(467,10),
+(467,9),
+(467,8),
+(467,4),
+(467,7),
+(464,14),
+(464,3),
+(464,10),
+(464,6),
+(965,14),
+(965,1),
+(965,2),
+(965,13),
+(965,7),
+(968,1),
+(968,5),
+(968,9),
+(968,8),
+(967,11),
+(967,3),
+(967,10),
+(969,14),
+(969,1),
+(969,10),
+(969,9),
+(969,8),
+(969,4),
+(969,7),
+(966,14),
+(966,3),
+(966,10),
+(966,6),
+(600,14),
+(600,1),
+(600,2),
+(600,13),
+(600,7),
+(603,1),
+(603,5),
+(603,9),
+(603,8),
+(602,11),
+(602,3),
+(602,10),
+(604,14),
+(1071,4),
+(1071,7),
+(175,11),
+(175,3),
+(175,10),
+(174,14),
+(174,3),
+(174,10),
+(174,6),
+(51,1),
+(51,5),
+(51,9),
+(51,8),
+(50,11),
+(50,3),
+(50,10),
+(49,14),
+(49,3),
+(49,10),
+(49,6),
+(201,14),
+(201,1),
+(201,2),
+(201,13),
+(201,7),
+(202,11),
+(202,3),
+(202,10),
+(448,14),
+(448,1),
+(448,2),
+(448,13),
+(448,7),
+(451,1),
+(451,5),
+(451,9),
+(451,8),
+(450,11),
+(450,3),
+(450,10),
+(452,14),
+(452,1),
+(452,10),
+(452,9),
+(452,8),
+(452,4),
+(452,7),
+(449,14),
+(449,3),
+(449,10),
+(449,6),
+(995,14),
+(995,1),
+(995,2),
+(995,13),
+(995,7),
+(998,1),
+(998,5),
+(998,9),
+(998,8),
+(997,11),
+(997,3),
+(997,10),
+(999,14),
+(999,1),
+(999,10),
+(999,9),
+(999,8),
+(999,4),
+(999,7),
+(996,14),
+(996,3),
+(996,10),
+(996,6),
+(630,14),
+(630,1),
+(630,2),
+(630,13),
+(630,7),
+(633,1),
+(633,5),
+(633,9),
+(633,8),
+(632,11),
+(632,3),
+(632,10),
+(634,14),
+(634,1),
+(634,10),
+(634,9),
+(634,8),
+(634,4),
+(634,7),
+(631,14),
+(631,3),
+(631,10),
+(631,6),
+(383,1),
+(383,5),
+(383,9),
+(383,8),
+(382,11),
+(382,3),
+(382,10),
+(384,14),
+(384,1),
+(384,10),
+(384,9),
+(384,8),
+(384,4),
+(384,7),
+(412,11),
+(412,3),
+(412,10),
+(411,14),
+(411,3),
+(411,10),
+(411,6),
+(505,14),
+(505,1),
+(505,10),
+(505,9),
+(505,8),
+(505,4),
+(505,7),
+(697,14),
+(697,1),
+(697,2),
+(697,13),
+(697,7),
+(698,1),
+(698,5),
+(698,9),
+(698,8),
+(699,14),
+(699,1),
+(699,10),
+(699,9),
+(699,8),
+(699,4),
+(699,7),
+(880,14),
+(880,1),
+(880,2),
+(880,13),
+(880,7),
+(882,11),
+(882,3),
+(882,10),
+(881,14),
+(881,3),
+(881,10),
+(881,6),
+(903,14),
+(903,3),
+(903,10),
+(903,6),
+(242,14),
+(242,1),
+(242,2),
+(242,13),
+(242,7),
+(244,11),
+(244,3),
+(244,10),
+(245,14),
+(245,1),
+(245,10),
+(245,9),
+(245,8),
+(245,4),
+(245,7),
+(243,14),
+(243,3),
+(243,10),
+(243,6),
+(566,14),
+(566,1),
+(566,2),
+(566,13),
+(566,7),
+(568,1),
+(568,5),
+(568,9),
+(568,8),
+(569,14),
+(569,1),
+(569,10),
+(569,9),
+(569,8),
+(569,4),
+(569,7),
+(567,14),
+(567,3),
+(567,10),
+(567,6),
+(86,1),
+(86,5),
+(86,9),
+(86,8),
+(87,14),
+(87,1),
+(87,10),
+(87,9),
+(87,8),
+(87,4),
+(87,7),
+(666,14),
+(666,3),
+(666,10),
+(666,6),
+(1029,14),
+(1029,1),
+(1029,2),
+(1029,13),
+(1029,7),
+(1030,11),
+(1030,3),
+(1030,10),
+(150,1),
+(150,5),
+(150,9),
+(150,8),
+(151,14),
+(151,1),
+(151,10),
+(151,9),
+(151,8),
+(151,4),
+(151,7),
+(729,14),
+(729,1),
+(729,2),
+(729,13),
+(729,7),
+(731,1),
+(731,5),
+(731,9),
+(731,8),
+(732,14),
+(732,1),
+(732,10),
+(732,9),
+(732,8),
+(732,4),
+(732,7),
+(730,14),
+(730,3),
+(730,10),
+(730,6),
+(793,14),
+(793,1),
+(793,2),
+(793,13),
+(793,7),
+(794,11),
+(794,3),
+(794,10),
+(795,14),
+(795,1),
+(795,10),
+(795,9),
+(795,8),
+(795,4),
+(795,7),
+(823,1),
+(823,5),
+(823,9),
+(823,8),
+(824,14),
+(824,1),
+(824,10),
+(824,9),
+(824,8),
+(824,4),
+(824,7),
+(851,14),
+(851,3),
+(851,10),
+(851,6),
+(931,14),
+(931,1),
+(931,2),
+(931,13),
+(931,7),
+(933,11),
+(933,3),
+(933,10),
+(934,14),
+(934,1),
+(934,10),
+(934,9),
+(934,8),
+(934,4),
+(934,7),
+(932,14),
+(932,3),
+(932,10),
+(932,6),
+(1112,14),
+(1112,1),
+(1112,2),
+(1112,13),
+(1112,7),
+(35,14),
+(35,1),
+(35,2),
+(35,13),
+(35,7),
+(37,1),
+(37,5),
+(37,9),
+(37,8),
+(36,11),
+(36,3),
+(36,10),
+(38,14),
+(38,1),
+(38,10),
+(38,9),
+(38,8),
+(38,4),
+(38,7),
+(118,1),
+(118,5),
+(118,9),
+(118,8),
+(117,14),
+(117,3),
+(117,10),
+(117,6),
+(296,14),
+(296,1),
+(296,2),
+(296,13),
+(296,7),
+(297,14),
+(297,3),
+(297,10),
+(297,6),
+(356,14),
+(356,3),
+(356,10),
+(356,6),
+(532,14),
+(532,1),
+(532,2),
+(532,13),
+(532,7),
+(533,1),
+(533,5),
+(533,9),
+(533,8),
+(766,1),
+(766,5),
+(766,9),
+(766,8),
+(767,14),
+(767,1),
+(767,10),
+(767,9),
+(767,8),
+(767,4),
+(767,7),
+(765,14),
+(765,3),
+(765,10),
+(765,6),
+(1054,1),
+(1054,5),
+(1054,9),
+(1054,8),
+(1053,11),
+(1053,3),
+(1053,10),
+(272,1),
+(272,5),
+(272,9),
+(272,8),
+(271,11),
+(271,3),
+(271,10),
+(328,11),
+(328,3),
+(328,10),
+(1081,14),
+(1081,1),
+(1081,2),
+(1081,13),
+(1081,7),
+(1083,11),
+(1083,3),
+(1083,10),
+(1082,14),
+(1082,3),
+(1082,10),
+(1082,6),
+(184,14),
+(184,3),
+(184,10),
+(184,6),
+(56,14),
+(56,1),
+(56,2),
+(56,13),
+(56,7),
+(57,11),
+(57,3),
+(57,10),
+(58,14),
+(58,1),
+(58,10),
+(58,9),
+(58,8),
+(58,4),
+(58,7),
+(214,14),
+(214,1),
+(214,2),
+(214,13),
+(214,7),
+(216,1),
+(216,5),
+(216,9),
+(216,8),
+(215,11),
+(215,3),
+(215,10),
+(473,14),
+(473,1),
+(473,2),
+(473,13),
+(473,7),
+(476,1),
+(476,5),
+(476,9),
+(476,8),
+(475,11),
+(475,3),
+(475,10),
+(477,14),
+(477,1),
+(477,10),
+(477,9),
+(477,8),
+(477,4),
+(477,7),
+(474,14),
+(474,3),
+(474,10),
+(474,6),
+(955,14),
+(955,1),
+(955,2),
+(955,13),
+(955,7),
+(958,1),
+(958,5),
+(958,9),
+(958,8),
+(957,11),
+(957,3),
+(957,10),
+(959,14),
+(959,1),
+(959,10),
+(959,9),
+(959,8),
+(959,4),
+(959,7),
+(956,14),
+(956,3),
+(956,10),
+(956,6),
+(590,14),
+(590,1),
+(590,2),
+(590,13),
+(590,7),
+(593,1),
+(593,5),
+(593,9),
+(593,8),
+(592,11),
+(592,3),
+(592,10),
+(594,14),
+(594,1),
+(594,10),
+(594,9),
+(594,8),
+(594,4),
+(594,7),
+(591,14),
+(591,3),
+(591,10),
+(591,6),
+(364,14),
+(364,1),
+(364,2),
+(364,13),
+(364,7),
+(366,1),
+(366,5),
+(366,9),
+(366,8),
+(365,11),
+(365,3),
+(365,10),
+(391,1),
+(391,5),
+(391,9),
+(391,8),
+(390,11),
+(390,3),
+(390,10),
+(392,14),
+(392,1),
+(392,10),
+(392,9),
+(392,8),
+(392,4),
+(392,7),
+(389,14),
+(389,3),
+(389,10),
+(389,6),
+(483,14),
+(483,1),
+(483,2),
+(483,13),
+(483,7),
+(674,1),
+(674,5),
+(674,9),
+(674,8),
+(675,14),
+(675,1),
+(675,10),
+(675,9),
+(675,8),
+(675,4),
+(675,7),
+(864,14),
+(864,1),
+(864,2),
+(864,13),
+(864,7),
+(867,1),
+(867,5),
+(867,9),
+(867,8),
+(866,11),
+(866,3),
+(866,10),
+(868,14),
+(868,1),
+(868,10),
+(868,9),
+(868,8),
+(868,4),
+(868,7),
+(865,14),
+(865,3),
+(865,10),
+(865,6),
+(893,14),
+(893,3),
+(893,10),
+(893,6),
+(226,14),
+(226,1),
+(226,2),
+(226,13),
+(226,7),
+(227,14),
+(227,1),
+(227,10),
+(227,9),
+(227,8),
+(227,4),
+(227,7),
+(546,14),
+(546,1),
+(546,2),
+(546,13),
+(546,7),
+(547,11),
+(547,3),
+(547,10),
+(548,14),
+(548,1),
+(548,10),
+(548,9),
+(548,8),
+(548,4),
+(548,7),
+(66,1),
+(66,5),
+(66,9),
+(66,8),
+(646,14),
+(646,1),
+(646,2),
+(646,13),
+(646,7),
+(647,1),
+(647,5),
+(647,9),
+(647,8),
+(1011,14),
+(1011,1),
+(1011,2),
+(1011,13),
+(1011,7),
+(1014,1),
+(1014,5),
+(1014,9),
+(1014,8),
+(1013,11),
+(1013,3),
+(1013,10),
+(1012,14),
+(1012,3),
+(1012,10),
+(1012,6),
+(126,14),
+(126,1),
+(126,2),
+(126,13),
+(126,7),
+(128,1),
+(128,5),
+(128,9),
+(128,8),
+(129,14),
+(129,1),
+(129,10),
+(129,9),
+(129,8),
+(129,4),
+(129,7),
+(127,14),
+(127,3),
+(127,10),
+(127,6),
+(714,1),
+(714,5),
+(714,9),
+(714,8),
+(713,11),
+(713,3),
+(713,10),
+(712,14),
+(712,3),
+(712,10),
+(712,6),
+(776,11),
+(776,3),
+(776,10),
+(777,14),
+(777,1),
+(777,10),
+(777,9),
+(777,8),
+(777,4),
+(777,7),
+(805,14),
+(805,1),
+(805,10),
+(805,9),
+(805,8),
+(805,4),
+(805,7),
+(836,1),
+(836,5),
+(836,9),
+(836,8),
+(910,14),
+(910,1),
+(910,2),
+(910,13),
+(910,7),
+(912,14),
+(912,1),
+(912,10),
+(912,9),
+(912,8),
+(912,4),
+(912,7),
+(911,14),
+(911,3),
+(911,10),
+(911,6),
+(1095,11),
+(1095,3),
+(1095,10),
+(15,11),
+(499,11),
+(499,3),
+(499,10),
+(501,14),
+(501,1),
+(501,10),
+(501,9),
+(501,8),
+(501,4),
+(501,7),
+(498,14),
+(498,3),
+(498,10),
+(498,6),
+(689,14),
+(689,1),
+(689,2),
+(689,13),
+(689,7),
+(692,1),
+(692,5),
+(692,9),
+(692,8),
+(691,11),
+(691,3),
+(691,10),
+(690,14),
+(690,3),
+(690,10),
+(690,6),
+(877,14),
+(877,1),
+(877,2),
+(877,13),
+(877,7),
+(878,14),
+(878,1),
+(878,10),
+(878,9),
+(878,8),
+(878,4),
+(878,7),
+(902,11),
+(902,3),
+(902,10),
+(563,1),
+(563,5),
+(563,9),
+(563,8),
+(562,11),
+(562,3),
+(562,10),
+(564,14),
+(564,1),
+(564,10),
+(564,9),
+(564,8),
+(564,4),
+(564,7),
+(78,14),
+(78,1),
+(78,2),
+(78,13),
+(78,7),
+(81,1),
+(81,5),
+(81,9),
+(81,8),
+(80,11),
+(80,3),
+(80,10),
+(82,14),
+(82,1),
+(82,10),
+(82,9),
+(82,8),
+(82,4),
+(82,7),
+(79,14),
+(79,3),
+(79,10),
+(79,6),
+(660,1),
+(660,5),
+(660,9),
+(660,8),
+(659,11),
+(659,3),
+(659,10),
+(661,14),
+(661,1),
+(661,10),
+(661,9),
+(661,8),
+(661,4),
+(661,7),
+(1025,11),
+(1025,3),
+(1025,10),
+(1024,14),
+(1024,3),
+(1024,10),
+(1024,6),
+(147,14),
+(147,1),
+(147,2),
+(147,13),
+(147,7),
+(725,11),
+(725,3),
+(725,10),
+(726,14),
+(726,1),
+(726,10),
+(726,9),
+(726,8),
+(726,4),
+(726,7),
+(792,1),
+(792,5),
+(792,9),
+(792,8),
+(791,11),
+(791,3),
+(791,10),
+(819,14),
+(819,1),
+(819,2),
+(819,13),
+(819,7),
+(820,1),
+(820,5),
+(820,9),
+(820,8),
+(847,14),
+(847,1),
+(847,2),
+(847,13),
+(847,7),
+(848,14),
+(848,1),
+(848,10),
+(848,9),
+(848,8),
+(848,4),
+(848,7),
+(926,14),
+(926,1),
+(926,2),
+(926,13),
+(926,7),
+(928,1),
+(928,5),
+(928,9),
+(928,8),
+(927,14),
+(927,3),
+(927,10),
+(927,6),
+(1108,11),
+(1108,3),
+(1108,10),
+(1109,14),
+(1109,1),
+(1109,10),
+(1109,9),
+(1109,8),
+(1109,4),
+(1109,7),
+(29,11),
+(29,3),
+(29,10),
+(30,14),
+(30,1),
+(30,10),
+(30,9),
+(30,8),
+(30,4),
+(30,7),
+(28,14),
+(28,3),
+(28,10),
+(28,6),
+(294,14),
+(294,1),
+(294,10),
+(294,9),
+(294,8),
+(294,4),
+(294,7),
+(293,14),
+(293,3),
+(293,10),
+(293,6),
+(526,14),
+(526,1),
+(526,2),
+(526,13),
+(526,7),
+(528,1),
+(528,5),
+(528,9),
+(528,8),
+(527,14),
+(527,3),
+(527,10),
+(527,6),
+(762,14),
+(762,1),
+(762,10),
+(762,9),
+(762,8),
+(762,4),
+(762,7),
+(761,14),
+(761,3),
+(761,10),
+(761,6),
+(1047,14),
+(1047,1),
+(1047,2),
+(1047,13),
+(1047,7),
+(1049,11),
+(1049,3),
+(1049,10),
+(1050,14),
+(1050,1),
+(1050,10),
+(1050,9),
+(1050,8),
+(604,1),
+(604,10),
+(604,9),
+(604,8),
+(604,4),
+(604,7),
+(601,14),
+(601,3),
+(601,10),
+(601,6),
+(369,14),
+(369,1),
+(369,2),
+(369,13),
+(369,7),
+(370,11),
+(370,3),
+(370,10),
+(371,14),
+(371,1),
+(371,10),
+(371,9),
+(371,8),
+(371,4),
+(371,7),
+(395,11),
+(395,3),
+(395,10),
+(396,14),
+(396,1),
+(396,10),
+(396,9),
+(396,8),
+(396,4),
+(396,7),
+(486,14),
+(486,1),
+(486,2),
+(486,13),
+(486,7),
+(488,11),
+(488,3),
+(488,10),
+(489,14),
+(489,1),
+(489,10),
+(489,9),
+(489,8),
+(489,4),
+(489,7),
+(487,14),
+(487,3),
+(487,10),
+(487,6),
+(679,14),
+(679,1),
+(679,2),
+(679,13),
+(679,7),
+(680,1),
+(680,5),
+(680,9),
+(680,8),
+(681,14),
+(681,1),
+(681,10),
+(681,9),
+(681,8),
+(681,4),
+(681,7),
+(870,14),
+(870,1),
+(870,2),
+(870,13),
+(870,7),
+(871,1),
+(871,5),
+(871,9),
+(871,8),
+(232,1),
+(232,5),
+(232,9),
+(232,8),
+(233,14),
+(233,1),
+(233,10),
+(233,9),
+(233,8),
+(233,4),
+(233,7),
+(231,14),
+(231,3),
+(231,10),
+(231,6),
+(551,14),
+(551,1),
+(551,2),
+(551,13),
+(551,7),
+(552,1),
+(552,5),
+(552,9),
+(552,8),
+(553,14),
+(553,1),
+(553,10),
+(553,9),
+(553,8),
+(553,4),
+(553,7),
+(68,1),
+(68,5),
+(68,9),
+(68,8),
+(651,1),
+(651,5),
+(651,9),
+(651,8),
+(1018,11),
+(1018,3),
+(1018,10),
+(1019,14),
+(1019,1),
+(1019,10),
+(1019,9),
+(1019,8),
+(1019,4),
+(1019,7),
+(1017,14),
+(1017,3),
+(1017,10),
+(1017,6),
+(133,14),
+(133,1),
+(133,2),
+(133,13),
+(133,7),
+(134,1),
+(134,5),
+(134,9),
+(134,8),
+(135,14),
+(135,1),
+(135,10),
+(135,9),
+(135,8),
+(135,4),
+(135,7),
+(719,11),
+(719,3),
+(719,10),
+(720,14),
+(720,1),
+(720,10),
+(720,9),
+(720,8),
+(720,4),
+(720,7),
+(781,14),
+(781,1),
+(781,2),
+(781,13),
+(781,7),
+(783,11),
+(783,3),
+(783,10),
+(782,14),
+(782,3),
+(782,10),
+(782,6),
+(811,1),
+(811,5),
+(811,9),
+(811,8),
+(810,11),
+(810,3),
+(810,10),
+(809,14),
+(809,3),
+(809,10),
+(809,6),
+(840,14),
+(840,1),
+(840,10),
+(840,9),
+(840,8),
+(840,4),
+(840,7),
+(839,14),
+(839,3),
+(839,10),
+(839,6),
+(917,14),
+(917,1),
+(917,2),
+(917,13),
+(917,7),
+(918,1),
+(918,5),
+(918,9),
+(918,8),
+(919,14),
+(919,1),
+(919,10),
+(919,9),
+(919,8),
+(919,4),
+(919,7),
+(1098,1),
+(1098,5),
+(1098,9),
+(1098,8),
+(1099,14),
+(1099,1),
+(1099,10),
+(1099,9),
+(1099,8),
+(1099,4),
+(1099,7),
+(17,11),
+(17,3),
+(17,10),
+(106,1),
+(106,5),
+(106,9),
+(106,8),
+(105,11),
+(105,3),
+(105,10),
+(107,14),
+(107,1),
+(107,10),
+(107,9),
+(107,8),
+(107,4),
+(107,7),
+(285,14),
+(285,1),
+(285,2),
+(285,13),
+(285,7),
+(287,11),
+(287,3),
+(287,10),
+(286,14),
+(286,3),
+(286,10),
+(286,6),
+(345,1),
+(345,5),
+(345,9),
+(345,8),
+(344,11),
+(344,3),
+(344,10),
+(516,14),
+(516,1),
+(516,2),
+(516,13),
+(516,7),
+(517,14),
+(517,3),
+(517,10),
+(517,6),
+(749,11),
+(749,3),
+(749,10),
+(750,14),
+(750,1),
+(750,10),
+(750,9),
+(750,8),
+(750,4),
+(750,7),
+(748,14),
+(748,3),
+(748,10),
+(748,6),
+(1038,14),
+(1038,1),
+(1038,2),
+(1038,13),
+(1038,7),
+(1039,14),
+(1039,3),
+(1039,10),
+(1039,6),
+(260,1),
+(260,5),
+(260,9),
+(260,8),
+(259,14),
+(259,3),
+(259,10),
+(259,6),
+(315,11),
+(315,3),
+(315,10),
+(314,14),
+(314,3),
+(314,10),
+(314,6),
+(1069,14),
+(1069,3),
+(1069,10),
+(1069,6),
+(171,14),
+(171,1),
+(171,2),
+(171,13),
+(171,7),
+(172,11),
+(172,3),
+(172,10),
+(173,14),
+(173,1),
+(173,10),
+(173,9),
+(173,8),
+(173,4),
+(173,7),
+(47,14),
+(47,1),
+(47,2),
+(47,13),
+(47,7),
+(48,11),
+(48,3),
+(48,10),
+(198,14),
+(198,1),
+(198,2),
+(198,13),
+(198,7),
+(200,1),
+(200,5),
+(200,9),
+(200,8),
+(199,14),
+(199,3),
+(199,10),
+(199,6),
+(443,14),
+(443,1),
+(443,2),
+(443,13),
+(443,7),
+(446,1),
+(446,5),
+(446,9),
+(446,8),
+(445,11),
+(445,3),
+(445,10),
+(447,14),
+(447,1),
+(447,10),
+(447,9),
+(447,8),
+(447,4),
+(447,7),
+(444,14),
+(444,3),
+(444,10),
+(444,6),
+(980,14),
+(980,1),
+(980,2),
+(980,13),
+(980,7),
+(983,1),
+(983,5),
+(983,9),
+(983,8),
+(982,11),
+(982,3),
+(982,10),
+(984,14),
+(984,1),
+(984,10),
+(984,9),
+(984,8),
+(984,4),
+(984,7),
+(981,14),
+(981,3),
+(981,10),
+(981,6),
+(615,14),
+(615,1),
+(615,2),
+(615,13),
+(615,7),
+(618,1),
+(618,5),
+(618,9),
+(618,8),
+(617,11),
+(617,3),
+(617,10),
+(619,14),
+(619,1),
+(619,10),
+(619,9),
+(619,8),
+(619,4),
+(619,7),
+(616,14),
+(616,3),
+(616,10),
+(616,6),
+(376,14),
+(376,1),
+(376,2),
+(376,13),
+(376,7),
+(377,14),
+(377,3),
+(377,10),
+(377,6),
+(402,14),
+(402,1),
+(402,2),
+(402,13),
+(402,7),
+(404,1),
+(404,5),
+(404,9),
+(404,8),
+(403,14),
+(403,3),
+(403,10),
+(403,6),
+(495,1),
+(495,5),
+(495,9),
+(495,8),
+(494,11),
+(494,3),
+(494,10),
+(496,14),
+(496,1),
+(496,10),
+(496,9),
+(496,8),
+(496,4),
+(496,7),
+(493,14),
+(493,3),
+(493,10),
+(493,6),
+(687,14),
+(687,1),
+(687,2),
+(687,13),
+(687,7),
+(688,14),
+(688,1),
+(688,10),
+(688,9),
+(688,8),
+(688,4),
+(688,7),
+(876,11),
+(876,3),
+(876,10),
+(899,14),
+(899,1),
+(899,2),
+(899,13),
+(899,7),
+(901,1),
+(901,5),
+(901,9),
+(901,8),
+(900,14),
+(900,3),
+(900,10),
+(900,6),
+(240,11),
+(240,3),
+(240,10),
+(239,14),
+(239,3),
+(239,10),
+(239,6),
+(559,14),
+(559,1),
+(559,2),
+(559,13),
+(559,7),
+(560,1),
+(560,5),
+(560,9),
+(560,8),
+(561,14),
+(561,1),
+(561,10),
+(561,9),
+(561,8),
+(561,4),
+(561,7),
+(76,1),
+(76,5),
+(76,9),
+(76,8),
+(77,14),
+(77,1),
+(77,10),
+(77,9),
+(77,8),
+(77,4),
+(77,7),
+(656,14),
+(656,1),
+(656,2),
+(656,13),
+(656,7),
+(658,1),
+(658,5),
+(658,9),
+(658,8),
+(657,11),
+(657,3),
+(657,10),
+(1023,14),
+(1023,1),
+(1023,10),
+(1023,9),
+(1023,8),
+(1023,4),
+(1023,7),
+(142,14),
+(142,1),
+(142,2),
+(142,13),
+(142,7),
+(145,1),
+(145,5),
+(145,9),
+(145,8),
+(144,11),
+(144,3),
+(144,10),
+(146,14),
+(146,1),
+(146,10),
+(146,9),
+(146,8),
+(146,4),
+(146,7),
+(143,14),
+(143,3),
+(143,10),
+(143,6),
+(722,14),
+(722,1),
+(722,2),
+(722,13),
+(722,7),
+(724,14),
+(724,1),
+(724,10),
+(724,9),
+(724,8),
+(724,4),
+(724,7),
+(723,14),
+(723,3),
+(723,10),
+(723,6),
+(790,11),
+(790,3),
+(790,10),
+(817,11),
+(817,3),
+(817,10),
+(818,14),
+(818,1),
+(818,10),
+(818,9),
+(818,8),
+(818,4),
+(818,7),
+(816,14),
+(816,3),
+(816,10),
+(816,6),
+(845,1),
+(845,5),
+(845,9),
+(845,8),
+(844,11),
+(844,3),
+(844,10),
+(846,14),
+(846,1),
+(846,10),
+(846,9),
+(846,8),
+(846,4),
+(846,7),
+(925,14),
+(925,3),
+(925,10),
+(925,6),
+(1104,14),
+(1104,1),
+(1104,2),
+(1104,13),
+(1104,7),
+(1107,1),
+(1107,5),
+(1107,9),
+(1107,8),
+(1106,11),
+(1106,3),
+(1106,10),
+(1105,14),
+(1105,3),
+(1105,10),
+(1105,6),
+(24,14),
+(24,1),
+(24,2),
+(24,13),
+(24,7),
+(26,11),
+(26,3),
+(26,10),
+(27,14),
+(27,1),
+(27,10),
+(27,9),
+(27,8),
+(27,4),
+(27,7),
+(25,14),
+(25,3),
+(25,10),
+(25,6),
+(112,14),
+(112,1),
+(112,10),
+(112,9),
+(112,8),
+(112,4),
+(112,7),
+(111,14),
+(111,3),
+(111,10),
+(111,6),
+(292,1),
+(292,5),
+(292,9),
+(292,8),
+(291,11),
+(291,3),
+(291,10),
+(351,14),
+(351,3),
+(351,10),
+(351,6),
+(523,14),
+(523,1),
+(523,2),
+(523,13),
+(523,7),
+(525,1),
+(525,5),
+(525,9),
+(525,8),
+(524,11),
+(524,3),
+(524,10),
+(757,14),
+(757,1),
+(757,2),
+(757,13),
+(757,7),
+(760,1),
+(760,5),
+(760,9),
+(760,8),
+(759,11),
+(759,3),
+(759,10),
+(758,14),
+(758,3),
+(758,10),
+(758,6),
+(1044,14),
+(1044,1),
+(1044,2),
+(1044,13),
+(1044,7),
+(1045,11),
+(1045,3),
+(1045,10),
+(1046,14),
+(1046,1),
+(1046,10),
+(1046,9),
+(1046,8),
+(1046,4),
+(1046,7),
+(267,14),
+(267,1),
+(267,2),
+(267,13),
+(267,7),
+(321,1),
+(321,5),
+(321,9),
+(321,8),
+(320,14),
+(320,3),
+(320,10),
+(320,6),
+(1075,1),
+(1075,5),
+(1075,9),
+(1075,8),
+(1076,14),
+(1076,1),
+(1076,10),
+(1076,9),
+(1076,8),
+(1076,4),
+(1076,7),
+(178,14),
+(178,1),
+(178,10),
+(178,9),
+(178,8),
+(178,4),
+(178,7),
+(53,14),
+(53,1),
+(53,2),
+(53,13),
+(53,7),
+(206,1),
+(206,5),
+(206,9),
+(206,8),
+(205,11),
+(205,3),
+(205,10),
+(458,14),
+(458,1),
+(458,2),
+(458,13),
+(458,7),
+(461,1),
+(461,5),
+(461,9),
+(461,8),
+(460,11),
+(460,3),
+(460,10),
+(462,14),
+(462,1),
+(462,10),
+(462,9),
+(462,8),
+(462,4),
+(462,7),
+(459,14),
+(459,3),
+(459,10),
+(459,6),
+(960,14),
+(960,1),
+(960,2),
+(960,13),
+(960,7),
+(963,1),
+(963,5),
+(963,9),
+(963,8),
+(962,11),
+(962,3),
+(962,10),
+(964,14),
+(964,1),
+(964,10),
+(964,9),
+(964,8),
+(964,4),
+(964,7),
+(961,14),
+(961,3),
+(961,10),
+(961,6),
+(595,14),
+(595,1),
+(595,2),
+(595,13),
+(595,7),
+(598,1),
+(598,5),
+(598,9),
+(598,8),
+(597,11),
+(597,3),
+(597,10),
+(599,14),
+(599,1),
+(599,10),
+(599,9),
+(599,8),
+(599,4),
+(599,7),
+(596,14),
+(596,3),
+(596,10),
+(596,6),
+(368,1),
+(368,5),
+(368,9),
+(368,8),
+(367,14),
+(367,3),
+(367,10),
+(367,6),
+(393,14),
+(393,1),
+(393,2),
+(393,13),
+(393,7),
+(394,14),
+(394,1),
+(394,10),
+(394,9),
+(394,8),
+(394,4),
+(394,7),
+(485,1),
+(485,5),
+(485,9),
+(485,8),
+(484,11),
+(484,3),
+(484,10),
+(676,14),
+(676,1),
+(676,2),
+(676,13),
+(676,7),
+(678,14),
+(678,1),
+(678,10),
+(678,9),
+(678,8),
+(678,4),
+(678,7),
+(677,14),
+(677,3),
+(677,10),
+(677,6),
+(869,14),
+(869,3),
+(869,10),
+(869,6),
+(230,1),
+(230,5),
+(230,9),
+(230,8),
+(229,11),
+(229,3),
+(229,10),
+(228,14),
+(228,3),
+(228,10),
+(228,6),
+(549,11),
+(549,3),
+(549,10),
+(550,14),
+(550,1),
+(550,10),
+(550,9),
+(550,8),
+(550,4),
+(550,7),
+(67,11),
+(67,3),
+(67,10),
+(648,14),
+(648,1),
+(648,2),
+(648,13),
+(648,7),
+(649,1),
+(649,5),
+(649,9),
+(649,8),
+(650,14),
+(650,1),
+(650,10),
+(650,9),
+(650,8),
+(650,4),
+(650,7),
+(1015,14),
+(1015,1),
+(1015,2),
+(1015,13),
+(1015,7),
+(1016,14),
+(1016,3),
+(1016,10),
+(1016,6),
+(131,11),
+(131,3),
+(131,10),
+(132,14),
+(132,1),
+(132,10),
+(132,9),
+(132,8),
+(132,4),
+(132,7),
+(130,14),
+(130,3),
+(130,10),
+(130,6),
+(715,14),
+(715,1),
+(715,2),
+(715,13),
+(715,7),
+(717,11),
+(717,3),
+(717,10),
+(718,14),
+(718,1),
+(718,10),
+(718,9),
+(718,8),
+(718,4),
+(718,7),
+(716,14),
+(716,3),
+(716,10),
+(716,6),
+(778,14),
+(778,1),
+(778,2),
+(778,13),
+(778,7),
+(779,1),
+(779,5),
+(779,9),
+(779,8),
+(780,14),
+(780,1),
+(780,10),
+(780,9),
+(780,8),
+(780,4),
+(780,7),
+(806,14),
+(806,1),
+(806,2),
+(806,13),
+(806,7),
+(808,1),
+(808,5),
+(808,9),
+(808,8),
+(807,14),
+(807,3),
+(807,10),
+(807,6),
+(837,1),
+(837,5),
+(837,9),
+(837,8),
+(838,14),
+(838,1),
+(838,10),
+(838,9),
+(838,8),
+(838,4),
+(838,7),
+(913,14),
+(913,1),
+(913,2),
+(913,13),
+(913,7),
+(915,1),
+(915,5),
+(915,9),
+(915,8),
+(914,11),
+(914,3),
+(914,10),
+(916,14),
+(916,1),
+(916,10),
+(916,9),
+(916,8),
+(916,4),
+(916,7),
+(1097,1),
+(1097,5),
+(1097,9),
+(1097,8),
+(1096,14),
+(1096,3),
+(1096,10),
+(1096,6),
+(16,14),
+(16,1),
+(16,10),
+(16,9),
+(16,8),
+(16,4),
+(16,7),
+(104,11),
+(104,3),
+(104,10),
+(283,1),
+(283,5),
+(283,9),
+(283,8),
+(282,11),
+(282,3),
+(282,10),
+(284,14),
+(284,1),
+(284,10),
+(284,9),
+(284,8),
+(284,4),
+(284,7),
+(343,1),
+(343,5),
+(343,9),
+(343,8),
+(342,11),
+(342,3),
+(342,10),
+(341,14),
+(341,3),
+(341,10),
+(341,6),
+(514,14),
+(514,1),
+(514,2),
+(514,13),
+(514,7),
+(515,14),
+(515,1),
+(515,10),
+(515,9),
+(515,8),
+(515,4),
+(515,7),
+(745,14),
+(745,1),
+(745,2),
+(745,13),
+(745,7),
+(746,11),
+(746,3),
+(746,10),
+(747,14),
+(747,1),
+(747,10),
+(747,9),
+(747,8),
+(747,4),
+(747,7),
+(1037,1),
+(1037,5),
+(1037,9),
+(1037,8),
+(256,14),
+(256,1),
+(256,2),
+(256,13),
+(256,7),
+(258,11),
+(258,3),
+(258,10),
+(257,14),
+(257,3),
+(257,10),
+(257,6),
+(312,14),
+(312,1),
+(312,2),
+(312,13),
+(312,7),
+(313,14),
+(313,3),
+(313,10),
+(313,6),
+(1068,14),
+(1068,1),
+(1068,2),
+(1068,13),
+(1068,7),
+(169,14),
+(169,1),
+(169,2),
+(169,13),
+(169,7),
+(170,1),
+(170,5),
+(170,9),
+(170,8),
+(46,11),
+(46,3),
+(46,10),
+(45,14),
+(45,3),
+(45,10),
+(45,6),
+(197,1),
+(197,5),
+(197,9),
+(197,8),
+(196,11),
+(196,3),
+(196,10),
+(438,14),
+(438,1),
+(438,2),
+(438,13),
+(438,7),
+(441,1),
+(441,5),
+(441,9),
+(441,8),
+(440,11),
+(440,3),
+(440,10),
+(442,14),
+(442,1),
+(442,10),
+(442,9),
+(442,8),
+(442,4),
+(442,7),
+(439,14),
+(439,3),
+(439,10),
+(439,6),
+(940,14),
+(940,1),
+(940,2),
+(940,13),
+(940,7),
+(943,1),
+(943,5),
+(943,9),
+(943,8),
+(942,11),
+(942,3),
+(942,10),
+(944,14),
+(944,1),
+(944,10),
+(944,9),
+(944,8),
+(944,4),
+(944,7),
+(941,14),
+(941,3),
+(941,10),
+(941,6),
+(575,14),
+(575,1),
+(575,2),
+(575,13),
+(575,7),
+(578,1),
+(578,5),
+(578,9),
+(578,8),
+(577,11),
+(577,3),
+(577,10),
+(579,14),
+(579,1),
+(579,10),
+(579,9),
+(579,8),
+(579,4),
+(579,7),
+(576,14),
+(576,3),
+(576,10),
+(576,6),
+(358,14),
+(358,3),
+(358,10),
+(358,6),
+(386,14),
+(386,1),
+(386,2),
+(386,13),
+(386,7),
+(387,1),
+(387,5),
+(387,9),
+(387,8),
+(479,14),
+(479,1),
+(479,2),
+(479,13),
+(479,7),
+(480,14),
+(480,3),
+(480,10),
+(480,6),
+(671,11),
+(671,3),
+(671,10),
+(856,1),
+(856,5),
+(856,9),
+(856,8),
+(857,14),
+(857,1),
+(857,10),
+(857,9),
+(857,8),
+(857,4),
+(857,7),
+(855,14),
+(855,3),
+(855,10),
+(855,6),
+(885,1),
+(885,5),
+(885,9),
+(885,8),
+(886,14),
+(886,1),
+(886,10),
+(886,9),
+(886,8),
+(886,4),
+(886,7),
+(884,14),
+(884,3),
+(884,10),
+(884,6),
+(218,14),
+(218,1),
+(218,2),
+(218,13),
+(218,7),
+(219,11),
+(219,3),
+(219,10),
+(220,14),
+(220,1),
+(220,10),
+(220,9),
+(220,8),
+(220,4),
+(220,7),
+(538,11),
+(538,3),
+(538,10),
+(539,14),
+(539,1),
+(539,10),
+(539,9),
+(539,8),
+(539,4),
+(539,7),
+(60,14),
+(60,1),
+(60,2),
+(60,13),
+(60,7),
+(638,14),
+(638,1),
+(638,2),
+(638,13),
+(638,7),
+(640,1),
+(640,5),
+(640,9),
+(640,8),
+(639,14),
+(639,3),
+(639,10),
+(639,6),
+(1002,14),
+(1002,1),
+(1002,2),
+(1002,13),
+(1002,7),
+(1003,1),
+(1003,5),
+(1003,9),
+(1003,8),
+(1004,14),
+(1004,1),
+(1004,10),
+(1004,9),
+(1004,8),
+(1004,4),
+(1004,7),
+(121,11),
+(121,3),
+(121,10),
+(704,11),
+(704,3),
+(704,10),
+(705,14),
+(705,1),
+(705,10),
+(705,9),
+(705,8),
+(705,4),
+(705,7),
+(703,14),
+(703,3),
+(703,10),
+(703,6),
+(771,14),
+(771,1),
+(771,10),
+(771,9),
+(771,8),
+(771,4),
+(771,7),
+(798,14),
+(798,1),
+(798,2),
+(798,13),
+(798,7),
+(799,11),
+(799,3),
+(799,10),
+(828,14),
+(828,1),
+(828,2),
+(828,13),
+(828,7),
+(831,1),
+(831,5),
+(831,9),
+(831,8),
+(830,11),
+(830,3),
+(830,10),
+(832,14),
+(832,1),
+(832,10),
+(832,9),
+(832,8),
+(832,4),
+(832,7),
+(829,14),
+(829,3),
+(829,10),
+(829,6),
+(905,14),
+(905,3),
+(905,10),
+(905,6),
+(1087,14),
+(1087,1),
+(1087,10),
+(1087,9),
+(1087,8),
+(1087,4),
+(1087,7),
+(3,14),
+(3,1),
+(3,2),
+(3,13),
+(3,7),
+(6,1),
+(6,5),
+(6,9),
+(6,8),
+(5,11),
+(5,3),
+(5,10),
+(4,14),
+(4,3),
+(4,10),
+(4,6),
+(91,14),
+(91,1),
+(91,2),
+(91,13),
+(91,7),
+(94,1),
+(94,5),
+(94,9),
+(94,8),
+(93,11),
+(93,3),
+(93,10),
+(95,14),
+(95,1),
+(95,10),
+(95,9),
+(95,8),
+(95,4),
+(95,7),
+(92,14),
+(92,3),
+(92,10),
+(92,6),
+(274,14),
+(274,1),
+(274,2),
+(274,13),
+(274,7),
+(332,14),
+(332,1),
+(332,2),
+(332,13),
+(332,7),
+(334,1),
+(334,5),
+(334,9),
+(334,8),
+(333,11),
+(333,3),
+(333,10),
+(507,1),
+(507,5),
+(507,9),
+(507,8),
+(737,1),
+(737,5),
+(737,9),
+(737,8),
+(736,11),
+(736,3),
+(736,10),
+(247,14),
+(247,1),
+(247,10),
+(247,9),
+(247,8),
+(247,4),
+(247,7),
+(246,14),
+(246,3),
+(246,10),
+(246,6),
+(302,14),
+(302,1),
+(302,2),
+(302,13),
+(302,7),
+(304,11),
+(304,3),
+(304,10),
+(305,14),
+(305,1),
+(305,10),
+(305,9),
+(305,8),
+(305,4),
+(305,7),
+(303,14),
+(303,3),
+(303,10),
+(303,6),
+(1057,14),
+(1057,1),
+(1057,2),
+(1057,13),
+(1057,7),
+(1059,1),
+(1059,5),
+(1059,9),
+(1059,8),
+(1058,11),
+(1058,3),
+(1058,10),
+(1060,14),
+(1060,1),
+(1060,10),
+(1060,9),
+(1060,8),
+(1060,4),
+(1060,7),
+(155,1),
+(155,5),
+(155,9),
+(155,8),
+(156,14),
+(156,1),
+(156,10),
+(156,9),
+(156,8),
+(156,4),
+(156,7),
+(154,14),
+(154,3),
+(154,10),
+(154,6),
+(41,14),
+(41,3),
+(41,10),
+(41,6),
+(187,14),
+(187,1),
+(187,2),
+(187,13),
+(187,7),
+(188,11),
+(188,3),
+(188,10),
+(189,14),
+(189,1),
+(189,10),
+(189,9),
+(189,8),
+(189,4),
+(189,7),
+(418,14),
+(418,1),
+(418,2),
+(418,13),
+(418,7),
+(421,1),
+(421,5),
+(421,9),
+(421,8),
+(420,11),
+(420,3),
+(420,10),
+(422,14),
+(422,1),
+(422,10),
+(422,9),
+(422,8),
+(422,4),
+(422,7),
+(419,14),
+(419,3),
+(419,10),
+(419,6),
+(935,14),
+(935,1),
+(935,2),
+(935,13),
+(935,7),
+(938,1),
+(938,5),
+(938,9),
+(938,8),
+(937,11),
+(937,3),
+(937,10),
+(939,14),
+(939,1),
+(939,10),
+(939,9),
+(939,8),
+(939,4),
+(939,7),
+(936,14),
+(936,3),
+(936,10),
+(936,6),
+(570,14),
+(570,1),
+(570,2),
+(570,13),
+(570,7),
+(573,1),
+(573,5),
+(573,9),
+(573,8),
+(572,11),
+(572,3),
+(572,10),
+(574,14),
+(574,1),
+(574,10),
+(574,9),
+(574,8),
+(574,4),
+(574,7),
+(571,14),
+(571,3),
+(571,10),
+(571,6),
+(357,1),
+(357,5),
+(357,9),
+(357,8),
+(385,11),
+(385,3),
+(385,10),
+(478,1),
+(478,5),
+(478,9),
+(478,8),
+(669,1),
+(669,5),
+(669,9),
+(669,8),
+(668,11),
+(668,3),
+(668,10),
+(670,14),
+(670,1),
+(670,10),
+(670,9),
+(670,8),
+(670,4),
+(670,7),
+(667,14),
+(667,3),
+(667,10),
+(667,6),
+(852,14),
+(852,1),
+(852,2),
+(852,13),
+(852,7),
+(854,14),
+(854,1),
+(854,10),
+(854,9),
+(854,8),
+(854,4),
+(854,7),
+(853,14),
+(853,3),
+(853,10),
+(853,6),
+(883,14),
+(883,1),
+(883,2),
+(883,13),
+(883,7),
+(217,14),
+(217,1),
+(217,10),
+(217,9),
+(217,8),
+(217,4),
+(217,7),
+(534,14),
+(534,1),
+(534,2),
+(534,13),
+(534,7),
+(536,1),
+(536,5),
+(536,9),
+(536,8),
+(537,14),
+(537,1),
+(537,10),
+(537,9),
+(537,8),
+(537,4),
+(537,7),
+(535,14),
+(535,3),
+(535,10),
+(535,6),
+(59,11),
+(59,3),
+(59,10),
+(637,14),
+(637,1),
+(637,10),
+(637,9),
+(637,8),
+(637,4),
+(637,7),
+(635,14),
+(635,1),
+(635,2),
+(635,13),
+(635,7),
+(636,14),
+(636,3),
+(636,10),
+(636,6),
+(1001,1),
+(1001,5),
+(1001,9),
+(1001,8),
+(1000,11),
+(1000,3),
+(1000,10),
+(119,14),
+(119,1),
+(119,2),
+(119,13),
+(119,7),
+(120,11),
+(120,3),
+(120,10),
+(700,14),
+(700,1),
+(700,2),
+(700,13),
+(700,7),
+(702,1),
+(702,5),
+(702,9),
+(702,8),
+(701,14),
+(701,3),
+(701,10),
+(701,6),
+(768,14),
+(768,1),
+(768,2),
+(768,13),
+(768,7),
+(769,11),
+(769,3),
+(769,10),
+(770,14),
+(770,1),
+(770,10),
+(770,9),
+(770,8),
+(770,4),
+(770,7),
+(796,14),
+(796,1),
+(796,2),
+(796,13),
+(796,7),
+(797,1),
+(797,5),
+(797,9),
+(797,8),
+(825,14),
+(825,1),
+(825,2),
+(825,13),
+(825,7),
+(827,1),
+(827,5),
+(827,9),
+(827,8),
+(826,14),
+(826,3),
+(826,10),
+(826,6),
+(904,11),
+(904,3),
+(904,10),
+(1085,1),
+(1085,5),
+(1085,9),
+(1085,8),
+(1086,14),
+(1086,1),
+(1086,10),
+(1086,9),
+(1086,8),
+(1086,4),
+(1086,7),
+(1084,14),
+(1084,3),
+(1084,10),
+(1084,6),
+(2,11),
+(2,3),
+(2,10),
+(1,14),
+(1,3),
+(1,10),
+(1,6),
+(88,14),
+(88,1),
+(88,2),
+(88,13),
+(88,7),
+(90,1),
+(90,5),
+(90,9),
+(90,8),
+(89,11),
+(89,3),
+(89,10),
+(273,14),
+(273,1),
+(273,10),
+(273,9),
+(273,8),
+(273,4),
+(273,7),
+(329,14),
+(329,1),
+(329,2),
+(329,13),
+(329,7),
+(331,11),
+(331,3),
+(331,10),
+(330,14),
+(330,3),
+(330,10),
+(330,6),
+(506,14),
+(506,1),
+(506,10),
+(506,9),
+(506,8),
+(506,4),
+(506,7),
+(733,14),
+(733,1),
+(733,2),
+(733,13),
+(733,7),
+(734,11),
+(734,3),
+(734,10),
+(735,14),
+(735,1),
+(735,10),
+(735,9),
+(735,8),
+(735,4),
+(735,7),
+(1031,14),
+(1031,3),
+(1031,10),
+(1031,6),
+(1032,11),
+(1032,3),
+(1032,10),
+(1033,14),
+(1033,1),
+(1033,10),
+(1033,9),
+(1033,8),
+(1033,4),
+(1033,7),
+(298,14),
+(298,1),
+(298,2),
+(298,13),
+(298,7),
+(300,11),
+(300,3),
+(300,10),
+(301,14),
+(301,1),
+(301,10),
+(301,9),
+(301,8),
+(301,4),
+(301,7),
+(299,14),
+(299,3),
+(299,10),
+(299,6),
+(1055,14),
+(1055,1),
+(1055,2),
+(1055,13),
+(1055,7),
+(1056,14),
+(1056,1),
+(1056,10),
+(1056,9),
+(1056,8),
+(1056,4),
+(1056,7),
+(153,11),
+(153,3),
+(153,10),
+(152,14),
+(152,3),
+(152,10),
+(152,6),
+(39,1),
+(39,5),
+(39,9),
+(39,8),
+(40,14),
+(40,1),
+(40,10),
+(40,9),
+(40,8),
+(40,4),
+(40,7),
+(185,14),
+(185,1),
+(185,2),
+(185,13),
+(185,7),
+(186,1),
+(186,5),
+(186,9),
+(186,8),
+(413,14),
+(413,1),
+(413,2),
+(413,13),
+(413,7),
+(416,1),
+(416,5),
+(416,9),
+(416,8),
+(415,11),
+(415,3),
+(415,10),
+(417,14),
+(417,1),
+(417,10),
+(417,9),
+(417,8),
+(417,4),
+(417,7),
+(414,14),
+(414,3),
+(414,10),
+(414,6),
+(10,14),
+(10,1),
+(10,2),
+(10,13),
+(10,7),
+(11,11),
+(11,3),
+(11,10),
+(12,1),
+(12,5),
+(12,9),
+(12,8),
+(13,14),
+(13,1),
+(13,10),
+(13,9),
+(13,8),
+(13,4),
+(13,7),
+(43,14),
+(43,1),
+(43,10),
+(43,9),
+(43,8),
+(43,4),
+(43,7),
+(64,14),
+(64,3),
+(64,10),
+(64,6),
+(65,11),
+(65,3),
+(65,10),
+(100,14),
+(100,1),
+(100,10),
+(100,9),
+(100,8),
+(100,4),
+(100,7),
+(125,14),
+(125,1),
+(125,10),
+(125,9),
+(125,8),
+(125,4),
+(125,7),
+(161,14),
+(161,3),
+(161,10),
+(161,6),
+(162,11),
+(162,3),
+(162,10),
+(163,1),
+(163,5),
+(163,9),
+(163,8),
+(164,14),
+(164,1),
+(164,10),
+(164,9),
+(164,8),
+(164,4),
+(164,7),
+(190,14),
+(190,1),
+(190,2),
+(190,13),
+(190,7),
+(191,11),
+(191,3),
+(191,10),
+(192,1),
+(192,5),
+(192,9),
+(192,8),
+(193,14),
+(193,1),
+(193,10),
+(193,9),
+(193,8),
+(193,4),
+(193,7),
+(223,14),
+(223,1),
+(223,2),
+(223,13),
+(223,7),
+(224,14),
+(224,3),
+(224,10),
+(224,6),
+(225,14),
+(225,1),
+(225,10),
+(225,9),
+(225,8),
+(225,4),
+(225,7),
+(249,14),
+(249,1),
+(249,2),
+(249,13),
+(249,7),
+(250,11),
+(250,3),
+(250,10),
+(251,1),
+(251,5),
+(251,9),
+(251,8),
+(252,14),
+(252,1),
+(252,10),
+(252,9),
+(252,8),
+(252,4),
+(252,7),
+(277,14),
+(277,1),
+(277,2),
+(277,13),
+(277,7),
+(278,14),
+(278,3),
+(278,10),
+(278,6),
+(279,11),
+(279,3),
+(279,10),
+(280,1),
+(280,5),
+(280,9),
+(280,8),
+(308,14),
+(308,1),
+(308,2),
+(308,13),
+(308,7),
+(309,14),
+(309,3),
+(309,10),
+(309,6),
+(338,14),
+(338,1),
+(338,2),
+(338,13),
+(338,7),
+(339,14),
+(339,3),
+(339,10),
+(339,6),
+(361,14),
+(361,1),
+(361,2),
+(361,13),
+(361,7),
+(362,14),
+(362,3),
+(362,10),
+(362,6),
+(363,11),
+(363,3),
+(363,10),
+(388,1),
+(388,5),
+(388,9),
+(388,8),
+(428,14),
+(428,1),
+(428,2),
+(428,13),
+(428,7),
+(429,14),
+(429,3),
+(429,10),
+(429,6),
+(430,11),
+(430,3),
+(430,10),
+(431,1),
+(431,5),
+(431,9),
+(431,8),
+(432,14),
+(432,1),
+(432,10),
+(432,9),
+(432,8),
+(432,4),
+(432,7),
+(482,14),
+(482,1),
+(482,2),
+(482,13),
+(482,7),
+(510,14),
+(510,1),
+(510,2),
+(510,13),
+(510,7),
+(511,14),
+(511,1),
+(511,10),
+(511,9),
+(511,8),
+(511,4),
+(511,7),
+(543,11),
+(543,3),
+(543,10),
+(544,1),
+(544,5),
+(544,9),
+(544,8),
+(545,14),
+(545,1),
+(545,10),
+(545,9),
+(545,8),
+(545,4),
+(545,7),
+(585,14),
+(585,1),
+(585,2),
+(585,13),
+(585,7),
+(586,14),
+(586,3),
+(586,10),
+(586,6),
+(587,11),
+(587,3),
+(587,10),
+(588,1),
+(588,5),
+(588,9),
+(588,8),
+(589,14),
+(589,1),
+(589,10),
+(589,9),
+(589,8),
+(589,4),
+(589,7),
+(643,14),
+(643,1),
+(643,2),
+(643,13),
+(643,7),
+(644,1),
+(644,5),
+(644,9),
+(644,8),
+(645,14),
+(645,1),
+(645,10),
+(645,9),
+(645,8),
+(645,4),
+(645,7),
+(673,14),
+(673,3),
+(673,10),
+(673,6),
+(709,14),
+(709,3),
+(709,10),
+(709,6),
+(710,11),
+(710,3),
+(710,10),
+(711,1),
+(711,5),
+(711,9),
+(711,8),
+(740,14),
+(740,3),
+(740,10),
+(740,6),
+(741,11),
+(741,3),
+(741,10),
+(773,14),
+(773,3),
+(773,10),
+(773,6),
+(774,1),
+(774,5),
+(774,9),
+(774,8),
+(775,14),
+(775,1),
+(775,10),
+(775,9),
+(775,8),
+(775,4),
+(775,7),
+(802,14),
+(802,1),
+(802,2),
+(802,13),
+(802,7),
+(803,14),
+(803,3),
+(803,10),
+(803,6),
+(804,11),
+(804,3),
+(804,10),
+(861,14),
+(861,1),
+(861,2),
+(861,13),
+(861,7),
+(862,1),
+(862,5),
+(862,9),
+(862,8),
+(863,14),
+(863,1),
+(863,10),
+(863,9),
+(863,8),
+(863,4),
+(863,7),
+(892,11),
+(892,3),
+(892,10),
+(909,1),
+(909,5),
+(909,9),
+(909,8),
+(950,14),
+(950,1),
+(950,2),
+(950,13),
+(950,7),
+(951,14),
+(951,3),
+(951,10),
+(951,6),
+(952,11),
+(952,3),
+(952,10),
+(953,1),
+(953,5),
+(953,9),
+(953,8),
+(954,14),
+(954,1),
+(954,10),
+(954,9),
+(954,8),
+(954,4),
+(954,7),
+(1008,14),
+(1008,1),
+(1008,2),
+(1008,13),
+(1008,7),
+(1009,11),
+(1009,3),
+(1009,10),
+(1010,1),
+(1010,5),
+(1010,9),
+(1010,8),
+(1063,11),
+(1063,3),
+(1063,10),
+(1064,1),
+(1064,5),
+(1064,9),
+(1064,8),
+(1092,14),
+(1092,1),
+(1092,2),
+(1092,13),
+(1092,7),
+(1093,14),
+(1093,3),
+(1093,10),
+(1093,6),
+(1094,1),
+(1094,5),
+(1094,9),
+(1094,8);

@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS `spiritsdb`;
 CREATE TABLE `spiritsdb` (`id` int(11), `name` VARCHAR(255), `ql` Int(3), `spot` varchar(25), `level` INT(3), `agility` INT(4),  `sense` INT(3));
-INSERT INTO `spiritsdb` VALUES (218576, 'Whispering Spirit', 1, 'Rarm', 2, 5, 5)
+INSERT INTO `spiritsdb` VALUES (218576, 'Whispering Spirit', 1, 'Rarm', 2, 5, 5);
 INSERT INTO `spiritsdb` VALUES (224645, 'Bitter Spirit Of True Seeing', 1, 'Eye', 1, 6, 6);
 INSERT INTO `spiritsdb` VALUES (224646, 'Blue Spirit Of True Seeing', 5, 'Eye', 4, 24, 24);
 INSERT INTO `spiritsdb` VALUES (224647, 'Discouraged Spirit Of True Seeing', 25, 'Eye', 19, 116, 116);
