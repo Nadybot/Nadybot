@@ -16,7 +16,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Budabot\\": "./"
+			"Budabot\\Patcher\\": "Patcher/"
 		}
 	},
 	"config": {
@@ -29,10 +29,10 @@
 	},
 	"scripts": {
 		"post-package-install": [
-			"Budabot\\Patcher::patch"
+			"Budabot\\Patcher\\Patcher::patch"
 		],
 		"post-package-update": [
-			"Budabot\\Patcher::patch"
+			"Budabot\\Patcher\\Patcher::patch"
 		]
 	}
 }

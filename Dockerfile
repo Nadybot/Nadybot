@@ -34,7 +34,9 @@ RUN apk --no-cache add composer && \
     composer dumpautoload --no-dev --optimize && \
     composer clear-cache && \
     chown -R budabot:budabot lib/vendor && \
-    apk del --no-cache composer
+    apk del --no-cache composer && \
+    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml
+
 
 USER budabot
 

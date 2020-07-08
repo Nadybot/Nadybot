@@ -12,6 +12,7 @@ errorMessage() {
 [ -z "$CONFIG_DB_TYPE" ] && errorMessage 'You have to specify the database type by setting $CONFIG_DB_TYPE to sqlite or mysql'
 [ -z "$CONFIG_DB_NAME" ] && errorMessage 'You have to specify the name of the database by setting $CONFIG_DB_NAME'
 [ -z "$CONFIG_DB_HOST" ] && errorMessage 'You have to specify the host/socket/directory of the database by setting $CONFIG_DB_HOST'
+[ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -E '^(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)$' ) && errorMessage 'You have specified an invalid $CONFIG_LOG_LEVEL. Allowed values are TRACE, DEBUG, INFO, WARN, ERROR and FATAL.'
 
 cd /budabot
 cat > conf/config.php << DONE
@@ -51,5 +52,7 @@ cat > conf/config.php << DONE
   // seen here: <http://code.google.com/p/budabot2/wiki/CompilingRunkit>
   define("USE_RUNKIT_CLASS_LOADING", false);
 DONE
+
+sed -i -e "s/<level value=\"INFO\"/<level value=\"${CONFIG_LOG_LEVEL:-INFO}\"/" conf/log4php.xml
 
 exec php7 -f main.php -- conf/config.php "$@"

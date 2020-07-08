@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot;
+namespace Budabot\Patcher;
 
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
