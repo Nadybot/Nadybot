@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ecdc6ff5b1f41e791544218e082ddfaf",
+    "content-hash": "25f29ef8573584399c551f30d11e259b",
     "packages": [
         {
             "name": "apache/log4php",
@@ -1854,7 +1854,6 @@
     "platform": {
         "php": ">=5.6.3",
         "ext-sqlite3": "*",
-        "ext-gmp": "*",
         "ext-curl": "*",
         "ext-sockets": "*",
         "ext-pdo": "*",
