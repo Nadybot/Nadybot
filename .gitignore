@@ -9,4 +9,4 @@
 *.xcuserdata
 *.xcworkspace
 /extras
-lib/vendor
+/vendor

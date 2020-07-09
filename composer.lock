@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "99a18db25b0173a98ce05e046d39d0ef",
+    "content-hash": "ecdc6ff5b1f41e791544218e082ddfaf",
     "packages": [
         {
             "name": "apache/log4php",
@@ -1851,7 +1851,25 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": ">=5.6.3",
+        "ext-sqlite3": "*",
+        "ext-gmp": "*",
+        "ext-curl": "*",
+        "ext-sockets": "*",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "ext-pdo_mysql": "*",
+        "ext-mbstring": "*",
+        "ext-ctype": "*",
+        "ext-bcmath": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-xml": "*",
+        "ext-simplexml": "*",
+        "ext-dom": "*",
+        "ext-pcntl": "*"
+    },
     "platform-dev": [],
     "plugin-api-version": "1.1.0"
 }

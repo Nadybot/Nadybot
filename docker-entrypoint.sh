@@ -41,7 +41,7 @@ cat > conf/config.php << DONE
   \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
   // Define additional paths from where Budabot should load modules at startup
   \$vars['module_load_paths'] = [
-    './modules', './extras'
+    './src/Modules', './extras'
   ];
   \$vars['amqp_server'] = "${CONFIG_AMQP_SERVER}";
   \$vars['amqp_port'] = ${CONFIG_AMQP_PORT:-5672};

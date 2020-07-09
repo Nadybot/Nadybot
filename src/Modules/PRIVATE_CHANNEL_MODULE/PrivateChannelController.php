@@ -1,0 +1,725 @@
+<?php
+
+namespace Budabot\Modules\PRIVATE_CHANNEL_MODULE;
+
+use Budabot\Core\Event;
+
+/**
+ * Authors:
+ *  - Tyrence (RK2)
+ *  - Mindrila (RK1)
+ *
+ * @Instance
+ *
+ * Commands this controller contains:
+ *	@DefineCommand(
+ *		command     = 'members',
+ *		accessLevel = 'all',
+ *		description = "Member list",
+ *		help        = 'private_channel.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'adduser',
+ *		accessLevel = 'guild',
+ *		description = "Adds a player to the members list",
+ *		help        = 'private_channel.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'remuser',
+ *		accessLevel = 'guild',
+ *		description = "Removes a player from the members list",
+ *		help        = 'private_channel.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'invite',
+ *		accessLevel = 'guild',
+ *		description = "Invite players to the private channel",
+ *		help        = 'private_channel.txt',
+ *		alias       = 'inviteuser'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'kick',
+ *		accessLevel = 'guild',
+ *		description = "Kick players from the private channel",
+ *		help        = 'private_channel.txt',
+ *		alias       = 'kickuser'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'autoinvite',
+ *		accessLevel = 'member',
+ *		description = "Enable or disable autoinvite",
+ *		help        = 'autoinvite.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'count',
+ *		accessLevel = 'all',
+ *		description = "Shows how many characters are in the private channel",
+ *		help        = 'count.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'kickall',
+ *		accessLevel = 'guild',
+ *		description = "Kicks all from the private channel",
+ *		help        = 'kickall.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'join',
+ *		accessLevel = 'member',
+ *		description = "Join command for characters who want to join the private channel",
+ *		help        = 'private_channel.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'leave',
+ *		accessLevel = 'all',
+ *		description = "Leave command for characters in private channel",
+ *		help        = 'private_channel.txt'
+ *	)
+ */
+class PrivateChannelController {
+
+	/**
+	 * Name of the module.
+	 * Set automatically by module loader.
+	 */
+	public $moduleName;
+	
+	/**
+	 * @var \Budabot\Core\DB $db
+	 * @Inject
+	 */
+	public $db;
+
+	/**
+	 * @var \Budabot\Core\Budabot $chatBot
+	 * @Inject
+	 */
+	public $chatBot;
+	
+	/**
+	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @Inject
+	 */
+	public $settingManager;
+	
+	/**
+	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @Inject
+	 */
+	public $buddylistManager;
+	
+	/**
+	 * @var \Budabot\Core\Text $text
+	 * @Inject
+	 */
+	public $text;
+	
+	/**
+	 * @var \Budabot\Core\Util $util
+	 * @Inject
+	 */
+	public $util;
+	
+	/**
+	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @Inject
+	 */
+	public $altsController;
+	
+	/**
+	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @Inject
+	 */
+	public $accessManager;
+	
+	/**
+	 * @var \Budabot\Modules\ONLINE_MODULE\OnlineController $onlineController
+	 * @Inject
+	 */
+	public $onlineController;
+	
+	/**
+	 * @var \Budabot\Modules\RELAY_MODULE\RelayController $relayController
+	 * @Inject
+	 */
+	public $relayController;
+	
+	/**
+	 * @var \Budabot\Core\Timer $timer
+	 * @Inject
+	 */
+	public $timer;
+	
+	/**
+	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @Inject
+	 */
+	public $playerManager;
+	
+	/**
+	 * @Setup
+	 */
+	public function setup() {
+		$this->db->loadSQLFile($this->moduleName, "private_chat");
+		
+		$this->settingManager->add($this->moduleName, "guest_color_channel", "Color for Private Channel relay(ChannelName)", "edit", "color", "<font color=#C3C3C3>");
+		$this->settingManager->add($this->moduleName, "guest_color_guild", "Private Channel relay color in guild channel", "edit", "color", "<font color=#C3C3C3>");
+		$this->settingManager->add($this->moduleName, "guest_color_guest", "Private Channel relay color in private channel", "edit", "color", "<font color=#C3C3C3>");
+		$this->settingManager->add($this->moduleName, "guest_relay", "Relay the Private Channel with the Guild Channel", "edit", "options", "1", "true;false", "1;0");
+		$this->settingManager->add($this->moduleName, "guest_relay_commands", "Relay commands and results from/to Private Channel", "edit", "options", "1", "true;false", "1;0");
+		$this->settingManager->add($this->moduleName, "add_member_on_join", "Automatically add player as member when they join", "edit", "options", "0", "true;false", "1;0");
+		$this->settingManager->add($this->moduleName, "guest_relay_ignore", 'Names of people not to relay into the private channel', 'edit', 'text', '', 'none');
+		$this->settingManager->add($this->moduleName, "guest_relay_filter", 'RegEx filter for relaying into Private Channel', 'edit', 'text', '', 'none');
+	}
+
+	/**
+	 * @HandlesCommand("members")
+	 * @Matches("/^members$/i")
+	 */
+	public function membersCommand($message, $channel, $sender, $sendto, $args) {
+		$data = $this->db->query("SELECT * FROM members_<myname> ORDER BY `name`");
+		$count = count($data);
+		if ($count != 0) {
+			$list = '';
+			foreach ($data as $row) {
+				$online = $this->buddylistManager->isOnline($row->name);
+				if (isset($this->chatBot->chatlist[$row->name])) {
+					$status = "(<green>Online and in channel<end>)";
+				} elseif ($online === 1) {
+					$status = "(<green>Online<end>)";
+				} elseif ($online === 0) {
+					$status = "(<red>Offline<end>)";
+				} else {
+					$status = "(<orange>Unknown<end>)";
+				}
+
+				$list .= "$row->name {$status}\n";
+			}
+
+			$msg = $this->text->makeBlob("Members ($count)", $list);
+			$sendto->reply($msg);
+		} else {
+			$sendto->reply("There are no members of this bot.");
+		}
+	}
+	
+	/**
+	 * @HandlesCommand("adduser")
+	 * @Matches("/^adduser (.+)$/i")
+	 */
+	public function adduserCommand($message, $channel, $sender, $sendto, $args) {
+		$msg = $this->addUser($args[1]);
+
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("remuser")
+	 * @Matches("/^remuser (.+)$/i")
+	 */
+	public function remuserCommand($message, $channel, $sender, $sendto, $args) {
+		$msg = $this->removeUser($args[1]);
+
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("invite")
+	 * @Matches("/^invite (.+)$/i")
+	 */
+	public function inviteCommand($message, $channel, $sender, $sendto, $args) {
+		$name = ucfirst(strtolower($args[1]));
+		$uid = $this->chatBot->get_uid($name);
+		if ($this->chatBot->vars["name"] == $name) {
+			$msg = "You cannot invite the bot to its own private channel.";
+		} elseif ($uid) {
+			if (isset($this->chatBot->chatlist[$name])) {
+				$msg = "<highlight>$name<end> is already in the private channel.";
+			} else {
+				$msg = "Invited <highlight>$name<end> to this channel.";
+				//$this->chatBot->privategroup_kick($name);
+				$this->chatBot->privategroup_invite($name);
+				$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
+				$this->chatBot->sendTell($msg2, $name);
+			}
+		} else {
+			$msg = "Character <highlight>{$name}<end> does not exist.";
+		}
+
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("kick")
+	 * @Matches("/^kick (.+)$/i")
+	 */
+	public function kickCommand($message, $channel, $sender, $sendto, $args) {
+		$name = ucfirst(strtolower($args[1]));
+		$uid = $this->chatBot->get_uid($name);
+		if (!$uid) {
+			$msg = "Character <highlight>{$name}<end> does not exist.";
+		} elseif (!isset($this->chatBot->chatlist[$name])) {
+			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
+		} else {
+			if ($this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
+				$msg = "<highlight>$name<end> has been kicked from the private channel.";
+				$this->chatBot->privategroup_kick($name);
+			} else {
+				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
+			}
+		}
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("autoinvite")
+	 * @Matches("/^autoinvite (on|off)$/i")
+	 */
+	public function autoinviteCommand($message, $channel, $sender, $sendto, $args) {
+		if ($args[1] == 'on') {
+			$onOrOff = 1;
+			$this->buddylistManager->add($sender, 'member');
+		} else {
+			$onOrOff = 0;
+			$this->buddylistManager->remove($sender, 'member');
+		}
+
+		$data = $this->db->query("SELECT * FROM members_<myname> WHERE `name` = ?", $sender);
+		if (count($data) == 0) {
+			$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
+			$msg = "You have been added as a member of this bot.  Use <highlight><symbol>autoinvite<end> to control your auto invite preference.";
+		} else {
+			$this->db->exec("UPDATE members_<myname> SET autoinv = ? WHERE name = ?", $onOrOff, $sender);
+			$msg = "Your auto invite preference has been updated.";
+		}
+
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("count")
+	 * @Matches("/^count (level|lvl)$/i")
+	 */
+	public function countLevelCommand($message, $channel, $sender, $sendto, $args) {
+		$tl1 = 0;
+		$tl2 = 0;
+		$tl3 = 0;
+		$tl4 = 0;
+		$tl5 = 0;
+		$tl6 = 0;
+		$tl7 = 0;
+
+		$data = $this->db->query("SELECT * FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv'");
+		$numonline = count($data);
+		foreach ($data as $row) {
+			if ($row->level > 1 && $row->level <= 14) {
+				$tl1++;
+			} elseif ($row->level >= 15 && $row->level <= 49) {
+				$tl2++;
+			} elseif ($row->level >= 50 && $row->level <= 99) {
+				$tl3++;
+			} elseif ($row->level >= 100 && $row->level <= 149) {
+				$tl4++;
+			} elseif ($row->level >= 150 && $row->level <= 189) {
+				$tl5++;
+			} elseif ($row->level >= 190 && $row->level <= 204) {
+				$tl6++;
+			} elseif ($row->level >= 205 && $row->level <= 220) {
+				$tl7++;
+			}
+		}
+		$msg = "<highlight>$numonline<end> in total: ".
+			"TL1 <highlight>$tl1<end>, ".
+			"TL2 <highlight>$tl2<end>, ".
+			"TL3 <highlight>$tl3<end>, ".
+			"TL4 <highlight>$tl4<end>, ".
+			"TL5 <highlight>$tl5<end>, ".
+			"TL6 <highlight>$tl6<end>, ".
+			"TL7 <highlight>$tl7<end>";
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("count")
+	 * @Matches("/^count (all|prof)$/i")
+	 */
+	public function countProfessionCommand($message, $channel, $sender, $sendto, $args) {
+		$online["Adventurer"] = 0;
+		$online["Agent"] = 0;
+		$online["Bureaucrat"] = 0;
+		$online["Doctor"] = 0;
+		$online["Enforcer"] = 0;
+		$online["Engineer"] = 0;
+		$online["Fixer"] = 0;
+		$online["Keeper"] = 0;
+		$online["Martial Artist"] = 0;
+		$online["Meta-Physicist"] = 0;
+		$online["Nano-Technician"] = 0;
+		$online["Soldier"] = 0;
+		$online["Trader"] = 0;
+		$online["Shade"] = 0;
+
+		$data = $this->db->query(
+			"SELECT count(*) AS count, profession ".
+			"FROM online o ".
+			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+			"GROUP BY `profession`"
+		);
+		$numonline = count($data);
+		$msg = "<highlight>$numonline<end> in total: ";
+
+		foreach ($data as $row) {
+			$online[$row->profession] = $row->count;
+		}
+
+		$msg .= "<highlight>".$online['Adventurer']."<end> Adv, "
+			. "<highlight>".$online['Agent']."<end> Agent, "
+			. "<highlight>".$online['Bureaucrat']."<end> Crat, "
+			. "<highlight>".$online['Doctor']."<end> Doc, "
+			. "<highlight>".$online['Enforcer']."<end> Enf, "
+			. "<highlight>".$online['Engineer']."<end> Eng, "
+			. "<highlight>".$online['Fixer']."<end> Fix, "
+			. "<highlight>".$online['Keeper']."<end> Keeper, "
+			. "<highlight>".$online['Martial Artist']."<end> MA, "
+			. "<highlight>".$online['Meta-Physicist']."<end> MP, "
+			. "<highlight>".$online['Nano-Technician']."<end> NT, "
+			. "<highlight>".$online['Soldier']."<end> Sol, "
+			. "<highlight>".$online['Shade']."<end> Shade, "
+			. "<highlight>".$online['Trader']."<end> Trader";
+
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("count")
+	 * @Matches("/^count org$/i")
+	 */
+	public function countOrganizationCommand($message, $channel, $sender, $sendto, $args) {
+		$sql = "SELECT * FROM online WHERE added_by = '<myname>' AND channel_type = 'priv'";
+		$data = $this->db->query($sql);
+		$numonline = count($data);
+
+		if ($numonline == 0) {
+			$msg = "No characters in channel.";
+		} else {
+			$sql = "SELECT `guild`, count(*) AS cnt, AVG(level) AS avg_level ".
+				"FROM online o ".
+				"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+				"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+				"GROUP BY `guild` ".
+				"ORDER BY `cnt` DESC, `avg_level` DESC";
+			$data = $this->db->query($sql);
+			$numorgs = count($data);
+
+			$blob = '';
+			foreach ($data as $row) {
+				$guild = '(none)';
+				if ($row->guild != '') {
+					$guild = $row->guild;
+				}
+				$percent = round($row->cnt / $numonline, 2) * 100;
+				$avg_level = round($row->avg_level, 1);
+				$blob .= "{$percent}% {$guild} - {$row->cnt} member(s), average level {$avg_level}\n";
+			}
+
+			$msg = $this->text->makeBlob("Organizations ($numorgs)", $blob);
+		}
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("count")
+	 * @Matches("/^count (.*)$/i")
+	 */
+	public function countCommand($message, $channel, $sender, $sendto, $args) {
+		$prof = $this->util->getProfessionName($args[1]);
+		if ($prof == '') {
+			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all";
+		} else {
+			$data = $this->db->query(
+				"SELECT * FROM online o ".
+				"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
+				"WHERE added_by = '<myname>' AND channel_type = 'priv' AND `profession` = ? ".
+				"ORDER BY `level`",
+				$prof
+			);
+			$numonline = count($data);
+			$msg = "<highlight>$numonline<end> $prof:";
+
+			foreach ($data as $row) {
+				if ($row->afk != "") {
+					$afk = "<red>*AFK*<end>";
+				} else {
+					$afk = "";
+				}
+				$msg .= " [<highlight>$row->name<end> - ".$row->level.$afk."]";
+			}
+		}
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * @HandlesCommand("kickall")
+	 * @Matches("/^kickall$/i")
+	 */
+	public function kickallCommand($message, $channel, $sender, $sendto, $args) {
+		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>$sender<end>]";
+		$this->chatBot->sendPrivate($msg);
+		$this->timer->callLater(10, array($this->chatBot, 'privategroup_kick_all'));
+	}
+	
+	/**
+	 * @HandlesCommand("join")
+	 * @Matches("/^join$/i")
+	 */
+	public function joinCommand($message, $channel, $sender, $sendto, $args) {
+		if (isset($this->chatBot->chatlist[$sender])) {
+			$msg = "You are already in the private channel.";
+		} else {
+			if ($this->settingManager->get('add_member_on_join') == 1) {
+				$row = $this->db->queryRow("SELECT * FROM members_<myname> WHERE `name` = ?", $sender);
+				if ($row === null) {
+					$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $sender, '1');
+					$msg = "You have been added as a member of this bot.  Use <highlight><symbol>autoinvite<end> to control your auto invite preference.";
+				}
+			}
+			$this->chatBot->privategroup_invite($sender);
+		}
+		
+		if (isset($msg)) {
+			$sendto->reply($msg);
+		}
+	}
+	
+	/**
+	 * @HandlesCommand("leave")
+	 * @Matches("/^leave$/i")
+	 */
+	public function leaveCommand($message, $channel, $sender, $sendto, $args) {
+		$this->chatBot->privategroup_kick($sender);
+	}
+	
+	/**
+	 * @Event("connect")
+	 * @Description("Adds all members as buddies who have auto-invite enabled")
+	 */
+	public function connectEvent(Event $eventObj) {
+		$sql = "SELECT name FROM members_<myname> WHERE autoinv = 1";
+		$data = $this->db->query($sql);
+		foreach ($data as $row) {
+			$this->buddylistManager->add($row->name, 'member');
+		}
+	}
+
+	/**
+	 * Check if a message by a sender should not be relayed due to filters
+	 *
+	 * @param string $sender Name of the person sending the message
+	 * @param string $message The message that wants to be relayed
+	 * @return bool
+	 */
+	public function isFilteredMessage($sender, $message) {
+		$toIgnore = array_diff(
+			explode(";", strtolower($this->settingManager->get('guest_relay_ignore'))),
+			[""]
+		);
+		if (in_array(strtolower($sender), $toIgnore)) {
+			return true;
+		}
+		if (strlen($regexpFilter = $this->settingManager->get('guest_relay_filter'))) {
+			$escapedFilter = str_replace("/", "\\/", $regexpFilter);
+			if (@preg_match("/$escapedFilter/", $message)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @Event("guild")
+	 * @Description("Private channel relay from guild channel")
+	 */
+	public function relayPrivateChannelEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$message = $eventObj->message;
+	
+		// Check if the private channel relay is enabled
+		if ($this->settingManager->get("guest_relay") != 1) {
+			return;
+		}
+
+		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
+		if ($message[0] == $this->settingManager->get("symbol") && $this->settingManager->get("guest_relay_commands") != 1) {
+			return;
+		}
+
+		if ($this->isFilteredMessage($sender, $message)) {
+			return;
+		}
+
+		$guest_color_channel = $this->settingManager->get("guest_color_channel");
+		$guest_color_guest = $this->settingManager->get("guest_color_guest");
+		$guest_color_guild = $this->settingManager->get("guest_color_guild");
+
+		if (count($this->chatBot->chatlist) > 0) {
+			//Relay the message to the private channel if there is at least 1 char in private channel
+			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
+			if (!$this->util->isValidSender($sender)) {
+				// for relaying city alien raid messages where $sender == -1
+				$msg = "<end>{$guest_color_channel}[$guildNameForRelay]<end> {$guest_color_guest}{$message}<end>";
+			} else {
+				$msg = "<end>{$guest_color_channel}[$guildNameForRelay]<end> ".$this->text->makeUserlink($sender).": {$guest_color_guest}{$message}<end>";
+			}
+			$this->chatBot->sendPrivate($msg, true);
+		}
+	}
+	
+	/**
+	 * @Event("priv")
+	 * @Description("Guild channel relay from priv channel")
+	 */
+	public function relayGuildChannelEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$message = $eventObj->message;
+		
+		// Check if the private channel relay is enabled
+		if ($this->settingManager->get("guest_relay") != 1) {
+			return;
+		}
+
+		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
+		if ($message[0] == $this->settingManager->get("symbol") && $this->settingManager->get("guest_relay_commands") != 1) {
+			return;
+		}
+
+		$guest_color_channel = $this->settingManager->get("guest_color_channel");
+		$guest_color_guest = $this->settingManager->get("guest_color_guest");
+		$guest_color_guild = $this->settingManager->get("guest_color_guild");
+
+		//Relay the message to the guild channel
+		$msg = "<end>{$guest_color_channel}[Guest]<end> ".$this->text->makeUserlink($sender).": {$guest_color_guild}{$message}<end>";
+		$this->chatBot->sendGuild($msg, true);
+	}
+	
+	/**
+	 * @Event("logOn")
+	 * @Description("Auto-invite members on logon")
+	 */
+	public function logonAutoinviteEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$data = $this->db->query("SELECT * FROM members_<myname> WHERE name = ? AND autoinv = ?", $sender, '1');
+		if (count($data) != 0) {
+			$msg = "You have been auto invited to the <highlight><myname><end> channel.  Use <highlight><symbol>autoinvite<end> to control your auto invite preference.";
+			$this->chatBot->privategroup_invite($sender);
+			$this->chatBot->sendTell($msg, $sender);
+		}
+	}
+	
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Displays a message when a character joins the private channel")
+	 */
+	public function joinPrivateChannelMessageEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$whois = $this->playerManager->getByName($sender);
+
+		$altInfo = $this->altsController->getAltInfo($sender);
+
+		if ($whois !== null) {
+			if (count($altInfo->alts) > 0) {
+				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel. " . $altInfo->getAltsBlob(false, true);
+			} else {
+				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
+			}
+		} else {
+			$msg = "$sender has joined the private channel.";
+			if (count($altInfo->alts) > 0) {
+				$msg .= " " . $altInfo->getAltsBlob(false, true);
+			}
+		}
+
+		if ($this->settingManager->get("guest_relay") == 1) {
+			$this->chatBot->sendGuild($msg, true);
+		}
+		$this->chatBot->sendPrivate($msg, true);
+	}
+	
+	/**
+	 * @Event("leavePriv")
+	 * @Description("Displays a message when a character leaves the private channel")
+	 */
+	public function leavePrivateChannelMessageEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$msg = "$sender has left the private channel.";
+
+		if ($this->settingManager->get("guest_relay") == 1) {
+			$this->chatBot->sendGuild($msg, true);
+		}
+	}
+	
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Updates the database when a character joins the private channel")
+	 */
+	public function joinPrivateChannelRecordEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$this->onlineController->addPlayerToOnlineList($sender, $this->chatBot->vars['guild'] . ' Guests', 'priv');
+	}
+	
+	/**
+	 * @Event("leavePriv")
+	 * @Description("Updates the database when a character leaves the private channel")
+	 */
+	public function leavePrivateChannelRecordEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$this->onlineController->removePlayerFromOnlineList($sender, 'priv');
+	}
+	
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Sends the online list to people as they join the private channel")
+	 */
+	public function joinPrivateChannelShowOnlineEvent(Event $eventObj) {
+		$sender = $eventObj->sender;
+		$msg = "";
+		$msg = $this->onlineController->getOnlineList();
+		$this->chatBot->sendTell($msg, $sender);
+	}
+	
+	public function addUser($name, $autoInvite=1) {
+		$name = ucfirst(strtolower($name));
+		$uid = $this->chatBot->get_uid($name);
+		if ($this->chatBot->vars["name"] == $name) {
+			$msg = "You cannot add the bot as a member of itself.";
+		} elseif (!$uid) {
+			$msg = "Character <highlight>$name<end> does not exist.";
+		} else {
+			$data = $this->db->query("SELECT * FROM members_<myname> WHERE `name` = ?", $name);
+			if (count($data) != 0) {
+				$msg = "<highlight>$name<end> is already a member of this bot.";
+			} else {
+				$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
+				$msg = "<highlight>$name<end> has been added as a member of this bot.";
+			}
+
+			// always add in case they were removed from the buddy list for some reason
+			$this->buddylistManager->add($name, 'member');
+		}
+		return $msg;
+	}
+	
+	public function removeUser($name) {
+		$name = ucfirst(strtolower($name));
+
+		$data = $this->db->query("SELECT * FROM members_<myname> WHERE `name` = ?", $name);
+		if (count($data) == 0) {
+			$msg = "<highlight>$name<end> is not a member of this bot.";
+		} else {
+			$this->db->exec("DELETE FROM members_<myname> WHERE `name` = ?", $name);
+			$msg = "<highlight>$name<end> has been removed as a member of this bot.";
+			$this->buddylistManager->remove($name, 'member');
+		}
+
+		return $msg;
+	}
+}

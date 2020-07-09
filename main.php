@@ -1,6 +1,6 @@
 <?php
 
-require './core/BotRunner.php';
+require 'vendor/autoload.php';
 
-$runner = new budabot\core\BotRunner($argv);
+$runner = new Budabot\Core\BotRunner($argv);
 $runner->run();

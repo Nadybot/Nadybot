@@ -63,5 +63,5 @@ $vars['amqp_vhost'] = "/";
 
 // Define additional paths from where Budabot should load modules at startup
 $vars['module_load_paths'] = array(
-	'./modules', './extras'
+	'./src/Modules', './extras'
 );
