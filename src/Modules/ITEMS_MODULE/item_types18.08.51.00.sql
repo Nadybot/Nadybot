@@ -1,5 +1,8 @@
 DROP TABLE IF EXISTS item_types;
-CREATE TABLE item_types (item_id INTEGER, item_type VARCHAR(50));
+CREATE TABLE item_types (
+	item_id INTEGER,
+	item_type VARCHAR(50)
+);
 INSERT INTO item_types (item_id, item_type) VALUES
 (21793, 'Arms'),
 (21797, 'Back'),

@@ -1,5 +1,19 @@
 DROP TABLE IF EXISTS nanos;
-CREATE TABLE nanos ( crystal_id INT DEFAULT NULL, nano_id INT DEFAULT NULL, ql INT DEFAULT NULL, crystal_name VARCHAR(255) DEFAULT NULL, nano_name VARCHAR(255) DEFAULT NULL, school VARCHAR(255) DEFAULT NULL, strain VARCHAR(255) DEFAULT NULL, strain_id INT DEFAULT NULL, sub_strain VARCHAR(255) DEFAULT NULL, professions VARCHAR(255) DEFAULT NULL, location VARCHAR(255) DEFAULT NULL, nano_cost INT DEFAULT NULL, froob_friendly BOOLEAN DEFAULT NULL);
+CREATE TABLE nanos (
+	crystal_id INT DEFAULT NULL,
+	nano_id INT DEFAULT NULL,
+	ql INT DEFAULT NULL,
+	crystal_name VARCHAR(255) DEFAULT NULL,
+	nano_name VARCHAR(255) DEFAULT NULL,
+	school VARCHAR(255) DEFAULT NULL,
+	strain VARCHAR(255) DEFAULT NULL,
+	strain_id INT DEFAULT NULL,
+	sub_strain VARCHAR(255) DEFAULT NULL,
+	professions VARCHAR(255) DEFAULT NULL,
+	location VARCHAR(255) DEFAULT NULL,
+	nano_cost INT DEFAULT NULL,
+	froob_friendly BOOLEAN DEFAULT NULL
+);
 INSERT INTO nanos(crystal_id, nano_id, ql, crystal_name, nano_name, school, strain, strain_id, sub_strain, professions, location, nano_cost, froob_friendly) VALUES
 (26464, 26336, 10, 'Nano Crystal (1H Blunt Weapon Expertise)', '1H Blunt Weapon Expertise', 'Buffs - Melee', '1H Blunt Buffs', 16, '', 'General', 'No longer drops', 40, true),
 (26462, 26337, 10, 'Nano Crystal (1H Blunt Weapon Incompetence)', '1H Blunt Weapon Incompetence', 'Debuffs - Melee', '1Hand Blunt Debuffs', 17, '', 'General', 'No longer drops', 40, true),

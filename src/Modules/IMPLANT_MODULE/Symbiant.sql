@@ -1,5 +1,12 @@
 DROP TABLE IF EXISTS Symbiant;
-CREATE TABLE Symbiant (ID INT NOT NULL PRIMARY KEY, Name VARCHAR(100) NOT NULL, QL INT NOT NULL, SlotID INT NOT NULL, TreatmentReq INT NOT NULL, LevelReq INT NOT NULL);
+CREATE TABLE Symbiant (
+	ID INT NOT NULL PRIMARY KEY,
+	Name VARCHAR(100) NOT NULL,
+	QL INT NOT NULL,
+	SlotID INT NOT NULL,
+	TreatmentReq INT NOT NULL,
+	LevelReq INT NOT NULL
+);
 INSERT INTO Symbiant (ID, Name, QL, SlotID, TreatmentReq, LevelReq) VALUES
 (1,'Active Brain Symbiant, Control Unit Aban',170,2,1011,125),
 (2,'Active Brain Symbiant, Extermination Unit Aban',170,2,1011,125),

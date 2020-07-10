@@ -1,5 +1,12 @@
 DROP TABLE IF EXISTS aodb;
-CREATE TABLE aodb (lowid INT, highid INT, lowql INT, highql INT, name VARCHAR(150), icon INT);
+CREATE TABLE aodb (
+	lowid INT,
+	highid INT,
+	lowql INT,
+	highql INT,
+	name VARCHAR(150),
+	icon INT
+);
 INSERT INTO aodb VALUES
 (21601, 21601, 1, 1, 'Ammo: Flamethrower Ammunition', 32168),
 (21605, 21605, 1, 1, 'Ammo: Bullets', 26690),

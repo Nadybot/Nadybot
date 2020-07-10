@@ -1,5 +1,9 @@
 DROP TABLE IF EXISTS SymbiantAbilityMatrix;
-CREATE TABLE SymbiantAbilityMatrix (SymbiantID INT NOT NULL, AbilityID INT NOT NULL, Amount INT NOT NULL);
+CREATE TABLE SymbiantAbilityMatrix (
+	SymbiantID INT NOT NULL,
+	AbilityID INT NOT NULL,
+	Amount INT NOT NULL
+);
 INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES
 (945,6,3),
 (945,1,3),

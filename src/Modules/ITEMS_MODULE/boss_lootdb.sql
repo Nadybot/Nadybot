@@ -1,5 +1,8 @@
 DROP TABLE IF EXISTS boss_lootdb;
-CREATE TABLE boss_lootdb (`bossid` INT NOT NULL, `itemname` VARCHAR(100) NOT NULL);
+CREATE TABLE boss_lootdb (
+	`bossid` INT NOT NULL,
+	`itemname` VARCHAR(100) NOT NULL
+);
 INSERT INTO `boss_lootdb` VALUES
 (1,'Massive Bolt Charger'),
 (2,'Armplates of Meteorite Assembly'),

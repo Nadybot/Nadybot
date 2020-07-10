@@ -1,5 +1,8 @@
 DROP TABLE IF EXISTS boss_namedb;
-CREATE TABLE boss_namedb (`bossid` INT PRIMARY KEY,`bossname` VARCHAR(50) NOT NULL);
+CREATE TABLE boss_namedb (
+	`bossid` INT PRIMARY KEY,
+	`bossname` VARCHAR(50) NOT NULL
+);
 INSERT INTO `boss_namedb` (`bossid`, `bossname`) VALUES
 (1,'Afreet Ellis'),
 (2,'Akshki'),

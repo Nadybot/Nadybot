@@ -1,5 +1,17 @@
 DROP TABLE IF EXISTS pocketboss;
-CREATE TABLE pocketboss (`id` INT NOT NULL PRIMARY KEY, `pb` VARCHAR(30), `pb_location` VARCHAR(50), `bp_mob` VARCHAR(100), `bp_lvl` SMALLINT, `bp_location` VARCHAR(50), `type` VARCHAR(25), `slot` VARCHAR(25), `line` VARCHAR(25), `ql` SMALLINT, `itemid` INT);
+CREATE TABLE pocketboss (
+	`id` INT NOT NULL PRIMARY KEY,
+	`pb` VARCHAR(30),
+	`pb_location` VARCHAR(50),
+	`bp_mob` VARCHAR(100),
+	`bp_lvl` SMALLINT,
+	`bp_location` VARCHAR(50),
+	`type` VARCHAR(25),
+	`slot` VARCHAR(25),
+	`line` VARCHAR(25),
+	`ql` SMALLINT,
+	`itemid` INT
+);
 INSERT INTO pocketboss (`id`, `pb`, `pb_location`, `bp_mob`, `bp_lvl`, `bp_location`, `type`, `slot`, `line`, `ql`, `itemid`) VALUES
 (1,'Adobe Suzerain','Scheol Upper','Eremites',125,'Highlands NW Incarnator N','Artillery','Ocular','Active',170,219135),
 (2,'Adobe Suzerain','Scheol Upper','Eremites',125,'Highlands NW Incarnator N','Infantry','Thigh','Active',170,235792),

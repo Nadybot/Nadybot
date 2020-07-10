@@ -1,5 +1,9 @@
 DROP TABLE IF EXISTS SymbiantClusterMatrix;
-CREATE TABLE SymbiantClusterMatrix (SymbiantID INT NOT NULL, ClusterID INT NOT NULL, Amount INT NOT NULL);
+CREATE TABLE SymbiantClusterMatrix (
+	SymbiantID INT NOT NULL,
+	ClusterID INT NOT NULL,
+	Amount INT NOT NULL
+);
 INSERT INTO SymbiantClusterMatrix (SymbiantID, ClusterID, Amount) VALUES
 (692,2,9),
 (660,2,25),
