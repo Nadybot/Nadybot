@@ -1,5 +1,13 @@
 DROP TABLE IF EXISTS `spiritsdb`;
-CREATE TABLE `spiritsdb` (`id` int(11), `name` VARCHAR(255), `ql` Int(3), `spot` varchar(25), `level` INT(3), `agility` INT(4),  `sense` INT(3));
+CREATE TABLE `spiritsdb` (
+	`id` int(11),
+	`name` VARCHAR(255),
+	`ql` Int(3),
+	`spot` varchar(25),
+	`level` INT(3),
+	`agility` INT(4),
+	`sense` INT(3)
+);
 INSERT INTO `spiritsdb` (`id`, `name`, `ql`, `spot`, `level`, `agility`,  `sense`) VALUES
 (218576, 'Whispering Spirit', 1, 'Rarm', 2, 5, 5),
 (224645, 'Bitter Spirit Of True Seeing', 1, 'Eye', 1, 6, 6),

@@ -1,5 +1,16 @@
 DROP TABLE IF EXISTS weapon_attributes;
-CREATE TABLE weapon_attributes (id INT, attack_time INT, recharge_time INT, full_auto INT, burst INT, fling_shot TINYINT NOT NULL, fast_attack TINYINT NOT NULL, aimed_shot TINYINT NOT NULL, multi_m INT, multi_r INT);
+CREATE TABLE weapon_attributes (
+	id INT,
+	attack_time INT,
+	recharge_time INT,
+	full_auto INT,
+	burst INT,
+	fling_shot TINYINT NOT NULL,
+	fast_attack TINYINT NOT NULL,
+	aimed_shot TINYINT NOT NULL,
+	multi_m INT,
+	multi_r INT
+);
 INSERT INTO weapon_attributes (id, attack_time, recharge_time, full_auto, burst, fling_shot, fast_attack, aimed_shot, multi_m, multi_r) VALUES
 (42033, 1, 180000, null, null, 0, 0, 0, null, null),
 (42034, 1, 180000, null, null, 0, 0, 0, null, null),

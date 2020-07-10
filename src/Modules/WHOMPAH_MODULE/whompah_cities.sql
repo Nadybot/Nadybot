@@ -1,106 +1,117 @@
 DROP TABLE IF EXISTS `whompah_cities`;
-CREATE TABLE IF NOT EXISTS `whompah_cities` ( `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, `city_name` varchar(50) NOT NULL, `zone` varchar(50) NOT NULL, `faction` varchar(10) NOT NULL, `short_name` varchar(255) DEFAULT NULL);
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(1, 'ICC', 'Andromeda', 'Neutral', 'icc');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(2, 'Camelot', 'Avalon', 'Clan', 'camelot');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(3, 'Bliss', 'The Longest Road', 'Clan', 'bliss');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(4, 'Broken Shores - North', 'Broken Shores', 'Clan', 'bsn');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(5, 'Old Athen', 'Athen', 'Clan', 'oa');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(6, 'Tir', 'Tir County', 'Clan', 'tir');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(7, 'Varmint Woods', 'Varmint Woods', 'Clan', 'vw');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(8, 'Wailing Wastes', 'Wailing Wastes', 'Clan', 'ww');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(9, 'Wine', 'Belial Forest', 'Clan', 'wine');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(10, 'Newland City', 'Newland', 'Neutral', 'nlc');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(11, 'Newland Desert', 'Newland Desert', 'Neutral', 'nld');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(12, 'Borealis', 'Borealis', 'Neutral', 'bor');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(13, 'Hope', 'Mort', 'Neutral', 'hope');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(14, 'Stret West Bank', 'Stret West Bank', 'Neutral', 'swb');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(15, 'Omni Trade', 'Omni Trade', 'Omni', 'trade');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(16, 'Omni Entertainment', 'Omni Entertainment', 'Omni', 'ent');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(17, 'Galway Castle', 'Galway County', 'Omni', 'gc');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(18, '20K', 'Pleasant Meadows', 'Omni', '20k');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(19, '4 Holes', '4 Holes', 'Clan', '4ho');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(20, 'Broken Shores - South', 'Broken Shores', 'Omni', 'bss');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(21, 'Outpost 10-3', 'Southern Artery Valley', 'Omni', 'sav');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(22, '2HO', 'Stret East Bank', 'Omni', '2ho');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(23, 'Rome', 'Rome Red', 'Omni', 'rr');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(24, 'The Longest Road', 'The Longest Road', 'Omni', 'tlr');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(25, 'Mutant Domain', 'Mutant Domain', 'Omni', 'md');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(26, 'Perpetual Wasteland', 'Perpetual Wasteland', 'Neutral', 'pw');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(27, 'Southern Fouls Hills', 'Southern Fouls Hills', 'Omni', 'sfh');
-INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES(28, 'Central Artery Valley', 'Central Artery Valley', 'Clan', 'cav');
+CREATE TABLE IF NOT EXISTS `whompah_cities` (
+	`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	`city_name` varchar(50) NOT NULL,
+	`zone` varchar(50) NOT NULL,
+	`faction` varchar(10) NOT NULL,
+	`short_name` varchar(255) DEFAULT NULL
+);
+INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`) VALUES
+(1, 'ICC', 'Andromeda', 'Neutral', 'icc'),
+(2, 'Camelot', 'Avalon', 'Clan', 'camelot'),
+(3, 'Bliss', 'The Longest Road', 'Clan', 'bliss'),
+(4, 'Broken Shores - North', 'Broken Shores', 'Clan', 'bsn'),
+(5, 'Old Athen', 'Athen', 'Clan', 'oa'),
+(6, 'Tir', 'Tir County', 'Clan', 'tir'),
+(7, 'Varmint Woods', 'Varmint Woods', 'Clan', 'vw'),
+(8, 'Wailing Wastes', 'Wailing Wastes', 'Clan', 'ww'),
+(9, 'Wine', 'Belial Forest', 'Clan', 'wine'),
+(10, 'Newland City', 'Newland', 'Neutral', 'nlc'),
+(11, 'Newland Desert', 'Newland Desert', 'Neutral', 'nld'),
+(12, 'Borealis', 'Borealis', 'Neutral', 'bor'),
+(13, 'Hope', 'Mort', 'Neutral', 'hope'),
+(14, 'Stret West Bank', 'Stret West Bank', 'Neutral', 'swb'),
+(15, 'Omni Trade', 'Omni Trade', 'Omni', 'trade'),
+(16, 'Omni Entertainment', 'Omni Entertainment', 'Omni', 'ent'),
+(17, 'Galway Castle', 'Galway County', 'Omni', 'gc'),
+(18, '20K', 'Pleasant Meadows', 'Omni', '20k'),
+(19, '4 Holes', '4 Holes', 'Clan', '4ho'),
+(20, 'Broken Shores - South', 'Broken Shores', 'Omni', 'bss'),
+(21, 'Outpost 10-3', 'Southern Artery Valley', 'Omni', 'sav'),
+(22, '2HO', 'Stret East Bank', 'Omni', '2ho'),
+(23, 'Rome', 'Rome Red', 'Omni', 'rr'),
+(24, 'The Longest Road', 'The Longest Road', 'Omni', 'tlr'),
+(25, 'Mutant Domain', 'Mutant Domain', 'Omni', 'md'),
+(26, 'Perpetual Wasteland', 'Perpetual Wasteland', 'Neutral', 'pw'),
+(27, 'Southern Fouls Hills', 'Southern Fouls Hills', 'Omni', 'sfh'),
+(28, 'Central Artery Valley', 'Central Artery Valley', 'Clan', 'cav');
 
 DROP TABLE IF EXISTS `whompah_cities_rel`;
-CREATE TABLE `whompah_cities_rel` ( `city1_id` int(11) NOT NULL, `city2_id` int(11) NOT NULL);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(1, 10);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(1, 15);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(1, 6);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(2, 3);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(2, 8);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(3, 2);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(3, 4);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(3, 5);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(4, 3);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(4, 9);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(5, 3);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(5, 6);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(5, 8);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(6, 1);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(6, 5);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(6, 7);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(7, 6);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(7, 8);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(7, 9);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(8, 2);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(8, 5);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(8, 7);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(9, 4);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(9, 7);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(10, 1);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(10, 11);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(10, 12);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(11, 10);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(11, 13);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(12, 10);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(12, 14);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(13, 11);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(13, 14);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(14, 12);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(14, 13);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(15, 1);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(15, 16);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(15, 17);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(16, 15);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(16, 18);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(16, 23);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(16, 25);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(17, 15);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(17, 21);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(17, 23);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(18, 16);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(18, 21);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(20, 23);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(21, 17);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(21, 18);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(21, 22);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(22, 21);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(22, 24);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(23, 16);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(23, 17);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(23, 20);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(24, 22);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(25, 16);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(26, 13);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(13, 26);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(25, 22);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(22, 25);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(24, 20);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(20, 24);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(27, 18);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(18, 27);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(28, 19);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(19, 28);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(19, 4);
-INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES(4, 19);
+CREATE TABLE `whompah_cities_rel` (
+	`city1_id` int(11) NOT NULL,
+	`city2_id` int(11) NOT NULL
+);
+INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES
+(1, 10),
+(1, 15),
+(1, 6),
+(2, 3),
+(2, 8),
+(3, 2),
+(3, 4),
+(3, 5),
+(4, 3),
+(4, 9),
+(5, 3),
+(5, 6),
+(5, 8),
+(6, 1),
+(6, 5),
+(6, 7),
+(7, 6),
+(7, 8),
+(7, 9),
+(8, 2),
+(8, 5),
+(8, 7),
+(9, 4),
+(9, 7),
+(10, 1),
+(10, 11),
+(10, 12),
+(11, 10),
+(11, 13),
+(12, 10),
+(12, 14),
+(13, 11),
+(13, 14),
+(14, 12),
+(14, 13),
+(15, 1),
+(15, 16),
+(15, 17),
+(16, 15),
+(16, 18),
+(16, 23),
+(16, 25),
+(17, 15),
+(17, 21),
+(17, 23),
+(18, 16),
+(18, 21),
+(20, 23),
+(21, 17),
+(21, 18),
+(21, 22),
+(22, 21),
+(22, 24),
+(23, 16),
+(23, 17),
+(23, 20),
+(24, 22),
+(25, 16),
+(26, 13),
+(13, 26),
+(25, 22),
+(22, 25),
+(24, 20),
+(20, 24),
+(27, 18),
+(18, 27),
+(28, 19),
+(19, 28),
+(19, 4),
+(4, 19);
 
 -- test congruency
 -- SELECT * FROM (SELECT city1_id, count(*) AS cnt FROM whompah_cities_rel GROUP BY city1_id ) t1 JOIN (SELECT city2_id, count(*) AS cnt FROM whompah_cities_rel GROUP BY city2_id) t2 ON t1.city1_id = t2.city2_id WHERE t1.cnt <> t2.cnt

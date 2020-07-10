@@ -1,5 +1,13 @@
 DROP TABLE IF EXISTS whereis;
-CREATE TABLE whereis (`id` INT PRIMARY KEY AUTO_INCREMENT,`name` varchar(255),`answer` text,`keywords` text, `playfield_id` INT NOT NULL, `xcoord` INT NOT NULL, `ycoord` INT NOT NULL);
+CREATE TABLE whereis (
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+	`name` varchar(255),
+	`answer` text,
+	`keywords` text,
+	`playfield_id` INT NOT NULL,
+	`xcoord` INT NOT NULL,
+	`ycoord` INT NOT NULL
+);
 INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VALUES
 ('12-man', 'Xan', '12m 12man', 6013, 418, 324),
 ('4 Holes', 'in the west central part of the world. It has whompas at 1200 x 1225 to 2ho, 20k, and Broken Shores. North of 4holes is Stret West Bank, south is Andromeda, east Stret East Bank, no zone avail to the west.', 'Four Holes Fourholes 4ho', 760, 893, 1754),
