@@ -2,33 +2,36 @@
 
 namespace Budabot\Modules\TIMERS_MODULE;
 
+use Budabot\Core\CommandReply;
+
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * A stopwatch controller with start, stop and lap
  *
+ * @author Nadyita (RK5) <nadyita@hodorraid.org>
  * @Instance
  *
- * Commands this class contains:
+ * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'stopwatch',
- *		accessLevel = 'guild',
- *		description = 'Adds a repeating timer',
+ *		accessLevel = 'all',
+ *		description = 'stop time difference(s)',
+ *		alias       = 'sw',
  *		help        = 'stopwatch.txt'
  *	)
  */
 class StopwatchController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
+	 * @var string
 	 */
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Budabot\Core\Text $text
 	 * @Inject
 	 */
-	public $chatBot;
+	public $text;
 
 	/**
 	 * @var \Budabot\Core\Util $util
@@ -36,54 +39,116 @@ class StopwatchController {
 	 */
 	public $util;
 
-	private $time = 0;
+	/**
+	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @Logger
+	 */
+	public $logger;
 
 	/**
-	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch start$/i")
+	 * @var Stopwatch[] $stopwatches
 	 */
-	public function stopwatchStartCommand($message, $channel, $sender, $sendto, $args) {
-		if ($this->time != 0) {
-			$msg = "The stopwatch is already running.";
-		} else {
-			$this->time = time();
-			$msg = "Stopwatch has been started.";
+	public $stopwatches = [];
+
+	/**
+	 * Start a new stopwatch
+	 *
+	 * @param string                     $message The full command received
+	 * @param string                     $channel Where did the command come from (tell, guild, priv)
+	 * @param string                     $sender  The name of the user issuing the command
+	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param string[]                   $args    The arguments to the disc-command
+	 * @return void
+	 *
+	 * @HandlesCommand("stopwatch")
+	 * @Matches("/^stopwatch\s+start$/i")
+	 */
+	public function startStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+		if (array_key_exists($sender, $this->stopwatches)) {
+			$msg = "You already have a stopwatch running. ".
+				"Use <highlight><symbol>stopwatch stop<end> to stop it.";
+			$sendto->reply($msg);
+			return;
 		}
+		$this->stopwatches[$sender] = new Stopwatch();
+		$msg = "Stopwatch started.";
 		$sendto->reply($msg);
 	}
 
 	/**
+	 * Stop a user's stopwatch
+	 *
+	 * @param string                     $message The full command received
+	 * @param string                     $channel Where did the command come from (tell, guild, priv)
+	 * @param string                     $sender  The name of the user issuing the command
+	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param string[]                   $args    The arguments to the disc-command
+	 * @return void
+	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch stop$/i")
+	 * @Matches("/^stopwatch\s+stop$/i")
 	 */
-	public function stopwatchStopCommand($message, $channel, $sender, $sendto, $args) {
-		if ($this->time == 0) {
-			$msg = "The stopwatch is not running.";
-		} else {
-			$time = time() - $this->time;
-			$this->time = 0;
-
-			$timeString = $this->util->unixtimeToReadable($time);
-
-			$msg = "Stopwatch has been stopped. Duration: <highlight>$timeString<end>.";
+	public function stopStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+		if (!array_key_exists($sender, $this->stopwatches)) {
+			$msg = "You don't have a stopwatch running.";
+			$sendto->reply($msg);
+			return;
 		}
+		$stopwatch = $this->stopwatches[$sender];
+		$stopwatch->end = time();
+		unset($this->stopwatches[$sender]);
+		$msg = $stopwatch->toString();
+		$sendto->reply("Your stopwatch times:\n$msg");
+	}
+
+	/**
+	 * Command to add a lap to the stopwatch
+	 *
+	 * @param string                     $message The full command received
+	 * @param string                     $channel Where did the command come from (tell, guild, priv)
+	 * @param string                     $sender  The name of the user issuing the command
+	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param string[]                   $args    The arguments to the disc-command
+	 * @return void
+	 *
+	 * @HandlesCommand("stopwatch")
+	 * @Matches("/^stopwatch\s+lap$/i")
+	 * @Matches("/^stopwatch\s+lap(\s+.+)$/i")
+	 */
+	public function stopwatchLapCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+		if (!array_key_exists($sender, $this->stopwatches)) {
+			$msg = "You don't have a stopwatch running.";
+			$sendto->reply($msg);
+			return;
+		}
+		$lapName = count($args) > 1 ? $args[1] : "";
+		$this->stopwatches[$sender]->laps[] = new StopwatchLap(trim($lapName));
+		$msg = "Lap<highlight>{$lapName}<end> added.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
+	 * Show a user's stopwatch
+	 *
+	 * @param string                     $message The full command received
+	 * @param string                     $channel Where did the command come from (tell, guild, priv)
+	 * @param string                     $sender  The name of the user issuing the command
+	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param string[]                   $args    The arguments to the disc-command
+	 * @return void
+	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch view$/i")
+	 * @Matches("/^stopwatch\s+view$/i")
+	 * @Matches("/^stopwatch\s+show$/i")
 	 */
-	public function stopwatchViewCommand($message, $channel, $sender, $sendto, $args) {
-		if ($this->time == 0) {
-			$msg = "The stopwatch is not running.";
-		} else {
-			$time = time() - $this->time;
-
-			$timeString = $this->util->unixtimeToReadable($time);
-
-			$msg = "Elapsed time: <highlight>$timeString<end>.";
+	public function showStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+		if (!array_key_exists($sender, $this->stopwatches)) {
+			$msg = "You don't have a stopwatch running.";
+			$sendto->reply($msg);
+			return;
 		}
-		$sendto->reply($msg);
+		$stopwatch = $this->stopwatches[$sender];
+		$msg = $stopwatch->toString();
+		$sendto->reply("Your stopwatch times:\n$msg");
 	}
 }
