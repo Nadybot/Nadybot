@@ -6,19 +6,13 @@
 	"homepage": "https://github.com/nadyita/budabot/",
 	"authors": [
 		{
-			"name": "Tyrence",
-			"role": "Original Maintainer"
-		},
-		{
 			"name": "Nadyita",
 			"email": "nadyita@hodorraid.org",
 			"role": "Maintainer"
-		}
-	],
-	"repositories": [
+		},
 		{
-			"type": "vcs",
-			"url": "https://github.com/apache/logging-log4php"
+			"name": "Tyrence",
+			"role": "Original Maintainer"
 		}
 	],
 

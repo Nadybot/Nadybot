@@ -175,7 +175,9 @@ class BotRunner {
 	 * @return void
 	 */
 	private function loadPhpLibraries() {
-		require_once __DIR__ . '/Annotations/Annotations.php';
+		foreach (glob(__DIR__ . "/Annotations/*.php") as $file) {
+			require_once $file;
+		}
 	}
 
 	/**

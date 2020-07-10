@@ -1,9 +1,10 @@
 <?php
 
+require_once __DIR__ . "/vendor/autoload.php";
+
 use Budabot\Core\DB;
 use Budabot\Core\SQLException;
 use Budabot\Core\Registry;
-use Budabot\Core\LoggerWrapper;
 
 $db = Registry::getInstance('db');
 
@@ -71,9 +72,11 @@ function checkIfColumnExists($db, $table, $column) {
 
 function normalizeVersion($version) {
 	// RC versions should come before GA versions when sorted in ASCENDING direction
-	return
-		str_replace("_RC", ".0.", 
-			str_replace("_GA", ".1", $version));
+	return str_replace(
+		"_RC",
+		".0.",
+		str_replace("_GA", ".1", $version)
+	);
 }
 
 function minRequiredVersion($db, $minVersion) {
@@ -106,8 +109,20 @@ if (checkIfTableExists($db, "players")) {
 if (checkIfTableExists($db, "banlist_<myname>")) {
 	if (!checkIfColumnExists($db, "banlist_<myname>", "charid")) {
 		$db->exec("ALTER TABLE banlist_<myname> RENAME TO old_banlist_<myname>");
-		$db->exec("CREATE TABLE IF NOT EXISTS banlist_<myname> (charid BIGINT NOT NULL PRIMARY KEY, admin VARCHAR(25), time INT, reason TEXT, banend INT);");
-		$db->exec("INSERT INTO banlist_<myname> (charid, admin, time, reason, banend) SELECT p.charid, b.admin, b.time, b.reason, b.banend FROM old_banlist_<myname> b JOIN players p ON b.name = p.name");
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS banlist_<myname> (".
+				"charid BIGINT NOT NULL PRIMARY KEY, ".
+				"admin VARCHAR(25), ".
+				"time INT, ".
+				"reason TEXT, ".
+				"banend INT ".
+			");"
+		);
+		$db->exec(
+			"INSERT INTO banlist_<myname> (charid, admin, time, reason, banend) ".
+			"SELECT p.charid, b.admin, b.time, b.reason, b.banend ".
+			"FROM old_banlist_<myname> b JOIN players p ON b.name = p.name"
+		);
 		$db->exec("DROP TABLE old_banlist_<myname>");
 	}
 }
@@ -115,7 +130,15 @@ if (checkIfTableExists($db, "banlist_<myname>")) {
 if (checkIfTableExists($db, "notes")) {
 	if (checkIfColumnExists($db, "notes", "name")) {
 		$db->exec("ALTER TABLE notes RENAME TO notes_old");
-		$db->exec("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY AUTO_INCREMENT, owner VARCHAR(25) NOT NULL, added_by VARCHAR(25) NOT NULL, note VARCHAR(255) NOT NULL, dt INTEGER NOT NULL);");
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS notes (".
+				"id INTEGER PRIMARY KEY AUTO_INCREMENT, ".
+				"owner VARCHAR(25) NOT NULL, ".
+				"added_by VARCHAR(25) NOT NULL, ".
+				"note VARCHAR(255) NOT NULL, ".
+				"dt INTEGER NOT NULL ".
+			");"
+		);
 		$db->exec("INSERT INTO notes (id, owner, added_by, note, dt) SELECT id, name, name, note, 0 FROM notes_old");
 		$db->exec("DROP TABLE notes_old");
 		$db->exec("UPDATE notes SET dt = ?", time());

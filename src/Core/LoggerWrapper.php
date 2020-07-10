@@ -2,10 +2,13 @@
 
 namespace Budabot\Core;
 
+use Budabot\Core\Registry;
 use Logger;
 
 /**
  * A wrapper class to log4php
+ *
+ * @Instance("logger")
  */
 class LoggerWrapper {
 	/**
@@ -25,6 +28,7 @@ class LoggerWrapper {
 	public function __construct($tag) {
 		$this->logger = Logger::getLogger($tag);
 		$this->chatLogger = Logger::getLogger('CHAT');
+		Registry::setInstance("logger", $this);
 	}
 
 	/**

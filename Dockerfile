@@ -1,7 +1,7 @@
 FROM alpine:3.12
 
 LABEL maintainer="nadyita@hodorraid.org" \
-      description="self-sustaining docker image to run latest Budabot"
+      description="self-sustaining docker image to run latest Budabot-Nady"
 
 ENTRYPOINT ["/budabot/docker-entrypoint.sh"]
 
@@ -31,9 +31,10 @@ COPY --chown=budabot:budabot . /budabot
 RUN apk --no-cache add composer && \
     cd /budabot && \
     composer install --no-dev --no-suggest && \
+    rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
     composer dumpautoload --no-dev --optimize && \
     composer clear-cache && \
-    chown -R budabot:budabot lib/vendor && \
+    chown -R budabot:budabot vendor && \
     apk del --no-cache composer && \
     sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml
 

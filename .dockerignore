@@ -6,11 +6,11 @@ mainloop.php
 *.bat
 docs
 tools
-win32
-php-win.ini
 composer_install.bat
-conf/config.template.php
-modules/GIT_MODULE
-lib/vendor
+conf/*.php
+src/Modules/GIT_MODULE
+vendor
 logs
 tags
+style
+extras/*
