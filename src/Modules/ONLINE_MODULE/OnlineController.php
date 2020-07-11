@@ -353,6 +353,7 @@ class OnlineController {
 	}
 	
 	public function afk($sender, $message, $type) {
+		$msg = null;
 		if (preg_match("/^.?afk$/i", $message)) {
 			$reason = time();
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
@@ -361,14 +362,13 @@ class OnlineController {
 			$msg = trim($arr[1]);
 			$reason = time() . '|brb ' . $msg;
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
-			$msg = "<highlight>$sender<end> is now AFK.";
 		} elseif (preg_match("/^.?afk (.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
 		}
 
-		if ('' != $msg) {
+		if ($msg !== null) {
 			if ('priv' == $type) {
 				$this->chatBot->sendPrivate($msg);
 			} elseif ('guild' == $type) {
