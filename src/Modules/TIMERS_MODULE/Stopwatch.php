@@ -36,13 +36,13 @@ class Stopwatch {
 		$descr = "Start:    " . strftime('%Y-%m-%d %H:%M:%S', $this->start) . "\n";
 		$last = $this->start;
 		foreach ($this->laps as $lap) {
-			$descr .= $this->toString($last);
+			$descr .= $lap->toString($last);
 			$last = $lap->time;
 		}
 		if ($this->end !== null) {
 			$descr .= "End:    +" . strftime('%M:%S', $this->end - $last) . "\n";
 		} else {
-			$descr .= "Now:    +" . strftime('%M:%S', time() - $last) . "\n";
+			$descr .= "Now:   +" . strftime('%M:%S', time() - $last) . "\n";
 		}
 		return $descr;
 	}
