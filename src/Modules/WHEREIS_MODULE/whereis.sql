@@ -373,7 +373,7 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 ('Misa Ramirez', 'Newland City, Neuts r'' us club', 'AI Quest Social Clothing Combined Armor', 566, 447, 340),
 ('Mitaar Hero', 'Xan', 'Technomaster Sinuh', 6013, 345, 407),
 ('Molested Molecules', 'Condemned Subway', NULL, 0, 0, 0),
-('Monday Kline', 'at Stret E at TRA only', NULL, 635, 1300, 890),
+('Monday Klein', 'Stret Eastbank, NE of Fixer Grid 6L', NULL, 635, 1300, 890),
 ('Mooching Dryad', 'Adonis, NW', NULL, 4872, 986, 2573),
 ('Moog', 'Southern Artery Valley', NULL, 610, 1850, 2550),
 ('Morgan Le Faye', 'Avalon Dungeon, Avalon, down the stairs where the PvP zone starts, and to the right', NULL, 505, 2092, 3822),
