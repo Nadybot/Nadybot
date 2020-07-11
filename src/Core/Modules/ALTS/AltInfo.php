@@ -76,7 +76,7 @@ class AltInfo {
 		if ($profDisplay & 4 && $character->profession !== null) {
 			$extraInfo []= $character->profession;
 		}
-		if ($settingManager->get('alts_show_org') && $character->faction !== null) {
+		if ($settingManager->get('alts_show_org') && $character->faction !== null && !$firstPageOnly) {
 			$factionColor = strtolower($character->faction);
 			$orgName = strlen($character->guild) ? $character->guild : $character->faction;
 			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
@@ -117,7 +117,7 @@ class AltInfo {
 			if ($profDisplay & 4 && $row->profession !== null) {
 				$extraInfo []= $row->profession;
 			}
-			if ($settingManager->get('alts_show_org') && $row->faction !== null) {
+			if ($settingManager->get('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->faction);
 				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
