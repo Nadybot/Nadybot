@@ -62,7 +62,7 @@ class GuideController {
 		$this->commandAlias->register($this->moduleName, "guides adminhelp", "adminhelp");
 		$this->commandAlias->register($this->moduleName, "guides light", "light");
 
-		$this->path = getcwd() . "/modules/" . $this->moduleName . "/guides/";
+		$this->path = __DIR__ . "/guides/";
 	}
 	
 	/**

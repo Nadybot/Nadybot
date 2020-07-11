@@ -62,7 +62,7 @@ class BankController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'bank');
 		
-		$this->settingManager->add($this->moduleName, 'bank_file_location', 'Location of the AO Items Assistant csv dump file', 'edit', 'text', './modules/BANK_MODULE/import.csv');
+		$this->settingManager->add($this->moduleName, 'bank_file_location', 'Location of the AO Items Assistant csv dump file', 'edit', 'text', './src/Modules/BANK_MODULE/import.csv');
 		$this->settingManager->add($this->moduleName, 'max_bank_items', 'Number of items shown in search results', 'edit', 'number', '50', '20;50;100');
 	}
 

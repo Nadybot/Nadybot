@@ -3,13 +3,14 @@
 namespace Budabot\Modules\RAID_MODULE;
 
 /**
- * Authors:
- *	- Marinerecon (RK2)
- *  - Derroylo (RK2)
- *  - Tyrence (RK2)
- *  - Morgo (RK2)
- *	- Chachy (RK2)
- *  - Dare2005 (RK2), based on code for dbloot module by Chachy (RK2)
+ * @author Marinerecon (RK2)
+ * @author Derroylo (RK2)
+ * @author Tyrence (RK2)
+ * @author Morgo (RK2)
+ * @author Chachy (RK2)
+ * @author Dare2005 (RK2)
+ *
+ * based on code for dbloot module by Chachy (RK2)
  *
  * @Instance
  *
@@ -259,7 +260,8 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Dare2005 (RK2), based on code for dbloot module by Chachy (RK2)
+	 * @author Dare2005 (RK2), based on code for dbloot module by
+	 * @author Chachy (RK2)
 	 *
 	 * @HandlesCommand("alb")
 	 * @Matches("/^alb$/i")
@@ -279,7 +281,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
+	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("db1")
 	 * @Matches("/^db1$/i")
@@ -290,7 +292,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
+	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("db2")
 	 * @Matches("/^db2$/i")
@@ -566,7 +568,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("beastarmor")
 	 * @Matches("/^beastarmor$/i")
@@ -576,7 +578,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("beastweaps")
 	 * @Matches("/^beastweaps$/i")
@@ -586,7 +588,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("beaststars")
 	 * @Matches("/^beaststars$/i")
@@ -596,7 +598,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("sb")
 	 * @Matches("/^sb$/i")
@@ -606,7 +608,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("tnh")
 	 * @Matches("/^tnh$/i")
@@ -616,7 +618,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("aries")
 	 * @Matches("/^aries$/i")
@@ -626,7 +628,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("leo")
 	 * @Matches("/^leo$/i")
@@ -636,7 +638,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("virgo")
 	 * @Matches("/^virgo$/i")
@@ -646,7 +648,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("aquarius")
 	 * @Matches("/^aquarius$/i")
@@ -656,7 +658,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("cancer")
 	 * @Matches("/^cancer$/i")
@@ -666,7 +668,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("gemini")
 	 * @Matches("/^gemini$/i")
@@ -676,7 +678,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("libra")
 	 * @Matches("/^libra$/i")
@@ -686,7 +688,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("pisces")
 	 * @Matches("/^pisces$/i")
@@ -696,7 +698,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("taurus")
 	 * @Matches("/^taurus$/i")
@@ -706,7 +708,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("capricorn")
 	 * @Matches("/^capricorn$/i")
@@ -716,7 +718,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("sagittarius")
 	 * @Matches("/^sagittarius$/i")
@@ -726,7 +728,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("scorpio")
 	 * @Matches("/^scorpio$/i")
@@ -736,7 +738,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("bastion")
 	 * @Matches("/^bastion$/i")
@@ -752,7 +754,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Marinerecon (RK2)
+	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("pande")
 	 * @Matches("/^pande$/i")
@@ -791,7 +793,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Morgo (RK2)
+	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("vortexx")
 	 * @Matches("/^vortexx$/i")
@@ -803,7 +805,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Morgo (RK2)
+	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("mitaar")
 	 * @Matches("/^mitaar$/i")
@@ -815,7 +817,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Morgo (RK2)
+	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("12m")
 	 * @Matches("/^12m$/i")
@@ -834,7 +836,7 @@ class LootListsController {
 	}
 	
 	/**
-	 * Author: Morgo (RK2)
+	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("xan")
 	 * @Matches("/^xan$/i")

@@ -3,8 +3,7 @@
 namespace Budabot\Modules\FUN_MODULE;
 
 /**
- * Author:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *
@@ -139,9 +138,8 @@ class FunController {
 	 *
 	 * aypwip.php - A Social Worrrrrld Domination! Module
 	 *
-	 * Developed by Mastura (RK2/Rimor) from Shadow Ops
-	 * from Anarchy Online.
-	 * converted to Budabot by Tyrence (RK2)
+	 * @author Mastura (RK2)
+	 * @author Tyrence (RK2), converted to Budabot
 	 */
 	public function brainCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('brain', $sender, $args[1]);
@@ -153,9 +151,10 @@ class FunController {
 	 * @Matches("/^chuck$/i")
 	 * @Matches("/^chuck (\d+)$/i")
 	 *
-	 * Author: Honge (RK2)
+	 * @author Honge (RK2)
+	 * @author Temar
 	 *
-	 * Additions taken from a module written by Temar for Bebot: http://bebot.shadow-realm.org/0-3-x-customunofficial-modules/chuck-norris/
+	 * @url http://bebot.shadow-realm.org/0-3-x-customunofficial-modules/chuck-norris/
 	 */
 	public function chuckCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('chuck', $sender, $args[1]);
@@ -167,9 +166,8 @@ class FunController {
 	 * @Matches("/^cybor$/i")
 	 * @Matches("/^cybor (\d+)$/i")
 	 *
-	 * Author: Derroylo (RK2)
-	 *
-	 * Ported over from a bebot plugin written by Xenixa (RK1)
+	 * @author Derroylo (RK2)
+	 * @author Xenixa (RK1)
 	 */
 	public function cyborCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('cybor', $sender, $args[1]);
@@ -181,8 +179,8 @@ class FunController {
 	 * @Matches("/^dwight$/i")
 	 * @Matches("/^dwight (\d+)$/i")
 	 *
-	 * Developed by Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
-	 * Converted to Budabot by Tyrence (RK2)
+	 * @author Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
+	 * @author Tyrence (RK2), converted to Budabot
 	 */
 	public function dwightCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('dwight', $sender, $args[1]);
@@ -204,12 +202,9 @@ class FunController {
 	 * @Matches("/^homer$/i")
 	 * @Matches("/^homer (\d+)$/i")
 	 *
-	 * Author: Derroylo (RK2)
-	 *
-	 * Some entries taken from a module developed by MysterF aka Floryn
-	 * from Band of Brothers
-	 * CROM originally for Bebot:
-	 * http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
+	 * @author Derroylo (RK2)
+	 * @author MysterF aka Floryn from Band of Brothers
+	 * @url http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
 	 */
 	public function homerCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('homer', $sender, $args[1]);
@@ -221,8 +216,8 @@ class FunController {
 	 * @Matches("/^pirates$/i")
 	 * @Matches("/^pirates (\d+)$/i")
 	 *
-	 * Developed by Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
-	 * Converted to Budabot by Tyrence (RK2)
+	 * @author Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
+	 * @author Tyrence (RK2), converted to Budabot
 	 */
 	public function piratesCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = $this->getFunItem('pirates', $sender, $args[1]);

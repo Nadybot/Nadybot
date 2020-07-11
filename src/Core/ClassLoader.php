@@ -107,7 +107,7 @@ class ClassLoader {
 	/**
 	 * Register a modue in a basedir and check compatibility
 	 *
-	 * @param string $baseDir The base module dir (modules/extras)
+	 * @param string $baseDir The base module dir (src/Modules, extras)
 	 * @param string $moduleName Name of the module (WHOIS_MODULE)
 	 * @return void
 	 */

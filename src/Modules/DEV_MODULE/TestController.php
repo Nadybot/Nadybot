@@ -82,7 +82,7 @@ class TestController extends AutoInject {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->path = getcwd() . "/modules/" . $this->moduleName . "/tests/";
+		$this->path = __DIR__ . "/tests/";
 		
 		$this->settingManager->add($this->moduleName, "show_test_commands", "Show test commands as they are executed", "edit", "options", "0", "true;false", "1;0");
 		$this->settingManager->add($this->moduleName, "show_test_results", "Show test results from test commands", "edit", "options", "0", "true;false", "1;0");

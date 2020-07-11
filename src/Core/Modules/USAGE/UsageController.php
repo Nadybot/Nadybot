@@ -5,6 +5,7 @@ namespace Budabot\Core\Modules\USAGE;
 use Budabot\Core\Event;
 use stdClass;
 use Budabot\Core\CommandAlias;
+use Budabot\Core\BotRunner;
 
 /**
  * Authors:
@@ -271,8 +272,8 @@ class UsageController {
 		$settings['using_chat_proxy'] = $this->chatBot->vars['use_proxy'];
 		$settings['db_type'] = $this->db->getType();
 		$settings['bot_version'] = $version;
-		$settings['using_git'] = (file_exists("./modules/GIT_MODULE/GitController.class.php") === true ? '1' : '0');
-		$settings['os'] = (\Budabot\Core\BotRunner::isWindows() === true ? 'Windows' : 'Other');
+		$settings['using_git'] = (int)file_exists(dirname(__DIR__) . "/GIT_MODULE/GitController.class.php");
+		$settings['os'] = (BotRunner::isWindows() === true ? 'Windows' : 'Other');
 		
 		$settings['symbol'] = $this->settingManager->get('symbol');
 		$settings['relay_enabled'] = ($this->settingManager->get('relaybot') == 'Off' ? '0' : '1');

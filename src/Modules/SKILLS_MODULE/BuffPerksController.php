@@ -167,7 +167,7 @@ class BuffPerksController {
 	}
 	
 	public function getPerkInfo() {
-		$path = getcwd() . "/modules/" . $this->moduleName . "/perks.csv";
+		$path = __DIR__ . "/perks.csv";
 		$lines = explode("\n", file_get_contents($path));
 		$perks = array();
 		foreach ($lines as $line) {
