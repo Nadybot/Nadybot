@@ -6,8 +6,7 @@ use Budabot\Core\Event;
 use Exception;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

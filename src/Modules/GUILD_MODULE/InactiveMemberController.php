@@ -3,9 +3,8 @@
 namespace Budabot\Modules\GUILD_MODULE;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
- *  - Mindrila (RK1)
+ * @author Tyrence (RK2)
+ * @author Mindrila (RK1)
  *
  * @Instance
  *

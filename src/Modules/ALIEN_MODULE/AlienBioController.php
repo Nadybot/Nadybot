@@ -3,12 +3,11 @@
 namespace Budabot\Modules\ALIEN_MODULE;
 
 /**
- * Authors:
- *  - Blackruby (RK2),
- *  - Mdkdoc420 (RK2),
- *  - Wolfbiter (RK1),
- *  - Gatester (RK2),
- *  - Marebone (RK2)
+ * @author Blackruby (RK2)
+ * @author Mdkdoc420 (RK2)
+ * @author Wolfbiter (RK1)
+ * @author Gatester (RK2)
+ * @author Marebone (RK2)
  *
  * @Instance
  *

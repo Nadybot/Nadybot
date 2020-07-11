@@ -3,8 +3,7 @@
 namespace Budabot\Modules\WHEREIS_MODULE;
 
 /**
- * Authors:
- *	- Jaqueme
+ * @author Jaqueme
  *  Database adapted from one originally compiled by Malosar for BeBot
  *
  * @Instance

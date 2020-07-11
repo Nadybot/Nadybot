@@ -5,8 +5,7 @@ namespace Budabot\Modules\RELAY_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *  - Tyrence
+ * @author Tyrence
  *
  * @Instance
  *

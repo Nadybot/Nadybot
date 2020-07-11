@@ -6,8 +6,7 @@ use Budabot\Core\AutoInject;
 use \DateTimeZone;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

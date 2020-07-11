@@ -5,10 +5,9 @@ namespace Budabot\Modules\GUILD_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
- *  - Mindrila (RK1)
- *  - Derroylo (RK2)
+ * @author Tyrence (RK2)
+ * @author Mindrila (RK1)
+ * @author Derroylo (RK2)
  *
  * @Instance
  *

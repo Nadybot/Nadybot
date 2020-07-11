@@ -5,9 +5,8 @@ namespace Budabot\Modules\IMPLANT_MODULE;
 use Exception;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
- *	- Imoutochan (RK1)
+ * @author Tyrence (RK2)
+ * @author Imoutochan (RK1)
  *
  * @Instance
  *

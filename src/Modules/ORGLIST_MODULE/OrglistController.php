@@ -6,9 +6,8 @@ use Budabot\Core\Event;
 use stdClass;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
- *  - Lucier (RK1)
+ * @author Tyrence (RK2)
+ * @author Lucier (RK1)
  *
  * @Instance
  *

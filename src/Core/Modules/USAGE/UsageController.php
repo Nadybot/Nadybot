@@ -8,8 +8,7 @@ use Budabot\Core\CommandAlias;
 use Budabot\Core\BotRunner;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

@@ -3,8 +3,7 @@
 namespace Budabot\Core\Modules\PREFERENCES;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  */

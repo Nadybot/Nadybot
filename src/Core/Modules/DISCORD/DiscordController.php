@@ -6,8 +6,7 @@ use StdClass;
 use Exception;
 
 /**
- * Authors:
- *  - Nadyita (RK5)
+ * @author Nadyita (RK5)
  *
  * @Instance
  *

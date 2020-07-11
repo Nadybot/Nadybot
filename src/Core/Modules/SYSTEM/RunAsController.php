@@ -5,8 +5,7 @@ namespace Budabot\Core\Modules\SYSTEM;
 use Budabot\Core\AutoInject;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

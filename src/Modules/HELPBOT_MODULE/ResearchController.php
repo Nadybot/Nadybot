@@ -3,9 +3,8 @@
 namespace Budabot\Modules\HELPBOT_MODULE;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
- *	- Jaqueme
+ * @author Tyrence (RK2)
+ * @author Jaqueme
  *
  * @Instance
  *

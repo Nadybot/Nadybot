@@ -3,8 +3,7 @@
 namespace Budabot\Modules\DEV_MODULE;
 
 /**
- * Authors:
- *  - Tyrence
+ * @author Tyrence
  *
  * Read values from the MDB file
  *

@@ -5,8 +5,7 @@ namespace Budabot\Modules\RECIPE_MODULE;
 use Exception;
 
 /**
- * Authors:
- *  - Tyrence
+ * @author Tyrence
  *
  * Based on a module written by Captainzero (RK1) of the same name for an earlier version of Budabot
  *

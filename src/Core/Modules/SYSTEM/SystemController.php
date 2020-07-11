@@ -6,9 +6,8 @@ use Budabot\Core\Event;
 use Budabot\Core\PrivateMessageCommandReply;
 
 /**
- * Authors:
- *  - Sebuda (RK2)
- *  - Tyrence (RK2)
+ * @author Sebuda (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

@@ -5,10 +5,9 @@ namespace Budabot\Modules\HELPBOT_MODULE;
 use ParseError;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
- *	- Neksus (RK2)
- *	- Mdkdoc420 (RK2)
+ * @author Tyrence (RK2)
+ * @author Neksus (RK2)
+ * @author Mdkdoc420 (RK2)
  *
  * @Instance
  *

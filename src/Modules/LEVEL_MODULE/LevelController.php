@@ -3,10 +3,9 @@
 namespace Budabot\Modules\LEVEL_MODULE;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
- *	- Derroylo (RK2)
- *	- Legendadv (RK2)
+ * @author Tyrence (RK2)
+ * @author Derroylo (RK2)
+ * @author Legendadv (RK2)
  *
  * @Instance
  *

@@ -3,8 +3,7 @@
 namespace Budabot\Modules\GUIDE_MODULE;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * Guides compiled by Plugsz (RK1)
  *

@@ -3,11 +3,10 @@
 namespace Budabot\Modules\NANO_MODULE;
 
 /**
- * Authors:
- *	- Nadyita (RK5)
- *	- Tyrence (RK2)
- *	- Healnjoo (RK2)
- *	- Mdkdoc420 (RK2)
+ * @author Nadyita (RK5)
+ * @author Tyrence (RK2)
+ * @author Healnjoo (RK2)
+ * @author Mdkdoc420 (RK2)
  *
  * @Instance
  *

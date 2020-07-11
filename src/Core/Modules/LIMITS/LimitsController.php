@@ -3,8 +3,7 @@
 namespace Budabot\Core\Modules\LIMITS;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  */

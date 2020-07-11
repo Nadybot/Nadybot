@@ -5,8 +5,7 @@ namespace Budabot\Modules\WEATHER_MODULE;
 use stdClass;
 
 /**
- * Authors:
- *	- Nadyita (RK5)
+ * @author Nadyita (RK5)
  *
  * @Instance
  *

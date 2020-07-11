@@ -7,8 +7,7 @@ use Addendum\ReflectionAnnotatedMethod;
 use Budabot\Core\Registry;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

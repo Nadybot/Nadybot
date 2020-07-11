@@ -5,9 +5,8 @@ namespace Budabot\Modules\EVENTS_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *	- Legendadv (RK2)
- *	- Tyrence (RK2)
+ * @author Legendadv (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

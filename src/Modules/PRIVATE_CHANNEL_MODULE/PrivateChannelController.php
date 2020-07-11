@@ -5,9 +5,8 @@ namespace Budabot\Modules\PRIVATE_CHANNEL_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
- *  - Mindrila (RK1)
+ * @author Tyrence (RK2)
+ * @author Mindrila (RK1)
  *
  * @Instance
  *

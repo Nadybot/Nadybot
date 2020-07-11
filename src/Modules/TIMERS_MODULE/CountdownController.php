@@ -3,8 +3,7 @@
 namespace Budabot\Modules\TIMERS_MODULE;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

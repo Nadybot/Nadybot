@@ -5,8 +5,7 @@ namespace Budabot\Modules\SKILLS_MODULE;
 use stdClass;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

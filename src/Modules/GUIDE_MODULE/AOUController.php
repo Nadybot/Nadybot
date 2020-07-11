@@ -6,8 +6,7 @@ use stdClass;
 use DOMDocument;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

@@ -7,9 +7,8 @@ use stdClass;
 use Exception;
 
 /**
- * Authors:
- *  - Funkman (RK2)
- *  - Tyrence (RK2)
+ * @author Funkman (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

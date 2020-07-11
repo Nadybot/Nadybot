@@ -5,10 +5,9 @@ namespace Budabot\Modules\RAID_MODULE;
 use stdClass;
 
 /**
- * Authors:
- *	- Derroylo (RK2)
- *  - Marinerecon (RK2)
- *  - Tyrence (RK2)
+ * @author Derroylo (RK2)
+ * @author Marinerecon (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

@@ -6,8 +6,7 @@ use Budabot\Core\CommandReply;
 use Exception;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

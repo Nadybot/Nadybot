@@ -5,10 +5,9 @@ namespace Budabot\Modules\BASIC_CHAT_MODULE;
 /**
  * @Instance
  *
- * Authors:
- *  - Legendadv (RK2)
- *  - Derroylo (RK2)
- *  - Marebone (RK2)
+ * @author Legendadv (RK2)
+ * @author Derroylo (RK2)
+ * @author Marebone (RK2)
  *
  * The ChatSayController class allows user to send messages to either org
  * channel or to private (guest) channel.

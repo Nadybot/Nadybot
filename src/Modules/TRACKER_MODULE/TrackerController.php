@@ -5,8 +5,7 @@ namespace Budabot\Modules\TRACKER_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

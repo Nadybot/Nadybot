@@ -5,9 +5,8 @@ namespace Budabot\Modules\RAFFLE_MODULE;
 use Budabot\Core\Event;
 
 /**
- * Authors:
- *	- Mindrila (RK1)
- *  - Tyrence (RK2)
+ * @author Mindrila (RK1)
+ * @author Tyrence (RK2)
  *
  * @Instance
  *

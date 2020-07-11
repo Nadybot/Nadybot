@@ -3,9 +3,8 @@
 namespace Budabot\Modules\BANK_MODULE;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
- *	- Marebone (RK2)
+ * @author Tyrence (RK2)
+ * @author Marebone (RK2)
  *
  * @Instance
  *

@@ -3,8 +3,7 @@
 namespace Budabot\Modules\SPIRITS_MODULE;
 
 /**
- * Authors:
- *	- Tyrence (RK2)
+ * @author Tyrence (RK2)
  *
  * Originally Written for Budabot By Jaqueme
  * Database Adapted From One Originally Compiled by Wolfbiter For BeBot

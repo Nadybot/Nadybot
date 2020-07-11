@@ -6,10 +6,9 @@ use Budabot\Core\Event;
 use Budabot\Core\StopExecutionException;
 
 /**
- * Authors:
- *  - Tyrence (RK2)
- *  - Mindrila (RK1)
- *	- Naturarum (Paradise, RK2)
+ * @author Tyrence (RK2)
+ * @author Mindrila (RK1)
+ * @author Naturarum (Paradise, RK2)
  *
  * @Instance
  *
