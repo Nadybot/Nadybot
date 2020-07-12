@@ -415,6 +415,7 @@ class VoteController {
 		}
 		
 		$results = array();
+		$totalresults = 0;
 		foreach ($data as $row) {
 			if ($row->duration) {
 				$question = $row->question;
@@ -425,7 +426,6 @@ class VoteController {
 			}
 			$answer = $row->answer;
 
-			$totalresults = 0;
 			if (strpos($answer, $this->delimiter) === false) { // A Vote: $answer = "yes";
 				$results[$answer]++;
 				$totalresults++;
