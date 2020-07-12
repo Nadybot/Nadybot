@@ -349,6 +349,11 @@ class AltsController {
 		}
 	}
 
+	/**
+	 * Get information about the mains and alts of a player
+	 * @param string $player The name of either the main or one of their alts
+	 * @return AltInfo Information about the main and the alts
+	 */
 	public function getAltInfo($player) {
 		$player = ucfirst(strtolower($player));
 
