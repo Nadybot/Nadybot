@@ -1,4 +1,46 @@
 *****************************
+	Version 4.2:
+*****************************
+This will be the last version named Budabot and the last one to support PHP5
+
+Features
+- Improved StopWatch module with laps
+- Introduced an AMQP link for bot relaying without AO's message penalty
+- Introduced skill aliases to make it easier to search for skills. !whatbuffs cl, pm, si or agi will now just work
+- Introduced a DISCORD module to send notifications to Discord channels
+- Added new options to sort and format the alt list
+- Allowed configuring where to announce city waves
+- Fixed, unified and prettified the !weapon command
+- Overhauled !nano and !nanolines with fresh data and grouping, also showing froob-friendly and general nanos
+- Added support for filtering outgoing and incoming messages in relays
+- Added switchable timer to notify when to plant after a notum wars win
+
+Changes
+- Do not announce when someone just brb's, just silently set them afk
+- Renamed !raffle join to enter
+- Made sending usage stats opt-in instead of opt-out
+- Updated items database to 18.08.51 patch
+- Sort !timers output by remaining time ascending
+- Added a bunch of new item groups
+- Added a bunch of new locations to the whereis database
+- Reformatted !axp output
+
+Bug fixes
+- Fixed and added tons of nano locations
+- Fixed the !weather command by switching to Nominatim plus the Norwegian weather service
+- Fixed the !vote command
+- Fixed "!whatbuffs weapon smt"
+- Fixed Fast Attack calculations
+
+Coding
+- Restructured the file-system layout to make PSR-4 auto loading work properly
+- Replaced all bundled versions of software for the bot with composer modules
+- SQL files now support multi-line commands
+  - Better readability for create commands
+  - Faster insert speed due to extended inserts
+- Added lots and lots more PHPDoc information
+
+*****************************
 	Version 4.1:
 *****************************
 - Introduce a global PHP codingstyle for the project and fix all files so they adhere to it
