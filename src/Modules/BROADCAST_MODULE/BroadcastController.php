@@ -51,10 +51,10 @@ class BroadcastController {
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\LIMITS\WhitelistController $whitelistController
+	 * @var \Budabot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
 	 * @Inject
 	 */
-	public $whitelistController;
+	public $rateIgnoreController;
 	
 	/**
 	 * @var \Budabot\Core\Text $text
@@ -140,7 +140,7 @@ class BroadcastController {
 		// reload broadcast bot list
 		$this->loadBroadcastListIntoMemory();
 
-		$this->whitelistController->add($name, $sender . " (bot)");
+		$this->rateIgnoreController->add($name, $sender . " (bot)");
 
 		$sendto->reply($msg);
 	}
@@ -163,7 +163,7 @@ class BroadcastController {
 		// reload broadcast bot list
 		$this->loadBroadcastListIntoMemory();
 
-		$this->whitelistController->remove($name);
+		$this->rateIgnoreController->remove($name);
 
 		$sendto->reply($msg);
 	}

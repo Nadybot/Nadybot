@@ -51,10 +51,10 @@ class LimitsController {
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Modules\LIMITS\WhitelistController $whitelistController
+	 * @var \Budabot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
 	 * @Inject
 	 */
-	public $whitelistController;
+	public $rateIgnoreController;
 	
 	/**
 	 * @var \Budabot\Core\LoggerWrapper $logger
@@ -111,7 +111,7 @@ class LimitsController {
 	public function check($sender, $message) {
 		if (preg_match("/^about$/i", $message)) {
 			$msg = true;
-		} elseif ($this->whitelistController->check($sender) || $sender == ucfirst(strtolower($this->settingManager->get("relaybot")))) {
+		} elseif ($this->rateIgnoreController->check($sender) || $sender == ucfirst(strtolower($this->settingManager->get("relaybot")))) {
 			$msg = true;
 		} elseif ($this->accessManager->checkAccess($sender, 'member')) {
 			// if access level is at least member, skip checks

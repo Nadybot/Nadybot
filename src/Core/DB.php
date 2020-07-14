@@ -422,4 +422,26 @@ class DB {
 
 		return $msg;
 	}
+
+	/**
+	 * Check if a table exists in the database
+	 *
+	 * @param string $tableName
+	 * @return bool
+	 */
+	public function tableExists($tableName) {
+		if ($this->getType() === static::SQLITE) {
+			return $this->queryRow(
+				"SELECT COUNT(*) AS `exists` ".
+				"FROM sqlite_master WHERE type=? AND name=?",
+				"table",
+				$tableName
+			)->exists > 0;
+		}
+		return $this->queryRow(
+			"SELECT COUNT(*) AS `exists` FROM information_schema.TABLES ".
+			"WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+			$tableName
+		)->exists > 0;
+	}
 }
