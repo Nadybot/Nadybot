@@ -73,11 +73,11 @@ class RateIgnoreController {
 		} else {
 			$blob = '';
 			foreach ($list as $entry) {
-				$remove = $this->text->makeChatcmd('Remove', "/tell <myname> ratelist remove $entry->name");
+				$remove = $this->text->makeChatcmd('Remove', "/tell <myname> rateignore remove $entry->name");
 				$date = $this->util->date($entry->added_dt);
 				$blob .= "<highlight>{$entry->name}<end> [added by {$entry->added_by}] {$date} {$remove}\n";
 			}
-			$msg = $this->text->makeBlob("rate limit ignore list", $blob);
+			$msg = $this->text->makeBlob("Rate limit ignore list", $blob);
 			$sendto->reply($msg);
 		}
 	}
@@ -108,10 +108,10 @@ class RateIgnoreController {
 
 		$data = $this->db->query("SELECT * FROM rateignorelist WHERE name = ?", $user);
 		if (count($data) != 0) {
-			return "Error! $user already added to the rate limit ignore list.";
+			return "Error! <highlight>$user<end> already added to the rate limit ignore list.";
 		} else {
 			$this->db->exec("INSERT INTO rateignorelist (name, added_by, added_dt) VALUES (?, ?, ?)", $user, $sender, time());
-			return "$user has been added to the rate limit ignore list.";
+			return "<highlight>$user<end> has been added to the rate limit ignore list.";
 		}
 	}
 
@@ -124,10 +124,10 @@ class RateIgnoreController {
 
 		$data = $this->db->query("SELECT * FROM rateignorelist WHERE name = ?", $user);
 		if (count($data) == 0) {
-			return "Error! $user is not on the rate limit ignore list.";
+			return "Error! <highlight>$user<end> is not on the rate limit ignore list.";
 		} else {
 			$this->db->exec("DELETE FROM rateignorelist WHERE name = ?", $user);
-			return "$user has been removed from the rate limit ignore list.";
+			return "<highlight>$user<end> has been removed from the rate limit ignore list.";
 		}
 	}
 
