@@ -385,6 +385,9 @@ class ItemsController {
 						}
 					}
 					$row->name = $this->getLongestCommonStringOfWords($itemNames);
+					if (preg_match("/ of$/", $row->name)) {
+						$row->name = $itemNames[count($itemNames)-1];
+					}
 				}
 				if ($list !== '') {
 					$list .= "\n";
