@@ -1,0 +1,10 @@
+To see a list of character on the rate ignore list:
+<highlight><tab><symbol>rateignore<end>
+
+To add a character to the rate ignore list:
+<highlight><tab><symbol>rateignore add <i>character</i><end>
+
+To remove a character from the rate ignore:
+<highlight><tab><symbol>rateignore rem <i>character</i><end>
+
+Note: The <highlight>rateignore<end> command lets you specify certain characters that should be able to access the bot, but would not normally be able to due to limits being set. See <a href='chatcmd:///tell <myname> help limits'><symbol>limits</a>

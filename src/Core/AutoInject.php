@@ -44,7 +44,7 @@ namespace Budabot\Core;
  * @property \Budabot\Core\Modules\DISCORD\DiscordController $discordController
  * @property \Budabot\Core\Modules\HELP\HelpController $helpController
  * @property \Budabot\Core\Modules\LIMITS\LimitsController $limitsController
- * @property \Budabot\Core\Modules\LIMITS\WhitelistController $whitelistController
+ * @property \Budabot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
  * @property \Budabot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
  * @property \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
  * @property \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerLookupController $playerLookupController
