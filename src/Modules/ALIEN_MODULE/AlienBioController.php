@@ -175,7 +175,7 @@ class AlienBioController {
 				default:
 					$bioinfo = "";
 					$name = "Unknown Bio-Material";
-					continue;
+					break;
 			}
 
 			$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo $ql");
