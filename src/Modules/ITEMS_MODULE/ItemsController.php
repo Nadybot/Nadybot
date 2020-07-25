@@ -78,6 +78,7 @@ class ItemsController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "aodb");
 		$this->db->loadSQLFile($this->moduleName, "item_groups");
+		$this->db->loadSQLFile($this->moduleName, "item_group_names");
 		
 		$this->settingManager->add($this->moduleName, 'maxitems', 'Number of items shown on the list', 'edit', 'number', '40', '30;40;50;60');
 	}
@@ -248,6 +249,7 @@ class ItemsController {
 		$sql = "
 			SELECT
 				COALESCE(a2.name,a1.name,foo.name) AS name,
+				n.name AS group_name,
 				foo.icon,
 				g.group_id,
 				COALESCE(a1.lowid,a2.lowid,foo.lowid) AS lowid,
@@ -269,6 +271,7 @@ class ItemsController {
 				LIMIT ".$this->settingManager->get('maxitems')."
 			) AS foo
 			LEFT JOIN item_groups g ON(foo.group_id=g.group_id)
+			LEFT JOIN item_group_names n ON(foo.group_id=n.group_id)
 			LEFT JOIN aodb a1 ON(g.item_id=a1.lowid)
 			LEFT JOIN aodb a2 ON(g.item_id=a2.highid)
 			ORDER BY g.id ASC
@@ -384,9 +387,9 @@ class ItemsController {
 							break;
 						}
 					}
-					$row->name = $this->getLongestCommonStringOfWords($itemNames);
-					if (preg_match("/ of$/", $row->name)) {
-						$row->name = $itemNames[count($itemNames)-1];
+					$row->name = $row->group_name;
+					if (!isset($row->group_name)) {
+						$row->name = $this->getLongestCommonStringOfWords($itemNames);
 					}
 				}
 				if ($list !== '') {
