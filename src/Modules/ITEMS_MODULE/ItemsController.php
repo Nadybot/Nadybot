@@ -103,17 +103,27 @@ class ItemsController {
 		$row = $this->findById($id);
 		if ($row === null) {
 			$msg = "No item found with id <highlight>$id<end>.";
-		} else {
-			$blob = print_r($row, true);
-			$blob .= "\n\n" . $this->formatSearchResults(array($row), null, true);
-			$msg = $this->text->makeBlob($id, $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = "";
+		foreach ($row as $key => $value) {
+			$blob .= "$key: <highlight>$value<end>\n";
+		}
+		$row->ql = $row->highql;
+		if ($row->lowid == $id) {
+			$row->ql = $row->lowql;
+		}
+		$blob .= "\n" . $this->formatSearchResults(array($row), null, true);
+		$msg = "Details about item ID ".
+			$this->text->makeBlob($id, $blob, "Details about item ID $id").
+			" ({$row->name})";
 
 		$sendto->reply($msg);
 	}
 	
 	public function findById($id) {
-		$sql = "SELECT * FROM aodb WHERE highid = ? UNION SELECT * FROM aodb WHERE lowid = ? LIMIT 1";
+		$sql = "SELECT * FROM aodb WHERE lowid = ? UNION SELECT * FROM aodb WHERE highid = ? LIMIT 1";
 		return $this->db->queryRow($sql, $id, $id);
 	}
 
@@ -371,14 +381,14 @@ class ItemsController {
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
 			$newGroup = false;
-			if ($row->group_id === null && $ql && $ql !== $row->ql) {
+			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
 				continue;
 			}
-			if ($row->group_id === null || $row->group_id !== $oldGroup) {
+			if (!isset($row->group_id) || $row->group_id !== $oldGroup) {
 				$lastQL = null;
 				$newGroup = true;
 				// If this is a group of items, name them by their longest common name
-				if ($row->group_id !== null) {
+				if (isset($row->group_id)) {
 					$itemNames = array();
 					for ($j=$itemNum; $j < count($data); $j++) {
 						if ($data[$j]->group_id === $row->group_id) {
@@ -398,7 +408,7 @@ class ItemsController {
 				if ($showImages) {
 					$list .= "\n<pagebreak>" . $this->text->makeImage($row->icon) . "\n";
 				}
-				if ($row->group_id !== null) {
+				if (isset($row->group_id)) {
 					$list .= $row->name;
 					if ($showImages) {
 						$list .= "\n";
@@ -407,8 +417,8 @@ class ItemsController {
 					}
 				}
 			}
-			$oldGroup = $row->group_id;
-			if ($row->group_id === null) {
+			$oldGroup = isset($row->group_id) ? $row->group_id : null;
+			if (!isset($row->group_id)) {
 				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 				$list .= " (QL $row->ql)";
 			} else {
