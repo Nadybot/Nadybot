@@ -24014,7 +24014,9 @@ INSERT INTO item_groups (group_id, item_id) VALUES
 (35215,303997),
 (35215,303998),
 (35216,149914),
-(35216,149901);
+(35216,149901),
+(35217,152268),
+(35217,152269);
 
 CREATE INDEX idx_item_group_group ON item_groups(group_id);
 CREATE INDEX idx_item_group_item  ON item_groups(item_id);
