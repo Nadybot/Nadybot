@@ -9,6 +9,7 @@ namespace Budabot\Modules\RAID_MODULE;
  * @author Morgo (RK2)
  * @author Chachy (RK2)
  * @author Dare2005 (RK2)
+ * @author Nadyita (RK5)
  *
  * based on code for dbloot module by Chachy (RK2)
  *
@@ -239,6 +240,12 @@ class LootListsController {
 	 * @Inject
 	 */
 	public $util;
+
+	/**
+	 * @var \Budabot\Core\SettingManager
+	 * @Inject
+	 */
+	public $settingManager;
 	
 	/**
 	 * @var \Budabot\Modules\RAID_MODULE\RaidController $raidController
@@ -257,6 +264,16 @@ class LootListsController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'raid_loot');
+		$this->settingManager->add(
+			$this->moduleName,
+			'show_raid_loot_pics',
+			'Also show pictures of possible loot',
+			'edit',
+			'options',
+			'1',
+			'yes;no',
+			'1;0'
+		);
 	}
 	
 	/**
@@ -871,10 +888,10 @@ class LootListsController {
 	public function pohCommand($message, $channel, $sender, $sendto, $args) {
 		$blob = $this->findRaidLoot('Pyramid of Home', 'General');
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU');
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'POH Weapons');
 		$msg = $this->text->makeBlob("Pyramid of Home Loot", $blob);
 
 		$sendto->reply($msg);
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Beast Weapons'));
 	}
 
 	public function findRaidLoot($raid, $category) {
@@ -888,22 +905,35 @@ class LootListsController {
 			return null;
 		}
 
-		$blob = "\n";
+		$blob = "\n<header2>{$category}<end>\n\n";
+		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
 		foreach ($data as $row) {
+			$lootCmd = $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
 			$blob .= "<pagebreak>";
 			if ($row->lowid) {
-				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, "<img src=rdb://{$row->icon}>");
+				if ($showLootPics) {
+					$name = "<img src=rdb://{$row->icon}>";
+				} else {
+					$name = $row->name;
+					$blob .= $lootCmd . " - ";
+				}
+				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $name);
 			}
-			$blob .= "\n<highlight>{$row->name}<end>";
+			if ($showLootPics) {
+				$blob .= "\n<highlight>{$row->name}<end>";
+			}
 			if ($row->multiloot > 1) {
 				$blob .= " x" . $row->multiloot;
 			}
 			if (!empty($row->comment)) {
 				$blob .= " ($row->comment)";
 			}
+			if ($showLootPics) {
+				$blob .= "\n";
+				$blob .= $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
+				$blob .= "\n";
+			}
 			$blob .= "\n";
-			$blob .= $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
-			$blob .= "\n\n";
 		}
 
 		return $blob;
