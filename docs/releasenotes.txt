@@ -14,6 +14,7 @@ Features
 - Overhauled !nano and !nanolines with fresh data and grouping, also showing froob-friendly and general nanos
 - Added support for filtering outgoing and incoming messages in relays
 - Added switchable timer to notify when to plant after a notum wars win
+- Added possibility to turn off pictures in !loot and the loot lists
 
 Changes
 - Do not announce when someone just brb's, just silently set them afk
@@ -31,6 +32,7 @@ Bug fixes
 - Fixed the !vote command
 - Fixed "!whatbuffs weapon smt"
 - Fixed Fast Attack calculations
+- Fixed configuration option where to show people adding or removing themselves from loot
 
 Coding
 - Restructured the file-system layout to make PSR-4 auto loading work properly
