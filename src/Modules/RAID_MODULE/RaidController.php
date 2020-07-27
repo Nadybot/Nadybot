@@ -100,7 +100,27 @@ class RaidController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->settingManager->add($this->moduleName, "add_on_loot", "Adding to loot show on", "edit", "options", "2", "tells;privatechat;privatechat and tells", '1;2;3', "mod");
+		$this->settingManager->add(
+			$this->moduleName,
+			"add_on_loot",
+			"Adding to loot show on",
+			"edit",
+			"options",
+			"2",
+			"tells;privatechat;privatechat and tells",
+			'1;2;3',
+			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'show_loot_pics',
+			'Show pictures in loot-command',
+			'edit',
+			'options',
+			'1',
+			'yes;no',
+			'1;0'
+		);
 		
 		$this->commandAlias->register($this->moduleName, "flatroll", "rollloot");
 		$this->commandAlias->register($this->moduleName, "flatroll", "result");
@@ -378,26 +398,36 @@ class RaidController {
 		//Roll the loot
 		$resnum = 1;
 		foreach ($this->loot as $key => $item) {
-			$list .= "Item: <orange>{$item->name}<end>\n";
-			$list .= "Winner(s): ";
-			$users = count($item->users);
-			if ($users == 0) {
+			$list .= "Item: <header2>{$item->name}<end>\n";
+			$numUsers = count($item->users);
+			if ($numUsers == 1) {
+				$list .= "Winner: ";
+			} else {
+				$list .= "Winners: ";
+			}
+			if ($numUsers == 0) {
 				$list .= "<highlight>None added.<end>\n\n";
 				$this->residual[$resnum] = $item;
 				$resnum++;
 			} else {
 				if ($item->multiloot > 1) {
-					if ($item->multiloot > count($item->users)) {
-						$arrolnum = count($item->users);
-					} else {
-						$arrolnum = $item->multiloot;
-					}
+					$arrolnum = min($item->multiloot, $numUsers);
 
+					$winners = array();
 					for ($i = 0; $i < $arrolnum; $i++) {
 						$winner = array_rand($item->users, 1);
 						unset($item->users[$winner]);
-						$list .= "<red>$winner<end> ";
+						$winners[] = $winner;
 					}
+					$list .= join(
+						", ",
+						array_map(
+							function($name) {
+								return "<green>$name<end>";
+							},
+							$winners
+						)
+					);
 
 					if ($arrolnum < $item->multiloot) {
 						$newmultiloot = $item->multiloot - $arrolnum;
@@ -407,7 +437,7 @@ class RaidController {
 					}
 				} else {
 					$winner = array_rand($item->users, 1);
-					$list .= "<red>$winner<end>";
+					$list .= "<green>$winner<end>";
 				}
 				$list .= "\n\n";
 			}
@@ -417,6 +447,10 @@ class RaidController {
 		$this->loot = array();
 
 		//Show winner list
+		if (!empty($this->residual)) {
+			$list .= "\n\n".
+				$this->text->makeChatcmd("Reroll remaining items", "/tell <myname> reroll");
+		}
 		$msg = $this->text->makeBlob("Winner List", $list);
 		if (!empty($this->residual)) {
 			$msg .= " (There are item(s) left to be rolled. To re-add, type <symbol>reroll)";
@@ -456,12 +490,19 @@ class RaidController {
 			$this->loot[$slot]->users[$sender] = true;
 
 			if ($found == false) {
-				$msg = "$sender has added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+				$privMsg = "$sender added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+				$tellMsg = "You added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
 			} else {
-				$msg = "$sender has moved to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+				$privMsg = "$sender changed to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+				$tellMsg = "You changedto <highlight>\"{$this->loot[$slot]->name}\"<end>.";
 			}
 
-			$this->chatBot->sendPrivate($msg);
+			if ($this->settingManager->get('add_on_loot') & 1) {
+				$this->chatBot->sendTell($tellMsg, $sender);
+			}
+			if ($this->settingManager->get('add_on_loot') & 2) {
+				$this->chatBot->sendPrivate($privMsg);
+			}
 		} else {
 			$this->chatBot->sendTell("No loot list available.", $sender);
 		}
@@ -479,8 +520,14 @@ class RaidController {
 				}
 			}
 
-			$msg = "$sender has been removed from all rolls.";
-			$this->chatBot->sendPrivate($msg);
+			$privMsg = "$sender removed themself from all rolls.";
+			$tellMsg = "You removed yourself from all rolls.";
+			if ($this->settingManager->get('add_on_loot') & 1) {
+				$this->chatBot->sendTell($tellMsg, $sender);
+			}
+			if ($this->settingManager->get('add_on_loot') & 2) {
+				$this->chatBot->sendPrivate($privMsg);
+			}
 		} else {
 			$this->chatBot->sendTell("There is nothing to remove you from.", $sender);
 		}
@@ -488,7 +535,8 @@ class RaidController {
 	
 	public function getCurrentLootList() {
 		if (!empty($this->loot)) {
-			$list = "Use <symbol>flatroll to roll.\n\n";
+			$flatroll = $this->text->makeChatcmd("<symbol>flatroll", "/tell <myname> flatroll");
+			$list = "Use $flatroll to roll.\n\n";
 			$players = 0;
 			$items = count($this->loot);
 			foreach ($this->loot as $key => $item) {
@@ -497,26 +545,30 @@ class RaidController {
 				$added_players = count($item->users);
 				$players += $added_players;
 
-				if ($item->icon != "") {
+				if ($item->icon != "" && $this->settingManager->get('show_loot_pics')) {
 					$list .= $this->text->makeImage($item->icon) . "\n";
 				}
 
+				$ml = "";
 				if ($item->multiloot > 1) {
-					$ml = " <highlight>(x".$item->multiloot.")<end>";
-				} else {
-					$ml = "";
+					$ml = " (x".$item->multiloot.")";
 				}
 
-				$list .= "\n{$item->display}".$ml."";
-				$list .= "\n<header2>Slot #$key<end> $add / $rem";
-				$list .= "\nPlayers added (<highlight>$added_players<end>):";
+				$list .= "<header2>Slot #$key:<end> <highlight>{$item->display}<end>{$ml} - $add / $rem";
 				if (count($item->users) > 0) {
-					foreach ($item->users as $key => $value) {
-						$list .= " [<yellow>$key<end>]";
-					}
+					$list .= "\n<tab>Players added (<highlight>$added_players<end>): ";
+					$list .= join(
+						", ",
+						array_map(
+							function($name) {
+								return "<yellow>$name<end>";
+							},
+							array_keys($item->users)
+						)
+					);
 				}
 
-				$list .= "\n\n\n";
+				$list .= "\n\n";
 			}
 			$msg = $this->text->makeBlob("Loot List (Items: $items, Players: $players)", $list);
 		} else {
