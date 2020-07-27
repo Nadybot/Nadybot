@@ -12,7 +12,7 @@ class BotRunner {
 	 *
 	 * @var string $version
 	 */
-	public $version = "4.2_RC2";
+	public $version = "4.2_RC3";
 
 	/**
 	 * The command line arguments

@@ -248,4 +248,5 @@ INSERT INTO item_group_names (group_id, name) VALUES
 (32390,'Clan Application Form'),
 (32391,'Aggression Enhancer/Multiplier'),
 (34961,'Clan Merits (Froob) Boards'),
-(34963,'Omni-Tek Award (Froob) Boards');
+(34963,'Omni-Tek Award (Froob) Boards'),
+(35323,'Repairable Controller Recompiler Unit');
