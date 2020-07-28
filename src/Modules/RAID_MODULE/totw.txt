@@ -1,0 +1,2 @@
+To view Temple of the Three Winds (lvl 201+) loot lists:
+<highlight><tab><symbol>totw<end>

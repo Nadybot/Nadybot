@@ -65,6 +65,12 @@ namespace Budabot\Modules\RAID_MODULE;
  *		help        = 'apf.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'beast',
+ *		accessLevel = 'all',
+ *		description = 'Shows Beast loot',
+ *		help        = 'pande.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'beastarmor',
  *		accessLevel = 'all',
  *		description = 'Shows Beast Armor loot',
@@ -208,6 +214,12 @@ namespace Budabot\Modules\RAID_MODULE;
  *		description = 'Shows possible Pyramid of Home loot',
  *		help        = 'poh.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'totw',
+ *		accessLevel = 'all',
+ *		description = 'Shows possible TOTW 201+ loot',
+ *		help        = 'totw.txt'
+ *	)
  */
 class LootListsController {
 
@@ -267,7 +279,7 @@ class LootListsController {
 		$this->settingManager->add(
 			$this->moduleName,
 			'show_raid_loot_pics',
-			'Also show pictures of possible loot',
+			'Show pictures in loot lists',
 			'edit',
 			'options',
 			'1',
@@ -284,19 +296,15 @@ class LootListsController {
 	 * @Matches("/^alb$/i")
 	 */
 	public function albCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getAlbatraumLoot('Albtraum', 'Crystals & Crystalised Memories'));
-		$sendto->reply($this->getAlbatraumLoot('Albtraum', 'Ancients'));
-		$sendto->reply($this->getAlbatraumLoot('Albtraum', 'Samples'));
-		$sendto->reply($this->getAlbatraumLoot('Albtraum', 'Rings and Preservation Units'));
-		$sendto->reply($this->getAlbatraumLoot('Albtraum', 'Pocket Boss Crystals'));
+		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories');
+		$blob .= $this->findRaidLoot('Albtraum', 'Ancients');
+		$blob .= $this->findRaidLoot('Albtraum', 'Samples');
+		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units');
+		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals');
+		$msg = $this->text->makeBlob("Albtraum Loot", $blob);
+		$sendto->reply($msg);
 	}
 
-	public function getAlbatraumLoot($raid, $category) {
-		$blob = $this->findRaidLoot($raid, $category);
-		$blob .= "\n\nAlbtraum Loot By Dare2005 (RK2)";
-		return $this->text->makeBlob("$raid $category Loot", $blob);
-	}
-	
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
@@ -304,8 +312,10 @@ class LootListsController {
 	 * @Matches("/^db1$/i")
 	 */
 	public function db1Command($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getDustBrigadeLoot('DustBrigade', 'Armor'));
-		$sendto->reply($this->getDustBrigadeLoot('DustBrigade', '1'));
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB1');
+		$msg = $this->text->makeBlob("DB1 Loot", $blob);
+		$sendto->reply($msg);
 	}
 	
 	/**
@@ -315,25 +325,23 @@ class LootListsController {
 	 * @Matches("/^db2$/i")
 	 */
 	public function db2Command($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getDustBrigadeLoot('DustBrigade', 'Armor'));
-		$sendto->reply($this->getDustBrigadeLoot('DustBrigade', '2'));
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB2');
+		$msg = $this->text->makeBlob("DB2 Loot", $blob);
+		$sendto->reply($msg);
 	}
-	
-	public function getDustBrigadeLoot($raid, $category) {
-		$blob = $this->findRaidLoot($raid, $category);
-		$blob .= "\n\nDust Brigrade Loot By Chachy (RK2)";
-		return $this->text->makeBlob("$raid $category Loot", $blob);
-	}
-	
+
 	/**
 	 * @HandlesCommand("7")
 	 * @Matches("/^7$/i")
 	 */
 	public function apf7Command($message, $channel, $sender, $sendto, $args) {
-		$raid = "APF";
-		$category = "Sector 7";
-		$blob = $this->findRaidLoot($raid, $category);
-		$msg = $this->text->makeBlob("$raid $category Loot", $blob);
+		$raid = "Sector 7";
+		$blob = $this->findRaidLoot($raid, "Misc");
+		$blob .= $this->findRaidLoot($raid, "NCU");
+		$blob .= $this->findRaidLoot($raid, "Weapons");
+		$blob .= $this->findRaidLoot($raid, "Viralbots");
+		$msg = $this->text->makeBlob("$raid Loot", $blob);
 		$sendto->reply($msg);
 	}
 	
@@ -436,11 +444,7 @@ class LootListsController {
 
 		switch ($sector) {
 			case "7":
-				$raid = "APF";
-				$category = "Sector 7";
-				$list = $this->findRaidLoot($raid, $category);
-				
-				break;
+				return $this->apf7Command($message, $channel, $sendto, $sendto, $args);
 			case "13":
 				//CRU
 				$list .= $this->text->makeImage(257196) . "\n";
@@ -581,6 +585,19 @@ class LootListsController {
 
 		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
 
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("beast")
+	 * @Matches("/^beast$/i")
+	 */
+	public function beastCommand($message, $channel, $sender, $sendto, $args) {
+		$blob = $this->findRaidLoot('Pande', 'Beast Armor');
+		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons');
+		$blob .= $this->findRaidLoot('Pande', 'Stars');
+		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds');
+		$msg = $this->text->makeBlob("Beast Loot", $blob);
 		$sendto->reply($msg);
 	}
 	
@@ -778,6 +795,7 @@ class LootListsController {
 	 */
 	public function pandeCommand($message, $channel, $sender, $sendto, $args) {
 		$list  = "<header2>The Beast<end>\n";
+		$list .= "<tab>".$this->text->makeChatcmd("All Beast Loot (long)\n", "/tell <myname> beast");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Armor\n", "/tell <myname> beastarmor");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Weapons\n", "/tell <myname> beastweaps");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Stars\n", "/tell <myname> beaststars");
@@ -816,9 +834,11 @@ class LootListsController {
 	 * @Matches("/^vortexx$/i")
 	 */
 	public function xanVortexxCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getXanLoot('Vortexx', 'General'));
-		$sendto->reply($this->getXanLoot('Vortexx', 'Symbiants'));
-		$sendto->reply($this->getXanLoot('Vortexx', 'Spirits'));
+		$blob = $this->findRaidLoot('Vortexx', 'General');
+		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants');
+		$blob .= $this->findRaidLoot('Vortexx', 'Spirits');
+		$msg = $this->text->makeBlob("Vortexx loot", $blob);
+		$sendto->reply($msg);
 	}
 	
 	/**
@@ -828,9 +848,11 @@ class LootListsController {
 	 * @Matches("/^mitaar$/i")
 	 */
 	public function xanMitaarCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getXanLoot('Mitaar', 'General'));
-		$sendto->reply($this->getXanLoot('Mitaar', 'Symbiants'));
-		$sendto->reply($this->getXanLoot('Mitaar', 'Spirits'));
+		$blob = $this->findRaidLoot('Mitaar', 'General');
+		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants');
+		$blob .= $this->findRaidLoot('Mitaar', 'Spirits');
+		$msg = $this->text->makeBlob("Mitaar loot", $blob);
+		$sendto->reply($msg);
 	}
 	
 	/**
@@ -840,18 +862,14 @@ class LootListsController {
 	 * @Matches("/^12m$/i")
 	 */
 	public function xan12mCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getXanLoot('12Man', 'General'));
-		$sendto->reply($this->getXanLoot('12Man', 'Symbiants'));
-		$sendto->reply($this->getXanLoot('12Man', 'Spirits'));
-		$sendto->reply($this->getXanLoot('12Man', 'Profession Gems'));
+		$blob = $this->findRaidLoot('12Man', 'General');
+		$blob .= $this->findRaidLoot('12Man', 'Symbiants');
+		$blob .= $this->findRaidLoot('12Man', 'Spirits');
+		$blob .= $this->findRaidLoot('12Man', 'Profession Gems');
+		$msg = $this->text->makeBlob("12-Man loot", $blob);
+		$sendto->reply($msg);
 	}
-	
-	public function getXanLoot($raid, $category) {
-		$blob = $this->findRaidLoot($raid, $category);
-		$blob .= "\n\nXan Loot By Morgo (RK2)";
-		return $this->text->makeBlob("$raid $category Loot", $blob);
-	}
-	
+
 	/**
 	 * @author Morgo (RK2)
 	 *
@@ -894,22 +912,35 @@ class LootListsController {
 		$sendto->reply($msg);
 	}
 
+	/**
+	 * @HandlesCommand("totw")
+	 * @Matches("/^totw$/i")
+	 */
+	public function totwCommand($message, $channel, $sender, $sendto, $args) {
+		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor');
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants');
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc');
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons');
+		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
+
+		$sendto->reply($msg);
+	}
+
 	public function findRaidLoot($raid, $category) {
-		$sql =
-			"SELECT *, COALESCE(a.name, r.name) AS name
-			FROM raid_loot r LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql)
-			WHERE raid = ? AND category = ?";
+		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
+			"FROM raid_loot r ".
+			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
+			"WHERE raid = ? AND category = ?";
 		$data = $this->db->query($sql, $raid, $category);
 
 		if (count($data) == 0) {
 			return null;
 		}
 
-		$blob = "\n<header2>{$category}<end>\n\n";
+		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
 		foreach ($data as $row) {
 			$lootCmd = $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
-			$blob .= "<pagebreak>";
 			if ($row->lowid) {
 				if ($showLootPics) {
 					$name = "<img src=rdb://{$row->icon}>";
@@ -918,8 +949,10 @@ class LootListsController {
 					$blob .= $lootCmd . " - ";
 				}
 				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $name);
+			} else {
+				$blob .= "$lootCmd - <highlight>{$row->name}<end>";
 			}
-			if ($showLootPics) {
+			if ($showLootPics && $row->lowid) {
 				$blob .= "\n<highlight>{$row->name}<end>";
 			}
 			if ($row->multiloot > 1) {

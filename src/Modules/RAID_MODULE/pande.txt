@@ -7,8 +7,8 @@ To view Shadowbreeds loot list:
 To view Bastion loot list:
 <highlight><tab><symbol>bastion<end>
 
-To view Beast armor:
-<highlight><tab><symbol>beastarmor<end>
+To view full Beast loot:
+<highlight><tab><symbol>beast<end>
 
 To view Beast weapons:
 <highlight><tab><symbol>beastweaps<end>

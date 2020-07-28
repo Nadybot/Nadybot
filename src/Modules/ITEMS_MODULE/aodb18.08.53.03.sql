@@ -33763,4 +33763,8 @@ INSERT INTO aodb VALUES
 
 (305701,305701,1,1,'Playfield Item: Ow',130858);
 
-CREATE INDEX idx_highid ON aodb(highid);
+CREATE INDEX idx_aodb_highid ON aodb(highid);
+CREATE INDEX idx_aodb_lowid ON aodb(lowid);
+CREATE INDEX idx_aodb_name ON aodb(name);
+CREATE INDEX idx_aodb_lowql ON aodb(lowql);
+CREATE INDEX idx_aodb_highql ON aodb(highql);
