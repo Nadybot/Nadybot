@@ -15,6 +15,7 @@ Features
 - Added support for filtering outgoing and incoming messages in relays
 - Added switchable timer to notify when to plant after a notum wars win
 - Added possibility to turn off pictures in !loot and the loot lists
+- Added new totw 201+ loot with !totw
 
 Changes
 - Do not announce when someone just brb's, just silently set them afk
