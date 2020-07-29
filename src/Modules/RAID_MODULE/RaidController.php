@@ -235,8 +235,13 @@ class RaidController {
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE id = ?";
-		$row = $this->db->queryRow($sql, $id);
+			"WHERE r.aoid IS NULL AND id = ?".
+			"UNION ".
+			"SELECT *, COALESCE(a.name, r.name) AS name ".
+			"FROM raid_loot r ".
+			"JOIN aodb a ON (r.aoid = a.highid) ".
+			"WHERE r.aoid IS NOT NULL AND id = ?";
+		$row = $this->db->queryRow($sql, $id, $id);
 
 		if ($row === null) {
 			$msg = "Could not find item with id <highlight>$id<end> to add.";

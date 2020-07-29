@@ -906,7 +906,7 @@ class LootListsController {
 	public function pohCommand($message, $channel, $sender, $sendto, $args) {
 		$blob = $this->findRaidLoot('Pyramid of Home', 'General');
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU');
-		$blob .= $this->findRaidLoot('Pyramid of Home', 'POH Weapons');
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons');
 		$msg = $this->text->makeBlob("Pyramid of Home Loot", $blob);
 
 		$sendto->reply($msg);
@@ -920,6 +920,7 @@ class LootListsController {
 		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc');
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons');
 		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
 
@@ -930,8 +931,13 @@ class LootListsController {
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE raid = ? AND category = ?";
-		$data = $this->db->query($sql, $raid, $category);
+			"WHERE r.aoid IS NULL AND raid = ? AND category = ? ".
+			"UNION ".
+			"SELECT *, COALESCE(a.name, r.name) AS name ".
+			"FROM raid_loot r ".
+			"JOIN aodb a ON (r.aoid = a.highid) ".
+			"WHERE r.aoid IS NOT NULL AND raid = ? AND category = ?";
+		$data = $this->db->query($sql, $raid, $category, $raid, $category);
 
 		if (count($data) == 0) {
 			return null;
@@ -940,7 +946,7 @@ class LootListsController {
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
 		foreach ($data as $row) {
-			$lootCmd = $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
+			$lootCmd = $this->text->makeChatcmd("To Loot", "/tell <myname> loot add $row->id");
 			if ($row->lowid) {
 				if ($showLootPics) {
 					$name = "<img src=rdb://{$row->icon}>";
@@ -963,7 +969,7 @@ class LootListsController {
 			}
 			if ($showLootPics) {
 				$blob .= "\n";
-				$blob .= $this->text->makeChatcmd("Add to Loot List", "/tell <myname> loot add $row->id");
+				$blob .= $this->text->makeChatcmd("To Loot", "/tell <myname> loot add $row->id");
 				$blob .= "\n";
 			}
 			$blob .= "\n";
