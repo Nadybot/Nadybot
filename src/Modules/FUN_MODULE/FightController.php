@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\FUN_MODULE;
+namespace Nadybot\Modules\FUN_MODULE;
 
 use stdClass;
 
@@ -28,13 +28,13 @@ class FightController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

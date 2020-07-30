@@ -14,7 +14,7 @@ errorMessage() {
 [ -z "$CONFIG_DB_HOST" ] && errorMessage 'You have to specify the host/socket/directory of the database by setting $CONFIG_DB_HOST'
 [ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -E '^(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)$' ) && errorMessage 'You have specified an invalid $CONFIG_LOG_LEVEL. Allowed values are TRACE, DEBUG, INFO, WARN, ERROR and FATAL.'
 
-cd /budabot
+cd /nadybot
 cat > conf/config.php << DONE
 <?php
   \$vars['login']      = "$CONFIG_LOGIN";
@@ -39,7 +39,7 @@ cat > conf/config.php << DONE
   \$vars['proxy_server'] = "${CONFIG_PROXY_SERVER:-127.0.0.1}";
   \$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
   \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
-  // Define additional paths from where Budabot should load modules at startup
+  // Define additional paths from where Nadybot should load modules at startup
   \$vars['module_load_paths'] = [
     './src/Modules', './extras'
   ];
@@ -48,8 +48,6 @@ cat > conf/config.php << DONE
   \$vars['amqp_user'] = "${CONFIG_AMQP_USER}";
   \$vars['amqp_password'] = "${CONFIG_AMQP_PASSWORD}";
   \$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
-  // This should only be enabled during development and only if you understand the implications
-  // seen here: <http://code.google.com/p/budabot2/wiki/CompilingRunkit>
   define("USE_RUNKIT_CLASS_LOADING", false);
 DONE
 

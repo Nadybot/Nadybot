@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * @Instance
@@ -8,13 +8,13 @@ namespace Budabot\Core;
 class Util {
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

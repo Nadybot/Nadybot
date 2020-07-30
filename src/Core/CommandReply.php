@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * An interface to allow replying to a command, no matter the origin

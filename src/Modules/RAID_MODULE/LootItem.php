@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\RAID_MODULE;
+namespace Nadybot\Modules\RAID_MODULE;
 
 class LootItem {
 	/** @var string */

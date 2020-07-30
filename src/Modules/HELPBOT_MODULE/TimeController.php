@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\HELPBOT_MODULE;
+namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use stdClass;
 use DateTime;
@@ -27,13 +27,13 @@ class TimeController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\TIMERS_MODULE;
+namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Budabot\Core\CommandReply;
+use Nadybot\Core\CommandReply;
 
 /**
  * A stopwatch controller with start, stop and lap
@@ -28,19 +28,19 @@ class StopwatchController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -56,7 +56,7 @@ class StopwatchController {
 	 * @param string                     $message The full command received
 	 * @param string                     $channel Where did the command come from (tell, guild, priv)
 	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
 	 * @param string[]                   $args    The arguments to the disc-command
 	 * @return void
 	 *
@@ -81,7 +81,7 @@ class StopwatchController {
 	 * @param string                     $message The full command received
 	 * @param string                     $channel Where did the command come from (tell, guild, priv)
 	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
 	 * @param string[]                   $args    The arguments to the disc-command
 	 * @return void
 	 *
@@ -107,7 +107,7 @@ class StopwatchController {
 	 * @param string                     $message The full command received
 	 * @param string                     $channel Where did the command come from (tell, guild, priv)
 	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
 	 * @param string[]                   $args    The arguments to the disc-command
 	 * @return void
 	 *
@@ -133,7 +133,7 @@ class StopwatchController {
 	 * @param string                     $message The full command received
 	 * @param string                     $channel Where did the command come from (tell, guild, priv)
 	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Budabot\Core\CommandReply $sendto  Object to use to reply to
+	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
 	 * @param string[]                   $args    The arguments to the disc-command
 	 * @return void
 	 *

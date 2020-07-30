@@ -2,9 +2,9 @@
 
 require_once __DIR__ . "/vendor/autoload.php";
 
-use Budabot\Core\DB;
-use Budabot\Core\SQLException;
-use Budabot\Core\Registry;
+use Nadybot\Core\DB;
+use Nadybot\Core\SQLException;
+use Nadybot\Core\Registry;
 
 $db = Registry::getInstance('db');
 

@@ -1,9 +1,9 @@
 {
-	"name":"nadyita/budabot",
-	"description": "The successor of the original Budabot by Tyrence",
+	"name":"nadybot/nadybot",
+	"description": "The successor of Budabot",
 	"type":"project",
 	"keywords": ["budabot", "nadybot"],
-	"homepage": "https://github.com/nadyita/budabot/",
+	"homepage": "https://github.com/nadybot/nadybot/",
 	"authors": [
 		{
 			"name": "Nadyita",
@@ -39,8 +39,8 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Budabot\\": "src/",
-			"Budabot\\User\\Modules\\": "extra/"
+			"Nadybot\\": "src/",
+			"Nadybot\\User\\Modules\\": "extra/"
 		}
 	},
 	"config": {
@@ -52,10 +52,10 @@
 	},
 	"scripts": {
 		"post-package-install": [
-			"Budabot\\Patcher\\Patcher::patch"
+			"Nadybot\\Patcher\\Patcher::patch"
 		],
 		"post-package-update": [
-			"Budabot\\Patcher\\Patcher::patch"
+			"Nadybot\\Patcher\\Patcher::patch"
 		]
 	}
 }

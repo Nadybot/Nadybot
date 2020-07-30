@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * @Instance
@@ -8,19 +8,19 @@ namespace Budabot\Core;
 class AdminManager {
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;

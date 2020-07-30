@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -54,7 +54,7 @@ class AOChatQueue {
 	/**
 	 * The packet queue for each priority (low, med, high)
 	 *
-	 * @var \Budabot\Core\AOChatPacket[] $queue
+	 * @var \Nadybot\Core\AOChatPacket[] $queue
 	 */
 	public $queue;
 
@@ -104,7 +104,7 @@ class AOChatQueue {
 	 * Add a packet to the end of the chat queue with priority $priority
 	 *
 	 * @param int $priority
-	 * @param \Budabot\Core\AOChatPacket $item
+	 * @param \Nadybot\Core\AOChatPacket $item
 	 * @return void
 	 */
 	public function push($priority, $item) {
@@ -124,7 +124,7 @@ class AOChatQueue {
 	 *
 	 * Takes queue priorities into account
 	 *
-	 * @return \Budabot\Core\AOChatPacket|null Either a packet or NULL if the queues are empty
+	 * @return \Nadybot\Core\AOChatPacket|null Either a packet or NULL if the queues are empty
 	 */
 	public function getNext() {
 		if ($this->qsize === 0) {

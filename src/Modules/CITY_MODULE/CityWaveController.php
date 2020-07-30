@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\CITY_MODULE;
+namespace Nadybot\Modules\CITY_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 use stdClass;
 use Exception;
 
@@ -29,37 +29,37 @@ class CityWaveController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 	
 	/**
-	 * @var \Budabot\User\Modules\TIMERS_MODULE\TimerController $timerController
+	 * @var \Nadybot\User\Modules\TIMERS_MODULE\TimerController $timerController
 	 * @Inject
 	 */
 	public $timerController;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

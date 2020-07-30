@@ -1,11 +1,11 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 class GuildChannelCommandReply implements CommandReply {
 	private $chatBot;
 
-	public function __construct(Budabot $chatBot) {
+	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
 	}
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use PDO;
 use PDOException;
@@ -12,13 +12,13 @@ use Exception;
 class DB {
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
@@ -58,7 +58,7 @@ class DB {
 	/** @var bool $inTransaction */
 	private $inTransaction = false;
 
-	/** @var \Budabot\Core\LoggerWrapper $logger */
+	/** @var \Nadybot\Core\LoggerWrapper $logger */
 	private $logger;
 
 	const MYSQL = 'mysql';
@@ -136,7 +136,7 @@ class DB {
 		$args = $this->getParameters(func_get_args());
 
 		$ps = $this->executeQuery($sql, $args);
-		$result = $ps->fetchAll(PDO::FETCH_CLASS, 'budabot\core\DBRow');
+		$result = $ps->fetchAll(PDO::FETCH_CLASS, DBRow::class);
 
 		if (count($result) == 0) {
 			return null;
@@ -149,7 +149,7 @@ class DB {
 	 * Execute an SQL statement and return all rows as an array of objects
 	 *
 	 * @param string $sql The SQL query
-	 * @return \Budabot\Core\DBRow[] All returned rows
+	 * @return \Nadybot\Core\DBRow[] All returned rows
 	 */
 	public function query($sql) {
 		$sql = $this->formatSql($sql);
@@ -157,7 +157,7 @@ class DB {
 		$args = $this->getParameters(func_get_args());
 
 		$ps = $this->executeQuery($sql, $args);
-		return $ps->fetchAll(PDO::FETCH_CLASS, 'budabot\core\DBRow');
+		return $ps->fetchAll(PDO::FETCH_CLASS, DBRow::class);
 	}
 
 	/**

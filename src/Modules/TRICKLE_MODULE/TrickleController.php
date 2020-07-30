@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\TRICKLE_MODULE;
+namespace Nadybot\Modules\TRICKLE_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,19 +24,19 @@ class TrickleController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

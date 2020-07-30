@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\CITY_MODULE;
+namespace Nadybot\Modules\CITY_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -27,37 +27,37 @@ class CloakController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;

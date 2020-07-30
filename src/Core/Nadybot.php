@@ -1,10 +1,10 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
-use Budabot\Core\Annotations\DefineCommand;
-use Budabot\Core\Event;
+use Nadybot\Core\Annotations\DefineCommand;
+use Nadybot\Core\Event;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -16,94 +16,94 @@ use Budabot\Core\Event;
 /**
  * @Instance("chatBot")
  */
-class Budabot extends AOChat {
+class Nadybot extends AOChat {
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
 	 * @Inject
 	 */
 	public $subcommandManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;
 
 	/**
-	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @var \Nadybot\Core\HelpManager $helpManager
 	 * @Inject
 	 */
 	public $helpManager;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\BAN\BanController $banController
+	 * @var \Nadybot\Core\Modules\BAN\BanController $banController
 	 * @Inject
 	 */
 	public $banController;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Modules\LIMITS\LimitsController $limitsController
+	 * @var \Nadybot\Core\Modules\LIMITS\LimitsController $limitsController
 	 * @Inject
 	 */
 	public $limitsController;
 
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 
 	/**
-	 * @var \Budabot\Modules\RELAY_MODULE\RelayController $relayController
+	 * @var \Nadybot\Modules\RELAY_MODULE\RelayController $relayController
 	 * @Inject
 	 */
 	public $relayController;
 
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger("Core")
 	 */
 	public $logger;
@@ -549,7 +549,7 @@ class Budabot extends AOChat {
 	/**
 	 * Proccess an incoming message packet that the bot receives
 	 *
-	 * @param \Budabot\Core\AOChatPacket $packet The packet to process
+	 * @param \Nadybot\Core\AOChatPacket $packet The packet to process
 	 * @return void
 	 */
 	public function process_packet($packet) {
@@ -597,7 +597,7 @@ class Budabot extends AOChat {
 	/**
 	 * Fire associated events for a received packet
 	 *
-	 * @param \Budabot\Core\AOChatPacket $packet The received packet
+	 * @param \Nadybot\Core\AOChatPacket $packet The received packet
 	 * @return void
 	 */
 	public function process_all_packets($packet) {

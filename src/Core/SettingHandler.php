@@ -1,21 +1,21 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 class SettingHandler {
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
-	/** @var \Budabot\Core\DBRow $row */
+	/** @var \Nadybot\Core\DBRow $row */
 	protected $row;
 
 	/**
 	 * Construct a new handler out of a given database row
 	 *
-	 * @param \Budabot\Core\DBRow $row The database row
+	 * @param \Nadybot\Core\DBRow $row The database row
 	 */
 	public function __construct(DBRow $row) {
 		$this->row = $row;

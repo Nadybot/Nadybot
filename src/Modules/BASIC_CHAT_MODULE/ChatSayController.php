@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\BASIC_CHAT_MODULE;
+namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 /**
  * @Instance
@@ -35,13 +35,13 @@ namespace Budabot\Modules\BASIC_CHAT_MODULE;
 class ChatSayController {
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\RECIPE_MODULE;
+namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
 
@@ -28,25 +28,25 @@ class RecipeController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Modules\ITEMS_MODULE\ItemsController $itemsController
+	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
 	 * @Inject
 	 */
 	public $itemsController;

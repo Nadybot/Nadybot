@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\ITEMS_MODULE;
+namespace Nadybot\Modules\ITEMS_MODULE;
 
 /**
  * Bossloot Module Ver 1.1
@@ -36,19 +36,19 @@ class BosslootController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

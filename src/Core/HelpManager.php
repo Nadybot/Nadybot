@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use stdClass;
 
@@ -10,37 +10,37 @@ use stdClass;
 class HelpManager {
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\CONFIG\ConfigController $configController
+	 * @var \Nadybot\Core\Modules\CONFIG\ConfigController $configController
 	 * @Inject
 	 */
 	public $configController;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

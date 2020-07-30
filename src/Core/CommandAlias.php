@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * @Instance
@@ -8,25 +8,25 @@ namespace Budabot\Core;
 class CommandAlias {
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -115,7 +115,7 @@ class CommandAlias {
 	 * @param string $message The incoming command
 	 * @param string $channel The message where this command was received (guild, priv or tell)
 	 * @param string $sender The name of the command sender
-	 * @param \Budabot\Core\CommandReply $sendto Who to send the commands to
+	 * @param \Nadybot\Core\CommandReply $sendto Who to send the commands to
 	 * @return bool
 	 */
 	public function process($message, $channel, $sender, CommandReply $sendto) {
@@ -164,7 +164,7 @@ class CommandAlias {
 	/**
 	 * Adds a command alias to the db
 	 *
-	 * @param \Budabot\Core\DBRow $row The database row to process
+	 * @param \Nadybot\Core\DBRow $row The database row to process
 	 */
 	public function add($row) {
 		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
@@ -176,7 +176,7 @@ class CommandAlias {
 	/**
 	 * Updates a command alias in the db
 	 *
-	 * @param \Budabot\Core\DBRow $row The database row to update
+	 * @param \Nadybot\Core\DBRow $row The database row to update
 	 * @return int Number of affected rows
 	 */
 	public function update($row) {
@@ -190,7 +190,7 @@ class CommandAlias {
 	 * Read the database entry for an alias
 	 *
 	 * @param string $alias
-	 * @return \Budabot\Core\DBRow
+	 * @return \Nadybot\Core\DBRow
 	 */
 	public function get($alias) {
 		$alias = strtolower($alias);
@@ -220,7 +220,7 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
-	 * @return \Budabot\Core\DBRow[]
+	 * @return \Nadybot\Core\DBRow[]
 	 */
 	public function findAliasesByCommand($command) {
 		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE cmd LIKE ?";
@@ -230,7 +230,7 @@ class CommandAlias {
 	/**
 	 * Get a list of all currently enabled aliases
 	 *
-	 * @return \Budabot\Core\DBRow[]
+	 * @return \Nadybot\Core\DBRow[]
 	 */
 	public function getEnabledAliases() {
 		return $this->db->query("SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE status = 1 ORDER BY alias ASC");

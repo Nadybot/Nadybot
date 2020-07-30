@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\GUILD_MODULE;
+namespace Nadybot\Modules\GUILD_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -58,67 +58,67 @@ class GuildController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
 	 * @Inject
 	 */
 	public $guildManager;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PREFERENCES\Preferences $preferences
+	 * @var \Nadybot\Core\Modules\PREFERENCES\Preferences $preferences
 	 * @Inject
 	 */
 	public $preferences;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

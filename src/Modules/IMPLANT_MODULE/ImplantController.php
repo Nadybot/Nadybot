@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\IMPLANT_MODULE;
+namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Exception;
 
@@ -33,19 +33,19 @@ class ImplantController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

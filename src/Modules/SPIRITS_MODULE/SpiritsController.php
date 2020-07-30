@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\SPIRITS_MODULE;
+namespace Nadybot\Modules\SPIRITS_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -27,13 +27,13 @@ class SpiritsController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\REPUTATION_MODULE;
+namespace Nadybot\Modules\REPUTATION_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -36,25 +36,25 @@ class KillOnSightController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

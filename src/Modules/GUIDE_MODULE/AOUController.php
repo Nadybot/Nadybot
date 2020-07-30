@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\GUIDE_MODULE;
+namespace Nadybot\Modules\GUIDE_MODULE;
 
 use stdClass;
 use DOMDocument;
@@ -27,24 +27,24 @@ class AOUController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Modules\ITEMS_MODULE\ItemsController $itemsController
+	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
 	 * @Inject
 	 */
 	public $itemsController;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
 
-	const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=budabot";
+	const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	
 	/**
 	 * View an AO-U guide.

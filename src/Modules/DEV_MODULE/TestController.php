@@ -1,11 +1,11 @@
 <?php
 
-namespace Budabot\Modules\DEV_MODULE;
+namespace Nadybot\Modules\DEV_MODULE;
 
-use Budabot\Core\AutoInject;
-use Budabot\Core\CommandReply;
-use Budabot\Core\Event;
-use Budabot\Core\Registry;
+use Nadybot\Core\AutoInject;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Event;
+use Nadybot\Core\Registry;
 use stdClass;
 
 /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\NOTES_MODULE;
+namespace Nadybot\Modules\NOTES_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,25 +24,25 @@ class LinksController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;

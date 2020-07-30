@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Logger;
 use LoggerLevel;
@@ -24,7 +24,7 @@ class LegacyLogger {
 	}
 
 	/**
-	 * Get the log4php log level for a Budabot logging category
+	 * Get the log4php log level for a Nadybot logging category
 	 *
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
 	 * @return \LoggerLevel The log4php log level

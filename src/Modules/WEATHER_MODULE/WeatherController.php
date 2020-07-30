@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\WEATHER_MODULE;
+namespace Nadybot\Modules\WEATHER_MODULE;
 
 use stdClass;
 
@@ -26,13 +26,13 @@ class WeatherController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
@@ -95,7 +95,7 @@ class WeatherController {
 	 * Lookup the coordinates of a location
 	 *
 	 * @param string $location Name of the place, country, city... any location
-	 * @return \Budabot\Modules\WEATHER_MODULE\Nominatim|null
+	 * @return \Nadybot\Modules\WEATHER_MODULE\Nominatim|null
 	 */
 	public function lookupLocation($location) {
 		$apiEndpoint = "https://nominatim.openstreetmap.org/search?";
@@ -110,7 +110,7 @@ class WeatherController {
 		$httpResult = $this->http
 			->get($apiEndpoint)
 			->withTimeout(10)
-			->withHeader('User-Agent', 'Budabot-Nady')
+			->withHeader('User-Agent', 'Nadybot')
 			->withHeader('accept-language', 'en')
 			->waitAndReturnResponse();
 		$data = @json_decode($httpResult->body);
@@ -125,7 +125,7 @@ class WeatherController {
 	 *
 	 * @param string $lat Latitude
 	 * @param string $lon Longitude
-	 * @return \Budabot\Modules\WEATHER_MODULE\Weather|null
+	 * @return \Nadybot\Modules\WEATHER_MODULE\Weather|null
 	 */
 	public function lookupWeatherForCoords($lat, $lon) {
 		$apiEndpoint = "https://api.met.no/weatherapi/locationforecast/2.0/compact?";
@@ -136,7 +136,7 @@ class WeatherController {
 		$httpResult = $this->http
 			->get($apiEndpoint)
 			->withTimeout(10)
-			->withHeader('User-Agent', 'Budabot-Nady')
+			->withHeader('User-Agent', 'Nadybot')
 			->withHeader('accept-language', 'en')
 			->waitAndReturnResponse();
 		$data = @json_decode($httpResult->body);
@@ -210,7 +210,7 @@ class WeatherController {
 	/**
 	 * Return a link to OpenStreetMap at the given coordinates
 	 *
-	 * @param \Budabot\Modules\WEATHER_MODULE\Nominatim $nominatim The location object
+	 * @param \Nadybot\Modules\WEATHER_MODULE\Nominatim $nominatim The location object
 	 * @return string The URL to OSM
 	 */
 	public function getOSMLink(Nominatim $nominatim) {
@@ -328,7 +328,7 @@ class Nominatim {
 	public $type;
 	/** @var string */
 	public $category;
-	/** @var \Budabot\Modules\WEATHER_MODULE\NominatimAddress */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\NominatimAddress */
 	public $address;
 	/** @var \stdClass */
 	public $extratags;
@@ -354,23 +354,23 @@ class NominatimAddress {
 class Weather {
 	/** @var string */
 	public $type;
-	/** @var \Budabot\Modules\WEATHER_MODULE\Geometry */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Geometry */
 	public $geometry;
-	/** @var \Budabot\Modules\WEATHER_MODULE\Properties */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Properties */
 	public $properties;
 }
 
 class Properties {
-	/** @var \Budabot\Modules\WEATHER_MODULE\Meta */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Meta */
 	public $meta;
-	/** @var \Budabot\Modules\WEATHER_MODULE\Timeseries[] */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Timeseries[] */
 	public $timeseries;
 }
 
 class Meta {
 	/** @var string */
 	public $updated_at;
-	/** @var \Budabot\Modules\WEATHER_MODULE\Units */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Units */
 	public $units;
 }
 
@@ -394,17 +394,17 @@ class Units {
 class Timeseries {
 	/** @var string */
 	public $time;
-	/** @var \Budabot\Modules\WEATHER_MODULE\WeatherData */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\WeatherData */
 	public $data;
 }
 
 class WeatherData {
-	/** @var \Budabot\Modules\WEATHER_MODULE\Instant */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\Instant */
 	public $instant;
 }
 
 class Instant {
-	/** @var \Budabot\Modules\WEATHER_MODULE\InstantDetails */
+	/** @var \Nadybot\Modules\WEATHER_MODULE\InstantDetails */
 	public $details;
 }
 

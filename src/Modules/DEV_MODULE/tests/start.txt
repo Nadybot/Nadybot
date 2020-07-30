@@ -1,5 +1,5 @@
 #start
-/text Started Budabot tests...
+/text Started Nadybot tests...
 !time
 /delay %1
 

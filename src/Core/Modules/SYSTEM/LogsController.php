@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\SYSTEM;
+namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
 
@@ -26,31 +26,31 @@ class LogsController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

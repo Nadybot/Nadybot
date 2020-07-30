@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Exception;
 
@@ -25,43 +25,43 @@ class AccessManager {
 	);
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\AdminManager $adminManager
+	 * @var \Nadybot\Core\AdminManager $adminManager
 	 * @Inject
 	 */
 	public $adminManager;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
 
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;

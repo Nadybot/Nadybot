@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use LoggerConfiguratorDefault;
 use Logger;
@@ -8,7 +8,7 @@ use Logger;
 class BotRunner {
 
 	/**
-	 * Budabot's current version
+	 * Nadybot's current version
 	 *
 	 * @var string $version
 	 */
@@ -88,7 +88,7 @@ class BotRunner {
 		unset($vars['login']);
 		unset($vars['password']);
 
-		// pass control to Budabot class
+		// pass control to Nadybot class
 		$chatBot->run();
 	}
 
@@ -107,12 +107,12 @@ class BotRunner {
 	 * @return string
 	 */
 	private function getInitialInfoMessage() {
-		return "**************************************************\n".
-			"Budabot {$this->version}\n".
+		return "****************************************************\n".
+			"Nadybot {$this->version}\n".
 			"\n".
-			"Project Site:     https://github.com/Nadyita/Budabot\n".
-			"In-Game Contact:  Nadychat\n".
-			"**************************************************\n".
+			"Project Site:     https://github.com/Nadybot/Nadybot\n".
+			"In-Game Contact:  Nadyita\n".
+			"****************************************************\n".
 			"\n";
 	}
 
@@ -237,7 +237,7 @@ class BotRunner {
 			return;
 		}
 		global $vars;
-		system("title {$vars['name']} - Budabot");
+		system("title {$vars['name']} - Nadybot");
 	}
 
 	/**

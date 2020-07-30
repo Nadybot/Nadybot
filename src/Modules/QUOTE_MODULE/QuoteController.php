@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\QUOTE_MODULE;
+namespace Nadybot\Modules\QUOTE_MODULE;
 
 /**
  * @author Lucier (RK1)
@@ -25,31 +25,31 @@ class QuoteController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
@@ -210,7 +210,7 @@ class QuoteController {
 
 		if ($id == null) {
 			$id = rand(1, $count);
-			if ($this->db->getType() === \Budabot\Core\DB::SQLITE) {
+			if ($this->db->getType() === \Nadybot\Core\DB::SQLITE) {
 				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RANDOM() LIMIT 1");
 			} else {
 				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RAND() LIMIT 1");

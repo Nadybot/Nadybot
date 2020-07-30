@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\TRACKER_MODULE;
+namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -26,43 +26,43 @@ class TrackerController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;

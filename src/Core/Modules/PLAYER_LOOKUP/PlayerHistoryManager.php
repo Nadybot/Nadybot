@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\PLAYER_LOOKUP;
+namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use stdClass;
 
@@ -10,13 +10,13 @@ use stdClass;
 class PlayerHistoryManager {
 
 	/**
-	 * @var \Budabot\Core\CacheManager $cacheManager
+	 * @var \Nadybot\Core\CacheManager $cacheManager
 	 * @Inject
 	 */
 	public $cacheManager;
 	
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;

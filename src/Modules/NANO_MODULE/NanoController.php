@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\NANO_MODULE;
+namespace Nadybot\Modules\NANO_MODULE;
 
 /**
  * @author Nadyita (RK5)
@@ -47,25 +47,25 @@ class NanoController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
@@ -178,7 +178,7 @@ class NanoController {
 	/**
 	 * List all professions for which nanolines exist
 	 *
-	 * @param \Budabot\Core\CommandReply $sendto Where to send the reply to
+	 * @param \Nadybot\Core\CommandReply $sendto Where to send the reply to
 	 * @param bool $froobObly Is set, only show professions a froob can play
 	 * @return void
 	 */
@@ -249,7 +249,7 @@ class NanoController {
 	 * @param string $nanoline   The full name of the nanoline to show
 	 * @param string $prof       If set, only show nanos that profession can use
 	 * @param bool   $froobOnly  If true, only show nanos a froob can use
-	 * @param \Budabot\Core\CommandReply $sendto Object to send the reply to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to send the reply to
 	 * @return void
 	 */
 	private function nanolinesShow($nanoline, $prof, $froobOnly, $sendto) {
@@ -319,7 +319,7 @@ class NanoController {
 	 *
 	 * @param string $profession The full name of the profession
 	 * @param bool   $froobOnly  If true, only show nanolines containing nanos a froob can use
-	 * @param \Budabot\Core\CommandReply $sendto Object to send the reply to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to send the reply to
 	 * @return void
 	 */
 	private function nanolinesList($profession, $froobOnly, $sendto) {

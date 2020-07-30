@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\SKILLS_MODULE;
+namespace Nadybot\Modules\SKILLS_MODULE;
 
 use DOMDocument;
 
@@ -86,37 +86,37 @@ class SkillsController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Modules\ITEMS_MODULE\ItemsController $itemsController
+	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
 	 * @Inject
 	 */
 	public $itemsController;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;

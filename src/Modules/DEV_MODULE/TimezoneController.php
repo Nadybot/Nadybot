@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\DEV_MODULE;
+namespace Nadybot\Modules\DEV_MODULE;
 
-use Budabot\Core\AutoInject;
+use Nadybot\Core\AutoInject;
 use \DateTimeZone;
 
 /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\PREFERENCES;
+namespace Nadybot\Core\Modules\PREFERENCES;
 
 /**
  * @author Tyrence (RK2)
@@ -15,7 +15,7 @@ class Preferences {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

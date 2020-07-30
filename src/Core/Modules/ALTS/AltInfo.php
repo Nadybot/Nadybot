@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\ALTS;
+namespace Nadybot\Core\Modules\ALTS;
 
-use Budabot\Core\Registry;
+use Nadybot\Core\Registry;
 
 class AltInfo {
 	public $main; // The main for this character
@@ -38,17 +38,17 @@ class AltInfo {
 	}
 
 	public function getAltsBlob($showValidateLinks=false, $firstPageOnly=false) {
-		/** @var \Budabot\Core\DB */
+		/** @var \Nadybot\Core\DB */
 		$db = Registry::getInstance('db');
-		/** @var \Budabot\Core\SettingManager */
+		/** @var \Nadybot\Core\SettingManager */
 		$settingManager = Registry::getInstance('settingManager');
-		/** @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
+		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
 		$playerManager = Registry::getInstance('playerManager');
-		/** @var \Budabot\Core\BuddylistManager */
+		/** @var \Nadybot\Core\BuddylistManager */
 		$buddylistManager = Registry::getInstance('buddylistManager');
-		/** @var \Budabot\Core\Text */
+		/** @var \Nadybot\Core\Text */
 		$text = Registry::getInstance('text');
-		/** @var \Budabot\Core\Util */
+		/** @var \Nadybot\Core\Util */
 		$util = Registry::getInstance('util');
 
 		if (count($this->alts) == 0) {

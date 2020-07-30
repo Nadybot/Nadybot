@@ -31,7 +31,7 @@
 		<layout class="LoggerLayoutPattern">
 			<param name="ConversionPattern" value="%date{Y-m-d H:i:s} %-5level %message%newline" />
 		</layout>
-		<param name="file" value="./logs/budabot_%s.log" />
+		<param name="file" value="./logs/nadybot_%s.log" />
 		<param name="datePattern" value="Y-m" />
 	</appender>
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace Budabot\Modules\WHOIS_MODULE;
+namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Budabot\Core\Event;
-use Budabot\Core\DB;
+use Nadybot\Core\Event;
+use Nadybot\Core\DB;
 
 /**
  * @author Tyrence (RK2)
@@ -33,49 +33,49 @@ class WhoisController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;

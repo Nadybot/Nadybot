@@ -1,6 +1,6 @@
-# Budabot #
+# Nadybot #
 
-Budabot is a next-generation chatbot for Anarchy Online.
+Nadybot is the next-generation chatbot for Anarchy Online.
 
 ## Support & Bug Reports ##
 
@@ -8,27 +8,32 @@ For all support questions and bug reports please contact me in-game (Nadychat) o
 
 ## Installation ##
 
-There are three ways that you can obtain Budabot: Release Archives (recommended for most users), Latest Development, or Cloning the Repository (recommended for developers).
+There are three ways that you can obtain Nadybot:
+* Release Archives (recommended for most users)
+* Latest Development
+* Cloning the Repository (recommended for developers).
 
 ### Release Archives ###
 
 You can download the latest stable version from link below. If you want the most stable version, choose the latest GA release.  If you want to test some of the newest features, choose an RC release.
 
-<https://github.com/Nadyita/Budabot/releases>
+<https://github.com/Nadybot/Nadybot/releases>
 
 ### Latest Development ###
 
-You can download the very latest version from the link below.  Note that this version is a development version, may not have been tested thoroughly, and may contain bugs.
+You can download the very latest unstable or stable version from the link below. Note that this version is a development version, may not have been tested thoroughly, and may contain bugs.
 
-<https://github.com/Nadyita/Budabot/archive/master.zip>
+* <https://github.com/Nadybot/Nadybot/archive/unstable.zip>
+* <https://github.com/Nadybot/Nadybot/archive/stable.zip>
 
 ### Cloning The Repository ###
 
-Alternatively you can clone the Budabot git repository. The advantage to doing this is that as new changes are committed you can simply do `git pull` to pull those changes into your copy. Note that this version is a development version, may not have been tested thoroughly, and may contain bugs. If you are planning on developing on Budabot, we recommend that you use this method.
+Alternatively you can clone the Nadybot git repository. The advantage to doing this is that as new changes are committed you can simply do `git pull` to pull those changes into your copy. Note that this version is a development version, may not have been tested thoroughly, and may contain bugs. If you are planning on developing on Nadybot, we recommend that you use this method.
+Pay attention that there is no "master" branch, but "stable" and "unstable"
 
-<https://github.com/Nadyita/Budabot.git>
+<https://github.com/Nadybot/Nadybot.git>
 
-## Running Budabot ##
+## Running Nadybot ##
 
 ### Regular setup ###
 
@@ -43,12 +48,12 @@ To start the bot, run the ```chatbot.bat``` file (on linux run the ```chatbot.sh
 
 ### With Docker ###
 
-You can either use the already pre-made Docker images that I provide at <https://quay.io/repository/nadyita/budabot> or you can build it yourself. To use the pre-made images, address them as `quay.io/nadyita/budabot`
+You can either use the already pre-made Docker images that I provide at <https://quay.io/repository/nadyita/nadybot> or you can build it yourself. To use the pre-made images, address them as `quay.io/nadyita/nadybot`
 
 In order to build the Docker image, issue
 
 ```shell
-docker build -t budabot .
+docker build -t nadybot .
 ```
 
 Either way, you can then run the bot in test-mode like this:
@@ -64,7 +69,7 @@ docker run \
     -e CONFIG_DB_TYPE=sqlite \
     -e CONFIG_DB_NAME=testdb \
     -e CONFIG_DB_HOST=/tmp \
-    quay.io/nadyita/budabot
+    quay.io/nadyita/nadybot
 ```
 
 The database in this approach will be fresh on every start and you will expose your bot's password in the process list. Only use this for testing!
@@ -87,7 +92,7 @@ ExecStart=/usr/bin/docker run \
     --name "%n" \
     --env-file /etc/sysconfig/mycoolbot \
     --link mariadb.service:mariadb \
-    quay.io/nadyita/budabot
+    quay.io/nadyita/nadybot
 ExecStop=-/usr/bin/docker stop "%n"
 ExecReload=/usr/bin/docker stop "%n"
 Restart=always
@@ -120,7 +125,7 @@ This prevents passwords from showing up anywhere in the process list, but make s
 
 ### Developing with Containers ###
 
-Developing the bot using Containers (Docker, Podman, etc.) is very easy. You basically run the container and mount your local checkout over `/budabot`.
+Developing the bot using Containers (Docker, Podman, etc.) is very easy. You basically run the container and mount your local checkout over `/nadybot`.
 
 You don't need php or composer installed for this setup since the docker image will already contain everything you need to get started.
 
@@ -130,7 +135,7 @@ You don't need php or composer installed for this setup since the docker image w
 docker run \
     --rm \
     -it \
-    -v "$(pwd)":/budabot \
+    -v "$(pwd)":/nadybot \
     -e CONFIG_LOGIN=myaccount \
     -e CONFIG_PASSWORD=mypassword \
     -e CONFIG_BOTNAME=Mybot \
@@ -138,7 +143,7 @@ docker run \
     -e CONFIG_DB_TYPE=sqlite \
     -e CONFIG_DB_NAME=testdb \
     -e CONFIG_DB_HOST=/tmp \
-    quay.io/nadyita/budabot
+    quay.io/nadyita/nadybot
 ```
 
 #### Rootless Podman #####
@@ -147,7 +152,7 @@ docker run \
 podman run \
     --user root \
     --security-opt label=disable \
-    -v "$(pwd)":/budabot \
+    -v "$(pwd)":/nadybot \
     --rm \
     -it \
     -e CONFIG_LOGIN=myaccount \
@@ -157,7 +162,7 @@ podman run \
     -e CONFIG_DB_TYPE=sqlite \
     -e CONFIG_DB_NAME=testdb \
     -e CONFIG_DB_HOST=/tmp \
-    quay.io/nadyita/budabot
+    quay.io/nadyita/nadybot
 ```
 
 ## Configuration ##
@@ -278,14 +283,14 @@ rabbitmq@host:~$ rabbitmqctl add_user alice
 Adding user "alice" ...
 Password: ******
 
-rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay alice budabot budabot budabot
+rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay alice nadybot nadybot nadybot
 Setting permissions for user "alice" in vhost "/my_relay" ...
 
 rabbitmq@host:~$ rabbitmqctl add_user bobby
 Adding user "alice" ...
 Password: ******
 
-rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay bob budabot budabot budabot
+rabbitmq@host:~$ rabbitmqctl set_permissions --vhost /my_relay bob nadybot nadybot nadybot
 Setting permissions for user "bob" in vhost "/my_relay" ...
 ```
 
@@ -306,7 +311,7 @@ Restart the bots and check the logs if the connection is established. Now it's t
 ```text
 !config mod RELAY_MODULE enable all
 !settings save relaytype 3
-!settings save relaybot budabot
+!settings save relaybot nadybot
 !settings save relay_guild_abbreviation 1st
 ```
 
@@ -315,7 +320,7 @@ Restart the bots and check the logs if the connection is established. Now it's t
 ```text
 !config mod RELAY_MODULE enable all
 !settings save relaytype 3
-!settings save relaybot budabot
+!settings save relaybot nadybot
 !settings save relay_guild_abbreviation read
 ```
 

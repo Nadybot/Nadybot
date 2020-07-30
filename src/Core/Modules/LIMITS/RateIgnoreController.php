@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\LIMITS;
+namespace Nadybot\Core\Modules\LIMITS;
 
 /**
  * @author Tyrence (RK2)
@@ -24,25 +24,25 @@ class RateIgnoreController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;

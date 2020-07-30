@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\ADMIN;
+namespace Nadybot\Core\Modules\ADMIN;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @Instance
@@ -40,55 +40,55 @@ class AdminController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\AdminManager $adminManager
+	 * @var \Nadybot\Core\AdminManager $adminManager
 	 * @Inject
 	 */
 	public $adminManager;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 	
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\WHEREIS_MODULE;
+namespace Nadybot\Modules\WHEREIS_MODULE;
 
 /**
  * @author Jaqueme
@@ -25,19 +25,19 @@ class WhereisController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

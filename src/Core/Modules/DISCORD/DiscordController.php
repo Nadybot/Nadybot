@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\DISCORD;
+namespace Nadybot\Core\Modules\DISCORD;
 
 use StdClass;
 use Exception;
@@ -26,26 +26,26 @@ class DiscordController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 
 	public $http;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -152,7 +152,7 @@ class DiscordController {
 	}
 
 	/**
-	 * Reformat a Budabot message for Discord
+	 * Reformat a Nadybot message for Discord
 	 *
 	 * @param string $text The message to reformat
 	 * @return string

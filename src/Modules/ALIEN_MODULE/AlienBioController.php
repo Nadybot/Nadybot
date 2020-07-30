@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\ALIEN_MODULE;
+namespace Nadybot\Modules\ALIEN_MODULE;
 
 /**
  * @author Blackruby (RK2)
@@ -35,25 +35,25 @@ class AlienBioController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Modules\ITEMS_MODULE\ItemsController $itemsController
+	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
 	 * @Inject
 	 */
 	public $itemsController;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

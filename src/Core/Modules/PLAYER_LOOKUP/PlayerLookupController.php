@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\PLAYER_LOOKUP;
+namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Budabot\Core\DB;
+use Nadybot\Core\DB;
 
 /**
  * @author Tyrence (RK2)
@@ -18,7 +18,7 @@ class PlayerLookupController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

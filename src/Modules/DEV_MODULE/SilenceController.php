@@ -1,9 +1,9 @@
 <?php
 
-namespace Budabot\Modules\DEV_MODULE;
+namespace Nadybot\Modules\DEV_MODULE;
 
-use Budabot\Core\Event;
-use Budabot\Core\AutoInject;
+use Nadybot\Core\Event;
+use Nadybot\Core\AutoInject;
 
 /**
  * @author Tyrence (RK2)

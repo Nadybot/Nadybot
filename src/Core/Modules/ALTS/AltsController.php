@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\ALTS;
+namespace Nadybot\Core\Modules\ALTS;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -37,25 +37,25 @@ class AltsController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

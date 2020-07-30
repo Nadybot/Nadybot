@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\GUIDE_MODULE;
+namespace Nadybot\Modules\GUIDE_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -26,19 +26,19 @@ class GuideController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;

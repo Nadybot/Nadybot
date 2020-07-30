@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\LEVEL_MODULE;
+namespace Nadybot\Modules\LEVEL_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -40,13 +40,13 @@ class LevelController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\TEAMSPEAK3_MODULE;
+namespace Nadybot\Modules\TEAMSPEAK3_MODULE;
 
 use Exception;
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace Budabot\Core\Modules\SYSTEM;
+namespace Nadybot\Core\Modules\SYSTEM;
 
-use Budabot\Core\Event;
-use Budabot\Core\PrivateMessageCommandReply;
+use Nadybot\Core\Event;
+use Nadybot\Core\PrivateMessageCommandReply;
 
 /**
  * @author Sebuda (RK2)
@@ -66,85 +66,85 @@ class SystemController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\AdminManager $adminManager
+	 * @var \Nadybot\Core\AdminManager $adminManager
 	 * @Inject
 	 */
 	public $adminManager;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 	
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
 	 * @Inject
 	 */
 	public $subcommandManager;
 
 	/**
-	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @var \Nadybot\Core\HelpManager $helpManager
 	 * @Inject
 	 */
 	public $helpManager;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -313,7 +313,7 @@ class SystemController {
 		$blob .= "SuperAdmin: <highlight>'{$this->chatBot->vars['SuperAdmin']}'<end>\n";
 		$blob .= "Guild: <highlight>'<myguild>' (" . $this->chatBot->vars['my_guild_id'] . ")<end>\n\n";
 
-		$blob .= "Budabot: <highlight>$version<end>\n";
+		$blob .= "Nadybot: <highlight>$version<end>\n";
 		$blob .= "PHP: <highlight>" . phpversion() . "<end>\n";
 		$blob .= "OS: <highlight>" . php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m') . "<end>\n";
 		$blob .= "Database: <highlight>" . $this->db->getType() . "<end>\n\n";
@@ -431,12 +431,12 @@ class SystemController {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] == 4 && $this->buddylistManager->isOnline($name) == 1) {
-				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help, see the Webpage at <highlight>https://github.com/Nadyita/Budabot<end>", $name);
+				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help, see the Webpage at <highlight>https://github.com/Nadybot/Nadybot<end>", $name);
 			}
 		}
 		
 		global $version;
-		$msg = "Budabot <highlight>$version<end> now <green>online<end>.";
+		$msg = "Nadybot <highlight>$version<end> now <green>online<end>.";
 
 		// send a message to guild channel
 		$this->chatBot->sendGuild($msg, true);

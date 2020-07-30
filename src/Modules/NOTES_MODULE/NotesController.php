@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\NOTES_MODULE;
+namespace Nadybot\Modules\NOTES_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,19 +24,19 @@ class NotesController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;

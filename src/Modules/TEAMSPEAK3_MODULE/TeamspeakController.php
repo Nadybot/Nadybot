@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\TEAMSPEAK3_MODULE;
+namespace Nadybot\Modules\TEAMSPEAK3_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 use Exception;
 
 /**
@@ -27,19 +27,19 @@ class TeamspeakController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

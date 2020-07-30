@@ -1,12 +1,12 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 class PrivateMessageCommandReply implements CommandReply {
 	private $chatBot;
 	private $sender;
 
-	public function __construct(Budabot $chatBot, $sender) {
+	public function __construct(Nadybot $chatBot, $sender) {
 		$this->chatBot = $chatBot;
 		$this->sender = $sender;
 	}

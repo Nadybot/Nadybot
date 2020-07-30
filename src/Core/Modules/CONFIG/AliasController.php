@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\CONFIG;
+namespace Nadybot\Core\Modules\CONFIG;
 
 use stdClass;
 
@@ -19,19 +19,19 @@ use stdClass;
 class AliasController {
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

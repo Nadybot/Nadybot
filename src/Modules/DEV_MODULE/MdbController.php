@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\DEV_MODULE;
+namespace Nadybot\Modules\DEV_MODULE;
 
 /**
  * @author Tyrence
@@ -26,19 +26,19 @@ class MdbController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

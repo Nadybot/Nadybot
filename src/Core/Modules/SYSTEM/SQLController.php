@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\SYSTEM;
+namespace Nadybot\Core\Modules\SYSTEM;
 
-use Budabot\Core\SQLException;
+use Nadybot\Core\SQLException;
 
 /**
  * @author Tyrence (RK2)
@@ -36,25 +36,25 @@ class SQLController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

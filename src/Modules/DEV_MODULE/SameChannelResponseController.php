@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\DEV_MODULE;
+namespace Nadybot\Modules\DEV_MODULE;
 
-use Budabot\Core\CommandReply;
+use Nadybot\Core\CommandReply;
 
 /**
  * @Instance
@@ -24,13 +24,13 @@ class SameChannelResponseController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\LIMITS;
+namespace Nadybot\Core\Modules\LIMITS;
 
 /**
  * @author Tyrence (RK2)
@@ -15,49 +15,49 @@ class LimitsController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
 	 * @Inject
 	 */
 	public $playerHistoryManager;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
+	 * @var \Nadybot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
 	 * @Inject
 	 */
 	public $rateIgnoreController;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

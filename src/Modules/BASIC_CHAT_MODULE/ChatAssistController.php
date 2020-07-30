@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\BASIC_CHAT_MODULE;
+namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 /**
  * @Instance
@@ -29,19 +29,19 @@ class ChatAssistController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;

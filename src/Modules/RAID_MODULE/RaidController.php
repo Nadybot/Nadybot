@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\RAID_MODULE;
+namespace Nadybot\Modules\RAID_MODULE;
 
 /**
  * @author Derroylo (RK2)
@@ -58,43 +58,43 @@ class RaidController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager
 	 * @Inject
 	 */
 	public $playerManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;
@@ -173,7 +173,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -191,7 +191,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -220,7 +220,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -290,7 +290,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -314,7 +314,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -411,7 +411,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -452,7 +452,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -497,7 +497,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -590,7 +590,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */
@@ -645,7 +645,7 @@ class RaidController {
 	 * @param string $message The raw message as received by the bot
 	 * @param string $channel Where the message was received (org, priv, tell)
 	 * @param string $sender Name of the player sending the command
-	 * @param \Budabot\Core\CommandReply $sendto Object to use for replying to
+	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
 	 * @param string[] $args The parsed arguments from the Matches regexp
 	 * @return void
 	 */

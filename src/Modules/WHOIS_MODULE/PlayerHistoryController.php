@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\WHOIS_MODULE;
+namespace Nadybot\Modules\WHOIS_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,19 +24,19 @@ class PlayerHistoryController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
 	 * @Inject
 	 */
 	public $playerHistoryManager;

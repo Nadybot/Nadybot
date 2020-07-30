@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\BUDDYLIST;
+namespace Nadybot\Core\Modules\BUDDYLIST;
 
 /**
  * @author Tyrence (RK2)
@@ -25,19 +25,19 @@ class BuddylistController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

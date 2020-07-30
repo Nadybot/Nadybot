@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Exception;
 
@@ -12,7 +12,7 @@ class TextSettingHandler extends SettingHandler {
 	/**
 	 * Construct a new handler out of a given database row
 	 *
-	 * @param \Budabot\Core\DBRow $row The database row
+	 * @param \Nadybot\Core\DBRow $row The database row
 	 * @return self
 	 */
 	public function __construct(DBRow $row) {

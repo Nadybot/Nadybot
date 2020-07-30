@@ -1,12 +1,12 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * The SocketNotifier class provides a way to be notified when some
  * activity happens in a socket.
  *
- * You can add instance of SocketNotifier to Budabot's event loop with method
+ * You can add instance of SocketNotifier to Nadybot's event loop with method
  * SocketManager::addSocketNotifier() and remove it with
  * SocketManager::removeSocketNotifier().
  *

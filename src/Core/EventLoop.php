@@ -1,35 +1,35 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 class EventLoop {
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;
 
 	/**
-	 * @var \Budabot\Core\SocketManager $socketManager
+	 * @var \Nadybot\Core\SocketManager $socketManager
 	 * @Inject
 	 */
 	public $socketManager;
 
 	/**
-	 * @var \Budabot\Core\AMQP
+	 * @var \Nadybot\Core\AMQP
 	 * @Inject
 	 */
 	public $amqp;
 
 	/**
-	 * @var \Budabot\Core\Timer $timer
+	 * @var \Nadybot\Core\Timer $timer
 	 * @Inject
 	 */
 	public $timer;

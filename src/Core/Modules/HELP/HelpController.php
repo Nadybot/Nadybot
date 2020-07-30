@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\HELP;
+namespace Nadybot\Core\Modules\HELP;
 
 /**
  * @author Tyrence (RK2)
@@ -25,25 +25,25 @@ class HelpController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @var \Nadybot\Core\HelpManager $helpManager
 	 * @Inject
 	 */
 	public $helpManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
@@ -53,7 +53,7 @@ class HelpController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		$this->helpManager->register($this->moduleName, "about", "about.txt", "all", "Info about the development of Budabot");
+		$this->helpManager->register($this->moduleName, "about", "about.txt", "all", "Info about the development of Nadybot");
 		
 		$this->commandAlias->register($this->moduleName, "help about", "about");
 	}
@@ -62,7 +62,7 @@ class HelpController {
 		global $version;
 		$data = file_get_contents(__DIR__ . "/about.txt");
 		$data = str_replace('<version>', $version, $data);
-		return $this->text->makeBlob("About Budabot $version", $data);
+		return $this->text->makeBlob("About Nadybot $version", $data);
 	}
 	
 	/**

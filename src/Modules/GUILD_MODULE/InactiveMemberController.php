@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\GUILD_MODULE;
+namespace Nadybot\Modules\GUILD_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -25,19 +25,19 @@ class InactiveMemberController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\ALIEN_MODULE;
+namespace Nadybot\Modules\ALIEN_MODULE;
 
 /**
  * @author Blackruby (RK2)
@@ -22,13 +22,13 @@ namespace Budabot\Modules\ALIEN_MODULE;
 class AlienArmorController {
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Modules\ITEMS_MODULE\ItemsController $itemsController
+	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
 	 * @Inject
 	 */
 	public $itemsController;

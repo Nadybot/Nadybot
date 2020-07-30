@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\ORGLIST_MODULE;
+namespace Nadybot\Modules\ORGLIST_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,25 +24,25 @@ class OrgMembersController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
 	 * @Inject
 	 */
 	public $guildManager;

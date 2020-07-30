@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core\Modules\SYSTEM;
+namespace Nadybot\Core\Modules\SYSTEM;
 
-use Budabot\Core\AutoInject;
+use Nadybot\Core\AutoInject;
 
 /**
  * @author Tyrence (RK2)

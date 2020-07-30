@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use stdClass;
 use Addendum\ReflectionAnnotatedMethod;
@@ -12,73 +12,73 @@ use Exception;
 class CommandManager {
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @var \Nadybot\Core\HelpManager $helpManager
 	 * @Inject
 	 */
 	public $helpManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
 	 * @Inject
 	 */
 	public $subcommandManager;
 
 	/**
-	 * @var \Budabot\Core\Modules\CONFIG\CommandSearchController $commandSearchController
+	 * @var \Nadybot\Core\Modules\CONFIG\CommandSearchController $commandSearchController
 	 * @Inject
 	 */
 	public $commandSearchController;
 
 	/**
-	 * @var \Budabot\Core\Modules\USAGE\UsageController $usageController
+	 * @var \Nadybot\Core\Modules\USAGE\UsageController $usageController
 	 * @Inject
 	 */
 	public $usageController;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -282,7 +282,7 @@ class CommandManager {
 	 * @param string $command The command to lookup
 	 * @param string $channel The name of the channel where this command should be searched for:
 	 *                        "msg", "priv" or "guild"
-	 * @return \Budabot\Core\DBRow[]
+	 * @return \Nadybot\Core\DBRow[]
 	 */
 	public function get($command, $channel=null) {
 		$command = strtolower($command);
@@ -298,7 +298,7 @@ class CommandManager {
 	/**
 	 * Get the name of a similar command
 	 *
-	 * @param \Budabot\Core\DBRow $sc The command from which to get the command
+	 * @param \Nadybot\Core\DBRow $sc The command from which to get the command
 	 * @return string The command name
 	 */
 	private function mapToCmd($sc) {
@@ -312,11 +312,11 @@ class CommandManager {
 	 *                                            "msg", "priv" or "guild"
 	 * @param string                     $message The exact message that was received
 	 * @param string                     $sender  name of the person who sent the  command
-	 * @param \Budabot\Core\CommandReply $sendto  Where to send replies to
+	 * @param \Nadybot\Core\CommandReply $sendto  Where to send replies to
 	 * @return void
 	 *
-	 * @throws \Budabot\Core\StopExecutionException
-	 * @throws \Budabot\Core\SQLException For SQL errors during command execution
+	 * @throws \Nadybot\Core\StopExecutionException
+	 * @throws \Nadybot\Core\SQLException For SQL errors during command execution
 	 * @throws \Exception For a generic exception during command execution
 	 */
 	public function process($channel, $message, $sender, CommandReply $sendto) {
@@ -380,7 +380,7 @@ class CommandManager {
 	 *                                                   "msg", "priv" or "guild"
 	 * @param string                     $message        The exact message that was received
 	 * @param string                     $sender         name of the person who sent the  command
-	 * @param \Budabot\Core\CommandReply $sendto         Where to send replies to
+	 * @param \Nadybot\Core\CommandReply $sendto         Where to send replies to
 	 * @param string                     $cmd            The name of the command that was requested
 	 * @param \StdClass                  $commandHandler The comamnd handler for this command
 	 * @return bool true if allowed to execute, otherwise false
@@ -415,7 +415,7 @@ class CommandManager {
 	 * @param string                     $channel        The name of the channel where this command was received:
 	 *                                                   "msg", "priv" or "guild"
 	 * @param string                     $sender         name of the person who sent the command
-	 * @param \Budabot\Core\CommandReply $sendto         Where to send replies to
+	 * @param \Nadybot\Core\CommandReply $sendto         Where to send replies to
 	 * @return string|null "name.method" in case of success, otherwise null
 	 */
 	public function callCommandHandler($commandHandler, $message, $channel, $sender, CommandReply $sendto) {

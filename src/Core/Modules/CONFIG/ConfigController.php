@@ -1,9 +1,9 @@
 <?php
 
-namespace Budabot\Core\Modules\CONFIG;
+namespace Nadybot\Core\Modules\CONFIG;
 
 use ReflectionClass;
-use Budabot\Core\Registry;
+use Nadybot\Core\Registry;
 
 /**
  * @Instance
@@ -17,61 +17,61 @@ class ConfigController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\CommandManager $commandManager
+	 * @var \Nadybot\Core\CommandManager $commandManager
 	 * @Inject
 	 */
 	public $commandManager;
 
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;
 
 	/**
-	 * @var \Budabot\Core\SubcommandManager $subcommandManager
+	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
 	 * @Inject
 	 */
 	public $subcommandManager;
 
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;
 
 	/**
-	 * @var \Budabot\Core\HelpManager $helpManager
+	 * @var \Nadybot\Core\HelpManager $helpManager
 	 * @Inject
 	 */
 	public $helpManager;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

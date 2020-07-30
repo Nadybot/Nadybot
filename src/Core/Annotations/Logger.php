@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Annotations;
+namespace Nadybot\Core\Annotations;
 
 use Addendum\Annotation;
 

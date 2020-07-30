@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Patcher;
+namespace Nadybot\Patcher;
 
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
@@ -10,7 +10,7 @@ use Composer\Package\Package;
  * composer packages.
  *
  * - For Addendum, we need to patch it to support multi-line annotations
- * - PHP Codesniffer gets a default config to use the Budabot styleguide
+ * - PHP Codesniffer gets a default config to use the Nadybot styleguide
  */
 class Patcher {
 	/**
@@ -75,7 +75,7 @@ EOD;
 	}
 
 	/**
-	 * Patch PHP Codesniffer to use Budabot style by default
+	 * Patch PHP Codesniffer to use Nadybot style by default
 	 *
 	 * @param string $vendorDir The installation basepath
 	 * @param \Composer\Package\Package $package The package being installed
@@ -84,7 +84,7 @@ EOD;
 	public static function patchCodesniffer($vendorDir, Package $package) {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
 		$oldContent = file_get_contents($file);
-		$newContent = "__DIR__.'/../../../style/Budabot/ruleset.xml'";
+		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";
 		$data = preg_replace("/'PSR2'/", $newContent, $oldContent);
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';

@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\RAID_MODULE;
+namespace Nadybot\Modules\RAID_MODULE;
 
 /**
  * @author Marinerecon (RK2)
@@ -230,43 +230,43 @@ class LootListsController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\SettingManager
+	 * @var \Nadybot\Core\SettingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Modules\RAID_MODULE\RaidController $raidController
+	 * @var \Nadybot\Modules\RAID_MODULE\RaidController $raidController
 	 * @Inject
 	 */
 	public $raidController;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;

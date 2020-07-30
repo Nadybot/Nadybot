@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
-use Budabot\Core\Registry;
+use Nadybot\Core\Registry;
 use Logger;
 
 /**

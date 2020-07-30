@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\FUN_MODULE;
+namespace Nadybot\Modules\FUN_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -67,19 +67,19 @@ class FunController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;

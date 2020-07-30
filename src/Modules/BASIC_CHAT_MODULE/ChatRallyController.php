@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\BASIC_CHAT_MODULE;
+namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @Instance
@@ -23,31 +23,31 @@ use Budabot\Core\Event;
  */
 class ChatRallyController {
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Modules\HELPBOT_MODULE\PlayfieldController $playfieldController
+	 * @var \Nadybot\Modules\HELPBOT_MODULE\PlayfieldController $playfieldController
 	 * @Inject
 	 */
 	public $playfieldController;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
+	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
 	 * @Inject
 	 */
 	public $chatLeaderController;

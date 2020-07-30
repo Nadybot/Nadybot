@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
@@ -10,7 +10,7 @@ use PhpAmqpLib\Exception\AMQPIOException;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 use ErrorException;
 use Exception;
 
@@ -25,19 +25,19 @@ use Exception;
  */
 class AMQP {
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
 
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;

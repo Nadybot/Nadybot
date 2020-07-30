@@ -1,10 +1,10 @@
 <?php
 
-namespace Budabot\Modules\TIMERS_MODULE;
+namespace Nadybot\Modules\TIMERS_MODULE;
 
 use stdClass;
 use Exception;
-use Budabot\Core\Registry;
+use Nadybot\Core\Registry;
 
 /**
  * @author Tyrence (RK2)
@@ -35,55 +35,55 @@ class TimerController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 
 	/**
-	 * @var \Budabot\Core\Modules\DISCORD\DiscordController $discordController
+	 * @var \Nadybot\Core\Modules\DISCORD\DiscordController $discordController
 	 * @Inject
 	 */
 	public $discordController;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

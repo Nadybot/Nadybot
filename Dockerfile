@@ -1,9 +1,9 @@
 FROM alpine:3.12
 
 LABEL maintainer="nadyita@hodorraid.org" \
-      description="self-sustaining docker image to run latest Budabot-Nady"
+      description="self-sustaining docker image to run latest Nadybot"
 
-ENTRYPOINT ["/budabot/docker-entrypoint.sh"]
+ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
 
 RUN apk --no-cache add \
     php7-cli \
@@ -24,21 +24,21 @@ RUN apk --no-cache add \
     php7-dom \
     php7-pcntl \
     && \
-    adduser -h /budabot -s /bin/false -D -H budabot
+    adduser -h /nadybot -s /bin/false -D -H nadybot
 
-COPY --chown=budabot:budabot . /budabot
+COPY --chown=nadybot:nadybot . /nadybot
 
 RUN apk --no-cache add composer && \
-    cd /budabot && \
+    cd /nadybot && \
     composer install --no-dev --no-suggest && \
     rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
     composer dumpautoload --no-dev --optimize && \
     composer clear-cache && \
-    chown -R budabot:budabot vendor && \
+    chown -R nadybot:nadybot vendor && \
     apk del --no-cache composer && \
     sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml
 
 
-USER budabot
+USER nadybot
 
-WORKDIR /budabot
+WORKDIR /nadybot

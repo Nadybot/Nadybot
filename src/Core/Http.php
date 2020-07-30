@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * @Instance
@@ -8,7 +8,7 @@ namespace Budabot\Core;
 class Http {
 
 	/**
-	 * @var \Budabot\Core\Timer $timer
+	 * @var \Nadybot\Core\Timer $timer
 	 * @Inject
 	 */
 	public $timer;

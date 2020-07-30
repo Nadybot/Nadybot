@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\PRIVATE_CHANNEL_MODULE;
+namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -83,73 +83,73 @@ class PrivateChannelController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Modules\ALTS\AltsController $altsController
+	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
 	 * @Inject
 	 */
 	public $altsController;
 	
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 	
 	/**
-	 * @var \Budabot\Modules\ONLINE_MODULE\OnlineController $onlineController
+	 * @var \Nadybot\Modules\ONLINE_MODULE\OnlineController $onlineController
 	 * @Inject
 	 */
 	public $onlineController;
 	
 	/**
-	 * @var \Budabot\Modules\RELAY_MODULE\RelayController $relayController
+	 * @var \Nadybot\Modules\RELAY_MODULE\RelayController $relayController
 	 * @Inject
 	 */
 	public $relayController;
 	
 	/**
-	 * @var \Budabot\Core\Timer $timer
+	 * @var \Nadybot\Core\Timer $timer
 	 * @Inject
 	 */
 	public $timer;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;

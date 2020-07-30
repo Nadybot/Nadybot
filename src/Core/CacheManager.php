@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Exception;
 
@@ -11,19 +11,19 @@ use Exception;
 class CacheManager {
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
@@ -59,7 +59,7 @@ class CacheManager {
 	 *                                  function($data) { return !json_decode($data) !== null }
 	 * @param integer $maxCacheAge      Age of the cache entry in seconds after which the data will be considered outdated
 	 * @param boolean $forceUpdate      Set to true to ignore the existing cache and always update
-	 * @return \Budabot\Core\CacheResult
+	 * @return \Nadybot\Core\CacheResult
 	 */
 	public function lookup($url, $groupName, $filename, $isValidCallback, $maxCacheAge=86400, $forceUpdate=false) {
 		if (empty($groupName)) {

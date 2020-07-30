@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\ORGLIST_MODULE;
+namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 use stdClass;
 
 /**
@@ -28,49 +28,49 @@ class OrglistController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\BuddylistManager $buddylistManager
+	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
 	 * @Inject
 	 */
 	public $buddylistManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
 	 * @Inject
 	 */
 	public $guildManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;
 	
 	/**
-	 * @var \Budabot\Modules\ORGLIST_MODULE\FindOrgController $findOrgController
+	 * @var \Nadybot\Modules\ORGLIST_MODULE\FindOrgController $findOrgController
 	 * @Inject
 	 */
 	public $findOrgController;

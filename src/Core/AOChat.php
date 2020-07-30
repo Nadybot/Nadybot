@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -173,18 +173,18 @@ class AOChat {
 	/**
 	 * The chat queue
 	 *
-	 * @var \Budabot\Core\AOChatQueue $chatqueue
+	 * @var \Nadybot\Core\AOChatQueue $chatqueue
 	 */
 	public $chatqueue;
 
 	/**
 	 * The parser for the MMDB
 	 *
-	 * @var \Budabot\Core\MMDBParser $mmdbParser
+	 * @var \Nadybot\Core\MMDBParser $mmdbParser
 	 */
 	public $mmdbParser;
 
-	/** @var \Budabot\Core\LoggerWrapper $logger */
+	/** @var \Nadybot\Core\LoggerWrapper $logger */
 	public $logger;
 
 	/**
@@ -273,7 +273,7 @@ class AOChat {
 	 * Returns the packet if one arrived or null if none arrived in $time seconds.
 	 *
 	 * @param integer $time The  amount of seconds to wait for
-	 * @return \Budabot\Core\AOChatPacket|false|null The recived package or null if none arrived or false if we couldn't parse it
+	 * @return \Nadybot\Core\AOChatPacket|false|null The recived package or null if none arrived or false if we couldn't parse it
 	 */
 	public function waitForPacket($time=1) {
 		$this->iteration();
@@ -320,7 +320,7 @@ class AOChat {
 	/**
 	 * Read a packet from the socket
 	 *
-	 * @return \Budabot\Core\AOChatPacket|false false if we were unable to read the packet's length, otherwise the packet
+	 * @return \Nadybot\Core\AOChatPacket|false false if we were unable to read the packet's length, otherwise the packet
 	 */
 	public function getPacket() {
 		$head = $this->readData(4);
@@ -384,7 +384,7 @@ class AOChat {
 	/**
 	 * Send a packet
 	 *
-	 * @param \Budabot\Core\AOChatPacket $packet The packet to send
+	 * @param \Nadybot\Core\AOChatPacket $packet The packet to send
 	 * @return true
 	 */
 	public function sendPacket($packet) {
@@ -1217,7 +1217,7 @@ class AOChat {
 	 * ~: end of message
 	 *
 	 * @param string $msg The Ascii85 encoded message
-	 * @return \Budabot\Core\AOExtMsg|false False if $msg as empty
+	 * @return \Nadybot\Core\AOExtMsg|false False if $msg as empty
 	 */
 	public function readExtMsg($msg) {
 		if (empty($msg)) {

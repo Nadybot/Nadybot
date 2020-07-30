@@ -1,12 +1,12 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
 
 class ClassLoader {
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;

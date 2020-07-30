@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\GIT_MODULE;
+namespace Nadybot\Modules\GIT_MODULE;
 
-use Budabot\Core\AutoInject;
+use Nadybot\Core\AutoInject;
 
 /**
  * @author Tyrence (RK2)

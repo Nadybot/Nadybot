@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\LEVEL_MODULE;
+namespace Nadybot\Modules\LEVEL_MODULE;
 
 /**
  * @author Tyrence (RK2)
@@ -24,7 +24,7 @@ class AXPController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;

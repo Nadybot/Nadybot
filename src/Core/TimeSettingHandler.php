@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use Exception;
 
@@ -9,7 +9,7 @@ use Exception;
  */
 class TimeSettingHandler extends SettingHandler {
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
@@ -17,7 +17,7 @@ class TimeSettingHandler extends SettingHandler {
 	/**
 	 * Construct a new handler out of a given database row
 	 *
-	 * @param \Budabot\Core\DBRow $row The database row
+	 * @param \Nadybot\Core\DBRow $row The database row
 	 */
 	public function __construct(DBRow $row) {
 		parent::__construct($row);

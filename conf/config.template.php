@@ -1,25 +1,8 @@
 <?php
 
 /* ********************************************	*/
-/* Configuration file for Budabot.              */
+/* Configuration file for Nadybot.              */
 /* ********************************************	*/
-
-/*
- ** This file is part of Budabot.
- **
- ** Budabot is free software: you can redistribute it and/or modify
- ** it under the terms of the GNU General Public License as published by
- ** the Free Software Foundation, either version 3 of the License, or
- ** (at your option) any later version.
- **
- ** Budabot is distributed in the hope that it will be useful,
- ** but WITHOUT ANY WARRANTY; without even the implied warranty of
- ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- ** GNU General Public License for more details.
- **
- ** You should have received a copy of the GNU General Public License
- ** along with Budabot. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 // Account information.
 $vars['login']      = "";
@@ -35,7 +18,7 @@ $vars['SuperAdmin'] = "";
 
 // Database information.
 $vars['DB Type'] = "sqlite";		// What type of database should be used? ('sqlite' or 'mysql')
-$vars['DB Name'] = "budabot.db";	// Database name
+$vars['DB Name'] = "nadybot.db";	// Database name
 $vars['DB Host'] = "./data/";		// Hostname or file location
 $vars['DB username'] = "";			// MySQL username
 $vars['DB password'] = "";			// MySQL password
@@ -61,7 +44,7 @@ $vars['amqp_user'] = "";
 $vars['amqp_password'] = "";
 $vars['amqp_vhost'] = "/";
 
-// Define additional paths from where Budabot should load modules at startup
+// Define additional paths from where Nadybot should load modules at startup
 $vars['module_load_paths'] = array(
 	'./src/Modules', './extras'
 );

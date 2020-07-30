@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\WHOMPAH_MODULE;
+namespace Nadybot\Modules\WHOMPAH_MODULE;
 
 use stdClass;
 
@@ -26,19 +26,19 @@ class WhompahController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\CommandAlias $commandAlias
+	 * @var \Nadybot\Core\CommandAlias $commandAlias
 	 * @Inject
 	 */
 	public $commandAlias;

@@ -9,7 +9,7 @@
 !notes
 
 !links
-!links add budabot.com Budabot Website
+!links add github.com Github Website
 !links
 !links rem 0
 !links rem 1

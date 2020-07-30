@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\CONFIG;
+namespace Nadybot\Core\Modules\CONFIG;
 
 /**
  * @Instance
@@ -17,19 +17,19 @@ namespace Budabot\Core\Modules\CONFIG;
 class CommandlistController {
 
 	/**
-	 * @var \Budabot\Core\AccessManager $accessManager
+	 * @var \Nadybot\Core\AccessManager $accessManager
 	 * @Inject
 	 */
 	public $accessManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;

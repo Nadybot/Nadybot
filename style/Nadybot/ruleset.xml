@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Budabot" xsi:noNamespaceSchemaLocation="../../../phpcs.xsd">
-    <description>The Budabot coding standard.</description>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Nadybot" xsi:noNamespaceSchemaLocation="../../../phpcs.xsd">
+    <description>The Nadybot coding standard.</description>
     <arg name="tab-width" value="3"/>
 
     <!-- 2. General -->
@@ -79,7 +79,7 @@
 
     <!-- All PHP reserved keywords and types [1][2] MUST be in lower case.
     Any new types and keywords added to future PHP versions MUST be in lower case. -->
-    <rule ref="Budabot.PHP.LowerCaseKeyword"/>
+    <rule ref="Nadybot.PHP.LowerCaseKeyword"/>
     <rule ref="Generic.PHP.LowerCaseConstant"/>
     <rule ref="Generic.PHP.LowerCaseType"/>
 
@@ -215,7 +215,7 @@
 
     <!-- When making a method or function call, there MUST NOT be a space between the method or function name and the opening parenthesis, there MUST NOT be a space after the opening parenthesis, and there MUST NOT be a space before the closing parenthesis. In the argument list, there MUST NOT be a space before each comma, and there MUST be one space after each comma. -->
     <!-- Argument lists MAY be split across multiple lines, where each subsequent line is indented once. When doing so, the first item in the list MUST be on the next line, and there MUST be only one argument per line. A single argument being split across multiple lines (as might be the case with an anonymous function or array) does not constitute splitting the argument list itself. -->
-    <rule ref="Budabot.Functions.FunctionCallArgumentSpacing"/>
+    <rule ref="Nadybot.Functions.FunctionCallArgumentSpacing"/>
     <rule ref="PSR2.Methods.FunctionCallSignature">
         <properties>
             <property name="indent" type="integer" value="3"/>

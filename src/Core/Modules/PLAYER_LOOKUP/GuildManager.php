@@ -1,9 +1,9 @@
 <?php
 
-namespace Budabot\Core\Modules\PLAYER_LOOKUP;
+namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use stdClass;
-use Budabot\Core\AOChatPacket;
+use Nadybot\Core\AOChatPacket;
 
 /**
  * @author Tyrence (RK2)
@@ -12,25 +12,25 @@ use Budabot\Core\AOChatPacket;
  */
 class GuildManager {
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 	
 	/**
-	 * @var \Budabot\Core\CacheManager $cacheManager
+	 * @var \Nadybot\Core\CacheManager $cacheManager
 	 * @Inject
 	 */
 	public $cacheManager;
 	
 	/**
-	 * @var \Budabot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
+	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
 	 * @Inject
 	 */
 	public $playerManager;

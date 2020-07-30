@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\CITY_MODULE;
+namespace Nadybot\Modules\CITY_MODULE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 
 /**
  * @author Tyrence (RK2)
@@ -18,13 +18,13 @@ class OSController {
 	public $moduleName;
 	
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 	
 	/**
-	 * @var \Budabot\Modules\TIMERS_MODULE\TimerController $timerController
+	 * @var \Nadybot\Modules\TIMERS_MODULE\TimerController $timerController
 	 * @Inject
 	 */
 	public $timerController;

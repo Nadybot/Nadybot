@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\SETUP;
+namespace Nadybot\Core\Modules\SETUP;
 
 /**
  * Description: Configuration of the Basicbot settings
@@ -14,23 +14,6 @@ namespace Budabot\Core\Modules\SETUP;
  * @copyright 2006 Carsten Lohmann
  *
  * @license GPL
- *
- * Developed for: Budabot
- * This file is part of Budabot.
- *
- * Budabot is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Budabot is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Budabot; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 global $configFile;
@@ -169,9 +152,9 @@ if (strtolower($mansetupdb) == "yes") {
 	echo "             wannna use?\n";
 	if ($vars["DB Type"] == "sqlite") {
 		echo "             (This is the filename of the database)\n";
-		echo "             (Default: budabot.db)\n";
+		echo "             (Default: nadybot.db)\n";
 	} else {
-		echo "             (Default: budabot)\n";
+		echo "             (Default: nadybot)\n";
 	}
 	echo "             *********************************************************\n";
 	echo "             \n\n\n\n\n\n\n\n";
@@ -179,9 +162,9 @@ if (strtolower($mansetupdb) == "yes") {
 	$vars["DB Name"] = read_input($msg);
 
 	if ($vars["DB Name"] == "" && $vars["DB Type"] == "sqlite") {
-		$vars["DB Name"] = "budabot.db";
+		$vars["DB Name"] = "nadybot.db";
 	} elseif ($vars["DB Name"] == "" && $vars["DB Type"] == "mysql") {
-		$vars["DB Name"] = "budabot";
+		$vars["DB Name"] = "nadybot";
 	}
 
 	if ($vars["DB Type"] == "mysql") {
@@ -276,7 +259,7 @@ echo "             the bot should start.\n";
 echo "             ----------------------------------------------\n";
 echo "             We would appreciate any feedback you have.\n";
 echo "             Comments and suggestions are more than welcome!\n";
-echo "             www.budabot.com\n";
+echo "             https://github.com/nadybot/nadybot\n";
 echo "             ----------------------------------------------\n";
 echo "             Have a good day on Rubi-Ka.\n";
 echo "             To rerun this setup simply delete your\n";

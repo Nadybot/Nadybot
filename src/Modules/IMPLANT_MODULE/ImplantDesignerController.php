@@ -1,8 +1,8 @@
 <?php
 
-namespace Budabot\Modules\IMPLANT_MODULE;
+namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Budabot\Core\AutoInject;
+use Nadybot\Core\AutoInject;
 use stdClass;
 
 /**

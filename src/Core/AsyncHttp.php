@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 use stdClass;
 
@@ -14,25 +14,25 @@ use stdClass;
 class AsyncHttp {
 
 	/**
-	 * @var \Budabot\Core\SettingObject $setting
+	 * @var \Nadybot\Core\SettingObject $setting
 	 * @Inject
 	 */
 	public $setting;
 
 	/**
-	 * @var \Budabot\Core\SocketManager $socketManager
+	 * @var \Nadybot\Core\SocketManager $socketManager
 	 * @Inject
 	 */
 	public $socketManager;
 
 	/**
-	 * @var \Budabot\Core\Timer $timer
+	 * @var \Nadybot\Core\Timer $timer
 	 * @Inject
 	 */
 	public $timer;
 
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -88,7 +88,7 @@ class AsyncHttp {
 	/**
 	 * The notifier to notify us when something happens in the queue
 	 *
-	 * @var \Budabot\Core\SocketNotifier $notifier
+	 * @var \Nadybot\Core\SocketNotifier $notifier
 	 */
 	private $notifier;
 
@@ -122,7 +122,7 @@ class AsyncHttp {
 	/**
 	 * The HttpRequest object
 	 *
-	 * @var \Budabot\Core\HttpRequest $request
+	 * @var \Nadybot\Core\HttpRequest $request
 	 */
 	private $request;
 
@@ -136,7 +136,7 @@ class AsyncHttp {
 	/**
 	 * The timer that tracks stream timeout
 	 *
-	 * @var \Budabot\Core\Timer $timeoutEvent
+	 * @var \Nadybot\Core\Timer $timeoutEvent
 	 */
 	private $timeoutEvent = null;
 
@@ -150,7 +150,7 @@ class AsyncHttp {
 	/**
 	 * The event loop
 	 *
-	 * @var \Budabot\Core\EventLoop $loop
+	 * @var \Nadybot\Core\EventLoop $loop
 	 */
 	private $loop;
 

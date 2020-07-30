@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core;
+namespace Nadybot\Core;
 
 /**
  * @Instance
@@ -9,7 +9,7 @@ class Timer {
 	/**
 	 * @internal
 	 * Array of waiting timer events.
-	 * @var \Budabot\Core\TimerEvent[] $timerEvents
+	 * @var \Nadybot\Core\TimerEvent[] $timerEvents
 	 */
 	private $timerEvents = array();
 
@@ -56,7 +56,7 @@ class Timer {
 	/**
 	 * Abort an already times event
 	 *
-	 * @param \Budabot\Core\TimerEvent $event The event to remove from the queue
+	 * @param \Nadybot\Core\TimerEvent $event The event to remove from the queue
 	 * @return void
 	 */
 	public function abortEvent($event) {
@@ -70,7 +70,7 @@ class Timer {
 	/**
 	 * Run an event again with the  configured amount of delay
 	 *
-	 * @param\Budabot\Core\TimerEvent $event
+	 * @param\Nadybot\Core\TimerEvent $event
 	 * @return void
 	 */
 	public function restartEvent($event) {
@@ -86,7 +86,7 @@ class Timer {
 	 * @param int $delay Delay between runs of this event
 	 * @param callable $callback Function to call when this event fires
 	 * @param mixed[] $args Arguments to pass to your callback function when the event fires
-	 * @return \Budabot\Core\TimerEvent
+	 * @return \Nadybot\Core\TimerEvent
 	 */
 	private function addTimerEvent($delay, $callback, $args) {
 		$event = new TimerEvent(time() + $delay, $delay, $callback, $args);

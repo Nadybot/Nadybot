@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Core\Modules\COLORS;
+namespace Nadybot\Core\Modules\COLORS;
 
 /**
  * @Instance

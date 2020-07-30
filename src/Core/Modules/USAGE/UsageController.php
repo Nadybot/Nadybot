@@ -1,11 +1,11 @@
 <?php
 
-namespace Budabot\Core\Modules\USAGE;
+namespace Nadybot\Core\Modules\USAGE;
 
-use Budabot\Core\Event;
+use Nadybot\Core\Event;
 use stdClass;
-use Budabot\Core\CommandAlias;
-use Budabot\Core\BotRunner;
+use Nadybot\Core\CommandAlias;
+use Nadybot\Core\BotRunner;
 
 /**
  * @author Tyrence (RK2)
@@ -29,43 +29,43 @@ class UsageController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\EventManager $eventManager
+	 * @var \Nadybot\Core\EventManager $eventManager
 	 * @Inject
 	 */
 	public $eventManager;
 
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
@@ -231,25 +231,6 @@ class UsageController {
 
 		$sql = "INSERT INTO usage_<myname> (type, command, sender, dt) VALUES (?, ?, ?, ?)";
 		$this->db->exec($sql, $type, $cmd, $sender, time());
-	}
-
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Submits anonymous usage stats to Budabot website")
-	 * @DefaultStatus("0")
-	 */
-	public function submitAnonymousUsage(Event $eventObj) {
-		$debug = false;
-		$time = time();
-		$settingName = 'last_submitted_stats';
-		$lastSubmittedStats = $this->settingManager->get($settingName);
-
-		$postArray['stats'] = json_encode($this->getUsageInfo($lastSubmittedStats, $time, $debug));
-
-		$url = 'http://stats.budabot.jkbff.com/stats/submitUsage.php';
-		$this->http->post($url)->withQueryParams($postArray);
-
-		$this->settingManager->save($settingName, $time);
 	}
 
 	public function getUsageInfo($lastSubmittedStats, $now, $debug=false) {

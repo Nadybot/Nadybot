@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\ITEMS_MODULE;
+namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Exception;
 
@@ -33,43 +33,43 @@ class ItemsController {
 	public $moduleName;
 
 	/**
-	 * @var \Budabot\Core\DB $db
+	 * @var \Nadybot\Core\DB $db
 	 * @Inject
 	 */
 	public $db;
 
 	/**
-	 * @var \Budabot\Core\Budabot $chatBot
+	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public $chatBot;
 
 	/**
-	 * @var \Budabot\Core\Http $http
+	 * @var \Nadybot\Core\Http $http
 	 * @Inject
 	 */
 	public $http;
 
 	/**
-	 * @var \Budabot\Core\SettingManager $settingManager
+	 * @var \Nadybot\Core\SettingManager $settingManager
 	 * @Inject
 	 */
 	public $settingManager;
 
 	/**
-	 * @var \Budabot\Core\Text $text
+	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public $text;
 	
 	/**
-	 * @var \Budabot\Core\Util $util
+	 * @var \Nadybot\Core\Util $util
 	 * @Inject
 	 */
 	public $util;
 	
 	/**
-	 * @var \Budabot\Core\LoggerWrapper $logger
+	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
 	public $logger;
@@ -154,9 +154,9 @@ class ItemsController {
 
 		// get list of files in ITEMS_MODULE
 		$response = $this->http
-			->get("https://api.github.com/repos/Nadyita/Budabot/contents/src/Modules/ITEMS_MODULE")
+			->get("https://api.github.com/repos/Nadybot/Nadybot/contents/src/Modules/ITEMS_MODULE")
 			->withHeader("Accept", "application/vnd.github.v3+json")
-			->withHeader('User-Agent', 'Budabot')
+			->withHeader('User-Agent', 'Nadybot')
 			->waitAndReturnResponse();
 
 		$msg = array();
@@ -189,8 +189,8 @@ class ItemsController {
 				if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
 					// download server version and save to ITEMS_MODULE directory
 					$contents = $this->http
-						->get("https://raw.githubusercontent.com/Nadyita/Budabot/master/src/Modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
-						->withHeader('User-Agent', 'Budabot')
+						->get("https://raw.githubusercontent.com/Nadybot/Nadybot/stable/src/Modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
+						->withHeader('User-Agent', 'Nadybot')
 						->waitAndReturnResponse()
 						->body;
 

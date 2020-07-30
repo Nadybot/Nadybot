@@ -1,6 +1,6 @@
 <?php
 
-namespace Budabot\Modules\TIMERS_MODULE;
+namespace Nadybot\Modules\TIMERS_MODULE;
 
 /**
  * An object representing a lap of a stopwatch with Time and optional name
