@@ -5,9 +5,11 @@ LABEL maintainer="nadyita@hodorraid.org" \
 
 ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
 
-RUN apk --no-cache add \
+RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
     php7-cli \
     php7-sqlite3 \
+    php7-iconv \
+    php7-phar \
     php7-gmp \
     php7-curl \
     php7-sockets \

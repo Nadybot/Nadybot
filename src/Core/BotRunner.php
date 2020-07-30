@@ -63,7 +63,7 @@ class BotRunner {
 
 		$this->setWindowTitle();
 
-		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} ($this->version) on RK{$vars['dimension']}...");
+		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} $this->version on RK{$vars['dimension']} using PHP ".phpversion()."...");
 
 		$classLoader = new ClassLoader($vars['module_load_paths']);
 		Registry::injectDependencies($classLoader);
