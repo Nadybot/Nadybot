@@ -367,5 +367,5 @@
     <!-- checked by PSR12.Classes.AnonClassDeclaration -->
     <rule ref="PSR12.Classes.AnonClassDeclaration"/>
 
-    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Nadybot.Arrays.DisallowLongArraySyntax"/>
 </ruleset>
