@@ -257,7 +257,7 @@ class OnlineController {
 						$privArray []= $row->name;
 						break;
 					default:
-						$this->logger->log("WARN", "ONLINE_MODULE", "Unknown channel type: '$row->channel_type'. Expected: 'guild' or 'priv'");
+						$this->logger->log("WARN", "Unknown channel type: '$row->channel_type'. Expected: 'guild' or 'priv'");
 				}
 			}
 

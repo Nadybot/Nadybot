@@ -1,8 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use stdClass;
+use Nadybot\Core\{
+	CommandAlias,
+	CommandManager,
+	CommandReply,
+	Text,
+};
+use Nadybot\Core\DBSchema\CmdAlias;
 
 /**
  * @Instance
@@ -18,42 +24,26 @@ use stdClass;
  */
 class AliasController {
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
-	public function setup() {
-	}
-
 	/**
 	 * This command handler add a command alias.
 	 *
 	 * @HandlesCommand("alias")
 	 * @Matches("/^alias add ([a-z0-9]+) (.+)/si")
 	 */
-	public function aliasAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function aliasAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$alias = strtolower($args[1]);
 		$cmd = $args[2];
 	
-		$alias_obj = new stdClass;
+		$alias_obj = new CmdAlias();
 		$alias_obj->module = '';
 		$alias_obj->cmd = $cmd;
 		$alias_obj->alias = $alias;
@@ -90,21 +80,29 @@ class AliasController {
 	 * @HandlesCommand("alias")
 	 * @Matches("/^alias list$/i")
 	 */
-	public function aliasListCommand($message, $channel, $sender, $sendto, $args) {
-		$paddingSize = 30;
-	
-		$a = $this->padRow("Alias", $paddingSize);
-		$blob = "<header2>{$a}Command<end>\n\n";
-		$count = 0;
+	public function aliasListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$blob = "";
+		/** @var array<string,CmdAlias[]> */
+		$grouped = [];
 		foreach ($this->commandAlias->getEnabledAliases() as $alias) {
-			if ($count++ % 2 == 0) {
-				$color = "white";
-			} else {
-				$color = "highlight";
+			$key = explode(" ", $alias->cmd)[0];
+			if (!isset($grouped[$key])) {
+				$grouped[$key] = [];
 			}
-			$removeLink = $this->text->makeChatcmd('Remove', "/tell <myname> alias rem {$alias->alias}");
-			$a = $this->padRow($alias->alias, $paddingSize);
-			$blob .= "<{$color}>{$a}{$alias->cmd}<end> $removeLink\n";
+			$grouped[$key] []= $alias;
+		}
+		ksort($grouped);
+		foreach ($grouped as $key => $aliases) {
+			$blob .= "<header2>$key<end>\n";
+			foreach ($aliases as $alias) {
+				$removeLink = $this->text->makeChatcmd('Remove', "/tell <myname> alias rem {$alias->alias}");
+				if ($alias->cmd === $key) {
+					$blob .= "<tab>{$alias->alias} $removeLink\n";
+				} else {
+					$alias->cmd = implode(" ", array_slice(explode(" ", $alias->cmd), 1));
+					$blob .= "<tab><highlight>{$alias->cmd}<end>: {$alias->alias} $removeLink\n";
+				}
+			}
 		}
 	
 		$msg = $this->text->makeBlob('Alias List', $blob);
@@ -117,7 +115,7 @@ class AliasController {
 	 * @HandlesCommand("alias")
 	 * @Matches("/^alias rem ([a-z0-9]+)/i")
 	 */
-	public function aliasRemCommand($message, $channel, $sender, $sendto, $args) {
+	public function aliasRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$alias = strtolower($args[1]);
 	
 		$row = $this->commandAlias->get($alias);
@@ -131,9 +129,5 @@ class AliasController {
 			$msg = "Alias <highlight>{$alias}<end> removed successfully.";
 		}
 		$sendto->reply($msg);
-	}
-
-	private function padRow($str, $size) {
-		return str_pad($str, $size - strlen($str), ".");
 	}
 }

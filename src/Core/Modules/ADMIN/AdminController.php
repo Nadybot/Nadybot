@@ -1,8 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\ADMIN;
 
-use Nadybot\Core\Event;
+use Nadybot\Core\{
+	AccessManager,
+	AdminManager,
+	BuddylistManager,
+	CommandAlias,
+	CommandReply,
+	DB,
+	Event,
+	Nadybot,
+	SettingManager,
+	Text,
+	Modules\ALTS\AltsController,
+};
+use Nadybot\Core\DBSchema\Admin;
 
 /**
  * @Instance
@@ -35,63 +48,35 @@ class AdminController {
 
 	/**
 	 * Name of the module.
-	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\AdminManager $adminManager
-	 * @Inject
-	 */
-	public $adminManager;
+	/** @Inject */
+	public AdminManager $adminManager;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 	
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
-	 * @Inject
-	 */
-	public $altsController;
+	/** @Inject */
+	public AltsController $altsController;
 
 	/**
 	 * @Setup
@@ -110,7 +95,7 @@ class AdminController {
 	 * @HandlesCommand("admin")
 	 * @Matches("/^admin add (.+)$/i")
 	 */
-	public function adminAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function adminAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$intlevel = 4;
 		$rank = 'an administrator';
@@ -122,7 +107,7 @@ class AdminController {
 	 * @HandlesCommand("mod")
 	 * @Matches("/^mod add (.+)$/i")
 	 */
-	public function modAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function modAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$intlevel = 3;
 		$rank = 'a moderator';
@@ -134,7 +119,7 @@ class AdminController {
 	 * @HandlesCommand("admin")
 	 * @Matches("/^admin rem (.+)$/i")
 	 */
-	public function adminRemoveCommand($message, $channel, $sender, $sendto, $args) {
+	public function adminRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$intlevel = 4;
 		$rank = 'an administrator';
@@ -146,7 +131,7 @@ class AdminController {
 	 * @HandlesCommand("mod")
 	 * @Matches("/^mod rem (.+)$/i")
 	 */
-	public function modRemoveCommand($message, $channel, $sender, $sendto, $args) {
+	public function modRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$intlevel = 3;
 		$rank = 'a moderator';
@@ -159,7 +144,7 @@ class AdminController {
 	 * @Matches("/^adminlist$/i")
 	 * @Matches("/^adminlist all$/i")
 	 */
-	public function adminlistCommand($message, $channel, $sender, $sendto) {
+	public function adminlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (strtolower($message) == "adminlist all") {
 			$showOfflineAlts = true;
 		} else {
@@ -197,24 +182,30 @@ class AdminController {
 	 * @Description("Add administrators and moderators to the buddy list")
 	 * @DefaultStatus("1")
 	 */
-	public function checkAdminsEvent(Event $eventObj) {
-		$data = $this->db->query("SELECT * FROM admin_<myname>");
+	public function checkAdminsEvent(Event $eventObj): void {
+		/** @var Admin[] $data */
+		$data = $this->db->fetchAll(Admin::class, "SELECT * FROM admin_<myname>");
 		foreach ($data as $row) {
 			$this->buddylistManager->add($row->name, 'admin');
 		}
 	}
 	
-	private function getOnlineStatus($who) {
-		if ($this->buddylistManager->isOnline($who) == 1 && isset($this->chatBot->chatlist[$who])) {
+	/**
+	 * Get the string of the online status
+	 * @param string $who Playername
+	 * @return string " (<green>online<end>)" and so on
+	 */
+	private function getOnlineStatus(string $who): string {
+		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
 			return " (<green>Online and in chat<end>)";
-		} elseif ($this->buddylistManager->isOnline($who) == 1) {
+		} elseif ($this->buddylistManager->isOnline($who)) {
 			return " (<green>Online<end>)";
 		} else {
 			return " (<red>Offline<end>)";
 		}
 	}
 	
-	private function getAltAdminInfo($who, $showOfflineAlts) {
+	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main == $who) {
@@ -227,43 +218,44 @@ class AdminController {
 		return $blob;
 	}
 	
-	public function add($who, $sender, $sendto, $intlevel, $rank) {
+	public function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if ($this->chatBot->get_uid($who) == null) {
 			$sendto->reply("Character <highlight>$who<end> does not exist.");
-			return;
+			return false;
 		}
 
 		if ($this->adminManager->checkExisting($who, $intlevel)) {
 			$sendto->reply("<highlight>$who<end> is already $rank.");
-			return;
+			return false;
 		}
 
 		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
-			return;
+			return false;
 		}
 
 		if (!$this->checkAltsInheritAdmin($who)) {
 			$msg = "<red>WARNING<end>: $who is not a main.  This command did NOT affect $who's access level and no action was performed.";
 			$sendto->reply($msg);
-			return;
+			return false;
 		}
 
 		$action = $this->adminManager->addToLists($who, $intlevel);
 
 		$sendto->reply("<highlight>$who<end> has been $action to $rank.");
 		$this->chatBot->sendTell("You have been $action to $rank by <highlight>$sender<end>.", $who);
+		return true;
 	}
 	
-	public function remove($who, $sender, $sendto, $intlevel, $rank) {
+	public function remove(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if (!$this->adminManager->checkExisting($who, $intlevel)) {
 			$sendto->reply("<highlight>$who<end> is not $rank.");
-			return;
+			return false;
 		}
 
 		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
-			return;
+			return false;
 		}
 
 		$this->adminManager->removeFromLists($who);
@@ -275,24 +267,17 @@ class AdminController {
 
 		$sendto->reply("<highlight>$who<end> has been removed as $rank.");
 		$this->chatBot->sendTell("You have been removed as $rank by <highlight>$sender<end>.", $who);
+		return true;
 	}
 	
-	public function checkAltsInheritAdmin($who) {
+	public function checkAltsInheritAdmin(string $who): bool {
 		$ai = $this->altsController->getAltInfo($who);
-		if ($ai->main != $who) {
-			return false;
-		} else {
-			return true;
-		}
+		return $ai->main == $who;
 	}
 	
-	public function checkAccessLevel($actor, $actee) {
+	public function checkAccessLevel(string $actor, string $actee) {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
-		if ($this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) >= 0) {
-			return false;
-		} else {
-			return true;
-		}
+		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
 	}
 }

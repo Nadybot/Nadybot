@@ -1,8 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Nadybot\Core\CommandReply;
 use Nadybot\Core\Event;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\SettingManager;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\DB;
+use Nadybot\Core\DBSchema\Alt;
 
 /**
  * @author Tyrence (RK2)
@@ -34,31 +40,19 @@ class AltsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
 	/**
 	 * @Setup
@@ -73,7 +67,7 @@ class AltsController {
 			'edit',
 			'options',
 			'1',
-			'yes;no',
+			'true;false',
 			'1;0',
 			'mod'
 		);
@@ -107,14 +101,13 @@ class AltsController {
 	 * @HandlesCommand("alts")
 	 * @Matches("/^alts add ([a-z0-9- ]+)$/i")
 	 */
-	public function addAltCommand($message, $channel, $sender, $sendto, $args) {
+	public function addAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/* get all names in an array */
-		$names = explode(' ', $args[1]);
+		$names = preg_split('/\s+/', $args[1]);
 	
 		$sender = ucfirst(strtolower($sender));
 	
 		$senderAltInfo = $this->getAltInfo($sender);
-		$main = $senderAltInfo->main;
 	
 		$success = 0;
 	
@@ -148,9 +141,9 @@ class AltsController {
 				continue;
 			}
 	
-			$validated = 0;
+			$validated = false;
 			if ($senderAltInfo->isValidated($sender)) {
-				$validated = 1;
+				$validated = true;
 			}
 	
 			// insert into database
@@ -173,7 +166,7 @@ class AltsController {
 	 * @HandlesCommand("alts")
 	 * @Matches("/^alts (rem|del|remove|delete) ([a-z0-9-]+)$/i")
 	 */
-	public function removeAltCommand($message, $channel, $sender, $sendto, $args) {
+	public function removeAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[2]));
 	
 		$altInfo = $this->getAltInfo($sender);
@@ -197,7 +190,7 @@ class AltsController {
 	 * @HandlesCommand("alts")
 	 * @Matches("/^alts setmain$/i")
 	 */
-	public function setMainCommand($message, $channel, $sender, $sendto, $args) {
+	public function setMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$altInfo = $this->getAltInfo($sender);
 	
 		if ($altInfo->main == $sender) {
@@ -213,14 +206,14 @@ class AltsController {
 		}
 	
 		// remove all the old alt information
-		$this->db->exec("DELETE FROM `alts` WHERE `main` = '{$altInfo->main}'");
+		$this->db->exec("DELETE FROM `alts` WHERE `main` = ?", $altInfo->main);
 	
 		// add current main to new main as an alt
-		$this->addAlt($sender, $altInfo->main, 1);
+		$this->addAlt($sender, $altInfo->main, true);
 	
 		// add current alts to new main
 		foreach ($altInfo->alts as $alt => $validated) {
-			if ($alt != $sender) {
+			if ($alt !== $sender) {
 				$this->addAlt($sender, $alt, $validated);
 			}
 		}
@@ -236,7 +229,7 @@ class AltsController {
 	 * @Matches("/^alts ([a-z0-9-]+)$/i")
 	 * @Matches("/^alts$/i")
 	 */
-	public function altsCommand($message, $channel, $sender, $sendto, $args) {
+	public function altsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (isset($args[1])) {
 			$showValidateLinks = false;
 			$name = ucfirst(strtolower($args[1]));
@@ -261,7 +254,7 @@ class AltsController {
 	 * @HandlesCommand("alts main (.+)")
 	 * @Matches("/^alts main ([a-z0-9-]+)$/i")
 	 */
-	public function altsMainCommand($message, $channel, $sender, $sendto, $args) {
+	public function altsMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$new_main = $this->getAltInfo($args[1])->main;
 	
 		$uid = $this->chatBot->get_uid($new_main);
@@ -286,13 +279,13 @@ class AltsController {
 		}
 	
 		// let them know if they are changing the main for this player
-		if ($altInfo->main != $sender) {
+		if ($altInfo->main !== $sender) {
 			$this->remAlt($altInfo->main, $sender);
 			$msg = "You have been removed as an alt of <highlight>{$altInfo->main}<end>.";
 			$sendto->reply($msg);
 		}
 	
-		$this->addAlt($new_main, $sender, 0);
+		$this->addAlt($new_main, $sender, false);
 		$msg = "You have been registered as an alt of <highlight>{$new_main}<end>.";
 		$sendto->reply($msg);
 	}
@@ -303,7 +296,7 @@ class AltsController {
 	 * @HandlesCommand("altvalidate")
 	 * @Matches("/^altvalidate ([a-z0-9- ]+)$/i")
 	 */
-	public function altvalidateCommand($message, $channel, $sender, $sendto, $args) {
+	public function altvalidateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$altInfo = $this->getAltInfo($sender);
 		$alt = ucfirst(strtolower($args[1]));
 	
@@ -315,29 +308,30 @@ class AltsController {
 		// Make sure the character being validated is an alt of the person sending the command
 		$isAlt = false;
 		foreach ($altInfo->alts as $a => $validated) {
-			if ($a == $alt) {
-				$isAlt = true;
+			if ($a !== $alt) {
+				continue;
+			}
+			$isAlt = true;
 	
-				if ($validated == 1) {
-					$sendto->reply("<highlight>$alt<end> is already validated as your alt.");
-					return;
-				}
+			if ($validated == 1) {
+				$sendto->reply("<highlight>$alt<end> is already validated as your alt.");
+				return;
 			}
 		}
 	
 		if (!$isAlt) {
 			$sendto->reply("<highlight>$alt<end> is not registered as your alt.");
-		} else {
-			$this->db->exec("UPDATE `alts` SET `validated` = ? WHERE `alt` LIKE ? AND `main` LIKE ?", '1', $alt, $altInfo->main);
-			$sendto->reply("<highlight>$alt<end> has been validated as your alt.");
+			return;
 		}
+		$this->db->exec("UPDATE `alts` SET `validated` = ? WHERE `alt` LIKE ? AND `main` LIKE ?", '1', $alt, $altInfo->main);
+		$sendto->reply("<highlight>$alt<end> has been validated as your alt.");
 	}
 
 	/**
 	 * @Event("logOn")
 	 * @Description("Reminds players logging in to validate alts")
 	 */
-	public function checkUnvalidatedAltsEvent(Event $eventObj) {
+	public function checkUnvalidatedAltsEvent(Event $eventObj): void {
 		if ($this->chatBot->isReady()) {
 			$altInfo = $this->getAltInfo($eventObj->sender);
 		
@@ -354,21 +348,21 @@ class AltsController {
 	 * @param string $player The name of either the main or one of their alts
 	 * @return AltInfo Information about the main and the alts
 	 */
-	public function getAltInfo($player) {
+	public function getAltInfo(string $player): AltInfo {
 		$player = ucfirst(strtolower($player));
 
 		$ai = new AltInfo();
 
-		$sql = "SELECT `alt`, `main`, `validated` FROM `alts` WHERE (`main` LIKE ?) OR (`main` LIKE (SELECT `main` FROM `alts` WHERE `alt` LIKE ?))";
-		$data = $this->db->query($sql, $player, $player);
+		$sql = "SELECT * FROM `alts` WHERE (`main` LIKE ?) OR (`main` LIKE (SELECT `main` FROM `alts` WHERE `alt` LIKE ?))";
+		/** @var Alt[] $data */
+		$data = $this->db->fetchAll(Alt::class, $sql, $player, $player);
 
+		$ai->main = $player;
 		if (count($data) > 0) {
 			foreach ($data as $row) {
 				$ai->main = $row->main;
 				$ai->alts[$row->alt] = $row->validated;
 			}
-		} else {
-			$ai->main = $player;
 		}
 
 		return $ai;
@@ -377,7 +371,7 @@ class AltsController {
 	/**
 	 * This method adds given @a $alt as @a $main's alt character.
 	 */
-	public function addAlt($main, $alt, $validated) {
+	public function addAlt(string $main, string $alt, bool $validated): int {
 		$main = ucfirst(strtolower($main));
 		$alt = ucfirst(strtolower($alt));
 
@@ -388,7 +382,7 @@ class AltsController {
 	/**
 	 * This method removes given @a $alt from being @a $main's alt character.
 	 */
-	public function remAlt($main, $alt) {
+	public function remAlt(string $main, string $alt): int {
 		$sql = "DELETE FROM `alts` WHERE `alt` LIKE ? AND `main` LIKE ?";
 		return $this->db->exec($sql, $alt, $main);
 	}

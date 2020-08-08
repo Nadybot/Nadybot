@@ -1,47 +1,36 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
+
+use Nadybot\Core\DBSchema\CmdAlias;
 
 /**
  * @Instance
  */
 class CommandAlias {
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	const ALIAS_HANDLER = "CommandAlias.process";
 
 	/**
 	 * Loads active aliases into memory to activate them
-	 *
-	 * @return void
 	 */
-	public function load() {
+	public function load(): void {
 		$this->logger->log('DEBUG', "Loading enabled command aliases");
 
-		$data = $this->db->query("SELECT cmd, alias FROM cmd_alias_<myname> WHERE status = 1");
+		/** @var CmdAlias[] */
+		$data = $this->db->fetchAll(CmdAlias::class, "SELECT cmd, alias FROM cmd_alias_<myname> WHERE status = 1");
 		foreach ($data as $row) {
 			$this->activate($row->cmd, $row->alias);
 		}
@@ -49,14 +38,8 @@ class CommandAlias {
 
 	/**
 	 * Registers a command alias
-	 *
-	 * @param string $module  Name of the module that defines the alias
-	 * @param string $command Command for which to create an alias
-	 * @param string $alias   The alias to register
-	 * @param int    $status  1 for live and 0 for off
-	 * @return void
 	 */
-	public function register($module, $command, $alias, $status=1) {
+	public function register(string $module, string $command, string $alias, int $status=1): void {
 		$module = strtoupper($module);
 		$command = strtolower($command);
 		$alias = strtolower($alias);
@@ -78,12 +61,8 @@ class CommandAlias {
 
 	/**
 	 * Activates a command alias
-	 *
-	 * @param string $command Command for which to activate an alias
-	 * @param string $alias   The alias to register
-	 * @return void
 	 */
-	public function activate($command, $alias) {
+	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
 
 		$this->logger->log('DEBUG', "Activate Command Alias command:($command) alias:($alias)");
@@ -95,11 +74,8 @@ class CommandAlias {
 
 	/**
 	 * Deactivates a command alias
-	 *
-	 * @param string $alias The alias to deactivate
-	 * @return void
 	 */
-	public function deactivate($alias) {
+	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
 		$this->logger->log('DEBUG', "Deactivate Command Alias:($alias)");
@@ -111,15 +87,9 @@ class CommandAlias {
 
 	/**
 	 * Check incoming commands if they are aliases for commands and execute them
-	 *
-	 * @param string $message The incoming command
-	 * @param string $channel The message where this command was received (guild, priv or tell)
-	 * @param string $sender The name of the command sender
-	 * @param \Nadybot\Core\CommandReply $sendto Who to send the commands to
-	 * @return bool
 	 */
-	public function process($message, $channel, $sender, CommandReply $sendto) {
-		list($alias, $params) = explode(' ', $message, 2);
+	public function process(string $message, string $channel, string $sender, CommandReply $sendto): bool {
+		[$alias, $params] = explode(' ', $message, 2);
 		$alias = strtolower($alias);
 
 		// Check if this is an alias for a command
@@ -156,17 +126,15 @@ class CommandAlias {
 		// if parameter placeholders still exist, then they did not pass enough parameters
 		if (preg_match("/{\\d+}/", $cmd)) {
 			return false;
-		} else {
-			$this->commandManager->process($channel, $cmd, $sender, $sendto);
 		}
+		$this->commandManager->process($channel, $cmd, $sender, $sendto);
+		return true;
 	}
 
 	/**
 	 * Adds a command alias to the db
-	 *
-	 * @param \Nadybot\Core\DBRow $row The database row to process
 	 */
-	public function add($row) {
+	public function add(object $row): int {
 		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 
 		$sql = "INSERT INTO cmd_alias_<myname> (module, cmd, alias, status) VALUES (?, ?, ?, ?)";
@@ -175,11 +143,8 @@ class CommandAlias {
 
 	/**
 	 * Updates a command alias in the db
-	 *
-	 * @param \Nadybot\Core\DBRow $row The database row to update
-	 * @return int Number of affected rows
 	 */
-	public function update($row) {
+	public function update(object $row): int {
 		$this->logger->log('DEBUG', "Updating alias :($row->alias)");
 
 		$sql = "UPDATE cmd_alias_<myname> SET module = ?, cmd = ?, status = ? WHERE alias = ?";
@@ -188,31 +153,25 @@ class CommandAlias {
 
 	/**
 	 * Read the database entry for an alias
-	 *
-	 * @param string $alias
-	 * @return \Nadybot\Core\DBRow
 	 */
-	public function get($alias) {
+	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
 		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE alias = ?";
-		return $this->db->queryRow($sql, $alias);
+		return $this->db->fetch(CmdAlias::class, $sql, $alias);
 	}
 
 	/**
 	 * Get the command for which an alias actually is an alias
-	 *
-	 * @param string $alias The alias to look up
-	 * @return string|null Null if no alias was found, otherwise the aliased command
 	 */
-	public function getBaseCommandForAlias($alias) {
+	public function getBaseCommandForAlias(string $alias): ?string {
 		$row = $this->get($alias);
 
 		// if alias doesn't exist or is disabled
 		if ($row === null || $row->status != 1) {
 			return null;
 		}
-		list($cmd) = explode(' ', $row->cmd, 2);
+		[$cmd] = explode(' ', $row->cmd, 2);
 		return $cmd;
 	}
 
@@ -220,19 +179,19 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
-	 * @return \Nadybot\Core\DBRow[]
+	 * @return CmdAlias[]
 	 */
-	public function findAliasesByCommand($command) {
+	public function findAliasesByCommand(string $command): array {
 		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE cmd LIKE ?";
-		return $this->db->query($sql, $command);
+		return $this->db->fetchAll(CmdAlias::class, $sql, $command);
 	}
 
 	/**
 	 * Get a list of all currently enabled aliases
 	 *
-	 * @return \Nadybot\Core\DBRow[]
+	 * @return CmdAlias[]
 	 */
-	public function getEnabledAliases() {
-		return $this->db->query("SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE status = 1 ORDER BY alias ASC");
+	public function getEnabledAliases(): array {
+		return $this->db->fetchAll(CmdAlias::class, "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE status = 1 ORDER BY alias ASC");
 	}
 }

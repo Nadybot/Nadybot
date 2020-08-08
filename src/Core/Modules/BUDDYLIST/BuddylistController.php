@@ -1,6 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\BuddylistManager;
+use Nadybot\Core\Text;
+use Nadybot\Core\CommandReply;
 
 /**
  * @author Tyrence (RK2)
@@ -24,36 +28,27 @@ class BuddylistController {
 	 */
 	public $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
 	/**
 	 * @HandlesCommand("buddylist")
 	 * @Matches("/^buddylist$/i")
 	 * @Matches("/^buddylist (clean)$/i")
 	 */
-	public function buddylistShowCommand($message, $channel, $sender, $sendto, $args) {
+	public function buddylistShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (count($args) == 2) {
 			$cleanup = true;
 		}
 
 		$orphanCount = 0;
-		if (count($this->buddylistManager->buddyList) == 0) {
+		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no players on the buddy list.";
 			$sendto->reply($msg);
 			return;
@@ -68,7 +63,7 @@ class BuddylistController {
 
 			$count++;
 			$removed = '';
-			if (count($value['types']) == 0) {
+			if (count($value['types'] ?? []) === 0) {
 				$orphanCount++;
 				if ($cleanup) {
 					$this->buddylistManager->remove($value['name']);
@@ -79,7 +74,7 @@ class BuddylistController {
 				}
 			}
 
-			$blob .= $value['name'] . " $removed " . implode(' ', array_keys($value['types'])) . "\n";
+			$blob .= $value['name'] . " $removed [" . implode(', ', array_keys($value['types'] ?? ["?" => true])) . "]\n";
 		}
 
 		if ($cleanup) {
@@ -100,9 +95,9 @@ class BuddylistController {
 	
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist add (.+) (.+)$/i")
+	 * @Matches("/^buddylist add ([^ ]+) ([^ ]+)$/i")
 	 */
-	public function buddylistAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function buddylistAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$type = $args[2];
 
@@ -119,7 +114,7 @@ class BuddylistController {
 	 * @HandlesCommand("buddylist")
 	 * @Matches("/^buddylist rem all$/i")
 	 */
-	public function buddylistRemAllCommand($message, $channel, $sender, $sendto, $args) {
+	public function buddylistRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
@@ -130,9 +125,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist rem (.+) (.+)$/i")
+	 * @Matches("/^buddylist rem ([^ ]+) ([^ ]+)$/i")
 	 */
-	public function buddylistRemCommand($message, $channel, $sender, $sendto, $args) {
+	public function buddylistRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$type = $args[2];
 
@@ -149,7 +144,7 @@ class BuddylistController {
 	 * @HandlesCommand("buddylist")
 	 * @Matches("/^buddylist search (.*)$/i")
 	 */
-	public function buddylistSearchCommand($message, $channel, $sender, $sendto, $args) {
+	public function buddylistSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 
 		if (count($this->buddylistManager->buddyList) == 0) {
@@ -158,10 +153,9 @@ class BuddylistController {
 			$count = 0;
 			$blob = "Buddy list Search: '{$search}'\n\n";
 			foreach ($this->getSortedBuddyList() as $value) {
-				$removed = '';
 				if (preg_match("/$search/i", $value['name'])) {
 					$count++;
-					$blob .= $value['name'] . " " . implode(' ', array_keys($value['types'])) . "\n";
+					$blob .= $value['name'] . " [" . implode(', ', array_keys($value['types'] ?? ["?" => true])) . "]\n";
 				}
 			}
 
@@ -174,9 +168,9 @@ class BuddylistController {
 		$sendto->reply($msg);
 	}
 
-	public function getSortedBuddyList() {
+	public function getSortedBuddyList(): array {
 		$buddylist = $this->buddylistManager->buddyList;
-		usort($buddylist, function ($entry1, $entry2) {
+		usort($buddylist, function (array $entry1, array $entry2) {
 			return $entry1['name'] > $entry2['name'];
 		});
 		return $buddylist;

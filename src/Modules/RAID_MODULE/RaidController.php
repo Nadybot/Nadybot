@@ -135,7 +135,7 @@ class RaidController {
 			'edit',
 			'options',
 			'1',
-			'yes;no',
+			'true;false',
 			'1;0'
 		);
 

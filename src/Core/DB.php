@@ -1,65 +1,52 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
+use Closure;
 use PDO;
 use PDOException;
+use PDOStatement;
 use Exception;
+use ReflectionProperty;
 
 /**
  * @Instance
  */
 class DB {
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
 	/**
 	 * The database type: mysql/sqlite
-	 *
-	 * @var string $type
 	 */
-	private $type;
+	private string $type;
 
 	/**
 	 * The PDO object to talk to the database
-	 *
-	 * @var \PDO $sql
 	 */
-	private $sql;
+	private PDO $sql;
 
 	/**
 	 * The name of the bot
-	 *
-	 * @var string $botname
 	 */
-	private $botname;
+	private string $botname;
 
 	/**
 	 * The dimension
-	 *
-	 * @var int $dim
 	 */
-	private $dim;
+	private int $dim;
 
-	/** @var string $guild */
-	private $guild;
-	/** @var string $lastQuery */
-	private $lastQuery;
-	/** @var bool $inTransaction */
-	private $inTransaction = false;
+	private string $guild;
+	private string $lastQuery;
+	private bool $inTransaction = false;
+	private array $meta = [];
+	private array $metaTypes = [];
 
-	/** @var \Nadybot\Core\LoggerWrapper $logger */
-	private $logger;
+	private LoggerWrapper $logger;
 
 	const MYSQL = 'mysql';
 	const SQLITE = 'sqlite';
@@ -71,22 +58,16 @@ class DB {
 	/**
 	 * Connect to the database
 	 *
-	 * @param string $type Database type: mysql or sqlite
-	 * @param string $dbName Name of the database
-	 * @param string $host Hostname (mysql) or directory (sqlite)
-	 * @param string $user username
-	 * @param string $pass Password
-	 * @return void
 	 * @throws Exception for unsupported database types
 	 */
-	public function connect($type, $dbName, $host=null, $user=null, $pass=null) {
+	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
 		global $vars;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
 		$this->dim = $vars["dimension"];
 		$this->guild = str_replace("'", "''", $vars["my_guild"]);
 
-		if ($this->type == self::MYSQL) {
+		if ($this->type === self::MYSQL) {
 			$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$this->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
@@ -101,8 +82,8 @@ class DB {
 			} else {
 				$this->exec("SET storage_engine = MyISAM");
 			}
-		} elseif ($this->type == self::SQLITE) {
-			if ($host == null || $host == "" || $host == "localhost") {
+		} elseif ($this->type === self::SQLITE) {
+			if ($host === null || $host === "" || $host === "localhost") {
 				$dbName = "./data/$dbName";
 			} else {
 				$dbName = "$host/$dbName";
@@ -116,63 +97,152 @@ class DB {
 	}
 
 	/**
-	 * Get the configurd database type
-	 *
-	 * @return string
+	 * Get the configured database type
 	 */
-	public function getType() {
+	public function getType(): string {
 		return $this->type;
 	}
 
 	/**
 	 * Execute an SQL statement and return the first row as object or null if no results
-	 *
-	 * @param string $sql The SQL query
-	 * @return \StdClass|null The first row or null if no results
 	 */
-	public function queryRow($sql) {
-		$sql = $this->formatSql($sql);
+	public function queryRow(string $sql): ?DBRow {
+		$result = $this->query(...func_get_args());
 
-		$args = $this->getParameters(func_get_args());
-
-		$ps = $this->executeQuery($sql, $args);
-		$result = $ps->fetchAll(PDO::FETCH_CLASS, DBRow::class);
-
-		if (count($result) == 0) {
+		if (count($result) === 0) {
 			return null;
-		} else {
-			return $result[0];
 		}
+		return $result[0];
+	}
+
+	/**
+	 * Populate and return an array of type changers for a query
+	 *
+	 * @return Closure[]
+	 */
+	protected function getTypeChanger(PDOStatement $ps, object $row): array {
+		$metaKey = md5($ps->queryString);
+		$numColumns = $ps->columnCount();
+		if (isset($this->meta[$metaKey])) {
+			return $this->meta[$metaKey];
+		}
+		$this->meta[$metaKey] = [];
+		for ($col=0; $col < $numColumns; $col++) {
+			$colMeta = $ps->getColumnMeta($col);
+			if (in_array($colMeta['native_type'], ["integer", "TINY", "LONG"])) {
+				$colName = $colMeta['name'];
+				$refProp = new ReflectionProperty($row, $colName);
+				$refProp->setAccessible(true);
+				if (
+					$colMeta['native_type'] === 'TINY'
+					|| (isset($colMeta['sqlite:decl_type'])
+						&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
+				) {
+					$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+						$stringValue = $refProp->getValue($row);
+						if ($stringValue !== null) {
+							$refProp->setValue($row, (bool)$stringValue);
+						}
+					};
+				} else {
+					$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+						$stringValue = $refProp->getValue($row);
+						if ($stringValue !== null) {
+							$refProp->setValue($row, (int)$stringValue);
+						}
+					};
+				}
+			}
+		}
+		return $this->meta[$metaKey];
 	}
 
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects
 	 *
-	 * @param string $sql The SQL query
 	 * @return \Nadybot\Core\DBRow[] All returned rows
 	 */
-	public function query($sql) {
+	public function query(string $sql): array {
 		$sql = $this->formatSql($sql);
 
 		$args = $this->getParameters(func_get_args());
 
 		$ps = $this->executeQuery($sql, $args);
-		return $ps->fetchAll(PDO::FETCH_CLASS, DBRow::class);
+		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
+		$result = [];
+		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
+			$typeChangers = $this->getTypeChanger($ps, $row);
+			foreach ($typeChangers as $changer) {
+				$changer($row);
+			}
+			$result []= $row;
+		}
+		return $result;
+	}
+
+	/**
+	 * Execute an SQL statement and return all rows as an array of objects of the given class
+	 */
+	public function fetchAll(string $className, string $sql, ...$args): array {
+		$sql = $this->formatSql($sql);
+
+		$ps = $this->executeQuery($sql, $args);
+		return $ps->fetchAll(
+			PDO::FETCH_FUNC,
+			function (...$values) use ($ps, $className) {
+				return $this->convertToClass($ps, $className, $values);
+			}
+		);
+	}
+
+	/**
+	 * Execute an SQL statement and return the first row as an objects of the given class
+	 */
+	public function fetch(string $className, string $sql, ...$args) {
+		return $this->fetchAll(...func_get_args())[0] ?? null;
+	}
+
+	public function convertToClass(PDOStatement $ps, string $className, array $values) {
+		$row = new $className();
+		$metaKey = md5($ps->queryString);
+		$numColumns = $ps->columnCount();
+		if (!isset($this->metaTypes[$metaKey])) {
+			$this->metaTypes[$metaKey] = [];
+			for ($col=0; $col < $numColumns; $col++) {
+				$this->metaTypes[$metaKey] []= $ps->getColumnMeta($col);
+			}
+		}
+		$meta = $this->metaTypes[$metaKey];
+		for ($col=0; $col < $numColumns; $col++) {
+			$colMeta = $meta[$col];
+			$colName = $colMeta['name'];
+			if (!in_array($colMeta['native_type'], ["integer", "TINY", "LONG"])) {
+				$row->{$colName} = $values[$col];
+				continue;
+			}
+			if (
+				$colMeta['native_type'] === 'TINY'
+				|| (isset($colMeta['sqlite:decl_type'])
+					&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
+			) {
+				$row->{$colName} = (bool)$values[$col];
+			} else {
+				$row->{$colName} = (int)$values[$col];
+			}
+		}
+		return $row;
 	}
 
 	/**
 	 * Execute a query and return the number of affected rows
-	 *
-	 * @param string $sql The query to execute
-	 * @return int Number of affected rows
 	 */
-	public function exec($sql) {
+	public function exec(string $sql): int {
 		$sql = $this->formatSql($sql);
 
-		if (substr_compare($sql, "create", 0, 6, true) == 0) {
-			if ($this->type == self::MYSQL) {
+		if (substr_compare($sql, "create", 0, 6, true) === 0) {
+			if ($this->type === self::MYSQL) {
 				$sql = str_ireplace("AUTOINCREMENT", "AUTO_INCREMENT", $sql);
-			} elseif ($this->type == self::SQLITE) {
+			} elseif ($this->type === self::SQLITE) {
 				$sql = str_ireplace("AUTO_INCREMENT", "AUTOINCREMENT", $sql);
 				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
 			}
@@ -187,28 +257,21 @@ class DB {
 
 	/**
 	 * Internal function to get additional parameters passed to exec()
-	 *
-	 * @param mixed[] $args
-	 * @return mixed[]
 	 */
-	private function getParameters($args) {
+	private function getParameters(array $args): array {
 		array_shift($args);
 		if (isset($args[0]) && is_array($args[0])) {
 			return $args[0];
-		} else {
-			return $args;
 		}
+		return $args;
 	}
 
 	/**
 	 * Execute an SQL query, returning the statement object
 	 *
-	 * @param string $sql The SQL query, optionally containing placeholders
-	 * @param mixed[] $params An array of parameters to fill the placeholders in $sql
-	 * @return \PDOStatement The statement object
-	 * @throws \SQLException when the query errors
+	 * @throws SQLException when the query errors
 	 */
-	private function executeQuery($sql, $params) {
+	private function executeQuery(string $sql, array $params): PDOStatement {
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
 
@@ -227,20 +290,18 @@ class DB {
 			$ps->execute();
 			return $ps;
 		} catch (PDOException $e) {
-			if ($this->type == self::SQLITE && $e->errorInfo[1] == 17) {
+			if ($this->type === self::SQLITE && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);
 			}
-			throw new SQLException("{$e->errorInfo[2]} in: $sql - " . print_r($params, true), 0, $e);
+			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 
 	/**
 	 * Start a transaction
-	 *
-	 * @return void
 	 */
-	public function beginTransaction() {
+	public function beginTransaction(): void {
 		$this->logger->log('DEBUG', "Starting transaction");
 		$this->inTransaction = true;
 		$this->sql->beginTransaction();
@@ -248,10 +309,8 @@ class DB {
 
 	/**
 	 * Commit a transaction
-	 *
-	 * @return void
 	 */
-	public function commit() {
+	public function commit(): void {
 		$this->logger->log('DEBUG', "Committing transaction");
 		$this->inTransaction = false;
 		$this->sql->Commit();
@@ -259,10 +318,8 @@ class DB {
 
 	/**
 	 * Roll back a transaction
-	 *
-	 * @return void
 	 */
-	public function rollback() {
+	public function rollback(): void {
 		$this->logger->log('DEBUG', "Rolling back transaction");
 		$this->inTransaction = false;
 		$this->sql->rollback();
@@ -270,29 +327,22 @@ class DB {
 
 	/**
 	 * Check if we're currently in a transaction
-	 *
-	 * @return bool
 	 */
-	public function inTransaction() {
+	public function inTransaction(): bool {
 		return $this->inTransaction;
 	}
 
 	/**
 	 * Returns the ID of the last inserted row or sequence value
-	 *
-	 * @return string
 	 */
-	public function lastInsertId() {
+	public function lastInsertId(): string {
 		return $this->sql->lastInsertId();
 	}
 
 	/**
 	 * Format SQL code by replacing placeholders like <myname>
-	 *
-	 * @param string $sql The SQL query to format
-	 * @return string The formatted SQL query
 	 */
-	public function formatSql($sql) {
+	public function formatSql(string $sql): string {
 		$sql = str_replace("<dim>", $this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
 		$sql = str_replace("<myguild>", $this->guild, $sql);
@@ -302,10 +352,8 @@ class DB {
 
 	/**
 	 * Get the SQL query that was executed last
-	 *
-	 * @return string The last SQL query
 	 */
-	public function getLastQuery() {
+	public function getLastQuery(): ?string {
 		return $this->lastQuery;
 	}
 
@@ -314,13 +362,8 @@ class DB {
 	 *
 	 * Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
 	 * If there is an sql file with name $name.sql it would load that one every time
-	 *
-	 * @param string $module The name of the module for which to load an SQL file
-	 * @param string $name The name of the SQL file to load
-	 * @param bool $forceUpdate Set this to true to always load the file, even if this version is already installed
-	 * @return string A message describing what happened
 	 */
-	public function loadSQLFile($module, $name, $forceUpdate=false) {
+	public function loadSQLFile(string $module, string $name, bool $forceUpdate=false): string {
 		$name = strtolower($name);
 
 		// only letters, numbers, underscores are allowed
@@ -340,10 +383,9 @@ class DB {
 		}
 		$d = dir($dir);
 
+		$currentVersion = false;
 		if ($this->settingManager->exists($settingName)) {
 			$currentVersion = $this->settingManager->get($settingName);
-		} else {
-			$currentVersion = false;
 		}
 		if ($currentVersion === false) {
 			$currentVersion = 0;
@@ -361,7 +403,7 @@ class DB {
 						break;
 					}
 
-					if ($this->util->compareVersionNumbers($arr[1], $maxFileVersion) >= 0) {
+					if ($this->util->compareVersionNumbers($arr[1], (string)$maxFileVersion) >= 0) {
 						$maxFileVersion = $arr[1];
 						$file = $entry;
 					}
@@ -378,46 +420,47 @@ class DB {
 		// make sure setting is verified so it doesn't get deleted
 		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', 0);
 
-		if ($forceUpdate || $this->util->compareVersionNumbers($maxFileVersion, $currentVersion) > 0) {
-			$handle = @fopen("$dir/$file", "r");
-			if ($handle) {
-				try {
-					$oldLine = '';
-					while (($line = fgets($handle)) !== false) {
-						$line = trim($line);
-						// don't process comment lines or blank lines
-						if ($line != '' && substr($line, 0, 1) != "#" && substr($line, 0, 2) != "--") {
-							// If the line doesn't end with a ; we keep the value and add new lines
-							// to it until we hit a ;
-							if (substr($line, -1) !== ';') {
-								$oldLine .= "$line\n";
-							} else {
-								$this->exec($oldLine.$line);
-								$oldLine = '';
-							}
-						}
-					}
-
-					$this->settingManager->save($settingName, $maxFileVersion);
-
-					if ($maxFileVersion != 0) {
-						$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
-						$this->logger->log('DEBUG', $msg);
-					} else {
-						$msg = "Updated '$name' database";
-						$this->logger->log('DEBUG', $msg);
-					}
-				} catch (SQLException $e) {
-					$msg = "Error loading sql file '$file': " . $e->getMessage();
-					$this->logger->log('ERROR', $msg);
-				}
-			} else {
-				$msg = "Could not load SQL file: '$dir/$file'";
-				$this->logger->log('ERROR', $msg);
-			}
-		} else {
+		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
 			$msg = "'$name' database already up to date! version: '$currentVersion'";
 			$this->logger->log('DEBUG', $msg);
+			return $msg;
+		}
+		$handle = @fopen("$dir/$file", "r");
+		if ($handle === false) {
+			$msg = "Could not load SQL file: '$dir/$file'";
+			$this->logger->log('ERROR', $msg);
+			return $msg;
+		}
+		try {
+			$oldLine = '';
+			while (($line = fgets($handle)) !== false) {
+				$line = trim($line);
+				// don't process comment lines or blank lines
+				if ($line === '' || substr($line, 0, 1) === "#" || substr($line, 0, 2) === "--") {
+					continue;
+				}
+				// If the line doesn't end with a ; we keep the value and add new lines
+				// to it until we hit a ;
+				if (substr($line, -1) !== ';') {
+					$oldLine .= "$line\n";
+				} else {
+					$this->exec($oldLine.$line);
+					$oldLine = '';
+				}
+			}
+
+			$this->settingManager->save($settingName, $maxFileVersion);
+
+			if ($maxFileVersion != 0) {
+				$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
+				$this->logger->log('DEBUG', $msg);
+			} else {
+				$msg = "Updated '$name' database";
+				$this->logger->log('DEBUG', $msg);
+			}
+		} catch (SQLException $e) {
+			$msg = "Error loading sql file '$file': " . $e->getMessage();
+			$this->logger->log('ERROR', $msg);
 		}
 
 		return $msg;
@@ -425,11 +468,8 @@ class DB {
 
 	/**
 	 * Check if a table exists in the database
-	 *
-	 * @param string $tableName
-	 * @return bool
 	 */
-	public function tableExists($tableName) {
+	public function tableExists(string $tableName): bool {
 		if ($this->getType() === static::SQLITE) {
 			return $this->queryRow(
 				"SELECT COUNT(*) AS `exists` ".

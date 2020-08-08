@@ -1,11 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\USAGE;
 
-use Nadybot\Core\Event;
+use Nadybot\Core\{
+	BotRunner,
+	CommandReply,
+	DB,
+	EventManager,
+	Http,
+	Nadybot,
+	SettingManager,
+	SQLException,
+	Text,
+	Util,
+};
 use stdClass;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\BotRunner;
 
 /**
  * @author Tyrence (RK2)
@@ -26,49 +35,28 @@ class UsageController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
+	/** @Inject */
+	public Http $http;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\EventManager $eventManager
-	 * @Inject
-	 */
-	public $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	/**
 	 * @Setup
@@ -76,9 +64,32 @@ class UsageController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'usage');
 		
-		$this->settingManager->add($this->moduleName, "record_usage_stats", "Record usage stats", "edit", "options", "1", "true;false", "1;0");
-		$this->settingManager->add($this->moduleName, 'botid', 'Botid', 'noedit', 'text', '');
-		$this->settingManager->add($this->moduleName, 'last_submitted_stats', 'last_submitted_stats', 'noedit', 'text', 0);
+		$this->settingManager->add(
+			$this->moduleName,
+			"record_usage_stats",
+			"Record usage stats",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'botid',
+			'Botid',
+			'noedit',
+			'text',
+			''
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'last_submitted_stats',
+			'last_submitted_stats',
+			'noedit',
+			'text',
+			'0'
+		);
 	}
 	
 	/**
@@ -86,17 +97,16 @@ class UsageController {
 	 * @Matches("/^usage player ([0-9a-z-]+)$/i")
 	 * @Matches("/^usage player ([0-9a-z-]+) ([a-z0-9]+)$/i")
 	 */
-	public function usagePlayerCommand($message, $channel, $sender, $sendto, $args) {
-		if (count($args) == 3) {
+	public function usagePlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$time = 604800;
+		if (count($args) === 3) {
 			$time = $this->util->parseTime($args[2]);
-			if ($time == 0) {
+			if ($time === 0) {
 				$msg = "Please enter a valid time.";
 				$sendto->reply($msg);
 				return;
 			}
 			$time = $time;
-		} else {
-			$time = 604800;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($time);
@@ -111,7 +121,7 @@ class UsageController {
 		if ($count > 0) {
 			$blob = '';
 			foreach ($data as $row) {
-				$blob .= "<highlight>{$row->command}<end> ({$row->count})\n";
+				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->command}<end>\n";
 			}
 
 			$msg = $this->text->makeBlob("Usage for $player - $timeString ($count)", $blob);
@@ -126,17 +136,16 @@ class UsageController {
 	 * @Matches("/^usage cmd ([0-9a-z_-]+)$/i")
 	 * @Matches("/^usage cmd ([0-9a-z_-]+) ([a-z0-9]+)$/i")
 	 */
-	public function usageCmdCommand($message, $channel, $sender, $sendto, $args) {
-		if (count($args) == 3) {
+	public function usageCmdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$time = 604800;
+		if (count($args) === 3) {
 			$time = $this->util->parseTime($args[2]);
-			if ($time == 0) {
+			if ($time === 0) {
 				$msg = "Please enter a valid time.";
 				$sendto->reply($msg);
 				return;
 			}
 			$time = $time;
-		} else {
-			$time = 604800;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($time);
@@ -151,7 +160,7 @@ class UsageController {
 		if ($count > 0) {
 			$blob = '';
 			foreach ($data as $row) {
-				$blob .= "<highlight>{$row->sender}<end> ({$row->count})\n";
+				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->sender}<end>\n";
 			}
 
 			$msg = $this->text->makeBlob("Usage for $cmd - $timeString ($count)", $blob);
@@ -166,8 +175,9 @@ class UsageController {
 	 * @Matches("/^usage$/i")
 	 * @Matches("/^usage ([a-z0-9]+)$/i")
 	 */
-	public function usageCommand($message, $channel, $sender, $sendto, $args) {
-		if (count($args) == 2) {
+	public function usageCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$time = 604800;
+		if (count($args) === 2) {
 			$time = $this->util->parseTime($args[1]);
 			if ($time == 0) {
 				$msg = "Please enter a valid time.";
@@ -175,8 +185,6 @@ class UsageController {
 				return;
 			}
 			$time = $time;
-		} else {
-			$time = 604800;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($time);
@@ -189,12 +197,12 @@ class UsageController {
 		
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
-			if ($row->type == "msg") {
-				$blob .= "Number of commands executed in tells: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type == "priv") {
-				$blob .= "Number of commands executed in private channel: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type == "guild") {
-				$blob .= "Number of commands executed in guild channel: <highlight>$row->cnt<end>\n";
+			if ($row->type === "msg") {
+				$blob .= "<tab>Number of commands executed in tells: <highlight>$row->cnt<end>\n";
+			} elseif ($row->type === "priv") {
+				$blob .= "<tab>Number of commands executed in private channel: <highlight>$row->cnt<end>\n";
+			} elseif ($row->type === "guild") {
+				$blob .= "<tab>Number of commands executed in guild channel: <highlight>$row->cnt<end>\n";
 			}
 		}
 		$blob .= "\n";
@@ -206,7 +214,8 @@ class UsageController {
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
 		foreach ($data as $row) {
 			$commandLink = $this->text->makeChatcmd($row->command, "/tell <myname> usage cmd $row->command");
-			$blob .= "{$commandLink} ({$row->count})\n";
+			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
+				" $commandLink\n";
 		}
 
 		// users who have used the most commands
@@ -216,16 +225,21 @@ class UsageController {
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
 		foreach ($data as $row) {
 			$senderLink = $this->text->makeChatcmd($row->sender, "/tell <myname> usage player $row->sender");
-			$blob .= "{$senderLink} ({$row->count})\n";
+			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
+				" $senderLink\n";
 		}
 
 		$msg = $this->text->makeBlob("Usage Statistics - $timeString", $blob);
 		$sendto->reply($msg);
 	}
 
-	public function record($type, $cmd, $sender, $handler) {
+	/**
+	 * Record the use of a command $cmd by player $sender
+	 * @throws SQLException
+	 */
+	public function record(string $type, string $cmd, string $sender, string $handler): void {
 		// don't record stats for !grc command or command aliases
-		if ($cmd == 'grc' || "CommandAlias.process" == $handler) {
+		if ($cmd === 'grc' || "CommandAlias.process" === $handler) {
 			return;
 		}
 
@@ -233,54 +247,60 @@ class UsageController {
 		$this->db->exec($sql, $type, $cmd, $sender, time());
 	}
 
-	public function getUsageInfo($lastSubmittedStats, $now, $debug=false) {
+	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
 		global $version;
 
-		$botid = $this->settingManager->get('botid');
-		if ($botid == '') {
+		$botid = $this->settingManager->getString('botid');
+		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
 			$this->settingManager->save('botid', $botid);
 		}
 
-		$sql = "SELECT type, command FROM usage_<myname> WHERE dt >= ? AND dt < ?";
-		$data = $this->db->query($sql, $lastSubmittedStats, $now);
+		$sql = "SELECT command, COUNT(*) AS count FROM usage_<myname> WHERE dt >= ? AND dt < ? GROUP BY command";
+		$commands = array_reduce(
+			$this->db->query($sql, $lastSubmittedStats, $now),
+			function($carry, $entry) {
+				$carry->{$entry->command} = $entry->count;
+				return $carry;
+			},
+			new stdClass()
+		);
 
-		$settings = array();
-		$settings['dimension'] = $this->chatBot->vars['dimension'];
-		$settings['is_guild_bot'] = ($this->chatBot->vars['my_guild'] == '' ? '0' : '1');
-		$settings['guildsize'] = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
-		$settings['using_chat_proxy'] = $this->chatBot->vars['use_proxy'];
-		$settings['db_type'] = $this->db->getType();
-		$settings['bot_version'] = $version;
-		$settings['using_git'] = (int)file_exists(dirname(__DIR__) . "/GIT_MODULE/GitController.class.php");
-		$settings['os'] = (BotRunner::isWindows() === true ? 'Windows' : 'Other');
-		
-		$settings['symbol'] = $this->settingManager->get('symbol');
-		$settings['relay_enabled'] = ($this->settingManager->get('relaybot') == 'Off' ? '0' : '1');
-		$settings['relay_type'] = $this->settingManager->get('relaytype');
-		$settings['first_and_last_alt_only'] = $this->settingManager->get('first_and_last_alt_only');
-		$settings['aodb_db_version'] = $this->settingManager->get('aodb_db_version');
-		$settings['max_blob_size'] = $this->settingManager->get('max_blob_size');
-		$settings['online_show_org_guild'] = $this->settingManager->get('online_show_org_guild');
-		$settings['online_show_org_priv'] = $this->settingManager->get('online_show_org_priv');
-		$settings['online_admin'] = $this->settingManager->get('online_admin');
-		$settings['relay_symbol_method'] = $this->settingManager->get('relay_symbol_method');
-		$settings['http_server_enable'] = ($this->eventManager->getKeyForCronEvent("60", "httpservercontroller.startHTTPServer") != null ? "1" : "0");
-		$settings['tower_attack_spam'] = $this->settingManager->get('tower_attack_spam');
+		$settings = new SettingsUsageStats();
+		$settings->dimension               = (int)$this->chatBot->vars['dimension'];
+		$settings->is_guild_bot            = $this->chatBot->vars['my_guild'] !== '';
+		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
+		$settings->using_chat_proxy        = (bool)$this->chatBot->vars['use_proxy'];
+		$settings->db_type                 = $this->db->getType();
+		$settings->bot_version             = $version;
+		$settings->using_git               = @file_exists(dirname(__DIR__) . "/GIT_MODULE/GitController.class.php");
+		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
+		$settings->symbol                  = $this->settingManager->getString('symbol');
+		$settings->relay_enabled           = $this->settingManager->getString('relaybot') !== 'Off';
+		$settings->relay_type              = $this->settingManager->getInt('relaytype');
+		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only');
+		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version');
+		$settings->max_blob_size           = $this->settingManager->getInt('max_blob_size');
+		$settings->online_show_org_guild   = $this->settingManager->getInt('online_show_org_guild');
+		$settings->online_show_org_priv    = $this->settingManager->getInt('online_show_org_priv');
+		$settings->online_admin            = $this->settingManager->getBool('online_admin');
+		$settings->relay_symbol_method     = $this->settingManager->getInt('relay_symbol_method');
+		$settings->tower_attack_spam       = $this->settingManager->getInt('tower_attack_spam');
+		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
-		$obj = new stdClass;
-		$obj->id = sha1($botid . $this->chatBot->vars['name'] . $this->chatBot->vars['dimension']);
-		$obj->version = "2";
-		$obj->debug = ($debug == true ? '1' : '0');
-		$obj->commands = $data;
+		$obj = new UsageStats();
+		$obj->id       = sha1($botid . $this->chatBot->vars['name'] . $this->chatBot->vars['dimension']);
+		$obj->version  = 2;
+		$obj->debug    = $debug;
+		$obj->commands = $commands;
 		$obj->settings = $settings;
 
 		return $obj;
 	}
 
-	public function getGuildSizeClass($size) {
-		$guildClass = "";
-		if ($size == 0) {
+	public function getGuildSizeClass(int $size): string {
+		$guildClass = "class7";
+		if ($size === 0) {
 			$guildClass = "class0";
 		} elseif ($size < 10) {
 			$guildClass = "class1";

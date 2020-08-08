@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -9,8 +9,8 @@ interface CommandReply {
 	/**
 	 * Send a reply to the channel (tell, guild, priv) where the command was received
 	 *
-	 * @param string $msg
+	 * @param string|string[] $msg
 	 * @return void
 	 */
-	public function reply($msg);
+	public function reply($msg): void;
 }

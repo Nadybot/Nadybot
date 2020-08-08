@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -15,20 +15,14 @@ namespace Nadybot\Core;
  */
 class SocketNotifier {
 	private $socket;
-	private $type;
+	private int $type;
 	private $callback;
 
-	const ACTIVITY_READ = 1;  // there is
+	const ACTIVITY_READ  = 1;
 	const ACTIVITY_WRITE = 2;
 	const ACTIVITY_ERROR = 4;
 
-	/**
-	 * Constructor method.
-	 * @param $socket   the socket to listen
-	 * @param $type     type of activity
-	 * @param $callback the callback which is called on socket activity
-	 */
-	public function __construct($socket, $type, $callback) {
+	public function __construct($socket, int $type, callable $callback) {
 		$this->socket   = $socket;
 		$this->type     = $type;
 		$this->callback = $callback;
@@ -44,14 +38,14 @@ class SocketNotifier {
 	/**
 	 * Returns type of the activity.
 	 */
-	public function getType() {
+	public function getType(): int {
 		return $this->type;
 	}
 
 	/**
 	 * Calls the callback and passes given @a $type to the callback.
 	 */
-	public function notify($type) {
+	public function notify(int $type): void {
 		call_user_func($this->callback, $type);
 	}
 }

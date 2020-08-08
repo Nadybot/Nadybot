@@ -1,8 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\AutoInject;
+use Nadybot\Core\{
+	CommandReply,
+	LoggerWrapper,
+	Nadybot,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -17,25 +21,25 @@ use Nadybot\Core\AutoInject;
  *		help        = 'sendtell.txt'
  *	)
  */
-class SendTellController extends AutoInject {
+class SendTellController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
-	}
+	/** @Logger */
+	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 	
 	/**
 	 * @HandlesCommand("sendtell")
 	 * @Matches("/^sendtell ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function sendtellCommand($message, $channel, $sender, $sendto, $args) {
+	public function sendtellCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$message = $args[2];
 		

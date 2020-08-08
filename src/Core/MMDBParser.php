@@ -1,24 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 /**
- * @name: MMDBParser
+ * Reads entries from the text.mdb file
+ *
  * @author: Tyrence (RK2)
- * @description: reads entries from the text.mdb file
  */
 class MMDBParser {
-	private $mmdb = array();
-	private $file;
+	private array $mmdb = array();
 	
-	private $logger;
+	private LoggerWrapper $logger;
 	
 	public function __construct($file) {
-		$this->file = $file;
 		$this->logger = new LoggerWrapper('MMDBParser');
 	}
 
-	public function getMessageString($categoryId, $instanceId) {
+	public function getMessageString(int $categoryId, int $instanceId) {
 		// check for entry in cache
 		if (isset($this->mmdb[$categoryId][$instanceId])) {
 			return $this->mmdb[$categoryId][$instanceId];
@@ -55,7 +53,7 @@ class MMDBParser {
 		return $message;
 	}
 
-	public function findAllInstancesInCategory($categoryId) {
+	public function findAllInstancesInCategory(int $categoryId) {
 		$in = $this->openFile();
 		if ($in === null) {
 			return null;
@@ -87,7 +85,10 @@ class MMDBParser {
 		return $instances;
 	}
 	
-	public function getCategories() {
+	/**
+	 * @return array<array<string,int>>
+	 */
+	public function getCategories(): array {
 		$in = $this->openFile();
 		if ($in === null) {
 			return null;
@@ -111,7 +112,12 @@ class MMDBParser {
 		return $categories;
 	}
 
-	private function openFile($filename="data/text.mdb") {
+	/**
+	 * Open the MMDB file and return the resource of it
+	 *
+	 * @return null|resource
+	 */
+	private function openFile(string $filename="data/text.mdb") {
 		$in = fopen($filename, 'rb');
 		if (!$in) {
 			$this->logger->log('error', "Could not open file: '{$filename}'");
@@ -121,7 +127,7 @@ class MMDBParser {
 
 		// make sure first 4 chars are 'MMDB'
 		$entry = $this->readEntry($in);
-		if ($entry['id'] != 1111772493) {
+		if ($entry['id'] !== 1111772493) {
 			$this->logger->log('error', "Not an mmdb file: '{$filename}'");
 			fclose($in);
 			return null;
@@ -130,7 +136,15 @@ class MMDBParser {
 		return $in;
 	}
 
-	private function findEntry($in, $id, $offset) {
+	/**
+	 * Find an entry in the MMDB
+	 *
+	 * @param resource $in The resource of the file
+	 * @param int $id The category ID
+	 * @param int $offset Offset where to read
+	 * @return null|array<string,int>
+	 */
+	private function findEntry($in, int $id, int $offset): ?array {
 		fseek($in, $offset);
 		$entry = null;
 
@@ -147,17 +161,17 @@ class MMDBParser {
 	}
 
 	/**
-	 * @returns array($id, $offset)
+	 * @return array<string,int>
 	 */
 	private function readEntry($in) {
 		return array('id' => $this->readLong($in), 'offset' => $this->readLong($in));
 	}
 
-	private function readLong($in) {
+	private function readLong($in): int {
 		return array_pop(unpack("L", fread($in, 4)));
 	}
 
-	private function readString($in) {
+	private function readString($in): string {
 		$message = '';
 		$char = '';
 

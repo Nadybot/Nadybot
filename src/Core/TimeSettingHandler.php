@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -8,34 +8,20 @@ use Exception;
  * Class to represent a time setting for BudaBot
  */
 class TimeSettingHandler extends SettingHandler {
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
 	/**
-	 * Construct a new handler out of a given database row
-	 *
-	 * @param \Nadybot\Core\DBRow $row The database row
+	 * @inheritDoc
 	 */
-	public function __construct(DBRow $row) {
-		parent::__construct($row);
+	public function displayValue(): string {
+		return "<highlight>" . $this->util->unixtimeToReadable((int)$this->row->value) . "<end>";
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function displayValue() {
-		return "<highlight>" . $this->util->unixtimeToReadable($this->row->value) . "<end>";
-	}
-
-	/**
-	 * Describe the valid values for this setting
-	 *
-	 * @return string
-	 */
-	public function getDescription() {
+	public function getDescription(): string {
 		$msg = "For this setting you must enter a time value. See <a href='chatcmd:///tell <myname> help budatime'>budatime</a> for info on the format of the 'time' parameter.\n\n";
 		$msg .= "To change this setting:\n\n";
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>time</i><end>\n\n";
@@ -44,13 +30,17 @@ class TimeSettingHandler extends SettingHandler {
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @throws \Exception when the time is invalid
 	 */
-	public function save($newValue) {
+	public function save(string $newValue): string {
+		if ($this->util->isInteger($newValue)) {
+			return $newValue;
+		}
 		$time = $this->util->parseTime($newValue);
 		if ($time > 0) {
-			return $time;
-		} else {
-			throw new Exception("This is not a valid time for this setting.");
+			return (string)$time;
 		}
+		throw new Exception("This is not a valid time for this setting.");
 	}
 }

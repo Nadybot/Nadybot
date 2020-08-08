@@ -85,6 +85,7 @@
 
     <!-- Short form of type keywords MUST be used i.e. bool instead of boolean, int instead of integer etc. -->
     <!-- checked by PSR12.Keywords.ShortFormTypeKeywords -->
+    <rule ref="PSR12.Keywords.ShortFormTypeKeywords"/>
 
     <!-- 3. Declare Statements, Namespace, and Import Statements -->
 
@@ -158,6 +159,7 @@
     <rule ref="PSR2.Classes.PropertyDeclaration"/>
 
     <!-- Visibility MUST be declared on all constants if your project PHP minimum version supports constant visibilities (PHP 7.1 or later). -->
+    <rule ref="PSR12.Properties.ConstantVisibility"/>
     <!-- checked by PSR12.Properties.ConstantVisibility -->
 
     <!-- 4.4 Methods and Functions -->
@@ -201,9 +203,11 @@
 
     <!-- When you have a return type declaration present, there MUST be one space after the colon followed by the type declaration. The colon and declaration MUST be on the same line as the argument list closing parenthesis with no spaces between the two characters. -->
     <!-- checked by PSR12.Functions.ReturnTypeDeclaration -->
+    <rule ref="PSR12.Functions.ReturnTypeDeclaration"/>
 
     <!-- In nullable type declarations, there MUST NOT be a space between the question mark and the type. -->
     <!-- checked by PSR12.Functions.NullableTypeDeclaration -->
+    <rule ref="PSR12.Functions.NullableTypeDeclaration"/>
 
     <!-- 4.6 abstract, final, and static -->
 
@@ -354,11 +358,14 @@
 
     <!-- If a return type is present, it MUST follow the same rules as with normal functions and methods; if the use keyword is present, the colon MUST follow the use list closing parentheses with no spaces between the two characters. -->
     <!-- checked by PSR12.Functions.ReturnTypeDeclaration -->
+    <rule ref="PSR12.Functions.ReturnTypeDeclaration"/>
 
     <!-- 8. Anonymous Classes -->
 
     <!-- Anonymous Classes MUST follow the same guidelines and principles as closures in the above section. -->
     <!-- The opening brace MAY be on the same line as the class keyword so long as the list of implements interfaces does not wrap. If the list of interfaces wraps, the brace MUST be placed on the line immediately following the last interface. -->
     <!-- checked by PSR12.Classes.AnonClassDeclaration -->
+    <rule ref="PSR12.Classes.AnonClassDeclaration"/>
 
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 </ruleset>

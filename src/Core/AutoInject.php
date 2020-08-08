@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -146,10 +146,9 @@ class AutoInject {
 	/**
 	 * If there is a registered instance with the same name as the attribute, return it
 	 *
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function __get($name) {
+	public function __get(string $name) {
 		if ($name == 'logger') {
 			$tag = Registry::formatName(get_class($this));
 			$instance = new LoggerWrapper($tag);

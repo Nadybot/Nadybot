@@ -333,7 +333,7 @@ class NanoController {
 			}
 		}
 		$sql = "SELECT
-			distinct school,strain
+			distinct school,strain,froob_friendly
 		FROM
 			nanos
 		WHERE

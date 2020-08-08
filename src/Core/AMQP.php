@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -24,59 +24,42 @@ use Exception;
  * @Instance
  */
 class AMQP {
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
-	/**
-	 * @var \Nadybot\Core\EventManager $eventManager
-	 * @Inject
-	 */
-	public $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
 
-	/** @var \PhpAmqpLib\Channel\AMQPChannel */
-	protected $channel;
+	protected AMQPChannel $channel;
 
 	/**
 	 * Did we receive a message on our last wait for new messages?
-	 *
-	 * @var bool
 	 */
-	private $lastWaitReceivedMessage = false;
+	private bool $lastWaitReceivedMessage = false;
 
-	/** @var int */
-	protected $lastConnectTry = 0;
+	protected int $lastConnectTry = 0;
 
-	/** @var string */
-	private $queueName;
+	private string $queueName;
 
 	/** @var string[] */
-	private $exchanges = array();
+	private array $exchanges = [];
 
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->queueName = $this->chatBot->vars['name'];
 	}
 
 	/**
 	 * Connect our channel to a new exchange
 	 * Don't try to connect if we're not (yet) connected
-	 *
-	 * @param string $exchange The name of the exchange to connect to
-	 * @return bool Success or not
 	 */
-	public function connectExchange($exchange) {
+	public function connectExchange(string $exchange): bool {
 		if (in_array($exchange, $this->exchanges)) {
 			return true;
 		}
@@ -98,11 +81,8 @@ class AMQP {
 	/**
 	 * Disconnect our channel from an exchange
 	 * Don't try to connect if we're not (yet) connected
-	 *
-	 * @param string $exchange The name of the exchange to be removed from
-	 * @return bool Success or not
 	 */
-	public function disconnectExchange($exchange) {
+	public function disconnectExchange(string $exchange): bool {
 		if (in_array($exchange, $this->exchanges)) {
 			return true;
 		}
@@ -121,10 +101,8 @@ class AMQP {
 
 	/**
 	 * Get the channel object by trying to connect
-	 *
-	 * @return AMQPChannel|null Either the channel object or null if we are disconnected
 	 */
-	public function getChannel() {
+	public function getChannel(): ?AMQPChannel {
 		if (isset($this->channel)) {
 			return $this->channel;
 		}
@@ -180,12 +158,8 @@ class AMQP {
 
 	/**
 	 * Send a message to the configured AMQP exchange
-	 *
-	 * @param string $exchange The exchange to send the text on
-	 * @param string $text The text to send
-	 * @return bool Success or not
 	 */
-	public function sendMessage($exchange, $text) {
+	public function sendMessage(string $exchange, string $text): bool {
 		$channel = $this->getChannel();
 		if ($channel === null) {
 			return false;
@@ -217,10 +191,8 @@ class AMQP {
 
 	/**
 	 * Register us as listeners for new messages
-	 *
-	 * @return bool Success or not
 	 */
-	public function listenForMessages() {
+	public function listenForMessages(): bool {
 		$channel = $this->getChannel();
 		if ($channel === null) {
 			return false;
@@ -244,11 +216,8 @@ class AMQP {
 
 	/**
 	 * Handle incoming AMQP messages by firing the @amqp event
-	 *
-	 * @param AMQPMessage $message The received message
-	 * @return void
 	 */
-	public function handleIncomingMessage(AMQPMessage $message) {
+	public function handleIncomingMessage(AMQPMessage $message): void {
 		$this->lastWaitReceivedMessage = true;
 		$sender = $message->delivery_info['routing_key'];
 		$exchange = $message->delivery_info['exchange'];
@@ -268,10 +237,8 @@ class AMQP {
 	/**
 	 * Process all messages currently in the AMQP queue for us
 	 * Will also handle initial connect and reconnects
-	 *
-	 * @return void
 	 */
-	public function processMessages() {
+	public function processMessages(): void {
 		$channel = $this->getChannel();
 		if ($channel === null || !$channel->is_consuming()) {
 			return;

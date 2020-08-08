@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -6,17 +6,14 @@ namespace Nadybot\Core;
  * @Instance("setting")
  */
 class SettingObject {
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	public function __set($name, $value) {
+	public function __set(string $name, $value): bool {
 		return $this->settingManager->save($name, $value);
 	}
 
-	public function __get($name) {
+	public function __get(string $name) {
 		return $this->settingManager->get($name);
 	}
 }

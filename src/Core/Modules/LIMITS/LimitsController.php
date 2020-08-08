@@ -1,6 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\LIMITS;
+
+use Nadybot\Core\{
+	AccessManager,
+	LoggerWrapper,
+	Nadybot,
+	SettingManager,
+	Util,
+};
+use Nadybot\Core\Modules\PLAYER_LOOKUP\{
+	PlayerHistoryManager,
+	PlayerManager,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -12,55 +24,31 @@ class LimitsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
-	 * @Inject
-	 */
-	public $playerHistoryManager;
+	/** @Inject */
+	public PlayerHistoryManager $playerHistoryManager;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Modules\LIMITS\RateIgnoreController $rateIgnoreController
-	 * @Inject
-	 */
-	public $rateIgnoreController;
+	/** @Inject */
+	public RateIgnoreController $rateIgnoreController;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
 	/**
 	 * @Setup
@@ -108,52 +96,57 @@ class LimitsController {
 		);
 	}
 	
-	public function check($sender, $message) {
-		if (preg_match("/^about$/i", $message)) {
-			$msg = true;
-		} elseif ($this->rateIgnoreController->check($sender) || $sender == ucfirst(strtolower($this->settingManager->get("relaybot")))) {
-			$msg = true;
-		} elseif ($this->accessManager->checkAccess($sender, 'member')) {
+	/**
+	 * Check if $sender is allowed to send $message
+	 */
+	public function check(string $sender, string $message): bool {
+		if (
+			preg_match("/^about$/i", $message)
+			|| $this->rateIgnoreController->check($sender)
+			|| $sender === ucfirst(strtolower($this->settingManager->get("relaybot")))
 			// if access level is at least member, skip checks
-			$msg = true;
-		} else {
-			$msg = $this->runChecks($sender);
+			|| $this->accessManager->checkAccess($sender, 'member')
+			|| ($msg = $this->getAccessErrorMessage($sender)) === null
+		) {
+			return true;
 		}
 	
-		if ($msg === true) {
-			return true;
-		} else {
-			$this->logger->log('Info', "$sender denied access to bot due to: $msg");
+		$this->logger->log('Info', "$sender denied access to bot due to: $msg");
 
-			$this->handleLimitCheckFail($msg, $sender);
+		$this->handleLimitCheckFail($msg, $sender);
 
-			list($cmd, $params) = explode(' ', $message, 2);
-			$cmd = strtolower($cmd);
+		$cmd = explode(' ', $message, 2)[0];
+		$cmd = strtolower($cmd);
 
-			if ($this->settingManager->get('access_denied_notify_guild') == 1) {
-				$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-			}
-			if ($this->settingManager->get('access_denied_notify_priv') == 1) {
-				$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-			}
-
-			return false;
+		if ($this->settingManager->getBool('access_denied_notify_guild')) {
+			$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
 		}
+		if ($this->settingManager->getBool('access_denied_notify_priv')) {
+			$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
+		}
+
+		return false;
 	}
 	
-	public function handleLimitCheckFail($msg, $sender) {
-		if ($this->settingManager->get('tell_error_msg_type') == 2) {
+	/**
+	 * React to a $sender being denied to send $msg to us
+	 */
+	public function handleLimitCheckFail(string $msg, string $sender): void {
+		if ($this->settingManager->getInt('tell_error_msg_type') === 2) {
 			$this->chatBot->sendTell($msg, $sender);
-		} elseif ($this->settingManager->get('tell_error_msg_type') == 1) {
+		} elseif ($this->settingManager->getInt('tell_error_msg_type') === 1) {
 			$msg = "Error! You do not have access to this bot.";
 			$this->chatBot->sendTell($msg, $sender);
-		} else {
-			// else do not send a message
 		}
 	}
 
-	public function runChecks($sender) {
-		if ($this->settingManager->get("tell_req_lvl") != 0 || $this->settingManager->get("tell_req_faction") != "all") {
+	/**
+	 * Check if $sender is allowed to run commands on the bot
+	 */
+	public function getAccessErrorMessage(string $sender): ?string {
+		$tellReqFaction = $this->settingManager->get('tell_req_faction');
+		$tellReqLevel = $this->settingManager->getInt('tell_req_lvl');
+		if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
 			// get player info which is needed for following checks
 			$whois = $this->playerManager->getByName($sender);
 			if ($whois === null) {
@@ -161,49 +154,41 @@ class LimitsController {
 			}
 
 			// check minlvl
-			if ($this->settingManager->get("tell_req_lvl") != 0 && $this->settingManager->get("tell_req_lvl") > $whois->level) {
-				return "Error! You must be at least level <highlight>" . $this->settingManager->get("tell_req_lvl") . "<end>.";
+			if ($tellReqLevel > 0 && $tellReqLevel > $whois->level) {
+				return "Error! You must be at least level <highlight>$tellReqLevel<end>.";
 			}
 
 			// check faction limit
 			if (
-				(
-					$this->settingManager->get("tell_req_faction") == "Omni"
-					|| $this->settingManager->get("tell_req_faction") == "Clan"
-					|| $this->settingManager->get("tell_req_faction") == "Neutral"
-				)
-				&& $this->settingManager->get("tell_req_faction") != $whois->faction
+				in_array($tellReqFaction, ["Omni", "Clan", "Neutral"])
+				&& $tellReqFaction !== $whois->faction
 			) {
-				return "Error! You must be <highlight>" . $this->settingManager->get("tell_req_faction") . "<end>.";
-			} elseif (
-				$this->settingManager->get("tell_req_faction") == "not Omni"
-				|| $this->settingManager->get("tell_req_faction") == "not Clan"
-				|| $this->settingManager->get("tell_req_faction") == "not Neutral"
-			) {
-				$tmp = explode(" ", $this->settingManager->get("tell_req_faction"));
-				if ($tmp[1] == $whois->faction) {
-					return "Error! You must not be <highlight>{$tmp[1]}<end>.";
+				return "Error! You must be <".strtolower($tellReqFaction).">$tellReqFaction<end>.";
+			}
+			if (in_array($tellReqFaction, ["not Omni", "not Clan", "not Neutral"])) {
+				$tmp = explode(" ", $tellReqFaction);
+				if ($tmp[1] === $whois->faction) {
+					return "Error! You must not be <".strtolower($tmp[1]).">{$tmp[1]}<end>.";
 				}
 			}
 		}
 		
 		// check player age
-		if ($this->settingManager->get("tell_min_player_age") > 1) {
-			$history = $this->playerHistoryManager->lookup($sender, $this->chatBot->vars['dimension']);
+		if ($this->settingManager->getInt("tell_min_player_age") > 1) {
+			$history = $this->playerHistoryManager->lookup($sender, (int)$this->chatBot->vars['dimension']);
 			if ($history === null) {
 				return "Error! Unable to get your character history for limit checks. Please try again later.";
-			} else {
-				$minAge = time() - $this->settingManager->get("tell_min_player_age");
-				$entry = array_pop($history->data);
-				// TODO check for rename
+			}
+			$minAge = time() - $this->settingManager->getInt("tell_min_player_age");
+			$entry = array_pop($history->data);
+			// TODO check for rename
 
-				if ($entry->last_changed > $minAge) {
-					$timeString = $this->util->unixtimeToReadable($this->settingManager->get("tell_min_player_age"));
-					return "Error! You must be at least <highlight>$timeString<end> old.";
-				}
+			if ($entry->last_changed > $minAge) {
+				$timeString = $this->util->unixtimeToReadable($this->settingManager->getInt("tell_min_player_age"));
+				return "Error! You must be at least <highlight>$timeString<end> old.";
 			}
 		}
 		
-		return true;
+		return null;
 	}
 }

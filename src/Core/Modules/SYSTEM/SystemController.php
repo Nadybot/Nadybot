@@ -1,9 +1,27 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Event;
-use Nadybot\Core\PrivateMessageCommandReply;
+use Nadybot\Core\{
+	AccessManager,
+	AdminManager,
+	BuddylistManager,
+	CommandAlias,
+	CommandManager,
+	CommandReply,
+	DB,
+	Event,
+	EventManager,
+	HelpManager,
+	LoggerWrapper,
+	Nadybot,
+	PrivateMessageCommandReply,
+	SettingManager,
+	SubcommandManager,
+	Text,
+	Util,
+};
+use Nadybot\Core\Annotations\Setting;
 
 /**
  * @author Sebuda (RK2)
@@ -63,91 +81,49 @@ class SystemController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\AdminManager $adminManager
-	 * @Inject
-	 */
-	public $adminManager;
+	/** @Inject */
+	public AdminManager $adminManager;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 	
-	/**
-	 * @var \Nadybot\Core\EventManager $eventManager
-	 * @Inject
-	 */
-	public $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
-	/**
-	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
-	 * @Inject
-	 */
-	public $subcommandManager;
+	/** @Inject */
+	public SubcommandManager $subcommandManager;
 
-	/**
-	 * @var \Nadybot\Core\HelpManager $helpManager
-	 * @Inject
-	 */
-	public $helpManager;
+	/** @Inject */
+	public HelpManager $helpManager;
 	
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * @Setting("symbol")
@@ -157,7 +133,7 @@ class SystemController {
 	 * @Options("!;#;*;@;$;+;-")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultSymbol = "!";
+	public string $defaultSymbol = "!";
 
 	/**
 	 * @Setting("max_blob_size")
@@ -168,7 +144,7 @@ class SystemController {
 	 * @AccessLevel("mod")
 	 * @Help("max_blob_size.txt")
 	 */
-	public $defaultMaxBlobSize = "7500";
+	public string $defaultMaxBlobSize = "7500";
 
 	/**
 	 * @Setting("http_timeout")
@@ -178,7 +154,7 @@ class SystemController {
 	 * @Options("1s;2s;5s;10s;30s")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultHttpTimeout = "10s";
+	public string $defaultHttpTimeout = "10s";
 
 	/**
 	 * @Setting("guild_channel_status")
@@ -189,7 +165,7 @@ class SystemController {
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultGuildChannelStatus = "1";
+	public string $defaultGuildChannelStatus = "1";
 
 	/**
 	 * @Setting("guild_channel_cmd_feedback")
@@ -200,7 +176,7 @@ class SystemController {
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultGuildChannelCmdFeedback = "1";
+	public string $defaultGuildChannelCmdFeedback = "1";
 
 	/**
 	 * @Setting("private_channel_cmd_feedback")
@@ -211,7 +187,7 @@ class SystemController {
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultPrivateChannelCmdFeedback = "1";
+	public string $defaultPrivateChannelCmdFeedback = "1";
 
 	/**
 	 * @Setting("version")
@@ -220,7 +196,7 @@ class SystemController {
 	 * @Type("text")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultVersion = "0";
+	public string $defaultVersion = "0";
 	
 	/**
 	 * @Setting("access_denied_notify_guild")
@@ -231,7 +207,7 @@ class SystemController {
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultAccessDeniedNotifyGuild = "1";
+	public string $defaultAccessDeniedNotifyGuild = "1";
 	
 	/**
 	 * @Setting("access_denied_notify_priv")
@@ -242,27 +218,34 @@ class SystemController {
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultAccessDeniedNotifyPriv = "1";
+	public string $defaultAccessDeniedNotifyPriv = "1";
 
 	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		global $version;
-		$this->settingManager->save('version', $version);
+		$this->settingManager->save('version', $this->chatBot->runner::$version);
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 		
 		$name = $this->chatBot->vars['name'];
-		$this->settingManager->add($this->moduleName, "default_private_channel", "Private channel to process commands from", "edit", "text", $name, $name);
+		$this->settingManager->add(
+			$this->moduleName,
+			"default_private_channel",
+			"Private channel to process commands from",
+			"edit",
+			"text",
+			$name,
+			$name
+		);
 	}
 	
 	/**
 	 * @HandlesCommand("restart")
 	 * @Matches("/^restart$/i")
 	 */
-	public function restartCommand($message, $channel, $sender, $sendto, $args) {
+	public function restartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $sender);
 		$this->chatBot->sendPrivate($msg, true);
@@ -277,7 +260,7 @@ class SystemController {
 	 * @HandlesCommand("shutdown")
 	 * @Matches("/^shutdown$/i")
 	 */
-	public function shutdownCommand($message, $channel, $sender, $sendto, $args) {
+	public function shutdownCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $sender);
 		$this->chatBot->sendPrivate($msg, true);
@@ -292,41 +275,46 @@ class SystemController {
 	 * @HandlesCommand("system")
 	 * @Matches("/^system$/i")
 	 */
-	public function systemCommand($message, $channel, $sender, $sendto, $args) {
-		global $version;
+	public function systemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$version = $this->chatBot->runner::$version;
 
 		$sql = "SELECT count(*) AS count FROM players";
 		$row = $this->db->queryRow($sql);
-		$num_player_cache = $row->count;
+		$numPlayerCache = $row->count;
 
-		$num_buddylist = 0;
+		$numBuddylist = 0;
 		foreach ($this->buddylistManager->buddyList as $key => $value) {
 			if (!isset($value['name'])) {
 				// skip the buddies that have been added but the server hasn't sent back an update yet
 				continue;
 			}
-
-			$num_buddylist++;
+			$numBuddylist++;
 		}
 
-		$blob = "Name: <highlight><myname><end>\n";
-		$blob .= "SuperAdmin: <highlight>'{$this->chatBot->vars['SuperAdmin']}'<end>\n";
-		$blob .= "Guild: <highlight>'<myguild>' (" . $this->chatBot->vars['my_guild_id'] . ")<end>\n\n";
+		$blob = "<header2>Basic Info<end>\n";
+		$blob .= "<tab>Name: <highlight><myname><end>\n";
+		$blob .= "<tab>SuperAdmin: <highlight>{$this->chatBot->vars['SuperAdmin']}<end>\n";
+		if (isset($this->chatBot->vars['my_guild_id'])) {
+			$blob .= "<tab>Guild: <highlight>'<myguild>' (" . $this->chatBot->vars['my_guild_id'] . ")<end>\n\n";
+		} else {
+			$blob .= "<tab>Guild: - <highlight>none<end> -\n";
+		}
 
-		$blob .= "Nadybot: <highlight>$version<end>\n";
-		$blob .= "PHP: <highlight>" . phpversion() . "<end>\n";
-		$blob .= "OS: <highlight>" . php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m') . "<end>\n";
-		$blob .= "Database: <highlight>" . $this->db->getType() . "<end>\n\n";
+		$blob .= "<tab>Nadybot: <highlight>$version<end>\n";
+		$blob .= "<tab>PHP: <highlight>" . phpversion() . "<end>\n";
+		$blob .= "<tab>OS: <highlight>" . php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m') . "<end>\n";
+		$blob .= "<tab>Database: <highlight>" . $this->db->getType() . "<end>\n\n";
 
-		$blob .= "Current Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_usage()) . "<end>\n";
-		$blob .= "Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_usage(1)) . "<end>\n";
-		$blob .= "Peak Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_peak_usage()) . "<end>\n";
-		$blob .= "Peak Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_peak_usage(1)) . "<end>\n\n";
+		$blob .= "<header2>Memory<end>\n";
+		$blob .= "<tab>Current Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_usage()) . "<end>\n";
+		$blob .= "<tab>Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_usage(true)) . "<end>\n";
+		$blob .= "<tab>Peak Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_peak_usage()) . "<end>\n";
+		$blob .= "<tab>Peak Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_peak_usage(true)) . "<end>\n\n";
 		
-		$blob .= "Using Chat Proxy: <highlight>" . ($this->chatBot->vars['use_proxy'] == 1 ? "enabled" : "disabled") . "<end>\n";
-
+		$blob .= "<header2>Misc<end>\n";
 		$date_string = $this->util->unixtimeToReadable(time() - $this->chatBot->vars['startup']);
-		$blob .= "Uptime: <highlight>$date_string<end>\n\n";
+		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($this->chatBot->vars['use_proxy'] == 1 ? "enabled" : "disabled") . "<end>\n";
+		$blob .= "<tab>Uptime: <highlight>$date_string<end>\n\n";
 
 		$eventnum = 0;
 		foreach ($this->eventManager->events as $type => $events) {
@@ -335,25 +323,27 @@ class SystemController {
 
 		$numAliases = count($this->commandAlias->getEnabledAliases());
 
-		$blob .= "Active tell commands: <highlight>" . (count($this->commandManager->commands['msg']) - $numAliases) . "<end>\n";
-		$blob .= "Active private channel commands: <highlight>" . (count($this->commandManager->commands['priv']) - $numAliases) . "<end>\n";
-		$blob .= "Active guild channel commands: <highlight>" . (count($this->commandManager->commands['guild']) - $numAliases) . "<end>\n";
-		$blob .= "Active subcommands: <highlight>" . count($this->subcommandManager->subcommands) . "<end>\n";
-		$blob .= "Active command aliases: <highlight>" . $numAliases . "<end>\n";
-		$blob .= "Active events: <highlight>" . $eventnum . "<end>\n";
-		$blob .= "Active help commands: <highlight>" . count($this->helpManager->getAllHelpTopics(null)) . "<end>\n\n";
+		$blob .= "<header2>Configuration<end>\n";
+		$blob .= "<tab>Active tell commands: <highlight>" . (count($this->commandManager->commands['msg']) - $numAliases) . "<end>\n";
+		$blob .= "<tab>Active private channel commands: <highlight>" . (count($this->commandManager->commands['priv']) - $numAliases) . "<end>\n";
+		$blob .= "<tab>Active guild channel commands: <highlight>" . (count($this->commandManager->commands['guild']) - $numAliases) . "<end>\n";
+		$blob .= "<tab>Active subcommands: <highlight>" . count($this->subcommandManager->subcommands) . "<end>\n";
+		$blob .= "<tab>Active command aliases: <highlight>" . $numAliases . "<end>\n";
+		$blob .= "<tab>Active events: <highlight>" . $eventnum . "<end>\n";
+		$blob .= "<tab>Active help commands: <highlight>" . count($this->helpManager->getAllHelpTopics(null)) . "<end>\n\n";
 
-		$blob .= "Characters on the buddy list: <highlight>$num_buddylist / " . count($this->buddylistManager->buddyList) . "<end>\n";
-		$blob .= "Maximum buddy list size: <highlight>" . $this->chatBot->getBuddyListSize() . "<end>\n";
-		$blob .= "Characters in the private channel: <highlight>" . count($this->chatBot->chatlist) . "<end>\n";
-		$blob .= "Guild members: <highlight>" . count($this->chatBot->guildmembers) . "<end>\n";
-		$blob .= "Character infos in cache: <highlight>" . $num_player_cache . "<end>\n";
-		$blob .= "Messages in the chat queue: <highlight>" . count($this->chatBot->chatqueue->queue) . "<end>\n\n";
+		$blob .= "<header2>Stats<end>\n";
+		$blob .= "<tab>Characters on the buddy list: <highlight>$numBuddylist / " . count($this->buddylistManager->buddyList) . "<end>\n";
+		$blob .= "<tab>Maximum buddy list size: <highlight>" . $this->chatBot->getBuddyListSize() . "<end>\n";
+		$blob .= "<tab>Characters in the private channel: <highlight>" . count($this->chatBot->chatlist) . "<end>\n";
+		$blob .= "<tab>Guild members: <highlight>" . count($this->chatBot->guildmembers) . "<end>\n";
+		$blob .= "<tab>Character infos in cache: <highlight>" . $numPlayerCache . "<end>\n";
+		$blob .= "<tab>Messages in the chat queue: <highlight>" . count($this->chatBot->chatqueue->queue) . "<end>\n\n";
 
-		$blob .= "Public Channels:\n";
+		$blob .= "<header2>Public Channels<end>\n";
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr($gid, 1));
-			$blob .= "<tab><highlight>'{$this->chatBot->gid[$gid]}'<end> (" . ord(substr($gid, 0, 1)) . " " . $string[1] . ")\n";
+			$blob .= "<tab><highlight>{$this->chatBot->gid[$gid]}<end> (" . ord(substr($gid, 0, 1)) . " " . $string[1] . ")\n";
 		}
 
 		$msg = $this->text->makeBlob('System Info', $blob);
@@ -365,48 +355,47 @@ class SystemController {
 	 * @Matches("/^checkaccess$/i")
 	 * @Matches("/^checkaccess (.+)$/i")
 	 */
-	public function checkaccessCommand($message, $channel, $sender, $sendto, $args) {
-		if (isset($args[1])) {
+	public function checkaccessCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$name = $sender;
+		if (count($args) > 1) {
 			$name = ucfirst(strtolower($args[1]));
 			if (!$this->chatBot->get_uid($name)) {
 				$sendto->reply("Character <highlight>{$name}<end> does not exist.");
 				return;
 			}
-		} else {
-			$name = $sender;
 		}
 	
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
 	
-		$msg = "Access level for $name is <highlight>$accessLevel<end>.";
+		$msg = "Access level for <highlight>$name<end> is <highlight>$accessLevel<end>.";
 		$sendto->reply($msg);
 	}
 
 	/**
-	 * This command handler clear outgoing chatqueue from all pending messages.
+	 * This command handler clears outgoing chatqueue from all pending messages.
 	 *
 	 * @HandlesCommand("clearqueue")
 	 */
-	public function clearqueueCommand($message, $channel, $sender, $sendto, $args) {
+	public function clearqueueCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$num = 0;
 		foreach ($this->chatBot->chatqueue->queue as $priority) {
 			$num += count($priority);
 		}
-		$this->chatBot->chatqueue->queue = array();
+		$this->chatBot->chatqueue->queue = [];
 	
 		$sendto->reply("Chat queue has been cleared of $num messages.");
 	}
 
 	/**
-	 * This command handler execute multiple commands at once.
+	 * This command handler execute multiple commands at once, separated by pipes.
 	 *
 	 * @HandlesCommand("macro")
 	 * @Matches("/^macro (.+)$/si")
 	 */
-	public function macroCommand($message, $channel, $sender, $sendto, $args) {
+	public function macroCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$commands = explode("|", $args[1]);
 		foreach ($commands as $commandString) {
-			$this->commandManager->process($channel, $commandString, $sender, $sendto);
+			$this->commandManager->process($channel, trim($commandString), $sender, $sendto);
 		}
 	}
 
@@ -415,11 +404,11 @@ class SystemController {
 	 * @Description("This event handler is called every hour to keep MySQL connection active")
 	 * @DefaultStatus("1")
 	 */
-	public function refreshMySQLConnectionEvent(Event $eventObj) {
+	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->log('DEBUG', "Pinging database");
-		$sql = "SELECT * FROM settings_<myname>";
-		$this->db->query($sql);
+		$sql = "SELECT * FROM settings_<myname> LIMIT 1";
+		$this->db->fetch(Setting::class, $sql);
 	}
 
 	/**
@@ -427,16 +416,16 @@ class SystemController {
 	 * @Description("Notify private channel, guild channel, and admins that bot is online")
 	 * @DefaultStatus("1")
 	 */
-	public function onConnectEvent(Event $eventObj) {
+	public function onConnectEvent(Event $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
-			if ($info["level"] == 4 && $this->buddylistManager->isOnline($name) == 1) {
-				$this->chatBot->sendTell("<myname> is <green>online<end>. For updates or help, see the Webpage at <highlight>https://github.com/Nadybot/Nadybot<end>", $name);
+			if ($info["level"] === 4 && $this->buddylistManager->isOnline($name)) {
+				$this->chatBot->sendTell("<myname> is now <green>online<end>.", $name);
 			}
 		}
 		
-		global $version;
-		$msg = "Nadybot <highlight>$version<end> now <green>online<end>.";
+		$version = $this->chatBot->runner::$version;
+		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
 
 		// send a message to guild channel
 		$this->chatBot->sendGuild($msg, true);
@@ -447,10 +436,14 @@ class SystemController {
 	 * @HandlesCommand("showcommand")
 	 * @Matches("/^showcommand ([^ ]+) (.+)$/i")
 	 */
-	public function showCommandCommand($message, $channel, $sender, $sendto, $args) {
+	public function showCommandCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$cmd = $args[2];
 		$type = "msg";
+		if (!$this->chatBot->get_uid($name)) {
+			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
+			return;
+		}
 	
 		$showSendto = new PrivateMessageCommandReply($this->chatBot, $name);
 		$this->commandManager->process($type, $cmd, $sender, $showSendto);

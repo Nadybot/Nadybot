@@ -1,8 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
+use Nadybot\Core\{
+	CommandManager,
+	CommandReply,
+	LoggerWrapper,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -23,58 +31,38 @@ class LogsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
-
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
-	public function setup() {
-	}
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * @HandlesCommand("logs")
 	 * @Matches("/^logs$/i")
 	 */
-	public function logsCommand($message, $channel, $sender, $sendto, $args) {
-		$files = $this->util->getFilesInDirectory($this->logger->getLoggingDirectory());
+	public function logsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$files = $this->util->getFilesInDirectory(
+			$this->logger->getLoggingDirectory()
+		);
 		sort($files);
 		$blob = '';
 		foreach ($files as $file) {
-			$file_link = $this->text->makeChatcmd($file, "/tell <myname> logs $file");
+			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs $file");
 			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs $file ERROR");
-			$chatLink = $this->text->makeChatcmd("CHAT", "/tell <myname> logs $file CHAT");
-			$blob .= "$file_link [$errorLink] [$chatLink] \n";
+			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs $file CHAT");
+			$blob .= "$fileLink [$errorLink] [$chatLink]\n";
 		}
 
 		$msg = $this->text->makeBlob('Log Files', $blob);
@@ -86,15 +74,14 @@ class LogsController {
 	 * @Matches("/^logs ([a-zA-Z0-9-_\.]+)$/i")
 	 * @Matches("/^logs ([a-zA-Z0-9-_\.]+) (.+)$/i")
 	 */
-	public function logsFileCommand($message, $channel, $sender, $sendto, $args) {
-		$filename = $this->logger->getLoggingDirectory() . "/" . $args[1];
-		$readsize = $this->settingManager->get('max_blob_size') - 500;
+	public function logsFileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $args[1];
+		$readsize = $this->settingManager->getInt('max_blob_size') - 500;
 
 		try {
-			if (isset($args[2])) {
+			$search = ' ';
+			if (count($args) > 2) {
 				$search = $args[2];
-			} else {
-				$search = ' ';
 			}
 			$fileContents = file_get_contents($filename);
 			preg_match_all("/.*({$search}).*/i", $fileContents, $matches);

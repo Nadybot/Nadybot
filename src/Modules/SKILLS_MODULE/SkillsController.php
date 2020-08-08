@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use DOMDocument;
-
 /**
  * @author Tyrence (RK2)
  *

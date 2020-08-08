@@ -1,22 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
-use stdClass;
+class Event {
+	public string $sender;
 
-class Event extends stdClass {
-	/** @var string */
-	public $sender;
+	public string $type;
 
-	/** @var string */
-	public $type;
+	public AOChatPacket $packet;
 
-	/** @var string */
-	public $packet;
+	public string $channel;
 
-	/** @var string */
-	public $channel;
-
-	/** @var string */
-	public $message;
+	public string $message;
 }

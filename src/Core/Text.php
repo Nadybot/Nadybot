@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -7,31 +7,22 @@ namespace Nadybot\Core;
  */
 class Text {
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * Create an interactive string from a list of commands and titles
 	 *
-	 * @param string[] $links An array in the form ["title" => "chat command (/tell ...)"]
+	 * @param array<string,string> $links An array in the form ["title" => "chat command (/tell ...)"]
 	 * @return string A string that combines all links into one
 	 */
-	public function makeHeaderLinks($links) {
+	public function makeHeaderLinks(array $links): string {
 		$output = '';
 		foreach ($links as $title => $command) {
 			$output .= " ::: " . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . " ::: ";
@@ -47,7 +38,7 @@ class Text {
 	 * @param string|null $header If set, use $header as header, otherwise $name
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeBlob($name, $content, $header=null) {
+	public function makeBlob(string $name, string $content, ?string $header=null) {
 		if ($header === null) {
 			$header = $name;
 		}
@@ -66,7 +57,7 @@ class Text {
 			$content = ' ';
 		}
 
-		$pages = $this->paginate($content, $this->settingManager->get("max_blob_size"), array("<pagebreak>", "\n", " "));
+		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), array("<pagebreak>", "\n", " "));
 		$num = count($pages);
 
 		if ($num == 1) {
@@ -91,15 +82,15 @@ class Text {
 	 *
 	 * @param string $name The text part of the clickable link
 	 * @param string $content The content of the info window
-	 * @return string The string with link and reference or an array of strings if the message would be too big
+	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeLegacyBlob($name, $content) {
+	public function makeLegacyBlob(string $name, string $content) {
 		// escape double quotes
 		$content = str_replace('"', '&quot;', $content);
 
 		$content = $this->formatMessage($content);
 
-		$pages = $this->paginate($content, $this->settingManager->get("max_blob_size"), array("<pagebreak>", "\n", " "));
+		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), array("<pagebreak>", "\n", " "));
 		$num = count($pages);
 
 		if ($num == 1) {
@@ -130,7 +121,7 @@ class Text {
 	 * @param string[] $symbols An array of strings at which we allow page breaks
 	 * @return string[] An array of strings with the resulting pages
 	 */
-	public function paginate($input, $maxLength, $symbols) {
+	public function paginate(string $input, int $maxLength, array $symbols): array {
 		if (count($symbols) == 0) {
 			$this->logger->log('ERROR', "Could not successfully page blob due to lack of paging symbols");
 			return $input;
@@ -156,7 +147,7 @@ class Text {
 					$pageSize = 0;
 				}
 
-				$newResult = $this->paginate($line, $maxLength, $symbols);
+				$newResult = $this->paginate($line, (int)$maxLength, $symbols);
 				$result = array_merge($result, $newResult);
 			} elseif ($pageSize + $lineLength < $maxLength) {
 				$currentPage .= $line;
@@ -183,7 +174,7 @@ class Text {
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
 	 * @return string The link
 	 */
-	public function makeChatcmd($name, $content, $style=null) {
+	public function makeChatcmd(string $name, string $content, ?string $style=""): string {
 		$content = str_replace("'", '&#39;', $content);
 		return "<a $style href='chatcmd://$content'>$name</a>";
 	}
@@ -199,7 +190,7 @@ class Text {
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
 	 * @return string The link to the user
 	 */
-	public function makeUserlink($user, $style=null) {
+	public function makeUserlink(string $user, string $style=""): string {
 		return "<a $style href='user://$user'>$user</a>";
 	}
 
@@ -212,7 +203,7 @@ class Text {
 	 * @param string $name The name of the item as it should appear in the created link
 	 * @return string A link to the given item
 	 */
-	public function makeItem($lowId, $highId, $ql, $name) {
+	public function makeItem(int $lowId, int $highId, int $ql, string $name): string {
 		return "<a href='itemref://{$lowId}/{$highId}/{$ql}'>{$name}</a>";
 	}
 
@@ -222,7 +213,7 @@ class Text {
 	 * @param string $db (optional) image database to use, default is the resource database "rdb"
 	 * @return string The image as <img> tag
 	 */
-	public function makeImage($imageId, $db="rdb") {
+	public function makeImage(int $imageId, string $db="rdb"): string {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
@@ -232,7 +223,7 @@ class Text {
 	 * @param string $message The message to format
 	 * @return string The formatted message
 	 */
-	public function formatMessage($message) {
+	public function formatMessage(string $message): string {
 		$array = array(
 			"<header>" => $this->settingManager->get('default_header_color'),
 			"<header2>" => $this->settingManager->get('default_header2_color'),
@@ -274,7 +265,10 @@ class Text {
 	 * @param bool $grouping (optional) Set to group in chunks of thousands/millions, etc.
 	 * @return string The zero-prefixed $number
 	 */
-	public function alignNumber($number, $digits, $colortag=null, $grouping=false) {
+	public function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
+		if ($number === null) {
+			return sprintf("<black>%0{$digits}d<end>", $number);
+		}
 		$prefixedNumber = sprintf("%0${digits}d", $number);
 		if ($grouping) {
 			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ",")), 1);

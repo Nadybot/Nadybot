@@ -1,9 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use StdClass;
 use Exception;
+use Nadybot\Core\{
+	CommandReply,
+	Http,
+	LoggerWrapper,
+	Nadybot,
+	SettingManager,
+};
+use PhpAmqpLib\Exception\AMQPOutOfBoundsException;
 
 /**
  * @author Nadyita (RK5)
@@ -23,32 +30,20 @@ class DiscordController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
+	/** @Inject */
 
-	public $http;
+	public Http $http;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * @Setup
@@ -81,7 +76,12 @@ class DiscordController {
 		);
 	}
 
-	public function validateWebhook($settingName, $oldValue, $newValue, $data) {
+	/**
+	 * Check if the given $newValue is a valid Discord Webhook
+	 *
+	 * @throws Exception if new value is not a valid webhook
+	 */
+	public function validateWebhook(string $settingName, string $oldValue, string $newValue): void {
 		if ($this->isDiscordWebhook($newValue) === false) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Webhook");
 		}
@@ -90,7 +90,7 @@ class DiscordController {
 			->withQueryParams(['content' => ''])
 			->withTimeout(10)
 			->waitAndReturnResponse();
-		if ($response->headers["status-code"] != "400") {
+		if ($response->headers["status-code"] !== "400") {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Webhook");
 		}
 		$responseData = @json_decode($response->body);
@@ -103,7 +103,7 @@ class DiscordController {
 	 * @HandlesCommand("discord")
 	 * @Matches("/^discord\s+(.+)$/i")
 	 */
-	public function discordCommand($message, $channel, $sender, $sendto, $args) {
+	public function discordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "Message sent successfully.";
 		if ($this->sendMessage($sender . ": " . $args[1]) === false) {
 			$msg = "Error sending message, please check configuration.";
@@ -113,11 +113,8 @@ class DiscordController {
 
 	/**
 	 * Check if a given URL is a discord webhook
-	 *
-	 * @param string $url The URL to check
-	 * @return bool
 	 */
-	public function isDiscordWebhook($url) {
+	public function isDiscordWebhook(string $url): bool {
 		return (bool)@preg_match(
 			'|^https://discordapp\.com/api/webhooks/\d{18}/[a-zA-Z0-9_-]{68}$|',
 			$url
@@ -126,11 +123,8 @@ class DiscordController {
 
 	/**
 	 * Send a message to the Discord webhook - if configured
-	 *
-	 * @param string $text The message to send
-	 * @return bool true if sent successfully, else false
 	 */
-	public function sendMessage($text) {
+	public function sendMessage(string $text): bool {
 		$webhookURL = $this->settingManager->get('discord_webhook');
 		if ($this->isDiscordWebhook($webhookURL) === false) {
 			return false;
@@ -152,12 +146,9 @@ class DiscordController {
 	}
 
 	/**
-	 * Reformat a Nadybot message for Discord
-	 *
-	 * @param string $text The message to reformat
-	 * @return string
+	 * Reformat a Nadybot message for sending to Discord
 	 */
-	public function formatMessage($text) {
+	public function formatMessage(string $text): string {
 		$text = preg_replace('/([~`_])/', "\\$1", $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
@@ -173,11 +164,8 @@ class DiscordController {
 
 	/**
 	 * Handle the async reply of the Discord webhook
-	 *
-	 * @param \StdClass $response The HTTP response object
-	 * @return void
 	 */
-	protected function handleWebhookResponse(StdClass $response) {
+	protected function handleWebhookResponse(object $response): void {
 		if (substr($response->headers["status-code"], 0, 1) === "2") {
 			return;
 		}

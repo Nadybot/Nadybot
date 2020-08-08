@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -7,11 +7,8 @@ namespace Nadybot\Core;
  */
 class Http {
 
-	/**
-	 * @var \Nadybot\Core\Timer $timer
-	 * @Inject
-	 */
-	public $timer;
+	/** @Inject */
+	public Timer $timer;
 
 	/**
 	 * Requests contents of given $uri using GET method and returns AsyncHttp
@@ -33,14 +30,11 @@ class Http {
 	 * $response = $this->http->get("http://www.google.com/")->waitAndReturnResponse();
 	 * print $response->body;
 	 * </code>
-	 *
-	 * @param string $uri the requested URI
-	 * @return AsyncHttp
 	 */
-	public function get($uri) {
+	public function get(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('get', $uri);
 		Registry::injectDependencies($asyncHttp);
-		$this->timer->callLater(0, array($asyncHttp, 'execute'));
+		$this->timer->callLater(0, [$asyncHttp, 'execute']);
 		return $asyncHttp;
 	}
 
@@ -49,14 +43,11 @@ class Http {
 	 * object which has additional methods for controlling how the query is done.
 	 *
 	 * See get() for code example.
-	 *
-	 * @param string $uri the requested URI
-	 * @return AsyncHttp
 	 */
-	public function post($uri) {
+	public function post(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('post', $uri);
 		Registry::injectDependencies($asyncHttp);
-		$this->timer->callLater(0, array($asyncHttp, 'execute'));
+		$this->timer->callLater(0, [$asyncHttp, 'execute']);
 		return $asyncHttp;
 	}
 }

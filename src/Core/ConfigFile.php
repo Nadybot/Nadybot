@@ -1,6 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
+
+use Nadybot\Core\LegacyLogger;
 
 /**
  * The ConfigFile class provides convenient interface for reading and saving
@@ -8,30 +10,27 @@ namespace Nadybot\Core;
  */
 class ConfigFile {
 
-	private $filePath;
-	private $vars;
+	private string $filePath;
+	private array $vars = array();
 
 	/**
 	 * Constructor method.
-	 *
-	 * $param string $filePath path to the config file
 	 */
-	public function __construct($filePath) {
+	public function __construct(string $filePath) {
 		$this->filePath = $filePath;
-		$this->vars = array();
 	}
 
 	/**
 	 * Returns file path to the config file.
 	 */
-	public function getFilePath() {
+	public function getFilePath(): string {
 		return $this->filePath;
 	}
 
 	/**
 	 * Loads the config file, creating the file if it doesn't exist yet.
 	 */
-	public function load() {
+	public function load(): void {
 		$this->copyFromTemplateIfNeeded();
 		require $this->filePath;
 		$this->vars = $vars;
@@ -40,7 +39,7 @@ class ConfigFile {
 	/**
 	 * Saves the config file, creating the file if it doesn't exist yet.
 	 */
-	public function save() {
+	public function save(): void {
 		$vars = $this->vars;
 		$this->copyFromTemplateIfNeeded();
 		$lines = file($this->filePath);
@@ -76,7 +75,7 @@ class ConfigFile {
 	/**
 	 * Returns the $vars variable's contents from the config file.
 	 */
-	public function getVars() {
+	public function getVars(): array {
 		return $this->vars;
 	}
 
@@ -85,7 +84,7 @@ class ConfigFile {
 	 *
 	 * @param string $name name of the var
 	 */
-	public function getVar($name) {
+	public function getVar(string $name) {
 		if (isset($this->vars[$name])) {
 			return $this->vars[$name];
 		}
@@ -95,30 +94,28 @@ class ConfigFile {
 	/**
 	 * Inserts the $vars array's contents. Any existing indexes are replaced
 	 * with the new values.
-	 *
-	 * @param mixed[] $vars array of data to set
 	 */
-	public function insertVars($vars) {
+	public function insertVars(array $vars): void {
 		$this->vars = array_merge($this->vars, $vars);
 	}
 
 	/**
 	 * Sets var to the config file.
-	 *
-	 * @param string $name name of the var
-	 * @param mixed $value value of the var
 	 */
-	public function setVar($name, $value) {
+	public function setVar(string $name, $value): void {
 		$this->vars[$name] = $value;
 	}
 
 	/**
 	 * Copies config.template.php to this config file if it doesn't exist yet.
 	 */
-	private function copyFromTemplateIfNeeded() {
-		$templatePath = __DIR__ . '/../conf/config.template.php';
-		if (!file_exists($this->filePath)) {
-			copy($templatePath, $this->filePath) or LegacyLogger::log('ERROR', 'StartUp', "could not create config file: {$this->filePath}");
+	private function copyFromTemplateIfNeeded(): void {
+		if (file_exists($this->filePath)) {
+			return;
+		}
+		$templatePath = __DIR__ . '/../../conf/config.template.php';
+		if (copy($templatePath, $this->filePath) === false) {
+			LegacyLogger::log('ERROR', 'StartUp', "could not create config file: {$this->filePath}");
 		}
 	}
 }

@@ -1,15 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 class GuildChannelCommandReply implements CommandReply {
-	private $chatBot;
+	private Nadybot $chatBot;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
 	}
 
-	public function reply($msg) {
+	/**
+	 * @inheritDoc
+	 */
+	public function reply($msg): void {
 		$this->chatBot->sendGuild($msg);
 	}
 }

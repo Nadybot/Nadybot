@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -7,28 +7,19 @@ namespace Nadybot\Core;
  */
 class Util {
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @var string */
-	const DATETIME = "d-M-Y H:i T";
+	public const DATETIME = "d-M-Y H:i T";
 
 	/**
 	 * Convert bytes to kB, MB, etc. so it's never more than 1024
-	 *
-	 * @param int $bytes
-	 * @return string Converted unit, e.g. "1.2 GB"
 	 */
-	public function bytesConvert($bytes) {
+	public function bytesConvert(int $bytes): string {
 		$ext = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
 		$unitCount = 0;
 		for ($max = count($ext) - 1; $bytes >= 1024 && $unitCount < $max; $unitCount++) {
@@ -41,12 +32,8 @@ class Util {
 	 * Converts a duration in seconds into a human readable format
 	 *
 	 * Converts 3688 to "1hr, 1min, 18secs"
-	 *
-	 * @param int $time The duration in seconds
-	 * @param boolean $showSeconds If set to false, cut off seconds
-	 * @return string A human readable string
 	 */
-	public function unixtimeToReadable($time, $showSeconds=true) {
+	public function unixtimeToReadable(int $time, bool $showSeconds=true): string {
 		if ($time == 0) {
 			return '0 secs';
 		}
@@ -86,7 +73,7 @@ class Util {
 	 * @param string $budatime A humanm readable duration
 	 * @return int The duration in seconds
 	 */
-	public function parseTime($budatime) {
+	public function parseTime(string $budatime): int {
 		$unixtime = 0;
 
 		$matches = array();
@@ -144,13 +131,11 @@ class Util {
 	/**
 	 * Compares two version numbers
 	 *
-	 * @param string $ver1 First Version number
-	 * @param string $ver2 Second Version number
 	 * @return int 1 if the first is greater than the second,
 	 *             -1 if the second is greater than the first and
 	 *             0 if they are equal.
 	 */
-	public function compareVersionNumbers($ver1, $ver2) {
+	public function compareVersionNumbers(string $ver1, string $ver2): int {
 		$ver1Array = explode('.', $ver1);
 		$ver2Array = explode('.', $ver2);
 
@@ -166,18 +151,14 @@ class Util {
 			return 1;
 		} elseif (count($ver1Array) < count($ver2Array)) {
 			return -1;
-		} else {
-			return 0;
 		}
+		return 0;
 	}
 
 	/**
 	 * Returns the full profession name given the search string passed in
-	 *
-	 * @param string $search A short-form like "crat", "adv" or "enfo"
-	 * @return string The fully qualified name of the found profession or an empty string
 	 */
-	public function getProfessionName($search) {
+	public function getProfessionName(string $search): string {
 		$search = strtolower($search);
 		switch ($search) {
 			case "adv":
@@ -257,11 +238,8 @@ class Util {
 	 * Get the short form for a fully qualified profession name
 	 *
 	 * Adventurer becomes Adv, etc.
-	 *
-	 * @param string $profession Full name of the profession, e.g. "Adventurer"
-	 * @return string Short name of the profession, e.g. "Adv"
 	 */
-	public function getProfessionAbbreviation($profession) {
+	public function getProfessionAbbreviation(string $profession): string {
 		switch ($profession) {
 			case "Adventurer":
 				$prof = "Adv";
@@ -315,11 +293,8 @@ class Util {
 
 	/**
 	 * Completes a filename or directory by searching for it in modules and core paths
-	 *
-	 * @param string $filename
-	 * @return string Either the full filename or an empty string
 	 */
-	public function verifyFilename($filename) {
+	public function verifyFilename(string $filename): string {
 		//Replace all \ characters with /
 		$filename = str_replace("\\", "/", $filename);
 
@@ -349,9 +324,9 @@ class Util {
 	 *
 	 * @param string $ability The short or long form
 	 * @param boolean $getFullName true if you want to expand, false if you want to shorten
-	 * @return string|null The short or lonf form
+	 * @return string|null The short or long form
 	 */
-	public function getAbility($ability, $getFullName=false) {
+	public function getAbility(string $ability, bool $getFullName=false): ?string {
 		$abilities = array(
 			'agi' => 'Agility',
 			'int' => 'Intelligence',
@@ -363,25 +338,22 @@ class Util {
 
 		$ability = strtolower(substr($ability, 0, 3));
 
-		if (isset($abilities[$ability])) {
-			if ($getFullName) {
-				return $abilities[$ability];
-			} else {
-				return $ability;
-			}
-		} else {
+		if (!isset($abilities[$ability])) {
 			return null;
 		}
+		if ($getFullName) {
+			return $abilities[$ability];
+		}
+		return $ability;
 	}
 
 	/**
-	 * Randomly get an element from an array
+	 * Randomly get a value from an array
 	 *
-	 * @param mixed[] $array The array to get an element from
 	 * @return mixed A random element
 	 */
-	public function randomArrayValue($array) {
-		return $array[rand(0, count($array) - 1)];
+	public function randomArrayValue(array $array) {
+		return $array[array_rand($array)];
 	}
 
 	/**
@@ -389,22 +361,18 @@ class Util {
 	 *
 	 * Invalid values: -1 on 32bit and 4294967295  on 64bit
 	 *
-	 * @param int $sender
-	 * @return boolean
+	 * @param int|string $sender
 	 */
-	public function isValidSender($sender) {
-		return (int)0xFFFFFFFF == $sender ? false : true;
+	public function isValidSender($sender): bool {
+		return (int)0xFFFFFFFF == $sender;
 	}
 
 	/**
 	 * Create a random string of $length characters
 	 *
 	 * @see http://www.lost-in-code.com/programming/php-code/php-random-string-with-numbers-and-letters/
-	 * @param int $length How long the string should be
-	 * @param strings $characters A string containing only letters to pick from
-	 * @return string A random string with length $length
 	 */
-	public function genRandomString($length=10, $characters='0123456789abcdefghijklmnopqrstuvwxyz') {
+	public function genRandomString(int $length=10, string $characters='0123456789abcdefghijklmnopqrstuvwxyz'): string {
 		$string = '';
 		for ($p = 0; $p < $length; $p++) {
 			$string .= $characters[mt_rand(0, strlen($characters))];
@@ -414,10 +382,8 @@ class Util {
 
 	/**
 	 * Get a stacktrace of the calling stack as a string
-	 *
-	 * @return string The stacktrace that lead to this call
 	 */
-	public function getStackTrace() {
+	public function getStackTrace(): string {
 		$trace = debug_backtrace();
 		$arr1 = array();
 		$arr2 = array();
@@ -438,11 +404,8 @@ class Util {
 
 	/**
 	 * Convert UNIX timestamp to date and time
-	 *
-	 * @param int $unixtime The UNIX timestamp
-	 * @return string A string of the given timestamp as date and time with timezone
 	 */
-	public function date($unixtime) {
+	public function date(int $unixtime): string {
 		return date(self::DATETIME, $unixtime);
 	}
 
@@ -450,11 +413,8 @@ class Util {
 	 * Checks if $string ends with string $test
 	 *
 	 * @see http://stackoverflow.com/questions/834303/php-startswith-and-endswith-functions
-	 * @param string $string Haystack
-	 * @param string $test Needle
-	 * @return bool
 	 */
-	public function endsWith($string, $test) {
+	public function endsWith(string $string, string $test): bool {
 		$strlen = strlen($string);
 		$testlen = strlen($test);
 		if ($testlen > $strlen) {
@@ -467,21 +427,15 @@ class Util {
 	 * Checks if $haystack starts with $needle
 	 *
 	 * @see http://stackoverflow.com/questions/834303/php-startswith-and-endswith-functions
-	 * @param string $haystack
-	 * @param string $needle
-	 * @return bool
 	 */
-	public function startsWith($haystack, $needle) {
+	public function startsWith(string $haystack, string $needle): bool {
 		return !strncmp($haystack, $needle, strlen($needle));
 	}
 
 	/**
 	 * Remove all colors from $msg
-	 *
-	 * @param string $msg String to remove collor tags from
-	 * @return string The cleared string
 	 */
-	public function stripColors($msg) {
+	public function stripColors(string $msg): string {
 		$msg = preg_replace("~<font color=#.{6}>~", "", $msg);
 		$msg = preg_replace("~</font>~", "", $msg);
 		return $msg;
@@ -494,7 +448,7 @@ class Util {
 	 * @param string $column The table column to test agains
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 */
-	public function generateQueryFromParams($params, $column) {
+	public function generateQueryFromParams(array $params, string $column): array {
 		$queryParams = array();
 		$statements = array();
 		foreach ($params as $key => $value) {
@@ -520,7 +474,7 @@ class Util {
 	 *                               1 (1st before), -1 (2nd before) ot 0 (equal)
 	 * @return void
 	 */
-	public function mergesort(&$array, $cmp_function) {
+	public function mergesort(array &$array, callable $cmp_function): void {
 		// Arrays of size < 2 require no action.
 		if (count($array) < 2) {
 			return;
@@ -559,15 +513,9 @@ class Util {
 
 	/**
 	 * Try to interpolate bonus/requirement of an item at an arbitrary QL
-	 *
-	 * @param int $minQL The QL at which requirement/bonus is $minVal
-	 * @param int $maxQL The QL at which requirement/bonus is $maxVal
-	 * @param int $minVal The bonus/requirement at QL $minQL
-	 * @param int $maxVal The bonus/requirement at QL $maxQL
-	 * @param int $ql The QL for which to interpolate the bonus/requirement
 	 * @return int The interpolated bonus/requirement at QL $ql
 	 */
-	public function interpolate($minQL, $maxQL, $minVal, $maxVal, $ql) {
+	public function interpolate(int $minQL, int $maxQL, int $minVal, int $maxVal, int $ql): int {
 		if ($minQL == $maxQL) {
 			return $maxVal;
 		}
@@ -577,14 +525,9 @@ class Util {
 	}
 
 	/**
-	 * Run a function over an associative array and glue the results together
-	 *
-	 * @param array $arr The associative array we want to feed bit by bit into $func
-	 * @param string $glue The string to join the outputs of $func on
-	 * @param callable $func The function to run for each key and value, returns a string or null
-	 * @return string The glued together result
+	 * Run a function over an associative array and glue the results together with $glue
 	 */
-	public function mapFilterCombine($arr, $glue, $func) {
+	public function mapFilterCombine(array $arr, string $glue, callable $func): string {
 		$newArr = array();
 		foreach ($arr as $key => $value) {
 			$result = call_user_func($func, $key, $value);
@@ -598,10 +541,9 @@ class Util {
 	/**
 	 * Get an array with all files (not dirs) in a directory
 	 *
-	 * @param string $path The directory to list
 	 * @return string[] An array of file names in that directory
 	 */
-	public function getFilesInDirectory($path) {
+	public function getFilesInDirectory(string $path): array {
 		return array_values(array_filter(scandir($path), function ($f) use ($path) {
 			return !is_dir($path . DIRECTORY_SEPARATOR . $f);
 		}));
@@ -610,22 +552,18 @@ class Util {
 	/**
 	 * Get an array with all directories in a directory, excluding . and ..
 	 *
-	 * @param string $path The directory to list
 	 * @return string[] An array of dir names in that directory
 	 */
-	public function getDirectoriesInDirectory($path) {
+	public function getDirectoriesInDirectory(string $path): array {
 		return array_values(array_filter(scandir($path), function ($f) use ($path) {
-			return $f != '.' && $f != '..' && is_dir($path . DIRECTORY_SEPARATOR . $f);
+			return $f !== '.' && $f !== '..' && is_dir($path . DIRECTORY_SEPARATOR . $f);
 		}));
 	}
 
 	/**
 	 * Test if $input only consists of digits
-	 *
-	 * @param mixed $input The variable to test
-	 * @return boolean true if $input would qualify as a valid integer
 	 */
-	public function isInteger($input) {
+	public function isInteger($input): bool {
 		return(ctype_digit(strval($input)));
 	}
 }

@@ -1,10 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
 use Nadybot\Core\Annotations\DefineCommand;
-use Nadybot\Core\Event;
+use Nadybot\Core\Modules\BAN\BanController;
+use Nadybot\Core\Modules\LIMITS\LimitsController;
+use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Nadybot\Core\DBSchema\{
+	CmdCfg,
+	EventCfg,
+	HlpCfg,
+	Setting,
+};
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -18,123 +26,77 @@ use Nadybot\Core\Event;
  */
 class Nadybot extends AOChat {
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
-	 * @Inject
-	 */
-	public $subcommandManager;
+	/** @Inject */
+	public SubcommandManager $subcommandManager;
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
-	/**
-	 * @var \Nadybot\Core\EventManager $eventManager
-	 * @Inject
-	 */
-	public $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
 
-	/**
-	 * @var \Nadybot\Core\HelpManager $helpManager
-	 * @Inject
-	 */
-	public $helpManager;
+	/** @Inject */
+	public HelpManager $helpManager;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Modules\BAN\BanController $banController
-	 * @Inject
-	 */
-	public $banController;
+	/** @Inject */
+	public BanController $banController;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Modules\LIMITS\LimitsController $limitsController
-	 * @Inject
-	 */
-	public $limitsController;
+	/** @Inject */
+	public LimitsController $limitsController;
 
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 
-	/**
-	 * @var \Nadybot\Modules\RELAY_MODULE\RelayController $relayController
-	 * @Inject
-	 */
-	public $relayController;
+	/** @Inject */
+	public RelayController $relayController;
 
-	/**
-	 * @var \Nadybot\Core\SettingObject $setting
-	 * @Inject
-	 */
-	public $setting;
+	/** @Inject */
+	public SettingObject $setting;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger("Core")
-	 */
-	public $logger;
+	/** @Logger("Core") */
+	public LoggerWrapper $logger;
 
-	/** @var bool $ready */
-	public $ready = false;
+	public BotRunner $runner;
 
-	/** @var array[string]bool $chatlist */
-	public $chatlist = array();
+	public bool $ready = false;
+
+	/** @var array<string,bool> $chatlist */
+	public array $chatlist = array();
 
 	/**
 	 * The rank for each member of this bot's guild/org
 	 * [(string)name => (int)rank]
-	 * @var array[string]int $guildmembers
+	 * @var array<string,int> $guildmembers
 	 */
-	public $guildmembers = array();
+	public array $guildmembers = array();
 
 	/**
 	 * The configuration variables of this bot as given in the config file
 	 * [(string)var => (mixed)value]
 	 *
-	 * @var array[string]mixed $vars
+	 * @var array<string,mixed> $vars
 	 */
-	public $vars;
+	public array $vars;
 
 	/**
-	 * How many buddies can this bot hld
-	 *
-	 * @var integer $buddyListSize
+	 * How many buddies can this bot hold
 	 */
-	private $buddyListSize = 0;
+	private int $buddyListSize = 0;
 
 	/**
 	 * A list of channels that we ignore messages from
@@ -143,7 +105,7 @@ class Nadybot extends AOChat {
 	 *
 	 * @var string[] $channelsToIgnore
 	 */
-	public $channelsToIgnore = array(
+	public array $channelsToIgnore = array(
 		'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
 		'Tour Announcements', 'Neu. Newbie OOC', 'Neu. shopping 11-50', 'Neu. OOC', 'Clan OOC',
 		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC'
@@ -152,10 +114,10 @@ class Nadybot extends AOChat {
 	/**
 	 * Initialize the bot
 	 *
-	 * @param array[string]mixed $vars The configuration variables of the bot
-	 * @return void
+	 * @param array<string,mixed> $vars The configuration variables of the bot
 	 */
-	public function init(&$vars) {
+	public function init(BotRunner $runner, array &$vars): void {
+		$this->runner = $runner;
 		$this->vars = $vars;
 
 		// Set startup time
@@ -233,22 +195,26 @@ class Nadybot extends AOChat {
 		$this->db->exec("UPDATE eventcfg_<myname> SET `status` = 1 WHERE `type` = 'setup'");
 
 		// To reduce queries load core items into memory
-		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = 'subcmd'");
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = 'subcmd'");
 		foreach ($data as $row) {
 			$this->existing_subcmds[$row->type][$row->cmd] = true;
 		}
 
-		$data = $this->db->query("SELECT * FROM eventcfg_<myname>");
+		/** @var EventCfg[] $data */
+		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname>");
 		foreach ($data as $row) {
 			$this->existing_events[$row->type][$row->file] = true;
 		}
 
-		$data = $this->db->query("SELECT * FROM hlpcfg_<myname>");
+		/** @var HlpCfg[] $data */
+		$data = $this->db->fetchAll(HlpCfg::class, "SELECT * FROM hlpcfg_<myname>");
 		foreach ($data as $row) {
 			$this->existing_helps[$row->name] = true;
 		}
 
-		$data = $this->db->query("SELECT * FROM settings_<myname>");
+		/** @var Setting[] $data */
+		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname>");
 		foreach ($data as $row) {
 			$this->existing_settings[$row->name] = true;
 		}
@@ -283,24 +249,18 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Connect to AO chat servers
-	 *
-	 * @param string $login The username to connect with
-	 * @param string $password The password to connect with
-	 * @param string $server Hostname of the login server
-	 * @param string|int $port The port of the login server to connect to
-	 * @return void
 	 */
-	public function connectAO($login, $password, $server, $port) {
+	public function connectAO(string $login, string $password, string $server, int $port): void {
 		// Begin the login process
 		$this->logger->log('INFO', "Connecting to AO Server...({$server}:{$port})");
-		if (false === $this->connect($server, $port)) {
+		if (null === $this->connect($server, $port)) {
 			$this->logger->log('ERROR', "Connection failed! Please check your Internet connection and firewall.");
 			sleep(10);
 			die();
 		}
 
 		$this->logger->log('INFO', "Authenticate login data...");
-		if (false === $this->authenticate($login, $password)) {
+		if (null === $this->authenticate($login, $password)) {
 			$this->logger->log('ERROR', "Authentication failed! Invalid username or password.");
 			sleep(10);
 			die();
@@ -319,10 +279,8 @@ class Nadybot extends AOChat {
 
 	/**
 	 * The main endless-loop of the bot
-	 *
-	 * @return void
 	 */
-	public function run() {
+	public function run(): void {
 		$loop = new EventLoop();
 		Registry::injectDependencies($loop);
 
@@ -348,20 +306,16 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Process all packets in an endless loop
-	 *
-	 * @return void
 	 */
-	public function processAllPackets() {
+	public function processAllPackets(): void {
 		while ($this->processNextPacket()) {
 		}
 	}
 
 	/**
 	 * Wait for the next packet and process it
-	 *
-	 * @return bool true if a package was processed, otherwise false
 	 */
-	public function processNextPacket() {
+	public function processNextPacket(): bool {
 		// when bot isn't ready we wait for packets
 		// to make sure the server has finished sending them
 		// before marking the bot as ready
@@ -381,9 +335,8 @@ class Nadybot extends AOChat {
 	 * @param string|string[] $message One or more messages to send
 	 * @param boolean $disable_relay Set to true to disable relaying the message into the org/guild channel
 	 * @param string $group Name of the private group to send message into or null for the bot's own
-	 * @return void
 	 */
-	public function sendPrivate($message, $disable_relay=false, $group=null) {
+	public function sendPrivate($message, bool $disable_relay=false, string $group=null): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
@@ -405,12 +358,16 @@ class Nadybot extends AOChat {
 		$this->send_privgroup($group, $privColor.$message);
 		if ($this->isDefaultPrivateChannel($group)) {
 			// relay to guild channel
-			if (!$disable_relay && $this->settingManager->get('guild_channel_status') == 1 && $this->settingManager->get("guest_relay") == 1 && $this->settingManager->get("guest_relay_commands") == 1) {
+			if (!$disable_relay
+				&& $this->settingManager->getBool('guild_channel_status')
+				&& $this->settingManager->getBool("guest_relay")
+				&& $this->settingManager->getBool("guest_relay_commands")
+			) {
 				$this->send_guild("</font>{$guestColorChannel}[Guest]</font> {$senderLink}: {$privColor}$message</font>", "\0");
 			}
 
 			// relay to bot relay
-			if (!$disable_relay && $this->settingManager->get("relaybot") != "Off" && $this->settingManager->get("bot_relay_commands") == 1) {
+			if (!$disable_relay && $this->settingManager->get("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
 				if (strlen($this->chatBot->vars["my_guild"])) {
 					$this->relayController->sendMessageToRelay("grc [{$guildNameForRelay}] [Guest] {$senderLink}: $message");
 				} else {
@@ -428,7 +385,7 @@ class Nadybot extends AOChat {
 	 * @param int $priority The priority of the message or medium if unset
 	 * @return void
 	 */
-	public function sendGuild($message, $disable_relay=false, $priority=null) {
+	public function sendGuild($message, bool $disable_relay=false, int $priority=null): void {
 		if ($this->settingManager->get('guild_channel_status') != 1) {
 			return;
 		}
@@ -454,12 +411,18 @@ class Nadybot extends AOChat {
 		$this->send_guild($guildColor.$message, "\0", $priority);
 
 		// relay to private channel
-		if (!$disable_relay && $this->settingManager->get("guest_relay") == 1 && $this->settingManager->get("guest_relay_commands") == 1) {
+		if (!$disable_relay
+			&& $this->settingManager->getBool("guest_relay")
+			&& $this->settingManager->getBool("guest_relay_commands")
+		) {
 			$this->send_privgroup($this->setting->default_private_channel, "</font>{$guestColorChannel}[{$guildNameForRelay}]</font> {$senderLink}: {$guildColor}$message</font>");
 		}
 
 		// relay to bot relay
-		if (!$disable_relay && $this->settingManager->get("relaybot") != "Off" && $this->settingManager->get("bot_relay_commands") == 1) {
+		if (!$disable_relay
+			&& $this->settingManager->get("relaybot") !== "Off"
+			&& $this->settingManager->getBool("bot_relay_commands")
+		) {
 			$this->relayController->sendMessageToRelay("grc [{$guildNameForRelay}] {$senderLink}: $message");
 		}
 	}
@@ -473,7 +436,7 @@ class Nadybot extends AOChat {
 	 * @param boolean $formatMessage If set, replace tags with their corresponding colors
 	 * @return void
 	 */
-	public function sendTell($message, $character, $priority=null, $formatMessage=true) {
+	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
@@ -501,9 +464,8 @@ class Nadybot extends AOChat {
 	 * @param string|string[] $message One or more messages to send
 	 * @param string $channel Name of the channel to send the message to
 	 * @param int $priority The priority of the message or medium if unset
-	 * @return void
 	 */
-	public function sendPublic($message, $channel, $priority=null) {
+	public function sendPublic($message, string $channel, int $priority=null): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
@@ -527,10 +489,9 @@ class Nadybot extends AOChat {
 	 *
 	 * @param string $type A space-separate list of any combination of "msg", "priv" and "guild"
 	 * @param string $admin A space-separate list of access rights needed
-	 * @return bool Success
 	 */
-	public function processCommandArgs(&$type, &$admin) {
-		if ($type == "") {
+	public function processCommandArgs(?string &$type, string &$admin): bool {
+		if ($type === null || $type == "") {
 			$type = array("msg", "priv", "guild");
 		} else {
 			$type = explode(' ', $type);
@@ -548,11 +509,8 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Proccess an incoming message packet that the bot receives
-	 *
-	 * @param \Nadybot\Core\AOChatPacket $packet The packet to process
-	 * @return void
 	 */
-	public function process_packet($packet) {
+	public function process_packet(AOChatPacket $packet): void {
 		try {
 			$this->process_all_packets($packet);
 
@@ -562,31 +520,31 @@ class Nadybot extends AOChat {
 					$this->buddyListSize += 1000;
 					break;
 				case AOCP_GROUP_ANNOUNCE: // 60
-					$this->processGroupAnnounce($packet->args);
+					$this->processGroupAnnounce(...$packet->args);
 					break;
 				case AOCP_PRIVGRP_CLIJOIN: // 55, Incoming player joined private chat
-					$this->processPrivateChannelJoin($packet->args);
+					$this->processPrivateChannelJoin(...$packet->args);
 					break;
 				case AOCP_PRIVGRP_CLIPART: // 56, Incoming player left private chat
-					$this->processPrivateChannelLeave($packet->args);
+					$this->processPrivateChannelLeave(...$packet->args);
 					break;
 				case AOCP_BUDDY_ADD: // 40, Incoming buddy logon or off
-					$this->processBuddyUpdate($packet->args);
+					$this->processBuddyUpdate(...$packet->args);
 					break;
 				case AOCP_BUDDY_REMOVE: // 41, Incoming buddy removed
-					$this->processBuddyRemoved($packet->args);
+					$this->processBuddyRemoved(...$packet->args);
 					break;
 				case AOCP_MSG_PRIVATE: // 30, Incoming Msg
-					$this->processPrivateMessage($packet->args);
+					$this->processPrivateMessage(...$packet->args);
 					break;
 				case AOCP_PRIVGRP_MESSAGE: // 57, Incoming priv message
-					$this->processPrivateChannelMessage($packet->args);
+					$this->processPrivateChannelMessage(...$packet->args);
 					break;
 				case AOCP_GROUP_MESSAGE: // 65, Public and guild channels
-					$this->processPublicChannelMessage($packet->args);
+					$this->processPublicChannelMessage(...$packet->args);
 					break;
 				case AOCP_PRIVGRP_INVITE: // 50, private channel invite
-					$this->processPrivateChannelInvite($packet->args);
+					$this->processPrivateChannelInvite(...$packet->args);
 					break;
 			}
 		} catch (StopExecutionException $e) {
@@ -596,11 +554,8 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Fire associated events for a received packet
-	 *
-	 * @param \Nadybot\Core\AOChatPacket $packet The received packet
-	 * @return void
 	 */
-	public function process_all_packets($packet) {
+	public function process_all_packets(AOChatPacket $packet): void {
 		// fire individual packets event
 		$eventObj = new Event();
 		$eventObj->type = "packet({$packet->type})";
@@ -610,35 +565,22 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle an incoming AOCP_GROUP_ANNOUNCE packet
-	 *
-	 * @param string[] $args [
-	 * 	0 => Name of the org,
-	 * 	1 => The message
-	 * ]
-	 * @return void
 	 */
-	public function processGroupAnnounce($args) {
-		$orgId = $this->getOrgId($args[0]);
-		$this->logger->log('DEBUG', "AOCP_GROUP_ANNOUNCE => name: '$args[1]'");
+	public function processGroupAnnounce(string $groupId, string $groupName): void {
+		$orgId = $this->getOrgId($groupId);
+		$this->logger->log('DEBUG', "AOCP_GROUP_ANNOUNCE => name: '$groupName'");
 		if ($orgId) {
-			$this->vars["my_guild_id"] = $orgId;
+			$this->vars["my_guild_id"] = $groupId;
 		}
 	}
 
 	/**
 	 * Handle a player joining a private group
-	 *
-	 * @param int[] $args [
-	 * 	0 => UserID of the channel
-	 * 	1 => UserID who joined
-	 * ]
-	 * @return void
 	 */
-	public function processPrivateChannelJoin($args) {
+	public function processPrivateChannelJoin(int $channelId, int $userId): void {
 		$eventObj = new Event();
-		$channel = $this->lookup_user($args[0]);
-		$charId = $args[1];
-		$sender = $this->lookup_user($charId);
+		$channel = $this->lookup_user($channelId);
+		$sender = $this->lookup_user($userId);
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
@@ -650,7 +592,7 @@ class Nadybot extends AOChat {
 			$this->logger->logChat("Priv Group", -1, "$sender joined the channel.");
 
 			// Remove sender if they are banned
-			if ($this->banController->isBanned($charId)) {
+			if ($this->banController->isBanned($userId)) {
 				$this->privategroup_kick($sender);
 				return;
 			}
@@ -664,17 +606,11 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle a player leaving a private group
-	 *
-	 * @param int[] $args [
-	 * 	0 => UserID of the channel,
-	 * 	1 => UserID who left
-	 * ]
-	 * @return void
 	 */
-	public function processPrivateChannelLeave($args) {
+	public function processPrivateChannelLeave(int $channelId, int $userId) {
 		$eventObj = new Event();
-		$channel = $this->lookup_user($args[0]);
-		$sender = $this->lookup_user($args[1]);
+		$channel = $this->lookup_user($channelId);
+		$sender = $this->lookup_user($userId);
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
@@ -694,80 +630,56 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle logon/logoff events of friends
-	 *
-	 * @param int[] $args [
-	 * 	0 => UserID logging on/off,
-	 * 	1 => 0 == logoff, 1 == login
-	 * ]
-	 * @return void
 	 */
-	public function processBuddyUpdate($args) {
-		$sender	= $this->lookup_user($args[0]);
-		$status	= 0 + $args[1];
+	public function processBuddyUpdate(int $userId, int $status): void {
+		$sender = $this->lookup_user($userId);
 
 		$eventObj = new Event();
 		$eventObj->sender = $sender;
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
 
-		$this->buddylistManager->update($args);
+		$this->buddylistManager->update($userId, $status);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
-		if ($sender == "") {
+		if ($sender === "") {
 			return;
 		}
 
 		// Status => 0: logoff  1: logon
-		if ($status == 0) {
+		$eventObj->type = "logon";
+		if ($status === 0) {
 			$eventObj->type = "logoff";
-
 			$this->logger->log('DEBUG', "$sender logged off");
-
-			$this->eventManager->fireEvent($eventObj);
-		} elseif ($status == 1) {
-			$eventObj->type = "logon";
-
+		} else {
 			$this->logger->log('DEBUG', "$sender logged on");
-
-			$this->eventManager->fireEvent($eventObj);
 		}
+		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
 	 * Handle that a friend was removed from the friendlist
-	 *
-	 * @param int[] $args [0 => UserID who was removed]
-	 * @return void
 	 */
-	public function processBuddyRemoved($args) {
-		$sender	= $this->lookup_user($args[0]);
+	public function processBuddyRemoved(int $userId): void {
+		$sender = $this->lookup_user($userId);
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_REMOVE => sender: '$sender'");
 
-		$this->buddylistManager->updateRemoved($args);
+		$this->buddylistManager->updateRemoved($userId);
 	}
 
 	/**
 	 * Handle an incoming tell
-	 *
-	 * @param mixed[] $args [
-	 * 	0 => UserID of the sender,
-	 * 	1 => The message
-	 * ]
-	 * @return void
 	 */
-	public function processPrivateMessage($args) {
+	public function processPrivateMessage(int $senderId, string $message): void {
 		$type = "msg";
-		$charId = $args[0];
-		$sender	= $this->lookup_user($charId);
+		$sender = $this->lookup_user($senderId);
 
-		$this->logger->log('DEBUG', "AOCP_MSG_PRIVATE => sender: '$sender' message: '$args[1]'");
+		$this->logger->log('DEBUG', "AOCP_MSG_PRIVATE => sender: '$sender' message: '$message'");
 
 		// Removing tell color
-		if (preg_match("/^<font color='#([0-9a-f]+)'>(.+)$/si", $args[1], $arr)) {
+		if (preg_match("/^<font color='#([0-9a-f]+)'>(.+)$/si", $message, $arr)) {
 			$message = $arr[2];
-		} else {
-			$message = $args[1];
 		}
 
 		$eventObj = new Event();
@@ -796,7 +708,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		if ($this->banController->isBanned($charId)) {
+		if ($this->banController->isBanned($senderId)) {
 			return;
 		}
 
@@ -818,19 +730,10 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle a message on a private channel
-	 *
-	 * @param mixed[] $args [
-	 * 	0 => UserID of the channel,
-	 * 	1 => UserID of the sender
-	 * 	2 => The message
-	 * ]
-	 * @return void
 	 */
-	public function processPrivateChannelMessage($args) {
-		$charId = $args[1];
-		$sender	= $this->lookup_user($charId);
-		$channel = $this->lookup_user($args[0]);
-		$message = $args[2];
+	public function processPrivateChannelMessage(int $channelId, int $senderId, string $message): void {
+		$channel = $this->lookup_user($channelId);
+		$sender = $this->lookup_user($senderId);
 
 		$eventObj = new Event();
 		$eventObj->sender = $sender;
@@ -840,7 +743,7 @@ class Nadybot extends AOChat {
 		$this->logger->log('DEBUG', "AOCP_PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 		$this->logger->logChat($channel, $sender, $message);
 
-		if ($sender == $this->vars["name"] || $this->banController->isBanned($charId)) {
+		if ($sender == $this->vars["name"] || $this->banController->isBanned($senderId)) {
 			return;
 		}
 
@@ -865,19 +768,10 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle a message on a public channel
-	 *
-	 * @param mixed[] $args [
-	 * 	0 => GroupID of the channel,
-	 * 	1 => UserID of the sender
-	 * 	2 => The message
-	 * ]
-	 * @return void
 	 */
-	public function processPublicChannelMessage($args) {
-		$charId = $args[1];
-		$sender	 = $this->lookup_user($charId);
-		$message = $args[2];
-		$channel = $this->get_gname($args[0]);
+	public function processPublicChannelMessage(string $channelId, int $senderId, string $message): void {
+		$channel = $this->get_gname($channelId);
+		$sender  = $this->lookup_user($senderId);
 
 		$eventObj = new Event();
 		$eventObj->sender = $sender;
@@ -890,10 +784,10 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$orgId = $this->getOrgId($args[0]);
+		$orgId = $this->getOrgId($channelId);
 
 		// don't log tower messages with rest of chat messages
-		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$orgId || $this->settingManager->get('guild_channel_status') == 1)) {
+		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$orgId || $this->settingManager->getBool('guild_channel_status'))) {
 			$this->logger->logChat($channel, $sender, $message);
 		} else {
 			$this->logger->log('DEBUG', "[" . $channel . "]: " . $message);
@@ -904,7 +798,7 @@ class Nadybot extends AOChat {
 			if ($sender == $this->vars["name"]) {
 				return;
 			}
-			if ($this->banController->isBanned($charId)) {
+			if ($this->banController->isBanned($senderId)) {
 				return;
 			}
 		}
@@ -917,7 +811,7 @@ class Nadybot extends AOChat {
 			$eventObj->type = "orgmsg";
 
 			$this->eventManager->fireEvent($eventObj);
-		} elseif ($orgId && $this->settingManager->get('guild_channel_status') == 1) {
+		} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
 			$type = "guild";
 			$sendto = 'guild';
 
@@ -935,14 +829,10 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Handle an invite to a private channel
-	 *
-	 * @param int[] $args [0 => UserID of the channel]
-	 * @return void
 	 */
-	public function processPrivateChannelInvite($args) {
+	public function processPrivateChannelInvite(int $channelId): void {
 		$type = "extjoinprivrequest"; // Set message type.
-		$uid = $args[0];
-		$sender = $this->lookup_user($uid);
+		$sender = $this->lookup_user($channelId);
 
 		$eventObj = new Event();
 		$eventObj->sender = $sender;
@@ -960,12 +850,8 @@ class Nadybot extends AOChat {
 	 *
 	 * In order to later easily find a module, it registers here
 	 * and other modules can get the instance by querying for $name
-	 *
-	 * @param string $name The name by which this module shall be known
-	 * @param \Object $obj The object that's registering. Must provide an attribute $moduleName
-	 * @return void
 	 */
-	public function registerInstance($name, $obj) {
+	public function registerInstance(string $name, object $obj): void {
 		$this->logger->log('DEBUG', "Registering instance name '$name' for module '{$obj->moduleName}'");
 		$moduleName = $obj->moduleName;
 
@@ -1006,8 +892,8 @@ class Nadybot extends AOChat {
 					'help'          => $annotation->help,
 					'handlers'      => array()
 				);
-				list($parentCommand, $subCommand) = explode(" ", $command, 2);
-				if ($subCommand) {
+				[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+				if ($subCommand !== "") {
 					$definition['parentCommand'] = $parentCommand;
 					$subcommands[$command] = $definition;
 				} else {
@@ -1045,7 +931,7 @@ class Nadybot extends AOChat {
 						$name . '.' . $method->name,
 						@$method->getAnnotation('Description')->value,
 						@$method->getAnnotation('Help')->value,
-						@$method->getAnnotation('DefaultStatus')->value
+						(int)@$method->getAnnotation('DefaultStatus')->value
 					);
 				}
 			}
@@ -1060,7 +946,7 @@ class Nadybot extends AOChat {
 				$moduleName,
 				$definition['channels'],
 				implode(',', $definition['handlers']),
-				$command,
+				(string)$command,
 				$definition['accessLevel'],
 				$definition['description'],
 				$definition['help'],
@@ -1089,12 +975,8 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Call the setup method for an object
-	 *
-	 * @param string $name The name by which the module is registered
-	 * @param \Object $obj The object
-	 * @return void
 	 */
-	public function callSetupMethod($name, $obj) {
+	public function callSetupMethod(string $name, object $obj): void {
 		$reflection = new ReflectionAnnotatedClass($obj);
 		foreach ($reflection->getMethods() as $method) {
 			/** @var \Addendum\ReflectionAnnotatedMethod $method */
@@ -1108,20 +990,17 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Get the amount of people allowed on our friendlist
-	 *
-	 * @return int
 	 */
-	public function getBuddyListSize() {
+	public function getBuddyListSize(): int {
 		return $this->buddyListSize;
 	}
 
 	/**
 	 * Get the OrgID for a ChannelID
 	 *
-	 * @param int $channelId The ChannelID for which to find the OrgID
 	 * @return int|bool The OrgID or false if there was an error calculating it
 	 */
-	public function getOrgId($channelId) {
+	public function getOrgId(string $channelId) {
 		$b = unpack("C*", $channelId);
 		if ($b[1] == 3) {
 			return ($b[2] << 24) + ($b[3] << 16) + ($b[4] << 8) + ($b[5]);
@@ -1132,20 +1011,15 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Tells when the bot is logged on and all the start up events have finished
-	 *
-	 * @return bool
 	 */
-	public function isReady() {
+	public function isReady(): bool {
 		return $this->ready;
 	}
 
 	/**
 	 * Check if a private channel is this bot's private channel
-	 *
-	 * @param string $channel
-	 * @return boolean
 	 */
-	public function isDefaultPrivateChannel($channel) {
+	public function isDefaultPrivateChannel(string $channel): bool {
 		return $channel == $this->setting->default_private_channel;
 	}
 }

@@ -48,7 +48,7 @@ class PlayerHistoryController {
 	 */
 	public function playerHistoryCommand($message, $channel, $sender, $sendto, $args) {
 		$name = ucfirst(strtolower($args[1]));
-		$rk_num = $this->chatBot->vars['dimension'];
+		$rk_num = (int)$this->chatBot->vars['dimension'];
 		if (count($args) == 3) {
 			$rk_num = $args[2];
 		}

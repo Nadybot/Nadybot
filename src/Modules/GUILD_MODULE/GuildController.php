@@ -150,7 +150,7 @@ class GuildController {
 	public function logonMessageShowCommand($message, $channel, $sender, $sendto, $args) {
 		$logon_msg = $this->preferences->get($sender, 'logon_msg');
 
-		if ($logon_msg === false || $logon_msg == '') {
+		if ($logon_msg === null || $logon_msg === '') {
 			$msg = "Your logon message has not been set.";
 		} else {
 			$msg = "{$sender} logon: {$logon_msg}";
@@ -184,7 +184,7 @@ class GuildController {
 	public function logoffMessageShowCommand($message, $channel, $sender, $sendto, $args) {
 		$logoff_msg = $this->preferences->get($sender, 'logoff_msg');
 
-		if ($logoff_msg === false || $logoff_msg == '') {
+		if ($logoff_msg === null || $logoff_msg === '') {
 			$msg = "Your logoff message has not been set.";
 		} else {
 			$msg = "{$sender} logoff: {$logoff_msg}";
@@ -342,7 +342,7 @@ class GuildController {
 				$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
 			}
 
-			if ($this->buddylistManager->isOnline($name) == 1) {
+			if ($this->buddylistManager->isOnline($name)) {
 				$this->db->exec("INSERT INTO online (`name`, `channel`, `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
 			}
 			$this->buddylistManager->add($name, 'org');
@@ -508,7 +508,7 @@ class GuildController {
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
 
-			if ($this->buddylistManager->isOnline("") == 1) {
+			if ($this->buddylistManager->isOnline("")) {
 				$this->db->exec("INSERT INTO online (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
 			}
 
@@ -576,7 +576,7 @@ class GuildController {
 			}
 
 			$logon_msg = $this->preferences->get($sender, 'logon_msg');
-			if ($logon_msg !== false && $logon_msg != '') {
+			if ($logon_msg !== null && $logon_msg !== '') {
 				$msg .= " - " . $logon_msg;
 			}
 
@@ -606,7 +606,7 @@ class GuildController {
 
 			$msg = "$sender logged off.";
 			$logoff_msg = $this->preferences->get($sender, 'logoff_msg');
-			if ($logoff_msg !== false && $logoff_msg != '') {
+			if ($logoff_msg !== null && $logoff_msg !== '') {
 				$msg .= " - " . $logoff_msg;
 			}
 

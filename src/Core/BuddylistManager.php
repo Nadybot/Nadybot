@@ -25,14 +25,14 @@ class BuddylistManager {
 	 * Check if a friend is online
 	 *
 	 * @param string $name The name of the friend
-	 * @return int|null null when online status is unknown, 1 when buddy is online, 0 when buddy is offline
+	 * @return bool|null null when online status is unknown, 1 when buddy is online, 0 when buddy is offline
 	 */
-	public function isOnline($name) {
+	public function isOnline(string $name): ?bool {
 		if (strtolower($this->chatBot->vars['name']) == strtolower($name)) {
-			return 1;
+			return true;
 		} else {
 			$buddy = $this->getBuddy($name);
-			return ($buddy === null ? null : $buddy['online']);
+			return ($buddy === null ? null : (bool)$buddy['online']);
 		}
 	}
 
@@ -125,15 +125,14 @@ class BuddylistManager {
 	 * @param mixed[] $args [(int)User ID, (int)online, (int)known]
 	 * @return void
 	 */
-	public function update($args) {
-		$sender	= $this->chatBot->lookup_user($args[0]);
+	public function update($userId, $status) {
+		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
-		list($bid, $bonline, $btype) = $args;
-		$this->buddyList[$bid]['uid'] = $bid;
-		$this->buddyList[$bid]['name'] = $sender;
-		$this->buddyList[$bid]['online'] = ($bonline ? 1 : 0);
-		$this->buddyList[$bid]['known'] = (ord($btype) ? 1 : 0);
+		$this->buddyList[$userId]['uid'] = $userId;
+		$this->buddyList[$userId]['name'] = $sender;
+		$this->buddyList[$userId]['online'] = ($status ? 1 : 0);
+		$this->buddyList[$userId]['known'] = 1;
 	}
 
 	/**
@@ -142,8 +141,7 @@ class BuddylistManager {
 	 * @param mixed[] $args [(int)User ID]
 	 * @return void
 	 */
-	public function updateRemoved($args) {
-		$bid = $args[0];
+	public function updateRemoved($bid) {
 		unset($this->buddyList[$bid]);
 	}
 }

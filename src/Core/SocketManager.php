@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -6,18 +6,16 @@ namespace Nadybot\Core;
  * @Instance
  */
 class SocketManager {
-	private $socketNotifiers = array();
-	private $monitoredSocketsByType = array();
+	private array $socketNotifiers = [];
+	private array $monitoredSocketsByType = [
+		SocketNotifier::ACTIVITY_READ  => [],
+		SocketNotifier::ACTIVITY_WRITE => [],
+		SocketNotifier::ACTIVITY_ERROR => [],
+	];
 
-	public function __construct() {
-		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] = array();
-		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] = array();
-		$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] = array();
-	}
-
-	public function checkMonitoredSockets() {
-		$read = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ];
-		$write = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE];
+	public function checkMonitoredSockets(): void {
+		$read   = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ];
+		$write  = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE];
 		$except = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR];
 		if ($read || $write || $except) {
 			if (0 < stream_select($read, $write, $except, 0)) {
@@ -43,7 +41,7 @@ class SocketManager {
 	 * Adds given socket notifier to list of sockets which are
 	 * monitored for activity.
 	 */
-	public function addSocketNotifier($socketNotifier) {
+	public function addSocketNotifier(SocketNotifier $socketNotifier): void {
 		$this->socketNotifiers []= $socketNotifier;
 
 		// add the socket to each activity category for faster access in the event loop
@@ -61,8 +59,8 @@ class SocketManager {
 	/**
 	 * Removes given socket notifier from list of sockets being monitored.
 	 */
-	public function removeSocketNotifier($socketNotifier) {
-		if (is_object($socketNotifier) == false) {
+	public function removeSocketNotifier(SocketNotifier $socketNotifier): void {
+		if (is_object($socketNotifier) === false) {
 			return;
 		}
 
@@ -79,7 +77,7 @@ class SocketManager {
 		}
 	}
 
-	private function removeOne(&$array, $value) {
+	private function removeOne(array &$array, $value): void {
 		$key = array_search($value, $array, true);
 		if ($key !== false) {
 			unset($array[$key]);

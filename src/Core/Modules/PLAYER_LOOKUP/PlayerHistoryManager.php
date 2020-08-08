@@ -1,54 +1,35 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use stdClass;
+use Nadybot\Core\CacheManager;
 
 /**
  * @Instance
  */
 class PlayerHistoryManager {
 
-	/**
-	 * @var \Nadybot\Core\CacheManager $cacheManager
-	 * @Inject
-	 */
-	public $cacheManager;
+	/** @Inject */
+	public CacheManager $cacheManager;
 	
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
-	
-	public function lookup($name, $rk_num) {
+	public function lookup(string $name, int $rk_num): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
 		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$rk_num&name=$name";
 		$groupName = "player_history";
 		$filename = "$name.$rk_num.history.json";
 		$maxCacheAge = 86400;
 		$cb = function($data) {
-			if ($data == "[]") {
-				return false;
-			} else {
-				return true;
-			}
+			return $data !== "[]";
 		};
 		
 		$cacheResult = $this->cacheManager->lookup($url, $groupName, $filename, $cb, $maxCacheAge);
 		
 		if ($cacheResult->success !== true) {
 			return null;
-		} else {
-			$obj = new PlayerHistory();
-			$obj->name = $name;
-			$obj->data = json_decode($cacheResult->data);
-			return $obj;
 		}
+		$obj = new PlayerHistory();
+		$obj->name = $name;
+		$obj->data = json_decode($cacheResult->data);
+		return $obj;
 	}
-}
-
-class PlayerHistory {
-	public $name;
-	public $data;
 }

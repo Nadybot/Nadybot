@@ -1,6 +1,17 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\CONFIG;
+
+use Exception;
+use Nadybot\Core\{
+	AccessManager,
+	CommandReply,
+	DB,
+	Nadybot,
+	SQLException,
+	Text,
+};
+use Nadybot\Core\DBSchema\CommandSearchResult;
 
 /**
  * @Instance
@@ -17,37 +28,26 @@ namespace Nadybot\Core\Modules\CONFIG;
  */
 class CommandSearchController {
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	private $searchWords;
+	/** @var string[] */
+	private array $searchWords;
 
 	/**
 	 * @HandlesCommand("cmdsearch")
 	 * @Matches("/^cmdsearch (.*)/i")
 	 */
-	public function searchCommand($message, $channel, $sender, $sendto, $arr) {
+	public function searchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $arr): void {
 		$this->searchWords = explode(" ", $arr[1]);
 
 		// if a mod or higher, show all commands, not just enabled commands
@@ -60,7 +60,7 @@ class CommandSearchController {
 		if (!$access) {
 			$sqlquery .= " AND status = 1";
 		}
-		$results = $this->db->query($sqlquery, $arr[1]);
+		$results = $this->db->fetchAll(CommandSearchResult::class, $sqlquery, $arr[1]);
 		$results = $this->filterResultsByAccessLevel($sender, $results);
 
 		$exactMatch = !empty($results);
@@ -74,11 +74,18 @@ class CommandSearchController {
 		$msg = $this->render($results, $access, $exactMatch);
 
 		$sendto->reply($msg);
-
-		return true;
 	}
 	
-	public function filterResultsByAccessLevel($sender, $data) {
+	/**
+	 * Remove all commands that we don't have access to
+	 *
+	 * @param string $sender
+	 * @param CommandSearchResult[] $data
+	 * @return CommandSearchResult[]
+	 * @throws SQLException
+	 * @throws Exception
+	 */
+	public function filterResultsByAccessLevel(string $sender, array $data): array {
 		$results = array();
 		$charAccessLevel = $this->accessManager->getSingleAccessLevel($sender);
 		foreach ($data as $key => $row) {
@@ -89,44 +96,48 @@ class CommandSearchController {
 		return $results;
 	}
 	
-	public function findSimilarCommands($wordArray, $includeDisabled=false) {
+	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false) {
 		$sqlquery = "SELECT DISTINCT module, cmd, help, description, admin FROM cmdcfg_<myname>";
 		if (!$includeDisabled) {
 			$sqlquery .= " WHERE status = 1";
 		}
-		$data = $this->db->query($sqlquery);
+		/** @var CommandSearchResult[] $data */
+		$data = $this->db->fetchAll(CommandSearchResult::class, $sqlquery);
 
 		foreach ($data as $row) {
 			$keywords = array($row->cmd);
 			$keywords = array_unique($keywords);
-			$row->distance = 0;
+			$row->similarity_percent = 0;
 			foreach ($wordArray as $searchWord) {
-				$distance = 9999;
+				$similarity = 0;
+				$rowSimilarity = 0;
 				foreach ($keywords as $keyword) {
-					$distance = min($distance, levenshtein($keyword, $searchWord));
+					similar_text($keyword, $searchWord, $rowSimilarity);
+					$similarity = max($similarity, $rowSimilarity);
 				}
-				$row->distance += $distance;
+				$row->similarity_percent = $similarity;
 			}
 		}
 		$results = $data;
-		usort($results, array($this, 'sortByDistance'));
+		usort($results, [$this, 'sortBySimilarity']);
 		
 		return $results;
 	}
 
-	public function sortByDistance($row1, $row2) {
-		$d1 = $row1->distance;
-		$d2 = $row2->distance;
-		if ($d1 == $d2) {
-			return 0;
-		}
-		return ($d1 < $d2) ? -1 : 1;
+	public function sortBySimilarity(CommandSearchResult $row1, CommandSearchResult $row2): int {
+		return $row2->similarity_percent <=> $row1->similarity_percent;
 	}
 
-	public function render($results, $hasAccess, $exactMatch) {
+	/**
+	 * @param array CommandSearchResult[]
+	 * @param bool $hasAccess
+	 * @param mixed $exactMatch
+	 * @return string|string[]
+	 */
+	public function render(array $results, bool $hasAccess, bool $exactMatch) {
 		$blob = '';
 		foreach ($results as $row) {
-			if ($row->help != '') {
+			if ($row->help !== null && $row->help !== '') {
 				$helpLink = ' (' . $this->text->makeChatcmd("Help", "/tell <myname> help $row->cmd") . ')';
 			}
 			if ($hasAccess) {
@@ -135,19 +146,17 @@ class CommandSearchController {
 				$module = "{$row->module}";
 			}
 
-			$cmd = str_pad($row->cmd . " ", 20, ".");
-			$blob .= "<highlight>{$cmd}<end> {$module} - {$row->description}{$helpLink}\n";
+			$blob .= "<header2>{$row->cmd}<end>\n<tab>{$module} - {$row->description}{$helpLink}\n";
 		}
 
 		$count = count($results);
-		if ($count == 0) {
-			$msg = "No results found.";
+		if ($count === 0) {
+			return "No results found.";
+		}
+		if ($exactMatch) {
+			$msg = $this->text->makeBlob("Command Search Results ($count)", $blob);
 		} else {
-			if ($exactMatch) {
-				$msg = $this->text->makeBlob("Command Search Results ($count)", $blob);
-			} else {
-				$msg = $this->text->makeBlob("Possible Matches ($count)", $blob);
-			}
+			$msg = $this->text->makeBlob("Possible Matches ($count)", $blob);
 		}
 		return $msg;
 	}

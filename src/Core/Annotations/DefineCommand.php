@@ -1,15 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Annotations;
 
 use Addendum\Annotation;
 
 class DefineCommand extends Annotation {
-	public $command;
-	public $channels;
-	public $accessLevel;
-	public $description;
-	public $help;
-	public $defaultStatus;
-	public $alias;
+	public ?string $command = null;
+	public ?string $channels = null;
+	public ?string $accessLevel = null;
+	public ?string $description = null;
+	public ?string $help = null;
+	public int $defaultStatus = 0;
+	public ?string $alias = null;
 }

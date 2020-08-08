@@ -1,43 +1,64 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\Registry;
 
 class AltInfo {
-	public $main; // The main for this character
-	public $alts = array(); // The list of alts for this character
+	/** The main char of this character */
+	public string $main;
 
-	public function isValidated($sender) {
+	/**
+	 * The list of alts for this character
+	 * Format is [name => validated (true) or false]
+	 *
+	 * @var array<string,bool>
+	 */
+	public array $alts = [];
+
+	/**
+	 * Check of $sender is a validated alt or main
+	 */
+	public function isValidated(string $sender): bool {
 		if ($sender == $this->main) {
 			return true;
 		}
 
 		foreach ($this->alts as $alt => $validated) {
-			if ($sender == $alt) {
-				return ($validated == 1);
+			if ($sender === $alt) {
+				return $validated;
 			}
 		}
 
-		// $sender is not an alt at all, return false
 		return false;
 	}
 
-	public function getAllValidated($sender) {
+	/**
+	 * Get a list of all validated alts and the main of $sender
+	 * @return string[]
+	 */
+	public function getAllValidated(string $sender): array {
 		if (!$this->isValidated($sender)) {
-			return array($sender);
-		} else {
-			$arr = array($this->main);
-			foreach ($this->alts as $alt => $validated) {
-				if ($validated) {
-					$arr []= $alt;
-				}
-			}
-			return $arr;
+			return [$sender];
 		}
+		$arr = [$this->main];
+		foreach ($this->alts as $alt => $validated) {
+			if ($validated) {
+				$arr []= $alt;
+			}
+		}
+		return $arr;
 	}
 
-	public function getAltsBlob($showValidateLinks=false, $firstPageOnly=false) {
+	/**
+	 * Get the altlist of this character as a string to display
+	 *
+	 * @param bool $showValidateLinks Show links to validate the alt if unvalidated
+	 * @param bool $firstPageOnly Only show the first page (login alt-list)
+	 * @return string
+	 */
+	public function getAltsBlob(bool $showValidateLinks=false, bool $firstPageOnly=false): string {
 		/** @var \Nadybot\Core\DB */
 		$db = Registry::getInstance('db');
 		/** @var \Nadybot\Core\SettingManager */
@@ -51,10 +72,10 @@ class AltInfo {
 		/** @var \Nadybot\Core\Util */
 		$util = Registry::getInstance('util');
 
-		if (count($this->alts) == 0) {
+		if (count($this->alts) === 0) {
 			return "No registered alts.";
 		}
-		$profDisplay = $settingManager->get('alts_profession_display');
+		$profDisplay = $settingManager->getInt('alts_profession_display');
 
 		$online = $buddylistManager->isOnline($this->main);
 		$character = $playerManager->getByName($this->main);
@@ -76,7 +97,7 @@ class AltInfo {
 		if ($profDisplay & 4 && $character->profession !== null) {
 			$extraInfo []= $character->profession;
 		}
-		if ($settingManager->get('alts_show_org') && $character->faction !== null && !$firstPageOnly) {
+		if ($settingManager->getBool('alts_show_org') && $character->faction !== null && !$firstPageOnly) {
 			$factionColor = strtolower($character->faction);
 			$orgName = strlen($character->guild) ? $character->guild : $character->faction;
 			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
@@ -96,7 +117,7 @@ class AltInfo {
 		} elseif ($settingManager->get('alts_sort') === 'name') {
 			$sql .= "ORDER BY name ASC";
 		}
-		$data = $db->query($sql, $this->main);
+		$data = $db->fetchAll(Alt::class, $sql, $this->main);
 		$count = count($data) + 1;
 		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);
@@ -117,7 +138,7 @@ class AltInfo {
 			if ($profDisplay & 4 && $row->profession !== null) {
 				$extraInfo []= $row->profession;
 			}
-			if ($settingManager->get('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
+			if ($settingManager->getBool('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->faction);
 				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
@@ -143,7 +164,11 @@ class AltInfo {
 		}
 	}
 
-	public function getOnlineAlts() {
+	/**
+	 * Get a list of the names of all alts who are online
+	 * @return string[]
+	 */
+	public function getOnlineAlts(): array {
 		$online_list = array();
 		$buddylistManager = Registry::getInstance('buddylistManager');
 
@@ -160,19 +185,17 @@ class AltInfo {
 		return $online_list;
 	}
 
-	public function getAllAlts() {
-		$online_list = array();
-
-		$online_list []= $this->main;
-
-		foreach ($this->alts as $name => $validated) {
-			$online_list []= $name;
-		}
+	/**
+	 * Get a list of the names of all alts
+	 * @return string[]
+	 */
+	public function getAllAlts(): array {
+		$online_list = [$this->main, ...array_keys($this->alts)];
 
 		return $online_list;
 	}
 
-	public function hasUnvalidatedAlts() {
+	public function hasUnvalidatedAlts(): bool {
 		foreach ($this->getAllAlts() as $alt) {
 			if (!$this->isValidated($alt)) {
 				return true;
@@ -181,28 +204,25 @@ class AltInfo {
 		return false;
 	}
 
-	public function getValidatedMain($sender) {
+	public function getValidatedMain($sender): string {
 		if ($this->isValidated($sender)) {
 			return $this->main;
-		} else {
-			return $sender;
 		}
+		return $sender;
 	}
 
-	public function formatCharName($name, $online) {
-		if ($online == 1) {
+	public function formatCharName(string $name, ?bool $online): string {
+		if ($online) {
 			$text = Registry::getInstance('text');
 			return $text->makeChatcmd($name, "/tell $name");
-		} else {
-			return $name;
 		}
+		return $name;
 	}
 
-	public function formatOnlineStatus($online) {
-		if ($online == 1) {
+	public function formatOnlineStatus(?bool $online): string {
+		if ($online) {
 			return " - <green>Online<end>";
-		} else {
-			return "";
 		}
+		return "";
 	}
 }

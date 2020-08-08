@@ -1,8 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\SQLException;
+use Nadybot\Core\{
+	AccessManager,
+	CommandManager,
+	CommandReply,
+	DB,
+	SQLException,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -33,44 +40,25 @@ class SQLController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
-	public function setup() {
-	}
-	
 	/**
 	 * @HandlesCommand("executesql")
 	 * @Matches("/^executesql (.*)$/i")
 	 */
-	public function executesqlCommand($message, $channel, $sender, $sendto, $args) {
+	public function executesqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sql = htmlspecialchars_decode($args[1]);
 
 		try {
@@ -86,14 +74,22 @@ class SQLController {
 	 * @HandlesCommand("querysql")
 	 * @Matches("/^querysql (.*)$/si")
 	 */
-	public function querysqlCommand($message, $channel, $sender, $sendto, $args) {
+	public function querysqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sql = htmlspecialchars_decode($args[1]);
 
 		try {
 			$data = $this->db->query($sql);
 			$count = count($data);
 
-			$msg = $this->text->makeBlob("Results ($count)", print_r($data, true));
+			$blob = "";
+			foreach ($data as $row) {
+				$blob .= "<pagebreak><header2>Entry<end>\n";
+				foreach ($row as $key => $value) {
+					$blob .= "<tab><highlight>$key:<end> ".json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+				}
+				$blob .= "\n";
+			}
+			$msg = $this->text->makeBlob("Results ($count)", $blob);
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
@@ -102,18 +98,16 @@ class SQLController {
 
 	/**
 	 * @HandlesCommand("loadsql")
-	 * @Matches("/^loadsql (.*) (.*)$/i")
+	 * @Matches("/^loadsql ([^ ]+) (.+)$/i")
 	 */
-	public function loadsqlCommand($message, $channel, $sender, $sendto, $args) {
+	public function loadsqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$module = strtoupper($args[1]);
 		$name = strtolower($args[2]);
-	
+
 		$this->db->beginTransaction();
-	
 		$msg = $this->db->loadSQLFile($module, $name, true);
-	
 		$this->db->commit();
-	
+
 		$sendto->reply($msg);
 	}
 }

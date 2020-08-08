@@ -1,39 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
 
 class ClassLoader {
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * Relative directories where to look for modules
 	 *
-	 * @var string[] $moduleLoadPaths
+	 * @var string[]
 	 */
-	private $moduleLoadPaths;
+	private array $moduleLoadPaths;
 
 	/**
 	 * Initialize the class loader
 	 *
 	 * @param string[] $moduleLoadPaths Relative paths where to look for modules
-	 * @return self
 	 */
-	public function __construct($moduleLoadPaths) {
+	public function __construct(array $moduleLoadPaths) {
 		$this->moduleLoadPaths = $moduleLoadPaths;
 	}
 
 	/**
 	 * Load all classes that provide an @Instance
-	 *
-	 * @return void
 	 */
-	public function loadInstances() {
+	public function loadInstances(): void {
 		$newInstances = $this->getNewInstancesInDir(__DIR__);
 		foreach ($newInstances as $name => $className) {
 			Registry::setInstance($name, new $className);
@@ -50,10 +44,8 @@ class ClassLoader {
 
 	/**
 	 * Parse and load all core modules
-	 *
-	 * @return void
 	 */
-	private function loadCoreModules() {
+	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->log('INFO', "Loading CORE modules...");
 		$core_modules = array('CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS', 'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE', 'COLORS', 'DISCORD');
@@ -64,14 +56,12 @@ class ClassLoader {
 
 	/**
 	 * Parse and load all user modules
-	 *
-	 * @return void
 	 */
-	private function loadUserModules() {
+	private function loadUserModules(): void {
 		$this->logger->log('INFO', "Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->log('DEBUG', "Loading modules in path '$path'");
-			if (file_exists($path) && $d = dir($path)) {
+			if (@file_exists($path) && $d = dir($path)) {
 				while (false !== ($moduleName = $d->read())) {
 					if ($this->isModuleDir($path, $moduleName)) {
 						$this->registerModule($path, $moduleName);
@@ -84,34 +74,23 @@ class ClassLoader {
 
 	/**
 	 * Test if $moduleName is a module in $path
-	 *
-	 * @param string $path relative direcotry
-	 * @param string $moduleName Name of the module
-	 * @return boolean
 	 */
-	private function isModuleDir($path, $moduleName) {
+	private function isModuleDir(string $path, string $moduleName): bool {
 		return $this->isValidModuleName($moduleName)
 			&& is_dir("$path/$moduleName");
 	}
 
 	/**
 	 * Check if $name is a valid module name
-	 *
-	 * @param string $name
-	 * @return boolean
 	 */
-	private function isValidModuleName($name) {
+	private function isValidModuleName(string $name): bool {
 		return $name !== '.' && $name !== '..';
 	}
 
 	/**
 	 * Register a modue in a basedir and check compatibility
-	 *
-	 * @param string $baseDir The base module dir (src/Modules, extras)
-	 * @param string $moduleName Name of the module (WHOIS_MODULE)
-	 * @return void
 	 */
-	public function registerModule($baseDir, $moduleName) {
+	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory
 		if (file_exists("{$baseDir}/{$moduleName}/module.ini")) {
 			$entries = parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
@@ -148,10 +127,9 @@ class ClassLoader {
 	/**
 	 * Get a list of all module which provide an @Instance for a directory
 	 *
-	 * @param string $path The relative path where to look
 	 * @return string[] A mapping [module name => class name]
 	 */
-	public static function getNewInstancesInDir($path) {
+	public static function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
 		if ($dir = dir($path)) {
 			while (false !== ($file = $dir->read())) {

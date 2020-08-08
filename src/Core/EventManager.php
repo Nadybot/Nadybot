@@ -1,57 +1,47 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 use Exception;
 use Nadybot\Core\Event;
 use Addendum\ReflectionAnnotatedMethod;
+use Nadybot\Core\DBSchema\EventCfg;
 
 /**
  * @Instance
  */
 class EventManager {
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
-	public $events = array();
-	private $cronevents = array();
+	/** @var array<string,string[]> */
+	public array $events = [];
 
-	private $eventTypes = array(
+	/** @var array<array<string,mixed>> */
+	private array $cronevents = [];
+
+	/** @var string[] */
+	private array $eventTypes = array(
 		'msg','priv','extpriv','guild','joinpriv','leavepriv',
 		'orgmsg','extjoinprivrequest','logon','logoff','towers',
 		'connect','setup','amqp'
 	);
 
-	private $lastCronTime = 0;
-	private $areConnectEventsFired = false;
+	private int $lastCronTime = 0;
+	private bool $areConnectEventsFired = false;
 	const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 
@@ -59,7 +49,7 @@ class EventManager {
 	 * @name: register
 	 * @description: Registers an event on the bot so it can be configured
 	 */
-	public function register($module, $type, $filename, $description='none', $help='', $defaultStatus=null) {
+	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?int $defaultStatus=null): void {
 		$type = strtolower($type);
 
 		$this->logger->log('DEBUG', "Registering event Type:($type) Handler:($filename) Module:($module)");
@@ -69,7 +59,7 @@ class EventManager {
 			return;
 		}
 
-		list($name, $method) = explode(".", $filename);
+		[$name, $method] = explode(".", $filename);
 		if (!Registry::instanceExists($name)) {
 			$this->logger->log('ERROR', "Error registering method $filename for event type $type.  Could not find instance '$name'.");
 			return;
@@ -98,15 +88,14 @@ class EventManager {
 	}
 
 	/**
-	 * @name: activate
-	 * @description: Activates an event
+	 * Activates an event
 	 */
-	public function activate($type, $filename) {
+	public function activate(string $type, string $filename): void {
 		$type = strtolower($type);
 
 		$this->logger->log('DEBUG', "Activating event Type:($type) Handler:($filename)");
 
-		list($name, $method) = explode(".", $filename);
+		[$name, $method] = explode(".", $filename);
 		if (!Registry::instanceExists($name)) {
 			$this->logger->log('ERROR', "Error activating method $filename for event type $type.  Could not find instance '$name'.");
 			return;
@@ -139,10 +128,9 @@ class EventManager {
 	}
 
 	/**
-	 * @name: deactivate
-	 * @description: Deactivates an event
+	 * Deactivates an event
 	 */
-	public function deactivate($type, $filename) {
+	public function deactivate(string $type, string $filename): void {
 		$type = strtolower($type);
 
 		$this->logger->log('debug', "Deactivating event Type:($type) Handler:($filename)");
@@ -157,7 +145,7 @@ class EventManager {
 			$time = $this->getTimerEventTime($type);
 			if ($time > 0) {
 				$key = $this->getKeyForCronEvent($time, $filename);
-				if ($key != null) {
+				if ($key !== null) {
 					$found = true;
 					unset($this->cronevents[$key]);
 				}
@@ -175,14 +163,8 @@ class EventManager {
 	/**
 	 * Activates events that are annotated on one or more method names
 	 * if the events are not already activated
-	 *
-	 * @param Object obj
-	 * @param String methodName1
-	 * @param String methodName2 ...
 	 */
-	public function activateIfDeactivated($obj) {
-		$eventMethods = func_get_args();
-		array_shift($eventMethods);
+	public function activateIfDeactivated(object $obj, string ...$eventMethods): void {
 		foreach ($eventMethods as $eventMethod) {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
@@ -201,14 +183,8 @@ class EventManager {
 	/**
 	 * Deactivates events that are annotated on one or more method names
 	 * if the events are not already deactivated
-	 *
-	 * @param Object obj
-	 * @param String methodName1
-	 * @param String methodName2 ...
 	 */
-	public function deactivateIfActivated($obj) {
-		$eventMethods = func_get_args();
-		array_shift($eventMethods);
+	public function deactivateIfActivated(object $obj, string ...$eventMethods): void {
 		foreach ($eventMethods as $eventMethod) {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
@@ -224,16 +200,15 @@ class EventManager {
 		}
 	}
 
-	public function getEventTypeByMethod($obj, $methodName) {
+	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
 		$method = new ReflectionAnnotatedMethod($obj, $methodName);
 		if ($method->hasAnnotation('Event')) {
 			return strtolower($method->getAnnotation('Event')->value);
-		} else {
-			return null;
 		}
+		return null;
 	}
 
-	public function getKeyForCronEvent($time, $filename) {
+	public function getKeyForCronEvent(int $time, string $filename): ?int {
 		foreach ($this->cronevents as $key => $event) {
 			if ($time == $event['time'] && $event['filename'] == $filename) {
 				return $key;
@@ -243,23 +218,22 @@ class EventManager {
 	}
 
 	/**
-	 * @name: loadEvents
-	 * @description: Loads the active events into memory and activates them
+	 * Loads the active events into memory and activates them
 	 */
-	public function loadEvents() {
+	public function loadEvents(): void {
 		$this->logger->log('DEBUG', "Loading enabled events");
 
-		$data = $this->db->query("SELECT * FROM eventcfg_<myname> WHERE `status` = '1'");
+		/** @var EventCfg[] $data */
+		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname> WHERE `status` = '1'");
 		foreach ($data as $row) {
 			$this->activate($row->type, $row->file);
 		}
 	}
 
 	/**
-	 * @name: crons
-	 * @description: Call timer events
+	 * Call timer events
 	 */
-	public function crons() {
+	public function crons(): void {
 		$time = time();
 
 		if ($this->lastCronTime == $time) {
@@ -273,7 +247,7 @@ class EventManager {
 				$this->logger->log('DEBUG', "Executing cron event '${event['filename']}'");
 
 				$eventObj = new Event();
-				$eventObj->type = strtolower($event['time']);
+				$eventObj->type = strtolower((string)$event['time']);
 
 				$this->cronevents[$key]['nextevent'] = $time + $event['time'];
 				$this->callEventHandler($eventObj, $event['filename']);
@@ -281,11 +255,10 @@ class EventManager {
 		}
 	}
 
-	/*===============================
-	** Name: executeConnectEvents
-	** Execute Events that needs to be executed right after login
-	*/
-	public function executeConnectEvents() {
+	/**
+	 * Execute Events that needs to be executed right after login
+	 */
+	public function executeConnectEvents(): void {
 
 		if ($this->areConnectEventsFired) {
 			return;
@@ -300,11 +273,11 @@ class EventManager {
 		$this->fireEvent($eventObj);
 	}
 
-	public function isValidEventType($type) {
-		return (in_array($type, $this->eventTypes) || preg_match(self::PACKET_TYPE_REGEX, $type) == 1);
+	public function isValidEventType(string $type): bool {
+		return in_array($type, $this->eventTypes) || preg_match(self::PACKET_TYPE_REGEX, $type) === 1;
 	}
 
-	public function getTimerEventTime($type) {
+	public function getTimerEventTime(string $type): int {
 		if (preg_match(self::TIMER_EVENT_REGEX, $type, $arr) == 1) {
 			$time = $this->util->parseTime($arr[1]);
 			if ($time > 0) {
@@ -319,7 +292,7 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent(Event $eventObj) {
+	public function fireEvent(Event $eventObj): void {
 		if (isset($this->events[$eventObj->type])) {
 			foreach ($this->events[$eventObj->type] as $filename) {
 				$this->callEventHandler($eventObj, $filename);
@@ -327,11 +300,14 @@ class EventManager {
 		}
 	}
 
-	public function callEventHandler(Event $eventObj, $handler) {
+	/**
+	 * @throws StopExecutionException
+	 */
+	public function callEventHandler(Event $eventObj, string $handler): void {
 		$this->logger->log('DEBUG', "Executing handler '$handler' for event type '$eventObj->type'");
 
 		try {
-			list($name, $method) = explode(".", $handler);
+			[$name, $method] = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->log('ERROR', "Could not find instance for name '$name' in '$handler' for event type '$eventObj->type'");
@@ -345,15 +321,17 @@ class EventManager {
 		}
 	}
 
-	public function addEventType($eventType) {
+	/**
+	 * Dynamically add an event to the allowed types
+	 */
+	public function addEventType(string $eventType): bool {
 		$eventType = strtolower($eventType);
 
 		if (in_array($eventType, $this->eventTypes)) {
 			$this->logger->log('WARN', "Event type already registered: '$eventType'");
 			return false;
-		} else {
-			$this->eventTypes []= $eventType;
-			return true;
 		}
+		$this->eventTypes []= $eventType;
+		return true;
 	}
 }

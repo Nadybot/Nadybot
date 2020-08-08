@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 use Nadybot\Core\Registry;
 use Logger;
+use Exception;
 
 /**
  * A wrapper class to log4php
@@ -13,19 +14,15 @@ use Logger;
 class LoggerWrapper {
 	/**
 	 * The actual log4php logger
-	 *
-	 * @var \Logger
 	 */
-	private $logger;
+	private Logger $logger;
 
 	/**
 	 * The actual log4php logger for tag CHAT
-	 *
-	 * @var \Logger
 	 */
-	private $chatLogger;
+	private Logger $chatLogger;
 
-	public function __construct($tag) {
+	public function __construct(string $tag) {
 		$this->logger = Logger::getLogger($tag);
 		$this->chatLogger = Logger::getLogger('CHAT');
 		Registry::setInstance("logger", $this);
@@ -39,7 +36,7 @@ class LoggerWrapper {
 	 * @param Exception $throwable Optional throwable information to include in the logging event
 	 * @return void
 	 */
-	public function log($category, $message, $throwable=null) {
+	public function log(string $category, string $message, ?Exception $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		$this->logger->log($level, $message, $throwable);
 	}
@@ -52,7 +49,7 @@ class LoggerWrapper {
 	 * @param string $message The message to log
 	 * @return void
 	 */
-	public function logChat($channel, $sender, $message) {
+	public function logChat(string $channel, $sender, string $message): void {
 		global $vars;
 		if ($vars['show_aoml_markup'] == 0) {
 			$message = preg_replace("|<font(.+)>|U", "", $message);
@@ -76,10 +73,8 @@ class LoggerWrapper {
 
 	/**
 	 * Get the relative path of the directory where logs of this bot are stored
-	 *
-	 * @return string
 	 */
-	public function getLoggingDirectory() {
+	public function getLoggingDirectory(): string {
 		global $vars;
 		return "./logs/{$vars['name']}.{$vars['dimension']}";
 	}
@@ -90,7 +85,7 @@ class LoggerWrapper {
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
 	 * @return boolean
 	 */
-	public function isEnabledFor($category) {
+	public function isEnabledFor(string $category): bool {
 		$level = LegacyLogger::getLoggerLevel($category);
 		return $this->logger->isEnabledFor($level);
 	}

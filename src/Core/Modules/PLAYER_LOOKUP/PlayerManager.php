@@ -1,8 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use stdClass;
+use Nadybot\Core\{
+	DB,
+	Http,
+	Nadybot,
+	SQLException,
+	Util,
+};
+use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
@@ -10,52 +17,38 @@ use stdClass;
  * @Instance
  */
 class PlayerManager {
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
+	/** @Inject */
+	public Http $http;
 
-	public function getByName($name, $rk_num=0, $forceUpdate=false) {
-		if ($rk_num == 0) {
-			$rk_num = $this->chatBot->vars['dimension'];
-		}
+	public function getByName(string $name, int $dimension=null, bool $forceUpdate=false): ?Player {
+		$dimension ??= (int)$this->chatBot->vars['dimension'];
 
 		$name = ucfirst(strtolower($name));
 
 		$charid = '';
-		if ($rk_num == $this->chatBot->vars['dimension']) {
+		if ($dimension === (int)$this->chatBot->vars['dimension']) {
 			$charid = $this->chatBot->get_uid($name);
 		}
 
-		$player = $this->findInDb($name, $rk_num);
+		$player = $this->findInDb($name, $dimension);
 
 		if ($player === null || $forceUpdate) {
-			$player = $this->lookup($name, $rk_num);
+			$player = $this->lookup($name, $dimension);
 			if ($player !== null && $charid !== false) {
 				$player->charid = $charid;
 				$this->update($player);
 			}
 		} elseif ($player->last_update < (time() - 86400)) {
-			$player2 = $this->lookup($name, $rk_num);
+			$player2 = $this->lookup($name, $dimension);
 			if ($player2 !== null) {
 				$player = $player2;
 				if ($charid !== false) {
@@ -72,27 +65,27 @@ class PlayerManager {
 		return $player;
 	}
 
-	public function findInDb($name, $rk_num) {
+	public function findInDb(string $name, int $dimension): ?Player {
 		$sql = "SELECT * FROM players WHERE name LIKE ? AND dimension = ? LIMIT 1";
-		return $this->db->queryRow($sql, $name, $rk_num);
+		return $this->db->fetch(Player::class, $sql, $name, $dimension);
 	}
 
-	public function lookup($name, $rk_num) {
-		$obj = $this->lookupUrl("http://people.anarchy-online.com/character/bio/d/$rk_num/name/$name/bio.xml?data_type=json");
-		if ($obj->name == $name) {
+	public function lookup(string $name, int $dimension): ?Player {
+		$obj = $this->lookupUrl("http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json");
+		if ($obj->name === $name) {
 			$obj->source = 'people.anarchy-online.com';
-			$obj->dimension = $rk_num;
+			$obj->dimension = $dimension;
 			return $obj;
 		}
 
 		return null;
 	}
 
-	private function lookupUrl($url) {
+	private function lookupUrl(string $url):Player {
 		$response = $this->http->get($url)->waitAndReturnResponse();
-		list($char, $org, $lastUpdated) = json_decode($response->body);
+		[$char, $org, $lastUpdated] = json_decode($response->body);
 
-		$obj = new stdClass;
+		$obj = new Player();
 
 		// parsing of the player data
 		$obj->firstname      = trim($char->FIRSTNAME);
@@ -118,22 +111,14 @@ class PlayerManager {
 		//$obj->charid        = $char->CHAR_INSTANCE;
 		$obj->dimension      = $char->CHAR_DIMENSION;
 
-		foreach ($obj as $key => $value) {
-			if (is_null($value)) {
-				$obj->$key = "";
-			}
-		}
-
 		return $obj;
 	}
 
-	public function update($char) {
+	public function update(Player $char): void {
 		$sql = "DELETE FROM players WHERE `name` = ? AND `dimension` = ?";
 		$this->db->exec($sql, $char->name, $char->dimension);
 		
-		if (empty($char->guild_id)) {
-			$char->guild_id = 0;
-		}
+		$char->guild_id ??= 0;
 		
 		if ($char->guild_rank_id === '') {
 			$char->guild_rank_id = -1;
@@ -215,16 +200,16 @@ class PlayerManager {
 		);
 	}
 
-	public function getInfo($whois, $showFirstAndLastName=true) {
+	public function getInfo(Player $whois, bool $showFirstAndLastName=true): string {
 		$msg = '';
 
-		if ($showFirstAndLastName && $whois->firstname) {
+		if ($showFirstAndLastName && strlen($whois->firstname??"")) {
 			$msg = $whois->firstname . " ";
 		}
 
 		$msg .= "<highlight>\"{$whois->name}\"<end> ";
 
-		if ($showFirstAndLastName && $whois->lastname) {
+		if ($showFirstAndLastName && strlen($whois->lastname??"")) {
 			$msg .= $whois->lastname . " ";
 		}
 
@@ -241,18 +226,25 @@ class PlayerManager {
 		return $msg;
 	}
 	
-	public function searchForPlayers($search, $rkNum=null) {
+	/**
+	 * Search for players in the database
+	 *
+	 * @param string $search Search term
+	 * @param int|null $dimension Dimension to limit search to
+	 * @return array Player[]
+	 * @throws SQLException On error
+	 */
+	public function searchForPlayers(string $search, ?int $dimension=null): array {
 		$searchTerms = explode(' ', $search);
-		list($query, $params) = $this->util->generateQueryFromParams($searchTerms, 'name');
+		[$query, $params] = $this->util->generateQueryFromParams($searchTerms, 'name');
 
-		if ($rkNum == null) {
+		if ($dimension === null) {
 			$sql = "SELECT * FROM players WHERE $query ORDER BY name ASC LIMIT 100";
-			return $this->db->query($sql, $params);
-		} else {
-			$sql = "SELECT * FROM players WHERE $query AND dimension = ? ORDER BY name ASC LIMIT 100";
-			$params []= $rkNum;
-
-			return $this->db->query($sql, $params);
+			return $this->db->fetchAll(Player::class, $sql, $params);
 		}
+		$sql = "SELECT * FROM players WHERE $query AND dimension = ? ORDER BY name ASC LIMIT 100";
+		$params []= $dimension;
+
+		return $this->db->fetchAll(Player::class, $sql, ...$params);
 	}
 }

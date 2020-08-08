@@ -1,8 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
-
-use stdClass;
 
 /**
  * The AsyncHttp class provides means to make HTTP and HTTPS requests.
@@ -13,36 +11,22 @@ use stdClass;
  */
 class AsyncHttp {
 
-	/**
-	 * @var \Nadybot\Core\SettingObject $setting
-	 * @Inject
-	 */
-	public $setting;
+	/** @Inject */
+	public SettingObject $setting;
 
-	/**
-	 * @var \Nadybot\Core\SocketManager $socketManager
-	 * @Inject
-	 */
-	public $socketManager;
+	/** @Inject */
+	public SocketManager $socketManager;
 
-	/**
-	 * @var \Nadybot\Core\Timer $timer
-	 * @Inject
-	 */
-	public $timer;
+	/** @Inject */
+	public Timer $timer;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * The URI to connect to
-	 *
-	 * @var string $uri
 	 */
-	private $uri;
+	private string $uri;
 
 	/**
 	 * The function to call when data has arrived
@@ -61,22 +45,21 @@ class AsyncHttp {
 	/**
 	 * Additional headers tp send with the request
 	 *
-	 * @var string[] $headers [key => value]
+	 * @var array<string,mixed> $headers [key => value]
 	 */
-	private $headers = array();
+	private array $headers = [];
+
 	/**
 	 * Timeout after not receiving any data for $timerout seconds
-	 *
-	 * @var int|null $timeout
 	 */
-	private $timeout = null;
+	private ?int $timeout = null;
 
 	/**
 	 * The query parameters to send with out query
 	 *
 	 * @var string[]
 	 */
-	private $queryParams = array();
+	private array $queryParams = [];
 
 	/**
 	 * The socket to communicate with
@@ -87,24 +70,19 @@ class AsyncHttp {
 
 	/**
 	 * The notifier to notify us when something happens in the queue
-	 *
-	 * @var \Nadybot\Core\SocketNotifier $notifier
 	 */
-	private $notifier;
+	private ?SocketNotifier $notifier;
 
 	/**
 	 * The data to send with a request
-	 *
-	 * @var string $requestData
 	 */
-	private $requestData = '';
+	private string $requestData = '';
 
 	/**
 	 * The incoming response data
-	 *
-	 * @var string $responseData
 	 */
-	private $responseData = '';
+	private string $responseData = '';
+
 	/**
 	 * The position in the $responseData where the header ends
 	 *
@@ -117,14 +95,12 @@ class AsyncHttp {
 	 *
 	 * @var string[] $responseHeaders
 	 */
-	private $responseHeaders = array();
+	private array $responseHeaders = [];
 
 	/**
 	 * The HttpRequest object
-	 *
-	 * @var \Nadybot\Core\HttpRequest $request
 	 */
-	private $request;
+	private HttpRequest $request;
 
 	/**
 	 * An error string or false if no error
@@ -135,49 +111,37 @@ class AsyncHttp {
 
 	/**
 	 * The timer that tracks stream timeout
-	 *
-	 * @var \Nadybot\Core\Timer $timeoutEvent
 	 */
-	private $timeoutEvent = null;
+	private ?TimerEvent $timeoutEvent = null;
 
 	/**
 	 * Indicates if there's still a transaction running (true) or not (false)
-	 *
-	 * @var bool $finished
 	 */
-	private $finished;
+	private bool $finished;
 
 	/**
 	 * The event loop
-	 *
-	 * @var \Nadybot\Core\EventLoop $loop
 	 */
-	private $loop;
+	private EventLoop $loop;
 
 	/**
 	 * Override the address to connect to for integration tests
 	 *
 	 * @internal
-	 * @var string|null $overrideAddress
 	 */
-	public static $overrideAddress = null;
+	public static ?string $overrideAddress = null;
 
 	/**
 	 * Override the port to connect to for integration tests
 	 *
 	 * @internal
-	 * @var int|null $overridePort
 	 */
-	public static $overridePort    = null;
+	public static ?int $overridePort = null;
 
 	/**
 	 * Create a new instance
-	 *
-	 * @internal
-	 * @param string $method http method to use (get/post)
-	 * @param string $uri    URI which should be requested
 	 */
-	public function __construct($method, $uri) {
+	public function __construct(string $method, string $uri) {
 		$this->method   = $method;
 		$this->uri      = $uri;
 		$this->finished = false;
@@ -187,9 +151,8 @@ class AsyncHttp {
 	 * Executes the HTTP query.
 	 *
 	 * @internal
-	 * @return void
 	 */
-	public function execute() {
+	public function execute(): void {
 		if (!$this->buildRequest()) {
 			return;
 		}
@@ -206,10 +169,8 @@ class AsyncHttp {
 
 	/**
 	 * Create the internal request
-	 *
-	 * @return bool true on success, else false
 	 */
-	private function buildRequest() {
+	private function buildRequest(): bool {
 		try {
 			$this->request = new HttpRequest($this->method, $this->uri, $this->queryParams, $this->headers);
 			$this->requestData = $this->request->getData();
@@ -224,21 +185,16 @@ class AsyncHttp {
 	 * Abort the request with the given error message
 	 *
 	 * @internal
-	 * @param string $errorString The error message to give
-	 * @return void
 	 */
-	public function abortWithMessage($errorString) {
+	public function abortWithMessage(string $errorString): void {
 		$this->setError($errorString . " for uri: '" . $this->uri . "' with params: '" . http_build_query($this->queryParams) . "'");
 		$this->finish();
 	}
 
 	/**
 	 * Sets error to given $errorString.
-	 *
-	 * @param string $errorString error string
-	 * @return void
 	 */
-	private function setError($errorString) {
+	private function setError(string $errorString): void {
 		$this->errorString = $errorString;
 		$this->logger->log('ERROR', $errorString);
 	}
@@ -247,10 +203,8 @@ class AsyncHttp {
 	 * Finish the transaction either as times out or regular
 	 *
 	 * Call the registered callback
-	 *
-	 * @return void
 	 */
-	private function finish() {
+	private function finish(): void {
 		$this->finished = true;
 		if ($this->timeoutEvent) {
 			$this->timer->abortEvent($this->timeoutEvent);
@@ -262,10 +216,8 @@ class AsyncHttp {
 
 	/**
 	 * Removes socket notifier from bot's reactor loop and closes the stream.
-	 *
-	 * @return void
 	 */
-	private function close() {
+	private function close(): void {
 		$this->socketManager->removeSocketNotifier($this->notifier);
 		$this->notifier = null;
 		fclose($this->stream);
@@ -273,10 +225,8 @@ class AsyncHttp {
 
 	/**
 	 * Calls the user supplied callback.
-	 *
-	 * @return void
 	 */
-	private function callCallback() {
+	private function callCallback(): void {
 		if ($this->callback !== null) {
 			$response = $this->buildResponse();
 			call_user_func($this->callback, $response, $this->data);
@@ -285,11 +235,9 @@ class AsyncHttp {
 
 	/**
 	 * Return a response object
-	 *
-	 * @return \StdClass
 	 */
-	private function buildResponse() {
-		$response = new StdClass();
+	private function buildResponse(): HttpResponse {
+		$response = new HttpResponse();
 		if (empty($this->errorString)) {
 			$response->headers = $this->responseHeaders;
 			$response->body    = $this->getResponseBody();
@@ -302,12 +250,10 @@ class AsyncHttp {
 
 	/**
 	 * Initialize a timer to handle timeout
-	 *
-	 * @return void
 	 */
-	private function initTimeout() {
+	private function initTimeout(): void {
 		if ($this->timeout === null) {
-			$this->timeout = $this->setting->http_timeout;
+			$this->timeout = (int)$this->setting->http_timeout;
 		}
 
 		$this->timeoutEvent = $this->timer->callLater(
@@ -319,27 +265,23 @@ class AsyncHttp {
 
 	/**
 	 * Initialize the internal stream object
-	 *
-	 * @return bool true on success, otherwise false
 	 */
-	private function createStream() {
+	private function createStream(): bool {
 		$this->stream = stream_socket_client($this->getStreamUri(), $errno, $errstr, 10, $this->getStreamFlags());
 		if ($this->stream === false) {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
-		stream_set_blocking($this->stream, 0);
+		stream_set_blocking($this->stream, false);
 		return true;
 	}
 
 	/**
 	 * Get the URI where to connect to
 	 *
-	 * Taking into account integraation test overrides
-	 *
-	 * @return string The URI like http://my.host.name:123
+	 * Taking into account integration test overrides
 	 */
-	private function getStreamUri() {
+	private function getStreamUri(): string {
 		$scheme = $this->request->getScheme();
 		$host = self::$overrideAddress ? self::$overrideAddress : $this->request->getHost();
 		$port = self::$overridePort ? self::$overridePort : $this->request->getPort();
@@ -348,10 +290,8 @@ class AsyncHttp {
 
 	/**
 	 * Get the flags to set for the stream, taking Linux and Windows into account
-	 *
-	 * @return int A bitfield with flags
 	 */
-	private function getStreamFlags() {
+	private function getStreamFlags(): int {
 		$flags = STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_CONNECT;
 		// don't use asynchronous stream on Windows with SSL
 		// see bug: https://bugs.php.net/bug.php?id=49295
@@ -363,10 +303,8 @@ class AsyncHttp {
 
 	/**
 	 * Setup the event loop to notify us when something happens in the stream
-	 *
-	 * @return void
 	 */
-	private function setupStreamNotify() {
+	private function setupStreamNotify(): void {
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
@@ -379,10 +317,8 @@ class AsyncHttp {
 	 * Handler method which will be called when activity occurs in the SocketNotifier.
 	 *
 	 * @internal
-	 * @param int $type type of activity, see SocketNotifier::ACTIVITY_* constants.
-	 * @return void
 	 */
-	public function onStreamActivity($type) {
+	public function onStreamActivity(int $type): void {
 		if ($this->finished) {
 			return;
 		}
@@ -404,10 +340,8 @@ class AsyncHttp {
 
 	/**
 	 * Process a received response
-	 *
-	 * @return void
 	 */
-	private function processResponse() {
+	private function processResponse(): void {
 		$this->responseData .= $this->readAllFromSocket();
 
 		if (!$this->areHeadersReceived()) {
@@ -427,10 +361,8 @@ class AsyncHttp {
 
 	/**
 	 * Parse the headers from the received response
-	 *
-	 * @return void
 	 */
-	private function processHeaders() {
+	private function processHeaders(): void {
 		$this->headersEndPos = strpos($this->responseData, "\r\n\r\n");
 		if ($this->headersEndPos !== false) {
 			$headerData = substr($this->responseData, 0, $this->headersEndPos);
@@ -440,55 +372,43 @@ class AsyncHttp {
 
 	/**
 	 * Get the response body only
-	 *
-	 * @return string The response body
 	 */
-	private function getResponseBody() {
+	private function getResponseBody(): string {
 		return substr($this->responseData, $this->headersEndPos + 4);
 	}
 
 	/**
 	 * Check if we've received any headers yet
-	 *
-	 * @return bool
 	 */
-	private function areHeadersReceived() {
+	private function areHeadersReceived(): bool {
 		return $this->headersEndPos !== false;
 	}
 
 	/**
 	 * Check if our connection is closed
-	 *
-	 * @return boolean
 	 */
-	private function isStreamClosed() {
+	private function isStreamClosed(): bool {
 		return feof($this->stream);
 	}
 
 	/**
 	 * Check if the whole body has been received yet
-	 *
-	 * @return boolean
 	 */
-	private function isBodyFullyReceived() {
+	private function isBodyFullyReceived(): bool {
 		return $this->getBodyLength() <= strlen($this->getResponseBody());
 	}
 
 	/**
 	 * Check if we know how many bytes to expect from the body
-	 *
-	 * @return boolean
 	 */
-	private function isBodyLengthKnown() {
+	private function isBodyLengthKnown(): bool {
 		return $this->getBodyLength() !== null;
 	}
 
 	/**
 	 * Read all data from the socket and return it
-	 *
-	 * @return string The read data
 	 */
-	private function readAllFromSocket() {
+	private function readAllFromSocket(): string {
 		$data = '';
 		while (true) {
 			$chunk = fread($this->stream, 8192);
@@ -512,21 +432,19 @@ class AsyncHttp {
 
 	/**
 	 * Get the length of the body or null if unknown
-	 *
-	 * @return int|null The length of the body or null if unknown
 	 */
-	private function getBodyLength() {
-		return isset($this->responseHeaders['content-length']) ? intval($this->responseHeaders['content-length']) : null;
+	private function getBodyLength(): ?int {
+		if (isset($this->responseHeaders['content-length'])) {
+			return intval($this->responseHeaders['content-length']);
+		}
+		return null;
 	}
 
 	/**
 	 * Parse the received headers into an associative array [header => value]
-	 *
-	 * @param string $data The received data
-	 * @return string[]
 	 */
-	private function extractHeadersFromHeaderData($data) {
-		$headers = array();
+	private function extractHeadersFromHeaderData(string $data): array {
+		$headers = [];
 		$lines = explode("\r\n", $data);
 		list($version, $status, $statusMessage) = explode(" ", array_shift($lines), 3);
 		$headers['http-version'] = $version;
@@ -542,42 +460,34 @@ class AsyncHttp {
 
 	/**
 	 * Send the request and initialize timeouts, etc.
-	 *
-	 * @return void
 	 */
-	private function processRequest() {
-		if ($this->requestData) {
-			$written = fwrite($this->stream, $this->requestData);
-			if ($written === false) {
-				$this->abortWithMessage("Cannot write request headers for uri '{$this->uri}' to stream");
-			} elseif ($written > 0) {
-				$this->requestData = substr($this->requestData, $written);
+	private function processRequest(): void {
+		if (!strlen($this->requestData)) {
+			return;
+		}
+		$written = fwrite($this->stream, $this->requestData);
+		if ($written === false) {
+			$this->abortWithMessage("Cannot write request headers for uri '{$this->uri}' to stream");
+		} elseif ($written > 0) {
+			$this->requestData = substr($this->requestData, $written);
 
-				// since data was written, reset timeout
-				$this->timer->restartEvent($this->timeoutEvent);
-			}
+			// since data was written, reset timeout
+			$this->timer->restartEvent($this->timeoutEvent);
 		}
 	}
 
 	/**
 	 * Set a headers to be send with the request
-	 *
-	 * @param string $header Header name
-	 * @param string $value Header value
-	 * @return $this
 	 */
-	public function withHeader($header, $value) {
+	public function withHeader(string $header, $value): self {
 		$this->headers[$header] = $value;
 		return $this;
 	}
 
 	/**
 	 * Set the request timeout
-	 *
-	 * @param int $timeout The timeout in seconds
-	 * @return $this
 	 */
-	public function withTimeout($timeout) {
+	public function withTimeout(int $timeout): self {
 		$this->timeout = $timeout;
 		return $this;
 	}
@@ -593,12 +503,8 @@ class AsyncHttp {
 	 *                $body: received contents
 	 *  * $data     - optional value which is same as given as argument to
 	 *                this method.
-	 *
-	 * @param callable $callback callback which will be called when request is done
-	 * @param mixed    $data     extra data which will be passed as second argument to the callback
-	 * @return $this
 	 */
-	public function withCallback($callback, $data=null) {
+	public function withCallback(callable $callback, $data=null): self {
 		$this->callback = $callback;
 		$this->data     = $data;
 		return $this;
@@ -610,7 +516,7 @@ class AsyncHttp {
 	 * @param string[] $params array of key/value pair parameters passed as a query
 	 * @return $this
 	 */
-	public function withQueryParams($params) {
+	public function withQueryParams(array $params): self {
 		$this->queryParams = $params;
 		return $this;
 	}
@@ -619,10 +525,8 @@ class AsyncHttp {
 	 * Waits until response is fully received from remote server and returns the response.
 	 * Note that this blocks execution, but does not freeze the bot
 	 * as the execution will return to event loop while waiting.
-	 *
-	 * @return \StdClass
 	 */
-	public function waitAndReturnResponse() {
+	public function waitAndReturnResponse(): HttpResponse {
 		// run in event loop, waiting for loop->quit()
 		$this->loop = new EventLoop();
 		Registry::injectDependencies($this->loop);

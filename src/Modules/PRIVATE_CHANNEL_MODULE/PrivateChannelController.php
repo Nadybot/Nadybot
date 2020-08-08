@@ -183,9 +183,9 @@ class PrivateChannelController {
 				$online = $this->buddylistManager->isOnline($row->name);
 				if (isset($this->chatBot->chatlist[$row->name])) {
 					$status = "(<green>Online and in channel<end>)";
-				} elseif ($online === 1) {
+				} elseif ($online === true) {
 					$status = "(<green>Online<end>)";
-				} elseif ($online === 0) {
+				} elseif ($online === false) {
 					$status = "(<red>Offline<end>)";
 				} else {
 					$status = "(<orange>Unknown<end>)";

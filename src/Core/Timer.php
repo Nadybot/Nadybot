@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -7,11 +7,11 @@ namespace Nadybot\Core;
  */
 class Timer {
 	/**
-	 * @internal
 	 * Array of waiting timer events.
+	 * @internal
 	 * @var \Nadybot\Core\TimerEvent[] $timerEvents
 	 */
-	private $timerEvents = array();
+	private array $timerEvents = [];
 
 	/**
 	 * Execute all timer events that are due now
@@ -38,28 +38,18 @@ class Timer {
 	 *
 	 * Example usage:
 	 * <code>
-	 * $this->util->callLater(5, function($message) {
-	 *     print $message;
-	 * }, 'Hello World');
+	 * $this->util->callLater(5, fn($message) => print $message, 'Hello World');
 	 * </code>
 	 * Prints 'Hello World' after 5 seconds.
-	 *
-	 * @param integer  $delay time in seconds to delay the call
-	 * @param callback $callback callback which is called after timeout
-	 * @param mixed $additionalArgs Any additional parameters are passed to the callback
-	 * @return TimerEvent
 	 */
-	public function callLater($delay, $callback, ...$additionalArgs) {
+	public function callLater(int $delay, callable $callback, ...$additionalArgs): TimerEvent {
 		return $this->addTimerEvent($delay, $callback, $additionalArgs);
 	}
 
 	/**
-	 * Abort an already times event
-	 *
-	 * @param \Nadybot\Core\TimerEvent $event The event to remove from the queue
-	 * @return void
+	 * Abort an already timed event
 	 */
-	public function abortEvent($event) {
+	public function abortEvent(TimerEvent $event): void {
 		$key = array_search($event, $this->timerEvents, true);
 		if ($key !== false) {
 			unset($this->timerEvents[$key]);
@@ -68,27 +58,19 @@ class Timer {
 	}
 
 	/**
-	 * Run an event again with the  configured amount of delay
-	 *
-	 * @param\Nadybot\Core\TimerEvent $event
-	 * @return void
+	 * Run an event again with the configured amount of delay
 	 */
-	public function restartEvent($event) {
+	public function restartEvent(TimerEvent $event): void {
 		$event->time = intval($event->delay) + time();
 		$this->sortEventsByTime();
 	}
 
 	/**
-	 * Adds new timer event.
+	 * Adds a new timer event.
 	 *
 	 * $callback will be called with arguments $args array after $delay seconds.
-	 *
-	 * @param int $delay Delay between runs of this event
-	 * @param callable $callback Function to call when this event fires
-	 * @param mixed[] $args Arguments to pass to your callback function when the event fires
-	 * @return \Nadybot\Core\TimerEvent
 	 */
-	private function addTimerEvent($delay, $callback, $args) {
+	private function addTimerEvent(int $delay, callable $callback, array $args): TimerEvent {
 		$event = new TimerEvent(time() + $delay, $delay, $callback, $args);
 		$this->timerEvents []= $event;
 		$this->sortEventsByTime();
@@ -98,15 +80,12 @@ class Timer {
 	/**
 	 * Sort all registered events by their next event time, ascending
 	 *
-	 * @return void
 	 * @internal
 	 */
-	private function sortEventsByTime() {
-		usort($this->timerEvents, function($a, $b) {
-			if ($a->time == $b->time) {
-				return 0;
-			}
-			return ($a->time < $b->time) ? -1 : 1;
-		});
+	private function sortEventsByTime(): void {
+		usort(
+			$this->timerEvents,
+			fn(TimerEvent $a, TimerEvent $b) => $a->time <=> $b->time
+		);
 	}
 }

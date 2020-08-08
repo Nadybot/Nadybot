@@ -354,7 +354,7 @@ class RelayController {
 				}
 
 				$logon_msg = $this->preferences->get($sender, 'logon_msg');
-				if ($logon_msg !== false && $logon_msg != '') {
+				if ($logon_msg !== null && $logon_msg !== '') {
 					$msg .= " - " . $logon_msg;
 				}
 			}

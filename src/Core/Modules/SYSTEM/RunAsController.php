@@ -1,8 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\AutoInject;
+use Nadybot\Core\{
+	AccessManager,
+	CommandManager,
+	CommandReply,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -17,25 +21,25 @@ use Nadybot\Core\AutoInject;
  *		help        = 'runas.txt'
  *	)
  */
-class RunAsController extends AutoInject {
+class RunAsController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @Setup
-	 */
-	public function setup() {
-	}
+	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 
 	/**
 	 * @HandlesCommand("runas")
 	 * @Matches("/^runas ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function runasCommand($message, $channel, $sender, $sendto, $args) {
+	public function runasCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$command = $args[2];
 		if ($this->accessManager->checkAccess($sender, "superadmin") || $this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {

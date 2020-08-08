@@ -1,8 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
+use Nadybot\Core\{
+	CommandManager,
+	CommandReply,
+	DB,
+	HelpManager,
+	SettingHandler,
+	SettingManager,
+	Text,
+	Util,
+};
+use Nadybot\Core\DBSchema\Setting;
 
 /**
  * @Instance
@@ -22,43 +33,25 @@ class SettingsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\HelpManager $helpManager
-	 * @Inject
-	 */
-	public $helpManager;
+	/** @Inject */
+	public HelpManager $helpManager;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
 	/**
 	 * @Setup
@@ -72,25 +65,29 @@ class SettingsController {
 	 * @HandlesCommand("settings")
 	 * @Matches("/^settings$/i")
 	 */
-	public function settingsCommand($message, $channel, $sender, $sendto, $args) {
-		$blob = '';
-		$blob .= "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
-		$data = $this->db->query("SELECT * FROM settings_<myname> ORDER BY `module`");
-		$cur = '';
+	public function settingsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
+		$sql = "SELECT * FROM settings_<myname> ORDER BY `module`";
+		/** @var Setting[] $data */
+		$data = $this->db->fetchAll(Setting::class, $sql);
+		$currentModule = '';
 		foreach ($data as $row) {
-			if ($row->module != $cur) {
+			if ($row->module !== $currentModule) {
 				$blob .= "\n<pagebreak><header2>".str_replace("_", " ", $row->module)."<end>\n";
-				$cur = $row->module;
+				$currentModule = $row->module;
 			}
-			$blob .= "  *" . $row->description;
+			$blob .= "<tab>" . $row->description;
 
-			if ($row->mode == "edit") {
+			if ($row->mode === "edit") {
 				$editLink = $this->text->makeChatcmd('Modify', "/tell <myname> settings change {$row->name}");
 				$blob .= " ($editLink)";
 			}
 
 			$settingHandler = $this->settingManager->getSettingHandler($row);
-			$blob .= ": " . $settingHandler->displayValue() . "\n";
+			if ($settingHandler instanceof SettingHandler) {
+				$blob .= ": " . $settingHandler->displayValue();
+			}
+			$blob .= "\n";
 		}
 
 		$msg = $this->text->makeBlob("Bot Settings", $blob);
@@ -101,28 +98,32 @@ class SettingsController {
 	 * @HandlesCommand("settings")
 	 * @Matches("/^settings change ([a-z0-9_]+)$/i")
 	 */
-	public function changeCommand($message, $channel, $sender, $sendto, $args) {
+	public function changeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$settingName = strtolower($args[1]);
-		$row = $this->db->queryRow("SELECT * FROM settings_<myname> WHERE `name` = ?", $settingName);
+		$sql = "SELECT * FROM settings_<myname> WHERE `name` = ?";
+		/** @var Setting $row */
+		$row = $this->db->fetch(Setting::class, $sql, $settingName);
 		if ($row === null) {
 			$msg = "Could not find setting <highlight>{$settingName}<end>.";
-		} else {
-			$settingHandler = $this->settingManager->getSettingHandler($row);
-			$blob = "Name: <highlight>{$row->name}<end>\n";
-			$blob .= "Module: <highlight>{$row->module}<end>\n";
-			$blob .= "Descrption: <highlight>{$row->description}<end>\n";
-			$blob .= "Current Value: " . $settingHandler->displayValue() . "\n\n";
-			$blob .= $settingHandler->getDescription();
-			$blob .= $settingHandler->getOptions();
-
-			// show help topic if there is one
-			$help = $this->helpManager->find($settingName, $sender);
-			if ($help !== false) {
-				$blob .= "\n\n<header2>Help ($settingName)<end>\n\n" . $help;
-			}
-
-			$msg = $this->text->makeBlob("Settings Info for {$settingName}", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$settingHandler = $this->settingManager->getSettingHandler($row);
+		$blob = "<header2>Basic Info<end>\n";
+		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
+		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
+		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
+		$blob .= "<tab>Current Value: " . $settingHandler->displayValue() . "\n\n";
+		$blob .= $settingHandler->getDescription();
+		$blob .= $settingHandler->getOptions();
+
+		// show help topic if there is one
+		$help = $this->helpManager->find($settingName, $sender);
+		if ($help !== null) {
+			$blob .= "\n\n<header2>Help ($settingName)<end>\n\n" . $help;
+		}
+
+		$msg = $this->text->makeBlob("Settings Info for {$settingName}", $blob);
 
 		$sendto->reply($msg);
 	}
@@ -131,24 +132,27 @@ class SettingsController {
 	 * @HandlesCommand("settings")
 	 * @Matches("/^settings save ([a-z0-9_]+) (.+)$/i")
 	 */
-	public function saveCommand($message, $channel, $sender, $sendto, $args) {
+	public function saveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = strtolower($args[1]);
-		$change_to_setting = $args[2];
-		$row = $this->db->queryRow("SELECT * FROM settings_<myname> WHERE `name` = ?", $name);
-		if ($row === null) {
+		$newValue = $args[2];
+		$sql = "SELECT * FROM settings_<myname> WHERE `name` = ?";
+		/** @var Setting $row */
+		$setting = $this->db->fetch(Setting::class, $sql, $name);
+		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";
-		} else {
-			$settingHandler = $this->settingManager->getSettingHandler($row);
-			try {
-				$new_setting = $settingHandler->save($change_to_setting);
-				if ($this->settingManager->save($name, $new_setting)) {
-					$msg = "Setting <highlight>$name<end> has been saved.";
-				} else {
-					$msg = "Error! Setting <highlight>$name<end> could not be saved.";
-				}
-			} catch (Exception $e) {
-				$msg = $e->getMessage();
+			$sendto->reply($msg);
+			return;
+		}
+		$settingHandler = $this->settingManager->getSettingHandler($setting);
+		try {
+			$newValueToSave = $settingHandler->save($newValue);
+			if ($this->settingManager->save($name, $newValueToSave)) {
+				$msg = "Setting <highlight>$name<end> has been saved with new value <highlight>".htmlspecialchars($newValue)."<end>.";
+			} else {
+				$msg = "Error! Setting <highlight>$name<end> could not be saved.";
 			}
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
 		}
 		$sendto->reply($msg);
 	}

@@ -235,7 +235,7 @@ class OrglistController {
 		foreach ($members as $member) {
 			$buddy_online_status = $this->buddylistManager->isOnline($member->name);
 			if ($buddy_online_status !== null) {
-				$this->orglist["result"][$member->name]["online"] = $buddy_online_status;
+				$this->orglist["result"][$member->name]["online"] = (int)$buddy_online_status;
 			} elseif ($this->chatBot->vars["name"] == $member->name) {
 				$this->orglist["result"][$member->name]["online"] = 1;
 			} else {

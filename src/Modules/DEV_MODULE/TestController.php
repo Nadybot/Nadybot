@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\AOChatPacket;
 use Nadybot\Core\AutoInject;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\Event;
@@ -170,12 +171,12 @@ class TestController extends AutoInject {
 	 * @Matches("/^testorgjoin (.+)$/i")
 	 */
 	public function testorgjoinCommand($message, $channel, $sender, $sendto, $args) {
-		$packet = new stdClass;
-		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = array();
-		$packet->args[0] = $this->chatBot->get_gid('org msg');
-		$packet->args[1] = (int)0xFFFFFFFF;
-		$packet->args[2] = "$sender invited $args[1] to your organization.";
+		$testArgs = [
+			$this->chatBot->get_gid('org msg'),
+			(int)0xFFFFFFFF,
+			"$sender invited $args[1] to your organization.",
+		];
+		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -289,22 +290,22 @@ class TestController extends AutoInject {
 }
 
 class MockCommandReply implements CommandReply {
-	public function reply($msg) {
+	public function reply($msg): void {
 		//echo "got reply\n";
 		//echo $msg . "\n";
 	}
 }
 
 class MessageInfoCommandReply implements CommandReply {
-	private $sendto;
-	private $startTime;
+	private CommandReply $sendto;
+	private float $startTime;
 
-	public function __construct($sendto) {
+	public function __construct(CommandReply $sendto) {
 		$this->sendto = $sendto;
 		$this->startTime = microtime(true);
 	}
 
-	public function reply($msg) {
+	public function reply($msg): void {
 		$endTime = microtime(true);
 		if (!is_array($msg)) {
 			$msg = array($msg);

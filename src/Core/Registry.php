@@ -1,31 +1,41 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
 
 class Registry {
-	private static $repo = array();
+	/** @var array<string,object> */
+	private static array $repo = [];
 
-	public static function setInstance($name, $obj) {
+	public static function setInstance(string $name, object $obj): void {
 		$name = strtolower($name);
 		LegacyLogger::log("DEBUG", "Registry", "Adding instance '$name'");
-		Registry::$repo[$name] = $obj;
+		static::$repo[$name] = $obj;
 	}
 
-	public static function formatName($name) {
-		$name = strtolower($name);
-		$array = explode("\\", $name);
+	/**
+	 * Return the name of the class without the namespace
+	 */
+	public static function formatName(string $class): string {
+		$class = strtolower($class);
+		$array = explode("\\", $class);
 		return array_pop($array);
 	}
 
-	public static function instanceExists($name) {
+	/**
+	 * Check if there is already a registered instance with name $name
+	 */
+	public static function instanceExists(string $name): bool {
 		$name = strtolower($name);
 
 		return isset(Registry::$repo[$name]);
 	}
 
-	public static function getInstance($name, $reload=false) {
+	/**
+	 * Get the instance for the name $name or null if  none registered yet
+	 */
+	public static function getInstance(string $name, bool $reload=false): ?object {
 		$name = strtolower($name);
 		LegacyLogger::log("DEBUG", "Registry", "Requesting instance for '$name'");
 
@@ -37,7 +47,10 @@ class Registry {
 		return $instance;
 	}
 
-	public static function injectDependencies($instance) {
+	/**
+	 * Inject all fields marked with \@Inject in an object with the corresponding object instances
+	 */
+	public static function injectDependencies(object $instance): void {
 		// inject other instances that are annotated with @Inject
 		$reflection = new ReflectionAnnotatedClass($instance);
 		foreach ($reflection->getProperties() as $property) {
@@ -66,7 +79,11 @@ class Registry {
 		}
 	}
 
-	public static function getAllInstances() {
+	/**
+	 * Get all registered instance objects
+	 * @return array<string,object>
+	 */
+	public static function getAllInstances(): array {
 		return self::$repo;
 	}
 }

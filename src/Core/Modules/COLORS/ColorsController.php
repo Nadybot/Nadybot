@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\COLORS;
 
@@ -11,7 +11,7 @@ class ColorsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
 	/**
 	 * @Setting("default_guild_color")
@@ -20,7 +20,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultGuildColor = "<font color='#89D2E8'>";
+	public string $defaultDefaultGuildColor = "<font color='#89D2E8'>";
 
 	/**
 	 * @Setting("default_priv_color")
@@ -29,7 +29,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultPrivColor = "<font color='#89D2E8'>";
+	public string $defaultDefaultPrivColor = "<font color='#89D2E8'>";
 
 	/**
 	 * @Setting("default_window_color")
@@ -38,7 +38,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultWindowColor = "<font color='#89D2E8'>";
+	public string $defaultDefaultWindowColor = "<font color='#89D2E8'>";
 
 	/**
 	 * @Setting("default_tell_color")
@@ -47,7 +47,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultTellColor = "<font color='#89D2E8'>";
+	public string $defaultDefaultTellColor = "<font color='#89D2E8'>";
 
 	/**
 	 * @Setting("default_highlight_color")
@@ -56,7 +56,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultHighlightColor = "<font color='#FFFFFF'>";
+	public string $defaultDefaultHighlightColor = "<font color='#FFFFFF'>";
 
 	/**
 	 * @Setting("default_header_color")
@@ -65,7 +65,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultHeaderColor = "<font color='#FFFF00'>";
+	public string $defaultDefaultHeaderColor = "<font color='#FFFF00'>";
 	
 	/**
 	 * @Setting("default_header2_color")
@@ -74,7 +74,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultHeader2Color = "<font color='#FCA712'>";
+	public string $defaultDefaultHeader2Color = "<font color='#FCA712'>";
 
 	/**
 	 * @Setting("default_clan_color")
@@ -83,7 +83,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultClanColor = "<font color='#F79410'>";
+	public string $defaultDefaultClanColor = "<font color='#F79410'>";
 
 	/**
 	 * @Setting("default_omni_color")
@@ -92,7 +92,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultOmniColor = "<font color='#FA8484'>";
+	public string $defaultDefaultOmniColor = "<font color='#FA8484'>";
 
 	/**
 	 * @Setting("default_neut_color")
@@ -101,7 +101,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultNeutColor = "<font color='#E6E1A6'>";
+	public string $defaultDefaultNeutColor = "<font color='#E6E1A6'>";
 
 	/**
 	 * @Setting("default_unknown_color")
@@ -110,5 +110,5 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultDefaultUnknownColor = "<font color='#FF0000'>";
+	public string $defaultDefaultUnknownColor = "<font color='#FF0000'>";
 }

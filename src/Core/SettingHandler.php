@@ -1,21 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
-class SettingHandler {
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+abstract class SettingHandler {
+	/** @Inject */
+	public Text $text;
 
-	/** @var \Nadybot\Core\DBRow $row */
-	protected $row;
+	protected DBRow $row;
 
 	/**
 	 * Construct a new handler out of a given database row
-	 *
-	 * @param \Nadybot\Core\DBRow $row The database row
 	 */
 	public function __construct(DBRow $row) {
 		$this->row = $row;
@@ -23,27 +17,22 @@ class SettingHandler {
 
 	/**
 	 * Get a displayable representation of the setting
-	 *
-	 * @return string
 	 */
-	public function displayValue() {
-		if ($this->row->intoptions != "") {
-			$options = explode(";", $this->row->options);
-			$intoptions = explode(";", $this->row->intoptions);
-			$intoptions2 = array_flip($intoptions);
-			$key = $intoptions2[$this->row->value];
-			return "<highlight>{$options[$key]}<end>";
-		} else {
+	public function displayValue(): string {
+		if ($this->row->intoptions === "") {
 			return "<highlight>" . htmlspecialchars($this->row->value) . "<end>";
 		}
+		$options = explode(";", $this->row->options ?? "");
+		$intoptions = explode(";", $this->row->intoptions ?? "");
+		$intoptions2 = array_flip($intoptions);
+		$key = $intoptions2[$this->row->value];
+		return "<highlight>{$options[$key]}<end>";
 	}
 
 	/**
 	 * Get all options for this setting or false if no options are available
-	 *
-	 * @return string|false false if no options are available
 	 */
-	public function getOptions() {
+	public function getOptions(): ?string {
 		if ($this->row->options != '') {
 			$options = explode(";", $this->row->options);
 		}
@@ -71,20 +60,14 @@ class SettingHandler {
 	/**
 	 * Change this setting
 	 *
-	 * @param string $newValue The new value
-	 * @return string The new value or false if $newValue is invalid
-	 * @throws \Exception on certain errors
+	 * @throws \Exception if $newValue is not accepted
 	 */
-	public function save($newValue) {
+	public function save(string $newValue): string {
 		return $newValue;
 	}
 
 	/**
 	 * Get a description of the setting
-	 *
-	 * @return string
 	 */
-	public function getDescription() {
-		return "No description yet";
-	}
+	abstract public function getDescription(): string;
 }

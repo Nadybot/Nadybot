@@ -33,6 +33,7 @@ INSERT INTO skill_alias (id, name) VALUES
 (128, 'Biological Metamorphosis'),
 (128, 'BM'),
 (152, 'Body Development'),
+(152, 'Bodydev'),
 (121, 'Bow Special Attack'),
 (165, 'Breaking and Entering'),
 (165, 'B&E'),

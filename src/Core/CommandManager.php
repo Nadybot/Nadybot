@@ -1,90 +1,57 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
-use stdClass;
-use Addendum\ReflectionAnnotatedMethod;
 use Exception;
+use ReflectionException;
+use Addendum\ReflectionAnnotatedMethod;
+use Nadybot\Core\DBSchema\CmdCfg;
+use Nadybot\Core\Modules\CONFIG\CommandSearchController;
+use Nadybot\Core\Modules\USAGE\UsageController;
 
 /**
  * @Instance
  */
 class CommandManager {
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\HelpManager $helpManager
-	 * @Inject
-	 */
-	public $helpManager;
+	/** @Inject */
+	public HelpManager $helpManager;
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\SubcommandManager $subcommandManager
-	 * @Inject
-	 */
-	public $subcommandManager;
+	/** @Inject */
+	public SubcommandManager $subcommandManager;
 
-	/**
-	 * @var \Nadybot\Core\Modules\CONFIG\CommandSearchController $commandSearchController
-	 * @Inject
-	 */
-	public $commandSearchController;
+	/** @Inject */
+	public CommandSearchController $commandSearchController;
 
-	/**
-	 * @var \Nadybot\Core\Modules\USAGE\UsageController $usageController
-	 * @Inject
-	 */
-	public $usageController;
+	/** @Inject */
+	public UsageController $usageController;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
-	/** @var array $commands */
-	public $commands;
+	/** @var array<string,array<string,CommandHandler>> $commands */
+	public array $commands;
 
 	/**
 	 * Registers a command
@@ -101,9 +68,8 @@ class CommandManager {
 	 * @param string   $help          The optional name of file with extended information (without .txt)
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
-	 * @return void
 	 */
-	public function register($module, $channel, $filename, $command, $accessLevel, $description, $help='', $defaultStatus=null) {
+	public function register(string $module, ?array $channel, string $filename, string $command, string $accessLevel, string $description, ?string $help='', $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
@@ -142,7 +108,7 @@ class CommandManager {
 
 		for ($i = 0; $i < count($channel); $i++) {
 			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
-			$row = $this->db->queryRow("SELECT 1 FROM cmdcfg_<myname> WHERE cmd = ? AND type = ?", $command, $channel[$i]);
+			$row = $this->db->fetch(CmdCfg::class, "SELECT 1 FROM cmdcfg_<myname> WHERE cmd = ? AND type = ?", $command, $channel[$i]);
 
 			try {
 				if ($row !== null) {
@@ -170,7 +136,7 @@ class CommandManager {
 	 *                            "mod", "guild", "member", "rl", "all"
 	 * @return void
 	 */
-	public function activate($channel, $filename, $command, $accessLevel='all') {
+	public function activate(string $channel, string $filename, string $command, ?string $accessLevel='all'): void {
 		$command = strtolower($command);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$channel = strtolower($channel);
@@ -185,9 +151,7 @@ class CommandManager {
 			}
 		}
 
-		$obj = new stdClass;
-		$obj->file = $filename;
-		$obj->admin = $accessLevel;
+		$obj = new CommandHandler($filename, $accessLevel);
 
 		$this->commands[$channel][$command] = $obj;
 	}
@@ -201,7 +165,7 @@ class CommandManager {
 	 * @param string $command  The name of the command
 	 * @return void
 	 */
-	public function deactivate($channel, $filename, $command) {
+	public function deactivate(string $channel, string $filename, string $command): void {
 		$command = strtolower($command);
 		$channel = strtolower($channel);
 
@@ -219,36 +183,47 @@ class CommandManager {
 	 * @param string      $module  The name of the module of the command
 	 * @param int         $status  The new status: 0=off 1=on
 	 * @param string|null $admin   The access level for which to update the status
-	 * @return void
+	 * @return int
 	 */
-	public function updateStatus($channel, $cmd, $module, $status, $admin) {
-		if ($channel == 'all' || $channel == '' || $channel == null) {
-			$type_sql = '';
-		} else {
-			$type_sql = "AND `type` = '$channel'";
-		}
-
-		if ($cmd == '' || $cmd == null) {
-			$cmd_sql = '';
-		} else {
-			$cmd_sql = "AND `cmd` = '$cmd'";
-		}
-
-		if ($module == '' || $module == null) {
+	public function updateStatus(?string $channel, ?string $cmd, ?string $module, int $status, ?string $admin): int {
+		$sqlArgs = [];
+		if ($module === '' || $module === null) {
 			$module_sql = '';
 		} else {
-			$module_sql = "AND `module` = '$module'";
+			$module_sql = "AND `module` = ?";
+			$sqlArgs []= $module;
 		}
 
+		if ($cmd === '' || $cmd === null) {
+			$cmd_sql = '';
+		} else {
+			$cmd_sql = "AND `cmd` = ?";
+			$sqlArgs []= $cmd;
+		}
+
+		if ($channel === 'all' || $channel === '' || $channel === null) {
+			$type_sql = '';
+		} else {
+			$type_sql = "AND `type` = ?";
+			$sqlArgs []= $channel;
+		}
+
+		$data = $this->db->fetchAll(
+			CmdCfg::class,
+			"SELECT * FROM cmdcfg_<myname> ".
+			"WHERE `cmdevent` = 'cmd' ".
+			"$module_sql $cmd_sql $type_sql",
+			...$sqlArgs
+		);
+		if (count($data) === 0) {
+			return 0;
+		}
+		
 		if ($admin == '' || $admin == null) {
 			$adminSql = '';
 		} else {
-			$adminSql = ", admin = '$admin'";
-		}
-
-		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' $module_sql $cmd_sql $type_sql");
-		if (count($data) == 0) {
-			return 0;
+			$adminSql = ", admin = ?";
+			$sqlArgs = [$admin, ...$sqlArgs];
 		}
 
 		foreach ($data as $row) {
@@ -259,18 +234,17 @@ class CommandManager {
 			}
 		}
 
-		return $this->db->exec("UPDATE cmdcfg_<myname> SET status = '$status' $adminSql WHERE `cmdevent` = 'cmd' $module_sql $cmd_sql $type_sql");
+		return $this->db->exec("UPDATE cmdcfg_<myname> SET status = ? $adminSql WHERE `cmdevent` = 'cmd' $module_sql $cmd_sql $type_sql", ...[$status, ...$sqlArgs]);
 	}
 
 	/**
 	 * Loads the active command into memory and activtes them
-	 *
-	 * @return void
 	 */
-	public function loadCommands() {
+	public function loadCommands(): void {
 		$this->logger->log('DEBUG', "Loading enabled commands");
 
-		$data = $this->db->query("SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'cmd'");
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'cmd'");
 		foreach ($data as $row) {
 			$this->activate($row->type, $row->file, $row->cmd, $row->admin);
 		}
@@ -279,48 +253,36 @@ class CommandManager {
 	/**
 	 * Get all command handlers for a command on a specific channel
 	 *
-	 * @param string $command The command to lookup
-	 * @param string $channel The name of the channel where this command should be searched for:
-	 *                        "msg", "priv" or "guild"
-	 * @return \Nadybot\Core\DBRow[]
+	 * @return CmdCfg[]
 	 */
-	public function get($command, $channel=null) {
-		$command = strtolower($command);
+	public function get(string $command, ?string $channel=null): array {
+		$args = [strtolower($command)];
 
 		if ($channel !== null) {
-			$type_sql = "AND type = '{$channel}'";
+			$type_sql = " AND type = ?";
+			$args []= $channel;
 		}
 
-		$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? {$type_sql}";
-		return $this->db->query($sql, $command);
+		$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ?{$type_sql}";
+		return $this->db->fetchAll(CmdCfg::class, $sql, ...$args);
 	}
 
 	/**
 	 * Get the name of a similar command
-	 *
-	 * @param \Nadybot\Core\DBRow $sc The command from which to get the command
-	 * @return string The command name
 	 */
-	private function mapToCmd($sc) {
+	private function mapToCmd(DBRow $sc): string {
 		return $sc->cmd;
 	}
 
 	/**
 	 * Handle an incoming command
 	 *
-	 * @param string                     $channel The name of the channel where this command was received:
-	 *                                            "msg", "priv" or "guild"
-	 * @param string                     $message The exact message that was received
-	 * @param string                     $sender  name of the person who sent the  command
-	 * @param \Nadybot\Core\CommandReply $sendto  Where to send replies to
-	 * @return void
-	 *
 	 * @throws \Nadybot\Core\StopExecutionException
 	 * @throws \Nadybot\Core\SQLException For SQL errors during command execution
 	 * @throws \Exception For a generic exception during command execution
 	 */
-	public function process($channel, $message, $sender, CommandReply $sendto) {
-		list($cmd, $params) = explode(' ', $message, 2);
+	public function process(string $channel, string $message, string $sender, CommandReply $sendto): void {
+		$cmd = explode(' ', $message, 2)[0];
 		$cmd = strtolower($cmd);
 
 		$commandHandler = $this->getActiveCommandHandler($cmd, $channel, $message);
@@ -328,7 +290,7 @@ class CommandManager {
 		// if command doesn't exist
 		if ($commandHandler === null) {
 			// if they've disabled feedback for guild or private channel, just return
-			if (($channel == 'guild' && $this->settingManager->get('guild_channel_cmd_feedback') == 0) || ($channel == 'priv' && $this->settingManager->get('private_channel_cmd_feedback') == 0)) {
+			if (($channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback')) || ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))) {
 				return;
 			}
 
@@ -365,7 +327,7 @@ class CommandManager {
 
 		try {
 			// record usage stats (in try/catch block in case there is an error)
-			if ($this->settingManager->get('record_usage_stats') == 1) {
+			if ($this->settingManager->getBool('record_usage_stats')) {
 				$this->usageController->record($channel, $cmd, $sender, $handler);
 			}
 		} catch (Exception $e) {
@@ -376,49 +338,41 @@ class CommandManager {
 	/**
 	 * Check if the person sending a command has the right to
 	 *
-	 * @param string                     $channel        The name of the channel where this command was received:
-	 *                                                   "msg", "priv" or "guild"
-	 * @param string                     $message        The exact message that was received
-	 * @param string                     $sender         name of the person who sent the  command
-	 * @param \Nadybot\Core\CommandReply $sendto         Where to send replies to
-	 * @param string                     $cmd            The name of the command that was requested
-	 * @param \StdClass                  $commandHandler The comamnd handler for this command
+	 * @param string                $channel        The name of the channel where this command was received:
+	 *                                              "msg", "priv" or "guild"
+	 * @param string                $message        The exact message that was received
+	 * @param string                $sender         name of the person who sent the  command
+	 * @param CommandReply $sendto  Where to send replies to
+	 * @param string                $cmd            The name of the command that was requested
+	 * @param CommandHandler        $commandHandler The command handler for this command
 	 * @return bool true if allowed to execute, otherwise false
 	 */
-	public function checkAccessLevel($channel, $message, $sender, $sendto, $cmd, $commandHandler) {
-		if ($this->accessManager->checkAccess($sender, $commandHandler->admin) !== true) {
-			if ($channel == 'msg') {
-				if ($this->settingManager->get('access_denied_notify_guild') == 1) {
-					$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
-				}
-				if ($this->settingManager->get('access_denied_notify_priv') == 1) {
-					$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
-				}
+	public function checkAccessLevel(string $channel, string $message, string $sender, CommandReply $sendto, string $cmd, CommandHandler $commandHandler): bool {
+		if ($this->accessManager->checkAccess($sender, $commandHandler->admin) === true) {
+			return true;
+		}
+		if ($channel == 'msg') {
+			if ($this->settingManager->getBool('access_denied_notify_guild')) {
+				$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
 			}
-
-			// if they've disabled feedback for guild or private channel, just return
-			if (($channel == 'guild' && $this->settingManager->get('guild_channel_cmd_feedback') == 0) || ($channel == 'priv' && $this->settingManager->get('private_channel_cmd_feedback') == 0)) {
-				return false;
+			if ($this->settingManager->getBool('access_denied_notify_priv')) {
+				$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
 			}
+		}
 
-			$sendto->reply("Error! Access denied.");
+		// if they've disabled feedback for guild or private channel, just return
+		if (($channel == 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback')) || ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))) {
 			return false;
 		}
-		return true;
+
+		$sendto->reply("Error! Access denied.");
+		return false;
 	}
 
 	/**
 	 * Call the command handler for a given command and return which one was used
-	 *
-	 * @param \StdClass                  $commandHandler The comamnd handler for this command
-	 * @param string                     $message        The exact message that was received
-	 * @param string                     $channel        The name of the channel where this command was received:
-	 *                                                   "msg", "priv" or "guild"
-	 * @param string                     $sender         name of the person who sent the command
-	 * @param \Nadybot\Core\CommandReply $sendto         Where to send replies to
-	 * @return string|null "name.method" in case of success, otherwise null
 	 */
-	public function callCommandHandler($commandHandler, $message, $channel, $sender, CommandReply $sendto) {
+	public function callCommandHandler(CommandHandler $commandHandler, string $message, string $channel, string $sender, CommandReply $sendto): ?string {
 		$successfulHandler = null;
 
 		foreach (explode(',', $commandHandler->file) as $handler) {
@@ -447,14 +401,8 @@ class CommandManager {
 
 	/**
 	 * Get the command handler that is responsible for handling a command
-	 *
-	 * @param string $cmd     The name of the command
-	 * @param string $channel The name of the channel where this command was received:
-	 *                        "msg", "priv" or "guild"
-	 * @param string $message The exact message that was received
-	 * @return \StdClass
 	 */
-	public function getActiveCommandHandler($cmd, $channel, $message) {
+	public function getActiveCommandHandler(string $cmd, string $channel, string $message): ?CommandHandler {
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
@@ -463,23 +411,19 @@ class CommandManager {
 				}
 			}
 		}
-		return $this->commands[$channel][$cmd];
+		return $this->commands[$channel][$cmd] ?? null;
 	}
 
 	/**
 	 * Get the help text for a command
 	 *
-	 * @param string $cmd     The name of the command
-	 * @param string $channel The name of the channel where this command was received:
-	 *                        "msg", "priv" or "guild"
-	 * @param string $sender  Name of the person who sent the command
 	 * @return string|string[] The help text as one or more pages
 	 */
-	public function getHelpForCommand($cmd, $channel, $sender) {
+	public function getHelpForCommand(string $cmd, string $channel, string $sender) {
 		$results = $this->get($cmd, $channel);
 		$result = $results[0];
 
-		if ($result->help != '') {
+		if (isset($result->help) && $result->help !== '') {
 			$blob = file_get_contents($result->help);
 		} else {
 			$blob = $this->helpManager->find($cmd, $sender);
@@ -495,15 +439,12 @@ class CommandManager {
 	/**
 	 * Check if a received message matches the stored Regexp handler of a method
 	 *
-	 * @param object $instance The object where the command is defined
-	 * @param string $method The method whose annotation to check
-	 * @param string $message The exact received message
 	 * @return string[]|bool true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
 	 */
-	public function checkMatches($instance, $method, $message) {
+	public function checkMatches(object $instance, string $method, string $message) {
 		try {
 			$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-		} catch (\ReflectionException $e) {
+		} catch (ReflectionException $e) {
 			// method doesn't exist (probably handled dynamically)
 			return true;
 		}
@@ -517,18 +458,16 @@ class CommandManager {
 				}
 			}
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	}
 
 	/**
 	 * Get all stored regular expression Matches for a function
 	 *
-	 * @param \Addendum\ReflectionAnnotatedMethod $reflectedMethod
 	 * @return string[]
 	 */
-	public function retrieveRegexes($reflectedMethod) {
+	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
 		$regexes = array();
 		if ($reflectedMethod->hasAnnotation('Matches')) {
 			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {

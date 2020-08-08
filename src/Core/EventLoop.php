@@ -1,40 +1,25 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
 class EventLoop {
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\EventManager $eventManager
-	 * @Inject
-	 */
-	public $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
 
-	/**
-	 * @var \Nadybot\Core\SocketManager $socketManager
-	 * @Inject
-	 */
-	public $socketManager;
+	/** @Inject */
+	public SocketManager $socketManager;
 
-	/**
-	 * @var \Nadybot\Core\AMQP
-	 * @Inject
-	 */
-	public $amqp;
+	/** @Inject */
+	public AMQP $amqp;
 
-	/**
-	 * @var \Nadybot\Core\Timer $timer
-	 * @Inject
-	 */
-	public $timer;
+	/** @Inject */
+	public Timer $timer;
 
-	public function execSingleLoop() {
+	public function execSingleLoop(): void {
 		$this->chatBot->processAllPackets();
 
 		if ($this->chatBot->isReady()) {

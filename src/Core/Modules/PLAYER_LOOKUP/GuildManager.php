@@ -1,9 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use stdClass;
-use Nadybot\Core\AOChatPacket;
+use Nadybot\Core\{
+	AOChatPacket,
+	CacheManager,
+	DB,
+	Nadybot,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -11,46 +15,34 @@ use Nadybot\Core\AOChatPacket;
  * @Instance
  */
 class GuildManager {
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\CacheManager $cacheManager
-	 * @Inject
-	 */
-	public $cacheManager;
+	/** @Inject */
+	public CacheManager $cacheManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 
-	public function getById($guild_id, $rk_num=0, $forceUpdate=false) {
+	public function getById(int $guild_id, int $rk_num=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
-		if ($rk_num == 0) {
-			$rk_num = $this->chatBot->vars["dimension"];
-		}
+		$rk_num ??= (int)$this->chatBot->vars["dimension"];
 		
 		$url = "http://people.anarchy-online.com/org/stats/d/$rk_num/name/$guild_id/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
 		$filename = "$guild_id.$rk_num.json";
-		if ($this->chatBot->vars["my_guild_id"] == $guild_id) {
+		$maxCacheAge = 86400;
+		if (
+			isset($this->chatBot->vars["my_guild_id"])
+			&& (int)$this->chatBot->vars["my_guild_id"] === $guild_id
+		) {
 			$maxCacheAge = 21600;
-		} else {
-			$maxCacheAge = 86400;
 		}
 		$cb = function($data) {
-			$result = json_decode($data) != null;
+			$result = json_decode($data) !== null;
 			return $result;
 		};
 
@@ -61,9 +53,9 @@ class GuildManager {
 			return null;
 		}
 		
-		list($orgInfo, $members, $lastUpdated) = json_decode($cacheResult->data);
+		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data);
 		
-		$guild = new stdClass;
+		$guild = new Guild();
 		$guild->guild_id = $guild_id;
 
 		// parsing of the member data
@@ -74,18 +66,20 @@ class GuildManager {
 		foreach ($members as $member) {
 			$name = $member->NAME;
 			if (!isset($this->chatBot->id[$name])) {
-				$this->chatBot->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name));
+				$this->chatBot->sendPacket(
+					new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name)
+				);
 			}
 		}
 
 		foreach ($members as $member) {
 			$name = $member->NAME;
 			$charid = $this->chatBot->get_uid($name);
-			if ($charid == null) {
+			if ($charid === null) {
 				$charid = 0;
 			}
 
-			$guild->members[$name]                 = new stdClass;
+			$guild->members[$name]                 = new Player();
 			$guild->members[$name]->charid         = $charid;
 			$guild->members[$name]->firstname      = trim($member->FIRSTNAME);
 			$guild->members[$name]->name           = $name;

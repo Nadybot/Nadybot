@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\CommandManager;
+use Nadybot\Core\Nadybot;
 
 /**
  * @Instance
@@ -21,25 +23,19 @@ class SameChannelResponseController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\CommandManager $commandManager
-	 * @Inject
-	 */
-	public $commandManager;
+	/** @Inject */
+	public CommandManager $commandManager;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
 	/**
 	 * @HandlesCommand("demo")
 	 * @Matches("/^demo (.+)$/si")
 	 */
-	public function demoCommand($message, $channel, $sender, $sendto, $args) {
+	public function demoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
 		$commandString = $args[1];
 		$customSendto = new DemoResponseCommandReply($channel, $sendto, $this->chatBot->vars["name"]);
 		$this->commandManager->process($channel, $commandString, $sender, $customSendto);
@@ -47,17 +43,17 @@ class SameChannelResponseController {
 }
 
 class DemoResponseCommandReply implements CommandReply {
-	private $sendto;
-	private $channel;
-	private $botname;
+	private CommandReply $sendto;
+	private string $channel;
+	private string $botname;
 	
-	public function __construct($channel, $sendto, $botname) {
+	public function __construct(string $channel, CommandReply $sendto, string $botname) {
 		$this->channel = $channel;
 		$this->sendto = $sendto;
 		$this->botname = $botname;
 	}
 
-	public function reply($msg) {
+	public function reply($msg): void {
 		if ($this->channel == 'priv') {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g {$this->botname} <symbol>demo ", $msg);
 		} elseif ($this->channel == 'guild') {

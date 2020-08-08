@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -10,30 +10,16 @@ use Exception;
 class ColorSettingHandler extends SettingHandler {
 
 	/**
-	 * Construct a new handler out of a given database row
-	 *
-	 * @param \Nadybot\Core\DBRow $row The database row
-	 * @return self
-	 */
-	public function __construct(DBRow $row) {
-		parent::__construct($row);
-	}
-
-	/**
 	 * Get a displayable representation of the setting
-	 *
-	 * @return string
 	 */
-	public function displayValue() {
+	public function displayValue(): string {
 		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
 	}
 
 	/**
 	 * Describe the valid values for this setting
-	 *
-	 * @return string
 	 */
-	public function getDescription() {
+	public function getDescription(): string {
 		$msg = "For this setting you can set any Color in the HTML Hexadecimal Color Format.\n";
 		$msg .= "You can change it manually with the command: \n\n";
 		$msg .= "/tell <myname> settings save {$this->row->name} <i>HTML-Color</i>\n\n";
@@ -62,15 +48,14 @@ class ColorSettingHandler extends SettingHandler {
 	/**
 	 * Change this setting
 	 *
-	 * @param string $newValue The new color value
-	 * @return string The new value in a font tag
 	 * @throws \Exception when the string is not a valid HTML color
 	 */
-	public function save($newValue) {
+	public function save(string $newValue): string {
 		if (preg_match("/^#([0-9a-f]{6})$/i", $newValue)) {
 			return "<font color='$newValue'>";
-		} else {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid HTML-Color (example: <i>#FF33DD</i>).");
+		} elseif (preg_match("/^<font color='#[0-9a-f]{6}'>$/i", $newValue)) {
+			return $newValue;
 		}
+		throw new Exception("<highlight>{$newValue}<end> is not a valid HTML-Color (example: <i>#FF33DD</i>).");
 	}
 }

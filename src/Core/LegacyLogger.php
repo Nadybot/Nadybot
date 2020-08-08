@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -11,13 +11,8 @@ use LoggerLevel;
 class LegacyLogger {
 	/**
 	 * Log a message according to log settings
-	 *
-	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @param string $tag The log tag (e.g. Core, Registry, StartUp, etc.)
-	 * @param mixed $message The message to log
-	 * @return void
 	 */
-	public static function log($category, $tag, $message) {
+	public static function log(string $category, string $tag, $message): void {
 		$logger = Logger::getLogger($tag);
 		$level = LegacyLogger::getLoggerLevel($category);
 		$logger->log($level, $message);
@@ -25,34 +20,24 @@ class LegacyLogger {
 
 	/**
 	 * Get the log4php log level for a Nadybot logging category
-	 *
-	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @return \LoggerLevel The log4php log level
 	 */
-	public static function getLoggerLevel($category) {
-		$level = LoggerLevel::getLevelOff();
+	public static function getLoggerLevel(string $category): LoggerLevel {
 		switch (strtolower($category)) {
 			case 'trace':
-				$level = LoggerLevel::getLevelTrace();
-				break;
+				return LoggerLevel::getLevelTrace();
 			case 'debug':
-				$level = LoggerLevel::getLevelDebug();
-				break;
+				return  LoggerLevel::getLevelDebug();
 			case 'warn':
-				$level = LoggerLevel::getLevelWarn();
-				break;
+				return LoggerLevel::getLevelWarn();
 			case 'error':
-				$level = LoggerLevel::getLevelError();
-				break;
+				return LoggerLevel::getLevelError();
 			case 'fatal':
-				$level = LoggerLevel::getLevelFatal();
-				break;
+				return LoggerLevel::getLevelFatal();
 
 			case 'info':
 			default:
-				$level = LoggerLevel::getLevelInfo();
-				break;
+				return LoggerLevel::getLevelInfo();
 		}
-		return $level;
+		return LoggerLevel::getLevelOff();
 	}
 }

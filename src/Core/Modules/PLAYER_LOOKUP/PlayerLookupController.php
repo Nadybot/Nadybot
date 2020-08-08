@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
@@ -15,23 +15,16 @@ class PlayerLookupController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
 	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		if ($this->db->getType() == DB::MYSQL) {
-			$this->db->loadSQLFile($this->moduleName, 'players_mysql');
-		} elseif ($this->db->getType() == DB::SQLITE) {
-			$this->db->loadSQLFile($this->moduleName, 'players_sqlite');
-		}
+		$this->db->loadSQLFile($this->moduleName, 'players');
 	}
 }
