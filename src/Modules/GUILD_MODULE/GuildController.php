@@ -133,7 +133,7 @@ class GuildController {
 		$this->settingManager->add($this->moduleName, "max_logoff_msg_size", "Maximum characters a logoff message can have", "edit", "number", "200", "100;200;300;400", '', "mod");
 		$this->settingManager->add($this->moduleName, "first_and_last_alt_only", "Show logon/logoff for first/last alt only", "edit", "options", "0", "true;false", "1;0");
 		
-		$this->chatBot->guildmembers = array();
+		$this->chatBot->guildmembers = [];
 		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id 
 			FROM org_members_<myname> o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>' AND p.guild = '<myguild>')
 			WHERE mode != 'del'";

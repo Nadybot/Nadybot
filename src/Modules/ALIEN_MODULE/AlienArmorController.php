@@ -64,7 +64,7 @@ class AlienArmorController {
 	 * @Matches("/^aiarmor (\d+) (strong|supple|enduring|observant|arithmetic|spiritual)$/i")
 	 */
 	public function aiarmorNormalCommand($message, $channel, $sender, $sendto, $args) {
-		list($armortype, $ql) = $this->extractArgs($args);
+		[$armortype, $ql] = $this->extractArgs($args);
 		$armortype = ucfirst($armortype);
 		$misc_ql = floor($ql * 0.8);
 
@@ -215,7 +215,7 @@ class AlienArmorController {
 	 * @Matches("/^aiarmor (\d+) (cc|cm|co|cp|cs|css|ss)$/i")
 	 */
 	public function aiarmorCombinedCommand($message, $channel, $sender, $sendto, $args) {
-		list($armortype, $ql) = $this->extractArgs($args);
+		[$armortype, $ql] = $this->extractArgs($args);
 		$trg_ql = $ql;
 		$src_ql = floor($trg_ql * 0.8);
 
@@ -313,6 +313,6 @@ class AlienArmorController {
 				$armortype = strtolower($value);
 			}
 		}
-		return array ($armortype, $ql);
+		return  [$armortype, $ql];
 	}
 }

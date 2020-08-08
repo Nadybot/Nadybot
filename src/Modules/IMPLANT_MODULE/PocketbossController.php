@@ -101,11 +101,11 @@ class PocketbossController {
 	public function pbSearchResults($search) {
 		$row = $this->db->queryRow("SELECT pb FROM pocketboss WHERE pb LIKE ? GROUP BY `pb` ORDER BY `pb`", $search);
 		if ($row !== null) {
-			return array($row);
+			return [$row];
 		}
 		
 		$tmp = explode(" ", $search);
-		list($query, $params) = $this->util->generateQueryFromParams($tmp, '`pb`');
+		[$query, $params] = $this->util->generateQueryFromParams($tmp, '`pb`');
 
 		return $this->db->query("SELECT DISTINCT pb FROM pocketboss WHERE $query GROUP BY `pb` ORDER BY `pb`", $params);
 	}

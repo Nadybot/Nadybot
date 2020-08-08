@@ -62,7 +62,7 @@ class AOChatQueue {
 		$this->limit = $limit;
 		$this->increment = $increment;
 		$this->point = 0;
-		$this->queue = array();
+		$this->queue = [];
 		$this->qsize = 0;
 	}
 
@@ -73,7 +73,7 @@ class AOChatQueue {
 		if (isset($this->queue[$priority])) {
 			$this->queue[$priority][] = $item;
 		} else {
-			$this->queue[$priority] = array($item);
+			$this->queue[$priority] = [$item];
 			krsort($this->queue);
 		}
 		$this->qsize++;

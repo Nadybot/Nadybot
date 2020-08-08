@@ -87,8 +87,8 @@ class PlayfieldController {
 	public function playfieldShowCommand($message, $channel, $sender, $sendto, $args) {
 		$search = strtolower(trim($args[1]));
 		
-		list($longQuery, $longParams) = $this->util->generateQueryFromParams(explode(' ', $search), 'long_name');
-		list($shortQuery, $shortParams) = $this->util->generateQueryFromParams(explode(' ', $search), 'short_name');
+		[$longQuery, $longParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'long_name');
+		[$shortQuery, $shortParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'short_name');
 		
 		$params = array_merge($longParams, $shortParams);
 		

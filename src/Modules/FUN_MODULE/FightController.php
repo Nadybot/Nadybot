@@ -57,10 +57,10 @@ class FightController {
 
 		// This checks if the user is trying to get two of the same people fighting each other
 		if (strcasecmp($player1, $player2) == 0) {
-			$twin = array(
+			$twin = [
 				"Dejavu?",
 				"$player1 can't fight $player2, it may break the voids of space and time!",
-				"As much as I'd love to see $player1 punching himself/herself in the face, it just isn't theoretical...");
+				"As much as I'd love to see $player1 punching himself/herself in the face, it just isn't theoretical..."];
 
 			$sendto->reply($this->util->randomArrayValue($twin));
 			return;

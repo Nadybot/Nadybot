@@ -138,7 +138,7 @@ class BankController {
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->get('max_bank_items');
 		
-		list($where_sql, $params) = $this->util->generateQueryFromParams($words, 'name');
+		[$where_sql, $params] = $this->util->generateQueryFromParams($words, 'name');
 		array_push($params, intval($limit));
 
 		$blob = '';
@@ -179,7 +179,7 @@ class BankController {
 		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
 			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
-			list($name, $ql, $player, $container, $location, $lowId, $highId, $containerId) = str_getcsv($line);
+			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
 			if ($location != 'Bank' && $location != 'Inventory') {
 				continue;
 			}

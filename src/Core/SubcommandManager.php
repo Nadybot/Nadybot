@@ -85,7 +85,7 @@ class SubcommandManager {
 	public function loadSubcommands(): void {
 		$this->logger->log('DEBUG', "Loading enabled subcommands");
 
-		$this->subcommands = array();
+		$this->subcommands = [];
 
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'subcmd'");

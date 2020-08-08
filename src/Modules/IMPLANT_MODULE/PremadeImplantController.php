@@ -41,7 +41,7 @@ class PremadeImplantController {
 	 */
 	public $util;
 	
-	private $slots = array('head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet');
+	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
 	
 	/**
 	 * @Setup
@@ -120,9 +120,9 @@ class PremadeImplantController {
 	}
 
 	public function searchByModifier($modifier) {
-		list($shinyQuery, $shinyParams) = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c1.LongName');
-		list($brightQuery, $brightParams) = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c2.LongName');
-		list($fadedQuery, $fadedParams) = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c3.LongName');
+		[$shinyQuery, $shinyParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c1.LongName');
+		[$brightQuery, $brightParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c2.LongName');
+		[$fadedQuery, $fadedParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c3.LongName');
 		
 		$params = array_merge($shinyParams, $brightParams, $fadedParams);
 		

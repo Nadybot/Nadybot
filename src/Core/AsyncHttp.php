@@ -258,7 +258,7 @@ class AsyncHttp {
 
 		$this->timeoutEvent = $this->timer->callLater(
 			$this->timeout,
-			array($this, 'abortWithMessage'),
+			[$this, 'abortWithMessage'],
 			"Timeout error after waiting {$this->timeout} seconds"
 		);
 	}
@@ -308,7 +308,7 @@ class AsyncHttp {
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
-			array($this, 'onStreamActivity')
+			[$this, 'onStreamActivity']
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
@@ -446,7 +446,7 @@ class AsyncHttp {
 	private function extractHeadersFromHeaderData(string $data): array {
 		$headers = [];
 		$lines = explode("\r\n", $data);
-		list($version, $status, $statusMessage) = explode(" ", array_shift($lines), 3);
+		[$version, $status, $statusMessage] = explode(" ", array_shift($lines), 3);
 		$headers['http-version'] = $version;
 		$headers['status-code'] = $status;
 		$headers['status-message'] = $statusMessage;

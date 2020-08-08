@@ -138,7 +138,7 @@ class HelpManager {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
 		}
 
-		$topics = array();
+		$topics = [];
 		foreach ($data as $row) {
 			if ($char === null || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$obj = new HelpTopic();

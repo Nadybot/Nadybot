@@ -108,7 +108,7 @@ class ChatAssistController {
 			$sendto->reply($this->assistMessage);
 			return;
 		}
-		$errors = array();
+		$errors = [];
 		foreach ($nameArray as $key => $name) {
 			$name = ucfirst(strtolower($name));
 			$uid = $this->chatBot->get_uid($name);

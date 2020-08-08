@@ -89,12 +89,12 @@ class DevController extends AutoInject {
 		// get calls for handlers
 		$calls = array_reduce($handlers, function ($handlers, $handler) {
 			return array_merge($handlers, explode(',', $handler->file));
-		}, array());
+		}, []);
 
 		// get regexes for calls
-		$regexes = array();
+		$regexes = [];
 		foreach ($calls as $call) {
-			list($name, $method) = explode(".", $call);
+			[$name, $method] = explode(".", $call);
 			$instance = Registry::getInstance($name);
 			try {
 				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
@@ -118,7 +118,7 @@ class DevController extends AutoInject {
 	}
 	
 	public function getAllCommandHandlers($cmd, $channel) {
-		$handlers = array();
+		$handlers = [];
 		if (isset($this->commandManager->commands[$channel][$cmd])) {
 			$handlers []= $this->commandManager->commands[$channel][$cmd];
 		}

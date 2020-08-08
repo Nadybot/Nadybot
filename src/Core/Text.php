@@ -57,7 +57,7 @@ class Text {
 			$content = ' ';
 		}
 
-		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), array("<pagebreak>", "\n", " "));
+		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 
 		if ($num == 1) {
@@ -90,7 +90,7 @@ class Text {
 
 		$content = $this->formatMessage($content);
 
-		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), array("<pagebreak>", "\n", " "));
+		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 
 		if ($num == 1) {
@@ -129,7 +129,7 @@ class Text {
 
 		$pageSize = 0;
 		$currentPage = '';
-		$result = array();
+		$result = [];
 		$symbol = array_shift($symbols);
 
 		$lines = explode($symbol, $input);
@@ -224,7 +224,7 @@ class Text {
 	 * @return string The formatted message
 	 */
 	public function formatMessage(string $message): string {
-		$array = array(
+		$array = [
 			"<header>" => $this->settingManager->get('default_header_color'),
 			"<header2>" => $this->settingManager->get('default_header2_color'),
 			"<highlight>" => $this->settingManager->get('default_highlight_color'),
@@ -249,7 +249,7 @@ class Text {
 			"<tab>" => "    ",
 			"<end>" => "</font>",
 			"<symbol>" => $this->settingManager->get("symbol"),
-			"<br>" => "\n");
+			"<br>" => "\n"];
 
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
 

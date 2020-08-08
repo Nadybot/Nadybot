@@ -81,7 +81,7 @@ class PlayerManager {
 		return null;
 	}
 
-	private function lookupUrl(string $url):Player {
+	private function lookupUrl(string $url): Player {
 		$response = $this->http->get($url)->waitAndReturnResponse();
 		[$char, $org, $lastUpdated] = json_decode($response->body);
 

@@ -55,10 +55,10 @@ class AOUController {
 	public function aouView($message, $channel, $sender, $sendto, $args) {
 		$guideid = $args[1];
 
-		$params = array(
+		$params = [
 			'mode' => 'view',
 			'id' => $guideid
-		);
+		];
 		$guide = $this->http->get(self::AOU_URL)->withQueryParams($params)->waitAndReturnResponse()->body;
 
 		$dom = new DOMDocument;
@@ -125,10 +125,10 @@ class AOUController {
 	public function searchForAOUGuide($search, $searchGuideText) {
 		$searchTerms = explode(" ", $search);
 	
-		$params = array(
+		$params = [
 			'mode' => 'search',
 			'search' => $search
-		);
+		];
 		$results = $this->http->get(self::AOU_URL)->withQueryParams($params)->waitAndReturnResponse()->body;
 
 		$dom = new DOMDocument;
@@ -190,7 +190,7 @@ class AOUController {
 	
 	private function getSearchResultCategory($section) {
 		$folders = $section->getElementsByTagName('folder');
-		$output = array();
+		$output = [];
 		foreach ($folders as $folder) {
 			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue;
 		}
@@ -224,7 +224,7 @@ class AOUController {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
 		foreach ($params as $param) {
-			list($name, $value) = explode("=", $param);
+			[$name, $value] = explode("=", $param);
 			$$name = $value;
 		}
 		
@@ -243,9 +243,9 @@ class AOUController {
 	}
 	
 	private function processInput($input) {
-		$input = preg_replace_callback("/\\[(item|itemname|itemicon)( nolink)?\\](\\d+)\\[\\/(item|itemname|itemicon)\\]/i", array($this, 'replaceItem'), $input);
-		$input = preg_replace_callback("/\\[waypoint ([^\\]]+)\\]([^\\]]*)\\[\\/waypoint\\]/", array($this, 'replaceWaypoint'), $input);
-		$input = preg_replace_callback("/\\[(localurl|url)=([^ \\]]+)\\]([^\\[]+)\\[\\/(localurl|url)\\]/", array($this, 'replaceGuideLinks'), $input);
+		$input = preg_replace_callback("/\\[(item|itemname|itemicon)( nolink)?\\](\\d+)\\[\\/(item|itemname|itemicon)\\]/i", [$this, 'replaceItem'], $input);
+		$input = preg_replace_callback("/\\[waypoint ([^\\]]+)\\]([^\\]]*)\\[\\/waypoint\\]/", [$this, 'replaceWaypoint'], $input);
+		$input = preg_replace_callback("/\\[(localurl|url)=([^ \\]]+)\\]([^\\[]+)\\[\\/(localurl|url)\\]/", [$this, 'replaceGuideLinks'], $input);
 		$input = preg_replace("/\\[img\\]([^\\[]+)\\[\\/img\\]/", "-image-", $input);
 		$input = preg_replace("/\\[color=#([0-9A-F]+)\\]([^\\[]+)\\[\\/color\\]/", "<font color=#\\1>\\2</font>", $input);
 		$input = preg_replace("/\\[color=([^\\]]+)\\]([^\\[]+)\\[\\/color\\]/", "<\\1>\\2<end>", $input);

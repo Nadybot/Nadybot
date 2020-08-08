@@ -80,9 +80,9 @@ class WhatBuffsController {
 	 * @return string
 	 */
 	public function getItemsToExclude() {
-		$excludes = array(
+		$excludes = [
 			"aodb.name != 'Brad Test Nano'",
-		);
+		];
 		return implode(" AND ", $excludes);
 	}
 
@@ -281,7 +281,7 @@ class WhatBuffsController {
 		if ($result === null) {
 			$msg = "No items found of type <highlight>$category<end> that buff <highlight>$skill->name<end>.";
 		} else {
-			list($count, $blob) = $result;
+			[$count, $blob] = $result;
 			$blob .= "\nItem Extraction Info provided by Unk";
 			$msg = $this->text->makeBlob("WhatBuffs - $category $skill->name ($count)", $blob);
 		}
@@ -309,7 +309,7 @@ class WhatBuffsController {
 		}
 		
 		$tmp = explode(" ", $skill);
-		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'name');
+		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 		
 		return $this->db->query(
 			"SELECT id, name FROM (
@@ -350,7 +350,7 @@ class WhatBuffsController {
 				$itemMapping[$item->lowid] = $item;
 			}
 		}
-		$ignoreItems = array();
+		$ignoreItems = [];
 		foreach ($items as $item) {
 			if ($item->highid != $item->lowid && array_key_exists($item->highid, $itemMapping)) {
 				$item->highid = $itemMapping[$item->highid]->highid;
@@ -386,22 +386,22 @@ class WhatBuffsController {
 
 		$count = count($items);
 		if ($count > 0) {
-			return array($count, $blob);
+			return [$count, $blob];
 		} else {
 			return null;
 		}
 	}
 
 	public function groupDrainsAndWrangles($items) {
-		$result = array();
-		$groups = array(
+		$result = [];
+		$groups = [
 			'/(Divest|Deprive) Skills.*Transfer/',
 			'/(Ransack|Plunder) Skills.*Transfer/',
 			'/^Umbral Wrangler/',
 			'/^Team Skill Wrangler/',
 			'/^Skill Wrangler/',
-		);
-		$highestOfGroup = array();
+		];
+		$highestOfGroup = [];
 		foreach ($items as $item) {
 			$skip = false;
 			foreach ($groups as $group) {
@@ -449,7 +449,7 @@ class WhatBuffsController {
 
 		$count = count($items);
 		if ($count > 0) {
-			return array($count, $blob);
+			return [$count, $blob];
 		} else {
 			return null;
 		}

@@ -167,7 +167,7 @@ class AMQP {
 		$contentType = strpos($text, '<') === false ? 'text/plain' : 'text/html';
 		$message = new AMQPMessage(
 			$text,
-			array('content_type' => $contentType)
+			['content_type' => $contentType]
 		);
 		$sender = $this->chatBot->vars['name'];
 		try {

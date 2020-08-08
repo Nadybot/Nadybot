@@ -162,7 +162,7 @@ class AOChatPacket {
 	 *                             or the data to encode(if $type == "out")
 	 */
 	public function __construct(string $dir, int $type, $data) {
-		$this->args = array();
+		$this->args = [];
 		$this->type = $type;
 		$this->dir  = $dir;
 		$pmap = self::$packet_map[$dir][$type];
@@ -206,7 +206,7 @@ class AOChatPacket {
 					case "s":
 						$len  = array_pop(unpack("n", $data));
 						$data = substr($data, 2);
-						$res  = array();
+						$res  = [];
 						while ($len--) {
 							$slen  = array_pop(unpack("n", $data));
 							$res[] = substr($data, 2, $slen);
@@ -222,7 +222,7 @@ class AOChatPacket {
 			}
 		} else {
 			if (!is_array($data)) {
-				$args = array($data);
+				$args = [$data];
 			} else {
 				$args = $data;
 			}

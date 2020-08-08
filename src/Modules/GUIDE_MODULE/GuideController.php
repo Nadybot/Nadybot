@@ -70,7 +70,7 @@ class GuideController {
 	 */
 	public function guidesListCommand($message, $channel, $sender, $sendto, $args) {
 		if ($handle = opendir($this->path)) {
-			$topicList = array();
+			$topicList = [];
 
 			/* This is the correct way to loop over the directory. */
 			while (false !== ($fileName = readdir($handle))) {

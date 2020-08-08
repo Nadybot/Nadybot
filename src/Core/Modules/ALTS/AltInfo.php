@@ -90,7 +90,7 @@ class AltInfo {
 		}
 		$blob .= $this->formatCharName($this->main, $online);
 
-		$extraInfo = array();
+		$extraInfo = [];
 		if ($profDisplay & 2 && $character->profession !== null) {
 			$extraInfo []= $util->getProfessionAbbreviation($character->profession);
 		}
@@ -131,7 +131,7 @@ class AltInfo {
 				$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
-			$extraInfo = array();
+			$extraInfo = [];
 			if ($profDisplay & 2 && $row->profession !== null) {
 				$extraInfo []= $util->getProfessionAbbreviation($row->profession);
 			}
@@ -169,7 +169,7 @@ class AltInfo {
 	 * @return string[]
 	 */
 	public function getOnlineAlts(): array {
-		$online_list = array();
+		$online_list = [];
 		$buddylistManager = Registry::getInstance('buddylistManager');
 
 		if ($buddylistManager->isOnline($this->main)) {

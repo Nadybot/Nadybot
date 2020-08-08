@@ -19,7 +19,7 @@ class BotRunner {
 	 *
 	 * @var string[] $argv
 	 */
-	private array $argv = array();
+	private array $argv = [];
 
 	private ?ConfigFile $configFile;
 
@@ -74,7 +74,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 
-		list($server, $port) = $this->getServerAndPort($vars);
+		[$server, $port] = $this->getServerAndPort($vars);
 
 		$chatBot = Registry::getInstance('chatBot');
 

@@ -133,7 +133,7 @@ class TowerController {
 	 */
 	public $timerController;
 
-	protected $attackListeners = array();
+	protected $attackListeners = [];
 
 	/**
 	 * @Setting("tower_attack_spam")
@@ -417,7 +417,7 @@ class TowerController {
 			ORDER BY
 				guild_name ASC";
 		$data = $this->db->query($sql);
-		$contractQls = array();
+		$contractQls = [];
 		foreach ($data as $row) {
 			$contractQls[$row->guild_name] = $row->total_ql;
 		}
@@ -967,7 +967,7 @@ class TowerController {
 	 */
 	protected function setPlantTimer($timerLocation) {
 		$start = time();
-		$alerts = array();
+		$alerts = [];
 
 		$alert = new StdClass();
 		$alert->time = $start;
@@ -1096,7 +1096,7 @@ class TowerController {
 		if (count($data) == 0) {
 			$msg = "No tower attacks found.";
 		} else {
-			$links = array();
+			$links = [];
 			if ($page_label > 1) {
 				$links['Previous Page'] = '/tell <myname> attacks ' . ($page_label - 1);
 			}
@@ -1172,7 +1172,7 @@ class TowerController {
 		if (count($data) == 0) {
 			$msg = "No Tower results found.";
 		} else {
-			$links = array();
+			$links = [];
 			if ($page_label > 1) {
 				$links['Previous Page'] = '/tell <myname> victory ' . ($page_label - 1);
 			}

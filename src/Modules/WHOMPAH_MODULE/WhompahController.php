@@ -102,14 +102,14 @@ class WhompahController {
 		$whompah->faction = $whompahs[$endCity->id]->faction;
 		$whompah->previous = null;
 		$whompah->visited = true;
-		$obj = $this->findWhompahPath($q = array($whompah), $whompahs, $startCity->id);
+		$obj = $this->findWhompahPath($q = [$whompah], $whompahs, $startCity->id);
 
 		if ($obj === false) {
 			$msg = "There was an error while trying to find the whompah path.";
 			$sendto->reply($msg);
 			return;
 		}
-		$cities = array();
+		$cities = [];
 		while ($obj !== null) {
 			$cities []= $obj;
 			$obj = $obj->previous;
@@ -182,13 +182,13 @@ class WhompahController {
 	}
 
 	public function buildWhompahNetwork() {
-		$whompahs = array();
+		$whompahs = [];
 
 		$sql = "SELECT * FROM `whompah_cities`";
 		$data = $this->db->query($sql);
 		foreach ($data as $row) {
 			$whompahs[$row->id] = $row;
-			$whompahs[$row->id]->connections = array();
+			$whompahs[$row->id]->connections = [];
 			$whompahs[$row->id]->visited = false;
 		}
 

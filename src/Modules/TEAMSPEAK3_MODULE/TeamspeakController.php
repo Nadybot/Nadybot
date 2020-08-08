@@ -94,10 +94,10 @@ class TeamspeakController {
 
 			$users = $ts->exec('clientlist');
 			$tmp = $ts->exec('channellist');
-			$channels = array();
+			$channels = [];
 			foreach ($tmp as $c) {
 				$channels[$c['cid']]['name'] = str_replace('\s', ' ', $c['channel_name']);
-				$channels[$c['cid']]['users'] = array();
+				$channels[$c['cid']]['users'] = [];
 			}
 			$count = 0;
 			foreach ($users as $u) {
@@ -106,7 +106,7 @@ class TeamspeakController {
 					$count++;
 				}
 			}
-			$msg = array();
+			$msg = [];
 			if ($count) {
 				foreach ($channels as $c) {
 					if (count($c['users'])) {

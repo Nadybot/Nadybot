@@ -11,7 +11,7 @@ use Nadybot\Core\LegacyLogger;
 class ConfigFile {
 
 	private string $filePath;
-	private array $vars = array();
+	private array $vars = [];
 
 	/**
 	 * Constructor method.

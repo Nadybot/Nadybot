@@ -55,7 +55,7 @@ class RaffleController {
 	 */
 	public function setup() {
 		if (!isset($this->raffles)) {
-			$this->raffles = array(
+			$this->raffles = [
 				"running" => false,
 				"owner" => null,
 				"item" => null,
@@ -65,7 +65,7 @@ class RaffleController {
 				"lastresult" => null,
 				"nextmsgtime" => null,
 				"sendto" => null
-			);
+			];
 		}
 	
 		$this->settingManager->add($this->moduleName, "defaultraffletime", "How long the raffle should go for", "edit", "time", '3m', '1m;2m;3m;4m;5m', '', 'mod', "raffle.txt");
@@ -99,16 +99,16 @@ class RaffleController {
 		$seconds = $this->settingManager->get("defaultraffletime");
 		$timeString = $this->util->unixtimeToReadable($seconds);
 
-		$this->raffles = array(
+		$this->raffles = [
 			"running" => true,
 			"owner" => $sender,
 			"item" => $item,
 			"count" => $count,
 			"time" => time() +  $seconds,
-			"rafflees" => array(),
+			"rafflees" => [],
 			"lastresult" => null,
 			"sendto" => $sendto
-		);
+		];
 		
 		$enterLink = $this->text->makeChatcmd("here", "/tell <myname> raffle enter");
 		$leaveLink = $this->text->makeChatcmd("here", "/tell <myname> raffle leave");
@@ -145,7 +145,7 @@ class RaffleController {
 			return;
 		}
 		$sendtobuffer = $this->raffles["sendto"];
-		$this->raffles = array(
+		$this->raffles = [
 			"running" => false,
 			"owner" => null,
 			"item" => null,
@@ -154,7 +154,7 @@ class RaffleController {
 			"rafflees" => null,
 			"lastresult" => "The last raffle was cancelled.",
 			"sendto" => $sendtobuffer
-		);
+		];
 
 		$msg = "The raffle was cancelled.";
 		$this->raffles["sendto"]->reply($msg);

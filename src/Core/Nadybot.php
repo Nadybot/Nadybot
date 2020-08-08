@@ -76,14 +76,14 @@ class Nadybot extends AOChat {
 	public bool $ready = false;
 
 	/** @var array<string,bool> $chatlist */
-	public array $chatlist = array();
+	public array $chatlist = [];
 
 	/**
 	 * The rank for each member of this bot's guild/org
 	 * [(string)name => (int)rank]
 	 * @var array<string,int> $guildmembers
 	 */
-	public array $guildmembers = array();
+	public array $guildmembers = [];
 
 	/**
 	 * The configuration variables of this bot as given in the config file
@@ -105,11 +105,11 @@ class Nadybot extends AOChat {
 	 *
 	 * @var string[] $channelsToIgnore
 	 */
-	public array $channelsToIgnore = array(
+	public array $channelsToIgnore = [
 		'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
 		'Tour Announcements', 'Neu. Newbie OOC', 'Neu. shopping 11-50', 'Neu. OOC', 'Clan OOC',
 		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC'
-	);
+	];
 
 	/**
 	 * Initialize the bot
@@ -492,7 +492,7 @@ class Nadybot extends AOChat {
 	 */
 	public function processCommandArgs(?string &$type, string &$admin): bool {
 		if ($type === null || $type == "") {
-			$type = array("msg", "priv", "guild");
+			$type = ["msg", "priv", "guild"];
 		} else {
 			$type = explode(' ', $type);
 		}
@@ -876,22 +876,22 @@ class Nadybot extends AOChat {
 		}
 
 		// register commands, subcommands, and events annotated on the class
-		$commands = array();
-		$subcommands = array();
+		$commands = [];
+		$subcommands = [];
 		foreach ($reflection->getAllAnnotations() as $annotation) {
 			if ($annotation instanceof DefineCommand) {
 				if (!$annotation->command) {
 					$this->logger->log('WARN', "Cannot parse @DefineCommand annotation in '$name'.");
 				}
 				$command = $annotation->command;
-				$definition = array(
+				$definition = [
 					'channels'      => $annotation->channels,
 					'defaultStatus' => $annotation->defaultStatus,
 					'accessLevel'   => $annotation->accessLevel,
 					'description'   => $annotation->description,
 					'help'          => $annotation->help,
-					'handlers'      => array()
-				);
+					'handlers'      => []
+				];
 				[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
 				if ($subCommand !== "") {
 					$definition['parentCommand'] = $parentCommand;
@@ -909,7 +909,7 @@ class Nadybot extends AOChat {
 		foreach ($reflection->getMethods() as $method) {
 			/** @var \Addendum\ReflectionAnnotatedMethod $method */
 			if ($method->hasAnnotation('Setup')) {
-				if (call_user_func(array($obj, $method->name)) === false) {
+				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");
 				}
 			} elseif ($method->hasAnnotation('HandlesCommand')) {
@@ -981,7 +981,7 @@ class Nadybot extends AOChat {
 		foreach ($reflection->getMethods() as $method) {
 			/** @var \Addendum\ReflectionAnnotatedMethod $method */
 			if ($method->hasAnnotation('Setup')) {
-				if (call_user_func(array($obj, $method->name)) === false) {
+				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");
 				}
 			}

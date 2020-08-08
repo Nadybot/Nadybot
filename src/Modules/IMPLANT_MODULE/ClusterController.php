@@ -65,7 +65,7 @@ class ClusterController {
 	public function clusterCommand($message, $channel, $sender, $sendto, $args) {
 		$search = trim($args[1]);
 		
-		list($query, $params) = $this->util->generateQueryFromParams(explode(' ', $search), 'LongName');
+		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'LongName');
 
 		$sql = "SELECT ClusterID, LongName FROM Cluster WHERE $query";
 		$data = $this->db->query($sql, $params);

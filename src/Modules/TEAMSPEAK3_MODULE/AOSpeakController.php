@@ -105,7 +105,7 @@ class AOSpeakController {
 		} else {
 			$blob = "Server: <highlight>voice.aospeak.com<end>\n";
 
-			$channels = array();
+			$channels = [];
 			foreach ($users as $user) {
 				$channels[$user->channelName] []= $user;
 			}

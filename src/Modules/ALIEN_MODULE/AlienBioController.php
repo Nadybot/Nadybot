@@ -58,10 +58,10 @@ class AlienBioController {
 	 */
 	public $logger;
 	
-	private $leArmorTypes = array('64', '295', '468', '935');
-	private $leWeaponTypes = array('18', '34', '687', '812');
-	private $aiArmorTypes = array('mutated', 'pristine');
-	private $aiWeaponTypes = array('1', '2', '3', '4', '5', '12', '13', '48', '76', '112', '240', '880', '992');
+	private $leArmorTypes = ['64', '295', '468', '935'];
+	private $leWeaponTypes = ['18', '34', '687', '812'];
+	private $aiArmorTypes = ['mutated', 'pristine'];
+	private $aiWeaponTypes = ['1', '2', '3', '4', '5', '12', '13', '48', '76', '112', '240', '880', '992'];
 
 	/**
 	 * This handler is called on bot startup.
@@ -184,7 +184,7 @@ class AlienBioController {
 
 		if (count($bios) == 1) {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
-			$this->bioinfoCommand("", $channel, $sender, $sendto, array("bioinfo $bioinfo $ql", $bioinfo, $ql));
+			$this->bioinfoCommand("", $channel, $sender, $sendto, ["bioinfo $bioinfo $ql", $bioinfo, $ql]);
 		} else {
 			$msg = $this->text->makeBlob("Identified Bio-Materials", $blob);
 			$sendto->reply($msg);

@@ -68,7 +68,7 @@ class BosslootController {
 	public function bossCommand($message, $channel, $sender, $sendto, $args) {
 		$search = strtolower($args[1]);
 		
-		list($query, $params) = $this->util->generateQueryFromParams(explode(' ', $search), 'bossname');
+		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'bossname');
 
 		$bosses = $this->db->query("SELECT bossid, bossname, w.answer
 			FROM boss_namedb b LEFT JOIN whereis w ON b.bossname = w.name
@@ -114,7 +114,7 @@ class BosslootController {
 
 		$blob = "Bosses that drop items matching '$search':\n\n";
 
-		list($query, $params) = $this->util->generateQueryFromParams(explode(' ', $search), 'b1.itemname');
+		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'b1.itemname');
 
 		$loot = $this->db->query("SELECT DISTINCT b2.bossid, b2.bossname, w.answer
 			FROM boss_lootdb b1 JOIN boss_namedb b2 ON b2.bossid = b1.bossid

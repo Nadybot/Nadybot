@@ -34,11 +34,11 @@ class EventManager {
 	private array $cronevents = [];
 
 	/** @var string[] */
-	private array $eventTypes = array(
+	private array $eventTypes = [
 		'msg','priv','extpriv','guild','joinpriv','leavepriv',
 		'orgmsg','extjoinprivrequest','logon','logoff','towers',
 		'connect','setup','amqp'
-	);
+	];
 
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
@@ -117,7 +117,7 @@ class EventManager {
 			if ($time > 0) {
 				$key = $this->getKeyForCronEvent($time, $filename);
 				if ($key === null) {
-					$this->cronevents[] = array('nextevent' => 0, 'filename' => $filename, 'time' => $time);
+					$this->cronevents[] = ['nextevent' => 0, 'filename' => $filename, 'time' => $time];
 				} else {
 					$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). Event already activated!");
 				}

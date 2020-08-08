@@ -20,7 +20,7 @@ class Util {
 	 * Convert bytes to kB, MB, etc. so it's never more than 1024
 	 */
 	public function bytesConvert(int $bytes): string {
-		$ext = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+		$ext = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 		$unitCount = 0;
 		for ($max = count($ext) - 1; $bytes >= 1024 && $unitCount < $max; $unitCount++) {
 			$bytes /= 1024;
@@ -76,7 +76,7 @@ class Util {
 	public function parseTime(string $budatime): int {
 		$unixtime = 0;
 
-		$matches = array();
+		$matches = [];
 		$pattern = '/([0-9]+)([a-z]+)/';
 		preg_match_all($pattern, $budatime, $matches, PREG_SET_ORDER);
 
@@ -327,14 +327,14 @@ class Util {
 	 * @return string|null The short or long form
 	 */
 	public function getAbility(string $ability, bool $getFullName=false): ?string {
-		$abilities = array(
+		$abilities = [
 			'agi' => 'Agility',
 			'int' => 'Intelligence',
 			'psy' => 'Psychic',
 			'sta' => 'Stamina',
 			'str' => 'Strength',
 			'sen' => 'Sense'
-		);
+		];
 
 		$ability = strtolower(substr($ability, 0, 3));
 
@@ -385,8 +385,8 @@ class Util {
 	 */
 	public function getStackTrace(): string {
 		$trace = debug_backtrace();
-		$arr1 = array();
-		$arr2 = array();
+		$arr1 = [];
+		$arr2 = [];
 		foreach ($trace as $obj) {
 			$file = str_replace(getcwd(), "", $obj['file']);
 			$arr1 []= "{$file}({$obj['line']})";
@@ -449,8 +449,8 @@ class Util {
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 */
 	public function generateQueryFromParams(array $params, string $column): array {
-		$queryParams = array();
-		$statements = array();
+		$queryParams = [];
+		$statements = [];
 		foreach ($params as $key => $value) {
 			if ($value[0] == "-" && strlen($value) > 1) {
 				$value = substr($value, 1);
@@ -461,7 +461,7 @@ class Util {
 			$statements []= "$column $op ?";
 			$queryParams []= '%' . $value . '%';
 		}
-		return array(join(" AND ", $statements), $queryParams);
+		return [join(" AND ", $statements), $queryParams];
 	}
 
 	/**
@@ -492,7 +492,7 @@ class Util {
 			return;
 		}
 		// Merge the two sorted arrays into a single sorted array
-		$array = array();
+		$array = [];
 		$ptr1 = $ptr2 = 0;
 		while ($ptr1 < count($array1) && $ptr2 < count($array2)) {
 			if ($cmp_function($array1[$ptr1], $array2[$ptr2]) < 1) {
@@ -528,7 +528,7 @@ class Util {
 	 * Run a function over an associative array and glue the results together with $glue
 	 */
 	public function mapFilterCombine(array $arr, string $glue, callable $func): string {
-		$newArr = array();
+		$newArr = [];
 		foreach ($arr as $key => $value) {
 			$result = call_user_func($func, $key, $value);
 			if ($result !== null) {

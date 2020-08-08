@@ -130,7 +130,7 @@ class RelayController {
 			return;
 		}
 
-		$exchanges = array_values(array_diff(explode(",", $relayBot), array("off")));
+		$exchanges = array_values(array_diff(explode(",", $relayBot), ["off"]));
 		if ($oldValue == 3) {
 			foreach ($exchanges as $unsub) {
 				$this->amqp->disconnectExchange($unsub);

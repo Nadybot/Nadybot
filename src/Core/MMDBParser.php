@@ -8,7 +8,7 @@ namespace Nadybot\Core;
  * @author: Tyrence (RK2)
  */
 class MMDBParser {
-	private array $mmdb = array();
+	private array $mmdb = [];
 	
 	private LoggerWrapper $logger;
 	
@@ -71,7 +71,7 @@ class MMDBParser {
 		fseek($in, $category['offset']);
 
 		// find all instances
-		$instances = array();
+		$instances = [];
 		$instance = $this->readEntry($in);
 		$previousInstance = null;
 		while ($previousInstance == null || $instance['id'] > $previousInstance['id']) {
@@ -98,7 +98,7 @@ class MMDBParser {
 		fseek($in, 8);
 
 		// find all categories
-		$categories = array();
+		$categories = [];
 		$category = $this->readEntry($in);
 		$previousCategory = null;
 		while ($previousCategory == null || $category['id'] > $previousCategory['id']) {
@@ -164,7 +164,7 @@ class MMDBParser {
 	 * @return array<string,int>
 	 */
 	private function readEntry($in) {
-		return array('id' => $this->readLong($in), 'offset' => $this->readLong($in));
+		return ['id' => $this->readLong($in), 'offset' => $this->readLong($in)];
 	}
 
 	private function readLong($in): int {

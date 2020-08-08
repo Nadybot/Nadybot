@@ -464,7 +464,7 @@ class PrivateChannelController {
 	public function kickallCommand($message, $channel, $sender, $sendto, $args) {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>$sender<end>]";
 		$this->chatBot->sendPrivate($msg);
-		$this->timer->callLater(10, array($this->chatBot, 'privategroup_kick_all'));
+		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
 	}
 	
 	/**

@@ -114,7 +114,7 @@ class ItemsController {
 		if ($row->lowid == $id) {
 			$row->ql = $row->lowql;
 		}
-		$blob .= "\n" . $this->formatSearchResults(array($row), null, true);
+		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
 		$msg = "Details about item ID ".
 			$this->text->makeBlob($id, $blob, "Details about item ID $id").
 			" ({$row->name})";
@@ -150,7 +150,7 @@ class ItemsController {
 	public function downloadNewestItemsdb() {
 		$this->logger->log('DEBUG', "Starting items db update");
 
-		$databases = array('aodb', 'item_buffs', 'item_types');
+		$databases = ['aodb', 'item_buffs', 'item_types'];
 
 		// get list of files in ITEMS_MODULE
 		$response = $this->http
@@ -159,7 +159,7 @@ class ItemsController {
 			->withHeader('User-Agent', 'Nadybot')
 			->waitAndReturnResponse();
 
-		$msg = array();
+		$msg = [];
 		foreach ($databases as $currentDB) {
 			try {
 				$json = json_decode($response->body);
@@ -181,7 +181,7 @@ class ItemsController {
 				return $msg;
 			}
 
-			$msg = array();
+			$msg = [];
 			if ($latestVersion !== null) {
 				$currentVersion = $this->settingManager->get("${currentDB}_db_version");
 
@@ -249,7 +249,7 @@ class ItemsController {
 	
 	public function findItemsFromLocal($search, $ql) {
 		$tmp = explode(" ", $search);
-		list($query, $params) = $this->util->generateQueryFromParams($tmp, 'name');
+		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 
 		if ($ql) {
 			$query .= " AND aodb.lowql <= ? AND aodb.highql >= ?";
@@ -300,7 +300,7 @@ class ItemsController {
 					array_map(function($row) {
 						return $row->group_id;
 					}, $data),
-					array(null),
+					[null],
 				)
 			)
 		) + count(
@@ -389,7 +389,7 @@ class ItemsController {
 				$newGroup = true;
 				// If this is a group of items, name them by their longest common name
 				if (isset($row->group_id)) {
-					$itemNames = array();
+					$itemNames = [];
 					for ($j=$itemNum; $j < count($data); $j++) {
 						if ($data[$j]->group_id === $row->group_id) {
 							$itemNames []= $data[$j]->name;
@@ -498,7 +498,7 @@ class ItemsController {
 		$first = explode(" ", $first);
 		$second = explode(" ", $second);
 		$longestCommonSubstringIndexInFirst = 0;
-		$table = array();
+		$table = [];
 		$largestFound = 0;
 	
 		$firstLength = count($first);
@@ -507,7 +507,7 @@ class ItemsController {
 			for ($j = 0; $j < $secondLength; $j++) {
 				if ($first[$i] === $second[$j]) {
 					if (!isset($table[$i])) {
-						$table[$i] = array();
+						$table[$i] = [];
 					}
 	
 					$table[$i][$j] = 1;

@@ -68,7 +68,7 @@ class BroadcastController {
 	 */
 	public $util;
 	
-	private $broadcastList = array();
+	private $broadcastList = [];
 	
 	/**
 	 * This handler is called on bot startup.
@@ -86,7 +86,7 @@ class BroadcastController {
 	private function loadBroadcastListIntoMemory() {
 		//Upload broadcast bots to memory
 		$data = $this->db->query("SELECT * FROM broadcast_<myname>");
-		$this->broadcastList = array();
+		$this->broadcastList = [];
 		foreach ($data as $row) {
 			$this->broadcastList[$row->name] = $row;
 		}

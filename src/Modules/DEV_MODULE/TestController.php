@@ -201,7 +201,7 @@ class TestController extends AutoInject {
 	public function testtowervictoryCommand($message, $channel, $sender, $sendto, $args) {
 		$packet = new stdClass;
 		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = array();
+		$packet->args = [];
 		$packet->args[0] = $this->chatBot->get_gid('tower battle outcome');
 		$packet->args[1] = (int)0xFFFFFFFF;
 		$packet->args[2] = "The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!";
@@ -218,7 +218,7 @@ class TestController extends AutoInject {
 	
 		$packet = new stdClass;
 		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = array();
+		$packet->args = [];
 		$packet->args[0] = $this->chatBot->get_gid('org msg');
 		$packet->args[1] = (int)0xFFFFFFFF;
 		$packet->args[2] = "Blammo! $launcher has launched an orbital attack!";
@@ -233,7 +233,7 @@ class TestController extends AutoInject {
 	public function testeventCommand($message, $channel, $sender, $sendto, $args) {
 		$event = $args[1];
 		
-		list($instanceName, $methodName) = explode(".", $event);
+		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
 		if ($instance == null) {
 			$sendto->reply("Instance <highlight>$instanceName<end> does not exist.");
@@ -254,7 +254,7 @@ class TestController extends AutoInject {
 	public function testcloaklowerCommand($message, $channel, $sender, $sendto, $args) {
 		$packet = new stdClass;
 		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = array();
+		$packet->args = [];
 		$packet->args[0] = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
 		$packet->args[1] = (int)0xFFFFFFFF;
 		$packet->args[2] = "$sender turned the cloaking device in your city off.";
@@ -269,7 +269,7 @@ class TestController extends AutoInject {
 	public function testcloakraiseCommand($message, $channel, $sender, $sendto, $args) {
 		$packet = new stdClass;
 		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = array();
+		$packet->args = [];
 		$packet->args[0] = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
 		$packet->args[1] = (int)0xFFFFFFFF;
 		$packet->args[2] = "$sender turned the cloaking device in your city on.";
@@ -308,7 +308,7 @@ class MessageInfoCommandReply implements CommandReply {
 	public function reply($msg): void {
 		$endTime = microtime(true);
 		if (!is_array($msg)) {
-			$msg = array($msg);
+			$msg = [$msg];
 		}
 		
 		foreach ($msg as $page) {

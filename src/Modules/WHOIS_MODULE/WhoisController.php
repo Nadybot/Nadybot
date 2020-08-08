@@ -80,7 +80,7 @@ class WhoisController {
 	 */
 	public $commandAlias;
 	
-	private $nameHistoryCache = array();
+	private $nameHistoryCache = [];
 	
 	private $replyInfo = null;
 	
@@ -100,7 +100,7 @@ class WhoisController {
 		if (!empty($this->nameHistoryCache) && !$this->db->inTransaction()) {
 			$this->db->beginTransaction();
 			foreach ($this->nameHistoryCache as $entry) {
-				list($charid, $name) = $entry;
+				[$charid, $name] = $entry;
 				if ($this->db->getType() == DB::SQLITE) {
 					$this->db->exec("INSERT OR IGNORE INTO name_history (name, charid, dimension, dt) VALUES (?, ?, <dim>, ?)", $name, $charid, time());
 				} else { // if ($this->db->getType() == DB::MYSQL)
@@ -109,7 +109,7 @@ class WhoisController {
 			}
 			$this->db->commit();
 
-			$this->nameHistoryCache = array();
+			$this->nameHistoryCache = [];
 		}
 	}
 	

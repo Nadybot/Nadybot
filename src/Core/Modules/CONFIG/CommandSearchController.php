@@ -86,7 +86,7 @@ class CommandSearchController {
 	 * @throws Exception
 	 */
 	public function filterResultsByAccessLevel(string $sender, array $data): array {
-		$results = array();
+		$results = [];
 		$charAccessLevel = $this->accessManager->getSingleAccessLevel($sender);
 		foreach ($data as $key => $row) {
 			if ($this->accessManager->compareAccessLevels($charAccessLevel, $row->admin) >= 0) {
@@ -105,7 +105,7 @@ class CommandSearchController {
 		$data = $this->db->fetchAll(CommandSearchResult::class, $sqlquery);
 
 		foreach ($data as $row) {
-			$keywords = array($row->cmd);
+			$keywords = [$row->cmd];
 			$keywords = array_unique($keywords);
 			$row->similarity_percent = 0;
 			foreach ($wordArray as $searchWord) {

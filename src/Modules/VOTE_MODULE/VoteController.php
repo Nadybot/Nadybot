@@ -63,7 +63,7 @@ class VoteController {
 	 */
 	public $accessManager;
 	
-	private $votes = array();
+	private $votes = [];
 	private $delimiter = "|";
 	private $table = "vote_<myname>";
 	
@@ -327,7 +327,7 @@ class VoteController {
 	 * @Matches("/^vote choose (.+)$/i")
 	 */
 	public function voteChooseCommand($message, $channel, $sender, $sendto, $args) {
-		list($question, $choice) = explode($this->delimiter, $args[1], 2);
+		[$question, $choice] = explode($this->delimiter, $args[1], 2);
 		
 		$row = $this->db->queryRow("SELECT * FROM $this->table WHERE `question` = ? AND `duration` IS NOT NULL", $question);
 		$question = $row->question;
@@ -360,7 +360,7 @@ class VoteController {
 	 * @Matches("/^vote add (.+)$/i")
 	 */
 	public function voteAddCommand($message, $channel, $sender, $sendto, $args) {
-		list($settime, $question, $answers) = explode($this->delimiter, $args[1], 3);
+		[$settime, $question, $answers] = explode($this->delimiter, $args[1], 3);
 
 		// !vote 16m|Does this module work?|yes|no
 
@@ -414,7 +414,7 @@ class VoteController {
 			return "Could not find any votes with this topic.";
 		}
 		
-		$results = array();
+		$results = [];
 		$totalresults = 0;
 		foreach ($data as $row) {
 			if ($row->duration) {

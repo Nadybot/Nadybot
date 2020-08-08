@@ -27,8 +27,8 @@ class ImplantDesignerController extends AutoInject {
 	 */
 	public $moduleName;
 	
-	private $slots = array('head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet');
-	private $grades = array('shiny', 'bright', 'faded');
+	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
+	private $grades = ['shiny', 'bright', 'faded'];
 	
 	private $design;
 	
@@ -178,7 +178,7 @@ class ImplantDesignerController extends AutoInject {
 		$blob .= $this->text->makeChatcmd("Require Ability", "/tell <myname> implantdesigner $slot require");
 		$blob .= "\n-------------------------\n";
 		$blob .= "<header2>Implants<end>  ";
-		foreach (array(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300) as $ql) {
+		foreach ([25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300] as $ql) {
 			$blob .= $this->text->makeChatcmd($ql, "/tell <myname> implantdesigner $slot $ql") . " ";
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
@@ -521,10 +521,10 @@ class ImplantDesignerController extends AutoInject {
 	public function getImplantDesignerResults($name) {
 		$design = $this->getDesign($name, '@');
 		
-		$mods = array();
-		$reqs = array('Treatment' => 0, 'Level' => 1);  // force treatment and level to be shown first
-		$implants = array();
-		$clusters = array();
+		$mods = [];
+		$reqs = ['Treatment' => 0, 'Level' => 1];  // force treatment and level to be shown first
+		$implants = [];
+		$clusters = [];
 		
 		foreach ($this->slots as $slot) {
 			$slotObj = $design->$slot;

@@ -22,5 +22,5 @@ class LootItem {
 	public $multiloot = 1;
 
 	/** @var array<string,bool> */
-	public $users = array();
+	public $users = [];
 }

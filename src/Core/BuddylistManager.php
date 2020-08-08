@@ -19,7 +19,7 @@ class BuddylistManager {
 	 */
 	public $logger;
 
-	public $buddyList = array();
+	public $buddyList = [];
 
 	/**
 	 * Check if a friend is online

@@ -58,8 +58,8 @@ class WhereisController {
 		$search = $args[1];
 		$search = strtolower($search);
 		$words = explode(' ', $search);
-		list($query1, $params1) = $this->util->generateQueryFromParams($words, 'name');
-		list($query2, $params2) = $this->util->generateQueryFromParams($words, 'keywords');
+		[$query1, $params1] = $this->util->generateQueryFromParams($words, 'name');
+		[$query2, $params2] = $this->util->generateQueryFromParams($words, 'keywords');
 		$params = array_merge($params1, $params2);
 		
 		$sql = "SELECT * FROM whereis w LEFT JOIN playfields p ON w.playfield_id = p.id WHERE ($query1) OR ($query2)";

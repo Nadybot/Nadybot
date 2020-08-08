@@ -245,8 +245,8 @@ class OnlineController {
 			//$this->db->beginTransaction();
 			$data = $this->db->query("SELECT name, channel_type FROM `online`");
 
-			$guildArray = array();
-			$privArray = array();
+			$guildArray = [];
+			$privArray = [];
 
 			foreach ($data as $row) {
 				switch ($row->channel_type) {
@@ -337,7 +337,7 @@ class OnlineController {
 			$row = $this->db->queryRow("SELECT afk FROM online WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
 
 			if ($row !== null && $row->afk != '') {
-				list($time, $reason) = explode('|', $row->afk);
+				[$time, $reason] = explode('|', $row->afk);
 				$timeString = $this->util->unixtimeToReadable(time() - $time);
 				// $sender is back
 				$this->db->exec("UPDATE online SET `afk` = '' WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
@@ -398,10 +398,10 @@ class OnlineController {
 	
 	public function getOnlineList() {
 		$orgData = $this->getPlayers('guild');
-		list($orgCount, $orgMain, $orgBlob) = $this->formatData($orgData, $this->settingManager->get("online_show_org_guild"));
+		[$orgCount, $orgMain, $orgBlob] = $this->formatData($orgData, $this->settingManager->get("online_show_org_guild"));
 
 		$privData = $this->getPlayers('priv');
-		list($privCount, $privMain, $privBlob) = $this->formatData($privData, $this->settingManager->get("online_show_org_priv"));
+		[$privCount, $privMain, $privBlob] = $this->formatData($privData, $this->settingManager->get("online_show_org_priv"));
 
 		$totalCount = $orgCount + $privCount;
 		$totalMain = $orgMain + $privMain;
@@ -458,7 +458,7 @@ class OnlineController {
 	}
 
 	public function getAfkInfo($afk, $fancyColon) {
-		list($time, $reason) = explode("|", $afk);
+		[$time, $reason] = explode("|", $afk);
 		if (empty($afk)) {
 			return '';
 		} elseif (empty($reason)) {
@@ -513,7 +513,7 @@ class OnlineController {
 	}
 
 	public function getProfessionId($profession) {
-		$profToID = array(
+		$profToID = [
 			"Adventurer" => 6,
 			"Agent" => 5,
 			"Bureaucrat" => 8,
@@ -528,7 +528,7 @@ class OnlineController {
 			"Soldier" => 1,
 			"Shade" => 15,
 			"Trader" => 7,
-		);
+		];
 		return $profToID[$profession];
 	}
 }

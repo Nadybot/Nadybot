@@ -56,7 +56,7 @@ class TrickleController {
 	 * @Matches("/^trickle( ([a-zA-Z]+) ([0-9]+)){1,6}$/i")
 	 */
 	public function trickle1Command($message, $channel, $sender, $sendto, $args) {
-		$abilities = array('agi' => 0, 'int' => 0, 'psy' => 0, 'sta' => 0, 'str' => 0, 'sen' => 0);
+		$abilities = ['agi' => 0, 'int' => 0, 'psy' => 0, 'sta' => 0, 'str' => 0, 'sen' => 0];
 
 		$array = explode(" ", $message);
 		array_shift($array);
@@ -80,7 +80,7 @@ class TrickleController {
 	 * @Matches("/^trickle( ([0-9]+) ([a-zA-Z]+)){1,6}$/i")
 	 */
 	public function trickle2Command($message, $channel, $sender, $sendto, $args) {
-		$abilities = array('agi' => 0, 'int' => 0, 'psy' => 0, 'sta' => 0, 'str' => 0, 'sen' => 0);
+		$abilities = ['agi' => 0, 'int' => 0, 'psy' => 0, 'sta' => 0, 'str' => 0, 'sen' => 0];
 
 		$array = explode(" ", $message);
 		array_shift($array);

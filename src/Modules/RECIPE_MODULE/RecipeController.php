@@ -83,7 +83,7 @@ class RecipeController {
 					$id = $args[1];
 					$name = $recipe->name;
 					$author = $recipe->author;
-					$items = array();
+					$items = [];
 					foreach ($recipe->items as $item) {
 						$dbItem = $this->itemsController->findById($item->item_id);
 						if ($dbItem === null) {
@@ -163,7 +163,7 @@ class RecipeController {
 		} else {
 			$search = $args[1];
 			
-			list($query, $queryParams) = $this->util->generateQueryFromParams(explode(" ", $search), "recipe");
+			[$query, $queryParams] = $this->util->generateQueryFromParams(explode(" ", $search), "recipe");
 			$data = $this->db->query("SELECT * FROM recipes WHERE $query ORDER BY name ASC", $queryParams);
 		}
 		
@@ -187,7 +187,7 @@ class RecipeController {
 	
 	public function formatRecipeText($input) {
 		$input = str_replace("\\n", "\n", $input);
-		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', array($this, 'replaceItem'), $input);
+		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', [$this, 'replaceItem'], $input);
 		$input = preg_replace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
 		
 		// we can't use <myname> in the sql since that will get converted on load,

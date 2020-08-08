@@ -90,7 +90,7 @@ class NanoController {
 
 		$search = htmlspecialchars_decode($search);
 		$tmp = explode(" ", $search);
-		list($query, $params) = $this->util->generateQueryFromParams($tmp, '`nano_name`');
+		[$query, $params] = $this->util->generateQueryFromParams($tmp, '`nano_name`');
 		array_push($params, intval($this->settingManager->get("maxnano")));
 
 		$sql =
@@ -231,7 +231,7 @@ class NanoController {
 		$nanoArgs = explode(" > ", $args[1]);
 		$profArg = array_shift($nanoArgs);
 		$profession = $this->util->getProfessionName($profArg);
-		if (in_array($profArg, array("general", "General"))) {
+		if (in_array($profArg, ["general", "General"])) {
 			$profession = "General";
 		}
 		if ($profession === '') {
@@ -259,7 +259,7 @@ class NanoController {
 			$profWhere = "AND professions LIKE ?";
 		}
 		if ($froobOnly) {
-			if ($prof !== null && in_array($prof, array("Keeper", "Shade"))) {
+			if ($prof !== null && in_array($prof, ["Keeper", "Shade"])) {
 				$msg = "<highlight>$prof<end> is not playable as froob.";
 				$sendto->reply($msg);
 				return;
@@ -326,7 +326,7 @@ class NanoController {
 		$froobWhere = "";
 		if ($froobOnly) {
 			$froobWhere = "AND froob_friendly IS TRUE";
-			if ($profession !== null && in_array($profession, array("Keeper", "Shade"))) {
+			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
 				$msg = "<highlight>$profession<end> is not playable as froob.";
 				$sendto->reply($msg);
 				return;

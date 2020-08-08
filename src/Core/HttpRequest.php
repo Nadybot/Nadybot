@@ -6,12 +6,12 @@ class HttpRequest {
 
 	private string $method;
 	private string $uri;
-	private array $extraHeaders  = array();
-	private array $queryParams   = array();
+	private array $extraHeaders  = [];
+	private array $queryParams   = [];
 	private ?string $streamScheme = null;
 	private ?int $streamPort = null;
 	private ?string $streamHost = null;
-	private array $uriComponents = array();
+	private array $uriComponents = [];
 
 	/** @internal */
 	public static ?string $overridePathPrefix = null;
@@ -147,7 +147,7 @@ class HttpRequest {
 	}
 
 	private function getHeaders(): array {
-		$headers = array();
+		$headers = [];
 		$headers['Host'] = $this->streamHost;
 		if ($this->method == 'post' && $this->queryParams) {
 			$headers['Content-Type'] = 'application/x-www-form-urlencoded';

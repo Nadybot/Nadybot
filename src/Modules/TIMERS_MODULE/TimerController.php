@@ -88,7 +88,7 @@ class TimerController {
 	 */
 	public $logger;
 
-	private $timers = array();
+	private $timers = [];
 
 	/**
 	 * @Setup
@@ -96,7 +96,7 @@ class TimerController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'timers');
 
-		$this->timers = array();
+		$this->timers = [];
 		$data = $this->db->query("SELECT * FROM timers_<myname>");
 		foreach ($data as $row) {
 			$row->alerts = json_decode($row->alerts);
@@ -124,7 +124,7 @@ class TimerController {
 		);
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',
-			array($this, 'changeTimerAlertTimes')
+			[$this, 'changeTimerAlertTimes']
 		);
 	}
 
@@ -164,7 +164,7 @@ class TimerController {
 
 				array_shift($timer->alerts);
 
-				list($name, $method) = explode(".", $timer->callback);
+				[$name, $method] = explode(".", $timer->callback);
 				$instance = Registry::getInstance($name);
 				if ($instance === null) {
 					$this->logger->log('ERROR', "Error calling callback method '$timer->callback' for timer '$timer->name': Could not find instance '$name'.");
@@ -364,7 +364,7 @@ class TimerController {
 	}
 	
 	public function generateAlerts($sender, $name, $endTime, $alertTimes) {
-		$alerts = array();
+		$alerts = [];
 		
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);

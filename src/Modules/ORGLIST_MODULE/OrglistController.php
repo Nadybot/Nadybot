@@ -76,15 +76,15 @@ class OrglistController {
 	public $findOrgController;
 	
 	protected $orglist = null;
-	protected $orgrankmap = array();
+	protected $orgrankmap = [];
 	
 	public function __construct() {
-		$this->orgrankmap["Anarchism"]  = array("Anarchist");
-		$this->orgrankmap["Monarchy"]   = array("Monarch",   "Counsil",      "Follower");
-		$this->orgrankmap["Feudalism"]  = array("Lord",      "Knight",       "Vassal",          "Peasant");
-		$this->orgrankmap["Republic"]   = array("President", "Advisor",      "Veteran",         "Member",         "Applicant");
-		$this->orgrankmap["Faction"]    = array("Director",  "Board Member", "Executive",       "Member",         "Applicant");
-		$this->orgrankmap["Department"] = array("President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant");
+		$this->orgrankmap["Anarchism"]  = ["Anarchist"];
+		$this->orgrankmap["Monarchy"]   = ["Monarch",   "Counsil",      "Follower"];
+		$this->orgrankmap["Feudalism"]  = ["Lord",      "Knight",       "Vassal",          "Peasant"];
+		$this->orgrankmap["Republic"]   = ["President", "Advisor",      "Veteran",         "Member",         "Applicant"];
+		$this->orgrankmap["Faction"]    = ["Director",  "Board Member", "Executive",       "Member",         "Applicant"];
+		$this->orgrankmap["Department"] = ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"];
 	}
 	
 	/**

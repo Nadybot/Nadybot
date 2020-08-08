@@ -180,10 +180,10 @@ class AOChat {
 		$this->char        = null;
 		$this->last_packet = 0;
 		$this->last_ping   = 0;
-		$this->id          = array();
-		$this->gid         = array();
-		$this->grp         = array();
-		$this->chars       = array();
+		$this->id          = [];
+		$this->gid         = [];
+		$this->grp         = [];
+		$this->chars       = [];
 		$this->chatqueue   = null;
 	}
 
@@ -202,7 +202,7 @@ class AOChat {
 
 		// prevents bot from hanging on startup when chatserver does not send login seed
 		$timeout = 10;
-		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => $timeout, 'usec' => 0));
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
 
 		if (@socket_connect($this->socket, $server, $port) === false) {
 			$this->logger->log('error', "Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
@@ -245,7 +245,7 @@ class AOChat {
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
 
-		$a = array($this->socket);
+		$a = [$this->socket];
 		$b = null;
 		$c = null;
 		if (!socket_select($a, $b, $c, $time)) {
@@ -361,7 +361,7 @@ class AOChat {
 		$serverseed = $packet->args[0];
 
 		$key = $this->generateLoginKey($serverseed, $username, $password);
-		$pak = new AOChatPacket("out", AOCP_LOGIN_REQUEST, array(0, $username, $key));
+		$pak = new AOChatPacket("out", AOCP_LOGIN_REQUEST, [0, $username, $key]);
 		$this->sendPacket($pak);
 		$packet = $this->getPacket();
 		if ($packet === null || $packet->type != AOCP_LOGIN_CHARLIST) {
@@ -541,7 +541,7 @@ class AOChat {
 			return false;
 		}
 		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_MSG_PRIVATE, array($uid, $msg, "\0")));
+		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_MSG_PRIVATE, [$uid, $msg, "\0"]));
 		$this->iteration();
 		return true;
 	}
@@ -561,7 +561,7 @@ class AOChat {
 			return false;
 		}
 		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_GROUP_MESSAGE, array($guild_gid, $msg, "\0")));
+		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
 		$this->iteration();
 		return true;
 	}
@@ -576,7 +576,7 @@ class AOChat {
 			return false;
 		}
 		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push(AOC_PRIORITY_MED, new AOChatPacket("out", AOCP_GROUP_MESSAGE, array($gid, $msg, "\0")));
+		$this->chatqueue->push(AOC_PRIORITY_MED, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$gid, $msg, "\0"]));
 		$this->iteration();
 		return true;
 	}
@@ -591,7 +591,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] & ~AOC_GROUP_MUTE, "\0")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, [$gid, $this->grp[$gid] & ~AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -604,7 +604,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, array($gid, $this->grp[$gid] | AOC_GROUP_MUTE, "\0")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, [$gid, $this->grp[$gid] | AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -633,7 +633,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, array($gid, $msg, "\0")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
 	}
 
 	/**
@@ -702,7 +702,7 @@ class AOChat {
 		if ($uid === $this->char->id) {
 			return false;
 		}
-		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, array($uid, "\1")));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, "\1"]));
 	}
 
 	/**
@@ -718,7 +718,7 @@ class AOChat {
 	 * Remove unknown users from our friend list
 	 */
 	public function buddy_remove_unknown(): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOCP_CC, array(array("rembuddy", "?"))));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_CC, [["rembuddy", "?"]]));
 	}
 
 	/**

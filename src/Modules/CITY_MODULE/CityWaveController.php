@@ -96,7 +96,7 @@ class CityWaveController {
 			'',
 			'mod'
 		);
-		$this->settingManager->registerChangeListener('city_wave_times', array($this, 'changeWaveTimes'));
+		$this->settingManager->registerChangeListener('city_wave_times', [$this, 'changeWaveTimes']);
 	}
 	
 	public function changeWaveTimes($settingName, $oldValue, $newValue, $data) {
@@ -200,7 +200,7 @@ class CityWaveController {
 		}
 		$lastTime = time();
 		$wave = 1;
-		$alerts = array();
+		$alerts = [];
 		$alertTimes = explode(' ', $this->setting->city_wave_times);
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);

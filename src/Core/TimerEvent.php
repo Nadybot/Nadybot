@@ -13,7 +13,7 @@ class TimerEvent {
 	public $callback = null;
 
 	/** @var mixed[] $args */
-	public array $args = array();
+	public array $args = [];
 
 	public function __construct(int $time, int $delay, callable $callback, array $args) {
 		$this->time = $time;

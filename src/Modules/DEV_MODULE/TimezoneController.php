@@ -90,7 +90,7 @@ class TimezoneController extends AutoInject {
 	}
 	
 	public function getTimezoneAreas() {
-		return array(
+		return [
 			'Africa' => 1,
 			'America' => 2,
 			'Antarctica' => 4,
@@ -101,6 +101,6 @@ class TimezoneController extends AutoInject {
 			'Europe' => 128,
 			'Indian' => 256,
 			'Pacific' => 512,
-			'UTC' => 1024);
+			'UTC' => 1024];
 	}
 }

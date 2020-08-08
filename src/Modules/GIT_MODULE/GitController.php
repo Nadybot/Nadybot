@@ -102,7 +102,7 @@ class GitController extends AutoInject {
 	}
 	
 	private function executeCommand($command) {
-		$output = array();
+		$output = [];
 		$return_var = '';
 		exec($command, $output, $return_var);
 

@@ -104,14 +104,14 @@ class RaidController {
 	 *
 	 * @var LootItem[]
 	 */
-	private $loot = array();
+	private $loot = [];
 
 	/**
 	 * The leftovers from the last loot roll
 	 *
 	 * @var LootItem[]
 	 */
-	private $residual = array();
+	private $residual = [];
 
 	/**
 	 * @Setup
@@ -201,8 +201,8 @@ class RaidController {
 			return;
 		}
 
-		$this->loot = array();
-		$this->residual = array();
+		$this->loot = [];
+		$this->residual = [];
 		$msg = "Loot has been cleared by <highlight>$sender<end>.";
 		$this->chatBot->sendPrivate($msg);
 
@@ -426,7 +426,7 @@ class RaidController {
 		if ($key > 0 && $key <= count($this->loot)) {
 			// if removing this item empties the list, clear the loot list properly
 			if (count($this->loot) <= 1) {
-				$this->loot = array();
+				$this->loot = [];
 				$this->chatBot->sendPrivate("Item in slot <highlight>#".$key."<end> was the last item in the list. The list has been cleared.");
 			} else {
 				// remove the item by shifting lower items up one slot and remove last slot
@@ -476,7 +476,7 @@ class RaidController {
 		}
 
 		//Reset residual list
-		$this->residual = array();
+		$this->residual = [];
 		//Show winner list
 		$msg = "All remaining items have been re-added by <highlight>$sender<end>. Check <symbol>loot.";
 		$this->chatBot->sendPrivate($msg);
@@ -537,7 +537,7 @@ class RaidController {
 
 					// Get $arrolnum random values from $item->users
 					$winners = (array)array_rand($item->users, $arrolnum);
-					$item->users = array();
+					$item->users = [];
 					$list .= join(
 						", ",
 						array_map(
@@ -563,7 +563,7 @@ class RaidController {
 		}
 
 		//Reset loot
-		$this->loot = array();
+		$this->loot = [];
 
 		//Show winner list
 		if (!empty($this->residual)) {
@@ -737,7 +737,7 @@ class RaidController {
 	 */
 	public function addRaidToLootList($raid, $category) {
 		// clear current loot list
-		$this->loot = array();
+		$this->loot = [];
 		$count = 1;
 
 		$sql = "SELECT * FROM raid_loot r ".
@@ -756,7 +756,7 @@ class RaidController {
 			} else {
 				$row->display = $item . " ($row->comment)";
 			}
-			$row->users = array();
+			$row->users = [];
 			$this->loot[$count] = $row;
 			$count++;
 		}

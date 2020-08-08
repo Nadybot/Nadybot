@@ -115,11 +115,11 @@ class BuffPerksController {
 			}
 		}
 		
-		$params = array ($profession, $minLevel);
+		$params =  [$profession, $minLevel];
 		
 		if (count($args) == 4) {
 			$tmp = explode(" ", $args[3]);
-			list($skillQuery, $newParams) = $this->util->generateQueryFromParams($tmp, 'plb.skill');
+			[$skillQuery, $newParams] = $this->util->generateQueryFromParams($tmp, 'plb.skill');
 			$params = array_merge($params, $newParams);
 			$skillQuery = "AND " . $skillQuery;
 		}
@@ -168,7 +168,7 @@ class BuffPerksController {
 	public function getPerkInfo() {
 		$path = __DIR__ . "/perks.csv";
 		$lines = explode("\n", file_get_contents($path));
-		$perks = array();
+		$perks = [];
 		foreach ($lines as $line) {
 			$line = trim($line);
 			
@@ -176,7 +176,7 @@ class BuffPerksController {
 				continue;
 			}
 			
-			list($name, $perkLevel, $minLevel, $profs, $buffs) = explode("|", $line);
+			[$name, $perkLevel, $minLevel, $profs, $buffs] = explode("|", $line);
 			$perk = $perks[$name];
 			if (empty($perk)) {
 				$perk = new stdClass;
@@ -190,7 +190,7 @@ class BuffPerksController {
 			$level->perkLevel = $perkLevel;
 			$level->minLevel = $minLevel;
 			
-			$level->professions = array();
+			$level->professions = [];
 			$professions = explode(",", $profs);
 			foreach ($professions as $prof) {
 				$profession = $this->util->getProfessionName(trim($prof));
@@ -201,7 +201,7 @@ class BuffPerksController {
 				}
 			}
 			
-			$level->buffs = array();
+			$level->buffs = [];
 			$buffs = explode(",", $buffs);
 			foreach ($buffs as $buff) {
 				$buff = trim($buff);

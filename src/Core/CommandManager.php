@@ -85,7 +85,7 @@ class CommandManager {
 		}
 
 		foreach (explode(',', $filename) as $handler) {
-			list($name, $method) = explode(".", $handler);
+			[$name, $method] = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
 				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
 				return;
@@ -144,7 +144,7 @@ class CommandManager {
 		$this->logger->log('DEBUG', "Activate Command:($command) Admin Type:($accessLevel) File:($filename) Channel:($channel)");
 
 		foreach (explode(',', $filename) as $handler) {
-			list($name, $method) = explode(".", $handler);
+			[$name, $method] = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
 				$this->logger->log('ERROR', "Error activating method $handler for command $command.  Could not find instance '$name'.");
 				return;
@@ -294,10 +294,10 @@ class CommandManager {
 				return;
 			}
 
-			$similarCommands = $this->commandSearchController->findSimilarCommands(array($cmd));
+			$similarCommands = $this->commandSearchController->findSimilarCommands([$cmd]);
 			$similarCommands = $this->commandSearchController->filterResultsByAccessLevel($sender, $similarCommands);
 			$similarCommands = array_slice($similarCommands, 0, 5);
-			$cmdNames = array_map(array($this, 'mapToCmd'), $similarCommands);
+			$cmdNames = array_map([$this, 'mapToCmd'], $similarCommands);
 
 			$sendto->reply("Error! Unknown command. Did you mean..." . implode(", ", $cmdNames) . '?');
 			return;
@@ -376,7 +376,7 @@ class CommandManager {
 		$successfulHandler = null;
 
 		foreach (explode(',', $commandHandler->file) as $handler) {
-			list($name, $method) = explode(".", $handler);
+			[$name, $method] = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->log('ERROR', "Could not find instance for name '$name'");
@@ -468,7 +468,7 @@ class CommandManager {
 	 * @return string[]
 	 */
 	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
-		$regexes = array();
+		$regexes = [];
 		if ($reflectedMethod->hasAnnotation('Matches')) {
 			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
 				$regexes []= $annotation->value;

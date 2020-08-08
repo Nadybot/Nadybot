@@ -93,7 +93,7 @@ class RandomController {
 		$low = 0;
 		$high = count($text) - 1;
 		$count = 0;
-		$marked = array();
+		$marked = [];
 		while (true) {
 			$random = rand($low, $high);
 			if (!isset($marked[$random])) {
@@ -147,11 +147,11 @@ class RandomController {
 			$timeBetweenRolls = $this->settingManager->get('time_between_rolls');
 			$row = $this->db->queryRow("SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
 			if ($row === null) {
-				$options = array();
+				$options = [];
 				for ($i = $min; $i <= $max; $i++) {
 					$options []= $i;
 				}
-				list($ver_num, $result) = $this->roll($sender, $options);
+				[$ver_num, $result] = $this->roll($sender, $options);
 				$msg = "The roll is <highlight>$result<end> between $min and $max. To verify do /tell <myname> verify $ver_num";
 			} else {
 				$msg = "You can only roll once every $timeBetweenRolls seconds.";
@@ -171,7 +171,7 @@ class RandomController {
 		$row = $this->db->queryRow("SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
 		if ($row === null) {
 			$options = explode(' ', $names);
-			list($ver_num, $result) = $this->roll($sender, $options);
+			[$ver_num, $result] = $this->roll($sender, $options);
 			$msg = "The roll is <highlight>$result<end> out of possible options: $names. To verify do /tell <myname> verify $ver_num";
 		} else {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
@@ -208,6 +208,6 @@ class RandomController {
 			implode("|", $options),
 			$result
 		);
-		return array($this->db->lastInsertId(), $result);
+		return [$this->db->lastInsertId(), $result];
 	}
 }
