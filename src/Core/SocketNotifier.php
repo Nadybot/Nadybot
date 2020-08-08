@@ -18,9 +18,9 @@ class SocketNotifier {
 	private int $type;
 	private $callback;
 
-	const ACTIVITY_READ  = 1;
-	const ACTIVITY_WRITE = 2;
-	const ACTIVITY_ERROR = 4;
+	public const ACTIVITY_READ  = 1;
+	public const ACTIVITY_WRITE = 2;
+	public const ACTIVITY_ERROR = 4;
 
 	public function __construct($socket, int $type, callable $callback) {
 		$this->socket   = $socket;

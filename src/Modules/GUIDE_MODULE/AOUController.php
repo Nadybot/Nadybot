@@ -44,7 +44,7 @@ class AOUController {
 	 */
 	public $http;
 
-	const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
+	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	
 	/**
 	 * View an AO-U guide.

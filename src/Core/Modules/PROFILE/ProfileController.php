@@ -33,7 +33,7 @@ use Nadybot\Core\DBSchema\{
  *	)
  */
 class ProfileController {
-	const FILE_EXT = ".txt";
+	public const FILE_EXT = ".txt";
 
 	/**
 	 * Name of the module.

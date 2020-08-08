@@ -27,7 +27,7 @@ class ChatCheckController {
 	 */
 	public $text;
 
-	const CHANNEL_TYPE = "priv";
+	public const CHANNEL_TYPE = "priv";
 
 	/**
 	 * This command handler checks who of the raidgroup is in the area.

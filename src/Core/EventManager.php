@@ -42,8 +42,8 @@ class EventManager {
 
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
-	const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
-	const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
+	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
+	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 
 	/**
 	 * @name: register

@@ -21,7 +21,7 @@ class CommandAlias {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	const ALIAS_HANDLER = "CommandAlias.process";
+	public const ALIAS_HANDLER = "CommandAlias.process";
 
 	/**
 	 * Loads active aliases into memory to activate them

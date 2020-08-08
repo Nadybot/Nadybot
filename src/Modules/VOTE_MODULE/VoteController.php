@@ -68,12 +68,12 @@ class VoteController {
 	private $table = "vote_<myname>";
 	
 	// status indicates the last alert that happened (not the next alert that will happen)
-	const STATUS_CREATED = 0;
-	const STATUS_STARTED = 1;
-	const STATUS_60_MINUTES_LEFT = 2;
-	const STATUS_15_MINUTES_LEFT = 3;
-	const STATUS_60_SECONDS_LEFT = 4;
-	const STATUS_ENDED = 9;
+	public const STATUS_CREATED = 0;
+	public const STATUS_STARTED = 1;
+	public const STATUS_60_MINUTES_LEFT = 2;
+	public const STATUS_15_MINUTES_LEFT = 3;
+	public const STATUS_60_SECONDS_LEFT = 4;
+	public const STATUS_ENDED = 9;
 	
 	/**
 	 * This handler is called on bot startup.

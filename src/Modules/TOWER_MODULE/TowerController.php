@@ -189,7 +189,7 @@ class TowerController {
 	 */
 	public $defaultTowerPlantTimer = "0";
 
-	const TIMER_NAME = "Towerbattles";
+	public const TIMER_NAME = "Towerbattles";
 
 	/**
 	 * Adds listener callback which will be called when tower attacks occur.

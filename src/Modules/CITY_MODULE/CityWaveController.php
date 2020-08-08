@@ -64,7 +64,7 @@ class CityWaveController {
 	 */
 	public $util;
 	
-	const TIMER_NAME = "City Raid";
+	public const TIMER_NAME = "City Raid";
 	
 	/**
 	 * @Setup

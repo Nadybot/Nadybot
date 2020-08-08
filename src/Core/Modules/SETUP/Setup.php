@@ -18,7 +18,7 @@ use Nadybot\Core\ConfigFile;
  * @license GPL
  */
 class Setup {
-	const INDENT = 13;
+	private const INDENT = 13;
 
 	public ConfigFile $configFile;
 	public array $vars = [];

@@ -32,7 +32,7 @@ class SilenceController extends AutoInject {
 	 */
 	public $moduleName;
 	
-	const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
+	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 	
 	/**
 	 * @Setup

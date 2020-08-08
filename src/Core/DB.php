@@ -48,8 +48,8 @@ class DB {
 
 	private LoggerWrapper $logger;
 
-	const MYSQL = 'mysql';
-	const SQLITE = 'sqlite';
+	public const MYSQL = 'mysql';
+	public const SQLITE = 'sqlite';
 
 	public function __construct() {
 		$this->logger = new LoggerWrapper('SQL');
