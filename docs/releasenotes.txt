@@ -1,4 +1,35 @@
 *****************************
+	Version 5.0:
+*****************************
+This is the first version named Nadybot and the first one to only support PHP7.4+.
+
+Features
+- Roll commands allow sending result to team/raid
+- Proper Discord relay integration
+- Support for notifications to Discord
+- Raffle module allows raffling multiple items, item groups
+  and also introduces configurable raffle bonus points so that people
+  not winning anything get better chances on next raffle
+- Added guide for tradeskilling a sauna
+
+Changes
+- Add *all* Symbiants to the implant module
+- Add *all* Spirits to the spirit module
+- Removed unneeded guides (map navigation anyone?)
+- News can now be marked as read, so they won't get shown again.
+- Votes are now stored in a different format
+
+Bug fixes
+- Orglist module can now once again download and search for orgs
+
+Coding
+- Everything is now typed (where possible) and requires PHP 7.4 or higher
+- AsyncHttp is now truly async, even for SSL/TLS
+- Pushed back synchronous, blocking calls with Http
+- Introduced a Websocket client to allow Discord integration
+  and possibly later on remote-controlling the bot with a web interface.
+
+*****************************
 	Version 4.2:
 *****************************
 This is the last version named Budabot and the last one to support PHP5.
