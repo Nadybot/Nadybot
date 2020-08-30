@@ -243,7 +243,7 @@ class AOChatPacket {
 						break;
 
 					case "S":
-						$data .= pack("n", strlen($it)) . $it;
+						$data .= pack("n", strlen((string)$it)) . $it;
 						break;
 
 					case "G":

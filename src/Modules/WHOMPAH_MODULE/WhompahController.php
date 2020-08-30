@@ -1,8 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
-use stdClass;
+use Nadybot\Core\CommandAlias;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
@@ -23,31 +26,22 @@ class WhompahController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'whompah_cities');
 		
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompahs');
@@ -59,14 +53,15 @@ class WhompahController {
 	 * @HandlesCommand("whompah")
 	 * @Matches("/^whompah$/i")
 	 */
-	public function whompahListCommand($message, $channel, $sender, $sendto, $args) {
+	public function whompahListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sql = "SELECT * FROM `whompah_cities` ORDER BY city_name ASC";
-		$data = $this->db->query($sql);
+		/** @var WhompahCity[] */
+		$data = $this->db->fetchAll(WhompahCity::class, $sql);
 
-		$blob = '';
+		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
 		foreach ($data as $row) {
 			$cityLink = $this->text->makeChatcmd($row->short_name, "/tell <myname> whompah {$row->short_name}");
-			$blob .= "{$row->city_name} ({$cityLink})\n";
+			$blob .= "<tab>{$row->city_name} ({$cityLink})\n";
 		}
 		$blob .= "\nWritten By Tyrence (RK2)\nDatabase from a Bebot module written by POD13";
 
@@ -79,32 +74,28 @@ class WhompahController {
 	 * @HandlesCommand("whompah")
 	 * @Matches("/^whompah (.+) (.+)$/i")
 	 */
-	public function whompahTravelCommand($message, $channel, $sender, $sendto, $args) {
+	public function whompahTravelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$startCity = $this->findCity($args[1]);
-		$endCity = $this->findCity($args[2]);
+		$endCity   = $this->findCity($args[2]);
 
 		if ($startCity === null) {
-			$msg = "Error! Could not find city '$args[1]'!";
+			$msg = "Error! Could not find city <highlight>{$args[1]}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 		if ($endCity === null) {
-			$msg = "Error! Could not find city '$args[2]'!";
+			$msg = "Error! Could not find city <highlight>$args[2]<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 
 		$whompahs = $this->buildWhompahNetwork();
 
-		$whompah = new stdClass;
-		$whompah->id = $endCity->id;
-		$whompah->city_name = $whompahs[$endCity->id]->city_name;
-		$whompah->faction = $whompahs[$endCity->id]->faction;
-		$whompah->previous = null;
+		$whompah = clone $endCity;
 		$whompah->visited = true;
-		$obj = $this->findWhompahPath($q = [$whompah], $whompahs, $startCity->id);
+		$obj = $this->findWhompahPath([$whompah], $whompahs, $startCity->id);
 
-		if ($obj === false) {
+		if ($obj === null) {
 			$msg = "There was an error while trying to find the whompah path.";
 			$sendto->reply($msg);
 			return;
@@ -114,14 +105,8 @@ class WhompahController {
 			$cities []= $obj;
 			$obj = $obj->previous;
 		}
-		$cities = array_map(function($city) {
-			$faction = strtolower($city->faction);
-			if ($faction === 'neutral') {
-				$faction = 'green';
-			}
-			return "<$faction>$city->city_name<end>";
-		}, $cities);
-		$msg = implode(" -> ", $cities);
+		$cityList = $this->getColoredNamelist($cities);
+		$msg = implode(" -> ", $cityList);
 
 		$sendto->reply($msg);
 	}
@@ -130,44 +115,62 @@ class WhompahController {
 	 * @HandlesCommand("whompah")
 	 * @Matches("/^whompah (.+)$/i")
 	 */
-	public function whompahDestinationsCommand($message, $channel, $sender, $sendto, $args) {
+	public function whompahDestinationsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$city = $this->findCity($args[1]);
 
 		if ($city === null) {
-			$msg = "Error! Could not find city '$args[1]'!";
+			$msg = "Error! Could not find city <highlight>{$args[1]}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		$sql = "SELECT w2.* FROM whompah_cities_rel w1 JOIN whompah_cities w2 ON w1.city2_id = w2.id WHERE w1.city1_id = ?";
-		$data = $this->db->query($sql, $city->id);
+		$sql = "SELECT w2.* FROM whompah_cities_rel w1 ".
+			"JOIN whompah_cities w2 ON w1.city2_id = w2.id ".
+			"WHERE w1.city1_id = ? ORDER BY w2.city_name ASC";
+		/** @var WhompahCity[] */
+		$cities = $this->db->fetchAll(WhompahCity::class, $sql, $city->id);
 
-		$msg = "From {$city->city_name} you can get to: " .
-			implode(", ", array_map(function($row) {
-				return "<highlight>{$row->city_name}<end> ({$row->short_name})";
-			}, $data));
+		$msg = "From <highlight>{$city->city_name}<end> you can get to\n- " .
+			implode("\n- ", $this->getColoredNamelist($cities));
 
 		$sendto->reply($msg);
 	}
 
-	public function findWhompahPath($queue, $whompahs, $endCity) {
+	/**
+	 * @param WhompahCity[] $cities
+	 * @return string[]
+	 */
+	protected function getColoredNamelist(array $cities): array {
+		return array_map(function(WhompahCity $city) {
+			$faction = strtolower($city->faction);
+			if ($faction === 'neutral') {
+				$faction = 'green';
+			}
+			return "<$faction>$city->city_name<end>";
+		}, $cities);
+	}
+
+	/**
+	 * @param WhompahCity[] $queue
+	 * @param array<int,WhompahCity> $whompahs
+	 * @param int $endCity
+	 * @return ?WhompahCity
+	 */
+	public function findWhompahPath(array $queue, array $whompahs, int $endCity): ?WhompahCity {
 		$currentWhompah = array_shift($queue);
 
-		if ($currentWhompah == false) {
-			return false;
+		if ($currentWhompah === null) {
+			return null;
 		}
 
-		if ($currentWhompah->id == $endCity) {
+		if ($currentWhompah->id === $endCity) {
 			return $currentWhompah;
 		}
 
 		foreach ($whompahs[$currentWhompah->id]->connections as $city2Id) {
 			if ($whompahs[$city2Id]->visited !== true) {
 				$whompahs[$city2Id]->visited = true;
-				$nextWhompah = new stdClass;
-				$nextWhompah->id = $city2Id;
-				$nextWhompah->city_name = $whompahs[$city2Id]->city_name;
-				$nextWhompah->faction = $whompahs[$city2Id]->faction;
+				$nextWhompah = clone $whompahs[$city2Id];
 				$nextWhompah->previous = $currentWhompah;
 				$queue []= $nextWhompah;
 			}
@@ -176,26 +179,30 @@ class WhompahController {
 		return $this->findWhompahPath($queue, $whompahs, $endCity);
 	}
 
-	public function findCity($search) {
-		$sql = "SELECT * FROM whompah_cities WHERE city_name LIKE ? OR short_name LIKE ?";
-		return $this->db->queryRow($sql, $search, $search);
+	public function findCity(string $search): ?WhompahCity {
+		$sql = "SELECT * FROM whompah_cities ".
+			"WHERE city_name LIKE ? OR short_name LIKE ?";
+		return $this->db->fetch(WhompahCity::class, $sql, $search, $search);
 	}
 
-	public function buildWhompahNetwork() {
+	/**
+	 * @return array<int,WhompahCity>
+	 */
+	public function buildWhompahNetwork(): array {
+		/** @var array<int,WhompahCity> */
 		$whompahs = [];
 
 		$sql = "SELECT * FROM `whompah_cities`";
-		$data = $this->db->query($sql);
-		foreach ($data as $row) {
-			$whompahs[$row->id] = $row;
-			$whompahs[$row->id]->connections = [];
-			$whompahs[$row->id]->visited = false;
+		/** @var WhompahCity[] */
+		$cities = $this->db->fetchAll(WhompahCity::class, $sql);
+		foreach ($cities as $city) {
+			$whompahs[$city->id] = $city;
 		}
 
 		$sql = "SELECT city1_id, city2_id FROM whompah_cities_rel";
-		$data = $this->db->query($sql);
-		foreach ($data as $row) {
-			$whompahs[$row->city1_id]->connections[] = $row->city2_id;
+		$cities = $this->db->query($sql);
+		foreach ($cities as $city) {
+			$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
 		}
 
 		return $whompahs;

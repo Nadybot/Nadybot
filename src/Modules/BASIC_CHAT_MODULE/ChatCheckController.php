@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	Text,
+};
 
 /**
  * @Instance
@@ -15,17 +21,11 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
  */
 class ChatCheckController {
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
 	public const CHANNEL_TYPE = "priv";
 
@@ -34,17 +34,24 @@ class ChatCheckController {
 	 * @HandlesCommand("check")
 	 * @Matches("/^check$/i")
 	 */
-	public function checkAllCommand($message, $channel, $sender, $sendto, $args) {
+	public function checkAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+		/** @var DBRow[] */
 		$data = $this->db->query(
-			"SELECT name FROM online WHERE added_by = '<myname>' AND channel_type = ?",
+			"SELECT name FROM online ".
+			"WHERE added_by = '<myname>' AND channel_type = ?",
 			self::CHANNEL_TYPE
 		);
 		$content = "";
+		if (count($data) === 0) {
+			$msg = "There's no one to check online.";
+			$sendto->reply($msg);
+			return;
+		}
 		foreach ($data as $row) {
 			$content .= " \\n /assist $row->name";
 		}
 
-		$list = $this->text->makeChatcmd("Check Players", "/text AssistAll: $content");
+		$list = $this->text->makeChatcmd("Check Players", "/text Assisting All: $content");
 		$msg = $this->text->makeBlob("Check Players In Vicinity", $list);
 		$sendto->reply($msg);
 	}

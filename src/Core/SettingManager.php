@@ -68,7 +68,7 @@ class SettingManager {
 		}
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		if (!in_array($type, ['color', 'number', 'text', 'options', 'time'])) {
+		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel'])) {
 			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
 		}
 
@@ -87,18 +87,18 @@ class SettingManager {
 
 		try {
 			$setting = new Setting();
-			$setting->admin = $accessLevel;
+			$setting->admin       = $accessLevel;
 			$setting->description = $description;
-			$setting->help = $help;
-			$setting->intoptions = $intoptions;
-			$setting->mode = $mode;
-			$setting->module = $module;
-			$setting->name = $name;
-			$setting->options = $options;
-			$setting->source = "db";
-			$setting->type = $type;
-			$setting->verify = 1;
-			$setting->value = (string)$value;
+			$setting->help        = $help;
+			$setting->intoptions  = $intoptions;
+			$setting->mode        = $mode;
+			$setting->module      = $module;
+			$setting->name        = $name;
+			$setting->options     = $options;
+			$setting->source      = "db";
+			$setting->type        = $type;
+			$setting->verify      = 1;
+			$setting->value       = (string)$value;
 			if (array_key_exists($name, $this->chatBot->existing_settings ?? []) || $this->exists($name)) {
 				$sql = "UPDATE settings_<myname> SET `module` = ?, `type` = ?, `mode` = ?, `options` = ?, `intoptions` = ?, `description` = ?, `admin` = ?, `verify` = 1, `help` = ? WHERE `name` = ?";
 				$this->db->exec($sql, $module, $type, $mode, $options, $intoptions, $description, $accessLevel, $help, $name);
@@ -156,7 +156,7 @@ class SettingManager {
 			return (int)$value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'int', got '$type'");
+		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
 		return null;
 	}
 
@@ -277,6 +277,9 @@ class SettingManager {
 				break;
 			case 'time':
 				$handler = new TimeSettingHandler($row);
+				break;
+			case 'discord_channel':
+				$handler = new DiscordChannelSettingHandler($row);
 				break;
 			default:
 				$this->loggger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");

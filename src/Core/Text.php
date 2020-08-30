@@ -38,10 +38,9 @@ class Text {
 	 * @param string|null $header If set, use $header as header, otherwise $name
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null) {
-		if ($header === null) {
-			$header = $name;
-		}
+	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader="") {
+		$header ??= $name;
+		$permanentHeader ??= "";
 
 		// trim extra whitespace from beginning and ending
 		$content = trim($content);
@@ -57,18 +56,19 @@ class Text {
 			$content = ' ';
 		}
 
-		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), ["<pagebreak>", "\n", " "]);
+		$pageSize = $this->settingManager->getInt("max_blob_size") - strlen($permanentHeader ?? "");
+		$pages = $this->paginate($content, $pageSize, ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 
-		if ($num == 1) {
+		if ($num === 1) {
 			$page = $pages[0];
-			$headerMarkup = "<header>$header<end>\n\n";
+			$headerMarkup = "<header>$header<end>\n\n$permanentHeader";
 			$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$headerMarkup.$page."\">$name</a>";
 			return $page;
 		} else {
 			$i = 1;
 			foreach ($pages as $key => $page) {
-				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n";
+				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n$permanentHeader";
 				$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
 				$pages[$key] = $page;
 				$i++;
@@ -191,7 +191,7 @@ class Text {
 	 * @return string The link to the user
 	 */
 	public function makeUserlink(string $user, string $style=""): string {
-		return "<a $style href='user://$user'>$user</a>";
+		return "<a $style href=user://$user>$user</a>";
 	}
 
 	/**
@@ -225,19 +225,19 @@ class Text {
 	 */
 	public function formatMessage(string $message): string {
 		$array = [
-			"<header>" => $this->settingManager->get('default_header_color'),
-			"<header2>" => $this->settingManager->get('default_header2_color'),
-			"<highlight>" => $this->settingManager->get('default_highlight_color'),
-			"<black>" => "<font color='#000000'>",
-			"<white>" => "<font color='#FFFFFF'>",
-			"<yellow>" => "<font color='#FFFF00'>",
-			"<blue>" => "<font color='#8CB5FF'>",
-			"<green>" => "<font color='#00DE42'>",
-			"<red>" => "<font color='#FF0000'>",
-			"<orange>" => "<font color='#FCA712'>",
-			"<grey>" => "<font color='#C3C3C3'>",
-			"<cyan>" => "<font color='#00FFFF'>",
-			"<violet>" => "<font color='#8F00FF'>",
+			"<header>" => str_replace("'", "", $this->settingManager->get('default_header_color')),
+			"<header2>" => str_replace("'", "", $this->settingManager->get('default_header2_color')),
+			"<highlight>" => str_replace("'", "", $this->settingManager->get('default_highlight_color')),
+			"<black>" => "<font color=#000000>",
+			"<white>" => "<font color=#FFFFFF>",
+			"<yellow>" => "<font color=#FFFF00>",
+			"<blue>" => "<font color=#8CB5FF>",
+			"<green>" => "<font color=#00DE42>",
+			"<red>" => "<font color=#FF0000>",
+			"<orange>" => "<font color=#FCA712>",
+			"<grey>" => "<font color=#C3C3C3>",
+			"<cyan>" => "<font color=#00FFFF>",
+			"<violet>" => "<font color=#8F00FF>",
 
 			"<neutral>" => $this->settingManager->get('default_neut_color'),
 			"<omni>" => $this->settingManager->get('default_omni_color'),
@@ -249,7 +249,8 @@ class Text {
 			"<tab>" => "    ",
 			"<end>" => "</font>",
 			"<symbol>" => $this->settingManager->get("symbol"),
-			"<br>" => "\n"];
+			"<br>" => "\n"
+		];
 
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
 

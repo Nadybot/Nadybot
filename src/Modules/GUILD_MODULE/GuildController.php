@@ -1,8 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Nadybot\Core\BuddylistManager;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
 use Nadybot\Core\Event;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Modules\PREFERENCES\Preferences;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\SettingManager;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
@@ -55,73 +67,40 @@ class GuildController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
-	 * @Inject
-	 */
-	public $guildManager;
+	/** @Inject */
+	public GuildManager $guildManager;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
-	 * @Inject
-	 */
-	public $altsController;
+	/** @Inject */
+	public AltsController $altsController;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PREFERENCES\Preferences $preferences
-	 * @Inject
-	 */
-	public $preferences;
+	/** @Inject */
+	public Preferences $preferences;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
 	/**
 	 * @Setup
@@ -134,9 +113,10 @@ class GuildController {
 		$this->settingManager->add($this->moduleName, "first_and_last_alt_only", "Show logon/logoff for first/last alt only", "edit", "options", "0", "true;false", "1;0");
 		
 		$this->chatBot->guildmembers = [];
-		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id 
-			FROM org_members_<myname> o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>' AND p.guild = '<myguild>')
-			WHERE mode != 'del'";
+		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id ".
+			"FROM org_members_<myname> o ".
+			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>' AND p.guild = '<myguild>') ".
+			"WHERE mode != 'del'";
 		$data = $this->db->query($sql);
 		foreach ($data as $row) {
 			$this->chatBot->guildmembers[$row->name] = $row->guild_rank_id;
@@ -147,13 +127,13 @@ class GuildController {
 	 * @HandlesCommand("logon")
 	 * @Matches("/^logon$/i")
 	 */
-	public function logonMessageShowCommand($message, $channel, $sender, $sendto, $args) {
-		$logon_msg = $this->preferences->get($sender, 'logon_msg');
+	public function logonMessageShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$logonMessage = $this->preferences->get($sender, 'logon_msg');
 
-		if ($logon_msg === null || $logon_msg === '') {
+		if ($logonMessage === null || $logonMessage === '') {
 			$msg = "Your logon message has not been set.";
 		} else {
-			$msg = "{$sender} logon: {$logon_msg}";
+			$msg = "{$sender} logon: {$logonMessage}";
 		}
 		$sendto->reply($msg);
 	}
@@ -162,14 +142,14 @@ class GuildController {
 	 * @HandlesCommand("logon")
 	 * @Matches("/^logon (.+)$/i")
 	 */
-	public function logonMessageSetCommand($message, $channel, $sender, $sendto, $args) {
-		$logon_msg = $args[1];
+	public function logonMessageSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$logonMessage = $args[1];
 
-		if ($logon_msg == 'clear') {
+		if ($logonMessage === 'clear') {
 			$this->preferences->save($sender, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logon_msg) <= $this->settingManager->get('max_logon_msg_size')) {
-			$this->preferences->save($sender, 'logon_msg', $logon_msg);
+		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')) {
+			$this->preferences->save($sender, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
 			$msg = "Your logon message is too large. Your logon message may contain a maximum of " . $this->settingManager->get('max_logon_msg_size') . " characters.";
@@ -181,13 +161,13 @@ class GuildController {
 	 * @HandlesCommand("logoff")
 	 * @Matches("/^logoff$/i")
 	 */
-	public function logoffMessageShowCommand($message, $channel, $sender, $sendto, $args) {
-		$logoff_msg = $this->preferences->get($sender, 'logoff_msg');
+	public function logoffMessageShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$logoffMessage = $this->preferences->get($sender, 'logoff_msg');
 
-		if ($logoff_msg === null || $logoff_msg === '') {
+		if ($logoffMessage === null || $logoffMessage === '') {
 			$msg = "Your logoff message has not been set.";
 		} else {
-			$msg = "{$sender} logoff: {$logoff_msg}";
+			$msg = "{$sender} logoff: {$logoffMessage}";
 		}
 		$sendto->reply($msg);
 	}
@@ -196,14 +176,14 @@ class GuildController {
 	 * @HandlesCommand("logoff")
 	 * @Matches("/^logoff (.+)$/i")
 	 */
-	public function logoffMessageSetCommand($message, $channel, $sender, $sendto, $args) {
-		$logoff_msg = $args[1];
+	public function logoffMessageSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$logoffMessage = $args[1];
 
-		if ($logoff_msg == 'clear') {
+		if ($logoffMessage == 'clear') {
 			$this->preferences->save($sender, 'logoff_msg', '');
 			$msg = "Your logoff message has been cleared.";
-		} elseif (strlen($logoff_msg) <= $this->settingManager->get('max_logoff_msg_size')) {
-			$this->preferences->save($sender, 'logoff_msg', $logoff_msg);
+		} elseif (strlen($logoffMessage) <= $this->settingManager->getInt('max_logoff_msg_size')) {
+			$this->preferences->save($sender, 'logoff_msg', $logoffMessage);
 			$msg = "Your logoff message has been set.";
 		} else {
 			$msg = "Your logoff message is too large. Your logoff message may contain a maximum of " . $this->settingManager->get('max_logoff_msg_size') . " characters.";
@@ -215,7 +195,7 @@ class GuildController {
 	 * @HandlesCommand("lastseen")
 	 * @Matches("/^lastseen (.+)$/i")
 	 */
-	public function lastseenCommand($message, $channel, $sender, $sendto, $args) {
+	public function lastSeenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
@@ -231,10 +211,17 @@ class GuildController {
 			$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
 		}
 		
-		$namesSql = implode(",", array_map(function($alt) {
-			return "'$alt'";
-		}, $altInfo->getAllAlts()));
-		$data = $this->db->query("SELECT * FROM org_members_<myname> WHERE `name` IN ($namesSql) AND `mode` != 'del' ORDER BY logged_off DESC");
+		$alts = $altInfo->getAllAlts();
+		$nameSearch = implode(",", array_fill(0, count($alts), "?"));
+		/** @var OrgMember[] */
+		$data = $this->db->fetchAll(
+			OrgMember::class,
+			"SELECT * FROM org_members_<myname> ".
+			"WHERE `name` IN ($nameSearch) ".
+			"AND `mode` != 'del' ".
+			"ORDER BY logged_off DESC",
+			...$alts
+		);
 
 		foreach ($data as $row) {
 			if (in_array($row->name, $onlineAlts)) {
@@ -259,7 +246,7 @@ class GuildController {
 	 * @HandlesCommand("recentseen")
 	 * @Matches("/^recentseen ([a-z0-9]+)/i")
 	 */
-	public function recentseenCommand($message, $channel, $sender, $sendto, $args) {
+	public function recentSeenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->isGuildBot()) {
 			$sendto->reply("The bot must be in an org.");
 			return;
@@ -284,36 +271,38 @@ class GuildController {
 			$time
 		);
 
-		if (count($data) == 0) {
+		if (count($data) === 0) {
 			$sendto->reply("No members recorded.");
 			return;
 		}
 
-		$numrecentcount = 0;
-		$highlight = 0;
+		$numRecentCount = 0;
+		$highlight = false;
 
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
 		
-		$prevtoon = '';
+		$prevToon = '';
 		foreach ($data as $row) {
-			if ($row->main != $prevtoon) {
-				$prevtoon = $row->main;
-				$numrecentcount++;
-				$alts = $this->text->makeChatcmd("Alts", "/tell <myname> alts {$row->main}");
-				$logged = $row->logged_off;
-				$lasttoon = $row->name;
+			if ($row->main === $prevToon) {
+				continue;
+			}
+			$prevToon = $row->main;
+			$numRecentCount++;
+			$alts = $this->text->makeChatcmd("Alts", "/tell <myname> alts {$row->main}");
+			$logged = $row->logged_off;
+			$lastToon = $row->name;
 
-				$character = "<pagebreak>" . $row->main . " [{$alts}]\nLast seen as [$lasttoon] on " . $this->util->date($logged) . "\n\n";
-				if ($highlight == 1) {
-					$blob .= "<highlight>$character<end>";
-					$highlight = 0;
-				} else {
-					$blob .= $character;
-					$highlight = 1;
-				}
+			$character = "<pagebreak>" . $row->main . " [{$alts}]\nLast seen as [$lastToon] on ".
+				$this->util->date($logged) . "\n\n";
+			if ($highlight === true) {
+				$blob .= "<highlight>$character<end>";
+				$highlight = false;
+			} else {
+				$blob .= $character;
+				$highlight = true;
 			}
 		}
-		$msg = $this->text->makeBlob("$numrecentcount recently seen org members", $blob);
+		$msg = $this->text->makeBlob("$numRecentCount recently seen org members", $blob);
 		$sendto->reply($msg);
 	}
 	
@@ -321,7 +310,7 @@ class GuildController {
 	 * @HandlesCommand("notify")
 	 * @Matches("/^notify (on|add) (.+)$/i")
 	 */
-	public function notifyAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function notifyAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[2]));
 		$uid = $this->chatBot->get_uid($name);
 
@@ -333,22 +322,23 @@ class GuildController {
 
 		$row = $this->db->queryRow("SELECT mode FROM org_members_<myname> WHERE `name` = ?", $name);
 
-		if ($row !== null && $row->mode != "del") {
+		if ($row !== null && $row->mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
-		} else {
-			if ($row === null) {
-				$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'add')", $name);
-			} else {
-				$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
-			}
-
-			if ($this->buddylistManager->isOnline($name)) {
-				$this->db->exec("INSERT INTO online (`name`, `channel`, `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
-			}
-			$this->buddylistManager->add($name, 'org');
-			$this->chatBot->guildmembers[$name] = 6;
-			$msg = "<highlight>{$name}<end> has been added to the Notify list.";
+			$sendto->reply($msg);
+			return;
 		}
+		if ($row === null) {
+			$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'add')", $name);
+		} else {
+			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
+		}
+
+		if ($this->buddylistManager->isOnline($name)) {
+			$this->db->exec("INSERT INTO online (`name`, `channel`, `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
+		}
+		$this->buddylistManager->add($name, 'org');
+		$this->chatBot->guildmembers[$name] = 6;
+		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
 		$sendto->reply($msg);
 	}
@@ -357,7 +347,7 @@ class GuildController {
 	 * @HandlesCommand("notify")
 	 * @Matches("/^notify (off|rem) (.+)$/i")
 	 */
-	public function notifyRemoveCommand($message, $channel, $sender, $sendto, $args) {
+	public function notifyRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[2]));
 		$uid = $this->chatBot->get_uid($name);
 
@@ -389,105 +379,109 @@ class GuildController {
 	 * @Matches("/^updateorg$/i")
 	 */
 	public function updateorgCommand($message, $channel, $sender, $sendto, $args) {
-		$force_update = true;
 		$sendto->reply("Starting Roster update");
 		$this->updateOrgRoster();
 		$sendto->reply("Finished Roster update");
 	}
 	
 	public function updateOrgRoster() {
-		if ($this->isGuildBot()) {
-			$this->logger->log('INFO', "Starting Roster update");
+		if (!$this->isGuildBot()) {
+			return;
+		}
+		$this->logger->log('INFO', "Starting Roster update");
 
-			// Get the guild info
-			$org = $this->guildManager->getById($this->chatBot->vars["my_guild_id"], $this->chatBot->vars["dimension"], true);
+		// Get the guild info
+		$org = $this->guildManager->getById(
+			$this->chatBot->vars["my_guild_id"],
+			$this->chatBot->vars["dimension"],
+			true
+		);
 
-			// Check if guild xml file is correct if not abort
-			if ($org === null) {
-				$this->logger->log('ERROR', "Error downloading the guild roster xml file");
-				return;
+		// Check if guild xml file is correct if not abort
+		if ($org === null) {
+			$this->logger->log('ERROR', "Error downloading the guild roster xml file");
+			return;
+		}
+
+		if (count($org->members) == 0) {
+			$this->logger->log('ERROR', "Guild xml file has no members! Aborting roster update.");
+			return;
+		}
+
+		// Save the current org_members table in a var
+		/** @var OrgMember[] */
+		$data = $this->db->fetchAll(OrgMember::class, "SELECT * FROM org_members_<myname>");
+		if (count($data) === 0 && (count($org->members) > 0)) {
+			$restart = true;
+		} else {
+			$restart = false;
+			foreach ($data as $row) {
+				$dbEntries[$row->name]["name"] = $row->name;
+				$dbEntries[$row->name]["mode"] = $row->mode;
+			}
+		}
+
+		$this->chatBot->ready = false;
+
+		$this->db->beginTransaction();
+
+		// Going through each member of the org and add or update his/her
+		foreach ($org->members as $member) {
+			// don't do anything if $member is the bot itself
+			if (strtolower($member->name) === strtolower($this->chatBot->vars["name"])) {
+				continue;
 			}
 
-			if (count($org->members) == 0) {
-				$this->logger->log('ERROR', "Guild xml file has no members! Aborting roster update.");
-				return;
-			}
-
-			// Save the current org_members table in a var
-			$data = $this->db->query("SELECT * FROM org_members_<myname>");
-			if (count($data) == 0 && (count($org->members) > 0)) {
-				$restart = true;
-			} else {
-				$restart = false;
-				foreach ($data as $row) {
-					$dbentrys[$row->name]["name"] = $row->name;
-					$dbentrys[$row->name]["mode"] = $row->mode;
-				}
-			}
-
-			$this->chatBot->ready = false;
-
-			$this->db->beginTransaction();
-
-			// Going through each member of the org and add or update his/her
-			foreach ($org->members as $member) {
-				// don't do anything if $member is the bot itself
-				if (strtolower($member->name) == strtolower($this->chatBot->vars["name"])) {
-					continue;
-				}
-
-				//If there exists already data about the character just update him/her
-				if (isset($dbentrys[$member->name])) {
-					if ($dbentrys[$member->name]["mode"] == "del") {
-						// members who are not on notify should not be on the buddy list but should remain in the database
-						$this->buddylistManager->remove($member->name, 'org');
-						unset($this->chatBot->guildmembers[$member->name]);
-					} else {
-						// add org members who are on notify to buddy list
-						$this->buddylistManager->add($member->name, 'org');
-						$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
-
-						// if member was added to notify list manually, switch mode to org and let guild roster update from now on
-						if ($dbentrys[$member->name]["mode"] == "add") {
-							$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'org' WHERE `name` = ?", $member->name);
-						}
-					}
-				//Else insert his/her data
+			//If there exists already data about the character just update him/her
+			if (isset($dbEntries[$member->name])) {
+				if ($dbEntries[$member->name]["mode"] === "del") {
+					// members who are not on notify should not be on the buddy list but should remain in the database
+					$this->buddylistManager->remove($member->name, 'org');
+					unset($this->chatBot->guildmembers[$member->name]);
 				} else {
-					// add new org members to buddy list
+					// add org members who are on notify to buddy list
 					$this->buddylistManager->add($member->name, 'org');
 					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
 
-					$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'org')", $member->name);
+					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
+					if ($dbEntries[$member->name]["mode"] == "add") {
+						$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'org' WHERE `name` = ?", $member->name);
+					}
 				}
-				unset($dbentrys[$member->name]);
+			//Else insert his/her data
+			} else {
+				// add new org members to buddy list
+				$this->buddylistManager->add($member->name, 'org');
+				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
+
+				$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'org')", $member->name);
 			}
+			unset($dbEntries[$member->name]);
+		}
 
-			$this->db->commit();
+		$this->db->commit();
 
-			// remove buddies who are no longer org members
-			foreach ($dbentrys as $buddy) {
-				if ($buddy['mode'] != 'add') {
-					$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $buddy['name']);
-					$this->db->exec("DELETE FROM org_members_<myname> WHERE `name` = ?", $buddy['name']);
-					$this->buddylistManager->remove($buddy['name'], 'org');
-					unset($this->chatBot->guildmembers[$buddy['name']]);
-				}
+		// remove buddies who are no longer org members
+		foreach ($dbEntries as $buddy) {
+			if ($buddy['mode'] !== 'add') {
+				$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $buddy['name']);
+				$this->db->exec("DELETE FROM org_members_<myname> WHERE `name` = ?", $buddy['name']);
+				$this->buddylistManager->remove($buddy['name'], 'org');
+				unset($this->chatBot->guildmembers[$buddy['name']]);
 			}
+		}
 
-			$this->logger->log('INFO', "Finished Roster update");
+		$this->logger->log('INFO', "Finished Roster update");
 
-			if ($restart == true) {
-				$this->chatBot->sendGuild("Guild roster has been loaded for the first time. Restarting...");
+		if ($restart === true) {
+			$this->chatBot->sendGuild("Guild roster has been loaded for the first time. Restarting...");
 
-				$this->logger->log('INFO', "The bot is restarting");
+			$this->logger->log('INFO', "The bot is restarting");
 
-				sleep(5);
-
-				// in case some of the org members were already on the buddy list, we need to restart the bot
-				// in order to get them to appear on the online list
-				die();
-			}
+			// in case some of the org members were already on the buddy list, we need to restart the bot
+			// in order to get them to appear on the online list
+			posix_kill(posix_getpid(), SIGINT);
+			return;
 		}
 	}
 
@@ -495,7 +489,7 @@ class GuildController {
 	 * @Event("timer(24hrs)")
 	 * @Description("Download guild roster xml and update guild members")
 	 */
-	public function downloadOrgRosterEvent(Event $eventObj) {
+	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateOrgRoster();
 	}
 	
@@ -503,7 +497,7 @@ class GuildController {
 	 * @Event("orgmsg")
 	 * @Description("Automatically update guild roster as characters join and leave the guild")
 	 */
-	public function autoNotifyOrgMembersEvent(Event $eventObj) {
+	public function autoNotifyOrgMembersEvent(Event $eventObj): void {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
@@ -512,7 +506,8 @@ class GuildController {
 				$this->db->exec("INSERT INTO online (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
 			}
 
-			$row = $this->db->queryRow("SELECT * FROM org_members_<myname> WHERE `name` = ?", $name);
+			/** @var ?OrgMember */
+			$row = $this->db->fetch(OrgMember::class, "SELECT * FROM org_members_<myname> WHERE `name` = ?", $name);
 			if ($row !== null) {
 				$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
 				$this->buddylistManager->add($name, 'org');
@@ -543,49 +538,50 @@ class GuildController {
 			$this->buddylistManager->remove($name, 'org');
 		}
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Shows an org member logon in chat")
 	 */
-	public function orgMemberLogonMessageEvent(Event $eventObj) {
+	public function orgMemberLogonMessageEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			if ($this->settingManager->get('first_and_last_alt_only') == 1) {
-				// if at least one alt/main is still online, don't show logoff message
-				$altInfo = $this->altsController->getAltInfo($sender);
-				if (count($altInfo->getOnlineAlts()) > 1) {
-					return;
-				}
+		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
+			return;
+		}
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is still online, don't show logoff message
+			$altInfo = $this->altsController->getAltInfo($sender);
+			if (count($altInfo->getOnlineAlts()) > 1) {
+				return;
 			}
+		}
 
-			$whois = $this->playerManager->getByName($sender);
+		$whois = $this->playerManager->getByName($sender);
 
-			$msg = '';
-			if ($whois === null) {
-				$msg = "$sender logged on.";
-			} else {
-				$msg = $this->playerManager->getInfo($whois);
+		$msg = '';
+		if ($whois === null) {
+			$msg = "$sender logged on.";
+		} else {
+			$msg = $this->playerManager->getInfo($whois);
 
-				$msg .= " logged on.";
+			$msg .= " logged on.";
 
-				$altInfo = $this->altsController->getAltInfo($sender);
-				if (count($altInfo->alts) > 0) {
-					$msg .= " " . $altInfo->getAltsBlob(false, true);
-				}
+			$altInfo = $this->altsController->getAltInfo($sender);
+			if (count($altInfo->alts) > 0) {
+				$msg .= " " . $altInfo->getAltsBlob(false, true);
 			}
+		}
 
-			$logon_msg = $this->preferences->get($sender, 'logon_msg');
-			if ($logon_msg !== null && $logon_msg !== '') {
-				$msg .= " - " . $logon_msg;
-			}
+		$logon_msg = $this->preferences->get($sender, 'logon_msg');
+		if ($logon_msg !== null && $logon_msg !== '') {
+			$msg .= " - " . $logon_msg;
+		}
 
-			$this->chatBot->sendGuild($msg, true);
+		$this->chatBot->sendGuild($msg, true);
 
-			//private channel part
-			if ($this->settingManager->get("guest_relay") == 1) {
-				$this->chatBot->sendPrivate($msg, true);
-			}
+		//private channel part
+		if ($this->settingManager->getBool("guest_relay")) {
+			$this->chatBot->sendPrivate($msg, true);
 		}
 	}
 	
@@ -593,29 +589,30 @@ class GuildController {
 	 * @Event("logOff")
 	 * @Description("Shows an org member logoff in chat")
 	 */
-	public function orgMemberLogoffMessageEvent(Event $eventObj) {
+	public function orgMemberLogoffMessageEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			if ($this->settingManager->get('first_and_last_alt_only') == 1) {
-				// if at least one alt/main is already online, don't show logoff message
-				$altInfo = $this->altsController->getAltInfo($sender);
-				if (count($altInfo->getOnlineAlts()) > 0) {
-					return;
-				}
+		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
+			return;
+		}
+		if ($this->settingManager->get('first_and_last_alt_only') == 1) {
+			// if at least one alt/main is already online, don't show logoff message
+			$altInfo = $this->altsController->getAltInfo($sender);
+			if (count($altInfo->getOnlineAlts()) > 0) {
+				return;
 			}
+		}
 
-			$msg = "$sender logged off.";
-			$logoff_msg = $this->preferences->get($sender, 'logoff_msg');
-			if ($logoff_msg !== null && $logoff_msg !== '') {
-				$msg .= " - " . $logoff_msg;
-			}
+		$msg = "$sender logged off.";
+		$logoffMessage = $this->preferences->get($sender, 'logoff_msg');
+		if ($logoffMessage !== null && $logoffMessage !== '') {
+			$msg .= " " . $logoffMessage;
+		}
 
-			$this->chatBot->sendGuild($msg, true);
+		$this->chatBot->sendGuild($msg, true);
 
-			//private channel part
-			if ($this->settingManager->get("guest_relay") == 1) {
-				$this->chatBot->sendPrivate($msg, true);
-			}
+		//private channel part
+		if ($this->settingManager->getBool("guest_relay")) {
+			$this->chatBot->sendPrivate($msg, true);
 		}
 	}
 	
@@ -623,40 +620,42 @@ class GuildController {
 	 * @Event("logOff")
 	 * @Description("Record org member logoff for lastseen command")
 	 */
-	public function orgMemberLogoffRecordEvent(Event $eventObj) {
+	public function orgMemberLogoffRecordEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$this->db->exec("UPDATE org_members_<myname> SET `logged_off` = ? WHERE `name` = ?", time(), $sender);
 		}
 	}
 	
-	public function isGuildBot() {
-		return !empty($this->chatBot->vars["my_guild"]) && !empty($this->chatBot->vars["my_guild_id"]);
+	public function isGuildBot(): bool {
+		return !empty($this->chatBot->vars["my_guild"])
+			&& !empty($this->chatBot->vars["my_guild_id"]);
 	}
 	
 	/**
 	 * @Event("connect")
 	 * @Description("Verifies that org name is correct")
 	 */
-	public function verifyOrgNameEvent(Event $eventObj) {
-		if (!empty($this->chatBot->vars["my_guild"])) {
-			if (empty($this->chatBot->vars["my_guild_id"])) {
-				$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
-			} else {
-				$gid = $this->getOrgChannelIdByOrgId($this->chatBot->vars["my_guild_id"]);
-				$orgChannel = $this->chatBot->gid[$gid];
-				if ($orgChannel != "Clan (name unknown)" && $orgChannel != $this->chatBot->vars["my_guild"]) {
-					$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
-				}
-			}
+	public function verifyOrgNameEvent(Event $eventObj): void {
+		if (empty($this->chatBot->vars["my_guild"])) {
+			return;
+		}
+		if (empty($this->chatBot->vars["my_guild_id"])) {
+			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
+			return;
+		}
+		$gid = $this->getOrgChannelIdByOrgId((int)$this->chatBot->vars["my_guild_id"]);
+		$orgChannel = $this->chatBot->gid[$gid];
+		if ($orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
+			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
 	
-	public function getOrgChannelIdByOrgId($orgId) {
+	public function getOrgChannelIdByOrgId(int $orgId): ?int {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr($gid, 1));
-			if (ord(substr($gid, 0, 1)) == 3 && $string[1] == $orgId) {
-				return $gid;
+			if (ord(substr($gid, 0, 1)) === 3 && $string[1] == $orgId) {
+				return (int)$gid;
 			}
 		}
 		return null;

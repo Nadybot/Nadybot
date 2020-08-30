@@ -1,8 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Exception;
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	Http,
+	HttpResponse,
+	LoggerWrapper,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @Instance
@@ -30,75 +41,62 @@ use Exception;
  */
 class ItemsController {
 	
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
+	/** @Inject */
+	public Http $http;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "aodb");
 		$this->db->loadSQLFile($this->moduleName, "item_groups");
 		$this->db->loadSQLFile($this->moduleName, "item_group_names");
 		
-		$this->settingManager->add($this->moduleName, 'maxitems', 'Number of items shown on the list', 'edit', 'number', '40', '30;40;50;60');
+		$this->settingManager->add(
+			$this->moduleName,
+			'maxitems',
+			'Number of items shown on the list',
+			'edit',
+			'number',
+			'40',
+			'30;40;50;60'
+		);
 	}
 
 	/**
 	 * @HandlesCommand("items")
-	 * @Matches("/^items ([0-9]+) (.+)$/i")
+	 * @Matches("/^items (\d+) (.+)$/i")
 	 * @Matches("/^items (.+)$/i")
 	 */
-	public function itemsCommand($message, $channel, $sender, $sendto, $args) {
+	public function itemsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->findItems($args);
 		$sendto->reply($msg);
 	}
 	
 	/**
 	 * @HandlesCommand("itemid")
-	 * @Matches("/^itemid ([0-9]+)$/i")
+	 * @Matches("/^itemid (\d+)$/i")
 	 */
-	public function itemIdCommand($message, $channel, $sender, $sendto, $args) {
-		$id = $args[1];
+	public function itemIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
 
 		$row = $this->findById($id);
 		if ($row === null) {
@@ -111,55 +109,58 @@ class ItemsController {
 			$blob .= "$key: <highlight>$value<end>\n";
 		}
 		$row->ql = $row->highql;
-		if ($row->lowid == $id) {
+		if ($row->lowid === $id) {
 			$row->ql = $row->lowql;
 		}
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
 		$msg = "Details about item ID ".
-			$this->text->makeBlob($id, $blob, "Details about item ID $id").
+			$this->text->makeBlob((string)$id, $blob, "Details about item ID $id").
 			" ({$row->name})";
 
 		$sendto->reply($msg);
 	}
 	
-	public function findById($id) {
+	public function findById(int $id): ?AODBEntry {
 		$sql = "SELECT * FROM aodb WHERE lowid = ? UNION SELECT * FROM aodb WHERE highid = ? LIMIT 1";
-		return $this->db->queryRow($sql, $id, $id);
+		return $this->db->fetch(AODBEntry::class, $sql, $id, $id);
 	}
 
 	/**
 	 * @HandlesCommand("updateitems")
 	 * @Matches("/^updateitems$/i")
 	 */
-	public function updateitemsCommand($message, $channel, $sender, $sendto) {
-		$msg = $this->downloadNewestItemsdb();
-		$sendto->reply($msg);
+	public function updateItemsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->downloadNewestItemsdb(function(string $msg) use ($sendto): void {
+			$sendto->reply($msg);
+		});
 	}
 
 	/**
 	 * @Event("timer(7days)")
 	 * @Description("Check to make sure items db is the latest version available")
 	 */
-	public function checkForUpdate() {
-		$msg = $this->downloadNewestItemsdb();
-		if (preg_match("/^The items database has been updated/", $msg)) {
-			$this->chatBot->sendGuild($msg);
-		}
+	public function checkForUpdate(): void {
+		$this->downloadNewestItemsdb(function(string $msg): void {
+			if (preg_match("/^The items database has been updated/", $msg)) {
+				$this->chatBot->sendGuild($msg);
+			}
+		});
 	}
 
-	public function downloadNewestItemsdb() {
+	public function downloadNewestItemsdb(?callable $callback=null): void {
 		$this->logger->log('DEBUG', "Starting items db update");
-
-		$databases = ['aodb', 'item_buffs', 'item_types'];
-
 		// get list of files in ITEMS_MODULE
-		$response = $this->http
+		$this->http
 			->get("https://api.github.com/repos/Nadybot/Nadybot/contents/src/Modules/ITEMS_MODULE")
 			->withHeader("Accept", "application/vnd.github.v3+json")
 			->withHeader('User-Agent', 'Nadybot')
-			->waitAndReturnResponse();
-
-		$msg = [];
+			->withCallback(function (HttpResponse $response) use ($callback): void {
+				$this->handleGithubFilelist($response, $callback);
+			});
+			// ->waitAndReturnResponse();
+	}
+	protected function handleGithubFilelist(?HttpResponse $response, ?callable $callback=null): void {
+		$databases = ['aodb', 'item_buffs', 'item_types', 'item_groups', 'item_group_names'];
 		foreach ($databases as $currentDB) {
 			try {
 				$json = json_decode($response->body);
@@ -178,7 +179,10 @@ class ItemsController {
 			} catch (Exception $e) {
 				$msg = "Error updating items db: " . $e->getMessage();
 				$this->logger->log('ERROR', $msg);
-				return $msg;
+				if (isset($callback)) {
+					$callback($msg);
+				}
+				return;
 			}
 
 			$msg = [];
@@ -188,25 +192,34 @@ class ItemsController {
 				// if server version is greater than current version, download and load server version
 				if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
 					// download server version and save to ITEMS_MODULE directory
-					$contents = $this->http
+					$this->http
 						->get("https://raw.githubusercontent.com/Nadybot/Nadybot/stable/src/Modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
 						->withHeader('User-Agent', 'Nadybot')
-						->waitAndReturnResponse()
-						->body;
+						->withCallback(function(?HttpResponse $fileResponse) use ($currentDB, $latestVersion, $currentVersion, $callback): void {
+							if ($fileResponse === null) {
+								if (isset($callback)) {
+									$callback("Error downloading ${currentDB}{$latestVersion}.");
+									return;
+								}
+							}
+							$contents = $fileResponse->body;
 
-					$fh = fopen(__DIR__ . "/${currentDB}{$latestVersion}.sql", 'w');
-					fwrite($fh, $contents);
-					fclose($fh);
+							$fh = fopen(__DIR__ . "/${currentDB}{$latestVersion}.sql", 'w');
+							fwrite($fh, $contents);
+							fclose($fh);
 
-					$this->db->beginTransaction();
+							$this->db->beginTransaction();
 
-					// load the sql file into the db
-					$this->db->loadSQLFile("ITEMS_MODULE", $currentDB);
+							// load the sql file into the db
+							$this->db->loadSQLFile("ITEMS_MODULE", $currentDB);
 
-					$this->db->commit();
+							$this->db->commit();
 
-					$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
-					$msg []= "The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>";
+							$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
+							if (isset($callback)) {
+								$callback("The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>");
+							}
+						});
 				} else {
 					$this->logger->log('DEBUG', "Items db $currentDB already up to date '$currentVersion'");
 					$msg []= "The items database <highlight>$currentDB<end> is already up to date at version <green>$currentVersion<end>";
@@ -219,19 +232,25 @@ class ItemsController {
 
 		$this->logger->log('DEBUG', "Finished items db update");
 
-		return implode("\n", $msg);
+		if (isset($callback) && count($msg)) {
+			$callback(implode("\n", $msg));
+		}
+		return;
 	}
 
-	public function findItems($args) {
-		if (count($args) == 3) {
-			$ql = $args[1];
-			if (!($ql >= 1 && $ql <= 500)) {
+	/**
+	 * @param array $args
+	 * @return string|string[]
+	 */
+	public function findItems(array $args) {
+		$search = $args[1];
+		$ql = null;
+		if (count($args) === 3) {
+			$ql = (int)$args[1];
+			if ($ql < 1 || $ql > 500) {
 				return "QL must be between 1 and 500.";
 			}
 			$search = $args[2];
-		} else {
-			$search = $args[1];
-			$ql = false;
 		}
 
 		$search = htmlspecialchars_decode($search);
@@ -247,70 +266,82 @@ class ItemsController {
 		return $msg;
 	}
 	
-	public function findItemsFromLocal($search, $ql) {
+	/**
+	 * Search for items in the local database
+	 * @param string $search The searchterm
+	 * @param null|int $ql The QL to return the results in
+	 * @return ItemSearchResult
+	 */
+	public function findItemsFromLocal(string $search, ?int $ql): array {
 		$tmp = explode(" ", $search);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 
-		if ($ql) {
+		if ($ql !== null) {
 			$query .= " AND aodb.lowql <= ? AND aodb.highql >= ?";
 			$params []= $ql;
 			$params []= $ql;
 		}
-		$sql = "
-			SELECT
-				COALESCE(a2.name,a1.name,foo.name) AS name,
-				n.name AS group_name,
-				foo.icon,
-				g.group_id,
-				COALESCE(a1.lowid,a2.lowid,foo.lowid) AS lowid,
-				COALESCE(a1.highid,a2.highid,foo.highid) AS highid,
-				COALESCE(a1.lowql,a2.highql,foo.highql,foo.lowql) AS ql,
-				COALESCE(a1.lowql,a2.lowql,foo.lowql) AS lowql,
-				COALESCE(a1.highql,a2.highql,foo.highql) AS highql
-			FROM (
-				SELECT
-					aodb.*,
-					g.group_id
-				FROM aodb
-				LEFT JOIN item_groups g ON (g.item_id=aodb.lowid)
-				WHERE $query
-				GROUP BY COALESCE(g.group_id,aodb.lowid)
-				ORDER BY
-					aodb.name ASC,
-					aodb.highql DESC
-				LIMIT ".$this->settingManager->get('maxitems')."
-			) AS foo
-			LEFT JOIN item_groups g ON(foo.group_id=g.group_id)
-			LEFT JOIN item_group_names n ON(foo.group_id=n.group_id)
-			LEFT JOIN aodb a1 ON(g.item_id=a1.lowid)
-			LEFT JOIN aodb a2 ON(g.item_id=a2.highid)
-			ORDER BY g.id ASC
-		";
-		$data = $this->db->query($sql, $params);
-		$data = $this->orderSearchResults($data, $search);
+		$sql = "SELECT ".
+				"COALESCE(a2.name,a1.name,foo.name) AS name, ".
+				"n.name AS group_name, ".
+				"foo.icon, ".
+				"g.group_id, ".
+				"COALESCE(a1.lowid,a2.lowid,foo.lowid) AS lowid, ".
+				"COALESCE(a1.highid,a2.highid,foo.highid) AS highid, ".
+				"COALESCE(a1.lowql,a2.highql,foo.highql,foo.lowql) AS ql, ".
+				"COALESCE(a1.lowql,a2.lowql,foo.lowql) AS lowql, ".
+				"COALESCE(a1.highql,a2.highql,foo.highql) AS highql ".
+			"FROM (".
+				"SELECT aodb.*, g.group_id ".
+				"FROM aodb ".
+				"LEFT JOIN item_groups g ON (g.item_id=aodb.lowid) ".
+				"WHERE $query ".
+				"GROUP BY COALESCE(g.group_id,aodb.lowid) ".
+				"ORDER BY ".
+					"aodb.name ASC, ".
+					"aodb.highql DESC ".
+				"LIMIT ".$this->settingManager->getInt('maxitems').
+			") AS foo ".
+			"LEFT JOIN item_groups g ON(foo.group_id=g.group_id) ".
+			"LEFT JOIN item_group_names n ON(foo.group_id=n.group_id) ".
+			"LEFT JOIN aodb a1 ON(g.item_id=a1.lowid) ".
+			"LEFT JOIN aodb a2 ON(g.item_id=a2.highid) ".
+			"ORDER BY g.id ASC";
+		$data = $this->db->fetchAll(ItemSearchResult::class, $sql, ...$params);
+		// $data = $this->orderSearchResults($data, $search);
 		
 		return $data;
 	}
 	
-	public function createItemsBlob($data, $search, $ql, $version, $server, $footer, $elapsed=null) {
-		$num = count($data);
+	/**
+	 * @param ItemSearchResult[] $data
+	 * @param string $search
+	 * @param null|int $ql
+	 * @param string $version
+	 * @param string $server
+	 * @param string $footer
+	 * @param mixed|null $elapsed
+	 * @return string|string[]
+	 */
+	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, $elapsed=null) {
+		$numItems = count($data);
 		$groups = count(
 			array_unique(
 				array_diff(
-					array_map(function($row) {
+					array_map(function(ItemSearchResult $row) {
 						return $row->group_id;
 					}, $data),
 					[null],
 				)
 			)
 		) + count(
-			array_filter($data, function($row) {
+			array_filter($data, function(ItemSearchResult $row) {
 				return $row->group_id === null;
 			})
 		);
 
-		if ($num == 0) {
-			if ($ql) {
+		if ($numItems === 0) {
+			if ($ql !== null) {
 				$msg = "No QL <highlight>$ql<end> items found matching <highlight>$search<end>.";
 			} else {
 				$msg = "No items found matching <highlight>$search<end>.";
@@ -318,44 +349,48 @@ class ItemsController {
 			return $msg;
 		} elseif ($groups < 4) {
 			return trim($this->formatSearchResults($data, $ql, false));
-		} else {
-			$blob = "Version: <highlight>$version<end>\n";
-			if ($ql) {
-				$blob .= "Search: <highlight>QL $ql $search<end>\n";
-			} else {
-				$blob .= "Search: <highlight>$search<end>\n";
-			}
-			$blob .= "Server: <highlight>" . $server . "<end>\n";
-			if ($elapsed) {
-				$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
-			}
-			$blob .= "\n";
-			$blob .= $this->formatSearchResults($data, $ql, true);
-			if ($num == $this->settingManager->get('maxitems')) {
-				$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
-			}
-			$blob .= "\n\n" . $footer;
-			$link = $this->text->makeBlob("Item Search Results ($num)", $blob);
-
-			return $link;
 		}
+		$blob = "Version: <highlight>$version<end>\n";
+		if ($ql !== null) {
+			$blob .= "Search: <highlight>QL $ql $search<end>\n";
+		} else {
+			$blob .= "Search: <highlight>$search<end>\n";
+		}
+		$blob .= "Server: <highlight>" . $server . "<end>\n";
+		if ($elapsed) {
+			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
+		}
+		$blob .= "\n";
+		$blob .= $this->formatSearchResults($data, $ql, true);
+		if ($numItems === $this->settingManager->getInt('maxitems')) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
+		}
+		$blob .= "\n\n" . $footer;
+		$link = $this->text->makeBlob("Item Search Results ($numItems)", $blob);
+
+		return $link;
 	}
 	
-	// sort by exact word matches higher than partial word matches
-	public function orderSearchResults($data, $search) {
+	/**
+	 * Sort by exact word matches higher than partial word matches
+	 * @param ItemSearchResult[] $data
+	 * @param string $search
+	 * @return ItemSearchResult[]
+	 */
+	public function orderSearchResults(array $data, string $search): array {
 		$searchTerms = explode(" ", $search);
 		foreach ($data as $row) {
 			if (strcasecmp($search, $row->name) == 0) {
 				$numExactMatches = 100;
-			} else {
-				$itemKeywords = preg_split("/\s/", $row->name);
-				$numExactMatches = 0;
-				foreach ($itemKeywords as $keyword) {
-					foreach ($searchTerms as $searchWord) {
-						if (strcasecmp($keyword, $searchWord) == 0) {
-							$numExactMatches++;
-							break;
-						}
+				continue;
+			}
+			$itemKeywords = preg_split("/\s/", $row->name);
+			$numExactMatches = 0;
+			foreach ($itemKeywords as $keyword) {
+				foreach ($searchTerms as $searchWord) {
+					if (strcasecmp($keyword, $searchWord) == 0) {
+						$numExactMatches++;
+						break;
 					}
 				}
 			}
@@ -375,7 +410,13 @@ class ItemsController {
 		return $data;
 	}
 
-	public function formatSearchResults($data, $ql, $showImages) {
+	/**
+	 * @param ItemSearchResult[] $data
+	 * @param null|int $ql
+	 * @param bool $showImages
+	 * @return string
+	 */
+	public function formatSearchResults(array $data, ?int $ql, bool $showImages) {
 		$list = '';
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
@@ -397,9 +438,10 @@ class ItemsController {
 							break;
 						}
 					}
-					$row->name = $row->group_name;
 					if (!isset($row->group_name)) {
 						$row->name = $this->getLongestCommonStringOfWords($itemNames);
+					} else {
+						$row->name = $row->group_name;
 					}
 				}
 				if ($list !== '') {
@@ -429,11 +471,11 @@ class ItemsController {
 				} else {
 					$list .= ", ";
 				}
-				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->ql);
+				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, (string)$row->ql);
 				if ($ql === $row->ql) {
 					$list .= "<yellow>[<end>$item<yellow>]<end>";
 				} elseif ($ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
-					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $ql) . "<yellow>]<end>";
+					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
 					$list .= ", $item";
 				} elseif (
 					$ql > $row->lowql && $ql < $row->highql && $ql > $row->ql &&
@@ -441,7 +483,7 @@ class ItemsController {
 					$data[$itemNum+1]->lowql > $ql
 				) {
 					$list .= $item;
-					$list .= ", <yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $ql) . "<yellow>]<end>";
+					$list .= ", <yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
 				} else {
 					$list .= $item;
 				}
@@ -451,37 +493,46 @@ class ItemsController {
 		return $list;
 	}
 	
-	private function escapeDescription($arr) {
-		return "<description>" . htmlspecialchars($arr[1]) . "</description>";
-	}
-	
-	public function findByName($name, $ql=null) {
+	public function findByName(string $name, ?int $ql=null): ?AODBEntry {
 		if ($ql === null) {
-			return $this->db->queryRow("SELECT * FROM aodb WHERE name = ? ORDER BY highql DESC, highid DESC", $name);
-		} else {
-			return $this->db->queryRow("SELECT * FROM aodb WHERE name = ? AND lowql <= ? AND highql >= ? ORDER BY highid DESC", $name, $ql, $ql);
+			return $this->db->fetch(
+				AODBEntry::class,
+				"SELECT * FROM aodb WHERE name = ? ORDER BY highql DESC, highid DESC",
+				$name
+			);
 		}
+		return $this->db->queryRow(
+			AODBEntry::class,
+			"SELECT * FROM aodb WHERE name = ? AND lowql <= ? AND highql >= ? ORDER BY highid DESC",
+			$name,
+			$ql,
+			$ql
+		);
 	}
 
-	public function getItem($name, $ql=null) {
+	public function getItem(string $name, ?int $ql=null): ?string {
 		$row = $this->findByName($name, $ql);
-		$ql = ($ql === null ? $row->highql : $ql);
+		$ql ??= $row->highql;
 		if ($row === null) {
 			$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
-		} else {
-			return $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
+			return "{$name}@{$ql}";
 		}
+		return $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 	}
 	
-	public function getItemAndIcon($name, $ql=null) {
+	public function getItemAndIcon($name, $ql=null): string {
 		$row = $this->findByName($name, $ql);
-		$ql = ($ql === null ? $row->highql : $ql);
 		if ($row === null) {
-			$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
-		} else {
-			return $this->text->makeImage($row->icon) . "\n" .
-				$this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
+			if (isset($ql)) {
+				$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
+				return "{$name}@{$ql}";
+			}
+			$this->logger->log("WARN", "Could not find item '$name'");
+			return $name;
 		}
+		$ql ??= $row->highql;
+		return $this->text->makeImage($row->icon) . "\n" .
+			$this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 	}
 
 	/**
@@ -494,7 +545,7 @@ class ItemsController {
 	 * @param string $second The second word to compare
 	 * @return string The longest common string of $first and $second
 	 */
-	public function getLongestCommonString($first, $second) {
+	public function getLongestCommonString(string $first, string $second): string {
 		$first = explode(" ", $first);
 		$second = explode(" ", $second);
 		$longestCommonSubstringIndexInFirst = 0;
@@ -541,7 +592,7 @@ class ItemsController {
 	 * @param string[] $words The words to compare
 	 * @return string  The longest common string of all given words
 	 */
-	public function getLongestCommonStringOfWords($words) {
+	public function getLongestCommonStringOfWords(array $words): string {
 		return trim(
 			array_reduce(
 				$words,

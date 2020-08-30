@@ -1,6 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\DEV_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	Nadybot,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence
@@ -23,40 +30,30 @@ class MdbController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
 	/**
 	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
-	public $chatBot;
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
-
-	/** @Setup */
-	public function setup() {
-	}
+	/** @Inject */
+	public Text $text;
 	
 	/**
 	 * @HandlesCommand("mdb")
 	 * @Matches("/^mdb$/i")
 	 */
-	public function mdbCommand($message, $channel, $sender, $sendto, $args) {
+	public function mdbCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$categories = $this->chatBot->mmdbParser->getCategories();
 		
 		$blob = '';
 		foreach ($categories as $category) {
-			$blob .= $this->text->makeChatcmd($category['id'], "/tell <myname> mdb " . $category['id']) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$category['id'], "/tell <myname> mdb " . $category['id']) . "\n";
 		}
 		
 		$msg = $this->text->makeBlob("MDB Categories", $blob);
@@ -68,14 +65,14 @@ class MdbController {
 	 * @HandlesCommand("mdb")
 	 * @Matches("/^mdb ([0-9]+)$/i")
 	 */
-	public function mdbCategoryCommand($message, $channel, $sender, $sendto, $args) {
-		$categoryId = $args[1];
+	public function mdbCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$categoryId = (int)$args[1];
 		
 		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
 
 		$blob = '';
 		foreach ($instances as $instance) {
-			$blob .= $this->text->makeChatcmd($instance['id'], "/tell <myname> mdb $categoryId " . $instance['id']) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$instance['id'], "/tell <myname> mdb $categoryId " . $instance['id']) . "\n";
 		}
 		
 		$msg = $this->text->makeBlob("MDB Instances for Category $categoryId", $blob);
@@ -87,13 +84,16 @@ class MdbController {
 	 * @HandlesCommand("mdb")
 	 * @Matches("/^mdb ([0-9]+) ([0-9]+)$/i")
 	 */
-	public function mdbInstanceCommand($message, $channel, $sender, $sendto, $args) {
-		$categoryId = $args[1];
-		$instanceId = $args[2];
+	public function mdbInstanceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$categoryId = (int)$args[1];
+		$instanceId = (int)$args[2];
 		
 		$messageString = $this->chatBot->mmdbParser->getMessageString($categoryId, $instanceId);
-
-		$msg = "[$categoryId : $instanceId] $messageString";
+		$msg = "Unable to find MDB string category <highlight>$categoryId<end>, ".
+			"instance <highlight>$instanceId<end>.";
+		if ($messageString !== null) {
+			$msg = "[$categoryId : $instanceId] $messageString";
+		}
 		$sendto->reply($msg);
 	}
 }

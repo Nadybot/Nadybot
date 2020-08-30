@@ -1,6 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
+
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	DB,
+	SettingManager,
+	SQLException,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -33,37 +43,22 @@ class RandomController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
 	/**
 	 * @Setting("time_between_rolls")
@@ -72,13 +67,13 @@ class RandomController {
 	 * @Type("time")
 	 * @Options("10s;30s;60s;90s")
 	 */
-	public $defaultTimeBetweenRolls = "30s";
+	public string $defaultTimeBetweenRolls = "30s";
 	
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'roll');
 		
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
@@ -88,43 +83,17 @@ class RandomController {
 	 * @HandlesCommand("random")
 	 * @Matches("/^random (.+)$/i")
 	 */
-	public function randomCommand($message, $channel, $sender, $sendto, $args) {
-		$text = explode(" ", trim($args[1]));
-		$low = 0;
-		$high = count($text) - 1;
-		$count = 0;
-		$marked = [];
-		while (true) {
-			$random = rand($low, $high);
-			if (!isset($marked[$random])) {
-				$count++;
-				$list []= $text[$random];
-				$marked[$random] = 1;
-				if (count($marked) == count($text)) {
-					break;
-				}
-			}
-			$i = $low;
-			while (true) {
-				if ($marked[$i] != 1) {
-					$low = $i;
-					break;
-				} else {
-					$i++;
-				}
-			}
-			$i = $high;
-			while (true) {
-				if ($marked[$i] != 1) {
-					$high = $i;
-					break;
-				} else {
-					$i--;
-				}
-			}
+	public function randomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$items = preg_split("/(,\s+|\s+|,)/", trim($args[1]));
+		while (count($items)) {
+			// Pick a random item from $items and remove it
+			$elem = array_splice($items, array_rand($items, 1), 1)[0];
+			$list []= $elem;
 		}
-		
-		$sendto->reply(implode(" ", $list));
+		$msg = "Randomized order: <highlight>" . implode("<end> -&gt; <highlight>", $list) . "<end>";
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
 	}
 
 	/**
@@ -132,82 +101,159 @@ class RandomController {
 	 * @Matches("/^roll ([0-9]+)$/i")
 	 * @Matches("/^roll ([0-9]+) ([0-9]+)$/i")
 	 */
-	public function rollNumericCommand($message, $channel, $sender, $sendto, $args) {
+	public function rollNumericCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (count($args) == 3) {
-			$min = $args[1];
-			$max = $args[2];
+			$min = (int)$args[1];
+			$max = (int)$args[2];
 		} else {
 			$min = 1;
-			$max = $args[1];
-		}
-		
-		if ($min >= $max) {
-			$msg = "The first number cannot be higher than or equal to the second number.";
-		} else {
-			$timeBetweenRolls = $this->settingManager->get('time_between_rolls');
-			$row = $this->db->queryRow("SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
-			if ($row === null) {
-				$options = [];
-				for ($i = $min; $i <= $max; $i++) {
-					$options []= $i;
-				}
-				[$ver_num, $result] = $this->roll($sender, $options);
-				$msg = "The roll is <highlight>$result<end> between $min and $max. To verify do /tell <myname> verify $ver_num";
-			} else {
-				$msg = "You can only roll once every $timeBetweenRolls seconds.";
-			}
+			$max = (int)$args[1];
 		}
 
-		$sendto->reply($msg);
+		if ($min >= $max) {
+			$msg = "The first number cannot be higher than or equal to the second number.";
+			$sendto->reply($msg);
+			return;
+		}
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
+		/** @var ?Roll */
+		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
+		if ($row !== null) {
+			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$sendto->reply($msg);
+			return;
+		}
+		$options = [];
+		for ($i = $min; $i <= $max; $i++) {
+			$options []= $i;
+		}
+		[$rollNumber, $result] = $this->roll($sender, $options);
+		$msg = "The roll is <highlight>$result<end> between $min and $max. To verify do /tell <myname> verify $rollNumber";
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+
+		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+	}
+
+	/**
+	 * @HandlesCommand("roll")
+	 * @Matches("/^roll (\d+)[x*]\s+(.+)$/i")
+	 */
+	public function rollMultipleNamesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$amount = (int)$args[1];
+		$names = $args[2];
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
+		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
+		if ($row !== null) {
+			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$sendto->reply($msg);
+			return;
+		}
+		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		if ($amount > count($options)) {
+			$msg = "Cannot pick more items than are on the list.";
+			$sendto->reply($msg);
+			return;
+		}
+		[$rollNumber, $result] = $this->roll($sender, $options, $amount);
+		$winners = $this->joinOptions(explode("|", $result), "highlight");
+		if ($amount === 1) {
+			$msg = "The winner is $winners out of the possible options ".
+				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
+		} else {
+			$msg = "The winners are $winners out of the possible options ".
+				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
+		}
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+
+		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
 	}
 	
 	/**
 	 * @HandlesCommand("roll")
 	 * @Matches("/^roll (.+)$/i")
 	 */
-	public function rollNamesCommand($message, $channel, $sender, $sendto, $args) {
+	public function rollNamesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$names = $args[1];
-		$timeBetweenRolls = $this->settingManager->get('time_between_rolls');
-		$row = $this->db->queryRow("SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
-		if ($row === null) {
-			$options = explode(' ', $names);
-			[$ver_num, $result] = $this->roll($sender, $options);
-			$msg = "The roll is <highlight>$result<end> out of possible options: $names. To verify do /tell <myname> verify $ver_num";
-		} else {
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
+		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
+		if ($row !== null) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$sendto->reply($msg);
+			return;
 		}
+		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		[$rollNumber, $result] = $this->roll($sender, $options);
+		$msg = "The roll is <highlight>$result<end> out of the possible options ".
+			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
 
-		$sendto->reply($msg);
+		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+	}
+
+	/**
+	 * Join options in the style "A, B and C"
+	 * @param string[] $options The options to join
+	 * @param null|string $color If set, highlight the values with that color
+	 * @return string The joined string
+	 */
+	protected function joinOptions(array $options, ?string $color=null): string {
+		$startTag = "";
+		$endTag = "";
+		if ($color !== null) {
+			$startTag = "<{$color}>";
+			$endTag = "<end>";
+		}
+		$lastOption = array_pop($options);
+		if (count($options)) {
+			$options = [join("{$endTag}, {$startTag}", $options)];
+		}
+		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
 	
 	/**
 	 * @HandlesCommand("verify")
 	 * @Matches("/^verify ([0-9]+)$/i")
 	 */
-	public function verifyCommand($message, $channel, $sender, $sendto, $args) {
-		$id = $args[1];
-		$row = $this->db->queryRow("SELECT * FROM roll WHERE `id` = ?", $id);
+	public function verifyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
+		/** @var ?Roll */
+		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `id` = ?", $id);
 		if ($row === null) {
-			$msg = "Verify number <highlight>$id<end> does not exist.";
+			$msg = "Roll number <highlight>$id<end> does not exist.";
 		} else {
+			$options = explode("|", $row->options);
+			$result = explode("|", $row->result);
 			$time = $this->util->unixtimeToReadable(time() - $row->time);
-			$msg = "<highlight>$row->result<end> rolled by <highlight>$row->name<end> $time ago. Possible options: ";
-			$msg .= str_replace("|", " ", $row->options) . ".";
+			$msg = $this->joinOptions($result, "highlight").
+				" rolled by <highlight>$row->name<end> $time ago.\n".
+				"Possible options were: ".
+				$this->joinOptions($options, "highlight") . ".";
 		}
 
 		$sendto->reply($msg);
 	}
 	
-	public function roll($sender, $options) {
-		$result = $this->util->randomArrayValue($options);
+	/**
+	 * Roll and record the result
+	 * @param string $sender Name of the person rolling
+	 * @param string[] $options The options to roll between
+	 * @return array An array with the roll number and the chosen option
+	 * @throws SQLException on SQL errors
+	 */
+	public function roll(string $sender, array $options, int $amount=1): array {
+		mt_srand();
+		$result = (array)array_rand(array_flip($options), $amount);
 		$this->db->exec(
 			"INSERT INTO roll (`time`, `name`, `options`, `result`) ".
 			"VALUES (?, ?, ?, ?)",
 			time(),
 			$sender,
 			implode("|", $options),
-			$result
+			implode("|", $result)
 		);
-		return [$this->db->lastInsertId(), $result];
+		return [$this->db->lastInsertId(), implode("|", $result)];
 	}
 }

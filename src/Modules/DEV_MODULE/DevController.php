@@ -1,10 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\AutoInject;
 use Addendum\ReflectionAnnotatedMethod;
-use Nadybot\Core\Registry;
+use Nadybot\Core\{
+	AccessManager,
+	CommandAlias,
+	CommandHandler,
+	CommandManager,
+	CommandReply,
+	DB,
+	Registry,
+	SubcommandManager,
+	Text,
+	Util,
+};
+use ReflectionException;
 
 /**
  * @author Tyrence (RK2)
@@ -55,18 +66,39 @@ use Nadybot\Core\Registry;
  *		help        = 'makeitem.txt'
  *	)
  */
-class DevController extends AutoInject {
+class DevController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
+
+	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
+	public CommandManager $commandManager;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public SubcommandManager $subcommandManager;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public Text $text;
 
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
 	}
 	
@@ -74,7 +106,7 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("showcmdregex")
 	 * @Matches("/^showcmdregex (.+)$/i")
 	 */
-	public function showcmdregexCommand($message, $channel, $sender, $sendto, $args) {
+	public function showcmdregexCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = $args[1];
 		
 		// get all command handlers
@@ -82,14 +114,19 @@ class DevController extends AutoInject {
 		
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
-		$handlers = array_filter($handlers, function ($handler) use ($sender, $accessManager) {
+		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($sender, $accessManager) {
 			return $accessManager->checkAccess($sender, $handler->admin);
 		});
 		
 		// get calls for handlers
-		$calls = array_reduce($handlers, function ($handlers, $handler) {
-			return array_merge($handlers, explode(',', $handler->file));
-		}, []);
+		/** @var string[] */
+		$calls = array_reduce(
+			$handlers,
+			function (array $handlers, CommandHandler $handler) {
+				return array_merge($handlers, explode(',', $handler->file));
+			},
+			[]
+		);
 
 		// get regexes for calls
 		$regexes = [];
@@ -99,7 +136,7 @@ class DevController extends AutoInject {
 			try {
 				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
 				$regexes = array_merge($regexes, $this->commandManager->retrieveRegexes($reflectedMethod));
-			} catch (\ReflectionException $e) {
+			} catch (ReflectionException $e) {
 				continue;
 			}
 		}
@@ -117,7 +154,10 @@ class DevController extends AutoInject {
 		$sendto->reply($msg);
 	}
 	
-	public function getAllCommandHandlers($cmd, $channel) {
+	/**
+	 * @return CommandHandler[]
+	 */
+	public function getAllCommandHandlers(string $cmd, string $channel): array {
 		$handlers = [];
 		if (isset($this->commandManager->commands[$channel][$cmd])) {
 			$handlers []= $this->commandManager->commands[$channel][$cmd];
@@ -136,7 +176,7 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("intransaction")
 	 * @Matches("/^intransaction$/i")
 	 */
-	public function intransactionCommand($message, $channel, $sender, $sendto, $args) {
+	public function inTransactionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if ($this->db->inTransaction()) {
 			$msg = "There is an active transaction.";
 		} else {
@@ -149,7 +189,7 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("rollbacktransaction")
 	 * @Matches("/^rollbacktransaction$/i")
 	 */
-	public function rollbacktransactionCommand($message, $channel, $sender, $sendto, $args) {
+	public function rollbackTransactionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->db->rollback();
 		
 		$msg = "The active transaction has been rolled back.";
@@ -160,7 +200,7 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("stacktrace")
 	 * @Matches("/^stacktrace$/i")
 	 */
-	public function stacktraceCommand($message, $channel, $sender, $sendto, $args) {
+	public function stacktraceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$stacktrace = $this->util->getStackTrace();
 		$count = substr_count($stacktrace, "\n");
 		$msg = $this->text->makeBlob("Current Stacktrace ($count)", $stacktrace);
@@ -171,7 +211,7 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("cmdhandlers")
 	 * @Matches("/^cmdhandlers (.*)$/i")
 	 */
-	public function cmdhandlersCommand($message, $channel, $sender, $sendto, $args) {
+	public function cmdhandlersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmdArray = explode(" ", $args[1], 2);
 		$cmd = $cmdArray[0];
 		
@@ -200,10 +240,10 @@ class DevController extends AutoInject {
 	 * @HandlesCommand("makeitem")
 	 * @Matches("/^makeitem (\d+) (\d+) (\d+) (.+)$/i")
 	 */
-	public function makeitemCommand($message, $channel, $sender, $sendto, $args) {
-		$lowId = $args[1];
-		$highId = $args[2];
-		$ql = $args[3];
+	public function makeItemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$lowId = (int)$args[1];
+		$highId = (int)$args[2];
+		$ql = (int)$args[3];
 		$name = $args[4];
 		$sendto->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
@@ -213,10 +253,10 @@ class DevController extends AutoInject {
 	 * @Matches("/^createblob (\d+)$/i")
 	 * @Matches("/^createblob (\d+) (\d+)$/i")
 	 */
-	public function createblobCommand($message, $channel, $sender, $sendto, $args) {
-		$length = $args[1];
+	public function createBlobCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$length = (int)$args[1];
 		if (isset($args[2])) {
-			$numBlobs = $args[2];
+			$numBlobs = (int)$args[2];
 		} else {
 			$numBlobs = 1;
 		}
@@ -228,7 +268,7 @@ class DevController extends AutoInject {
 		}
 	}
 	
-	public function randString($length, $charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 \n') {
+	public function randString(int $length, string $charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 \n'): string {
 		$str = '';
 		$count = strlen($charset);
 		while ($length--) {

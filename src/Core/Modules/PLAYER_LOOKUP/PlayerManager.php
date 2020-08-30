@@ -72,7 +72,7 @@ class PlayerManager {
 
 	public function lookup(string $name, int $dimension): ?Player {
 		$obj = $this->lookupUrl("http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json");
-		if ($obj->name === $name) {
+		if (isset($obj) && $obj->name === $name) {
 			$obj->source = 'people.anarchy-online.com';
 			$obj->dimension = $dimension;
 			return $obj;
@@ -81,9 +81,15 @@ class PlayerManager {
 		return null;
 	}
 
-	private function lookupUrl(string $url): Player {
+	private function lookupUrl(string $url): ?Player {
 		$response = $this->http->get($url)->waitAndReturnResponse();
-		[$char, $org, $lastUpdated] = json_decode($response->body);
+		if (!isset($response) || $response->headers["status-code"] !== "200") {
+			return null;
+		}
+		if ($response->body === "null") {
+			return null;
+		}
+		[$char, $org] = json_decode($response->body);
 
 		$obj = new Player();
 
@@ -100,8 +106,8 @@ class PlayerManager {
 		$obj->ai_rank        = $char->RANK_name;
 		$obj->ai_level       = $char->ALIENLEVEL;
 		$obj->guild_id       = $org->ORG_INSTANCE;
-		$obj->guild          = $org->NAME;
-		$obj->guild_rank     = $org->RANK_TITLE;
+		$obj->guild          = $org->NAME ?? '';
+		$obj->guild_rank     = $org->RANK_TITLE ?? '';
 		$obj->guild_rank_id  = $org->RANK;
 
 		$obj->head_id        = $char->HEADID;

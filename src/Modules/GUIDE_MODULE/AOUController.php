@@ -1,9 +1,17 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use stdClass;
 use DOMDocument;
+use DOMElement;
+use Nadybot\Core\{
+	CommandReply,
+	DBRow,
+	Http,
+	HttpResponse,
+	Text,
+};
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
  * @author Tyrence (RK2)
@@ -24,25 +32,16 @@ class AOUController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
-	 * @Inject
-	 */
-	public $itemsController;
+	/** @Inject */
+	public ItemsController $itemsController;
 
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
+	/** @Inject */
+	public Http $http;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	
@@ -52,35 +51,50 @@ class AOUController {
 	 * @HandlesCommand("aou")
 	 * @Matches("/^aou (\d+)$/i")
 	 */
-	public function aouView($message, $channel, $sender, $sendto, $args) {
-		$guideid = $args[1];
+	public function aouView(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$guideId = (int)$args[1];
 
 		$params = [
 			'mode' => 'view',
-			'id' => $guideid
+			'id' => $guideId
 		];
-		$guide = $this->http->get(self::AOU_URL)->withQueryParams($params)->waitAndReturnResponse()->body;
+		$this->http
+			->get(self::AOU_URL)
+			->withQueryParams($params)
+			->withCallback(
+				function(HttpResponse $response) use ($guideId, $sendto) {
+					$this->displayAOUGuide($response, $guideId, $sendto);
+				}
+			);
+	}
 
+	public function displayAOUGuide(HttpResponse $response, int $guideId, CommandReply $sendto): void {
+		if ($response->headers["status-code"] !== "200") {
+			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
+			$sendto->reply($msg);
+			return;
+		}
+		$guide = $response->body;
 		$dom = new DOMDocument;
 		$dom->loadXML($guide);
 		
 		if ($dom->getElementsByTagName('error')->length > 0) {
-			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideid<end>: " .
+			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>: " .
 				$dom->getElementsByTagName('text')->item(0)->nodeValue;
 			$sendto->reply($msg);
 			return;
 		}
 
 		$content = $dom->getElementsByTagName('content')->item(0);
-		if ($content == null || !($content instanceof \DOMElement)) {
-			$msg = "Error retrieving guide <highlight>$guideid<end> from AO-Universe.com";
+		if ($content == null || !($content instanceof DOMElement)) {
+			$msg = "Error retrieving guide <highlight>$guideId<end> from AO-Universe.com";
 			$sendto->reply($msg);
 			return;
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
 
 		$blob = '';
-		$blob .= $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideid}") . "\n\n";
+		$blob .= $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
 		$blob .= "Updated: <highlight>" . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
 		$blob .= "Profession: <highlight>" . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
@@ -102,11 +116,10 @@ class AOUController {
 	 * @HandlesCommand("aou")
 	 * @Matches("/^aou all (.+)$/i")
 	 */
-	public function aouAllSearch($message, $channel, $sender, $sendto, $args) {
+	public function aouAllSearch(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 
-		$msg = $this->searchForAOUGuide($search, true);
-		$sendto->reply($msg);
+		$this->searchAndShowAOUGuide($search, true, $sendto);
 	}
 	
 	/**
@@ -115,23 +128,36 @@ class AOUController {
 	 * @HandlesCommand("aou")
 	 * @Matches("/^aou (.+)$/i")
 	 */
-	public function aouSearch($message, $channel, $sender, $sendto, $args) {
+	public function aouSearch(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 
-		$msg = $this->searchForAOUGuide($search, false);
-		$sendto->reply($msg);
+		$this->searchAndShowAOUGuide($search, false, $sendto);
 	}
 	
-	public function searchForAOUGuide($search, $searchGuideText) {
-		$searchTerms = explode(" ", $search);
-	
+	public function searchAndShowAOUGuide(string $search, bool $searchGuideText, CommandReply $sendto): void {
 		$params = [
 			'mode' => 'search',
 			'search' => $search
 		];
-		$results = $this->http->get(self::AOU_URL)->withQueryParams($params)->waitAndReturnResponse()->body;
+		$this->http
+			->get(self::AOU_URL)
+			->withQueryParams($params)
+			->withCallback(
+				function(HttpResponse $response) use ($sendto, $searchGuideText, $search) {
+					$this->showAOUSearchResult($response, $searchGuideText, $search, $sendto);
+				}
+			);
+	}
+	public function showAOUSearchResult(HttpResponse $response, bool $searchGuideText, string $search, CommandReply $sendto) {
+		if ($response->headers["status-code"] != "200") {
+			$msg = "An error occurred while trying to talk to AOU Universe.";
+			$sendto->reply($msg);
+			return;
+		}
+		$searchTerms = explode(" ", $search);
+		$results = $response->body;
 
-		$dom = new DOMDocument;
+		$dom = new DOMDocument();
 		$dom->loadXML($results);
 		
 		$sections = $dom->getElementsByTagName('section');
@@ -176,10 +202,16 @@ class AOUController {
 				$msg .= " Try including all results with <highlight>!aou all $search<end>.";
 			}
 		}
-		return $msg;
+		$sendto->reply($msg);
 	}
 	
-	private function striposarray($haystack, $needles) {
+	/**
+	 *
+	 * @param string $haystack
+	 * @param string[] $needles
+	 * @return bool
+	 */
+	private function striposarray(string $haystack, array $needles): bool {
 		foreach ($needles as $needle) {
 			if (stripos($haystack, $needle) === false) {
 				return false;
@@ -188,7 +220,7 @@ class AOUController {
 		return true;
 	}
 	
-	private function getSearchResultCategory($section) {
+	private function getSearchResultCategory(DOMElement $section): string {
 		$folders = $section->getElementsByTagName('folder');
 		$output = [];
 		foreach ($folders as $folder) {
@@ -197,17 +229,17 @@ class AOUController {
 		return implode(" - ", array_reverse($output));
 	}
 	
-	private function getGuideObject($guide) {
-		$obj = new stdClass;
-		$obj->id = $guide->getElementsByTagName('id')->item(0)->nodeValue;
+	private function getGuideObject(DOMElement $guide): AOUGuide {
+		$obj = new AOUGuide();
+		$obj->id = (int)$guide->getElementsByTagName('id')->item(0)->nodeValue;
 		$obj->name = $guide->getElementsByTagName('name')->item(0)->nodeValue;
 		$obj->description = $guide->getElementsByTagName('desc')->item(0)->nodeValue;
 		return $obj;
 	}
 	
-	private function replaceItem($arr) {
+	private function replaceItem(array $arr): string {
 		$type = $arr[1];
-		$id = $arr[3];
+		$id = (int)$arr[3];
 		
 		$output = '';
 
@@ -220,7 +252,7 @@ class AOUController {
 		return $output;
 	}
 	
-	private function replaceWaypoint($arr) {
+	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
 		foreach ($params as $param) {
@@ -231,18 +263,17 @@ class AOUController {
 		return $this->text->makeChatcmd($label . " ({$x}x{$y})", "/waypoint $x $y $pf");
 	}
 	
-	private function replaceGuideLinks($arr) {
+	private function replaceGuideLinks(array $arr): string {
 		$url = $arr[2];
 		$label = $arr[3];
 		
 		if (preg_match("/pid=(\\d+)/", $url, $idArray)) {
 			return $this->text->makeChatcmd($label, "/tell <myname> aou " . $idArray[1]);
-		} else {
-			return $this->text->makeChatcmd($label, "/start $url");
 		}
+		return $this->text->makeChatcmd($label, "/start $url");
 	}
 	
-	private function processInput($input) {
+	private function processInput(string $input): string {
 		$input = preg_replace_callback("/\\[(item|itemname|itemicon)( nolink)?\\](\\d+)\\[\\/(item|itemname|itemicon)\\]/i", [$this, 'replaceItem'], $input);
 		$input = preg_replace_callback("/\\[waypoint ([^\\]]+)\\]([^\\]]*)\\[\\/waypoint\\]/", [$this, 'replaceWaypoint'], $input);
 		$input = preg_replace_callback("/\\[(localurl|url)=([^ \\]]+)\\]([^\\[]+)\\[\\/(localurl|url)\\]/", [$this, 'replaceGuideLinks'], $input);
@@ -267,7 +298,7 @@ class AOUController {
 		return $output;
 	}
 	
-	private function processTag($tag) {
+	private function processTag(string $tag): string {
 		switch ($tag) {
 			case "[ts_ts]":
 				return " + ";
@@ -287,7 +318,7 @@ class AOUController {
 		return $tag;
 	}
 	
-	private function generateItemMarkup($type, $obj) {
+	private function generateItemMarkup(string $type, DBRow $obj): string {
 		$output = '';
 		if ($type == "item" || $type == "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);

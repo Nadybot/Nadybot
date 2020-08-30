@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\DBSchema\Setting;
 
 class SettingValue {
-	public $value;
+	public string $value;
 
 	public string $type;
 

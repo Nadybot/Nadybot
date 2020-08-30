@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS raffle_bonus_<myname> (
+	`name` VARCHAR(20) NOT NULL PRIMARY KEY,
+	`bonus` INT NOT NULL DEFAULT 0
+);

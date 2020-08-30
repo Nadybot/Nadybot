@@ -1,0 +1,5 @@
+To show all channels on all discord servers the bot has joined:
+<tab><highlight><symbol>discord channels<end>
+
+To pick a Discord channel to relay messages to and from priv/org-chat:
+<tab><highlight><symbol>discord relay<end>

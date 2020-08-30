@@ -1,6 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\WHOIS_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
@@ -21,78 +26,71 @@ class PlayerHistoryController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager $playerHistoryManager
-	 * @Inject
-	 */
-	public $playerHistoryManager;
+	/** @Inject */
+	public PlayerHistoryManager $playerHistoryManager;
 
 	/**
 	 * @HandlesCommand("history")
 	 * @Matches("/^history ([^ ]+) (\d)$/i")
 	 * @Matches("/^history ([^ ]+)$/i")
 	 */
-	public function playerHistoryCommand($message, $channel, $sender, $sendto, $args) {
+	public function playerHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
-		$rk_num = (int)$this->chatBot->vars['dimension'];
-		if (count($args) == 3) {
-			$rk_num = $args[2];
+		$dimension = (int)$this->chatBot->vars['dimension'];
+		if (count($args) === 3) {
+			$dimension = (int)$args[2];
 		}
 
-		$history = $this->playerHistoryManager->lookup($name, $rk_num);
+		$history = $this->playerHistoryManager->lookup($name, $dimension);
 		if ($history === null) {
-			$msg = "Could not get History of $name on RK$rk_num.";
-		} else {
-			$blob = "Date            Level    AI    Faction    Breed     Guild (rank)\n";
-			$blob .= "<highlight>_________________________________________________________________<end>\n";
-			foreach ($history->data as $entry) {
-				$date = date("Y-m-d", $entry->last_changed);
-
-				if ($entry->deleted == 1) {
-					$blob .= "$date <highlight>|<end>   <red>DELETED<end>\n";
-				} else {
-					if ($entry->defender_rank == "") {
-						$ailevel = 0;
-					} else {
-						$ailevel = $entry->defender_rank;
-					}
-					$ailevel = $this->text->alignNumber($ailevel, 2, 'green');
-
-					if ($entry->faction == "Omni") {
-						$faction = "<omni>Omni<end>    ";
-					} elseif ($entry->faction == "Clan") {
-						$faction = "<clan>Clan<end>     ";
-					} else {
-						$faction = "<neutral>Neutral<end>  ";
-					}
-
-					if ($entry->guild_name == "") {
-						$guild = "Not in a guild";
-					} else {
-						$guild = $entry->guild_name . " (<highlight>" . $entry->guild_rank_name . "<end>)";
-					}
-					$level = $this->text->alignNumber($entry->level, 3);
-
-					$blob .= "$date <highlight>|<end>  $level  <highlight>|<end> $ailevel <highlight>|<end> $faction <highlight>|<end> $entry->breed <highlight>|<end> $guild\n";
-				}
-			}
-			$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
-			$msg = $this->text->makeBlob("History of $name for RK{$rk_num}", $blob);
+			$msg = "Could not get History of $name on RK$dimension.";
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = "";
+		$header = "Date            Level    AI    Faction    Breed     Guild (rank)\n".
+			"<highlight>_________________________________________________________________<end>\n";
+		foreach ($history->data as $entry) {
+			$date = $entry->last_changed->format("Y-m-d");
+
+			if ($entry->deleted == 1) {
+				$blob .= "$date <highlight>|<end>   <red>DELETED<end>\n";
+				continue;
+			}
+			if ($entry->defender_rank == "") {
+				$ailevel = 0;
+			} else {
+				$ailevel = (int)$entry->defender_rank;
+			}
+			$ailevel = $this->text->alignNumber($ailevel, 2, 'green');
+
+			if ($entry->faction == "Omni") {
+				$faction = "<omni>Omni<end>    ";
+			} elseif ($entry->faction == "Clan") {
+				$faction = "<clan>Clan<end>     ";
+			} else {
+				$faction = "<neutral>Neutral<end>  ";
+			}
+
+			if ($entry->guild_name == "") {
+				$guild = "Not in a guild";
+			} else {
+				$guild = $entry->guild_name . " (<highlight>" . $entry->guild_rank_name . "<end>)";
+			}
+			$level = $this->text->alignNumber((int)$entry->level, 3);
+
+			$blob .= "$date <highlight>|<end>  $level  <highlight>|<end> $ailevel <highlight>|<end> $faction <highlight>|<end> $entry->breed <highlight>|<end> $guild\n";
+		}
+		$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
+		$msg = $this->text->makeBlob("History of $name for RK{$dimension}", $blob, null, $header);
 
 		$sendto->reply($msg);
 	}

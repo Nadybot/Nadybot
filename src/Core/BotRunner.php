@@ -12,7 +12,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public static string $version = "4.2";
+	public static string $version = "5.0";
 
 	/**
 	 * The command line arguments
@@ -76,6 +76,7 @@ class BotRunner {
 
 		[$server, $port] = $this->getServerAndPort($vars);
 
+		/** @var Nadybot */
 		$chatBot = Registry::getInstance('chatBot');
 
 		// startup core systems and load modules

@@ -1,6 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\TIMERS_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Timer;
 
 /**
  * @author Tyrence (RK2)
@@ -22,48 +25,21 @@ class CountdownController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
-
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
-
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
-
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
-
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Timer $timer;
 	
-	private $lastCountdown = 0;
+	private int $lastCountdown = 0;
 
 	/**
 	 * @HandlesCommand("countdown")
 	 * @Matches("/^countdown$/i")
 	 * @Matches("/^countdown (.+)$/i")
 	 */
-	public function countdownCommand($message, $channel, $sender, $sendto, $args) {
-		$message = "GO GO GO";
-		if (count($args) == 2) {
+	public function countdownCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$message = "GO";
+		if (count($args) === 2) {
 			$message = $args[1];
 		}
 
@@ -76,23 +52,18 @@ class CountdownController {
 		$this->lastCountdown = time();
 
 		for ($i = 5; $i > 0; $i--) {
-			if ($i == 5) {
+			if ($i > 3) {
 				$color = "<red>";
-			} elseif ($i == 4) {
-				$color = "<red>";
-			} elseif ($i == 3) {
+			} elseif ($i > 1) {
 				$color = "<orange>";
-			} elseif ($i == 2) {
-				$color = "<orange>";
-			} elseif ($i == 1) {
-				$color = "<orange>";
+			} else {
+				$color = "<yellow>";
 			}
-			$msg = "$color-------&gt; $i &lt;-------<end>";
-			$sendto->reply($msg);
-			sleep(1);
+			$msg = "[$color-------&gt; $i &lt;-------<end>]";
+			$this->timer->callLater(6-$i, [$sendto, "reply"], $msg);
 		}
 
-		$msg = "<green>------&gt; $message &lt;-------<end>";
-		$sendto->reply($msg);
+		$msg = "[<green>------&gt; $message &lt;-------<end>]";
+		$this->timer->callLater(6, [$sendto, "reply"], $msg);
 	}
 }

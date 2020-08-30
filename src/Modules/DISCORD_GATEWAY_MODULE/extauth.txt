@@ -1,0 +1,8 @@
+To request to be linked with an AO character 'charactername', from Discord send
+<tab><highlight><symbol>extauth 'charactername'<end>
+
+and follow the instructions you received on 'charactername'.
+
+<red>Be careful:<end>
+linking your Discord user with an AO character effectively
+gives the Discord user the same rights!

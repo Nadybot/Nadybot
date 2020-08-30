@@ -19,7 +19,7 @@ Recharge Time: (Recharge x 40) + Full Auto Delay/100 - FA skill/25
 Minimum Recharge Time: 10 seconds + Attack
 
 <header2>Aimed Shot<end>
-Also called 'Snipe' this attack is a shot that is carefuly aimed to automaticaly hit. Aimed Shot is a truly special attack because it ignores most normal rules for combat, because of this it has slightly different rules for use in Player vs Enemy combat and Player vs Player combat. In PvE, the target you are trying to fire on needs to be unaware of your pressence, which ussualy requires the sniper to be far off from the target and/or use the concealment skill. In PvP, Aimed Shot automaticaly hits. The damage on Aimed Shot ignores Armor, ignores dodge chance, and deals the maximum damage of the weapon, augmented by a multiplier. The multiplier is determined by your aimed shot skill divided by 95. The maximum Damage that can be dealt by a Aimed shot is 13K. Aimed Shot is most commonly found on Rifle type weapons. Aimed Shot uses 1 unit of ammunition.
+Also called 'Snipe' this attack is a shot that is carefully aimed to automatically hit. Aimed Shot is a truly special attack because it ignores most normal rules for combat, because of this it has slightly different rules for use in Player vs Enemy combat and Player vs Player combat. In PvE, the target you are trying to fire on needs to be unaware of your pressence, which ussualy requires the sniper to be far off from the target and/or use the concealment skill. In PvP, Aimed Shot automaticaly hits. The damage on Aimed Shot ignores Armor, ignores dodge chance, and deals the maximum damage of the weapon, augmented by a multiplier. The multiplier is determined by your aimed shot skill divided by 95. The maximum Damage that can be dealt by a Aimed shot is 13K. Aimed Shot is most commonly found on Rifle type weapons. Aimed Shot uses 1 unit of ammunition.
 
 Recharge Time: (Recharge x 40) - (3 x AS skill/100)
 Minimum Recharge Time: 10 seconds + Attack
@@ -28,7 +28,7 @@ Minimum Recharge Time: 10 seconds + Attack
 A Fast Attack is a quick attack of opportunity that relies mostly on speed to get included between a normal attack pattern. In essence, Fast Attack is just another attack only with the recharge calculated from your Fast Attack skill instead of the Weapon recharge and your initiative. Fast Attack is commonly found on Sword type weapons.
 
 Recharge Time: (Attack x 15) - Fast Attack Skill/100
-Minimum Recharge Time: 6 Seconds + Attack
+Minimum Recharge Time: 5 Seconds + Attack
 
 <header2>Brawl<end>
 A brawl is a rough and tumble special attack that generally involves some sort of punching, kicking, or wrestling. Brawl's chance of hitting and damage are both determined by the character's Brawl Skill. You can use Brawl if you are wielding any melee weapon that has a requirement in Brawl, or when using martial arts (No weapons equipped). Brawling also has a slim chance of stunning the target for a brief time of 3 seconds.

@@ -1,8 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Exception;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
@@ -30,75 +34,63 @@ class ImplantController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
+	/** @Setup */
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "implant_requirements");
 		$this->db->loadSQLFile($this->moduleName, "premade_implant");
 	}
 	
 	/**
 	 * @HandlesCommand("implant")
-	 * @Matches("/^implant ([0-9]+)$/i")
+	 * @Matches("/^implant (\d+)$/i")
 	 */
-	public function implantQlCommand($message, $channel, $sender, $sendto, $args) {
-		$ql = $args[1];
+	public function implantQlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$ql = (int)$args[1];
 
-		// make sure the $ql is an integer between 1 and 300
 		if (($ql < 1) || ($ql > 300)) {
 			$msg = "You must enter a value between 1 and 300.";
-		} else {
-			$obj = $this->getRequirements($ql);
-			$clusterInfo = $this->formatClusterBonuses($obj);
-			$link = $this->text->makeBlob("QL$obj->ql", $clusterInfo, "Implant Info (QL $obj->ql)");
-			$msg = "QL $ql implants--Ability: {$obj->ability}, Treatment: {$obj->treatment} $link";
-
-			$msg = "$link: <highlight>$obj->ability<end> Ability, <highlight>$obj->treatment<end> Treatment";
+			$sendto->reply($msg);
+			return;
 		}
+		$req = $this->getRequirements($ql);
+		$clusterInfo = $this->formatClusterBonuses($req);
+		$link = $this->text->makeBlob("QL$req->ql", $clusterInfo, "Implant Info (QL $req->ql)");
+		$msg = "QL $ql implants--Ability: {$req->ability}, Treatment: {$req->treatment} $link";
+
+		$msg = "$link: <highlight>$req->ability<end> Ability, <highlight>$req->treatment<end> Treatment";
 
 		$sendto->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implant")
-	 * @Matches("/^implant ([0-9]+) ([0-9]+)$/i")
+	 * @Matches("/^implant (\d+) (\d+)$/i")
 	 */
-	public function implantRequirementsCommand($message, $channel, $sender, $sendto, $args) {
-		$ability = $args[1];
-		$treatment = $args[2];
+	public function implantRequirementsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$ability = (int)$args[1];
+		$treatment = (int)$args[2];
 
 		if ($treatment < 11 || $ability < 6) {
 			$msg = "You do not have enough treatment or ability to wear an implant.";
-		} else {
-			$obj = $this->findMaxImplantQlByReqs($ability, $treatment);
-			$clusterInfo = $this->formatClusterBonuses($obj);
-			$link = $this->text->makeBlob("QL$obj->ql", $clusterInfo, "Implant Info (QL $obj->ql)");
-
-			$msg = "$link: <highlight>$obj->ability<end> Ability, <highlight>$obj->treatment<end> Treatment";
+			$sendto->reply($msg);
+			return;
 		}
+		$reqs = $this->findMaxImplantQlByReqs($ability, $treatment);
+		$clusterInfo = $this->formatClusterBonuses($reqs);
+		$link = $this->text->makeBlob("QL$reqs->ql", $clusterInfo, "Implant Info (QL $reqs->ql)");
+
+		$msg = "$link: <highlight>$reqs->ability<end> Ability, <highlight>$reqs->treatment<end> Treatment";
 		$sendto->reply($msg);
 	}
 	
@@ -106,19 +98,19 @@ class ImplantController {
 	 * @HandlesCommand("ladder")
 	 * @Matches("/^ladder (.+) (\d+)$/i")
 	 */
-	public function ladderCommand($message, $channel, $sender, $sendto, $args) {
+	public function ladderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = strtolower($args[1]);
-		$startingValue = $args[2];
+		$startingValue = (int)$args[2];
 		
-		if ($type == 'treat') {
+		if ($type === 'treat') {
 			$type = 'treatment';
 		}
 		
 		// allow treatment, ability, or any of the 6 abilities
-		if ($type != 'treatment' && $type != 'ability') {
+		if ($type !== 'treatment' && $type !== 'ability') {
 			$type = $this->util->getAbility($type, true);
 			if ($type === null) {
-				return false;
+				return;
 			}
 			$type = strtolower($type);
 		}
@@ -128,15 +120,14 @@ class ImplantController {
 		
 		$blob = "Starting $type: $value\n\n-------------------\n\n";
 		
-		$that = $this;
 		if ($type == 'treatment') {
 			if ($value < 11) {
 				$sendto->reply("Base treatment must be at least <highlight>11<end>.");
 				return;
 			}
 		
-			$getMax = function($value) use ($that) {
-				return $that->findMaxImplantQlByReqs(10000, $value);
+			$getMax = function(int $value): ImplantRequirements {
+				return $this->findMaxImplantQlByReqs(10000, $value);
 			};
 		} else {
 			if ($value < 6) {
@@ -144,8 +135,8 @@ class ImplantController {
 				return;
 			}
 		
-			$getMax = function($value) use ($that) {
-				return $that->findMaxImplantQlByReqs($value, 10000);
+			$getMax = function(int $value): ImplantRequirements {
+				return $this->findMaxImplantQlByReqs($value, 10000);
 			};
 		}
 
@@ -160,6 +151,7 @@ class ImplantController {
 			
 			// add shiny
 			$tempValue = $shiny === null ? $value : $value - $shiny->{$prefix . 'Shiny'};
+			/** @var ImplantRequirements */
 			$newShiny = $getMax($tempValue);
 			if ($shiny === null || $newShiny->{$prefix . 'Shiny'} > $shiny->{$prefix . 'Shiny'}) {
 				$added = true;
@@ -212,27 +204,29 @@ class ImplantController {
 	}
 
 	// implant functions
-	public function getRequirements($ql) {
+	public function getRequirements(int $ql): ImplantRequirements {
 		$sql = "SELECT * FROM implant_requirements WHERE ql = ?";
 
-		$row = $this->db->queryRow($sql, $ql);
+		/** @var ?ImplantRequirements */
+		$row = $this->db->fetch(ImplantRequirements::class, $sql, $ql);
 
 		$this->addClusterInfo($row);
 
 		return $row;
 	}
 
-	public function findMaxImplantQlByReqs($ability, $treatment) {
+	public function findMaxImplantQlByReqs(int $ability, int $treatment): ?ImplantRequirements {
 		$sql = "SELECT * FROM implant_requirements WHERE ability <= ? AND treatment <= ? ORDER BY ql DESC LIMIT 1";
 
-		$row = $this->db->queryRow($sql, $ability, $treatment);
+		/** @var ?ImplantRequirements */
+		$row = $this->db->fetch(ImplantRequirements::class, $sql, $ability, $treatment);
 
 		$this->addClusterInfo($row);
 
 		return $row;
 	}
 
-	public function formatClusterBonuses($obj) {
+	public function formatClusterBonuses(ImplantRequirements $obj): string {
 		$msg = "You will gain for most skills:\n" .
 			"<tab>Shiny    <highlight>$obj->skillShiny<end> ($obj->lowestSkillShiny - $obj->highestSkillShiny)\n" .
 			"<tab>Bright    <highlight>$obj->skillBright<end> ($obj->lowestSkillBright - $obj->highestSkillBright)\n" .
@@ -266,7 +260,7 @@ class ImplantController {
 		return $msg;
 	}
 
-	public function addClusterInfo($obj) {
+	public function addClusterInfo(?ImplantRequirements $obj): void {
 		if ($obj === null) {
 			return;
 		}
@@ -299,19 +293,19 @@ class ImplantController {
 		}
 	}
 	
-	public function getClusterMinQl($ql, $grade) {
+	public function getClusterMinQl(int $ql, string $grade): int {
 		if ($grade == 'shiny') {
-			return floor($ql * 0.86);
+			return (int)floor($ql * 0.86);
 		} elseif ($grade == 'bright') {
-			return floor($ql * 0.84);
+			return (int)floor($ql * 0.84);
 		} elseif ($grade == 'faded') {
-			return floor($ql * 0.82);
+			return (int)floor($ql * 0.82);
 		} else {
 			throw new Exception("Invalid grade: '$grade'.  Must be one of: 'shiny', 'bright', 'faded'");
 		}
 	}
 
-	public function setHighestAndLowestQls($obj, $var) {
+	public function setHighestAndLowestQls(ImplantRequirements $obj, string $var): void {
 		$varValue = $obj->$var;
 
 		$sql = "SELECT MAX(ql) as max, MIN(ql) as min FROM implant_requirements WHERE $var = ?";

@@ -8,5 +8,12 @@ To roll a random value:
 <highlight><tab><symbol>roll 'value1' 'value2' 'value3' ...<end>
 Note that values must not contain spaces.
 
+To roll multiple random values from a list:
+<highlight><tab><symbol>roll 'amount'x 'value1' 'value2' 'value3' ...<end>
+Note that values must not contain spaces.
+
+For example, you wanna roll the 2 DB2 infusers for your party:
+<highlight><tab><symbol>roll 2x Player1 Player2 Player3 Player4 Player5 Player6<end>
+
 To verify a roll:
 <highlight><tab><symbol>verify 'verify number'<end>

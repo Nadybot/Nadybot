@@ -1,6 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\REPUTATION_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	Nadybot,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -33,36 +41,22 @@ class KillOnSightController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
+	/** @Setup */
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'kos');
 	}
 
@@ -70,26 +64,28 @@ class KillOnSightController {
 	 * @HandlesCommand("kos")
 	 * @Matches("/^kos$/i")
 	 */
-	public function kosListCommand($message, $channel, $sender, $sendto, $args) {
-		$sql = "SELECT * FROM kos";
+	public function kosListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sql = "SELECT * FROM kos ORDER BY name ASC";
 
-		$data = $this->db->query($sql);
-		$count = count($data);
+		/** @var Kos[] */
+		$entries = $this->db->fetchAll(Kos::class, $sql);
+		$count = count($entries);
 
-		if ($count == 0) {
+		if ($count === 0) {
 			$msg = "There are no characters on the KOS list.";
-		} else {
-			$blob = '';
-			foreach ($data as $row) {
-				$comment = "";
-				if (!empty($row->comment)) {
-					$comment = " - $row->comment";
-				}
-				
-				$blob .= "<highlight>$row->name<end>$comment (added by $row->submitter <highlight>" . $this->util->unixtimeToReadable(time() - $row->dt) . "<end> ago)\n";
-			}
-			$msg = $this->text->makeBlob("Kill-On-Sight List ($count)", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = "<header2>Personae non gratae<end>\n";
+		foreach ($entries as $entry) {
+			$comment = "";
+			if (!empty($entry->comment)) {
+				$comment = " - $entry->comment";
+			}
+			
+			$blob .= "<tab><highlight>$entry->name<end>$comment (added by $entry->submitter <highlight>" . $this->util->unixtimeToReadable(time() - $entry->dt) . "<end> ago)\n";
+		}
+		$msg = $this->text->makeBlob("Kill-On-Sight List ($count)", $blob);
 		$sendto->reply($msg);
 	}
 	
@@ -98,30 +94,31 @@ class KillOnSightController {
 	 * @Matches("/^kos add ([a-z0-9-]+)$/i")
 	 * @Matches("/^kos add ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function kosAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function kosAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$charid = $this->chatBot->get_uid($name);
 		
-		if ($charid == false) {
+		if (!$charid) {
 			$sendto->reply("Character <highlight>$name<end> does not exist.");
 			return;
 		}
 
 		$sql = "SELECT * FROM kos WHERE name = ?";
-		$row = $this->db->queryRow($sql, $name);
+		$row = $this->db->fetch(Kos::class, $sql, $name);
 
 		if ($row !== null) {
 			$msg = "Character <highlight>$name<end> is already on the Kill-On-Sight list.";
-		} else {
-			$comment = "";
-			if (isset($args[2])) {
-				$comment = trim($args[2]);
-			}
-			
-			$sql = "INSERT INTO kos (name, comment, submitter, dt) VALUES (?, ?, ?, ?)";
-			$this->db->exec($sql, $name, $comment, $sender, time());
-			$msg = "Character <highlight>$name<end> has been added to the Kill-On-Sight list.";
+			$sendto->reply($msg);
+			return;
 		}
+		$comment = "";
+		if (isset($args[2])) {
+			$comment = trim($args[2]);
+		}
+		
+		$sql = "INSERT INTO kos (name, comment, submitter, dt) VALUES (?, ?, ?, ?)";
+		$this->db->exec($sql, $name, $comment, $sender, time());
+		$msg = "Character <highlight>$name<end> has been added to the Kill-On-Sight list.";
 		$sendto->reply($msg);
 	}
 	
@@ -129,11 +126,12 @@ class KillOnSightController {
 	 * @HandlesCommand("kos rem .+")
 	 * @Matches("/^kos rem (.+)$/i")
 	 */
-	public function kosRemCommand($message, $channel, $sender, $sendto, $args) {
+	public function kosRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$sql = "SELECT * FROM kos WHERE name = ?";
 
-		$row = $this->db->queryRow($sql, $name);
+		/** @var ?Kos */
+		$row = $this->db->fetch(Kos::class, $sql, $name);
 
 		if ($row === null) {
 			$msg = "Character <highlight>$name<end> is not on the Kill-On-Sight list.";

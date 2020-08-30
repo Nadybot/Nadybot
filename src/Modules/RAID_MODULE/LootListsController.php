@@ -1,6 +1,17 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\RAID_MODULE;
+
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	DB,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
+use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 
 /**
  * @author Marinerecon (RK2)
@@ -71,114 +82,6 @@ namespace Nadybot\Modules\RAID_MODULE;
  *		help        = 'pande.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'beastarmor',
- *		accessLevel = 'all',
- *		description = 'Shows Beast Armor loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'beastweaps',
- *		accessLevel = 'all',
- *		description = 'Shows Beast Weapons loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'beaststars',
- *		accessLevel = 'all',
- *		description = 'Shows Beast Stars loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'tnh',
- *		accessLevel = 'all',
- *		description = 'Shows The Night Heart loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'sb',
- *		accessLevel = 'all',
- *		description = 'Shows Shadowbreeds loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'aries',
- *		accessLevel = 'all',
- *		description = 'Shows Aries Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'leo',
- *		accessLevel = 'all',
- *		description = 'Shows Leo Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'virgo',
- *		accessLevel = 'all',
- *		description = 'Shows Virgo Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'aquarius',
- *		accessLevel = 'all',
- *		description = 'Shows Aquarius Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'cancer',
- *		accessLevel = 'all',
- *		description = 'Shows Cancer Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'gemini',
- *		accessLevel = 'all',
- *		description = 'Shows Gemini Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'libra',
- *		accessLevel = 'all',
- *		description = 'Shows Libra Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'pisces',
- *		accessLevel = 'all',
- *		description = 'Shows Pisces Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'taurus',
- *		accessLevel = 'all',
- *		description = 'Shows Taurus Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'capricorn',
- *		accessLevel = 'all',
- *		description = 'Shows Capricorn Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'sagittarius',
- *		accessLevel = 'all',
- *		description = 'Shows Sagittarius Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'scorpio',
- *		accessLevel = 'all',
- *		description = 'Shows Scorpio Zodiac loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bastion',
- *		accessLevel = 'all',
- *		description = 'Shows Bastion loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
  *		command     = 'pande',
  *		accessLevel = 'all',
  *		description = 'Shows Pandemonium bosses and loot categories',
@@ -227,54 +130,34 @@ class LootListsController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Modules\RAID_MODULE\RaidController $raidController
-	 * @Inject
-	 */
-	public $raidController;
+	/** @Inject */
+	public RaidController $raidController;
 
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
-	 * @Inject
-	 */
-	public $chatLeaderController;
+	/** @Inject */
+	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
+	/** @Setup */
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'raid_loot');
 		$this->settingManager->add(
 			$this->moduleName,
@@ -286,6 +169,25 @@ class LootListsController {
 			'true;false',
 			'1;0'
 		);
+		$this->commandAlias->register($this->moduleName, "pande Beast Armor", 'beastarmor');
+		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweaps');
+		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweapons');
+		$this->commandAlias->register($this->moduleName, "pande Stars", 'beaststars');
+		$this->commandAlias->register($this->moduleName, "pande The Night Heart", 'tnh');
+		$this->commandAlias->register($this->moduleName, "pande Shadowbreeds", 'sb');
+		$this->commandAlias->register($this->moduleName, "pande Aries", 'aries');
+		$this->commandAlias->register($this->moduleName, "pande Leo", 'leo');
+		$this->commandAlias->register($this->moduleName, "pande Virgo", 'virgo');
+		$this->commandAlias->register($this->moduleName, "pande Aquarius", 'aquarius');
+		$this->commandAlias->register($this->moduleName, "pande Cancer", 'cancer');
+		$this->commandAlias->register($this->moduleName, "pande Gemini", 'gemini');
+		$this->commandAlias->register($this->moduleName, "pande Libra", 'libra');
+		$this->commandAlias->register($this->moduleName, "pande Pisces", 'pisces');
+		$this->commandAlias->register($this->moduleName, "pande Taurus", 'taurus');
+		$this->commandAlias->register($this->moduleName, "pande Capricorn", 'capricorn');
+		$this->commandAlias->register($this->moduleName, "pande Sagittarius", 'sagittarius');
+		$this->commandAlias->register($this->moduleName, "pande Scorpio", 'scorpio');
+		$this->commandAlias->register($this->moduleName, "pande Bastion", 'bastion');
 	}
 	
 	/**
@@ -295,7 +197,7 @@ class LootListsController {
 	 * @HandlesCommand("alb")
 	 * @Matches("/^alb$/i")
 	 */
-	public function albCommand($message, $channel, $sender, $sendto, $args) {
+	public function albCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories');
 		$blob .= $this->findRaidLoot('Albtraum', 'Ancients');
 		$blob .= $this->findRaidLoot('Albtraum', 'Samples');
@@ -311,7 +213,7 @@ class LootListsController {
 	 * @HandlesCommand("db1")
 	 * @Matches("/^db1$/i")
 	 */
-	public function db1Command($message, $channel, $sender, $sendto, $args) {
+	public function db1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB1');
 		$msg = $this->text->makeBlob("DB1 Loot", $blob);
@@ -324,7 +226,7 @@ class LootListsController {
 	 * @HandlesCommand("db2")
 	 * @Matches("/^db2$/i")
 	 */
-	public function db2Command($message, $channel, $sender, $sendto, $args) {
+	public function db2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB2');
 		$msg = $this->text->makeBlob("DB2 Loot", $blob);
@@ -335,7 +237,7 @@ class LootListsController {
 	 * @HandlesCommand("7")
 	 * @Matches("/^7$/i")
 	 */
-	public function apf7Command($message, $channel, $sender, $sendto, $args) {
+	public function apf7Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$raid = "Sector 7";
 		$blob = $this->findRaidLoot($raid, "Misc");
 		$blob .= $this->findRaidLoot($raid, "NCU");
@@ -349,7 +251,7 @@ class LootListsController {
 	 * @HandlesCommand("13")
 	 * @Matches("/^13$/i")
 	 */
-	public function apf13Command($message, $channel, $sender, $sendto, $args) {
+	public function apf13Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -362,7 +264,7 @@ class LootListsController {
 	 * @HandlesCommand("28")
 	 * @Matches("/^28$/i")
 	 */
-	public function apf28Command($message, $channel, $sender, $sendto, $args) {
+	public function apf28Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -375,7 +277,7 @@ class LootListsController {
 	 * @HandlesCommand("35")
 	 * @Matches("/^35$/i")
 	 */
-	public function apf35Command($message, $channel, $sender, $sendto, $args) {
+	public function apf35Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -384,7 +286,7 @@ class LootListsController {
 		$this->addAPFLootToList(35);
 	}
 	
-	public function addAPFLootToList($sector) {
+	public function addAPFLootToList(int $sector): void {
 		// adding apf stuff
 		$this->raidController->addRaidToLootList('APF', "Sector $sector");
 		$msg = "Sector $sector loot table was added to the loot list.";
@@ -398,8 +300,8 @@ class LootListsController {
 	 * @HandlesCommand("apf")
 	 * @Matches("/^apf (7|13|28|35)$/i")
 	 */
-	public function apfCommand($message, $channel, $sender, $sendto, $args) {
-		$sector = $args[1];
+	public function apfCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sector = (int)$args[1];
 
 		$itemlink["ICE"] = $this->text->makeItem(257968, 257968, 1, "Hacker ICE-Breaker Source");
 		$itemlink["BOARD"] = $this->text->makeItem(257706, 257706, 1, "Kyr'Ozch Helmet");
@@ -444,7 +346,8 @@ class LootListsController {
 
 		switch ($sector) {
 			case "7":
-				return $this->apf7Command($message, $channel, $sendto, $sendto, $args);
+				$this->apf7Command($message, $channel, $sender, $sendto, $args);
+				return;
 			case "13":
 				//CRU
 				$list .= $this->text->makeImage(257196) . "\n";
@@ -592,7 +495,7 @@ class LootListsController {
 	 * @HandlesCommand("beast")
 	 * @Matches("/^beast$/i")
 	 */
-	public function beastCommand($message, $channel, $sender, $sendto, $args) {
+	public function beastCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Pande', 'Beast Armor');
 		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons');
 		$blob .= $this->findRaidLoot('Pande', 'Stars');
@@ -600,191 +503,33 @@ class LootListsController {
 		$msg = $this->text->makeBlob("Beast Loot", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
-	 * @author Marinerecon (RK2)
+	 * @author Nadyita (RK5)
 	 *
-	 * @HandlesCommand("beastarmor")
-	 * @Matches("/^beastarmor$/i")
+	 * @HandlesCommand("pande")
+	 * @Matches("/^pande (.+)$/i")
 	 */
-	public function beastarmorCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Beast Armor'));
+	public function pandeSubCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getPandemoniumLoot('Pande', $args[1]);
+		if (empty($msg)) {
+			$sendto->reply("No loot found for <highlight>{$args[1]}<end>.");
+			return;
+		}
+		$sendto->reply($msg);
 	}
 	
 	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("beastweaps")
-	 * @Matches("/^beastweaps$/i")
+	 * @return string|string[]|null
 	 */
-	public function beastweapsCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Beast Weapons'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("beaststars")
-	 * @Matches("/^beaststars$/i")
-	 */
-	public function beaststarsCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Stars'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("sb")
-	 * @Matches("/^sb$/i")
-	 */
-	public function sbCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Shadowbreeds'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("tnh")
-	 * @Matches("/^tnh$/i")
-	 */
-	public function tnhCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'The Night Heart'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("aries")
-	 * @Matches("/^aries$/i")
-	 */
-	public function ariesCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Aries'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("leo")
-	 * @Matches("/^leo$/i")
-	 */
-	public function leoCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Leo'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("virgo")
-	 * @Matches("/^virgo$/i")
-	 */
-	public function virgoCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Virgo'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("aquarius")
-	 * @Matches("/^aquarius$/i")
-	 */
-	public function aquariusCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Aquarius'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("cancer")
-	 * @Matches("/^cancer$/i")
-	 */
-	public function cancerCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Cancer'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("gemini")
-	 * @Matches("/^gemini$/i")
-	 */
-	public function geminiCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Gemini'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("libra")
-	 * @Matches("/^libra$/i")
-	 */
-	public function libraCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Libra'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("pisces")
-	 * @Matches("/^pisces$/i")
-	 */
-	public function piscesCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Pisces'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("taurus")
-	 * @Matches("/^taurus$/i")
-	 */
-	public function taurusCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Taurus'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("capricorn")
-	 * @Matches("/^capricorn$/i")
-	 */
-	public function capricornCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Capricorn'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("sagittarius")
-	 * @Matches("/^sagittarius$/i")
-	 */
-	public function sagittariusCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Sagittarius'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("scorpio")
-	 * @Matches("/^scorpio$/i")
-	 */
-	public function scorpioCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Scorpio'));
-	}
-	
-	/**
-	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("bastion")
-	 * @Matches("/^bastion$/i")
-	 */
-	public function bastionCommand($message, $channel, $sender, $sendto, $args) {
-		$sendto->reply($this->getPandemoniumLoot('Pande', 'Bastion'));
-	}
-	
-	public function getPandemoniumLoot($raid, $category) {
+	public function getPandemoniumLoot(string $raid, string $category) {
+		$category = ucwords(strtolower($category));
 		$blob = $this->findRaidLoot($raid, $category);
+		if (empty($blob)) {
+			return null;
+		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return $this->text->makeBlob("$raid $category Loot", $blob);
+		return $this->text->makeBlob("$raid \"$category\" Loot", $blob);
 	}
 	
 	/**
@@ -793,7 +538,7 @@ class LootListsController {
 	 * @HandlesCommand("pande")
 	 * @Matches("/^pande$/i")
 	 */
-	public function pandeCommand($message, $channel, $sender, $sendto, $args) {
+	public function pandeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$list  = "<header2>The Beast<end>\n";
 		$list .= "<tab>".$this->text->makeChatcmd("All Beast Loot (long)\n", "/tell <myname> beast");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Armor\n", "/tell <myname> beastarmor");
@@ -833,7 +578,7 @@ class LootListsController {
 	 * @HandlesCommand("vortexx")
 	 * @Matches("/^vortexx$/i")
 	 */
-	public function xanVortexxCommand($message, $channel, $sender, $sendto, $args) {
+	public function xanVortexxCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Vortexx', 'General');
 		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants');
 		$blob .= $this->findRaidLoot('Vortexx', 'Spirits');
@@ -847,7 +592,7 @@ class LootListsController {
 	 * @HandlesCommand("mitaar")
 	 * @Matches("/^mitaar$/i")
 	 */
-	public function xanMitaarCommand($message, $channel, $sender, $sendto, $args) {
+	public function xanMitaarCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Mitaar', 'General');
 		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants');
 		$blob .= $this->findRaidLoot('Mitaar', 'Spirits');
@@ -861,7 +606,7 @@ class LootListsController {
 	 * @HandlesCommand("12m")
 	 * @Matches("/^12m$/i")
 	 */
-	public function xan12mCommand($message, $channel, $sender, $sendto, $args) {
+	public function xan12mCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('12Man', 'General');
 		$blob .= $this->findRaidLoot('12Man', 'Symbiants');
 		$blob .= $this->findRaidLoot('12Man', 'Spirits');
@@ -876,7 +621,7 @@ class LootListsController {
 	 * @HandlesCommand("xan")
 	 * @Matches("/^xan$/i")
 	 */
-	public function xanCommand($message, $channel, $sender, $sendto, $args) {
+	public function xanCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$list = $this->text->makeChatcmd("Vortexx", "/tell <myname> vortexx") . "\n";
 		$list .= "<tab>General\n";
 		$list .= "<tab>Symbiants (Beta)\n";
@@ -903,7 +648,7 @@ class LootListsController {
 	 * @HandlesCommand("poh")
 	 * @Matches("/^poh$/i")
 	 */
-	public function pohCommand($message, $channel, $sender, $sendto, $args) {
+	public function pohCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Pyramid of Home', 'General');
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU');
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons');
@@ -916,7 +661,7 @@ class LootListsController {
 	 * @HandlesCommand("totw")
 	 * @Matches("/^totw$/i")
 	 */
-	public function totwCommand($message, $channel, $sender, $sendto, $args) {
+	public function totwCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc');
@@ -927,19 +672,19 @@ class LootListsController {
 		$sendto->reply($msg);
 	}
 
-	public function findRaidLoot($raid, $category) {
+	public function findRaidLoot(string $raid, string $category): ?string {
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE r.aoid IS NULL AND raid = ? AND category = ? ".
+			"WHERE r.aoid IS NULL AND raid LIKE ? AND category LIKE ? ".
 			"UNION ".
 			"SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"JOIN aodb a ON (r.aoid = a.highid) ".
-			"WHERE r.aoid IS NOT NULL AND raid = ? AND category = ?";
+			"WHERE r.aoid IS NOT NULL AND raid LIKE ? AND category LIKE ?";
 		$data = $this->db->query($sql, $raid, $category, $raid, $category);
 
-		if (count($data) == 0) {
+		if (count($data) === 0) {
 			return null;
 		}
 

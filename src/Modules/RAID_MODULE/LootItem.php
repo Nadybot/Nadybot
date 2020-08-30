@@ -1,26 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\RAID_MODULE;
 
 class LootItem {
-	/** @var string */
-	public $name;
+	public string $name;
 
-	/** @var int */
-	public $icon;
+	public ?int $icon;
 
-	/** @var string */
-	public $added_by;
+	public string $added_by;
 
-	/** @var string */
-	public $display;
+	public string $display;
 
-	/** @var string */
-	public $comment = "";
+	public string $comment = "";
 
-	/** @var int */
-	public $multiloot = 1;
+	public int $multiloot = 1;
 
 	/** @var array<string,bool> */
-	public $users = [];
+	public array $users = [];
 }

@@ -1,9 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use stdClass;
 use DateTime;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
@@ -24,60 +27,63 @@ class TimeController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
 	/**
 	 * @HandlesCommand("time")
 	 * @Matches("/^time$/i")
 	 */
-	public function timeListCommand($message, $channel, $sender, $sendto, $args) {
+	public function timeListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$link  = "<header2>Australia<end>\n";
-		$link .= "<tab><highlight>Western Australia</end>\n";
+		$link .= "<tab><highlight>Western Australia<end>\n";
 		$link .= "<tab><tab>Standard Time (AWST = GMT +8:00): " . $this->getTimezone("AWST")->time . "\n";
 		$link .= "<tab><highlight>Northern Territory/South Australia<end>\n";
-		$link .= "<tab><tab>Standard Time (ACST = GMT+9:30): " . $this->getTimezone("ACST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (ACDT = GMT+10:30): " . $this->getTimezone("ACDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (ACST = UTC+9:30): " . $this->getTimezone("ACST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (ACDT = UTC+10:30): " . $this->getTimezone("ACDT")->time . "\n";
 		$link .= "<tab><highlight>Queensland/Victoria/Tasmania<end>\n";
-		$link .= "<tab><tab>Standard Time (AEST = GMT+10): " . $this->getTimezone("AEST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (AEDT = GMT+11): " . $this->getTimezone("AEDT")->time . "\n\n";
+		$link .= "<tab><tab>Standard Time (AEST = UTC+10): " . $this->getTimezone("AEST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (AEDT = UTC+11): " . $this->getTimezone("AEDT")->time . "\n\n";
 
 		$link .= "<header2>Asia<end>\n";
-		$link .= "<tab><highlight>Thailand/Vietnam/Kambodscha (ICT = GMT+7)<end>: " . $this->getTimezone("ICT")->time . "\n";
-		$link .= "<tab><highlight>China/Malaysia/Singapur/Indonesien (CST = GMT+8)<end>: " . $this->getTimezone("CCST")->time . "\n";
-		$link .= "<tab><highlight>Japan/Korea (JST = GMT+9)<end>: " . $this->getTimezone("JST")->time . "\n\n";
+		$link .= "<tab><highlight>Thailand/Vietnam/Kambodscha<end>\n";
+		$link .= "<tab><tab>Standard Time (ICT = UTC+7): " . $this->getTimezone("ICT")->time . "\n";
+		$link .= "<tab><highlight>China/Malaysia/Singapur/Indonesien<end>\n";
+		$link .= "<tab><tab>Standard Time (CST = UTC+8): " . $this->getTimezone("CCST")->time . "\n";
+		$link .= "<tab><highlight>Japan/Korea<end>\n";
+		$link .= "<tab><tab>Standard Time (JST = UTC+9): " . $this->getTimezone("JST")->time . "\n\n";
 
 		$link .= "<header2>Europe<end>\n";
-		$link .= "<tab><highlight>England (GMT)<end>: " . $this->getTimezone("GMT")->time . "\n";
-		$link .= "<tab><highlight>Germany/France/Netherlands/Italy/Austria<end>\n";
-		$link .= "<tab><tab>Standard Time (CET = GMT+1): " . $this->getTimezone("CET")->time . "\n";
-		$link .= "<tab><tab>Summer Time (CEST = GMT+2): " . $this->getTimezone("CEST")->time . "\n";
-		$link .= "<tab><highlight>Ägypten/Bulgarien/Finnland/Griechenland<end>\n";
-		$link .= "<tab><tab>Standard Time (EET = GMT+2): " . $this->getTimezone("EET")->time . "\n";
-		$link .= "<tab><tab>Summer Time (EEST/EEDT = GMT+3): " . $this->getTimezone("EEST")->time . "\n";
-		$link .= "<tab><highlight>Bahrain/Irak/Russland/Saudi Arabien<end>\n";
-		$link .= "<tab><tab>Standard Time (MSK = GMT+3): " . $this->getTimezone("MSK")->time . "\n";
-		$link .= "<tab><tab>Summer Time (MSD = GMT+4): " . $this->getTimezone("MSD")->time . "\n\n";
-		$link .= "<highlight>Indien (GMT+5:30)<end>: " . $this->getTimezone("IST")->time . "\n\n";
-		$link .= "<highlight>Iran (GMT+3:30)<end>: " . $this->getTimezone("IRT")->time . "\n\n";
+		$link .= "<tab><highlight>England,Spain,Portugal<end>\n";
+		$link .= "<tab><tab>Standard Time (GMT = UTC): " . $this->getTimezone("GMT")->time . "\n";
+		$link .= "<tab><tab>Summer Time (BST = UTC+1): " . $this->getTimezone("BST")->time . "\n";
+		$link .= "<tab><highlight>Germany/France/Netherlands/Italy/Norway<end>\n";
+		$link .= "<tab><tab>Standard Time (CET = UTC+1): " . $this->getTimezone("CET")->time . "\n";
+		$link .= "<tab><tab>Summer Time (CEST = UTC+2): " . $this->getTimezone("CEST")->time . "\n";
+		$link .= "<tab><highlight>Egypt/Bulgary/Finland/Greece<end>\n";
+		$link .= "<tab><tab>Standard Time (EET = UTC+2): " . $this->getTimezone("EET")->time . "\n";
+		$link .= "<tab><tab>Summer Time (EEST/EEDT = UTC+3): " . $this->getTimezone("EEST")->time . "\n";
+		$link .= "<tab><highlight>Bahrain/Iraq/Russia/Saudi Arabia<end>\n";
+		$link .= "<tab><tab>Standard Time (MSK = UTC+3): " . $this->getTimezone("MSK")->time . "\n";
+		$link .= "<tab><tab>Summer Time (MSD = UTC+4): " . $this->getTimezone("MSD")->time . "\n\n";
 
-		$link .= "<header2>Canada<end>\n";
-		$link .= "<tab>Standard Time (NST = GMT-3:30): " . $this->getTimezone("NST")->time . "\n";
-		$link .= "<tab>Summer Time (NDT = GMT-2:30): " . $this->getTimezone("NDT")->time . "\n\n";
+		$link .= "<header2>West Asia<end>\n";
+		$link .= "<tab><highlight>India (UTC+5:30)<end>: " . $this->getTimezone("IST")->time . "\n";
+		$link .= "<tab><highlight>Iran (UTC+3:30)<end>: " . $this->getTimezone("IRT")->time . "\n\n";
 
-		$link .= "<header2>USA<end>\n";
-		$link .= "<tab><highlight>Florida/Indiana/New York/Maine/New Jersey/Washington D.C.<end>\n";
+		$link .= "<header2>North America<end>\n";
+		$link .= "<tab><highlight>Newfoundland<end>\n";
+		$link .= "<tab><tab>Standard Time (NST = GMT-3:30): " . $this->getTimezone("NST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (NDT = GMT-2:30): " . $this->getTimezone("NDT")->time . "\n";
+		$link .= "<tab><highlight>Toronto<end>\n";
+		$link .= "<tab><tab>Standard Time (EDT = GMT-4): " . $this->getTimezone("EDT")->time . "\n";
+		$link .= "<tab><tab>Summer Time (AST = GMT-3): " . $this->getTimezone("AST")->time . "\n";
+		$link .= "<tab><highlight>Florida/Indiana/New York/Maine/New Jersey/Washington D.C./Winnipeg<end>\n";
 		$link .= "<tab><tab>Standard Time (EST = GMT-5): " . $this->getTimezone("EST")->time . "\n";
 		$link .= "<tab><tab>Summer Time (EDT = GMT-4): " . $this->getTimezone("EDT")->time . "\n";
 		$link .= "<tab><highlight>Alaska<end>\n";
@@ -86,10 +92,10 @@ class TimeController {
 		$link .= "<tab><highlight>California/Nevada/Washington<end>\n";
 		$link .= "<tab><tab>Standard Time (PST = GMT-8): " . $this->getTimezone("PST")->time . "\n";
 		$link .= "<tab><tab>Summer Time (PDT = GMT-7): " . $this->getTimezone("PDT")->time . "\n";
-		$link .= "<tab><highlight>Colorado/Montana/New Mexico/Utah<end>\n";
+		$link .= "<tab><highlight>Colorado/Montana/New Mexico/Utah/Vancouver<end>\n";
 		$link .= "<tab><tab>Standard Time (MST = GMT-7): " . $this->getTimezone("MST")->time . "\n";
 		$link .= "<tab><tab>Summer Time (MDT = GMT-6): " . $this->getTimezone("MDT")->time . "\n";
-		$link .= "<tab><highlight>Alabama/Illinois/Iowa/Michigan/Minnesota/Oklahoma<end>\n";
+		$link .= "<tab><highlight>Alabama/Illinois/Iowa/Michigan/Minnesota/Oklahoma/Edmonton<end>\n";
 		$link .= "<tab><tab>Standard Time (CST = GMT-6): " . $this->getTimezone("CST")->time . "\n";
 		$link .= "<tab><tab>Summer Time (CDT = GMT-5): " . $this->getTimezone("CDT")->time . "\n\n";
 		
@@ -105,7 +111,7 @@ class TimeController {
 	 * @HandlesCommand("time")
 	 * @Matches("/^time (.+)$/i")
 	 */
-	public function timeShowCommand($message, $channel, $sender, $sendto, $args) {
+	public function timeShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$zone = strtoupper($args[1]);
 		$timezone = $this->getTimezone($zone);
 		if ($timezone !== null) {
@@ -155,6 +161,10 @@ class TimeController {
 				$name = "Alaska Daylight Time (GMT-8)";
 				$offset = -(3600*8);
 				break;
+			case "AST":
+				$name = "Atlantic Standard Time (GMT-6)";
+				$offset = -(3600*6);
+				break;
 			case "EST":
 				$name = "Eastern Standard Time (GMT-5)";
 				$offset = -(3600*5);
@@ -176,72 +186,76 @@ class TimeController {
 				$name = "Greenwich Mean Time (GMT / AO)";
 				$offset = 0;
 				break;
+			case "BST":
+				$name = "British Summer Time (UTC+1)";
+				$offset = 3600;
+				break;
 			case "CET":
-				$name = "Central European Time (GMT+1)";
+				$name = "Central European Time (UTC+1)";
 				$offset = 3600;
 				break;
 			case "CEST":
-				$name = "Central European Summer Time (GMT+2)";
+				$name = "Central European Summer Time (UTC+2)";
 				$offset = 3600*2;
 				break;
 			case "EET":
-				$name = "Eastern European Time (GMT+2)";
+				$name = "Eastern European Time (UTC+2)";
 				$offset = 3600*2;
 				break;
 			case "EEST":
-				$name = "Eastern European Summer Time (GMT+3)";
+				$name = "Eastern European Summer Time (UTC+3)";
 				$offset = 3600*3;
 				break;
 			case "EEDT":
-				$name = "Eastern European Daylight Time (GMT+3)";
+				$name = "Eastern European Daylight Time (UTC+3)";
 				$offset = 3600*3;
 				break;
 			case "MSK":
-				$name = "Moscow Time (GMT+3)";
+				$name = "Moscow Time (UTC+3)";
 				$offset = 3600*3;
 				break;
 			case "MSD":
-				$name = "Moscow Daylight Time (GMT+4)";
+				$name = "Moscow Daylight Time (UTC+4)";
 				$offset = 3600*4;
 				break;
 			case "IRT":
-				$name = "Iran Time (GMT+3:30)";
+				$name = "Iran Time (UTC+3:30)";
 				$offset = 3600*3.5;
 				break;
 			case "IST":
-				$name = "Indian Standard Time (GMT+5:30)";
+				$name = "Indian Standard Time (UTC+5:30)";
 				$offset = 3600*5.5;
 				break;
 			case "ICT":
-				$name = "Indochina Time (GMT+7)";
+				$name = "Indochina Time (UTC+7)";
 				$offset = 3600*7;
 				break;
 			case "CCST":
-				$name = "China Standard Time (GMT+8)";
+				$name = "China Standard Time (UTC+8)";
 				$offset = 3600*8;
 				break;
 			case "JST":
-				$name = "Japan Standard Time (GMT+9)";
+				$name = "Japan Standard Time (UTC+9)";
 				$offset = 3600*9;
 				break;
 			case "AWST":
-				$name = "Australian Western Standard Time (GMT+8)";
+				$name = "Australian Western Standard Time (UTC+8)";
 				$offset = 3600*8;
 				break;
 			case "ACST":
-				$name = "Australian Central Standard Time (GMT+9:30)";
+				$name = "Australian Central Standard Time (UTC+9:30)";
 				$offset = 3600*9.5;
 				break;
 			case "ACDT":
-				$name = "Australian Central Daylight Time (GMT+10:30)";
+				$name = "Australian Central Daylight Time (UTC+10:30)";
 				$offset = 3600*10.5;
 				break;
 			case "AEST":
-				$name = "Australian Eastern Standard Time (GMT+10)";
+				$name = "Australian Eastern Standard Time (UTC+10)";
 				$offset = 3600*10;
 				break;
 			case "AEDT":
-				$name = "Australian Eastern Daylight Time (GMT+11)";
+				$name = "Australian Eastern Daylight Time (UTC+11)";
 				$offset = 3600*11;
 				break;
 			default:
@@ -251,7 +265,7 @@ class TimeController {
 		$obj = new stdClass;
 		$obj->name = $name;
 		$obj->offset = $offset;
-		$obj->time = date($time_format, $time + $offset);
+		$obj->time = date($time_format, (int)($time + $offset));
 		return $obj;
 	}
 }

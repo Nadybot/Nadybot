@@ -1,8 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * A stopwatch controller with start, stop and lap
@@ -23,47 +26,30 @@ class StopwatchController {
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
-	 * @var string
 	 */
-	public $moduleName;
+	public string $moduleName;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Util $util;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
+	 * @var array<string,Stopwatch>
 	 */
-	public $text;
-
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
-
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
-
-	/**
-	 * @var Stopwatch[] $stopwatches
-	 */
-	public $stopwatches = [];
+	public array $stopwatches = [];
 
 	/**
 	 * Start a new stopwatch
 	 *
-	 * @param string                     $message The full command received
-	 * @param string                     $channel Where did the command come from (tell, guild, priv)
-	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
-	 * @param string[]                   $args    The arguments to the disc-command
-	 * @return void
-	 *
 	 * @HandlesCommand("stopwatch")
 	 * @Matches("/^stopwatch\s+start$/i")
 	 */
-	public function startStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+	public function startStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (array_key_exists($sender, $this->stopwatches)) {
 			$msg = "You already have a stopwatch running. ".
 				"Use <highlight><symbol>stopwatch stop<end> to stop it.";
@@ -78,17 +64,10 @@ class StopwatchController {
 	/**
 	 * Stop a user's stopwatch
 	 *
-	 * @param string                     $message The full command received
-	 * @param string                     $channel Where did the command come from (tell, guild, priv)
-	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
-	 * @param string[]                   $args    The arguments to the disc-command
-	 * @return void
-	 *
 	 * @HandlesCommand("stopwatch")
 	 * @Matches("/^stopwatch\s+stop$/i")
 	 */
-	public function stopStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+	public function stopStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!array_key_exists($sender, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$sendto->reply($msg);
@@ -104,18 +83,11 @@ class StopwatchController {
 	/**
 	 * Command to add a lap to the stopwatch
 	 *
-	 * @param string                     $message The full command received
-	 * @param string                     $channel Where did the command come from (tell, guild, priv)
-	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
-	 * @param string[]                   $args    The arguments to the disc-command
-	 * @return void
-	 *
 	 * @HandlesCommand("stopwatch")
 	 * @Matches("/^stopwatch\s+lap$/i")
 	 * @Matches("/^stopwatch\s+lap(\s+.+)$/i")
 	 */
-	public function stopwatchLapCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+	public function stopwatchLapCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!array_key_exists($sender, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$sendto->reply($msg);
@@ -130,18 +102,11 @@ class StopwatchController {
 	/**
 	 * Show a user's stopwatch
 	 *
-	 * @param string                     $message The full command received
-	 * @param string                     $channel Where did the command come from (tell, guild, priv)
-	 * @param string                     $sender  The name of the user issuing the command
-	 * @param \Nadybot\Core\CommandReply $sendto  Object to use to reply to
-	 * @param string[]                   $args    The arguments to the disc-command
-	 * @return void
-	 *
 	 * @HandlesCommand("stopwatch")
 	 * @Matches("/^stopwatch\s+view$/i")
 	 * @Matches("/^stopwatch\s+show$/i")
 	 */
-	public function showStopwatchCommand($message, $channel, $sender, CommandReply $sendto, $args) {
+	public function showStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!array_key_exists($sender, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$sendto->reply($msg);

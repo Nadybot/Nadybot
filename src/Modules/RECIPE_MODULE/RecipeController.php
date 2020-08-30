@@ -1,8 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
+use JsonException;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 /**
  * @author Tyrence
@@ -25,122 +32,146 @@ class RecipeController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
-	 * @Inject
-	 */
-	public $itemsController;
+	/** @Inject */
+	public ItemsController $itemsController;
 
-	private $path;
+	private string $path;
+
+	protected function parseTextFile(int $id, string $fileName): Recipe {
+		$recipe = new Recipe();
+		$recipe->id = $id;
+		$lines = file($this->path . $fileName);
+		$nameLine = trim(array_shift($lines));
+		$authorLine = trim(array_shift($lines));
+		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
+		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
+		$recipe->recipe = implode("", $lines);
+
+		return $recipe;
+	}
+
+	protected function parseJSONFile(int $id, string $fileName): Recipe {
+		$recipe = new Recipe();
+		$recipe->id = $id;
+		try {
+			$data = json_decode(
+				file_get_contents($this->path . $fileName),
+				false,
+				JSON_THROW_ON_ERROR
+			);
+		} catch (JsonException $e) {
+			throw new Exception("Could not read '$fileName': invalid JSON");
+		}
+		$recipe->name = $data->name ?? "<unnamed>";
+		$recipe->author = $data->author ?? "<unknown>";
+		/** @var array<string,AODBEntry> */
+		$items = [];
+		foreach ($data->items as $item) {
+			$dbItem = $this->itemsController->findById($item->item_id);
+			if ($dbItem === null) {
+				throw new Exception("Could not find item '{$item->item_id}'");
+			}
+			$items[$item->alias] = $dbItem;
+			$items[$item->alias]->ql = $item->ql;
+		}
+
+		$recipe->recipe = "<font color=#FFFF00>------------------------------</font>\n";
+		$recipe->recipe .= "<font color=#FF0000>Ingredients</font>\n";
+		$recipe->recipe .= "<font color=#FFFF00>------------------------------</font>\n\n";
+		$ingredients = $items;
+		foreach ($data->steps as $step) {
+			unset($ingredients[$step->result]);
+		}
+		foreach ($ingredients as $ingredient) {
+			$recipe->recipe .= $this->text->makeImage($ingredient->icon) . "\n";
+			$recipe->recipe .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
+		}
+
+		$recipe->recipe .= "<pagebreak><yellow>------------------------------<end>\n";
+		$recipe->recipe .= "<red>Recipe<end>\n";
+		$recipe->recipe .= "<yellow>------------------------------<end>\n\n";
+		$stepNum = 1;
+		foreach ($data->steps as $step) {
+			$recipe->recipe .= "<pagebreak><header2>Step {$stepNum}<end>\n";
+			$stepNum++;
+			$source = $items[$step->source];
+			$target = $items[$step->target];
+			$result = $items[$step->result];
+			$recipe->recipe .= "<tab>".
+				$this->text->makeItem($source->lowid, $source->highid, $source->ql, $this->text->makeImage($source->icon)).
+				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+				$this->text->makeItem($target->lowid, $target->highid, $target->ql, $this->text->makeImage($target->icon)).
+				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $this->text->makeImage($result->icon)).
+				"\n";
+			$recipe->recipe .= "<tab>{$source->name} ".
+				"<highlight>+<end> {$target->name} <highlight>=<end> ".
+				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name).
+				"\n";
+			if ($step->skills) {
+				$recipe->recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
+			}
+			$recipe->recipe .= "\n\n";
+		}
+		return $recipe;
+	}
+	
 
 	/**
 	 * @Event("connect")
 	 * @Description("Initializes the recipe database")
 	 * @DefaultStatus("1")
 	 *
-	 * This is a Event("connect") instead of Setup since it depends on the items db being loaded
+	 * This is an Event("connect") instead of Setup since it depends on the items db being loaded
 	 */
-	public function connectEvent() {
+	public function connectEvent(): void {
 		$this->db->loadSQLFile($this->moduleName, "recipes", true);
 
 		$this->path = __DIR__ . "/recipes/";
-		if ($handle = opendir($this->path)) {
-			while (false !== ($fileName = readdir($handle))) {
-				// if file has the correct extension, load recipe into database
-				if (preg_match("/(\d+)\.txt/", $fileName, $args)) {
-					$id = $args[1];
-					$lines = file($this->path . $fileName);
-					$name = substr(trim(array_shift($lines)), 6);
-					$author = substr(trim(array_shift($lines)), 8);
-					$data = implode("", $lines);
-					$this->db->exec("INSERT INTO recipes (id, name, author, recipe) VALUES (?, ?, ?, ?)", $id, $name, $author, $data);
-				} elseif (preg_match("/(\d+)\.json/", $fileName, $args)) {
-					$recipe = json_decode(file_get_contents($this->path . $fileName));
-					if ($recipe === null) {
-						throw new Exception("Could not read '$fileName', invalid JSON");
-					}
-
-					$id = $args[1];
-					$name = $recipe->name;
-					$author = $recipe->author;
-					$items = [];
-					foreach ($recipe->items as $item) {
-						$dbItem = $this->itemsController->findById($item->item_id);
-						if ($dbItem === null) {
-							throw new Exception("Could not find item '{$item->item_id}'");
-						}
-						$items[$item->alias] = $dbItem;
-						$items[$item->alias]->ql = $item->ql;
-					}
-
-					$data = "<font color=#FFFF00>------------------------------</font>\n";
-					$data .= "<font color=#FF0000>Ingredients</font>\n";
-					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
-					$ingredients = $items;
-					foreach ($recipe->steps as $step) {
-						unset($ingredients[$step->result]);
-					}
-					foreach ($ingredients as $ingredient) {
-						$data .= $this->text->makeImage($ingredient->icon) . "\n";
-						$data .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
-					}
-
-					$data .= "<font color=#FFFF00>------------------------------</font>\n";
-					$data .= "<font color=#FF0000>Recipe</font>\n";
-					$data .= "<font color=#FFFF00>------------------------------</font>\n\n";
-					foreach ($recipe->steps as $step) {
-						$source = $items[$step->source];
-						$target = $items[$step->target];
-						$result = $items[$step->result];
-						$data .= "<font color=#009B00>" . $source->name . "</font>\n";
-						$data .= "<font color=#FFFFFF>+</font>" . "\n";
-						$data .= "<font color=#009B00>" . $target->name . "</font>\n";
-						$data .= "<font color=#FFFFFF>=</font>" . "\n";
-						$data .= $this->text->makeImage($result->icon) . "\n";
-						$data .= $this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name) . "\n";
-						if ($step->skills) {
-							$data .= "<font color=#FFFF00>Skills: | {$step->skills} |</font>\n";
-						}
-						$data .= "\n\n";
-					}
-
-					$this->db->exec("INSERT INTO recipes (id, name, author, recipe) VALUES (?, ?, ?, ?)", $id, $name, $author, $data);
-				}
-			}
-			closedir($handle);
-		} else {
+		if (($handle = opendir($this->path)) === false) {
 			throw new Exception("Could not open '$this->path' for loading recipes");
 		}
+		while (($fileName = readdir($handle)) !== false) {
+			// if file has the correct extension, load recipe into database
+			if (preg_match("/(\d+)\.txt/", $fileName, $args)) {
+				$recipe = $this->parseTextFile((int)$args[1], $fileName);
+			} elseif (preg_match("/(\d+)\.json/", $fileName, $args)) {
+				$recipe = $this->parseJSONFile((int)$args[1], $fileName);
+			} else {
+				continue;
+			}
+			$this->db->exec(
+				"INSERT INTO recipes (id, name, author, recipe) ".
+				"VALUES (?, ?, ?, ?)",
+				$recipe->id,
+				$recipe->name,
+				$recipe->author,
+				$recipe->recipe
+			);
+		}
+		closedir($handle);
 	}
 	
 	/**
 	 * @HandlesCommand("recipe")
-	 * @Matches("/^recipe ([0-9]+)$/i")
+	 * @Matches("/^recipe (\d+)$/i")
 	 */
-	public function recipeShowCommand($message, $channel, $sender, $sendto, $args) {
-		$id = $args[1];
+	public function recipeShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
 		
-		$row = $this->db->queryRow("SELECT * FROM recipes WHERE id = ?", $id);
+		/** @var ?Recipe */
+		$row = $this->db->fetch(Recipe::class, "SELECT * FROM recipes WHERE id = ?", $id);
 
 		if ($row === null) {
 			$msg = "Could not find recipe with id <highlight>$id<end>.";
@@ -154,38 +185,53 @@ class RecipeController {
 	 * @HandlesCommand("recipe")
 	 * @Matches("/^recipe (.+)$/i")
 	 */
-	public function recipeSearchCommand($message, $channel, $sender, $sendto, $args) {
+	public function recipeSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (preg_match('|<a href="itemref://(\d+)/(\d+)/(\d+)">([^<]+)</a>|', $args[1], $matches)) {
-			$lowId = $matches[1];
+			$lowId = (int)$matches[1];
 			$search = $matches[4];
 			
-			$data = $this->db->query("SELECT * FROM recipes WHERE recipe LIKE ? OR recipe LIKE ? ORDER BY name ASC", "%" . $search . "%", "%" . $lowId . "%");
+			/** @var Recipe[] */
+			$data = $this->db->fetchAll(
+				Recipe::class,
+				"SELECT * FROM recipes WHERE recipe LIKE ? OR recipe LIKE ? ORDER BY name ASC",
+				"%{$search}%",
+				"%{$lowId}%"
+			);
 		} else {
 			$search = $args[1];
 			
 			[$query, $queryParams] = $this->util->generateQueryFromParams(explode(" ", $search), "recipe");
-			$data = $this->db->query("SELECT * FROM recipes WHERE $query ORDER BY name ASC", $queryParams);
+			/** @var Recipe[] */
+			$data = $this->db->fetchAll(
+				Recipe::class,
+				"SELECT * FROM recipes WHERE $query ORDER BY name ASC",
+				...$queryParams
+			);
 		}
 		
 		$count = count($data);
 
-		if ($count == 0) {
+		if ($count === 0) {
 			$msg = "Could not find any recipes matching your search criteria.";
-		} elseif ($count == 1) {
-			$msg = $this->createRecipeBlob($data[0]);
-		} else {
-			$blob = '';
-			foreach ($data as $row) {
-				$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> recipe $row->id") . "\n";
-			}
-
-			$msg = $this->text->makeBlob("Recipes matching '$search' ($count)", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		if ($count === 1) {
+			$msg = $this->createRecipeBlob($data[0]);
+			$sendto->reply($msg);
+			return;
+		}
+		$blob = "<header2>Recipes containing \"{$search}\"<end>\n";
+		foreach ($data as $row) {
+			$blob .= "<tab>" . $this->text->makeChatcmd($row->name, "/tell <myname> recipe $row->id") . "\n";
+		}
+
+		$msg = $this->text->makeBlob("Recipes matching '$search' ($count)", $blob);
 
 		$sendto->reply($msg);
 	}
 	
-	public function formatRecipeText($input) {
+	public function formatRecipeText(string $input): string {
 		$input = str_replace("\\n", "\n", $input);
 		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', [$this, 'replaceItem'], $input);
 		$input = preg_replace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
@@ -198,7 +244,10 @@ class RecipeController {
 		return $input;
 	}
 	
-	public function createRecipeBlob($row) {
+	/**
+	 * @return string[]
+	 */
+	public function createRecipeBlob(Recipe $row): array {
 		$recipe_name = $row->name;
 		$author = empty($row->author) ? "Unknown" : $row->author;
 
@@ -206,11 +255,11 @@ class RecipeController {
 		$recipeText .= "Author: <highlight>$author<end>\n\n";
 		$recipeText .= $this->formatRecipeText($row->recipe);
 
-		return $this->text->makeBlob("Recipe for $recipe_name", $recipeText);
+		return (array)$this->text->makeBlob("Recipe for $recipe_name", $recipeText);
 	}
 
-	private function replaceItem($arr) {
-		$id = $arr[2];
+	private function replaceItem(array $arr): string {
+		$id = (int)$arr[2];
 		$row = $this->itemsController->findById($id);
 		if ($row !== null) {
 			$output = $this->text->makeItem($row->lowid, $row->highid, $row->highql, $row->name);

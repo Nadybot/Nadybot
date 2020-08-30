@@ -1,9 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\AutoInject;
-use \DateTimeZone;
+use DateTimeZone;
+use Nadybot\Core\{
+	CommandReply,
+	Nadybot,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -19,25 +23,25 @@ use \DateTimeZone;
  *		alias		= 'timezones'
  *	)
  */
-class TimezoneController extends AutoInject {
+class TimezoneController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
-	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
-	}
+	public string $moduleName;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 	
 	/**
 	 * @HandlesCommand("timezone")
 	 * @Matches("/^timezone$/i")
 	 */
-	public function timezoneCommand($message, $channel, $sender, $sendto, $args) {
+	public function timezoneCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$timezoneAreas = $this->getTimezoneAreas();
 		
 		$blob = '';
@@ -52,16 +56,21 @@ class TimezoneController extends AutoInject {
 	 * @HandlesCommand("timezone")
 	 * @Matches("/^timezone set ([^ ]*)$/i")
 	 */
-	public function timezoneSetCommand($message, $channel, $sender, $sendto, $args) {
+	public function timezoneSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$timezone = $args[1];
 		
 		$result = date_default_timezone_set($timezone);
 		
-		if ($result) {
-			$msg = "Timezone has been set to <highlight>$timezone<end>.";
-		} else {
+		if ($result === false) {
 			$msg = "<highlight>$timezone<end> is not a valid timezone.";
+			$sendto->reply($msg);
+			return;
 		}
+		$msg = "Timezone has been set to <highlight>$timezone<end>.";
+		$config = $this->chatBot->runner->getConfigFile();
+		$config->load();
+		$config->setVar('timezone', $timezone);
+		$config->save();
 		$sendto->reply($msg);
 	}
 
@@ -69,15 +78,18 @@ class TimezoneController extends AutoInject {
 	 * @HandlesCommand("timezone")
 	 * @Matches("/^timezone ([^ ]*)$/i")
 	 */
-	public function timezoneAreaCommand($message, $channel, $sender, $sendto, $args) {
+	public function timezoneAreaCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$area = $args[1];
 		
 		$timezoneAreas = $this->getTimezoneAreas();
 		$code = $timezoneAreas[$area];
 		if (empty($code)) {
-			return false;
+			$msg = "<highlight>$area<end> is not a valid area.";
+			$sendto->reply($msg);
+			return;
 		}
 		
+		/** @var string[] */
 		$timezones = DateTimeZone::listIdentifiers($code);
 		$count = count($timezones);
 		
@@ -89,18 +101,22 @@ class TimezoneController extends AutoInject {
 		$sendto->reply($msg);
 	}
 	
-	public function getTimezoneAreas() {
+	/**
+	 * @return array<string,int>
+	 */
+	public function getTimezoneAreas(): array {
 		return [
-			'Africa' => 1,
-			'America' => 2,
-			'Antarctica' => 4,
-			'Arctic' => 8,
-			'Asia' => 16,
-			'Atlantic' => 32,
-			'Australia' => 64,
-			'Europe' => 128,
-			'Indian' => 256,
-			'Pacific' => 512,
-			'UTC' => 1024];
+			'Africa'     => DateTimeZone::AFRICA,
+			'America'    => DateTimeZone::AMERICA,
+			'Antarctica' => DateTimeZone::ANTARCTICA,
+			'Arctic'     => DateTimeZone::ARCTIC,
+			'Asia'       => DateTimeZone::ASIA,
+			'Atlantic'   => DateTimeZone::ATLANTIC,
+			'Australia'  => DateTimeZone::AUSTRALIA,
+			'Europe'     => DateTimeZone::EUROPE,
+			'Indian'     => DateTimeZone::INDIAN,
+			'Pacific'    => DateTimeZone::PACIFIC,
+			'UTC'        => DateTimeZone::UTC,
+		];
 	}
 }

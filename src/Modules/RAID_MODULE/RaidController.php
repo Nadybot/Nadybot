@@ -1,6 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\RAID_MODULE;
+
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	DB,
+	Nadybot,
+	SettingManager,
+	Text,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+};
+use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
+use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 /**
  * @author Derroylo (RK2)
@@ -55,49 +67,28 @@ class RaidController {
 	 * Set automatically by module loader.
 	 * @var string $moduleName
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
-	 * @Inject
-	 */
-	public $chatLeaderController;
+	/** @Inject */
+	public ChatLeaderController $chatLeaderController;
 
 	/**
 	 * The currently rolled items
@@ -116,7 +107,7 @@ class RaidController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
 			"add_on_loot",
@@ -151,7 +142,7 @@ class RaidController {
 	 * @Event("timer(30sec)")
 	 * @Description("Periodically announce running loot rolls")
 	 */
-	public function announceLootList() {
+	public function announceLootList(): void {
 		if (empty($this->loot)) {
 			return;
 		}
@@ -169,15 +160,8 @@ class RaidController {
 	 *
 	 * @HandlesCommand("loot")
 	 * @Matches("/^loot$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function lootCommand($message, $channel, $sender, $sendto, $args) {
+	public function lootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->getCurrentLootList();
 		$sendto->reply($msg);
 	}
@@ -187,15 +171,8 @@ class RaidController {
 	 *
 	 * @HandlesCommand("loot .+")
 	 * @Matches("/^loot clear$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function lootClearCommand($message, $channel, $sender, $sendto, $args) {
+	public function lootClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -206,7 +183,7 @@ class RaidController {
 		$msg = "Loot has been cleared by <highlight>$sender<end>.";
 		$this->chatBot->sendPrivate($msg);
 
-		if ($channel != 'priv') {
+		if ($channel !== 'priv') {
 			$sendto->reply($msg);
 		}
 	}
@@ -215,22 +192,15 @@ class RaidController {
 	 * Add an item from the raid_loot to the loot roll
 	 *
 	 * @HandlesCommand("loot .+")
-	 * @Matches("/^loot add ([0-9]+)$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
+	 * @Matches("/^loot add (\d+)$/i")
 	 */
-	public function lootAddByIdCommand($message, $channel, $sender, $sendto, $args) {
+	public function lootAddByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$id = $args[1];
+		$id = (int)$args[1];
 
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
@@ -286,15 +256,8 @@ class RaidController {
 	 *
 	 * @HandlesCommand("loot .+")
 	 * @Matches("/^loot add (.+)$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function lootAddCommand($message, $channel, $sender, $sendto, $args) {
+	public function lootAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -308,17 +271,10 @@ class RaidController {
 	 * Add multiple items to the loot roll
 	 *
 	 * @HandlesCommand("loot .+")
-	 * @Matches("/^loot addmulti ([0-9]+)x? (.+)$/i")
-	 * @Matches("/^loot multiadd ([0-9]+)x? (.+)$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
+	 * @Matches("/^loot addmulti (\d+)x? (.+)$/i")
+	 * @Matches("/^loot multiadd (\d+)x? (.+)$/i")
 	 */
-	public function multilootCommand($message, $channel, $sender, $sendto, $args) {
+	public function multilootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -331,46 +287,45 @@ class RaidController {
 
 	/**
 	 * Add one item to the loot roll
-	 *
-	 * @param string $input     The item as given by the player
-	 * @param int    $multiloot How many items to add
-	 * @param string $sender    The name of the player adding the item
-	 * @return void
 	 */
-	public function addLootItem($input, $multiloot, $sender) {
+	public function addLootItem(string $input, int $multiloot, string $sender): void {
 		//Check if the item is a link
-		if (preg_match("|^<a href=\"itemref://(\\d+)/(\\d+)/(\\d+)\">(.+)</a>(.*)$|i", $input, $arr)) {
-			$item_ql = $arr[3];
-			$item_highid = $arr[1];
-			$item_lowid = $arr[2];
-			$item_name = $arr[4];
-		} elseif (preg_match("|^(.+)<a href=\"itemref://(\\d+)/(\\d+)/(\\d+)\">(.+)</a>(.*)$|i", $input, $arr)) {
-			$item_ql = $arr[4];
-			$item_highid = $arr[2];
-			$item_lowid = $arr[3];
-			$item_name = $arr[5];
+		if (preg_match("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
+			$itemQL = (int)$arr[3];
+			$itemHighID = (int)$arr[1];
+			$itemLowID = (int)$arr[2];
+			$itemName = $arr[4];
+		} elseif (preg_match("|^(.+)<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
+			$itemQL = (int)$arr[4];
+			$itemHighID = (int)$arr[2];
+			$itemLowID = (int)$arr[3];
+			$itemName = $arr[5];
 		} else {
-			$item_name = $input;
+			$itemName = $input;
 		}
 
-		// check if there is an icon available
-		$row = $this->db->queryRow("SELECT * FROM aodb WHERE `name` LIKE ?", $item_name);
+		/** @var ?AODBEntry */
+		$row = $this->db->fetch(
+			AODBEntry::class,
+			"SELECT * FROM aodb WHERE `name` LIKE ?",
+			$itemName
+		);
 		if ($row !== null) {
-			$item_name = $row->name;
+			$itemName = $row->name;
 
 			//Save the icon
 			$looticon = $row->icon;
 
 			//Save the aoid and ql if not set yet
-			if (!isset($item_highid)) {
-				$item_lowid = $row->lowid;
-				$item_highid = $row->highid;
-				$item_ql = $row->highql;
+			if (!isset($itemHighID)) {
+				$itemLowID = $row->lowid;
+				$itemHighID = $row->highid;
+				$itemQL = $row->highql;
 			}
 		}
 
 		// check if the item is already on the list
-		$key = $this->getLootItem($item_name);
+		$key = $this->getLootItem($itemName);
 		if ($key !== null) {
 			$item = $this->loot[$key];
 			$item->multiloot += $multiloot;
@@ -384,15 +339,15 @@ class RaidController {
 
 			$item = new LootItem();
 
-			$item->name = $item_name;
+			$item->name = $itemName;
 			$item->icon = $looticon;
 			$item->added_by = $sender;
 			$item->multiloot = $multiloot;
 
-			if (isset($item_highid)) {
-				$item->display = $this->text->makeItem($item_lowid, $item_highid, $item_ql, $item_name);
+			if (isset($itemHighID)) {
+				$item->display = $this->text->makeItem($itemLowID, $itemHighID, $itemQL, $itemName);
 			} else {
-				$item->display = $item_name;
+				$item->display = $itemName;
 			}
 			$this->loot[$key] = $item;
 		}
@@ -406,41 +361,34 @@ class RaidController {
 	 * Remove a single item from the loot list
 	 *
 	 * @HandlesCommand("loot .+")
-	 * @Matches("/^loot rem ([0-9]+)$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
+	 * @Matches("/^loot rem (\d+)$/i")
 	 */
-	public function lootRemCommand($message, $channel, $sender, $sendto, $args) {
+	public function lootRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$key = $args[1];
+		$key = (int)$args[1];
 		// validate item existance on loot list
-		if ($key > 0 && $key <= count($this->loot)) {
-			// if removing this item empties the list, clear the loot list properly
-			if (count($this->loot) <= 1) {
-				$this->loot = [];
-				$this->chatBot->sendPrivate("Item in slot <highlight>#".$key."<end> was the last item in the list. The list has been cleared.");
-			} else {
-				// remove the item by shifting lower items up one slot and remove last slot
-				$loop = $key;
-				while ($loop < count($this->loot)) {
-					$this->loot[$loop] = $this->loot[$loop+1];
-					$loop++;
-				}
-				unset($this->loot[count($this->loot)]);
-				$this->chatBot->sendPrivate("Removing item in slot <highlight>#".$key."<end>");
-			}
-		} else {
-			$this->chatBot->sendPrivate("There is no item at slot <highlight>#".$key."<end>");
+		if ($key === 0 || $key > count($this->loot)) {
+			$sendto->reply("There is no item at slot <highlight>#".$key."<end>");
+			return;
 		}
+		// if removing this item empties the list, clear the loot list properly
+		if (count($this->loot) <= 1) {
+			$this->loot = [];
+			$this->chatBot->sendPrivate("Item in slot <highlight>#".$key."<end> was the last item in the list. The list has been cleared.");
+			return;
+		}
+		// remove the item by shifting lower items up one slot and remove last slot
+		$loop = $key;
+		while ($loop < count($this->loot)) {
+			$this->loot[$loop] = $this->loot[$loop+1];
+			$loop++;
+		}
+		unset($this->loot[count($this->loot)]);
+		$this->chatBot->sendPrivate("Removing item in slot <highlight>#".$key."<end>");
 	}
 
 	/**
@@ -448,15 +396,8 @@ class RaidController {
 	 *
 	 * @HandlesCommand("reroll")
 	 * @Matches("/^reroll$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function rerollCommand($message, $channel, $sender, $sendto, $args) {
+	public function rerollCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -480,7 +421,7 @@ class RaidController {
 		//Show winner list
 		$msg = "All remaining items have been re-added by <highlight>$sender<end>. Check <symbol>loot.";
 		$this->chatBot->sendPrivate($msg);
-		if ($channel != 'priv') {
+		if ($channel !== 'priv') {
 			$sendto->reply($msg);
 		}
 
@@ -493,15 +434,8 @@ class RaidController {
 	 *
 	 * @HandlesCommand("flatroll")
 	 * @Matches("/^flatroll$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function flatrollCommand($message, $channel, $sender, $sendto, $args) {
+	public function flatrollCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -585,54 +519,47 @@ class RaidController {
 	 * Add yourself to a loot roll
 	 *
 	 * @HandlesCommand("add")
-	 * @Matches("/^add ([0-9]+)$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
+	 * @Matches("/^add (\d+)$/i")
 	 */
-	public function addCommand($message, $channel, $sender, $sendto, $args) {
-		$slot = $args[1];
+	public function addCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$slot = (int)$args[1];
 		$found = false;
-		if (count($this->loot) > 0) {
-			//Check if the slot exists
-			if (!isset($this->loot[$slot])) {
-				$msg = "The slot you are trying to add in does not exist.";
-				$this->chatBot->sendTell($msg, $sender);
-				return;
-			}
-
-			//Remove the player from other slots if set
-			$found = false;
-			foreach ($this->loot as $key => $item) {
-				if ($this->loot[$key]->users[$sender] == true) {
-					unset($this->loot[$key]->users[$sender]);
-					$found = true;
-				}
-			}
-
-			//Add the player to the chosen slot
-			$this->loot[$slot]->users[$sender] = true;
-
-			if ($found == false) {
-				$privMsg = "$sender added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
-				$tellMsg = "You added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
-			} else {
-				$privMsg = "$sender changed to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
-				$tellMsg = "You changedto <highlight>\"{$this->loot[$slot]->name}\"<end>.";
-			}
-
-			if ($this->settingManager->get('add_on_loot') & 1) {
-				$this->chatBot->sendTell($tellMsg, $sender);
-			}
-			if ($this->settingManager->get('add_on_loot') & 2) {
-				$this->chatBot->sendPrivate($privMsg);
-			}
-		} else {
+		if (count($this->loot) === 0) {
 			$this->chatBot->sendTell("No loot list available.", $sender);
+			return;
+		}
+		//Check if the slot exists
+		if (!isset($this->loot[$slot])) {
+			$msg = "The slot you are trying to add in does not exist.";
+			$this->chatBot->sendTell($msg, $sender);
+			return;
+		}
+
+		//Remove the player from other slots if set
+		$found = false;
+		foreach ($this->loot as $key => $item) {
+			if ($this->loot[$key]->users[$sender] == true) {
+				unset($this->loot[$key]->users[$sender]);
+				$found = true;
+			}
+		}
+
+		//Add the player to the chosen slot
+		$this->loot[$slot]->users[$sender] = true;
+
+		if ($found === false) {
+			$privMsg = "$sender added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+			$tellMsg = "You added to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+		} else {
+			$privMsg = "$sender changed to <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+			$tellMsg = "You changedto <highlight>\"{$this->loot[$slot]->name}\"<end>.";
+		}
+
+		if ($this->settingManager->get('add_on_loot') & 1) {
+			$this->chatBot->sendTell($tellMsg, $sender);
+		}
+		if ($this->settingManager->get('add_on_loot') & 2) {
+			$this->chatBot->sendPrivate($privMsg);
 		}
 	}
 	
@@ -641,39 +568,32 @@ class RaidController {
 	 *
 	 * @HandlesCommand("rem")
 	 * @Matches("/^rem$/i")
-	 *
-	 * @param string $message The raw message as received by the bot
-	 * @param string $channel Where the message was received (org, priv, tell)
-	 * @param string $sender Name of the player sending the command
-	 * @param \Nadybot\Core\CommandReply $sendto Object to use for replying to
-	 * @param string[] $args The parsed arguments from the Matches regexp
-	 * @return void
 	 */
-	public function remCommand($message, $channel, $sender, $sendto, $args) {
-		if (count($this->loot) > 0) {
-			foreach ($this->loot as $key => $item) {
-				if ($this->loot[$key]->users[$sender] == true) {
-					unset($this->loot[$key]->users[$sender]);
-				}
-			}
-
-			$player = $this->playerManager->getByName($sender);
-			if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
-				$privMsg = "$sender removed themselves from all rolls.";
-			} elseif ($player->gender === "Female") {
-				$privMsg = "$sender removed herself from all rolls.";
-			} else {
-				$privMsg = "$sender removed himself from all rolls.";
-			}
-			$tellMsg = "You removed yourself from all rolls.";
-			if ($this->settingManager->get('add_on_loot') & 1) {
-				$this->chatBot->sendTell($tellMsg, $sender);
-			}
-			if ($this->settingManager->get('add_on_loot') & 2) {
-				$this->chatBot->sendPrivate($privMsg);
-			}
-		} else {
+	public function remCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (count($this->loot) === 0) {
 			$this->chatBot->sendTell("There is nothing to remove you from.", $sender);
+			return;
+		}
+		foreach ($this->loot as $key => $item) {
+			if ($this->loot[$key]->users[$sender] == true) {
+				unset($this->loot[$key]->users[$sender]);
+			}
+		}
+
+		$player = $this->playerManager->getByName($sender);
+		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
+			$privMsg = "$sender removed themselves from all rolls.";
+		} elseif ($player->gender === "Female") {
+			$privMsg = "$sender removed herself from all rolls.";
+		} else {
+			$privMsg = "$sender removed himself from all rolls.";
+		}
+		$tellMsg = "You removed yourself from all rolls.";
+		if ($this->settingManager->getInt('add_on_loot') & 1) {
+			$this->chatBot->sendTell($tellMsg, $sender);
+		}
+		if ($this->settingManager->getInt('add_on_loot') & 2) {
+			$this->chatBot->sendPrivate($privMsg);
 		}
 	}
 
@@ -682,7 +602,7 @@ class RaidController {
 	 *
 	 * @return string
 	 */
-	public function getCurrentLootList() {
+	public function getCurrentLootList(): string {
 		if (empty($this->loot)) {
 			$msg = "No loot list exists yet.";
 			return $msg;
@@ -698,7 +618,7 @@ class RaidController {
 			$added_players = count($item->users);
 			$players += $added_players;
 
-			if ($item->icon != "" && $this->settingManager->get('show_loot_pics')) {
+			if ($item->icon !== null && $this->settingManager->getBool('show_loot_pics')) {
 				$list .= $this->text->makeImage($item->icon) . "\n";
 			}
 
@@ -730,12 +650,8 @@ class RaidController {
 
 	/**
 	 * Add all items from a raid_loot to the loot list
-	 *
-	 * @param string $raid     Name of the raid
-	 * @param string $category Name of the category in the raid
-	 * @return bool
 	 */
-	public function addRaidToLootList($raid, $category) {
+	public function addRaidToLootList(string $raid, string $category): bool {
 		// clear current loot list
 		$this->loot = [];
 		$count = 1;
@@ -743,7 +659,8 @@ class RaidController {
 		$sql = "SELECT * FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
 			"WHERE raid = ? AND category = ?";
-		$data = $this->db->query($sql, $raid, $category);
+		/** @var AODBEntry[] */
+		$data = $this->db->fetchAll(AODBEntry::class, $sql, $raid, $category);
 
 		if (count($data) === 0) {
 			return false;
@@ -766,11 +683,8 @@ class RaidController {
 
 	/**
 	 * Get the loot key for the item with the name $name
-	 *
-	 * @param string $name Name of the item (e.g. "Nanodeck Activation Device")
-	 * @return string|null
 	 */
-	public function getLootItem($name) {
+	public function getLootItem(string $name): ?string {
 		foreach ($this->loot as $key => $item) {
 			if ($item->name == $name) {
 				return $key;

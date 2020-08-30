@@ -6,6 +6,7 @@ use Exception;
 use Nadybot\Core\Event;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\EventCfg;
+use PHP_CodeSniffer\Standards\PSR12\Sniffs\Functions\ReturnTypeDeclarationSniff;
 
 /**
  * @Instance
@@ -166,16 +167,29 @@ class EventManager {
 	 */
 	public function activateIfDeactivated(object $obj, string ...$eventMethods): void {
 		foreach ($eventMethods as $eventMethod) {
-			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
+			$filename = Registry::formatName(get_class($obj));
+			$call = $filename . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
-			if ($type !== null) {
+			if ($type === null) {
+				$this->logger->log('ERROR', "Could not find event for '$call'");
+				return;
+			}
+			if ($this->isValidEventType($type)) {
 				if (isset($this->events[$type]) && in_array($call, $this->events[$type])) {
 					// event already activated
 					continue;
 				}
 				$this->activate($type, $call);
 			} else {
-				$this->logger->log('ERROR', "Could not find event for '$call'");
+				$time = $this->getTimerEventTime($type);
+				if ($time > 0) {
+					$key = $this->getKeyForCronEvent($time, $call);
+					if ($key === null) {
+						$this->cronevents[] = ['nextevent' => 0, 'filename' => $call, 'time' => $time];
+					}
+				} else {
+					$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($call). The type is not a recognized event type!");
+				}
 			}
 		}
 	}
@@ -188,14 +202,26 @@ class EventManager {
 		foreach ($eventMethods as $eventMethod) {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
-			if ($type !== null) {
+			if ($type === null) {
+				$this->logger->log('ERROR', "Could not find event for '$call'");
+				return;
+			}
+			if ($this->isValidEventType($type)) {
 				if (!isset($this->events[$type]) || !in_array($call, $this->events[$type])) {
 					// event already deactivated
 					continue;
 				}
 				$this->deactivate($type, $call);
 			} else {
-				$this->logger->log('ERROR', "Could not find event for '$call'");
+				$time = $this->getTimerEventTime($type);
+				if ($time > 0) {
+					$key = $this->getKeyForCronEvent($time, $call);
+					if ($key !== null) {
+						unset($this->cronevents[$key]);
+					}
+				} else {
+					$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($call). The type is not a recognized event type!");
+				}
 			}
 		}
 	}

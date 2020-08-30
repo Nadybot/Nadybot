@@ -30,9 +30,6 @@ class CommandManager {
 	public HelpManager $helpManager;
 
 	/** @Inject */
-	public CommandAlias $commandAlias;
-
-	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
@@ -69,7 +66,7 @@ class CommandManager {
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, ?array $channel, string $filename, string $command, string $accessLevel, string $description, ?string $help='', $defaultStatus=null): void {
+	public function register(string $module, ?string $channel, string $filename, string $command, string $accessLevel, string $description, ?string $help='', $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
@@ -85,7 +82,7 @@ class CommandManager {
 		}
 
 		foreach (explode(',', $filename) as $handler) {
-			[$name, $method] = explode(".", $handler);
+			$name = explode(".", $handler)[0];
 			if (!Registry::instanceExists($name)) {
 				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
 				return;
@@ -407,7 +404,7 @@ class CommandManager {
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
 				if ($row->type == $channel && preg_match("/^{$row->cmd}$/i", $message)) {
-					return $row;
+					return new CommandHandler($row->file, $row->admin);
 				}
 			}
 		}

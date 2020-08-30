@@ -1,6 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ALIEN_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	LoggerWrapper,
+	Text,
+};
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
  * @author Blackruby (RK2)
@@ -32,36 +40,24 @@ class AlienBioController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
-	 * @Inject
-	 */
-	public $itemsController;
+	/** @Inject */
+	public ItemsController $itemsController;
 
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
-	private $leArmorTypes = ['64', '295', '468', '935'];
-	private $leWeaponTypes = ['18', '34', '687', '812'];
-	private $aiArmorTypes = ['mutated', 'pristine'];
-	private $aiWeaponTypes = ['1', '2', '3', '4', '5', '12', '13', '48', '76', '112', '240', '880', '992'];
+	private const LE_ARMOR_TYPES  = ['64', '295', '468', '935'];
+	private const LE_WEAPON_TYPES = ['18', '34', '687', '812'];
+	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
+	private const AI_WEAPON_TYPES = ['1', '2', '3', '4', '5', '12', '13', '48', '76', '112', '240', '880', '992'];
 
 	/**
 	 * This handler is called on bot startup.
@@ -78,19 +74,21 @@ class AlienBioController {
 	 * @HandlesCommand("bio")
 	 * @Matches("/^bio (.+)$/i")
 	 */
-	public function bioCommand($message, $channel, $sender, $sendto, $args) {
-		$bio_regex = "<a href=\"itemref://(\\d+)/(\\d+)/(\\d+)\">Solid Clump of Kyr\'Ozch Bio-Material</a>";
+	public function bioCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$bio_regex = "<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>Solid Clump of Kyr\'Ozch Bio-Material</a>";
 
 		if (!preg_match("|^(( *${bio_regex})+)$|i", $args[1], $arr)) {
-			return false;
+			$msg = "<highlight>{$args[1]}<end> is not an unidentified clump.";
+			$sendto->reply($msg);
+			return;
 		}
 
-		$bios = explode("*", preg_replace("/> *</", ">*<", $arr[1]));
+		$bios = preg_split("/(?<=>)\s*(?=<)/", $arr[1]);
 		$blob = '';
 		foreach ($bios as $bio) {
 			preg_match("|^${bio_regex}$|i", trim($bio), $arr2);
-			$highid = $arr2[2];
-			$ql = $arr2[3];
+			$highid = (int)$arr2[2];
+			$ql = (int)$arr2[3];
 			switch ($highid) {
 				case 247707:
 				case 247708:
@@ -179,10 +177,10 @@ class AlienBioController {
 			}
 
 			$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo $ql");
-			$blob .= $biotypeLink . "\n\n";
+			$blob .= "<header2>QL $ql clump<end>\n<tab>{$biotypeLink} (QL $ql)\n\n";
 		}
 
-		if (count($bios) == 1) {
+		if (count($bios) === 1) {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
 			$this->bioinfoCommand("", $channel, $sender, $sendto, ["bioinfo $bioinfo $ql", $bioinfo, $ql]);
 		} else {
@@ -195,27 +193,30 @@ class AlienBioController {
 	 * @HandlesCommand("bioinfo")
 	 * @Matches("/^bioinfo$/i")
 	 */
-	public function bioinfoListCommand($message, $channel, $sender, $sendto, $args) {
+	public function bioinfoListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
-		$blob .= $this->getTypeBlob($this->leArmorTypes);
+		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
 		
 		$blob .= "\n<header2>OFAB Weapon Types<end>\n";
-		$blob .= $this->getTypeBlob($this->leWeaponTypes);
+		$blob .= $this->getTypeBlob(self::LE_WEAPON_TYPES);
 		
 		$blob .= "\n<header2>AI Armor Types<end>\n";
-		$blob .= $this->getTypeBlob($this->aiArmorTypes);
+		$blob .= $this->getTypeBlob(self::AI_ARMOR_TYPES);
 		
 		$blob .= "\n<header2>AI Weapon Types<end>\n";
-		$blob .= $this->getTypeBlob($this->aiWeaponTypes);
+		$blob .= $this->getTypeBlob(self::AI_WEAPON_TYPES);
 		
 		$msg = $this->text->makeBlob("Bio-Material Types", $blob);
 		$sendto->reply($msg);
 	}
 	
-	public function getTypeBlob($types) {
+	/**
+	 * @param string[] $types
+	 */
+	public function getTypeBlob(array $types): string {
 		$blob = '';
 		foreach ($types as $type) {
-			$blob .= $this->text->makeChatcmd($type, "/tell <myname> bioinfo $type") . "\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd($type, "/tell <myname> bioinfo $type") . "\n";
 		}
 		return $blob;
 	}
@@ -226,11 +227,11 @@ class AlienBioController {
 	 * @Matches("/^bioinfo (.+) (\d+)$/i")
 	 * @Matches("/^bioinfo (.+)$/i")
 	 */
-	public function bioinfoCommand($message, $channel, $sender, $sendto, $args) {
+	public function bioinfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$bio = strtolower($args[1]);
 		$ql = 300;
 		if ($args[2]) {
-			$ql = $args[2];
+			$ql = (int)$args[2];
 		}
 		if ($ql < 1) {
 			$ql = 1;
@@ -238,18 +239,17 @@ class AlienBioController {
 			$ql = 300;
 		}
 
-		if (in_array($bio, $this->leArmorTypes)) {
-			$msg = $this->ofabArmorBio($ql, $bio);
-		} elseif (in_array($bio, $this->leWeaponTypes)) {
-			$msg = $this->ofabWeaponBio($ql, $bio);
-		} elseif (in_array($bio, $this->aiArmorTypes)) {
+		$msg = "Unknown Bio-Material";
+		if (in_array($bio, self::LE_ARMOR_TYPES)) {
+			$msg = $this->ofabArmorBio($ql, (int)$bio);
+		} elseif (in_array($bio, self::LE_WEAPON_TYPES)) {
+			$msg = $this->ofabWeaponBio($ql, (int)$bio);
+		} elseif (in_array($bio, self::AI_ARMOR_TYPES)) {
 			$msg = $this->alienArmorBio($ql, $bio);
-		} elseif (in_array($bio, $this->aiWeaponTypes)) {
-			$msg = $this->alienWeaponBio($ql, $bio);
-		} elseif ($bio == 'serum') {
-			$msg = $this->serumBio($ql, $bio);
-		} else {
-			$msg = "Unknown Bio-Material";
+		} elseif (in_array($bio, self::AI_WEAPON_TYPES)) {
+			$msg = $this->alienWeaponBio($ql, (int)$bio);
+		} elseif ($bio === 'serum') {
+			$msg = $this->serumBio($ql);
 		}
 
 		$sendto->reply($msg);
@@ -259,13 +259,13 @@ class AlienBioController {
 	 * Returns information of how much weapon of given $ql requires skills
 	 * to upgrade it.
 	 */
-	private function getWeaponInfo($ql) {
-		$ts_wep = floor($ql * 6);
+	private function getWeaponInfo(int $ql): string {
+		$requiredMEandWS = floor($ql * 6);
 		$text = "\n\n<highlight>QL $ql<end> is the highest weapon this type will combine into.";
-		if ($ql != 300) {
+		if ($ql !== 300) {
 			$text .= "\nNote: <highlight>The weapon can bump several QL's.<end>";
 		}
-		$text .= "\n\nIt will take <highlight>$ts_wep<end> ME & WS (<highlight>6 * QL<end>) to combine with a <highlight>QL $ql<end> Kyr'ozch Weapon.";
+		$text .= "\n\nIt will take <highlight>$requiredMEandWS<end> ME & WS (<highlight>6 * QL<end>) to combine with a <highlight>QL $ql<end> Kyr'ozch Weapon.";
 
 		return $text;
 	}
@@ -274,11 +274,12 @@ class AlienBioController {
 	 * Returns list of professions (in a blob) whose ofab armor given $type
 	 * will upgrade.
 	 */
-	private function ofabArmorBio($ql, $type) {
+	private function ofabArmorBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
 
-		$data = $this->db->query("SELECT * FROM ofabarmortype WHERE type = ?", $type);
+		/** @var OfabArmorType[] $data */
+		$data = $this->db->fetchAll(OfabArmorType::class, "SELECT * FROM ofabarmortype WHERE type = ?", $type);
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab armor for:<end>\n";
@@ -293,11 +294,12 @@ class AlienBioController {
 	 * Returns list of professions (in a blob) whose ofab weapon given $type
 	 * will upgrade.
 	 */
-	private function ofabWeaponBio($ql, $type) {
+	private function ofabWeaponBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
 
-		$data = $this->db->query("SELECT * FROM ofabweapons WHERE type = ?", $type);
+		/** @var OfabWeapon[] $data */
+		$data = $this->db->fetchAll(OfabWeapon::class, "SELECT * FROM ofabweapons WHERE type = ?", $type);
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab weapons:<end>\n";
@@ -313,33 +315,34 @@ class AlienBioController {
 	 * tells how much skills analyzing the clump requires and how much skills
 	 * is needed to upgrade the weapon.
 	 */
-	private function alienWeaponBio($ql, $type) {
+	private function alienWeaponBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
 
 		// Ensures that the maximum AI weapon that combines into doesn't go over QL 300 when the user presents a QL 271+ bio-material
-		$maxaitype = floor($ql / 0.9);
-		if ($maxaitype > 300 || $maxaitype < 1) {
-			$maxaitype = 300;
+		$maxAIType = floor($ql / 0.9);
+		if ($maxAIType > 300 || $maxAIType < 1) {
+			$maxAIType = 300;
 		}
 
-		$ts_bio = floor($ql * 4.5);
+		$requiredEEandCL = floor($ql * 4.5);
 
 		$row = $this->db->queryRow("SELECT specials FROM alienweaponspecials WHERE type = ?", $type);
 		$specials = $row->specials;
 
-		$data = $this->db->query("SELECT * FROM alienweapons WHERE type = ?", $type);
-
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$ts_bio<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "<highlight>Adds {$specials} to:<end>\n";
+
+		/** @var AlienWeapon[] $data */
+		$data = $this->db->fetchAll(AlienWeapon::class, "SELECT * FROM alienweapons WHERE type = ?", $type);
 		foreach ($data as $row) {
-			$blob .= $this->itemsController->getItem($row->name, $maxaitype) . "\n";
+			$blob .= $this->itemsController->getItem($row->name, $maxAIType) . "\n";
 		}
 
-		$blob .= $this->getWeaponInfo($maxaitype);
-		$blob .= "\n\n<yellow>Tradeskilling info added by Mdkdoc420 (RK2)<end>";
+		$blob .= $this->getWeaponInfo($maxAIType);
+		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
 		return $this->text->makeBlob("$name (QL $ql)", $blob);
 	}
@@ -348,61 +351,59 @@ class AlienBioController {
 	 * Returns what skills and how much is required for analyzing the bio
 	 * material and building alien armor of it.
 	 */
-	private function alienArmorBio($ql, $type) {
+	private function alienArmorBio(int $ql, string $type): string {
 		// All the min/max QL and tradeskill calcs for the mutated/pristine process
-		$min_ql = floor($ql * 0.8);
-		if ($min_ql < 1) {
-			$min_ql = 1;
+		$minQL = floor($ql * 0.8);
+		if ($minQL < 1) {
+			$minQL = 1;
 		}
+		$maxQL = 300;
 		if ($ql >= 1 && $ql <= 240) {
-			$max_ql = floor($ql / 0.8);
-		} else {
-			$max_ql = 300;
+			$maxQL = floor($ql / 0.8);
 		}
 
-		$cl = floor($min_ql * 4.5);
-		$pharma = floor($ql * 6);
-		$np = floor($min_ql * 6);
-		$psyco = floor($ql * 6);
-		$max_psyco = floor($max_ql * 6);
-		$ts_bio = floor($ql * 4.5);
+		$requiredCL         = floor($minQL * 4.5);
+		$requiredPharma     = floor($ql    * 6);
+		$requiredNP         = floor($minQL * 6);
+		$requiredPsychology = floor($ql    * 6);
+		$max_psyco          = floor($maxQL * 6);
+		$requiredEEandCL    = floor($ql    * 4.5);
+		$name = "UNKNOWN";
 		if (strtolower($type) == "mutated") {
 			$name = "Mutated Kyr'Ozch Bio-Material";
-			$chem = floor($ql * 7);
-			$chem_msg = "7 * QL";
+			$reqiredChem = floor($ql * 7);
+			$chemMsg = "7 * QL";
 		} elseif (strtolower($type) == "pristine") {
 			$name = "Pristine Kyr'Ozch Bio-Material";
-			$chem = floor($ql * 4.5);
-			$chem_msg = "4.5 * QL";
-			$extraInfo = "(<highlight>less tradeskill requirements then mutated.<end>)";
-		} else {
-			$name = "UNKNOWN";
+			$reqiredChem = floor($ql * 4.5);
+			$chemMsg = "4.5 * QL";
+			$extraInfo = "(<highlight>less tradeskill requirements than mutated.<end>)";
 		}
 		//End of tradeskill processes
 
 		$item = $this->itemsController->getItem($name, $ql);
 
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$ts_bio<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "Used to build Alien Armor $extraInfo\n\n" .
 			"<highlight>The following tradeskill amounts are required to make<end> QL $ql<highlight>\n" .
 			"strong/arithmetic/enduring/spiritual/supple/observant armor:<end>\n\n" .
-			"Computer Literacy - <highlight>$cl<end> (<highlight>4.5 * QL<end>)\n" .
-			"Chemistry - <highlight>$chem<end> (<highlight>$chem_msg<end>)\n" .
-			"Nano Programming - <highlight>$np<end> (<highlight>6 * QL<end>)\n" .
-			"Pharma Tech - <highlight>$pharma<end> (<highlight>6 * QL<end>)\n" .
-			"Psychology - <highlight>$psyco<end> (<highlight>6 * QL<end>)\n\n" .
+			"Computer Literacy - <highlight>$requiredCL<end> (<highlight>4.5 * QL<end>)\n" .
+			"Chemistry - <highlight>$reqiredChem<end> (<highlight>$chemMsg<end>)\n" .
+			"Nano Programming - <highlight>$requiredNP<end> (<highlight>6 * QL<end>)\n" .
+			"Pharma Tech - <highlight>$requiredPharma<end> (<highlight>6 * QL<end>)\n" .
+			"Psychology - <highlight>$requiredPsychology<end> (<highlight>6 * QL<end>)\n\n" .
 			"Note:<highlight> Tradeskill requirements are based off the lowest QL items needed throughout the entire process.<end>";
 
 		$blob .= "\n\nFor Supple, Arithmetic, or Enduring:\n\n" .
-			"<highlight>When completed, the armor piece can have as low as<end> QL $min_ql <highlight>combined into it, depending on available tradeskill options.\n\n" .
-			"Does not change QL's, therefore takes<end> $psyco <highlight>Psychology for available combinations.<end>\n\n" .
+			"<highlight>When completed, the armor piece can have as low as<end> QL $minQL <highlight>combined into it, depending on available tradeskill options.\n\n" .
+			"Does not change QL's, therefore takes<end> $requiredPsychology <highlight>Psychology for available combinations.<end>\n\n" .
 			"For Spiritual, Strong, or Observant:\n\n" .
-			"<highlight>When completed, the armor piece can combine upto<end> QL $max_ql<highlight>, depending on available tradeskill options.\n\n" .
-			"Changes QL depending on targets QL. The max combination is: (<end>QL $max_ql<highlight>) (<end>$max_psyco Psychology required for this combination<highlight>)<end>";
+			"<highlight>When completed, the armor piece can combine upto<end> QL $maxQL<highlight>, depending on available tradeskill options.\n\n" .
+			"Changes QL depending on targets QL. The max combination is: (<end>QL $maxQL<highlight>) (<end>$max_psyco Psychology required for this combination<highlight>)<end>";
 
-		$blob .= "\n\n<yellow>Tradeskilling info added by Mdkdoc420 (RK2)<end>";
+		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
 		return $this->text->makeBlob("$name (QL $ql)", $blob);
 	}
@@ -411,44 +412,44 @@ class AlienBioController {
 	 * Tells how much skills is required to analyze serum bio material and how
 	 * much skills are needed to to build buildings from it.
 	 */
-	private function serumBio($ql, $type) {
+	private function serumBio(int $ql): string {
 		$name = "Kyr'Ozch Viral Serum";
 		$item = $this->itemsController->getItem($name, $ql);
 
-		$pharma_ts = floor($ql * 3.5);
-		$chem_me_ts = floor($ql * 4);
-		$ee_ts = floor($ql * 4.5);
-		$cl_ts = floor($ql * 5);
-		$ts_bio = floor($ql * 4.5);
+		$requiredPharma  = floor($ql * 3.5);
+		$requiredChemAndME = floor($ql * 4);
+		$requiredEE      = floor($ql * 4.5);
+		$requiredCL      = floor($ql * 5);
+		$requiredEEandCL     = floor($ql * 4.5);
 
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$ts_bio<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "<highlight>Used to build city buildings<end>\n\n" .
 			"<highlight>The following are the required skills throughout the process of making a building:<end>\n\n" .
 			"Quantum FT - <highlight>400<end> (<highlight>Static<end>)\nPharma Tech - ";
 
 		//Used to change dialog between minimum and actual requirements, for requirements that go under 400
-		if ($pharma_ts < 400) {
+		if ($requiredPharma < 400) {
 			$blob .= "<highlight>400<end>";
 		} else {
-			$blob .= "<highlight>$pharma_ts<end>";
+			$blob .= "<highlight>$requiredPharma<end>";
 		}
 
 		$blob .= " (<highlight>3.5 * QL<end>) 400 is minimum requirement\nChemistry - ";
 
-		if ($chem_me_ts < 400) {
+		if ($requiredChemAndME < 400) {
 			$blob .= "<highlight>400<end>";
 		} else {
-			$blob .= "<highlight>$chem_me_ts<end>";
+			$blob .= "<highlight>$requiredChemAndME<end>";
 		}
 
 		$blob .= " (<highlight>4 * QL<end>) 400 is minimum requirement\n" .
-			"Mechanical Engineering - <highlight>$chem_me_ts<end> (<highlight>4 * QL<end>)\n" .
-			"Electrical Engineering - <highlight>$ee_ts<end> (<highlight>4.5 * QL<end>)\n" .
-			"Comp Liter - <highlight>$cl_ts<end> (<highlight>5 * QL<end>)";
+			"Mechanical Engineering - <highlight>$requiredChemAndME<end> (<highlight>4 * QL<end>)\n" .
+			"Electrical Engineering - <highlight>$requiredEE<end> (<highlight>4.5 * QL<end>)\n" .
+			"Comp Liter - <highlight>$requiredCL<end> (<highlight>5 * QL<end>)";
 
-		$blob .= "\n\n<yellow>Tradeskilling info added by Mdkdoc420 (RK2)<end>";
+		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
 		return $this->text->makeBlob("$name (QL $ql)", $blob);
 	}

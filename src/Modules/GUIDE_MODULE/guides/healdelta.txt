@@ -1,6 +1,8 @@
 <header> :::::: Heal Delta :::::: <end>
 
-Stamina  -> HD tick standing/sitting
+<header2>Tick by Stamina<end>
+
+Stamina  ->   HD tick standing/sitting
 <tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
 <font color=#ff9999>000<tab><tab>-><tab>29s / 14s</font>
 <font color=#ffcccc>030<tab><tab>-><tab>28s / 14s</font>
@@ -59,5 +61,5 @@ healdelta tickrate formula:
 
 example (870-810)/30=2 secs  
 
-http://forums.anarchy-online.com/showthread.php?t=525410
-http://forums.anarchy-online.com/showthread.php?t=435274
+<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=525410'>http://forums.anarchy-online.com/showthread.php?t=525410</a>
+<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=435274'>http://forums.anarchy-online.com/showthread.php?t=435274</a>

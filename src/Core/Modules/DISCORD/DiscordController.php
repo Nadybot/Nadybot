@@ -4,25 +4,16 @@ namespace Nadybot\Core\Modules\DISCORD;
 
 use Exception;
 use Nadybot\Core\{
-	CommandReply,
 	Http,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
 };
-use PhpAmqpLib\Exception\AMQPOutOfBoundsException;
 
 /**
  * @author Nadyita (RK5)
  *
  * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'discord',
- *		accessLevel = 'mod',
- *		description = 'Send a message to discord'
- *	)
  */
 class DiscordController {
 
@@ -39,8 +30,10 @@ class DiscordController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
-
 	public Http $http;
+
+	/** @Inject */
+	public DiscordAPIClient $discordAPIClient;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -52,131 +45,126 @@ class DiscordController {
 	public function setup() {
 		$this->settingManager->add(
 			$this->moduleName,
-			'discord_webhook',
-			'The Discord webhook to send messages to',
+			'discord_bot_token',
+			'The Discord bot token to send messages with',
 			'edit',
 			'text',
+			'',
 			'',
 			'',
 			'admin'
 		);
 		$this->settingManager->registerChangeListener(
-			"discord_webhook",
-			[$this, "validateWebhook"]
+			"discord_bot_token",
+			[$this, "validateBotToken"]
 		);
 		$this->settingManager->add(
 			$this->moduleName,
-			'discord_avatar_url',
-			'URL to an Avatar for Discord posts',
-			'edit',
-			'text',
-			'serveradmin',
-			'',
-			'admin'
+			"discord_notify_channel",
+			"Discord channel to send notifications to",
+			"edit",
+			"discord_channel",
+			"off"
 		);
 	}
 
 	/**
-	 * Check if the given $newValue is a valid Discord Webhook
+	 * Check if the given $newValue is a valid Discord Bot Token
 	 *
-	 * @throws Exception if new value is not a valid webhook
+	 * @throws Exception if new value is not a valid Discord Bot Token
 	 */
-	public function validateWebhook(string $settingName, string $oldValue, string $newValue): void {
-		if ($this->isDiscordWebhook($newValue) === false) {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Webhook");
+	public function validateBotToken(string $settingName, string $oldValue, string $newValue): void {
+		if ($newValue === '') {
+			return;
 		}
 		$response = $this->http
-			->post($newValue)
-			->withQueryParams(['content' => ''])
+			->get(DiscordAPIClient::DISCORD_API . "/users/@me")
+			->withHeader('Authorization', 'Bot ' . $newValue)
 			->withTimeout(10)
 			->waitAndReturnResponse();
-		if ($response->headers["status-code"] !== "400") {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Webhook");
+		if ($response->headers["status-code"] !== "200") {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
 		}
-		$responseData = @json_decode($response->body);
-		if ($responseData !== null && $responseData->code !== 50006) {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Webhook");
-		}
-	}
-	
-	/**
-	 * @HandlesCommand("discord")
-	 * @Matches("/^discord\s+(.+)$/i")
-	 */
-	public function discordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = "Message sent successfully.";
-		if ($this->sendMessage($sender . ": " . $args[1]) === false) {
-			$msg = "Error sending message, please check configuration.";
-		}
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * Check if a given URL is a discord webhook
-	 */
-	public function isDiscordWebhook(string $url): bool {
-		return (bool)@preg_match(
-			'|^https://discordapp\.com/api/webhooks/\d{18}/[a-zA-Z0-9_-]{68}$|',
-			$url
-		);
-	}
-
-	/**
-	 * Send a message to the Discord webhook - if configured
-	 */
-	public function sendMessage(string $text): bool {
-		$webhookURL = $this->settingManager->get('discord_webhook');
-		if ($this->isDiscordWebhook($webhookURL) === false) {
-			return false;
-		}
-		$avatarURL = $this->settingManager->get('discord_avatar_url');
-		$message = [
-			'content' => $this->formatMessage($text),
-			'username' => $this->chatBot->vars['name'],
-		];
-		if (strlen($avatarURL) && filter_var($avatarURL, \FILTER_VALIDATE_URL) === true) {
-			$message['avatar_url'] = $avatarURL;
-		}
-		$this->http
-			->post($webhookURL)
-			->withQueryParams($message)
-			->withTimeout(10)
-			->withCallback([$this, "handleWebhookResponse"]);
-		return true;
 	}
 
 	/**
 	 * Reformat a Nadybot message for sending to Discord
 	 */
-	public function formatMessage(string $text): string {
-		$text = preg_replace('/([~`_])/', "\\$1", $text);
+	public function formatMessage(string $text): DiscordMessageOut {
+		$text = preg_replace('/([~`_])/', "\\\\$1", $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
 		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
 		$text = str_replace("<symbol>", $this->settingManager->get("symbol"), $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "\t", $text);
-		$text = preg_replace('/<[a-z]+?>(.*?)<end>/', '*$1*', $text);
-			
+		$text = preg_replace('/<[a-z]+?>(.*?)<end>/s', '*$1*', $text);
+
+		$text = preg_replace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
+		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
+		$text = preg_replace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
+		$linksReplaced = 0;
+		$text = preg_replace(
+			"|<a [^>]*?href=['\"]itemref://(\d+)/(\d+)/(\d+)['\"]>(.+?)</a>|s",
+			"[$4](https://aoitems.com/item/$1/$3)",
+			$text,
+			-1,
+			$linksReplaced
+		);
+
+		$embeds = [];
+		$text = preg_replace_callback(
+			'|<a href="text://(.+?)">(.+?)</a>|s',
+			function (array $matches) use (&$embeds): string {
+				$embeds []= $this->parsePopupToEmbed($matches);
+				return "";
+			},
+			$text
+		);
+
 		$text = strip_tags($text);
-		return $text;
+		if (!count($embeds) && $linksReplaced > 0) {
+			$embed = new DiscordEmbed();
+			$embed->description = $text;
+			$text = "";
+			$embeds []= $embed;
+		}
+		$msg = new DiscordMessageOut($text);
+		if (count($embeds)) {
+			$msg->embed = $embeds[0];
+		}
+		return $msg;
 	}
 
 	/**
-	 * Handle the async reply of the Discord webhook
+	 * Send a message to the configured Discord channel (if configured)
 	 */
-	protected function handleWebhookResponse(object $response): void {
-		if (substr($response->headers["status-code"], 0, 1) === "2") {
+	public function sendDiscord($text): void {
+		$discordBotToken = $this->settingManager->getString('discord_bot_token');
+		if ($discordBotToken === "") {
 			return;
 		}
-		$responseData = @json_decode($response->body);
-		if ($responseData === null) {
-			$responseData = "Code " . $response->headers["status-code"];
+		$discordChannel = $this->settingManager->getString('discord_notify_channel');
+		if ($discordChannel === 'off') {
+			return;
 		}
-		$this->logger->log(
-			"ERROR",
-			"Error sending message to Discord Webhook: ".
-			$responseData->message
-		);
+		if (!is_array($text)) {
+			$text = [$text];
+		}
+		foreach ($text as $page) {
+			$message = $this->formatMessage($page);
+			$this->discordAPIClient->sendToChannel($discordChannel, $message->toJSON());
+		}
+	}
+
+	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
+		$embed = new DiscordEmbed();
+		$embed->title = $matches[2];
+		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
+		$embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
+		if (strlen($embed->description) > 2048) {
+			$embed->description = substr($embed->description, 0, 2047) . "…";
+		}
+		return $embed;
 	}
 }

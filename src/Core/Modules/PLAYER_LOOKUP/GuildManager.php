@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	Nadybot,
 };
+use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
@@ -75,7 +76,7 @@ class GuildManager {
 		foreach ($members as $member) {
 			$name = $member->NAME;
 			$charid = $this->chatBot->get_uid($name);
-			if ($charid === null) {
+			if ($charid === null || $charid === false) {
 				$charid = 0;
 			}
 

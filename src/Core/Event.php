@@ -3,7 +3,8 @@
 namespace Nadybot\Core;
 
 class Event {
-	public string $sender;
+	/** Either the name of the sender or the numeric UID (eg. city raid accouncements) */
+	public $sender;
 
 	public string $type;
 

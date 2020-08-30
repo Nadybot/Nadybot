@@ -25,6 +25,6 @@ Chance 7%->8% @ 2101->2400 Deflect Skill
 Chance 8%->9% @ 2401->2700 Deflect Skill
 Chance 9%->10% @ 2700->3000 Deflect Skill<end>        
         
-source: https://forums.anarchy-online.com/showthread.php?613558-18-7-0-Update-Release-Notes
+source: <a href='chatcmd:///start https://forums.anarchy-online.com/showthread.php?613558-18-7-0-Update-Release-Notes'>https://forums.anarchy-online.com/showthread.php?613558-18-7-0-Update-Release-Notes</a>
 
 by <highlight>longsdale<end>

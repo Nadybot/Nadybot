@@ -92,7 +92,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public string $defaultDefaultOmniColor = "<font color='#FA8484'>";
+	public string $defaultDefaultOmniColor = "<font color='#00FFFF'>";
 
 	/**
 	 * @Setting("default_neut_color")
@@ -101,7 +101,7 @@ class ColorsController {
 	 * @Type("color")
 	 * @AccessLevel("mod")
 	 */
-	public string $defaultDefaultNeutColor = "<font color='#E6E1A6'>";
+	public string $defaultDefaultNeutColor = "<font color='#FFFFFF'>";
 
 	/**
 	 * @Setting("default_unknown_color")

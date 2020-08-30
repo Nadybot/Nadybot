@@ -1078,7 +1078,7 @@ class AOChat {
 	 * F: recursive encoding
 	 * ~: end of message
 	 */
-	public function readExtMsg(string $msg): ?AOExtMsg {
+	public function readExtMsg(string $msg): ?string {
 		if (empty($msg)) {
 			return null;
 		}

@@ -1,8 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\AutoInject;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\DBRow;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 use stdClass;
 
 /**
@@ -19,22 +23,30 @@ use stdClass;
  *		alias		= 'impdesign'
  *	)
  */
-class ImplantDesignerController extends AutoInject {
+class ImplantDesignerController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Util $util;
 	
+	/** @Inject */
+	public ImplantController $implantController;
+
 	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
 	private $grades = ['shiny', 'bright', 'faded'];
 	
-	private $design;
-	
-	/**
-	 * @Setup
-	 */
+	/** @Setup */
 	public function setup() {
 		$this->design = new stdClass;
 		
@@ -59,13 +71,13 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner$/i")
 	 */
-	public function implantdesignerCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->getImplantDesignerBuild($sender);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
 		$sendto->reply($msg);
 	}
 	
-	private function getImplantDesignerBuild($sender) {
+	private function getImplantDesignerBuild(string $sender): string {
 		$design = $this->getDesign($sender, '@');
 	
 		$blob = $this->text->makeChatcmd("Results", "/tell <myname> implantdesigner results");
@@ -86,7 +98,7 @@ class ImplantDesignerController extends AutoInject {
 		return $blob;
 	}
 	
-	private function getImplantSummary($slotObj) {
+	private function getImplantSummary(object $slotObj): string {
 		if ($slotObj->symb !== null) {
 			$msg = " " . $slotObj->symb->name . "\n";
 		} else {
@@ -111,20 +123,10 @@ class ImplantDesignerController extends AutoInject {
 		return $msg;
 	}
 	
-	private function getClusterModAmount($ql, $grade, $effectId) {
-		$sql =
-			"SELECT
-				ID,
-				Name,
-				MinValLow,
-				MaxValLow,
-				MinValHigh,
-				MaxValHigh
-			FROM
-				EffectTypeMatrix
-			WHERE
-				ID = ?";
-
+	private function getClusterModAmount(int $ql, string $grade, int $effectId): int {
+		$sql = "SELECT ID, Name, MinValLow, MaxValLow, MinValHigh, MaxValHigh ".
+			"FROM EffectTypeMatrix ".
+			"WHERE ID = ?";
 		$row = $this->db->queryRow($sql, $effectId);
 		
 		if ($ql < 201) {
@@ -146,15 +148,15 @@ class ImplantDesignerController extends AutoInject {
 			$modAmount = round($modAmount * 0.4, 0);
 		}
 
-		return $modAmount;
+		return (int)$modAmount;
 	}
 	
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner clear$/i")
 	 */
-	public function implantdesignerClearCommand($message, $channel, $sender, $sendto, $args) {
-		$this->saveDesign($sender, '@', new stdClass);
+	public function implantdesignerClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->saveDesign($sender, '@', new stdClass());
 		$msg = "Implant Designer has been cleared.";
 		$sendto->reply($msg);
 		
@@ -168,7 +170,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet)$/i")
 	 */
-	public function implantdesignerSlotCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 
 		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
@@ -179,7 +181,7 @@ class ImplantDesignerController extends AutoInject {
 		$blob .= "\n-------------------------\n";
 		$blob .= "<header2>Implants<end>  ";
 		foreach ([25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300] as $ql) {
-			$blob .= $this->text->makeChatcmd($ql, "/tell <myname> implantdesigner $slot $ql") . " ";
+			$blob .= $this->text->makeChatcmd((string)$ql, "/tell <myname> implantdesigner $slot $ql") . " ";
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
 		$blob .= "\n-------------------------\n\n";
@@ -225,7 +227,7 @@ class ImplantDesignerController extends AutoInject {
 		$sendto->reply($msg);
 	}
 	
-	private function getSymbiantsLinks($slot) {
+	private function getSymbiantsLinks(string $slot): string {
 		$artilleryLink = $this->text->makeChatcmd("Artillery", "/tell <myname> symb $slot artillery");
 		$controlLink = $this->text->makeChatcmd("Control", "/tell <myname> symb $slot control");
 		$exterminationLink = $this->text->makeChatcmd("Extermination", "/tell <myname> symb $slot extermination");
@@ -234,7 +236,7 @@ class ImplantDesignerController extends AutoInject {
 		return "<header2>Symbiants<end>  $artilleryLink  $controlLink  $exterminationLink  $infantryLink  $supportLink";
 	}
 	
-	private function showClusterChoices($design, $slot, $grade) {
+	private function showClusterChoices(object $design, string $slot, string $grade): string {
 		$msg = '';
 		if (!empty($design->$slot->$grade)) {
 			$msg .= " - {$design->$slot->$grade}";
@@ -253,7 +255,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (shiny|bright|faded|symb) (.+)$/i")
 	 */
-	public function implantdesignerSlotAddClusterCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotAddClusterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 		$type = strtolower($args[2]);
 		$item = $args[3];
@@ -262,19 +264,10 @@ class ImplantDesignerController extends AutoInject {
 		$slotObj = &$design->$slot;
 		
 		if ($type == 'symb') {
-			$sql =
-				"SELECT
-					s.ID,
-					s.Name,
-					s.TreatmentReq,
-					s.LevelReq
-				FROM
-					Symbiant s
-					JOIN ImplantType i
-						ON s.SlotID = i.ImplantTypeID
-				WHERE
-					i.ShortName = ?
-					AND s.Name = ?";
+			$sql = "SELECT s.ID, s.Name, s.TreatmentReq, s.LevelReq ".
+				"FROM Symbiant s ".
+				"JOIN ImplantType i	ON s.SlotID = i.ImplantTypeID ".
+				"WHERE i.ShortName = ?  AND s.Name = ?";
 			
 			$symbRow = $this->db->queryRow($sql, $slot, $item);
 			
@@ -287,17 +280,23 @@ class ImplantDesignerController extends AutoInject {
 				unset($slotObj->faded);
 				unset($slotObj->ql);
 				
-				$symb = new stdClass;
+				$symb = new stdClass();
 				$symb->name = $symbRow->Name;
 				$symb->Treatment = $symbRow->TreatmentReq;
 				$symb->Level = $symbRow->LevelReq;
 				
 				// add requirements
-				$sql = "SELECT a.Name, s.Amount FROM SymbiantAbilityMatrix s JOIN Ability a ON s.AbilityID = a.AbilityID WHERE SymbiantID = ?";
+				$sql = "SELECT a.Name, s.Amount ".
+					"FROM SymbiantAbilityMatrix s ".
+					"JOIN Ability a ON s.AbilityID = a.AbilityID ".
+					"WHERE SymbiantID = ?";
 				$symb->reqs = $this->db->query($sql, $symbRow->ID);
 				
 				// add mods
-				$sql = "SELECT c.LongName AS Name, s.Amount FROM SymbiantClusterMatrix s JOIN Cluster c ON s.ClusterID = c.ClusterID WHERE SymbiantID = ?";
+				$sql = "SELECT c.LongName AS Name, s.Amount ".
+					"FROM SymbiantClusterMatrix s ".
+					"JOIN Cluster c ON s.ClusterID = c.ClusterID ".
+					"WHERE SymbiantID = ?";
 				$symb->mods = $this->db->query($sql, $symbRow->ID);
 				
 				$slotObj->symb = $symb;
@@ -332,9 +331,9 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (\d+)$/i")
 	 */
-	public function implantdesignerSlotQLCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotQLCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
-		$ql = $args[2];
+		$ql = (int)$args[2];
 		
 		$design = $this->getDesign($sender, '@');
 		$slotObj = $design->$slot;
@@ -356,7 +355,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) clear$/i")
 	 */
-	public function implantdesignerSlotClearCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 		
 		$design = $this->getDesign($sender, '@');
@@ -377,7 +376,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) require$/i")
 	 */
-	public function implantdesignerSlotRequireCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotRequireCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 
 		$design = $this->getDesign($sender, '@');
@@ -412,7 +411,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) require (agility|intelligence|psychic|sense|strength|stamina)$/i")
 	 */
-	public function implantdesignerSlotRequireAbilityCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerSlotRequireAbilityCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 		$ability = ucfirst(strtolower($args[2]));
 
@@ -436,30 +435,15 @@ class ImplantDesignerController extends AutoInject {
 			$blob .= "Combinations for <highlight>$slot<end> that will require $ability:\n";
 			$params = [$ability];
 			$sql =
-				"SELECT
-					i.AbilityQL1,
-					i.AbilityQL200,
-					i.AbilityQL201,
-					i.AbilityQL300,
-					i.TreatQL1,
-					i.TreatQL200,
-					i.TreatQL201,
-					i.TreatQL300,
-					c1.LongName as ShinyEffect,
-					c2.LongName as BrightEffect,
-					c3.LongName as FadedEffect
-				FROM
-					ImplantMatrix i
-					JOIN Cluster c1
-						ON i.ShiningID = c1.ClusterID
-					JOIN Cluster c2
-						ON i.BrightID = c2.ClusterID
-					JOIN Cluster c3
-						ON i.FadedID = c3.ClusterID
-					JOIN Ability a
-						ON i.AbilityID = a.AbilityID
-				WHERE
-					a.Name = ?";
+				"SELECT i.AbilityQL1, i.AbilityQL200, i.AbilityQL201, i.AbilityQL300, ".
+					"i.TreatQL1, i.TreatQL200, i.TreatQL201, i.TreatQL300, ".
+					"c1.LongName as ShinyEffect, c2.LongName as BrightEffect, c3.LongName as FadedEffect ".
+				"FROM ImplantMatrix i ".
+				"JOIN Cluster c1 ON i.ShiningID = c1.ClusterID ".
+				"JOIN Cluster c2 ON i.BrightID = c2.ClusterID ".
+				"JOIN Cluster c3 ON i.FadedID = c3.ClusterID ".
+				"JOIN Ability a ON i.AbilityID = a.AbilityID ".
+				"WHERE a.Name = ?";
 
 			if (!empty($slotObj->shiny)) {
 				$sql .= " AND c1.LongName = ?";
@@ -475,7 +459,7 @@ class ImplantDesignerController extends AutoInject {
 			}
 			$sql .= " ORDER BY c1.LongName, c2.LongName, c3.LongName";
 
-			$data = $this->db->query($sql, $params);
+			$data = $this->db->query($sql, ...$params);
 			$primary = null;
 			foreach ($data as $row) {
 				$results = [];
@@ -510,7 +494,7 @@ class ImplantDesignerController extends AutoInject {
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (result|results)$/i")
 	 */
-	public function implantdesignerResultCommand($message, $channel, $sender, $sendto, $args) {
+	public function implantdesignerResultCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->getImplantDesignerResults($sender);
 		
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);
@@ -518,7 +502,7 @@ class ImplantDesignerController extends AutoInject {
 		$sendto->reply($msg);
 	}
 	
-	public function getImplantDesignerResults($name) {
+	public function getImplantDesignerResults(string $name): string {
 		$design = $this->getDesign($name, '@');
 		
 		$mods = [];
@@ -570,7 +554,7 @@ class ImplantDesignerController extends AutoInject {
 				}
 				
 				// add implant
-				$obj = new stdClass;
+				$obj = new stdClass();
 				$obj->ql = $ql;
 				$obj->slot = $slot;
 				$implants []= $obj;
@@ -583,7 +567,7 @@ class ImplantDesignerController extends AutoInject {
 						$mods[$slotObj->$grade] += $this->getClusterModAmount($ql, $grade, $effectId);
 						
 						// add cluster
-						$obj = new stdClass;
+						$obj = new stdClass();
 						$obj->ql = $this->implantController->getClusterMinQl($ql, $grade);
 						$obj->slot = $slot;
 						$obj->grade = $grade;
@@ -599,15 +583,14 @@ class ImplantDesignerController extends AutoInject {
 		
 		// sort clusters by name alphabetically, and then by grade, shiny first
 		$grades = $this->grades;
-		usort($clusters, function($cluster1, $cluster2) use ($grades) {
+		usort($clusters, function(object $cluster1, object $cluster2) use ($grades): int {
 			$val = strcmp($cluster1->name, $cluster2->name);
-			if ($val == 0) {
+			if ($val === 0) {
 				$val1 = array_search($cluster1->grade, $grades);
 				$val2 = array_search($cluster2->grade, $grades);
-				return $val1 > $val2;
-			} else {
-				return $val > 0;
+				return $val1 <=> $val2;
 			}
+			return $val <=> 0;
 		});
 		
 		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
@@ -639,49 +622,35 @@ class ImplantDesignerController extends AutoInject {
 		return $blob;
 	}
 	
-	public function getImplantInfo($ql, $shiny, $bright, $faded) {
+	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?object {
 		$shiny = empty($shiny) ? '' : $shiny;
 		$bright = empty($bright) ? '' : $bright;
 		$faded = empty($faded) ? '' : $faded;
 
 		$sql =
-			"SELECT
-				i.AbilityQL1,
-				i.AbilityQL200,
-				i.AbilityQL201,
-				i.AbilityQL300,
-				i.TreatQL1,
-				i.TreatQL200,
-				i.TreatQL201,
-				i.TreatQL300,
-				c1.EffectTypeID as ShinyEffectTypeID,
-				c2.EffectTypeID as BrightEffectTypeID,
-				c3.EffectTypeID as FadedEffectTypeID,
-				a.Name AS AbilityName
-			FROM
-				ImplantMatrix i
-				JOIN Cluster c1
-					ON i.ShiningID = c1.ClusterID
-				JOIN Cluster c2
-					ON i.BrightID = c2.ClusterID
-				JOIN Cluster c3
-					ON i.FadedID = c3.ClusterID
-				JOIN Ability a
-					ON i.AbilityID = a.AbilityID
-			WHERE
-				c1.LongName = ?
-				AND c2.LongName = ?
-				AND c3.LongName = ?";
+			"SELECT i.AbilityQL1, i.AbilityQL200, i.AbilityQL201, i.AbilityQL300, ".
+				"i.TreatQL1, i.TreatQL200, i.TreatQL201, i.TreatQL300, ".
+				"c1.EffectTypeID as ShinyEffectTypeID, ".
+				"c2.EffectTypeID as BrightEffectTypeID, ".
+				"c3.EffectTypeID as FadedEffectTypeID, ".
+				"a.Name AS AbilityName ".
+			"FROM ImplantMatrix i ".
+				"JOIN Cluster c1 ON i.ShiningID = c1.ClusterID ".
+				"JOIN Cluster c2 ON i.BrightID = c2.ClusterID ".
+				"JOIN Cluster c3 ON i.FadedID = c3.ClusterID ".
+				"JOIN Ability a ON i.AbilityID = a.AbilityID ".
+			"WHERE c1.LongName = ? ".
+				"AND c2.LongName = ? ".
+				"AND c3.LongName = ?";
 
 		$row = $this->db->queryRow($sql, $shiny, $bright, $faded);
 		if ($row === null) {
 			return null;
-		} else {
-			return $this->addImplantInfo($row, $ql);
 		}
+		return $this->addImplantInfo($row, $ql);
 	}
 	
-	private function addImplantInfo($implantInfo, $ql) {
+	private function addImplantInfo(DBRow $implantInfo, int $ql): object {
 		if ($ql < 201) {
 			$minAbility = $implantInfo->AbilityQL1;
 			$maxAbility = $implantInfo->AbilityQL200;
@@ -704,36 +673,28 @@ class ImplantDesignerController extends AutoInject {
 		return $implantInfo;
 	}
 	
-	public function getClustersForSlot($implantType, $clusterType) {
-		$sql =
-			"SELECT
-				LongName AS skill
-			FROM
-				Cluster c1
-				JOIN ClusterImplantMap c2
-					ON c1.ClusterID = c2.ClusterID
-				JOIN ClusterType c3
-					ON c2.ClusterTypeID = c3.ClusterTypeID
-				JOIN ImplantType i
-					ON c2.ImplantTypeID = i.ImplantTypeID
-			WHERE
-				i.ShortName = ?
-				AND c3.Name = ?";
+	public function getClustersForSlot(string $implantType, string $clusterType): array {
+		$sql = "SELECT LongName AS skill ".
+			"FROM Cluster c1 ".
+				"JOIN ClusterImplantMap c2 ON c1.ClusterID = c2.ClusterID ".
+				"JOIN ClusterType c3 ON c2.ClusterTypeID = c3.ClusterTypeID ".
+				"JOIN ImplantType i ON c2.ImplantTypeID = i.ImplantTypeID ".
+			"WHERE i.ShortName = ? ".
+				"AND c3.Name = ?";
 				
 		return $this->db->query($sql, strtolower($implantType), strtolower($clusterType));
 	}
 
-	public function getDesign($sender, $name) {
+	public function getDesign(string $sender, string $name): stdClass {
 		$sql = "SELECT * FROM implant_design WHERE owner = ? AND name = ?";
 		$row = $this->db->queryRow($sql, $sender, $name);
 		if ($row === null) {
-			return new stdClass;
-		} else {
-			return json_decode($row->design);
+			return new stdClass();
 		}
+		return json_decode($row->design);
 	}
 	
-	public function saveDesign($sender, $name, $design) {
+	public function saveDesign(string $sender, string $name, object $design): void {
 		$json = json_encode($design);
 		$sql = "UPDATE implant_design SET design = ?, dt = ? WHERE owner = ? AND name = ?";
 		$numRows = $this->db->exec($sql, $json, time(), $sender, $name);

@@ -1,8 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\AutoInject;
+use Nadybot\Core\{
+	CacheManager,
+	CommandReply,
+	Nadybot,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -17,25 +23,31 @@ use Nadybot\Core\AutoInject;
  *		help        = 'cache.txt'
  *	)
  */
-class CacheController extends AutoInject {
+class CacheController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @Setup
-	 */
-	public function setup() {
-	}
+	/** @Inject */
+	public CacheManager $cacheManager;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	/**
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache$/i")
 	 */
-	public function cacheCommand($message, $channel, $sender, $sendto, $args) {
+	public function cacheCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
 			$blob .= $this->text->makeChatcmd($group, "/tell <myname> cache browse $group") . "\n";
@@ -48,7 +60,7 @@ class CacheController extends AutoInject {
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache browse ([a-z0-9_-]+)$/i")
 	 */
-	public function cacheBrowseCommand($message, $channel, $sender, $sendto, $args) {
+	public function cacheBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
 		
 		$path = $this->chatBot->vars['cachefolder'] . $group;
@@ -68,12 +80,12 @@ class CacheController extends AutoInject {
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache rem ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
 	 */
-	public function cacheRemCommand($message, $channel, $sender, $sendto, $args) {
+	public function cacheRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
 		$file = $args[2];
 		
 		if ($this->cacheManager->cacheExists($group, $file)) {
-			$contents = $this->cacheManager->remove($group, $file);
+			$$this->cacheManager->remove($group, $file);
 			$msg = "Cache file <highlight>$file<end> in cache group <highlight>$group<end> has been deleted.";
 		} else {
 			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
@@ -85,12 +97,15 @@ class CacheController extends AutoInject {
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache view ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
 	 */
-	public function cacheViewCommand($message, $channel, $sender, $sendto, $args) {
+	public function cacheViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
 		$file = $args[2];
 		
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file);
+			if (preg_match("/\.json$/", $file)) {
+				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
+			}
 			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars($contents));
 		} else {
 			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";

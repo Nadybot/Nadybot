@@ -1,9 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Event;
-use Nadybot\Core\StopExecutionException;
+use Nadybot\Core\{
+	AccessManager,
+	BuddylistManager,
+	CommandAlias,
+	CommandReply,
+	DB,
+	Event,
+	LoggerWrapper,
+	Nadybot,
+	SettingManager,
+	StopExecutionException,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -26,71 +38,36 @@ class OnlineController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 	
-	/**
-	 * @var \Nadybot\Core\BuddylistManager $buddylistManager
-	 * @Inject
-	 */
-	public $buddylistManager;
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\ALTS\AltsController $altsController
-	 * @Inject
-	 */
-	public $altsController;
+	/** @Inject */
+	public Text $text;
+	
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
-
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
-	
-	/**
-	 * @Setup
-	 */
+	/** @Setup */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "online");
 		
@@ -144,7 +121,7 @@ class OnlineController {
 	 * @HandlesCommand("online")
 	 * @Matches("/^online$/i")
 	 */
-	public function onlineCommand($message, $channel, $sender, $sendto, $args) {
+	public function onlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->getOnlineList();
 		$sendto->reply($msg);
 	}
@@ -153,51 +130,60 @@ class OnlineController {
 	 * @HandlesCommand("online")
 	 * @Matches("/^online (.+)$/i")
 	 */
-	public function onlineProfCommand($message, $channel, $sender, $sendto, $args) {
+	public function onlineProfCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$profession = $this->util->getProfessionName($args[1]);
 		if (empty($profession)) {
-			return false;
+			$msg = "<highlight>{$args[1]}<end> is not a recognized profession.";
+			$sendto->reply($msg);
+			return;
 		}
 
-		$sql = "
-			SELECT DISTINCT p.*, o.afk, COALESCE(a.main, o.name) AS pmain, (CASE WHEN o2.name IS NULL THEN 0 ELSE 1 END) AS online
-			FROM online o
-			LEFT JOIN alts a ON o.name = a.alt
-			LEFT JOIN alts a2 ON a2.main = COALESCE(a.main, o.name)
-			LEFT JOIN players p ON a2.alt = p.name OR COALESCE(a.main, o.name) = p.name
-			LEFT JOIN online o2 ON p.name = o2.name
-			WHERE p.profession = ?
-			ORDER BY COALESCE(a.main, o.name) ASC";
-		$data = $this->db->query($sql, $profession);
-		$count = count($data);
+		$sql = "SELECT DISTINCT p.*, o.afk, COALESCE(a.main, o.name) AS pmain, ".
+				"(CASE WHEN o2.name IS NULL THEN 0 ELSE 1 END) AS online ".
+			"FROM online o ".
+			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN alts a2 ON a2.main = COALESCE(a.main, o.name) ".
+			"LEFT JOIN players p ON a2.alt = p.name OR COALESCE(a.main, o.name) = p.name ".
+			"LEFT JOIN online o2 ON p.name = o2.name ".
+			"WHERE p.profession = ? ".
+			"ORDER BY COALESCE(a.main, o.name) ASC";
+		/** @var OnlinePlayer[] */
+		$players = $this->db->fetchAll(OnlinePlayer::class, $sql, $profession);
+		$count = count($players);
 		$mainCount = 0;
 		$currentMain = "";
 		$blob = "";
 
-		if ($count > 0) {
-			foreach ($data as $row) {
-				if ($currentMain != $row->pmain) {
-					$mainCount++;
-					$blob .= "\n<highlight>$row->pmain<end> has\n";
-					$currentMain = $row->pmain;
-				}
-
-				if ($row->profession === null) {
-					$blob .= "| ($row->name)\n";
-				} else {
-					$prof = $this->util->getProfessionAbbreviation($row->profession);
-					$blob.= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($row->profession)."> $row->name - $row->level/<green>$row->ai_level<end> $prof";
-				}
-				if ($row->online == 1) {
-					$blob .= " <green>Online<end>";
-				}
-				$blob .= "\n";
-			}
-			$blob .= "\nWritten by Naturarum (RK2)";
-			$msg = $this->text->makeBlob("$profession Search Results ($mainCount)", $blob);
-		} else {
+		if ($count === 0) {
 			$msg = "$profession Search Results (0)";
+			$sendto->reply($msg);
+			return;
 		}
+		foreach ($players as $player) {
+			if ($currentMain !== $player->pmain) {
+				$mainCount++;
+				$blob .= "\n<highlight>$player->pmain<end> has\n";
+				$currentMain = $player->pmain;
+			}
+
+			$playerName = $player->name;
+			if ($player->online) {
+				$playerName = $this->text->makeChatcmd($player->name, "/tell {$player->name}");
+			}
+			if ($player->profession === null) {
+				$blob .= "<tab>($playerName)\n";
+			} else {
+				$prof = $this->util->getProfessionAbbreviation($player->profession);
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
+			}
+			if ($player->online) {
+				$blob .= " <green>Online<end>";
+			}
+			$blob .= "\n";
+		}
+		$blob .= "\nWritten by Naturarum (RK2)";
+		$msg = $this->text->makeBlob("$profession Search Results ($mainCount)", $blob);
 
 		$sendto->reply($msg);
 	}
@@ -206,7 +192,7 @@ class OnlineController {
 	 * @Event("logOn")
 	 * @Description("Records an org member login in db")
 	 */
-	public function recordLogonEvent(Event $eventObj) {
+	public function recordLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->addPlayerToOnlineList($sender, $this->chatBot->vars['guild'], 'guild');
@@ -217,7 +203,7 @@ class OnlineController {
 	 * @Event("logOff")
 	 * @Description("Records an org member logoff in db")
 	 */
-	public function recordLogoffEvent(Event $eventObj) {
+	public function recordLogoffEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
@@ -228,7 +214,7 @@ class OnlineController {
 	 * @Event("logOn")
 	 * @Description("Sends a tell to players on logon showing who is online in org")
 	 */
-	public function showOnlineOnLogonEvent(Event $eventObj) {
+	public function showOnlineOnLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$msg = $this->getOnlineList();
@@ -240,55 +226,54 @@ class OnlineController {
 	 * @Event("timer(10mins)")
 	 * @Description("Online check")
 	 */
-	public function onlineCheckEvent(Event $eventObj) {
-		if ($this->chatBot->isReady()) {
-			//$this->db->beginTransaction();
-			$data = $this->db->query("SELECT name, channel_type FROM `online`");
+	public function onlineCheckEvent(Event $eventObj): void {
+		if (!$this->chatBot->isReady()) {
+			return;
+		}
+		$data = $this->db->query("SELECT name, channel_type FROM `online`");
 
-			$guildArray = [];
-			$privArray = [];
+		$guildArray = [];
+		$privArray = [];
 
-			foreach ($data as $row) {
-				switch ($row->channel_type) {
-					case 'guild':
-						$guildArray []= $row->name;
-						break;
-					case 'priv':
-						$privArray []= $row->name;
-						break;
-					default:
-						$this->logger->log("WARN", "Unknown channel type: '$row->channel_type'. Expected: 'guild' or 'priv'");
-				}
+		foreach ($data as $row) {
+			switch ($row->channel_type) {
+				case 'guild':
+					$guildArray []= $row->name;
+					break;
+				case 'priv':
+					$privArray []= $row->name;
+					break;
+				default:
+					$this->logger->log("WARN", "Unknown channel type: '$row->channel_type'. Expected: 'guild' or 'priv'");
 			}
+		}
 
-			$time = time();
+		$time = time();
 
-			foreach ($this->chatBot->guildmembers as $name => $rank) {
-				if ($this->buddylistManager->isOnline($name)) {
-					if (in_array($name, $guildArray)) {
-						$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'guild'";
-						$this->db->exec($sql, $time, $name);
-					} else {
-						$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)";
-						$this->db->exec($sql, $name, $time);
-					}
-				}
-			}
-
-			foreach ($this->chatBot->chatlist as $name => $value) {
-				if (in_array($name, $privArray)) {
-					$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'priv'";
+		foreach ($this->chatBot->guildmembers as $name => $rank) {
+			if ($this->buddylistManager->isOnline($name)) {
+				if (in_array($name, $guildArray)) {
+					$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'guild'";
 					$this->db->exec($sql, $time, $name);
 				} else {
-					$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild> Guest', 'priv', '<myname>', ?)";
+					$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)";
 					$this->db->exec($sql, $name, $time);
 				}
 			}
-
-			$sql = "DELETE FROM `online` WHERE (`dt` < ? AND added_by = '<myname>') OR (`dt` < ?)";
-			$this->db->exec($sql, $time, ($time - $this->settingManager->get('online_expire')));
-			//$this->db->commit();
 		}
+
+		foreach ($this->chatBot->chatlist as $name => $value) {
+			if (in_array($name, $privArray)) {
+				$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'priv'";
+				$this->db->exec($sql, $time, $name);
+			} else {
+				$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild> Guest', 'priv', '<myname>', ?)";
+				$this->db->exec($sql, $name, $time);
+			}
+		}
+
+		$sql = "DELETE FROM `online` WHERE (`dt` < ? AND added_by = '<myname>') OR (`dt` < ?)";
+		$this->db->exec($sql, $time, ($time - $this->settingManager->get('online_expire')));
 	}
 	
 	/**
@@ -323,45 +308,52 @@ class OnlineController {
 	 * @Description("Sets a member afk")
 	 * @Help("afk")
 	 */
-	public function afkGuildChannelEvent(Event $eventObj) {
+	public function afkGuildChannelEvent(Event $eventObj): void {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 	
-	public function afkCheck($sender, $message, $type) {
+	/**
+	 * Set someone back from afk if needed
+	 */
+	public function afkCheck($sender, string $message, string $type): void {
 		// to stop raising and lowering the cloak messages from triggering afk check
 		if (!$this->util->isValidSender($sender)) {
 			return;
 		}
 
-		if (!preg_match("/^.?afk(.*)$/i", $message)) {
-			$row = $this->db->queryRow("SELECT afk FROM online WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
+		$symbol = $this->settingManager->getString('symbol');
+		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
+			return;
+		}
+		$row = $this->db->queryRow("SELECT afk FROM online WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
 
-			if ($row !== null && $row->afk != '') {
-				[$time, $reason] = explode('|', $row->afk);
-				$timeString = $this->util->unixtimeToReadable(time() - $time);
-				// $sender is back
-				$this->db->exec("UPDATE online SET `afk` = '' WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
-				$msg = "<highlight>{$sender}<end> is back after $timeString.";
-				
-				if ('priv' == $type) {
-					$this->chatBot->sendPrivate($msg);
-				} elseif ('guild' == $type) {
-					$this->chatBot->sendGuild($msg);
-				}
-			}
+		if ($row === null || $row->afk === '') {
+			return;
+		}
+		$time = explode('|', $row->afk)[0];
+		$timeString = $this->util->unixtimeToReadable(time() - $time);
+		// $sender is back
+		$this->db->exec("UPDATE online SET `afk` = '' WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
+		$msg = "<highlight>{$sender}<end> is back after $timeString.";
+		
+		if ('priv' == $type) {
+			$this->chatBot->sendPrivate($msg);
+		} elseif ('guild' == $type) {
+			$this->chatBot->sendGuild($msg);
 		}
 	}
 	
-	public function afk($sender, $message, $type) {
+	public function afk(string $sender, string $message, string $type): void {
 		$msg = null;
-		if (preg_match("/^.?afk$/i", $message)) {
+		$symbol = $this->settingManager->getString('symbol');
+		if (preg_match("/^\Q$symbol\E?afk$/i", $message)) {
 			$reason = time();
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
-		} elseif (preg_match("/^.?brb(.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^\Q$symbol\E?brb(.*)$/i", $message, $arr)) {
 			$reason = time() . '|brb ' . trim($arr[1]);
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
-		} elseif (preg_match("/^.?afk (.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^\Q$symbol\E?afk[, ]+(.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
@@ -376,72 +368,81 @@ class OnlineController {
 			
 			// if 'afk' was used as a command, throw StopExecutionException to prevent
 			// normal command handling from occurring
-			if ($message[0] == $this->settingManager->get('symbol')) {
+			if ($message[0] == $symbol) {
 				throw new StopExecutionException();
 			}
 		}
 	}
 	
-	public function addPlayerToOnlineList($sender, $channel, $channelType) {
-		$sql = "SELECT name FROM `online` WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
+	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): void {
+		$sql = "SELECT name FROM `online` ".
+			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
 		$data = $this->db->query($sql, $sender, $channelType);
-		if (count($data) == 0) {
-			$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, ?, ?, '<myname>', ?)";
+		if (count($data) === 0) {
+			$sql = "INSERT INTO `online` ".
+				"(`name`, `channel`,  `channel_type`, `added_by`, `dt`) ".
+				"VALUES (?, ?, ?, '<myname>', ?)";
 			$this->db->exec($sql, $sender, $channel, $channelType, time());
 		}
 	}
 	
-	public function removePlayerFromOnlineList($sender, $channelType) {
-		$sql = "DELETE FROM `online` WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
+	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
+		$sql = "DELETE FROM `online` ".
+			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
 		$this->db->exec($sql, $sender, $channelType);
 	}
 	
-	public function getOnlineList() {
+	/**
+	 * Get a page or multiple pages with the online list
+	 * @return string[]
+	 */
+	public function getOnlineList(): array {
 		$orgData = $this->getPlayers('guild');
-		[$orgCount, $orgMain, $orgBlob] = $this->formatData($orgData, $this->settingManager->get("online_show_org_guild"));
+		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild"));
 
 		$privData = $this->getPlayers('priv');
-		[$privCount, $privMain, $privBlob] = $this->formatData($privData, $this->settingManager->get("online_show_org_priv"));
+		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
+		// [$privCount, $privMain, $privBlob] = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
 
-		$totalCount = $orgCount + $privCount;
-		$totalMain = $orgMain + $privMain;
+		$totalCount = $orgList->count + $privList->count;
+		$totalMain = $orgList->countMains + $privList->countMains;
 
 		$blob = "\n";
-		if ($orgCount > 0) {
-			$blob .= "<header2>Org Channel ($orgMain)<end>\n";
-			$blob .= $orgBlob;
+		if ($orgList->count > 0) {
+			$blob .= "<header2>Org Channel ($orgList->countMains)<end>\n";
+			$blob .= $orgList->blob;
 			$blob .= "\n\n";
 		}
-		if ($privCount > 0) {
-			$blob .= "<header2>Private Channel ($privMain)<end>\n";
-			$blob .= $privBlob;
+		if ($privList->count > 0) {
+			$blob .= "<header2>Private Channel ($privList->countMains)<end>\n";
+			$blob .= $privList->blob;
 			$blob .= "\n\n";
 		}
 
 		if ($totalCount > 0) {
-			$blob .= "Written by Naturarum (RK2)";
+			$blob .= "Originally written by Naturarum (RK2)";
 			$msg = $this->text->makeBlob("Players Online ($totalMain)", $blob);
 		} else {
 			$msg = "Players Online (0)";
 		}
-		return $msg;
+		return (array)$msg;
 	}
 
-	public function getOrgInfo($show_org_info, $fancyColon, $guild, $guild_rank) {
-		switch ($show_org_info) {
+	public function getOrgInfo(int $showOrgInfo, string $fancyColon, string $guild, string $guild_rank): string {
+		switch ($showOrgInfo) {
 			case 3:
-				  return $guild != "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
+				  return $guild !== "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
 			case 2:
-				  return $guild != "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
+				  return $guild !== "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
 			case 1:
-				  return $guild != "" ? " $fancyColon {$guild_rank}":"";
+				  return $guild !== "" ? " $fancyColon {$guild_rank}":"";
 			default:
 				  return "";
 		}
 	}
 
-	public function getAdminInfo($name, $fancyColon) {
-		if ($this->settingManager->get("online_admin") != 1) {
+	public function getAdminInfo(string $name, string $fancyColon): string {
+		if (!$this->settingManager->getBool("online_admin")) {
 			return "";
 		}
 
@@ -455,53 +456,65 @@ class OnlineController {
 			case 'rl':
 				  return " $fancyColon <orange>RL<end>";
 		}
+		return "";
 	}
 
-	public function getAfkInfo($afk, $fancyColon) {
-		[$time, $reason] = explode("|", $afk);
+	public function getAfkInfo(string $afk, string $fancyColon): string {
 		if (empty($afk)) {
 			return '';
-		} elseif (empty($reason)) {
-			$timeString = $this->util->unixtimeToReadable(time() - $time, false);
-			return " $fancyColon <highlight>AFK for $timeString<end>";
-		} else {
-			$timeString = $this->util->unixtimeToReadable(time() - $time, false);
-			return " $fancyColon <highlight>AFK for $timeString: {$reason}<end>";
 		}
+		$props = explode("|", $afk, 2);
+		if (count($props) === 1 || !strlen($props[1])) {
+			$timeString = $this->util->unixtimeToReadable(time() - $props[0], false);
+			return " $fancyColon <highlight>AFK for $timeString<end>";
+		}
+		$timeString = $this->util->unixtimeToReadable(time() - $props[0], false);
+		return " $fancyColon <highlight>AFK for $timeString: {$props[1]}<end>";
 	}
 
-	public function formatData($data, $showOrgInfo) {
-		$count = count($data);
-		$mainCount = 0;
+	/**
+	 * @param OnlinePlayer[] $players
+	 * @param int $showOrgInfo
+	 * @return OnlineList
+	 */
+	public function formatData(array $players, int $showOrgInfo): OnlineList {
 		$currentMain = "";
-		$blob = "";
 		$separator = "-";
+		$list = new OnlineList();
+		$list->count = count($players);
+		$list->countMains = 0;
+		$list->blob = "";
 
-		if ($count > 0) {
-			foreach ($data as $row) {
-				if ($currentMain != $row->pmain) {
-					$mainCount++;
-					$blob .= "\n<pagebreak><highlight>$row->pmain<end> on\n";
-					$currentMain = $row->pmain;
-				}
+		if ($list->count === 0) {
+			return $list;
+		}
+		foreach ($players as $player) {
+			if ($currentMain !== $player->pmain) {
+				$list->countMains++;
+				$list->blob .= "\n<pagebreak><highlight>$player->pmain<end> on\n";
+				$currentMain = $player->pmain;
+			}
 
-				$admin = $this->getAdminInfo($row->name, $separator);
-				$afk = $this->getAfkInfo($row->afk, $separator);
+			$admin = $this->getAdminInfo($player->name, $separator);
+			$afk = $this->getAfkInfo($player->afk, $separator);
 
-				if ($row->profession === null) {
-					$blob .= "| $row->name$admin$afk\n";
-				} else {
-					$prof = $this->util->getProfessionAbbreviation($row->profession);
-					$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $row->guild, $row->guild_rank);
-					$blob.= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($row->profession)."> $row->name - $row->level/<green>$row->ai_level<end> $prof$orgRank$admin$afk\n";
-				}
+			if ($player->profession === null) {
+				$list->blob .= "<tab>| $player->name$admin$afk\n";
+			} else {
+				$prof = $this->util->getProfessionAbbreviation($player->profession);
+				$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+				$list->blob.= "<tab>$profIcon $player->name - $player->level/<green>$player->ai_level<end> $prof$orgRank$admin$afk\n";
 			}
 		}
-		
-		return [$count, $mainCount, $blob];
+
+		return  $list;
 	}
 
-	public function getPlayers($channelType) {
+	/**
+	 * @return OnlinePlayer[]
+	 */
+	public function getPlayers(string $channelType): array {
 		$sql = "
 			SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain
 			FROM online o
@@ -509,10 +522,10 @@ class OnlineController {
 			LEFT JOIN players p ON o.name = p.name
 			WHERE o.channel_type = ?
 			ORDER BY COALESCE(a.main, o.name) ASC";
-		return $this->db->query($sql, $channelType);
+		return $this->db->fetchAll(OnlinePLayer::class, $sql, $channelType);
 	}
 
-	public function getProfessionId($profession) {
+	public function getProfessionId(string $profession): ?int {
 		$profToID = [
 			"Adventurer" => 6,
 			"Agent" => 5,
@@ -529,6 +542,6 @@ class OnlineController {
 			"Shade" => 15,
 			"Trader" => 7,
 		];
-		return $profToID[$profession];
+		return $profToID[$profession] ?? null;
 	}
 }

@@ -10,6 +10,7 @@ use PhpAmqpLib\Exception\AMQPIOException;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
+use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use Nadybot\Core\Event;
 use ErrorException;
 use Exception;
@@ -33,7 +34,7 @@ class AMQP {
 	/** @Inject */
 	public EventManager $eventManager;
 
-	protected AMQPChannel $channel;
+	protected ?AMQPChannel $channel = null;
 
 	/**
 	 * Did we receive a message on our last wait for new messages?
@@ -44,7 +45,7 @@ class AMQP {
 
 	private string $queueName;
 
-	/** @var string[] */
+	/** @var array<string,AMQPExchange> */
 	private array $exchanges = [];
 
 	/**
@@ -59,22 +60,30 @@ class AMQP {
 	 * Connect our channel to a new exchange
 	 * Don't try to connect if we're not (yet) connected
 	 */
-	public function connectExchange(string $exchange): bool {
-		if (in_array($exchange, $this->exchanges)) {
+	public function connectExchange(AMQPExchange $exchange): bool {
+		if (isset($this->exchanges[$exchange->name])) {
 			return true;
 		}
 		if ($this->channel === null) {
-			$this->exchanges[] = $exchange;
+			$this->exchanges[$exchange->name] = $exchange;
 			return true;
 		}
 		try {
-			$this->channel->exchange_declare($exchange, AMQPExchangeType::FANOUT, false, false, true);
-			$this->channel->queue_bind($this->queueName, $exchange);
+			if ($exchange->type === AMQPExchangeType::FANOUT) {
+				$this->channel->exchange_declare($exchange->name, AMQPExchangeType::FANOUT, false, false, true);
+			}
+			if (count($exchange->routingKeys)) {
+				foreach ($exchange->routingKeys as $key) {
+					$this->channel->queue_bind($this->queueName, $exchange->name, $key);
+				}
+			} else {
+				$this->channel->queue_bind($this->queueName, $exchange->name);
+			}
 		} catch (Exception $e) {
-			$this->exchanges[] = $exchange;
+			$this->exchanges[$exchange->name] = $exchange;
 			return false;
 		}
-		$this->logger->log("INFO", "Now listening for AMQP messages on exchange {$exchange}.");
+		$this->logger->log("INFO", "Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
 		return true;
 	}
 
@@ -83,10 +92,10 @@ class AMQP {
 	 * Don't try to connect if we're not (yet) connected
 	 */
 	public function disconnectExchange(string $exchange): bool {
-		if (in_array($exchange, $this->exchanges)) {
+		if (!isset($this->exchanges[$exchange])) {
 			return true;
 		}
-		$this->exchanges[] = array_values(array_diff($this->exchanges, [$exchange]));
+		unset($this->exchanges[$exchange]);
 		if ($this->channel === null) {
 			return true;
 		}
@@ -112,7 +121,7 @@ class AMQP {
 		}
 		$this->lastConnectTry = time();
 		$vars = $this->chatBot->vars;
-		if (!strlen($vars['amqp_server']) || !strlen($vars['amqp_user']) || !strlen($vars['amqp_password'])) {
+		if (!strlen($vars['amqp_server']??"") || !strlen($vars['amqp_user']??"") || !strlen($vars['amqp_password']??"")) {
 			return null;
 		}
 		try {
@@ -130,16 +139,27 @@ class AMQP {
 		try {
 			$channel = $connection->channel();
 			$channel->queue_declare($this->queueName, false, false, false, true);
-			foreach ($this->exchanges as $exchange) {
-				$channel->exchange_declare($exchange, AMQPExchangeType::FANOUT, false, false, true);
-				$channel->queue_bind($this->queueName, $exchange);
-				$this->logger->log("INFO", "Now listening for AMQP messages on exchange {$exchange}.");
+			foreach ($this->exchanges as $exchangeName => $exchange) {
+				if ($exchange->type === AMQPExchangeType::FANOUT) {
+					$channel->exchange_declare($exchangeName, AMQPExchangeType::FANOUT, false, false, true);
+				}
+				if (count($exchange->routingKeys)) {
+					foreach ($exchange->routingKeys as $key) {
+						$channel->queue_bind($this->queueName, $exchangeName, $key);
+					}
+				} else {
+					$channel->queue_bind($this->queueName, $exchangeName);
+				}
+				$this->logger->log("INFO", "Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
 			}
 		} catch (AMQPTimeoutException $e) {
 			$this->logger->log('INFO', 'Connection to AMQP server timed out.');
 			return null;
 		} catch (AMQPIOException $e) {
 			$this->logger->log('INFO', 'Connection to AMQP server interruped.');
+			return null;
+		} catch (AMQPProtocolChannelException $e) {
+			$this->logger->log('INFO', 'AMQP error: ' . $e->getMessage());
 			return null;
 		} catch (ErrorException $e) {
 			$this->logger->log('INFO', 'Error Connecting to AMQP server: ' . $e->getMessage());
@@ -159,7 +179,7 @@ class AMQP {
 	/**
 	 * Send a message to the configured AMQP exchange
 	 */
-	public function sendMessage(string $exchange, string $text): bool {
+	public function sendMessage(string $exchange, string $text, ?string $routingKey=null): bool {
 		$channel = $this->getChannel();
 		if ($channel === null) {
 			return false;
@@ -170,8 +190,9 @@ class AMQP {
 			['content_type' => $contentType]
 		);
 		$sender = $this->chatBot->vars['name'];
+		$routingKey ??= $sender;
 		try {
-			$channel->basic_publish($message, $exchange, $sender);
+			$channel->basic_publish($message, $exchange, $routingKey);
 		} catch (AMQPTimeoutException $e) {
 			$this->logger->log('INFO', 'Sending message to AMQP server timed out.');
 			$this->channel = null;

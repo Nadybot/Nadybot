@@ -7,6 +7,8 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Exception;
+use ReflectionClass;
+use ReflectionException;
 use ReflectionProperty;
 
 /**
@@ -129,7 +131,26 @@ class DB {
 		$this->meta[$metaKey] = [];
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
-			if (in_array($colMeta['native_type'], ["integer", "TINY", "LONG"])) {
+			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
+			$refProp = new ReflectionProperty($row, $colMeta["name"]);
+			$refProp->setAccessible(true);
+			if ($type === "bool") {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+					$stringValue = $refProp->getValue($row);
+					if ($stringValue !== null) {
+						$refProp->setValue($row, (bool)$stringValue);
+					}
+				};
+			} elseif ($type === "int") {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+					$stringValue = $refProp->getValue($row);
+					if ($stringValue !== null) {
+						$refProp->setValue($row, (int)$stringValue);
+					}
+				};
+			}
+			continue;
+			if (in_array($colMeta['native_type'], ["integer", "TINY", "LONG", "SHORT"])) {
 				$colName = $colMeta['name'];
 				$refProp = new ReflectionProperty($row, $colName);
 				$refProp->setAccessible(true);
@@ -202,8 +223,37 @@ class DB {
 		return $this->fetchAll(...func_get_args())[0] ?? null;
 	}
 
+	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
+		if (!$refClass->hasProperty($colName)) {
+			return null;
+		}
+		$refProp = $refClass->getProperty($colName);
+		$refType = $refProp->getType();
+		if ($refType === null) {
+			return null;
+		}
+		return $refType->getName();
+	}
+
+	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
+		if (!in_array($colMeta['native_type'], ["integer", "TINY", "LONG", "NEWDECIMAL"])
+			&& !in_array($colMeta["sqlite:decl_type"] ?? null, ["INT, BOOLEAN, TINYINT(1)"])) {
+			return null;
+		}
+		if (
+			$colMeta['native_type'] === 'TINY'
+			|| (isset($colMeta['sqlite:decl_type'])
+				&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
+		) {
+			return "bool";
+		} else {
+			return "int";
+		}
+	}
+
 	public function convertToClass(PDOStatement $ps, string $className, array $values) {
 		$row = new $className();
+		$refClass = new ReflectionClass($row);
 		$metaKey = md5($ps->queryString);
 		$numColumns = $ps->columnCount();
 		if (!isset($this->metaTypes[$metaKey])) {
@@ -216,18 +266,27 @@ class DB {
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $meta[$col];
 			$colName = $colMeta['name'];
-			if (!in_array($colMeta['native_type'], ["integer", "TINY", "LONG"])) {
-				$row->{$colName} = $values[$col];
+			if ($values[$col] === null) {
+				try {
+					$refProp = $refClass->getProperty($colName);
+					if ($refProp->getType()->allowsNull()) {
+						$row->{$colName} = $values[$col];
+					}
+				} catch (ReflectionException $e) {
+					$row->{$colName} = null;
+				}
 				continue;
 			}
-			if (
-				$colMeta['native_type'] === 'TINY'
-				|| (isset($colMeta['sqlite:decl_type'])
-					&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
-			) {
+			$type = $this->guessVarTypeFromReflection($refClass, $colName)
+				?? $this->guessVarTypeFromColMeta($colMeta, $colName);
+			if ($type === "bool") {
 				$row->{$colName} = (bool)$values[$col];
-			} else {
+			} elseif ($type === "int") {
 				$row->{$colName} = (int)$values[$col];
+			} elseif ($type === "float") {
+				$row->{$colName} = (float)$values[$col];
+			} else {
+				$row->{$colName} = $values[$col];
 			}
 		}
 		return $row;
@@ -335,8 +394,8 @@ class DB {
 	/**
 	 * Returns the ID of the last inserted row or sequence value
 	 */
-	public function lastInsertId(): string {
-		return $this->sql->lastInsertId();
+	public function lastInsertId(): int {
+		return (int)$this->sql->lastInsertId();
 	}
 
 	/**
@@ -418,7 +477,7 @@ class DB {
 		}
 
 		// make sure setting is verified so it doesn't get deleted
-		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', 0);
+		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', "0");
 
 		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
 			$msg = "'$name' database already up to date! version: '$currentVersion'";
@@ -449,7 +508,7 @@ class DB {
 				}
 			}
 
-			$this->settingManager->save($settingName, $maxFileVersion);
+			$this->settingManager->save($settingName, (string)$maxFileVersion);
 
 			if ($maxFileVersion != 0) {
 				$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
@@ -475,13 +534,29 @@ class DB {
 				"SELECT COUNT(*) AS `exists` ".
 				"FROM sqlite_master WHERE type=? AND name=?",
 				"table",
-				$tableName
+				$this->formatSql($tableName)
 			)->exists > 0;
 		}
 		return $this->queryRow(
 			"SELECT COUNT(*) AS `exists` FROM information_schema.TABLES ".
 			"WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
-			$tableName
+			$this->formatSql($tableName)
+		)->exists > 0;
+	}
+
+	public function columnExists(string $table, string $column): bool {
+		if ($this->getType() === static::SQLITE) {
+			return $this->queryRow(
+				"SELECT COUNT(*) AS `exists` FROM pragma_table_info(?) WHERE name=?",
+				$this->formatSql($table),
+				$column
+			)->exists > 0;
+		}
+		return $this->queryRow(
+			"SELECT COUNT(*) AS `exists` FROM information_schema.columns ".
+			"WHERE table_name = ? AND column_name = ?",
+			$this->formatSql($table),
+			$column
 		)->exists > 0;
 	}
 }

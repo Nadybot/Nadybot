@@ -1,11 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Event;
 use Exception;
-use Nadybot\Core\SQLException;
-use stdClass;
+use Nadybot\Core\{
+	Event,
+	CommandReply,
+	DB,
+	Http,
+	HttpResponse,
+	LoggerWrapper,
+	Nadybot,
+	SQLException,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -26,43 +35,25 @@ class FindOrgController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\Http $http
-	 * @Inject
-	 */
-	public $http;
+	/** @Inject */
+	public Http $http;
 	
-	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
-	 * @Logger
-	 */
-	public $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
 	private $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -72,7 +63,7 @@ class FindOrgController {
 	];
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "organizations");
 	}
 	
@@ -80,7 +71,7 @@ class FindOrgController {
 	 * @HandlesCommand("findorg")
 	 * @Matches("/^findorg (.+)$/i")
 	 */
-	public function findOrgCommand($message, $channel, $sender, $sendto, $args) {
+	public function findOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 		
 		$orgs = $this->lookupOrg($search);
@@ -104,25 +95,31 @@ class FindOrgController {
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 		$params []= $limit;
 		
-		$sql = "SELECT id, name, faction, num_members FROM organizations WHERE $query LIMIT ?";
+		$sql = "SELECT * FROM organizations WHERE $query LIMIT ?";
 		
 		$orgs = $this->db->fetchAll(Organization::class, $sql, ...$params);
 		
 		return $orgs;
 	}
 	
-	public function formatResults($orgs) {
+	/**
+	 * @param Organization[] $orgs
+	 */
+	public function formatResults(array $orgs): string {
 		$blob = '';
-		foreach ($orgs as $row) {
-			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$row->id}");
-			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$row->id}");
-			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$row->id}");
-			$blob .= "<{$row->faction}>{$row->name}<end> ({$row->id}) - {$row->num_members} members [$orglist] [$whoisorg] [$orgmembers]\n\n";
+		foreach ($orgs as $org) {
+			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$org->id}");
+			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$org->id}");
+			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
+			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [$orglist] [$whoisorg] [$orgmembers]\n\n";
 		}
 		return $blob;
 	}
 
-	public function handleOrglistResponse(string $url, int $searchIndex, object $response) {
+	public function handleOrglistResponse(string $url, int $searchIndex, HttpResponse $response) {
+		if ($response === null || $response->headers["status-code"] !== "200") {
+			return;
+		}
 		$search = $this->searches[$searchIndex];
 		$pattern = '@<tr>\s*'.
 			'<td align="left">\s*'.
@@ -171,7 +168,7 @@ class FindOrgController {
 				->get($url)
 				->withQueryParams(['l' => $this->searches[$searchIndex]])
 				->withTimeout(60)
-				->withCallback(function($response) use ($url, $searchIndex) {
+				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 		} catch (Exception $e) {
@@ -184,7 +181,11 @@ class FindOrgController {
 	 * @Event("timer(24hrs)")
 	 * @Description("Parses all orgs from People of Rubi Ka")
 	 */
-	public function parseAllOrgsEvent(Event $eventObj) {
+	public function parseAllOrgsEvent(Event $eventObj): void {
+		$this->downloadOrglist();
+	}
+
+	public function downloadOrglist(): void {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
 		
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
@@ -193,7 +194,7 @@ class FindOrgController {
 				->get($url)
 				->withQueryParams(['l' => $this->searches[$searchIndex]])
 				->withTimeout(60)
-				->withCallback(function($response) use ($url, $searchIndex) {
+				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 	}

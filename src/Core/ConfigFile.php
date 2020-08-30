@@ -58,7 +58,9 @@ class ConfigFile {
 		// if there are additional vars which were not present in the config
 		// file or in template file then add them at end of the config file
 		if (!empty($vars)) {
-			$lines []= "<?php\n";
+			if (empty($lines)) {
+				$lines []= "<?php\n";
+			}
 			foreach ($vars as $name => $value) {
 				if (is_string($value)) {
 					$lines []= "\$vars['$name'] = \"$value\";\n";
@@ -66,7 +68,7 @@ class ConfigFile {
 					$lines []= "\$vars['$name'] = $value;\n";
 				}
 			}
-			$lines []= "\n";
+			// $lines []= "\n";
 		}
 
 		file_put_contents($this->filePath, $lines);

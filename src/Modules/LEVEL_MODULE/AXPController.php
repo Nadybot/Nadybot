@@ -1,6 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\LEVEL_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
@@ -21,52 +24,50 @@ class AXPController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	private $aiRanks = [
-		[1500,      5, "Fledgling"],
-		[9000,     15, "Amateur"],
-		[22500,    25, "Beginner"],
-		[42000,    35, "Starter"],
-		[67500,    45, "Newcomer"],
-		[99000,    55, "Student"],
-		[136500,   65, "Common"],
-		[180000,   75, "Intermediate"],
-		[229500,   85, "Mediocre"],
-		[285000,   95, "Fair"],
-		[346500,  105, "Able"],
-		[414000,  110, "Accomplished"],
-		[487500,  115, "Adept"],
-		[567000,  120, "Qualified"],
-		[697410,  125, "Competent"],
-		[857814,  130, "Suited"],
-		[1055112, 135, "Talented"],
-		[1297787, 140, "Trustworthy"],
-		[1596278, 145, "Supporter"],
-		[1931497, 150, "Backer"],
-		[2298481, 155, "Defender"],
-		[2689223, 160, "Challenger"],
-		[3092606, 165, "Patron"],
-		[3494645, 170, "Protector"],
-		[3879056, 175, "Medalist"],
-		[4228171, 180, "Champ"],
-		[4608707, 185, "Hero"],
-		[5023490, 190, "Guardian"],
-		[5475604, 195, "Vanquisher"],
-		[5968409, 200, "Vindicator"],
+	/** @var array<array> */
+	private array $aiRanks = [
+		[1_500,      5, "Fledgling"],
+		[9_000,     15, "Amateur"],
+		[22_500,    25, "Beginner"],
+		[42_000,    35, "Starter"],
+		[67_500,    45, "Newcomer"],
+		[99_000,    55, "Student"],
+		[136_500,   65, "Common"],
+		[180_000,   75, "Intermediate"],
+		[229_500,   85, "Mediocre"],
+		[285_000,   95, "Fair"],
+		[346_500,  105, "Able"],
+		[414_000,  110, "Accomplished"],
+		[487_500,  115, "Adept"],
+		[567_000,  120, "Qualified"],
+		[697_410,  125, "Competent"],
+		[857_814,  130, "Suited"],
+		[1_055_112, 135, "Talented"],
+		[1_297_787, 140, "Trustworthy"],
+		[1_596_278, 145, "Supporter"],
+		[1_931_497, 150, "Backer"],
+		[2_298_481, 155, "Defender"],
+		[2_689_223, 160, "Challenger"],
+		[3_092_606, 165, "Patron"],
+		[3_494_645, 170, "Protector"],
+		[3_879_056, 175, "Medalist"],
+		[4_228_171, 180, "Champ"],
+		[4_608_707, 185, "Hero"],
+		[5_023_490, 190, "Guardian"],
+		[5_475_604, 195, "Vanquisher"],
+		[5_968_409, 200, "Vindicator"],
 	];
 	
 	/**
 	 * @HandlesCommand("axp")
 	 * @Matches("/^axp$/i")
 	 */
-	public function axpListCommand($message, $channel, $sender, $sendto, $args) {
+	public function axpListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = "<u>AI Lvl | Lvl Req |          AXP  |  Rank         </u>\n";
 		for ($aiRank = 0; $aiRank < count($this->aiRanks); $aiRank++) {
 			$rankInfo = $this->aiRanks[$aiRank];
@@ -83,10 +84,10 @@ class AXPController {
 	
 	/**
 	 * @HandlesCommand("axp")
-	 * @Matches("/^axp ([0-9]+)$/i")
+	 * @Matches("/^axp (\d+)$/i")
 	 */
-	public function axpSingleCommand($message, $channel, $sender, $sendto, $args) {
-		$level = $args[1];
+	public function axpSingleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$level = (int)$args[1];
 		if ($level > 30) {
 			$msg = "AI level must be between 0 and 30.";
 			$sendto->reply($msg);
@@ -99,11 +100,11 @@ class AXPController {
 	
 	/**
 	 * @HandlesCommand("axp")
-	 * @Matches("/^axp ([0-9]+)\s+([0-9]+)$/i")
+	 * @Matches("/^axp (\d+)\s+(\d+)$/i")
 	 */
-	public function axpDoubleCommand($message, $channel, $sender, $sendto, $args) {
-		$startLevel = $args[1];
-		$endLevel = $args[2];
+	public function axpDoubleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$startLevel = (int)$args[1];
+		$endLevel = (int)$args[2];
 		if ($startLevel > 30 || $endLevel > 30) {
 			$msg = "AI level must be between 0 and 30.";
 			$sendto->reply($msg);

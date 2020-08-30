@@ -26,5 +26,8 @@ class PlayerLookupController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'players');
+		if ($this->db->getType() === $this->db::MYSQL) {
+			$this->db->exec("ALTER TABLE players change `prof_title` `prof_title` VARCHAR(40)");
+		}
 	}
 }

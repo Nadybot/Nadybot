@@ -16,7 +16,7 @@ class MMDBParser {
 		$this->logger = new LoggerWrapper('MMDBParser');
 	}
 
-	public function getMessageString(int $categoryId, int $instanceId) {
+	public function getMessageString(int $categoryId, int $instanceId): ?string {
 		// check for entry in cache
 		if (isset($this->mmdb[$categoryId][$instanceId])) {
 			return $this->mmdb[$categoryId][$instanceId];
@@ -53,7 +53,10 @@ class MMDBParser {
 		return $message;
 	}
 
-	public function findAllInstancesInCategory(int $categoryId) {
+	/**
+	 * @return array<string,int>[]|null
+	 */
+	public function findAllInstancesInCategory(int $categoryId): ?array {
 		$in = $this->openFile();
 		if ($in === null) {
 			return null;
@@ -86,7 +89,7 @@ class MMDBParser {
 	}
 	
 	/**
-	 * @return array<array<string,int>>
+	 * @return array<string,int>[]
 	 */
 	public function getCategories(): array {
 		$in = $this->openFile();
@@ -119,9 +122,9 @@ class MMDBParser {
 	 */
 	private function openFile(string $filename="data/text.mdb") {
 		$in = fopen($filename, 'rb');
-		if (!$in) {
+		if ($in === false) {
 			$this->logger->log('error', "Could not open file: '{$filename}'");
-			fclose($in);
+			@fclose($in);
 			return null;
 		}
 

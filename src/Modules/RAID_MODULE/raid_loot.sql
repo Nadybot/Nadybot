@@ -372,7 +372,7 @@ INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUE
 ('Pande', 'Libra', 250, 'Urbane Pants of Libra', '', 1, NULL),
 ('Pande', 'Libra', 250, 'Aim of Libra', '', 1, NULL),
 ('Pande', 'Libra', 250, 'Well Balanced Spirit Helper of Libra', '', 1, NULL),
-('Pande', 'Libra', 1, 'Activation Code', '', 1, NULL),
+('Pande', 'Libra', 1, 'Activation Code', '', 6, NULL),
 ('Pande', 'Pisces', 250, 'Cosmic Guide of the Pisces', '', 1, NULL),
 ('Pande', 'Pisces', 250, 'Octopus Contraption of the Pisces', '', 1, NULL),
 ('Pande', 'Pisces', 250, 'Soul Mark of Pisces', '', 1, NULL),

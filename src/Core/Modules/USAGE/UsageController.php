@@ -237,7 +237,7 @@ class UsageController {
 	 * Record the use of a command $cmd by player $sender
 	 * @throws SQLException
 	 */
-	public function record(string $type, string $cmd, string $sender, string $handler): void {
+	public function record(string $type, string $cmd, string $sender, ?string $handler): void {
 		// don't record stats for !grc command or command aliases
 		if ($cmd === 'grc' || "CommandAlias.process" === $handler) {
 			return;

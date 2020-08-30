@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Nadybot\Core\DBSchema\Player;
+
 class Guild {
 	public int $guild_id;
 	public string $orgname;

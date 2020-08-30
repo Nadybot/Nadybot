@@ -13,13 +13,13 @@ class Player extends DBRow {
 	public string $breed = '';
 	public string $gender = '';
 	public string $faction = '';
-	public string $profession = '';
+	public ?string $profession = '';
 	public string $prof_title= '';
 	public string $ai_rank = '';
 	public ?int $ai_level = null;
 	public ?int $guild_id = null;
-	public string $guild = '';
-	public string $guild_rank = '';
+	public ?string $guild = '';
+	public ?string $guild_rank = '';
 	public ?int $guild_rank_id = null;
 	public ?int $dimension;
 	public ?int $head_id = null;

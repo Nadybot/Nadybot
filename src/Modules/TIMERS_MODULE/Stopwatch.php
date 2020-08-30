@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
@@ -8,20 +8,12 @@ namespace Nadybot\Modules\TIMERS_MODULE;
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 class Stopwatch {
-	/**
-	 * @var int $start
-	 */
-	public $start;
+	public int $start;
 
-	/**
-	 * @var StopwatchLap[] $laps
-	 */
-	public $laps = [];
+	/** @var StopwatchLap[] */
+	public array $laps = [];
 
-	/**
-	 * @var int $end
-	 */
-	public $end;
+	public int $end;
 
 	public function __construct() {
 		$this->start = time();
@@ -29,17 +21,15 @@ class Stopwatch {
 
 	/**
 	 * Get a textual representation of the timer
-	 *
-	 * @return string
 	 */
-	public function toString() {
+	public function toString(): string {
 		$descr = "Start:    " . strftime('%Y-%m-%d %H:%M:%S', $this->start) . "\n";
 		$last = $this->start;
 		foreach ($this->laps as $lap) {
 			$descr .= $lap->toString($last);
 			$last = $lap->time;
 		}
-		if ($this->end !== null) {
+		if (isset($this->end)) {
 			$descr .= "End:    +" . strftime('%M:%S', $this->end - $last) . "\n";
 		} else {
 			$descr .= "Now:   +" . strftime('%M:%S', time() - $last) . "\n";

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS players(
 	`gender`        VARCHAR(20) NOT NULL DEFAULT '',
 	`faction`       VARCHAR(20) NOT NULL DEFAULT '',
 	`profession`    VARCHAR(20) NOT NULL DEFAULT '',
-	`prof_title`    VARCHAR(20) NOT NULL DEFAULT '',
+	`prof_title`    VARCHAR(40) NOT NULL DEFAULT '',
 	`ai_rank`       VARCHAR(20) NOT NULL DEFAULT '',
 	`ai_level`      SMALLINT DEFAULT NULL,
 	`guild_id`      INT DEFAULT NULL,

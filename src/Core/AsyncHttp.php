@@ -62,6 +62,13 @@ class AsyncHttp {
 	private array $queryParams = [];
 
 	/**
+	 * The raw data to send with a post request
+	 *
+	 * @var ?string
+	 */
+	private ?string $postData = null;
+
+	/**
 	 * The socket to communicate with
 	 *
 	 * @var resource $stream
@@ -162,7 +169,11 @@ class AsyncHttp {
 		if (!$this->createStream()) {
 			return;
 		}
-		$this->setupStreamNotify();
+		if ($this->request->getScheme() === "ssl") {
+			$this->activateTLS();
+		} else {
+			$this->setupStreamNotify();
+		}
 
 		$this->logger->log('DEBUG', "Sending request: {$this->request->getData()}");
 	}
@@ -172,7 +183,7 @@ class AsyncHttp {
 	 */
 	private function buildRequest(): bool {
 		try {
-			$this->request = new HttpRequest($this->method, $this->uri, $this->queryParams, $this->headers);
+			$this->request = new HttpRequest($this->method, $this->uri, $this->queryParams, $this->headers, $this->postData);
 			$this->requestData = $this->request->getData();
 		} catch (InvalidHttpRequest $e) {
 			$this->abortWithMessage($e->getMessage());
@@ -229,7 +240,7 @@ class AsyncHttp {
 	private function callCallback(): void {
 		if ($this->callback !== null) {
 			$response = $this->buildResponse();
-			call_user_func($this->callback, $response, $this->data);
+			call_user_func($this->callback, $response, ...$this->data);
 		}
 	}
 
@@ -267,12 +278,17 @@ class AsyncHttp {
 	 * Initialize the internal stream object
 	 */
 	private function createStream(): bool {
-		$this->stream = stream_socket_client($this->getStreamUri(), $errno, $errstr, 10, $this->getStreamFlags());
+		$this->stream = stream_socket_client(
+			$this->getStreamUri(),
+			$errno,
+			$errstr,
+			0,
+			$this->getStreamFlags()
+		);
 		if ($this->stream === false) {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
-		stream_set_blocking($this->stream, false);
 		return true;
 	}
 
@@ -282,10 +298,9 @@ class AsyncHttp {
 	 * Taking into account integration test overrides
 	 */
 	private function getStreamUri(): string {
-		$scheme = $this->request->getScheme();
 		$host = self::$overrideAddress ? self::$overrideAddress : $this->request->getHost();
 		$port = self::$overridePort ? self::$overridePort : $this->request->getPort();
-		return "$scheme://$host:$port";
+		return "tcp://$host:$port";
 	}
 
 	/**
@@ -293,12 +308,23 @@ class AsyncHttp {
 	 */
 	private function getStreamFlags(): int {
 		$flags = STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_CONNECT;
-		// don't use asynchronous stream on Windows with SSL
-		// see bug: https://bugs.php.net/bug.php?id=49295
-		if ($this->request->getScheme() == 'ssl' && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			$flags = STREAM_CLIENT_CONNECT;
-		}
 		return $flags;
+	}
+
+	/**
+	 * Turn on TLS as soon as we can write and then continue processing as usual
+	 */
+	private function activateTLS(): void {
+		$this->notifier = new SocketNotifier(
+			$this->stream,
+			SocketNotifier::ACTIVITY_WRITE,
+			function() {
+				$this->socketManager->removeSocketNotifier($this->notifier);
+				$this->setupStreamNotify();
+				stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+			}
+		);
+		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
 	/**
@@ -374,6 +400,9 @@ class AsyncHttp {
 	 * Get the response body only
 	 */
 	private function getResponseBody(): string {
+		if ($this->headersEndPos === false) {
+			return "";
+		}
 		return substr($this->responseData, $this->headersEndPos + 4);
 	}
 
@@ -416,8 +445,10 @@ class AsyncHttp {
 				$this->abortWithMessage("Failed to read from the stream for uri '{$this->uri}'");
 				break;
 			}
-			if (strlen($chunk) == 0) {
-				break; // nothing to read, stop looping
+			if (strlen($chunk) === 0) {
+				if (feof($this->stream)) {
+					break; // nothing to read, stop looping
+				}
 			}
 			$data .= $chunk;
 		}
@@ -504,7 +535,7 @@ class AsyncHttp {
 	 *  * $data     - optional value which is same as given as argument to
 	 *                this method.
 	 */
-	public function withCallback(callable $callback, $data=null): self {
+	public function withCallback(callable $callback, ...$data): self {
 		$this->callback = $callback;
 		$this->data     = $data;
 		return $this;
@@ -514,10 +545,17 @@ class AsyncHttp {
 	 * Set the query parameters to send with the request
 	 *
 	 * @param string[] $params array of key/value pair parameters passed as a query
-	 * @return $this
 	 */
 	public function withQueryParams(array $params): self {
 		$this->queryParams = $params;
+		return $this;
+	}
+
+	/**
+	 * Set the raw data to be sent with a post request
+	 */
+	public function withPostData(string $data): self {
+		$this->postData = $data;
 		return $this;
 	}
 

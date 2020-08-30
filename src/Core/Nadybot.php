@@ -144,7 +144,7 @@ class Nadybot extends AOChat {
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS eventcfg_<myname> (".
 			"`module` VARCHAR(50), ".
-			"`type` VARCHAR(18), ".
+			"`type` VARCHAR(50), ".
 			"`file` VARCHAR(255), ".
 			"`description` VARCHAR(75) DEFAULT 'none', ".
 			"`verify` INT DEFAULT '0', ".
@@ -152,6 +152,9 @@ class Nadybot extends AOChat {
 			"`help` VARCHAR(255)".
 			")"
 		);
+		if ($this->db->getType() === $this->db::MYSQL) {
+			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `type` `type` VARCHAR(50)");
+		}
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS settings_<myname> (".
 			"`name` VARCHAR(50) NOT NULL, ".
@@ -220,6 +223,9 @@ class Nadybot extends AOChat {
 		}
 
 		$this->db->beginTransaction();
+		foreach (Registry::getAllInstances() as $name => $instance) {
+			$this->registerEvents($instance);
+		}
 		foreach (Registry::getAllInstances() as $name => $instance) {
 			if (isset($instance->moduleName)) {
 				$this->registerInstance($name, $instance);
@@ -345,7 +351,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		if ($group == null) {
+		if ($group === null) {
 			$group = $this->setting->default_private_channel;
 		}
 
@@ -367,8 +373,8 @@ class Nadybot extends AOChat {
 			}
 
 			// relay to bot relay
-			if (!$disable_relay && $this->settingManager->get("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
-				if (strlen($this->chatBot->vars["my_guild"])) {
+			if (!$disable_relay && $this->settingManager->getString("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
+				if (isset($this->chatBot->vars["my_guild"]) && strlen($this->chatBot->vars["my_guild"])) {
 					$this->relayController->sendMessageToRelay("grc [{$guildNameForRelay}] [Guest] {$senderLink}: $message");
 				} else {
 					$this->relayController->sendMessageToRelay("grc [<myname>] {$senderLink}: $message");
@@ -845,6 +851,17 @@ class Nadybot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
+	public function registerEvents(object $obj): void {
+		$reflection = new ReflectionAnnotatedClass($obj);
+		
+		if (!$reflection->hasAnnotation('ProvidesEvent')) {
+			return;
+		}
+		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
+			$this->eventManager->addEventType($eventAnnotation->value);
+		}
+	}
+
 	/**
 	 * Register a module
 	 *
@@ -914,7 +931,6 @@ class Nadybot extends AOChat {
 				}
 			} elseif ($method->hasAnnotation('HandlesCommand')) {
 				$commandName = $method->getAnnotation('HandlesCommand')->value;
-				$methodName  = $method->name;
 				$handlerName = "{$name}.{$method->name}";
 				if (isset($commands[$commandName])) {
 					$commands[$commandName]['handlers'][] = $handlerName;

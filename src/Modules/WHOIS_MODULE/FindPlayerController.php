@@ -1,6 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\WHOIS_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
@@ -21,45 +26,40 @@ class FindPlayerController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
+	/** @Inject */
+	public PlayerManager $playerManager;
 	
 	/**
 	 * @HandlesCommand("findplayer")
 	 * @Matches("/^findplayer (.+)$/i")
 	 */
-	public function findplayerCommand($message, $channel, $sender, $sendto, $args) {
+	public function findplayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 		
-		$data = $this->playerManager->searchForPlayers($search, (int)$this->chatBot->vars['dimension']);
-		$count = count($data);
+		$players = $this->playerManager->searchForPlayers(
+			$search,
+			(int)$this->chatBot->vars['dimension']
+		);
+		$count = count($players);
 
-		if ($count > 0) {
-			$blob = '';
-			foreach ($data as $row) {
-				$blob .= $this->playerManager->getInfo($row, false) . "\n\n";
-			}
-			$msg = $this->text->makeBlob("Search results for '$search' ($count)", $blob);
-		} else {
+		if ($count === 0) {
 			$msg = "Could not find any players matching <highlight>$search<end>.";
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = "<header2>Results<end>\n";
+		foreach ($players as $player) {
+			$blob .= "<tab>" . $this->playerManager->getInfo($player, false) . "\n";
+		}
+		$msg = $this->text->makeBlob("Search results for \"$search\" ($count)", $blob);
 
 		$sendto->reply($msg);
 	}

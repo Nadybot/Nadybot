@@ -1,13 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\AOChatPacket;
-use Nadybot\Core\AutoInject;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\Event;
-use Nadybot\Core\Registry;
-use stdClass;
+use Nadybot\Core\{
+	AOChatPacket,
+	CommandManager,
+	CommandReply,
+	Event,
+	EventManager,
+	Nadybot,
+	Registry,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -70,29 +76,65 @@ use stdClass;
  *		help        = 'msginfo.txt'
  *	)
  */
-class TestController extends AutoInject {
+class TestController {
 
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public CommandManager $commandManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->path = __DIR__ . "/tests/";
 		
-		$this->settingManager->add($this->moduleName, "show_test_commands", "Show test commands as they are executed", "edit", "options", "0", "true;false", "1;0");
-		$this->settingManager->add($this->moduleName, "show_test_results", "Show test results from test commands", "edit", "options", "0", "true;false", "1;0");
+		$this->settingManager->add(
+			$this->moduleName,
+			"show_test_commands",
+			"Show test commands as they are executed",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"show_test_results",
+			"Show test results from test commands",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 	}
 	
 	/**
 	 * @HandlesCommand("test")
 	 * @Matches("/^test$/i")
 	 */
-	public function testListCommand($message, $channel, $sender, $sendto, $args) {
+	public function testListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$files = $this->util->getFilesInDirectory($this->path);
 		$count = count($files);
 		sort($files);
@@ -109,9 +151,9 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("test")
 	 * @Matches("/^test all$/i")
 	 */
-	public function testAllCommand($message, $channel, $sender, $sendto, $args) {
+	public function testAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = "msg";
-		if ($this->setting->show_test_results == 1) {
+		if ($this->settingManager->getBool('show_test_results')) {
 			$mockSendto = $sendto;
 		} else {
 			$mockSendto = new MockCommandReply();
@@ -121,7 +163,7 @@ class TestController extends AutoInject {
 		$starttime = time();
 		$sendto->reply("Starting tests...");
 		foreach ($files as $file) {
-			$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
+			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
 			$this->runTests($lines, $sender, $type, $mockSendto);
 		}
 		$time = $this->util->unixtimeToReadable(time() - $starttime);
@@ -154,10 +196,10 @@ class TestController extends AutoInject {
 		}
 	}
 	
-	public function runTests($commands, $sender, $type, $sendto) {
+	public function runTests(array $commands, string $sender, string $type, CommandReply $sendto): void {
 		foreach ($commands as $line) {
 			if ($line[0] == "!") {
-				if ($this->setting->show_test_commands == 1) {
+				if ($this->settingManager->getBool('show_test_commands')) {
 					$this->chatBot->sendTell($line, $sender);
 				}
 				$line = substr($line, 1);
@@ -170,7 +212,7 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testorgjoin")
 	 * @Matches("/^testorgjoin (.+)$/i")
 	 */
-	public function testorgjoinCommand($message, $channel, $sender, $sendto, $args) {
+	public function testOrgJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$testArgs = [
 			$this->chatBot->get_gid('org msg'),
 			(int)0xFFFFFFFF,
@@ -185,8 +227,8 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testtowerattack")
 	 * @Matches("/^testtowerattack (clan|neutral|omni) (.+) (.+) (clan|neutral|omni) (.+) (.+) (\d+) (\d+)$/i")
 	 */
-	public function testtowerattackCommand($message, $channel, $sender, $sendto, $args) {
-		$eventObj = new stdClass;
+	public function testTowerAttackCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$eventObj = new Event();
 		$eventObj->sender = -1;
 		$eventObj->channel = "All Towers";
 		$eventObj->message = "The $args[1] organization $args[2] just entered a state of war! $args[3] attacked the $args[4] organization $args[5]'s tower in $args[6] at location ($args[7],$args[8]).";
@@ -198,13 +240,13 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testtowervictory")
 	 * @Matches("/^testtowervictory (Clan|Neutral|Omni) (.+) (Clan|Neutral|Omni) (.+) (.+)$/i")
 	 */
-	public function testtowervictoryCommand($message, $channel, $sender, $sendto, $args) {
-		$packet = new stdClass;
-		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = [];
-		$packet->args[0] = $this->chatBot->get_gid('tower battle outcome');
-		$packet->args[1] = (int)0xFFFFFFFF;
-		$packet->args[2] = "The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!";
+	public function testTowerVictoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$testArgs = [
+			$this->chatBot->get_gid('tower battle outcome'),
+			(int)0xFFFFFFFF,
+			"The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!",
+		];
+		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -213,15 +255,15 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testos")
 	 * @Matches("/^testos (.+)$/i")
 	 */
-	public function testosCommand($message, $channel, $sender, $sendto, $args) {
+	public function testOSCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$launcher = ucfirst(strtolower($args[1]));
 	
-		$packet = new stdClass;
-		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = [];
-		$packet->args[0] = $this->chatBot->get_gid('org msg');
-		$packet->args[1] = (int)0xFFFFFFFF;
-		$packet->args[2] = "Blammo! $launcher has launched an orbital attack!";
+		$testArgs = [
+			$this->chatBot->get_gid('org msg'),
+			(int)0xFFFFFFFF,
+			"Blammo! $launcher has launched an orbital attack!",
+		];
+		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -230,12 +272,12 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testevent")
 	 * @Matches("/^testevent (.+)$/i")
 	 */
-	public function testeventCommand($message, $channel, $sender, $sendto, $args) {
+	public function testEventCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$event = $args[1];
 		
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
-		if ($instance == null) {
+		if ($instance === null) {
 			$sendto->reply("Instance <highlight>$instanceName<end> does not exist.");
 		} elseif (!method_exists($instance, $methodName)) {
 			$sendto->reply("Method <highlight>$methodName<end> does not exist on instance <highlight>$instanceName<end>.");
@@ -251,13 +293,13 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testcloaklower")
 	 * @Matches("/^testcloaklower$/i")
 	 */
-	public function testcloaklowerCommand($message, $channel, $sender, $sendto, $args) {
-		$packet = new stdClass;
-		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = [];
-		$packet->args[0] = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
-		$packet->args[1] = (int)0xFFFFFFFF;
-		$packet->args[2] = "$sender turned the cloaking device in your city off.";
+	public function testCloakLowerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$testArgs = [
+			$this->chatBot->get_gid($this->chatBot->vars['my_guild']),
+			(int)0xFFFFFFFF,
+			"$sender turned the cloaking device in your city off.",
+		];
+		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -266,13 +308,13 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("testcloakraise")
 	 * @Matches("/^testcloakraise$/i")
 	 */
-	public function testcloakraiseCommand($message, $channel, $sender, $sendto, $args) {
-		$packet = new stdClass;
-		$packet->type = AOCP_GROUP_MESSAGE;
-		$packet->args = [];
-		$packet->args[0] = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
-		$packet->args[1] = (int)0xFFFFFFFF;
-		$packet->args[2] = "$sender turned the cloaking device in your city on.";
+	public function testCloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$testArgs = [
+			$this->chatBot->get_gid($this->chatBot->vars['my_guild']),
+			(int)0xFFFFFFFF,
+			"$sender turned the cloaking device in your city on.",
+		];
+		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -281,41 +323,10 @@ class TestController extends AutoInject {
 	 * @HandlesCommand("msginfo")
 	 * @Matches("/^msginfo (.+)$/i")
 	 */
-	public function msginfoCommand($message, $channel, $sender, $sendto, $args) {
+	public function msgInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = $args[1];
 
 		$mockSendto = new MessageInfoCommandReply($sendto);
 		$this->commandManager->process($channel, $cmd, $sender, $mockSendto);
-	}
-}
-
-class MockCommandReply implements CommandReply {
-	public function reply($msg): void {
-		//echo "got reply\n";
-		//echo $msg . "\n";
-	}
-}
-
-class MessageInfoCommandReply implements CommandReply {
-	private CommandReply $sendto;
-	private float $startTime;
-
-	public function __construct(CommandReply $sendto) {
-		$this->sendto = $sendto;
-		$this->startTime = microtime(true);
-	}
-
-	public function reply($msg): void {
-		$endTime = microtime(true);
-		if (!is_array($msg)) {
-			$msg = [$msg];
-		}
-		
-		foreach ($msg as $page) {
-			$elapsed = round($endTime - $this->startTime, 4);
-			$this->sendto->reply($page);
-			$this->sendto->reply("Size: " . strlen($page));
-			$this->sendto->reply("Time: $elapsed seconds");
-		}
 	}
 }

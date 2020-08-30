@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\SQLException;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
@@ -29,31 +35,22 @@ class PocketbossController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "pocketboss");
 	}
 	
@@ -61,14 +58,14 @@ class PocketbossController {
 	 * @HandlesCommand("pocketboss")
 	 * @Matches("/^pocketboss (.+)$/i")
 	 */
-	public function pocketbossCommand($message, $channel, $sender, $sendto, $args) {
+	public function pocketbossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 		$data = $this->pbSearchResults($search);
 		$numrows = count($data);
 		$blob = "";
-		if ($numrows == 0) {
+		if ($numrows === 0) {
 			$msg = "Could not find any pocket bosses that matched your search criteria.";
-		} elseif ($numrows == 1) {
+		} elseif ($numrows === 1) {
 			$name = $data[0]->pb;
 			$blob .= $this->singlePbBlob($name);
 			$msg = $this->text->makeBlob("Remains of $name", $blob);
@@ -83,11 +80,20 @@ class PocketbossController {
 		$sendto->reply($msg);
 	}
 	
-	public function singlePbBlob($name) {
-		$data = $this->db->query("SELECT * FROM pocketboss WHERE pb = ? ORDER BY ql", $name);
+	public function singlePbBlob(string $name): string {
+		/** @var Pocketboss[] */
+		$data = $this->db->fetchAll(
+			Pocketboss::class,
+			"SELECT * FROM pocketboss WHERE pb = ? ORDER BY ql",
+			$name
+		);
 		$symbs = '';
 		foreach ($data as $symb) {
-			$name = "$symb->line $symb->slot Symbiant, $symb->type Unit Aban";
+			if (in_array($symb->line, ["Alpha", "Beta"])) {
+				$name = "Xan $symb->slot Symbiant, $symb->type Unit $symb->line";
+			} else {
+				$name = "$symb->line $symb->slot Symbiant, $symb->type Unit Aban";
+			}
 			$symbs .= $this->text->makeItem($symb->itemid, $symb->itemid, $symb->ql, $name) . " ($symb->ql)\n";
 		}
 		
@@ -98,8 +104,15 @@ class PocketbossController {
 		return $blob;
 	}
 	
-	public function pbSearchResults($search) {
-		$row = $this->db->queryRow("SELECT pb FROM pocketboss WHERE pb LIKE ? GROUP BY `pb` ORDER BY `pb`", $search);
+	/**
+	 * @return Pocketboss[]
+	 */
+	public function pbSearchResults(string $search): array {
+		$row = $this->db->fetch(
+			Pocketboss::class,
+			"SELECT * FROM pocketboss WHERE pb LIKE ? GROUP BY `pb` ORDER BY `pb`",
+			$search
+		);
 		if ($row !== null) {
 			return [$row];
 		}
@@ -107,7 +120,11 @@ class PocketbossController {
 		$tmp = explode(" ", $search);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, '`pb`');
 
-		return $this->db->query("SELECT DISTINCT pb FROM pocketboss WHERE $query GROUP BY `pb` ORDER BY `pb`", $params);
+		return $this->db->fetchAll(
+			Pocketboss::class,
+			"SELECT * FROM pocketboss WHERE $query GROUP BY `pb` ORDER BY `pb`",
+			...$params
+		);
 	}
 	
 	/**
@@ -116,7 +133,7 @@ class PocketbossController {
 	 * @Matches("/^symbiant ([a-z]+) ([a-z]+)$/i")
 	 * @Matches("/^symbiant ([a-z]+) ([a-z]+) ([a-z]+)$/i")
 	 */
-	public function symbiantCommand($message, $channel, $sender, $sendto, $args) {
+	public function symbiantCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$paramCount = count($args) - 1;
 
 		$slot = '%';
@@ -204,28 +221,41 @@ class PocketbossController {
 					} elseif (preg_match("/^control/i", $args[$i])) {
 						$symbtype = "Control";
 					} else {
-						return false;
+						return;
 					}
 			}
 		}
 
-		$data = $this->db->query("SELECT * FROM pocketboss WHERE `slot` LIKE ? AND `type` LIKE ? AND `line` LIKE ? ORDER BY `ql` DESC, `type` ASC", $slot, $symbtype, $line);
+		/** @var Pocketboss[] */
+		$data = $this->db->fetchAll(
+			Pocketboss::class,
+			"SELECT * FROM pocketboss ".
+			"WHERE `slot` LIKE ? AND `type` LIKE ? AND `line` LIKE ? ".
+			"ORDER BY `ql` DESC, `type` ASC",
+			$slot,
+			$symbtype,
+			$line
+		);
 		$numrows = count($data);
-		if ($numrows != 0) {
-			$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
-			$blob = "Click 'Add' to add symbiant to $implantDesignerLink.\n\n";
-			foreach ($data as $row) {
-				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
-				$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
-				$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql) $impDesignerAddLink\n";
-				$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb $row->pb");
-				$blob .= "\n\n";
-			}
-			$msg = $this->text->makeBlob("Symbiant Search Results ($numrows)", $blob);
-		} else {
+		if ($numrows === 0) {
 			$msg = "Could not find any symbiants that matched your search criteria.";
+			$sendto->reply($msg);
+			return;
 		}
-
+		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
+		$blob = "Click 'Add' to add symbiant to $implantDesignerLink.\n\n";
+		foreach ($data as $row) {
+			if (in_array($row->line, ["Alpha", "Beta"])) {
+				$name = "Xan $row->slot Symbiant, $row->type Unit $row->line";
+			} else {
+				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
+			}
+			$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
+			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql) $impDesignerAddLink\n";
+			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb $row->pb");
+			$blob .= "\n\n";
+		}
+		$msg = $this->text->makeBlob("Symbiant Search Results ($numrows)", $blob);
 		$sendto->reply($msg);
 	}
 }

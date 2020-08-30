@@ -11,16 +11,18 @@ class HttpRequest {
 	private ?string $streamScheme = null;
 	private ?int $streamPort = null;
 	private ?string $streamHost = null;
+	private ?string $postData = null;
 	private array $uriComponents = [];
 
 	/** @internal */
 	public static ?string $overridePathPrefix = null;
 
-	public function __construct(string $method, string $uri, array $queryParams, array $extraHeaders) {
+	public function __construct(string $method, string $uri, array $queryParams, array $extraHeaders, ?string $postData) {
 		$this->method = $method;
 		$this->uri = $uri;
 		$this->queryParams = $queryParams;
 		$this->extraHeaders = $extraHeaders;
+		$this->postData = $postData;
 
 		$this->parseUri();
 
@@ -143,15 +145,22 @@ class HttpRequest {
 			$path = self::$overridePathPrefix . $path;
 		}
 
-		return "$path?$queryStr";
+		if (strlen($queryStr)) {
+			return "$path?$queryStr";
+		}
+		return "$path";
 	}
 
 	private function getHeaders(): array {
 		$headers = [];
 		$headers['Host'] = $this->streamHost;
-		if ($this->method == 'post' && $this->queryParams) {
-			$headers['Content-Type'] = 'application/x-www-form-urlencoded';
-			$headers['Content-Length'] = strlen($this->getPostQueryStr());
+		if ($this->method == 'post') {
+			if ($this->postData) {
+				$headers['Content-Length'] = strlen($this->postData);
+			} elseif ($this->queryParams) {
+				$headers['Content-Type'] = 'application/x-www-form-urlencoded';
+				$headers['Content-Length'] = strlen($this->getPostQueryStr());
+			}
 		}
 
 		$headers = array_merge($headers, $this->extraHeaders);
@@ -159,6 +168,6 @@ class HttpRequest {
 	}
 
 	private function getPostQueryStr(): string {
-		return http_build_query($this->queryParams);
+		return $this->postData ?? http_build_query($this->queryParams);
 	}
 }

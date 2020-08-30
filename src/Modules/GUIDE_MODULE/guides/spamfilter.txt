@@ -23,7 +23,7 @@ If you want to see a complete guide about the Chatfilter go <a href='chatcmd:///
 <a href='chatcmd:///filter list'>Singleclick to list</a>
 
 
-Now u can block all the annoying cred spammers, be aware that all are talking about "Egpal" or "MMOOK" will get blocked too!
+Now you can block all the annoying cred spammers, be aware that all are talking about "Egpal" or "MMOOK" will get blocked too!
 Same goes for this guide in all channels because it contain the filtered words. (but not for a seperate private window with the bot)
 
 

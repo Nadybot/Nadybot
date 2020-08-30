@@ -1,6 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\BANK_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -29,31 +37,19 @@ class BankController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
 	/**
 	 * @Setup
@@ -61,20 +57,36 @@ class BankController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'bank');
 		
-		$this->settingManager->add($this->moduleName, 'bank_file_location', 'Location of the AO Items Assistant csv dump file', 'edit', 'text', './src/Modules/BANK_MODULE/import.csv');
-		$this->settingManager->add($this->moduleName, 'max_bank_items', 'Number of items shown in search results', 'edit', 'number', '50', '20;50;100');
+		$this->settingManager->add(
+			$this->moduleName,
+			'bank_file_location',
+			'Location of the AO Items Assistant csv dump file',
+			'edit',
+			'text',
+			'./src/Modules/BANK_MODULE/import.csv'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'max_bank_items',
+			'Number of items shown in search results',
+			'edit',
+			'number',
+			'50',
+			'20;50;100'
+		);
 	}
 
 	/**
 	 * @HandlesCommand("bank")
 	 * @Matches("/^bank browse$/i")
 	 */
-	public function bankBrowseCommand($message, $channel, $sender, $sendto, $args) {
-		$blob = '';
+	public function bankBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		/** @var DBRow[] */
 		$data = $this->db->query("SELECT DISTINCT player FROM bank ORDER BY player ASC");
+		$blob = "<header2>Available characters<end>\n";
 		foreach ($data as $row) {
-			$character_link = $this->text->makeChatcmd($row->player, "/tell <myname> bank browse {$row->player}");
-			$blob .= $character_link . "\n";
+			$characterLink = $this->text->makeChatcmd($row->player, "/tell <myname> bank browse {$row->player}");
+			$blob .= "<tab>$characterLink\n";
 		}
 
 		$msg = $this->text->makeBlob('Bank Characters', $blob);
@@ -85,21 +97,27 @@ class BankController {
 	 * @HandlesCommand("bank")
 	 * @Matches("/^bank browse ([a-z0-9-]+)$/i")
 	 */
-	public function bankBrowsePlayerCommand($message, $channel, $sender, $sendto, $args) {
+	public function bankBrowsePlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 
-		$blob = '';
-		$data = $this->db->query("SELECT DISTINCT container_id, container, player FROM bank WHERE player = ? ORDER BY container ASC", $name);
-		if (count($data) > 0) {
-			foreach ($data as $row) {
-				$container_link = $this->text->makeChatcmd($row->container, "/tell <myname> bank browse {$row->player} {$row->container_id}");
-				$blob .= "{$container_link}\n";
-			}
-
-			$msg = $this->text->makeBlob("Containers for $name", $blob);
-		} else {
+		$data = $this->db->query(
+			"SELECT DISTINCT container_id, container, player FROM bank ".
+			"WHERE player = ? ".
+			"ORDER BY container ASC",
+			$name
+		);
+		if (count($data) === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = "<header2>Containers on $name<end>\n";
+		foreach ($data as $row) {
+			$container_link = $this->text->makeChatcmd($row->container, "/tell <myname> bank browse {$row->player} {$row->container_id}");
+			$blob .= "<tab>{$container_link}\n";
+		}
+
+		$msg = $this->text->makeBlob("Containers for $name", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -107,25 +125,29 @@ class BankController {
 	 * @HandlesCommand("bank")
 	 * @Matches("/^bank browse ([a-z0-9-]+) (\d+)$/i")
 	 */
-	public function bankBrowseContainerCommand($message, $channel, $sender, $sendto, $args) {
+	public function bankBrowseContainerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$containerId = $args[2];
-		$limit = $this->settingManager->get('max_bank_items');
+		$limit = $this->settingManager->getInt('max_bank_items');
 
-		$blob = '';
-		$sql = "SELECT * FROM bank WHERE player = ? AND container_id = ? ORDER BY name ASC, ql ASC LIMIT ?";
-		$data = $this->db->query($sql, $name, $containerId, intval($limit));
+		$sql = "SELECT * FROM bank ".
+			"WHERE player = ? AND container_id = ? ".
+			"ORDER BY name ASC, ql ASC LIMIT ?";
+		/** @var Bank[] */
+		$data = $this->db->fetchAll(Bank::class, $sql, $name, $containerId, $limit);
 
-		if (count($data) > 0) {
-			foreach ($data as $row) {
-				$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
-				$blob .= "{$item_link} ({$row->ql})\n";
-			}
-
-			$msg = $this->text->makeBlob("Contents of $row->container", $blob);
-		} else {
+		if (count($data) === 0) {
 			$msg = "Could not find container with id <highlight>{$containerId}</highlight> on bank character <highlight>{$name}<end>.";
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = '<header2>Items in ' . $data[0]->container . "<end>\n";
+		foreach ($data as $row) {
+			$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+			$blob .= "<tab>{$item_link} (QL {$row->ql})\n";
+		}
+
+		$msg = $this->text->makeBlob("Contents of $row->container", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -133,27 +155,33 @@ class BankController {
 	 * @HandlesCommand("bank")
 	 * @Matches("/^bank search (.+)$/i")
 	 */
-	public function bankSearchCommand($message, $channel, $sender, $sendto, $args) {
+	public function bankSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = htmlspecialchars_decode($args[1]);
 		$words = explode(' ', $search);
-		$limit = $this->settingManager->get('max_bank_items');
+		$limit = $this->settingManager->getInt('max_bank_items');
 		
-		[$where_sql, $params] = $this->util->generateQueryFromParams($words, 'name');
-		array_push($params, intval($limit));
+		[$whereStatement, $sqlParams] = $this->util->generateQueryFromParams($words, 'name');
+		$sqlParams []= $limit;
+
+		/** @var Bank[] */
+		$foundItems = $this->db->fetchAll(
+			Bank::class,
+			"SELECT * FROM bank WHERE {$whereStatement} ORDER BY name ASC, ql ASC LIMIT ?",
+			...$sqlParams
+		);
 
 		$blob = '';
-		$data = $this->db->query("SELECT * FROM bank WHERE {$where_sql} ORDER BY name ASC, ql ASC LIMIT ?", $params);
-
-		if (count($data) > 0) {
-			foreach ($data as $row) {
-				$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
-				$blob .= "{$item_link} ({$row->ql}) (<highlight>{$row->player}<end>, {$row->container})\n";
-			}
-
-			$msg = $this->text->makeBlob("Bank Search Results for {$args[1]}", $blob);
-		} else {
+		if (count($foundItems) === 0) {
 			$msg = "Could not find any search results for <highlight>{$args[1]}<end>.";
+			$sendto->reply($msg);
+			return;
 		}
+		foreach ($foundItems as $item) {
+			$itemLink = $this->text->makeItem($item->lowid, $item->highid, $item->ql, $item->name);
+			$blob .= "{$itemLink} (QL {$item->ql}) in <highlight>{$item->player} &gt; {$item->container}<end>\n";
+		}
+
+		$msg = $this->text->makeBlob("Bank Search Results for {$args[1]}", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -161,8 +189,8 @@ class BankController {
 	 * @HandlesCommand("bank update")
 	 * @Matches("/^bank update$/i")
 	 */
-	public function bankUpdateCommand($message, $channel, $sender, $sendto, $args) {
-		$lines = file($this->settingManager->get('bank_file_location'));
+	public function bankUpdateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$lines = @file($this->settingManager->get('bank_file_location'));
 
 		if ($lines === false) {
 			$msg = "Could not open file: '" . $this->settingManager->get('bank_file_location') . "'";
@@ -180,7 +208,7 @@ class BankController {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
 			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
 			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
-			if ($location != 'Bank' && $location != 'Inventory') {
+			if ($location !== 'Bank' && $location !== 'Inventory') {
 				continue;
 			}
 			if ($container == '') {

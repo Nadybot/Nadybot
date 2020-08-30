@@ -1,8 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Event;
+use Nadybot\Core\{
+	CommandReply,
+	Event,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @Instance
@@ -27,75 +34,60 @@ class ChatTopicController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatRallyController $chatRallyController
-	 * @Inject
-	 */
-	public $chatRallyController;
+	/** @Inject */
+	public ChatRallyController $chatRallyController;
 
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
-	 * @Inject
-	 */
-	public $chatLeaderController;
+	/** @Inject */
+	public ChatLeaderController $chatLeaderController;
 
-	/**
-	 * @Setting("topic")
-	 * @Description("Topic for Priv Channel")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 */
-	public $defaultTopic = '';
-
-	/**
-	 * @Setting("topic_setby")
-	 * @Description("Character who set the topic")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 */
-	public $defaultTopicSetBy = '';
-
-	/**
-	 * @Setting("topic_time")
-	 * @Description("Time the topic was set")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 */
-	public $defaultTopicTime = '';
-
+	/** @Setup */
+	public function setup(): void {
+		$this->settingManager->add(
+			$this->moduleName,
+			"topic",
+			"Topic for Private Channel",
+			"noedit",
+			"text",
+			""
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"topic_setby",
+			"Character who set the topic",
+			"noedit",
+			"text",
+			""
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"topic_time",
+			"Time the topic was set",
+			"noedit",
+			"number",
+			"0"
+		);
+	}
 	/**
 	 * This command handler shows topic.
 	 * @HandlesCommand("topic")
 	 * @Matches("/^topic$/i")
 	 */
-	public function topicCommand($message, $channel, $sender, $sendto, $args) {
-		if ($this->settingManager->get('topic') == '') {
+	public function topicCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($this->settingManager->get('topic') === '') {
 			$msg = 'No topic set.';
 		} else {
 			$msg = $this->buildTopicMessage();
@@ -109,7 +101,7 @@ class ChatTopicController {
 	 * @HandlesCommand("topic .+")
 	 * @Matches("/^topic clear$/i")
 	 */
-	public function topicClearCommand($message, $channel, $sender, $sendto, $args) {
+	public function topicClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -125,7 +117,7 @@ class ChatTopicController {
 	 * @HandlesCommand("topic .+")
 	 * @Matches("/^topic (.+)$/i")
 	 */
-	public function topicSetCommand($message, $channel, $sender, $sendto, $args) {
+	public function topicSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -140,8 +132,8 @@ class ChatTopicController {
 	 * @Event("logOn")
 	 * @Description("Shows topic on logon of members")
 	 */
-	public function logonEvent(Event $eventObj) {
-		if ($this->settingManager->get('topic') == '') {
+	public function logonEvent(Event $eventObj): void {
+		if ($this->settingManager->get('topic') === '') {
 			return;
 		}
 		if (isset($this->chatBot->guildmembers[$eventObj->sender]) && $this->chatBot->isReady()) {
@@ -154,15 +146,15 @@ class ChatTopicController {
 	 * @Event("joinPriv")
 	 * @Description("Shows topic when someone joins the private channel")
 	 */
-	public function joinPrivEvent(Event $eventObj) {
-		if ($this->settingManager->get('topic') == '') {
+	public function joinPrivEvent(Event $eventObj): void {
+		if ($this->settingManager->get('topic') === '') {
 			return;
 		}
 		$msg = $this->buildTopicMessage();
 		$this->chatBot->sendTell($msg, $eventObj->sender);
 	}
 	
-	public function setTopic($name, $msg) {
+	public function setTopic(string $name, string $msg): void {
 		$this->settingManager->save("topic_time", time());
 		$this->settingManager->save("topic_setby", $name);
 		$this->settingManager->save("topic", $msg);
@@ -175,8 +167,8 @@ class ChatTopicController {
 	/**
 	 * Builds current topic information message and returns it.
 	 */
-	public function buildTopicMessage() {
-		$date_string = $this->util->unixtimeToReadable(time() - $this->settingManager->get('topic_time'), false);
+	public function buildTopicMessage(): string {
+		$date_string = $this->util->unixtimeToReadable(time() - $this->settingManager->getInt('topic_time'), false);
 		$topic = $this->settingManager->get('topic');
 		$set_by = $this->settingManager->get('topic_setby');
 		$msg = "Topic: <red>{$topic}<end> (set by ".

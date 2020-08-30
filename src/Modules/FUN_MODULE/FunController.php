@@ -1,6 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\FUN_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	Nadybot,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -64,25 +71,13 @@ class FunController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
-
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
 	/**
 	 * @Setup
@@ -99,9 +94,11 @@ class FunController {
 		$this->db->loadSQLFile($this->moduleName, "pirates");
 	}
 	
-	public function getFunItem($type, $sender, $number=null) {
-		$data = $this->db->query("SELECT * FROM fun WHERE type = ?", $type);
+	public function getFunItem(string $type, string $sender, int $number=null): string {
+		/** @var Fun[] */
+		$data = $this->db->fetchAll(Fun::class, "SELECT * FROM fun WHERE type = ?", $type);
 		if ($number === null) {
+			/** @var Fun */
 			$row = $this->util->randomArrayValue($data);
 		} else {
 			$row = $data[$number];
@@ -126,8 +123,8 @@ class FunController {
 	 * @Matches("/^beer$/i")
 	 * @Matches("/^beer (\d+)$/i")
 	 */
-	public function beerCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('beer', $sender, $args[1]);
+	public function beerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('beer', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -141,8 +138,8 @@ class FunController {
 	 * @author Mastura (RK2)
 	 * @author Tyrence (RK2), converted to Budabot
 	 */
-	public function brainCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('brain', $sender, $args[1]);
+	public function brainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('brain', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -156,8 +153,8 @@ class FunController {
 	 *
 	 * @url http://bebot.shadow-realm.org/0-3-x-customunofficial-modules/chuck-norris/
 	 */
-	public function chuckCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('chuck', $sender, $args[1]);
+	public function chuckCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('chuck', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -169,8 +166,8 @@ class FunController {
 	 * @author Derroylo (RK2)
 	 * @author Xenixa (RK1)
 	 */
-	public function cyborCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('cybor', $sender, $args[1]);
+	public function cyborCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('cybor', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -182,8 +179,8 @@ class FunController {
 	 * @author Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
 	 * @author Tyrence (RK2), converted to Budabot
 	 */
-	public function dwightCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('dwight', $sender, $args[1]);
+	public function dwightCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('dwight', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 
@@ -192,8 +189,8 @@ class FunController {
 	 * @Matches("/^fc$/i")
 	 * @Matches("/^fc (\d+)$/i")
 	 */
-	public function fcCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('fc', $sender, $args[1]);
+	public function fcCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('fc', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -206,8 +203,8 @@ class FunController {
 	 * @author MysterF aka Floryn from Band of Brothers
 	 * @url http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
 	 */
-	public function homerCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('homer', $sender, $args[1]);
+	public function homerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('homer', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 	
@@ -216,11 +213,11 @@ class FunController {
 	 * @Matches("/^pirates$/i")
 	 * @Matches("/^pirates (\d+)$/i")
 	 *
-	 * @author Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
+	 * @author Sicarius Legion of Amra, an Age of Conan Guild on the Hyrkania server
 	 * @author Tyrence (RK2), converted to Budabot
 	 */
-	public function piratesCommand($message, $channel, $sender, $sendto, $args) {
-		$msg = $this->getFunItem('pirates', $sender, $args[1]);
+	public function piratesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('pirates', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 }

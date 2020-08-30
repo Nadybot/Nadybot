@@ -1,8 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use Nadybot\Core\AccessManager;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\DBRow;
 use Nadybot\Core\Event;
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\PrivateChannelCommandReply;
+use Nadybot\Core\SettingManager;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Mindrila (RK1)
@@ -24,359 +34,551 @@ class RaffleController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public AltsController $altsController;
 
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public Util $util;
+
+	public ?Raffle $raffle = null;
 	
-	/**
-	 * @Setup
-	 */
-	public function setup() {
-		if (!isset($this->raffles)) {
-			$this->raffles = [
-				"running" => false,
-				"owner" => null,
-				"item" => null,
-				"count" => null,
-				"time" => null,
-				"rafflees" => null,
-				"lastresult" => null,
-				"nextmsgtime" => null,
-				"sendto" => null
-			];
-		}
-	
-		$this->settingManager->add($this->moduleName, "defaultraffletime", "How long the raffle should go for", "edit", "time", '3m', '1m;2m;3m;4m;5m', '', 'mod', "raffle.txt");
+	/** @Setup */
+	public function setup(): void {
+		$this->db->loadSQLFile($this->moduleName, "raffle_bonus");
+		$this->settingManager->add(
+			$this->moduleName,
+			"defaultraffletime",
+			"How long the raffle should go for",
+			"edit",
+			"time",
+			'3m',
+			'1m;2m;3m;4m;5m',
+			'',
+			'mod',
+			"raffle.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raffle_announce_frequency",
+			"How much time between each raffle announcement",
+			"edit",
+			"time",
+			'30s',
+			'10s;20s;30s;45s;1m',
+			'',
+			'mod',
+			"raffle.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raffle_announce_participants",
+			"Announce whenever someone joins or leaves the raffle",
+			"edit",
+			"number",
+			'1',
+			"true;false",
+			"1;0",
+			'mod',
+			"raffle.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raffle_bonus_per_loss",
+			"Bonus to next roll for a lost raffle",
+			"edit",
+			"options",
+			'5',
+			"0;1;2;5;10",
+			"0;1;2;5;10",
+			'mod',
+			"raffle.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"share_raffle_bonus_on_alts",
+			"Share raffle bonus points between alts",
+			"edit",
+			"options",
+			'1',
+			"true;false",
+			"1;0",
+			'mod',
+			"raffle.txt"
+		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle start (\d+) (.+)$/i")
 	 * @Matches("/^raffle start (.+)$/i")
 	 */
-	public function raffleStartCommand($message, $channel, $sender, $sendto, $args) {
-		if ("msg" == $channel) {
-			$msg = "You cannot start a raffle in tells.  Use the org channel or private channel.";
-			$sendto->reply($msg);
-			return;
-		}
-
-		if ($this->raffles["running"]) {
+	public function raffleStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$raffleString = $args[1];
+		if (isset($this->raffle)) {
 			$msg = "There is already a raffle in progress.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		if (count($args) == 3) {
-			$item = $args[2];
-			$count = $args[1];
-		} else {
-			$item = $args[1];
-			$count = 1;
+		$duration = $this->settingManager->getInt("defaultraffletime");
+		$maybeDuration = explode(" ", $raffleString)[0];
+		if (($raffleTime = $this->util->parseTime($maybeDuration)) > 0) {
+			$duration = $raffleTime;
+			$raffleString = preg_replace("/^.+? /", "", $raffleString);
 		}
-		$seconds = $this->settingManager->get("defaultraffletime");
-		$timeString = $this->util->unixtimeToReadable($seconds);
+		$this->raffle = new Raffle();
+		$this->raffle->fromString($raffleString);
+		$this->raffle->raffler = $sender;
+		$this->raffle->end = $this->raffle->start + $duration;
+		$this->raffle->sendto = $sendto;
+		if ($channel === "msg") {
+			$this->raffle->sendto = new PrivateChannelCommandReply(
+				$this->chatBot,
+				$this->chatBot->setting->default_private_channel
+			);
+		}
 
-		$this->raffles = [
-			"running" => true,
-			"owner" => $sender,
-			"item" => $item,
-			"count" => $count,
-			"time" => time() +  $seconds,
-			"rafflees" => [],
-			"lastresult" => null,
-			"sendto" => $sendto
-		];
-		
-		$enterLink = $this->text->makeChatcmd("here", "/tell <myname> raffle enter");
-		$leaveLink = $this->text->makeChatcmd("here", "/tell <myname> raffle leave");
+		$this->announceRaffleStart();
+	}
 
-		$jnRflMsg = "<white>A raffle for $item (count: $count) has been started by $sender!<end>
+	/**
+	 * @return string[]
+	 */
+	protected function getJoinLeaveLinks(): array {
+		$result = [];
+		$items = $this->raffle->toList();
+		for ($i = 0; $i < count($items); $i++) {
+			$enterLink = $this->text->makeChatcmd("Enter", "/tell <myname> raffle enter " . ($i+1));
+			$leaveLink = $this->text->makeChatcmd("Leave", "/tell <myname> raffle leave " . ($i+1));
+			$result []= "Item " . ($i + 1) . ": [$enterLink] [$leaveLink] - <highlight>{$items[$i]}<end>";
+		}
+		return $result;
+	}
 
-	Click $enterLink to enter the raffle!
-	Click $leaveLink if you wish to leave the raffle.";
-		$link = $this->text->makeBlob("here", $jnRflMsg, 'Raffle');
-		$msg = "
-	-----------------------------------------------------------------------
-	A raffle for $item (count: $count) has been started by $sender!
-	Click $link to enter the raffle. Raffle will end in $timeString.
-	-----------------------------------------------------------------------";
+	protected function getJoinLeaveBlob(): string {
+		$bonusPerLoss = $this->settingManager->getInt("raffle_bonus_per_loss");
+		$blob = "";
+		if ($bonusPerLoss > 0) {
+			$blob = "This raffle uses the bonus points system.\n".
+				"Winners of any items will get their bonus points set ".
+				"to <highlight>0<end>.\n".
+				"Losers will get their bonus points increased by ".
+				"<highlight>{$bonusPerLoss}<end> points for all upcoming ".
+				"raffles until they won.\n\n";
+		}
+		$blob .= "[" . $this->text->makeChatcmd("Leave All", "/tell <myname> raffle leave") . "]".
+			" Leave raffle for all items\n\n".
+			"<header2>Items for raffle<end>\n".
+			"<tab>" . join("\n<tab>", $this->getJoinLeaveLinks()) . "\n";
+		return $blob;
+	}
 
-		$this->raffles["nextmsgtime"] = $this->getNextTime($this->raffles["time"]);
-		$sendto->reply($msg);
+	public function announceRaffleStart(): void {
+		$endTime = $this->util->unixtimeToReadable($this->raffle->end - $this->raffle->start);
+
+		$msg = "<highlight>{$this->raffle->raffler}<end> has started a raffle:\n".
+			"<yellow>------------------------------------------------<end>\n".
+			$this->raffle->toString("<tab>") . "\n".
+			"<yellow>------------------------------------------------<end>\n".
+			"The raffle will end in <highlight>{$endTime}<end>.\n";
+		$blob = $this->getJoinLeaveBlob();
+		$msg .= $this->text->makeBlob("Enter / Leave the raffle", $blob, "Raffle actions");
+		$this->raffle->sendto->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle cancel$/i")
 	 */
-	public function raffleCancelCommand($message, $channel, $sender, $sendto, $args) {
-		if (!$this->raffles["running"]) {
+	public function raffleCancelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raffle)) {
 			$msg = "There is no active raffle.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		if (($this->raffles["owner"] != $sender) && !$this->accessManager->checkAccess($sender, "mod")) {
+		if (($this->raffle->raffler !== $sender) && !$this->accessManager->checkAccess($sender, "mod")) {
 			$msg = "Only the owner or a moderator may cancel the raffle.";
 			$sendto->reply($msg);
 			return;
 		}
-		$sendtobuffer = $this->raffles["sendto"];
-		$this->raffles = [
-			"running" => false,
-			"owner" => null,
-			"item" => null,
-			"count" => null,
-			"time" => null,
-			"rafflees" => null,
-			"lastresult" => "The last raffle was cancelled.",
-			"sendto" => $sendtobuffer
-		];
-
-		$msg = "The raffle was cancelled.";
-		$this->raffles["sendto"]->reply($msg);
+		$msg = "The raffle was cancelled by <highlight>{$sender}<end>.";
+		$this->raffle->sendto->reply($msg);
+		$this->raffle = null;
 	}
 	
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle end$/i")
 	 */
-	public function raffleEndCommand($message, $channel, $sender, $sendto, $args) {
-		if (!$this->raffles["running"]) {
+	public function raffleEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raffle)) {
 			$msg = "There is no active raffle.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		if (($this->raffles["owner"] != $sender) && !$this->accessManager->checkAccess($sender, "mod")) {
+		if (($this->raffle->raffler !== $sender) && !$this->accessManager->checkAccess($sender, "mod")) {
 			$msg = "Only the owner or a moderator may end the raffle.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		$this->endraffle();
-	}
-	
-	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle result$/i")
-	 */
-	public function raffleResultCommand($message, $channel, $sender, $sendto, $args) {
-		if (!isset($this->raffles["lastresult"])) {
-			$msg = "Last raffles result could not be retrieved.";
-			$sendto->reply($msg);
-			return;
-		}
-
-		$sendto->reply("Last raffle result: ".$this->raffles["lastresult"]);
+		$this->endRaffle();
 	}
 	
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle join$/i")
+	 * @Matches("/^raffle join (\d+)$/i")
 	 * @Matches("/^raffle enter$/i")
+	 * @Matches("/^raffle enter (\d+)$/i")
 	 */
-	public function raffleEnterCommand($message, $channel, $sender, $sendto, $args) {
-		if (!$this->raffles["running"]) {
+	public function raffleEnterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raffle)) {
 			$msg = "There is no active raffle.";
 			$sendto->reply($msg);
 			return;
 		}
-
-		if (isset($this->raffles["rafflees"][$sender])) {
-			$msg = "You are already in the raffle.";
+		$slot = 0;
+		if (count($args) === 1) {
+			if (count($this->raffle->slots) > 1) {
+				$msg = "There is more than 1 item being raffled. Please say which slot to enter.";
+				$sendto->reply($msg);
+				return;
+			}
+		} else {
+			$slot = (int)$args[1] - 1;
+		}
+		$isInRaffle = $this->raffle->isInRaffle($sender, $slot);
+		if ($isInRaffle === null) {
+			$msg = "There is no item being raffled in slot <highligh>" . ($slot + 1) . "<end>.";
 			$sendto->reply($msg);
 			return;
 		}
+		if ($isInRaffle) {
+			$msg = "You are already in ther raffle for ".
+				$this->raffle->slots[$slot]->toString() . ".";
+			$sendto->reply($msg);
+			return;
+		}
+		$this->raffle->slots[$slot]->participants []= $sender;
 
-		$this->raffles["rafflees"][$sender] = 0;
-		$msg = "$sender has entered the raffle.";
-		$this->raffles["sendto"]->reply($msg);
+		if ($this->settingManager->getBool("raffle_announce_participants")) {
+			$this->raffle->sendto->reply(
+				"<highlight>$sender<end> has entered the raffle for ".
+				$this->raffle->slots[$slot]->toString() . "."
+			);
+			return;
+		}
+		$this->chatBot->sendTell(
+			"You have entered the raffle for ".
+			$this->raffle->slots[$slot]->toString() . ".",
+			$sender
+		);
 	}
 	
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle leave$/i")
+	 * @Matches("/^raffle leave (\d+)$/i")
 	 */
-	public function raffleLeaveCommand($message, $channel, $sender, $sendto, $args) {
-		if (!$this->raffles["running"]) {
+	public function raffleLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raffle)) {
 			$msg = "There is no active raffle.";
 			$sendto->reply($msg);
 			return;
 		}
-
-		if (!isset($this->raffles["rafflees"][$sender])) {
-			$msg = "You are not currently signed up for the raffle.";
+		$slot = 0;
+		if (count($args) === 1) {
+			if (!$this->raffle->isInRaffle($sender)) {
+				$msg = "You are currently not in the raffle.";
+				$sendto->reply($msg);
+				return;
+			}
+			foreach ($this->raffle->slots as &$slot) {
+				$slot->removeParticipant($sender);
+			}
+			if ($this->settingManager->getBool("raffle_announce_participants")) {
+				$this->raffle->sendto->reply(
+					"<highlight>$sender<end> has left the raffle."
+				);
+				return;
+			}
+			$msg = "You were removed from all raffle slots.";
+			$sendto->reply($msg);
+			return;
+		}
+		$slot = (int)$args[1] - 1;
+		if (!isset($this->raffle->slots[$slot])) {
+			$msg = "There is no item being raffled in slot <highligh>" . ($slot + 1) . "<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 
-		unset($this->raffles["rafflees"][$sender]);
-		$msg = "$sender has left the raffle.";
-		$this->raffles["sendto"]->reply($msg);
+		if (!$this->raffle->slots[$slot]->removeParticipant($sender)) {
+			$msg = "You were not in the raffle for ".
+				$this->raffle->slots[$slot]->toString() . ".";
+			$sendto->reply($msg);
+			return;
+		}
+
+		if ($this->settingManager->getBool("raffle_announce_participants")) {
+			$this->raffle->sendto->reply(
+				"<highlight>$sender<end> has left the raffle for ".
+				$this->raffle->slots[$slot]->toString() . "."
+			);
+			return;
+		}
+		$this->chatBot->sendTell(
+			"You have left the raffle for ".
+			$this->raffle->slots[$slot]->toString() . ".",
+			$sender
+		);
 	}
 	
 	/**
-	 * @Event("timer(2sec)")
-	 * @Description("Checks to see if raffle is over")
+	 * @Event("timer(1sec)")
+	 * @Description("Announce and/or end raffle")
 	 */
-	public function checkRaffleEvent(Event $eventObj) {
-		if (!$this->raffles["running"]) {
-			// no raffle running, do nothing
-		} elseif (time() < $this->raffles["nextmsgtime"]) {
-			// not time to display another reminder yet
-		} elseif ($this->raffles["time"] == $this->raffles["nextmsgtime"]) {
-			// if there is no time left or we even skipped over the time, end raffle
-			$this->endraffle();
-		} else {
-			$this->showRaffleReminder();
+	public function checkRaffleEvent(Event $eventObj): void {
+		if (!isset($this->raffle)) {
+			return;
 		}
+		if (time() >= $this->raffle->end) {
+			$this->endRaffle();
+			return;
+		}
+		$announceInterval = $this->settingManager->getInt('raffle_announce_frequency');
+		if (time() - $this->raffle->lastAnnounce >= $announceInterval) {
+			$this->announceRaffle();
+		}
+	}
+
+	protected function announceRaffle(): void {
+		if (!isset($this->raffle)) {
+			return;
+		}
+		$this->raffle->lastAnnounce = time();
+		$endTime = $this->util->unixtimeToReadable($this->raffle->end - time());
+
+		$numParticipants = count($this->raffle->getParticipantNames());
+		$participantsString = "<highlight>{$numParticipants}<end> people are in raffle.";
+		if ($numParticipants === 1) {
+			$participantsString = "<highlight>1<end> person is in raffle.";
+		}
+
+		$msg = "\n".
+			"<yellow>------------------------------------------------<end>\n".
+			$this->raffle->toString("<tab>") . "\n".
+			"<yellow>------------------------------------------------<end>\n".
+			"The raffle will end in <highlight>{$endTime}<end>.\n".
+			$participantsString . " ";
+		$blob = $this->getJoinLeaveBlob();
+		$msg .= $this->text->makeBlob("Enter / Leave the raffle", $blob, "Raffle actions");
+		$this->raffle->sendto->reply($msg);
+	}
+
+	protected function getBonusPoints(string $player): int {
+		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
+			$player = $this->altsController->getAltInfo($player)->main;
+		}
+		$data = $this->db->queryRow(
+			"SELECT bonus FROM raffle_bonus_<myname> WHERE name=?",
+			$player
+		);
+		return $data ? $data->bonus : 0;
+	}
+
+	/**
+	 * @param RaffleResultItem[] $result
+	 */
+	protected function resultIsUnambiguous(array $result): bool {
+		$points = array_map(
+			function(RaffleResultItem $item) {
+				return $item->points;
+			},
+			$result
+		);
+		$uniqPoints = array_unique($points);
+		return count($points) === count($uniqPoints);
+	}
+
+	/**
+	 * @return RaffleResultItem[]
+	 */
+	protected function getSlotResult(RaffleSlot $slot): array {
+		srand();
+		/** @var RaffleResultItem[] */
+		$result = [];
+		if (!count($slot->participants)) {
+			return $result;
+		}
+		foreach ($slot->participants as $player) {
+			$playerResult = new RaffleResultItem($player);
+			$playerResult->bonus_points = $this->getBonusPoints($player);
+			$result[] = $playerResult;
+		}
+		$numParticipants = count($slot->participants);
+		$iteration = 0;
+		while ($iteration < $numParticipants * 250 || !$this->resultIsUnambiguous($result)) {
+			$result[array_rand($result)]->decreasePoints();
+			$result[array_rand($result)]->increasePoints();
+			$iteration++;
+		}
+		foreach ($result as $data) {
+			$data->points += $data->bonus_points;
+		}
+		usort(
+			$result,
+			function(RaffleResultItem $a, RaffleResultItem $b): int {
+				return $b->points <=> $a->points;
+			}
+		);
+		for ($i = 0; $i < min($slot->amount, count($result)); $i++) {
+			$result[$i]->won = true;
+		}
+		return $result;
 	}
 	
-	public function endraffle() {
-		// just to make sure there is a raffle to end
-		if (!$this->raffles["running"]) {
-			return;
+	public function endRaffle(): void {
+		$raffle = $this->raffle;
+		$this->raffle = null;
+		foreach ($raffle->slots as $slot) {
+			$slot->result = $this->getSlotResult($slot);
 		}
-		// indicate that the raffle is over
-		$this->raffles["running"] = false;
-
-		$item = $this->raffles["item"];
-		$count = $this->raffles["count"];
-		$rafflees = array_keys($this->raffles["rafflees"]);
-		$rafflees_num = count($rafflees);
-
-		if (0 == $rafflees_num) {
-			$msg = "No one entered the raffle, $item is free for all.";
-			$this->raffles["lastresult"] = $msg;
-
-			$this->raffles["sendto"]->reply($msg);
-			return;
-		}
-
-		// first shuffle the names
-		for ($i = 0; $i < 5; $i++) {
-			shuffle($rafflees);
-		}
-		// roll multiple times to generate a list of winners
-		$rollcount = 1000 * $rafflees_num;
-
-		for ($i = 0; $i < $rollcount; $i++) {
-			// roll a name out of the rafflees and add a rollcount
-			$random_name = $rafflees[mt_rand(0, $rafflees_num - 1)];
-			$this->raffles["rafflees"][$random_name] ++;
-		}
-
-		// sort the list depending on roll results
-		arsort($this->raffles["rafflees"]);
-
-		$blob = '';
-		if (1 == $count) {
-			$blob .= "Rolled $rollcount times for $item.\n \n Winner:";
-		} else {
-			$blob .= "Rolled $rollcount times for $item (count: $count).\n \n Winners:";
-		}
-
-		$i = 0;
-		foreach ($this->raffles["rafflees"] as $char => $rolls) {
-			$i++;
-			$blob .= "\n$i. $char got $rolls rolls.";
-			if ($i == $count) {
-				$blob .= "\n-------------------------\n Unlucky:";
-			}
-		}
-		$results = $this->text->makeBlob("Detailed results", $blob);
-
-		if (1 == $count) {
-			$msg = "The raffle for $item is over. Winner: ";
-		} else {
-			$msg = "The raffle for $item (count: $count) is over. Winners: ";
-		}
-
-		$i = 0;
-		foreach ($this->raffles["rafflees"] as $char => $rolls) {
-			$i++;
-			$msg .= "{$char}!";
-			if ($i != $count) {
-				$msg .= ", ";
-			} else {
-				break;
-			}
-		}
-		$msg .= " Congratulations. $results";
-		$this->raffles["lastresult"] = $msg;
-		$this->raffles["sendto"]->reply($msg);
+		$this->announceRaffleResults($raffle);
+		$this->adjustBonusPoints($raffle);
 	}
 
-	public function getNextTime($endtime) {
-		$tleft = $endtime - time();
-		if ($tleft <= 0) {
-			$ret = false;
-		} elseif ($tleft <= 30) {
-			$ret = $endtime;
-		} elseif ($tleft <= 60) {
-			$ret = $endtime - 30;
-		} elseif ($tleft <= 120) {
-			$ret = $endtime - 60;
-		} else {
-			$ret = $endtime - floor(($tleft - 30) / 60) * 60;
-		}
-		return $ret;
+	/**
+	 * @return string[]
+	 */
+	protected function getMainCharacters(string ...$players): array {
+		return array_map(
+			function(string $player): string {
+				return $this->altsController->getAltInfo($player)->main;
+			},
+			$players
+		);
 	}
 
-	public function showRaffleReminder() {
-		// there is a raffle running
-		$time_string = $this->util->unixtimeToReadable($this->raffles["time"] - $this->raffles["nextmsgtime"]);
-		$item = $this->raffles["item"];
-		$count = $this->raffles["count"];
-
-		// generate an info window
-		$blob = "<header2>Current Members:<end>";
-		foreach (array_keys($this->raffles["rafflees"]) as $tempName) {
-			$blob .= "\n$tempName";
+	/**
+	 * If enabled, give losers of this raffle a bonus on next raffle
+	 * and reset the bonus for all winners
+	 */
+	public function adjustBonusPoints(Raffle $raffle): void {
+		$bonusPerLoss = $this->settingManager->getInt("raffle_bonus_per_loss");
+		if ($bonusPerLoss === 0) {
+			return;
 		}
-		if (count($this->raffles["rafflees"]) == 0) {
-			$blob .= "No entrants yet.";
+		$participants = $raffle->getParticipantNames();
+		$winners = $raffle->getWinnerNames();
+		$losers = array_values(array_diff($participants, $winners));
+		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
+			$winners = $this->getMainCharacters(...$winners);
+			$losers = $this->getMainCharacters(...$losers);
 		}
-		
-		$enterLink = $this->text->makeChatcmd("here", "/tell <myname> raffle enter");
-		$leaveLink = $this->text->makeChatcmd("here", "/tell <myname> raffle leave");
+		$inWinners = join(",", array_fill(0, count($winners), '?'));
+		$inLosers =  join(",", array_fill(0, count($losers), '?'));
+		$losersUpdate = array_map(
+			function(DBRow $row): string {
+				return $row->name;
+			},
+			$this->db->query(
+				"SELECT name FROM raffle_bonus_<myname> WHERE name IN ($inLosers)",
+				...$losers
+			)
+		);
+		$losersInsert = array_diff($losers, $losersUpdate);
+		$inLosers =  join(",", array_fill(0, count($losersUpdate), '?'));
+		if (count($losersUpdate)) {
+			$this->db->exec(
+				"UPDATE raffle_bonus_<myname> SET bonus=bonus+? WHERE name IN ($inLosers)",
+				$bonusPerLoss,
+				...$losersUpdate
+			);
+		}
+		if (count($losersInsert)) {
+			$this->db->query(
+				"INSERT INTO raffle_bonus_<myname> (name, bonus) VALUES".
+				join(",", array_fill(0, count($losersInsert), "(?, $bonusPerLoss)")),
+				...$losersInsert
+			);
+		}
+		$this->db->exec(
+			"UPDATE raffle_bonus_<myname> SET bonus=0 WHERE name IN ($inWinners)",
+			...$winners
+		);
+	}
 
-		$blob .= "\n\nClick $enterLink to enter the raffle!";
-		$blob .= "\nClick $leaveLink if you wish to leave the raffle.";
-		$blob .= "\n\n Time left: $time_string.";
-
-		$link = $this->text->makeBlob("Raffle Info", $blob);
-		if (1 < $count) {
-			$msg = "Reminder: Raffle for $item (count: $count) has $time_string left. $link";
+	public function announceRaffleResults(Raffle $raffle): void {
+		$bonusPoints = $this->settingManager->getInt("raffle_bonus_per_loss");
+		$showBonus = $bonusPoints > 0;
+		$blob = "";
+		if ($bonusPoints > 0) {
+			$blob .= "This raffle used the bonus points system.\n".
+				"Winners got their bonus points set to <highlight>0<end>, ".
+				"losers gained <highlight>{$bonusPoints}<end> ".
+				"bonus points for all upcoming raffles until they won.\n".
+				"The raffled points, including added bonus points, are ".
+				"in brackets, followed by the bonus points participants had for this raffle.\n\n";
+		}
+		$blob .= "These are the raffle results.\n\n";
+		foreach ($raffle->slots as $slot) {
+			$blob .= "<header2>" . $slot->toString() . "<end>\n";
+			if (!count($slot->result)) {
+				$blob .= "<tab>No one entered for this item.\n\n";
+				continue;
+			}
+			foreach ($slot->result as $player) {
+				$blob .= "<tab>- ".
+					($player->won ? "<green>" : "<red>").
+					// ($player->won ? "[<green>:-)<end>]" : "[<red>:-(<end>]").
+					"{$player->player}<end> (".
+					$player->points.
+					($showBonus ? ":{$player->bonus_points}" : "").
+					")\n";
+			}
+			$blob .= "\n";
+		}
+		if (!count($raffle->getParticipantNames())) {
+			$msg = "No one joined the raffle.";
+			$raffle->sendto->reply($msg);
+			return;
+		}
+		if (count($raffle->slots) > 1) {
+			$msg = $this->text->makeBlob("Raffle results", $blob);
+			$raffle->sendto->reply($msg);
+			return;
+		}
+		$blobMsg = "[" . $this->text->makeBlob("details", $blob, "Raffle result details") . "]";
+		if ($raffle->slots[0]->amount === 1) {
+			$winner = $raffle->slots[0]->getWinnerNames()[0];
+			$msg = "The winner of <highlight>" . $raffle->slots[0]->toString() . "<end>".
+				" is: <highlight>{$winner}<end>. $blobMsg";
 		} else {
-			$msg = "Reminder: Raffle for $item has $time_string left. $link";
+			$msg = "The winners of <highlight>" . $raffle->slots[0]->toString() . "<end> are $blobMsg:\n".
+				"<tab>- <highlight>".
+				join("<end>\n<tab>- <highlight>", $raffle->slots[0]->getWinnerNames()).
+				"<end>";
 		}
-
-		$this->raffles["sendto"]->reply($msg);
-		$this->raffles["nextmsgtime"] = $this->getNextTime($this->raffles["time"]);
+		$raffle->sendto->reply($msg);
 	}
 }

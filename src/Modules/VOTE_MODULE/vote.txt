@@ -1,24 +1,24 @@
-To remove a vote from a vote topic:
-<highlight><tab><symbol>vote remove 'topic'<end>
+To remove a vote from a poll:
+<highlight><tab><symbol>vote remove 'id'<end>
 
-To vote for a vote topic:
-<highlight><tab><symbol>vote choose 'topic'<end>
+To vote for a poll:
+<highlight><tab><symbol>vote 'id' 'your answer'<end>
 
-To start a new vote topic:
-<highlight><tab><symbol>vote add 'time'|'topic'|'option'|'option'...<end>
+To start a new poll
+<highlight><tab><symbol>poll create 'time' 'topic'|'option'|'option'...<end>
 
 <header2>Example<end>
-<highlight><tab><symbol>vote add 4d3h2m1s|WHAT... Is your favorite color?!?|Blue|Yellow<end>
-A vote topic for: 'WHAT... Is your favorite color?!?' with two options: 'Blue and Yellow' with a deadline of: 4 days, 3 hours, 2 minutes, 1 second.<end>
+<highlight><tab><symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow<end>
+A vote topic for: 'WHAT... Is your favorite color?!?' with two options: 'Blue and Yellow' with a deadline of: 4 days, 3 hours, 2 minutes, 1 second.
 
-To see all the vote topics:
-<highlight><tab><symbol>vote<end>
+To see all the polls:
+<highlight><tab><symbol>poll<end>
 
-To view a specific vote topic:
-<highlight><tab><symbol>vote show 'topic'<end>
+To view a specific poll:
+<highlight><tab><symbol>poll show 'id'<end>
 
-To delete a vote topic:
-<highlight><tab><symbol>vote kill 'topic'<end>
+To delete a poll:
+<highlight><tab><symbol>poll delete 'id'<end>
 
-To end a vote topic (vote will end in 60 seconds):
-<highlight><tab><symbol>vote end 'topic'<end>
+To end a poll (voting will end in 60 seconds):
+<highlight><tab><symbol>poll end 'id'<end>

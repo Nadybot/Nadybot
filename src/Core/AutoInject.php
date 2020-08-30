@@ -84,7 +84,6 @@ namespace Nadybot\Core;
  * @property \Nadybot\Modules\FUN_MODULE\DingController $dingController
  * @property \Nadybot\Modules\FUN_MODULE\FightController $fightController
  * @property \Nadybot\Modules\FUN_MODULE\FunController $funController
- * @property \Nadybot\Modules\GIT_MODULE\GitController $gitController
  * @property \Nadybot\Modules\GUIDE_MODULE\AOUController $aouController
  * @property \Nadybot\Modules\GUIDE_MODULE\GuideController $guideController
  * @property \Nadybot\Modules\GUILD_MODULE\GuildController $guildController

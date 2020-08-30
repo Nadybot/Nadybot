@@ -1,10 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Event;
-use stdClass;
 use Exception;
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	Event,
+	Nadybot,
+	SettingManager,
+	SettingObject,
+	Util,
+};
+use Nadybot\Modules\TIMERS_MODULE\{
+	TimerController,
+	Timer,
+};
 
 /**
  * @author Funkman (RK2)
@@ -26,50 +37,32 @@ class CityWaveController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
-	/**
-	 * @var \Nadybot\User\Modules\TIMERS_MODULE\TimerController $timerController
-	 * @Inject
-	 */
-	public $timerController;
+	/** @Inject */
+	public TimerController $timerController;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
+	/** @Inject */
+	public SettingManager $settingManager;
 	
-	/**
-	 * @var \Nadybot\Core\SettingObject $setting
-	 * @Inject
-	 */
-	public $setting;
+	/** @Inject */
+	public SettingObject $setting;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
 	public const TIMER_NAME = "City Raid";
 	
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 		
@@ -92,21 +85,24 @@ class CityWaveController {
 			'edit',
 			'text',
 			'org',
-			'org;priv;both;none',
+			'org;priv;org,priv;none',
 			'',
 			'mod'
 		);
-		$this->settingManager->registerChangeListener('city_wave_times', [$this, 'changeWaveTimes']);
+		$this->settingManager->registerChangeListener(
+			'city_wave_times',
+			[$this, 'changeWaveTimes']
+		);
 	}
 	
-	public function changeWaveTimes($settingName, $oldValue, $newValue, $data) {
+	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, $data): void {
 		$alertTimes = explode(' ', $newValue);
-		if (count($alertTimes) != 9) {
+		if (count($alertTimes) !== 9) {
 			throw new Exception("Error saving setting: must have 9 spawn times. For more info type !help city_wave_times.");
 		}
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
-			if ($time == 0) {
+			if ($time === 0) {
 				// invalid time
 				throw new Exception("Error saving setting: invalid alert time('$alertTime'). For more info type !help city_wave_times.");
 			}
@@ -117,7 +113,7 @@ class CityWaveController {
 	 * @HandlesCommand("citywave")
 	 * @Matches("/^citywave start$/i")
 	 */
-	public function citywaveStartCommand($message, $channel, $sender, $sendto, $args) {
+	public function citywaveStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$sendto->reply("A raid is already in progress.");
@@ -130,7 +126,7 @@ class CityWaveController {
 	 * @HandlesCommand("citywave")
 	 * @Matches("/^citywave stop$/i")
 	 */
-	public function citywaveStopCommand($message, $channel, $sender, $sendto, $args) {
+	public function citywaveStopCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
@@ -145,7 +141,7 @@ class CityWaveController {
 	 * @HandlesCommand("citywave")
 	 * @Matches("/^citywave$/i")
 	 */
-	public function citywaveCommand($message, $channel, $sender, $sendto, $args) {
+	public function citywaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
@@ -161,38 +157,40 @@ class CityWaveController {
 	 * @Event("guild")
 	 * @Description("Starts a wave counter when cloak is lowered")
 	 */
-	public function autoStartWaveCounterEvent(Event $eventObj) {
+	public function autoStartWaveCounterEvent(Event $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();
 		}
 	}
 	
-	public function getWave() {
+	public function getWave(): ?int {
 		$timer = $this->timerController->get(self::TIMER_NAME);
 		if ($timer === null) {
 			return null;
-		} else {
-			return $timer->alerts[0]->wave;
 		}
+		return $timer->alerts[0]->wave;
 	}
 
-	public function announce($msg, $announceWhere=null) {
+	public function announce(string $msg, ?string $announceWhere=null): void {
 		if ($announceWhere === null) {
-			$announceWhere = $this->settingManager->get('city_wave_announce');
+			$announceWhere = $this->settingManager->getString('city_wave_announce');
 		}
-		if ($announceWhere === "both" || $announceWhere === "org") {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($announceWhere === "both" || $announceWhere === "priv") {
-			$this->chatBot->sendPrivate($msg, true);
+		$channels = explode(",", $announceWhere);
+		foreach ($channels as $channel) {
+			if ($channel === "org") {
+				$this->chatBot->sendGuild($msg, true);
+			}
+			if ($channel === "priv") {
+				$this->chatBot->sendPrivate($msg, true);
+			}
 		}
 	}
 
-	public function sendAlertMessage($timer, $alert) {
+	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
 		$this->announce($alert->message, $timer->mode);
 	}
 	
-	public function startWaveCounter($name=null) {
+	public function startWaveCounter(string $name=null): void {
 		if ($name === null) {
 			$this->announce("Wave counter started.");
 		} else {
@@ -206,11 +204,10 @@ class CityWaveController {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;
 
-			$alert = new stdClass;
-			if ($wave == 9) {
+			$alert = new WaveAlert();
+			$alert->message = "Wave $wave incoming.";
+			if ($wave === 9) {
 				$alert->message = "General Incoming.";
-			} else {
-				$alert->message = "Wave $wave incoming.";
 			}
 			$alert->time = $lastTime;
 			$alert->wave = $wave;
@@ -219,13 +216,13 @@ class CityWaveController {
 			$wave++;
 		}
 		$this->timerController->remove(self::TIMER_NAME);
-		$announceWhere = $this->settingManager->get('city_wave_announce');
+		$announceWhere = $this->settingManager->getString('city_wave_announce');
 		$this->timerController->add(
 			self::TIMER_NAME,
 			$this->chatBot->vars['name'],
 			$announceWhere,
 			$alerts,
-			'citywavecontroller.sendAlertMessage'
+			'timercontroller.timerCallback'
 		);
 	}
 }

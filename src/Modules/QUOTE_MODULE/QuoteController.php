@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\QUOTE_MODULE;
+
+use Nadybot\Core\AccessManager;
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * @author Lucier (RK1)
@@ -22,102 +28,90 @@ class QuoteController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 	
-	/**
-	 * @var \Nadybot\Core\SettingManager $settingManager
-	 * @Inject
-	 */
-	public $settingManager;
-	
-	/**
-	 * @var \Nadybot\Core\AccessManager $accessManager
-	 * @Inject
-	 */
-	public $accessManager;
+	/** @Inject */
+	public AccessManager $accessManager;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "quote");
+		if ($this->db->getType() === $this->db::MYSQL) {
+			$this->db->exec("ALTER TABLE `quote` CHANGE `id` `id` INTEGER AUTO_INCREMENT");
+		}
 	}
 
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote add (.+)$/si")
 	 */
-	public function quoteAddCommand($message, $channel, $sender, $sendto, $args) {
-		$quoteMSG = trim($args[1]);
-		$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `msg` LIKE ?", $quoteMSG);
+	public function quoteAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$quoteMsg = trim($args[1]);
+		$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `msg` LIKE ?", $quoteMsg);
 		if ($row !== null) {
 			$msg = "This quote has already been added as quote <highlight>$row->id<end>.";
-		} else {
-			if (strlen($quoteMSG) > 1000) {
-				$msg = "This quote is too big.";
-			} else {
-				$poster = $sender;
-
-				// nextId = maxId + 1
-				$id = $this->getMaxId() + 1;
-
-				$this->db->exec("INSERT INTO `quote` (`id`, `poster`, `dt`, `msg`) VALUES (?, ?, ?, ?)", $id, $poster, time(), $quoteMSG);
-				$msg = "Quote <highlight>$id<end> has been added.";
-			}
+			$sendto->reply($msg);
+			return;
 		}
+		if (strlen($quoteMsg) > 1000) {
+			$msg = "This quote is too long.";
+			$sendto->reply($msg);
+			return;
+		}
+		$poster = $sender;
+
+		$this->db->exec(
+			"INSERT INTO `quote` (`poster`, `dt`, `msg`) ".
+			"VALUES (?, ?, ?)",
+			$poster,
+			time(),
+			$quoteMsg
+		);
+		$id = $this->db->lastInsertId();
+		$msg = "Quote <highlight>$id<end> has been added.";
 		$sendto->reply($msg);
 	}
 	
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote (rem|del|remove|delete) ([0-9]+)$/i")
+	 * @Matches("/^quote (rem|del|remove|delete) (\d+)$/i")
 	 */
-	public function quoteRemoveCommand($message, $channel, $sender, $sendto, $args) {
-		$id = $args[2];
-		$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `id` = ?", $id);
+	public function quoteRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[2];
+		/** @var ?Quote */
+		$row = $this->db->fetch(
+			Quote::class,
+			"SELECT * FROM `quote` WHERE `id` = ?",
+			$id
+		);
 
-		if ($row !== null) {
-			$poster = $row->poster;
+		if ($row === null) {
+			$msg = "Could not find this quote. Already deleted?";
+			$sendto->reply($msg);
+			return;
+		}
+		$poster = $row->poster;
 
-			//only author or admin can delete.
-			if (($poster == $sender) || $this->accessManager->checkAccess($sender, 'moderator')) {
-				$this->db->exec("DELETE FROM `quote` WHERE `id` = ?", $id);
-				$msg = "This quote has been deleted.";
-			} else {
-				$msg = "Only a moderator or $poster can delete this quote.";
-			}
-			
-			// re-number remaining quotes so there is no holes in the quote numbering
-			// since sqlite doesn't support ORDER BY on UPDATEs, we have to manually update each row
-			// in order to prevent duplicate key errors
-			$maxId = $this->getMaxId();
-			$currentId = $id + 1;
-			
-			while ($currentId <= $maxId ) {
-				$this->db->exec("UPDATE `quote` SET `id` = `id` - 1 WHERE `id` = ?", $currentId);
-				$currentId++;
-			}
+		//only author or admin can delete.
+		if (($poster === $sender)
+			|| $this->accessManager->checkAccess($sender, 'moderator')
+		) {
+			$this->db->exec("DELETE FROM `quote` WHERE `id` = ?", $id);
+			$msg = "This quote has been deleted.";
 		} else {
-			$msg = "Could not find this quote.  Already deleted?";
+			$msg = "Only a moderator or $poster can delete this quote.";
 		}
 		$sendto->reply($msg);
 	}
@@ -126,33 +120,40 @@ class QuoteController {
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote search (.+)$/i")
 	 */
-	public function quoteSearchCommand($message, $channel, $sender, $sendto, $args) {
+	public function quoteSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 		$searchParam = '%' . $search . '%';
 
 		// Search for poster:
-		$list = "";
-		$data = $this->db->query("SELECT * FROM `quote` WHERE `poster` LIKE ?", $searchParam);
-		foreach ($data as $row) {
-			$list .= $this->text->makeChatcmd($row->id, "/tell <myname> quote $row->id") . ", ";
+		/** @var Quote[] */
+		$quotes = $this->db->fetchAll(
+			Quote::class,
+			"SELECT * FROM `quote` WHERE `poster` LIKE ?",
+			$searchParam
+		);
+		$idList = [];
+		foreach ($quotes as $quote) {
+			$idList []= $this->text->makeChatcmd((string)$quote->id, "/tell <myname> quote $quote->id");
 		}
-		if ($list) {
-			$msg  = "<tab>Quotes posted by <highlight>$search<end>: ";
-			$msg .= substr($list, 0, strlen($list) - 2);
+		if (count($idList)) {
+			$msg  = "<header2>Quotes posted by \"$search\"<end>\n";
+			$msg .= "<tab>" . join(", ", $idList) . "\n\n";
 		}
 
 		// Search inside quotes:
-		$list = "";
-		$data = $this->db->query("SELECT * FROM `quote` WHERE `msg` LIKE ?", $searchParam);
-		foreach ($data as $row) {
-			$list .= $this->text->makeChatcmd($row->id, "/tell <myname> quote $row->id") . ", ";
+		/** @var Quote[] */
+		$quotes = $this->db->fetchAll(
+			Quote::class,
+			"SELECT * FROM `quote` WHERE `msg` LIKE ?",
+			$searchParam
+		);
+		$idList = [];
+		foreach ($quotes as $quote) {
+			$idList []= $this->text->makeChatcmd((string)$quote->id, "/tell <myname> quote $quote->id");
 		}
-		if ($list) {
-			if ($msg) {
-				$msg .="\n\n";
-			}
-			$msg .= "<tab>Quotes that contain '<highlight>$search<end>': ";
-			$msg .= substr($list, 0, strlen($list) - 2);
+		if (count($idList)) {
+			$msg .= "<header2>Quotes that contain \"$search\"<end>\n";
+			$msg .= "<tab>" . join(", ", $idList);
 		}
 
 		if ($msg) {
@@ -165,14 +166,14 @@ class QuoteController {
 	
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote ([0-9]+)$/i")
+	 * @Matches("/^quote (\d+)$/i")
 	 */
-	public function quoteShowCommand($message, $channel, $sender, $sendto, $args) {
-		$id = $args[1];
+	public function quoteShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
 		
 		$result = $this->getQuoteInfo($id);
 		
-		if ($result == null) {
+		if ($result === null) {
 			$msg = "No quote found with ID <highlight>$id<end>.";
 		} else {
 			$msg = $result;
@@ -184,11 +185,11 @@ class QuoteController {
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote$/i")
 	 */
-	public function quoteShowRandomCommand($message, $channel, $sender, $sendto, $args) {
+	public function quoteShowRandomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		// choose a random quote to show
 		$result = $this->getQuoteInfo(null);
 		
-		if ($result == null) {
+		if ($result === null) {
 			$msg = "There are no quotes to show.";
 		} else {
 			$msg = $result;
@@ -196,48 +197,49 @@ class QuoteController {
 		$sendto->reply($msg);
 	}
 	
-	public function getMaxId() {
+	public function getMaxId(): int {
 		$row = $this->db->queryRow("SELECT COALESCE(MAX(id), 0) AS max_id FROM `quote`");
 		return $row->max_id;
 	}
 
-	public function getQuoteInfo($id=null) {
+	public function getQuoteInfo(int $id=null) {
 		$count = $this->getMaxId();
 
 		if ($count == 0) {
 			return null;
 		}
 
-		if ($id == null) {
-			$id = rand(1, $count);
-			if ($this->db->getType() === \Nadybot\Core\DB::SQLITE) {
-				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RANDOM() LIMIT 1");
+		if ($id === null) {
+			if ($this->db->getType() === $this->db::SQLITE) {
+				$row = $this->db->fetch(Quote::class, "SELECT * FROM `quote` ORDER BY RANDOM() LIMIT 1");
 			} else {
-				$row = $this->db->queryRow("SELECT * FROM `quote` ORDER BY RAND() LIMIT 1");
+				$row = $this->db->fetch(Quote::class, "SELECT * FROM `quote` ORDER BY RAND() LIMIT 1");
 			}
 		} else {
-			$row = $this->db->queryRow("SELECT * FROM `quote` WHERE `id` = ?", $id);
+			$row = $this->db->fetch(Quote::class, "SELECT * FROM `quote` WHERE `id` = ?", $id);
 		}
+		/** @var ?Quote $row */
 		if ($row === null) {
 			return null;
 		}
 
 		$poster = $row->poster;
-		$quoteMSG = $row->msg;
+		$quoteMsg = $row->msg;
 
-		$msg = "ID: <highlight>$id<end> of $count\n";
+		$msg = "ID: <highlight>$row->id<end> of $count\n";
 		$msg .= "Poster: <highlight>$poster<end>\n";
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
-		$msg .= "Quote: <highlight>$quoteMSG<end>\n\n";
+		$msg .= "Quote: <highlight>$quoteMsg<end>\n\n";
 
-		$msg .= "<header2>Quotes posted by <highlight>$poster<end>\n";
-		$data = $this->db->query("SELECT * FROM `quote` WHERE `poster` = ?", $poster);
-		$list = "";
+		$msg .= "<header2>Quotes posted by \"$poster\"<end>\n";
+		/** @var Quote[] */
+		$data = $this->db->fetchAll(Quote::class, "SELECT * FROM `quote` WHERE `poster` = ?", $poster);
+		$idList = [];
 		foreach ($data as $row) {
-			$list .= $this->text->makeChatcmd($row->id, "/tell <myname> quote $row->id") . ", ";
+			$idList []= $this->text->makeChatcmd((string)$row->id, "/tell <myname> quote $row->id");
 		}
-		$msg .= substr($list, 0, strlen($list) - 2);
+		$msg .= "<tab>" . join(", ", $idList);
 
-		return $this->text->makeBlob("Quote", $msg).': "'.$quoteMSG.'"';
+		return $this->text->makeBlob("Quote", $msg).': "'.$quoteMsg.'"';
 	}
 }

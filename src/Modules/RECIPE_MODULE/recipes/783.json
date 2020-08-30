@@ -1,0 +1,283 @@
+{
+	"name":"Sauna",
+	"author":"Nadyita",
+	"items":[
+		{
+			"alias":"Hacker Tool",
+			"item_id":87810,
+			"ql":1
+		},
+		{
+			"alias":"Floorplan for Swimming Pool",
+			"item_id":254795,
+			"ql":100
+		},
+		{
+			"alias":"Hacked Floorplan (nodrop)",
+			"item_id":287176,
+			"ql":100
+		},
+		{
+			"alias":"Nanite Reconstruction Box",
+			"item_id":287177,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit (nodrop)",
+			"item_id":287178,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 1 (nodrop)",
+			"item_id":287179,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 2 (nodrop)",
+			"item_id":287180,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 3 (nodrop)",
+			"item_id":287181,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 4 (nodrop)",
+			"item_id":287182,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 5 (nodrop)",
+			"item_id":287183,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 6 (nodrop)",
+			"item_id":287184,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 7 (nodrop)",
+			"item_id":287185,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 8 (nodrop)",
+			"item_id":287186,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 9 (nodrop)",
+			"item_id":287187,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 10 (nodrop)",
+			"item_id":287188,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 11 (nodrop)",
+			"item_id":287189,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 12 (nodrop)",
+			"item_id":287190,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 13 (nodrop)",
+			"item_id":287191,
+			"ql":100
+		},
+		{
+			"alias":"Floorplan Recompiler Unit Step 14 (nodrop)",
+			"item_id":287192,
+			"ql":100
+		},
+		{
+			"alias":"Nanite Reconstruction ToilerBots - Abies Grandis",
+			"item_id":287126,
+			"ql":200
+		},
+		{
+			"alias":"Peridotite",
+			"item_id":287131,
+			"ql":200
+		},
+		{
+			"alias":"Nanite Reconstruction ToilerBots - Betula Pendula",
+			"item_id":287127,
+			"ql":200
+		},
+		{
+			"alias":"Essence of Eucalyptus",
+			"item_id":287133,
+			"ql":200
+		},
+		{
+			"alias":"Thermal Radiation Unit",
+			"item_id":287134,
+			"ql":200
+		},
+		{
+			"alias":"Metal Grate",
+			"item_id":287135,
+			"ql":200
+		},
+		{
+			"alias":"Inorganic Crystalline Oxide Tiles",
+			"item_id":287136,
+			"ql":200
+		},
+		{
+			"alias":"Nanite Reconstruction ToilerBots - Thuja Plicata",
+			"item_id":287128,
+			"ql":200
+		},
+		{
+			"alias":"Copper Pail",
+			"item_id":287143,
+			"ql":200
+		},
+		{
+			"alias":"Copper Ladle",
+			"item_id":287144,
+			"ql":200
+		},
+		{
+			"alias":"Mercury Vapor Excitation Globe",
+			"item_id":287145,
+			"ql":200
+		},
+		{
+			"alias":"Wall-Mounted Titanium Rod",
+			"item_id":287146,
+			"ql":200
+		},
+		{
+			"alias":"Mercury-Based Temperature Gauge",
+			"item_id":287147,
+			"ql":200
+		},
+		{
+			"alias":"Dual-Core Psychrometer",
+			"item_id":287148,
+			"ql":200
+		},
+		{
+			"alias":"Gofle-Hair Brush",
+			"item_id":287149,
+			"ql":200
+		},
+		{
+			"alias":"Floorplan: BFSHKASXCXZZZXXHHHHSASF!111 (nodrop)",
+			"item_id":287193,
+			"ql":100
+		},
+		{
+			"alias":"Regular Building Structure",
+			"item_id":254807,
+			"ql":100
+		},
+		{
+			"alias":"Unaligned Building Structure: BFSHKASXCXZZZXXHHHHSASF!111 (nodrop)",
+			"item_id":287202,
+			"ql":100
+		}
+	],
+	"steps":[
+		{
+			"source":"Hacker Tool",
+			"target":"Floorplan for Swimming Pool",
+			"result":"Hacked Floorplan (nodrop)"
+		},
+		{
+			"source":"Hacked Floorplan (nodrop)",
+			"target":"Nanite Reconstruction Box",
+			"result":"Floorplan Recompiler Unit (nodrop)"
+		},
+		{
+			"source":"Nanite Reconstruction ToilerBots - Abies Grandis",
+			"target":"Floorplan Recompiler Unit (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 1 (nodrop)"
+		},
+		{
+			"source":"Peridotite",
+			"target":"Floorplan Recompiler Unit Step 1 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 2 (nodrop)"
+		},
+		{
+			"source":"Nanite Reconstruction ToilerBots - Betula Pendula",
+			"target":"Floorplan Recompiler Unit Step 2 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 3 (nodrop)"
+		},
+		{
+			"source":"Essence of Eucalyptus",
+			"target":"Floorplan Recompiler Unit Step 3 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 4 (nodrop)"
+		},
+		{
+			"source":"Thermal Radiation Unit",
+			"target":"Floorplan Recompiler Unit Step 4 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 5 (nodrop)"
+		},
+		{
+			"source":"Metal Grate",
+			"target":"Floorplan Recompiler Unit Step 5 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 6 (nodrop)"
+		},
+		{
+			"source":"Inorganic Crystalline Oxide Tiles",
+			"target":"Floorplan Recompiler Unit Step 6 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 7 (nodrop)"
+		},
+		{
+			"source":"Nanite Reconstruction ToilerBots - Thuja Plicata",
+			"target":"Floorplan Recompiler Unit Step 7 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 8 (nodrop)"
+		},
+		{
+			"source":"Copper Pail",
+			"target":"Floorplan Recompiler Unit Step 8 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 9 (nodrop)"
+		},
+		{
+			"source":"Copper Ladle",
+			"target":"Floorplan Recompiler Unit Step 9 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 10 (nodrop)"
+		},
+		{
+			"source":"Mercury Vapor Excitation Globe",
+			"target":"Floorplan Recompiler Unit Step 10 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 11 (nodrop)"
+		},
+		{
+			"source":"Wall-Mounted Titanium Rod",
+			"target":"Floorplan Recompiler Unit Step 11 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 12 (nodrop)"
+		},
+		{
+			"source":"Mercury-Based Temperature Gauge",
+			"target":"Floorplan Recompiler Unit Step 12 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 13 (nodrop)"
+		},
+		{
+			"source":"Dual-Core Psychrometer",
+			"target":"Floorplan Recompiler Unit Step 13 (nodrop)",
+			"result":"Floorplan Recompiler Unit Step 14 (nodrop)"
+		},
+		{
+			"source":"Gofle-Hair Brush",
+			"target":"Floorplan Recompiler Unit Step 14 (nodrop)",
+			"result":"Floorplan: BFSHKASXCXZZZXXHHHHSASF!111 (nodrop)"
+		},
+		{
+			"source":"Floorplan: BFSHKASXCXZZZXXHHHHSASF!111 (nodrop)",
+			"target":"Regular Building Structure",
+			"result":"Unaligned Building Structure: BFSHKASXCXZZZXXHHHHSASF!111 (nodrop)"
+		}
+	]
+}

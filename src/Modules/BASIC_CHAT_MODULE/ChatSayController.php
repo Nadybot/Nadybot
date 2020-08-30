@@ -1,6 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Nadybot;
 
 /**
  * @Instance
@@ -34,24 +37,18 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
  */
 class ChatSayController {
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
-	 * @Inject
-	 */
-	public $chatLeaderController;
+	/** @Inject */
+	public ChatLeaderController $chatLeaderController;
 
 	/**
 	 * This command handler sends message to org chat.
 	 * @HandlesCommand("say")
 	 * @Matches("/^say org (.+)$/si")
 	 */
-	public function sayOrgCommand($message, $channel, $sender, $sendto, $args) {
+	public function sayOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -65,7 +62,7 @@ class ChatSayController {
 	 * @HandlesCommand("say")
 	 * @Matches("/^say priv (.+)$/si")
 	 */
-	public function sayPrivCommand($message, $channel, $sender, $sendto, $args) {
+	public function sayPrivCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -79,18 +76,18 @@ class ChatSayController {
 	 * @HandlesCommand("cmd")
 	 * @Matches("/^cmd (.+)$/si")
 	 */
-	public function cmdCommand($message, $channel, $sender, $sendto, $args) {
+	public function cmdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
 		$msg = "\n".
-			"<yellow>------------------------------------------\n".
+			"<yellow>------------------------------------------<end>\n".
 			"<tab><red>$args[1]<end>\n".
-			"<yellow>------------------------------------------";
+			"<yellow>------------------------------------------<end>";
 
-		if ($channel == 'msg') {
+		if ($channel === 'msg') {
 			$this->chatBot->sendGuild($msg, true);
 			$this->chatBot->sendPrivate($msg, true);
 		} else {
@@ -103,19 +100,19 @@ class ChatSayController {
 	 * @HandlesCommand("tell")
 	 * @Matches("/^tell (.+)$/si")
 	 */
-	public function tellCommand($message, $channel, $sender, $sendto, $args) {
+	public function tellCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		if ($channel == 'guild' || $channel == 'msg') {
+		if ($channel === 'guild' || $channel === 'msg') {
 			$this->chatBot->sendGuild("<yellow>$args[1]<end>", true);
 			$this->chatBot->sendGuild("<yellow>$args[1]<end>", true);
 			$this->chatBot->sendGuild("<yellow>$args[1]<end>", true);
 		}
 
-		if ($channel == 'priv' || $channel == 'msg') {
+		if ($channel === 'priv' || $channel === 'msg') {
 			$this->chatBot->sendPrivate("<yellow>$args[1]<end>", true);
 			$this->chatBot->sendPrivate("<yellow>$args[1]<end>", true);
 			$this->chatBot->sendPrivate("<yellow>$args[1]<end>", true);

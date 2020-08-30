@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
+
+use Nadybot\Core\{
+	CommandReply,
+	Nadybot,
+	Text,
+};
 
 /**
  * @Instance
@@ -26,36 +32,27 @@ class ChatAssistController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 	
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
-	public $chatBot;
+	/** @Inject */
+	public Nadybot $chatBot;
 	
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 
-	/**
-	 * @var \Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController $chatLeaderController
-	 * @Inject
-	 */
-	public $chatLeaderController;
+	/** @Inject */
+	public ChatLeaderController $chatLeaderController;
 	
 	/**
 	 * Contains the assist macro message.
 	 */
-	private $assistMessage;
+	private ?string $assistMessage = null;
 
 	/**
 	 * @HandlesCommand("assist")
 	 * @Matches("/^assist$/i")
 	 */
-	public function assistCommand($message, $channel, $sender, $sendto, $args) {
+	public function assistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->assistMessage)) {
 			$msg = "No assist set.";
 			$sendto->reply($msg);
@@ -68,7 +65,7 @@ class ChatAssistController {
 	 * @HandlesCommand("assist .+")
 	 * @Matches("/^assist clear$/i")
 	 */
-	public function assistClearCommand($message, $channel, $sender, $sendto, $args) {
+	public function assistClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -82,7 +79,7 @@ class ChatAssistController {
 	 * @HandlesCommand("assist .+")
 	 * @Matches("/^assist (.+)$/i")
 	 */
-	public function assistSetCommand($message, $channel, $sender, $sendto, $args) {
+	public function assistSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
@@ -90,14 +87,14 @@ class ChatAssistController {
 
 		$nameArray = preg_split("/\s+|,\s*/", $args[1]);
 		
-		if (count($nameArray) == 1) {
+		if (count($nameArray) === 1) {
 			$name = ucfirst(strtolower($args[1]));
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$msg = "Character <highlight>$name<end> does not exist.";
 				$sendto->reply($msg);
 				return;
-			} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
+			} elseif ($channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$msg = "Character <highlight>$name<end> is not in this bot.";
 				$sendto->reply($msg);
 				return;
@@ -108,13 +105,14 @@ class ChatAssistController {
 			$sendto->reply($this->assistMessage);
 			return;
 		}
+
 		$errors = [];
 		foreach ($nameArray as $key => $name) {
 			$name = ucfirst(strtolower($name));
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>$name<end> does not exist.";
-			} elseif ($channel == "priv" && !isset($this->chatBot->chatlist[$name])) {
+			} elseif ($channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$errors []= "Character <highlight>$name<end> is not in this bot.";
 			}
 

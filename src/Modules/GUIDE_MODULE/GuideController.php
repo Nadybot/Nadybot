@@ -1,6 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\GUIDE_MODULE;
+
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -12,6 +19,7 @@ namespace Nadybot\Modules\GUIDE_MODULE;
  * Commands this controller contains:
  *	@DefineCommand(
  *		command     = 'guides',
+ *		alias       = 'guide',
  *		accessLevel = 'all',
  *		description = 'Guides for AO',
  *		help        = 'guides.txt'
@@ -23,28 +31,19 @@ class GuideController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 	
-	/**
-	 * @var \Nadybot\Core\CommandAlias $commandAlias
-	 * @Inject
-	 */
-	public $commandAlias;
+	/** @Inject */
+	public CommandAlias $commandAlias;
 	
-	private $path;
-	private $fileExt = ".txt";
+	private string $path;
+	private const FILE_EXT = ".txt";
 	
 	/**
 	 * This handler is called on bot startup.
@@ -68,34 +67,36 @@ class GuideController {
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides$/i")
 	 */
-	public function guidesListCommand($message, $channel, $sender, $sendto, $args) {
-		if ($handle = opendir($this->path)) {
-			$topicList = [];
-
-			/* This is the correct way to loop over the directory. */
-			while (false !== ($fileName = readdir($handle))) {
-				// if file has the correct extension, it's a topic file
-				if ($this->util->endsWith($fileName, $this->fileExt)) {
-					$topicList[] =  str_replace($this->fileExt, '', $fileName);
-				}
-			}
-
-			closedir($handle);
-
-			sort($topicList);
-
-			$linkContents = '';
-			foreach ($topicList as $topic) {
-				$linkContents .= $this->text->makeChatcmd($topic, "/tell <myname> guides $topic") . "\n";
-			}
-
-			if ($linkContents) {
-				$msg = $this->text->makeBlob('Topics (' . count($topicList) . ')', $linkContents);
-			} else {
-				$msg = "No topics available.";
-			}
-		} else {
+	public function guidesListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (($handle = opendir($this->path)) === false) {
 			$msg = "Error reading topics.";
+			$sendto->reply($msg);
+			return;
+		}
+		/** @var string[] */
+		$topicList = [];
+
+		while (($fileName = readdir($handle)) !== false) {
+			// if file has the correct extension, it's a topic file
+			if ($this->util->endsWith($fileName, self::FILE_EXT)) {
+				$topicList[] = basename($fileName, self::FILE_EXT);
+			}
+		}
+
+		closedir($handle);
+
+		sort($topicList);
+
+		$linkContents = "<header2>Available guides<end>\n";
+		foreach ($topicList as $topic) {
+			$linkContents .= "<tab>".
+				$this->text->makeChatcmd($topic, "/tell <myname> guides $topic") . "\n";
+		}
+
+		if (count($topicList)) {
+			$msg = $this->text->makeBlob('Topics (' . count($topicList) . ')', $linkContents);
+		} else {
+			$msg = "No topics available.";
 		}
 		$sendto->reply($msg);
 	}
@@ -104,22 +105,17 @@ class GuideController {
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides ([a-z0-9_-]+)$/i")
 	 */
-	public function guidesShowCommand($message, $channel, $sender, $sendto, $args) {
+	public function guidesShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		// get the filename and read in the file
 		$fileName = strtolower($args[1]);
-		$info = $this->getTopicContents($fileName);
+		$file = $this->path . $fileName . self::FILE_EXT;
+		$info = @file_get_contents($file);
 
-		if (!$info) {
+		if ($info === false) {
 			$msg = "No guide named <highlight>$fileName<end> was found.";
 		} else {
-			$msg = $this->text->makeLegacyBlob(ucfirst($fileName), $info);
+			$msg = $this->text->makeBlob('Guide for "' . ucfirst($fileName) . '"', $info);
 		}
 		$sendto->reply($msg);
-	}
-
-	public function getTopicContents($fileName) {
-		// get the filename and read in the file
-		$file = $this->path . $fileName . $this->fileExt;
-		return file_get_contents($file);
 	}
 }

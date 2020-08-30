@@ -70,7 +70,7 @@ class Util {
 	 *
 	 * Convert "1h, 2mins 10s" into 3730
 	 *
-	 * @param string $budatime A humanm readable duration
+	 * @param string $budatime A human readable duration
 	 * @return int The duration in seconds
 	 */
 	public function parseTime(string $budatime): int {
@@ -364,7 +364,7 @@ class Util {
 	 * @param int|string $sender
 	 */
 	public function isValidSender($sender): bool {
-		return (int)0xFFFFFFFF == $sender;
+		return (int)0xFFFFFFFF !== $sender;
 	}
 
 	/**
@@ -521,7 +521,7 @@ class Util {
 		}
 		$result = ($maxVal - $minVal) / ($maxQL - $minQL) * ($ql - $minQL) + $minVal;
 		$result = round($result, 0);
-		return $result;
+		return (int)$result;
 	}
 
 	/**

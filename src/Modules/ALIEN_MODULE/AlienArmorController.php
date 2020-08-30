@@ -1,6 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ALIEN_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Text;
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
  * @author Blackruby (RK2)
@@ -21,36 +25,32 @@ namespace Nadybot\Modules\ALIEN_MODULE;
  */
 class AlienArmorController {
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Modules\ITEMS_MODULE\ItemsController $itemsController
-	 * @Inject
-	 */
-	public $itemsController;
+	/** @Inject */
+	public ItemsController $itemsController;
 
 	/**
 	 * @HandlesCommand("aiarmor")
 	 * @Matches("/^aiarmor$/i")
 	 */
-	public function aiarmorListCommand($message, $channel, $sender, $sendto, $args) {
-		$list = "Please choose from the following which armor to view information on:\n\n";
-		$list .= "<highlight>Normal Armor:<end>\n" . $this->text->makeChatcmd("Strong Armor", "/tell <myname> aiarmor Strong");
-		$list .= "\n" . $this->text->makeChatcmd("Supple Armor", "/tell <myname> aiarmor Supple");
-		$list .= "\n" . $this->text->makeChatcmd("Enduring Armor", "/tell <myname> aiarmor Enduring");
-		$list .= "\n" . $this->text->makeChatcmd("Observant Armor", "/tell <myname> aiarmor Observant");
-		$list .= "\n" . $this->text->makeChatcmd("Arithmetic Armor", "/tell <myname> aiarmor Arithmetic");
-		$list .= "\n" . $this->text->makeChatcmd("Spiritual Armor", "/tell <myname> aiarmor Spiritual");
-		$list .= "\n\n<highlight>Combined Armor:<end>\n" . $this->text->makeChatcmd("Combined Commando's Armor", "/tell <myname> aiarmor cc");
-		$list .= "\n" . $this->text->makeChatcmd("Combined Mercenary's Armor", "/tell <myname> aiarmor cm");
-		$list .= "\n" . $this->text->makeChatcmd("Combined Officer's", "/tell <myname> aiarmor co");
-		$list .= "\n" . $this->text->makeChatcmd("Combined Paramedic's Armor", "/tell <myname> aiarmor cp");
-		$list .= "\n" . $this->text->makeChatcmd("Combined Scout's Armor", "/tell <myname> aiarmor cs");
-		$list .= "\n" . $this->text->makeChatcmd("Combined Sharpshooter's Armor", "/tell <myname> aiarmor css");
+	public function aiarmorListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$list = "Please choose from the following which armor to view information on:";
+		$list .= "\n\n<header2>Normal Armor<end>";
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Strong Armor", "/tell <myname> aiarmor Strong");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Supple Armor", "/tell <myname> aiarmor Supple");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Enduring Armor", "/tell <myname> aiarmor Enduring");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Observant Armor", "/tell <myname> aiarmor Observant");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Arithmetic Armor", "/tell <myname> aiarmor Arithmetic");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Spiritual Armor", "/tell <myname> aiarmor Spiritual");
+		$list .= "\n\n<header2>Combined Armor<end>";
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Commando's Armor", "/tell <myname> aiarmor cc");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Mercenary's Armor", "/tell <myname> aiarmor cm");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Officer's", "/tell <myname> aiarmor co");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Paramedic's Armor", "/tell <myname> aiarmor cp");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Scout's Armor", "/tell <myname> aiarmor cs");
+		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Sharpshooter's Armor", "/tell <myname> aiarmor css");
 		$msg = $this->text->makeBlob("Alien Armor List", $list);
 		$sendto->reply($msg);
 	}
@@ -63,7 +63,7 @@ class AlienArmorController {
 	 * @Matches("/^aiarmor (strong|supple|enduring|observant|arithmetic|spiritual) (\d+)$/i")
 	 * @Matches("/^aiarmor (\d+) (strong|supple|enduring|observant|arithmetic|spiritual)$/i")
 	 */
-	public function aiarmorNormalCommand($message, $channel, $sender, $sendto, $args) {
+	public function aiarmorNormalCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		[$armortype, $ql] = $this->extractArgs($args);
 		$armortype = ucfirst($armortype);
 		$misc_ql = floor($ql * 0.8);
@@ -153,29 +153,24 @@ class AlienArmorController {
 		switch ($armortype) {
 			case "Arithmetic":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 			case "Supple":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Supple Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 			case "Enduring":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Enduring Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 			case "Observant":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Observant Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 			case "Strong":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Strong Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 			case "Spiritual":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Spiritual Lead Viralbots", $vb_ql) . " QL$vb_ql";
-				$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 				break;
 		}
+		$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Formatted Viralbot Vest", $ql) . "\n";
 		$list .= "<tab><tab>=\n";
@@ -214,7 +209,7 @@ class AlienArmorController {
 	 * @Matches("/^aiarmor (cc|cm|co|cp|cs|css|ss) (\d+)$/i")
 	 * @Matches("/^aiarmor (\d+) (cc|cm|co|cp|cs|css|ss)$/i")
 	 */
-	public function aiarmorCombinedCommand($message, $channel, $sender, $sendto, $args) {
+	public function aiarmorCombinedCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		[$armortype, $ql] = $this->extractArgs($args);
 		$trg_ql = $ql;
 		$src_ql = floor($trg_ql * 0.8);
@@ -298,8 +293,9 @@ class AlienArmorController {
 	
 	/**
 	 * Extracts armor type and quality from given $args regexp matches.
+	 * @return array[string,int]
 	 */
-	private function extractArgs($args) {
+	private function extractArgs(array $args): array {
 		$armortype = '';
 		$ql = 300;
 		// get ql and armor type from command arguments

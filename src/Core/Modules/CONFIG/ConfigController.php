@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Registry,
 	SettingManager,
-	SQLException,
 	SubcommandManager,
 	Text,
 };
@@ -69,7 +68,7 @@ class ConfigController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 
 		// construct list of command handlers
 		$filename = [];
@@ -574,7 +573,7 @@ class ConfigController {
 			}
 	
 			$tell = "<red>T<end>";
-			if ($row->msg_avail === 0) {
+			if ($row->msg_avail == 0) {
 				$tell = "|_";
 			} elseif ($row->msg_status === 1) {
 				$tell = "<green>T<end>";
@@ -583,14 +582,14 @@ class ConfigController {
 			$guild = "|<red>G<end>";
 			if ($row->guild_avail === 0) {
 				$guild = "|_";
-			} elseif ($row->guild_status == 1) {
+			} elseif ($row->guild_status === 1) {
 				$guild = "|<green>G<end>";
 			}
 	
 			$priv = "|<red>P<end>";
-			if ($row->priv_avail == 0) {
+			if ($row->priv_avail === 0) {
 				$priv = "|_";
-			} elseif ($row->priv_status == 1) {
+			} elseif ($row->priv_status === 1) {
 				$priv = "|<green>P<end>";
 			}
 	

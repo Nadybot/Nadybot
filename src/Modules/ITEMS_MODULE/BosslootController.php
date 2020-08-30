@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ITEMS_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\DBRow;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
 
 /**
  * Bossloot Module Ver 1.1
@@ -33,28 +39,19 @@ class BosslootController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Util $util
-	 * @Inject
-	 */
-	public $util;
+	/** @Inject */
+	public Util $util;
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "boss_namedb");
 		$this->db->loadSQLFile($this->moduleName, "boss_lootdb");
 	}
@@ -65,16 +62,25 @@ class BosslootController {
 	 * @HandlesCommand("boss")
 	 * @Matches("/^boss (.+)$/i")
 	 */
-	public function bossCommand($message, $channel, $sender, $sendto, $args) {
+	public function bossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower($args[1]);
 		
 		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'bossname');
 
-		$bosses = $this->db->query("SELECT bossid, bossname, w.answer
-			FROM boss_namedb b LEFT JOIN whereis w ON b.bossname = w.name
-			WHERE $query", $params);
+		$bosses = $this->db->query(
+			"SELECT bossid, bossname, w.answer ".
+			"FROM boss_namedb b ".
+			"LEFT JOIN whereis w ON b.bossname = w.name ".
+			"WHERE $query",
+			...$params
+		);
 		$count = count($bosses);
 
+		if ($count === 0) {
+			$output = "There were no matches for your search.";
+			$sendto->reply($output);
+			return;
+		}
 		if ($count > 1) {
 			$blob = "Results of Search for '$search'\n\n";
 			//If multiple matches found output list of bosses
@@ -82,24 +88,26 @@ class BosslootController {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Boss Search Results ($count)", $blob);
-		} elseif ($count == 1) {
-			//If single match found, output full loot table
-			$row = $bosses[0];
-
-			$blob  = "Location: <highlight>{$row->answer}<end>\n\n";
-			$blob .= "Loot:\n\n";
-
-			$data = $this->db->query("SELECT * FROM boss_lootdb b LEFT JOIN
-				aodb a ON (b.itemname = a.name)
-				WHERE b.bossid = ?", $row->bossid);
-			foreach ($data as $row2) {
-				$blob .= $this->text->makeImage($row2->icon) . "\n";
-				$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
-			}
-			$output = $this->text->makeBlob($row->bossname, $blob);
-		} else {
-			$output = "There were no matches for your search.";
+			$sendto->reply($output);
+			return;
 		}
+		//If single match found, output full loot table
+		$row = $bosses[0];
+
+		$blob  = "Location: <highlight>{$row->answer}<end>\n\n";
+		$blob .= "Loot:\n\n";
+
+		$data = $this->db->query(
+			"SELECT * FROM boss_lootdb b ".
+			"LEFT JOIN aodb a ON (b.itemname = a.name) ".
+			"WHERE b.bossid = ?",
+			$row->bossid
+		);
+		foreach ($data as $row2) {
+			$blob .= $this->text->makeImage($row2->icon) . "\n";
+			$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
+		}
+		$output = $this->text->makeBlob($row->bossname, $blob);
 		$sendto->reply($output);
 	}
 
@@ -109,20 +117,24 @@ class BosslootController {
 	 * @HandlesCommand("bossloot")
 	 * @Matches("/^bossloot (.+)$/i")
 	 */
-	public function bosslootCommand($message, $channel, $sender, $sendto, $args) {
+	public function bosslootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower($args[1]);
 
 		$blob = "Bosses that drop items matching '$search':\n\n";
 
 		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'b1.itemname');
 
-		$loot = $this->db->query("SELECT DISTINCT b2.bossid, b2.bossname, w.answer
-			FROM boss_lootdb b1 JOIN boss_namedb b2 ON b2.bossid = b1.bossid
-			LEFT JOIN whereis w ON w.name = b2.bossname WHERE $query", $params);
+		$loot = $this->db->query(
+			"SELECT DISTINCT b2.bossid, b2.bossname, w.answer ".
+			"FROM boss_lootdb b1 JOIN boss_namedb b2 ON b2.bossid = b1.bossid ".
+			"LEFT JOIN whereis w ON w.name = b2.bossname ".
+			"WHERE $query",
+			...$params
+		);
 		$count = count($loot);
 
 		$output = "There were no matches for your search.";
-		if ($count != 0) {
+		if ($count !== 0) {
 			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
@@ -131,10 +143,13 @@ class BosslootController {
 		$sendto->reply($output);
 	}
 
-	public function getBossLootOutput($row) {
-		$data = $this->db->query("SELECT * FROM boss_lootdb b LEFT JOIN
-			aodb a ON (b.itemname = a.name)
-			WHERE b.bossid = ?", $row->bossid);
+	public function getBossLootOutput(DBRow $row): string {
+		$data = $this->db->query(
+			"SELECT * FROM boss_lootdb b ".
+			"LEFT JOIN aodb a ON (b.itemname = a.name) ".
+			"WHERE b.bossid = ?",
+			$row->bossid
+		);
 			
 		$blob = '<pagebreak>' . $this->text->makeChatcmd($row->bossname, "/tell <myname> boss $row->bossname") . "\n";
 		$blob .= "Location: <highlight>{$row->answer}<end>\n";

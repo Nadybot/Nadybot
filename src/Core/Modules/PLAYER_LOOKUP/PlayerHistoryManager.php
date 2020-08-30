@@ -12,11 +12,11 @@ class PlayerHistoryManager {
 	/** @Inject */
 	public CacheManager $cacheManager;
 	
-	public function lookup(string $name, int $rk_num): ?PlayerHistory {
+	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
-		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$rk_num&name=$name";
+		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
-		$filename = "$name.$rk_num.history.json";
+		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
 		$cb = function($data) {
 			return $data !== "[]";
@@ -29,7 +29,13 @@ class PlayerHistoryManager {
 		}
 		$obj = new PlayerHistory();
 		$obj->name = $name;
-		$obj->data = json_decode($cacheResult->data);
+		$obj->data = [];
+		$history = json_decode($cacheResult->data);
+		foreach ($history as $entry) {
+			$historyEntry = new PlayerHistoryData();
+			$historyEntry->fromJSON($entry);
+			$obj->data []= $historyEntry;
+		}
 		return $obj;
 	}
 }

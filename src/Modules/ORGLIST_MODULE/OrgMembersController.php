@@ -1,6 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
+
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
+use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
+use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
@@ -21,43 +27,28 @@ class OrgMembersController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
-	/**
-	 * @var \Nadybot\Core\DB $db
-	 * @Inject
-	 */
-	public $db;
+	/** @Inject */
+	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Text $text
-	 * @Inject
-	 */
-	public $text;
+	/** @Inject */
+	public Text $text;
 	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager $playerManager
-	 * @Inject
-	 */
-	public $playerManager;
-	
-	/**
-	 * @var \Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager $guildManager
-	 * @Inject
-	 */
-	public $guildManager;
+	/** @Inject */
+	public GuildManager $guildManager;
 	
 	/**
 	 * @HandlesCommand("orgmembers")
 	 * @Matches("/^orgmembers (\d+)$/i")
 	 */
-	public function orgmembers2Command($message, $channel, $sender, $sendto, $args) {
-		$guild_id = $args[1];
+	public function orgmembers2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$guildId = (int)$args[1];
 
 		$msg = "Getting org info...";
 		$sendto->reply($msg);
 
-		$org = $this->guildManager->getById($guild_id);
+		$org = $this->guildManager->getById($guildId);
 		if ($org === null) {
 			$msg = "Error in getting the org info. Either org does not exist or AO's server was too slow to respond.";
 			$sendto->reply($msg);
@@ -65,23 +56,24 @@ class OrgMembersController {
 		}
 
 		$sql = "SELECT * FROM players WHERE guild_id = ? AND dimension = '<dim>' ORDER BY name ASC";
-		$data = $this->db->query($sql, $guild_id);
-		$numrows = count($data);
+		/** @var Player[] */
+		$players = $this->db->fetchAll(Player::class, $sql, $guildId);
+		$numrows = count($players);
 
 		$blob = '';
 
 		$currentLetter = '';
-		foreach ($data as $row) {
-			if ($currentLetter != $row->name[0]) {
-				$currentLetter = $row->name[0];
+		foreach ($players as $player) {
+			if ($currentLetter !== $player->name[0]) {
+				$currentLetter = $player->name[0];
 				$blob .= "\n\n<header2>$currentLetter<end>\n";
 			}
 
-			$blob .= "<tab><highlight>{$row->name}, {$row->guild_rank} (Level {$row->level}";
-			if ($row->ai_level > 0) {
-				$blob .= "<green>/{$row->ai_level}<end>";
+			$blob .= "<tab><highlight>{$player->name}<end>, {$player->guild_rank} (Level {$player->level}";
+			if ($player->ai_level > 0) {
+				$blob .= "<green>/{$player->ai_level}<end>";
 			}
-			$blob .= ", {$row->gender} {$row->breed} {$row->profession})<end>\n";
+			$blob .= ", {$player->gender} {$player->breed} {$player->profession})\n";
 		}
 
 		$msg = $this->text->makeBlob("Org members for '$org->orgname' ($numrows)", $blob);
