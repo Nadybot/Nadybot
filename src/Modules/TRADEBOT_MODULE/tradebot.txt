@@ -1,0 +1,6 @@
+You can allow relaying from one or more tradebots by setting their names separated with a semicolon (;).
+To join Darknet and Lightnet, simply set the value to "Darknet;Lightnet".
+To turn relaying off, set the value to "None".
+
+Setting the bot names will now automatically register your bot on the tradebot
+and attempt to join the private channel.

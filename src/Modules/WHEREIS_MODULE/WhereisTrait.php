@@ -6,7 +6,7 @@ trait WhereisTrait {
 	public int $id;
 	public string $name;
 	public string $answer;
-	public string $keywords;
+	public ?string $keywords;
 	public int $playfield_id;
 	public int $xcoord;
 	public int $ycoord;

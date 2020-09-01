@@ -1,0 +1,38 @@
+Tries to find an item's best QLs by calculating the breakpoints.
+
+To find the lowest QLs for all bonuses:
+<tab><highlight><symbol>bestql 'low ql' 'lowql bonus' 'high ql' 'highql bonus'<end>
+
+To find the highest usable QL for an item:
+<tab><highlight><symbol>bestql 'low ql' 'lowql requirement' 'high ql' 'highql requirement' 'my stat'<end>
+
+<header2>Examples:<end>
+
+Platinum Filigree Ring set with a Perfectly Cut Amber. QL 1 bonus is 6, QL 400 bonus is 23:
+<tab><highlight><symbol>bestql 1 6 400 23<end>
+
+<tab>QL <highlight><black>__<end>1<end> has stat <highlight>6<end>.
+<tab>QL <highlight><black>_<end>13<end> has stat <highlight>7<end>.
+<tab>QL <highlight><black>_<end>37<end> has stat <highlight>8<end>.
+<tab>QL <highlight><black>_<end>60<end> has stat <highlight>9<end>.
+<tab>QL <highlight><black>_<end>84<end> has stat <highlight>10<end>.
+<tab>QL <highlight>107<end> has stat <highlight>11<end>.
+<tab>QL <highlight>131<end> has stat <highlight>12<end>.
+<tab>QL <highlight>154<end> has stat <highlight>13<end>.
+<tab>QL <highlight>178<end> has stat <highlight>14<end>.
+<tab>QL <highlight>201<end> has stat <highlight>15<end>.
+<tab>QL <highlight>224<end> has stat <highlight>16<end>.
+<tab>QL <highlight>248<end> has stat <highlight>17<end>.
+<tab>QL <highlight>271<end> has stat <highlight>18<end>.
+<tab>QL <highlight>295<end> has stat <highlight>19<end>.
+<tab>QL <highlight>318<end> has stat <highlight>20<end>.
+<tab>QL <highlight>342<end> has stat <highlight>21<end>.
+<tab>QL <highlight>366<end> has stat <highlight>22<end>.
+<tab>QL <highlight>389<end> has stat <highlight>23<end>.
+
+Carbonum armor. Agility requirement at QL 1 is 8 at QL 200 it's 476. Our agility is 200:
+<tab><highlight><symbol>bestql 1 8 200 476 200<end>
+
+<tab>The highest QL is <highlight>82<end> with a requirement of <highlight>198<end>.
+
+Note: in order to get the best results, it's important to get the correct QLs of an item. The <highlight><symbol>items<end> command should work in most cases, but <a href='chatcmd:///start https://aoitems.com/home/'>AOItems</a> might be better.

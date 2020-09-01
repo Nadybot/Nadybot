@@ -1,0 +1,6 @@
+To show which nano the instruction disc <highlight>Tranquility of the Vale<end> turns into, use one of:
+<highlight><tab><symbol>disc tranquility vale<end>
+<highlight><tab><symbol>disc <a href="itemref://163410/163410/139">Instruction Disc (Tranquility of the Vale)</a><end>
+
+<header>Result:<end>
+<a href='itemref://163410/163410/139'>Instruction Disc (Tranquility of the Vale)</a> will turn into <a href='itemref://163395/163395/139'>Nano Crystal (Pr0n0unc3m3nt 0f Dr0ws1n3ss)</a>.

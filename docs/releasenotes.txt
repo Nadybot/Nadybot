@@ -10,7 +10,13 @@ Features
 - Raffle module allows raffling multiple items, item groups
   and also introduces configurable raffle bonus points so that people
   not winning anything get better chances on next raffle
-- Added guide for tradeskilling a sauna
+- Added guideo for tradeskilling a sauna
+- Add module to check which nano a disc turns into
+- Add module to have bot relay darknet/lightnet messages from their
+  private channels
+- Add module to search for items locking a certain skill
+- Add module to search for breakpoints or highest usable QL of items
+- Add module to notify about GSP shows and helping you tune in
 
 Changes
 - Add *all* Symbiants to the implant module

@@ -197,10 +197,10 @@ class TimerController {
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
-				$this->chatBot->sendPrivate($msg);
+				$this->chatBot->sendPrivate($msg, true);
 				$sent = true;
 			} elseif (in_array($sendMode, ["org", "guild"], true)) {
-				$this->chatBot->sendGuild($msg);
+				$this->chatBot->sendGuild($msg, true);
 				$sent = true;
 			} elseif ($sendMode === "discord") {
 				$this->discordController->sendDiscord($msg);
