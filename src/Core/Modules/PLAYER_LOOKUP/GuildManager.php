@@ -45,9 +45,13 @@ class GuildManager {
 		}
 		$cb = function($data) {
 			try {
+				if ($data === null) {
+					return false;
+				}
 				$result = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
-				return $result;
+				return $result !== null;
 			} catch (JsonException $e) {
+				return false;
 			}
 		};
 
