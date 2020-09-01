@@ -166,7 +166,11 @@ class WhatLocksController {
 			$items
 		);
 		$blob = join("\n<pagebreak>", $lines);
-		$pages = $this->text->makeBlob(count($lines) . " items", $blob, "The following " . count($lines) . " items lock ". $skills[0]->name);
+		$pages = $this->text->makeBlob(
+			count($lines) . " items",
+			$blob,
+			"The following " . count($lines) . " items lock ". $skills[0]->name
+		);
 		if (is_array($pages)) {
 			$msg = array_map(function($page) use ($skills) {
 				return "{$page} found that lock <highlight>{$skills[0]->name}<end>.";
