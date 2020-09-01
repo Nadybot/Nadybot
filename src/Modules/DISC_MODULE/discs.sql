@@ -8,2006 +8,2010 @@ CREATE TABLE discs(
 	crystal_name VARCHAR(200) NOT NULL,
 	comment VARCHAR(200)
 );
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144818,125753,156,156,'Instruction Disc (Calling of Altumus)','Nano Crystal (Calling of Altumus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144819,125754,186,186,'Instruction Disc (Calling of Belamorte)','Nano Crystal (Calling of Belamorte)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144954,29424,93,93,'Instruction Disc (Advanced Symbol Manipulation)','Nano Crystal (Advanced Symbol Manipulation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144955,43795,4,4,'Instruction Disc (Anger Manifestation)','Nano Crystal (Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144956,29369,50,50,'Instruction Disc (Anticipation of Retaliation)','Nano Crystal (Anticipation of Retaliation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144957,29372,37,37,'Instruction Disc (BioMet Mastery)','Nano Crystal (BioMet Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144958,125747,169,169,'Instruction Disc (Calling of Curatem The Grand)','Nano Crystal (Calling of Curatem The Grand)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144959,125751,17,17,'Instruction Disc (Calling of Medinos)','Nano Crystal (Calling of Medinos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144960,125752,113,113,'Instruction Disc (Calling of Restite)','Nano Crystal (Calling of Restite)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144961,125748,37,37,'Instruction Disc (Calling of Salvinous)','Nano Crystal (Calling of Salvinous)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144962,125749,87,87,'Instruction Disc (Calling of Sanoo)','Nano Crystal (Calling of Sanoo)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144963,125750,143,143,'Instruction Disc (Calling of The Vivificator)','Nano Crystal (Calling of The Vivificator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144964,125755,57,57,'Instruction Disc (Calling of Valentyia)','Nano Crystal (Calling of Valentyia)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144965,116822,130,130,'Instruction Disc (Chant of Effortless Strikes)','Nano Crystal (Chant of Effortless Strikes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144966,116831,87,87,'Instruction Disc (Chant of Frenzied Blows)','Nano Crystal (Chant of Frenzied Blows)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144967,125771,116,116,'Instruction Disc (Chill Spear)','Nano Crystal (Chill Spear)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144968,95428,90,90,'Instruction Disc (Coherent Notum Web)','Nano Crystal (Coherent Notum Web)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144969,29382,169,169,'Instruction Disc (Curse of Chronos)','Nano Crystal (Curse of Chronos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144970,95530,146,146,'Instruction Disc (Dedication of Thought)','Nano Crystal (Dedication of Thought)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144971,29383,142,142,'Instruction Disc (Dominate: BioMet)','Nano Crystal (Dominate: BioMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144972,29384,142,142,'Instruction Disc (Dominate: MatCrea)','Nano Crystal (Dominate: MatCrea)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144973,29385,139,139,'Instruction Disc (Dominate: SpaceTime)','Nano Crystal (Dominate: SpaceTime)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144974,29386,139,139,'Instruction Disc (Dominate: MatMet)','Nano Crystal (Dominate: MatMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144975,29387,142,142,'Instruction Disc (Dominate: PsyMod)','Nano Crystal (Dominate: PsyMod)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144976,29388,142,142,'Instruction Disc (Dominate: SenseImp)','Nano Crystal (Dominate: SenseImp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144977,99139,14,14,'Instruction Disc (Douse Anger)','Nano Crystal (Douse Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144978,95418,24,24,'Instruction Disc (Ease of Execution)','Nano Crystal (Ease of Execution)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144979,95537,47,47,'Instruction Disc (Engrossing Activity)','Nano Crystal (Engrossing Activity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144980,43792,159,159,'Instruction Disc (Enmity Personification)','Nano Crystal (Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144981,43793,129,129,'Instruction Disc (Frenzy Embodiment)','Nano Crystal (Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144982,125766,64,64,'Instruction Disc (Frigid Blast)','Nano Crystal (Frigid Blast)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144983,125770,17,17,'Instruction Disc (Frost Slivers)','Nano Crystal (Frost Slivers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144984,43794,20,20,'Instruction Disc (Fury Externalization)','Nano Crystal (Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144985,125769,159,159,'Instruction Disc (Glacial Lance)','Nano Crystal (Glacial Lance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144986,43789,7,7,'Instruction Disc (Greater Anger Manifestation)','Nano Crystal (Greater Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144987,43790,165,165,'Instruction Disc (Greater Enmity Personification)','Nano Crystal (Greater Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144988,43791,146,146,'Instruction Disc (Greater Frenzy Embodiment)','Nano Crystal (Greater Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144989,43786,27,27,'Instruction Disc (Greater Fury Externalization)','Nano Crystal (Greater Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144990,43787,53,53,'Instruction Disc (Greater Rage Materialization)','Nano Crystal (Greater Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144991,43788,93,93,'Instruction Disc (Greater Wrath Incarnation)','Nano Crystal (Greater Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144992,116830,182,182,'Instruction Disc (High Chant of Effortless Strikes)','Nano Crystal (High Chant of Effortless Strikes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144993,116829,156,156,'Instruction Disc (High Chant of Frenzied Blows)','Nano Crystal (High Chant of Frenzied Blows)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144994,95535,90,90,'Instruction Disc (Ignore External Events)','Nano Crystal (Ignore External Events)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144995,43784,1,1,'Instruction Disc (Inferior Anger Manifestation)','Nano Crystal (Inferior Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144996,43785,159,159,'Instruction Disc (Inferior Enmity Personification)','Nano Crystal (Inferior Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144997,43796,123,123,'Instruction Disc (Inferior Frenzy Embodiment)','Nano Crystal (Inferior Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144998,43781,17,17,'Instruction Disc (Inferior Fury Externalization)','Nano Crystal (Inferior Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(144999,43782,40,40,'Instruction Disc (Inferior Rage Materialization)','Nano Crystal (Inferior Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145000,43761,83,83,'Instruction Disc (Inferior Wrath Incarnation)','Nano Crystal (Inferior Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145001,116828,166,166,'Instruction Disc (Instill With Enduring Wrath)','Nano Crystal (Instill With Enduring Wrath)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145002,116827,113,113,'Instruction Disc (Instill With Ferocious Purpose)','Nano Crystal (Instill With Ferocious Purpose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145003,116826,41,41,'Instruction Disc (Instill With Fury)','Nano Crystal (Instill With Fury)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145004,116825,189,189,'Instruction Disc (Instill With Malign Intent)','Nano Crystal (Instill With Malign Intent)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145005,116824,21,21,'Instruction Disc (Instill With Rage)','Nano Crystal (Instill With Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145006,116823,150,150,'Instruction Disc (Instill With Righteous Frenzy)','Nano Crystal (Instill With Righteous Frenzy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145007,116832,74,74,'Instruction Disc (Instill With Terrible Anger)','Nano Crystal (Instill With Terrible Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145008,95536,14,14,'Instruction Disc (Internal Focus)','Nano Crystal (Internal Focus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145010,43783,156,156,'Instruction Disc (Lesser Enmity Personification)','Nano Crystal (Summon Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145011,43779,113,113,'Instruction Disc (Lesser Frenzy Embodiment)','Nano Crystal (Summon Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145012,43780,14,14,'Instruction Disc (Lesser Fury Externalization)','Nano Crystal (Summon Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145013,43777,37,37,'Instruction Disc (Lesser Rage Materialization)','Nano Crystal (Summon Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145014,43778,76,76,'Instruction Disc (Lesser Wrath Incarnation)','Nano Crystal (Summon Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145015,99140,162,162,'Instruction Disc (Lull Wrath)','Nano Crystal (Lull Wrath)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145016,29391,43,43,'Instruction Disc (MatCrea Mastery)','Nano Crystal (MatCrea Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145017,29392,40,40,'Instruction Disc (SpaceTime Mastery)','Nano Crystal (SpaceTime Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145018,29393,50,50,'Instruction Disc (MatMet Mastery)','Nano Crystal (MatMet Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145019,29394,146,146,'Instruction Disc (Mind Banshee)','Nano Crystal (Mind Banshee)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145020,125767,87,87,'Instruction Disc (Mind Howl)','Nano Crystal (Mind Howl)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145022,125768,173,173,'Instruction Disc (Mind Quake)','Nano Crystal (Mind Quake)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145023,29395,37,50,'Instruction Disc (Mind Scream)','Nano Crystal (Mind Scream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145024,29396,165,165,'Instruction Disc (Mocham''s Gift: BioMet)','Nano Crystal (Mocham''s Gift: BioMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145025,29397,165,165,'Instruction Disc (Mocham''s Gift: MatCrea)','Nano Crystal (Mocham''s Gift: MatCrea)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145026,29398,162,162,'Instruction Disc (Mocham''s Gift: SpaceTime)','Nano Crystal (Mocham''s Gift: SpaceTime)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145027,29399,162,162,'Instruction Disc (Mocham''s Gift: MatMet)','Nano Crystal (Mocham''s Gift: MatMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145028,29400,169,169,'Instruction Disc (Mocham''s Gift: PsyMod)','Nano Crystal (Mocham''s Gift: PsyMod)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145029,29401,165,165,'Instruction Disc (Mocham''s Gift: SenseImp)','Nano Crystal (Mocham''s Gift: SenseImp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145030,95425,159,159,'Instruction Disc (Mocham''s Neural Interface-Web)','Nano Crystal (Mocham''s Neural Interface-Web)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145031,29403,162,162,'Instruction Disc (Nano Shutdown)','Nano Crystal (Nano Shutdown)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145032,29404,129,129,'Instruction Disc (Neuron-Notum Interface)','Nano Crystal (Neuron-Notum Interface)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145033,95426,60,60,'Instruction Disc (Notum Attunement)','Nano Crystal (Notum Attunement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145034,29405,149,149,'Instruction Disc (Notum Rejection)','Nano Crystal (Notum Rejection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145035,29406,165,165,'Instruction Disc (Odin''s Missing Eye)','Nano Crystal (Odin''s Missing Eye)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145036,95534,162,162,'Instruction Disc (One Mind, One Purpose)','Nano Crystal (One Mind, One Purpose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145037,29409,47,47,'Instruction Disc (PsyMod Mastery)','Nano Crystal (PsyMod Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145038,120500,103,103,'Instruction Disc (Quantum Wings)','NanoCrystal (Quantum Wings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145039,99138,30,30,'Instruction Disc (Quell Anger)','Nano Crystal (Quell Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145040,99137,40,40,'Instruction Disc (Quench Anger)','Nano Crystal (Quench Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145041,99136,93,93,'Instruction Disc (Rage Abolishment)','Nano Crystal (Rage Abolishment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145042,99134,116,116,'Instruction Disc (Rage Eradication)','Nano Crystal (Rage Eradication)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145043,43774,47,47,'Instruction Disc (Rage Materialization)','Nano Crystal (Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145044,99135,76,76,'Instruction Disc (Rage Suppression)','Nano Crystal (Rage Suppression)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145045,29412,43,43,'Instruction Disc (Sense Imp Mastery)','Nano Crystal (Sense Imp Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145046,99133,7,7,'Instruction Disc (Shed Anger)','Nano Crystal (Shed Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145047,99132,53,53,'Instruction Disc (Stifle Rage)','Nano Crystal (Stifle Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145048,43797,189,189,'Instruction Disc (Summon Cacodemon)','Nano Crystal (Summon Demon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145049,29415,189,189,'Instruction Disc (Summon Demon)','Nano Crystal (Summon Demon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145050,43775,182,182,'Instruction Disc (Summon Fiend)','Nano Crystal (Summon Fiend)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145051,29416,179,179,'Instruction Disc (Summon Lemur)','Nano Crystal (Summon Lemur)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145052,43776,4,4,'Instruction Disc (Superior Anger Manifestation)','Nano Crystal (Superior Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145053,43773,162,162,'Instruction Disc (Superior Enmity Personification)','Nano Crystal (Superior Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145054,43770,139,139,'Instruction Disc (Superior Frenzy Embodiment)','Nano Crystal (Superior Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145055,43771,24,24,'Instruction Disc (Superior Fury Externalization)','Nano Crystal (Superior Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145056,43772,50,50,'Instruction Disc (Superior Rage Materialization)','Nano Crystal (Superior Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145057,43768,90,90,'Instruction Disc (Superior Wrath Incarnation)','Nano Crystal (Superior Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145058,43769,7,7,'Instruction Disc (Supreme Anger Manifestation)','Nano Crystal (Supreme Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145059,43759,172,172,'Instruction Disc (Supreme Enmity Personification)','Nano Crystal (Supreme Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145060,43766,149,149,'Instruction Disc (Supreme Frenzy Embodiment)','Nano Crystal (Supreme Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145061,43767,30,30,'Instruction Disc (Supreme Fury Externalization)','Nano Crystal (Supreme Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145062,43764,60,60,'Instruction Disc (Supreme Rage Materialization)','Nano Crystal (Supreme Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145063,43760,96,96,'Instruction Disc (Supreme Wrath Incarnation)','Nano Crystal (Supreme Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145064,29192,10,10,'Instruction Disc (Symbol Helper)','Nano Crystal (Symbol Helper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145065,99131,136,136,'Instruction Disc (Temper Wrath)','Nano Crystal (Temper Wrath)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145066,43765,10,10,'Instruction Disc (Transcendent Anger Manifestation)','Nano Crystal (Transcendent Anger Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145067,43921,175,175,'Instruction Disc (Transcendent Enmity Personification)','Nano Crystal (Transcendent Enmity Personification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145068,43762,152,152,'Instruction Disc (Transcendent Frenzy Embodiment)','Nano Crystal (Transcendent Frenzy Embodiment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145069,43922,33,33,'Instruction Disc (Transcendent Fury Externalization)','Nano Crystal (Transcendent Fury Externalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145070,43923,70,70,'Instruction Disc (Transcendent Rage Materialization)','Nano Crystal (Transcendent Rage Materialization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145071,43763,106,106,'Instruction Disc (Transcendent Wrath Incarnation)','Nano Crystal (Transcendent Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145072,29418,73,73,'Instruction Disc (Unmake: BioMet)','Nano Crystal (Unmake: BioMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145073,29419,73,73,'Instruction Disc (Unmake: MatCrea)','Nano Crystal (Unmake: MatCrea)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145074,29420,66,66,'Instruction Disc (Unmake: SpaceTime)','Nano Crystal (Unmake: SpaceTime)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145075,29421,63,63,'Instruction Disc (Unmake: MatMet)','Nano Crystal (Unmake: MatMet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145076,29422,70,70,'Instruction Disc (Unmake: PsyMod)','Nano Crystal (Unmake: PsyMod)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145077,29423,66,66,'Instruction Disc (Unmake: SenseImp)','Nano Crystal (Unmake: SenseImp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145078,99129,179,179,'Instruction Disc (Wrath Abatement)','Nano Crystal (Wrath Abatement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145079,99130,149,149,'Instruction Disc (Wrath Ebb)','Nano Crystal (Wrath Ebb)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(145080,43758,86,86,'Instruction Disc (Wrath Incarnation)','Nano Crystal (Wrath Incarnation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146714,82090,146,146,'Instruction Disc (Advanced Survival Technique)','Nano Crystal (Advanced Survival Technique)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146715,136707,50,50,'Instruction Disc (Alleviate Pain)','Nano Crystal (Alleviate Pain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146716,55849,83,83,'Instruction Disc (Arctic Gale)','Nano Crystal (Arctic Gale)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146717,55854,126,126,'Instruction Disc (Biting Blades)','Nano Crystal (Biting Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146718,26019,172,172,'Instruction Disc (Calia''s Form: Pit Lizard)','Nano Crystal (Hostile Hatchling)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146730,136705,83,83,'Instruction Disc (Cellular Reformation)','Nano Crystal (Cellular Reformation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146731,55843,37,37,'Instruction Disc (Cloak of Fire)','Nano Crystal (Cloak of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146732,55863,1,1,'Instruction Disc (Coat of Barbs)','Nano Crystal (Coat of Barbs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146733,55853,132,132,'Instruction Disc (Corrosive Barrier)','Nano Crystal (Corrosive Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146734,26166,76,76,'Instruction Disc (Eagle Eye)','Nano Crystal (Eagle Eye)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146735,82089,86,86,'Instruction Disc (Encourage Regrowth)','Nano Crystal (Encourage Regrowth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146736,55842,24,24,'Instruction Disc (Enshroud with Barbs)','Nano Crystal (Enshroud with Barbs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146737,143909,169,169,'Instruction Disc (Essence of Life)','Nano Crystal (Essence of Life)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146738,55856,136,136,'Instruction Disc (Fiery Vengeance)','Nano Crystal (Fiery Vengeance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146739,55846,63,63,'Instruction Disc (Fiery Wrap)','Nano Crystal (Fiery Wrap)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146740,55841,30,30,'Instruction Disc (Firefly''s Fury)','Nano Crystal (Firefly''s Fury)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146741,136706,143,143,'Instruction Disc (Flawless Stitching)','Nano Crystal (Flawless Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146745,26245,43,43,'Instruction Disc (Free Movement)','Nano Crystal (Free Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146746,55838,7,7,'Instruction Disc (Frost With Snow)','Nano Crystal (Frost With Snow)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146747,136702,156,156,'Instruction Disc (Glorious Healing)','Nano Crystal (Glorious Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146748,82088,142,142,'Instruction Disc (Greater Encourage Regrowth)','Nano Crystal (Greater Encourage Regrowth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146749,82087,43,43,'Instruction Disc (Greater Quick Heal)','Nano Crystal (Greater Quick Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146750,136703,130,130,'Instruction Disc (Greater Restore Health)','Nano Crystal (Greater Restore Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146751,82086,57,57,'Instruction Disc (Greater Team Quick Heal)','Nano Crystal (Greater Team Quick Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146752,75372,96,96,'Instruction Disc (Greater Wilderness Protection)','Nano Crystal (Greater Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146753,85142,83,83,'Instruction Disc (Grinning Hunter)','Nano Crystal (Grinning Hunter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146756,55848,90,90,'Instruction Disc (Guard of the Grizzly)','Nano Crystal (Guard of the Grizzly)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146757,82085,156,156,'Instruction Disc (Healing Rays of Sunrise)','Nano Crystal (Healing Rays of Sunrise)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146758,136704,153,153,'Instruction Disc (Implacability of Life)','Nano Crystal (Implacability of Life)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146759,55859,142,142,'Instruction Disc (Interlocking Barbs)','Nano Crystal (Interlocking Barbs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146760,136700,159,159,'Instruction Disc (Invocation of the Phoenix)','Nano Crystal (Invocation of the Phoenix)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146761,55840,17,17,'Instruction Disc (Jacket of Blades)','Nano Crystal (Jacket of Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146762,136701,21,21,'Instruction Disc (Lesser Restore to Health)','Nano Crystal (Lesser Restore to Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146763,75369,20,20,'Instruction Disc (Lesser Wilderness Protection)','Nano Crystal (Lesser Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146764,55858,152,152,'Instruction Disc (Lightning''s Child)','Nano Crystal (Lightning''s Child)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146765,55850,109,109,'Instruction Disc (Magma Coating)','Nano Crystal (Magma Coating)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146766,75371,70,70,'Instruction Disc (Major Wilderness Protection)','Nano Crystal (Major Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146767,136697,74,74,'Instruction Disc (Makeshift Bandaging)','Nano Crystal (Makeshift Bandaging)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146768,75368,4,4,'Instruction Disc (Minor Wilderness Protection)','Nano Crystal (Minor Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146769,136698,176,176,'Instruction Disc (Moonbeam)','Nano Crystal (Moonbeam)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146770,136699,34,34,'Instruction Disc (Natural Cure)','Nano Crystal (Natural Cure)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146771,136695,90,90,'Instruction Disc (Natural Remedy)','Nano Crystal (Natural Remedy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146772,82084,162,162,'Instruction Disc (Nature''s Blessing)','Nano Crystal (Nature''s Blessing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146773,55851,99,99,'Instruction Disc (Nest of Vipers)','Nano Crystal (Nest of Vipers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146774,136696,182,182,'Instruction Disc (One With Nature)','Nano Crystal (One With Nature)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146775,136692,41,41,'Instruction Disc (Patch Wounds)','Nano Crystal (Patch Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146776,55857,149,149,'Instruction Disc (Personal Blizzard)','Nano Crystal (Personal Blizzard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146777,85145,47,47,'Instruction Disc (Playful Cub)','Nano Crystal (Playful Cub)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146780,55845,53,53,'Instruction Disc (Porcupine Barrier)','Nano Crystal (Porcupine Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146781,82083,93,93,'Instruction Disc (Practiced Stitching)','Nano Crystal (Practiced Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146782,82838,20,20,'Instruction Disc (Pronouncement of Greatness)','Nano Crystal (Pronouncement of Greatness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146784,55852,116,116,'Instruction Disc (Protection of the Storm)','Nano Crystal (Protection of the Storm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146785,55855,139,139,'Instruction Disc (Razor Barrier)','Nano Crystal (Razor Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146789,136693,64,64,'Instruction Disc (Restore to Health)','Nano Crystal (Restore to Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146790,136694,107,107,'Instruction Disc (Restore Vitality)','Nano Crystal (Restore Vitality)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146791,55861,159,159,'Instruction Disc (Retaliatory Venom Spit)','Nano Crystal (Retaliatory Venom Spit)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146792,55839,169,169,'Instruction Disc (Retribution of the Aesir)','Nano Crystal (Retribution of the Aesir)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146793,55862,165,165,'Instruction Disc (Revenge of the Valkyrie)','Nano Crystal (Revenge of the Valkyrie)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146794,28743,136,136,'Instruction Disc (Robust Treatment)','Nano Crystal (Robust Treatment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146795,82082,7,7,'Instruction Disc (Rough Stitching)','Nano Crystal (Rough Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146796,82081,169,169,'Instruction Disc (Seed Life)','Nano Crystal (Seed Life)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146797,55847,73,73,'Instruction Disc (Skin of the Toad)','Nano Crystal (Skin of the Toad)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146798,136690,14,14,'Instruction Disc (Slipshod Bandaging)','Nano Crystal (Slipshod Bandaging)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146799,55844,47,47,'Instruction Disc (Sparking Touch)','Nano Crystal (Sparking Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146800,82839,24,24,'Instruction Disc (Sparrow Flight)','Nano Crystal (Sparrow Flight)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146803,75373,123,123,'Instruction Disc (Supreme Wilderness Protection)','Nano Crystal (Supreme Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146804,28744,33,33,'Instruction Disc (Survival Aid)','Nano Crystal (Survival Aid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146805,136691,116,116,'Instruction Disc (Survival of the Fittest)','Nano Crystal (Survival of the Fittest)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146806,82080,27,27,'Instruction Disc (Survival Technique)','Nano Crystal (Survival Technique)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146807,28745,113,113,'Instruction Disc (Team Eagle Eye)','Nano Crystal (Precision of the Hunter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146808,28749,66,66,'Instruction Disc (Team Free Movement)','Nano Crystal (Team Free Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146809,82079,116,116,'Instruction Disc (Team Practiced Stitching)','Nano Crystal (Team Practiced Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146810,28751,4,4,'Instruction Disc (Team Quick Heal)','Nano Crystal (Team Quick Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146811,82078,17,17,'Instruction Disc (Team Rough Stitching)','Nano Crystal (Team Rough Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146812,82077,33,33,'Instruction Disc (Team Survival Technique)','Nano Crystal (Team Survival Technique)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146813,38531,24,24,'Instruction Disc (Team Terrain Knowledge)','Nano Crystal (Team Terrain Knowledge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146814,28752,10,10,'Instruction Disc (Terrain Knowledge)','Nano Crystal (Terrain Knowledge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146815,75370,43,43,'Instruction Disc (Wilderness Protection)','Nano Crystal (Wilderness Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146816,55860,162,162,'Instruction Disc (Wings of the Phoenix)','Nano Crystal (Wings of the Phoenix)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146817,116857,150,150,'Instruction Disc (Advanced Face Graft)','Nano Crystal (Advanced Face Graft)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146818,81902,40,40,'Instruction Disc (Anatomy Lesson)','Nano Crystal (Anatomy Lesson)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146819,81901,139,139,'Instruction Disc (Assassin''s Grin)','Nano Crystal (Assassin''s Grin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146820,117250,86,86,'Instruction Disc (Assume Profession: Adventurer)','Nano Crystal (Assume Profession: Adventurer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146821,117251,109,109,'Instruction Disc (Assume Profession: Bureaucrat)','Nano Crystal (Assume Profession: Bureaucrat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146822,117252,103,103,'Instruction Disc (Assume Profession: Doctor)','Nano Crystal (Assume Profession: Doctor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146823,117247,76,76,'Instruction Disc (Assume Profession: Enforcer)','Nano Crystal (Assume Profession: Enforcer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146824,117248,90,90,'Instruction Disc (Assume Profession: Engineer)','Nano Crystal (Assume Profession: Engineer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146825,117249,96,96,'Instruction Disc (Assume Profession: Fixer)','Nano Crystal (Assume Profession: Fixer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146826,117244,83,83,'Instruction Disc (Assume Profession: Martial Artist)','Nano Crystal (Assume Profession: Martial Artist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146827,117245,113,113,'Instruction Disc (Assume Profession: Meta-Physicist)','Nano Crystal (Assume Profession: Meta-Physicist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146828,117246,119,119,'Instruction Disc (Assume Profession: Nanotechnician)','Nano Crystal (Assume Profession: Nanotechnician)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146829,117242,80,80,'Instruction Disc (Assume Profession: Soldier)','Nano Crystal (Assume Profession: Soldier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146830,117243,99,99,'Instruction Disc (Assume Profession: Trader)','Nano Crystal (Assume Profession: Trader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146831,56240,47,47,'Instruction Disc (Brief Interrogation)','Nano Crystal (Brief Interrogation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146832,26015,63,63,'Instruction Disc (Chemical Concoction)','Nano Crystal (Chemical Concoction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146833,26017,142,142,'Instruction Disc (Death''s Gaze)','Nano Crystal (Death''s Gaze)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146834,81962,136,136,'Instruction Disc (Death''s Knocking)','Nano Crystal (Death''s Knocking)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146835,85323,57,57,'Instruction Disc (Delay Pursuers)','Nano Crystal (Delay Pursuers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146836,82810,63,63,'Instruction Disc (Delay the Inevitable)','Nano Crystal (Delay the Inevitable)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146837,81961,169,169,'Instruction Disc (Delayed Assassin)','Nano Crystal (Delayed Assassin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146838,56238,1,1,'Instruction Disc (Detain Suspect)','Nano Crystal (Detain Suspect)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146839,26207,27,27,'Instruction Disc (Enhanced Senses)','Nano Crystal (Enhanced Senses)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146840,56247,142,142,'Instruction Disc (Entrap Victim)','Nano Crystal (Entrap Victim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146841,116858,77,77,'Instruction Disc (Face Graft)','Nano Crystal (Face Graft)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146842,32071,17,17,'Instruction Disc (False Profession: Adventurer)','Nano Crystal (False Profession: Adventurer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146843,32073,33,33,'Instruction Disc (False Profession: Bureaucrat)','Nano Crystal (False Profession: Bureaucrat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146844,32074,30,30,'Instruction Disc (False Profession: Doctor)','Nano Crystal (False Profession: Doctor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146845,32075,20,20,'Instruction Disc (False Profession: Engineer)','Nano Crystal (False Profession: Engineer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146846,32076,14,14,'Instruction Disc (False Profession: Martial Artist)','Nano Crystal (False Profession: Martial Artist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146847,32077,37,37,'Instruction Disc (False Profession: Meta-Physicist)','Nano Crystal (False Profession: Meta-Physicist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146848,32078,40,40,'Instruction Disc (False Profession: Nanotechnician)','Nano Crystal (False Profession: Nanotechnician)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146849,32079,14,14,'Instruction Disc (False Profession: Soldier)','Nano Crystal (False Profession: Soldier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146850,32080,24,24,'Instruction Disc (False Profession: Fixer)','Nano Crystal (False Profession: Fixer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146851,32081,27,27,'Instruction Disc (False Profession: Trader)','Nano Crystal (False Profession: Trader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146852,32082,10,10,'Instruction Disc (False Profession: Enforcer)','Nano Crystal (False Profession: Enforcer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146853,26206,53,53,'Instruction Disc (Feline Grace)','Nano Crystal (Feline Grace)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146854,81900,106,106,'Instruction Disc (Greater Anatomy Lesson)','Nano Crystal (Greater Anatomy Lesson)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146855,81960,149,149,'Instruction Disc (Greater Death''s Knocking)','Nano Crystal (Greater Death''s Knocking)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146856,85324,109,109,'Instruction Disc (Greater Delay Pursuers)','Nano Crystal (Greater Delay Pursuers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146857,82809,90,90,'Instruction Disc (Greater Delay the Inevitable)','Nano Crystal (Greater Delay the Inevitable)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146858,56242,66,66,'Instruction Disc (Greater Detain Suspect)','Nano Crystal (Greater Detain Suspect)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146859,56243,132,83,'Instruction Disc (Greater Hold Victim)','Nano Crystal (Greater Hold Victim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146860,81959,146,146,'Instruction Disc (Greater Mysterious Causes)','Nano Crystal (Greater Mysterious Causes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146861,56248,149,149,'Instruction Disc (Greater Paralyze with Indecision)','Nano Crystal (Greater Paralyze with Indecision)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146862,81958,116,116,'Instruction Disc (Greater Suspicious Death)','Nano Crystal (Greater Suspicious Death)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146863,81957,40,40,'Instruction Disc (Hidden Killer)','Nano Crystal (Hidden Killer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146864,56246,83,132,'Instruction Disc (Hold Victim)','Nano Crystal (Hold Victim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146865,81956,14,14,'Instruction Disc (Inject Poison)','Nano Crystal (Inject Poison)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146866,81955,66,66,'Instruction Disc (Inject Venom)','Nano Crystal (Inject Venom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146867,56249,165,165,'Instruction Disc (Leisurely Interrogation)','Nano Crystal (Leisurely Interrogation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146868,81899,10,10,'Instruction Disc (Lesser Anatomy Lesson)','Nano Crystal (Lesser Anatomy Lesson)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146869,81954,93,93,'Instruction Disc (Lesser Death''s Knocking)','Nano Crystal (Lesser Death''s Knocking)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146870,85322,27,27,'Instruction Disc (Lesser Delay Pursuers)','Nano Crystal (Lesser Delay Pursuers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146871,82808,37,37,'Instruction Disc (Lesser Delay the Inevitable)','Nano Crystal (Lesser Delay the Inevitable)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146872,56241,17,17,'Instruction Disc (Lesser Hold Victim)','Nano Crystal (Lesser Hold Victim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146873,81953,27,27,'Instruction Disc (Lesser Mysterious Causes)','Nano Crystal (Lesser Mysterious Causes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146874,56239,33,33,'Instruction Disc (Lesser Paralyze with Indecision)','Nano Crystal (Lesser Paralyze with Indecision)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146875,81952,4,4,'Instruction Disc (Lesser Suspicious Death)','Nano Crystal (Lesser Suspicious Death)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146876,81898,80,80,'Instruction Disc (Major Nano Augmentation)','Nano Crystal (Major Nano Augmentation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146877,117239,152,152,'Instruction Disc (Mimic Profession: Adventurer)','Nano Crystal (Mimic Profession: Adventurer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146878,117240,165,165,'Instruction Disc (Mimic Profession: Bureaucrat)','Nano Crystal (Mimic Profession: Bureaucrat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146879,117241,162,162,'Instruction Disc (Mimic Profession: Doctor)','Nano Crystal (Mimic Profession: Doctor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146880,117236,146,146,'Instruction Disc (Mimic Profession: Enforcer)','Nano Crystal (Mimic Profession: Enforcer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146881,117237,156,156,'Instruction Disc (Mimic Profession: Engineer)','Nano Crystal (Mimic Profession: Engineer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146882,117238,159,159,'Instruction Disc (Mimic Profession: Fixer)','Nano Crystal (Mimic Profession: Fixer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146883,117233,149,149,'Instruction Disc (Mimic Profession: Martial Artist)','Nano Crystal (Mimic Profession: Martial Artist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146884,117234,169,169,'Instruction Disc (Mimic Profession: Nanotechnician)','Nano Crystal (Mimic Profession: Nanotechnician)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146885,117235,146,146,'Instruction Disc (Mimic Profession: Soldier)','Nano Crystal (Mimic Profession: Soldier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146886,117231,162,162,'Instruction Disc (Mimic Profession: Trader)','Nano Crystal (Mimic Profession: Trader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146887,117232,165,165,'Instruction Disc (Mimic Profession: Meta-Physicist)','Nano Crystal (Mimic Profession: Meta-Physicist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146888,81951,83,83,'Instruction Disc (Mysterious Causes)','Nano Crystal (Mysterious Causes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146889,81897,24,24,'Instruction Disc (Nano Augmentation)','Nano Crystal (Nano Augmentation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146890,56244,99,99,'Instruction Disc (Paralyze with Indecision)','Nano Crystal (Paralyze with Indecision)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146891,82807,14,14,'Instruction Disc (Postpone Encounter)','Nano Crystal (Postpone Encounter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146892,32099,73,73,'Instruction Disc (Projectile Magnet)','Nano Crystal (Projectile Magnet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146893,56245,119,119,'Instruction Disc (Prolonged Interrogation)','Nano Crystal (Prolonged Interrogation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146894,32100,40,40,'Instruction Disc (Ruse of Taren: Phase 1)','Nano Crystal (Ruse of Taren - Phase 1)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146895,32101,96,96,'Instruction Disc (Ruse of Taren - Phase 2)','Nano Crystal (Ruse of Taren - Phase 2)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146896,32102,162,162,'Instruction Disc (Ruse of Taren - Phase 3)','Nano Crystal (Ruse of Taren - Phase 3)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146897,32103,20,20,'Instruction Disc (Shadow Crown)','Nano Crystal (Shadow Crown)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146898,32105,43,43,'Instruction Disc (Sniper''s Bliss)','Nano Crystal (Sniper''s Bliss)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146899,81950,47,47,'Instruction Disc (Suspicious Death)','Nano Crystal (Suspicious Death)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146900,32106,152,152,'Instruction Disc (Take the Shot)','Nano Crystal (Take The Shot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146901,32108,136,136,'Instruction Disc (Unexpected Attack)','Nano Crystal (Unexpected Attack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146902,46470,136,136,'Instruction Disc (Advanced Administrator-Droid)','Nano Crystal (Advanced Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146903,46471,80,80,'Instruction Disc (Advanced Aide-Droid)','Nano Crystal (Advanced Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146904,46472,57,57,'Instruction Disc (Advanced Assistant-Droid)','Nano Crystal (Advanced Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146905,46473,37,37,'Instruction Disc (Advanced Attendant-Droid)','Nano Crystal (Advanced Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146906,46474,165,165,'Instruction Disc (Advanced Bodyguard)','Nano Crystal (Advanced Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146907,46475,20,20,'Instruction Disc (Advanced Helper)','Nano Crystal (Advanced Helper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146908,46460,149,149,'Instruction Disc (Advanced Minion)','Nano Crystal (Advanced Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146909,46461,109,109,'Instruction Disc (Advanced Secretary-Droid)','Nano Crystal (Advanced Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146910,46462,7,7,'Instruction Disc (Advanced Worker)','Nano Crystal (Advanced Worker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146911,99227,136,136,'Instruction Disc (Allure of Servitude)','Nano Crystal (Allure of Servitude)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146912,30101,27,27,'Instruction Disc (Anger Addlement)','Nano Crystal (Anger Addlement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146913,30102,43,43,'Instruction Disc (Authority Figure)','Nano Crystal (Authority Figure)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146914,46463,129,129,'Instruction Disc (Basic Administrator)','Nano Crystal (Basic Administrator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146915,46464,70,70,'Instruction Disc (Basic Aide-Droid)','Nano Crystal (Basic Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146916,46465,47,47,'Instruction Disc (Basic Assistant-Droid)','Nano Crystal (Basic Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146917,46466,27,27,'Instruction Disc (Basic Attendant-Droid)','Nano Crystal (Basic Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146918,46467,159,159,'Instruction Disc (Basic Bodyguard)','Nano Crystal (Basic Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146919,46468,14,14,'Instruction Disc (Basic Helper-Droid)','Nano Crystal (Basic Helper-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146920,46469,142,142,'Instruction Disc (Basic Minion)','Nano Crystal (Basic Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146921,46455,96,96,'Instruction Disc (Basic Secretary-Droid)','Nano Crystal (Basic Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146922,46456,1,1,'Instruction Disc (Basic Worker-Droid)','Nano Crystal (Basic Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146923,90453,17,17,'Instruction Disc (Baton of Authority)','Nano Crystal (Baton of Authority (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146924,90452,162,162,'Instruction Disc (Baton of Command)','Nano Crystal (Baton of Command (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146925,90451,99,99,'Instruction Disc (Baton of Leadership)','Nano Crystal (Baton of Leadership (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146926,99226,33,33,'Instruction Disc (Bend Will)','Nano Crystal (Bend Will)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146927,82820,50,50,'Instruction Disc (Blizzard of Red Tape)','Nano Crystal (Blizzard of Red Tape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146928,29202,37,37,'Instruction Disc (Nano Growth)','Nano Crystal (Nano Growth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146929,82194,66,66,'Instruction Disc (Captivate Crowd)','Nano Crystal (Captivate Crowd)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146930,99225,109,109,'Instruction Disc (Captivated Thoughts)','Nano Crystal (Captivated Thoughts)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146931,56013,152,152,'Instruction Disc (Captivating Speech)','Nano Crystal (Captivating Speech)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146932,82193,40,40,'Instruction Disc (Capture Attention)','Nano Crystal (Capture Attention)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146933,30105,165,165,'Instruction Disc (Chains of Iron)','Nano Crystal (Chains of Iron)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146934,99224,169,169,'Instruction Disc (Charismatic Rapture)','Nano Crystal (Charismatic Rapture)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146935,121148,110,110,'Instruction Disc (Crush Bravery)','Nano Crystal (Crush Bravery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146936,100444,103,103,'Instruction Disc (Cubicle Dweller)','Nano Crystal (Cubicle Dweller)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146937,30109,159,159,'Instruction Disc (Cut Red Tape)','Nano Crystal (Cut Red Tape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146938,100461,80,80,'Instruction Disc (Demotivate)','Nano Crystal (Demotivate)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146939,46457,142,142,'Instruction Disc (Director-Grade Administrator-Droid)','Nano Crystal (Director-Grade Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146940,46458,90,90,'Instruction Disc (Director-Grade Aide-Droid)','Nano Crystal (Director-Grade Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146941,46459,66,66,'Instruction Disc (Director-Grade Assistant-Droid)','Nano Crystal (Director-Grade Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146942,46449,43,43,'Instruction Disc (Director-Grade Attendant-Droid)','Nano Crystal (Director-Grade Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146943,46450,169,169,'Instruction Disc (Director-Grade Bodyguard)','Nano Crystal (Director-Grade Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146944,46451,27,27,'Instruction Disc (Director-Grade Helper-Droid)','Nano Crystal (Director-Grade Helper-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146945,46452,156,156,'Instruction Disc (Director-Grade Minion)','Nano Crystal (Director-Grade Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146946,46453,123,123,'Instruction Disc (Director-Grade Secretary-Droid)','Nano Crystal (Director-Grade Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146947,46454,14,14,'Instruction Disc (Director-Grade Worker-Droid)','Nano Crystal (Director-Grade Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146948,82002,149,149,'Instruction Disc (Disciplinary Action)','Nano Crystal (Disciplinary Action)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146949,100460,175,175,'Instruction Disc (Disjointed From Reality)','Nano Crystal (Disjointed From Reality)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146950,100458,162,162,'Instruction Disc (Disjointed Psyche)','Nano Crystal (Disjointed Psyche)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146951,99223,189,189,'Instruction Disc (Displace Thought Patterns)','Nano Crystal (Displace Thought Patterns)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146952,100459,185,185,'Instruction Disc (Disrupted Psyche)','Nano Crystal (Disrupted Psyche)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146953,30110,10,10,'Instruction Disc (Distracted Gaze)','Nano Crystal (Distracted Gaze)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146954,99221,47,47,'Instruction Disc (Dominate Psyche)','Nano Crystal (Dominate Psyche)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146955,30113,37,37,'Instruction Disc (Drill Missile)','Nano Crystal (Drill Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146956,30116,136,136,'Instruction Disc (Droid Overhaul)','Nano Crystal (Droid Overhaul)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146957,30117,70,70,'Instruction Disc (Droid Repair)','Nano Crystal (Droid Repair)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146958,82006,4,4,'Instruction Disc (Energized Bolt)','Nano Crystal (Energized Bolt)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146959,56008,63,63,'Instruction Disc (Enforce Rest Break)','Nano Crystal (Enforce Rest Break)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146960,85321,60,60,'Instruction Disc (Enforced Sloth)','Nano Crystal (Enforced Sloth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146961,99222,149,149,'Instruction Disc (Enrapturing Bondage)','Nano Crystal (Enrapturing Bondage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146962,78450,162,162,'Instruction Disc (Erasing Ray)','Nano Crystal (Erasing Ray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146963,78447,142,142,'Instruction Disc (Erratic Laser)','Nano Crystal (Erratic Laser)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146964,46439,139,139,'Instruction Disc (Executive-Grade Administrator-Droid)','Nano Crystal (Executive-Grade Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146965,46440,86,86,'Instruction Disc (Executive-Grade Aide-Droid)','Nano Crystal (Executive-Grade Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146966,46441,63,63,'Instruction Disc (Executive-Grade Assistant-Droid)','Nano Crystal (Executive-Grade Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146967,46442,40,40,'Instruction Disc (Executive-Grade Attendant-Droid)','Nano Crystal (Executive-Grade Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146968,46443,169,169,'Instruction Disc (Executive-Grade Bodyguard)','Nano Crystal (Executive-Grade Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146969,46444,24,24,'Instruction Disc (Executive-Grade Helper-Droid)','Nano Crystal (Executive-Grade Helper-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146970,46445,152,152,'Instruction Disc (Executive-Grade Minion)','Nano Crystal (Executive-Grade Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146971,46446,119,119,'Instruction Disc (Executive-Grade Secretary-Droid)','Nano Crystal (Executive-Grade Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146972,46447,10,10,'Instruction Disc (Executive-Grade Worker-Droid)','Nano Crystal (Executive-Grade Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146973,30119,57,57,'Instruction Disc (Face in the Crowd)','Nano Crystal (Face in the Crowd)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146974,46448,132,132,'Instruction Disc (Faithful Administrator-Droid)','Nano Crystal (Faithful Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146975,46431,76,76,'Instruction Disc (Faithful Aide-Droid)','Nano Crystal (Faithful Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146976,46432,53,53,'Instruction Disc (Faithful Assistant-Droid)','Nano Crystal (Faithful Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146977,46433,33,33,'Instruction Disc (Faithful Attendant-Droid)','Nano Crystal (Faithful Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146978,46434,162,162,'Instruction Disc (Faithful Bodyguard)','Nano Crystal (Faithful Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146979,46435,17,17,'Instruction Disc (Faithful Helper-Droid)','Nano Crystal (Faithful Helper-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146980,46436,146,146,'Instruction Disc (Faithful Minion)','Nano Crystal (Faithful Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146981,46437,106,106,'Instruction Disc (Faithful Secretary-Droid)','Nano Crystal (Faithful Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146982,46438,4,4,'Instruction Disc (Faithful Worker-Droid)','Nano Crystal (Faithful Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146983,82192,169,169,'Instruction Disc (Fear of Attention)','Nano Crystal (Fear of Attention)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146984,82819,80,80,'Instruction Disc (Great Weight of the Guilty)','Nano Crystal (Great Weight of the Guilty)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146985,95385,146,146,'Instruction Disc (Greater Enforced Sloth)','Nano Crystal (Greater Enforced Sloth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146986,82191,179,179,'Instruction Disc (Greater Fear of Attention)','Nano Crystal (Greater Fear of Attention)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146987,56012,146,146,'Instruction Disc (Greater Illusory Paralysis)','Nano Crystal (Greater Illusory Paralysis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146988,82190,126,126,'Instruction Disc (Greater Mass Illusory Paralysis)','Nano Crystal (Greater Mass Illusory Paralysis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146989,56014,162,162,'Instruction Disc (Greater Musculature Command)','Nano Crystal (Greater Musculature Command)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146990,56009,99,99,'Instruction Disc (Greater Restrict Movement)','Nano Crystal (Greater Restrict Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146991,82818,106,106,'Instruction Disc (Greater Stumbling Steps)','Nano Crystal (Greater Stumbling Steps)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146992,30122,14,14,'Instruction Disc (Gunslinger)','Nano Crystal (Gunslinger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146993,121147,179,179,'Instruction Disc (Horror From The Darkest Pit)','Nano Crystal (Horror From The Darkest Pit)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146994,56007,80,80,'Instruction Disc (Illusory Paralysis)','Nano Crystal (Illusory Paralysis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146995,99220,86,86,'Instruction Disc (Impose Will)','Nano Crystal (Impose Will)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146996,56011,132,132,'Instruction Disc (Inhibit Motion)','Nano Crystal (Inhibit Motion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146997,99219,152,152,'Instruction Disc (Insidious Beguilement)','Nano Crystal (Insidious Beguilement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146998,100457,132,132,'Instruction Disc (Introspective Engagement)','Nano Crystal (Introspective Engagement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(146999,99218,162,162,'Instruction Disc (Inveigle Support)','Nano Crystal (Inveigle Support)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147000,82817,7,7,'Instruction Disc (Lesser Blizzard of Red Tape)','Nano Crystal (Lesser Blizzard of Red Tape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147001,99216,96,96,'Instruction Disc (Lesser Charismatic Rapture)','Nano Crystal (Lesser Charismatic Rapture)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147002,85320,14,14,'Instruction Disc (Lesser Enforced Sloth)','Nano Crystal (Lesser Enforced Sloth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147003,82189,149,149,'Instruction Disc (Lesser Fear of Attention)','Nano Crystal (Lesser Fear of Attention)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147004,56003,4,4,'Instruction Disc (Lesser Illusory Paralysis)','Nano Crystal (Lesser Illusory Paralysis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147005,56004,33,33,'Instruction Disc (Lesser Musculature Command)','Nano Crystal (Lesser Musculature Command)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147006,99217,27,27,'Instruction Disc (Lesser Pheromone Control)','Nano Crystal (Lesser Pheromone Control)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147007,82816,4,4,'Instruction Disc (Lesser Stumbling Steps)','Nano Crystal (Lesser Stumbling Steps)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147008,85319,37,37,'Instruction Disc (Lesser Weighty Announcement)','Nano Crystal (Lesser Weighty Announcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147009,46422,132,132,'Instruction Disc (Limited Administrator-Droid)','Nano Crystal (Limited Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147010,46423,73,73,'Instruction Disc (Limited Aide-Droid)','Nano Crystal (Limited Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147011,46424,50,50,'Instruction Disc (Limited Assistant-Droid)','Nano Crystal (Limited Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147012,46425,30,30,'Instruction Disc (Limited Attendant-Droid)','Nano Crystal (Limited Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147013,46426,162,162,'Instruction Disc (Limited Bodyguard)','Nano Crystal (Limited Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147014,46427,17,17,'Instruction Disc (Limited Helper-Bot)','Nano Crystal (Limited Helper-bot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147015,46428,146,146,'Instruction Disc (Limited Minion)','Nano Crystal (Limited Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147016,46429,99,99,'Instruction Disc (Limited Secretary-Droid)','Nano Crystal (Limited Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147017,46430,1,1,'Instruction Disc (Limited Worker-Droid)','Nano Crystal (Limited Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147018,30124,175,175,'Instruction Disc (Living Embalming)','Nano Crystal (Living Embalming)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147019,82188,10,10,'Instruction Disc (Mass Daze)','Nano Crystal (Mass Daze)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147020,82187,27,27,'Instruction Disc (Mass Illusory Paralysis)','Nano Crystal (Mass Illusory Paralysis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147022,78449,152,152,'Instruction Disc (Monofilament Scourger)','Nano Crystal (Monofilament Scourger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147023,30128,50,50,'Instruction Disc (Monofilament Whip)','Nano Crystal (Monofilament Whip)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147024,100456,126,126,'Instruction Disc (Muddled Psyche)','Nano Crystal (Muddled Psyche)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147025,56010,116,116,'Instruction Disc (Musculature Command)','Nano Crystal (Musculature Command)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147026,82815,152,152,'Instruction Disc (Oppressive Weight of the Guilty)','Nano Crystal (Oppressive Weight of the Guilty)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147027,82005,43,43,'Instruction Disc (Performance Review)','Nano Crystal (Performance Review)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147028,99215,53,53,'Instruction Disc (Personal Magnetism)','Nano Crystal (Personal Magnetism)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147029,30131,76,76,'Instruction Disc (Pheromone Control)','Nano Crystal (Pheromone Control)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147030,82814,136,136,'Instruction Disc (Powerful Blizzard of Red Tape)','Nano Crystal (Powerful Blizzard of Red Tape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147031,121145,57,57,'Instruction Disc (Prey On Fear)','Nano Crystal (Prey On Fear)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147032,121146,159,159,'Instruction Disc (Primal Fear)','Nano Crystal (Primal Fear)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147033,78446,10,10,'Instruction Disc (Punishing Blade)','Nano Crystal (Punishing Blade)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147034,30135,116,116,'Instruction Disc (Red Tape)','Nano Crystal (Red Tape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147035,30136,109,109,'Instruction Disc (Remembered Pain)','Nano Crystal (Remembered Pain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147036,56005,24,24,'Instruction Disc (Restrict Movement)','Nano Crystal (Restrict Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147037,56006,47,47,'Instruction Disc (Revoke Movement License)','Nano Crystal (Revoke Movement License)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147038,82186,93,93,'Instruction Disc (Rigid Stance)','Nano Crystal (Rigid Stance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147039,78444,179,179,'Instruction Disc (Rule of One)','Nano Crystal (Rule of One)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147040,78445,93,93,'Instruction Disc (Searing Bolt)','Nano Crystal (Searing Bolt)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147041,82813,172,172,'Instruction Disc (Shackles of Obedience)','Nano Crystal (Shackles of Obedience)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147042,30137,123,123,'Instruction Disc (Siren Call)','Nano Crystal (Siren Call)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147043,30138,43,43,'Instruction Disc (Sleep)','Nano Crystal (Sleep)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147044,30139,70,83,'Instruction Disc (Sneaking Terror)','Nano Crystal (Sneaking Terror)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147045,99214,40,40,'Instruction Disc (Soft Siren Call)','Nano Crystal (Soft Siren Call)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147046,99213,63,63,'Instruction Disc (Solicit Support)','Nano Crystal (Solicit Support)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147047,30140,90,90,'Instruction Disc (Nano Restoration Escalation)','Nano Crystal (Nano Restoration Escalation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147048,78448,123,123,'Instruction Disc (Splinter Missile)','Nano Crystal (Splinter Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147049,82004,63,63,'Instruction Disc (Stinging Reminder)','Nano Crystal (Stinging Reminder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147050,82812,30,30,'Instruction Disc (Stumbling Steps)','Nano Crystal (Stumbling Steps)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147051,82003,20,20,'Instruction Disc (Subsonic Blast)','Nano Crystal (Subsonic Blast)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147052,121143,37,37,'Instruction Disc (Sudden Scare)','Nano Crystal (Sudden Scare)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147053,46414,136,136,'Instruction Disc (Supervisor-Grade Administrator-Droid)','Nano Crystal (Supervisor-Grade Administrator-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147054,46415,83,83,'Instruction Disc (Supervisor-Grade Aide-Droid)','Nano Crystal (Supervisor-Grade Aide-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147055,46416,60,60,'Instruction Disc (Supervisor-Grade Assistant-Droid)','Nano Crystal (Supervisor-Grade Assistant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147056,46417,37,37,'Instruction Disc (Supervisor-Grade Attendant-Droid)','Nano Crystal (Supervisor-Grade Attendant-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147057,46418,165,165,'Instruction Disc (Supervisor-Grade Bodyguard)','Nano Crystal (Supervisor-Grade Bodyguard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147058,46419,20,20,'Instruction Disc (Supervisor-Grade Helper-Droid)','Nano Crystal (Supervisor-Grade Helper-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147059,46420,152,152,'Instruction Disc (Supervisor-Grade Minion)','Nano Crystal (Supervisor-Grade Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147060,46421,113,113,'Instruction Disc (Supervisor-Grade Secretary-Droid)','Nano Crystal (Supervisor-Grade Secretary-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147061,46413,7,7,'Instruction Disc (Supervisor-Grade Worker-Droid)','Nano Crystal (Supervisor-Grade Worker-Droid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147062,99211,159,159,'Instruction Disc (Temporary Allegiance)','Nano Crystal (Temporary Allegiance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147063,99212,20,20,'Instruction Disc (Temporary Glamor)','Nano Crystal (Temporary Glamor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147064,30143,90,90,'Instruction Disc (Terror Blast)','Nano Crystal (Terror Blast)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147065,116805,166,166,'Instruction Disc (Thorough Overhaul)','Nano Crystal (Thorough Overhaul)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147066,99210,179,179,'Instruction Disc (Total Mental Domination)','Nano Crystal (Total Mental Domination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147067,56002,175,175,'Instruction Disc (Total Musculature Command)','Nano Crystal (Total Musculature Command)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147068,121144,130,130,'Instruction Disc (Visions of a Doomed Future)','Nano Crystal (Visions of a Doomed Future)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147069,56015,182,182,'Instruction Disc (Void Inertia)','Nano Crystal (Void Inertia)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147070,100455,156,156,'Instruction Disc (Wandering Mind)','Nano Crystal (Wandering Mind)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147071,82811,17,17,'Instruction Disc (Weight of the Guilty)','Nano Crystal (Weight of the Guilty)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147072,95386,83,83,'Instruction Disc (Weighty Announcement)','Nano Crystal (Weighty Announcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147073,44210,80,80,'Instruction Disc (Abscess Explosion)','Nano Crystal (Abscess Explosion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147074,44003,152,152,'Instruction Disc (Accumulate Scars)','Nano Crystal (Accumulate Scars)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147075,45402,149,149,'Instruction Disc (Acidic Lesions)','Nano Crystal (Acidic Lesions)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147076,44004,33,33,'Instruction Disc (Active Remedy)','Nano Crystal (Active Remedy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147077,44178,53,53,'Instruction Disc (Active Viral Agent)','Nano Crystal (Active Viral Agent)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147078,44005,136,136,'Instruction Disc (Advanced Cellular Rebuild)','Nano Crystal (Advanced Cellular Rebuild)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147080,44179,93,93,'Instruction Disc (Advanced Nano Gorger)','Nano Crystal (Advanced Nano Gorger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147081,44180,159,159,'Instruction Disc (All-Consuming Toxin)','Nano Crystal (All-Consuming Toxin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(147082,42424,185,185,'Instruction Disc (Alpha and Omega)','Nano Crystal (Alpha & Omega)', 'Used for building the Omni-Med Battle Body Armor');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147083,44181,146,146,'Instruction Disc (Autonomous Viral Agent)','Nano Crystal (Autonomous Viral Agent)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147084,95750,149,149,'Instruction Disc (Basic Omni-Med Enhancement)','Nano Crystal (Basic Omni-Med Enhancement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147085,44006,146,146,'Instruction Disc (Bestow Healing)','Nano Crystal (Bestow Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147086,28753,24,24,'Instruction Disc (Bind Wounds)','Nano Crystal (Bind Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147088,28754,27,27,'Instruction Disc (Biotoxin MK I)','Nano Crystal (Biotoxin MK I)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147089,28755,43,43,'Instruction Disc (Biotoxin MK II)','Nano Crystal (Biotoxin MK II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147090,28756,73,73,'Instruction Disc (Biotoxin MK III)','Nano Crystal (Biotoxin MK III)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147091,28757,93,93,'Instruction Disc (Biotoxin MK IV)','Nano Crystal (Biotoxin MK IV)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147092,27805,24,24,'Instruction Disc (Blood Circle)','Nano Crystal (Blood Circle)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147093,28758,129,129,'Instruction Disc (Bloom of Health)','Nano Crystal (Bloom of Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147094,97464,43,43,'Instruction Disc (Bodily Amplification)','Nano Crystal (Bodily Amplification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147095,43994,146,146,'Instruction Disc (Bodily Purification)','Nano Crystal (Bodily Purification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147096,95747,10,10,'Instruction Disc (Bodily Reinforcement)','Nano Crystal (Bodily Reinforcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147097,44198,33,33,'Instruction Disc (Cancerous Burrower)','Nano Crystal (Cancerous Burrower)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147098,44182,156,156,'Instruction Disc (Cellular Dismantlement)','Nano Crystal (Cellular Dismantlement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147099,43995,47,47,'Instruction Disc (Cellular Grafting)','Nano Crystal (Cellular Grafting)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147100,43996,86,86,'Instruction Disc (Cellular Rebuild)','Nano Crystal (Cellular Rebuild)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147101,43997,149,149,'Instruction Disc (Circle of Renewal)','Nano Crystal (Circle of Renewal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147102,43998,129,129,'Instruction Disc (Circulate Health)','Nano Crystal (Circulate Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147103,42410,96,96,'Instruction Disc (Cleanse Wounds)','Nano Crystal (Cleanse Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147104,28761,90,90,'Instruction Disc (Close Wounds)','Nano Crystal (Close Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147105,28762,116,116,'Instruction Disc (Colossal Health)','Nano Crystal (Colossal Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147106,43999,37,37,'Instruction Disc (Company Policy)','Nano Crystal (Company Policy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147107,28763,169,169,'Instruction Disc (Complete Healing)','Nano Crystal (Complete Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147108,44184,146,146,'Instruction Disc (Complex Nano Contagion)','Nano Crystal (Complex Nano Contagion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147109,44000,152,152,'Instruction Disc (Compress Wounds)','Nano Crystal (Compress Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147110,44001,182,182,'Instruction Disc (Conglomerate Health Plan)','Nano Crystal (Conglomerate Health Plan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147111,97465,146,146,'Instruction Disc (Constitution Magnification)','Nano Crystal (Constitution Magnification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147112,44183,106,106,'Instruction Disc (Consuming Toxin)','Nano Crystal (Consuming Toxin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147113,44002,106,106,'Instruction Disc (Consummate Carer)','Nano Crystal (Consummate Carer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147114,43984,126,126,'Instruction Disc (Continuous Cellular Reconditioning)','Nano Crystal (Continuous Cellular Reconditioning)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147115,28764,146,146,'Instruction Disc (Cellular Restoration)','Nano Crystal (Cellular Restoration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147116,43985,50,50,'Instruction Disc (Counteract Damage)','Nano Crystal (Counteract Damage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147117,43986,86,86,'Instruction Disc (Course of Treatment)','Nano Crystal (Course of Treatment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147118,43987,30,30,'Instruction Disc (Cursory Examination)','Nano Crystal (Cursory Examination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147119,42411,149,149,'Instruction Disc (Cycle of Life)','Nano Crystal (Cycle of Life)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147120,43988,179,179,'Instruction Disc (Cycle of Reconstruction)','Nano Crystal (Cycle of Reconstruction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147121,44201,47,47,'Instruction Disc (Dark Venom)','Nano Crystal (Dark Venom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147122,43989,182,182,'Instruction Disc (Deathless Blessing)','Nano Crystal (Deathless Blessing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147124,43990,159,159,'Instruction Disc (Deep Tissue Repair)','Nano Crystal (Deep Tissue Repair)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147125,43991,169,169,'Instruction Disc (Deep Wound Cleanser)','Nano Crystal (Deep Wounds Cleanser)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147126,142741,140,140,'Instruction Disc (Digitizing Sequencer)','Nano Crystal (Digitizing Sequencer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147127,44186,10,10,'Instruction Disc (Dissolve Molecular Bonding)','Nano Crystal (Dissolve Molecular Bonding)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147128,43992,175,175,'Instruction Disc (Distributed Care)','Nano Crystal (Distributed Care)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147129,28767,7,7,'Instruction Disc (Doctor''s Grace)','Nano Crystal (Doctor''s Grace)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147130,43993,10,10,'Instruction Disc (Dress Wounds)','Nano Crystal (Dress Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147131,43976,50,50,'Instruction Disc (Easing Touch)','Nano Crystal (Easing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147132,44185,14,14,'Instruction Disc (Elementary Nano Contagion)','Nano Crystal (Elementary Nano Contagion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147133,43977,162,162,'Instruction Disc (Emergency Medical Response)','Nano Crystal (Emergency Medical Response)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147134,43978,4,4,'Instruction Disc (Emergency Stitching)','Nano Crystal (Emergency Stitching)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147135,142745,80,80,'Instruction Disc (Encode DNA Sequence)','Nano Crystal (Encode DNA Sequence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147136,95748,27,27,'Instruction Disc (Enhance Constitution)','Nano Crystal (Enhance Constitution)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147137,42412,1,1,'Instruction Disc (Enhance Team Health)','Nano Crystal (Enhance Team Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147138,28770,14,14,'Instruction Disc (Enhanced First Aid)','Nano Crystal (Enhanced First Aid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147139,97462,132,132,'Instruction Disc (Enhanced Health Surge)','Nano Crystal (Enhanced Health Surge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147140,28771,37,37,'Instruction Disc (Enlarge)','Nano Crystal (Enlarge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147141,28773,80,80,'Instruction Disc (Exaggerated Health)','Nano Crystal (Exaggerated Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147143,43979,103,103,'Instruction Disc (Experimental Panacea)','Nano Crystal (Experimental Panacea)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147144,43980,80,80,'Instruction Disc (Fast Team Tissue Repair)','Nano Crystal (Fast Team Tissue Repair)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147146,43981,10,10,'Instruction Disc (Field Dressings)','Nano Crystal (Field Dressings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147147,82010,116,116,'Instruction Disc (First-Degree Burns)','Nano Crystal (First-Degree Burns)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147148,28775,165,165,'Instruction Disc (Gargantuan Health)','Nano Crystal (Gargantuan Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147149,82012,70,70,'Instruction Disc (Gouge Flesh)','Nano Crystal (Gouge Flesh)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147150,43982,156,156,'Instruction Disc (Greater Bloom of Health)','Nano Crystal (Greater Bloom of Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147151,43983,109,109,'Instruction Disc (Greater Cellular Grafting)','Nano Crystal (Greater Cellular Grafting)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147152,43966,149,149,'Instruction Disc (Greater Field Dressings)','Nano Crystal (Greater Field Dressings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147153,43967,93,93,'Instruction Disc (Greater Lasting Heal)','Nano Crystal (Greater Lasting heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147154,43968,142,142,'Instruction Disc (Greater Periodic Checkup)','Nano Crystal (Greater Periodic Checkup)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147155,43969,172,172,'Instruction Disc (Greater Policy Payout)','Nano Crystal (Greater Policy Payout)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147156,42413,76,76,'Instruction Disc (Greater Team Healing)','Nano Crystal (Greater Team Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147157,43970,146,146,'Instruction Disc (Hale and Hearty)','Nano Crystal (Hale and Hearty)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147158,43971,172,172,'Instruction Disc (Halo of Health)','Nano Crystal (Halo of Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147159,43972,123,123,'Instruction Disc (Healer''s Hands)','Nano Crystal (Healer''s Hands)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147160,43973,116,116,'Instruction Disc (Healing Light)','Nano Crystal (Healing Light)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147161,97461,156,156,'Instruction Disc (Health Assembler)','Nano Crystal (Health Assembler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147162,97459,4,4,'Instruction Disc (Health Augmentation)','Nano Crystal (Health Augmentation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147163,43974,165,165,'Instruction Disc (Health Cartel)','Nano Crystal (Health Cartel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147164,95749,17,17,'Instruction Disc (Health Graft)','Nano Crystal (Health Graft)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147165,42414,60,60,'Instruction Disc (Health Pump)','Nano Crystal (Health Pump)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147166,97458,30,30,'Instruction Disc (Health Surge)','Nano Crystal (Health Surge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147167,28776,76,76,'Instruction Disc (Natural Healing)','Nano Crystal (Natural Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147168,44187,126,126,'Instruction Disc (Incandescent Venom)','Nano Crystal (Incandescent Venom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147169,99593,126,126,'Instruction Disc (Induce Musculature Spasms)','Nano Crystal (Induce Muscle Spasms)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147170,44188,30,30,'Instruction Disc (Infected Wounds)','Nano Crystal (Infected Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147171,43975,14,14,'Instruction Disc (Inferior Cleanse Wounds)','Nano Crystal (Inferior Cleanse Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147172,43957,4,4,'Instruction Disc (Inferior Wound Bindings)','Nano Crystal (Inferior Wound Bindings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147173,28780,7,7,'Instruction Disc (Inflict Harm)','Nano Crystal (Inflict Harm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147174,95744,156,156,'Instruction Disc (Infuse with Life)','Nano Crystal (Infuse With Life)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147175,28782,90,90,'Instruction Disc (Instinctive Control)','Nano Crystal (Instinctive Control)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147176,44202,175,175,'Instruction Disc (Internal Decomposition)','Nano Crystal (Internal Decomposition)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147177,43958,156,156,'Instruction Disc (Internal Renewal)','Nano Crystal (Internal Renewal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147178,42415,83,83,'Instruction Disc (Iron Circle)','Nano Crystal (Iron Circle)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147179,42416,14,14,'Instruction Disc (Lasting Heal)','Nano Crystal (Lasting Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147180,43959,63,63,'Instruction Disc (Lesser Bloom of Health)','Nano Crystal (Lesser Bloom of Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147181,43960,1,1,'Instruction Disc (Lesser Cellular Grafting)','Nano Crystal (Lesser Cellular Grafting)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147182,43961,47,47,'Instruction Disc (Lesser Circle of Renewal)','Nano Crystal (Lesser Circle of Renewal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147183,99594,17,17,'Instruction Disc (Lesser Muscle Atrophy)','Nano Crystal (Muscle Atrophy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147184,43962,17,17,'Instruction Disc (Lesser Nano Bandage)','Nano Crystal (Lesser Nano Bandage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147185,43963,24,24,'Instruction Disc (Lesser Nano Surgery)','Nano Crystal (Lesser Nano Surgery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147186,43964,109,109,'Instruction Disc (Lesser Policy Payout)','Nano Crystal (Lesser Policy Payout)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147187,43965,152,152,'Instruction Disc (Life Balm)','Nano Crystal (Life Balm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(147188,97456,182,182,'Instruction Disc (Life Channeler)','Nano Crystal (Life Channeler)', 'Used for building the Omni-Med Battle Sleeves');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147189,97455,50,50,'Instruction Disc (Life Reinforcement)','Nano Crystal (Life Reinforcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147190,43946,165,165,'Instruction Disc (Lifegiving Elixir)','Nano Crystal (Lifegiving Elixir)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147191,44189,7,7,'Instruction Disc (Limited Nano Reaper)','Nano Crystal (Limited Nano Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147192,95745,93,93,'Instruction Disc (Major Health Graft)','Nano Crystal (Major Health Graft)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147193,43947,132,132,'Instruction Disc (Medical Response)','Nano Crystal (Medical Response)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147194,43948,70,70,'Instruction Disc (Medical Sequencer)','Nano Crystal (Medical Sequencer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147195,42417,57,57,'Instruction Disc (Medic''s Call)','Nano Crystal (Medic''s Call)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147196,95746,47,47,'Instruction Disc (Medic''s Respite)','Nano Crystal (Medic''s Respite)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147197,44190,119,119,'Instruction Disc (Metabolic Disassembly)','Nano Crystal (Metabolic Disassembly)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147198,95742,33,33,'Instruction Disc (Metabolism Booster)','Nano Crystal (Metabolism Booster)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147199,43949,40,40,'Instruction Disc (Minor Balm)','Nano Crystal (Minor Balm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147200,44203,37,37,'Instruction Disc (Minor Consuming Toxin)','Nano Crystal (Minor Consuming Toxin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147201,42418,7,7,'Instruction Disc (Minor Team Healing)','Nano Crystal (Minor Team Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147202,43950,33,33,'Instruction Disc (Minor Team Purification)','Nano Crystal (Minor Team Purification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147203,43951,156,156,'Instruction Disc (Molecular Rejuvenation)','Nano Crystal (Molecular Rejuvenation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147204,44191,172,172,'Instruction Disc (Morgue Longings)','Nano Crystal (Morgue Longings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147206,43952,73,73,'Instruction Disc (Nano Bandage)','Nano Crystal (Nano Bandage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147207,44192,99,99,'Instruction Disc (Nano Reaper)','Nano Crystal (Nano Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147208,28784,99,99,'Instruction Disc (Nano Repulsor)','Nano Crystal (Nano Repulsor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147209,43953,93,93,'Instruction Disc (Nano Surgery)','Nano Crystal (Nano Surgery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147210,44193,40,40,'Instruction Disc (Parasitic Affliction)','Nano Crystal (Parasitic Affliction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147211,44199,152,152,'Instruction Disc (Parasitic Horde)','Nano Crystal (Parasitic Horde)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147212,43954,27,27,'Instruction Disc (Periodic Checkup)','Nano Crystal (Periodic Checkup)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147213,44194,136,136,'Instruction Disc (Perpetuating Nano Reaper)','Nano Crystal (Perpetuating Nano Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147215,43955,33,33,'Instruction Disc (Physician''s Skill)','Nano Crystal (Physician''s Skill)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147216,43956,169,169,'Instruction Disc (Positive Life Reinforcement)','Nano Crystal (Positive Life Reinforcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147217,95743,139,139,'Instruction Disc (Pre-Combat Conditioning)','Nano Crystal (Pre-Combat Conditioning)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147218,28785,37,37,'Instruction Disc (Premium Cover)','Nano Crystal (Premium Cover)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147219,44204,20,20,'Instruction Disc (Primitive Nano Gorger)','Nano Crystal (Primitive Nano Gorger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147220,44205,4,4,'Instruction Disc (Primitive Viral Agent)','Nano Crystal (Primitive Viral Agent)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147221,43936,93,93,'Instruction Disc (Professional Care)','Nano Crystal (Professional Care)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147222,44195,17,17,'Instruction Disc (Protein Breakdown)','Nano Crystal (Protein Breakdown)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147223,42419,123,123,'Instruction Disc (Radiant Heal)','Nano Crystal (Radiant Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147224,44206,165,165,'Instruction Disc (Rampant Decay)','Nano Crystal (Rampant Decay)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147226,43937,162,162,'Instruction Disc (Recuperative Respite)','Nano Crystal (Recuperative Respite)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147227,43938,40,40,'Instruction Disc (Recurrent Remedy)','Nano Crystal (Recurrent Remedy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147228,44207,66,66,'Instruction Disc (Refined Nano Contagion)','Nano Crystal (Refined Nano Contagion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147229,43939,20,20,'Instruction Disc (Relief from Pain)','Nano Crystal (Relief From Pain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147230,43940,159,159,'Instruction Disc (Remedy Dissemination)','Nano Crystal (Remedy Dissemination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147231,44196,142,142,'Instruction Disc (Repeated Cellular Trauma)','Nano Crystal (Repeated Cellular Trauma)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147232,43941,40,40,'Instruction Disc (Restorative Boost)','Nano Crystal (Restorative Boost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147233,44208,86,86,'Instruction Disc (Scythe A Virus)','Nano Crystal (Scythe A Virus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147234,44200,182,182,'Instruction Disc (Scythe B Virus)','Nano Crystal (Scythe B Virus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147235,44197,60,60,'Instruction Disc (Seethe with Germs)','Nano Crystal (Seethe With Germs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(147236,44209,185,185,'Instruction Disc (Sentient Nano Gorger)','Nano Crystal (Sentient Nano Gorger)', 'Used for building the Omni-Med Battle Gloves');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147237,82011,37,37,'Instruction Disc (Shatter Bone)','Nano Crystal (Shatter Bone)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147238,28787,33,33,'Instruction Disc (Specialist Treatment)','Nano Crystal (Specialist Treatment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147239,43942,27,27,'Instruction Disc (Spreading Health)','Nano Crystal (Spreading Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147240,97453,66,66,'Instruction Disc (Strengthen Resolve)','Nano Crystal (Strengthen Resolve)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147241,95739,57,57,'Instruction Disc (Superior Bodily Reinforcement)','Nano Crystal (Superior Bodily Reinforcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147242,43943,96,96,'Instruction Disc (Superior Dress Wounds)','Nano Crystal (Superior Dress Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147243,28788,119,119,'Instruction Disc (Superior First Aid)','Nano Crystal (Superior First Aid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147244,28789,30,30,'Instruction Disc (Superior Healing)','Nano Crystal (Superior Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147245,97452,83,83,'Instruction Disc (Superior Health Augmentation)','Nano Crystal (Superior Health Augmentation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147246,43944,162,162,'Instruction Disc (Superior Health Pump)','Nano Crystal (Superior Health Pump)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147247,97450,169,169,'Instruction Disc (Superior Life Reinforcement)','Nano Crystal (Superior Life Reinforcement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147248,95740,152,152,'Instruction Disc (Superior Metabolism Booster)','Nano Crystal (Superior Metabolism Booster)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147249,43945,142,142,'Instruction Disc (Superior Nano Bandage)','Nano Crystal (Superior Nano Bandage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147250,95741,179,179,'Instruction Disc (Superior Omni-Med Enhancement)','Nano Crystal (Superior Omni-Med Enhancement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147251,43924,80,80,'Instruction Disc (Superior Wound Bindings)','Nano Crystal (Superior Wound Bindings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147252,28790,53,53,'Instruction Disc (Surgeon''s Touch)','Nano Crystal (Surgeon''s Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147253,97449,14,14,'Instruction Disc (Survivability Booster)','Nano Crystal (Survivability Booster)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147254,43925,86,86,'Instruction Disc (Syndicated Healing)','Nano Crystal (Syndicated Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147255,43926,57,57,'Instruction Disc (Tailored Cure)','Nano Crystal (Tailored Cure)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147256,43927,60,60,'Instruction Disc (Team Cellular Rebuild)','Nano Crystal (Team Cellular Rebuild)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147257,43928,70,70,'Instruction Disc (Team Checkup)','Nano Crystal (Team Checkup)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147258,43929,159,159,'Instruction Disc (Team Compress Wounds)','Nano Crystal (Team Compress Wounds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147259,43930,20,20,'Instruction Disc (Team Field Dressings)','Nano Crystal (Team Field Dressings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147260,42420,40,40,'Instruction Disc (Team Healing)','Nano Crystal (Team Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147261,43931,113,113,'Instruction Disc (Team Nano Bandage)','Nano Crystal (Team Nano Bandage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147262,43932,156,156,'Instruction Disc (Team Purification)','Nano Crystal (Team Purification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147263,43933,139,139,'Instruction Disc (Team Tissue Repair)','Nano Crystal (Team Tissue Repair)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147264,97447,90,90,'Instruction Disc (Temporary Cellular Enhancement)','Nano Crystal (Temporary Cellular Enhancement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147265,43934,83,83,'Instruction Disc (Thorough Examination)','Nano Crystal (Thorough Examination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147266,99589,7,7,'Instruction Disc (Tired Limbs)','Nano Crystal (Tired Limbs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147267,43935,113,113,'Instruction Disc (Tissue Repair)','Nano Crystal (Tissue Repair)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(147268,99587,185,185,'Instruction Disc (Uncontrollable Body Tremors)','Nano Crystal (Uncontrollable Body Tremors)', 'Used for building the Omni-Med Battle Pants');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147270,42423,4,4,'Instruction Disc (Weak Team Heal)','Nano Crystal (Weak Team Heal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(147271,28794,179,179,'Instruction Disc (Wrack and Ruin)','Nano Crystal (Wrack and Ruin)', 'Used for building the Omni-Med Battle Boots');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147272,118110,140,140,'Instruction Disc (Absorb Punishment)','Nano Crystal (Absorb Punishment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147273,100224,27,27,'Instruction Disc (Aggressive Instincts)','Nano Crystal (Aggressive Instincts)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147274,55760,37,37,'Instruction Disc (Arctic Cloak)','Nano Crystal (Arctic Cloak)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147275,55762,4,4,'Instruction Disc (Avenging Shield)','Nano Crystal (Avenging Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147276,100225,57,57,'Instruction Disc (Baleful Stare)','Nano Crystal (Baleful Stare)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147277,55755,83,83,'Instruction Disc (Barbaric Blades)','Nano Crystal (Barbaric Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147278,100264,30,30,'Instruction Disc (Berserk Rage)','Nano Crystal (Berserk Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147279,49829,142,142,'Instruction Disc (Brave Challenger to Behemoth)','Nano Crystal (Brave Challenger to Behemoth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147280,49828,119,119,'Instruction Disc (Brave Challenger to Colossus)','Nano Crystal (Brave Challenger to Colossus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147281,49825,76,76,'Instruction Disc (Brave Challenger to Gargantua)','Nano Crystal (Brave Challenger to Gargantua)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147282,49826,132,132,'Instruction Disc (Brave Challenger to Leviathan)','Nano Crystal (Brave Challenger to Leviathan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147283,49827,40,40,'Instruction Disc (Brave Challenger to Titan)','Nano Crystal (Brave Challenger to Titan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147284,49823,14,14,'Instruction Disc (Brave Challenger to Cyclops)','Nano Crystal (Brave Challenger to Cyclops)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147285,55758,73,73,'Instruction Disc (Bristling Guard)','Nano Crystal (Bristling Guard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147286,55761,10,10,'Instruction Disc (Bristling Shield)','Nano Crystal (Bristling Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147287,29792,76,76,'Instruction Disc (Brutal Thug)','Nano Crystal (Brutal Thug)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147288,100262,80,80,'Instruction Disc (Burning Rage)','Nano Crystal (Burning Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147289,49824,139,139,'Instruction Disc (Challenger to Behemoth)','Nano Crystal (Challenger to Behemoth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147290,49820,103,103,'Instruction Disc (Challenger to Colossus)','Nano Crystal (Challenger to Colossus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147291,49821,4,4,'Instruction Disc (Challenger to Cyclops)','Nano Crystal (Challenger to Cyclops)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147292,49822,66,66,'Instruction Disc (Challenger to Gargantua)','Nano Crystal (Challenger to Gargantua)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147293,49818,132,132,'Instruction Disc (Challenger to Leviathan)','Nano Crystal (Challenger to Leviathan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147294,49819,33,33,'Instruction Disc (Challenger to Titan)','Nano Crystal (Challenger to Titan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147295,55752,146,146,'Instruction Disc (Coruscating Screen)','Nano Crystal (Coruscating Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147296,118122,133,133,'Instruction Disc (Deaden Pain)','Nano Crystal (Deaden Pain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147297,121142,150,150,'Instruction Disc (Dominate Foe)','Nano Crystal (Dominate Foe)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147298,95736,152,152,'Instruction Disc (Essence of Behemoth)','Nano Crystal (Essence of Behemoth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147299,95737,33,33,'Instruction Disc (Essence of Boundless Health)','Nano Crystal (Essence of Boundless Health)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147300,95738,132,132,'Instruction Disc (Essence of Colossus)','Nano Crystal (Essence of Colossus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147301,95733,57,57,'Instruction Disc (Essence of Cyclops)','Nano Crystal (Essence of Cyclops)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147302,95734,123,123,'Instruction Disc (Essence of Gargantua)','Nano Crystal (Essence of Gargantua)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147303,95735,142,142,'Instruction Disc (Mongo''s Titan)','Nano Crystal (Mongo''s Titan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147304,95730,93,93,'Instruction Disc (Mongo''s Cyclops)','Nano Crystal (Mongo''s Cyclops)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147305,95731,24,24,'Instruction Disc (Essence of Might)','Nano Crystal (Essence of Might)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147306,95732,43,43,'Instruction Disc (Mongo''s Golem)','Nano Crystal (Mongo''s Golem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147307,95728,14,14,'Instruction Disc (Essence of Vitality)','Nano Crystal (Essence of Vitality)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147308,118121,150,150,'Instruction Disc (Failing Impregnability)','Nano Crystal (Failing Impregnability)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147309,121151,37,37,'Instruction Disc (Fearsome Shout)','Nano Crystal (Fearsome Shout)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147310,100263,50,50,'Instruction Disc (Fell Rage)','Nano Crystal (Fell Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147311,55759,20,20,'Instruction Disc (Field of Sparks)','Nano Crystal (Field of Sparks)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147312,29803,60,60,'Instruction Disc (Focused Anger)','Nano Crystal (Focused Anger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147313,118120,120,120,'Instruction Disc (Fortify)','Nano Crystal (Fortify)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147314,118119,90,90,'Instruction Disc (Gird for Punishment)','Nano Crystal (Gird For Punishment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147315,55756,132,132,'Instruction Disc (Glacial Cloak)','Nano Crystal (Glacial Cloak)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147316,29804,27,27,'Instruction Disc (Glowing Retribution)','Nano Crystal (Glowing Retribution)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147317,29806,30,30,'Instruction Disc (Headcracker)','Nano Crystal (Headcracker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147318,29807,63,63,'Instruction Disc (Immolation Shield)','Nano Crystal (Immolation Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147319,100260,132,132,'Instruction Disc (Incandescent Rage)','Nano Crystal (Incandescent Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147320,100261,139,139,'Instruction Disc (Infernal Rage)','Nano Crystal (Infernal Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147321,29808,136,136,'Instruction Disc (Lick of Fire)','Nano Crystal (Lick of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147322,55754,106,106,'Instruction Disc (Lightning Shield)','Nano Crystal (Lightning Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147323,95729,4,4,'Instruction Disc (Mongo''s Troll)','Nano Crystal (Mongo''s Troll)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147324,49816,149,149,'Instruction Disc (Mighty Challenger to Behemoth)','Nano Crystal (Mighty Challenger to Behemoth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147325,49817,129,129,'Instruction Disc (Mighty Challenger to Colossus)','Nano Crystal (Mighty Challenger to Colossus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147326,49813,24,24,'Instruction Disc (Mighty Challenger to Cyclops)','Nano Crystal (Mighty Challenger to Cyclops)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147327,49814,90,90,'Instruction Disc (Mighty Challenger to Gargantua)','Nano Crystal (Mighty Challenger to Gargantua)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147328,49815,136,136,'Instruction Disc (Mighty Challenger to Leviathan)','Nano Crystal (Mighty Challenger to Leviathan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147329,49812,53,53,'Instruction Disc (Mighty Challenger to Titan)','Nano Crystal (Mighty Challenger to Titan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147330,100201,66,66,'Instruction Disc (Mongo Bash!)','Nano Crystal (Mongo Bash!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147331,100203,149,149,'Instruction Disc (Mongo Crush!)','Nano Crystal (Mongo Crush!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147332,100202,17,17,'Instruction Disc (Mongo Slam!)','Nano Crystal (Mongo Slam!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147333,100204,132,132,'Instruction Disc (Mongo Smash!)','Nano Crystal (Mongo Smash!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147334,29811,113,113,'Instruction Disc (Physical Dominance)','Nano Crystal (Physical Dominance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147335,55757,47,47,'Instruction Disc (Poison Stingers)','Nano Crystal (Poison Stingers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147336,100226,139,139,'Instruction Disc (Primal Hatred)','Nano Crystal (Primal Hatred)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147337,29814,136,136,'Instruction Disc (Prodigious Strength)','Nano Crystal (Prodigious Strength)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147338,121149,70,70,'Instruction Disc (Quivering Wreck)','Nano Crystal (Quivering Wreck)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147339,100222,116,116,'Instruction Disc (Roar of Aggression)','Nano Crystal (Roar of Aggression)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147340,55753,139,139,'Instruction Disc (Screen of Blades)','Nano Crystal (Screen of Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147341,118118,70,70,'Instruction Disc (Shock Absorber)','Nano Crystal (Shock Absorber)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147342,118116,136,136,'Instruction Disc (Shrug Off Blows)','Nano Crystal (Shrug Off Blows)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147343,121150,130,130,'Instruction Disc (Spine of Jelly)','Nano Crystal (Spine of Jelly)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147344,100223,7,7,'Instruction Disc (Taunting Glare)','Nano Crystal (Taunting Glare)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147345,118117,37,37,'Instruction Disc (Thicken Skin)','Nano Crystal (Thicken Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147346,29820,126,126,'Instruction Disc (Toxic Barrier)','Nano Crystal (Toxic Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147347,118114,54,54,'Instruction Disc (Ward from Harm)','Nano Crystal (Ward from Harm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147348,116804,179,179,'Instruction Disc (A Maker''s Touch)','Nano Crystal (A Maker''s Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147349,46081,40,40,'Instruction Disc (Advanced Android)','Nano Crystal (Advanced Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147350,46082,14,14,'Instruction Disc (Advanced Automaton)','Nano Crystal (Advanced Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147351,70588,126,126,'Instruction Disc (Advanced Defensive Screen)','Nano Crystal (Advanced Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147352,70598,179,179,'Instruction Disc (Advanced Force Field)','Nano Crystal (Advanced Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147353,46069,80,80,'Instruction Disc (Advanced Gladiatorbot)','Nano Crystal (Advanced Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147354,46070,116,116,'Instruction Disc (Advanced Guardbot)','Nano Crystal (Advanced Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147355,70589,119,119,'Instruction Disc (Advanced Protective Field)','Nano Crystal (Advanced Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147356,70580,109,109,'Instruction Disc (Advanced Shielding Barrier)','Nano Crystal (Advanced Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147357,46071,152,152,'Instruction Disc (Advanced Warbot)','Nano Crystal (Advanced Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147358,46072,169,169,'Instruction Disc (Advanced Warmachine)','Nano Crystal (Advanced Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147359,29869,189,189,'Instruction Disc (Aegis Barrier)','Nano Crystal (Aegis Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147360,46073,33,33,'Instruction Disc (Android)','Nano Crystal (Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147361,29823,1,1,'Instruction Disc (Armor Megaboost)','Nano Crystal (Armor Megaboost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147362,46074,7,7,'Instruction Disc (Automaton)','Nano Crystal (Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147363,70586,37,37,'Instruction Disc (Basic Defensive Screen)','Nano Crystal (Basic Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147364,70594,159,159,'Instruction Disc (Basic Force Field)','Nano Crystal (Basic Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147365,70583,33,33,'Instruction Disc (Basic Protective Field)','Nano Crystal (Basic Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147366,70584,27,27,'Instruction Disc (Basic Shielding Barrier)','Nano Crystal (Basic Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147367,55780,149,149,'Instruction Disc (Citadel of Spikes)','Nano Crystal (Citadel of Spikes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147368,46075,30,30,'Instruction Disc (Common Android)','Nano Crystal (Common Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147369,46076,7,7,'Instruction Disc (Common Automaton)','Nano Crystal (Common Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147370,46077,66,66,'Instruction Disc (Common Gladiatorbot)','Nano Crystal (Common Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147371,46078,103,103,'Instruction Disc (Common Guardbot)','Nano Crystal (Common Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147372,46079,146,146,'Instruction Disc (Common Warbot)','Nano Crystal (Common Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147373,46080,165,165,'Instruction Disc (Common Warmachine)','Nano Crystal (Common Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147374,81923,99,99,'Instruction Disc (Controlled Energy Overload)','Nano Crystal (Controlled Energy Overload)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147375,29195,20,20,'Instruction Disc (Crowbar Subtlety)','Nano Crystal (Crowbar Subtlety)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147376,46062,179,179,'Instruction Disc (Decommissioned Wardroid)','Nano Crystal (Decommissioned Wardroid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147377,70574,83,83,'Instruction Disc (Defensive Screen)','Nano Crystal (Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147378,55775,24,24,'Instruction Disc (Electrical Chastiser)','Nano Crystal (Electrical Chastiser)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147379,55777,76,76,'Instruction Disc (Electrical Discharge Field)','Nano Crystal (Electrical Discharge Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147380,55779,113,113,'Instruction Disc (Energy Cocoon)','Nano Crystal (Energy Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147381,29838,37,37,'Instruction Disc (Energy Spike)','Nano Crystal (Energy Spike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147382,29840,149,149,'Instruction Disc (Entropy Weapon)','Nano Crystal (Entropy Weapon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147383,29842,139,139,'Instruction Disc (Extreme Prejudice)','Nano Crystal (Extreme Prejudice)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147384,46063,20,20,'Instruction Disc (Feeble Android)','Nano Crystal (Feeble Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147385,43329,1,1,'Instruction Disc (Feeble Automaton)','Engineer: Startup Crystal - Feeble Automaton');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147386,46064,47,47,'Instruction Disc (Feeble Gladiatorbot)','Nano Crystal (Feeble Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147387,46065,90,90,'Instruction Disc (Feeble Guardbot)','Nano Crystal (Feeble Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147388,46066,129,129,'Instruction Disc (Feeble Warbot)','Nano Crystal (Feeble Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147389,46067,156,156,'Instruction Disc (Feeble Warmachine)','Nano Crystal (Feeble Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147390,116803,120,120,'Instruction Disc (Field Workshop)','Nano Crystal (Field Workshop)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147391,46068,27,27,'Instruction Disc (Flawed Android)','Nano Crystal (Flawed Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147392,46045,4,4,'Instruction Disc (Flawed Automaton)','Nano Crystal (Flawed Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147393,70585,20,20,'Instruction Disc (Flawed Defensive Screen)','Nano Crystal (Flawed Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147394,70591,156,156,'Instruction Disc (Flawed Force Field)','Nano Crystal (Flawed Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147395,46046,63,63,'Instruction Disc (Flawed Gladiatorbot)','Nano Crystal (Flawed Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147396,46047,99,99,'Instruction Disc (Flawed Guardbot)','Nano Crystal (Flawed Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147397,70581,14,14,'Instruction Disc (Flawed Protective Field)','Nano Crystal (Flawed Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147398,70582,7,7,'Instruction Disc (Flawed Shielding Barrier)','Nano Crystal (Flawed Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147399,46048,146,146,'Instruction Disc (Flawed Warbot)','Nano Crystal (Flawed Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147400,46049,162,162,'Instruction Disc (Flawed Warmachine)','Nano Crystal (Flawed Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147401,70596,169,169,'Instruction Disc (Force Field)','Nano Crystal (Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147402,29843,175,175,'Instruction Disc (Fortress of Spikes)','Nano Crystal (Fortress of Spikes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147403,46050,70,70,'Instruction Disc (Gladiatorbot)','Nano Crystal (Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147404,70577,4,4,'Instruction Disc (Greater Armor Megaboost)','Nano Crystal (Greater Armor Megaboost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147405,70420,159,159,'Instruction Disc (Greater Harmonic Cocoon)','Nano Crystal (Greater Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147406,55782,165,165,'Instruction Disc (Greater Retaliatory Barrier)','Nano Crystal (Greater Retaliatory Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147407,46051,109,109,'Instruction Disc (Guardbot)','Nano Crystal (Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147408,29844,10,10,'Instruction Disc (Gun Enhancement)','Nano Crystal (Gun Enhancement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147409,70424,139,139,'Instruction Disc (Harmonic Cocoon)','Nano Crystal (Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147410,70570,185,185,'Instruction Disc (Heavy Assault Force Field)','Nano Crystal (Heavy Assault Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147411,46052,24,24,'Instruction Disc (Inferior Android)','Nano Crystal (Inferior Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147412,46053,4,4,'Instruction Disc (Inferior Automaton)','Nano Crystal (Inferior Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147413,46054,57,57,'Instruction Disc (Inferior Gladiatorbot)','Nano Crystal (Inferior Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147414,46055,96,96,'Instruction Disc (Inferior Guardbot)','Nano Crystal (Inferior Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147415,46056,139,139,'Instruction Disc (Inferior Warbot)','Nano Crystal (Inferior Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147416,46057,162,162,'Instruction Disc (Inferior Warmachine)','Nano Crystal (Inferior Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147417,116802,156,156,'Instruction Disc (Intricate Repairs)','Nano Crystal (Intricate Repairs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147418,46058,24,24,'Instruction Disc (Lesser Android)','Nano Crystal (Lesser Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147419,46059,4,4,'Instruction Disc (Lesser Automaton)','Nano Crystal (Lesser Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147420,70571,57,57,'Instruction Disc (Lesser Defensive Screen)','Nano Crystal (Lesser Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147421,70595,162,162,'Instruction Disc (Lesser Force Field)','Nano Crystal (Lesser Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147422,46060,53,53,'Instruction Disc (Lesser Gladiatorbot)','Nano Crystal (Lesser Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147423,46061,93,93,'Instruction Disc (Lesser Guardbot)','Nano Crystal (Lesser Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147424,70422,96,96,'Instruction Disc (Lesser Harmonic Cocoon)','Nano Crystal (Lesser Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147425,70572,50,50,'Instruction Disc (Lesser Protective Field)','Nano Crystal (Lesser Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147426,55776,37,37,'Instruction Disc (Lesser Retaliatory Barrier)','Nano Crystal (Lesser Retaliatory Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147427,70587,43,43,'Instruction Disc (Lesser Shielding Barrier)','Nano Crystal (Lesser Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147428,46029,136,136,'Instruction Disc (Lesser Warbot)','Nano Crystal (Lesser Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147429,46030,159,159,'Instruction Disc (Lesser Warmachine)','Nano Crystal (Lesser Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147430,46031,156,156,'Instruction Disc (Military-Grade Warbot)','Nano Crystal (Military-Grade Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147431,46032,175,175,'Instruction Disc (Military-Grade Warmachine)','Nano Crystal (Military-Grade Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147432,70423,66,66,'Instruction Disc (Minor Harmonic Cocoon)','Nano Crystal (Minor Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147433,70426,30,30,'Instruction Disc (Partial Harmonic Cocoon)','Nano Crystal (Partial Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147434,46033,20,20,'Instruction Disc (Patchwork Android)','Nano Crystal (Patchwork Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147435,46034,1,1,'Instruction Disc (Patchwork Automaton)','Nano Crystal (Patchwork Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147436,46035,50,50,'Instruction Disc (Patchwork Gladiatorbot)','Nano Crystal (Patchwork Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147437,46036,90,90,'Instruction Disc (Patchwork Guardbot)','Nano Crystal (Patchwork Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147438,46037,132,132,'Instruction Disc (Patchwork Warbot)','Nano Crystal (Patchwork Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147439,46038,159,159,'Instruction Disc (Patchwork Warmachine)','Nano Crystal (Patchwork Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147440,116801,34,34,'Instruction Disc (Patchy Repairs)','Nano Crystal (Patchy Repairs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147441,46039,40,40,'Instruction Disc (Perfected Android)','Nano Crystal (Perfect Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147442,46040,14,14,'Instruction Disc (Perfected Automaton)','Nano Crystal (Perfected Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147443,70592,149,149,'Instruction Disc (Perfected Defensive Screen)','Nano Crystal (Perfected Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147444,46041,83,83,'Instruction Disc (Perfected Gladiatorbot)','Nano Crystal (Perfected Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147445,46042,119,119,'Instruction Disc (Perfected Guardbot)','Nano Crystal (Perfected Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147446,70593,146,146,'Instruction Disc (Perfected Protective Field)','Nano Crystal (Perfected Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147447,70590,139,139,'Instruction Disc (Perfected Shielding Barrier)','Nano Crystal (Perfected Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147448,46043,152,152,'Instruction Disc (Perfected Warbot)','Nano Crystal (Perfected Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147449,46044,172,172,'Instruction Disc (Perfected Warmachine)','Nano Crystal (Perfected Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147450,29852,53,53,'Instruction Disc (Philosopher''s Stone)','Nano Crystal (Philosopher''s Stone)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147451,29853,93,93,'Instruction Disc (Pillar of Spikes)','Nano Crystal (Pillar of Spikes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147452,29854,185,185,'Instruction Disc (Plasma Shield)','Nano Crystal (Plasma Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147453,70575,73,73,'Instruction Disc (Protective Field)','Nano Crystal (Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147454,116800,14,14,'Instruction Disc (Quick Fix)','Nano Crystal (Quick Fix)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147455,29858,40,40,'Instruction Disc (Quick Weapon)','Nano Crystal (Quick Weapon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147456,29859,129,129,'Instruction Disc (Rapid Weapon)','Nano Crystal (Rapid Weapon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147457,46017,182,182,'Instruction Disc (Reactivated Wardroid)','Nano Crystal (Reactivated Wardroid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147458,70425,179,179,'Instruction Disc (Reactive Harmonic Cocoon)','Nano Crystal (Reactive Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147459,116806,84,84,'Instruction Disc (Rebuild Casing)','Nano Crystal (Rebuild Casing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147460,116799,50,50,'Instruction Disc (Recondition Parts)','Nano Crystal (Recondition Parts)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147461,55778,132,132,'Instruction Disc (Retaliatory Barrier)','Nano Crystal (Retaliatory Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147462,46018,43,43,'Instruction Disc (Semi-Sentient Android)','Nano Crystal (Semi-Sentient Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147463,46019,17,17,'Instruction Disc (Semi-Sentient Automaton)','Nano Crystal (Semi-Sentient Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147464,46020,86,86,'Instruction Disc (Semi-Sentient Gladiatorbot)','Nano Crystal (Semi-Sentient Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147465,46021,123,123,'Instruction Disc (Semi-Sentient Guardbot)','Nano Crystal (Semi-Sentient Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147466,46022,156,156,'Instruction Disc (Semi-Sentient Warbot)','Nano Crystal (Semi-Sentient Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147467,46023,182,182,'Instruction Disc (Semi-Sentient Wardroid)','Nano Crystal (Semi-Sentient Wardroid)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147468,46024,175,175,'Instruction Disc (Semi-Sentient Warmachine)','Nano Crystal (Semi-Sentient Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147469,70573,63,63,'Instruction Disc (Shielding Barrier)','Nano Crystal (Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147470,46025,189,189,'Instruction Disc (Slayerdroid Guardian)','Nano Crystal (Slayerdroid Guardian)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147471,46026,185,185,'Instruction Disc (Slayerdroid Protector)','Nano Crystal (Slayerdroid Protector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147472,46027,189,189,'Instruction Disc (Slayerdroid Sentinel)','Nano Crystal (Slayerdroid Sentinel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147473,31594,185,185,'Instruction Disc (Slayerdroid Transference)','Nano Crystal (Slayerdroid Transference)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147474,46028,185,185,'Instruction Disc (Slayerdroid Warden)','Nano Crystal (Slayerdroid Warden)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147475,55781,159,159,'Instruction Disc (Sparkling Field Array)','Nano Crystal (Sparkling Field Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147476,29861,53,53,'Instruction Disc (Spike Armor)','Nano Crystal (Spike Armor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147477,29862,7,7,'Instruction Disc (Spike Shield)','Nano Crystal (Spike Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147478,70578,103,103,'Instruction Disc (Superior Defensive Screen)','Nano Crystal (Superior Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147479,70597,172,172,'Instruction Disc (Superior Force Field)','Nano Crystal (Superior Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147480,70579,96,96,'Instruction Disc (Superior Protective Field)','Nano Crystal (Superior Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147481,70576,86,86,'Instruction Disc (Superior Shielding Barrier)','Nano Crystal (Superior Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147482,29194,1,1,'Instruction Disc (Swift Weapon)','Engineer: Startup Crystal - Swift Weapon');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147483,29865,73,73,'Instruction Disc (Trap Artifice)','Nano Crystal (Trap Artifice)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147484,29868,189,189,'Instruction Disc (Ultimate Force Field)','Nano Crystal (Ultimate Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147485,46009,37,37,'Instruction Disc (Upgraded Android)','Nano Crystal (Upgraded Android)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147486,46010,10,10,'Instruction Disc (Upgraded Automaton)','Nano Crystal (Upgraded Automaton)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147487,46011,76,76,'Instruction Disc (Upgraded Gladiatorbot)','Nano Crystal (Upgraded Gladiatorbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147488,46012,113,113,'Instruction Disc (Upgraded Guardbot)','Nano Crystal (Upgraded Guardbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147489,46013,149,149,'Instruction Disc (Upgraded Warbot)','Nano Crystal (Upgraded Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147490,46014,169,169,'Instruction Disc (Upgraded Warmachine)','Nano Crystal (Upgraded Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147491,46015,149,149,'Instruction Disc (Warbot)','Nano Crystal (Warbot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147492,46016,165,165,'Instruction Disc (Warmachine)','Nano Crystal (Warmachine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147493,85274,33,33,'Instruction Disc (Active Distributed Entanglement)','Nano Crystal (Active Distributed Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147494,82806,20,20,'Instruction Disc (Active Micro Entanglement)','Nano Crystal (Active Micro Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147495,81896,142,142,'Instruction Disc (Advanced Augmentation Cloud)','Nano Crystal (Advanced Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147496,85271,103,103,'Instruction Disc (Advanced Insurance Hack)','Nano Crystal (Advanced Insurance Hack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147497,85272,142,142,'Instruction Disc (Advanced Policy Skim)','Nano Crystal (Advanced Policy Skim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147498,81895,106,106,'Instruction Disc (Augmentation Cloud)','Nano Crystal (Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147499,31443,57,57,'Instruction Disc (Back Pain)','Nano Crystal (Backpain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147500,85273,4,4,'Instruction Disc (Basic Insurance Hack)','Nano Crystal (Basic Insurance Hack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147501,85268,66,66,'Instruction Disc (Basic Policy Skim)','Nano Crystal (Basic Policy Skim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147502,31415,116,116,'Instruction Disc (Blood Makes Noise)','Nano Crystal (Blood Makes Noise)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147503,31419,27,27,'Instruction Disc (Contact Poison)','Nano Crystal (Contact Poison)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147504,31420,14,14,'Instruction Disc (Cracker''s Luck)','Nano Crystal (Cracker''s Luck)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147505,56254,60,60,'Instruction Disc (Delay Retreat)','Nano Crystal (Delay Retreat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147506,85269,73,73,'Instruction Disc (Detailed Medical Claim)','Nano Crystal (Detailed Medical Claim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147507,31422,27,27,'Instruction Disc (Embrace of Shadows)','Nano Crystal (Embrace of Shadows)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147509,85270,30,30,'Instruction Disc (Falsify Medical Records)','Nano Crystal (Falsify Medical Records)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147510,85265,129,129,'Instruction Disc (Flawless Medical Claim)','Nano Crystal (Flawless Medical Claim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147511,82805,126,126,'Instruction Disc (Gravity Bindings)','Nano Crystal (Gravity Bindings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147512,56255,139,139,'Instruction Disc (Greater Delay Retreat)','Nano Crystal (Greater Delay Retreat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147513,56253,90,90,'Instruction Disc (Greater Halt Flight)','Nano Crystal (Greater Halt Flight)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147514,81894,136,136,'Instruction Disc (Greater Nano Boost)','Nano Crystal (Greater Nano Boost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147515,82804,103,103,'Instruction Disc (Greater Nano Net)','Nano Crystal (Greater Nano Net)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147516,85266,119,119,'Instruction Disc (Greater Net Cast Wide)','Nano Crystal (Greater Net Cast Wide)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147517,56257,152,152,'Instruction Disc (Greater Prolong Encounter)','Nano Crystal (Greater Prolong Encounter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147518,142715,123,123,'Instruction Disc (Grid Excursion)','Nano Crystal (Grid Excursion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147519,93133,136,136,'Instruction Disc (Grid Phase Accelerator)','Nano Crystal (Grid Phase Accelerator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147520,31423,20,20,'Instruction Disc (Grid Phreak)','Nano Crystal (Grid Phreak)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147521,93138,43,43,'Instruction Disc (Grid Runner)','Nano Crystal (Grid Runner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147522,93139,83,83,'Instruction Disc (Grid Surfer)','Nano Crystal (Grid Surfer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147523,93135,156,156,'Instruction Disc (Gridspace Freedom)','Nano Crystal (Gridspace Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147524,93136,30,30,'Instruction Disc (Hack Grid Vector)','Nano Crystal (Hack Grid Vector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147525,56250,4,4,'Instruction Disc (Halt Flight)','Nano Crystal (Halt Flight)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147526,81893,43,43,'Instruction Disc (Hasty Augmentation Cloud)','Nano Crystal (Hasty Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147527,142719,74,74,'Instruction Disc (Instantaneous Encoding)','Nano Crystal (Instantaneous Encoding)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147528,85267,47,47,'Instruction Disc (Insurance Hack)','Nano Crystal (Insurance Hack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147529,85263,63,63,'Instruction Disc (Invasive Distributed Entanglement)','Nano Crystal (Invasive Distributed Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147530,82803,73,73,'Instruction Disc (Invasive Micro Entanglement)','Nano Crystal (Invasive Micro Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147531,31425,152,152,'Instruction Disc (Karma Harvest)','Nano Crystal (Karma Harvest)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147532,93137,63,63,'Instruction Disc (Leech Grid Vector)','Nano Crystal (Leech Grid Vector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147533,81892,10,10,'Instruction Disc (Lesser Nano Boost)','Nano Crystal (Lesser Nano Boost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147534,82802,10,10,'Instruction Disc (Lesser Nano Net)','Nano Crystal (Lesser Nano Net)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147535,85264,20,20,'Instruction Disc (Lesser Net Cast Wide)','Nano Crystal (Lesser Net Cast Wide)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147536,56251,27,27,'Instruction Disc (Lesser Prolong Encounter)','Nano Crystal (Lesser Prolong Encounter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147537,31449,90,90,'Instruction Disc (Lifebane Modification)','Nano Crystal (Lifebane Modification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147538,93140,17,17,'Instruction Disc (Limited Grid Jump)','Nano Crystal (Limited Grid Jump)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147539,31427,83,83,'Instruction Disc (Luck''s Fickle Fate)','Nano Crystal (Luck''s Fickle Fate)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147540,85281,136,136,'Instruction Disc (Mass Gravity Bindings)','Nano Crystal (Mass Gravity Bindings)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147541,85282,17,17,'Instruction Disc (Medical Claim)','Nano Crystal (Medical Claim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147543,81891,80,80,'Instruction Disc (Nano Boost)','Nano Crystal (Nano Boost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147544,82801,37,37,'Instruction Disc (Nano Net)','Nano Crystal (Nano Net)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147545,85277,43,43,'Instruction Disc (Net Cast Wide)','Nano Crystal (Net Cast Wide)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147546,81890,159,159,'Instruction Disc (Neural Interfaced Augmentation Cloud)','Nano Crystal (Neural Interfaced Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147547,56252,14,14,'Instruction Disc (No Escape Possible)','Nano Crystal (No Escape Possible)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147548,85278,149,149,'Instruction Disc (Omni-Med Incursion)','Nano Crystal (Omni-Med Incursion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147549,93134,113,113,'Instruction Disc (Partial Grid Jump)','Nano Crystal (Partial Grid Jump)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147550,85279,7,7,'Instruction Disc (Passive Distributed Entanglement)','Nano Crystal (Passive Distributed Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147551,82800,4,4,'Instruction Disc (Passive Micro Entanglement)','Nano Crystal (Passive Micro Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147552,31436,1,1,'Instruction Disc (Poison Modification)','Nano Crystal (Poison Modification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147553,85280,119,119,'Instruction Disc (Policy Skim)','Nano Crystal (Policy Skim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147554,56256,123,123,'Instruction Disc (Prolong Encounter)','Nano Crystal (Prolong Encounter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147555,142721,47,47,'Instruction Disc (Reckless Digitization)','Nano Crystal (Reckless Digitization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147556,142717,169,169,'Instruction Disc (Re-Matrix Grid Vector)','Nano Crystal (Re-Matrix Grid Vector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147557,129715,10,4,'Instruction Disc (Restock Ammo (Level OP-I))','Nano Crystal (Restock Ammo (Level OP-I))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147560,81889,169,169,'Instruction Disc (Semi-Sentient Augmentation Cloud)','Nano Crystal (Semi-Sentient Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147561,85275,156,156,'Instruction Disc (Spin Nanoweb)','Nano Crystal (Spin Nanoweb)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147562,85276,96,96,'Instruction Disc (Spin Weak Nanoweb)','Nano Crystal (Spin Weak Nanoweb)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147563,31441,70,70,'Instruction Disc (Stack the Odds)','Nano Crystal (Stack the Odds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147564,81888,149,149,'Instruction Disc (Targeted Augmentation Cloud)','Nano Crystal (Targeted Augmentation Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147565,142716,57,57,'Instruction Disc (Team Grid Phreak)','Nano Crystal (Team Grid Phreak)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147566,31446,60,60,'Instruction Disc (Venom Modification)','Nano Crystal (Venom Modification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147567,28917,24,24,'Instruction Disc (Bad Blood)','Nano Crystal (Bad Blood)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147568,81850,142,142,'Instruction Disc (Chirp of the Mournful Cricket)','Nano Crystal (Chirp of the Mournful Cricket)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147569,28919,132,132,'Instruction Disc (Cohort)','Nano Crystal (Cohort)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147570,81849,37,37,'Instruction Disc (Corrosive Fists)','Nano Crystal (Corrosive Fists)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147571,81848,10,10,'Instruction Disc (Crash of Thunder)','Nano Crystal (Crash of Thunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147572,28920,142,142,'Instruction Disc (Diamond Skin)','Nano Crystal (Diamond Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147573,28921,33,33,'Instruction Disc (Dirty Fighter)','Nano Crystal (Dirty Fighter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147574,100220,53,53,'Instruction Disc (Distracting Nuisance)','Nano Crystal (Distracting Nuisance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147575,28923,37,37,'Instruction Disc (Elusive Target)','Nano Crystal (Elusive Target)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147576,100221,86,86,'Instruction Disc (Encourage Hatred)','Nano Crystal (Encourage Hatred)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147577,81847,20,20,'Instruction Disc (Energized Fists)','Nano Crystal (Energized Fists)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147578,82076,142,142,'Instruction Disc (Enlightened Aura of Healing)','Nano Crystal (Enlightened Aura of Healing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147579,100218,162,162,'Instruction Disc (Eternal Enmity)','Nano Crystal (Eternal Enmity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147580,28926,96,96,'Instruction Disc (First Strike)','Nano Crystal (First Strike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147581,28927,66,66,'Instruction Disc (Fists of Fire)','Nano Crystal (Fists of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147582,81846,47,47,'Instruction Disc (Fists of Shocking Touch)','Nano Crystal (Fists of Shocking Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147583,81845,165,165,'Instruction Disc (Fists of Stellar Harmony)','Nano Crystal (Fists of Stellar Harmony)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147584,81844,146,146,'Instruction Disc (Fists of the Lightning Crane)','Nano Crystal (Fists of the Lightning Crane)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147585,81843,86,86,'Instruction Disc (Fists of the Maelstrom)','Nano Crystal (Fists of the Maelstrom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147586,81842,106,106,'Instruction Disc (Fists of the Polar Star)','Nano Crystal (Fists of the Polar Star)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147587,81841,126,126,'Instruction Disc (Fists of the Sorrowful Toad)','Nano Crystal (Fists of the Sorrowful Toad)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147588,28929,83,83,'Instruction Disc (Fleet Foot)','Nano Crystal (Fleet Foot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147589,28930,165,165,'Instruction Disc (Form of Tessai)','Nano Crystal (Form of Tessai)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147590,28931,169,169,'Instruction Disc (Four Fists of Kali)','Nano Crystal (Four Fists of Kali)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147591,28932,7,7,'Instruction Disc (Give Energy: 10)','Nano Crystal (Give Energy: 10)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147592,28933,53,53,'Instruction Disc (Give Energy: 100)','Nano Crystal (Give Energy: 100)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147593,28934,14,14,'Instruction Disc (Give Energy: 25)','Nano Crystal (Give Energy: 25)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147594,28935,27,27,'Instruction Disc (Give Energy: 50)','Nano Crystal (Give Energy: 50)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147595,28936,7,7,'Instruction Disc (Give Life: 10)','Nano Crystal (Give Life: 10)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147596,28937,50,50,'Instruction Disc (Give Life: 100)','Nano Crystal (Give Life: 100)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147597,28938,14,14,'Instruction Disc (Give Life: 25)','Nano Crystal (Give Life: 25)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147598,28939,27,27,'Instruction Disc (Give Life: 50)','Nano Crystal (Give Life: 50)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147599,82075,99,99,'Instruction Disc (Greater Healing Touch)','Nano Crystal (Greater Healing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147600,82074,129,129,'Instruction Disc (Greater Restore Essence)','Nano Crystal (Greater Restore Essence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147601,75364,132,132,'Instruction Disc (Greater Shen Protection)','Nano Crystal (Greater Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147602,75359,86,86,'Instruction Disc (Greater Steel Skin)','Nano Crystal (Greater Steel Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147603,82069,106,106,'Instruction Disc (Greater Team Healing Touch)','Nano Crystal (Greater Team Healing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147604,82068,132,132,'Instruction Disc (Greater Team Restore Essence)','Nano Crystal (Greater Team Restore Essence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147605,75362,123,123,'Instruction Disc (Greater Titanium Skin)','Nano Crystal (Greater Titanium Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147606,75358,53,53,'Instruction Disc (Greater Wooden Skin)','Nano Crystal (Greater Wooden Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147607,75355,14,14,'Instruction Disc (Harden Skin)','Nano Crystal (Harden Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147608,82073,73,73,'Instruction Disc (Healing Aura)','Nano Crystal (Healing Aura)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147609,82072,43,43,'Instruction Disc (Healing Touch)','Nano Crystal (Healing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147610,28941,149,149,'Instruction Disc (Horde)','Nano Crystal (Horde)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147611,81840,169,169,'Instruction Disc (Inner Peace, Outward Rage)','Nano Crystal (Inner Peace, Outward Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147612,28943,4,4,'Instruction Disc (Iron Fist)','Nano Crystal (Iron Fist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147613,95533,139,139,'Instruction Disc (Last Minute Adjustments)','Nano Crystal (Last Minute Adjustments)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147614,82071,10,10,'Instruction Disc (Lesser Healing Touch)','Nano Crystal (Lesser Healing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147615,75356,33,33,'Instruction Disc (Lesser Shen Protection)','Nano Crystal (Lesser Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147616,28945,17,17,'Instruction Disc (Limbo Mastery)','Nano Crystal (Limbo Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147617,81839,27,27,'Instruction Disc (Lotus on Water)','Nano Crystal (Lotus on Water)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147618,75363,99,99,'Instruction Disc (Major Shen Protection)','Nano Crystal (Major Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147619,28946,50,50,'Instruction Disc (Martial Arts Mastery)','Nano Crystal (Martial Arts Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147620,81838,40,40,'Instruction Disc (Meditate on an Autumn Leaf)','Nano Crystal (Meditate on an Autumn Leaf)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147621,75353,7,7,'Instruction Disc (Minor Shen Protection)','Nano Crystal (Minor Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147622,75367,152,152,'Instruction Disc (Monomolecular Skin)','Nano Crystal (Monomolecular Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147623,28949,70,70,'Instruction Disc (Muscle Booster)','Nano Crystal (Muscle Booster)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147624,28950,20,20,'Instruction Disc (Muscle Stim)','Nano Crystal (Muscle Stim)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147625,75366,136,136,'Instruction Disc (Partial Diamond Skin)','Nano Crystal (Partial Diamond Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147626,28952,4,4,'Instruction Disc (Spiritual Harmony)','Nano Crystal (Spiritual Harmony)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147627,28954,136,136,'Instruction Disc (Reduce Inertia)','Nano Crystal (Reduce Inertia)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147628,82070,20,20,'Instruction Disc (Restore Essence)','Nano Crystal (Restore Essence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147629,28955,146,146,'Instruction Disc (Return Attack)','Nano Crystal (Return Attack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147630,28956,24,24,'Instruction Disc (Rubber Skin)','Nano Crystal (Rubber Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147631,81837,76,76,'Instruction Disc (Sadness of the Willow)','Nano Crystal (Sadness of the Willow)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147632,100219,136,136,'Instruction Disc (Seething Resentment)','Nano Crystal (Seething Resentment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147633,75360,66,66,'Instruction Disc (Shen Protection)','Nano Crystal (Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147634,28958,76,76,'Instruction Disc (Steel Skin)','Nano Crystal (Steel Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147636,81836,152,152,'Instruction Disc (Summer Rain)','Nano Crystal (Summer Rain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147637,81835,93,93,'Instruction Disc (Sunrise over Pond)','Nano Crystal (Sunrise over Pond)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147638,75365,146,146,'Instruction Disc (Supreme Shen Protection)','Nano Crystal (Supreme Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147639,81834,113,113,'Instruction Disc (Sway of Bamboo)','Nano Crystal (Sway of Bamboo)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147640,82067,70,70,'Instruction Disc (Team Healing Aura)','Nano Crystal (Team Healing Aura)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147641,82066,40,40,'Instruction Disc (Team Healing Touch)','Nano Crystal (Team Healing Touch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147642,82065,17,17,'Instruction Disc (Team Restore Essence)','Nano Crystal (Team Restore Essence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147643,75361,109,109,'Instruction Disc (Titanium Skin)','Nano Crystal (Titanium Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147644,75354,1,1,'Instruction Disc (Toughen Skin)','Nano Crystal (Toughen Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147645,75352,159,159,'Instruction Disc (Transcendent Shen Protection)','Nano Crystal (Transcendent Shen Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147646,95531,169,169,'Instruction Disc (Universal Vulnerability Compendium)','Nano Crystal (Universal Vulnerability Compendium)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147647,28913,60,60,'Instruction Disc (Velocity)','Nano Crystal (Velocity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147648,95538,90,90,'Instruction Disc (Vulnerability Seeker)','Nano Crystal (Vulnerability Seeker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147649,81833,132,132,'Instruction Disc (Waiting Panda)','Nano Crystal (Waiting Panda)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147650,81832,57,57,'Instruction Disc (Wind-Blown Blossom)','Nano Crystal (Wind-blown Blossom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147651,75357,43,43,'Instruction Disc (Wooden Skin)','Nano Crystal (Wooden Skin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147652,28795,33,33,'Instruction Disc (Abyssal Flames)','Nano Crystal (Abyssal Flames)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147653,45397,24,24,'Instruction Disc (Accelerated Decay)','Nano Crystal (Accelerated Decay)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147654,45398,24,24,'Instruction Disc (Accelerated Titanium Pellet)','Nano Crystal (Accelerated Titanium Pellet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147655,45399,27,27,'Instruction Disc (Acidic Conversion)','Nano Crystal (Acidic Conversion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147656,42547,7,7,'Instruction Disc (Acidic Projection)','Nano Crystal (Acidic Projection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147657,118115,163,163,'Instruction Disc (Advanced Collapsing Barrier)','Nano Crystal (Advanced Collapsing Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147658,118113,107,107,'Instruction Disc (Advanced Layered Protection)','Nano Crystal (Advanced Layered Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147659,45400,30,30,'Instruction Disc (Aggressive Mutagen)','Nano Crystal (Aggressive Mutagen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147660,45401,165,165,'Instruction Disc (Annihilating Hadron String)','Nano Crystal (Annihilating Hadron String)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147661,45387,73,73,'Instruction Disc (Arctic Welcome)','Nano Crystal (Arctic Welcome)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147662,45388,159,159,'Instruction Disc (Atomic Collapse)','Nano Crystal (Atomic Collapse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147663,46002,50,50,'Instruction Disc (Augmented Energized Beam)','Nano Crystal (Augmented Energized Beam)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147664,42548,10,10,'Instruction Disc (Bacterial Invasion)','Nano Crystal (Bacterial Invasion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147665,56174,106,106,'Instruction Disc (Ball and Chain)','Nano Crystal (Ball and Chain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147666,46003,113,113,'Instruction Disc (Bane of the Living)','Nano Crystal (Bane of the Living)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147667,46004,96,96,'Instruction Disc (Barrage of Blades)','Nano Crystal (Barrage of Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147668,28796,109,109,'Instruction Disc (Barrage of Fire)','Nano Crystal (Barrage of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147669,46005,73,73,'Instruction Disc (Basic Crystalizing Ray)','Nano Crystal (Basic Crystalizing Ray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147670,90407,17,17,'Instruction Disc (Basic Humidity Extractor)','Nano Crystal (Basic Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147671,100447,30,30,'Instruction Disc (Bewilder)','Nano Crystal (Bewilder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147672,45389,119,119,'Instruction Disc (Bio-Acid Spray)','Nano Crystal (Bio-Acid Spray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147673,46006,86,86,'Instruction Disc (Blade Chaos)','Nano Crystal (Blade Chaos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147674,28797,169,169,'Instruction Disc (Blaze of Hephaestos)','Nano Crystal (Blaze of Hephaestos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147675,28798,33,33,'Instruction Disc (Blight)','Nano Crystal (Blight)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147676,28799,152,152,'Instruction Disc (Boil Blood)','Nano Crystal (Boil Blood)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147677,70631,126,126,'Instruction Disc (Boil from Within)','Nano Crystal (Boil From Within)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147678,90412,149,149,'Instruction Disc (Boundless Humidity Extractor)','Nano Crystal (Boundless Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147679,46007,24,24,'Instruction Disc (Brief Poison Fog)','Nano Crystal (Brief Poison Fog)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147680,83985,159,159,'Instruction Disc (Brutal Cornea Attack)','Nano Crystal (Brutal Cornea Attack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147681,56179,189,189,'Instruction Disc (Burden of Atlas)','Nano Crystal (Burden of Atlas)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147682,46008,93,93,'Instruction Disc (Burn From Within)','Nano Crystal (Burn from Within)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147683,28800,182,182,'Instruction Disc (Burning Bones)','Nano Crystal (Burning Bones)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147684,45390,57,57,'Instruction Disc (Burning Orb)','Nano Crystal (Burning Orb)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147685,45391,126,126,'Instruction Disc (Burning Quartet)','Nano Crystal (Burning Quartet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147686,45392,93,93,'Instruction Disc (Burning Triumvirate)','Nano Crystal (Burning Triumvirate)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147687,45393,175,175,'Instruction Disc (Cascade of the Storm)','Nano Crystal (Cascade of the Storm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147688,45394,40,40,'Instruction Disc (Cellular Decay)','Nano Crystal (Cellular Decay)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147689,28801,139,139,'Instruction Disc (Chaos Lights)','Nano Crystal (Chaos Lights)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147690,45395,47,47,'Instruction Disc (Chaotic Entropy)','Nano Crystal (Chaotic Entropy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147691,45396,24,24,'Instruction Disc (Chemical Burn)','Nano Crystal (Chemical Burn)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147692,45376,103,103,'Instruction Disc (Chemical Liquefaction)','Nano Crystal (Chemical Liquefaction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147693,45996,33,33,'Instruction Disc (Chilling Stream)','Nano Crystal (Chilling Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147694,28802,50,50,'Instruction Disc (Circle of Winter)','Nano Crystal (Circle of Winter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147695,45997,60,60,'Instruction Disc (Circle Scythe)','Nano Crystal (Circle Scythe)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147696,83984,7,7,'Instruction Disc (Claw Eyes)','Nano Crystal (Claw Eyes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147697,95454,40,40,'Instruction Disc (Coherent Nano Pathway)','Nano Crystal (Coherent Nano Pathway)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147698,45377,142,142,'Instruction Disc (Coherent Positron Stream)','Nano Crystal (Coherent Positron Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147699,95449,63,63,'Instruction Disc (Cohesion Amplifier)','Nano Crystal (Cohesion Amplifier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147700,118112,146,146,'Instruction Disc (Collapsing Barrier)','Nano Crystal (Collapsing Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147701,45378,149,149,'Instruction Disc (Collapsing Hadron String)','Nano Crystal (Collapsing Hadron String)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147702,28803,165,165,'Instruction Disc (Compacted Neutron Missile)','Nano Crystal (Compacted Neutron Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147703,45379,70,70,'Instruction Disc (Compressed Shockwave)','Nano Crystal (Compressed Shockwave)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147704,45998,30,30,'Instruction Disc (Condensed Halon Jet)','Nano Crystal (Condensed Halon Jet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147705,45999,99,99,'Instruction Disc (Condensed Pellet of Fire)','Nano Crystal (Condensed Pellet of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147706,45380,156,156,'Instruction Disc (Conduction Stream)','Nano Crystal (Conduction Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147707,45381,136,136,'Instruction Disc (Contained Plasma Sphere)','Nano Crystal (Contained Plasma Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147708,46000,76,76,'Instruction Disc (Convergent Energy Beam)','Nano Crystal (Convergent Energy Beam)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147709,83983,96,96,'Instruction Disc (Cornea Attack)','Nano Crystal (Cornea Attack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147710,45382,132,132,'Instruction Disc (Coronet of Frost)','Nano Crystal (Coronet of Frost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147711,28804,10,10,'Instruction Disc (Corrosive Spray)','Nano Crystal (Corrosive Spray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147712,45383,103,103,'Instruction Disc (Corrupt Molecular Integrity)','Nano Crystal (Corrupt Molecular Integrity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147713,28805,4,4,'Instruction Disc (Corruption)','Nano Crystal (Corruption)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147714,45384,156,156,'Instruction Disc (Crown of Frost)','Nano Crystal (Crown of Frost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147715,95427,10,10,'Instruction Disc (CrunchCom Code Sieve)','Nano Crystal (CrunchCom Code Sieve)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147716,95422,47,47,'Instruction Disc (CrunchCom Nano Compressor)','Nano Crystal (CrunchCom Nano Compressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147717,95423,123,123,'Instruction Disc (CrunchCom Nano Compressor Pro)','Nano Crystal (CrunchCom Nano Compressor Pro)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147718,46001,103,103,'Instruction Disc (Crystalizing Ray)','Nano Crystal (Crystalizing Ray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147719,83982,47,47,'Instruction Disc (Curtain of Darkness)','Nano Crystal (Curtain of Darkness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147720,28806,90,90,'Instruction Disc (Dark Movement)','Nano Crystal (Dark Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147721,45385,76,76,'Instruction Disc (Deep Chemical Burn)','Nano Crystal (Deep Chemical Burn)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147722,42545,17,17,'Instruction Disc (Deep Slash)','Nano Crystal (Deep Slash)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147723,45983,43,43,'Instruction Disc (Dense Matter Missile)','Nano Crystal (Dense Matter Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147724,45984,86,86,'Instruction Disc (Dense Matter Missile MK II)','Nano Crystal (Dense Matter Missile MK II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147725,45985,103,103,'Instruction Disc (Dense Poison Fog)','Nano Crystal (Dense Poison Fog)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147726,100446,129,129,'Instruction Disc (Discourage Involvement)','Nano Crystal (Discourage Involvement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147727,45386,106,106,'Instruction Disc (Dispersed Nanoblade Cloud)','Nano Crystal (Dispersed Nanoblade Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147728,45986,109,109,'Instruction Disc (Dissolving Sphere)','Nano Crystal (Dissolving Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147729,45987,20,20,'Instruction Disc (Dual Energized Beams)','Nano Crystal (Dual Energized Beams)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147730,45988,60,60,'Instruction Disc (Dual Ion Stream)','Nano Crystal (Dual Ion Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147731,90411,80,80,'Instruction Disc (Efficient Humidity Extractor)','Nano Crystal (Efficient Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147732,28807,185,185,'Instruction Disc (Electrifying Containment)','Nano Crystal (Electrifying Containment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147733,45989,142,142,'Instruction Disc (Encircle With Blades)','Nano Crystal (Encircle with Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147734,45990,4,4,'Instruction Disc (Energized Beam)','Nano Crystal (Energized Beam)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147735,45365,113,113,'Instruction Disc (Energized Collapse)','Nano Crystal (Energized Collapse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147736,28808,53,53,'Instruction Disc (Energy Projectile)','Nano Crystal (Energy Projectile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147737,45991,149,149,'Instruction Disc (Engulf in Flame)','Nano Crystal (Engulf in Flame)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147738,95453,20,20,'Instruction Disc (Enhance Nano Cohesion)','Nano Crystal (Enhance Nano Cohesion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147739,95452,4,4,'Instruction Disc (Enhance Nano Communication)','Nano Crystal (Enhance Nano Communication)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147740,45366,30,30,'Instruction Disc (Entropy Beam)','Nano Crystal (Entropy Beam)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147741,83970,57,57,'Instruction Disc (Enveloping Darkness)','Nano Crystal (Enveloping Darkness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147742,45992,76,76,'Instruction Disc (Eroding Spray)','Nano Crystal (Eroding Spray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147743,83981,152,152,'Instruction Disc (Eviscerate Eyes)','Nano Crystal (Eviscerate Eyes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147744,45993,70,70,'Instruction Disc (Expanding Neutron Pulse)','Nano Crystal (Expanding Neutron Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147745,28809,169,169,'Instruction Disc (Eye of Light)','Nano Crystal (Eye of Light)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147746,83980,139,139,'Instruction Disc (Eyeblighter)','Nano Crystal (Eyeblighter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147747,45994,7,7,'Instruction Disc (Feeble Blade Chaos)','Nano Crystal (Feeble Blade Chaos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147748,45367,90,90,'Instruction Disc (Feeble Gravitational Anomaly)','Nano Crystal (Feeble Gravitational Anomaly)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147749,56176,73,73,'Instruction Disc (Feet of Iron)','Nano Crystal (Feet of Iron)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147750,56173,165,165,'Instruction Disc (Feet of Lead)','Nano Crystal (Feet of Lead)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147751,56178,14,14,'Instruction Disc (Feet of Stone)','Nano Crystal (Feet of Stone)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147752,45995,162,162,'Instruction Disc (Ferocious Impactor Missile)','Nano Crystal (Ferocious Impactor Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147753,45974,142,142,'Instruction Disc (Fiery Blast)','Nano Crystal (Fiery Blast)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147754,28810,27,27,'Instruction Disc (Fire Snake)','Nano Crystal (Fire Snake)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147755,28811,7,7,'Instruction Disc (Fire Stream)','Nano Crystal (Fire Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147756,118111,182,182,'Instruction Disc (Fleeting Immunity)','Nano Crystal (Fleeting Immunity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147757,45368,116,116,'Instruction Disc (Focused Ray)','Nano Crystal (Focused Ray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147758,45975,90,90,'Instruction Disc (Foul Bane)','Nano Crystal (Foul Bane)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147759,83979,162,162,'Instruction Disc (Foul Eyeblighter)','Nano Crystal (Foul Eyeblighter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147760,28812,96,96,'Instruction Disc (Freezing Surge)','Nano Crystal (Freezing Surge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147761,45976,159,159,'Instruction Disc (Frigid Landscape)','Nano Crystal (Frigid Landscape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147762,45369,43,43,'Instruction Disc (Frosty Welcome)','Nano Crystal (Frosty Welcome)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147763,45370,185,185,'Instruction Disc (Full-Body Acid Coating)','Nano Crystal (Full-body Acid Coating)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147764,28813,83,83,'Instruction Disc (Furious Assault)','Nano Crystal (Furious Assault)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147765,45977,103,103,'Instruction Disc (Furious Wind Blade)','Nano Crystal (Furious Wind Blade)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147766,45371,37,37,'Instruction Disc (Gaping Puncture)','Nano Crystal (Gaping Puncture)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147767,45372,50,50,'Instruction Disc (Glacial Advance)','Nano Crystal (Glacial Advance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147768,45373,175,175,'Instruction Disc (Glacial Finality)','Nano Crystal (Glacial Finality)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147769,83978,27,27,'Instruction Disc (Gouge Eyes)','Nano Crystal (Gouge Eyes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147770,45374,169,169,'Instruction Disc (Gravitational Anomaly)','Nano Crystal (Gravitational Anomaly)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147771,56175,149,149,'Instruction Disc (Gravity Pull)','Nano Crystal (Gravity Pull)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147772,45978,119,119,'Instruction Disc (Greater Blade Chaos)','Nano Crystal (Greater Blade Chaos)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147773,45979,70,70,'Instruction Disc (Greater Chilling Stream)','Nano Crystal (Greater Chilling Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147774,45980,139,139,'Instruction Disc (Greater Crystalizing Ray)','Nano Crystal (Greater Crystalizing Ray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147775,45981,129,129,'Instruction Disc (Greater RNA Reaper)','Nano Crystal (Greater RNA Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147776,45375,172,172,'Instruction Disc (Greater Searing Stream)','Nano Crystal (Greater Searing Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147777,45982,132,132,'Instruction Disc (Greater Shower with Sludge)','Nano Crystal (Greater Shower With Sludge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147778,45967,83,83,'Instruction Disc (Greater Toxic Field)','Nano Crystal (Greater Toxic Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147779,45359,179,179,'Instruction Disc (Greater Viral Assault)','Nano Crystal (Greater Viral Assault)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147780,42544,20,20,'Instruction Disc (Halon Cloud)','Nano Crystal (Halon Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147781,45360,57,57,'Instruction Disc (Hoary Seep)','Nano Crystal (Hoary Seep)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147782,28814,14,14,'Instruction Disc (Hot Foot)','Nano Crystal (Hot Feet)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147783,90410,40,40,'Instruction Disc (Humidity Extractor)','Nano Crystal (Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147784,45968,123,123,'Instruction Disc (Impactor Missile)','Nano Crystal (Impactor Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147785,45361,139,139,'Instruction Disc (Impaling Tracer)','Nano Crystal (Impaling Tracer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147786,28816,162,162,'Instruction Disc (Internal Combustion)','Nano Crystal (Internal Combustion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147787,28817,70,70,'Instruction Disc (Invasive Presence)','Nano Crystal (Invasive Presence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147788,45969,14,14,'Instruction Disc (Ion Stream)','Nano Crystal (Ion Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147789,45362,50,50,'Instruction Disc (Isotope Deluge)','Nano Crystal (Isotope Deluge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147790,45970,146,146,'Instruction Disc (Isotope Waves)','Nano Crystal (Isotope Waves)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147791,28819,182,182,'Instruction Disc (Izgimmer''s Enveloping Flame)','Nano Crystal (Izgimmer''s Enveloping Flame)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147792,28821,212,212,'Instruction Disc (Izgimmer''s Last Word)','Nano Crystal (Izgimmer''s Last Word)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147793,28822,185,185,'Instruction Disc (Izgimmer''s Little Nuke)','Nano Crystal (Izgimmer''s Little Nuke)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147794,95424,179,179,'Instruction Disc (Izgimmer''s Obfuscated Recompiler)','Nano Crystal (Izgimmer''s Obfuscated Recompiler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147795,95419,152,152,'Instruction Disc (Jobe Nano Libraries)','Nano Crystal (Jobe Nano Libraries)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147796,28823,212,212,'Instruction Disc (Kel''s Neutronium Plaything)','Nano Crystal (Kel''s Neutronium Plaything)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147797,118123,80,80,'Instruction Disc (Layered Protection)','Nano Crystal (Layered Protection)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147798,83969,162,162,'Instruction Disc (Legions of the Eyeblighter)','Nano Crystal (Legions of the Eyeblighter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147799,45971,40,40,'Instruction Disc (Lesser Bane of the Living)','Nano Crystal (Lesser Bane of the Living)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147800,45363,109,109,'Instruction Disc (Lesser Coronet of Frost)','Nano Crystal (Lesser Coronet of Frost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147801,45972,47,47,'Instruction Disc (Lesser Encircle With Blades)','Nano Crystal (Lesser Encircle With Blades)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147802,83977,86,86,'Instruction Disc (Lesser Eyeblighter)','Nano Crystal (Lesser Eyeblighter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147803,45973,14,14,'Instruction Disc (Lesser RNA Reaper)','Nano Crystal (Lesser RNA Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147804,28824,80,80,'Instruction Disc (Lightning Strike)','Nano Crystal (Lightning Strike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147805,45959,83,83,'Instruction Disc (Limited Shrapnel Spray)','Nano Crystal (Limited Shrapnel Spray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147806,45364,159,159,'Instruction Disc (Linear Acceleration)','Nano Crystal (Linear Acceleration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147807,45960,132,132,'Instruction Disc (Liquefying Sphere)','Nano Crystal (Liquefying Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147808,45349,189,189,'Instruction Disc (Localized Dimensional Inversion)','Nano Crystal (Localized Dimensional Inversion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147809,45350,146,146,'Instruction Disc (Major Chemical Burn)','Nano Crystal (Major Chemical Burn)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147810,45351,149,149,'Instruction Disc (Malign Devourer)','Nano Crystal (Malign Devourer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147811,83968,20,20,'Instruction Disc (Mass Claw Eyes)','Nano Crystal (Mass Claw Eyes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147812,83967,109,109,'Instruction Disc (Mass Cornea Attack)','Nano Crystal (Mass Cornea Attack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147813,83966,132,132,'Instruction Disc (Mass Pronounce Blindness)','Nano Crystal (Mass Pronounce Blindness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147814,45352,123,123,'Instruction Disc (Mephitic Ichor)','Nano Crystal (Mephitic Ichor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147815,45353,103,103,'Instruction Disc (Meson Blast)','Nano Crystal (Meson Blast)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147816,45354,136,136,'Instruction Disc (Meta-Dioxin Spray)','Nano Crystal (Meta-Dioxin Spray)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147817,45961,17,17,'Instruction Disc (Micro Flechette)','Nano Crystal (Micro Flechette)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147818,45962,116,116,'Instruction Disc (Micro Flechette Swarm)','Nano Crystal (Micro Flechette Swarm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147819,28825,47,47,'Instruction Disc (Microblade Whirlwind)','Nano Crystal (Microblade Whirlwind)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147820,45963,37,37,'Instruction Disc (Mild Toxic Spill)','Nano Crystal (Mild Toxic Spill)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147821,45964,57,57,'Instruction Disc (Minor Bane)','Nano Crystal (Minor Bane)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147822,45965,1,1,'Instruction Disc (Minor Toxic Barb)','Nano Crystal (Minor Toxic Barb)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147823,45966,10,10,'Instruction Disc (Minor Toxic Field)','Nano Crystal (Minor Toxic Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147824,28826,185,185,'Instruction Disc (Molecular Deconstruction)','Nano Crystal (Molecular Deconstruction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147825,45355,165,165,'Instruction Disc (Molecular Flechettes)','Nano Crystal (Molecular Flechettes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147826,42546,17,17,'Instruction Disc (Molecule Lance)','Nano Crystal (Molecule Lance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147827,45356,123,123,'Instruction Disc (Momentum Impaler)','Nano Crystal (Momentum Impaler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147828,95450,149,149,'Instruction Disc (Nano Cloud Supplement)','Nano Crystal (Nano Cloud Supplement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147829,45357,53,53,'Instruction Disc (Nano Contagion)','Nano Crystal (Nano Contagion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147830,45358,142,142,'Instruction Disc (Nanoblade Cloud)','Nano Crystal (Nanoblade Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147831,28828,152,152,'Instruction Disc (Neural Stunner)','Nano Crystal (Neural Stunner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147832,45340,66,66,'Instruction Disc (Neutron Spiral)','Nano Crystal (Neutron Spiral)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147833,95451,175,175,'Instruction Disc (Notum Overload)','Nano Crystal (Notum Overload)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147834,45341,96,96,'Instruction Disc (Ol'' Faithful)','Nano Crystal (Ol'' Faithful)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147835,95420,73,73,'Instruction Disc (On-The-Fly Compression)','Nano Crystal (On-The-Fly Compression)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147836,45956,7,7,'Instruction Disc (Open Wound)','Nano Crystal (Open Wound)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147837,28829,123,123,'Instruction Disc (Particle Accelerator)','Nano Crystal (Particle Accelerator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147838,45342,129,129,'Instruction Disc (Particle Flare)','Nano Crystal (Particle Flare)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147839,45343,90,90,'Instruction Disc (Particle Shower)','Nano Crystal (Particle Shower)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147840,100445,159,159,'Instruction Disc (Peaceful Intentions)','Nano Crystal (Peaceful Intentions)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147841,45957,83,83,'Instruction Disc (Pellet of Fire)','Nano Crystal (Pellet of Fire)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147842,90413,169,169,'Instruction Disc (Personal Notum Harvester)','Nano Crystal (Personal Notum Harvester)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147843,28830,37,37,'Instruction Disc (Phoenix Swarm)','Nano Crystal (Phoenix Swarm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147844,45344,83,83,'Instruction Disc (Phosphor Torch)','Nano Crystal (Phosphor Torch)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147845,83976,172,172,'Instruction Disc (Photon Deflector)','Nano Crystal (Photon Deflector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147846,28831,50,50,'Instruction Disc (Plasma Lights)','Nano Crystal (Plasma Lights)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147847,28832,76,76,'Instruction Disc (Plasma Swirl)','Nano Crystal (Plasma Swirl)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147848,28833,30,30,'Instruction Disc (Poison Missile)','Nano Crystal (Poison Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147849,83975,4,4,'Instruction Disc (Poke Eyes)','Nano Crystal (Poke Eyes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147850,45345,96,96,'Instruction Disc (Positron Stream)','Nano Crystal (Positron Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147851,100462,60,60,'Instruction Disc (Project Calm)','Nano Crystal (Project Calm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147852,83974,119,119,'Instruction Disc (Pronounce Blindness)','Nano Crystal (Pronounce Blindness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147853,45346,182,182,'Instruction Disc (Quark Collapse)','Nano Crystal (Quark Collapse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147854,28834,4,4,'Instruction Disc (Radiation Pulse)','Nano Crystal (Radiation Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147855,45347,76,76,'Instruction Disc (Radiation Scour)','Nano Crystal (Radiation Scour)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147856,28835,99,99,'Instruction Disc (Radioactive Cloud)','Nano Crystal (Radioactive Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147857,45348,129,129,'Instruction Disc (Rend Flesh)','Nano Crystal (Rend Flesh)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147858,45958,63,63,'Instruction Disc (RNA Reaper)','Nano Crystal (RNA Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147859,90409,1,1,'Instruction Disc (Rudimentary Humidity Extractor)','Nano Crystal (Rudimentary Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147860,95421,33,33,'Instruction Disc (Run-Time Recompiler)','Nano Crystal (Run-Time Recompiler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147861,70630,80,80,'Instruction Disc (Searing Agony)','Nano Crystal (Searing Agony)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147862,45328,152,152,'Instruction Disc (Searing Circle)','Nano Crystal (Searing Circle)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147863,45329,159,159,'Instruction Disc (Searing Stream)','Nano Crystal (Searing Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147864,28836,14,14,'Instruction Disc (Shockball)','Nano Crystal (Shockball)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147865,28837,66,66,'Instruction Disc (Shockwave Slash)','Nano Crystal (Shockwave Slash)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147866,45946,40,40,'Instruction Disc (Shower With Sludge)','Nano Crystal (Shower With Sludge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147867,28838,123,123,'Instruction Disc (Shrapnel Burst)','Nano Crystal (Shrapnel Burst)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147868,83973,66,66,'Instruction Disc (Shroud of Darkness)','Nano Crystal (Shroud of Darkness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147869,83972,182,182,'Instruction Disc (Shroud of the Grave)','Nano Crystal (Shroud of the Grave)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147870,28839,93,93,'Instruction Disc (Slime Cascade)','Nano Crystal (Slime Cascade)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147871,45947,24,24,'Instruction Disc (Smiting Missile)','Nano Crystal (Smiting Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147872,45948,57,57,'Instruction Disc (Smiting Missile Mk II)','Nano Crystal (Smiting Missile Mk II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147873,45949,152,152,'Instruction Disc (Solar Wind)','Nano Crystal (Solar Wind)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147874,45950,156,156,'Instruction Disc (Stargasp)','Nano Crystal (Stargasp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147875,45330,63,63,'Instruction Disc (Stinging Missile)','Nano Crystal (Stinging Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147876,45331,179,179,'Instruction Disc (Stinging Missile Swarm)','Nano Crystal (Stinging Missile Swarm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147877,45332,162,162,'Instruction Disc (Sudden Affliction)','Nano Crystal (Sudden Affliction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147878,45951,24,24,'Instruction Disc (Sudden Chill)','Nano Crystal (Sudden Chill)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147879,90408,99,99,'Instruction Disc (Superior Humidity Extractor)','Nano Crystal (Superior Humidity Extractor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147880,45333,172,172,'Instruction Disc (Superior Malign Devourer)','Nano Crystal (Superior Malign Devourer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147881,95455,93,93,'Instruction Disc (Superior Nano Command)','Nano Crystal (Superior Nano Command)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147882,45334,116,116,'Instruction Disc (Tear Flesh)','Nano Crystal (Tear Flesh)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147883,45335,60,60,'Instruction Disc (Thunderclap)','Nano Crystal (Thunderclap)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147884,45336,43,43,'Instruction Disc (Thunderous Blow)','Nano Crystal (Thunderous Blow)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147885,45952,37,37,'Instruction Disc (Toxic Field)','Nano Crystal (Toxic Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147886,45953,126,126,'Instruction Disc (Toxic Sphere)','Nano Crystal (Toxic Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147887,45954,132,132,'Instruction Disc (Toxic Spill)','Nano Crystal (Toxic Spill)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147888,28840,175,175,'Instruction Disc (Tremor)','Nano Crystal (Tremor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147889,45955,109,109,'Instruction Disc (Tri-Ion Stream)','Nano Crystal (Tri-Ion Stream)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147890,45337,119,119,'Instruction Disc (Unstable Hadron String)','Nano Crystal (Unstable Hadron String)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147891,45338,66,66,'Instruction Disc (Viral Assault)','Nano Crystal (Viral Assault)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147892,83971,189,189,'Instruction Disc (Visions of the Void)','Nano Crystal (Visions of the Void)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147893,45339,86,86,'Instruction Disc (Void Warmth)','Nano Crystal (Void Warmth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147894,28841,182,182,'Instruction Disc (Volcanic Eruption)','Nano Crystal (Volcanic Eruption)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147895,28842,113,113,'Instruction Disc (Vulcan Flechette)','Nano Crystal (Vulcan Flechette)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147896,45325,189,189,'Instruction Disc (Warmth of the Grave)','Nano Crystal (Warmth of the Grave)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147897,45326,57,57,'Instruction Disc (Weak Chemical Liquefaction)','Nano Crystal (Weak Chemical Liquefaction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147898,45327,33,33,'Instruction Disc (Weak Gravity Collapse)','Nano Crystal (Weak Gravity Collapse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147899,56177,40,40,'Instruction Disc (Weak Gravity Pull)','Nano Crystal (Weak Gravity Pull)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147900,45944,1,1,'Instruction Disc (Weak Smiting Missile)','Nano Crystal (Weak Smiting Missile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147901,83965,37,37,'Instruction Disc (Wild Eye Gouger)','Nano Crystal (Wild Eye Gouger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147902,45945,27,27,'Instruction Disc (Wind Blade)','Nano Crystal (Wind Blade)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147903,29367,66,66,'Instruction Disc (Absorption Shield)','Nano Crystal (Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147904,75423,132,132,'Instruction Disc (Advanced Absorption Shield)','Nano Crystal (Advanced Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147905,75421,119,119,'Instruction Disc (Advanced Combat Barrier)','Nano Crystal (Advanced Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147906,29330,90,90,'Instruction Disc (Aggressive Captivation)','Nano Crystal (Aggressive Captivation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147907,100230,70,70,'Instruction Disc (Annoying Presence)','Nano Crystal (Annoying Presence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147908,29332,50,50,'Instruction Disc (Assault Rifle Mastery)','Nano Crystal (Assault Rifle Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147909,29333,27,27,'Instruction Disc (Attack Booster)','Nano Crystal (Attack Booster)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147910,29334,106,106,'Instruction Disc (Automatic Targeting)','Nano Crystal (Automatic Targeting)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147911,95726,152,152,'Instruction Disc (Battlefield Endurance)','Nano Crystal (Battlefield Endurance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147912,95727,17,17,'Instruction Disc (Boot Camp Toughness)','Nano Crystal (Boot Camp Toughness)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147913,75418,50,50,'Instruction Disc (Combat Barrier)','Nano Crystal (Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147914,95723,33,33,'Instruction Disc (Combat Hardening)','Nano Crystal (Combat Hardening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147915,29337,40,40,'Instruction Disc (Damage Amplifier)','Nano Crystal (Damage Amplifier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147916,29338,7,7,'Instruction Disc (Damage Multiplier)','Nano Crystal (Damage Multiplier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147917,70383,33,33,'Instruction Disc (Deflection Shield)','Nano Crystal (Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147918,70384,37,37,'Instruction Disc (Deflection Shield (Extended))','Nano Crystal (Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147919,100228,14,14,'Instruction Disc (Draw Attention)','Nano Crystal (Draw Attention)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147920,29340,4,4,'Instruction Disc (Ego Taunt)','Nano Crystal (Ego Taunt)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147921,29342,63,63,'Instruction Disc (Ranged Energy Weapon Mastery)','Nano Crystal (LR Energy Weapon Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147922,100229,30,30,'Instruction Disc (Enraged Mind)','Nano Crystal (Enraged Mind)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147923,70385,50,50,'Instruction Disc (Greater Deflection Shield)','Nano Crystal (Greater Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147924,70386,57,57,'Instruction Disc (Greater Deflection Shield (Extended))','Nano Crystal (Greater Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147925,70387,129,129,'Instruction Disc (Greater Reflective Field)','Nano Crystal (Greater Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147926,70388,132,132,'Instruction Disc (Greater Reflective Field (Extended))','Nano Crystal (Greater Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147927,75427,159,159,'Instruction Disc (Heavy Assault Absorption Shield)','Nano Crystal (Heavy Assault Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147928,75426,152,152,'Instruction Disc (Heavy Assault Combat Barrier)','Nano Crystal (Heavy Assault Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147929,29344,139,139,'Instruction Disc (Helepolis of the Besieger)','Nano Crystal (Helepolis of the Besieger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147930,100227,132,132,'Instruction Disc (Id Assault)','Nano Crystal (Id Assault)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147931,75419,37,37,'Instruction Disc (Lesser Absorption Shield)','Nano Crystal (Lesser Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147932,75417,20,20,'Instruction Disc (Lesser Combat Barrier)','Nano Crystal (Lesser Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147933,70390,24,24,'Instruction Disc (Lesser Deflection Shield)','Nano Crystal (Lesser Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147934,70389,30,30,'Instruction Disc (Lesser Deflection Shield (Extended))','Nano Crystal (Lesser Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147935,70392,123,123,'Instruction Disc (Lesser Reflective Field)','Nano Crystal (Lesser Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147936,70391,123,123,'Instruction Disc (Lesser Reflective Field (Extended))','Nano Crystal (Lesser Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147937,70393,63,63,'Instruction Disc (Major Deflection Shield)','Nano Crystal (Major Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147938,70394,70,70,'Instruction Disc (Major Deflection Shield (Extended))','Nano Crystal (Major Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147939,70395,136,136,'Instruction Disc (Major Reflective Field)','Nano Crystal (Major Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147940,70396,139,139,'Instruction Disc (Major Reflective Field (Extended))','Nano Crystal (Major Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147941,75416,14,14,'Instruction Disc (Minor Absorption Shield)','Nano Crystal (Minor Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147942,75415,4,4,'Instruction Disc (Minor Combat Barrier)','Nano Crystal (Minor Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147943,70397,14,14,'Instruction Disc (Minor Deflection Shield)','Nano Crystal (Minor Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147944,70398,17,17,'Instruction Disc (Minor Deflection Shield (Extended))','Nano Crystal (Minor Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147945,70399,113,113,'Instruction Disc (Minor Reflective Field)','Nano Crystal (Minor Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147946,70400,119,119,'Instruction Disc (Minor Reflective Field (Extended))','Nano Crystal (Minor Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147947,29352,156,156,'Instruction Disc (Offensive Steamroller)','Nano Crystal (Offensive Steamroller)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147948,29353,76,76,'Instruction Disc (One-More-Hit Healing)','Nano Crystal (Don''t Fear the Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147949,29354,152,152,'Instruction Disc (Only You, Only Me)','Nano Crystal (Only You, Only Me)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147950,70401,1,1,'Instruction Disc (Partial Deflection Shield)','Nano Crystal (Partial Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147951,70403,7,7,'Instruction Disc (Partial Deflection Shield (Extended))','Nano Crystal (Partial Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147952,70402,96,96,'Instruction Disc (Partial Reflective Field)','Nano Crystal (Partial Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147953,70405,99,99,'Instruction Disc (Partial Reflective Field (Extended))','Nano Crystal (Partial Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147954,75424,142,142,'Instruction Disc (Perfected Absorption Shield)','Nano Crystal (Perfected Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147955,75425,139,139,'Instruction Disc (Perfected Combat Barrier)','Nano Crystal (Perfected Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147956,29355,57,57,'Instruction Disc (Persistent Damage Amplifier)','Nano Crystal (Persistent Damage Amplifier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147957,29356,17,17,'Instruction Disc (Persistent Damage Multiplier)','Nano Crystal (Persistent Damage Multiplier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147958,29358,24,24,'Instruction Disc (Pistol Mastery)','Nano Crystal (Pistol Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147959,29359,43,43,'Instruction Disc (Precognition)','Nano Crystal (Precognition)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147960,29360,17,17,'Instruction Disc (Quickshot)','Nano Crystal (Quickshot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147961,70404,76,76,'Instruction Disc (Reactive Deflection Shield)','Nano Crystal (Reactive Deflection Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147962,70406,83,83,'Instruction Disc (Reactive Deflection Shield (Extended))','Nano Crystal (Reactive Deflection Shield (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147963,70407,142,142,'Instruction Disc (Reactive Reflective Field)','Nano Crystal (Reactive Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147964,70408,142,142,'Instruction Disc (Reactive Reflective Field (Extended))','Nano Crystal (Reactive Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147965,70409,126,126,'Instruction Disc (Reflective Field)','Nano Crystal (Reflective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147966,70410,126,126,'Instruction Disc (Reflective Field (Extended))','Nano Crystal (Reflective Field (Extended))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147967,29362,37,37,'Instruction Disc (Rifle Mastery)','Nano Crystal (Rifle Mastery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147968,29363,126,126,'Instruction Disc (Riot Control)','Nano Crystal (Riot Control)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147969,75422,99,99,'Instruction Disc (Superior Absorption Shield)','Nano Crystal (Superior Absorption Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147970,75420,83,83,'Instruction Disc (Superior Combat Barrier)','Nano Crystal (Superior Combat Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147971,95724,139,139,'Instruction Disc (Survivor''s Resilience)','Nano Crystal (Survivor''s Resilience)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147972,29366,113,113,'Instruction Disc (Titan Physique)','Nano Crystal (Titan Physique)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147973,29329,136,136,'Instruction Disc (Total Focus)','Nano Crystal (Total Focus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147974,70411,10,10,'Instruction Disc (Total Mirror Shield Mk I)','Nano Crystal (Total Mirror Shield Mk I)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147975,70412,27,27,'Instruction Disc (Total Mirror Shield Mk II)','Nano Crystal (Total Mirror Shield Mk II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147976,70413,47,47,'Instruction Disc (Total Mirror Shield Mk III)','Nano Crystal (Total Mirror Shield Mk III)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147977,70414,60,60,'Instruction Disc (Total Mirror Shield Mk IV)','Nano Crystal (Total Mirror Shield Mk IV)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147978,70415,132,132,'Instruction Disc (Total Mirror Shield Mk IX)','Nano Crystal (Total Mirror Shield Mk IX)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147979,70416,86,86,'Instruction Disc (Total Mirror Shield Mk V)','Nano Crystal (Total Mirror Shield Mk V)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147980,70417,106,106,'Instruction Disc (Total Mirror Shield Mk VI)','Nano Crystal (Total Mirror Shield Mk VI)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147981,70418,126,126,'Instruction Disc (Total Mirror Shield Mk VII)','Nano Crystal (Total Mirror Shield Mk VII)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147982,70419,129,129,'Instruction Disc (Total Mirror Shield Mk VIII)','Nano Crystal (Total Mirror Shield Mk VIII)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147983,70421,146,146,'Instruction Disc (Total Mirror Shield Mk X)','Nano Crystal (Total Mirror Shield Mk X)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147984,95725,63,63,'Instruction Disc (Tough as Nails)','Nano Crystal (Tough as Nails)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147985,121507,74,74,'Instruction Disc (Accomplished Health Haggler)','Nano Crystal (Accomplished Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147986,118258,123,123,'Instruction Disc (Advanced Delayed Health Payment)','Nano Crystal (Advanced Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147987,78434,103,103,'Instruction Disc (Advanced Health Freeloader)','Nano Crystal (Advanced Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147988,78424,30,30,'Instruction Disc (Advanced Health Funnel)','Nano Crystal (Advanced Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147989,78443,169,169,'Instruction Disc (Advanced Health Plunder)','Nano Crystal (Advanced Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147990,121518,4,4,'Instruction Disc (Amateur Health Haggler)','Nano Crystal (Amateur Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147991,30804,24,24,'Instruction Disc (Apprentice: Electrical Engineering)','Nano Crystal (Apprentice: Electrical Engineering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147992,30758,27,27,'Instruction Disc (Apprentice: Field Quantum Physics)','Nano Crystal (Apprentice: Field Quantum Physics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147993,121519,17,17,'Instruction Disc (Apprentice Health Haggler)','Nano Crystal (Apprentice Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147994,30759,30,30,'Instruction Disc (Apprentice: Mechanical Engineering)','Nano Crystal (Apprentice: Mechanical Engineering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147995,29103,33,33,'Instruction Disc (Apprentice: Pharmaceuticals)','Nano Crystal (Apprentice: Pharmaceuticals)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147996,29102,33,33,'Instruction Disc (Apprentice: Weapon Smithing)','Nano Crystal (Apprentice: Weapon Smithing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147997,92205,185,185,'Instruction Disc (Armor Trade-In)','Nano Crystal (Armor Trade-In)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147998,30764,7,7,'Instruction Disc (Balanced Striker)','Nano Crystal (Balanced Striker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(147999,142776,97,97,'Instruction Disc (Brain Bender)','Nano Crystal (Brain Bender)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148000,142772,50,50,'Instruction Disc (Brain Swap)','Nano Crystal (Brain Swap)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148001,100454,33,33,'Instruction Disc (Bright Shiny Sparkling Thing)','Nano Crystal (Bright Shiny Sparkling Thing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148002,30766,96,96,'Instruction Disc (Bulk Trader)','Nano Crystal (Bulk Trader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148003,121520,34,34,'Instruction Disc (Capable Health Haggler)','Nano Crystal (Capable Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148004,118259,37,37,'Instruction Disc (Commonplace Delayed Health Payment)','Nano Crystal (Commonplace Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148005,143899,176,176,'Instruction Disc (Control Ends and Means)','Nano Crystal (Control Ends and Means)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148006,142775,74,74,'Instruction Disc (Deep Thought)','Nano Crystal (Deep Thought)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148007,118260,70,70,'Instruction Disc (Delayed Health Payment)','Nano Crystal (Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148008,85900,43,43,'Instruction Disc (Deprive Skills)','Nano Crystal (Deprive Skills)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148009,85899,80,80,'Instruction Disc (Deprive Skills (Advanced))','Nano Crystal (Deprive Skills (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148010,85898,33,33,'Instruction Disc (Deprive Skills (Lesser))','Nano Crystal (Deprive Skills (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148011,85896,24,24,'Instruction Disc (Deprive Skills (Average))','Nano Crystal (Deprive Skills (Average))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148012,85897,57,57,'Instruction Disc (Deprive Skills (Major))','Nano Crystal (Deprive Skills (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148013,85895,14,14,'Instruction Disc (Deprive Skills (Minor))','Nano Crystal (Deprive Skills (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148014,85894,4,4,'Instruction Disc (Deprive Skills (Weak))','Nano Crystal (Deprive Skills (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148015,56262,109,109,'Instruction Disc (Detain Customer)','Nano Crystal (Detain Customer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148017,100452,20,20,'Instruction Disc (Distract with Trinkets)','Nano Crystal (Distract with Trinkets)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148018,100453,47,47,'Instruction Disc (Distracting Baubles)','Nano Crystal (Distracting Baubles)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148019,85892,156,156,'Instruction Disc (Divest Skills)','Nano Crystal (Divest Skills)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148020,85893,179,179,'Instruction Disc (Divest Skills (Advanced))','Nano Crystal (Divest Skills (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148021,85891,149,149,'Instruction Disc (Divest Skills (Lesser))','Nano Crystal (Divest Skills (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148022,85889,132,132,'Instruction Disc (Divest Skills (Average))','Nano Crystal (Divest Skills (Average))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148023,85890,165,165,'Instruction Disc (Divest Skills (Major))','Nano Crystal (Divest Skills (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148024,85888,113,113,'Instruction Disc (Divest Skills (Minor))','Nano Crystal (Divest Skills (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148025,85887,93,93,'Instruction Disc (Divest Skills (Weak))','Nano Crystal (Divest Skills (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148026,91401,136,136,'Instruction Disc (Draw AC)','Nano Crystal (Draw AC)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148027,91403,159,159,'Instruction Disc (Draw AC (Advanced))','Nano Crystal (Draw AC (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148028,91397,165,165,'Instruction Disc (Draw AC (Greater))','Nano Crystal (Draw AC (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148029,91399,179,179,'Instruction Disc (Draw AC (Invasive))','Nano Crystal (Draw AC (Invasive))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148030,91394,149,149,'Instruction Disc (Draw AC (Major))','Nano Crystal (Draw AC (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148031,91395,113,113,'Instruction Disc (Draw AC (Minor))','Nano Crystal (Draw AC (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148032,91390,93,93,'Instruction Disc (Draw AC (Weak))','Nano Crystal (Draw AC (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148033,99630,99,99,'Instruction Disc (Dubious Accounting)','Nano Crystal (Dubious Accounting)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148034,118255,31,31,'Instruction Disc (Elementary Delayed Health Payment)','Nano Crystal (Elementary Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148035,56261,76,76,'Instruction Disc (Embrace of Greed)','Nano Crystal (Embrace of Greed)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148036,99629,40,40,'Instruction Disc (Enforced Loan)','Nano Crystal (Enforced Loan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148037,56258,182,182,'Instruction Disc (Entrepreneurial Thrall)','Nano Crystal (Entrepreneurial Thrall)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148038,118256,169,169,'Instruction Disc (Exceptional Delayed Health Payment)','Nano Crystal (Exceptional Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148039,121516,97,97,'Instruction Disc (Expert Health Haggler)','Nano Crystal (Expert Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148040,99628,50,50,'Instruction Disc (Extended Line of Credit)','Nano Crystal (Extended Line of Credit)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148041,118257,8,8,'Instruction Disc (Feeble Delayed Health Payment)','Nano Crystal (Feeble Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148042,30769,126,126,'Instruction Disc (Fine Tuning)','Nano Crystal (Fine Tuning)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148043,30770,132,132,'Instruction Disc (Flow of Time)','Nano Crystal (Flow of Time)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148044,99627,185,185,'Instruction Disc (Forced Bankruptcy)','Nano Crystal (Forced Bankruptcy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148045,30771,20,20,'Instruction Disc (Frequent Customer)','Nano Crystal (Frequent Customer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148046,121517,136,136,'Instruction Disc (Glib Health Haggler)','Nano Crystal (Glib Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148047,100451,106,106,'Instruction Disc (Glittering Plaything)','Nano Crystal (Glittering Plaything)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148048,118252,149,149,'Instruction Disc (Greater Delayed Health Payment)','Nano Crystal (Greater Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148049,56265,169,169,'Instruction Disc (Greater Detain Customer)','Nano Crystal (Greater Detain Customer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148050,56263,149,149,'Instruction Disc (Greater Embrace of Greed)','Nano Crystal (Greater Embrace of Greed)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148051,78433,113,113,'Instruction Disc (Greater Health Freeloader)','Nano Crystal (Greater Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148052,78423,33,33,'Instruction Disc (Greater Health Funnel)','Nano Crystal (Greater Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148053,78451,175,175,'Instruction Disc (Greater Health Plunder)','Nano Crystal (Greater Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148054,99626,80,80,'Instruction Disc (Greater Strip Assets)','Nano Crystal (Greater Strip Assets)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148055,142742,166,166,'Instruction Disc (Grid Gateway)','Nano Crystal (Grid Gateway)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148056,30772,149,149,'Instruction Disc (Guard Convoy)','Nano Crystal (Guard Convoy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148057,78432,86,86,'Instruction Disc (Health Freeloader)','Nano Crystal (Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148058,78421,20,20,'Instruction Disc (Health Funnel)','Nano Crystal (Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148059,78442,159,159,'Instruction Disc (Health Plunder)','Nano Crystal (Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148060,81929,30,30,'Instruction Disc (Hired Hands)','Nano Crystal (Hired Hands)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148061,30773,90,90,'Instruction Disc (Hostile Takeover)','Nano Crystal (Hostile Takeover)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148062,100450,146,146,'Instruction Disc (Imaginary Distractions)','Nano Crystal (Imaginary Distractions)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148063,99625,146,146,'Instruction Disc (Impoverish Accounts)','Nano Crystal (Impoverish Accounts)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148064,99624,123,123,'Instruction Disc (Insolvency)','Nano Crystal (Insolvency)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148065,121513,149,149,'Instruction Disc (Irresistible Health Haggler)','Nano Crystal (Irresistible Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148066,30775,80,80,'Instruction Disc (Journeyman: Electrical Engineering)','Nano Crystal (Journeyman: Electrical Engineering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148067,30776,80,80,'Instruction Disc (Journeyman: Field Quantum Physics)','Nano Crystal (Journeyman: Field Quantum Physics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148068,30777,83,83,'Instruction Disc (Journeyman: Mechanical Engineer)','Nano Crystal (Journeyman: Mechanical Engineer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148069,30778,86,86,'Instruction Disc (Journeyman: Pharmaceutical)','Nano Crystal (Journeyman: Pharmaceutical)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148070,30779,86,86,'Instruction Disc (Journeyman: Weapon Smithing)','Nano Crystal (Journeyman: Weapon Smithing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148071,30266,24,24,'Instruction Disc (Lend Nano: 100)','Nano Crystal (Lend Nano: 100)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148072,30780,53,53,'Instruction Disc (Lend Nano: 250)','Nano Crystal (Lend Nano: 250)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148073,30781,10,10,'Instruction Disc (Lend Nano: 50)','Nano Crystal (Lend Nano: 50)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148074,30782,116,116,'Instruction Disc (Lend Nano: 500)','Nano Crystal (Lend Nano: 500)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148075,30783,172,172,'Instruction Disc (Lend Nano: 1000)','Nano Crystal (Lend Nano: 1000)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148076,118253,57,57,'Instruction Disc (Lesser Delayed Health Payment)','Nano Crystal (Lesser Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148077,56259,1,1,'Instruction Disc (Lesser Detain Customer)','Nano Crystal (Lesser Detain Customer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148078,56266,14,14,'Instruction Disc (Lesser Embrace of Greed)','Nano Crystal (Lesser Embrace of Greed)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148079,78430,80,80,'Instruction Disc (Lesser Health Freeloader)','Nano Crystal (Lesser Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148080,78420,17,17,'Instruction Disc (Lesser Health Funnel)','Nano Crystal (Lesser Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148081,78441,156,156,'Instruction Disc (Lesser Health Plunder)','Nano Crystal (Lesser Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148082,99623,7,7,'Instruction Disc (Line of Credit)','Nano Crystal (Line of Credit)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148083,30784,156,156,'Instruction Disc (Liquidation)','Nano Crystal (Liquidation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148084,118254,44,44,'Instruction Disc (Average Delayed Health Payment)','Nano Crystal (Average Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148085,78428,70,70,'Instruction Disc (Average Health Freeloader)','Nano Crystal (Lossy Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148086,78418,10,10,'Instruction Disc (Average Health Funnel)','Nano Crystal (Lossy Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148087,78439,149,149,'Instruction Disc (Average Health Plunder)','Nano Crystal (Lossy Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148088,30785,152,152,'Instruction Disc (Maestro: Electrical Engineering)','Nano Crystal (Maestro: Electrical Engineering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148089,30786,152,152,'Instruction Disc (Maestro: Field Quantum Physics)','Nano Crystal (Maestro: Field Quantum Physics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148090,30787,152,152,'Instruction Disc (Maestro: Mechanical Engineering)','Nano Crystal (Maestro: Mechanical Engineering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148091,30788,156,156,'Instruction Disc (Maestro: Pharmaceutical)','Nano Crystal (Maestro: Pharmaceutical)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148092,30789,156,156,'Instruction Disc (Maestro: Weapon Smithing)','Nano Crystal (Maestro: Weapon Smithing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148093,92207,189,189,'Instruction Disc (Major Armor Distributor)','Nano Crystal (Major Armor Distributor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148094,118249,100,100,'Instruction Disc (Major Delayed Health Payment)','Nano Crystal (Major Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148095,78431,93,93,'Instruction Disc (Major Health Freeloader)','Nano Crystal (Major Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148096,78422,24,24,'Instruction Disc (Major Health Funnel)','Nano Crystal (Major Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148097,78440,162,162,'Instruction Disc (Major Health Plunder)','Nano Crystal (Major Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148098,30790,14,14,'Instruction Disc (Margin Call)','Nano Crystal (Margin Call)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148099,121514,116,116,'Instruction Disc (Masterly Health Haggler)','Nano Crystal (Masterly Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148100,142774,34,34,'Instruction Disc (Mental Switcheroo)','Nano Crystal (Mental Switcheroo)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148101,118250,21,21,'Instruction Disc (Minor Delayed Health Payment)','Nano Crystal (Minor Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148102,78429,60,60,'Instruction Disc (Minor Health Freeloader)','Nano Crystal (Minor Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148103,78419,7,7,'Instruction Disc (Minor Health Funnel)','Nano Crystal (Minor Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148104,78438,146,146,'Instruction Disc (Minor Health Plunder)','Nano Crystal (Minor Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148105,143902,186,186,'Instruction Disc (My Brain For Your Brain)','Nano Crystal (My Brain For Your Brain)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148106,121515,11,11,'Instruction Disc (Novice Health Haggler)','Nano Crystal (Novice Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148107,99622,24,24,'Instruction Disc (Overdraught)','Nano Crystal (Overdraught)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148108,118251,14,14,'Instruction Disc (Patchy Delayed Health Payment)','Nano Crystal (Patchy Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148109,78426,50,50,'Instruction Disc (Patchy Health Freeloader)','Nano Crystal (Patchy Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148110,78416,4,4,'Instruction Disc (Patchy Health Funnel)','Nano Crystal (Patchy Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148111,78436,142,142,'Instruction Disc (Patchy Health Plunder)','Nano Crystal (Patchy Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148112,91392,185,185,'Instruction Disc (Pawnbroker''s Armor)','Nano Crystal (Pawnbroker''s Armor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148113,99621,169,169,'Instruction Disc (Pay the Pauper)','Nano Crystal (Pay the Pauper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148114,142743,100,100,'Instruction Disc (Personal Grid Beacon)','Nano Crystal (Personal Grid Beacon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148115,85885,162,162,'Instruction Disc (Plunder Skills)','Nano Crystal (Plunder Skills)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148116,85886,185,185,'Instruction Disc (Plunder Skills (Advanced))','Nano Crystal (Plunder Skills (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148117,85884,152,152,'Instruction Disc (Plunder Skills (Lesser))','Nano Crystal (Plunder Skills (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148118,85882,146,146,'Instruction Disc (Plunder Skills (Average))','Nano Crystal (Plunder Skills (Average))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148119,85883,172,172,'Instruction Disc (Plunder Skills (Major))','Nano Crystal (Plunder Skills (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148120,85881,123,123,'Instruction Disc (Plunder Skills (Minor))','Nano Crystal (Plunder Skills (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148121,85879,103,103,'Instruction Disc (Plunder Skills (Weak))','Nano Crystal (Plunder Skills (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148122,121511,27,27,'Instruction Disc (Practiced Health Haggler)','Nano Crystal (Practiced Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148123,121512,159,159,'Instruction Disc (Preeminent Health Haggler)','Nano Crystal (Preeminent Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148124,118246,182,182,'Instruction Disc (Premium Delayed Health Payment)','Nano Crystal (Premium Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148125,121508,87,87,'Instruction Disc (Professional Health Haggler)','Nano Crystal (Professional Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148126,121509,41,41,'Instruction Disc (Proficient Health Haggler)','Nano Crystal (Proficient Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148127,56264,159,159,'Instruction Disc (Profit Preoccupation)','Nano Crystal (Profit Preoccupation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148128,56260,37,37,'Instruction Disc (Profiteer''s Grip)','Nano Crystal (Profiteer''s Grip)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148129,142777,17,17,'Instruction Disc (Project Thought Patterns)','Nano Crystal (Project Thought Patterns)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148130,82243,83,83,'Instruction Disc (Pyramid Marketing)','Nano Crystal (Pyramid Marketing)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148131,118247,87,87,'Instruction Disc (Quality Delayed Health Payment)','Nano Crystal (Quality Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148132,30796,139,139,'Instruction Disc (Quantum Uncertainty)','Nano Crystal (Quantum Uncertainty)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148133,85880,50,50,'Instruction Disc (Ransack Skills)','Nano Crystal (Ransack Skills)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148134,85878,86,86,'Instruction Disc (Ransack Skills (Advanced))','Nano Crystal (Ransack Skills (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148135,85877,40,40,'Instruction Disc (Ransack Skills (Lesser))','Nano Crystal (Ransack Skills (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148136,85875,30,30,'Instruction Disc (Ransack Skills (Average))','Nano Crystal (Ransack Skills (Average))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148137,85876,70,70,'Instruction Disc (Ransack Skills (Major))','Nano Crystal (Ransack Skills (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148138,85874,20,20,'Instruction Disc (Ransack Skills (Minor))','Nano Crystal (Ransack Skills (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148139,85873,10,10,'Instruction Disc (Ransack Skills (Weak))','Nano Crystal (Ransack Skills (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148140,92199,149,149,'Instruction Disc (Redeem AC)','Nano Crystal (Redeem AC)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148141,92201,165,165,'Instruction Disc (Redeem AC (Advanced))','Nano Crystal (Redeem AC (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148142,92203,175,175,'Instruction Disc (Redeem AC (Greater))','Nano Crystal (Redeem AC (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148143,92194,129,129,'Instruction Disc (Redeem AC (Lesser))','Nano Crystal (Redeem AC (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148144,92196,156,156,'Instruction Disc (Redeem AC (Major))','Nano Crystal (Redeem AC (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148145,92197,106,106,'Instruction Disc (Redeem AC (Minor))','Nano Crystal (Redeem AC (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148146,92189,90,90,'Instruction Disc (Redeem AC (Weak))','Nano Crystal (Redeem AC (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148147,143901,149,149,'Instruction Disc (Redirect Neural Signals)','Nano Crystal (Redirect Neural Signals)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148148,30797,159,159,'Instruction Disc (Relentless Slayer)','Nano Crystal (Relentless Slayer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148149,30798,80,80,'Instruction Disc (Riding Shotgun)','Nano Crystal (Riding Shotgun)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148150,99620,63,63,'Instruction Disc (Shady Acquisition)','Nano Crystal (Shady Acquisition)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148151,100449,162,162,'Instruction Disc (Simple Mind, Simple Pleasures)','Nano Crystal (Simple Mind, Simple Pleasures)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148152,91387,123,123,'Instruction Disc (Siphon AC)','Nano Crystal (Siphon AC)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148153,91389,152,152,'Instruction Disc (Siphon AC (Advanced))','Nano Crystal (Siphon AC (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148154,91382,162,162,'Instruction Disc (Siphon AC (Greater))','Nano Crystal (Siphon AC (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148155,91384,172,172,'Instruction Disc (Siphon AC (Invasive))','Nano Crystal (Siphon AC (Invasive))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148156,91386,146,146,'Instruction Disc (Siphon AC (Major))','Nano Crystal (Siphon AC (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148157,91378,103,103,'Instruction Disc (Siphon AC (Minor))','Nano Crystal (Siphon AC (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148158,91381,86,86,'Instruction Disc (Siphon AC (Weak))','Nano Crystal (Siphon AC (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148159,121376,84,84,'Instruction Disc (Skill Wrangler)','Nano Crystal (Skill Wrangler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148160,121374,113,113,'Instruction Disc (Skill Wrangler (Advanced))','Nano Crystal (Skill Wrangler (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148161,121375,34,34,'Instruction Disc (Skill Wrangler (Commonplace))','Nano Crystal (Skill Wrangler (Commonplace))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148162,121373,176,176,'Instruction Disc (Skill Wrangler (Exceptional))','Nano Crystal (Skill Wrangler (Exceptional))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148163,121371,150,150,'Instruction Disc (Skill Wrangler (Greater))','Nano Crystal (Skill Wrangler (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148164,121372,70,70,'Instruction Disc (Skill Wrangler (Inferior))','Nano Crystal (Skill Wrangler (Inferior))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148165,121369,54,54,'Instruction Disc (Skill Wrangler Lesser)','Nano Crystal (Skill Wrangler Lesser)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148166,121370,41,41,'Instruction Disc (Skill Wrangler (Lossy))','Nano Crystal (Skill Wrangler (Lossy))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148167,121368,97,97,'Instruction Disc (Skill Wrangler (Major))','Nano Crystal (Skill Wrangler (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148168,121366,21,21,'Instruction Disc (Skill Wrangler (Minor))','Nano Crystal (Skill Wrangler (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148169,121367,14,14,'Instruction Disc (Skill Wrangler (Patchy))','Nano Crystal (Skill Wrangler (Patchy))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148170,121365,189,189,'Instruction Disc (Skill Wrangler (Premium))','Nano Crystal (Skill Wrangler (Premium))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148171,121363,156,156,'Instruction Disc (Skill Wrangler (Sophisticated))','Nano Crystal (Skill Wrangler (Sophisticated))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148172,121364,163,163,'Instruction Disc (Skill Wrangler (Superb))','Nano Crystal (Skill Wrangler (Superb))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148173,121362,126,126,'Instruction Disc (Skill Wrangler (Superior))','Nano Crystal (Skill Wrangler (Superior))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148174,121360,8,8,'Instruction Disc (Skill Wrangler (Weak))','Nano Crystal (Skill Wrangler (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148175,121510,47,47,'Instruction Disc (Skilled Health Haggler)','Nano Crystal (Skilled Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148176,118248,156,156,'Instruction Disc (Sophisticated Delayed Health Payment)','Nano Crystal (Sophisticated Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148177,78437,123,123,'Instruction Disc (Sophisticated Health Freeloader)','Nano Crystal (Sophisticated Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148178,78427,40,40,'Instruction Disc (Sophisticated Health Funnel)','Nano Crystal (Sophisticated Health Funnel)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148179,78415,182,182,'Instruction Disc (Sophisticated Health Plunder)','Nano Crystal (Sophisticated Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148180,30799,24,24,'Instruction Disc (Sticky Ground)','Nano Crystal (Sticky Ground)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148181,99619,33,33,'Instruction Disc (Strip Assets)','Nano Crystal (Strip Assets)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148182,121521,54,54,'Instruction Disc (Successful Health Haggler)','Nano Crystal (Successful Health Haggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148183,118261,140,140,'Instruction Disc (Superior Delayed Health Payment)','Nano Crystal (Superior Delayed Health Payment)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148184,142773,4,4,'Instruction Disc (Swap Psyche)','Nano Crystal (Swap Psyche)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148185,121361,93,93,'Instruction Disc (Team Skill Wrangler)','Nano Crystal (Team Skill Wrangler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148186,121358,123,123,'Instruction Disc (Team Skill Wrangler (Advanced))','Nano Crystal (Team Skill Wrangler (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148187,121359,47,47,'Instruction Disc (Team Skill Wrangler (Commonplace))','Nano Crystal (Team Skill Wrangler (Commonplace))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148188,121357,169,169,'Instruction Disc (Team Skill Wrangler (Exceptional))','Nano Crystal (Team Skill Wrangler (Exceptional))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148189,121355,153,153,'Instruction Disc (Team Skill Wrangler (Greater))','Nano Crystal (Team Skill Wrangler (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148190,121356,77,77,'Instruction Disc (Team Skill Wrangler (Lesser))','Nano Crystal (Team Skill Wrangler (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148191,121354,60,60,'Instruction Disc (Team Skill Wrangler (Lossy))','Nano Crystal (Team Skill Wrangler (Lossy))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148192,121352,107,107,'Instruction Disc (Team Skill Wrangler (Major))','Nano Crystal (Team Skill Wrangler (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148193,121353,37,37,'Instruction Disc (Team Skill Wrangler (Minor))','Nano Crystal (Team Skill Wrangler (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148194,121351,27,27,'Instruction Disc (Team Skill Wrangler (Patchy))','Nano Crystal (Team Skill Wrangler (Patchy))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148195,121349,189,189,'Instruction Disc (Team Skill Wrangler (Premium))','Nano Crystal (Team Skill Wrangler (Premium))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148196,121350,159,159,'Instruction Disc (Team Skill Wrangler (Sophisticated))','Nano Crystal (Team Skill Wrangler (Sophisticated))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148197,121347,140,140,'Instruction Disc (Team Skill Wrangler (Superior))','Nano Crystal (Team Skill Wrangler (Superior))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148198,121348,18,18,'Instruction Disc (Team Skill Wrangler (Weak))','Nano Crystal (Team Skill Wrangler (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148199,143900,126,126,'Instruction Disc (Thought Controller)','Nano Crystal (Thought Controller)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148200,143903,159,159,'Instruction Disc (Thought Juggler)','Nano Crystal (Thought Juggler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148201,30757,165,165,'Instruction Disc (Trading Mogul)','Nano Crystal (Trading Mogul)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148202,92191,152,152,'Instruction Disc (Traffic AC)','Nano Crystal (Traffic AC)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148203,92193,172,172,'Instruction Disc (Traffic AC (Advanced))','Nano Crystal (Traffic AC (Advanced))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148204,92186,182,182,'Instruction Disc (Traffic AC (Greater))','Nano Crystal (Traffic AC (Greater))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148205,92188,139,139,'Instruction Disc (Traffic AC (Lesser))','Nano Crystal (Traffic AC (Lesser))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148206,92183,159,159,'Instruction Disc (Traffic AC (Major))','Nano Crystal (Traffic AC (Major))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148207,92185,119,119,'Instruction Disc (Traffic AC (Minor))','Nano Crystal (Traffic AC (Minor))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148208,92182,96,96,'Instruction Disc (Traffic AC (Weak))','Nano Crystal (Traffic AC (Weak))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148209,100448,63,63,'Instruction Disc (Trinkets and Toys)','Nano Crystal (Trinkets and Toys)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148210,99618,17,17,'Instruction Disc (Unfriendly Merger)','Nano Crystal (Unfriendly Merger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148212,78425,47,47,'Instruction Disc (Weak Health Freeloader)','Nano Crystal (Weak Health Freeloader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(148213,78435,132,132,'Instruction Disc (Weak Health Plunder)','Nano Crystal (Weak Health Plunder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150400,150351,87,87,'Instruction Disc (Warp Time and Space: Borealis)','Nano Crystal (Warp Time and Space: Capital City)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150406,150357,97,97,'Instruction Disc (Team Warp Time and Space: Borealis)','Nano Crystal (Team Warp Time and Space: Capital City)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150533,150504,90,90,'Instruction Disc (Nullity Sphere)','Nano Crystal (Nullity Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150534,150503,159,159,'Instruction Disc (Nullity Sphere MK II)','Nano Crystal (Nullity Sphere MK II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150656,150643,156,156,'Instruction Disc (Enfraam''s Augmented Fortification)','Nano Crystal (Enfraam''s Augmented Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150657,150633,14,14,'Instruction Disc (Enfraam''s Trivial Fortification)','Nano Crystal (Enfraam''s Trivial Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150658,150634,113,113,'Instruction Disc (Enfraam''s Supreme Fortification)','Nano Crystal (Enfraam''s Supreme Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150659,150635,60,60,'Instruction Disc (Enfraam''s Superior Fortification)','Nano Crystal (Enfraam''s Superior Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150660,150636,166,166,'Instruction Disc (Enfraam''s Perfected Fortification)','Nano Crystal (Enfraam''s Perfected Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150661,150637,24,24,'Instruction Disc (Enfraam''s Minor Fortification)','Nano Crystal (Enfraam''s Minor Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150662,150638,80,80,'Instruction Disc (Enfraam''s Major Fortification)','Nano Crystal (Enfraam''s Major Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150663,150639,37,37,'Instruction Disc (Enfraam''s Lesser Fortification)','Nano Crystal (Enfraam''s Lesser Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150664,150640,93,93,'Instruction Disc (Enfraam''s Greater Fortification)','Nano Crystal (Enfraam''s Greater Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150665,150641,140,140,'Instruction Disc (Enfraam''s Glorious Fortification)','Nano Crystal (Enfraam''s Glorious Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150666,150642,47,47,'Instruction Disc (Enfraam''s Fortification)','Nano Crystal (Enfraam''s Fortification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(150667,150632,182,182,'Instruction Disc (Izgimmer''s Mockery)','Nano Crystal (Izgimmer''s Mockery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151793,151780,18,18,'Instruction Disc (Teachings of Biological Metamorphose)','Nano Crystal (Teachings of Biological Metamorphose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151794,151771,136,136,'Instruction Disc (Infuse With Knowledge: Psychological Modification)','Nano Crystal (Infuse With Knowledge: Psychological Modification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151795,151770,126,126,'Instruction Disc (Infuse With Knowledge: Material Metamorphose)','Nano Crystal (Infuse With Knowledge: Material Metamorphose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151796,151774,130,130,'Instruction Disc (Infuse With Knowledge: Time and Space)','Nano Crystal (Infuse With Knowledge: Time and Space)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151797,151773,130,130,'Instruction Disc (Infuse With Knowledge: Material Creation)','Nano Crystal (Infuse With Knowledge: Material Creation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151798,151772,123,123,'Instruction Disc (Infuse With Knowledge: Biological Metamorphose)','Nano Crystal (Infuse With Knowledge: Biological Metamorphose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151799,151777,21,21,'Instruction Disc (Teachings of Sensory Improvement)','Nano Crystal (Teachings of Sensory Improvement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151800,151776,24,24,'Instruction Disc (Teachings of Psychological Modification)','Nano Crystal (Teachings of Psychological Modification)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151801,151775,17,17,'Instruction Disc (Teachings of Material Metamorphose)','Nano Crystal (Teachings of Material Metamorphose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151802,151779,21,21,'Instruction Disc (Teachings of Time and Space)','Nano Crystal (Teachings of Time and Space)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151803,151778,21,21,'Instruction Disc (Teachings of Material Creation)','Nano Crystal (Teachings of Material Creation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151804,151769,133,133,'Instruction Disc (Infuse With Knowledge: Sensory Improvement)','Nano Crystal (Infuse With Knowledge: Sensory Improvement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151851,151832,110,110,'Instruction Disc (Anima of Fathomless Rage)','Nano Crystal (Anima of Fathomless Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151852,151834,14,14,'Instruction Disc (Anima of Unrestrained Ferocity)','Nano Crystal (Anima of Unrestrained Ferocity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151853,151837,156,156,'Instruction Disc (Anima of Implacable Hatred)','Nano Crystal (Anima of Implacable Hatred)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151854,151838,189,189,'Instruction Disc (Anima of Maddening Wrath)','Nano Crystal (Anima of Maddening Wrath)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151855,151835,212,212,'Instruction Disc (Anima of Pure Malevolence)','Nano Crystal (Anima of Pure Malevolence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151856,151836,67,67,'Instruction Disc (Anima of Relentless Fury)','Nano Crystal (Anima of Relentless Fury)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151857,151839,239,239,'Instruction Disc (Anima of The Abomination)','Nano Crystal (Anima of The Abomination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(151858,151833,37,37,'Instruction Disc (Anima of Unleashed Malice)','Nano Crystal (Anima of Unleashed Malice)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(152195,152188,107,107,'Instruction Disc (Restock Ammo (Level OP-C))','Nano Crystal (Restock Ammo (Level OP-C))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(152196,152186,74,74,'Instruction Disc (Restock Ammo (Level OP-XX))','Nano Crystal (Restock Ammo (Level OP-XX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(152197,152185,60,60,'Instruction Disc (Restock Ammo (Level OP-X))','Nano Crystal (Restock Ammo (Level OP-X))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(152198,152187,18,18,'Instruction Disc (Restock Ammo (Level OP-II))','Nano Crystal (Restock Ammo (Level OP-II))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(152199,152184,107,107,'Instruction Disc (Restock Ammo (Level OP-CC))','Nano Crystal (Restock Ammo (Level OP-CC))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154613,154573,70,70,'Instruction Disc (Sympathetic Shielding Barrier)','Nano Crystal (Sympathetic Shielding Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154614,154574,93,93,'Instruction Disc (Sympathetic Retaliatory Barrier)','Nano Crystal (Sympathetic Retaliatory Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154615,154575,159,159,'Instruction Disc (Sympathetic Reactive Field)','Nano Crystal (Sympathetic Reactive Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154616,154576,186,186,'Instruction Disc (Sympathetic Reactive Cocoon)','Nano Crystal (Sympathetic Reactive Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154617,154577,97,97,'Instruction Disc (Sympathetic Protective Field)','Nano Crystal (Sympathetic Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154618,154578,189,189,'Instruction Disc (Sympathetic Plasma Shielding)','Nano Crystal (Sympathetic Plasma Shielding)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154619,154579,90,90,'Instruction Disc (Sympathetic Harmonic Field)','Nano Crystal (Sympathetic Harmonic Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154620,154580,116,116,'Instruction Disc (Sympathetic Harmonic Cocoon)','Nano Crystal (Sympathetic Harmonic Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154621,154581,189,189,'Instruction Disc (Sympathetic Fortress Screen)','Nano Crystal (Sympathetic Fortress Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154622,154582,163,163,'Instruction Disc (Sympathetic Force Field)','Nano Crystal (Sympathetic Force Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154623,154583,176,176,'Instruction Disc (Sympathetic Entropy Infusion)','Nano Crystal (Sympathetic Entropy Infusion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154624,154584,153,153,'Instruction Disc (Sympathetic Energy Cocoon)','Nano Crystal (Sympathetic Energy Cocoon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154625,154585,146,146,'Instruction Disc (Sympathetic Defensive Screen)','Nano Crystal (Sympathetic Defensive Screen)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154626,154586,80,80,'Instruction Disc (Sympathetic Arms Enhancement)','Nano Crystal (Sympathetic Arms Enhancement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154627,154587,34,34,'Instruction Disc (Sympathetic Armor Boost)','Nano Crystal (Sympathetic Armor Boost)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154757,154729,189,189,'Instruction Disc (Null Space Disruptor)','Nano Crystal (Null Space Disruptor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154758,154730,166,166,'Instruction Disc (Disruptive Void Projector)','Nano Crystal (Disruptive Void Projector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154759,154731,57,57,'Instruction Disc (Disruptive Shielding Negator)','Nano Crystal (Disruptive Shielding Negator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154760,154732,182,182,'Instruction Disc (Disruptive Retributive Negator)','Nano Crystal (Disruptive Retributive Negator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154761,154733,153,153,'Instruction Disc (Disruptive Retaliatory Negator)','Nano Crystal (Disruptive Retaliatory Negator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154762,154734,120,120,'Instruction Disc (Disruptive Photon Devourer)','Nano Crystal (Disruptive Photon Devourer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154763,154735,41,41,'Instruction Disc (Disruptive Photon Deflector)','Nano Crystal (Disruptive Photon Deflector)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154764,154736,149,149,'Instruction Disc (Disruptive Photon Annihilator)','Nano Crystal (Disruptive Photon Annihilator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154765,154737,83,83,'Instruction Disc (Disruptive Photon Absorber)','Nano Crystal (Disruptive Photon Absorber)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154766,154738,156,156,'Instruction Disc (Disruptive Phase Harmonics)','Nano Crystal (Disruptive Phase Harmonics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154767,154739,17,17,'Instruction Disc (Disruptive Field Negator)','Nano Crystal (Disruptive Field Negator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154768,154740,41,41,'Instruction Disc (Disruptive Field Harmonics)','Nano Crystal (Disruptive Field Harmonics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154769,154741,107,107,'Instruction Disc (Disruptive Cocoon Harmonics)','Nano Crystal (Disruptive Cocoon Harmonics)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154770,154742,113,113,'Instruction Disc (Disruptive Barrier Negator)','Nano Crystal (Disruptive Barrier Negator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154919,154915,90,90,'Instruction Disc (Beacon Warp)','Nano Crystal (Beacon Warp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(154920,154916,159,159,'Instruction Disc (Team Beacon Warp)','Nano Crystal (Team Beacon Warp)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155020,154994,112,112,'Instruction Disc (Creation: Living Shield of Evernan)','Nano Crystal (Creation: Living Shield of Evernan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155021,154986,129,129,'Instruction Disc (Creation: Wave Breaker)','Nano Crystal (Creation: Wave Breaker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155023,154988,66,66,'Instruction Disc (Creation: Viper Staff)','Nano Crystal (Creation: Viper Staff)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155024,154989,48,48,'Instruction Disc (Creation: The Crotalus)','Nano Crystal (Creation: The Crotalus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155025,154990,85,85,'Instruction Disc (Creation: Solar Guard)','Nano Crystal (Creation: Solar Guard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155026,154985,205,205,'Instruction Disc (Creation: Shield of Asmodian)','Nano Crystal (Creation: Shield of Asmodian)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155027,154992,72,72,'Instruction Disc (Creation: Notum Defender)','Nano Crystal (Creation: Notum Defender)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155028,154993,187,187,'Instruction Disc (Creation: Mocham''s Guard)','Nano Crystal (Creation: Mocham''s Guard)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155029,154991,160,160,'Instruction Disc (Creation: Wixel''s Notum Python)','Nano Crystal (Creation: Wixel''s Notum Python)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155030,154995,90,90,'Instruction Disc (Creation: Coplan''s Hand Taipan)','Nano Crystal (Creation: Coplan''s Hand Taipan)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155031,154996,190,190,'Instruction Disc (Creation: Gold Acantophis)','Nano Crystal (Creation: Gold Acantophis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155032,154997,177,177,'Instruction Disc (Creation: Death Ward)','Nano Crystal (Creation: Death Ward)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155033,154998,136,136,'Instruction Disc (Creation: Bitis Striker)','Nano Crystal (Creation: Bitis Striker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155034,154999,147,147,'Instruction Disc (Creation: Belthior''s Flame Ward)','Nano Crystal (Creation: Belthior''s Flame Ward)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155035,155000,215,215,'Instruction Disc (Creation: Azure Cobra of Orma)','Nano Crystal (Creation: Azure Cobra of Orma)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155036,155001,116,116,'Instruction Disc (Creation: Asp of Semol)','Nano Crystal (Creation: Asp of Semol)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155198,155190,60,60,'Instruction Disc (Summon Grid Armor Mk I)','Nano Crystal (Summon Grid Armor Mk I)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155199,155191,116,116,'Instruction Disc (Summon Grid Armor Mk III)','Nano Crystal (Summon Grid Armor Mk III)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155200,155192,93,93,'Instruction Disc (Summon Grid Armor Mk II)','Nano Crystal (Summon Grid Armor Mk II)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155201,155193,140,140,'Instruction Disc (Summon Grid Armor Mk IV)','Nano Crystal (Summon Grid Armor Mk IV)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155423,155360,120,120,'Instruction Disc (Smuggler Shipment (OP-CC))','Nano Crystal (Smuggler Shipment (OP-CC))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155424,155361,113,113,'Instruction Disc (Smuggler Shipment (OP-CLXXX))','Nano Crystal (Smuggler Shipment (OP-CLXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155425,155362,107,107,'Instruction Disc (Smuggler Shipment (OP-CLX))','Nano Crystal (Smuggler Shipment (OP-CLX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155426,155363,103,103,'Instruction Disc (Smuggler Shipment (OP-CXL))','Nano Crystal (Smuggler Shipment (OP-CXL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155427,155364,90,90,'Instruction Disc (Smuggler Shipment (OP-CXX))','Nano Crystal (Smuggler Shipment (OP-CXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155428,155365,70,70,'Instruction Disc (Smuggler Shipment (OP-C))','Nano Crystal (Smuggler Shipment (OP-C))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155429,155366,54,54,'Instruction Disc (Smuggler Shipment (OP-LXXX))','Nano Crystal (Smuggler Shipment (OP-LXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155430,155367,34,34,'Instruction Disc (Smuggler Shipment (OP-LX))','Nano Crystal (Smuggler Shipment (OP-LX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155431,155368,24,24,'Instruction Disc (Smuggler Shipment (OP-XL))','Nano Crystal (Smuggler Shipment (OP-XL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155432,155369,8,8,'Instruction Disc (Smuggler Shipment (OP-XX))','Nano Crystal (Smuggler Shipment (OP-XX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155433,155370,120,120,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CC))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CC))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155434,155371,113,113,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CLXXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CLXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155435,155372,107,107,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CLX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CLX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155436,155373,103,103,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CXL))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CXL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155437,155374,90,90,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155438,155375,67,67,'Instruction Disc (Bootleg Blades ''n Blunts (OP-C))','Nano Crystal (Bootleg Blades ''n Blunts (OP-C))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155439,155376,54,54,'Instruction Disc (Bootleg Blades ''n Blunts (OP-LXXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-LXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155440,155377,34,34,'Instruction Disc (Bootleg Blades ''n Blunts (OP-LX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-LX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155441,155378,21,21,'Instruction Disc (Bootleg Blades ''n Blunts (OP-XL))','Nano Crystal (Bootleg Blades ''n Blunts (OP-XL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155442,155379,8,8,'Instruction Disc (Bootleg Blades ''n Blunts (OP-XX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-XX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155443,155380,120,120,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CC))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CC))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155444,155384,113,113,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CLXXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CLXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155445,155385,107,107,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CLX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CLX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155446,155386,103,103,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CXL))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CXL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155447,155387,90,90,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155448,155388,67,67,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-C))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-C))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155449,155389,54,54,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-LXXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-LXXX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155450,155390,34,34,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-LX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-LX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155451,155391,21,21,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-XL))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-XL))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155452,155392,8,8,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-XX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-XX))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155580,155578,189,189,'Instruction Disc (Contemplation)','Nano Crystal (Contemplation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155624,155618,44,44,'Instruction Disc (Mud Slinger)','Nano Crystal (Mud Slinger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155625,155619,130,130,'Instruction Disc (Defamation 101)','Nano Crystal (Defamation 101)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155626,155620,173,173,'Instruction Disc (Character Assassin)','Nano Crystal (Character Assassin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155820,155810,83,83,'Instruction Disc (Motivational Speech: Bravery Overcomes)','Nano Crystal (Motivational Speech: Bravery Overcomes)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155821,155811,37,37,'Instruction Disc (Motivational Speech: Lead From The Front)','Nano Crystal (Motivational Speech: Lead From The Front)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155822,155812,186,186,'Instruction Disc (Motivational Speech: Heroic Measures)','Nano Crystal (Motivational Speech: Heroic Measures)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155823,155813,156,156,'Instruction Disc (Motivational Speech: Glorious Leader)','Nano Crystal (Motivational Speech: Glorious Leader)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(155824,155814,130,130,'Instruction Disc (Motivational Speech: Triumphant Pose)','Nano Crystal (Motivational Speech: Triumphant Pose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156163,156132,41,41,'Instruction Disc (Deranged Mindreaver)','Nano Crystal (Deranged Mindreaver)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156164,156133,24,24,'Instruction Disc (Supreme Distracting Sphere)','Nano Crystal (Supreme Distracting Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156165,156134,67,67,'Instruction Disc (Supreme Deranged Mindreaver)','Nano Crystal (Supreme Deranged Mindreaver)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156166,156135,100,100,'Instruction Disc (Summoning of Ignatus Mind-Clouder)','Nano Crystal (Summoning of Ignatus Mind-Clouder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156167,156136,153,153,'Instruction Disc (Summoning of Duoco)','Nano Crystal (Summoning of Duoco)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156168,156137,159,159,'Instruction Disc (Summoning of Distral)','Nano Crystal (Summoning of Distral)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156169,156138,120,120,'Instruction Disc (Summoning of Demenus)','Nano Crystal (Summoning of Demenus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156170,156139,166,166,'Instruction Disc (Summoning of Confane)','Nano Crystal (Summoning of Confane)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156171,156140,176,176,'Instruction Disc (Summoning of Balbuto the Gibberer)','Nano Crystal (Summoning of Balbuto the Gibberer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156172,156141,83,83,'Instruction Disc (Summoning of Absuum)','Nano Crystal (Summoning of Absuum)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156173,156142,4,4,'Instruction Disc (Lesser Distracting Sphere)','Nano Crystal (Lesser Distracting Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156174,156143,34,34,'Instruction Disc (Lesser Deranged Mindreaver)','Nano Crystal (Lesser Deranged Mindreaver)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156175,156144,17,17,'Instruction Disc (Greater Distracting Sphere)','Nano Crystal (Greater Distracting Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156176,156145,50,50,'Instruction Disc (Greater Deranged Mindreaver)','Nano Crystal (Greater Deranged Mindreaver)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156177,156146,11,11,'Instruction Disc (Distracting Sphere)','Nano Crystal (Distracting Sphere)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(156178,150310,189,189,'Instruction Disc (Summoning of Tumulten)','Nano Crystal (Summoning of Tumulten)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157573,157536,113,113,'Instruction Disc (Demotivational Speech: 10 Thumbs)','Nano Crystal (Demotivational Speech: 10 Thumbs)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157574,157537,87,87,'Instruction Disc (Motivational Speech: Opportunity Knocks)','Nano Crystal (Motivational Speech: Opportunity Knocks)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157575,157538,50,50,'Instruction Disc (Motivational Speech: Only the Paranoid Will Survive!)','Nano Crystal (Motivational Speech: Only the Paranoid Will Survive!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157576,157539,149,149,'Instruction Disc (Motivational Speech: Improvise and Adapt)','Nano Crystal (Motivational Speech: Improvise and Adapt)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157577,157540,149,149,'Instruction Disc (Motivational Speech: Implement Through Iteration)','Nano Crystal (Motivational Speech: Implement Through Iteration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157578,157541,156,156,'Instruction Disc (Motivational Speech: Assassin''s Focus)','Nano Crystal (Motivational Speech: Assassin''s Focus)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157579,157542,153,153,'Instruction Disc (Demotivational Speech: Who Writes the Minutes?)','Nano Crystal (Demotivational Speech: Who Writes the Minutes?)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157580,157543,159,159,'Instruction Disc (Demotivational Speech: Swapdisk Mayhem)','Nano Crystal (Demotivational Speech: Swapdisk Mayhem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157581,157544,126,126,'Instruction Disc (Demotivational Speech: Surge in the System)','Nano Crystal (Demotivational Speech: Surge in the System)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157582,157545,182,182,'Instruction Disc (Demotivational Speech: Retreat to Glory)','Nano Crystal (Demotivational Speech: Retreat to Glory)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157583,157546,100,100,'Instruction Disc (Demotivational Speech: That is not on the Agenda)','Nano Crystal (Demotivational Speech: That is not on the Agenda)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157584,157547,186,186,'Instruction Disc (Demotivational Speech: Mourner''s March)','Nano Crystal (Demotivational Speech: Mourner''s March)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157585,157548,44,44,'Instruction Disc (Demotivational Speech: Let''s Make a Committee)','Nano Crystal (Demotivational Speech: Let''s Make a Committee)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157586,157549,21,21,'Instruction Disc (Demotivational Speech: Fumble Fingers)','Nano Crystal (Demotivational Speech: Fumble Fingers)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157587,157550,34,34,'Instruction Disc (Demotivational Speech: Factory Recall)','Nano Crystal (Demotivational Speech: Factory Recall)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157588,157551,179,179,'Instruction Disc (Demotivational Speech: Certainty of Defeat)','Nano Crystal (Demotivational Speech: Certainty of Defeat)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(157589,157552,83,83,'Instruction Disc (Demotivational Speech: Administrative Error)','Nano Crystal (Demotivational Speech: Administrative Error)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160619,160579,57,57,'Instruction Disc (Mark of Risk)','Nano Crystal (Mark of Risk)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160622,160578,126,126,'Instruction Disc (Mark of Danger)','Nano Crystal (Mark of Danger)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160625,160577,159,159,'Instruction Disc (Mark of Peril)','Nano Crystal (Mark of Peril)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160834,160704,24,24,'Instruction Disc (Total Concentration)','Nano Crystal (Total Concentration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160837,160711,73,73,'Instruction Disc (Utter Concentration)','Nano Crystal (Utter Concentration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160840,160713,142,142,'Instruction Disc (Absolute Concentration)','Nano Crystal (Absolute Concentration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160843,160788,40,40,'Instruction Disc (Sureshot)','Nano Crystal (Sureshot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160846,160790,76,76,'Instruction Disc (Trueshot)','Nano Crystal (Trueshot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160849,160792,126,126,'Instruction Disc (Enhanced Sureshot)','Nano Crystal (Enhanced Sureshot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160852,160794,146,146,'Instruction Disc (Enhanced Trueshot)','Nano Crystal (Enhanced Trueshot)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160855,160796,169,169,'Instruction Disc (Gnat''s Wing)','Nano Crystal (Steady Nerves)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160858,160821,53,53,'Instruction Disc (Training of The Executioner)','NanoCrystal (Training of The Executioner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160861,160823,93,93,'Instruction Disc (Guidance of The Executioner)','NanoCrystal (Guidance of The Executioner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160864,160825,132,132,'Instruction Disc (Steps of The Executioner)','NanoCrystal (Steps of The Executioner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160867,160827,149,149,'Instruction Disc (Path of The Executioner)','NanoCrystal (Path of The Executioner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(160870,160829,179,179,'Instruction Disc (Form of The Executioner)','NanoCrystal (Form of The Executioner)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161383,160898,169,169,'Instruction Disc (Meld With Background)','NanoCrystal (Meld With Background)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161386,160896,129,129,'Instruction Disc (Cloak of Night)','NanoCrystal (Cloak of Night)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161389,160900,17,17,'Instruction Disc (Shadow Filter)','NanoCrystal (Shadow Filter)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161392,160910,66,66,'Instruction Disc (Blanket of Shadows)','NanoCrystal (Blanket of Shadows)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161395,161091,142,142,'Instruction Disc (Thorn of the Rose)','NanoCrystal (Thorn of the Rose)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161398,161093,169,169,'Instruction Disc (Vengeance of Nature)','NanoCrystal (Vengeance of Nature)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161401,161095,57,57,'Instruction Disc (Lure of the Pincushion)','NanoCrystal (Lure of the Pincushion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161404,161097,103,103,'Instruction Disc (Anger of the Porcupine)','NanoCrystal (Anger of the Porcupine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161407,161146,47,47,'Instruction Disc (Wind Slicer)','NanoCrystal (Wind Slicer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161410,161148,103,103,'Instruction Disc (Bite of the Wind)','NanoCrystal (Bite of the Wind)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161413,161150,142,142,'Instruction Disc (Stormedge)','NanoCrystal (Stormedge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161416,161152,169,169,'Instruction Disc (Division of the Winds)','NanoCrystal (Division of the Winds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161419,161154,47,47,'Instruction Disc (Ballad of Smoke)','NanoCrystal (Ballad of Smoke)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161422,161156,99,99,'Instruction Disc (Ballad of the Desperado)','NanoCrystal (Ballad of the Desperado)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161425,161158,142,142,'Instruction Disc (Ballad of the Pistolero)','NanoCrystal (Ballad of the Pistolero)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161428,161160,169,169,'Instruction Disc (Ballad of the Plains Wanderer)','NanoCrystal (Ballad of the Plains Wanderer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161431,161162,40,40,'Instruction Disc (Strength of the Hummingbird)','NanoCrystal (Strength of the Hummingbird)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161434,161164,93,93,'Instruction Disc (Fangs of the Snake)','NanoCrystal (Fangs of the Snake)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161437,161166,139,139,'Instruction Disc (Dichotomy of Nature)','NanoCrystal (Dichotomy of Nature)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161440,161168,165,165,'Instruction Disc (Dance of the Dervish)','NanoCrystal (Dance of the Dervish)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161882,161675,30,30,'Instruction Disc (Leet Friend)','NanoCrystal (Leet Friend)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161885,161677,60,60,'Instruction Disc (Eleet Friend)','NanoCrystal (Eleet Friend)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161888,161679,106,106,'Instruction Disc (Leetas Friend)','NanoCrystal (Leetas Friend)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161891,161681,152,152,'Instruction Disc (Soleet Friend)','NanoCrystal (Soleet Friend)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161894,161691,172,172,'Instruction Disc (Incinerate)','Nano Crystal (Practice Incineration)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161897,161693,179,179,'Instruction Disc (Corrosive Cloud)','Nano Crystal (Corrosive Cloud)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(161932,161921,149,146,'Instruction Disc (Lick Wounds)','Nano Crystal (Scale Reconstruction)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162126,162118,66,66,'Instruction Disc (Pack Hunter)','Nano Crystal (Maek Ouch!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162129,162120,126,126,'Instruction Disc (Howl of the Wolf)','Nano Crystal (Maek Painz!)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162132,162122,152,152,'Instruction Disc (Leader of the Pack)','Nano Crystal (Maek 0wz!');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162323,162255,53,53,'Instruction Disc (Lupus Oculus)','Nano Crystal (Hide of the Puppy)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162326,162257,103,103,'Instruction Disc (Vision of the Wolf)','Nano Crystal (Hide of the Dog)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162329,162259,139,139,'Instruction Disc (Gaze of the Hunter)','Nano Crystal (Hide of the Fox)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162332,162261,162,162,'Instruction Disc (Stare of Cerberus)','Nano Crystal (Hide of the Wolf)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162335,162314,80,80,'Instruction Disc (Sharpen Claws)','Nano Crystal (Sharpen Claws)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162338,162316,116,116,'Instruction Disc (Toothy Grin)','Nano Crystal (Toothy Grin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162341,162318,146,146,'Instruction Disc (Feline Rage)','Nano Crystal (Feline Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162344,162320,159,159,'Instruction Disc (Blur of Claws)','Nano Crystal (Blur of Claws)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162347,162322,179,179,'Instruction Disc (Frenzy of Fur)','NanoCrystal (Frenzy of Fur)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162498,162485,33,33,'Instruction Disc (Suppressor)','NanoCrystal (Suppressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162501,162487,73,73,'Instruction Disc (Major Suppressor)','NanoCrystal (Major Suppressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162504,162489,106,106,'Instruction Disc (Supreme Suppressor)','NanoCrystal (Supreme Suppressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162507,162491,136,136,'Instruction Disc (Spray With Lead)','NanoCrystal (Spray With Lead)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162510,162493,156,156,'Instruction Disc (Shower With Lead)','NanoCrystal (Shower With Lead)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162513,162495,169,169,'Instruction Disc (Frenzy of Shells)','NanoCrystal (Frenzy of Shells)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162516,162497,14,14,'Instruction Disc (Lesser Suppressor)','NanoCrystal (Lesser Suppressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162605,162590,132,132,'Instruction Disc (Grid Phase Accelerator (Team))','NanoCrystal (Grid Phase Accelerator (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162608,162592,40,40,'Instruction Disc (Grid Runner (Team))','NanoCrystal (Grid Runner (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162611,162594,76,76,'Instruction Disc (Grid Surfer (Team))','NanoCrystal (Grid Surfer (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162614,162596,156,156,'Instruction Disc (Gridspace Freedom (Team))','NanoCrystal (Gridspace Freedom (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162617,162598,27,27,'Instruction Disc (Hack Grid Vector (Team))','NanoCrystal (Hack Grid Vector (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162620,162600,57,57,'Instruction Disc (Leech Grid Vector (Team))','NanoCrystal (Leech Grid Vector (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162623,162602,14,14,'Instruction Disc (Limited Grid Jump (Team))','NanoCrystal (Limited Grid Jump (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162626,162604,106,106,'Instruction Disc (Partial Grid Jump (Team))','NanoCrystal (Partial Grid Jump (Team))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162736,162715,7,7,'Instruction Disc (Relieving Salve)','NanoCrystal (Relieving Salve)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162739,162717,24,24,'Instruction Disc (Rebinding Sutures)','NanoCrystal (Rebinding Sutures)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162742,162719,37,37,'Instruction Disc (Hacked Diagnosis)','NanoCrystal (Hacked Diagnosis)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162745,162721,53,53,'Instruction Disc (Kitchen-sink Surgery)','NanoCrystal (Kitchen-sink Surgery)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162748,162723,70,70,'Instruction Disc (Blackmarket Prescription)','NanoCrystal (Blackmarket Prescription)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162751,162725,93,93,'Instruction Disc (Biosign Rejuvenator)','NanoCrystal (Biosign Rejuvenator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162754,162727,109,109,'Instruction Disc (Nano Cauterization)','NanoCrystal (Nano Cauterization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162757,162729,123,123,'Instruction Disc (Systolic Equalizer)','NanoCrystal (Systolic Equalizer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162760,162731,132,132,'Instruction Disc (Backyard Revitalization)','NanoCrystal (Backyard Revitalization)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162763,162733,146,146,'Instruction Disc (Cellular Crashcart)','NanoCrystal (Cellular Crashcart)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(162766,162735,152,152,'Instruction Disc (Dr Hack ''n Quack)','NanoCrystal (Dr Hack ''n Quack)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163098,162996,20,20,'Instruction Disc (NCU Compressor)','NanoCrystal (NCU Compressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163101,163080,40,40,'Instruction Disc (Retool NCU)','NanoCrystal (Retool NCU)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163104,163082,63,63,'Instruction Disc (Jury-rigged NCU Analyzer)','NanoCrystal (Jury-rigged NCU Analyzer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163107,163084,93,93,'Instruction Disc (Deck Recoder)','NanoCrystal (Deck Recoder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163110,163086,123,123,'Instruction Disc (Recompiling Memory Analyzer)','NanoCrystal (Recompiling Memory Analyzer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163113,163088,132,132,'Instruction Disc (QuarkStor NCU Core)','NanoCrystal (QuarkStor NCU Core)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163116,163096,162,162,'Instruction Disc (Sentient Viral Recoder)','NanoCrystal (Sentient Viral Recoder)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163120,162838,43,43,'Instruction Disc (Presence of the Master)','NanoCrystal (Presence of the Master)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163123,162840,113,113,'Instruction Disc (Presence of the Overlord)','NanoCrystal (Presence of the Overlord)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163126,162842,152,152,'Instruction Disc (Presence of the Dominator)','NanoCrystal (Presence of the Dominator)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163130,163097,149,149,'Instruction Disc (Active Viral Compressor)','NanoCrystal (Active Viral Compressor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163401,163389,24,24,'Instruction Disc (Soothing Breeze)','Nano Crystal (Pr0n0unc3m3nt 0f L4z1n3ss)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163410,163395,139,139,'Instruction Disc (Tranquility of the Vale)','Nano Crystal (Pr0n0unc3m3nt 0f Dr0ws1n3ss)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(163413,163397,172,172,'Instruction Disc (Serene Sky)','Nano Crystal (Pr0n0unc3m3nt 0f Sl33p1n3ss)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202777,202775,59,59,'Instruction Disc (Edge of the Buccaneer)','NanoCrystal (Edge of the Buccaneer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202795,202794,133,133,'Instruction Disc (Edge of Titanium)','NanoCrystal (Edge of Titanium)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202798,202792,89,89,'Instruction Disc (Edge of Molybdenum)','NanoCrystal (Edge of Molybdenum)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202820,202819,197,197,'Instruction Disc (Rampage of the Berserker)','NanoCrystal (Rampage of the Berserker)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202823,202817,173,173,'Instruction Disc (Edge of Diamond)','NanoCrystal (Edge of Diamond)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202872,202833,89,89,'Instruction Disc (Skill of the Highlander)','NanoCrystal (Skill of the Highlander)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202875,202835,133,133,'Instruction Disc (Skill of the Guardian)','NanoCrystal (Skill of the Guardian)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202878,202837,173,173,'Instruction Disc (Skill of the Reaper)','NanoCrystal (Skill of the Reaper)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202881,202839,197,197,'Instruction Disc (Skill of the Guillotine)','NanoCrystal (Skill of the Guillotine)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202884,202843,133,133,'Instruction Disc (Thugs Glory)','NanoCrystal (Thugs Glory)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202887,202845,173,173,'Instruction Disc (Thugs Jubilation)','NanoCrystal (Thugs Jubilation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202890,202847,197,197,'Instruction Disc (Calling of Thor)','NanoCrystal (Calling of Thor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202893,202853,133,133,'Instruction Disc (Anvils Bane)','NanoCrystal (Anvils Bane)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202896,202855,173,173,'Instruction Disc (Wrecking Ball)','NanoCrystal (Wrecking Ball)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202899,202857,197,197,'Instruction Disc (Rampage of Juggernaut)','NanoCrystal (Rampage of Juggernaut)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202902,202859,197,197,'Instruction Disc (Vlad''s Revenge)','NanoCrystal (Vlad''s Revenge)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202905,202861,174,174,'Instruction Disc (Talon of the Dragon)','NanoCrystal (Talon of the Dragon)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202908,202863,129,129,'Instruction Disc (Talon of the Roc)','NanoCrystal (Talon of the Roc)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(202911,202865,93,93,'Instruction Disc (Talon of the Anun)','NanoCrystal (Talon of the Anun)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203162,203120,161,161,'Instruction Disc (Art of peace)','NanoCrystal (Art of peace)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203165,203126,68,68,'Instruction Disc (Crowd Disperser)','NanoCrystal (Crowd Disperser)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203168,203128,178,178,'Instruction Disc (Swiss Cheese)','NanoCrystal (Swiss Cheese)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203171,203130,88,88,'Instruction Disc (The Power of Three)','NanoCrystal (The Power of Three)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203174,203132,64,64,'Instruction Disc (Power Burst)','NanoCrystal (Power Burst)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203177,203138,200,200,'Instruction Disc (Soldier Clip Junkie)','NanoCrystal (Soldier Clip Junkie)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203180,203140,170,170,'Instruction Disc (Metal Barrage)','NanoCrystal (Metal Barrage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203183,203142,140,140,'Instruction Disc (Metal Strike)','NanoCrystal (Metal Strike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203186,203144,106,106,'Instruction Disc (Metal Storm)','NanoCrystal (Metal Storm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203189,203146,80,80,'Instruction Disc (Hail of Metal)','NanoCrystal (Hail of Metal)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203217,203206,199,199,'Instruction Disc (Call of the Maelstorm)','NanoCrystal (Call of the Maelstorm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203220,203208,163,163,'Instruction Disc (Power of the Thunderhead)','NanoCrystal (Power of the Thunderhead)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203223,203210,121,121,'Instruction Disc (Imminent Storm)','NanoCrystal (Imminent Storm)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203226,203212,63,63,'Instruction Disc (Force of the Thunderclap)','NanoCrystal (Force of the Thunderclap)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203676,203670,110,110,'Instruction Disc (Evade the Chase)','NanoCrystal (Evade the Chase)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203679,203672,164,164,'Instruction Disc (Close Escape)','NanoCrystal (Close Escape)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203682,203594,10,10,'Instruction Disc (Scatter Bonds)','NanoCrystal (Scatter Bonds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203685,203596,90,90,'Instruction Disc (Shatter Bonds)','NanoCrystal (Shatter Bonds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203688,203598,53,53,'Instruction Disc (Burst Bonds)','NanoCrystal (Burst Bonds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203691,203600,133,133,'Instruction Disc (Rend Bonds)','NanoCrystal (Rend Bonds)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203694,203602,168,168,'Instruction Disc (Bargain with Fate)','NanoCrystal (Bargain with Fate)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203697,203604,200,200,'Instruction Disc (Luck''s Lost Twin)','NanoCrystal (Luck''s Lost Twin)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203700,203658,22,22,'Instruction Disc (Sidestep the Blame)','NanoCrystal (Sidestep the Blame)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203703,203660,62,62,'Instruction Disc (Bypass Limitations)','NanoCrystal (Bypass Limitations)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203706,203662,109,109,'Instruction Disc (Circumvent Restrictions)','NanoCrystal (Circumvent Restrictions)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203709,203664,146,146,'Instruction Disc (Evade Responsibility)','NanoCrystal (Evade Responsibility)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203712,203666,200,200,'Instruction Disc (Guile of the Snake Oil Seller)','NanoCrystal (Guile of the Snake Oil Seller)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203715,203606,88,88,'Instruction Disc (Fluctuate Manifestation)','NanoCrystal (Fluctuate Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203718,203608,120,120,'Instruction Disc (Modulate Manifestation)','NanoCrystal (Modulate Manifestation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203721,203610,163,163,'Instruction Disc (Succor of Expediuum)','NanoCrystal (Succor of Expediuum)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203875,203851,36,36,'Instruction Disc (Minor Exoskeleton Pulse)','NanoCrystal (Minor Exoskeleton Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203878,203853,71,71,'Instruction Disc (Lesser Exoskeleton Pulse)','NanoCrystal (Lesser Exoskeleton Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203881,203856,107,107,'Instruction Disc (Exoskeleton Pulse)','NanoCrystal (Exoskeleton Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203884,203858,150,150,'Instruction Disc (Superior Exoskeleton Pulse)','NanoCrystal (Superior Exoskeleton Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203887,203860,192,192,'Instruction Disc (Greater Exoskeleton Pulse)','NanoCrystal (Greater Exoskeleton Pulse)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203890,203833,24,24,'Instruction Disc (Beg for Freedom)','NanoCrystal (Beg for Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203896,203838,74,74,'Instruction Disc (Appeal for Freedom)','NanoCrystal (Appeal for Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203899,203840,101,101,'Instruction Disc (Negotiate for Freedom)','NanoCrystal (Negotiate for Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203902,203843,149,149,'Instruction Disc (Bribe for Freedom)','NanoCrystal (Bribe for Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203905,203845,174,174,'Instruction Disc (Subpoena for Freedom)','NanoCrystal (Subpoena for Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203908,203847,199,199,'Instruction Disc (Pay Bail)','NanoCrystal (Pay Bail)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203912,203862,102,102,'Instruction Disc (Lesser Conductive Spike)','NanoCrystal (Lesser Conductive Spike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203915,203864,128,128,'Instruction Disc (Conductive Spike)','NanoCrystal (Conductive Spike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203918,203866,154,154,'Instruction Disc (Greater Conductive Spike)','NanoCrystal (Greater Conductive Spike)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203921,203868,197,197,'Instruction Disc (Energized Casing of the Faithful Servant)','NanoCrystal (Energized Casing of the Faithful Servant)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203924,203870,14,14,'Instruction Disc (Lesser Energize Shell)','NanoCrystal (Lesser Energize Shell)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203927,203872,40,40,'Instruction Disc (Energize Shell)','NanoCrystal (Energize Shell)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203930,203874,76,76,'Instruction Disc (Greater Energize Shell)','NanoCrystal (Greater Energize Shell)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203933,203785,40,40,'Instruction Disc (Writ of Mobility)','NanoCrystal (Writ of Mobility)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203936,203787,80,80,'Instruction Disc (Bought Freedom)','NanoCrystal (Bought Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203939,203789,120,120,'Instruction Disc (Writ of Passage)','NanoCrystal (Writ of Passage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203942,203791,160,160,'Instruction Disc (Bought Indulgence)','NanoCrystal (Bought Indulgence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203945,203793,200,200,'Instruction Disc (Writ of the Errant Salesman)','NanoCrystal (Writ of the Errant Salesman)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203986,203949,36,36,'Instruction Disc (Request Freedom)','NanoCrystal (Request Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203989,203951,78,78,'Instruction Disc (Beseech Freedom)','NanoCrystal (Beseech Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203992,203953,124,124,'Instruction Disc (Petition Freedom)','NanoCrystal (Petition Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203995,203955,169,169,'Instruction Disc (Demand Freedom)','NanoCrystal (Demand Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(203998,203957,200,200,'Instruction Disc (Solicit Freedom)','NanoCrystal (Solicit Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204001,203959,42,42,'Instruction Disc (The Claim to Freedom)','NanoCrystal (The Claim to Freedom)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204004,203961,94,94,'Instruction Disc (The Right to Movement)','NanoCrystal (The Right to Movement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204007,203963,137,137,'Instruction Disc (The Prerogative of Mobility)','NanoCrystal (The Prerogative of Mobility)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204010,203965,180,180,'Instruction Disc (The Privilege of Speed)','NanoCrystal (The Privilege of Speed)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204013,203798,52,52,'Instruction Disc (Break Chains)','NanoCrystal (Break Chains)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204016,203800,103,103,'Instruction Disc (Shatter Chains)','NanoCrystal (Shatter Chains)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204019,203802,154,154,'Instruction Disc (Demolish Shackles)','NanoCrystal (Demolish Shackles)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204022,203804,200,200,'Instruction Disc (Jail Break)','NanoCrystal (Jail Break)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204025,203973,94,94,'Instruction Disc (Grim Circumstance)','NanoCrystal (Grim Circumstance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204028,203975,166,166,'Instruction Disc (Dire Circumstance)','NanoCrystal (Dire Circumstance)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204033,203977,21,21,'Instruction Disc (Scatter Bonds (Other))','NanoCrystal (Scatter Bonds (Other))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204036,203812,73,73,'Instruction Disc (Escape Captivation)','NanoCrystal (Escape Captivation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204039,203814,169,169,'Instruction Disc (Master Escapologist)','NanoCrystal (Master Escapologist)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204042,203979,63,63,'Instruction Disc (Burst Bonds (Other))','NanoCrystal (Burst Bonds (Other))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204045,203981,107,107,'Instruction Disc (Shatter Bonds (Other))','NanoCrystal (Shatter Bonds (Other))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204048,203983,152,152,'Instruction Disc (Rend Bonds (Other))','NanoCrystal (Rend Bonds (Other))');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204051,203985,198,198,'Instruction Disc (Fortune''s Smile)','NanoCrystal (Fortune''s Smile)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204054,203967,67,67,'Instruction Disc (Passage for One)','NanoCrystal (Passage for One)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204057,203969,118,118,'Instruction Disc (Reroute Impediments)','NanoCrystal (Reroute Impediments)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204060,203971,170,170,'Instruction Disc (Gift of the Travelling Salesman)','NanoCrystal (Gift of the Travelling Salesman)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204433,204336,84,84,'Instruction Disc (Polarized Screening)','NanoCrystal (Polarized Screening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204436,204338,118,118,'Instruction Disc (Superior Polarized Screening)','NanoCrystal (Superior Polarized Screening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204439,204340,52,52,'Instruction Disc (Lesser Polarized Screening)','NanoCrystal (Lesser Polarized Screening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204442,204342,149,149,'Instruction Disc (Greater Polarized Screening)','NanoCrystal (Greater Polarized Screening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204445,204344,193,193,'Instruction Disc (Coherent Polarized Screening)','NanoCrystal (Coherent Polarized Screening)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204448,204346,72,72,'Instruction Disc (Sloughing Protective Barrier)','NanoCrystal (Sloughing Protective Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204451,204348,83,83,'Instruction Disc (Coherent Sloughing Protective Barrier)','NanoCrystal (Coherent Sloughing Protective Barrier)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204454,204350,107,107,'Instruction Disc (Sloughing Defensive Shield)','NanoCrystal (Sloughing Defensive Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204457,204352,133,133,'Instruction Disc (Coherent Sloughing Defensive Shield)','NanoCrystal (Coherent Sloughing Defensive Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204460,204354,181,181,'Instruction Disc (Sloughing Assault Shield)','NanoCrystal (Sloughing Assault Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204463,204356,193,193,'Instruction Disc (Coherent Sloughing Assault Shield)','NanoCrystal (Coherent Sloughing Assault Shield)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204466,204363,60,60,'Instruction Disc (Intrusive Aura of Entanglement)','NanoCrystal (Intrusive Aura of Entanglement)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204469,204365,97,97,'Instruction Disc (Intrusive Aura of Binding)','NanoCrystal (Intrusive Aura of Binding)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204472,204367,132,132,'Instruction Disc (Intrusive Aura of Malaise)','NanoCrystal (Intrusive Aura of Malaise)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204475,204369,166,166,'Instruction Disc (Intrusive Aura of Sloth)','NanoCrystal (Intrusive Aura of Sloth)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204478,204371,199,199,'Instruction Disc (Intrusive Aura of the Humble Servant)','NanoCrystal (Intrusive Aura of the Humble Servant)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204481,204373,60,60,'Instruction Disc (Intrusive Aura Cancellation)','NanoCrystal (Intrusive Aura Cancellation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204484,204419,93,93,'Instruction Disc (Sloughing Protective Field)','NanoCrystal (Sloughing Protective Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204487,204421,141,141,'Instruction Disc (Sloughing Shielding Field)','NanoCrystal (Sloughing Shielding Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204490,204423,196,196,'Instruction Disc (Sloughing Combat Field)','NanoCrystal (Sloughing Combat Field)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204493,203806,68,68,'Instruction Disc (Tear Constraints)','NanoCrystal (Tear Constraints)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204496,203808,139,139,'Instruction Disc (Rend Constraints)','NanoCrystal (Rend Constraints)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204499,203810,180,180,'Instruction Disc (Sunder Constraints)','NanoCrystal (Sunder Constraints)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204517,204426,77,77,'Instruction Disc (Vaccine of Ransacking)','NanoCrystal (Vaccine of Ransacking)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204520,204428,119,119,'Instruction Disc (Vaccine of Deprivation)','NanoCrystal (Vaccine of Deprivation)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204523,204430,164,164,'Instruction Disc (Vaccine of Plundering)','NanoCrystal (Vaccine of Plundering)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES(204526,204432,197,197,'Instruction Disc (Vaccine of Divestiture)','NanoCrystal (Vaccine of Divestiture)', 'Used for building the Omni-Med Battle Helmet');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204529,204304,90,90,'Instruction Disc (Feelings of Mortality)','NanoCrystal (Feelings of Mortality)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(204532,204306,180,180,'Instruction Disc (One Foot in the Grave)','NanoCrystal (One Foot in the Grave)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205162,201522,80,80,'Instruction Disc (Enfraam''s Toolkit)','NanoCrystal (Enfraam''s Toolkit)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205165,201524,166,166,'Instruction Disc (Living Codex of Izgimmer)','NanoCrystal (Living Codex of Izgimmer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205199,205184,85,85,'Instruction Disc (Evocation of Fathomless Rage)','Nano Crystal (Evocation of Fathomless Rage)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205202,205186,115,115,'Instruction Disc (Evocation of Implacable Hatred)','Nano Crystal (Evocation of Implacable Hatred)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205205,205188,140,140,'Instruction Disc (Evocation of Maddening Wrath)','Nano Crystal (Evocation of Maddening Wrath)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205208,205190,177,177,'Instruction Disc (Evocation of Pure Malevolence)','Nano Crystal (Evocation of Pure Malevolence)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205211,205192,58,58,'Instruction Disc (Evocation of Relentless Fury)','Nano Crystal (Evocation of Relentless Fury)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205214,205194,200,200,'Instruction Disc (Evocation of The Abomination)','Nano Crystal (Evocation of The Abomination)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205217,205196,34,34,'Instruction Disc (Evocation of Unleashed Malice)','Nano Crystal (Evocation of Unleashed Malice)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205220,205198,16,16,'Instruction Disc (Evocation of Unrestrained Ferocity)','Nano Crystal (Evocation of Unrestrained Ferocity)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205254,205230,15,15,'Instruction Disc (Assist Combat Array)','Nano Crystal (Assist Combat Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205257,205232,37,37,'Instruction Disc (Monitor Combat Array)','Nano Crystal (Monitor Combat Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205260,205234,56,56,'Instruction Disc (Enhance Combat Array)','Nano Crystal (Enhance Combat Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205263,205236,77,77,'Instruction Disc (Boost Combat Array)','Nano Crystal (Boost Combat Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205266,205238,96,96,'Instruction Disc (Overdrive Combat Array)','Nano Crystal (Overdrive Combat Array)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205269,205240,117,117,'Instruction Disc (Assist Aggression Subsystem)','Nano Crystal (Assist Aggression Subsystem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205272,205242,136,136,'Instruction Disc (Monitor Aggression Subsystem)','Nano Crystal (Monitor Aggression Subsystem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205275,205244,158,158,'Instruction Disc (Enhance Aggression Subsystem)','Nano Crystal (Enhance Aggression Subsystem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205278,205246,174,174,'Instruction Disc (Boost Aggression Subsystem)','Nano Crystal (Boost Aggression Subsystem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205281,205248,193,193,'Instruction Disc (Overdrive Aggression Subsystem)','Nano Crystal (Overdrive Aggression Subsystem)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205284,205250,200,200,'Instruction Disc (Omni-Pol Pacification Logic System)','Nano Crystal (Omni-Pol Pacification Logic System)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205305,205288,30,30,'Instruction Disc (Gallant Hero: The Enraged Drone)','Nano Crystal (Gallant Hero: The Enraged Drone)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205308,205290,52,52,'Instruction Disc (Gallant Hero: The Infuriated Minion)','Nano Crystal (Gallant Hero: The Infuriated Minion)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205311,205292,71,71,'Instruction Disc (Gallant Hero: The Aggravated Servant)','Nano Crystal (Gallant Hero: The Aggravated Servant)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205314,205294,92,92,'Instruction Disc (Gallant Hero: The Indignant Flunky)','Nano Crystal (Gallant Hero: The Indignant Flunky)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205317,205296,110,110,'Instruction Disc (Gallant Hero: The Angry Servitor)','Nano Crystal (Gallant Hero: The Angry Servitor)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205320,205298,131,131,'Instruction Disc (Gallant Hero: The Bitter Clerk)','Nano Crystal (Gallant Hero: The Bitter Clerk)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205323,205300,152,152,'Instruction Disc (Gallant Hero: The Irate Attache)','Nano Crystal (Gallant Hero: The Irate Attache)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205326,205302,173,173,'Instruction Disc (Gallant Hero: The Incensed Retainer)','Nano Crystal (Gallant Hero: The Incensed Retainer)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(205329,205304,199,199,'Instruction Disc (Gallant Hero: The Vengeful Butler)','Nano Crystal (Gallant Hero: The Vengeful Butler)');
-INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES(297362,297333,1,5,'Instruction Disc (Spirit Siphon)','Nano Crystal (Spirit Siphon)');
+INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES
+(144818,125753,156,156,'Instruction Disc (Calling of Altumus)','Nano Crystal (Calling of Altumus)'),
+(144819,125754,186,186,'Instruction Disc (Calling of Belamorte)','Nano Crystal (Calling of Belamorte)'),
+(144954,29424,93,93,'Instruction Disc (Advanced Symbol Manipulation)','Nano Crystal (Advanced Symbol Manipulation)'),
+(144955,43795,4,4,'Instruction Disc (Anger Manifestation)','Nano Crystal (Anger Manifestation)'),
+(144956,29369,50,50,'Instruction Disc (Anticipation of Retaliation)','Nano Crystal (Anticipation of Retaliation)'),
+(144957,29372,37,37,'Instruction Disc (BioMet Mastery)','Nano Crystal (BioMet Mastery)'),
+(144958,125747,169,169,'Instruction Disc (Calling of Curatem The Grand)','Nano Crystal (Calling of Curatem The Grand)'),
+(144959,125751,17,17,'Instruction Disc (Calling of Medinos)','Nano Crystal (Calling of Medinos)'),
+(144960,125752,113,113,'Instruction Disc (Calling of Restite)','Nano Crystal (Calling of Restite)'),
+(144961,125748,37,37,'Instruction Disc (Calling of Salvinous)','Nano Crystal (Calling of Salvinous)'),
+(144962,125749,87,87,'Instruction Disc (Calling of Sanoo)','Nano Crystal (Calling of Sanoo)'),
+(144963,125750,143,143,'Instruction Disc (Calling of The Vivificator)','Nano Crystal (Calling of The Vivificator)'),
+(144964,125755,57,57,'Instruction Disc (Calling of Valentyia)','Nano Crystal (Calling of Valentyia)'),
+(144965,116822,130,130,'Instruction Disc (Chant of Effortless Strikes)','Nano Crystal (Chant of Effortless Strikes)'),
+(144966,116831,87,87,'Instruction Disc (Chant of Frenzied Blows)','Nano Crystal (Chant of Frenzied Blows)'),
+(144967,125771,116,116,'Instruction Disc (Chill Spear)','Nano Crystal (Chill Spear)'),
+(144968,95428,90,90,'Instruction Disc (Coherent Notum Web)','Nano Crystal (Coherent Notum Web)'),
+(144969,29382,169,169,'Instruction Disc (Curse of Chronos)','Nano Crystal (Curse of Chronos)'),
+(144970,95530,146,146,'Instruction Disc (Dedication of Thought)','Nano Crystal (Dedication of Thought)'),
+(144971,29383,142,142,'Instruction Disc (Dominate: BioMet)','Nano Crystal (Dominate: BioMet)'),
+(144972,29384,142,142,'Instruction Disc (Dominate: MatCrea)','Nano Crystal (Dominate: MatCrea)'),
+(144973,29385,139,139,'Instruction Disc (Dominate: SpaceTime)','Nano Crystal (Dominate: SpaceTime)'),
+(144974,29386,139,139,'Instruction Disc (Dominate: MatMet)','Nano Crystal (Dominate: MatMet)'),
+(144975,29387,142,142,'Instruction Disc (Dominate: PsyMod)','Nano Crystal (Dominate: PsyMod)'),
+(144976,29388,142,142,'Instruction Disc (Dominate: SenseImp)','Nano Crystal (Dominate: SenseImp)'),
+(144977,99139,14,14,'Instruction Disc (Douse Anger)','Nano Crystal (Douse Anger)'),
+(144978,95418,24,24,'Instruction Disc (Ease of Execution)','Nano Crystal (Ease of Execution)'),
+(144979,95537,47,47,'Instruction Disc (Engrossing Activity)','Nano Crystal (Engrossing Activity)'),
+(144980,43792,159,159,'Instruction Disc (Enmity Personification)','Nano Crystal (Enmity Personification)'),
+(144981,43793,129,129,'Instruction Disc (Frenzy Embodiment)','Nano Crystal (Frenzy Embodiment)'),
+(144982,125766,64,64,'Instruction Disc (Frigid Blast)','Nano Crystal (Frigid Blast)'),
+(144983,125770,17,17,'Instruction Disc (Frost Slivers)','Nano Crystal (Frost Slivers)'),
+(144984,43794,20,20,'Instruction Disc (Fury Externalization)','Nano Crystal (Fury Externalization)'),
+(144985,125769,159,159,'Instruction Disc (Glacial Lance)','Nano Crystal (Glacial Lance)'),
+(144986,43789,7,7,'Instruction Disc (Greater Anger Manifestation)','Nano Crystal (Greater Anger Manifestation)'),
+(144987,43790,165,165,'Instruction Disc (Greater Enmity Personification)','Nano Crystal (Greater Enmity Personification)'),
+(144988,43791,146,146,'Instruction Disc (Greater Frenzy Embodiment)','Nano Crystal (Greater Frenzy Embodiment)'),
+(144989,43786,27,27,'Instruction Disc (Greater Fury Externalization)','Nano Crystal (Greater Fury Externalization)'),
+(144990,43787,53,53,'Instruction Disc (Greater Rage Materialization)','Nano Crystal (Greater Rage Materialization)'),
+(144991,43788,93,93,'Instruction Disc (Greater Wrath Incarnation)','Nano Crystal (Greater Wrath Incarnation)'),
+(144992,116830,182,182,'Instruction Disc (High Chant of Effortless Strikes)','Nano Crystal (High Chant of Effortless Strikes)'),
+(144993,116829,156,156,'Instruction Disc (High Chant of Frenzied Blows)','Nano Crystal (High Chant of Frenzied Blows)'),
+(144994,95535,90,90,'Instruction Disc (Ignore External Events)','Nano Crystal (Ignore External Events)'),
+(144995,43784,1,1,'Instruction Disc (Inferior Anger Manifestation)','Nano Crystal (Inferior Anger Manifestation)'),
+(144996,43785,159,159,'Instruction Disc (Inferior Enmity Personification)','Nano Crystal (Inferior Enmity Personification)'),
+(144997,43796,123,123,'Instruction Disc (Inferior Frenzy Embodiment)','Nano Crystal (Inferior Frenzy Embodiment)'),
+(144998,43781,17,17,'Instruction Disc (Inferior Fury Externalization)','Nano Crystal (Inferior Fury Externalization)'),
+(144999,43782,40,40,'Instruction Disc (Inferior Rage Materialization)','Nano Crystal (Inferior Rage Materialization)'),
+(145000,43761,83,83,'Instruction Disc (Inferior Wrath Incarnation)','Nano Crystal (Inferior Wrath Incarnation)'),
+(145001,116828,166,166,'Instruction Disc (Instill With Enduring Wrath)','Nano Crystal (Instill With Enduring Wrath)'),
+(145002,116827,113,113,'Instruction Disc (Instill With Ferocious Purpose)','Nano Crystal (Instill With Ferocious Purpose)'),
+(145003,116826,41,41,'Instruction Disc (Instill With Fury)','Nano Crystal (Instill With Fury)'),
+(145004,116825,189,189,'Instruction Disc (Instill With Malign Intent)','Nano Crystal (Instill With Malign Intent)'),
+(145005,116824,21,21,'Instruction Disc (Instill With Rage)','Nano Crystal (Instill With Rage)'),
+(145006,116823,150,150,'Instruction Disc (Instill With Righteous Frenzy)','Nano Crystal (Instill With Righteous Frenzy)'),
+(145007,116832,74,74,'Instruction Disc (Instill With Terrible Anger)','Nano Crystal (Instill With Terrible Anger)'),
+(145008,95536,14,14,'Instruction Disc (Internal Focus)','Nano Crystal (Internal Focus)'),
+(145010,43783,156,156,'Instruction Disc (Lesser Enmity Personification)','Nano Crystal (Summon Enmity Personification)'),
+(145011,43779,113,113,'Instruction Disc (Lesser Frenzy Embodiment)','Nano Crystal (Summon Frenzy Embodiment)'),
+(145012,43780,14,14,'Instruction Disc (Lesser Fury Externalization)','Nano Crystal (Summon Fury Externalization)'),
+(145013,43777,37,37,'Instruction Disc (Lesser Rage Materialization)','Nano Crystal (Summon Rage Materialization)'),
+(145014,43778,76,76,'Instruction Disc (Lesser Wrath Incarnation)','Nano Crystal (Summon Wrath Incarnation)'),
+(145015,99140,162,162,'Instruction Disc (Lull Wrath)','Nano Crystal (Lull Wrath)'),
+(145016,29391,43,43,'Instruction Disc (MatCrea Mastery)','Nano Crystal (MatCrea Mastery)'),
+(145017,29392,40,40,'Instruction Disc (SpaceTime Mastery)','Nano Crystal (SpaceTime Mastery)'),
+(145018,29393,50,50,'Instruction Disc (MatMet Mastery)','Nano Crystal (MatMet Mastery)'),
+(145019,29394,146,146,'Instruction Disc (Mind Banshee)','Nano Crystal (Mind Banshee)'),
+(145020,125767,87,87,'Instruction Disc (Mind Howl)','Nano Crystal (Mind Howl)'),
+(145022,125768,173,173,'Instruction Disc (Mind Quake)','Nano Crystal (Mind Quake)'),
+(145023,29395,37,50,'Instruction Disc (Mind Scream)','Nano Crystal (Mind Scream)'),
+(145024,29396,165,165,'Instruction Disc (Mocham''s Gift: BioMet)','Nano Crystal (Mocham''s Gift: BioMet)'),
+(145025,29397,165,165,'Instruction Disc (Mocham''s Gift: MatCrea)','Nano Crystal (Mocham''s Gift: MatCrea)'),
+(145026,29398,162,162,'Instruction Disc (Mocham''s Gift: SpaceTime)','Nano Crystal (Mocham''s Gift: SpaceTime)'),
+(145027,29399,162,162,'Instruction Disc (Mocham''s Gift: MatMet)','Nano Crystal (Mocham''s Gift: MatMet)'),
+(145028,29400,169,169,'Instruction Disc (Mocham''s Gift: PsyMod)','Nano Crystal (Mocham''s Gift: PsyMod)'),
+(145029,29401,165,165,'Instruction Disc (Mocham''s Gift: SenseImp)','Nano Crystal (Mocham''s Gift: SenseImp)'),
+(145030,95425,159,159,'Instruction Disc (Mocham''s Neural Interface-Web)','Nano Crystal (Mocham''s Neural Interface-Web)'),
+(145031,29403,162,162,'Instruction Disc (Nano Shutdown)','Nano Crystal (Nano Shutdown)'),
+(145032,29404,129,129,'Instruction Disc (Neuron-Notum Interface)','Nano Crystal (Neuron-Notum Interface)'),
+(145033,95426,60,60,'Instruction Disc (Notum Attunement)','Nano Crystal (Notum Attunement)'),
+(145034,29405,149,149,'Instruction Disc (Notum Rejection)','Nano Crystal (Notum Rejection)'),
+(145035,29406,165,165,'Instruction Disc (Odin''s Missing Eye)','Nano Crystal (Odin''s Missing Eye)'),
+(145036,95534,162,162,'Instruction Disc (One Mind, One Purpose)','Nano Crystal (One Mind, One Purpose)'),
+(145037,29409,47,47,'Instruction Disc (PsyMod Mastery)','Nano Crystal (PsyMod Mastery)'),
+(145038,120500,103,103,'Instruction Disc (Quantum Wings)','NanoCrystal (Quantum Wings)'),
+(145039,99138,30,30,'Instruction Disc (Quell Anger)','Nano Crystal (Quell Anger)'),
+(145040,99137,40,40,'Instruction Disc (Quench Anger)','Nano Crystal (Quench Anger)'),
+(145041,99136,93,93,'Instruction Disc (Rage Abolishment)','Nano Crystal (Rage Abolishment)'),
+(145042,99134,116,116,'Instruction Disc (Rage Eradication)','Nano Crystal (Rage Eradication)'),
+(145043,43774,47,47,'Instruction Disc (Rage Materialization)','Nano Crystal (Rage Materialization)'),
+(145044,99135,76,76,'Instruction Disc (Rage Suppression)','Nano Crystal (Rage Suppression)'),
+(145045,29412,43,43,'Instruction Disc (Sense Imp Mastery)','Nano Crystal (Sense Imp Mastery)'),
+(145046,99133,7,7,'Instruction Disc (Shed Anger)','Nano Crystal (Shed Anger)'),
+(145047,99132,53,53,'Instruction Disc (Stifle Rage)','Nano Crystal (Stifle Rage)'),
+(145048,43797,189,189,'Instruction Disc (Summon Cacodemon)','Nano Crystal (Summon Demon)'),
+(145049,29415,189,189,'Instruction Disc (Summon Demon)','Nano Crystal (Summon Demon)'),
+(145050,43775,182,182,'Instruction Disc (Summon Fiend)','Nano Crystal (Summon Fiend)'),
+(145051,29416,179,179,'Instruction Disc (Summon Lemur)','Nano Crystal (Summon Lemur)'),
+(145052,43776,4,4,'Instruction Disc (Superior Anger Manifestation)','Nano Crystal (Superior Anger Manifestation)'),
+(145053,43773,162,162,'Instruction Disc (Superior Enmity Personification)','Nano Crystal (Superior Enmity Personification)'),
+(145054,43770,139,139,'Instruction Disc (Superior Frenzy Embodiment)','Nano Crystal (Superior Frenzy Embodiment)'),
+(145055,43771,24,24,'Instruction Disc (Superior Fury Externalization)','Nano Crystal (Superior Fury Externalization)'),
+(145056,43772,50,50,'Instruction Disc (Superior Rage Materialization)','Nano Crystal (Superior Rage Materialization)'),
+(145057,43768,90,90,'Instruction Disc (Superior Wrath Incarnation)','Nano Crystal (Superior Wrath Incarnation)'),
+(145058,43769,7,7,'Instruction Disc (Supreme Anger Manifestation)','Nano Crystal (Supreme Anger Manifestation)'),
+(145059,43759,172,172,'Instruction Disc (Supreme Enmity Personification)','Nano Crystal (Supreme Enmity Personification)'),
+(145060,43766,149,149,'Instruction Disc (Supreme Frenzy Embodiment)','Nano Crystal (Supreme Frenzy Embodiment)'),
+(145061,43767,30,30,'Instruction Disc (Supreme Fury Externalization)','Nano Crystal (Supreme Fury Externalization)'),
+(145062,43764,60,60,'Instruction Disc (Supreme Rage Materialization)','Nano Crystal (Supreme Rage Materialization)'),
+(145063,43760,96,96,'Instruction Disc (Supreme Wrath Incarnation)','Nano Crystal (Supreme Wrath Incarnation)'),
+(145064,29192,10,10,'Instruction Disc (Symbol Helper)','Nano Crystal (Symbol Helper)'),
+(145065,99131,136,136,'Instruction Disc (Temper Wrath)','Nano Crystal (Temper Wrath)'),
+(145066,43765,10,10,'Instruction Disc (Transcendent Anger Manifestation)','Nano Crystal (Transcendent Anger Manifestation)'),
+(145067,43921,175,175,'Instruction Disc (Transcendent Enmity Personification)','Nano Crystal (Transcendent Enmity Personification)'),
+(145068,43762,152,152,'Instruction Disc (Transcendent Frenzy Embodiment)','Nano Crystal (Transcendent Frenzy Embodiment)'),
+(145069,43922,33,33,'Instruction Disc (Transcendent Fury Externalization)','Nano Crystal (Transcendent Fury Externalization)'),
+(145070,43923,70,70,'Instruction Disc (Transcendent Rage Materialization)','Nano Crystal (Transcendent Rage Materialization)'),
+(145071,43763,106,106,'Instruction Disc (Transcendent Wrath Incarnation)','Nano Crystal (Transcendent Wrath Incarnation)'),
+(145072,29418,73,73,'Instruction Disc (Unmake: BioMet)','Nano Crystal (Unmake: BioMet)'),
+(145073,29419,73,73,'Instruction Disc (Unmake: MatCrea)','Nano Crystal (Unmake: MatCrea)'),
+(145074,29420,66,66,'Instruction Disc (Unmake: SpaceTime)','Nano Crystal (Unmake: SpaceTime)'),
+(145075,29421,63,63,'Instruction Disc (Unmake: MatMet)','Nano Crystal (Unmake: MatMet)'),
+(145076,29422,70,70,'Instruction Disc (Unmake: PsyMod)','Nano Crystal (Unmake: PsyMod)'),
+(145077,29423,66,66,'Instruction Disc (Unmake: SenseImp)','Nano Crystal (Unmake: SenseImp)'),
+(145078,99129,179,179,'Instruction Disc (Wrath Abatement)','Nano Crystal (Wrath Abatement)'),
+(145079,99130,149,149,'Instruction Disc (Wrath Ebb)','Nano Crystal (Wrath Ebb)'),
+(145080,43758,86,86,'Instruction Disc (Wrath Incarnation)','Nano Crystal (Wrath Incarnation)'),
+(146714,82090,146,146,'Instruction Disc (Advanced Survival Technique)','Nano Crystal (Advanced Survival Technique)'),
+(146715,136707,50,50,'Instruction Disc (Alleviate Pain)','Nano Crystal (Alleviate Pain)'),
+(146716,55849,83,83,'Instruction Disc (Arctic Gale)','Nano Crystal (Arctic Gale)'),
+(146717,55854,126,126,'Instruction Disc (Biting Blades)','Nano Crystal (Biting Blades)'),
+(146718,26019,172,172,'Instruction Disc (Calia''s Form: Pit Lizard)','Nano Crystal (Hostile Hatchling)'),
+(146730,136705,83,83,'Instruction Disc (Cellular Reformation)','Nano Crystal (Cellular Reformation)'),
+(146731,55843,37,37,'Instruction Disc (Cloak of Fire)','Nano Crystal (Cloak of Fire)'),
+(146732,55863,1,1,'Instruction Disc (Coat of Barbs)','Nano Crystal (Coat of Barbs)'),
+(146733,55853,132,132,'Instruction Disc (Corrosive Barrier)','Nano Crystal (Corrosive Barrier)'),
+(146734,26166,76,76,'Instruction Disc (Eagle Eye)','Nano Crystal (Eagle Eye)'),
+(146735,82089,86,86,'Instruction Disc (Encourage Regrowth)','Nano Crystal (Encourage Regrowth)'),
+(146736,55842,24,24,'Instruction Disc (Enshroud with Barbs)','Nano Crystal (Enshroud with Barbs)'),
+(146737,143909,169,169,'Instruction Disc (Essence of Life)','Nano Crystal (Essence of Life)'),
+(146738,55856,136,136,'Instruction Disc (Fiery Vengeance)','Nano Crystal (Fiery Vengeance)'),
+(146739,55846,63,63,'Instruction Disc (Fiery Wrap)','Nano Crystal (Fiery Wrap)'),
+(146740,55841,30,30,'Instruction Disc (Firefly''s Fury)','Nano Crystal (Firefly''s Fury)'),
+(146741,136706,143,143,'Instruction Disc (Flawless Stitching)','Nano Crystal (Flawless Stitching)'),
+(146745,26245,43,43,'Instruction Disc (Free Movement)','Nano Crystal (Free Movement)'),
+(146746,55838,7,7,'Instruction Disc (Frost With Snow)','Nano Crystal (Frost With Snow)'),
+(146747,136702,156,156,'Instruction Disc (Glorious Healing)','Nano Crystal (Glorious Healing)'),
+(146748,82088,142,142,'Instruction Disc (Greater Encourage Regrowth)','Nano Crystal (Greater Encourage Regrowth)'),
+(146749,82087,43,43,'Instruction Disc (Greater Quick Heal)','Nano Crystal (Greater Quick Heal)'),
+(146750,136703,130,130,'Instruction Disc (Greater Restore Health)','Nano Crystal (Greater Restore Health)'),
+(146751,82086,57,57,'Instruction Disc (Greater Team Quick Heal)','Nano Crystal (Greater Team Quick Heal)'),
+(146752,75372,96,96,'Instruction Disc (Greater Wilderness Protection)','Nano Crystal (Greater Wilderness Protection)'),
+(146753,85142,83,83,'Instruction Disc (Grinning Hunter)','Nano Crystal (Grinning Hunter)'),
+(146756,55848,90,90,'Instruction Disc (Guard of the Grizzly)','Nano Crystal (Guard of the Grizzly)'),
+(146757,82085,156,156,'Instruction Disc (Healing Rays of Sunrise)','Nano Crystal (Healing Rays of Sunrise)'),
+(146758,136704,153,153,'Instruction Disc (Implacability of Life)','Nano Crystal (Implacability of Life)'),
+(146759,55859,142,142,'Instruction Disc (Interlocking Barbs)','Nano Crystal (Interlocking Barbs)'),
+(146760,136700,159,159,'Instruction Disc (Invocation of the Phoenix)','Nano Crystal (Invocation of the Phoenix)'),
+(146761,55840,17,17,'Instruction Disc (Jacket of Blades)','Nano Crystal (Jacket of Blades)'),
+(146762,136701,21,21,'Instruction Disc (Lesser Restore to Health)','Nano Crystal (Lesser Restore to Health)'),
+(146763,75369,20,20,'Instruction Disc (Lesser Wilderness Protection)','Nano Crystal (Lesser Wilderness Protection)'),
+(146764,55858,152,152,'Instruction Disc (Lightning''s Child)','Nano Crystal (Lightning''s Child)'),
+(146765,55850,109,109,'Instruction Disc (Magma Coating)','Nano Crystal (Magma Coating)'),
+(146766,75371,70,70,'Instruction Disc (Major Wilderness Protection)','Nano Crystal (Major Wilderness Protection)'),
+(146767,136697,74,74,'Instruction Disc (Makeshift Bandaging)','Nano Crystal (Makeshift Bandaging)'),
+(146768,75368,4,4,'Instruction Disc (Minor Wilderness Protection)','Nano Crystal (Minor Wilderness Protection)'),
+(146769,136698,176,176,'Instruction Disc (Moonbeam)','Nano Crystal (Moonbeam)'),
+(146770,136699,34,34,'Instruction Disc (Natural Cure)','Nano Crystal (Natural Cure)'),
+(146771,136695,90,90,'Instruction Disc (Natural Remedy)','Nano Crystal (Natural Remedy)'),
+(146772,82084,162,162,'Instruction Disc (Nature''s Blessing)','Nano Crystal (Nature''s Blessing)'),
+(146773,55851,99,99,'Instruction Disc (Nest of Vipers)','Nano Crystal (Nest of Vipers)'),
+(146774,136696,182,182,'Instruction Disc (One With Nature)','Nano Crystal (One With Nature)'),
+(146775,136692,41,41,'Instruction Disc (Patch Wounds)','Nano Crystal (Patch Wounds)'),
+(146776,55857,149,149,'Instruction Disc (Personal Blizzard)','Nano Crystal (Personal Blizzard)'),
+(146777,85145,47,47,'Instruction Disc (Playful Cub)','Nano Crystal (Playful Cub)'),
+(146780,55845,53,53,'Instruction Disc (Porcupine Barrier)','Nano Crystal (Porcupine Barrier)'),
+(146781,82083,93,93,'Instruction Disc (Practiced Stitching)','Nano Crystal (Practiced Stitching)'),
+(146782,82838,20,20,'Instruction Disc (Pronouncement of Greatness)','Nano Crystal (Pronouncement of Greatness)'),
+(146784,55852,116,116,'Instruction Disc (Protection of the Storm)','Nano Crystal (Protection of the Storm)'),
+(146785,55855,139,139,'Instruction Disc (Razor Barrier)','Nano Crystal (Razor Barrier)'),
+(146789,136693,64,64,'Instruction Disc (Restore to Health)','Nano Crystal (Restore to Health)'),
+(146790,136694,107,107,'Instruction Disc (Restore Vitality)','Nano Crystal (Restore Vitality)'),
+(146791,55861,159,159,'Instruction Disc (Retaliatory Venom Spit)','Nano Crystal (Retaliatory Venom Spit)'),
+(146792,55839,169,169,'Instruction Disc (Retribution of the Aesir)','Nano Crystal (Retribution of the Aesir)'),
+(146793,55862,165,165,'Instruction Disc (Revenge of the Valkyrie)','Nano Crystal (Revenge of the Valkyrie)'),
+(146794,28743,136,136,'Instruction Disc (Robust Treatment)','Nano Crystal (Robust Treatment)'),
+(146795,82082,7,7,'Instruction Disc (Rough Stitching)','Nano Crystal (Rough Stitching)'),
+(146796,82081,169,169,'Instruction Disc (Seed Life)','Nano Crystal (Seed Life)'),
+(146797,55847,73,73,'Instruction Disc (Skin of the Toad)','Nano Crystal (Skin of the Toad)'),
+(146798,136690,14,14,'Instruction Disc (Slipshod Bandaging)','Nano Crystal (Slipshod Bandaging)'),
+(146799,55844,47,47,'Instruction Disc (Sparking Touch)','Nano Crystal (Sparking Touch)'),
+(146800,82839,24,24,'Instruction Disc (Sparrow Flight)','Nano Crystal (Sparrow Flight)'),
+(146803,75373,123,123,'Instruction Disc (Supreme Wilderness Protection)','Nano Crystal (Supreme Wilderness Protection)'),
+(146804,28744,33,33,'Instruction Disc (Survival Aid)','Nano Crystal (Survival Aid)'),
+(146805,136691,116,116,'Instruction Disc (Survival of the Fittest)','Nano Crystal (Survival of the Fittest)'),
+(146806,82080,27,27,'Instruction Disc (Survival Technique)','Nano Crystal (Survival Technique)'),
+(146807,28745,113,113,'Instruction Disc (Team Eagle Eye)','Nano Crystal (Precision of the Hunter)'),
+(146808,28749,66,66,'Instruction Disc (Team Free Movement)','Nano Crystal (Team Free Movement)'),
+(146809,82079,116,116,'Instruction Disc (Team Practiced Stitching)','Nano Crystal (Team Practiced Stitching)'),
+(146810,28751,4,4,'Instruction Disc (Team Quick Heal)','Nano Crystal (Team Quick Heal)'),
+(146811,82078,17,17,'Instruction Disc (Team Rough Stitching)','Nano Crystal (Team Rough Stitching)'),
+(146812,82077,33,33,'Instruction Disc (Team Survival Technique)','Nano Crystal (Team Survival Technique)'),
+(146813,38531,24,24,'Instruction Disc (Team Terrain Knowledge)','Nano Crystal (Team Terrain Knowledge)'),
+(146814,28752,10,10,'Instruction Disc (Terrain Knowledge)','Nano Crystal (Terrain Knowledge)'),
+(146815,75370,43,43,'Instruction Disc (Wilderness Protection)','Nano Crystal (Wilderness Protection)'),
+(146816,55860,162,162,'Instruction Disc (Wings of the Phoenix)','Nano Crystal (Wings of the Phoenix)'),
+(146817,116857,150,150,'Instruction Disc (Advanced Face Graft)','Nano Crystal (Advanced Face Graft)'),
+(146818,81902,40,40,'Instruction Disc (Anatomy Lesson)','Nano Crystal (Anatomy Lesson)'),
+(146819,81901,139,139,'Instruction Disc (Assassin''s Grin)','Nano Crystal (Assassin''s Grin)'),
+(146820,117250,86,86,'Instruction Disc (Assume Profession: Adventurer)','Nano Crystal (Assume Profession: Adventurer)'),
+(146821,117251,109,109,'Instruction Disc (Assume Profession: Bureaucrat)','Nano Crystal (Assume Profession: Bureaucrat)'),
+(146822,117252,103,103,'Instruction Disc (Assume Profession: Doctor)','Nano Crystal (Assume Profession: Doctor)'),
+(146823,117247,76,76,'Instruction Disc (Assume Profession: Enforcer)','Nano Crystal (Assume Profession: Enforcer)'),
+(146824,117248,90,90,'Instruction Disc (Assume Profession: Engineer)','Nano Crystal (Assume Profession: Engineer)'),
+(146825,117249,96,96,'Instruction Disc (Assume Profession: Fixer)','Nano Crystal (Assume Profession: Fixer)'),
+(146826,117244,83,83,'Instruction Disc (Assume Profession: Martial Artist)','Nano Crystal (Assume Profession: Martial Artist)'),
+(146827,117245,113,113,'Instruction Disc (Assume Profession: Meta-Physicist)','Nano Crystal (Assume Profession: Meta-Physicist)'),
+(146828,117246,119,119,'Instruction Disc (Assume Profession: Nanotechnician)','Nano Crystal (Assume Profession: Nanotechnician)'),
+(146829,117242,80,80,'Instruction Disc (Assume Profession: Soldier)','Nano Crystal (Assume Profession: Soldier)'),
+(146830,117243,99,99,'Instruction Disc (Assume Profession: Trader)','Nano Crystal (Assume Profession: Trader)'),
+(146831,56240,47,47,'Instruction Disc (Brief Interrogation)','Nano Crystal (Brief Interrogation)'),
+(146832,26015,63,63,'Instruction Disc (Chemical Concoction)','Nano Crystal (Chemical Concoction)'),
+(146833,26017,142,142,'Instruction Disc (Death''s Gaze)','Nano Crystal (Death''s Gaze)'),
+(146834,81962,136,136,'Instruction Disc (Death''s Knocking)','Nano Crystal (Death''s Knocking)'),
+(146835,85323,57,57,'Instruction Disc (Delay Pursuers)','Nano Crystal (Delay Pursuers)'),
+(146836,82810,63,63,'Instruction Disc (Delay the Inevitable)','Nano Crystal (Delay the Inevitable)'),
+(146837,81961,169,169,'Instruction Disc (Delayed Assassin)','Nano Crystal (Delayed Assassin)'),
+(146838,56238,1,1,'Instruction Disc (Detain Suspect)','Nano Crystal (Detain Suspect)'),
+(146839,26207,27,27,'Instruction Disc (Enhanced Senses)','Nano Crystal (Enhanced Senses)'),
+(146840,56247,142,142,'Instruction Disc (Entrap Victim)','Nano Crystal (Entrap Victim)'),
+(146841,116858,77,77,'Instruction Disc (Face Graft)','Nano Crystal (Face Graft)'),
+(146842,32071,17,17,'Instruction Disc (False Profession: Adventurer)','Nano Crystal (False Profession: Adventurer)'),
+(146843,32073,33,33,'Instruction Disc (False Profession: Bureaucrat)','Nano Crystal (False Profession: Bureaucrat)'),
+(146844,32074,30,30,'Instruction Disc (False Profession: Doctor)','Nano Crystal (False Profession: Doctor)'),
+(146845,32075,20,20,'Instruction Disc (False Profession: Engineer)','Nano Crystal (False Profession: Engineer)'),
+(146846,32076,14,14,'Instruction Disc (False Profession: Martial Artist)','Nano Crystal (False Profession: Martial Artist)'),
+(146847,32077,37,37,'Instruction Disc (False Profession: Meta-Physicist)','Nano Crystal (False Profession: Meta-Physicist)'),
+(146848,32078,40,40,'Instruction Disc (False Profession: Nanotechnician)','Nano Crystal (False Profession: Nanotechnician)'),
+(146849,32079,14,14,'Instruction Disc (False Profession: Soldier)','Nano Crystal (False Profession: Soldier)'),
+(146850,32080,24,24,'Instruction Disc (False Profession: Fixer)','Nano Crystal (False Profession: Fixer)'),
+(146851,32081,27,27,'Instruction Disc (False Profession: Trader)','Nano Crystal (False Profession: Trader)'),
+(146852,32082,10,10,'Instruction Disc (False Profession: Enforcer)','Nano Crystal (False Profession: Enforcer)'),
+(146853,26206,53,53,'Instruction Disc (Feline Grace)','Nano Crystal (Feline Grace)'),
+(146854,81900,106,106,'Instruction Disc (Greater Anatomy Lesson)','Nano Crystal (Greater Anatomy Lesson)'),
+(146855,81960,149,149,'Instruction Disc (Greater Death''s Knocking)','Nano Crystal (Greater Death''s Knocking)'),
+(146856,85324,109,109,'Instruction Disc (Greater Delay Pursuers)','Nano Crystal (Greater Delay Pursuers)'),
+(146857,82809,90,90,'Instruction Disc (Greater Delay the Inevitable)','Nano Crystal (Greater Delay the Inevitable)'),
+(146858,56242,66,66,'Instruction Disc (Greater Detain Suspect)','Nano Crystal (Greater Detain Suspect)'),
+(146859,56243,132,83,'Instruction Disc (Greater Hold Victim)','Nano Crystal (Greater Hold Victim)'),
+(146860,81959,146,146,'Instruction Disc (Greater Mysterious Causes)','Nano Crystal (Greater Mysterious Causes)'),
+(146861,56248,149,149,'Instruction Disc (Greater Paralyze with Indecision)','Nano Crystal (Greater Paralyze with Indecision)'),
+(146862,81958,116,116,'Instruction Disc (Greater Suspicious Death)','Nano Crystal (Greater Suspicious Death)'),
+(146863,81957,40,40,'Instruction Disc (Hidden Killer)','Nano Crystal (Hidden Killer)'),
+(146864,56246,83,132,'Instruction Disc (Hold Victim)','Nano Crystal (Hold Victim)'),
+(146865,81956,14,14,'Instruction Disc (Inject Poison)','Nano Crystal (Inject Poison)'),
+(146866,81955,66,66,'Instruction Disc (Inject Venom)','Nano Crystal (Inject Venom)'),
+(146867,56249,165,165,'Instruction Disc (Leisurely Interrogation)','Nano Crystal (Leisurely Interrogation)'),
+(146868,81899,10,10,'Instruction Disc (Lesser Anatomy Lesson)','Nano Crystal (Lesser Anatomy Lesson)'),
+(146869,81954,93,93,'Instruction Disc (Lesser Death''s Knocking)','Nano Crystal (Lesser Death''s Knocking)'),
+(146870,85322,27,27,'Instruction Disc (Lesser Delay Pursuers)','Nano Crystal (Lesser Delay Pursuers)'),
+(146871,82808,37,37,'Instruction Disc (Lesser Delay the Inevitable)','Nano Crystal (Lesser Delay the Inevitable)'),
+(146872,56241,17,17,'Instruction Disc (Lesser Hold Victim)','Nano Crystal (Lesser Hold Victim)'),
+(146873,81953,27,27,'Instruction Disc (Lesser Mysterious Causes)','Nano Crystal (Lesser Mysterious Causes)'),
+(146874,56239,33,33,'Instruction Disc (Lesser Paralyze with Indecision)','Nano Crystal (Lesser Paralyze with Indecision)'),
+(146875,81952,4,4,'Instruction Disc (Lesser Suspicious Death)','Nano Crystal (Lesser Suspicious Death)'),
+(146876,81898,80,80,'Instruction Disc (Major Nano Augmentation)','Nano Crystal (Major Nano Augmentation)'),
+(146877,117239,152,152,'Instruction Disc (Mimic Profession: Adventurer)','Nano Crystal (Mimic Profession: Adventurer)'),
+(146878,117240,165,165,'Instruction Disc (Mimic Profession: Bureaucrat)','Nano Crystal (Mimic Profession: Bureaucrat)'),
+(146879,117241,162,162,'Instruction Disc (Mimic Profession: Doctor)','Nano Crystal (Mimic Profession: Doctor)'),
+(146880,117236,146,146,'Instruction Disc (Mimic Profession: Enforcer)','Nano Crystal (Mimic Profession: Enforcer)'),
+(146881,117237,156,156,'Instruction Disc (Mimic Profession: Engineer)','Nano Crystal (Mimic Profession: Engineer)'),
+(146882,117238,159,159,'Instruction Disc (Mimic Profession: Fixer)','Nano Crystal (Mimic Profession: Fixer)'),
+(146883,117233,149,149,'Instruction Disc (Mimic Profession: Martial Artist)','Nano Crystal (Mimic Profession: Martial Artist)'),
+(146884,117234,169,169,'Instruction Disc (Mimic Profession: Nanotechnician)','Nano Crystal (Mimic Profession: Nanotechnician)'),
+(146885,117235,146,146,'Instruction Disc (Mimic Profession: Soldier)','Nano Crystal (Mimic Profession: Soldier)'),
+(146886,117231,162,162,'Instruction Disc (Mimic Profession: Trader)','Nano Crystal (Mimic Profession: Trader)'),
+(146887,117232,165,165,'Instruction Disc (Mimic Profession: Meta-Physicist)','Nano Crystal (Mimic Profession: Meta-Physicist)'),
+(146888,81951,83,83,'Instruction Disc (Mysterious Causes)','Nano Crystal (Mysterious Causes)'),
+(146889,81897,24,24,'Instruction Disc (Nano Augmentation)','Nano Crystal (Nano Augmentation)'),
+(146890,56244,99,99,'Instruction Disc (Paralyze with Indecision)','Nano Crystal (Paralyze with Indecision)'),
+(146891,82807,14,14,'Instruction Disc (Postpone Encounter)','Nano Crystal (Postpone Encounter)'),
+(146892,32099,73,73,'Instruction Disc (Projectile Magnet)','Nano Crystal (Projectile Magnet)'),
+(146893,56245,119,119,'Instruction Disc (Prolonged Interrogation)','Nano Crystal (Prolonged Interrogation)'),
+(146894,32100,40,40,'Instruction Disc (Ruse of Taren: Phase 1)','Nano Crystal (Ruse of Taren - Phase 1)'),
+(146895,32101,96,96,'Instruction Disc (Ruse of Taren - Phase 2)','Nano Crystal (Ruse of Taren - Phase 2)'),
+(146896,32102,162,162,'Instruction Disc (Ruse of Taren - Phase 3)','Nano Crystal (Ruse of Taren - Phase 3)'),
+(146897,32103,20,20,'Instruction Disc (Shadow Crown)','Nano Crystal (Shadow Crown)'),
+(146898,32105,43,43,'Instruction Disc (Sniper''s Bliss)','Nano Crystal (Sniper''s Bliss)'),
+(146899,81950,47,47,'Instruction Disc (Suspicious Death)','Nano Crystal (Suspicious Death)'),
+(146900,32106,152,152,'Instruction Disc (Take the Shot)','Nano Crystal (Take The Shot)'),
+(146901,32108,136,136,'Instruction Disc (Unexpected Attack)','Nano Crystal (Unexpected Attack)'),
+(146902,46470,136,136,'Instruction Disc (Advanced Administrator-Droid)','Nano Crystal (Advanced Administrator-Droid)'),
+(146903,46471,80,80,'Instruction Disc (Advanced Aide-Droid)','Nano Crystal (Advanced Aide-Droid)'),
+(146904,46472,57,57,'Instruction Disc (Advanced Assistant-Droid)','Nano Crystal (Advanced Assistant-Droid)'),
+(146905,46473,37,37,'Instruction Disc (Advanced Attendant-Droid)','Nano Crystal (Advanced Attendant-Droid)'),
+(146906,46474,165,165,'Instruction Disc (Advanced Bodyguard)','Nano Crystal (Advanced Bodyguard)'),
+(146907,46475,20,20,'Instruction Disc (Advanced Helper)','Nano Crystal (Advanced Helper)'),
+(146908,46460,149,149,'Instruction Disc (Advanced Minion)','Nano Crystal (Advanced Minion)'),
+(146909,46461,109,109,'Instruction Disc (Advanced Secretary-Droid)','Nano Crystal (Advanced Secretary-Droid)'),
+(146910,46462,7,7,'Instruction Disc (Advanced Worker)','Nano Crystal (Advanced Worker)'),
+(146911,99227,136,136,'Instruction Disc (Allure of Servitude)','Nano Crystal (Allure of Servitude)'),
+(146912,30101,27,27,'Instruction Disc (Anger Addlement)','Nano Crystal (Anger Addlement)'),
+(146913,30102,43,43,'Instruction Disc (Authority Figure)','Nano Crystal (Authority Figure)'),
+(146914,46463,129,129,'Instruction Disc (Basic Administrator)','Nano Crystal (Basic Administrator)'),
+(146915,46464,70,70,'Instruction Disc (Basic Aide-Droid)','Nano Crystal (Basic Aide-Droid)'),
+(146916,46465,47,47,'Instruction Disc (Basic Assistant-Droid)','Nano Crystal (Basic Assistant-Droid)'),
+(146917,46466,27,27,'Instruction Disc (Basic Attendant-Droid)','Nano Crystal (Basic Attendant-Droid)'),
+(146918,46467,159,159,'Instruction Disc (Basic Bodyguard)','Nano Crystal (Basic Bodyguard)'),
+(146919,46468,14,14,'Instruction Disc (Basic Helper-Droid)','Nano Crystal (Basic Helper-Droid)'),
+(146920,46469,142,142,'Instruction Disc (Basic Minion)','Nano Crystal (Basic Minion)'),
+(146921,46455,96,96,'Instruction Disc (Basic Secretary-Droid)','Nano Crystal (Basic Secretary-Droid)'),
+(146922,46456,1,1,'Instruction Disc (Basic Worker-Droid)','Nano Crystal (Basic Worker-Droid)'),
+(146923,90453,17,17,'Instruction Disc (Baton of Authority)','Nano Crystal (Baton of Authority (Team))'),
+(146924,90452,162,162,'Instruction Disc (Baton of Command)','Nano Crystal (Baton of Command (Team))'),
+(146925,90451,99,99,'Instruction Disc (Baton of Leadership)','Nano Crystal (Baton of Leadership (Team))'),
+(146926,99226,33,33,'Instruction Disc (Bend Will)','Nano Crystal (Bend Will)'),
+(146927,82820,50,50,'Instruction Disc (Blizzard of Red Tape)','Nano Crystal (Blizzard of Red Tape)'),
+(146928,29202,37,37,'Instruction Disc (Nano Growth)','Nano Crystal (Nano Growth)'),
+(146929,82194,66,66,'Instruction Disc (Captivate Crowd)','Nano Crystal (Captivate Crowd)'),
+(146930,99225,109,109,'Instruction Disc (Captivated Thoughts)','Nano Crystal (Captivated Thoughts)'),
+(146931,56013,152,152,'Instruction Disc (Captivating Speech)','Nano Crystal (Captivating Speech)'),
+(146932,82193,40,40,'Instruction Disc (Capture Attention)','Nano Crystal (Capture Attention)'),
+(146933,30105,165,165,'Instruction Disc (Chains of Iron)','Nano Crystal (Chains of Iron)'),
+(146934,99224,169,169,'Instruction Disc (Charismatic Rapture)','Nano Crystal (Charismatic Rapture)'),
+(146935,121148,110,110,'Instruction Disc (Crush Bravery)','Nano Crystal (Crush Bravery)'),
+(146936,100444,103,103,'Instruction Disc (Cubicle Dweller)','Nano Crystal (Cubicle Dweller)'),
+(146937,30109,159,159,'Instruction Disc (Cut Red Tape)','Nano Crystal (Cut Red Tape)'),
+(146938,100461,80,80,'Instruction Disc (Demotivate)','Nano Crystal (Demotivate)'),
+(146939,46457,142,142,'Instruction Disc (Director-Grade Administrator-Droid)','Nano Crystal (Director-Grade Administrator-Droid)'),
+(146940,46458,90,90,'Instruction Disc (Director-Grade Aide-Droid)','Nano Crystal (Director-Grade Aide-Droid)'),
+(146941,46459,66,66,'Instruction Disc (Director-Grade Assistant-Droid)','Nano Crystal (Director-Grade Assistant-Droid)'),
+(146942,46449,43,43,'Instruction Disc (Director-Grade Attendant-Droid)','Nano Crystal (Director-Grade Attendant-Droid)'),
+(146943,46450,169,169,'Instruction Disc (Director-Grade Bodyguard)','Nano Crystal (Director-Grade Bodyguard)'),
+(146944,46451,27,27,'Instruction Disc (Director-Grade Helper-Droid)','Nano Crystal (Director-Grade Helper-Droid)'),
+(146945,46452,156,156,'Instruction Disc (Director-Grade Minion)','Nano Crystal (Director-Grade Minion)'),
+(146946,46453,123,123,'Instruction Disc (Director-Grade Secretary-Droid)','Nano Crystal (Director-Grade Secretary-Droid)'),
+(146947,46454,14,14,'Instruction Disc (Director-Grade Worker-Droid)','Nano Crystal (Director-Grade Worker-Droid)'),
+(146948,82002,149,149,'Instruction Disc (Disciplinary Action)','Nano Crystal (Disciplinary Action)'),
+(146949,100460,175,175,'Instruction Disc (Disjointed From Reality)','Nano Crystal (Disjointed From Reality)'),
+(146950,100458,162,162,'Instruction Disc (Disjointed Psyche)','Nano Crystal (Disjointed Psyche)'),
+(146951,99223,189,189,'Instruction Disc (Displace Thought Patterns)','Nano Crystal (Displace Thought Patterns)'),
+(146952,100459,185,185,'Instruction Disc (Disrupted Psyche)','Nano Crystal (Disrupted Psyche)'),
+(146953,30110,10,10,'Instruction Disc (Distracted Gaze)','Nano Crystal (Distracted Gaze)'),
+(146954,99221,47,47,'Instruction Disc (Dominate Psyche)','Nano Crystal (Dominate Psyche)'),
+(146955,30113,37,37,'Instruction Disc (Drill Missile)','Nano Crystal (Drill Missile)'),
+(146956,30116,136,136,'Instruction Disc (Droid Overhaul)','Nano Crystal (Droid Overhaul)'),
+(146957,30117,70,70,'Instruction Disc (Droid Repair)','Nano Crystal (Droid Repair)'),
+(146958,82006,4,4,'Instruction Disc (Energized Bolt)','Nano Crystal (Energized Bolt)'),
+(146959,56008,63,63,'Instruction Disc (Enforce Rest Break)','Nano Crystal (Enforce Rest Break)'),
+(146960,85321,60,60,'Instruction Disc (Enforced Sloth)','Nano Crystal (Enforced Sloth)'),
+(146961,99222,149,149,'Instruction Disc (Enrapturing Bondage)','Nano Crystal (Enrapturing Bondage)'),
+(146962,78450,162,162,'Instruction Disc (Erasing Ray)','Nano Crystal (Erasing Ray)'),
+(146963,78447,142,142,'Instruction Disc (Erratic Laser)','Nano Crystal (Erratic Laser)'),
+(146964,46439,139,139,'Instruction Disc (Executive-Grade Administrator-Droid)','Nano Crystal (Executive-Grade Administrator-Droid)'),
+(146965,46440,86,86,'Instruction Disc (Executive-Grade Aide-Droid)','Nano Crystal (Executive-Grade Aide-Droid)'),
+(146966,46441,63,63,'Instruction Disc (Executive-Grade Assistant-Droid)','Nano Crystal (Executive-Grade Assistant-Droid)'),
+(146967,46442,40,40,'Instruction Disc (Executive-Grade Attendant-Droid)','Nano Crystal (Executive-Grade Attendant-Droid)'),
+(146968,46443,169,169,'Instruction Disc (Executive-Grade Bodyguard)','Nano Crystal (Executive-Grade Bodyguard)'),
+(146969,46444,24,24,'Instruction Disc (Executive-Grade Helper-Droid)','Nano Crystal (Executive-Grade Helper-Droid)'),
+(146970,46445,152,152,'Instruction Disc (Executive-Grade Minion)','Nano Crystal (Executive-Grade Minion)'),
+(146971,46446,119,119,'Instruction Disc (Executive-Grade Secretary-Droid)','Nano Crystal (Executive-Grade Secretary-Droid)'),
+(146972,46447,10,10,'Instruction Disc (Executive-Grade Worker-Droid)','Nano Crystal (Executive-Grade Worker-Droid)'),
+(146973,30119,57,57,'Instruction Disc (Face in the Crowd)','Nano Crystal (Face in the Crowd)'),
+(146974,46448,132,132,'Instruction Disc (Faithful Administrator-Droid)','Nano Crystal (Faithful Administrator-Droid)'),
+(146975,46431,76,76,'Instruction Disc (Faithful Aide-Droid)','Nano Crystal (Faithful Aide-Droid)'),
+(146976,46432,53,53,'Instruction Disc (Faithful Assistant-Droid)','Nano Crystal (Faithful Assistant-Droid)'),
+(146977,46433,33,33,'Instruction Disc (Faithful Attendant-Droid)','Nano Crystal (Faithful Attendant-Droid)'),
+(146978,46434,162,162,'Instruction Disc (Faithful Bodyguard)','Nano Crystal (Faithful Bodyguard)'),
+(146979,46435,17,17,'Instruction Disc (Faithful Helper-Droid)','Nano Crystal (Faithful Helper-Droid)'),
+(146980,46436,146,146,'Instruction Disc (Faithful Minion)','Nano Crystal (Faithful Minion)'),
+(146981,46437,106,106,'Instruction Disc (Faithful Secretary-Droid)','Nano Crystal (Faithful Secretary-Droid)'),
+(146982,46438,4,4,'Instruction Disc (Faithful Worker-Droid)','Nano Crystal (Faithful Worker-Droid)'),
+(146983,82192,169,169,'Instruction Disc (Fear of Attention)','Nano Crystal (Fear of Attention)'),
+(146984,82819,80,80,'Instruction Disc (Great Weight of the Guilty)','Nano Crystal (Great Weight of the Guilty)'),
+(146985,95385,146,146,'Instruction Disc (Greater Enforced Sloth)','Nano Crystal (Greater Enforced Sloth)'),
+(146986,82191,179,179,'Instruction Disc (Greater Fear of Attention)','Nano Crystal (Greater Fear of Attention)'),
+(146987,56012,146,146,'Instruction Disc (Greater Illusory Paralysis)','Nano Crystal (Greater Illusory Paralysis)'),
+(146988,82190,126,126,'Instruction Disc (Greater Mass Illusory Paralysis)','Nano Crystal (Greater Mass Illusory Paralysis)'),
+(146989,56014,162,162,'Instruction Disc (Greater Musculature Command)','Nano Crystal (Greater Musculature Command)'),
+(146990,56009,99,99,'Instruction Disc (Greater Restrict Movement)','Nano Crystal (Greater Restrict Movement)'),
+(146991,82818,106,106,'Instruction Disc (Greater Stumbling Steps)','Nano Crystal (Greater Stumbling Steps)'),
+(146992,30122,14,14,'Instruction Disc (Gunslinger)','Nano Crystal (Gunslinger)'),
+(146993,121147,179,179,'Instruction Disc (Horror From The Darkest Pit)','Nano Crystal (Horror From The Darkest Pit)'),
+(146994,56007,80,80,'Instruction Disc (Illusory Paralysis)','Nano Crystal (Illusory Paralysis)'),
+(146995,99220,86,86,'Instruction Disc (Impose Will)','Nano Crystal (Impose Will)'),
+(146996,56011,132,132,'Instruction Disc (Inhibit Motion)','Nano Crystal (Inhibit Motion)'),
+(146997,99219,152,152,'Instruction Disc (Insidious Beguilement)','Nano Crystal (Insidious Beguilement)'),
+(146998,100457,132,132,'Instruction Disc (Introspective Engagement)','Nano Crystal (Introspective Engagement)'),
+(146999,99218,162,162,'Instruction Disc (Inveigle Support)','Nano Crystal (Inveigle Support)'),
+(147000,82817,7,7,'Instruction Disc (Lesser Blizzard of Red Tape)','Nano Crystal (Lesser Blizzard of Red Tape)'),
+(147001,99216,96,96,'Instruction Disc (Lesser Charismatic Rapture)','Nano Crystal (Lesser Charismatic Rapture)'),
+(147002,85320,14,14,'Instruction Disc (Lesser Enforced Sloth)','Nano Crystal (Lesser Enforced Sloth)'),
+(147003,82189,149,149,'Instruction Disc (Lesser Fear of Attention)','Nano Crystal (Lesser Fear of Attention)'),
+(147004,56003,4,4,'Instruction Disc (Lesser Illusory Paralysis)','Nano Crystal (Lesser Illusory Paralysis)'),
+(147005,56004,33,33,'Instruction Disc (Lesser Musculature Command)','Nano Crystal (Lesser Musculature Command)'),
+(147006,99217,27,27,'Instruction Disc (Lesser Pheromone Control)','Nano Crystal (Lesser Pheromone Control)'),
+(147007,82816,4,4,'Instruction Disc (Lesser Stumbling Steps)','Nano Crystal (Lesser Stumbling Steps)'),
+(147008,85319,37,37,'Instruction Disc (Lesser Weighty Announcement)','Nano Crystal (Lesser Weighty Announcement)'),
+(147009,46422,132,132,'Instruction Disc (Limited Administrator-Droid)','Nano Crystal (Limited Administrator-Droid)'),
+(147010,46423,73,73,'Instruction Disc (Limited Aide-Droid)','Nano Crystal (Limited Aide-Droid)'),
+(147011,46424,50,50,'Instruction Disc (Limited Assistant-Droid)','Nano Crystal (Limited Assistant-Droid)'),
+(147012,46425,30,30,'Instruction Disc (Limited Attendant-Droid)','Nano Crystal (Limited Attendant-Droid)'),
+(147013,46426,162,162,'Instruction Disc (Limited Bodyguard)','Nano Crystal (Limited Bodyguard)'),
+(147014,46427,17,17,'Instruction Disc (Limited Helper-Bot)','Nano Crystal (Limited Helper-bot)'),
+(147015,46428,146,146,'Instruction Disc (Limited Minion)','Nano Crystal (Limited Minion)'),
+(147016,46429,99,99,'Instruction Disc (Limited Secretary-Droid)','Nano Crystal (Limited Secretary-Droid)'),
+(147017,46430,1,1,'Instruction Disc (Limited Worker-Droid)','Nano Crystal (Limited Worker-Droid)'),
+(147018,30124,175,175,'Instruction Disc (Living Embalming)','Nano Crystal (Living Embalming)'),
+(147019,82188,10,10,'Instruction Disc (Mass Daze)','Nano Crystal (Mass Daze)'),
+(147020,82187,27,27,'Instruction Disc (Mass Illusory Paralysis)','Nano Crystal (Mass Illusory Paralysis)'),
+(147022,78449,152,152,'Instruction Disc (Monofilament Scourger)','Nano Crystal (Monofilament Scourger)'),
+(147023,30128,50,50,'Instruction Disc (Monofilament Whip)','Nano Crystal (Monofilament Whip)'),
+(147024,100456,126,126,'Instruction Disc (Muddled Psyche)','Nano Crystal (Muddled Psyche)'),
+(147025,56010,116,116,'Instruction Disc (Musculature Command)','Nano Crystal (Musculature Command)'),
+(147026,82815,152,152,'Instruction Disc (Oppressive Weight of the Guilty)','Nano Crystal (Oppressive Weight of the Guilty)'),
+(147027,82005,43,43,'Instruction Disc (Performance Review)','Nano Crystal (Performance Review)'),
+(147028,99215,53,53,'Instruction Disc (Personal Magnetism)','Nano Crystal (Personal Magnetism)'),
+(147029,30131,76,76,'Instruction Disc (Pheromone Control)','Nano Crystal (Pheromone Control)'),
+(147030,82814,136,136,'Instruction Disc (Powerful Blizzard of Red Tape)','Nano Crystal (Powerful Blizzard of Red Tape)'),
+(147031,121145,57,57,'Instruction Disc (Prey On Fear)','Nano Crystal (Prey On Fear)'),
+(147032,121146,159,159,'Instruction Disc (Primal Fear)','Nano Crystal (Primal Fear)'),
+(147033,78446,10,10,'Instruction Disc (Punishing Blade)','Nano Crystal (Punishing Blade)'),
+(147034,30135,116,116,'Instruction Disc (Red Tape)','Nano Crystal (Red Tape)'),
+(147035,30136,109,109,'Instruction Disc (Remembered Pain)','Nano Crystal (Remembered Pain)'),
+(147036,56005,24,24,'Instruction Disc (Restrict Movement)','Nano Crystal (Restrict Movement)'),
+(147037,56006,47,47,'Instruction Disc (Revoke Movement License)','Nano Crystal (Revoke Movement License)'),
+(147038,82186,93,93,'Instruction Disc (Rigid Stance)','Nano Crystal (Rigid Stance)'),
+(147039,78444,179,179,'Instruction Disc (Rule of One)','Nano Crystal (Rule of One)'),
+(147040,78445,93,93,'Instruction Disc (Searing Bolt)','Nano Crystal (Searing Bolt)'),
+(147041,82813,172,172,'Instruction Disc (Shackles of Obedience)','Nano Crystal (Shackles of Obedience)'),
+(147042,30137,123,123,'Instruction Disc (Siren Call)','Nano Crystal (Siren Call)'),
+(147043,30138,43,43,'Instruction Disc (Sleep)','Nano Crystal (Sleep)'),
+(147044,30139,70,83,'Instruction Disc (Sneaking Terror)','Nano Crystal (Sneaking Terror)'),
+(147045,99214,40,40,'Instruction Disc (Soft Siren Call)','Nano Crystal (Soft Siren Call)'),
+(147046,99213,63,63,'Instruction Disc (Solicit Support)','Nano Crystal (Solicit Support)'),
+(147047,30140,90,90,'Instruction Disc (Nano Restoration Escalation)','Nano Crystal (Nano Restoration Escalation)'),
+(147048,78448,123,123,'Instruction Disc (Splinter Missile)','Nano Crystal (Splinter Missile)'),
+(147049,82004,63,63,'Instruction Disc (Stinging Reminder)','Nano Crystal (Stinging Reminder)'),
+(147050,82812,30,30,'Instruction Disc (Stumbling Steps)','Nano Crystal (Stumbling Steps)'),
+(147051,82003,20,20,'Instruction Disc (Subsonic Blast)','Nano Crystal (Subsonic Blast)'),
+(147052,121143,37,37,'Instruction Disc (Sudden Scare)','Nano Crystal (Sudden Scare)'),
+(147053,46414,136,136,'Instruction Disc (Supervisor-Grade Administrator-Droid)','Nano Crystal (Supervisor-Grade Administrator-Droid)'),
+(147054,46415,83,83,'Instruction Disc (Supervisor-Grade Aide-Droid)','Nano Crystal (Supervisor-Grade Aide-Droid)'),
+(147055,46416,60,60,'Instruction Disc (Supervisor-Grade Assistant-Droid)','Nano Crystal (Supervisor-Grade Assistant-Droid)'),
+(147056,46417,37,37,'Instruction Disc (Supervisor-Grade Attendant-Droid)','Nano Crystal (Supervisor-Grade Attendant-Droid)'),
+(147057,46418,165,165,'Instruction Disc (Supervisor-Grade Bodyguard)','Nano Crystal (Supervisor-Grade Bodyguard)'),
+(147058,46419,20,20,'Instruction Disc (Supervisor-Grade Helper-Droid)','Nano Crystal (Supervisor-Grade Helper-Droid)'),
+(147059,46420,152,152,'Instruction Disc (Supervisor-Grade Minion)','Nano Crystal (Supervisor-Grade Minion)'),
+(147060,46421,113,113,'Instruction Disc (Supervisor-Grade Secretary-Droid)','Nano Crystal (Supervisor-Grade Secretary-Droid)'),
+(147061,46413,7,7,'Instruction Disc (Supervisor-Grade Worker-Droid)','Nano Crystal (Supervisor-Grade Worker-Droid)'),
+(147062,99211,159,159,'Instruction Disc (Temporary Allegiance)','Nano Crystal (Temporary Allegiance)'),
+(147063,99212,20,20,'Instruction Disc (Temporary Glamor)','Nano Crystal (Temporary Glamor)'),
+(147064,30143,90,90,'Instruction Disc (Terror Blast)','Nano Crystal (Terror Blast)'),
+(147065,116805,166,166,'Instruction Disc (Thorough Overhaul)','Nano Crystal (Thorough Overhaul)'),
+(147066,99210,179,179,'Instruction Disc (Total Mental Domination)','Nano Crystal (Total Mental Domination)'),
+(147067,56002,175,175,'Instruction Disc (Total Musculature Command)','Nano Crystal (Total Musculature Command)'),
+(147068,121144,130,130,'Instruction Disc (Visions of a Doomed Future)','Nano Crystal (Visions of a Doomed Future)'),
+(147069,56015,182,182,'Instruction Disc (Void Inertia)','Nano Crystal (Void Inertia)'),
+(147070,100455,156,156,'Instruction Disc (Wandering Mind)','Nano Crystal (Wandering Mind)'),
+(147071,82811,17,17,'Instruction Disc (Weight of the Guilty)','Nano Crystal (Weight of the Guilty)'),
+(147072,95386,83,83,'Instruction Disc (Weighty Announcement)','Nano Crystal (Weighty Announcement)'),
+(147073,44210,80,80,'Instruction Disc (Abscess Explosion)','Nano Crystal (Abscess Explosion)'),
+(147074,44003,152,152,'Instruction Disc (Accumulate Scars)','Nano Crystal (Accumulate Scars)'),
+(147075,45402,149,149,'Instruction Disc (Acidic Lesions)','Nano Crystal (Acidic Lesions)'),
+(147076,44004,33,33,'Instruction Disc (Active Remedy)','Nano Crystal (Active Remedy)'),
+(147077,44178,53,53,'Instruction Disc (Active Viral Agent)','Nano Crystal (Active Viral Agent)'),
+(147078,44005,136,136,'Instruction Disc (Advanced Cellular Rebuild)','Nano Crystal (Advanced Cellular Rebuild)'),
+(147080,44179,93,93,'Instruction Disc (Advanced Nano Gorger)','Nano Crystal (Advanced Nano Gorger)'),
+(147081,44180,159,159,'Instruction Disc (All-Consuming Toxin)','Nano Crystal (All-Consuming Toxin)'),
+(147083,44181,146,146,'Instruction Disc (Autonomous Viral Agent)','Nano Crystal (Autonomous Viral Agent)'),
+(147084,95750,149,149,'Instruction Disc (Basic Omni-Med Enhancement)','Nano Crystal (Basic Omni-Med Enhancement)'),
+(147085,44006,146,146,'Instruction Disc (Bestow Healing)','Nano Crystal (Bestow Healing)'),
+(147086,28753,24,24,'Instruction Disc (Bind Wounds)','Nano Crystal (Bind Wounds)'),
+(147088,28754,27,27,'Instruction Disc (Biotoxin MK I)','Nano Crystal (Biotoxin MK I)'),
+(147089,28755,43,43,'Instruction Disc (Biotoxin MK II)','Nano Crystal (Biotoxin MK II)'),
+(147090,28756,73,73,'Instruction Disc (Biotoxin MK III)','Nano Crystal (Biotoxin MK III)'),
+(147091,28757,93,93,'Instruction Disc (Biotoxin MK IV)','Nano Crystal (Biotoxin MK IV)'),
+(147092,27805,24,24,'Instruction Disc (Blood Circle)','Nano Crystal (Blood Circle)'),
+(147093,28758,129,129,'Instruction Disc (Bloom of Health)','Nano Crystal (Bloom of Health)'),
+(147094,97464,43,43,'Instruction Disc (Bodily Amplification)','Nano Crystal (Bodily Amplification)'),
+(147095,43994,146,146,'Instruction Disc (Bodily Purification)','Nano Crystal (Bodily Purification)'),
+(147096,95747,10,10,'Instruction Disc (Bodily Reinforcement)','Nano Crystal (Bodily Reinforcement)'),
+(147097,44198,33,33,'Instruction Disc (Cancerous Burrower)','Nano Crystal (Cancerous Burrower)'),
+(147098,44182,156,156,'Instruction Disc (Cellular Dismantlement)','Nano Crystal (Cellular Dismantlement)'),
+(147099,43995,47,47,'Instruction Disc (Cellular Grafting)','Nano Crystal (Cellular Grafting)'),
+(147100,43996,86,86,'Instruction Disc (Cellular Rebuild)','Nano Crystal (Cellular Rebuild)'),
+(147101,43997,149,149,'Instruction Disc (Circle of Renewal)','Nano Crystal (Circle of Renewal)'),
+(147102,43998,129,129,'Instruction Disc (Circulate Health)','Nano Crystal (Circulate Health)'),
+(147103,42410,96,96,'Instruction Disc (Cleanse Wounds)','Nano Crystal (Cleanse Wounds)'),
+(147104,28761,90,90,'Instruction Disc (Close Wounds)','Nano Crystal (Close Wounds)'),
+(147105,28762,116,116,'Instruction Disc (Colossal Health)','Nano Crystal (Colossal Health)'),
+(147106,43999,37,37,'Instruction Disc (Company Policy)','Nano Crystal (Company Policy)'),
+(147107,28763,169,169,'Instruction Disc (Complete Healing)','Nano Crystal (Complete Healing)'),
+(147108,44184,146,146,'Instruction Disc (Complex Nano Contagion)','Nano Crystal (Complex Nano Contagion)'),
+(147109,44000,152,152,'Instruction Disc (Compress Wounds)','Nano Crystal (Compress Wounds)'),
+(147110,44001,182,182,'Instruction Disc (Conglomerate Health Plan)','Nano Crystal (Conglomerate Health Plan)'),
+(147111,97465,146,146,'Instruction Disc (Constitution Magnification)','Nano Crystal (Constitution Magnification)'),
+(147112,44183,106,106,'Instruction Disc (Consuming Toxin)','Nano Crystal (Consuming Toxin)'),
+(147113,44002,106,106,'Instruction Disc (Consummate Carer)','Nano Crystal (Consummate Carer)'),
+(147114,43984,126,126,'Instruction Disc (Continuous Cellular Reconditioning)','Nano Crystal (Continuous Cellular Reconditioning)'),
+(147115,28764,146,146,'Instruction Disc (Cellular Restoration)','Nano Crystal (Cellular Restoration)'),
+(147116,43985,50,50,'Instruction Disc (Counteract Damage)','Nano Crystal (Counteract Damage)'),
+(147117,43986,86,86,'Instruction Disc (Course of Treatment)','Nano Crystal (Course of Treatment)'),
+(147118,43987,30,30,'Instruction Disc (Cursory Examination)','Nano Crystal (Cursory Examination)'),
+(147119,42411,149,149,'Instruction Disc (Cycle of Life)','Nano Crystal (Cycle of Life)'),
+(147120,43988,179,179,'Instruction Disc (Cycle of Reconstruction)','Nano Crystal (Cycle of Reconstruction)'),
+(147121,44201,47,47,'Instruction Disc (Dark Venom)','Nano Crystal (Dark Venom)'),
+(147122,43989,182,182,'Instruction Disc (Deathless Blessing)','Nano Crystal (Deathless Blessing)'),
+(147124,43990,159,159,'Instruction Disc (Deep Tissue Repair)','Nano Crystal (Deep Tissue Repair)'),
+(147125,43991,169,169,'Instruction Disc (Deep Wound Cleanser)','Nano Crystal (Deep Wounds Cleanser)'),
+(147126,142741,140,140,'Instruction Disc (Digitizing Sequencer)','Nano Crystal (Digitizing Sequencer)'),
+(147127,44186,10,10,'Instruction Disc (Dissolve Molecular Bonding)','Nano Crystal (Dissolve Molecular Bonding)'),
+(147128,43992,175,175,'Instruction Disc (Distributed Care)','Nano Crystal (Distributed Care)'),
+(147129,28767,7,7,'Instruction Disc (Doctor''s Grace)','Nano Crystal (Doctor''s Grace)'),
+(147130,43993,10,10,'Instruction Disc (Dress Wounds)','Nano Crystal (Dress Wounds)'),
+(147131,43976,50,50,'Instruction Disc (Easing Touch)','Nano Crystal (Easing Touch)'),
+(147132,44185,14,14,'Instruction Disc (Elementary Nano Contagion)','Nano Crystal (Elementary Nano Contagion)'),
+(147133,43977,162,162,'Instruction Disc (Emergency Medical Response)','Nano Crystal (Emergency Medical Response)'),
+(147134,43978,4,4,'Instruction Disc (Emergency Stitching)','Nano Crystal (Emergency Stitching)'),
+(147135,142745,80,80,'Instruction Disc (Encode DNA Sequence)','Nano Crystal (Encode DNA Sequence)'),
+(147136,95748,27,27,'Instruction Disc (Enhance Constitution)','Nano Crystal (Enhance Constitution)'),
+(147137,42412,1,1,'Instruction Disc (Enhance Team Health)','Nano Crystal (Enhance Team Health)'),
+(147138,28770,14,14,'Instruction Disc (Enhanced First Aid)','Nano Crystal (Enhanced First Aid)'),
+(147139,97462,132,132,'Instruction Disc (Enhanced Health Surge)','Nano Crystal (Enhanced Health Surge)'),
+(147140,28771,37,37,'Instruction Disc (Enlarge)','Nano Crystal (Enlarge)'),
+(147141,28773,80,80,'Instruction Disc (Exaggerated Health)','Nano Crystal (Exaggerated Health)'),
+(147143,43979,103,103,'Instruction Disc (Experimental Panacea)','Nano Crystal (Experimental Panacea)'),
+(147144,43980,80,80,'Instruction Disc (Fast Team Tissue Repair)','Nano Crystal (Fast Team Tissue Repair)'),
+(147146,43981,10,10,'Instruction Disc (Field Dressings)','Nano Crystal (Field Dressings)'),
+(147147,82010,116,116,'Instruction Disc (First-Degree Burns)','Nano Crystal (First-Degree Burns)'),
+(147148,28775,165,165,'Instruction Disc (Gargantuan Health)','Nano Crystal (Gargantuan Health)'),
+(147149,82012,70,70,'Instruction Disc (Gouge Flesh)','Nano Crystal (Gouge Flesh)'),
+(147150,43982,156,156,'Instruction Disc (Greater Bloom of Health)','Nano Crystal (Greater Bloom of Health)'),
+(147151,43983,109,109,'Instruction Disc (Greater Cellular Grafting)','Nano Crystal (Greater Cellular Grafting)'),
+(147152,43966,149,149,'Instruction Disc (Greater Field Dressings)','Nano Crystal (Greater Field Dressings)'),
+(147153,43967,93,93,'Instruction Disc (Greater Lasting Heal)','Nano Crystal (Greater Lasting heal)'),
+(147154,43968,142,142,'Instruction Disc (Greater Periodic Checkup)','Nano Crystal (Greater Periodic Checkup)'),
+(147155,43969,172,172,'Instruction Disc (Greater Policy Payout)','Nano Crystal (Greater Policy Payout)'),
+(147156,42413,76,76,'Instruction Disc (Greater Team Healing)','Nano Crystal (Greater Team Healing)'),
+(147157,43970,146,146,'Instruction Disc (Hale and Hearty)','Nano Crystal (Hale and Hearty)'),
+(147158,43971,172,172,'Instruction Disc (Halo of Health)','Nano Crystal (Halo of Health)'),
+(147159,43972,123,123,'Instruction Disc (Healer''s Hands)','Nano Crystal (Healer''s Hands)'),
+(147160,43973,116,116,'Instruction Disc (Healing Light)','Nano Crystal (Healing Light)'),
+(147161,97461,156,156,'Instruction Disc (Health Assembler)','Nano Crystal (Health Assembler)'),
+(147162,97459,4,4,'Instruction Disc (Health Augmentation)','Nano Crystal (Health Augmentation)'),
+(147163,43974,165,165,'Instruction Disc (Health Cartel)','Nano Crystal (Health Cartel)'),
+(147164,95749,17,17,'Instruction Disc (Health Graft)','Nano Crystal (Health Graft)'),
+(147165,42414,60,60,'Instruction Disc (Health Pump)','Nano Crystal (Health Pump)'),
+(147166,97458,30,30,'Instruction Disc (Health Surge)','Nano Crystal (Health Surge)'),
+(147167,28776,76,76,'Instruction Disc (Natural Healing)','Nano Crystal (Natural Healing)'),
+(147168,44187,126,126,'Instruction Disc (Incandescent Venom)','Nano Crystal (Incandescent Venom)'),
+(147169,99593,126,126,'Instruction Disc (Induce Musculature Spasms)','Nano Crystal (Induce Muscle Spasms)'),
+(147170,44188,30,30,'Instruction Disc (Infected Wounds)','Nano Crystal (Infected Wounds)'),
+(147171,43975,14,14,'Instruction Disc (Inferior Cleanse Wounds)','Nano Crystal (Inferior Cleanse Wounds)'),
+(147172,43957,4,4,'Instruction Disc (Inferior Wound Bindings)','Nano Crystal (Inferior Wound Bindings)'),
+(147173,28780,7,7,'Instruction Disc (Inflict Harm)','Nano Crystal (Inflict Harm)'),
+(147174,95744,156,156,'Instruction Disc (Infuse with Life)','Nano Crystal (Infuse With Life)'),
+(147175,28782,90,90,'Instruction Disc (Instinctive Control)','Nano Crystal (Instinctive Control)'),
+(147176,44202,175,175,'Instruction Disc (Internal Decomposition)','Nano Crystal (Internal Decomposition)'),
+(147177,43958,156,156,'Instruction Disc (Internal Renewal)','Nano Crystal (Internal Renewal)'),
+(147178,42415,83,83,'Instruction Disc (Iron Circle)','Nano Crystal (Iron Circle)'),
+(147179,42416,14,14,'Instruction Disc (Lasting Heal)','Nano Crystal (Lasting Heal)'),
+(147180,43959,63,63,'Instruction Disc (Lesser Bloom of Health)','Nano Crystal (Lesser Bloom of Health)'),
+(147181,43960,1,1,'Instruction Disc (Lesser Cellular Grafting)','Nano Crystal (Lesser Cellular Grafting)'),
+(147182,43961,47,47,'Instruction Disc (Lesser Circle of Renewal)','Nano Crystal (Lesser Circle of Renewal)'),
+(147183,99594,17,17,'Instruction Disc (Lesser Muscle Atrophy)','Nano Crystal (Muscle Atrophy)'),
+(147184,43962,17,17,'Instruction Disc (Lesser Nano Bandage)','Nano Crystal (Lesser Nano Bandage)'),
+(147185,43963,24,24,'Instruction Disc (Lesser Nano Surgery)','Nano Crystal (Lesser Nano Surgery)'),
+(147186,43964,109,109,'Instruction Disc (Lesser Policy Payout)','Nano Crystal (Lesser Policy Payout)'),
+(147187,43965,152,152,'Instruction Disc (Life Balm)','Nano Crystal (Life Balm)'),
+(147189,97455,50,50,'Instruction Disc (Life Reinforcement)','Nano Crystal (Life Reinforcement)'),
+(147190,43946,165,165,'Instruction Disc (Lifegiving Elixir)','Nano Crystal (Lifegiving Elixir)'),
+(147191,44189,7,7,'Instruction Disc (Limited Nano Reaper)','Nano Crystal (Limited Nano Reaper)'),
+(147192,95745,93,93,'Instruction Disc (Major Health Graft)','Nano Crystal (Major Health Graft)'),
+(147193,43947,132,132,'Instruction Disc (Medical Response)','Nano Crystal (Medical Response)'),
+(147194,43948,70,70,'Instruction Disc (Medical Sequencer)','Nano Crystal (Medical Sequencer)'),
+(147195,42417,57,57,'Instruction Disc (Medic''s Call)','Nano Crystal (Medic''s Call)'),
+(147196,95746,47,47,'Instruction Disc (Medic''s Respite)','Nano Crystal (Medic''s Respite)'),
+(147197,44190,119,119,'Instruction Disc (Metabolic Disassembly)','Nano Crystal (Metabolic Disassembly)'),
+(147198,95742,33,33,'Instruction Disc (Metabolism Booster)','Nano Crystal (Metabolism Booster)'),
+(147199,43949,40,40,'Instruction Disc (Minor Balm)','Nano Crystal (Minor Balm)'),
+(147200,44203,37,37,'Instruction Disc (Minor Consuming Toxin)','Nano Crystal (Minor Consuming Toxin)'),
+(147201,42418,7,7,'Instruction Disc (Minor Team Healing)','Nano Crystal (Minor Team Healing)'),
+(147202,43950,33,33,'Instruction Disc (Minor Team Purification)','Nano Crystal (Minor Team Purification)'),
+(147203,43951,156,156,'Instruction Disc (Molecular Rejuvenation)','Nano Crystal (Molecular Rejuvenation)'),
+(147204,44191,172,172,'Instruction Disc (Morgue Longings)','Nano Crystal (Morgue Longings)'),
+(147206,43952,73,73,'Instruction Disc (Nano Bandage)','Nano Crystal (Nano Bandage)'),
+(147207,44192,99,99,'Instruction Disc (Nano Reaper)','Nano Crystal (Nano Reaper)'),
+(147208,28784,99,99,'Instruction Disc (Nano Repulsor)','Nano Crystal (Nano Repulsor)'),
+(147209,43953,93,93,'Instruction Disc (Nano Surgery)','Nano Crystal (Nano Surgery)'),
+(147210,44193,40,40,'Instruction Disc (Parasitic Affliction)','Nano Crystal (Parasitic Affliction)'),
+(147211,44199,152,152,'Instruction Disc (Parasitic Horde)','Nano Crystal (Parasitic Horde)'),
+(147212,43954,27,27,'Instruction Disc (Periodic Checkup)','Nano Crystal (Periodic Checkup)'),
+(147213,44194,136,136,'Instruction Disc (Perpetuating Nano Reaper)','Nano Crystal (Perpetuating Nano Reaper)'),
+(147215,43955,33,33,'Instruction Disc (Physician''s Skill)','Nano Crystal (Physician''s Skill)'),
+(147216,43956,169,169,'Instruction Disc (Positive Life Reinforcement)','Nano Crystal (Positive Life Reinforcement)'),
+(147217,95743,139,139,'Instruction Disc (Pre-Combat Conditioning)','Nano Crystal (Pre-Combat Conditioning)'),
+(147218,28785,37,37,'Instruction Disc (Premium Cover)','Nano Crystal (Premium Cover)'),
+(147219,44204,20,20,'Instruction Disc (Primitive Nano Gorger)','Nano Crystal (Primitive Nano Gorger)'),
+(147220,44205,4,4,'Instruction Disc (Primitive Viral Agent)','Nano Crystal (Primitive Viral Agent)'),
+(147221,43936,93,93,'Instruction Disc (Professional Care)','Nano Crystal (Professional Care)'),
+(147222,44195,17,17,'Instruction Disc (Protein Breakdown)','Nano Crystal (Protein Breakdown)'),
+(147223,42419,123,123,'Instruction Disc (Radiant Heal)','Nano Crystal (Radiant Heal)'),
+(147224,44206,165,165,'Instruction Disc (Rampant Decay)','Nano Crystal (Rampant Decay)'),
+(147226,43937,162,162,'Instruction Disc (Recuperative Respite)','Nano Crystal (Recuperative Respite)'),
+(147227,43938,40,40,'Instruction Disc (Recurrent Remedy)','Nano Crystal (Recurrent Remedy)'),
+(147228,44207,66,66,'Instruction Disc (Refined Nano Contagion)','Nano Crystal (Refined Nano Contagion)'),
+(147229,43939,20,20,'Instruction Disc (Relief from Pain)','Nano Crystal (Relief From Pain)'),
+(147230,43940,159,159,'Instruction Disc (Remedy Dissemination)','Nano Crystal (Remedy Dissemination)'),
+(147231,44196,142,142,'Instruction Disc (Repeated Cellular Trauma)','Nano Crystal (Repeated Cellular Trauma)'),
+(147232,43941,40,40,'Instruction Disc (Restorative Boost)','Nano Crystal (Restorative Boost)'),
+(147233,44208,86,86,'Instruction Disc (Scythe A Virus)','Nano Crystal (Scythe A Virus)'),
+(147234,44200,182,182,'Instruction Disc (Scythe B Virus)','Nano Crystal (Scythe B Virus)'),
+(147235,44197,60,60,'Instruction Disc (Seethe with Germs)','Nano Crystal (Seethe With Germs)'),
+(147237,82011,37,37,'Instruction Disc (Shatter Bone)','Nano Crystal (Shatter Bone)'),
+(147238,28787,33,33,'Instruction Disc (Specialist Treatment)','Nano Crystal (Specialist Treatment)'),
+(147239,43942,27,27,'Instruction Disc (Spreading Health)','Nano Crystal (Spreading Health)'),
+(147240,97453,66,66,'Instruction Disc (Strengthen Resolve)','Nano Crystal (Strengthen Resolve)'),
+(147241,95739,57,57,'Instruction Disc (Superior Bodily Reinforcement)','Nano Crystal (Superior Bodily Reinforcement)'),
+(147242,43943,96,96,'Instruction Disc (Superior Dress Wounds)','Nano Crystal (Superior Dress Wounds)'),
+(147243,28788,119,119,'Instruction Disc (Superior First Aid)','Nano Crystal (Superior First Aid)'),
+(147244,28789,30,30,'Instruction Disc (Superior Healing)','Nano Crystal (Superior Healing)'),
+(147245,97452,83,83,'Instruction Disc (Superior Health Augmentation)','Nano Crystal (Superior Health Augmentation)'),
+(147246,43944,162,162,'Instruction Disc (Superior Health Pump)','Nano Crystal (Superior Health Pump)'),
+(147247,97450,169,169,'Instruction Disc (Superior Life Reinforcement)','Nano Crystal (Superior Life Reinforcement)'),
+(147248,95740,152,152,'Instruction Disc (Superior Metabolism Booster)','Nano Crystal (Superior Metabolism Booster)'),
+(147249,43945,142,142,'Instruction Disc (Superior Nano Bandage)','Nano Crystal (Superior Nano Bandage)'),
+(147250,95741,179,179,'Instruction Disc (Superior Omni-Med Enhancement)','Nano Crystal (Superior Omni-Med Enhancement)'),
+(147251,43924,80,80,'Instruction Disc (Superior Wound Bindings)','Nano Crystal (Superior Wound Bindings)'),
+(147252,28790,53,53,'Instruction Disc (Surgeon''s Touch)','Nano Crystal (Surgeon''s Touch)'),
+(147253,97449,14,14,'Instruction Disc (Survivability Booster)','Nano Crystal (Survivability Booster)'),
+(147254,43925,86,86,'Instruction Disc (Syndicated Healing)','Nano Crystal (Syndicated Healing)'),
+(147255,43926,57,57,'Instruction Disc (Tailored Cure)','Nano Crystal (Tailored Cure)'),
+(147256,43927,60,60,'Instruction Disc (Team Cellular Rebuild)','Nano Crystal (Team Cellular Rebuild)'),
+(147257,43928,70,70,'Instruction Disc (Team Checkup)','Nano Crystal (Team Checkup)'),
+(147258,43929,159,159,'Instruction Disc (Team Compress Wounds)','Nano Crystal (Team Compress Wounds)'),
+(147259,43930,20,20,'Instruction Disc (Team Field Dressings)','Nano Crystal (Team Field Dressings)'),
+(147260,42420,40,40,'Instruction Disc (Team Healing)','Nano Crystal (Team Healing)'),
+(147261,43931,113,113,'Instruction Disc (Team Nano Bandage)','Nano Crystal (Team Nano Bandage)'),
+(147262,43932,156,156,'Instruction Disc (Team Purification)','Nano Crystal (Team Purification)'),
+(147263,43933,139,139,'Instruction Disc (Team Tissue Repair)','Nano Crystal (Team Tissue Repair)'),
+(147264,97447,90,90,'Instruction Disc (Temporary Cellular Enhancement)','Nano Crystal (Temporary Cellular Enhancement)'),
+(147265,43934,83,83,'Instruction Disc (Thorough Examination)','Nano Crystal (Thorough Examination)'),
+(147266,99589,7,7,'Instruction Disc (Tired Limbs)','Nano Crystal (Tired Limbs)'),
+(147267,43935,113,113,'Instruction Disc (Tissue Repair)','Nano Crystal (Tissue Repair)'),
+(147270,42423,4,4,'Instruction Disc (Weak Team Heal)','Nano Crystal (Weak Team Heal)'),
+(147272,118110,140,140,'Instruction Disc (Absorb Punishment)','Nano Crystal (Absorb Punishment)'),
+(147273,100224,27,27,'Instruction Disc (Aggressive Instincts)','Nano Crystal (Aggressive Instincts)'),
+(147274,55760,37,37,'Instruction Disc (Arctic Cloak)','Nano Crystal (Arctic Cloak)'),
+(147275,55762,4,4,'Instruction Disc (Avenging Shield)','Nano Crystal (Avenging Shield)'),
+(147276,100225,57,57,'Instruction Disc (Baleful Stare)','Nano Crystal (Baleful Stare)'),
+(147277,55755,83,83,'Instruction Disc (Barbaric Blades)','Nano Crystal (Barbaric Blades)'),
+(147278,100264,30,30,'Instruction Disc (Berserk Rage)','Nano Crystal (Berserk Rage)'),
+(147279,49829,142,142,'Instruction Disc (Brave Challenger to Behemoth)','Nano Crystal (Brave Challenger to Behemoth)'),
+(147280,49828,119,119,'Instruction Disc (Brave Challenger to Colossus)','Nano Crystal (Brave Challenger to Colossus)'),
+(147281,49825,76,76,'Instruction Disc (Brave Challenger to Gargantua)','Nano Crystal (Brave Challenger to Gargantua)'),
+(147282,49826,132,132,'Instruction Disc (Brave Challenger to Leviathan)','Nano Crystal (Brave Challenger to Leviathan)'),
+(147283,49827,40,40,'Instruction Disc (Brave Challenger to Titan)','Nano Crystal (Brave Challenger to Titan)'),
+(147284,49823,14,14,'Instruction Disc (Brave Challenger to Cyclops)','Nano Crystal (Brave Challenger to Cyclops)'),
+(147285,55758,73,73,'Instruction Disc (Bristling Guard)','Nano Crystal (Bristling Guard)'),
+(147286,55761,10,10,'Instruction Disc (Bristling Shield)','Nano Crystal (Bristling Shield)'),
+(147287,29792,76,76,'Instruction Disc (Brutal Thug)','Nano Crystal (Brutal Thug)'),
+(147288,100262,80,80,'Instruction Disc (Burning Rage)','Nano Crystal (Burning Rage)'),
+(147289,49824,139,139,'Instruction Disc (Challenger to Behemoth)','Nano Crystal (Challenger to Behemoth)'),
+(147290,49820,103,103,'Instruction Disc (Challenger to Colossus)','Nano Crystal (Challenger to Colossus)'),
+(147291,49821,4,4,'Instruction Disc (Challenger to Cyclops)','Nano Crystal (Challenger to Cyclops)'),
+(147292,49822,66,66,'Instruction Disc (Challenger to Gargantua)','Nano Crystal (Challenger to Gargantua)'),
+(147293,49818,132,132,'Instruction Disc (Challenger to Leviathan)','Nano Crystal (Challenger to Leviathan)'),
+(147294,49819,33,33,'Instruction Disc (Challenger to Titan)','Nano Crystal (Challenger to Titan)'),
+(147295,55752,146,146,'Instruction Disc (Coruscating Screen)','Nano Crystal (Coruscating Screen)'),
+(147296,118122,133,133,'Instruction Disc (Deaden Pain)','Nano Crystal (Deaden Pain)'),
+(147297,121142,150,150,'Instruction Disc (Dominate Foe)','Nano Crystal (Dominate Foe)'),
+(147298,95736,152,152,'Instruction Disc (Essence of Behemoth)','Nano Crystal (Essence of Behemoth)'),
+(147299,95737,33,33,'Instruction Disc (Essence of Boundless Health)','Nano Crystal (Essence of Boundless Health)'),
+(147300,95738,132,132,'Instruction Disc (Essence of Colossus)','Nano Crystal (Essence of Colossus)'),
+(147301,95733,57,57,'Instruction Disc (Essence of Cyclops)','Nano Crystal (Essence of Cyclops)'),
+(147302,95734,123,123,'Instruction Disc (Essence of Gargantua)','Nano Crystal (Essence of Gargantua)'),
+(147303,95735,142,142,'Instruction Disc (Mongo''s Titan)','Nano Crystal (Mongo''s Titan)'),
+(147304,95730,93,93,'Instruction Disc (Mongo''s Cyclops)','Nano Crystal (Mongo''s Cyclops)'),
+(147305,95731,24,24,'Instruction Disc (Essence of Might)','Nano Crystal (Essence of Might)'),
+(147306,95732,43,43,'Instruction Disc (Mongo''s Golem)','Nano Crystal (Mongo''s Golem)'),
+(147307,95728,14,14,'Instruction Disc (Essence of Vitality)','Nano Crystal (Essence of Vitality)'),
+(147308,118121,150,150,'Instruction Disc (Failing Impregnability)','Nano Crystal (Failing Impregnability)'),
+(147309,121151,37,37,'Instruction Disc (Fearsome Shout)','Nano Crystal (Fearsome Shout)'),
+(147310,100263,50,50,'Instruction Disc (Fell Rage)','Nano Crystal (Fell Rage)'),
+(147311,55759,20,20,'Instruction Disc (Field of Sparks)','Nano Crystal (Field of Sparks)'),
+(147312,29803,60,60,'Instruction Disc (Focused Anger)','Nano Crystal (Focused Anger)'),
+(147313,118120,120,120,'Instruction Disc (Fortify)','Nano Crystal (Fortify)'),
+(147314,118119,90,90,'Instruction Disc (Gird for Punishment)','Nano Crystal (Gird For Punishment)'),
+(147315,55756,132,132,'Instruction Disc (Glacial Cloak)','Nano Crystal (Glacial Cloak)'),
+(147316,29804,27,27,'Instruction Disc (Glowing Retribution)','Nano Crystal (Glowing Retribution)'),
+(147317,29806,30,30,'Instruction Disc (Headcracker)','Nano Crystal (Headcracker)'),
+(147318,29807,63,63,'Instruction Disc (Immolation Shield)','Nano Crystal (Immolation Shield)'),
+(147319,100260,132,132,'Instruction Disc (Incandescent Rage)','Nano Crystal (Incandescent Rage)'),
+(147320,100261,139,139,'Instruction Disc (Infernal Rage)','Nano Crystal (Infernal Rage)'),
+(147321,29808,136,136,'Instruction Disc (Lick of Fire)','Nano Crystal (Lick of Fire)'),
+(147322,55754,106,106,'Instruction Disc (Lightning Shield)','Nano Crystal (Lightning Shield)'),
+(147323,95729,4,4,'Instruction Disc (Mongo''s Troll)','Nano Crystal (Mongo''s Troll)'),
+(147324,49816,149,149,'Instruction Disc (Mighty Challenger to Behemoth)','Nano Crystal (Mighty Challenger to Behemoth)'),
+(147325,49817,129,129,'Instruction Disc (Mighty Challenger to Colossus)','Nano Crystal (Mighty Challenger to Colossus)'),
+(147326,49813,24,24,'Instruction Disc (Mighty Challenger to Cyclops)','Nano Crystal (Mighty Challenger to Cyclops)'),
+(147327,49814,90,90,'Instruction Disc (Mighty Challenger to Gargantua)','Nano Crystal (Mighty Challenger to Gargantua)'),
+(147328,49815,136,136,'Instruction Disc (Mighty Challenger to Leviathan)','Nano Crystal (Mighty Challenger to Leviathan)'),
+(147329,49812,53,53,'Instruction Disc (Mighty Challenger to Titan)','Nano Crystal (Mighty Challenger to Titan)'),
+(147330,100201,66,66,'Instruction Disc (Mongo Bash!)','Nano Crystal (Mongo Bash!)'),
+(147331,100203,149,149,'Instruction Disc (Mongo Crush!)','Nano Crystal (Mongo Crush!)'),
+(147332,100202,17,17,'Instruction Disc (Mongo Slam!)','Nano Crystal (Mongo Slam!)'),
+(147333,100204,132,132,'Instruction Disc (Mongo Smash!)','Nano Crystal (Mongo Smash!)'),
+(147334,29811,113,113,'Instruction Disc (Physical Dominance)','Nano Crystal (Physical Dominance)'),
+(147335,55757,47,47,'Instruction Disc (Poison Stingers)','Nano Crystal (Poison Stingers)'),
+(147336,100226,139,139,'Instruction Disc (Primal Hatred)','Nano Crystal (Primal Hatred)'),
+(147337,29814,136,136,'Instruction Disc (Prodigious Strength)','Nano Crystal (Prodigious Strength)'),
+(147338,121149,70,70,'Instruction Disc (Quivering Wreck)','Nano Crystal (Quivering Wreck)'),
+(147339,100222,116,116,'Instruction Disc (Roar of Aggression)','Nano Crystal (Roar of Aggression)'),
+(147340,55753,139,139,'Instruction Disc (Screen of Blades)','Nano Crystal (Screen of Blades)'),
+(147341,118118,70,70,'Instruction Disc (Shock Absorber)','Nano Crystal (Shock Absorber)'),
+(147342,118116,136,136,'Instruction Disc (Shrug Off Blows)','Nano Crystal (Shrug Off Blows)'),
+(147343,121150,130,130,'Instruction Disc (Spine of Jelly)','Nano Crystal (Spine of Jelly)'),
+(147344,100223,7,7,'Instruction Disc (Taunting Glare)','Nano Crystal (Taunting Glare)'),
+(147345,118117,37,37,'Instruction Disc (Thicken Skin)','Nano Crystal (Thicken Skin)'),
+(147346,29820,126,126,'Instruction Disc (Toxic Barrier)','Nano Crystal (Toxic Barrier)'),
+(147347,118114,54,54,'Instruction Disc (Ward from Harm)','Nano Crystal (Ward from Harm)'),
+(147348,116804,179,179,'Instruction Disc (A Maker''s Touch)','Nano Crystal (A Maker''s Touch)'),
+(147349,46081,40,40,'Instruction Disc (Advanced Android)','Nano Crystal (Advanced Android)'),
+(147350,46082,14,14,'Instruction Disc (Advanced Automaton)','Nano Crystal (Advanced Automaton)'),
+(147351,70588,126,126,'Instruction Disc (Advanced Defensive Screen)','Nano Crystal (Advanced Defensive Screen)'),
+(147352,70598,179,179,'Instruction Disc (Advanced Force Field)','Nano Crystal (Advanced Force Field)'),
+(147353,46069,80,80,'Instruction Disc (Advanced Gladiatorbot)','Nano Crystal (Advanced Gladiatorbot)'),
+(147354,46070,116,116,'Instruction Disc (Advanced Guardbot)','Nano Crystal (Advanced Guardbot)'),
+(147355,70589,119,119,'Instruction Disc (Advanced Protective Field)','Nano Crystal (Advanced Protective Field)'),
+(147356,70580,109,109,'Instruction Disc (Advanced Shielding Barrier)','Nano Crystal (Advanced Shielding Barrier)'),
+(147357,46071,152,152,'Instruction Disc (Advanced Warbot)','Nano Crystal (Advanced Warbot)'),
+(147358,46072,169,169,'Instruction Disc (Advanced Warmachine)','Nano Crystal (Advanced Warmachine)'),
+(147359,29869,189,189,'Instruction Disc (Aegis Barrier)','Nano Crystal (Aegis Barrier)'),
+(147360,46073,33,33,'Instruction Disc (Android)','Nano Crystal (Android)'),
+(147361,29823,1,1,'Instruction Disc (Armor Megaboost)','Nano Crystal (Armor Megaboost)'),
+(147362,46074,7,7,'Instruction Disc (Automaton)','Nano Crystal (Automaton)'),
+(147363,70586,37,37,'Instruction Disc (Basic Defensive Screen)','Nano Crystal (Basic Defensive Screen)'),
+(147364,70594,159,159,'Instruction Disc (Basic Force Field)','Nano Crystal (Basic Force Field)'),
+(147365,70583,33,33,'Instruction Disc (Basic Protective Field)','Nano Crystal (Basic Protective Field)'),
+(147366,70584,27,27,'Instruction Disc (Basic Shielding Barrier)','Nano Crystal (Basic Shielding Barrier)'),
+(147367,55780,149,149,'Instruction Disc (Citadel of Spikes)','Nano Crystal (Citadel of Spikes)'),
+(147368,46075,30,30,'Instruction Disc (Common Android)','Nano Crystal (Common Android)'),
+(147369,46076,7,7,'Instruction Disc (Common Automaton)','Nano Crystal (Common Automaton)'),
+(147370,46077,66,66,'Instruction Disc (Common Gladiatorbot)','Nano Crystal (Common Gladiatorbot)'),
+(147371,46078,103,103,'Instruction Disc (Common Guardbot)','Nano Crystal (Common Guardbot)'),
+(147372,46079,146,146,'Instruction Disc (Common Warbot)','Nano Crystal (Common Warbot)'),
+(147373,46080,165,165,'Instruction Disc (Common Warmachine)','Nano Crystal (Common Warmachine)'),
+(147374,81923,99,99,'Instruction Disc (Controlled Energy Overload)','Nano Crystal (Controlled Energy Overload)'),
+(147375,29195,20,20,'Instruction Disc (Crowbar Subtlety)','Nano Crystal (Crowbar Subtlety)'),
+(147376,46062,179,179,'Instruction Disc (Decommissioned Wardroid)','Nano Crystal (Decommissioned Wardroid)'),
+(147377,70574,83,83,'Instruction Disc (Defensive Screen)','Nano Crystal (Defensive Screen)'),
+(147378,55775,24,24,'Instruction Disc (Electrical Chastiser)','Nano Crystal (Electrical Chastiser)'),
+(147379,55777,76,76,'Instruction Disc (Electrical Discharge Field)','Nano Crystal (Electrical Discharge Field)'),
+(147380,55779,113,113,'Instruction Disc (Energy Cocoon)','Nano Crystal (Energy Cocoon)'),
+(147381,29838,37,37,'Instruction Disc (Energy Spike)','Nano Crystal (Energy Spike)'),
+(147382,29840,149,149,'Instruction Disc (Entropy Weapon)','Nano Crystal (Entropy Weapon)'),
+(147383,29842,139,139,'Instruction Disc (Extreme Prejudice)','Nano Crystal (Extreme Prejudice)'),
+(147384,46063,20,20,'Instruction Disc (Feeble Android)','Nano Crystal (Feeble Android)'),
+(147385,43329,1,1,'Instruction Disc (Feeble Automaton)','Engineer: Startup Crystal - Feeble Automaton'),
+(147386,46064,47,47,'Instruction Disc (Feeble Gladiatorbot)','Nano Crystal (Feeble Gladiatorbot)'),
+(147387,46065,90,90,'Instruction Disc (Feeble Guardbot)','Nano Crystal (Feeble Guardbot)'),
+(147388,46066,129,129,'Instruction Disc (Feeble Warbot)','Nano Crystal (Feeble Warbot)'),
+(147389,46067,156,156,'Instruction Disc (Feeble Warmachine)','Nano Crystal (Feeble Warmachine)'),
+(147390,116803,120,120,'Instruction Disc (Field Workshop)','Nano Crystal (Field Workshop)'),
+(147391,46068,27,27,'Instruction Disc (Flawed Android)','Nano Crystal (Flawed Android)'),
+(147392,46045,4,4,'Instruction Disc (Flawed Automaton)','Nano Crystal (Flawed Automaton)'),
+(147393,70585,20,20,'Instruction Disc (Flawed Defensive Screen)','Nano Crystal (Flawed Defensive Screen)'),
+(147394,70591,156,156,'Instruction Disc (Flawed Force Field)','Nano Crystal (Flawed Force Field)'),
+(147395,46046,63,63,'Instruction Disc (Flawed Gladiatorbot)','Nano Crystal (Flawed Gladiatorbot)'),
+(147396,46047,99,99,'Instruction Disc (Flawed Guardbot)','Nano Crystal (Flawed Guardbot)'),
+(147397,70581,14,14,'Instruction Disc (Flawed Protective Field)','Nano Crystal (Flawed Protective Field)'),
+(147398,70582,7,7,'Instruction Disc (Flawed Shielding Barrier)','Nano Crystal (Flawed Shielding Barrier)'),
+(147399,46048,146,146,'Instruction Disc (Flawed Warbot)','Nano Crystal (Flawed Warbot)'),
+(147400,46049,162,162,'Instruction Disc (Flawed Warmachine)','Nano Crystal (Flawed Warmachine)'),
+(147401,70596,169,169,'Instruction Disc (Force Field)','Nano Crystal (Force Field)'),
+(147402,29843,175,175,'Instruction Disc (Fortress of Spikes)','Nano Crystal (Fortress of Spikes)'),
+(147403,46050,70,70,'Instruction Disc (Gladiatorbot)','Nano Crystal (Gladiatorbot)'),
+(147404,70577,4,4,'Instruction Disc (Greater Armor Megaboost)','Nano Crystal (Greater Armor Megaboost)'),
+(147405,70420,159,159,'Instruction Disc (Greater Harmonic Cocoon)','Nano Crystal (Greater Harmonic Cocoon)'),
+(147406,55782,165,165,'Instruction Disc (Greater Retaliatory Barrier)','Nano Crystal (Greater Retaliatory Barrier)'),
+(147407,46051,109,109,'Instruction Disc (Guardbot)','Nano Crystal (Guardbot)'),
+(147408,29844,10,10,'Instruction Disc (Gun Enhancement)','Nano Crystal (Gun Enhancement)'),
+(147409,70424,139,139,'Instruction Disc (Harmonic Cocoon)','Nano Crystal (Harmonic Cocoon)'),
+(147410,70570,185,185,'Instruction Disc (Heavy Assault Force Field)','Nano Crystal (Heavy Assault Force Field)'),
+(147411,46052,24,24,'Instruction Disc (Inferior Android)','Nano Crystal (Inferior Android)'),
+(147412,46053,4,4,'Instruction Disc (Inferior Automaton)','Nano Crystal (Inferior Automaton)'),
+(147413,46054,57,57,'Instruction Disc (Inferior Gladiatorbot)','Nano Crystal (Inferior Gladiatorbot)'),
+(147414,46055,96,96,'Instruction Disc (Inferior Guardbot)','Nano Crystal (Inferior Guardbot)'),
+(147415,46056,139,139,'Instruction Disc (Inferior Warbot)','Nano Crystal (Inferior Warbot)'),
+(147416,46057,162,162,'Instruction Disc (Inferior Warmachine)','Nano Crystal (Inferior Warmachine)'),
+(147417,116802,156,156,'Instruction Disc (Intricate Repairs)','Nano Crystal (Intricate Repairs)'),
+(147418,46058,24,24,'Instruction Disc (Lesser Android)','Nano Crystal (Lesser Android)'),
+(147419,46059,4,4,'Instruction Disc (Lesser Automaton)','Nano Crystal (Lesser Automaton)'),
+(147420,70571,57,57,'Instruction Disc (Lesser Defensive Screen)','Nano Crystal (Lesser Defensive Screen)'),
+(147421,70595,162,162,'Instruction Disc (Lesser Force Field)','Nano Crystal (Lesser Force Field)'),
+(147422,46060,53,53,'Instruction Disc (Lesser Gladiatorbot)','Nano Crystal (Lesser Gladiatorbot)'),
+(147423,46061,93,93,'Instruction Disc (Lesser Guardbot)','Nano Crystal (Lesser Guardbot)'),
+(147424,70422,96,96,'Instruction Disc (Lesser Harmonic Cocoon)','Nano Crystal (Lesser Harmonic Cocoon)'),
+(147425,70572,50,50,'Instruction Disc (Lesser Protective Field)','Nano Crystal (Lesser Protective Field)'),
+(147426,55776,37,37,'Instruction Disc (Lesser Retaliatory Barrier)','Nano Crystal (Lesser Retaliatory Barrier)'),
+(147427,70587,43,43,'Instruction Disc (Lesser Shielding Barrier)','Nano Crystal (Lesser Shielding Barrier)'),
+(147428,46029,136,136,'Instruction Disc (Lesser Warbot)','Nano Crystal (Lesser Warbot)'),
+(147429,46030,159,159,'Instruction Disc (Lesser Warmachine)','Nano Crystal (Lesser Warmachine)'),
+(147430,46031,156,156,'Instruction Disc (Military-Grade Warbot)','Nano Crystal (Military-Grade Warbot)'),
+(147431,46032,175,175,'Instruction Disc (Military-Grade Warmachine)','Nano Crystal (Military-Grade Warmachine)'),
+(147432,70423,66,66,'Instruction Disc (Minor Harmonic Cocoon)','Nano Crystal (Minor Harmonic Cocoon)'),
+(147433,70426,30,30,'Instruction Disc (Partial Harmonic Cocoon)','Nano Crystal (Partial Harmonic Cocoon)'),
+(147434,46033,20,20,'Instruction Disc (Patchwork Android)','Nano Crystal (Patchwork Android)'),
+(147435,46034,1,1,'Instruction Disc (Patchwork Automaton)','Nano Crystal (Patchwork Automaton)'),
+(147436,46035,50,50,'Instruction Disc (Patchwork Gladiatorbot)','Nano Crystal (Patchwork Gladiatorbot)'),
+(147437,46036,90,90,'Instruction Disc (Patchwork Guardbot)','Nano Crystal (Patchwork Guardbot)'),
+(147438,46037,132,132,'Instruction Disc (Patchwork Warbot)','Nano Crystal (Patchwork Warbot)'),
+(147439,46038,159,159,'Instruction Disc (Patchwork Warmachine)','Nano Crystal (Patchwork Warmachine)'),
+(147440,116801,34,34,'Instruction Disc (Patchy Repairs)','Nano Crystal (Patchy Repairs)'),
+(147441,46039,40,40,'Instruction Disc (Perfected Android)','Nano Crystal (Perfect Android)'),
+(147442,46040,14,14,'Instruction Disc (Perfected Automaton)','Nano Crystal (Perfected Automaton)'),
+(147443,70592,149,149,'Instruction Disc (Perfected Defensive Screen)','Nano Crystal (Perfected Defensive Screen)'),
+(147444,46041,83,83,'Instruction Disc (Perfected Gladiatorbot)','Nano Crystal (Perfected Gladiatorbot)'),
+(147445,46042,119,119,'Instruction Disc (Perfected Guardbot)','Nano Crystal (Perfected Guardbot)'),
+(147446,70593,146,146,'Instruction Disc (Perfected Protective Field)','Nano Crystal (Perfected Protective Field)'),
+(147447,70590,139,139,'Instruction Disc (Perfected Shielding Barrier)','Nano Crystal (Perfected Shielding Barrier)'),
+(147448,46043,152,152,'Instruction Disc (Perfected Warbot)','Nano Crystal (Perfected Warbot)'),
+(147449,46044,172,172,'Instruction Disc (Perfected Warmachine)','Nano Crystal (Perfected Warmachine)'),
+(147450,29852,53,53,'Instruction Disc (Philosopher''s Stone)','Nano Crystal (Philosopher''s Stone)'),
+(147451,29853,93,93,'Instruction Disc (Pillar of Spikes)','Nano Crystal (Pillar of Spikes)'),
+(147452,29854,185,185,'Instruction Disc (Plasma Shield)','Nano Crystal (Plasma Shield)'),
+(147453,70575,73,73,'Instruction Disc (Protective Field)','Nano Crystal (Protective Field)'),
+(147454,116800,14,14,'Instruction Disc (Quick Fix)','Nano Crystal (Quick Fix)'),
+(147455,29858,40,40,'Instruction Disc (Quick Weapon)','Nano Crystal (Quick Weapon)'),
+(147456,29859,129,129,'Instruction Disc (Rapid Weapon)','Nano Crystal (Rapid Weapon)'),
+(147457,46017,182,182,'Instruction Disc (Reactivated Wardroid)','Nano Crystal (Reactivated Wardroid)'),
+(147458,70425,179,179,'Instruction Disc (Reactive Harmonic Cocoon)','Nano Crystal (Reactive Harmonic Cocoon)'),
+(147459,116806,84,84,'Instruction Disc (Rebuild Casing)','Nano Crystal (Rebuild Casing)'),
+(147460,116799,50,50,'Instruction Disc (Recondition Parts)','Nano Crystal (Recondition Parts)'),
+(147461,55778,132,132,'Instruction Disc (Retaliatory Barrier)','Nano Crystal (Retaliatory Barrier)'),
+(147462,46018,43,43,'Instruction Disc (Semi-Sentient Android)','Nano Crystal (Semi-Sentient Android)'),
+(147463,46019,17,17,'Instruction Disc (Semi-Sentient Automaton)','Nano Crystal (Semi-Sentient Automaton)'),
+(147464,46020,86,86,'Instruction Disc (Semi-Sentient Gladiatorbot)','Nano Crystal (Semi-Sentient Gladiatorbot)'),
+(147465,46021,123,123,'Instruction Disc (Semi-Sentient Guardbot)','Nano Crystal (Semi-Sentient Guardbot)'),
+(147466,46022,156,156,'Instruction Disc (Semi-Sentient Warbot)','Nano Crystal (Semi-Sentient Warbot)'),
+(147467,46023,182,182,'Instruction Disc (Semi-Sentient Wardroid)','Nano Crystal (Semi-Sentient Wardroid)'),
+(147468,46024,175,175,'Instruction Disc (Semi-Sentient Warmachine)','Nano Crystal (Semi-Sentient Warmachine)'),
+(147469,70573,63,63,'Instruction Disc (Shielding Barrier)','Nano Crystal (Shielding Barrier)'),
+(147470,46025,189,189,'Instruction Disc (Slayerdroid Guardian)','Nano Crystal (Slayerdroid Guardian)'),
+(147471,46026,185,185,'Instruction Disc (Slayerdroid Protector)','Nano Crystal (Slayerdroid Protector)'),
+(147472,46027,189,189,'Instruction Disc (Slayerdroid Sentinel)','Nano Crystal (Slayerdroid Sentinel)'),
+(147473,31594,185,185,'Instruction Disc (Slayerdroid Transference)','Nano Crystal (Slayerdroid Transference)'),
+(147474,46028,185,185,'Instruction Disc (Slayerdroid Warden)','Nano Crystal (Slayerdroid Warden)'),
+(147475,55781,159,159,'Instruction Disc (Sparkling Field Array)','Nano Crystal (Sparkling Field Array)'),
+(147476,29861,53,53,'Instruction Disc (Spike Armor)','Nano Crystal (Spike Armor)'),
+(147477,29862,7,7,'Instruction Disc (Spike Shield)','Nano Crystal (Spike Shield)'),
+(147478,70578,103,103,'Instruction Disc (Superior Defensive Screen)','Nano Crystal (Superior Defensive Screen)'),
+(147479,70597,172,172,'Instruction Disc (Superior Force Field)','Nano Crystal (Superior Force Field)'),
+(147480,70579,96,96,'Instruction Disc (Superior Protective Field)','Nano Crystal (Superior Protective Field)'),
+(147481,70576,86,86,'Instruction Disc (Superior Shielding Barrier)','Nano Crystal (Superior Shielding Barrier)'),
+(147482,29194,1,1,'Instruction Disc (Swift Weapon)','Engineer: Startup Crystal - Swift Weapon'),
+(147483,29865,73,73,'Instruction Disc (Trap Artifice)','Nano Crystal (Trap Artifice)'),
+(147484,29868,189,189,'Instruction Disc (Ultimate Force Field)','Nano Crystal (Ultimate Force Field)'),
+(147485,46009,37,37,'Instruction Disc (Upgraded Android)','Nano Crystal (Upgraded Android)'),
+(147486,46010,10,10,'Instruction Disc (Upgraded Automaton)','Nano Crystal (Upgraded Automaton)'),
+(147487,46011,76,76,'Instruction Disc (Upgraded Gladiatorbot)','Nano Crystal (Upgraded Gladiatorbot)'),
+(147488,46012,113,113,'Instruction Disc (Upgraded Guardbot)','Nano Crystal (Upgraded Guardbot)'),
+(147489,46013,149,149,'Instruction Disc (Upgraded Warbot)','Nano Crystal (Upgraded Warbot)'),
+(147490,46014,169,169,'Instruction Disc (Upgraded Warmachine)','Nano Crystal (Upgraded Warmachine)'),
+(147491,46015,149,149,'Instruction Disc (Warbot)','Nano Crystal (Warbot)'),
+(147492,46016,165,165,'Instruction Disc (Warmachine)','Nano Crystal (Warmachine)'),
+(147493,85274,33,33,'Instruction Disc (Active Distributed Entanglement)','Nano Crystal (Active Distributed Entanglement)'),
+(147494,82806,20,20,'Instruction Disc (Active Micro Entanglement)','Nano Crystal (Active Micro Entanglement)'),
+(147495,81896,142,142,'Instruction Disc (Advanced Augmentation Cloud)','Nano Crystal (Advanced Augmentation Cloud)'),
+(147496,85271,103,103,'Instruction Disc (Advanced Insurance Hack)','Nano Crystal (Advanced Insurance Hack)'),
+(147497,85272,142,142,'Instruction Disc (Advanced Policy Skim)','Nano Crystal (Advanced Policy Skim)'),
+(147498,81895,106,106,'Instruction Disc (Augmentation Cloud)','Nano Crystal (Augmentation Cloud)'),
+(147499,31443,57,57,'Instruction Disc (Back Pain)','Nano Crystal (Backpain)'),
+(147500,85273,4,4,'Instruction Disc (Basic Insurance Hack)','Nano Crystal (Basic Insurance Hack)'),
+(147501,85268,66,66,'Instruction Disc (Basic Policy Skim)','Nano Crystal (Basic Policy Skim)'),
+(147502,31415,116,116,'Instruction Disc (Blood Makes Noise)','Nano Crystal (Blood Makes Noise)'),
+(147503,31419,27,27,'Instruction Disc (Contact Poison)','Nano Crystal (Contact Poison)'),
+(147504,31420,14,14,'Instruction Disc (Cracker''s Luck)','Nano Crystal (Cracker''s Luck)'),
+(147505,56254,60,60,'Instruction Disc (Delay Retreat)','Nano Crystal (Delay Retreat)'),
+(147506,85269,73,73,'Instruction Disc (Detailed Medical Claim)','Nano Crystal (Detailed Medical Claim)'),
+(147507,31422,27,27,'Instruction Disc (Embrace of Shadows)','Nano Crystal (Embrace of Shadows)'),
+(147509,85270,30,30,'Instruction Disc (Falsify Medical Records)','Nano Crystal (Falsify Medical Records)'),
+(147510,85265,129,129,'Instruction Disc (Flawless Medical Claim)','Nano Crystal (Flawless Medical Claim)'),
+(147511,82805,126,126,'Instruction Disc (Gravity Bindings)','Nano Crystal (Gravity Bindings)'),
+(147512,56255,139,139,'Instruction Disc (Greater Delay Retreat)','Nano Crystal (Greater Delay Retreat)'),
+(147513,56253,90,90,'Instruction Disc (Greater Halt Flight)','Nano Crystal (Greater Halt Flight)'),
+(147514,81894,136,136,'Instruction Disc (Greater Nano Boost)','Nano Crystal (Greater Nano Boost)'),
+(147515,82804,103,103,'Instruction Disc (Greater Nano Net)','Nano Crystal (Greater Nano Net)'),
+(147516,85266,119,119,'Instruction Disc (Greater Net Cast Wide)','Nano Crystal (Greater Net Cast Wide)'),
+(147517,56257,152,152,'Instruction Disc (Greater Prolong Encounter)','Nano Crystal (Greater Prolong Encounter)'),
+(147518,142715,123,123,'Instruction Disc (Grid Excursion)','Nano Crystal (Grid Excursion)'),
+(147519,93133,136,136,'Instruction Disc (Grid Phase Accelerator)','Nano Crystal (Grid Phase Accelerator)'),
+(147520,31423,20,20,'Instruction Disc (Grid Phreak)','Nano Crystal (Grid Phreak)'),
+(147521,93138,43,43,'Instruction Disc (Grid Runner)','Nano Crystal (Grid Runner)'),
+(147522,93139,83,83,'Instruction Disc (Grid Surfer)','Nano Crystal (Grid Surfer)'),
+(147523,93135,156,156,'Instruction Disc (Gridspace Freedom)','Nano Crystal (Gridspace Freedom)'),
+(147524,93136,30,30,'Instruction Disc (Hack Grid Vector)','Nano Crystal (Hack Grid Vector)'),
+(147525,56250,4,4,'Instruction Disc (Halt Flight)','Nano Crystal (Halt Flight)'),
+(147526,81893,43,43,'Instruction Disc (Hasty Augmentation Cloud)','Nano Crystal (Hasty Augmentation Cloud)'),
+(147527,142719,74,74,'Instruction Disc (Instantaneous Encoding)','Nano Crystal (Instantaneous Encoding)'),
+(147528,85267,47,47,'Instruction Disc (Insurance Hack)','Nano Crystal (Insurance Hack)'),
+(147529,85263,63,63,'Instruction Disc (Invasive Distributed Entanglement)','Nano Crystal (Invasive Distributed Entanglement)'),
+(147530,82803,73,73,'Instruction Disc (Invasive Micro Entanglement)','Nano Crystal (Invasive Micro Entanglement)'),
+(147531,31425,152,152,'Instruction Disc (Karma Harvest)','Nano Crystal (Karma Harvest)'),
+(147532,93137,63,63,'Instruction Disc (Leech Grid Vector)','Nano Crystal (Leech Grid Vector)'),
+(147533,81892,10,10,'Instruction Disc (Lesser Nano Boost)','Nano Crystal (Lesser Nano Boost)'),
+(147534,82802,10,10,'Instruction Disc (Lesser Nano Net)','Nano Crystal (Lesser Nano Net)'),
+(147535,85264,20,20,'Instruction Disc (Lesser Net Cast Wide)','Nano Crystal (Lesser Net Cast Wide)'),
+(147536,56251,27,27,'Instruction Disc (Lesser Prolong Encounter)','Nano Crystal (Lesser Prolong Encounter)'),
+(147537,31449,90,90,'Instruction Disc (Lifebane Modification)','Nano Crystal (Lifebane Modification)'),
+(147538,93140,17,17,'Instruction Disc (Limited Grid Jump)','Nano Crystal (Limited Grid Jump)'),
+(147539,31427,83,83,'Instruction Disc (Luck''s Fickle Fate)','Nano Crystal (Luck''s Fickle Fate)'),
+(147540,85281,136,136,'Instruction Disc (Mass Gravity Bindings)','Nano Crystal (Mass Gravity Bindings)'),
+(147541,85282,17,17,'Instruction Disc (Medical Claim)','Nano Crystal (Medical Claim)'),
+(147543,81891,80,80,'Instruction Disc (Nano Boost)','Nano Crystal (Nano Boost)'),
+(147544,82801,37,37,'Instruction Disc (Nano Net)','Nano Crystal (Nano Net)'),
+(147545,85277,43,43,'Instruction Disc (Net Cast Wide)','Nano Crystal (Net Cast Wide)'),
+(147546,81890,159,159,'Instruction Disc (Neural Interfaced Augmentation Cloud)','Nano Crystal (Neural Interfaced Augmentation Cloud)'),
+(147547,56252,14,14,'Instruction Disc (No Escape Possible)','Nano Crystal (No Escape Possible)'),
+(147548,85278,149,149,'Instruction Disc (Omni-Med Incursion)','Nano Crystal (Omni-Med Incursion)'),
+(147549,93134,113,113,'Instruction Disc (Partial Grid Jump)','Nano Crystal (Partial Grid Jump)'),
+(147550,85279,7,7,'Instruction Disc (Passive Distributed Entanglement)','Nano Crystal (Passive Distributed Entanglement)'),
+(147551,82800,4,4,'Instruction Disc (Passive Micro Entanglement)','Nano Crystal (Passive Micro Entanglement)'),
+(147552,31436,1,1,'Instruction Disc (Poison Modification)','Nano Crystal (Poison Modification)'),
+(147553,85280,119,119,'Instruction Disc (Policy Skim)','Nano Crystal (Policy Skim)'),
+(147554,56256,123,123,'Instruction Disc (Prolong Encounter)','Nano Crystal (Prolong Encounter)'),
+(147555,142721,47,47,'Instruction Disc (Reckless Digitization)','Nano Crystal (Reckless Digitization)'),
+(147556,142717,169,169,'Instruction Disc (Re-Matrix Grid Vector)','Nano Crystal (Re-Matrix Grid Vector)'),
+(147557,129715,10,4,'Instruction Disc (Restock Ammo (Level OP-I))','Nano Crystal (Restock Ammo (Level OP-I))'),
+(147560,81889,169,169,'Instruction Disc (Semi-Sentient Augmentation Cloud)','Nano Crystal (Semi-Sentient Augmentation Cloud)'),
+(147561,85275,156,156,'Instruction Disc (Spin Nanoweb)','Nano Crystal (Spin Nanoweb)'),
+(147562,85276,96,96,'Instruction Disc (Spin Weak Nanoweb)','Nano Crystal (Spin Weak Nanoweb)'),
+(147563,31441,70,70,'Instruction Disc (Stack the Odds)','Nano Crystal (Stack the Odds)'),
+(147564,81888,149,149,'Instruction Disc (Targeted Augmentation Cloud)','Nano Crystal (Targeted Augmentation Cloud)'),
+(147565,142716,57,57,'Instruction Disc (Team Grid Phreak)','Nano Crystal (Team Grid Phreak)'),
+(147566,31446,60,60,'Instruction Disc (Venom Modification)','Nano Crystal (Venom Modification)'),
+(147567,28917,24,24,'Instruction Disc (Bad Blood)','Nano Crystal (Bad Blood)'),
+(147568,81850,142,142,'Instruction Disc (Chirp of the Mournful Cricket)','Nano Crystal (Chirp of the Mournful Cricket)'),
+(147569,28919,132,132,'Instruction Disc (Cohort)','Nano Crystal (Cohort)'),
+(147570,81849,37,37,'Instruction Disc (Corrosive Fists)','Nano Crystal (Corrosive Fists)'),
+(147571,81848,10,10,'Instruction Disc (Crash of Thunder)','Nano Crystal (Crash of Thunder)'),
+(147572,28920,142,142,'Instruction Disc (Diamond Skin)','Nano Crystal (Diamond Skin)'),
+(147573,28921,33,33,'Instruction Disc (Dirty Fighter)','Nano Crystal (Dirty Fighter)'),
+(147574,100220,53,53,'Instruction Disc (Distracting Nuisance)','Nano Crystal (Distracting Nuisance)'),
+(147575,28923,37,37,'Instruction Disc (Elusive Target)','Nano Crystal (Elusive Target)'),
+(147576,100221,86,86,'Instruction Disc (Encourage Hatred)','Nano Crystal (Encourage Hatred)'),
+(147577,81847,20,20,'Instruction Disc (Energized Fists)','Nano Crystal (Energized Fists)'),
+(147578,82076,142,142,'Instruction Disc (Enlightened Aura of Healing)','Nano Crystal (Enlightened Aura of Healing)'),
+(147579,100218,162,162,'Instruction Disc (Eternal Enmity)','Nano Crystal (Eternal Enmity)'),
+(147580,28926,96,96,'Instruction Disc (First Strike)','Nano Crystal (First Strike)'),
+(147581,28927,66,66,'Instruction Disc (Fists of Fire)','Nano Crystal (Fists of Fire)'),
+(147582,81846,47,47,'Instruction Disc (Fists of Shocking Touch)','Nano Crystal (Fists of Shocking Touch)'),
+(147583,81845,165,165,'Instruction Disc (Fists of Stellar Harmony)','Nano Crystal (Fists of Stellar Harmony)'),
+(147584,81844,146,146,'Instruction Disc (Fists of the Lightning Crane)','Nano Crystal (Fists of the Lightning Crane)'),
+(147585,81843,86,86,'Instruction Disc (Fists of the Maelstrom)','Nano Crystal (Fists of the Maelstrom)'),
+(147586,81842,106,106,'Instruction Disc (Fists of the Polar Star)','Nano Crystal (Fists of the Polar Star)'),
+(147587,81841,126,126,'Instruction Disc (Fists of the Sorrowful Toad)','Nano Crystal (Fists of the Sorrowful Toad)'),
+(147588,28929,83,83,'Instruction Disc (Fleet Foot)','Nano Crystal (Fleet Foot)'),
+(147589,28930,165,165,'Instruction Disc (Form of Tessai)','Nano Crystal (Form of Tessai)'),
+(147590,28931,169,169,'Instruction Disc (Four Fists of Kali)','Nano Crystal (Four Fists of Kali)'),
+(147591,28932,7,7,'Instruction Disc (Give Energy: 10)','Nano Crystal (Give Energy: 10)'),
+(147592,28933,53,53,'Instruction Disc (Give Energy: 100)','Nano Crystal (Give Energy: 100)'),
+(147593,28934,14,14,'Instruction Disc (Give Energy: 25)','Nano Crystal (Give Energy: 25)'),
+(147594,28935,27,27,'Instruction Disc (Give Energy: 50)','Nano Crystal (Give Energy: 50)'),
+(147595,28936,7,7,'Instruction Disc (Give Life: 10)','Nano Crystal (Give Life: 10)'),
+(147596,28937,50,50,'Instruction Disc (Give Life: 100)','Nano Crystal (Give Life: 100)'),
+(147597,28938,14,14,'Instruction Disc (Give Life: 25)','Nano Crystal (Give Life: 25)'),
+(147598,28939,27,27,'Instruction Disc (Give Life: 50)','Nano Crystal (Give Life: 50)'),
+(147599,82075,99,99,'Instruction Disc (Greater Healing Touch)','Nano Crystal (Greater Healing Touch)'),
+(147600,82074,129,129,'Instruction Disc (Greater Restore Essence)','Nano Crystal (Greater Restore Essence)'),
+(147601,75364,132,132,'Instruction Disc (Greater Shen Protection)','Nano Crystal (Greater Shen Protection)'),
+(147602,75359,86,86,'Instruction Disc (Greater Steel Skin)','Nano Crystal (Greater Steel Skin)'),
+(147603,82069,106,106,'Instruction Disc (Greater Team Healing Touch)','Nano Crystal (Greater Team Healing Touch)'),
+(147604,82068,132,132,'Instruction Disc (Greater Team Restore Essence)','Nano Crystal (Greater Team Restore Essence)'),
+(147605,75362,123,123,'Instruction Disc (Greater Titanium Skin)','Nano Crystal (Greater Titanium Skin)'),
+(147606,75358,53,53,'Instruction Disc (Greater Wooden Skin)','Nano Crystal (Greater Wooden Skin)'),
+(147607,75355,14,14,'Instruction Disc (Harden Skin)','Nano Crystal (Harden Skin)'),
+(147608,82073,73,73,'Instruction Disc (Healing Aura)','Nano Crystal (Healing Aura)'),
+(147609,82072,43,43,'Instruction Disc (Healing Touch)','Nano Crystal (Healing Touch)'),
+(147610,28941,149,149,'Instruction Disc (Horde)','Nano Crystal (Horde)'),
+(147611,81840,169,169,'Instruction Disc (Inner Peace, Outward Rage)','Nano Crystal (Inner Peace, Outward Rage)'),
+(147612,28943,4,4,'Instruction Disc (Iron Fist)','Nano Crystal (Iron Fist)'),
+(147613,95533,139,139,'Instruction Disc (Last Minute Adjustments)','Nano Crystal (Last Minute Adjustments)'),
+(147614,82071,10,10,'Instruction Disc (Lesser Healing Touch)','Nano Crystal (Lesser Healing Touch)'),
+(147615,75356,33,33,'Instruction Disc (Lesser Shen Protection)','Nano Crystal (Lesser Shen Protection)'),
+(147616,28945,17,17,'Instruction Disc (Limbo Mastery)','Nano Crystal (Limbo Mastery)'),
+(147617,81839,27,27,'Instruction Disc (Lotus on Water)','Nano Crystal (Lotus on Water)'),
+(147618,75363,99,99,'Instruction Disc (Major Shen Protection)','Nano Crystal (Major Shen Protection)'),
+(147619,28946,50,50,'Instruction Disc (Martial Arts Mastery)','Nano Crystal (Martial Arts Mastery)'),
+(147620,81838,40,40,'Instruction Disc (Meditate on an Autumn Leaf)','Nano Crystal (Meditate on an Autumn Leaf)'),
+(147621,75353,7,7,'Instruction Disc (Minor Shen Protection)','Nano Crystal (Minor Shen Protection)'),
+(147622,75367,152,152,'Instruction Disc (Monomolecular Skin)','Nano Crystal (Monomolecular Skin)'),
+(147623,28949,70,70,'Instruction Disc (Muscle Booster)','Nano Crystal (Muscle Booster)'),
+(147624,28950,20,20,'Instruction Disc (Muscle Stim)','Nano Crystal (Muscle Stim)'),
+(147625,75366,136,136,'Instruction Disc (Partial Diamond Skin)','Nano Crystal (Partial Diamond Skin)'),
+(147626,28952,4,4,'Instruction Disc (Spiritual Harmony)','Nano Crystal (Spiritual Harmony)'),
+(147627,28954,136,136,'Instruction Disc (Reduce Inertia)','Nano Crystal (Reduce Inertia)'),
+(147628,82070,20,20,'Instruction Disc (Restore Essence)','Nano Crystal (Restore Essence)'),
+(147629,28955,146,146,'Instruction Disc (Return Attack)','Nano Crystal (Return Attack)'),
+(147630,28956,24,24,'Instruction Disc (Rubber Skin)','Nano Crystal (Rubber Skin)'),
+(147631,81837,76,76,'Instruction Disc (Sadness of the Willow)','Nano Crystal (Sadness of the Willow)'),
+(147632,100219,136,136,'Instruction Disc (Seething Resentment)','Nano Crystal (Seething Resentment)'),
+(147633,75360,66,66,'Instruction Disc (Shen Protection)','Nano Crystal (Shen Protection)'),
+(147634,28958,76,76,'Instruction Disc (Steel Skin)','Nano Crystal (Steel Skin)'),
+(147636,81836,152,152,'Instruction Disc (Summer Rain)','Nano Crystal (Summer Rain)'),
+(147637,81835,93,93,'Instruction Disc (Sunrise over Pond)','Nano Crystal (Sunrise over Pond)'),
+(147638,75365,146,146,'Instruction Disc (Supreme Shen Protection)','Nano Crystal (Supreme Shen Protection)'),
+(147639,81834,113,113,'Instruction Disc (Sway of Bamboo)','Nano Crystal (Sway of Bamboo)'),
+(147640,82067,70,70,'Instruction Disc (Team Healing Aura)','Nano Crystal (Team Healing Aura)'),
+(147641,82066,40,40,'Instruction Disc (Team Healing Touch)','Nano Crystal (Team Healing Touch)'),
+(147642,82065,17,17,'Instruction Disc (Team Restore Essence)','Nano Crystal (Team Restore Essence)'),
+(147643,75361,109,109,'Instruction Disc (Titanium Skin)','Nano Crystal (Titanium Skin)'),
+(147644,75354,1,1,'Instruction Disc (Toughen Skin)','Nano Crystal (Toughen Skin)'),
+(147645,75352,159,159,'Instruction Disc (Transcendent Shen Protection)','Nano Crystal (Transcendent Shen Protection)'),
+(147646,95531,169,169,'Instruction Disc (Universal Vulnerability Compendium)','Nano Crystal (Universal Vulnerability Compendium)'),
+(147647,28913,60,60,'Instruction Disc (Velocity)','Nano Crystal (Velocity)'),
+(147648,95538,90,90,'Instruction Disc (Vulnerability Seeker)','Nano Crystal (Vulnerability Seeker)'),
+(147649,81833,132,132,'Instruction Disc (Waiting Panda)','Nano Crystal (Waiting Panda)'),
+(147650,81832,57,57,'Instruction Disc (Wind-Blown Blossom)','Nano Crystal (Wind-blown Blossom)'),
+(147651,75357,43,43,'Instruction Disc (Wooden Skin)','Nano Crystal (Wooden Skin)'),
+(147652,28795,33,33,'Instruction Disc (Abyssal Flames)','Nano Crystal (Abyssal Flames)'),
+(147653,45397,24,24,'Instruction Disc (Accelerated Decay)','Nano Crystal (Accelerated Decay)'),
+(147654,45398,24,24,'Instruction Disc (Accelerated Titanium Pellet)','Nano Crystal (Accelerated Titanium Pellet)'),
+(147655,45399,27,27,'Instruction Disc (Acidic Conversion)','Nano Crystal (Acidic Conversion)'),
+(147656,42547,7,7,'Instruction Disc (Acidic Projection)','Nano Crystal (Acidic Projection)'),
+(147657,118115,163,163,'Instruction Disc (Advanced Collapsing Barrier)','Nano Crystal (Advanced Collapsing Barrier)'),
+(147658,118113,107,107,'Instruction Disc (Advanced Layered Protection)','Nano Crystal (Advanced Layered Protection)'),
+(147659,45400,30,30,'Instruction Disc (Aggressive Mutagen)','Nano Crystal (Aggressive Mutagen)'),
+(147660,45401,165,165,'Instruction Disc (Annihilating Hadron String)','Nano Crystal (Annihilating Hadron String)'),
+(147661,45387,73,73,'Instruction Disc (Arctic Welcome)','Nano Crystal (Arctic Welcome)'),
+(147662,45388,159,159,'Instruction Disc (Atomic Collapse)','Nano Crystal (Atomic Collapse)'),
+(147663,46002,50,50,'Instruction Disc (Augmented Energized Beam)','Nano Crystal (Augmented Energized Beam)'),
+(147664,42548,10,10,'Instruction Disc (Bacterial Invasion)','Nano Crystal (Bacterial Invasion)'),
+(147665,56174,106,106,'Instruction Disc (Ball and Chain)','Nano Crystal (Ball and Chain)'),
+(147666,46003,113,113,'Instruction Disc (Bane of the Living)','Nano Crystal (Bane of the Living)'),
+(147667,46004,96,96,'Instruction Disc (Barrage of Blades)','Nano Crystal (Barrage of Blades)'),
+(147668,28796,109,109,'Instruction Disc (Barrage of Fire)','Nano Crystal (Barrage of Fire)'),
+(147669,46005,73,73,'Instruction Disc (Basic Crystalizing Ray)','Nano Crystal (Basic Crystalizing Ray)'),
+(147670,90407,17,17,'Instruction Disc (Basic Humidity Extractor)','Nano Crystal (Basic Humidity Extractor)'),
+(147671,100447,30,30,'Instruction Disc (Bewilder)','Nano Crystal (Bewilder)'),
+(147672,45389,119,119,'Instruction Disc (Bio-Acid Spray)','Nano Crystal (Bio-Acid Spray)'),
+(147673,46006,86,86,'Instruction Disc (Blade Chaos)','Nano Crystal (Blade Chaos)'),
+(147674,28797,169,169,'Instruction Disc (Blaze of Hephaestos)','Nano Crystal (Blaze of Hephaestos)'),
+(147675,28798,33,33,'Instruction Disc (Blight)','Nano Crystal (Blight)'),
+(147676,28799,152,152,'Instruction Disc (Boil Blood)','Nano Crystal (Boil Blood)'),
+(147677,70631,126,126,'Instruction Disc (Boil from Within)','Nano Crystal (Boil From Within)'),
+(147678,90412,149,149,'Instruction Disc (Boundless Humidity Extractor)','Nano Crystal (Boundless Humidity Extractor)'),
+(147679,46007,24,24,'Instruction Disc (Brief Poison Fog)','Nano Crystal (Brief Poison Fog)'),
+(147680,83985,159,159,'Instruction Disc (Brutal Cornea Attack)','Nano Crystal (Brutal Cornea Attack)'),
+(147681,56179,189,189,'Instruction Disc (Burden of Atlas)','Nano Crystal (Burden of Atlas)'),
+(147682,46008,93,93,'Instruction Disc (Burn From Within)','Nano Crystal (Burn from Within)'),
+(147683,28800,182,182,'Instruction Disc (Burning Bones)','Nano Crystal (Burning Bones)'),
+(147684,45390,57,57,'Instruction Disc (Burning Orb)','Nano Crystal (Burning Orb)'),
+(147685,45391,126,126,'Instruction Disc (Burning Quartet)','Nano Crystal (Burning Quartet)'),
+(147686,45392,93,93,'Instruction Disc (Burning Triumvirate)','Nano Crystal (Burning Triumvirate)'),
+(147687,45393,175,175,'Instruction Disc (Cascade of the Storm)','Nano Crystal (Cascade of the Storm)'),
+(147688,45394,40,40,'Instruction Disc (Cellular Decay)','Nano Crystal (Cellular Decay)'),
+(147689,28801,139,139,'Instruction Disc (Chaos Lights)','Nano Crystal (Chaos Lights)'),
+(147690,45395,47,47,'Instruction Disc (Chaotic Entropy)','Nano Crystal (Chaotic Entropy)'),
+(147691,45396,24,24,'Instruction Disc (Chemical Burn)','Nano Crystal (Chemical Burn)'),
+(147692,45376,103,103,'Instruction Disc (Chemical Liquefaction)','Nano Crystal (Chemical Liquefaction)'),
+(147693,45996,33,33,'Instruction Disc (Chilling Stream)','Nano Crystal (Chilling Stream)'),
+(147694,28802,50,50,'Instruction Disc (Circle of Winter)','Nano Crystal (Circle of Winter)'),
+(147695,45997,60,60,'Instruction Disc (Circle Scythe)','Nano Crystal (Circle Scythe)'),
+(147696,83984,7,7,'Instruction Disc (Claw Eyes)','Nano Crystal (Claw Eyes)'),
+(147697,95454,40,40,'Instruction Disc (Coherent Nano Pathway)','Nano Crystal (Coherent Nano Pathway)'),
+(147698,45377,142,142,'Instruction Disc (Coherent Positron Stream)','Nano Crystal (Coherent Positron Stream)'),
+(147699,95449,63,63,'Instruction Disc (Cohesion Amplifier)','Nano Crystal (Cohesion Amplifier)'),
+(147700,118112,146,146,'Instruction Disc (Collapsing Barrier)','Nano Crystal (Collapsing Barrier)'),
+(147701,45378,149,149,'Instruction Disc (Collapsing Hadron String)','Nano Crystal (Collapsing Hadron String)'),
+(147702,28803,165,165,'Instruction Disc (Compacted Neutron Missile)','Nano Crystal (Compacted Neutron Missile)'),
+(147703,45379,70,70,'Instruction Disc (Compressed Shockwave)','Nano Crystal (Compressed Shockwave)'),
+(147704,45998,30,30,'Instruction Disc (Condensed Halon Jet)','Nano Crystal (Condensed Halon Jet)'),
+(147705,45999,99,99,'Instruction Disc (Condensed Pellet of Fire)','Nano Crystal (Condensed Pellet of Fire)'),
+(147706,45380,156,156,'Instruction Disc (Conduction Stream)','Nano Crystal (Conduction Stream)'),
+(147707,45381,136,136,'Instruction Disc (Contained Plasma Sphere)','Nano Crystal (Contained Plasma Sphere)'),
+(147708,46000,76,76,'Instruction Disc (Convergent Energy Beam)','Nano Crystal (Convergent Energy Beam)'),
+(147709,83983,96,96,'Instruction Disc (Cornea Attack)','Nano Crystal (Cornea Attack)'),
+(147710,45382,132,132,'Instruction Disc (Coronet of Frost)','Nano Crystal (Coronet of Frost)'),
+(147711,28804,10,10,'Instruction Disc (Corrosive Spray)','Nano Crystal (Corrosive Spray)'),
+(147712,45383,103,103,'Instruction Disc (Corrupt Molecular Integrity)','Nano Crystal (Corrupt Molecular Integrity)'),
+(147713,28805,4,4,'Instruction Disc (Corruption)','Nano Crystal (Corruption)'),
+(147714,45384,156,156,'Instruction Disc (Crown of Frost)','Nano Crystal (Crown of Frost)'),
+(147715,95427,10,10,'Instruction Disc (CrunchCom Code Sieve)','Nano Crystal (CrunchCom Code Sieve)'),
+(147716,95422,47,47,'Instruction Disc (CrunchCom Nano Compressor)','Nano Crystal (CrunchCom Nano Compressor)'),
+(147717,95423,123,123,'Instruction Disc (CrunchCom Nano Compressor Pro)','Nano Crystal (CrunchCom Nano Compressor Pro)'),
+(147718,46001,103,103,'Instruction Disc (Crystalizing Ray)','Nano Crystal (Crystalizing Ray)'),
+(147719,83982,47,47,'Instruction Disc (Curtain of Darkness)','Nano Crystal (Curtain of Darkness)'),
+(147720,28806,90,90,'Instruction Disc (Dark Movement)','Nano Crystal (Dark Movement)'),
+(147721,45385,76,76,'Instruction Disc (Deep Chemical Burn)','Nano Crystal (Deep Chemical Burn)'),
+(147722,42545,17,17,'Instruction Disc (Deep Slash)','Nano Crystal (Deep Slash)'),
+(147723,45983,43,43,'Instruction Disc (Dense Matter Missile)','Nano Crystal (Dense Matter Missile)'),
+(147724,45984,86,86,'Instruction Disc (Dense Matter Missile MK II)','Nano Crystal (Dense Matter Missile MK II)'),
+(147725,45985,103,103,'Instruction Disc (Dense Poison Fog)','Nano Crystal (Dense Poison Fog)'),
+(147726,100446,129,129,'Instruction Disc (Discourage Involvement)','Nano Crystal (Discourage Involvement)'),
+(147727,45386,106,106,'Instruction Disc (Dispersed Nanoblade Cloud)','Nano Crystal (Dispersed Nanoblade Cloud)'),
+(147728,45986,109,109,'Instruction Disc (Dissolving Sphere)','Nano Crystal (Dissolving Sphere)'),
+(147729,45987,20,20,'Instruction Disc (Dual Energized Beams)','Nano Crystal (Dual Energized Beams)'),
+(147730,45988,60,60,'Instruction Disc (Dual Ion Stream)','Nano Crystal (Dual Ion Stream)'),
+(147731,90411,80,80,'Instruction Disc (Efficient Humidity Extractor)','Nano Crystal (Efficient Humidity Extractor)'),
+(147732,28807,185,185,'Instruction Disc (Electrifying Containment)','Nano Crystal (Electrifying Containment)'),
+(147733,45989,142,142,'Instruction Disc (Encircle With Blades)','Nano Crystal (Encircle with Blades)'),
+(147734,45990,4,4,'Instruction Disc (Energized Beam)','Nano Crystal (Energized Beam)'),
+(147735,45365,113,113,'Instruction Disc (Energized Collapse)','Nano Crystal (Energized Collapse)'),
+(147736,28808,53,53,'Instruction Disc (Energy Projectile)','Nano Crystal (Energy Projectile)'),
+(147737,45991,149,149,'Instruction Disc (Engulf in Flame)','Nano Crystal (Engulf in Flame)'),
+(147738,95453,20,20,'Instruction Disc (Enhance Nano Cohesion)','Nano Crystal (Enhance Nano Cohesion)'),
+(147739,95452,4,4,'Instruction Disc (Enhance Nano Communication)','Nano Crystal (Enhance Nano Communication)'),
+(147740,45366,30,30,'Instruction Disc (Entropy Beam)','Nano Crystal (Entropy Beam)'),
+(147741,83970,57,57,'Instruction Disc (Enveloping Darkness)','Nano Crystal (Enveloping Darkness)'),
+(147742,45992,76,76,'Instruction Disc (Eroding Spray)','Nano Crystal (Eroding Spray)'),
+(147743,83981,152,152,'Instruction Disc (Eviscerate Eyes)','Nano Crystal (Eviscerate Eyes)'),
+(147744,45993,70,70,'Instruction Disc (Expanding Neutron Pulse)','Nano Crystal (Expanding Neutron Pulse)'),
+(147745,28809,169,169,'Instruction Disc (Eye of Light)','Nano Crystal (Eye of Light)'),
+(147746,83980,139,139,'Instruction Disc (Eyeblighter)','Nano Crystal (Eyeblighter)'),
+(147747,45994,7,7,'Instruction Disc (Feeble Blade Chaos)','Nano Crystal (Feeble Blade Chaos)'),
+(147748,45367,90,90,'Instruction Disc (Feeble Gravitational Anomaly)','Nano Crystal (Feeble Gravitational Anomaly)'),
+(147749,56176,73,73,'Instruction Disc (Feet of Iron)','Nano Crystal (Feet of Iron)'),
+(147750,56173,165,165,'Instruction Disc (Feet of Lead)','Nano Crystal (Feet of Lead)'),
+(147751,56178,14,14,'Instruction Disc (Feet of Stone)','Nano Crystal (Feet of Stone)'),
+(147752,45995,162,162,'Instruction Disc (Ferocious Impactor Missile)','Nano Crystal (Ferocious Impactor Missile)'),
+(147753,45974,142,142,'Instruction Disc (Fiery Blast)','Nano Crystal (Fiery Blast)'),
+(147754,28810,27,27,'Instruction Disc (Fire Snake)','Nano Crystal (Fire Snake)'),
+(147755,28811,7,7,'Instruction Disc (Fire Stream)','Nano Crystal (Fire Stream)'),
+(147756,118111,182,182,'Instruction Disc (Fleeting Immunity)','Nano Crystal (Fleeting Immunity)'),
+(147757,45368,116,116,'Instruction Disc (Focused Ray)','Nano Crystal (Focused Ray)'),
+(147758,45975,90,90,'Instruction Disc (Foul Bane)','Nano Crystal (Foul Bane)'),
+(147759,83979,162,162,'Instruction Disc (Foul Eyeblighter)','Nano Crystal (Foul Eyeblighter)'),
+(147760,28812,96,96,'Instruction Disc (Freezing Surge)','Nano Crystal (Freezing Surge)'),
+(147761,45976,159,159,'Instruction Disc (Frigid Landscape)','Nano Crystal (Frigid Landscape)'),
+(147762,45369,43,43,'Instruction Disc (Frosty Welcome)','Nano Crystal (Frosty Welcome)'),
+(147763,45370,185,185,'Instruction Disc (Full-Body Acid Coating)','Nano Crystal (Full-body Acid Coating)'),
+(147764,28813,83,83,'Instruction Disc (Furious Assault)','Nano Crystal (Furious Assault)'),
+(147765,45977,103,103,'Instruction Disc (Furious Wind Blade)','Nano Crystal (Furious Wind Blade)'),
+(147766,45371,37,37,'Instruction Disc (Gaping Puncture)','Nano Crystal (Gaping Puncture)'),
+(147767,45372,50,50,'Instruction Disc (Glacial Advance)','Nano Crystal (Glacial Advance)'),
+(147768,45373,175,175,'Instruction Disc (Glacial Finality)','Nano Crystal (Glacial Finality)'),
+(147769,83978,27,27,'Instruction Disc (Gouge Eyes)','Nano Crystal (Gouge Eyes)'),
+(147770,45374,169,169,'Instruction Disc (Gravitational Anomaly)','Nano Crystal (Gravitational Anomaly)'),
+(147771,56175,149,149,'Instruction Disc (Gravity Pull)','Nano Crystal (Gravity Pull)'),
+(147772,45978,119,119,'Instruction Disc (Greater Blade Chaos)','Nano Crystal (Greater Blade Chaos)'),
+(147773,45979,70,70,'Instruction Disc (Greater Chilling Stream)','Nano Crystal (Greater Chilling Stream)'),
+(147774,45980,139,139,'Instruction Disc (Greater Crystalizing Ray)','Nano Crystal (Greater Crystalizing Ray)'),
+(147775,45981,129,129,'Instruction Disc (Greater RNA Reaper)','Nano Crystal (Greater RNA Reaper)'),
+(147776,45375,172,172,'Instruction Disc (Greater Searing Stream)','Nano Crystal (Greater Searing Stream)'),
+(147777,45982,132,132,'Instruction Disc (Greater Shower with Sludge)','Nano Crystal (Greater Shower With Sludge)'),
+(147778,45967,83,83,'Instruction Disc (Greater Toxic Field)','Nano Crystal (Greater Toxic Field)'),
+(147779,45359,179,179,'Instruction Disc (Greater Viral Assault)','Nano Crystal (Greater Viral Assault)'),
+(147780,42544,20,20,'Instruction Disc (Halon Cloud)','Nano Crystal (Halon Cloud)'),
+(147781,45360,57,57,'Instruction Disc (Hoary Seep)','Nano Crystal (Hoary Seep)'),
+(147782,28814,14,14,'Instruction Disc (Hot Foot)','Nano Crystal (Hot Feet)'),
+(147783,90410,40,40,'Instruction Disc (Humidity Extractor)','Nano Crystal (Humidity Extractor)'),
+(147784,45968,123,123,'Instruction Disc (Impactor Missile)','Nano Crystal (Impactor Missile)'),
+(147785,45361,139,139,'Instruction Disc (Impaling Tracer)','Nano Crystal (Impaling Tracer)'),
+(147786,28816,162,162,'Instruction Disc (Internal Combustion)','Nano Crystal (Internal Combustion)'),
+(147787,28817,70,70,'Instruction Disc (Invasive Presence)','Nano Crystal (Invasive Presence)'),
+(147788,45969,14,14,'Instruction Disc (Ion Stream)','Nano Crystal (Ion Stream)'),
+(147789,45362,50,50,'Instruction Disc (Isotope Deluge)','Nano Crystal (Isotope Deluge)'),
+(147790,45970,146,146,'Instruction Disc (Isotope Waves)','Nano Crystal (Isotope Waves)'),
+(147791,28819,182,182,'Instruction Disc (Izgimmer''s Enveloping Flame)','Nano Crystal (Izgimmer''s Enveloping Flame)'),
+(147792,28821,212,212,'Instruction Disc (Izgimmer''s Last Word)','Nano Crystal (Izgimmer''s Last Word)'),
+(147793,28822,185,185,'Instruction Disc (Izgimmer''s Little Nuke)','Nano Crystal (Izgimmer''s Little Nuke)'),
+(147794,95424,179,179,'Instruction Disc (Izgimmer''s Obfuscated Recompiler)','Nano Crystal (Izgimmer''s Obfuscated Recompiler)'),
+(147795,95419,152,152,'Instruction Disc (Jobe Nano Libraries)','Nano Crystal (Jobe Nano Libraries)'),
+(147796,28823,212,212,'Instruction Disc (Kel''s Neutronium Plaything)','Nano Crystal (Kel''s Neutronium Plaything)'),
+(147797,118123,80,80,'Instruction Disc (Layered Protection)','Nano Crystal (Layered Protection)'),
+(147798,83969,162,162,'Instruction Disc (Legions of the Eyeblighter)','Nano Crystal (Legions of the Eyeblighter)'),
+(147799,45971,40,40,'Instruction Disc (Lesser Bane of the Living)','Nano Crystal (Lesser Bane of the Living)'),
+(147800,45363,109,109,'Instruction Disc (Lesser Coronet of Frost)','Nano Crystal (Lesser Coronet of Frost)'),
+(147801,45972,47,47,'Instruction Disc (Lesser Encircle With Blades)','Nano Crystal (Lesser Encircle With Blades)'),
+(147802,83977,86,86,'Instruction Disc (Lesser Eyeblighter)','Nano Crystal (Lesser Eyeblighter)'),
+(147803,45973,14,14,'Instruction Disc (Lesser RNA Reaper)','Nano Crystal (Lesser RNA Reaper)'),
+(147804,28824,80,80,'Instruction Disc (Lightning Strike)','Nano Crystal (Lightning Strike)'),
+(147805,45959,83,83,'Instruction Disc (Limited Shrapnel Spray)','Nano Crystal (Limited Shrapnel Spray)'),
+(147806,45364,159,159,'Instruction Disc (Linear Acceleration)','Nano Crystal (Linear Acceleration)'),
+(147807,45960,132,132,'Instruction Disc (Liquefying Sphere)','Nano Crystal (Liquefying Sphere)'),
+(147808,45349,189,189,'Instruction Disc (Localized Dimensional Inversion)','Nano Crystal (Localized Dimensional Inversion)'),
+(147809,45350,146,146,'Instruction Disc (Major Chemical Burn)','Nano Crystal (Major Chemical Burn)'),
+(147810,45351,149,149,'Instruction Disc (Malign Devourer)','Nano Crystal (Malign Devourer)'),
+(147811,83968,20,20,'Instruction Disc (Mass Claw Eyes)','Nano Crystal (Mass Claw Eyes)'),
+(147812,83967,109,109,'Instruction Disc (Mass Cornea Attack)','Nano Crystal (Mass Cornea Attack)'),
+(147813,83966,132,132,'Instruction Disc (Mass Pronounce Blindness)','Nano Crystal (Mass Pronounce Blindness)'),
+(147814,45352,123,123,'Instruction Disc (Mephitic Ichor)','Nano Crystal (Mephitic Ichor)'),
+(147815,45353,103,103,'Instruction Disc (Meson Blast)','Nano Crystal (Meson Blast)'),
+(147816,45354,136,136,'Instruction Disc (Meta-Dioxin Spray)','Nano Crystal (Meta-Dioxin Spray)'),
+(147817,45961,17,17,'Instruction Disc (Micro Flechette)','Nano Crystal (Micro Flechette)'),
+(147818,45962,116,116,'Instruction Disc (Micro Flechette Swarm)','Nano Crystal (Micro Flechette Swarm)'),
+(147819,28825,47,47,'Instruction Disc (Microblade Whirlwind)','Nano Crystal (Microblade Whirlwind)'),
+(147820,45963,37,37,'Instruction Disc (Mild Toxic Spill)','Nano Crystal (Mild Toxic Spill)'),
+(147821,45964,57,57,'Instruction Disc (Minor Bane)','Nano Crystal (Minor Bane)'),
+(147822,45965,1,1,'Instruction Disc (Minor Toxic Barb)','Nano Crystal (Minor Toxic Barb)'),
+(147823,45966,10,10,'Instruction Disc (Minor Toxic Field)','Nano Crystal (Minor Toxic Field)'),
+(147824,28826,185,185,'Instruction Disc (Molecular Deconstruction)','Nano Crystal (Molecular Deconstruction)'),
+(147825,45355,165,165,'Instruction Disc (Molecular Flechettes)','Nano Crystal (Molecular Flechettes)'),
+(147826,42546,17,17,'Instruction Disc (Molecule Lance)','Nano Crystal (Molecule Lance)'),
+(147827,45356,123,123,'Instruction Disc (Momentum Impaler)','Nano Crystal (Momentum Impaler)'),
+(147828,95450,149,149,'Instruction Disc (Nano Cloud Supplement)','Nano Crystal (Nano Cloud Supplement)'),
+(147829,45357,53,53,'Instruction Disc (Nano Contagion)','Nano Crystal (Nano Contagion)'),
+(147830,45358,142,142,'Instruction Disc (Nanoblade Cloud)','Nano Crystal (Nanoblade Cloud)'),
+(147831,28828,152,152,'Instruction Disc (Neural Stunner)','Nano Crystal (Neural Stunner)'),
+(147832,45340,66,66,'Instruction Disc (Neutron Spiral)','Nano Crystal (Neutron Spiral)'),
+(147833,95451,175,175,'Instruction Disc (Notum Overload)','Nano Crystal (Notum Overload)'),
+(147834,45341,96,96,'Instruction Disc (Ol'' Faithful)','Nano Crystal (Ol'' Faithful)'),
+(147835,95420,73,73,'Instruction Disc (On-The-Fly Compression)','Nano Crystal (On-The-Fly Compression)'),
+(147836,45956,7,7,'Instruction Disc (Open Wound)','Nano Crystal (Open Wound)'),
+(147837,28829,123,123,'Instruction Disc (Particle Accelerator)','Nano Crystal (Particle Accelerator)'),
+(147838,45342,129,129,'Instruction Disc (Particle Flare)','Nano Crystal (Particle Flare)'),
+(147839,45343,90,90,'Instruction Disc (Particle Shower)','Nano Crystal (Particle Shower)'),
+(147840,100445,159,159,'Instruction Disc (Peaceful Intentions)','Nano Crystal (Peaceful Intentions)'),
+(147841,45957,83,83,'Instruction Disc (Pellet of Fire)','Nano Crystal (Pellet of Fire)'),
+(147842,90413,169,169,'Instruction Disc (Personal Notum Harvester)','Nano Crystal (Personal Notum Harvester)'),
+(147843,28830,37,37,'Instruction Disc (Phoenix Swarm)','Nano Crystal (Phoenix Swarm)'),
+(147844,45344,83,83,'Instruction Disc (Phosphor Torch)','Nano Crystal (Phosphor Torch)'),
+(147845,83976,172,172,'Instruction Disc (Photon Deflector)','Nano Crystal (Photon Deflector)'),
+(147846,28831,50,50,'Instruction Disc (Plasma Lights)','Nano Crystal (Plasma Lights)'),
+(147847,28832,76,76,'Instruction Disc (Plasma Swirl)','Nano Crystal (Plasma Swirl)'),
+(147848,28833,30,30,'Instruction Disc (Poison Missile)','Nano Crystal (Poison Missile)'),
+(147849,83975,4,4,'Instruction Disc (Poke Eyes)','Nano Crystal (Poke Eyes)'),
+(147850,45345,96,96,'Instruction Disc (Positron Stream)','Nano Crystal (Positron Stream)'),
+(147851,100462,60,60,'Instruction Disc (Project Calm)','Nano Crystal (Project Calm)'),
+(147852,83974,119,119,'Instruction Disc (Pronounce Blindness)','Nano Crystal (Pronounce Blindness)'),
+(147853,45346,182,182,'Instruction Disc (Quark Collapse)','Nano Crystal (Quark Collapse)'),
+(147854,28834,4,4,'Instruction Disc (Radiation Pulse)','Nano Crystal (Radiation Pulse)'),
+(147855,45347,76,76,'Instruction Disc (Radiation Scour)','Nano Crystal (Radiation Scour)'),
+(147856,28835,99,99,'Instruction Disc (Radioactive Cloud)','Nano Crystal (Radioactive Cloud)'),
+(147857,45348,129,129,'Instruction Disc (Rend Flesh)','Nano Crystal (Rend Flesh)'),
+(147858,45958,63,63,'Instruction Disc (RNA Reaper)','Nano Crystal (RNA Reaper)'),
+(147859,90409,1,1,'Instruction Disc (Rudimentary Humidity Extractor)','Nano Crystal (Rudimentary Humidity Extractor)'),
+(147860,95421,33,33,'Instruction Disc (Run-Time Recompiler)','Nano Crystal (Run-Time Recompiler)'),
+(147861,70630,80,80,'Instruction Disc (Searing Agony)','Nano Crystal (Searing Agony)'),
+(147862,45328,152,152,'Instruction Disc (Searing Circle)','Nano Crystal (Searing Circle)'),
+(147863,45329,159,159,'Instruction Disc (Searing Stream)','Nano Crystal (Searing Stream)'),
+(147864,28836,14,14,'Instruction Disc (Shockball)','Nano Crystal (Shockball)'),
+(147865,28837,66,66,'Instruction Disc (Shockwave Slash)','Nano Crystal (Shockwave Slash)'),
+(147866,45946,40,40,'Instruction Disc (Shower With Sludge)','Nano Crystal (Shower With Sludge)'),
+(147867,28838,123,123,'Instruction Disc (Shrapnel Burst)','Nano Crystal (Shrapnel Burst)'),
+(147868,83973,66,66,'Instruction Disc (Shroud of Darkness)','Nano Crystal (Shroud of Darkness)'),
+(147869,83972,182,182,'Instruction Disc (Shroud of the Grave)','Nano Crystal (Shroud of the Grave)'),
+(147870,28839,93,93,'Instruction Disc (Slime Cascade)','Nano Crystal (Slime Cascade)'),
+(147871,45947,24,24,'Instruction Disc (Smiting Missile)','Nano Crystal (Smiting Missile)'),
+(147872,45948,57,57,'Instruction Disc (Smiting Missile Mk II)','Nano Crystal (Smiting Missile Mk II)'),
+(147873,45949,152,152,'Instruction Disc (Solar Wind)','Nano Crystal (Solar Wind)'),
+(147874,45950,156,156,'Instruction Disc (Stargasp)','Nano Crystal (Stargasp)'),
+(147875,45330,63,63,'Instruction Disc (Stinging Missile)','Nano Crystal (Stinging Missile)'),
+(147876,45331,179,179,'Instruction Disc (Stinging Missile Swarm)','Nano Crystal (Stinging Missile Swarm)'),
+(147877,45332,162,162,'Instruction Disc (Sudden Affliction)','Nano Crystal (Sudden Affliction)'),
+(147878,45951,24,24,'Instruction Disc (Sudden Chill)','Nano Crystal (Sudden Chill)'),
+(147879,90408,99,99,'Instruction Disc (Superior Humidity Extractor)','Nano Crystal (Superior Humidity Extractor)'),
+(147880,45333,172,172,'Instruction Disc (Superior Malign Devourer)','Nano Crystal (Superior Malign Devourer)'),
+(147881,95455,93,93,'Instruction Disc (Superior Nano Command)','Nano Crystal (Superior Nano Command)'),
+(147882,45334,116,116,'Instruction Disc (Tear Flesh)','Nano Crystal (Tear Flesh)'),
+(147883,45335,60,60,'Instruction Disc (Thunderclap)','Nano Crystal (Thunderclap)'),
+(147884,45336,43,43,'Instruction Disc (Thunderous Blow)','Nano Crystal (Thunderous Blow)'),
+(147885,45952,37,37,'Instruction Disc (Toxic Field)','Nano Crystal (Toxic Field)'),
+(147886,45953,126,126,'Instruction Disc (Toxic Sphere)','Nano Crystal (Toxic Sphere)'),
+(147887,45954,132,132,'Instruction Disc (Toxic Spill)','Nano Crystal (Toxic Spill)'),
+(147888,28840,175,175,'Instruction Disc (Tremor)','Nano Crystal (Tremor)'),
+(147889,45955,109,109,'Instruction Disc (Tri-Ion Stream)','Nano Crystal (Tri-Ion Stream)'),
+(147890,45337,119,119,'Instruction Disc (Unstable Hadron String)','Nano Crystal (Unstable Hadron String)'),
+(147891,45338,66,66,'Instruction Disc (Viral Assault)','Nano Crystal (Viral Assault)'),
+(147892,83971,189,189,'Instruction Disc (Visions of the Void)','Nano Crystal (Visions of the Void)'),
+(147893,45339,86,86,'Instruction Disc (Void Warmth)','Nano Crystal (Void Warmth)'),
+(147894,28841,182,182,'Instruction Disc (Volcanic Eruption)','Nano Crystal (Volcanic Eruption)'),
+(147895,28842,113,113,'Instruction Disc (Vulcan Flechette)','Nano Crystal (Vulcan Flechette)'),
+(147896,45325,189,189,'Instruction Disc (Warmth of the Grave)','Nano Crystal (Warmth of the Grave)'),
+(147897,45326,57,57,'Instruction Disc (Weak Chemical Liquefaction)','Nano Crystal (Weak Chemical Liquefaction)'),
+(147898,45327,33,33,'Instruction Disc (Weak Gravity Collapse)','Nano Crystal (Weak Gravity Collapse)'),
+(147899,56177,40,40,'Instruction Disc (Weak Gravity Pull)','Nano Crystal (Weak Gravity Pull)'),
+(147900,45944,1,1,'Instruction Disc (Weak Smiting Missile)','Nano Crystal (Weak Smiting Missile)'),
+(147901,83965,37,37,'Instruction Disc (Wild Eye Gouger)','Nano Crystal (Wild Eye Gouger)'),
+(147902,45945,27,27,'Instruction Disc (Wind Blade)','Nano Crystal (Wind Blade)'),
+(147903,29367,66,66,'Instruction Disc (Absorption Shield)','Nano Crystal (Absorption Shield)'),
+(147904,75423,132,132,'Instruction Disc (Advanced Absorption Shield)','Nano Crystal (Advanced Absorption Shield)'),
+(147905,75421,119,119,'Instruction Disc (Advanced Combat Barrier)','Nano Crystal (Advanced Combat Barrier)'),
+(147906,29330,90,90,'Instruction Disc (Aggressive Captivation)','Nano Crystal (Aggressive Captivation)'),
+(147907,100230,70,70,'Instruction Disc (Annoying Presence)','Nano Crystal (Annoying Presence)'),
+(147908,29332,50,50,'Instruction Disc (Assault Rifle Mastery)','Nano Crystal (Assault Rifle Mastery)'),
+(147909,29333,27,27,'Instruction Disc (Attack Booster)','Nano Crystal (Attack Booster)'),
+(147910,29334,106,106,'Instruction Disc (Automatic Targeting)','Nano Crystal (Automatic Targeting)'),
+(147911,95726,152,152,'Instruction Disc (Battlefield Endurance)','Nano Crystal (Battlefield Endurance)'),
+(147912,95727,17,17,'Instruction Disc (Boot Camp Toughness)','Nano Crystal (Boot Camp Toughness)'),
+(147913,75418,50,50,'Instruction Disc (Combat Barrier)','Nano Crystal (Combat Barrier)'),
+(147914,95723,33,33,'Instruction Disc (Combat Hardening)','Nano Crystal (Combat Hardening)'),
+(147915,29337,40,40,'Instruction Disc (Damage Amplifier)','Nano Crystal (Damage Amplifier)'),
+(147916,29338,7,7,'Instruction Disc (Damage Multiplier)','Nano Crystal (Damage Multiplier)'),
+(147917,70383,33,33,'Instruction Disc (Deflection Shield)','Nano Crystal (Deflection Shield)'),
+(147918,70384,37,37,'Instruction Disc (Deflection Shield (Extended))','Nano Crystal (Deflection Shield (Extended))'),
+(147919,100228,14,14,'Instruction Disc (Draw Attention)','Nano Crystal (Draw Attention)'),
+(147920,29340,4,4,'Instruction Disc (Ego Taunt)','Nano Crystal (Ego Taunt)'),
+(147921,29342,63,63,'Instruction Disc (Ranged Energy Weapon Mastery)','Nano Crystal (LR Energy Weapon Mastery)'),
+(147922,100229,30,30,'Instruction Disc (Enraged Mind)','Nano Crystal (Enraged Mind)'),
+(147923,70385,50,50,'Instruction Disc (Greater Deflection Shield)','Nano Crystal (Greater Deflection Shield)'),
+(147924,70386,57,57,'Instruction Disc (Greater Deflection Shield (Extended))','Nano Crystal (Greater Deflection Shield (Extended))'),
+(147925,70387,129,129,'Instruction Disc (Greater Reflective Field)','Nano Crystal (Greater Reflective Field)'),
+(147926,70388,132,132,'Instruction Disc (Greater Reflective Field (Extended))','Nano Crystal (Greater Reflective Field (Extended))'),
+(147927,75427,159,159,'Instruction Disc (Heavy Assault Absorption Shield)','Nano Crystal (Heavy Assault Absorption Shield)'),
+(147928,75426,152,152,'Instruction Disc (Heavy Assault Combat Barrier)','Nano Crystal (Heavy Assault Combat Barrier)'),
+(147929,29344,139,139,'Instruction Disc (Helepolis of the Besieger)','Nano Crystal (Helepolis of the Besieger)'),
+(147930,100227,132,132,'Instruction Disc (Id Assault)','Nano Crystal (Id Assault)'),
+(147931,75419,37,37,'Instruction Disc (Lesser Absorption Shield)','Nano Crystal (Lesser Absorption Shield)'),
+(147932,75417,20,20,'Instruction Disc (Lesser Combat Barrier)','Nano Crystal (Lesser Combat Barrier)'),
+(147933,70390,24,24,'Instruction Disc (Lesser Deflection Shield)','Nano Crystal (Lesser Deflection Shield)'),
+(147934,70389,30,30,'Instruction Disc (Lesser Deflection Shield (Extended))','Nano Crystal (Lesser Deflection Shield (Extended))'),
+(147935,70392,123,123,'Instruction Disc (Lesser Reflective Field)','Nano Crystal (Lesser Reflective Field)'),
+(147936,70391,123,123,'Instruction Disc (Lesser Reflective Field (Extended))','Nano Crystal (Lesser Reflective Field (Extended))'),
+(147937,70393,63,63,'Instruction Disc (Major Deflection Shield)','Nano Crystal (Major Deflection Shield)'),
+(147938,70394,70,70,'Instruction Disc (Major Deflection Shield (Extended))','Nano Crystal (Major Deflection Shield (Extended))'),
+(147939,70395,136,136,'Instruction Disc (Major Reflective Field)','Nano Crystal (Major Reflective Field)'),
+(147940,70396,139,139,'Instruction Disc (Major Reflective Field (Extended))','Nano Crystal (Major Reflective Field (Extended))'),
+(147941,75416,14,14,'Instruction Disc (Minor Absorption Shield)','Nano Crystal (Minor Absorption Shield)'),
+(147942,75415,4,4,'Instruction Disc (Minor Combat Barrier)','Nano Crystal (Minor Combat Barrier)'),
+(147943,70397,14,14,'Instruction Disc (Minor Deflection Shield)','Nano Crystal (Minor Deflection Shield)'),
+(147944,70398,17,17,'Instruction Disc (Minor Deflection Shield (Extended))','Nano Crystal (Minor Deflection Shield (Extended))'),
+(147945,70399,113,113,'Instruction Disc (Minor Reflective Field)','Nano Crystal (Minor Reflective Field)'),
+(147946,70400,119,119,'Instruction Disc (Minor Reflective Field (Extended))','Nano Crystal (Minor Reflective Field (Extended))'),
+(147947,29352,156,156,'Instruction Disc (Offensive Steamroller)','Nano Crystal (Offensive Steamroller)'),
+(147948,29353,76,76,'Instruction Disc (One-More-Hit Healing)','Nano Crystal (Don''t Fear the Reaper)'),
+(147949,29354,152,152,'Instruction Disc (Only You, Only Me)','Nano Crystal (Only You, Only Me)'),
+(147950,70401,1,1,'Instruction Disc (Partial Deflection Shield)','Nano Crystal (Partial Deflection Shield)'),
+(147951,70403,7,7,'Instruction Disc (Partial Deflection Shield (Extended))','Nano Crystal (Partial Deflection Shield (Extended))'),
+(147952,70402,96,96,'Instruction Disc (Partial Reflective Field)','Nano Crystal (Partial Reflective Field)'),
+(147953,70405,99,99,'Instruction Disc (Partial Reflective Field (Extended))','Nano Crystal (Partial Reflective Field (Extended))'),
+(147954,75424,142,142,'Instruction Disc (Perfected Absorption Shield)','Nano Crystal (Perfected Absorption Shield)'),
+(147955,75425,139,139,'Instruction Disc (Perfected Combat Barrier)','Nano Crystal (Perfected Combat Barrier)'),
+(147956,29355,57,57,'Instruction Disc (Persistent Damage Amplifier)','Nano Crystal (Persistent Damage Amplifier)'),
+(147957,29356,17,17,'Instruction Disc (Persistent Damage Multiplier)','Nano Crystal (Persistent Damage Multiplier)'),
+(147958,29358,24,24,'Instruction Disc (Pistol Mastery)','Nano Crystal (Pistol Mastery)'),
+(147959,29359,43,43,'Instruction Disc (Precognition)','Nano Crystal (Precognition)'),
+(147960,29360,17,17,'Instruction Disc (Quickshot)','Nano Crystal (Quickshot)'),
+(147961,70404,76,76,'Instruction Disc (Reactive Deflection Shield)','Nano Crystal (Reactive Deflection Shield)'),
+(147962,70406,83,83,'Instruction Disc (Reactive Deflection Shield (Extended))','Nano Crystal (Reactive Deflection Shield (Extended))'),
+(147963,70407,142,142,'Instruction Disc (Reactive Reflective Field)','Nano Crystal (Reactive Reflective Field)'),
+(147964,70408,142,142,'Instruction Disc (Reactive Reflective Field (Extended))','Nano Crystal (Reactive Reflective Field (Extended))'),
+(147965,70409,126,126,'Instruction Disc (Reflective Field)','Nano Crystal (Reflective Field)'),
+(147966,70410,126,126,'Instruction Disc (Reflective Field (Extended))','Nano Crystal (Reflective Field (Extended))'),
+(147967,29362,37,37,'Instruction Disc (Rifle Mastery)','Nano Crystal (Rifle Mastery)'),
+(147968,29363,126,126,'Instruction Disc (Riot Control)','Nano Crystal (Riot Control)'),
+(147969,75422,99,99,'Instruction Disc (Superior Absorption Shield)','Nano Crystal (Superior Absorption Shield)'),
+(147970,75420,83,83,'Instruction Disc (Superior Combat Barrier)','Nano Crystal (Superior Combat Barrier)'),
+(147971,95724,139,139,'Instruction Disc (Survivor''s Resilience)','Nano Crystal (Survivor''s Resilience)'),
+(147972,29366,113,113,'Instruction Disc (Titan Physique)','Nano Crystal (Titan Physique)'),
+(147973,29329,136,136,'Instruction Disc (Total Focus)','Nano Crystal (Total Focus)'),
+(147974,70411,10,10,'Instruction Disc (Total Mirror Shield Mk I)','Nano Crystal (Total Mirror Shield Mk I)'),
+(147975,70412,27,27,'Instruction Disc (Total Mirror Shield Mk II)','Nano Crystal (Total Mirror Shield Mk II)'),
+(147976,70413,47,47,'Instruction Disc (Total Mirror Shield Mk III)','Nano Crystal (Total Mirror Shield Mk III)'),
+(147977,70414,60,60,'Instruction Disc (Total Mirror Shield Mk IV)','Nano Crystal (Total Mirror Shield Mk IV)'),
+(147978,70415,132,132,'Instruction Disc (Total Mirror Shield Mk IX)','Nano Crystal (Total Mirror Shield Mk IX)'),
+(147979,70416,86,86,'Instruction Disc (Total Mirror Shield Mk V)','Nano Crystal (Total Mirror Shield Mk V)'),
+(147980,70417,106,106,'Instruction Disc (Total Mirror Shield Mk VI)','Nano Crystal (Total Mirror Shield Mk VI)'),
+(147981,70418,126,126,'Instruction Disc (Total Mirror Shield Mk VII)','Nano Crystal (Total Mirror Shield Mk VII)'),
+(147982,70419,129,129,'Instruction Disc (Total Mirror Shield Mk VIII)','Nano Crystal (Total Mirror Shield Mk VIII)'),
+(147983,70421,146,146,'Instruction Disc (Total Mirror Shield Mk X)','Nano Crystal (Total Mirror Shield Mk X)'),
+(147984,95725,63,63,'Instruction Disc (Tough as Nails)','Nano Crystal (Tough as Nails)'),
+(147985,121507,74,74,'Instruction Disc (Accomplished Health Haggler)','Nano Crystal (Accomplished Health Haggler)'),
+(147986,118258,123,123,'Instruction Disc (Advanced Delayed Health Payment)','Nano Crystal (Advanced Delayed Health Payment)'),
+(147987,78434,103,103,'Instruction Disc (Advanced Health Freeloader)','Nano Crystal (Advanced Health Freeloader)'),
+(147988,78424,30,30,'Instruction Disc (Advanced Health Funnel)','Nano Crystal (Advanced Health Funnel)'),
+(147989,78443,169,169,'Instruction Disc (Advanced Health Plunder)','Nano Crystal (Advanced Health Plunder)'),
+(147990,121518,4,4,'Instruction Disc (Amateur Health Haggler)','Nano Crystal (Amateur Health Haggler)'),
+(147991,30804,24,24,'Instruction Disc (Apprentice: Electrical Engineering)','Nano Crystal (Apprentice: Electrical Engineering)'),
+(147992,30758,27,27,'Instruction Disc (Apprentice: Field Quantum Physics)','Nano Crystal (Apprentice: Field Quantum Physics)'),
+(147993,121519,17,17,'Instruction Disc (Apprentice Health Haggler)','Nano Crystal (Apprentice Health Haggler)'),
+(147994,30759,30,30,'Instruction Disc (Apprentice: Mechanical Engineering)','Nano Crystal (Apprentice: Mechanical Engineering)'),
+(147995,29103,33,33,'Instruction Disc (Apprentice: Pharmaceuticals)','Nano Crystal (Apprentice: Pharmaceuticals)'),
+(147996,29102,33,33,'Instruction Disc (Apprentice: Weapon Smithing)','Nano Crystal (Apprentice: Weapon Smithing)'),
+(147997,92205,185,185,'Instruction Disc (Armor Trade-In)','Nano Crystal (Armor Trade-In)'),
+(147998,30764,7,7,'Instruction Disc (Balanced Striker)','Nano Crystal (Balanced Striker)'),
+(147999,142776,97,97,'Instruction Disc (Brain Bender)','Nano Crystal (Brain Bender)'),
+(148000,142772,50,50,'Instruction Disc (Brain Swap)','Nano Crystal (Brain Swap)'),
+(148001,100454,33,33,'Instruction Disc (Bright Shiny Sparkling Thing)','Nano Crystal (Bright Shiny Sparkling Thing)'),
+(148002,30766,96,96,'Instruction Disc (Bulk Trader)','Nano Crystal (Bulk Trader)'),
+(148003,121520,34,34,'Instruction Disc (Capable Health Haggler)','Nano Crystal (Capable Health Haggler)'),
+(148004,118259,37,37,'Instruction Disc (Commonplace Delayed Health Payment)','Nano Crystal (Commonplace Delayed Health Payment)'),
+(148005,143899,176,176,'Instruction Disc (Control Ends and Means)','Nano Crystal (Control Ends and Means)'),
+(148006,142775,74,74,'Instruction Disc (Deep Thought)','Nano Crystal (Deep Thought)'),
+(148007,118260,70,70,'Instruction Disc (Delayed Health Payment)','Nano Crystal (Delayed Health Payment)'),
+(148008,85900,43,43,'Instruction Disc (Deprive Skills)','Nano Crystal (Deprive Skills)'),
+(148009,85899,80,80,'Instruction Disc (Deprive Skills (Advanced))','Nano Crystal (Deprive Skills (Advanced))'),
+(148010,85898,33,33,'Instruction Disc (Deprive Skills (Lesser))','Nano Crystal (Deprive Skills (Lesser))'),
+(148011,85896,24,24,'Instruction Disc (Deprive Skills (Average))','Nano Crystal (Deprive Skills (Average))'),
+(148012,85897,57,57,'Instruction Disc (Deprive Skills (Major))','Nano Crystal (Deprive Skills (Major))'),
+(148013,85895,14,14,'Instruction Disc (Deprive Skills (Minor))','Nano Crystal (Deprive Skills (Minor))'),
+(148014,85894,4,4,'Instruction Disc (Deprive Skills (Weak))','Nano Crystal (Deprive Skills (Weak))'),
+(148015,56262,109,109,'Instruction Disc (Detain Customer)','Nano Crystal (Detain Customer)'),
+(148017,100452,20,20,'Instruction Disc (Distract with Trinkets)','Nano Crystal (Distract with Trinkets)'),
+(148018,100453,47,47,'Instruction Disc (Distracting Baubles)','Nano Crystal (Distracting Baubles)'),
+(148019,85892,156,156,'Instruction Disc (Divest Skills)','Nano Crystal (Divest Skills)'),
+(148020,85893,179,179,'Instruction Disc (Divest Skills (Advanced))','Nano Crystal (Divest Skills (Advanced))'),
+(148021,85891,149,149,'Instruction Disc (Divest Skills (Lesser))','Nano Crystal (Divest Skills (Lesser))'),
+(148022,85889,132,132,'Instruction Disc (Divest Skills (Average))','Nano Crystal (Divest Skills (Average))'),
+(148023,85890,165,165,'Instruction Disc (Divest Skills (Major))','Nano Crystal (Divest Skills (Major))'),
+(148024,85888,113,113,'Instruction Disc (Divest Skills (Minor))','Nano Crystal (Divest Skills (Minor))'),
+(148025,85887,93,93,'Instruction Disc (Divest Skills (Weak))','Nano Crystal (Divest Skills (Weak))'),
+(148026,91401,136,136,'Instruction Disc (Draw AC)','Nano Crystal (Draw AC)'),
+(148027,91403,159,159,'Instruction Disc (Draw AC (Advanced))','Nano Crystal (Draw AC (Advanced))'),
+(148028,91397,165,165,'Instruction Disc (Draw AC (Greater))','Nano Crystal (Draw AC (Greater))'),
+(148029,91399,179,179,'Instruction Disc (Draw AC (Invasive))','Nano Crystal (Draw AC (Invasive))'),
+(148030,91394,149,149,'Instruction Disc (Draw AC (Major))','Nano Crystal (Draw AC (Major))'),
+(148031,91395,113,113,'Instruction Disc (Draw AC (Minor))','Nano Crystal (Draw AC (Minor))'),
+(148032,91390,93,93,'Instruction Disc (Draw AC (Weak))','Nano Crystal (Draw AC (Weak))'),
+(148033,99630,99,99,'Instruction Disc (Dubious Accounting)','Nano Crystal (Dubious Accounting)'),
+(148034,118255,31,31,'Instruction Disc (Elementary Delayed Health Payment)','Nano Crystal (Elementary Delayed Health Payment)'),
+(148035,56261,76,76,'Instruction Disc (Embrace of Greed)','Nano Crystal (Embrace of Greed)'),
+(148036,99629,40,40,'Instruction Disc (Enforced Loan)','Nano Crystal (Enforced Loan)'),
+(148037,56258,182,182,'Instruction Disc (Entrepreneurial Thrall)','Nano Crystal (Entrepreneurial Thrall)'),
+(148038,118256,169,169,'Instruction Disc (Exceptional Delayed Health Payment)','Nano Crystal (Exceptional Delayed Health Payment)'),
+(148039,121516,97,97,'Instruction Disc (Expert Health Haggler)','Nano Crystal (Expert Health Haggler)'),
+(148040,99628,50,50,'Instruction Disc (Extended Line of Credit)','Nano Crystal (Extended Line of Credit)'),
+(148041,118257,8,8,'Instruction Disc (Feeble Delayed Health Payment)','Nano Crystal (Feeble Delayed Health Payment)'),
+(148042,30769,126,126,'Instruction Disc (Fine Tuning)','Nano Crystal (Fine Tuning)'),
+(148043,30770,132,132,'Instruction Disc (Flow of Time)','Nano Crystal (Flow of Time)'),
+(148044,99627,185,185,'Instruction Disc (Forced Bankruptcy)','Nano Crystal (Forced Bankruptcy)'),
+(148045,30771,20,20,'Instruction Disc (Frequent Customer)','Nano Crystal (Frequent Customer)'),
+(148046,121517,136,136,'Instruction Disc (Glib Health Haggler)','Nano Crystal (Glib Health Haggler)'),
+(148047,100451,106,106,'Instruction Disc (Glittering Plaything)','Nano Crystal (Glittering Plaything)'),
+(148048,118252,149,149,'Instruction Disc (Greater Delayed Health Payment)','Nano Crystal (Greater Delayed Health Payment)'),
+(148049,56265,169,169,'Instruction Disc (Greater Detain Customer)','Nano Crystal (Greater Detain Customer)'),
+(148050,56263,149,149,'Instruction Disc (Greater Embrace of Greed)','Nano Crystal (Greater Embrace of Greed)'),
+(148051,78433,113,113,'Instruction Disc (Greater Health Freeloader)','Nano Crystal (Greater Health Freeloader)'),
+(148052,78423,33,33,'Instruction Disc (Greater Health Funnel)','Nano Crystal (Greater Health Funnel)'),
+(148053,78451,175,175,'Instruction Disc (Greater Health Plunder)','Nano Crystal (Greater Health Plunder)'),
+(148054,99626,80,80,'Instruction Disc (Greater Strip Assets)','Nano Crystal (Greater Strip Assets)'),
+(148055,142742,166,166,'Instruction Disc (Grid Gateway)','Nano Crystal (Grid Gateway)'),
+(148056,30772,149,149,'Instruction Disc (Guard Convoy)','Nano Crystal (Guard Convoy)'),
+(148057,78432,86,86,'Instruction Disc (Health Freeloader)','Nano Crystal (Health Freeloader)'),
+(148058,78421,20,20,'Instruction Disc (Health Funnel)','Nano Crystal (Health Funnel)'),
+(148059,78442,159,159,'Instruction Disc (Health Plunder)','Nano Crystal (Health Plunder)'),
+(148060,81929,30,30,'Instruction Disc (Hired Hands)','Nano Crystal (Hired Hands)'),
+(148061,30773,90,90,'Instruction Disc (Hostile Takeover)','Nano Crystal (Hostile Takeover)'),
+(148062,100450,146,146,'Instruction Disc (Imaginary Distractions)','Nano Crystal (Imaginary Distractions)'),
+(148063,99625,146,146,'Instruction Disc (Impoverish Accounts)','Nano Crystal (Impoverish Accounts)'),
+(148064,99624,123,123,'Instruction Disc (Insolvency)','Nano Crystal (Insolvency)'),
+(148065,121513,149,149,'Instruction Disc (Irresistible Health Haggler)','Nano Crystal (Irresistible Health Haggler)'),
+(148066,30775,80,80,'Instruction Disc (Journeyman: Electrical Engineering)','Nano Crystal (Journeyman: Electrical Engineering)'),
+(148067,30776,80,80,'Instruction Disc (Journeyman: Field Quantum Physics)','Nano Crystal (Journeyman: Field Quantum Physics)'),
+(148068,30777,83,83,'Instruction Disc (Journeyman: Mechanical Engineer)','Nano Crystal (Journeyman: Mechanical Engineer)'),
+(148069,30778,86,86,'Instruction Disc (Journeyman: Pharmaceutical)','Nano Crystal (Journeyman: Pharmaceutical)'),
+(148070,30779,86,86,'Instruction Disc (Journeyman: Weapon Smithing)','Nano Crystal (Journeyman: Weapon Smithing)'),
+(148071,30266,24,24,'Instruction Disc (Lend Nano: 100)','Nano Crystal (Lend Nano: 100)'),
+(148072,30780,53,53,'Instruction Disc (Lend Nano: 250)','Nano Crystal (Lend Nano: 250)'),
+(148073,30781,10,10,'Instruction Disc (Lend Nano: 50)','Nano Crystal (Lend Nano: 50)'),
+(148074,30782,116,116,'Instruction Disc (Lend Nano: 500)','Nano Crystal (Lend Nano: 500)'),
+(148075,30783,172,172,'Instruction Disc (Lend Nano: 1000)','Nano Crystal (Lend Nano: 1000)'),
+(148076,118253,57,57,'Instruction Disc (Lesser Delayed Health Payment)','Nano Crystal (Lesser Delayed Health Payment)'),
+(148077,56259,1,1,'Instruction Disc (Lesser Detain Customer)','Nano Crystal (Lesser Detain Customer)'),
+(148078,56266,14,14,'Instruction Disc (Lesser Embrace of Greed)','Nano Crystal (Lesser Embrace of Greed)'),
+(148079,78430,80,80,'Instruction Disc (Lesser Health Freeloader)','Nano Crystal (Lesser Health Freeloader)'),
+(148080,78420,17,17,'Instruction Disc (Lesser Health Funnel)','Nano Crystal (Lesser Health Funnel)'),
+(148081,78441,156,156,'Instruction Disc (Lesser Health Plunder)','Nano Crystal (Lesser Health Plunder)'),
+(148082,99623,7,7,'Instruction Disc (Line of Credit)','Nano Crystal (Line of Credit)'),
+(148083,30784,156,156,'Instruction Disc (Liquidation)','Nano Crystal (Liquidation)'),
+(148084,118254,44,44,'Instruction Disc (Average Delayed Health Payment)','Nano Crystal (Average Delayed Health Payment)'),
+(148085,78428,70,70,'Instruction Disc (Average Health Freeloader)','Nano Crystal (Lossy Health Freeloader)'),
+(148086,78418,10,10,'Instruction Disc (Average Health Funnel)','Nano Crystal (Lossy Health Funnel)'),
+(148087,78439,149,149,'Instruction Disc (Average Health Plunder)','Nano Crystal (Lossy Health Plunder)'),
+(148088,30785,152,152,'Instruction Disc (Maestro: Electrical Engineering)','Nano Crystal (Maestro: Electrical Engineering)'),
+(148089,30786,152,152,'Instruction Disc (Maestro: Field Quantum Physics)','Nano Crystal (Maestro: Field Quantum Physics)'),
+(148090,30787,152,152,'Instruction Disc (Maestro: Mechanical Engineering)','Nano Crystal (Maestro: Mechanical Engineering)'),
+(148091,30788,156,156,'Instruction Disc (Maestro: Pharmaceutical)','Nano Crystal (Maestro: Pharmaceutical)'),
+(148092,30789,156,156,'Instruction Disc (Maestro: Weapon Smithing)','Nano Crystal (Maestro: Weapon Smithing)'),
+(148093,92207,189,189,'Instruction Disc (Major Armor Distributor)','Nano Crystal (Major Armor Distributor)'),
+(148094,118249,100,100,'Instruction Disc (Major Delayed Health Payment)','Nano Crystal (Major Delayed Health Payment)'),
+(148095,78431,93,93,'Instruction Disc (Major Health Freeloader)','Nano Crystal (Major Health Freeloader)'),
+(148096,78422,24,24,'Instruction Disc (Major Health Funnel)','Nano Crystal (Major Health Funnel)'),
+(148097,78440,162,162,'Instruction Disc (Major Health Plunder)','Nano Crystal (Major Health Plunder)'),
+(148098,30790,14,14,'Instruction Disc (Margin Call)','Nano Crystal (Margin Call)'),
+(148099,121514,116,116,'Instruction Disc (Masterly Health Haggler)','Nano Crystal (Masterly Health Haggler)'),
+(148100,142774,34,34,'Instruction Disc (Mental Switcheroo)','Nano Crystal (Mental Switcheroo)'),
+(148101,118250,21,21,'Instruction Disc (Minor Delayed Health Payment)','Nano Crystal (Minor Delayed Health Payment)'),
+(148102,78429,60,60,'Instruction Disc (Minor Health Freeloader)','Nano Crystal (Minor Health Freeloader)'),
+(148103,78419,7,7,'Instruction Disc (Minor Health Funnel)','Nano Crystal (Minor Health Funnel)'),
+(148104,78438,146,146,'Instruction Disc (Minor Health Plunder)','Nano Crystal (Minor Health Plunder)'),
+(148105,143902,186,186,'Instruction Disc (My Brain For Your Brain)','Nano Crystal (My Brain For Your Brain)'),
+(148106,121515,11,11,'Instruction Disc (Novice Health Haggler)','Nano Crystal (Novice Health Haggler)'),
+(148107,99622,24,24,'Instruction Disc (Overdraught)','Nano Crystal (Overdraught)'),
+(148108,118251,14,14,'Instruction Disc (Patchy Delayed Health Payment)','Nano Crystal (Patchy Delayed Health Payment)'),
+(148109,78426,50,50,'Instruction Disc (Patchy Health Freeloader)','Nano Crystal (Patchy Health Freeloader)'),
+(148110,78416,4,4,'Instruction Disc (Patchy Health Funnel)','Nano Crystal (Patchy Health Funnel)'),
+(148111,78436,142,142,'Instruction Disc (Patchy Health Plunder)','Nano Crystal (Patchy Health Plunder)'),
+(148112,91392,185,185,'Instruction Disc (Pawnbroker''s Armor)','Nano Crystal (Pawnbroker''s Armor)'),
+(148113,99621,169,169,'Instruction Disc (Pay the Pauper)','Nano Crystal (Pay the Pauper)'),
+(148114,142743,100,100,'Instruction Disc (Personal Grid Beacon)','Nano Crystal (Personal Grid Beacon)'),
+(148115,85885,162,162,'Instruction Disc (Plunder Skills)','Nano Crystal (Plunder Skills)'),
+(148116,85886,185,185,'Instruction Disc (Plunder Skills (Advanced))','Nano Crystal (Plunder Skills (Advanced))'),
+(148117,85884,152,152,'Instruction Disc (Plunder Skills (Lesser))','Nano Crystal (Plunder Skills (Lesser))'),
+(148118,85882,146,146,'Instruction Disc (Plunder Skills (Average))','Nano Crystal (Plunder Skills (Average))'),
+(148119,85883,172,172,'Instruction Disc (Plunder Skills (Major))','Nano Crystal (Plunder Skills (Major))'),
+(148120,85881,123,123,'Instruction Disc (Plunder Skills (Minor))','Nano Crystal (Plunder Skills (Minor))'),
+(148121,85879,103,103,'Instruction Disc (Plunder Skills (Weak))','Nano Crystal (Plunder Skills (Weak))'),
+(148122,121511,27,27,'Instruction Disc (Practiced Health Haggler)','Nano Crystal (Practiced Health Haggler)'),
+(148123,121512,159,159,'Instruction Disc (Preeminent Health Haggler)','Nano Crystal (Preeminent Health Haggler)'),
+(148124,118246,182,182,'Instruction Disc (Premium Delayed Health Payment)','Nano Crystal (Premium Delayed Health Payment)'),
+(148125,121508,87,87,'Instruction Disc (Professional Health Haggler)','Nano Crystal (Professional Health Haggler)'),
+(148126,121509,41,41,'Instruction Disc (Proficient Health Haggler)','Nano Crystal (Proficient Health Haggler)'),
+(148127,56264,159,159,'Instruction Disc (Profit Preoccupation)','Nano Crystal (Profit Preoccupation)'),
+(148128,56260,37,37,'Instruction Disc (Profiteer''s Grip)','Nano Crystal (Profiteer''s Grip)'),
+(148129,142777,17,17,'Instruction Disc (Project Thought Patterns)','Nano Crystal (Project Thought Patterns)'),
+(148130,82243,83,83,'Instruction Disc (Pyramid Marketing)','Nano Crystal (Pyramid Marketing)'),
+(148131,118247,87,87,'Instruction Disc (Quality Delayed Health Payment)','Nano Crystal (Quality Delayed Health Payment)'),
+(148132,30796,139,139,'Instruction Disc (Quantum Uncertainty)','Nano Crystal (Quantum Uncertainty)'),
+(148133,85880,50,50,'Instruction Disc (Ransack Skills)','Nano Crystal (Ransack Skills)'),
+(148134,85878,86,86,'Instruction Disc (Ransack Skills (Advanced))','Nano Crystal (Ransack Skills (Advanced))'),
+(148135,85877,40,40,'Instruction Disc (Ransack Skills (Lesser))','Nano Crystal (Ransack Skills (Lesser))'),
+(148136,85875,30,30,'Instruction Disc (Ransack Skills (Average))','Nano Crystal (Ransack Skills (Average))'),
+(148137,85876,70,70,'Instruction Disc (Ransack Skills (Major))','Nano Crystal (Ransack Skills (Major))'),
+(148138,85874,20,20,'Instruction Disc (Ransack Skills (Minor))','Nano Crystal (Ransack Skills (Minor))'),
+(148139,85873,10,10,'Instruction Disc (Ransack Skills (Weak))','Nano Crystal (Ransack Skills (Weak))'),
+(148140,92199,149,149,'Instruction Disc (Redeem AC)','Nano Crystal (Redeem AC)'),
+(148141,92201,165,165,'Instruction Disc (Redeem AC (Advanced))','Nano Crystal (Redeem AC (Advanced))'),
+(148142,92203,175,175,'Instruction Disc (Redeem AC (Greater))','Nano Crystal (Redeem AC (Greater))'),
+(148143,92194,129,129,'Instruction Disc (Redeem AC (Lesser))','Nano Crystal (Redeem AC (Lesser))'),
+(148144,92196,156,156,'Instruction Disc (Redeem AC (Major))','Nano Crystal (Redeem AC (Major))'),
+(148145,92197,106,106,'Instruction Disc (Redeem AC (Minor))','Nano Crystal (Redeem AC (Minor))'),
+(148146,92189,90,90,'Instruction Disc (Redeem AC (Weak))','Nano Crystal (Redeem AC (Weak))'),
+(148147,143901,149,149,'Instruction Disc (Redirect Neural Signals)','Nano Crystal (Redirect Neural Signals)'),
+(148148,30797,159,159,'Instruction Disc (Relentless Slayer)','Nano Crystal (Relentless Slayer)'),
+(148149,30798,80,80,'Instruction Disc (Riding Shotgun)','Nano Crystal (Riding Shotgun)'),
+(148150,99620,63,63,'Instruction Disc (Shady Acquisition)','Nano Crystal (Shady Acquisition)'),
+(148151,100449,162,162,'Instruction Disc (Simple Mind, Simple Pleasures)','Nano Crystal (Simple Mind, Simple Pleasures)'),
+(148152,91387,123,123,'Instruction Disc (Siphon AC)','Nano Crystal (Siphon AC)'),
+(148153,91389,152,152,'Instruction Disc (Siphon AC (Advanced))','Nano Crystal (Siphon AC (Advanced))'),
+(148154,91382,162,162,'Instruction Disc (Siphon AC (Greater))','Nano Crystal (Siphon AC (Greater))'),
+(148155,91384,172,172,'Instruction Disc (Siphon AC (Invasive))','Nano Crystal (Siphon AC (Invasive))'),
+(148156,91386,146,146,'Instruction Disc (Siphon AC (Major))','Nano Crystal (Siphon AC (Major))'),
+(148157,91378,103,103,'Instruction Disc (Siphon AC (Minor))','Nano Crystal (Siphon AC (Minor))'),
+(148158,91381,86,86,'Instruction Disc (Siphon AC (Weak))','Nano Crystal (Siphon AC (Weak))'),
+(148159,121376,84,84,'Instruction Disc (Skill Wrangler)','Nano Crystal (Skill Wrangler)'),
+(148160,121374,113,113,'Instruction Disc (Skill Wrangler (Advanced))','Nano Crystal (Skill Wrangler (Advanced))'),
+(148161,121375,34,34,'Instruction Disc (Skill Wrangler (Commonplace))','Nano Crystal (Skill Wrangler (Commonplace))'),
+(148162,121373,176,176,'Instruction Disc (Skill Wrangler (Exceptional))','Nano Crystal (Skill Wrangler (Exceptional))'),
+(148163,121371,150,150,'Instruction Disc (Skill Wrangler (Greater))','Nano Crystal (Skill Wrangler (Greater))'),
+(148164,121372,70,70,'Instruction Disc (Skill Wrangler (Inferior))','Nano Crystal (Skill Wrangler (Inferior))'),
+(148165,121369,54,54,'Instruction Disc (Skill Wrangler Lesser)','Nano Crystal (Skill Wrangler Lesser)'),
+(148166,121370,41,41,'Instruction Disc (Skill Wrangler (Lossy))','Nano Crystal (Skill Wrangler (Lossy))'),
+(148167,121368,97,97,'Instruction Disc (Skill Wrangler (Major))','Nano Crystal (Skill Wrangler (Major))'),
+(148168,121366,21,21,'Instruction Disc (Skill Wrangler (Minor))','Nano Crystal (Skill Wrangler (Minor))'),
+(148169,121367,14,14,'Instruction Disc (Skill Wrangler (Patchy))','Nano Crystal (Skill Wrangler (Patchy))'),
+(148170,121365,189,189,'Instruction Disc (Skill Wrangler (Premium))','Nano Crystal (Skill Wrangler (Premium))'),
+(148171,121363,156,156,'Instruction Disc (Skill Wrangler (Sophisticated))','Nano Crystal (Skill Wrangler (Sophisticated))'),
+(148172,121364,163,163,'Instruction Disc (Skill Wrangler (Superb))','Nano Crystal (Skill Wrangler (Superb))'),
+(148173,121362,126,126,'Instruction Disc (Skill Wrangler (Superior))','Nano Crystal (Skill Wrangler (Superior))'),
+(148174,121360,8,8,'Instruction Disc (Skill Wrangler (Weak))','Nano Crystal (Skill Wrangler (Weak))'),
+(148175,121510,47,47,'Instruction Disc (Skilled Health Haggler)','Nano Crystal (Skilled Health Haggler)'),
+(148176,118248,156,156,'Instruction Disc (Sophisticated Delayed Health Payment)','Nano Crystal (Sophisticated Delayed Health Payment)'),
+(148177,78437,123,123,'Instruction Disc (Sophisticated Health Freeloader)','Nano Crystal (Sophisticated Health Freeloader)'),
+(148178,78427,40,40,'Instruction Disc (Sophisticated Health Funnel)','Nano Crystal (Sophisticated Health Funnel)'),
+(148179,78415,182,182,'Instruction Disc (Sophisticated Health Plunder)','Nano Crystal (Sophisticated Health Plunder)'),
+(148180,30799,24,24,'Instruction Disc (Sticky Ground)','Nano Crystal (Sticky Ground)'),
+(148181,99619,33,33,'Instruction Disc (Strip Assets)','Nano Crystal (Strip Assets)'),
+(148182,121521,54,54,'Instruction Disc (Successful Health Haggler)','Nano Crystal (Successful Health Haggler)'),
+(148183,118261,140,140,'Instruction Disc (Superior Delayed Health Payment)','Nano Crystal (Superior Delayed Health Payment)'),
+(148184,142773,4,4,'Instruction Disc (Swap Psyche)','Nano Crystal (Swap Psyche)'),
+(148185,121361,93,93,'Instruction Disc (Team Skill Wrangler)','Nano Crystal (Team Skill Wrangler)'),
+(148186,121358,123,123,'Instruction Disc (Team Skill Wrangler (Advanced))','Nano Crystal (Team Skill Wrangler (Advanced))'),
+(148187,121359,47,47,'Instruction Disc (Team Skill Wrangler (Commonplace))','Nano Crystal (Team Skill Wrangler (Commonplace))'),
+(148188,121357,169,169,'Instruction Disc (Team Skill Wrangler (Exceptional))','Nano Crystal (Team Skill Wrangler (Exceptional))'),
+(148189,121355,153,153,'Instruction Disc (Team Skill Wrangler (Greater))','Nano Crystal (Team Skill Wrangler (Greater))'),
+(148190,121356,77,77,'Instruction Disc (Team Skill Wrangler (Lesser))','Nano Crystal (Team Skill Wrangler (Lesser))'),
+(148191,121354,60,60,'Instruction Disc (Team Skill Wrangler (Lossy))','Nano Crystal (Team Skill Wrangler (Lossy))'),
+(148192,121352,107,107,'Instruction Disc (Team Skill Wrangler (Major))','Nano Crystal (Team Skill Wrangler (Major))'),
+(148193,121353,37,37,'Instruction Disc (Team Skill Wrangler (Minor))','Nano Crystal (Team Skill Wrangler (Minor))'),
+(148194,121351,27,27,'Instruction Disc (Team Skill Wrangler (Patchy))','Nano Crystal (Team Skill Wrangler (Patchy))'),
+(148195,121349,189,189,'Instruction Disc (Team Skill Wrangler (Premium))','Nano Crystal (Team Skill Wrangler (Premium))'),
+(148196,121350,159,159,'Instruction Disc (Team Skill Wrangler (Sophisticated))','Nano Crystal (Team Skill Wrangler (Sophisticated))'),
+(148197,121347,140,140,'Instruction Disc (Team Skill Wrangler (Superior))','Nano Crystal (Team Skill Wrangler (Superior))'),
+(148198,121348,18,18,'Instruction Disc (Team Skill Wrangler (Weak))','Nano Crystal (Team Skill Wrangler (Weak))'),
+(148199,143900,126,126,'Instruction Disc (Thought Controller)','Nano Crystal (Thought Controller)'),
+(148200,143903,159,159,'Instruction Disc (Thought Juggler)','Nano Crystal (Thought Juggler)'),
+(148201,30757,165,165,'Instruction Disc (Trading Mogul)','Nano Crystal (Trading Mogul)'),
+(148202,92191,152,152,'Instruction Disc (Traffic AC)','Nano Crystal (Traffic AC)'),
+(148203,92193,172,172,'Instruction Disc (Traffic AC (Advanced))','Nano Crystal (Traffic AC (Advanced))'),
+(148204,92186,182,182,'Instruction Disc (Traffic AC (Greater))','Nano Crystal (Traffic AC (Greater))'),
+(148205,92188,139,139,'Instruction Disc (Traffic AC (Lesser))','Nano Crystal (Traffic AC (Lesser))'),
+(148206,92183,159,159,'Instruction Disc (Traffic AC (Major))','Nano Crystal (Traffic AC (Major))'),
+(148207,92185,119,119,'Instruction Disc (Traffic AC (Minor))','Nano Crystal (Traffic AC (Minor))'),
+(148208,92182,96,96,'Instruction Disc (Traffic AC (Weak))','Nano Crystal (Traffic AC (Weak))'),
+(148209,100448,63,63,'Instruction Disc (Trinkets and Toys)','Nano Crystal (Trinkets and Toys)'),
+(148210,99618,17,17,'Instruction Disc (Unfriendly Merger)','Nano Crystal (Unfriendly Merger)'),
+(148212,78425,47,47,'Instruction Disc (Weak Health Freeloader)','Nano Crystal (Weak Health Freeloader)'),
+(148213,78435,132,132,'Instruction Disc (Weak Health Plunder)','Nano Crystal (Weak Health Plunder)'),
+(150400,150351,87,87,'Instruction Disc (Warp Time and Space: Borealis)','Nano Crystal (Warp Time and Space: Capital City)'),
+(150406,150357,97,97,'Instruction Disc (Team Warp Time and Space: Borealis)','Nano Crystal (Team Warp Time and Space: Capital City)'),
+(150533,150504,90,90,'Instruction Disc (Nullity Sphere)','Nano Crystal (Nullity Sphere)'),
+(150534,150503,159,159,'Instruction Disc (Nullity Sphere MK II)','Nano Crystal (Nullity Sphere MK II)'),
+(150656,150643,156,156,'Instruction Disc (Enfraam''s Augmented Fortification)','Nano Crystal (Enfraam''s Augmented Fortification)'),
+(150657,150633,14,14,'Instruction Disc (Enfraam''s Trivial Fortification)','Nano Crystal (Enfraam''s Trivial Fortification)'),
+(150658,150634,113,113,'Instruction Disc (Enfraam''s Supreme Fortification)','Nano Crystal (Enfraam''s Supreme Fortification)'),
+(150659,150635,60,60,'Instruction Disc (Enfraam''s Superior Fortification)','Nano Crystal (Enfraam''s Superior Fortification)'),
+(150660,150636,166,166,'Instruction Disc (Enfraam''s Perfected Fortification)','Nano Crystal (Enfraam''s Perfected Fortification)'),
+(150661,150637,24,24,'Instruction Disc (Enfraam''s Minor Fortification)','Nano Crystal (Enfraam''s Minor Fortification)'),
+(150662,150638,80,80,'Instruction Disc (Enfraam''s Major Fortification)','Nano Crystal (Enfraam''s Major Fortification)'),
+(150663,150639,37,37,'Instruction Disc (Enfraam''s Lesser Fortification)','Nano Crystal (Enfraam''s Lesser Fortification)'),
+(150664,150640,93,93,'Instruction Disc (Enfraam''s Greater Fortification)','Nano Crystal (Enfraam''s Greater Fortification)'),
+(150665,150641,140,140,'Instruction Disc (Enfraam''s Glorious Fortification)','Nano Crystal (Enfraam''s Glorious Fortification)'),
+(150666,150642,47,47,'Instruction Disc (Enfraam''s Fortification)','Nano Crystal (Enfraam''s Fortification)'),
+(150667,150632,182,182,'Instruction Disc (Izgimmer''s Mockery)','Nano Crystal (Izgimmer''s Mockery)'),
+(151793,151780,18,18,'Instruction Disc (Teachings of Biological Metamorphose)','Nano Crystal (Teachings of Biological Metamorphose)'),
+(151794,151771,136,136,'Instruction Disc (Infuse With Knowledge: Psychological Modification)','Nano Crystal (Infuse With Knowledge: Psychological Modification)'),
+(151795,151770,126,126,'Instruction Disc (Infuse With Knowledge: Material Metamorphose)','Nano Crystal (Infuse With Knowledge: Material Metamorphose)'),
+(151796,151774,130,130,'Instruction Disc (Infuse With Knowledge: Time and Space)','Nano Crystal (Infuse With Knowledge: Time and Space)'),
+(151797,151773,130,130,'Instruction Disc (Infuse With Knowledge: Material Creation)','Nano Crystal (Infuse With Knowledge: Material Creation)'),
+(151798,151772,123,123,'Instruction Disc (Infuse With Knowledge: Biological Metamorphose)','Nano Crystal (Infuse With Knowledge: Biological Metamorphose)'),
+(151799,151777,21,21,'Instruction Disc (Teachings of Sensory Improvement)','Nano Crystal (Teachings of Sensory Improvement)'),
+(151800,151776,24,24,'Instruction Disc (Teachings of Psychological Modification)','Nano Crystal (Teachings of Psychological Modification)'),
+(151801,151775,17,17,'Instruction Disc (Teachings of Material Metamorphose)','Nano Crystal (Teachings of Material Metamorphose)'),
+(151802,151779,21,21,'Instruction Disc (Teachings of Time and Space)','Nano Crystal (Teachings of Time and Space)'),
+(151803,151778,21,21,'Instruction Disc (Teachings of Material Creation)','Nano Crystal (Teachings of Material Creation)'),
+(151804,151769,133,133,'Instruction Disc (Infuse With Knowledge: Sensory Improvement)','Nano Crystal (Infuse With Knowledge: Sensory Improvement)'),
+(151851,151832,110,110,'Instruction Disc (Anima of Fathomless Rage)','Nano Crystal (Anima of Fathomless Rage)'),
+(151852,151834,14,14,'Instruction Disc (Anima of Unrestrained Ferocity)','Nano Crystal (Anima of Unrestrained Ferocity)'),
+(151853,151837,156,156,'Instruction Disc (Anima of Implacable Hatred)','Nano Crystal (Anima of Implacable Hatred)'),
+(151854,151838,189,189,'Instruction Disc (Anima of Maddening Wrath)','Nano Crystal (Anima of Maddening Wrath)'),
+(151855,151835,212,212,'Instruction Disc (Anima of Pure Malevolence)','Nano Crystal (Anima of Pure Malevolence)'),
+(151856,151836,67,67,'Instruction Disc (Anima of Relentless Fury)','Nano Crystal (Anima of Relentless Fury)'),
+(151857,151839,239,239,'Instruction Disc (Anima of The Abomination)','Nano Crystal (Anima of The Abomination)'),
+(151858,151833,37,37,'Instruction Disc (Anima of Unleashed Malice)','Nano Crystal (Anima of Unleashed Malice)'),
+(152195,152188,107,107,'Instruction Disc (Restock Ammo (Level OP-C))','Nano Crystal (Restock Ammo (Level OP-C))'),
+(152196,152186,74,74,'Instruction Disc (Restock Ammo (Level OP-XX))','Nano Crystal (Restock Ammo (Level OP-XX))'),
+(152197,152185,60,60,'Instruction Disc (Restock Ammo (Level OP-X))','Nano Crystal (Restock Ammo (Level OP-X))'),
+(152198,152187,18,18,'Instruction Disc (Restock Ammo (Level OP-II))','Nano Crystal (Restock Ammo (Level OP-II))'),
+(152199,152184,107,107,'Instruction Disc (Restock Ammo (Level OP-CC))','Nano Crystal (Restock Ammo (Level OP-CC))'),
+(154613,154573,70,70,'Instruction Disc (Sympathetic Shielding Barrier)','Nano Crystal (Sympathetic Shielding Barrier)'),
+(154614,154574,93,93,'Instruction Disc (Sympathetic Retaliatory Barrier)','Nano Crystal (Sympathetic Retaliatory Barrier)'),
+(154615,154575,159,159,'Instruction Disc (Sympathetic Reactive Field)','Nano Crystal (Sympathetic Reactive Field)'),
+(154616,154576,186,186,'Instruction Disc (Sympathetic Reactive Cocoon)','Nano Crystal (Sympathetic Reactive Cocoon)'),
+(154617,154577,97,97,'Instruction Disc (Sympathetic Protective Field)','Nano Crystal (Sympathetic Protective Field)'),
+(154618,154578,189,189,'Instruction Disc (Sympathetic Plasma Shielding)','Nano Crystal (Sympathetic Plasma Shielding)'),
+(154619,154579,90,90,'Instruction Disc (Sympathetic Harmonic Field)','Nano Crystal (Sympathetic Harmonic Field)'),
+(154620,154580,116,116,'Instruction Disc (Sympathetic Harmonic Cocoon)','Nano Crystal (Sympathetic Harmonic Cocoon)'),
+(154621,154581,189,189,'Instruction Disc (Sympathetic Fortress Screen)','Nano Crystal (Sympathetic Fortress Screen)'),
+(154622,154582,163,163,'Instruction Disc (Sympathetic Force Field)','Nano Crystal (Sympathetic Force Field)'),
+(154623,154583,176,176,'Instruction Disc (Sympathetic Entropy Infusion)','Nano Crystal (Sympathetic Entropy Infusion)'),
+(154624,154584,153,153,'Instruction Disc (Sympathetic Energy Cocoon)','Nano Crystal (Sympathetic Energy Cocoon)'),
+(154625,154585,146,146,'Instruction Disc (Sympathetic Defensive Screen)','Nano Crystal (Sympathetic Defensive Screen)'),
+(154626,154586,80,80,'Instruction Disc (Sympathetic Arms Enhancement)','Nano Crystal (Sympathetic Arms Enhancement)'),
+(154627,154587,34,34,'Instruction Disc (Sympathetic Armor Boost)','Nano Crystal (Sympathetic Armor Boost)'),
+(154757,154729,189,189,'Instruction Disc (Null Space Disruptor)','Nano Crystal (Null Space Disruptor)'),
+(154758,154730,166,166,'Instruction Disc (Disruptive Void Projector)','Nano Crystal (Disruptive Void Projector)'),
+(154759,154731,57,57,'Instruction Disc (Disruptive Shielding Negator)','Nano Crystal (Disruptive Shielding Negator)'),
+(154760,154732,182,182,'Instruction Disc (Disruptive Retributive Negator)','Nano Crystal (Disruptive Retributive Negator)'),
+(154761,154733,153,153,'Instruction Disc (Disruptive Retaliatory Negator)','Nano Crystal (Disruptive Retaliatory Negator)'),
+(154762,154734,120,120,'Instruction Disc (Disruptive Photon Devourer)','Nano Crystal (Disruptive Photon Devourer)'),
+(154763,154735,41,41,'Instruction Disc (Disruptive Photon Deflector)','Nano Crystal (Disruptive Photon Deflector)'),
+(154764,154736,149,149,'Instruction Disc (Disruptive Photon Annihilator)','Nano Crystal (Disruptive Photon Annihilator)'),
+(154765,154737,83,83,'Instruction Disc (Disruptive Photon Absorber)','Nano Crystal (Disruptive Photon Absorber)'),
+(154766,154738,156,156,'Instruction Disc (Disruptive Phase Harmonics)','Nano Crystal (Disruptive Phase Harmonics)'),
+(154767,154739,17,17,'Instruction Disc (Disruptive Field Negator)','Nano Crystal (Disruptive Field Negator)'),
+(154768,154740,41,41,'Instruction Disc (Disruptive Field Harmonics)','Nano Crystal (Disruptive Field Harmonics)'),
+(154769,154741,107,107,'Instruction Disc (Disruptive Cocoon Harmonics)','Nano Crystal (Disruptive Cocoon Harmonics)'),
+(154770,154742,113,113,'Instruction Disc (Disruptive Barrier Negator)','Nano Crystal (Disruptive Barrier Negator)'),
+(154919,154915,90,90,'Instruction Disc (Beacon Warp)','Nano Crystal (Beacon Warp)'),
+(154920,154916,159,159,'Instruction Disc (Team Beacon Warp)','Nano Crystal (Team Beacon Warp)'),
+(155020,154994,112,112,'Instruction Disc (Creation: Living Shield of Evernan)','Nano Crystal (Creation: Living Shield of Evernan)'),
+(155021,154986,129,129,'Instruction Disc (Creation: Wave Breaker)','Nano Crystal (Creation: Wave Breaker)'),
+(155023,154988,66,66,'Instruction Disc (Creation: Viper Staff)','Nano Crystal (Creation: Viper Staff)'),
+(155024,154989,48,48,'Instruction Disc (Creation: The Crotalus)','Nano Crystal (Creation: The Crotalus)'),
+(155025,154990,85,85,'Instruction Disc (Creation: Solar Guard)','Nano Crystal (Creation: Solar Guard)'),
+(155026,154985,205,205,'Instruction Disc (Creation: Shield of Asmodian)','Nano Crystal (Creation: Shield of Asmodian)'),
+(155027,154992,72,72,'Instruction Disc (Creation: Notum Defender)','Nano Crystal (Creation: Notum Defender)'),
+(155028,154993,187,187,'Instruction Disc (Creation: Mocham''s Guard)','Nano Crystal (Creation: Mocham''s Guard)'),
+(155029,154991,160,160,'Instruction Disc (Creation: Wixel''s Notum Python)','Nano Crystal (Creation: Wixel''s Notum Python)'),
+(155030,154995,90,90,'Instruction Disc (Creation: Coplan''s Hand Taipan)','Nano Crystal (Creation: Coplan''s Hand Taipan)'),
+(155031,154996,190,190,'Instruction Disc (Creation: Gold Acantophis)','Nano Crystal (Creation: Gold Acantophis)'),
+(155032,154997,177,177,'Instruction Disc (Creation: Death Ward)','Nano Crystal (Creation: Death Ward)'),
+(155033,154998,136,136,'Instruction Disc (Creation: Bitis Striker)','Nano Crystal (Creation: Bitis Striker)'),
+(155034,154999,147,147,'Instruction Disc (Creation: Belthior''s Flame Ward)','Nano Crystal (Creation: Belthior''s Flame Ward)'),
+(155035,155000,215,215,'Instruction Disc (Creation: Azure Cobra of Orma)','Nano Crystal (Creation: Azure Cobra of Orma)'),
+(155036,155001,116,116,'Instruction Disc (Creation: Asp of Semol)','Nano Crystal (Creation: Asp of Semol)'),
+(155198,155190,60,60,'Instruction Disc (Summon Grid Armor Mk I)','Nano Crystal (Summon Grid Armor Mk I)'),
+(155199,155191,116,116,'Instruction Disc (Summon Grid Armor Mk III)','Nano Crystal (Summon Grid Armor Mk III)'),
+(155200,155192,93,93,'Instruction Disc (Summon Grid Armor Mk II)','Nano Crystal (Summon Grid Armor Mk II)'),
+(155201,155193,140,140,'Instruction Disc (Summon Grid Armor Mk IV)','Nano Crystal (Summon Grid Armor Mk IV)'),
+(155423,155360,120,120,'Instruction Disc (Smuggler Shipment (OP-CC))','Nano Crystal (Smuggler Shipment (OP-CC))'),
+(155424,155361,113,113,'Instruction Disc (Smuggler Shipment (OP-CLXXX))','Nano Crystal (Smuggler Shipment (OP-CLXXX))'),
+(155425,155362,107,107,'Instruction Disc (Smuggler Shipment (OP-CLX))','Nano Crystal (Smuggler Shipment (OP-CLX))'),
+(155426,155363,103,103,'Instruction Disc (Smuggler Shipment (OP-CXL))','Nano Crystal (Smuggler Shipment (OP-CXL))'),
+(155427,155364,90,90,'Instruction Disc (Smuggler Shipment (OP-CXX))','Nano Crystal (Smuggler Shipment (OP-CXX))'),
+(155428,155365,70,70,'Instruction Disc (Smuggler Shipment (OP-C))','Nano Crystal (Smuggler Shipment (OP-C))'),
+(155429,155366,54,54,'Instruction Disc (Smuggler Shipment (OP-LXXX))','Nano Crystal (Smuggler Shipment (OP-LXXX))'),
+(155430,155367,34,34,'Instruction Disc (Smuggler Shipment (OP-LX))','Nano Crystal (Smuggler Shipment (OP-LX))'),
+(155431,155368,24,24,'Instruction Disc (Smuggler Shipment (OP-XL))','Nano Crystal (Smuggler Shipment (OP-XL))'),
+(155432,155369,8,8,'Instruction Disc (Smuggler Shipment (OP-XX))','Nano Crystal (Smuggler Shipment (OP-XX))'),
+(155433,155370,120,120,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CC))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CC))'),
+(155434,155371,113,113,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CLXXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CLXXX))'),
+(155435,155372,107,107,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CLX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CLX))'),
+(155436,155373,103,103,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CXL))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CXL))'),
+(155437,155374,90,90,'Instruction Disc (Bootleg Blades ''n Blunts (OP-CXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-CXX))'),
+(155438,155375,67,67,'Instruction Disc (Bootleg Blades ''n Blunts (OP-C))','Nano Crystal (Bootleg Blades ''n Blunts (OP-C))'),
+(155439,155376,54,54,'Instruction Disc (Bootleg Blades ''n Blunts (OP-LXXX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-LXXX))'),
+(155440,155377,34,34,'Instruction Disc (Bootleg Blades ''n Blunts (OP-LX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-LX))'),
+(155441,155378,21,21,'Instruction Disc (Bootleg Blades ''n Blunts (OP-XL))','Nano Crystal (Bootleg Blades ''n Blunts (OP-XL))'),
+(155442,155379,8,8,'Instruction Disc (Bootleg Blades ''n Blunts (OP-XX))','Nano Crystal (Bootleg Blades ''n Blunts (OP-XX))'),
+(155443,155380,120,120,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CC))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CC))'),
+(155444,155384,113,113,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CLXXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CLXXX))'),
+(155445,155385,107,107,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CLX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CLX))'),
+(155446,155386,103,103,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CXL))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CXL))'),
+(155447,155387,90,90,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-CXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-CXX))'),
+(155448,155388,67,67,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-C))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-C))'),
+(155449,155389,54,54,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-LXXX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-LXXX))'),
+(155450,155390,34,34,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-LX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-LX))'),
+(155451,155391,21,21,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-XL))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-XL))'),
+(155452,155392,8,8,'Instruction Disc (Bootleg Beamers ''n Bolters (OP-XX))','Nano Crystal (Bootleg Beamers ''n Bolters (OP-XX))'),
+(155580,155578,189,189,'Instruction Disc (Contemplation)','Nano Crystal (Contemplation)'),
+(155624,155618,44,44,'Instruction Disc (Mud Slinger)','Nano Crystal (Mud Slinger)'),
+(155625,155619,130,130,'Instruction Disc (Defamation 101)','Nano Crystal (Defamation 101)'),
+(155626,155620,173,173,'Instruction Disc (Character Assassin)','Nano Crystal (Character Assassin)'),
+(155820,155810,83,83,'Instruction Disc (Motivational Speech: Bravery Overcomes)','Nano Crystal (Motivational Speech: Bravery Overcomes)'),
+(155821,155811,37,37,'Instruction Disc (Motivational Speech: Lead From The Front)','Nano Crystal (Motivational Speech: Lead From The Front)'),
+(155822,155812,186,186,'Instruction Disc (Motivational Speech: Heroic Measures)','Nano Crystal (Motivational Speech: Heroic Measures)'),
+(155823,155813,156,156,'Instruction Disc (Motivational Speech: Glorious Leader)','Nano Crystal (Motivational Speech: Glorious Leader)'),
+(155824,155814,130,130,'Instruction Disc (Motivational Speech: Triumphant Pose)','Nano Crystal (Motivational Speech: Triumphant Pose)'),
+(156163,156132,41,41,'Instruction Disc (Deranged Mindreaver)','Nano Crystal (Deranged Mindreaver)'),
+(156164,156133,24,24,'Instruction Disc (Supreme Distracting Sphere)','Nano Crystal (Supreme Distracting Sphere)'),
+(156165,156134,67,67,'Instruction Disc (Supreme Deranged Mindreaver)','Nano Crystal (Supreme Deranged Mindreaver)'),
+(156166,156135,100,100,'Instruction Disc (Summoning of Ignatus Mind-Clouder)','Nano Crystal (Summoning of Ignatus Mind-Clouder)'),
+(156167,156136,153,153,'Instruction Disc (Summoning of Duoco)','Nano Crystal (Summoning of Duoco)'),
+(156168,156137,159,159,'Instruction Disc (Summoning of Distral)','Nano Crystal (Summoning of Distral)'),
+(156169,156138,120,120,'Instruction Disc (Summoning of Demenus)','Nano Crystal (Summoning of Demenus)'),
+(156170,156139,166,166,'Instruction Disc (Summoning of Confane)','Nano Crystal (Summoning of Confane)'),
+(156171,156140,176,176,'Instruction Disc (Summoning of Balbuto the Gibberer)','Nano Crystal (Summoning of Balbuto the Gibberer)'),
+(156172,156141,83,83,'Instruction Disc (Summoning of Absuum)','Nano Crystal (Summoning of Absuum)'),
+(156173,156142,4,4,'Instruction Disc (Lesser Distracting Sphere)','Nano Crystal (Lesser Distracting Sphere)'),
+(156174,156143,34,34,'Instruction Disc (Lesser Deranged Mindreaver)','Nano Crystal (Lesser Deranged Mindreaver)'),
+(156175,156144,17,17,'Instruction Disc (Greater Distracting Sphere)','Nano Crystal (Greater Distracting Sphere)'),
+(156176,156145,50,50,'Instruction Disc (Greater Deranged Mindreaver)','Nano Crystal (Greater Deranged Mindreaver)'),
+(156177,156146,11,11,'Instruction Disc (Distracting Sphere)','Nano Crystal (Distracting Sphere)'),
+(156178,150310,189,189,'Instruction Disc (Summoning of Tumulten)','Nano Crystal (Summoning of Tumulten)'),
+(157573,157536,113,113,'Instruction Disc (Demotivational Speech: 10 Thumbs)','Nano Crystal (Demotivational Speech: 10 Thumbs)'),
+(157574,157537,87,87,'Instruction Disc (Motivational Speech: Opportunity Knocks)','Nano Crystal (Motivational Speech: Opportunity Knocks)'),
+(157575,157538,50,50,'Instruction Disc (Motivational Speech: Only the Paranoid Will Survive!)','Nano Crystal (Motivational Speech: Only the Paranoid Will Survive!)'),
+(157576,157539,149,149,'Instruction Disc (Motivational Speech: Improvise and Adapt)','Nano Crystal (Motivational Speech: Improvise and Adapt)'),
+(157577,157540,149,149,'Instruction Disc (Motivational Speech: Implement Through Iteration)','Nano Crystal (Motivational Speech: Implement Through Iteration)'),
+(157578,157541,156,156,'Instruction Disc (Motivational Speech: Assassin''s Focus)','Nano Crystal (Motivational Speech: Assassin''s Focus)'),
+(157579,157542,153,153,'Instruction Disc (Demotivational Speech: Who Writes the Minutes?)','Nano Crystal (Demotivational Speech: Who Writes the Minutes?)'),
+(157580,157543,159,159,'Instruction Disc (Demotivational Speech: Swapdisk Mayhem)','Nano Crystal (Demotivational Speech: Swapdisk Mayhem)'),
+(157581,157544,126,126,'Instruction Disc (Demotivational Speech: Surge in the System)','Nano Crystal (Demotivational Speech: Surge in the System)'),
+(157582,157545,182,182,'Instruction Disc (Demotivational Speech: Retreat to Glory)','Nano Crystal (Demotivational Speech: Retreat to Glory)'),
+(157583,157546,100,100,'Instruction Disc (Demotivational Speech: That is not on the Agenda)','Nano Crystal (Demotivational Speech: That is not on the Agenda)'),
+(157584,157547,186,186,'Instruction Disc (Demotivational Speech: Mourner''s March)','Nano Crystal (Demotivational Speech: Mourner''s March)'),
+(157585,157548,44,44,'Instruction Disc (Demotivational Speech: Let''s Make a Committee)','Nano Crystal (Demotivational Speech: Let''s Make a Committee)'),
+(157586,157549,21,21,'Instruction Disc (Demotivational Speech: Fumble Fingers)','Nano Crystal (Demotivational Speech: Fumble Fingers)'),
+(157587,157550,34,34,'Instruction Disc (Demotivational Speech: Factory Recall)','Nano Crystal (Demotivational Speech: Factory Recall)'),
+(157588,157551,179,179,'Instruction Disc (Demotivational Speech: Certainty of Defeat)','Nano Crystal (Demotivational Speech: Certainty of Defeat)'),
+(157589,157552,83,83,'Instruction Disc (Demotivational Speech: Administrative Error)','Nano Crystal (Demotivational Speech: Administrative Error)'),
+(160619,160579,57,57,'Instruction Disc (Mark of Risk)','Nano Crystal (Mark of Risk)'),
+(160622,160578,126,126,'Instruction Disc (Mark of Danger)','Nano Crystal (Mark of Danger)'),
+(160625,160577,159,159,'Instruction Disc (Mark of Peril)','Nano Crystal (Mark of Peril)'),
+(160834,160704,24,24,'Instruction Disc (Total Concentration)','Nano Crystal (Total Concentration)'),
+(160837,160711,73,73,'Instruction Disc (Utter Concentration)','Nano Crystal (Utter Concentration)'),
+(160840,160713,142,142,'Instruction Disc (Absolute Concentration)','Nano Crystal (Absolute Concentration)'),
+(160843,160788,40,40,'Instruction Disc (Sureshot)','Nano Crystal (Sureshot)'),
+(160846,160790,76,76,'Instruction Disc (Trueshot)','Nano Crystal (Trueshot)'),
+(160849,160792,126,126,'Instruction Disc (Enhanced Sureshot)','Nano Crystal (Enhanced Sureshot)'),
+(160852,160794,146,146,'Instruction Disc (Enhanced Trueshot)','Nano Crystal (Enhanced Trueshot)'),
+(160855,160796,169,169,'Instruction Disc (Gnat''s Wing)','Nano Crystal (Steady Nerves)'),
+(160858,160821,53,53,'Instruction Disc (Training of The Executioner)','NanoCrystal (Training of The Executioner)'),
+(160861,160823,93,93,'Instruction Disc (Guidance of The Executioner)','NanoCrystal (Guidance of The Executioner)'),
+(160864,160825,132,132,'Instruction Disc (Steps of The Executioner)','NanoCrystal (Steps of The Executioner)'),
+(160867,160827,149,149,'Instruction Disc (Path of The Executioner)','NanoCrystal (Path of The Executioner)'),
+(160870,160829,179,179,'Instruction Disc (Form of The Executioner)','NanoCrystal (Form of The Executioner)'),
+(161383,160898,169,169,'Instruction Disc (Meld With Background)','NanoCrystal (Meld With Background)'),
+(161386,160896,129,129,'Instruction Disc (Cloak of Night)','NanoCrystal (Cloak of Night)'),
+(161389,160900,17,17,'Instruction Disc (Shadow Filter)','NanoCrystal (Shadow Filter)'),
+(161392,160910,66,66,'Instruction Disc (Blanket of Shadows)','NanoCrystal (Blanket of Shadows)'),
+(161395,161091,142,142,'Instruction Disc (Thorn of the Rose)','NanoCrystal (Thorn of the Rose)'),
+(161398,161093,169,169,'Instruction Disc (Vengeance of Nature)','NanoCrystal (Vengeance of Nature)'),
+(161401,161095,57,57,'Instruction Disc (Lure of the Pincushion)','NanoCrystal (Lure of the Pincushion)'),
+(161404,161097,103,103,'Instruction Disc (Anger of the Porcupine)','NanoCrystal (Anger of the Porcupine)'),
+(161407,161146,47,47,'Instruction Disc (Wind Slicer)','NanoCrystal (Wind Slicer)'),
+(161410,161148,103,103,'Instruction Disc (Bite of the Wind)','NanoCrystal (Bite of the Wind)'),
+(161413,161150,142,142,'Instruction Disc (Stormedge)','NanoCrystal (Stormedge)'),
+(161416,161152,169,169,'Instruction Disc (Division of the Winds)','NanoCrystal (Division of the Winds)'),
+(161419,161154,47,47,'Instruction Disc (Ballad of Smoke)','NanoCrystal (Ballad of Smoke)'),
+(161422,161156,99,99,'Instruction Disc (Ballad of the Desperado)','NanoCrystal (Ballad of the Desperado)'),
+(161425,161158,142,142,'Instruction Disc (Ballad of the Pistolero)','NanoCrystal (Ballad of the Pistolero)'),
+(161428,161160,169,169,'Instruction Disc (Ballad of the Plains Wanderer)','NanoCrystal (Ballad of the Plains Wanderer)'),
+(161431,161162,40,40,'Instruction Disc (Strength of the Hummingbird)','NanoCrystal (Strength of the Hummingbird)'),
+(161434,161164,93,93,'Instruction Disc (Fangs of the Snake)','NanoCrystal (Fangs of the Snake)'),
+(161437,161166,139,139,'Instruction Disc (Dichotomy of Nature)','NanoCrystal (Dichotomy of Nature)'),
+(161440,161168,165,165,'Instruction Disc (Dance of the Dervish)','NanoCrystal (Dance of the Dervish)'),
+(161882,161675,30,30,'Instruction Disc (Leet Friend)','NanoCrystal (Leet Friend)'),
+(161885,161677,60,60,'Instruction Disc (Eleet Friend)','NanoCrystal (Eleet Friend)'),
+(161888,161679,106,106,'Instruction Disc (Leetas Friend)','NanoCrystal (Leetas Friend)'),
+(161891,161681,152,152,'Instruction Disc (Soleet Friend)','NanoCrystal (Soleet Friend)'),
+(161894,161691,172,172,'Instruction Disc (Incinerate)','Nano Crystal (Practice Incineration)'),
+(161897,161693,179,179,'Instruction Disc (Corrosive Cloud)','Nano Crystal (Corrosive Cloud)'),
+(161932,161921,149,146,'Instruction Disc (Lick Wounds)','Nano Crystal (Scale Reconstruction)'),
+(162126,162118,66,66,'Instruction Disc (Pack Hunter)','Nano Crystal (Maek Ouch!)'),
+(162129,162120,126,126,'Instruction Disc (Howl of the Wolf)','Nano Crystal (Maek Painz!)'),
+(162132,162122,152,152,'Instruction Disc (Leader of the Pack)','Nano Crystal (Maek 0wz!'),
+(162323,162255,53,53,'Instruction Disc (Lupus Oculus)','Nano Crystal (Hide of the Puppy)'),
+(162326,162257,103,103,'Instruction Disc (Vision of the Wolf)','Nano Crystal (Hide of the Dog)'),
+(162329,162259,139,139,'Instruction Disc (Gaze of the Hunter)','Nano Crystal (Hide of the Fox)'),
+(162332,162261,162,162,'Instruction Disc (Stare of Cerberus)','Nano Crystal (Hide of the Wolf)'),
+(162335,162314,80,80,'Instruction Disc (Sharpen Claws)','Nano Crystal (Sharpen Claws)'),
+(162338,162316,116,116,'Instruction Disc (Toothy Grin)','Nano Crystal (Toothy Grin)'),
+(162341,162318,146,146,'Instruction Disc (Feline Rage)','Nano Crystal (Feline Rage)'),
+(162344,162320,159,159,'Instruction Disc (Blur of Claws)','Nano Crystal (Blur of Claws)'),
+(162347,162322,179,179,'Instruction Disc (Frenzy of Fur)','NanoCrystal (Frenzy of Fur)'),
+(162498,162485,33,33,'Instruction Disc (Suppressor)','NanoCrystal (Suppressor)'),
+(162501,162487,73,73,'Instruction Disc (Major Suppressor)','NanoCrystal (Major Suppressor)'),
+(162504,162489,106,106,'Instruction Disc (Supreme Suppressor)','NanoCrystal (Supreme Suppressor)'),
+(162507,162491,136,136,'Instruction Disc (Spray With Lead)','NanoCrystal (Spray With Lead)'),
+(162510,162493,156,156,'Instruction Disc (Shower With Lead)','NanoCrystal (Shower With Lead)'),
+(162513,162495,169,169,'Instruction Disc (Frenzy of Shells)','NanoCrystal (Frenzy of Shells)'),
+(162516,162497,14,14,'Instruction Disc (Lesser Suppressor)','NanoCrystal (Lesser Suppressor)'),
+(162605,162590,132,132,'Instruction Disc (Grid Phase Accelerator (Team))','NanoCrystal (Grid Phase Accelerator (Team))'),
+(162608,162592,40,40,'Instruction Disc (Grid Runner (Team))','NanoCrystal (Grid Runner (Team))'),
+(162611,162594,76,76,'Instruction Disc (Grid Surfer (Team))','NanoCrystal (Grid Surfer (Team))'),
+(162614,162596,156,156,'Instruction Disc (Gridspace Freedom (Team))','NanoCrystal (Gridspace Freedom (Team))'),
+(162617,162598,27,27,'Instruction Disc (Hack Grid Vector (Team))','NanoCrystal (Hack Grid Vector (Team))'),
+(162620,162600,57,57,'Instruction Disc (Leech Grid Vector (Team))','NanoCrystal (Leech Grid Vector (Team))'),
+(162623,162602,14,14,'Instruction Disc (Limited Grid Jump (Team))','NanoCrystal (Limited Grid Jump (Team))'),
+(162626,162604,106,106,'Instruction Disc (Partial Grid Jump (Team))','NanoCrystal (Partial Grid Jump (Team))'),
+(162736,162715,7,7,'Instruction Disc (Relieving Salve)','NanoCrystal (Relieving Salve)'),
+(162739,162717,24,24,'Instruction Disc (Rebinding Sutures)','NanoCrystal (Rebinding Sutures)'),
+(162742,162719,37,37,'Instruction Disc (Hacked Diagnosis)','NanoCrystal (Hacked Diagnosis)'),
+(162745,162721,53,53,'Instruction Disc (Kitchen-sink Surgery)','NanoCrystal (Kitchen-sink Surgery)'),
+(162748,162723,70,70,'Instruction Disc (Blackmarket Prescription)','NanoCrystal (Blackmarket Prescription)'),
+(162751,162725,93,93,'Instruction Disc (Biosign Rejuvenator)','NanoCrystal (Biosign Rejuvenator)'),
+(162754,162727,109,109,'Instruction Disc (Nano Cauterization)','NanoCrystal (Nano Cauterization)'),
+(162757,162729,123,123,'Instruction Disc (Systolic Equalizer)','NanoCrystal (Systolic Equalizer)'),
+(162760,162731,132,132,'Instruction Disc (Backyard Revitalization)','NanoCrystal (Backyard Revitalization)'),
+(162763,162733,146,146,'Instruction Disc (Cellular Crashcart)','NanoCrystal (Cellular Crashcart)'),
+(162766,162735,152,152,'Instruction Disc (Dr Hack ''n Quack)','NanoCrystal (Dr Hack ''n Quack)'),
+(163098,162996,20,20,'Instruction Disc (NCU Compressor)','NanoCrystal (NCU Compressor)'),
+(163101,163080,40,40,'Instruction Disc (Retool NCU)','NanoCrystal (Retool NCU)'),
+(163104,163082,63,63,'Instruction Disc (Jury-rigged NCU Analyzer)','NanoCrystal (Jury-rigged NCU Analyzer)'),
+(163107,163084,93,93,'Instruction Disc (Deck Recoder)','NanoCrystal (Deck Recoder)'),
+(163110,163086,123,123,'Instruction Disc (Recompiling Memory Analyzer)','NanoCrystal (Recompiling Memory Analyzer)'),
+(163113,163088,132,132,'Instruction Disc (QuarkStor NCU Core)','NanoCrystal (QuarkStor NCU Core)'),
+(163116,163096,162,162,'Instruction Disc (Sentient Viral Recoder)','NanoCrystal (Sentient Viral Recoder)'),
+(163120,162838,43,43,'Instruction Disc (Presence of the Master)','NanoCrystal (Presence of the Master)'),
+(163123,162840,113,113,'Instruction Disc (Presence of the Overlord)','NanoCrystal (Presence of the Overlord)'),
+(163126,162842,152,152,'Instruction Disc (Presence of the Dominator)','NanoCrystal (Presence of the Dominator)'),
+(163130,163097,149,149,'Instruction Disc (Active Viral Compressor)','NanoCrystal (Active Viral Compressor)'),
+(163401,163389,24,24,'Instruction Disc (Soothing Breeze)','Nano Crystal (Pr0n0unc3m3nt 0f L4z1n3ss)'),
+(163410,163395,139,139,'Instruction Disc (Tranquility of the Vale)','Nano Crystal (Pr0n0unc3m3nt 0f Dr0ws1n3ss)'),
+(163413,163397,172,172,'Instruction Disc (Serene Sky)','Nano Crystal (Pr0n0unc3m3nt 0f Sl33p1n3ss)'),
+(202777,202775,59,59,'Instruction Disc (Edge of the Buccaneer)','NanoCrystal (Edge of the Buccaneer)'),
+(202795,202794,133,133,'Instruction Disc (Edge of Titanium)','NanoCrystal (Edge of Titanium)'),
+(202798,202792,89,89,'Instruction Disc (Edge of Molybdenum)','NanoCrystal (Edge of Molybdenum)'),
+(202820,202819,197,197,'Instruction Disc (Rampage of the Berserker)','NanoCrystal (Rampage of the Berserker)'),
+(202823,202817,173,173,'Instruction Disc (Edge of Diamond)','NanoCrystal (Edge of Diamond)'),
+(202872,202833,89,89,'Instruction Disc (Skill of the Highlander)','NanoCrystal (Skill of the Highlander)'),
+(202875,202835,133,133,'Instruction Disc (Skill of the Guardian)','NanoCrystal (Skill of the Guardian)'),
+(202878,202837,173,173,'Instruction Disc (Skill of the Reaper)','NanoCrystal (Skill of the Reaper)'),
+(202881,202839,197,197,'Instruction Disc (Skill of the Guillotine)','NanoCrystal (Skill of the Guillotine)'),
+(202884,202843,133,133,'Instruction Disc (Thugs Glory)','NanoCrystal (Thugs Glory)'),
+(202887,202845,173,173,'Instruction Disc (Thugs Jubilation)','NanoCrystal (Thugs Jubilation)'),
+(202890,202847,197,197,'Instruction Disc (Calling of Thor)','NanoCrystal (Calling of Thor)'),
+(202893,202853,133,133,'Instruction Disc (Anvils Bane)','NanoCrystal (Anvils Bane)'),
+(202896,202855,173,173,'Instruction Disc (Wrecking Ball)','NanoCrystal (Wrecking Ball)'),
+(202899,202857,197,197,'Instruction Disc (Rampage of Juggernaut)','NanoCrystal (Rampage of Juggernaut)'),
+(202902,202859,197,197,'Instruction Disc (Vlad''s Revenge)','NanoCrystal (Vlad''s Revenge)'),
+(202905,202861,174,174,'Instruction Disc (Talon of the Dragon)','NanoCrystal (Talon of the Dragon)'),
+(202908,202863,129,129,'Instruction Disc (Talon of the Roc)','NanoCrystal (Talon of the Roc)'),
+(202911,202865,93,93,'Instruction Disc (Talon of the Anun)','NanoCrystal (Talon of the Anun)'),
+(203162,203120,161,161,'Instruction Disc (Art of peace)','NanoCrystal (Art of peace)'),
+(203165,203126,68,68,'Instruction Disc (Crowd Disperser)','NanoCrystal (Crowd Disperser)'),
+(203168,203128,178,178,'Instruction Disc (Swiss Cheese)','NanoCrystal (Swiss Cheese)'),
+(203171,203130,88,88,'Instruction Disc (The Power of Three)','NanoCrystal (The Power of Three)'),
+(203174,203132,64,64,'Instruction Disc (Power Burst)','NanoCrystal (Power Burst)'),
+(203177,203138,200,200,'Instruction Disc (Soldier Clip Junkie)','NanoCrystal (Soldier Clip Junkie)'),
+(203180,203140,170,170,'Instruction Disc (Metal Barrage)','NanoCrystal (Metal Barrage)'),
+(203183,203142,140,140,'Instruction Disc (Metal Strike)','NanoCrystal (Metal Strike)'),
+(203186,203144,106,106,'Instruction Disc (Metal Storm)','NanoCrystal (Metal Storm)'),
+(203189,203146,80,80,'Instruction Disc (Hail of Metal)','NanoCrystal (Hail of Metal)'),
+(203217,203206,199,199,'Instruction Disc (Call of the Maelstorm)','NanoCrystal (Call of the Maelstorm)'),
+(203220,203208,163,163,'Instruction Disc (Power of the Thunderhead)','NanoCrystal (Power of the Thunderhead)'),
+(203223,203210,121,121,'Instruction Disc (Imminent Storm)','NanoCrystal (Imminent Storm)'),
+(203226,203212,63,63,'Instruction Disc (Force of the Thunderclap)','NanoCrystal (Force of the Thunderclap)'),
+(203676,203670,110,110,'Instruction Disc (Evade the Chase)','NanoCrystal (Evade the Chase)'),
+(203679,203672,164,164,'Instruction Disc (Close Escape)','NanoCrystal (Close Escape)'),
+(203682,203594,10,10,'Instruction Disc (Scatter Bonds)','NanoCrystal (Scatter Bonds)'),
+(203685,203596,90,90,'Instruction Disc (Shatter Bonds)','NanoCrystal (Shatter Bonds)'),
+(203688,203598,53,53,'Instruction Disc (Burst Bonds)','NanoCrystal (Burst Bonds)'),
+(203691,203600,133,133,'Instruction Disc (Rend Bonds)','NanoCrystal (Rend Bonds)'),
+(203694,203602,168,168,'Instruction Disc (Bargain with Fate)','NanoCrystal (Bargain with Fate)'),
+(203697,203604,200,200,'Instruction Disc (Luck''s Lost Twin)','NanoCrystal (Luck''s Lost Twin)'),
+(203700,203658,22,22,'Instruction Disc (Sidestep the Blame)','NanoCrystal (Sidestep the Blame)'),
+(203703,203660,62,62,'Instruction Disc (Bypass Limitations)','NanoCrystal (Bypass Limitations)'),
+(203706,203662,109,109,'Instruction Disc (Circumvent Restrictions)','NanoCrystal (Circumvent Restrictions)'),
+(203709,203664,146,146,'Instruction Disc (Evade Responsibility)','NanoCrystal (Evade Responsibility)'),
+(203712,203666,200,200,'Instruction Disc (Guile of the Snake Oil Seller)','NanoCrystal (Guile of the Snake Oil Seller)'),
+(203715,203606,88,88,'Instruction Disc (Fluctuate Manifestation)','NanoCrystal (Fluctuate Manifestation)'),
+(203718,203608,120,120,'Instruction Disc (Modulate Manifestation)','NanoCrystal (Modulate Manifestation)'),
+(203721,203610,163,163,'Instruction Disc (Succor of Expediuum)','NanoCrystal (Succor of Expediuum)'),
+(203875,203851,36,36,'Instruction Disc (Minor Exoskeleton Pulse)','NanoCrystal (Minor Exoskeleton Pulse)'),
+(203878,203853,71,71,'Instruction Disc (Lesser Exoskeleton Pulse)','NanoCrystal (Lesser Exoskeleton Pulse)'),
+(203881,203856,107,107,'Instruction Disc (Exoskeleton Pulse)','NanoCrystal (Exoskeleton Pulse)'),
+(203884,203858,150,150,'Instruction Disc (Superior Exoskeleton Pulse)','NanoCrystal (Superior Exoskeleton Pulse)'),
+(203887,203860,192,192,'Instruction Disc (Greater Exoskeleton Pulse)','NanoCrystal (Greater Exoskeleton Pulse)'),
+(203890,203833,24,24,'Instruction Disc (Beg for Freedom)','NanoCrystal (Beg for Freedom)'),
+(203896,203838,74,74,'Instruction Disc (Appeal for Freedom)','NanoCrystal (Appeal for Freedom)'),
+(203899,203840,101,101,'Instruction Disc (Negotiate for Freedom)','NanoCrystal (Negotiate for Freedom)'),
+(203902,203843,149,149,'Instruction Disc (Bribe for Freedom)','NanoCrystal (Bribe for Freedom)'),
+(203905,203845,174,174,'Instruction Disc (Subpoena for Freedom)','NanoCrystal (Subpoena for Freedom)'),
+(203908,203847,199,199,'Instruction Disc (Pay Bail)','NanoCrystal (Pay Bail)'),
+(203912,203862,102,102,'Instruction Disc (Lesser Conductive Spike)','NanoCrystal (Lesser Conductive Spike)'),
+(203915,203864,128,128,'Instruction Disc (Conductive Spike)','NanoCrystal (Conductive Spike)'),
+(203918,203866,154,154,'Instruction Disc (Greater Conductive Spike)','NanoCrystal (Greater Conductive Spike)'),
+(203921,203868,197,197,'Instruction Disc (Energized Casing of the Faithful Servant)','NanoCrystal (Energized Casing of the Faithful Servant)'),
+(203924,203870,14,14,'Instruction Disc (Lesser Energize Shell)','NanoCrystal (Lesser Energize Shell)'),
+(203927,203872,40,40,'Instruction Disc (Energize Shell)','NanoCrystal (Energize Shell)'),
+(203930,203874,76,76,'Instruction Disc (Greater Energize Shell)','NanoCrystal (Greater Energize Shell)'),
+(203933,203785,40,40,'Instruction Disc (Writ of Mobility)','NanoCrystal (Writ of Mobility)'),
+(203936,203787,80,80,'Instruction Disc (Bought Freedom)','NanoCrystal (Bought Freedom)'),
+(203939,203789,120,120,'Instruction Disc (Writ of Passage)','NanoCrystal (Writ of Passage)'),
+(203942,203791,160,160,'Instruction Disc (Bought Indulgence)','NanoCrystal (Bought Indulgence)'),
+(203945,203793,200,200,'Instruction Disc (Writ of the Errant Salesman)','NanoCrystal (Writ of the Errant Salesman)'),
+(203986,203949,36,36,'Instruction Disc (Request Freedom)','NanoCrystal (Request Freedom)'),
+(203989,203951,78,78,'Instruction Disc (Beseech Freedom)','NanoCrystal (Beseech Freedom)'),
+(203992,203953,124,124,'Instruction Disc (Petition Freedom)','NanoCrystal (Petition Freedom)'),
+(203995,203955,169,169,'Instruction Disc (Demand Freedom)','NanoCrystal (Demand Freedom)'),
+(203998,203957,200,200,'Instruction Disc (Solicit Freedom)','NanoCrystal (Solicit Freedom)'),
+(204001,203959,42,42,'Instruction Disc (The Claim to Freedom)','NanoCrystal (The Claim to Freedom)'),
+(204004,203961,94,94,'Instruction Disc (The Right to Movement)','NanoCrystal (The Right to Movement)'),
+(204007,203963,137,137,'Instruction Disc (The Prerogative of Mobility)','NanoCrystal (The Prerogative of Mobility)'),
+(204010,203965,180,180,'Instruction Disc (The Privilege of Speed)','NanoCrystal (The Privilege of Speed)'),
+(204013,203798,52,52,'Instruction Disc (Break Chains)','NanoCrystal (Break Chains)'),
+(204016,203800,103,103,'Instruction Disc (Shatter Chains)','NanoCrystal (Shatter Chains)'),
+(204019,203802,154,154,'Instruction Disc (Demolish Shackles)','NanoCrystal (Demolish Shackles)'),
+(204022,203804,200,200,'Instruction Disc (Jail Break)','NanoCrystal (Jail Break)'),
+(204025,203973,94,94,'Instruction Disc (Grim Circumstance)','NanoCrystal (Grim Circumstance)'),
+(204028,203975,166,166,'Instruction Disc (Dire Circumstance)','NanoCrystal (Dire Circumstance)'),
+(204033,203977,21,21,'Instruction Disc (Scatter Bonds (Other))','NanoCrystal (Scatter Bonds (Other))'),
+(204036,203812,73,73,'Instruction Disc (Escape Captivation)','NanoCrystal (Escape Captivation)'),
+(204039,203814,169,169,'Instruction Disc (Master Escapologist)','NanoCrystal (Master Escapologist)'),
+(204042,203979,63,63,'Instruction Disc (Burst Bonds (Other))','NanoCrystal (Burst Bonds (Other))'),
+(204045,203981,107,107,'Instruction Disc (Shatter Bonds (Other))','NanoCrystal (Shatter Bonds (Other))'),
+(204048,203983,152,152,'Instruction Disc (Rend Bonds (Other))','NanoCrystal (Rend Bonds (Other))'),
+(204051,203985,198,198,'Instruction Disc (Fortune''s Smile)','NanoCrystal (Fortune''s Smile)'),
+(204054,203967,67,67,'Instruction Disc (Passage for One)','NanoCrystal (Passage for One)'),
+(204057,203969,118,118,'Instruction Disc (Reroute Impediments)','NanoCrystal (Reroute Impediments)'),
+(204060,203971,170,170,'Instruction Disc (Gift of the Travelling Salesman)','NanoCrystal (Gift of the Travelling Salesman)'),
+(204433,204336,84,84,'Instruction Disc (Polarized Screening)','NanoCrystal (Polarized Screening)'),
+(204436,204338,118,118,'Instruction Disc (Superior Polarized Screening)','NanoCrystal (Superior Polarized Screening)'),
+(204439,204340,52,52,'Instruction Disc (Lesser Polarized Screening)','NanoCrystal (Lesser Polarized Screening)'),
+(204442,204342,149,149,'Instruction Disc (Greater Polarized Screening)','NanoCrystal (Greater Polarized Screening)'),
+(204445,204344,193,193,'Instruction Disc (Coherent Polarized Screening)','NanoCrystal (Coherent Polarized Screening)'),
+(204448,204346,72,72,'Instruction Disc (Sloughing Protective Barrier)','NanoCrystal (Sloughing Protective Barrier)'),
+(204451,204348,83,83,'Instruction Disc (Coherent Sloughing Protective Barrier)','NanoCrystal (Coherent Sloughing Protective Barrier)'),
+(204454,204350,107,107,'Instruction Disc (Sloughing Defensive Shield)','NanoCrystal (Sloughing Defensive Shield)'),
+(204457,204352,133,133,'Instruction Disc (Coherent Sloughing Defensive Shield)','NanoCrystal (Coherent Sloughing Defensive Shield)'),
+(204460,204354,181,181,'Instruction Disc (Sloughing Assault Shield)','NanoCrystal (Sloughing Assault Shield)'),
+(204463,204356,193,193,'Instruction Disc (Coherent Sloughing Assault Shield)','NanoCrystal (Coherent Sloughing Assault Shield)'),
+(204466,204363,60,60,'Instruction Disc (Intrusive Aura of Entanglement)','NanoCrystal (Intrusive Aura of Entanglement)'),
+(204469,204365,97,97,'Instruction Disc (Intrusive Aura of Binding)','NanoCrystal (Intrusive Aura of Binding)'),
+(204472,204367,132,132,'Instruction Disc (Intrusive Aura of Malaise)','NanoCrystal (Intrusive Aura of Malaise)'),
+(204475,204369,166,166,'Instruction Disc (Intrusive Aura of Sloth)','NanoCrystal (Intrusive Aura of Sloth)'),
+(204478,204371,199,199,'Instruction Disc (Intrusive Aura of the Humble Servant)','NanoCrystal (Intrusive Aura of the Humble Servant)'),
+(204481,204373,60,60,'Instruction Disc (Intrusive Aura Cancellation)','NanoCrystal (Intrusive Aura Cancellation)'),
+(204484,204419,93,93,'Instruction Disc (Sloughing Protective Field)','NanoCrystal (Sloughing Protective Field)'),
+(204487,204421,141,141,'Instruction Disc (Sloughing Shielding Field)','NanoCrystal (Sloughing Shielding Field)'),
+(204490,204423,196,196,'Instruction Disc (Sloughing Combat Field)','NanoCrystal (Sloughing Combat Field)'),
+(204493,203806,68,68,'Instruction Disc (Tear Constraints)','NanoCrystal (Tear Constraints)'),
+(204496,203808,139,139,'Instruction Disc (Rend Constraints)','NanoCrystal (Rend Constraints)'),
+(204499,203810,180,180,'Instruction Disc (Sunder Constraints)','NanoCrystal (Sunder Constraints)'),
+(204517,204426,77,77,'Instruction Disc (Vaccine of Ransacking)','NanoCrystal (Vaccine of Ransacking)'),
+(204520,204428,119,119,'Instruction Disc (Vaccine of Deprivation)','NanoCrystal (Vaccine of Deprivation)'),
+(204523,204430,164,164,'Instruction Disc (Vaccine of Plundering)','NanoCrystal (Vaccine of Plundering)'),
+(204529,204304,90,90,'Instruction Disc (Feelings of Mortality)','NanoCrystal (Feelings of Mortality)'),
+(204532,204306,180,180,'Instruction Disc (One Foot in the Grave)','NanoCrystal (One Foot in the Grave)'),
+(205162,201522,80,80,'Instruction Disc (Enfraam''s Toolkit)','NanoCrystal (Enfraam''s Toolkit)'),
+(205165,201524,166,166,'Instruction Disc (Living Codex of Izgimmer)','NanoCrystal (Living Codex of Izgimmer)'),
+(205199,205184,85,85,'Instruction Disc (Evocation of Fathomless Rage)','Nano Crystal (Evocation of Fathomless Rage)'),
+(205202,205186,115,115,'Instruction Disc (Evocation of Implacable Hatred)','Nano Crystal (Evocation of Implacable Hatred)'),
+(205205,205188,140,140,'Instruction Disc (Evocation of Maddening Wrath)','Nano Crystal (Evocation of Maddening Wrath)'),
+(205208,205190,177,177,'Instruction Disc (Evocation of Pure Malevolence)','Nano Crystal (Evocation of Pure Malevolence)'),
+(205211,205192,58,58,'Instruction Disc (Evocation of Relentless Fury)','Nano Crystal (Evocation of Relentless Fury)'),
+(205214,205194,200,200,'Instruction Disc (Evocation of The Abomination)','Nano Crystal (Evocation of The Abomination)'),
+(205217,205196,34,34,'Instruction Disc (Evocation of Unleashed Malice)','Nano Crystal (Evocation of Unleashed Malice)'),
+(205220,205198,16,16,'Instruction Disc (Evocation of Unrestrained Ferocity)','Nano Crystal (Evocation of Unrestrained Ferocity)'),
+(205254,205230,15,15,'Instruction Disc (Assist Combat Array)','Nano Crystal (Assist Combat Array)'),
+(205257,205232,37,37,'Instruction Disc (Monitor Combat Array)','Nano Crystal (Monitor Combat Array)'),
+(205260,205234,56,56,'Instruction Disc (Enhance Combat Array)','Nano Crystal (Enhance Combat Array)'),
+(205263,205236,77,77,'Instruction Disc (Boost Combat Array)','Nano Crystal (Boost Combat Array)'),
+(205266,205238,96,96,'Instruction Disc (Overdrive Combat Array)','Nano Crystal (Overdrive Combat Array)'),
+(205269,205240,117,117,'Instruction Disc (Assist Aggression Subsystem)','Nano Crystal (Assist Aggression Subsystem)'),
+(205272,205242,136,136,'Instruction Disc (Monitor Aggression Subsystem)','Nano Crystal (Monitor Aggression Subsystem)'),
+(205275,205244,158,158,'Instruction Disc (Enhance Aggression Subsystem)','Nano Crystal (Enhance Aggression Subsystem)'),
+(205278,205246,174,174,'Instruction Disc (Boost Aggression Subsystem)','Nano Crystal (Boost Aggression Subsystem)'),
+(205281,205248,193,193,'Instruction Disc (Overdrive Aggression Subsystem)','Nano Crystal (Overdrive Aggression Subsystem)'),
+(205284,205250,200,200,'Instruction Disc (Omni-Pol Pacification Logic System)','Nano Crystal (Omni-Pol Pacification Logic System)'),
+(205305,205288,30,30,'Instruction Disc (Gallant Hero: The Enraged Drone)','Nano Crystal (Gallant Hero: The Enraged Drone)'),
+(205308,205290,52,52,'Instruction Disc (Gallant Hero: The Infuriated Minion)','Nano Crystal (Gallant Hero: The Infuriated Minion)'),
+(205311,205292,71,71,'Instruction Disc (Gallant Hero: The Aggravated Servant)','Nano Crystal (Gallant Hero: The Aggravated Servant)'),
+(205314,205294,92,92,'Instruction Disc (Gallant Hero: The Indignant Flunky)','Nano Crystal (Gallant Hero: The Indignant Flunky)'),
+(205317,205296,110,110,'Instruction Disc (Gallant Hero: The Angry Servitor)','Nano Crystal (Gallant Hero: The Angry Servitor)'),
+(205320,205298,131,131,'Instruction Disc (Gallant Hero: The Bitter Clerk)','Nano Crystal (Gallant Hero: The Bitter Clerk)'),
+(205323,205300,152,152,'Instruction Disc (Gallant Hero: The Irate Attache)','Nano Crystal (Gallant Hero: The Irate Attache)'),
+(205326,205302,173,173,'Instruction Disc (Gallant Hero: The Incensed Retainer)','Nano Crystal (Gallant Hero: The Incensed Retainer)'),
+(205329,205304,199,199,'Instruction Disc (Gallant Hero: The Vengeful Butler)','Nano Crystal (Gallant Hero: The Vengeful Butler)'),
+(297362,297333,1,5,'Instruction Disc (Spirit Siphon)','Nano Crystal (Spirit Siphon)');
+
+INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name, comment) VALUES
+(147082,42424,185,185,'Instruction Disc (Alpha and Omega)','Nano Crystal (Alpha & Omega)', 'Used for building the Omni-Med Battle Body Armor'),
+(147188,97456,182,182,'Instruction Disc (Life Channeler)','Nano Crystal (Life Channeler)', 'Used for building the Omni-Med Battle Sleeves'),
+(147236,44209,185,185,'Instruction Disc (Sentient Nano Gorger)','Nano Crystal (Sentient Nano Gorger)', 'Used for building the Omni-Med Battle Gloves'),
+(147268,99587,185,185,'Instruction Disc (Uncontrollable Body Tremors)','Nano Crystal (Uncontrollable Body Tremors)', 'Used for building the Omni-Med Battle Pants'),
+(147271,28794,179,179,'Instruction Disc (Wrack and Ruin)','Nano Crystal (Wrack and Ruin)', 'Used for building the Omni-Med Battle Boots'),
+(204526,204432,197,197,'Instruction Disc (Vaccine of Divestiture)','NanoCrystal (Vaccine of Divestiture)', 'Used for building the Omni-Med Battle Helmet');
+
 CREATE INDEX discs_disc_name_idx ON discs(disc_name);
