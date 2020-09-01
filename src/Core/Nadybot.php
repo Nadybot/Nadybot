@@ -576,7 +576,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($groupId);
 		$this->logger->log('DEBUG', "AOCP_GROUP_ANNOUNCE => name: '$groupName'");
 		if ($orgId) {
-			$this->vars["my_guild_id"] = $groupId;
+			$this->vars["my_guild_id"] = $orgId;
 		}
 	}
 

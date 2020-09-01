@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use JsonException;
 use Nadybot\Core\{
 	AOChatPacket,
 	CacheManager,
@@ -38,13 +39,16 @@ class GuildManager {
 		$maxCacheAge = 86400;
 		if (
 			isset($this->chatBot->vars["my_guild_id"])
-			&& (int)$this->chatBot->vars["my_guild_id"] === $guild_id
+			&& $this->chatBot->vars["my_guild_id"] === $guild_id
 		) {
 			$maxCacheAge = 21600;
 		}
 		$cb = function($data) {
-			$result = json_decode($data) !== null;
-			return $result;
+			try {
+				$result = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				return $result;
+			} catch (JsonException $e) {
+			}
 		};
 
 		$cacheResult = $this->cacheManager->lookup($url, $groupName, $filename, $cb, $maxCacheAge, $forceUpdate);
