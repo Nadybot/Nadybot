@@ -364,7 +364,7 @@ class Util {
 	 * @param int|string $sender
 	 */
 	public function isValidSender($sender): bool {
-		return (int)0xFFFFFFFF !== $sender;
+		return (string)0xFFFFFFFF !== $sender;
 	}
 
 	/**
