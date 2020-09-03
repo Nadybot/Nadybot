@@ -134,6 +134,9 @@ class NewsController {
 				}
 			}
 
+			if ($item->sticky) {
+				$blob .= "<img src=tdb://id:GFX_GUI_PINBUTTON_PRESSED> ";
+			}
 			$blob .= ($item->confirmed ? "<grey>" : "<highlight>").
 				"{$item->news}<end>\n";
 			$blob .= "By {$item->name} " . $this->util->date($item->time) . " ";
