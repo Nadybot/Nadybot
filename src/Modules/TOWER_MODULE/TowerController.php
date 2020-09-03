@@ -211,8 +211,8 @@ class TowerController {
 			"edit",
 			"options",
 			"2",
-			"Priv;Guild;Priv+Guild;Discord;Discord+Priv;Discord+Guild;Discord+Priv+Guild",
-			"1;2;3;4;5;6;7"
+			"Off;Priv;Guild;Priv+Guild;Discord;Discord+Priv;Discord+Guild;Discord+Priv+Guild",
+			"0;1;2;3;4;5;6;7"
 		);
 	
 		$this->settingManager->add(
@@ -884,12 +884,12 @@ class TowerController {
 
 			// Beginning of the 'more' window
 			$link = "Attacker: <highlight>";
-			if (isset($whois->firstname)) {
+			if (isset($whois->firstname) && strlen($whois->firstname)) {
 				$link .= $whois->firstname . " ";
 			}
 
 			$link .= '"' . $attPlayer . '"';
-			if (isset($whois->lastname)) {
+			if (isset($whois->lastname) && strlen($whois->lastname)) {
 				$link .= " " . $whois->lastname;
 			}
 			$link .= "<end>\n";
