@@ -6,7 +6,6 @@ use Exception;
 use Nadybot\Core\Event;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\EventCfg;
-use PHP_CodeSniffer\Standards\PSR12\Sniffs\Functions\ReturnTypeDeclarationSniff;
 
 /**
  * @Instance
