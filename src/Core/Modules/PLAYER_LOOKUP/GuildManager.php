@@ -29,17 +29,17 @@ class GuildManager {
 	/** @Inject */
 	public PlayerManager $playerManager;
 
-	public function getById(int $guild_id, int $rk_num=null, bool $forceUpdate=false): ?Guild {
+	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
-		$rk_num ??= (int)$this->chatBot->vars["dimension"];
+		$dimension ??= (int)$this->chatBot->vars["dimension"];
 		
-		$url = "http://people.anarchy-online.com/org/stats/d/$rk_num/name/$guild_id/basicstats.xml?data_type=json";
+		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
-		$filename = "$guild_id.$rk_num.json";
+		$filename = "$guildID.$dimension.json";
 		$maxCacheAge = 86400;
 		if (
 			isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guild_id
+			&& $this->chatBot->vars["my_guild_id"] === $guildID
 		) {
 			$maxCacheAge = 21600;
 		}
@@ -65,7 +65,7 @@ class GuildManager {
 		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data);
 		
 		$guild = new Guild();
-		$guild->guild_id = $guild_id;
+		$guild->guild_id = $guildID;
 
 		// parsing of the member data
 		$guild->orgname	= $orgInfo->NAME;
@@ -105,7 +105,7 @@ class GuildManager {
 			$guild->members[$name]->guild          = $guild->orgname;
 			$guild->members[$name]->guild_rank     = $member->RANK_TITLE;
 			$guild->members[$name]->guild_rank_id  = $member->RANK;
-			$guild->members[$name]->dimension      = $rk_num;
+			$guild->members[$name]->dimension      = $dimension;
 			$guild->members[$name]->source         = 'org_roster';
 			
 			$guild->members[$name]->head_id        = $member->HEADID;
@@ -119,7 +119,7 @@ class GuildManager {
 			$this->db->beginTransaction();
 
 			$sql = "UPDATE players SET guild_id = 0, guild = '' WHERE guild_id = ? AND dimension = ?";
-			$this->db->exec($sql, $guild->guild_id, $rk_num);
+			$this->db->exec($sql, $guild->guild_id, $dimension);
 
 			foreach ($guild->members as $member) {
 				$this->playerManager->update($member);
