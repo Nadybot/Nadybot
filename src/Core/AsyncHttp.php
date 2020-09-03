@@ -321,11 +321,11 @@ class AsyncHttp {
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
 			function() {
-				$this->logger->log('INFO', "Activating TLS");
+				$this->logger->log('DEBUG', "Activating TLS");
 				$this->socketManager->removeSocketNotifier($this->notifier);
 				$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 				if ($sslResult === true) {
-					$this->logger->log('INFO', "TLS crypto activated succesfully");
+					$this->logger->log('DEBUG', "TLS crypto activated succesfully");
 				} elseif ($sslResult === false) {
 					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
 						$this->getStreamUri());
@@ -459,8 +459,8 @@ class AsyncHttp {
 			}
 			if (strlen($chunk) === 0) {
 				if (feof($this->stream)) {
-					break; // nothing to read, stop looping
 				}
+				break; // nothing to read, stop looping
 			}
 			$data .= $chunk;
 		}
