@@ -121,9 +121,9 @@ class AltInfo {
 		$count = count($data) + 1;
 		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);
-			$blob .= $text->alignNumber($row->level, 3, "highlight");
+			$blob .= $text->alignNumber((int)$row->level, 3, "highlight");
 			$blob .= " ";
-			$blob .= $text->alignNumber($row->ai_level, 2, "green");
+			$blob .= $text->alignNumber((int)$row->ai_level, 2, "green");
 			$blob .= " ";
 			if ($profDisplay & 1 && $row->profession !== null) {
 				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($row->profession)."> ";
