@@ -334,6 +334,8 @@ class AsyncHttp {
 						$this->getStreamUri() . " because socket was non-blocking");
 				}
 				$this->setupStreamNotify();
+				// From here on, we can be async, but TLS handshake must be sync
+				stream_set_blocking($this->stream, false);
 			}
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
@@ -381,6 +383,10 @@ class AsyncHttp {
 	 */
 	private function processResponse(): void {
 		$this->responseData .= $this->readAllFromSocket();
+
+		if (!$this->isStreamClosed()) {
+			return;
+		}
 
 		if (!$this->areHeadersReceived()) {
 			$this->processHeaders();
@@ -458,8 +464,6 @@ class AsyncHttp {
 				break;
 			}
 			if (strlen($chunk) === 0) {
-				if (feof($this->stream)) {
-				}
 				break; // nothing to read, stop looping
 			}
 			$data .= $chunk;
