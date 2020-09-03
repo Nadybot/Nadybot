@@ -278,8 +278,9 @@ class AsyncHttp {
 	 * Initialize the internal stream object
 	 */
 	private function createStream(): bool {
+		$streamUri = $this->getStreamUri();
 		$this->stream = stream_socket_client(
-			$this->getStreamUri(),
+			$streamUri,
 			$errno,
 			$errstr,
 			0,
@@ -289,6 +290,7 @@ class AsyncHttp {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
+		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
 		return true;
 	}
 
@@ -319,9 +321,19 @@ class AsyncHttp {
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
 			function() {
+				$this->logger->log('INFO', "Activating TLS");
 				$this->socketManager->removeSocketNotifier($this->notifier);
+				$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+				if ($sslResult === true) {
+					$this->logger->log('INFO', "TLS crypto activated succesfully");
+				} elseif ($sslResult === false) {
+					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
+						$this->getStreamUri());
+				} elseif ($sslResult === 0) {
+					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
+						$this->getStreamUri() . " because socket was non-blocking");
+				}
 				$this->setupStreamNotify();
-				stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 			}
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
