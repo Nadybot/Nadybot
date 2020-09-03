@@ -21,6 +21,7 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php7-bcmath \
     php7-json \
     php7-openssl \
+    php7-posix \
     php7-xml \
     php7-simplexml \
     php7-dom \
