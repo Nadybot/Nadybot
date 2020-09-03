@@ -124,7 +124,7 @@ class Text {
 	public function paginate(string $input, int $maxLength, array $symbols): array {
 		if (count($symbols) == 0) {
 			$this->logger->log('ERROR', "Could not successfully page blob due to lack of paging symbols");
-			return $input;
+			return (array)$input;
 		}
 
 		$pageSize = 0;
