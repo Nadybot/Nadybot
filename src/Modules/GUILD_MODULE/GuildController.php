@@ -2,19 +2,21 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\Event;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	BuddylistManager,
+	CommandReply,
+	DB,
+	Event,
+	LoggerWrapper,
+	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\GuildManager,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\PREFERENCES\Preferences,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -403,7 +405,7 @@ class GuildController {
 			return;
 		}
 
-		if (count($org->members) == 0) {
+		if (count($org->members) === 0) {
 			$this->logger->log('ERROR', "Guild xml file has no members! Aborting roster update.");
 			return;
 		}
