@@ -178,7 +178,7 @@ class ItemsController {
 		try {
 			$files = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->logger->log("ERROR", "Invalid JSON received from GitHub when requesting items filelist");
+			$this->logger->log("ERROR", "Invalid JSON received from GitHub when requesting items filelist: {$response->body}");
 			if (isset($callback)) {
 				$callback("Invalid JSON received from GitHub while getting filelist");
 			}
