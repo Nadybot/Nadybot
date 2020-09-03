@@ -111,12 +111,15 @@ class Nadybot extends AOChat {
 		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC'
 	];
 
+	protected int $started = 0;
+
 	/**
 	 * Initialize the bot
 	 *
 	 * @param array<string,mixed> $vars The configuration variables of the bot
 	 */
 	public function init(BotRunner $runner, array &$vars): void {
+		$this->started = time();
 		$this->runner = $runner;
 		$this->vars = $vars;
 
@@ -226,6 +229,8 @@ class Nadybot extends AOChat {
 		foreach (Registry::getAllInstances() as $name => $instance) {
 			$this->registerEvents($instance);
 		}
+		$this->db->commit();
+		$this->db->beginTransaction();
 		foreach (Registry::getAllInstances() as $name => $instance) {
 			if (isset($instance->moduleName)) {
 				$this->registerInstance($name, $instance);
@@ -1037,5 +1042,9 @@ class Nadybot extends AOChat {
 	 */
 	public function isDefaultPrivateChannel(string $channel): bool {
 		return $channel == $this->setting->default_private_channel;
+	}
+
+	public function getUptime(): int {
+		return time() - $this->started;
 	}
 }

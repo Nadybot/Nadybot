@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Exception;
+use JsonException;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -130,6 +131,7 @@ class ItemsController {
 	 * @Matches("/^updateitems$/i")
 	 */
 	public function updateItemsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply("Starting update");
 		$this->downloadNewestItemsdb(function(string $msg) use ($sendto): void {
 			$sendto->reply($msg);
 		});
@@ -140,6 +142,11 @@ class ItemsController {
 	 * @Description("Check to make sure items db is the latest version available")
 	 */
 	public function checkForUpdate(): void {
+		// Do not run directly after the bot starts, so we don't flood GitHub
+		// when the bot errors
+		if ($this->chatBot->getUptime() < 60) {
+			return;
+		}
 		$this->downloadNewestItemsdb(function(string $msg): void {
 			if (preg_match("/^The items database has been updated/", $msg)) {
 				$this->chatBot->sendGuild($msg);
@@ -157,18 +164,33 @@ class ItemsController {
 			->withCallback(function (HttpResponse $response) use ($callback): void {
 				$this->handleGithubFilelist($response, $callback);
 			});
-			// ->waitAndReturnResponse();
 	}
+
 	protected function handleGithubFilelist(?HttpResponse $response, ?callable $callback=null): void {
-		$databases = ['aodb', 'item_buffs', 'item_types', 'item_groups', 'item_group_names'];
+		$databases = ['aodb', 'buffs', 'item_buffs', 'item_types', 'item_groups', 'item_group_names'];
+		if ($response->error || $response->body === null) {
+			$this->logger->log("ERROR", "Invalid reply received from GitHub when requesting items filelist");
+			if (isset($callback)) {
+				$callback("Invalid reply received from GitHub while getting filelist");
+			}
+			return;
+		}
+		try {
+			$files = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+		} catch (JsonException $e) {
+			$this->logger->log("ERROR", "Invalid JSON received from GitHub when requesting items filelist");
+			if (isset($callback)) {
+				$callback("Invalid JSON received from GitHub while getting filelist");
+			}
+			return;
+		}
+		$updateStatus = [];
 		foreach ($databases as $currentDB) {
 			try {
-				$json = json_decode($response->body);
-			
 				// find the latest items db version on the server
 				$latestVersion = null;
-				foreach ($json as $item) {
-					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $item->name, $arr)) {
+				foreach ($files as $file) {
+					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $file->name, $arr)) {
 						if ($latestVersion === null) {
 							$latestVersion = $arr[1];
 						} elseif ($this->util->compareVersionNumbers($arr[1], $latestVersion)) {
@@ -195,7 +217,7 @@ class ItemsController {
 					$this->http
 						->get("https://raw.githubusercontent.com/Nadybot/Nadybot/stable/src/Modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
 						->withHeader('User-Agent', 'Nadybot')
-						->withCallback(function(?HttpResponse $fileResponse) use ($currentDB, $latestVersion, $currentVersion, $callback): void {
+						->withCallback(function(?HttpResponse $fileResponse) use ($currentDB, $latestVersion, $currentVersion, $callback, &$updateStatus, $databases): void {
 							if ($fileResponse === null) {
 								if (isset($callback)) {
 									$callback("Error downloading ${currentDB}{$latestVersion}.");
@@ -216,25 +238,30 @@ class ItemsController {
 							$this->db->commit();
 
 							$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
-							if (isset($callback)) {
-								$callback("The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>");
+
+							$updateStatus[$currentDB] = "The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>";
+							if (count($updateStatus) === count($databases)) {
+								$callback(join("\n", array_values($updateStatus)));
 							}
 						});
 				} else {
 					$this->logger->log('DEBUG', "Items db $currentDB already up to date '$currentVersion'");
-					$msg []= "The items database <highlight>$currentDB<end> is already up to date at version <green>$currentVersion<end>";
+					$updateStatus[$currentDB] = "The items database <highlight>$currentDB<end> is already up to date at version <green>$currentVersion<end>";
+					if (count($updateStatus) === count($databases)) {
+						$callback(join("\n", array_values($updateStatus)));
+					}
 				}
 			} else {
 				$this->logger->log('ERROR', "Could not find latest items db $currentDB on server");
-				$msg []= "There was a problem finding the latest version of $currentDB on the server";
+				$updateStatus[$currentDB] = "There was a problem finding the latest version of $currentDB on the server";
+				if (count($updateStatus) === count($databases)) {
+					$callback(join("\n", array_values($updateStatus)));
+				}
 			}
 		}
 
 		$this->logger->log('DEBUG', "Finished items db update");
 
-		if (isset($callback) && count($msg)) {
-			$callback(implode("\n", $msg));
-		}
 		return;
 	}
 
