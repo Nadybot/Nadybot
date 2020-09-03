@@ -375,6 +375,7 @@ class SystemController {
 	 * This command handler clears outgoing chatqueue from all pending messages.
 	 *
 	 * @HandlesCommand("clearqueue")
+	 * @Matches("/^clearqueue$/")
 	 */
 	public function clearqueueCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$num = 0;
