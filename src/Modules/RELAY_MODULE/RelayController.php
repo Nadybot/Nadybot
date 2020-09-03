@@ -477,7 +477,7 @@ class RelayController {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->get("relaybot") === "Off"
 			|| !isset($this->chatBot->guildmembers[$sender])
-			|| $this->chatBot->isReady()
+			|| !$this->chatBot->isReady()
 		) {
 			return;
 		}
