@@ -21,6 +21,7 @@ class SubcommandManager {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** @var array<string,CmdCfg[]> */
 	public array $subcommands = [];
 
 	/**
@@ -88,7 +89,12 @@ class SubcommandManager {
 		$this->subcommands = [];
 
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'subcmd'");
+		$data = $this->db->fetchAll(
+			CmdCfg::class,
+			"SELECT * FROM cmdcfg_<myname> ".
+			"WHERE `status` = '1' AND `cmdevent` = 'subcmd' ".
+			"ORDER BY LENGTH(cmd) DESC, cmd LIKE '%.%' ASC"
+		);
 		foreach ($data as $row) {
 			$this->subcommands[$row->dependson] []= $row;
 		}
