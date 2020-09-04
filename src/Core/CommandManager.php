@@ -403,7 +403,7 @@ class CommandManager {
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-				if ($row->type == $channel && preg_match("/^{$row->cmd}$/i", $message)) {
+				if ($row->type === $channel && preg_match("/^{$row->cmd}$/i", $message)) {
 					return new CommandHandler($row->file, $row->admin);
 				}
 			}
