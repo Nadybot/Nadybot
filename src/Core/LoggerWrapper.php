@@ -54,7 +54,8 @@ class LoggerWrapper {
 		if ($vars['show_aoml_markup'] == 0) {
 			$message = preg_replace("|<font.*?>|", "", $message);
 			$message = preg_replace("|</font>|", "", $message);
-			$message = preg_replace("|<a\\s+href=(['\"]).+?\1>|s", "[link]", $message);
+			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
+			$message = preg_replace("|<a\\s+href='.+?'>|s", "[link]", $message);
 			$message = preg_replace("|<a\\s+href=.+?>|s", "[link]", $message);
 			$message = preg_replace("|</a>|", "[/link]", $message);
 		}
