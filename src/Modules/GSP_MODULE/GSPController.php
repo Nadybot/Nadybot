@@ -101,7 +101,7 @@ class GSPController {
 
 	/**
 	 * @Event("timer(1min)")
-	 * @Description("Announce if a GSP show is running")
+	 * @Description("Check if a GSP show is running")
 	 */
 	public function announceIfShowRunning(): void {
 		$this->http
