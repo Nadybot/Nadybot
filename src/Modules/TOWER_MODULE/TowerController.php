@@ -177,7 +177,7 @@ class TowerController {
 	 * @Description("Start a timer for planting whenever a tower site goes down")
 	 * @Visibility("edit")
 	 * @Type("options")
-	 * @Options("off;priv;guild")
+	 * @Options("off;priv;org")
 	 * @Intoptions("0;1;2")
 	 * @AccessLevel("mod")
 	 */
@@ -994,7 +994,7 @@ class TowerController {
 		$alerts []= $alert;
 
 		$countdown = [5, 4, 3, 2, 1];
-		if ($this->settingManager->get('tower_plant_timer') === "2") {
+		if ($this->settingManager->getInt('tower_plant_timer') === 2) {
 			$countdown = [5];
 		}
 		foreach ($countdown as $remaining) {
@@ -1012,7 +1012,7 @@ class TowerController {
 		$this->timerController->add(
 			"Plant " . strip_tags($timerLocation),
 			$this->chatBot->vars['name'],
-			$this->settingManager->get('tower_plant_timer') === "1" ? "priv": "guild",
+			$this->settingManager->getInt('tower_plant_timer') === 1 ? "priv": "guild",
 			$alerts,
 			'timercontroller.timerCallback'
 		);
@@ -1047,23 +1047,45 @@ class TowerController {
 			return;
 		}
 
+		$msg = $this->settingManager->getString('tower_spam_color').
+			"[TOWERS]<end> ".
+			"<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
+			" won against ".
+			"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
+
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
+		var_dump($playfield);
+
+		if ($lastAttack !== null) {
+			$towerInfo = $this->getTowerInfo($playfield->id, $lastAttack->site_number);
+			$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$lastAttack->x_coords} {$lastAttack->y_coords} {$playfield->id}");
+			$timerLocation = $this->text->makeBlob(
+				"{$playfield->short_name} {$lastAttack->site_number}",
+				"Name: <highlight>{$towerInfo->site_name}<end><br>".
+				"QL: <highlight>{$towerInfo->min_ql}<end> - <highlight>{$towerInfo->max_ql}<end><br>".
+				"Action: $waypointLink",
+				"Information about {$playfield->short_name} {$lastAttack->site_number}"
+			);
+			$msg .= " in " . $timerLocation;
+		}
 
 		if ($this->settingManager->getInt('tower_plant_timer') !== 0) {
-			$timerLocation = "unknown field in " . $playfield->short_name;
-			if ($lastAttack !== null) {
-				$towerInfo = $this->getTowerInfo($playfield->id, $lastAttack->site_number);
-				$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$lastAttack->x_coords} {$lastAttack->y_coords} {$playfield->id}");
-				$timerLocation = $this->text->makeBlob(
-					"{$playfield->short_name} {$lastAttack->site_number}",
-					"Name: <highlight>{$towerInfo->site_name}<end><br>".
-					"QL: <highlight>{$towerInfo->min_ql}<end> - <highlight>{$towerInfo->max_ql}<end><br>".
-					"Action: $waypointLink",
-					"Information about {$playfield->short_name} {$lastAttack->site_number}"
-				);
+			if ($lastAttack === null) {
+				$timerLocation = "unknown field in " . $playfield->short_name;
 			}
 
 			$this->setPlantTimer($timerLocation);
+		}
+
+		$target = $this->settingManager->getInt('tower_spam_target');
+		if ($target & 1) {
+			$this->chatBot->sendPrivate($msg, true);
+		}
+		if ($target & 2) {
+			$this->chatBot->sendGuild($msg, true);
+		}
+		if ($target & 4) {
+			$this->discordController->sendDiscord($msg);
 		}
 
 		if ($lastAttack !== null) {
