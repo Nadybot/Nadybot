@@ -234,7 +234,7 @@ class TowerController {
 	 */
 	public function attacksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$page = $args[1] ?? 1;
-		$this->attacksCommandHandler($page, [''], '', $sendto);
+		$this->attacksCommandHandler((int)$page, [''], '', $sendto);
 	}
 
 	/**
@@ -267,7 +267,7 @@ class TowerController {
 			$towerInfo->site_number
 		];
 		$page = $args[3] ?? 1;
-		$this->attacksCommandHandler($page, $search, $cmd, $sendto);
+		$this->attacksCommandHandler((int)$page, $search, $cmd, $sendto);
 	}
 
 	/**
@@ -285,7 +285,7 @@ class TowerController {
 			$args[1],
 			$args[1]
 		];
-		$this->attacksCommandHandler($args[2], $search, $cmd, $sendto);
+		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
 	/**
@@ -299,7 +299,7 @@ class TowerController {
 	public function attacksPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = "player $args[1] ";
 		$search = ["WHERE a.`att_player` LIKE ?", $args[1]];
-		$this->attacksCommandHandler($args[2], $search, $cmd, $sendto);
+		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
 	/**

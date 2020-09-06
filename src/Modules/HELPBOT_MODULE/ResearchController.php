@@ -77,13 +77,18 @@ class ResearchController {
 		$loLevel = min((int)$args[1], (int)$args[2]);
 		$hiLevel = max((int)$args[1], (int)$args[2]);
 		$sql =
-			"SELECT SUM(sk) totalsk, MAX(levelcap) levelcap ".
+			"SELECT SUM(sk) AS totalsk, MAX(levelcap) AS levelcap ".
 			"FROM research ".
 			"WHERE level > ? AND level <= ?";
 		$row = $this->db->queryRow($sql, $loLevel, $hiLevel);
+		if ($row->levelcap === null) {
+			$msg = "That doesn't make any sense.";
+			$sendto->reply($msg);
+			return;
+		}
 
 		$xp = number_format($row->totalsk * 1000);
-		$sk = number_format($row->totalsk);
+		$sk = number_format((int)$row->totalsk);
 
 		$blob = "You must be <highlight>Level $row->levelcap<end> to reach Research Level <highlight>$hiLevel.<end>\n";
 		$blob .= "It takes <highlight>$sk SK<end> to go from Research Level <highlight>$loLevel<end> to Research Level <highlight>$hiLevel<end> per research line.\n\n";

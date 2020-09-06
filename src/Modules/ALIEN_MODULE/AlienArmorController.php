@@ -66,7 +66,7 @@ class AlienArmorController {
 	public function aiarmorNormalCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		[$armortype, $ql] = $this->extractArgs($args);
 		$armortype = ucfirst($armortype);
-		$misc_ql = floor($ql * 0.8);
+		$misc_ql = (int)floor($ql * 0.8);
 
 		$list = "Note: All tradeskill processes are based on the lowest QL items usable.\n\n";
 		$list .= "<header2>You need the following items to build $armortype Armor:<end>\n";
@@ -149,7 +149,7 @@ class AlienArmorController {
 
 		$list .= "<header2>Step 8<end>\n";
 
-		$vb_ql = floor($ql * 0.8);
+		$vb_ql = (int)floor($ql * 0.8);
 		switch ($armortype) {
 			case "Arithmetic":
 				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Lead Viralbots", $vb_ql) . " QL$vb_ql";
@@ -211,83 +211,83 @@ class AlienArmorController {
 	 */
 	public function aiarmorCombinedCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		[$armortype, $ql] = $this->extractArgs($args);
-		$trg_ql = $ql;
-		$src_ql = floor($trg_ql * 0.8);
+		$targetQL = $ql;
+		$sourceQL = (int)floor($targetQL * 0.8);
 
 		switch ($armortype) {
 			case 'cc':
-				$name_armor_result = "Combined Commando's Jacket";
+				$nameArmorResult = "Combined Commando's Jacket";
 
-				$name_armor_src = "Strong Body Armor";
+				$nameArmorSource = "Strong Body Armor";
 				$nameSrc = "strong";
 
-				$name_armor_trg = "Supple Body Armor";
+				$nameArmorTarget = "Supple Body Armor";
 				$nameTarget = "supple";
 				break;
 
 			case 'cm':
-				$name_armor_result = "Combined Mercenary's Jacket";
+				$nameArmorResult = "Combined Mercenary's Jacket";
 
-				$name_armor_src = "Strong Body Armor";
+				$nameArmorSource = "Strong Body Armor";
 				$nameSrc = "strong";
 
-				$name_armor_trg = "Enduring Body Armor";
+				$nameArmorTarget = "Enduring Body Armor";
 				$nameTarget = "enduring";
 				break;
 
 			case 'co':
-				$name_armor_result = "Combined Officer's Jacket";
+				$nameArmorResult = "Combined Officer's Jacket";
 
-				$name_armor_src = "Spiritual Body Armor";
+				$nameArmorSource = "Spiritual Body Armor";
 				$nameSrc = "spiritual";
 
-				$name_armor_trg = "Arithmetic Body Armor";
+				$nameArmorTarget = "Arithmetic Body Armor";
 				$nameTarget = "arithmetic";
 				break;
 
 			case 'cp':
-				$name_armor_result = "Combined Paramedic's Jacket";
+				$nameArmorResult = "Combined Paramedic's Jacket";
 
-				$name_armor_src = "Spiritual Body Armor";
+				$nameArmorSource = "Spiritual Body Armor";
 				$nameSrc = "spiritual";
 
-				$name_armor_trg = "Enduring Body Armor";
+				$nameArmorTarget = "Enduring Body Armor";
 				$nameTarget = "enduring";
 				break;
 
 			case 'cs':
-				$name_armor_result = "Combined Scout's Jacket";
+				$nameArmorResult = "Combined Scout's Jacket";
 
-				$name_armor_src = "Observant Body Armor";
+				$nameArmorSource = "Observant Body Armor";
 				$nameSrc = "observant";
 
-				$name_armor_trg = "Arithmetic Body Armor";
+				$nameArmorTarget = "Arithmetic Body Armor";
 				$nameTarget = "arithmetic";
 				break;
 
 			case 'css':
 			case 'ss':
-				$name_armor_result = "Combined Sharpshooter's Jacket";
+				$nameArmorResult = "Combined Sharpshooter's Jacket";
 
-				$name_armor_src = "Observant Body Armor";
+				$nameArmorSource = "Observant Body Armor";
 				$nameSrc = "observant";
 
-				$name_armor_trg = "Supple Body Armor";
+				$nameArmorTarget = "Supple Body Armor";
 				$nameTarget = "supple";
 				break;
 		}
 
 		$list = "<header2>Result<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($name_armor_result, $ql) . " QL$ql\n\n";
+		$list .= $this->itemsController->getItemAndIcon($nameArmorResult, $ql) . " QL$ql\n\n";
 
 		$list .= "<header2>Source Armor<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($name_armor_src, $src_ql) . " QL$src_ql";
-		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameSrc $src_ql") . ")\n\n";
+		$list .= $this->itemsController->getItemAndIcon($nameArmorSource, $sourceQL) . " QL$sourceQL";
+		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameSrc $sourceQL") . ")\n\n";
 
 		$list .= "<header2>Target Armor<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($name_armor_trg, $trg_ql) . " QL$trg_ql";
-		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameTarget $trg_ql") . ")";
-		$msg = $this->text->makeBlob("Building process for $ql $name_armor_result", $list);
+		$list .= $this->itemsController->getItemAndIcon($nameArmorTarget, $targetQL) . " QL$targetQL";
+		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameTarget $targetQL") . ")";
+		$msg = $this->text->makeBlob("Building process for $ql $nameArmorResult", $list);
 		$sendto->reply($msg);
 	}
 	

@@ -280,7 +280,7 @@ class RaidController {
 			return;
 		}
 
-		$multiloot = $args[1];
+		$multiloot = (int)$args[1];
 		$input = $args[2];
 		$this->addLootItem($input, $multiloot, $sender);
 	}

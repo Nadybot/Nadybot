@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CommandReply,
 	Event,
 	EventManager,
+	LoggerWrapper,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -102,6 +103,9 @@ class TestController {
 	/** @Inject */
 	public EventManager $eventManager;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	/**
 	 * @Setup
 	 */
@@ -182,6 +186,7 @@ class TestController {
 			$mockSendto = $sendto;
 		} else {
 			$mockSendto = new MockCommandReply();
+			$mockSendto->logger = $this->logger;
 		}
 	
 		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
@@ -201,6 +206,8 @@ class TestController {
 			if ($line[0] == "!") {
 				if ($this->settingManager->getBool('show_test_commands')) {
 					$this->chatBot->sendTell($line, $sender);
+				} else {
+					$this->logger->log('INFO', $line);
 				}
 				$line = substr($line, 1);
 				$this->commandManager->process($type, $line, $sender, $sendto);
@@ -241,14 +248,12 @@ class TestController {
 	 * @Matches("/^testtowervictory (Clan|Neutral|Omni) (.+) (Clan|Neutral|Omni) (.+) (.+)$/i")
 	 */
 	public function testTowerVictoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$testArgs = [
-			$this->chatBot->get_gid('tower battle outcome'),
-			(int)0xFFFFFFFF,
-			"The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!",
-		];
-		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
-
-		$this->chatBot->process_packet($packet);
+		$eventObj = new Event();
+		$eventObj->sender = (string)0xFFFFFFFF;
+		$eventObj->channel = "Tower Battle Outcome";
+		$eventObj->message = "The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!";
+		$eventObj->type = 'towers';
+		$this->eventManager->fireEvent($eventObj);
 	}
 	
 	/**

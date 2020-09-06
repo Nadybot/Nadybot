@@ -547,7 +547,7 @@ class ItemsController {
 		return $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 	}
 	
-	public function getItemAndIcon($name, $ql=null): string {
+	public function getItemAndIcon(string $name, ?int $ql=null): string {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
 			if (isset($ql)) {
