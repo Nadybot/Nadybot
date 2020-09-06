@@ -11,9 +11,9 @@ class Orglist {
 	/** @var string[] */
 	public array $orgtype;
 	/** @var array<string,OrglistResult> */
-	public array $result;
+	public array $result = [];
 	/** @var array<string,bool> */
-	public array $added;
+	public array $added = [];
 	/** @var array<string,bool> */
-	public array $check;
+	public array $check = [];
 }
