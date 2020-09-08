@@ -88,5 +88,3 @@
 !towerstats error
 
 /text End TOWER_MODULE
-
-/timers_module.txt %1

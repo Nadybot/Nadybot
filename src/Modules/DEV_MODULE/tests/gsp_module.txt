@@ -1,0 +1,7 @@
+#gsp_module
+/text Start GSP_MODULE
+
+!gsp
+/delay %1
+
+/text End GSP_MODULE

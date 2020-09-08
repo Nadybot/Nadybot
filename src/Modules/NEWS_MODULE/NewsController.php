@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
 
 /**
  * @Instance
@@ -42,6 +43,9 @@ class NewsController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public AltsController $altsController;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -79,12 +83,25 @@ class NewsController {
 			"Last date;Latest news",
 			"1;2"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"news_confirmed_for_all_alts",
+			"Confirmed news count for all alts",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
 	}
 
 	/**
 	 * @return INews[]
 	 */
 	public function getNewsItems(string $player): array {
+		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
+			$player = $this->altsController->getAltInfo($player)->main;
+		}
 		$sql = "SELECT n.*, ".
 			"(SELECT COUNT(*)>0 FROM news_confirmed c WHERE c.id=n.id AND c.player=?) AS confirmed ".
 			"FROM `news` n ".
@@ -236,6 +253,9 @@ class NewsController {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
 			$sendto->reply($msg);
 			return;
+		}
+		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
+			$sender = $this->altsController->getAltInfo($sender)->main;
 		}
 
 		try {

@@ -1,0 +1,48 @@
+#events_module
+/text Start EVENTS_MODULE
+
+!events
+/delay %1
+!events add foo bar
+/delay %1
+!events
+/delay %1
+!events list 1
+/delay %1
+!events leave 1
+/delay %1
+!events join 1
+/delay %1
+!events leave 1
+/delay %1
+!events list 178246378462
+/delay %1
+!events leave 178246378462
+/delay %1
+!events join 178246378462
+/delay %1
+!events setdesc 1 A really concise description
+/delay %1
+!events list 1
+/delay %1
+!events setdesc 1 Another description
+/delay %1
+!events list 1
+/delay %1
+!events setddate 1 2020-01-01
+/delay %1
+!events list 1
+/delay %1
+!events setddate 1 2020-01-01 22:22
+/delay %1
+!events list 1
+/delay %1
+!events setddate 1 2020-01-01 22:22:22
+/delay %1
+!events list 1
+/delay %1
+!events rem 1
+/delay %1
+!events del 1
+/delay %1
+/text End EVENTS_MODULE

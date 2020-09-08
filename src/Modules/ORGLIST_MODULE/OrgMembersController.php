@@ -40,7 +40,7 @@ class OrgMembersController {
 	
 	/**
 	 * @HandlesCommand("orgmembers")
-	 * @Matches("/^orgmembers (\d+)$/i")
+	 * @Matches("/^orgmembers ([1-9]\d*)$/i")
 	 */
 	public function orgmembers2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$guildId = (int)$args[1];

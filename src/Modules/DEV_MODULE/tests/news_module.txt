@@ -4,11 +4,14 @@
 !news
 !news add test1
 !news
-!news unsticky 0
-!news sticky 0
-!news sticky 0
-!news rem 0
-!news rem 0
+!news unpin 1
+!news pin 1
+!news pin 1
+!news confirm 1
+!news confirm 1
+!news rem 1
+!news rem 1
+!news confirm 1
 !news
 
 /text End NEWS_MODULE

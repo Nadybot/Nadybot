@@ -1,0 +1,32 @@
+#guild_module
+/text Start GUILD_MODULE
+
+!lastseen
+!lastseen abc
+!lastseen Nadyita
+!testorgjoin Nadyita
+!logon
+!logon foo bar baz
+!logon
+!logon clear
+!logoff
+!logoff foo bar baz
+!logoff
+!logoff clear
+!recentseen
+!recentseen 1
+!recentseen nadyita
+!notify add Nadyitaerrordoesnotexist
+!notify add Nadyita 
+!notify off Nadyita 
+!updateorg
+!inactivemem
+!inactivemem 1d
+!orghistory
+!orghistory 0
+!orghistory 1
+!orghistory 100
+!orghistory Nadyita
+!orghistory Nadyitadoesnotexist
+
+/text End GUILD_MODULE

@@ -7,5 +7,3 @@
 !whereis error
 /delay %1
 /text End WHEREIS_MODULE
-
-/weather_module.txt %1

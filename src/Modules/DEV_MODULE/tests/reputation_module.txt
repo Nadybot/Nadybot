@@ -1,0 +1,37 @@
+#reputation_module
+/text Start REPUTATION_MODULE
+
+!kos
+!kos rem
+!kos rem Nadyita
+!kos rem -1
+!kos rem 0
+!kos rem 1
+!kos add
+!kos add Nadyita
+!kos add -1
+!kos add 0
+!kos add 1
+!kos rem
+!kos rem Nadyita
+!kos rem -1
+!kos rem 0
+!kos rem 1
+
+!reputation
+!reputation Nadyitaerror +1 Nice guy overall, cannot recommend enough
+!reputation Nadyitaerror -1 Nice guy overall, cannot recommend enough
+!reputation -1 +1 Nice guy overall, cannot recommend enough
+!reputation 0 +1 Nice guy overall, cannot recommend enough
+!reputation 1 +1 Nice guy overall, cannot recommend enough
+!reputation Nadyita +1 Nice guy overall, cannot recommend enough
+!reputation Nadyita -1 This guy sucks, don't go near him
+
+!reputation 1
+!reputation 1 all
+!reputation 0
+!reputation 0 all
+!reputation Nadyita
+!reputation Nadyita all
+
+/text End REPUTATION_MODULE

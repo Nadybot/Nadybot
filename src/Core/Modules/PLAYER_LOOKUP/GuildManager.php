@@ -66,6 +66,9 @@ class GuildManager {
 		
 		$guild = new Guild();
 		$guild->guild_id = $guildID;
+		if ($orgInfo->NAME === null) {
+			return $guild;
+		}
 
 		// parsing of the member data
 		$guild->orgname	= $orgInfo->NAME;

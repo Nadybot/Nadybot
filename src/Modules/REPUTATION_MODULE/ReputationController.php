@@ -114,7 +114,7 @@ class ReputationController {
 	
 	/**
 	 * @HandlesCommand("reputation")
-	 * @Matches("/^reputation ([a-z0-9-]+) (\+1|\-1) (.+)$/i")
+	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (\+1|\-1) (.+)$/i")
 	 */
 	public function reputationAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -152,8 +152,8 @@ class ReputationController {
 	
 	/**
 	 * @HandlesCommand("reputation")
-	 * @Matches("/^reputation ([a-z0-9-]+) (all)$/i")
-	 * @Matches("/^reputation ([a-z0-9-]+)$/i")
+	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (all)$/i")
+	 * @Matches("/^reputation ([a-z][a-z0-9-]+)$/i")
 	 */
 	public function reputationViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -200,7 +200,7 @@ class ReputationController {
 			$blob .= "<tab>$row->comment<end> (<highlight>$row->by<end>, {$time} ago)\n";
 		}
 		
-		if ($limit != 1000 && count($data) >= $limit) {
+		if ($limit !== 1000 && count($data) >= $limit) {
 			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
 		}
 

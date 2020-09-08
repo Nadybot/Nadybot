@@ -220,12 +220,20 @@ class TestController {
 	 * @Matches("/^testorgjoin (.+)$/i")
 	 */
 	public function testOrgJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$gid = $this->chatBot->get_gid('Org Msg');
+		if (!$gid) {
+			$this->chatBot->gid["sicrit"] = 'Org Msg';
+			$this->chatBot->gid["Org Msg"] = 'sicrit';
+			$gid = 'sicrit';
+		}
 		$testArgs = [
-			$this->chatBot->get_gid('org msg'),
+			$gid,
 			(int)0xFFFFFFFF,
 			"$sender invited $args[1] to your organization.",
 		];
-		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -263,12 +271,20 @@ class TestController {
 	public function testOSCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$launcher = ucfirst(strtolower($args[1]));
 	
+		$gid = $this->chatBot->get_gid('Org Msg');
+		if (!$gid) {
+			$this->chatBot->gid["sicrit"] = 'Org Msg';
+			$this->chatBot->gid["Org Msg"] = 'sicrit';
+			$gid = 'sicrit';
+		}
 		$testArgs = [
-			$this->chatBot->get_gid('org msg'),
+			$gid,
 			(int)0xFFFFFFFF,
 			"Blammo! $launcher has launched an orbital attack!",
 		];
-		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -299,12 +315,19 @@ class TestController {
 	 * @Matches("/^testcloaklower$/i")
 	 */
 	public function testCloakLowerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$gid = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
+		if (!$gid) {
+			$sendto->reply("Your bot must be in an org to test this.");
+			return;
+		}
 		$testArgs = [
-			$this->chatBot->get_gid($this->chatBot->vars['my_guild']),
+			$gid,
 			(int)0xFFFFFFFF,
 			"$sender turned the cloaking device in your city off.",
 		];
-		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -314,12 +337,19 @@ class TestController {
 	 * @Matches("/^testcloakraise$/i")
 	 */
 	public function testCloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$gid = $this->chatBot->get_gid($this->chatBot->vars['my_guild']);
+		if (!$gid) {
+			$sendto->reply("Your bot must be in an org to test this.");
+			return;
+		}
 		$testArgs = [
-			$this->chatBot->get_gid($this->chatBot->vars['my_guild']),
+			$gid,
 			(int)0xFFFFFFFF,
 			"$sender turned the cloaking device in your city on.",
 		];
-		$packet = new AOChatPacket("in", AOCP_GROUP_MESSAGE, $testArgs);
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
 	}

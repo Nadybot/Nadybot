@@ -103,7 +103,7 @@ class ChatRallyController {
 		$yCoords = $args[3];
 
 		if (is_numeric($args[5])) {
-			$playfieldId = $args[5];
+			$playfieldId = (int)$args[5];
 			$playfieldName = $playfieldId;
 
 			$playfield = $this->playfieldController->getPlayfieldById((int)$playfieldId);

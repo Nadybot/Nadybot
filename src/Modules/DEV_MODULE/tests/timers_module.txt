@@ -27,11 +27,11 @@
 !stopwatch stop
 !stopwatch start
 !stopwatch start
+!stopwatch lap
+!stopwatch lap description
 !stopwatch stop
 
 !cd
 !cd MESSAGE!
 
 /text End TIMERS_MODULE
-
-/teamspeak3_module.txt %1

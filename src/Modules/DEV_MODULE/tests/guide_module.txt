@@ -1,0 +1,29 @@
+#guide_module
+/text Start GUIDE_MODULE
+
+!doja
+/delay %1
+!light
+/delay %1
+!guide 6
+/delay %1
+!aou totw
+/delay %1
+!aou fljhwref
+/delay %1
+!aou
+/delay %1
+!aou all totw
+/delay %1
+!aou all fljhwref
+/delay %1
+!aou all
+/delay %1
+!aou -1
+/delay %1
+!aou 0
+/delay %1
+!aou 1
+/delay %1
+
+/text End GUIDE_MODULE

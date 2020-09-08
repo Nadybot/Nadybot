@@ -67,5 +67,3 @@
 !weapon <a href="itemref://280727/280727/300">Sloth of the Xan</a>
 /delay %1
 /text End SKILLS_MODULE
-
-/shopping_module.txt %1

@@ -1,0 +1,26 @@
+#orglist_module
+/text Start ORGLIST_MODULE
+
+!findorg Athen Paladin
+!findorg
+!findorg idonotexist
+
+!orglist Team Rainbow
+!orglist end
+!orglist Team Rainbow
+!orglist Nadyita
+
+!orgmembers
+!orgmembers Nadyita
+!orgmembers 1329153
+!orgmembers -1
+!orgmembers 0
+
+!whoisorg
+!whoisorg Nadyita
+!whoisorg Team Rainbow
+!whoisorg 1329153
+!whoisorg -1
+!whoisorg 0
+
+/text End ORGLIST_MODULE

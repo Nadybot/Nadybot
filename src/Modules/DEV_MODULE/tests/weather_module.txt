@@ -1,11 +1,9 @@
 #weather_module
 /text Start WEATHER_MODULE
-!weather 90210
+!weather Cologne Dome
 /delay %1
-!weather sea
+!weather Norway
 /delay %1
-!weather error
+!weather 35043,de
 /delay %1
 /text End WEATHER_MODULE
-
-/vote_module.txt %1

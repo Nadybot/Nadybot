@@ -1054,7 +1054,6 @@ class TowerController {
 			"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
-		var_dump($playfield);
 
 		if ($lastAttack !== null) {
 			$towerInfo = $this->getTowerInfo($playfield->id, $lastAttack->site_number);

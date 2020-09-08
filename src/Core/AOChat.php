@@ -470,7 +470,7 @@ class AOChat {
 	 * Fix overflows bits for unsigned numbers returned signed
 	 */
 	public function fixunsigned(int $num): int {
-		if (bcdiv((string)$num, "2147483648", "0")) {
+		if (bcdiv((string)$num, "2147483648", 0)) {
 			$num2 = bcmul("-1", bcsub("4294967296", (string)$num));
 			return (int)$num2;
 		}

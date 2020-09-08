@@ -11,5 +11,3 @@
 !whompah oa error
 /delay %1
 /text End WHOMPAH_MODULE
-
-/whois_module.txt %1

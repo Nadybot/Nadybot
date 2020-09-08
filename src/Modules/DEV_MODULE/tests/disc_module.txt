@@ -1,0 +1,17 @@
+#disc_module
+/text Start DISC_MODULE
+
+!disc
+/delay %1
+!disc Gnat's Wing
+/delay %1
+!disc errornotfound
+/delay %1
+!disc freedom
+/delay %1
+!disc <a href='itemref://160855/160855/169'>Instruction Disc (Gnat's Wing)</a>
+/delay %1
+!disc <a href='itemref://270339/270338/300'>Instruction Disc (not existing)</a>
+/delay %1
+
+/text End DISC_MODULE

@@ -9,6 +9,11 @@
 !nanolines 10
 !nanolines error
 !nanolines 1000
+!nanolinesfroob
+!nanolinesfroob adv
+!nanolinesfroob 10
+!nanolinesfroob error
+!nanolinesfroob 1000
 !nanoloc
 !nanoloc Biodome
 !nanoloc error

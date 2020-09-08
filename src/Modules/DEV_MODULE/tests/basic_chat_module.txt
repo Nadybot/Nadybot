@@ -1,0 +1,68 @@
+#basic_chat_module
+/text Start BASIC_CHAT_MODULE
+!assist efhwkefhwkjefhwjkehfjkwfeherror
+/delay %1
+!assist Nadyita
+/delay %1
+!assist
+/delay %1
+!assist clear
+/delay %1
+!check
+/delay %1
+!leader Nadyitaerror
+/delay %1
+!leader Nadyita
+/delay %1
+!leader
+/delay %1
+!leaderecho
+/delay %1
+!leaderecho on
+/delay %1
+!leaderecho
+/delay %1
+Foo bar baz
+!leaderecho off
+/delay %1
+!rally some stupid error
+/delay %1
+!rally 10.9 x 30 x 505
+/delay %1
+!rally
+/delay %1
+!rally clear
+/delay %1
+!rally 2091.6, 3803.3, 49.6 (2091.6 3803.3 y 49.6 505)
+/delay %1
+!rally (2091.6 3803.3 y 49.6 505)
+/delay %1
+!rally
+/delay %1
+!rally clear
+/delay %1
+!say org some stuff
+/delay %1
+!say priv some more stuff
+/delay %1
+!say error some other stuff
+/delay %1
+!cmd This is a big raid command
+/delay %1
+!cmd
+/delay %1
+!tell This is a big raid command
+/delay %1
+!tell
+/delay %1
+!topic This is a super stupid topic
+/delay %1
+!topic This is a another super stupid topic
+/delay %1
+!topic
+/delay %1
+!topic 
+/delay %1
+!topic clear
+
+/text End ALIEN_MODULE

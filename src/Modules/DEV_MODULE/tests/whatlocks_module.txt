@@ -1,0 +1,11 @@
+#whatlocks_module
+/text Start WHATLOCKS_MODULE
+
+!whatlocks
+!whatlocks 0
+!whatlocks 1
+!whatlocks str
+!whatlocks strength
+!whatlocks error
+
+/text End WHATLOCKS_MODULE

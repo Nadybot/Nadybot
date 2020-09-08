@@ -5,7 +5,6 @@ namespace Nadybot\Modules\FUN_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
-	Nadybot,
 	Util,
 };
 

@@ -1,0 +1,10 @@
+#online_module
+/text Start ONLINE_MODULE
+
+!online
+!online enf
+!online enforcer
+!online nonexistingclass
+!online 9723942
+
+/text End ONLINE_MODULE

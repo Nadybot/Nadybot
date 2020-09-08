@@ -129,5 +129,3 @@
 !12m
 /delay %1
 /text End RAID_MODULE
-
-/raffle_module.txt %1

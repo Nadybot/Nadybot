@@ -267,7 +267,7 @@ class PrivateChannelController {
 	
 	/**
 	 * @HandlesCommand("member")
-	 * @Matches("/^member add (.+)$/i")
+	 * @Matches("/^member add ([a-z].+)$/i")
 	 */
 	public function addUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->addUser($args[1]);
@@ -277,7 +277,7 @@ class PrivateChannelController {
 	
 	/**
 	 * @HandlesCommand("member")
-	 * @Matches("/^member (?:del|rem|rm|delete|remove) (.+)$/i")
+	 * @Matches("/^member (?:del|rem|rm|delete|remove) ([a-z].+)$/i")
 	 */
 	public function remUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->removeUser($args[1]);
@@ -287,7 +287,7 @@ class PrivateChannelController {
 	
 	/**
 	 * @HandlesCommand("invite")
-	 * @Matches("/^invite (.+)$/i")
+	 * @Matches("/^invite ([a-z].+)$/i")
 	 */
 	public function inviteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -541,10 +541,18 @@ class PrivateChannelController {
 		}
 		$sendto->reply($msg);
 	}
+
+	/**
+	 * @HandlesCommand("kickall")
+	 * @Matches("/^kickall now$/i")
+	 */
+	public function kickallNowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->chatBot->privategroup_kick_all();
+	}
 	
 	/**
 	 * @HandlesCommand("kickall")
-	 * @Matches("/^kickall$/i")
+	 * @Matches("/^kickall( now)?$/i")
 	 */
 	public function kickallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>$sender<end>]";
@@ -791,7 +799,7 @@ class PrivateChannelController {
 		$uid = $this->chatBot->get_uid($name);
 		if ($this->chatBot->vars["name"] == $name) {
 			return "You cannot add the bot as a member of itself.";
-		} elseif (!$uid) {
+		} elseif (!$uid || $uid < 0) {
 			return "Character <highlight>$name<end> does not exist.";
 		}
 		// always add in case they were removed from the buddy list for some reason

@@ -117,5 +117,3 @@
 !bio error
 
 /text End ALIEN_MODULE
-
-/stop.txt %1

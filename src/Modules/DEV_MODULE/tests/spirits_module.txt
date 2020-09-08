@@ -1,4 +1,4 @@
-#spirtis_module
+#spirits_module
 /text Start SPIRITS_MODULE
 !spirits
 /delay %1
@@ -71,5 +71,3 @@
 !spiritslvl 110-125 feet
 /delay %1
 /text End SPIRITS_MODULE
-
-/skills_module.txt %1

@@ -1,0 +1,42 @@
+#private_channel_module
+/text Start PRIVATE_CHANNEL_MODULE
+
+!members
+!member add -1
+!member add 0
+!member add 1
+!member add Nadyita
+!member del Nadyita
+!member del -1
+!member del 0
+!member del 1
+!invite -1
+!invite 0
+!invite 1
+!invite Nadyita
+!kick -1
+!kick 0
+!kick 1
+!kick Nadyita
+!autoinvite off
+!autoinvite on
+!autoinvite off
+!autoinvite on
+!count levels
+!count all
+!count profs
+!count org
+!count orgs
+!count 0
+!count 1
+!count adv
+!count advy
+!count adventurer
+!count error
+!kickall
+!join
+!leave
+!kickall later
+!kickall now
+
+/text End PRIVATE_CHANNEL_MODULE

@@ -6,7 +6,7 @@ use Nadybot\Core\DBRow;
 
 class Organization extends DBRow {
 	public int $id;
-	public string $name;
-	public int $num_members;
-	public string $faction;
+	public string $name = "Illegal Org";
+	public int $num_members = 0;
+	public string $faction = "Neutral";
 }

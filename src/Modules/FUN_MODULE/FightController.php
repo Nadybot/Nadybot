@@ -64,10 +64,10 @@ class FightController {
 		$fighter1 = $this->getFighter($player1);
 		$fighter2 = $this->getFighter($player2);
 
-		$list = "Fight <highlight>$player1<end> VS <highlight>$player2<end> \n\n";
+		$list = "<header2>Fight $player1 vs $player2<end>\n\n";
 		while ($fighter1->hp > 0 && $fighter2->hp > 0) {
-			$list .= $this->doAttack($fighter1, $fighter2);
-			$list .= $this->doAttack($fighter2, $fighter1);
+			$list .= "<tab>" . $this->doAttack($fighter1, $fighter2);
+			$list .= "<tab>" . $this->doAttack($fighter2, $fighter1);
 			$list .= "\n";
 		}
 
@@ -87,34 +87,48 @@ class FightController {
 
 	public function getFighter($name): Fighter {
 		$weaponNames = [
-			"a nerfstick",
-			"bad breath",
-			"spaghetti code",
-			"glass cannon",
-			"a yet unknown nano",
-			"bare fists",
-			"a mechanical keyboard",
-			"a deadly joke",
-			"a very mean-tempered leet",
-			"an invalid opcode",
-			"a floating ghost light",
-			"a thrown shoe",
-			"a bottle of pisco",
-			"a fight macro",
-			"a bunch of pets",
-			"a badly drawn planet map",
-			"a mean-looking cheezeburger",
-			"an illegally modified damage dice",
+			"with a nerfstick" => "nerfed damage",
+			"with bad breath" => "disease damage",
+			"with spaghetti code" => "headache damage",
+			"with a glass cannon build" => "odd damage types",
+			"with a yet unknown nano" => "illegal nano damage",
+			"with bare fists" => "melee damage",
+			"with a mechanical keyboard" => "iron damage",
+			"with a deadly joke" => "imaginary damage",
+			"with a very mean-tempered leet" => "cuteness damage",
+			"with an invalid opcode" => "coding damage",
+			"with a floating ghost light" => "haunted damage",
+			"with a thrown shoe" => "rubber damage",
+			"with a bottle of pisco" => "alcohol damage",
+			"with a fight macro" => "broken link damage",
+			"with a bunch of pets" => "trample damage",
+			"with a badly drawn planet map" => "brain damage",
+			"with an old, used sock" => "stinky damage",
+			"with a mean-looking cheezeburger" => "cheese damage",
+			"with an illegally modified damage dice" => "illegal damage",
+			"with a squid" => "ink damage",
+			"while no one was watching" => "unknown damage",
+			"with a heavy book" => "intellectual damage",
+			"with a paperback book" => "reading damage",
+			"with social media" => "fake news damage",
+			"with facts" => "science damage",
+			"with Schrödinger's cat" => "unknown damage",
+			"in their imagination" => "imaginary damage",
+			"with a protest placard" => "arguments",
+			"with a Funcom petition" => "patience damage",
+			"with a froob-sent Funcom petition" => "extra patience damage",
 		];
 		$fighter = new Fighter();
 		$fighter->name = $name;
 		if ($this->isChuckNorris($name)) {
-			$fighter->weapon = "round house kick";
+			$fighter->weapon = "with a round house kick";
+			$fighter->damageType = "otherworldly damage";
 			$fighter->minDamage = 4001;
 			$fighter->maxDamage = 6000;
 			$fighter->hp = 20000;
 		} else {
-			$fighter->weapon = $this->util->randomArrayValue($weaponNames);
+			$fighter->weapon = $this->util->randomArrayValue(array_keys($weaponNames));
+			$fighter->damageType = $weaponNames[$fighter->weapon];
 			$fighter->minDamage = 1000;
 			$fighter->maxDamage = 4000;
 			$fighter->hp = 20000;
@@ -131,7 +145,7 @@ class FightController {
 		}
 
 		$defender->hp -= $dmg;
-		return "<highlight>{$attacker->name}<end> hit <highlight>{$defender->name}<end> with {$attacker->weapon} for $dmg dmg.$crit\n";
+		return "<highlight>{$attacker->name}<end> hits <highlight>{$defender->name}<end> {$attacker->weapon} for $dmg {$attacker->damageType}.$crit\n";
 	}
 
 	public function isCriticalHit(Fighter $fighter, int $dmg): bool {

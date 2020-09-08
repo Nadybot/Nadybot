@@ -1,0 +1,28 @@
+#bestql_module
+/text Start BESTQL_MODULE
+
+!bestql 1
+/delay %1
+!bestql 1 2
+/delay %1
+!bestql 1 2 3
+/delay %1
+!bestql 1 2 3 4
+/delay %1
+!bestql 1 2 3 4 5
+/delay %1
+!bestql afwef
+/delay %1
+!bestql aw dwef
+/delay %1
+!bestql 1 1 300 10
+/delay %1
+!bestql 1 1 300 10 70
+/delay %1
+!bestql 1 10 300 20 5
+/delay %1
+!bestql 1 5 300 765 600 <a href='itemref://270339/270338/77'>Miy's Melee Armor Cloak</a>
+/delay %1
+!bestql 1 1 300 10 <a href='itemref://270339/270338/77'>Miy's Melee Armor Cloak</a>
+/delay %1
+/text End BESTQL_MODULE

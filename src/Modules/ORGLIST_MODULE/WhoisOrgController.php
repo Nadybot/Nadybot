@@ -91,6 +91,11 @@ class WhoisOrgController {
 			$sendto->reply($msg);
 			return;
 		}
+		if (!isset($org->orgname)) {
+			$msg = "This is an illegal org id.";
+			$sendto->reply($msg);
+			return;
+		}
 
 		$countProfs = [];
 		$minLevel = 220;

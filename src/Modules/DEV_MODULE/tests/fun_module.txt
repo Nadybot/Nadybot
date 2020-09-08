@@ -1,0 +1,43 @@
+#disc_module
+/text Start FUN_MODULE
+
+!ding
+/delay %1
+!ding dong
+/delay %1
+!ding 0
+/delay %1
+!ding 1
+/delay %1
+!ding 200
+/delay %1
+!ding 220
+/delay %1
+!ding 221
+/delay %1
+!ding anc
+/delay %1
+
+!fight
+/delay %1
+!fight abc
+/delay %1
+!fight abc def
+/delay %1
+!fight abc def ghi
+/delay %1
+
+!beer
+/delay %1
+!beer a
+/delay %1
+!beer -1
+/delay %1
+!beer 0
+/delay %1
+!beer 1
+/delay %1
+!beer 99999
+/delay %1
+
+/text End FUN_MODULE

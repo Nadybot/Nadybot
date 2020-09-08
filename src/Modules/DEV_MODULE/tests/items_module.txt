@@ -1,0 +1,30 @@
+#items_module
+/text Start ITEMS_MODULE
+
+!updateitems
+!items
+!items fjhfjkwef
+!items chiroptera
+!items 300 chiroptera
+!items 0 chiroptera
+!items 400 chiroptera
+!items 0 fwefkwe
+!items 400 fwefkwe
+!itemid 21601
+!itemid -1
+!itemid 0
+!itemid 53534658736457838745
+
+!whatbuffs
+!whatbuffs agility
+!whatbuffs sta
+!whatbuffs legs
+!whatbuffs sta legs
+!whatbuffs stamina legs
+!whatbuffs legs sta
+!whatbuffs legs stamina
+!whatbuffs foo bar
+!whatbuffs legs bar
+!whatbuffs foo sta
+
+/text End ITEMS_MODULE

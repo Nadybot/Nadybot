@@ -2,7 +2,7 @@
 /text Start HELPBOT_MODULE
 
 !whatbuffs
-!whatbuffs nano
+!whatbuffs nanoprogram
 !whatbuffs weapon
 !whatbuffs nano Agility
 !whatbuffs weapon Agility
@@ -13,16 +13,6 @@
 !dyna error
 !dyna a
 !dyna hounds
-
-!inspect <a href="itemref://205842/205842/1">Item</a>
-!inspect <a href="itemref://205843/205843/1">Item</a>
-!inspect <a href="itemref://205844/205844/1">Item</a>
-!inspect <a href="itemref://216286/216286/1">Item</a>
-!inspect <a href="itemref://245658/245658/1">Item</a>
-!inspect <a href="itemref://245596/245596/1">Item</a>
-!inspect <a href="itemref://245594/245594/1">Item</a>
-!inspect <a href="itemref://10/10/1">Item</a>
-!inspect error
 
 !oe -10
 !oe 0

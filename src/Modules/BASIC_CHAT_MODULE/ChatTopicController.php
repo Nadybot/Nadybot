@@ -155,7 +155,7 @@ class ChatTopicController {
 	}
 	
 	public function setTopic(string $name, string $msg): void {
-		$this->settingManager->save("topic_time", time());
+		$this->settingManager->save("topic_time", (string)time());
 		$this->settingManager->save("topic_setby", $name);
 		$this->settingManager->save("topic", $msg);
 
