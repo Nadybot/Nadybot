@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\RAID_MODULE;
+namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\{
 	CommandAlias,

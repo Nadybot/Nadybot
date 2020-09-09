@@ -1,3 +1,5 @@
+[![Docker Repository on Quay](https://quay.io/repository/nadyita/nadybot/status "Docker Repository on Quay")](https://quay.io/repository/nadyita/nadybot)
+
 # Nadybot #
 
 Nadybot is the next-generation chatbot for Anarchy Online.
@@ -165,15 +167,13 @@ podman run \
     quay.io/nadyita/nadybot
 ```
 
-## Configuration ##
-
-### Relays between orgs ###
+## Relays between orgs ##
 
 In order to relay messages between orgs, you will need 1 bot in each org configured in the same way.
 
 There are 3 ways to link the org chats together:
 
-#### tell-relay between 2 bots ####
+### tell-relay between 2 bots ###
 
 Pro:
 
@@ -214,7 +214,7 @@ This will then bridge org and private chat of both orgs together. The result loo
 
 Notice how the name of the orgs are abbreviated as configured in the `relay_guild_abbreviation` setting.
 
-#### private-channel-relay between X bots ####
+### private-channel-relay between X bots ###
 
 Pro:
 
@@ -257,7 +257,7 @@ Once the `Relayer` has been setup, they will auto-invite `Alice` and `Bobby`, bu
 
 Notice how they are identical except for the `relay_guild_abbreviation`. If you then either restart `Alice` and `Bobby` or `!invite` them again on the `Relayer`, they will start relaying messages.
 
-#### AMQP-relay between X bots ####
+### AMQP-relay between X bots ###
 
 Pro:
 
@@ -327,3 +327,80 @@ Restart the bots and check the logs if the connection is established. Now it's t
 Notice how they are identical except for the `relay_guild_abbreviation`. Relaying should start immediately after changing the settings.
 
 The value for `relaybot` has to mimic the AMQP exchange you want your network to use.
+
+## Relay with Discord ##
+
+Nadybot can interact with Discord in 2 ways:
+
+* Send notifications into a configured channel
+* Relay messages and commands between a Discord channel and the org and/org private channel of the bot
+
+Both require a working and registered bot in Discord and an authentication token. For relaying, you also need a permanent connection to the discord gateway which is provided by the `DISCORD_GATEWAY_MODULE`.
+
+### Acquiring a token for your Discord bot ##
+
+In order to interact with Discord, you will need a bot account to communicate and log in.
+
+To create one, follow the following steps:
+
+1. Go to the [Discord developer application page](https://discord.com/developers/applications) and login if you haven't already.
+
+2. Click the blue "New Application" button in the top right corner and give it a fancy name (by default this will match the name in Discord later)<br/>
+![Tabs](img/tabs.png)
+
+3. Click "Bot" in the tab to the left and then "Add Bot" to the right. Confirm the selection.
+
+4. (Optional) Upload a fancy avatar or change the nickname of the bot.
+
+5. Click "Copy" on the "Token" section to get it into your clipboard.<br/>
+![Copy Token](img/copy-token.png)
+
+6. Configure your bot to use the token with `!settings save discord_bot_token your_copied_token`<br/>
+It will instantly try and validate if this is a valid token.
+
+7. Go to the "OAuth2" tab to the left and tick the box with "Bot", select "Administrator" in the new box below, then hit the "Copy" button<br/>
+![Invite URL](img/invite-url.png)
+
+8. Paste it in a new browser tab and select your Org's Discord server (you will need Admin permissions there). Click "Authorize" and you're done.<br/>
+![Invite Page](img/invite-page.png)
+
+9. Turn on your Discord modules with<br/>
+`!config mod DISCORD enable all`<br/>
+`!config mod DISCORD_GATEWAY_MODULE enable all`
+
+The token you copied will be used to log in as the bot. If you watch your bot's log, it should now show you that the Gateway module logs into the gateway and starts receiving events.
+
+### Configuring notifications ###
+
+Once you have your Discord access token setup, it is time to choose which Discord channels the bot will use. There's 2 different channels:
+
+* One channel for receiving notifications
+* One channel for relaying into
+
+Both channels can be the same, but you have the choice to use separate ones.
+
+First of all, enable the Developer Mode in Discord, so you are able to copy & paste channel IDs, which is needed now.
+
+Go to your user settings, choose "Appearance" and scroll all the way down to Developer mode
+
+![Developer Mode](img/developer_mode.png)
+
+Activate it and leave user configuration. From now on, when right clicking on any Discord channel, you get the choice to "Copy ID".
+
+Get the channel id of the channel you want your bot to send notifications into and save it with `!settings save discord_notify_channel your_copied_channel_id`
+
+This, again, will be validated immediately. If your Discord bot does not have access to the channel, you should see an error message, disallowing you to pick that channel.
+
+### Configuring the Discord relay ###
+
+First, you have to pick the channel to relay into. Do this by issuing a `!discord relay`. You should see a choice list of all channels known to your bot. Pick one.
+
+Next, send a `!config DISCORD_GATEWAY_MODULE` and configure what and when to relay as well as colors to your liking. The bot should start relaying instantly.
+
+### Calling bot commands ###
+
+In order to call any commands on the bot from Discord, you must "link" a Discord user and an AO bot user. This works by requesting to be linked to an AO user from Discord and accepting the link on AO-side.
+
+You do this by sending a `!extauth request Nadyita` from Discord to the bot in a direct message if you want to link your current Discord user to the AO character "Nadyita". Obviously, change "Nadyita" to whatever your AO character is.
+
+Your AO character should have received a message from the bot to either accept or reject the link. Keep in mind that linking these will grant your Discord user essentially the same rights as your AO user. Once connected, you can use commands prefixed by whatever prefix you set from the Discord channel you relay into or with private messages.

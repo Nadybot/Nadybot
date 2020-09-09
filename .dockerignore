@@ -11,6 +11,7 @@ conf/*.php
 src/Modules/GIT_MODULE
 vendor
 logs
+img
 tags
 style
 extras/*

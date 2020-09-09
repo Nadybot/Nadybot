@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\QUOTE_MODULE;
 
-use Nadybot\Core\AccessManager;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	AccessManager,
+	CommandReply,
+	DB,
+	Nadybot,
+	Text,
+	Util,
+};
 
 /**
  * @author Lucier (RK1)
@@ -41,6 +44,9 @@ class QuoteController {
 	
 	/** @Inject */
 	public Util $util;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 	
 	/**
 	 * This handler is called on bot startup.
@@ -167,18 +173,28 @@ class QuoteController {
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote (\d+)$/i")
+	 * @Matches("/^quote (org|priv) (\d+)$/i")
 	 */
 	public function quoteShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+		$id = (int)($args[2] ?? $args[1]);
 		
 		$result = $this->getQuoteInfo($id);
 		
 		if ($result === null) {
 			$msg = "No quote found with ID <highlight>$id<end>.";
-		} else {
-			$msg = $result;
+			$sendto->reply($msg);
+			return;
 		}
-		$sendto->reply($msg);
+		$msg = $result;
+		if (count($args) === 2) {
+			$sendto->reply($msg);
+			return;
+		}
+		if ($args[1] === "priv") {
+			$this->chatBot->sendPrivate($msg);
+		} elseif ($args[1] === "org") {
+			$this->chatBot->sendGuild($msg);
+		}
 	}
 	
 	/**
@@ -205,7 +221,7 @@ class QuoteController {
 	public function getQuoteInfo(int $id=null) {
 		$count = $this->getMaxId();
 
-		if ($count == 0) {
+		if ($count === 0) {
 			return null;
 		}
 
@@ -229,7 +245,16 @@ class QuoteController {
 		$msg = "ID: <highlight>$row->id<end> of $count\n";
 		$msg .= "Poster: <highlight>$poster<end>\n";
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
-		$msg .= "Quote: <highlight>$quoteMsg<end>\n\n";
+		$msg .= "Quote: <highlight>$quoteMsg<end>\n";
+		$msg .= "Action:";
+		if (!empty($this->chatBot->vars["my_guild"])) {
+			$msg .= " [".
+				$this->text->makeChatcmd("To orgchat", "/tell <myname> quote org {$row->id}").
+			"]";
+		}
+		$msg .= " [".
+			$this->text->makeChatcmd("To Privchat", "/tell <myname> quote priv {$row->id}").
+		"]\n\n";
 
 		$msg .= "<header2>Quotes posted by \"$poster\"<end>\n";
 		/** @var Quote[] */

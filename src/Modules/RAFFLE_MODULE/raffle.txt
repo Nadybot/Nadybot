@@ -1,14 +1,20 @@
 To start a raffle:
 <highlight><tab><symbol>raffle start (count) 'item'<end>
 
+To start a raffle for two separate things:
+<highlight><tab><symbol>raffle start 'item1','item2'<end>
+
+To start a raffle for a 9 pairs of Alpha and Beta Boxes and also something else
+<highlight><tab><symbol>raffle start 9xAlpha Box+Beta Box,Something else<end>
+
+To start a raffle for 6 Libra Activation codes:
+<highlight><tab><symbol>raffle start 6xLibra activation codes<end>
+
 To cancel the raffle immediately:
 <highlight><tab><symbol>raffle cancel<end>
 
 To end the raffle immediately and post the result:
 <highlight><tab><symbol>raffle end<end>
-
-To display the last raffle result:
-<highlight><tab><symbol>raffle result<end>
 
 To join the raffle:
 <highlight><tab><symbol>raffle join<end>
