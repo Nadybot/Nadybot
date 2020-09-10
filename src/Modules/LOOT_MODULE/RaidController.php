@@ -205,7 +205,7 @@ class RaidController {
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE r.aoid IS NULL AND id = ?".
+			"WHERE r.aoid IS NULL AND id = ? ".
 			"UNION ".
 			"SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
