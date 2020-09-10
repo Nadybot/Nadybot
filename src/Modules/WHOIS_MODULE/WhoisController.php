@@ -289,7 +289,9 @@ class WhoisController {
 
 		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
-		$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+		if ($charID !== false) {
+			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+		}
 
 		$msg = $this->playerManager->getInfo($whois);
 		if ($online) {
