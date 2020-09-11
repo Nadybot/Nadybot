@@ -56,9 +56,9 @@ class AltInfo {
 	 *
 	 * @param bool $showValidateLinks Show links to validate the alt if unvalidated
 	 * @param bool $firstPageOnly Only show the first page (login alt-list)
-	 * @return string
+	 * @return string|string[]
 	 */
-	public function getAltsBlob(bool $showValidateLinks=false, bool $firstPageOnly=false): string {
+	public function getAltsBlob(bool $showValidateLinks=false, bool $firstPageOnly=false) {
 		/** @var \Nadybot\Core\DB */
 		$db = Registry::getInstance('db');
 		/** @var \Nadybot\Core\SettingManager */
