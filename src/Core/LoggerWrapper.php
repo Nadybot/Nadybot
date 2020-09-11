@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Registry;
 use Logger;
 use Exception;
+use Throwable;
 
 /**
  * A wrapper class to log4php
@@ -36,7 +37,7 @@ class LoggerWrapper {
 	 * @param Exception $throwable Optional throwable information to include in the logging event
 	 * @return void
 	 */
-	public function log(string $category, string $message, ?Exception $throwable=null): void {
+	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		$this->logger->log($level, $message, $throwable);
 	}

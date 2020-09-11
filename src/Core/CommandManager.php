@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Throwable;
 use ReflectionException;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\CmdCfg;
@@ -317,7 +318,7 @@ class CommandManager {
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", $e->getMessage(), $e);
 			$sendto->reply("There was an SQL error executing your command.");
-		} catch (Exception $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", "Error executing '$message': " . $e->getMessage(), $e);
 			$sendto->reply("There was an error executing your command: " . $e->getMessage());
 		}
