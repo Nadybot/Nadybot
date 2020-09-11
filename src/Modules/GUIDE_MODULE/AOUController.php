@@ -247,7 +247,7 @@ class AOUController {
 		if ($row !== null) {
 			$output = $this->generateItemMarkup($type, $row);
 		} else {
-			$output = $id;
+			$output = (string)$id;
 		}
 		return $output;
 	}
