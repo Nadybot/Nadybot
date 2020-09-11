@@ -528,7 +528,7 @@ class ItemsController {
 				$name
 			);
 		}
-		return $this->db->queryRow(
+		return $this->db->fetch(
 			AODBEntry::class,
 			"SELECT * FROM aodb WHERE name = ? AND lowql <= ? AND highql >= ? ORDER BY highid DESC",
 			$name,
