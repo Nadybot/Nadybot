@@ -568,7 +568,7 @@ class Nadybot extends AOChat {
 	 */
 	public function process_all_packets(AOChatPacket $packet): void {
 		// fire individual packets event
-		$eventObj = new Event();
+		$eventObj = new PacketEvent();
 		$eventObj->type = "packet({$packet->type})";
 		$eventObj->packet = $packet;
 		$this->eventManager->fireEvent($eventObj);
@@ -589,7 +589,7 @@ class Nadybot extends AOChat {
 	 * Handle a player joining a private group
 	 */
 	public function processPrivateChannelJoin(int $channelId, int $userId): void {
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$channel = $this->lookup_user($channelId);
 		$sender = $this->lookup_user($userId);
 		$eventObj->channel = $channel;
@@ -619,7 +619,7 @@ class Nadybot extends AOChat {
 	 * Handle a player leaving a private group
 	 */
 	public function processPrivateChannelLeave(int $channelId, int $userId) {
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$channel = $this->lookup_user($channelId);
 		$sender = $this->lookup_user($userId);
 		$eventObj->channel = $channel;
@@ -645,7 +645,7 @@ class Nadybot extends AOChat {
 	public function processBuddyUpdate(int $userId, int $status): void {
 		$sender = $this->lookup_user($userId);
 
-		$eventObj = new Event();
+		$eventObj = new UserStateEvent();
 		$eventObj->sender = $sender;
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
@@ -693,7 +693,7 @@ class Nadybot extends AOChat {
 			$message = $arr[2];
 		}
 
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 		$eventObj->message = $message;
@@ -746,7 +746,7 @@ class Nadybot extends AOChat {
 		$channel = $this->lookup_user($channelId);
 		$sender = $this->lookup_user($senderId);
 
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
@@ -784,7 +784,7 @@ class Nadybot extends AOChat {
 		$channel = $this->get_gname($channelId);
 		$sender  = $this->lookup_user($senderId);
 
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
@@ -845,7 +845,7 @@ class Nadybot extends AOChat {
 		$type = "extjoinprivrequest"; // Set message type.
 		$sender = $this->lookup_user($channelId);
 
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 

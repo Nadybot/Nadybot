@@ -54,7 +54,7 @@ class EventManager {
 
 		$this->logger->log('DEBUG', "Registering event Type:($type) Handler:($filename) Module:($module)");
 
-		if (!$this->isValidEventType($type) && $this->getTimerEventTime($type) == 0) {
+		if (!$this->isValidEventType($type) && $this->getTimerEventTime($type) === 0) {
 			$this->logger->log('ERROR', "Error registering event Type:($type) Handler:($filename) Module:($module). The type is not a recognized event type!");
 			return;
 		}
@@ -69,19 +69,19 @@ class EventManager {
 			if (isset($this->chatBot->existing_events[$type][$filename])) {
 				$sql = "UPDATE eventcfg_<myname> SET `verify` = 1, `description` = ?, `help` = ? WHERE `type` = ? AND `file` = ? AND `module` = ?";
 				$this->db->exec($sql, $description, $help, $type, $filename, $module);
-			} else {
-				if ($defaultStatus === null) {
-					if ($this->chatBot->vars['default_module_status'] == 1) {
-						$status = 1;
-					} else {
-						$status = 0;
-					}
-				} else {
-					$status = $defaultStatus;
-				}
-				$sql = "INSERT INTO eventcfg_<myname> (`module`, `type`, `file`, `verify`, `description`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?)";
-				$this->db->exec($sql, $module, $type, $filename, '1', $description, $status, $help);
+				return;
 			}
+			if ($defaultStatus === null) {
+				if ($this->chatBot->vars['default_module_status'] == 1) {
+					$status = 1;
+				} else {
+					$status = 0;
+				}
+			} else {
+				$status = $defaultStatus;
+			}
+			$sql = "INSERT INTO eventcfg_<myname> (`module`, `type`, `file`, `verify`, `description`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			$this->db->exec($sql, $module, $type, $filename, '1', $description, $status, $help);
 		} catch (SQLException $e) {
 			$this->logger->log('ERROR', "Error registering method $filename for event type $type: " . $e->getMessage());
 		}
@@ -299,7 +299,18 @@ class EventManager {
 	}
 
 	public function isValidEventType(string $type): bool {
-		return in_array($type, $this->eventTypes) || preg_match(self::PACKET_TYPE_REGEX, $type) === 1;
+		if (in_array($type, $this->eventTypes)) {
+			return true;
+		}
+		if (preg_match(self::PACKET_TYPE_REGEX, $type) === 1) {
+			return true;
+		}
+		foreach ($this->eventTypes as $check) {
+			if (fnmatch($type, $check, FNM_CASEFOLD)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public function getTimerEventTime(string $type): int {
@@ -318,9 +329,16 @@ class EventManager {
 	}
 
 	public function fireEvent(Event $eventObj): void {
-		if (isset($this->events[$eventObj->type])) {
-			foreach ($this->events[$eventObj->type] as $filename) {
-				$this->callEventHandler($eventObj, $filename);
+		// if (isset($this->events[$eventObj->type])) {
+		// 	foreach ($this->events[$eventObj->type] as $filename) {
+		// 		$this->callEventHandler($eventObj, $filename);
+		// 	}
+		// }
+		foreach ($this->events as $type => $handlers) {
+			if ($eventObj->type === $type || fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+				foreach ($handlers as $filename) {
+					$this->callEventHandler($eventObj, $filename);
+				}
 			}
 		}
 	}

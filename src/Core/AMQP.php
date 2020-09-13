@@ -247,7 +247,7 @@ class AMQP {
 			return;
 		}
 		$this->logger->logChat('Inc. AMQP Msg.', $sender, $message->body);
-		$eventObj = new Event();
+		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
 		$eventObj->channel = $exchange;
 		$eventObj->type = 'amqp';
