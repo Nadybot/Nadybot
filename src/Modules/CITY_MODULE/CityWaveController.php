@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	Event,
+	EventManager,
 	Nadybot,
 	SettingManager,
 	SettingObject,
@@ -30,6 +31,9 @@ use Nadybot\Modules\TIMERS_MODULE\{
  *		description = 'Shows/Starts/Stops the current city wave',
  *		help        = 'wavecounter.txt'
  *	)
+ *	@ProvidesEvent("cityraid(start)")
+ *	@ProvidesEvent("cityraid(wave)")
+ *	@ProvidesEvent("cityraid(end)")
  */
 class CityWaveController {
 
@@ -50,6 +54,9 @@ class CityWaveController {
 	
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Inject */
 	public SettingObject $setting;
@@ -188,9 +195,20 @@ class CityWaveController {
 
 	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
 		$this->announce($alert->message, $timer->mode);
+		$event = new CityWaveEvent();
+		$event->type = "cityraid(wave)";
+		$event->wave = $alert->wave;
+		if ($alert->wave === 9) {
+			$event->type = "cityraid(end)";
+		}
+		$this->eventManager->fireEvent($event);
 	}
 	
 	public function startWaveCounter(string $name=null): void {
+		$event = new CityWaveEvent();
+		$event->type = "cityraid(start)";
+		$this->eventManager->fireEvent($event);
+		
 		if ($name === null) {
 			$this->announce("Wave counter started.");
 		} else {

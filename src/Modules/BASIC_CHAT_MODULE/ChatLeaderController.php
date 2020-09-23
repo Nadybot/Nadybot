@@ -6,7 +6,8 @@ use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
 	Event,
-	Nadybot,
+    EventManager,
+    Nadybot,
 	SettingManager,
 };
 
@@ -32,6 +33,8 @@ use Nadybot\Core\{
  *		description = 'Set if the text of the leader will be repeated',
  *		help        = 'leader.txt'
  *	)
+ *	@ProvidesEvent("leader(clear)")
+ *	@ProvidesEvent("leader(set)")
  */
 
 class ChatLeaderController {
@@ -46,6 +49,9 @@ class ChatLeaderController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/**
 	 * Name of the leader character.
@@ -83,6 +89,9 @@ class ChatLeaderController {
 		if ($this->leader === $sender) {
 			$this->leader = null;
 			$this->chatBot->sendPrivate("Raid Leader cleared.");
+			$event = new LeaderEvent();
+			$event->type = "leader(clear)";
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 		$msg = $this->setLeader($sender, $sender);
@@ -119,6 +128,10 @@ class ChatLeaderController {
 		}
 		$this->leader = $name;
 		$this->chatBot->sendPrivate($this->getLeaderStatusText());
+		$event = new LeaderEvent();
+		$event->type = "leader(set)";
+		$event->player = $name;
+		$this->eventManager->fireEvent($event);
 		return null;
 	}
 

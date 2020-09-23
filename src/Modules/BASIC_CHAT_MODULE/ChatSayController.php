@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
 
 /**
@@ -34,6 +35,8 @@ use Nadybot\Core\Nadybot;
  *		description = 'Creates a highly visible message',
  *      help        = 'cmd.txt'
  *	)
+ *	@ProvidesEvent("leadersay")
+ *	@ProvidesEvent("leadercmd")
  */
 class ChatSayController {
 
@@ -42,6 +45,9 @@ class ChatSayController {
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/**
 	 * This command handler sends message to org chat.
@@ -55,6 +61,10 @@ class ChatSayController {
 		}
 
 		$this->chatBot->sendGuild("$sender: $args[1]");
+		$event = new SayEvent();
+		$event->type = "leadersay";
+		$event->message = $args[1];
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
@@ -69,6 +79,10 @@ class ChatSayController {
 		}
 
 		$this->chatBot->sendPrivate("$sender: $args[1]");
+		$event = new SayEvent();
+		$event->type = "leadersay";
+		$event->message = $args[1];
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
@@ -93,6 +107,10 @@ class ChatSayController {
 		} else {
 			$sendto->reply($msg, true);
 		}
+		$event = new SayEvent();
+		$event->type = "leadercmd";
+		$event->message = $args[1];
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**

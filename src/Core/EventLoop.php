@@ -23,13 +23,17 @@ class EventLoop {
 		$this->chatBot->processAllPackets();
 
 		if ($this->chatBot->isReady()) {
-			$this->socketManager->checkMonitoredSockets();
+			$socketActivity = $this->socketManager->checkMonitoredSockets();
 			$this->eventManager->executeConnectEvents();
 			$this->timer->executeTimerEvents();
 			$this->amqp->processMessages();
 			$this->eventManager->crons();
 
-			usleep(10000);
+			if (!$socketActivity) {
+				usleep(10000);
+			} else {
+				usleep(200);
+			}
 		}
 	}
 }

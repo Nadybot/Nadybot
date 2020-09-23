@@ -2,6 +2,6 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-class WebsocketRequestEvent extends WebsocketNadyEvent {
+class WebsocketRequestEvent extends WebsocketEvent {
 	public /** @var NadyRequest */ object $data;
 }

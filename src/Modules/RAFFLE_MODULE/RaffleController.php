@@ -2,21 +2,23 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\AccessManager;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Event;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\PrivateChannelCommandReply;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	AccessManager,
+	CommandReply,
+	DB,
+	DBRow,
+	Event,
+	EventManager,
+	Modules\ALTS\AltsController,
+	Nadybot,
+	PrivateChannelCommandReply,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
- * @author Mindrila (RK1)
- * @author Tyrence (RK2)
+ * @author Nadyita (RK5)
  *
  * @Instance
  *
@@ -27,6 +29,11 @@ use Nadybot\Core\Util;
  *		description = 'Raffle off items to players',
  *		help        = 'raffle.txt'
  *	)
+ * @ProvidesEvent("raffle(start)")
+ * @ProvidesEvent("raffle(cancel)")
+ * @ProvidesEvent("raffle(end)")
+ * @ProvidesEvent("raffle(join)")
+ * @ProvidesEvent("raffle(leave)")
  */
 class RaffleController {
 
@@ -41,6 +48,9 @@ class RaffleController {
 	
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public AltsController $altsController;
@@ -153,6 +163,10 @@ class RaffleController {
 				$this->chatBot->setting->default_private_channel
 			);
 		}
+		$event = new RaffleEvent();
+		$event->raffle = $this->raffle;
+		$event->type = "raffle(start)";
+		$this->eventManager->fireEvent($event);
 
 		$this->announceRaffleStart();
 	}
@@ -220,6 +234,10 @@ class RaffleController {
 		}
 		$msg = "The raffle was cancelled by <highlight>{$sender}<end>.";
 		$this->raffle->sendto->reply($msg);
+		$event = new RaffleEvent();
+		$event->raffle = $this->raffle;
+		$event->type = "raffle(cancel)";
+		$this->eventManager->fireEvent($event);
 		$this->raffle = null;
 	}
 	
@@ -279,6 +297,11 @@ class RaffleController {
 			return;
 		}
 		$this->raffle->slots[$slot]->participants []= $sender;
+		$event = new RaffleParticipationEvent();
+		$event->raffle = $this->raffle;
+		$event->type = "raffle(enter)";
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 
 		if ($this->settingManager->getBool("raffle_announce_participants")) {
 			$this->raffle->sendto->reply(
@@ -315,6 +338,11 @@ class RaffleController {
 			foreach ($this->raffle->slots as &$slot) {
 				$slot->removeParticipant($sender);
 			}
+			$event = new RaffleParticipationEvent();
+			$event->raffle = $this->raffle;
+			$event->type = "raffle(leave)";
+			$event->player = $sender;
+			$this->eventManager->fireEvent($event);
 			if ($this->settingManager->getBool("raffle_announce_participants")) {
 				$this->raffle->sendto->reply(
 					"<highlight>$sender<end> has left the raffle."
@@ -339,6 +367,11 @@ class RaffleController {
 			return;
 		}
 
+		$event = new RaffleParticipationEvent();
+		$event->raffle = $this->raffle;
+		$event->type = "raffle(leave)";
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 		if ($this->settingManager->getBool("raffle_announce_participants")) {
 			$this->raffle->sendto->reply(
 				"<highlight>$sender<end> has left the raffle for ".
@@ -463,6 +496,10 @@ class RaffleController {
 		foreach ($raffle->slots as $slot) {
 			$slot->result = $this->getSlotResult($slot);
 		}
+		$event = new RaffleEvent();
+		$event->raffle = $raffle;
+		$event->type = "raffle(end)";
+		$this->eventManager->fireEvent($event);
 		$this->announceRaffleResults($raffle);
 		$this->adjustBonusPoints($raffle);
 	}

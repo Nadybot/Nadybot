@@ -14,8 +14,8 @@ use Nadybot\Core\{
 	Timer,
 	Websocket,
 	WebsocketClient,
-	WebsocketErrorEvent,
-	WebsocketEvent,
+	WebsocketError,
+	WebsocketCallback,
 };
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
@@ -185,14 +185,14 @@ class DiscordGatewayController {
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
-	public function processWebsocketError(WebsocketEvent $event): void {
+	public function processWebsocketError(WebsocketCallback $event): void {
 		$this->logger->log("ERROR", "[$event->code] $event->data");
-		if ($event->code === WebsocketErrorEvent::CONNECT_TIMEOUT) {
+		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		}
 	}
 
-	public function processWebsocketMessage(WebsocketEvent $event): void {
+	public function processWebsocketMessage(WebsocketCallback $event): void {
 		$payload = new Payload();
 		try {
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
@@ -335,7 +335,7 @@ class DiscordGatewayController {
 		);
 	}
 
-	public function processWebsocketClose(WebsocketEvent $event): void {
+	public function processWebsocketClose(WebsocketCallback $event): void {
 		if (!$this->canResumeSessionAfterClose($event->code ?? null)) {
 			$this->lastSequenceNumber = null;
 			$this->sessionId = null;

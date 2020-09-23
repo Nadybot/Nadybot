@@ -8,6 +8,7 @@ use JsonException;
 use Nadybot\Core\{
 	CommandReply,
 	Event,
+	EventManager,
 	Http,
 	HttpResponse,
 	Modules\DISCORD\DiscordController,
@@ -29,6 +30,8 @@ use Nadybot\Core\{
  *		alias       = 'gsp',
  *		help        = 'radio.txt'
  *	)
+ * @ProvidesEvent("gsp(show_start)")
+ * @ProvidesEvent("gsp(show_end)")
  */
 class GSPController {
 
@@ -49,6 +52,9 @@ class GSPController {
 
 	/** @Inject */
 	public DiscordController $discordController;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -162,12 +168,18 @@ class GSPController {
 			return;
 		}
 
+		$event = new GSPEvent();
+		$event->show = $show;
 		$this->showRunning = $show->live;
 		$this->showName = $show->name;
 		$this->showLocation = $show->info;
 		if (!$show->live) {
+			$event->type = "gsp(show_end)";
+			$this->eventManager->fireEvent($event);
 			return;
 		}
+		$event->type = "gsp(show_start)";
+		$this->eventManager->fireEvent($event);
 		$specialDelimiter = "<yellow>-----------------------------<end>";
 		$msg = "\n".
 			$specialDelimiter . "\n".
@@ -305,8 +317,8 @@ class GSPController {
 		$msg = sprintf(
 			"Currently playing on %s: <highlight>%s<end> - <highlight>%s<end>",
 			($show->live === 1 && $show->name) ? "<yellow>".$show->name."<end>" : "GSP",
-			$song->artist,
-			$song->title
+			$song->artist ?? '<unknown artist>',
+			$song->title ?? '<unknown song>'
 		);
 		if (isset($song->duration) && $song->duration > 0) {
 			$startTime = DateTime::createFromFormat("Y-m-d*H:i:sT", $song->date)->setTimezone(new DateTimeZone("UTC"));

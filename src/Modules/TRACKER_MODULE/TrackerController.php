@@ -7,12 +7,14 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	EventManager,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Modules\TOWER_MODULE\TrackerEvent;
 
 /**
  * @author Tyrence (RK2)
@@ -26,6 +28,8 @@ use Nadybot\Core\{
  *		description = 'Show and manage tracked players',
  *		help        = 'track.txt'
  *	)
+ *	@ProvidesEvent("tracker(logon)")
+ *	@ProvidesEvent("tracker(logoff)")
  */
 class TrackerController {
 
@@ -49,6 +53,9 @@ class TrackerController {
 	
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public DiscordController $discordController;
@@ -126,6 +133,10 @@ class TrackerController {
 		if ($this->settingManager->getInt('show_tracker_events') & 4) {
 			$this->discordController->sendDiscord($msg);
 		}
+		$event = new TrackerEvent();
+		$event->player = $eventObj->sender;
+		$event->type = "tracker(logon)";
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -164,6 +175,10 @@ class TrackerController {
 		if ($this->settingManager->getInt('show_tracker_events') & 4) {
 			$this->discordController->sendDiscord($msg);
 		}
+		$event = new TrackerEvent();
+		$event->player = $eventObj->sender;
+		$event->type = "tracker(logoff)";
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**

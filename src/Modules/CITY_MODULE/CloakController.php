@@ -2,15 +2,17 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\Event;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use PHP_CodeSniffer\Standards\PSR12\Sniffs\Functions\ReturnTypeDeclarationSniff;
+use Nadybot\Core\{
+	CommandReply,
+	DB,
+	Event,
+	EventManager,
+	Modules\ALTS\AltsController,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -25,6 +27,8 @@ use PHP_CodeSniffer\Standards\PSR12\Sniffs\Functions\ReturnTypeDeclarationSniff;
  *		help        = 'cloak.txt',
  *		alias		= 'city'
  *	)
+ *	@ProvidesEvent("cloak(raise)")
+ *	@ProvidesEvent("cloak(lower)")
  */
 class CloakController {
 
@@ -39,6 +43,9 @@ class CloakController {
 	
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Inject */
 	public DB $db;
@@ -151,6 +158,10 @@ class CloakController {
 		}
 
 		$sendto->reply($msg);
+		$event = new CloakEvent();
+		$event->type = "cloak(raise)";
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -170,6 +181,10 @@ class CloakController {
 			$arr[2],
 			$arr[1]
 		);
+		$event = new CloakEvent();
+		$event->type = $arr[2] === 'on' ? "cloak(raise)" : "cloak(lower)";
+		$event->player = $arr[1];
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**

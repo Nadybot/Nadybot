@@ -43,6 +43,13 @@ class SocketNotifier {
 	}
 
 	/**
+	 * Returns the callback
+	 */
+	public function getCallback() {
+		return $this->callback;
+	}
+
+	/**
 	 * Calls the callback and passes given @a $type to the callback.
 	 */
 	public function notify(int $type): void {

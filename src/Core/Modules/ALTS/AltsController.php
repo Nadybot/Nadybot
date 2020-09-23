@@ -2,13 +2,16 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\Event;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Alt;
+use Nadybot\Core\{
+	CommandReply,
+	Event,
+	Nadybot,
+	SettingManager,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	DB,
+	DBSchema\Alt,
+	EventManager,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -33,6 +36,9 @@ use Nadybot\Core\DBSchema\Alt;
  *		description   = 'Validate alts for admin privileges',
  *		help          = 'altvalidate.txt'
  *	)
+ * @ProvidesEvent("alt(add)")
+ * @ProvidesEvent("alt(del)")
+ * @ProvidesEvent("alt(validate)")
  */
 class AltsController {
 
@@ -50,6 +56,9 @@ class AltsController {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public DB $db;
@@ -324,6 +333,12 @@ class AltsController {
 			return;
 		}
 		$this->db->exec("UPDATE `alts` SET `validated` = ? WHERE `alt` LIKE ? AND `main` LIKE ?", '1', $alt, $altInfo->main);
+		$event = new AltEvent();
+		$event->main = $altInfo->main;
+		$event->alt = $alt;
+		$event->validated = true;
+		$event->type = 'alt(validate)';
+		$this->eventManager->fireEvent($event);
 		$sendto->reply("<highlight>$alt<end> has been validated as your alt.");
 	}
 
@@ -376,14 +391,31 @@ class AltsController {
 		$alt = ucfirst(strtolower($alt));
 
 		$sql = "INSERT INTO `alts` (`alt`, `main`, `validated`) VALUES (?, ?, ?)";
-		return $this->db->exec($sql, $alt, $main, $validated);
+		$added = $this->db->exec($sql, $alt, $main, $validated);
+		if ($added > 0) {
+			$event = new AltEvent();
+			$event->main = $main;
+			$event->alt = $alt;
+			$event->validated = $validated;
+			$event->type = 'alt(add)';
+			$this->eventManager->fireEvent($event);
+		}
+		return $added;
 	}
 
 	/**
-	 * This method removes given @a $alt from being @a $main's alt character.
+	 * This method removes given a $alt from being $main's alt character.
 	 */
 	public function remAlt(string $main, string $alt): int {
 		$sql = "DELETE FROM `alts` WHERE `alt` LIKE ? AND `main` LIKE ?";
-		return $this->db->exec($sql, $alt, $main);
+		$deleted = $this->db->exec($sql, $alt, $main);
+		if ($deleted > 0) {
+			$event = new AltEvent();
+			$event->main = $main;
+			$event->alt = $alt;
+			$event->type = 'alt(del)';
+			$this->eventManager->fireEvent($event);
+		}
+		return $deleted;
 	}
 }

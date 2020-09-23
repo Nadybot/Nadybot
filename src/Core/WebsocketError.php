@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-class WebsocketErrorEvent extends Event {
+class WebsocketError {
 	public const UNKNOWN_ERROR = 0;
 	public const INVALID_URL = 1;
 	public const INVALID_SCHEME = 2;
@@ -12,7 +12,4 @@ class WebsocketErrorEvent extends Event {
 	public const INVALID_UPGRADE_RESPONSE = 6;
 	public const WRITE_ERROR = 7;
 	public const BAD_OPCODE = 8;
-
-	public WebsocketClient $websocket;
-	public int $errorCode = self::UNKNOWN_ERROR;
 }

@@ -5,7 +5,8 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	Event,
-	Nadybot,
+    EventManager,
+    Nadybot,
 	SettingManager,
 	Text,
 	Util,
@@ -27,6 +28,8 @@ use Nadybot\Core\{
  *		description = 'Changes Topic',
  *		help        = 'topic.txt'
  *	)
+ *	@ProvidesEvent("topic(set)")
+ *	@ProvidesEvent("topic(clear)")
  */
 class ChatTopicController {
 
@@ -53,6 +56,9 @@ class ChatTopicController {
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Setup */
 	public function setup(): void {
@@ -110,6 +116,10 @@ class ChatTopicController {
 		$this->setTopic($sender, "");
 		$msg = "Topic has been cleared.";
 		$sendto->reply($msg);
+		$event = new TopicEvent();
+		$event->type = "topic(clear)";
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
@@ -126,6 +136,11 @@ class ChatTopicController {
 		$this->setTopic($sender, $args[1]);
 		$msg = "Topic has been updated.";
 		$sendto->reply($msg);
+		$event = new TopicEvent();
+		$event->type = "topic(clear)";
+		$event->topic = $args[1];
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**

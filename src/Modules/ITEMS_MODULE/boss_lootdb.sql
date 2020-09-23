@@ -776,6 +776,7 @@ INSERT INTO `boss_lootdb` VALUES
 (181,'Snake Tamer Guard'),
 (182,'Liquid Notum Ring'),
 (182,'Nelly''s Chip'),
+(182,'Notum Saturated Metaplast Shell'),
 (183,'Remains of AESA 10'),
 (183,'Soft Ring with Fluff'),
 (184,'Notum Miner''s Hard Hat'),

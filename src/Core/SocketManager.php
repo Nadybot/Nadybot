@@ -13,28 +13,31 @@ class SocketManager {
 		SocketNotifier::ACTIVITY_ERROR => [],
 	];
 
-	public function checkMonitoredSockets(): void {
+	public function checkMonitoredSockets(): bool {
 		$read   = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ];
 		$write  = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE];
 		$except = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR];
-		if ($read || $write || $except) {
-			if (0 < stream_select($read, $write, $except, 0)) {
-				foreach ($this->socketNotifiers as $notifier) {
-					$socket = $notifier->getSocket();
-					$type = $notifier->getType();
+		if (empty($read) && empty($write) && empty($except)) {
+			return false;
+		}
+		if (stream_select($read, $write, $except, 0) === 0) {
+			return false;
+		}
+		foreach ($this->socketNotifiers as $notifier) {
+			$socket = $notifier->getSocket();
+			$type = $notifier->getType();
 
-					if (in_array($socket, $read) && $type & SocketNotifier::ACTIVITY_READ) {
-						$notifier->notify(SocketNotifier::ACTIVITY_READ);
-					}
-					if (in_array($socket, $write) && $type & SocketNotifier::ACTIVITY_WRITE) {
-						$notifier->notify(SocketNotifier::ACTIVITY_WRITE);
-					}
-					if (in_array($socket, $except) && $type & SocketNotifier::ACTIVITY_ERROR) {
-						$notifier->notify(SocketNotifier::ACTIVITY_ERROR);
-					}
-				}
+			if (in_array($socket, $read) && $type & SocketNotifier::ACTIVITY_READ) {
+				$notifier->notify(SocketNotifier::ACTIVITY_READ);
+			}
+			if (in_array($socket, $write) && $type & SocketNotifier::ACTIVITY_WRITE) {
+				$notifier->notify(SocketNotifier::ACTIVITY_WRITE);
+			}
+			if (in_array($socket, $except) && $type & SocketNotifier::ACTIVITY_ERROR) {
+				$notifier->notify(SocketNotifier::ACTIVITY_ERROR);
 			}
 		}
+		return true;
 	}
 
 	/**

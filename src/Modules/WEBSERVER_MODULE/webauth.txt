@@ -1,0 +1,5 @@
+To authenticate as an admin so you can login to the webserver
+<tab><highlight><symbol>webauth<end>
+
+You will get a token in return which you can use as a password together
+with your character name to login to the built-in webserver.

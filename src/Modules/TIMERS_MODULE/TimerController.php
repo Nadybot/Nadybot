@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
 	DB,
+	EventManager,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -37,6 +38,9 @@ use Nadybot\Core\{
  *		help        = 'timers.txt',
  *		alias       = 'timer'
  *	)
+ * @ProvidesEvent("timer(start)")
+ * @ProvidesEvent("timer(end)")
+ * @ProvidesEvent("timer(del)")
  */
 class TimerController {
 
@@ -69,6 +73,9 @@ class TimerController {
 	
 	/** @Inject */
 	public SettingObject $setting;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -171,6 +178,12 @@ class TimerController {
 					$instance->{$method}($timer, $alert);
 				} catch (Exception $e) {
 					$this->logger->log("ERROR", "Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), $e);
+				}
+				if (empty($timer->alerts)) {
+					$event = new TimerEvent();
+					$event->timer = $timer;
+					$event->type = "timer(end)";
+					$this->eventManager->fireEvent($event);
 				}
 			}
 		}
@@ -289,6 +302,10 @@ class TimerController {
 		} elseif ($timer->owner !== $sender && !$this->accessManager->checkAccess($sender, "mod")) {
 			$msg = "You must own this timer or have moderator access in order to remove it.";
 		} else {
+			$event = new TimerEvent();
+			$event->timer = $timer;
+			$event->type = "timer(del)";
+			$this->eventManager->fireEvent($event);
 			$this->remove($name);
 			$msg = "Removed timer <highlight>$timer->name<end>.";
 		}
@@ -449,6 +466,11 @@ class TimerController {
 		$timer->callback = $callback;
 		$timer->data = $data;
 		$timer->alerts = $alerts;
+
+		$event = new TimerEvent();
+		$event->timer = $timer;
+		$event->type = "timer(start)";
+		$this->eventManager->fireEvent($event);
 
 		$this->timers[strtolower($name)] = $timer;
 

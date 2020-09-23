@@ -5,16 +5,24 @@ namespace Nadybot\Modules\WEBSOCKET_MODULE;
 use Exception;
 use Throwable;
 use TypeError;
+
 use Nadybot\Core\{
-	CommandReply,
 	Event,
 	EventManager,
 	LoggerWrapper,
 	PacketEvent,
 	Registry,
 	SettingManager,
-	WebsocketEvent,
+    StopExecutionException,
+    WebsocketBase,
+	WebsocketCallback,
 	WebsocketServer,
+};
+
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	HttpProtocolWrapper,
+	Request,
+	Response,
 };
 
 /**
@@ -25,14 +33,6 @@ use Nadybot\Core\{
  * @ProvidesEvent("websocket(request)")
  * @ProvidesEvent("websocket(response)")
  * @ProvidesEvent("websocket(event)")
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webauth',
- *		accessLevel = 'mod',
- *		description = 'Pre-authorize Websocket connections',
- *		help        = 'webauth.txt'
- *	)
  */
 class WebsocketController {
 	/**
@@ -40,8 +40,6 @@ class WebsocketController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-
-	public WebsocketServer $server;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -52,35 +50,107 @@ class WebsocketController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** @var array<string,WebsocketServer> */
+	protected array $clients = [];
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
-			'certificate_path',
-			'Path to the SSL/TLS certificate',
+			'websocket',
+			'Enable the websocket handler',
 			'edit',
-			'text',
-			''
+			'options',
+			'0',
+			'true;false',
+			'1;0'
 		);
-
-		$this->server = new WebsocketServer();
-		Registry::injectDependencies($this->server);
-		$this->server
-			->on(WebsocketServer::ON_CONNECT, [$this, "clientConnected"])
-			->on(WebsocketServer::ON_TEXT, [$this, "clientSentData"])
-			->on(WebsocketServer::ON_CLOSE, [$this, "clientDisconnected"]);
-		$this->server->listen();
 	}
 
-	public function clientConnected(WebsocketEvent $event) {
-		$this->logger->log("INFO", "New connection from " . $event->websocket->getPeer());
+	/**
+	 * @HttpGet("/events")
+	 */
+	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
+		if (!$this->settingManager->getBool('websocket')) {
+			return;
+		}
+		$response = $this->getResponseForWebsocketRequest($request);
+		$server->sendResponse($response);
+		if ($response->code !== Response::SWITCHING_PROTOCOLS) {
+			return;
+		}
+		$websocketHandler = new WebsocketServer($server->getAsyncSocket());
+		Registry::injectDependencies($websocketHandler);
+		$server->getAsyncSocket()->destroy();
+		unset($server);
+		$websocketHandler->serve();
+		$websocketHandler->checkTimeout();
+		$websocketHandler->on(WebsocketServer::ON_TEXT, [$this, "clientSentData"]);
+		$websocketHandler->on(WebsocketServer::ON_CLOSE, [$this, "clientDisconnected"]);
+		$websocketHandler->on(WebsocketServer::ON_ERROR, [$this, "clientError"]);
+
+		$this->logger->log("INFO", "Upgrading connection to WebSocket");
 	}
 
-	public function clientDisconnected(WebsocketEvent $event) {
-		$this->logger->log("INFO", "Closed connection from " . $event->websocket->getPeer());
+	/**
+	 * Check if the upgrade was requested correctly and return either error or upgrade response
+	 */
+	protected function getResponseForWebsocketRequest(Request $request): Response {
+		$errorResponse = new Response(
+			Response::UPGRADE_REQUIRED,
+			[
+				"Connection" => "Upgrade",
+				"Upgrade" => "websocket",
+				"Sec-WebSocket-Version" => "13",
+				"Sec-WebSocket-Protocol" => "nadybot",
+			]
+		);
+		$clientRequestedWebsocket = isset($request->headers["upgrade"])
+			&& strtolower($request->headers["upgrade"]) === "websocket";
+		if (!$clientRequestedWebsocket) {
+			$this->logger->log('DEBUG', 'Client accessed WebSocket endpoint without requesting upgrade');
+			return $errorResponse;
+		}
+		if (!isset($request->headers["sec-websocket-key"])) {
+			$this->logger->log('DEBUG', 'WebSocket client did not give key');
+			return new Response(Response::BAD_REQUEST);
+		}
+		$key = $request->headers["sec-websocket-key"];
+		if (isset($request->headers["sec-websocket-protocol"])
+			&& !in_array("nadybot", preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
+			return $errorResponse;
+		}
+
+		/** @todo Validate key length and base 64 */
+		$responseKey = base64_encode(pack('H*', sha1($key . WebsocketBase::GUID)));
+		return new Response(
+			Response::SWITCHING_PROTOCOLS,
+			[
+				"Connection" => "Upgrade",
+				"Upgrade" => "websocket",
+				"Sec-WebSocket-Accept" => $responseKey,
+				"Sec-WebSocket-Protocol" => "nadybot",
+			]
+		);
 	}
 
-	public function clientSentData(WebsocketEvent $event) {
+	public function clientConnected(WebsocketCallback $event) {
+		$this->logger->log("DEBUG", "New Websocket connection from " . $event->websocket->getPeer());
+	}
+
+	public function clientDisconnected(WebsocketCallback $event) {
+		$this->logger->log("DEBUG", "Closed Websocket connection from " . $event->websocket->getPeer());
+	}
+
+	public function clientError(WebsocketCallback $event) {
+		$this->logger->log("DEBUG", "Websocket client error from " . $event->websocket->getPeer());
+		$event->websocket->close();
+	}
+
+	/**
+	 * Handle the Websocket client sending data
+	 */
+	public function clientSentData(WebsocketCallback $event) {
 		$this->logger->log("INFO", "[Data inc.] {$event->data}");
 		try {
 			if (!is_string($event->data)) {
@@ -98,28 +168,33 @@ class WebsocketController {
 		}
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent();
-			$newEvent->websocket = $event->websocket;
 			$newEvent->type = "websocket(subscribe)";
 			$newEvent->data = new NadySubscribe();
-			$newEvent->data->fromJSON($command->data);
-			$this->eventManager->fireEvent($newEvent);
 		} elseif ($command->command === $command::REQUEST) {
 			$newEvent = new WebsocketRequestEvent();
-			$newEvent->websocket = $event->websocket;
 			$newEvent->type = "websocket(request)";
 			$newEvent->data = new NadyRequest();
-			$newEvent->data->fromJSON($command->data);
-			$this->eventManager->fireEvent($newEvent);
+		} else {
+			// Unknown command received is just silently ignored in case another handler deals with it
+			return;
 		}
+		try {
+			$newEvent->data->fromJSON($command->data);
+		} catch (Throwable $e) {
+			$event->websocket->close(4002);
+			return;
+		}
+		$this->eventManager->fireEvent($newEvent, $event->websocket);
 	}
 
 	/**
 	 * @Event("websocket(subscribe)")
-	 * @Description("Handle API event subscriptions")
+	 * @Description("Handle Websocket event subscriptions")
 	 */
-	public function handleSubscriptions(WebsocketSubscribeEvent $event): void {
+	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
-			$event->websocket->subscribe(...$event->data->events);
+			$server->subscribe(...$event->data->events);
+			$this->logger->log('INFO', 'Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
 			$event->websocket->close(4002);
 		}
@@ -129,60 +204,49 @@ class WebsocketController {
 	 * @Event("websocket(request)")
 	 * @Description("Handle API requests")
 	 */
-	public function handleRequests(WebsocketRequestEvent $event): void {
-	}
-
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Ping WebSocket clients")
-	 */
-	public function sendPing(): void {
-		if (isset($this->server)) {
-			$this->server->send("", "ping");
-		}
+	public function handleRequests(WebsocketRequestEvent $event, WebsocketServer $server): void {
+		// Not implemented yet
 	}
 
 	/**
 	 * @Event("*")
-	 * @Description("Sink")
-	 * @DefaultStatus("1")
+	 * @Description("Distribute events to Websocket clients")
 	 */
 	public function displayEvent(Event $event): void {
-		if ($event instanceof PacketEvent) {
+		$isPrivatPacket = $event->type === 'msg'
+			|| $event instanceof PacketEvent
+			|| $event instanceof WebsocketEvent;
+		// Packages that might contain secret or private information must never be relayed
+		if ($isPrivatPacket) {
 			return;
 		}
 		$class = end($parts = explode("\\", get_class($event)));
 		$event->class = $class;
-		$clients = $this->server->getClients();
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;
-		foreach ($clients as $uuid => $client) {
+		foreach ($this->clients as $uuid => $client) {
 			foreach ($client->getSubscriptions() as $subscription) {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
-					$client->send(json_encode($packet, JSON_UNESCAPED_SLASHES));
-					$this->logger->log('DEBUG', 'Sending ' . $class . ' to Websocket client');
+					$client->send(json_encode($packet, JSON_UNESCAPED_SLASHES), 'text', true);
+					$this->logger->log('INFO', 'Sending ' . $class . ' to Websocket client');
 				}
 			}
 		}
 	}
+
 	/**
-	 * @Event("timer(10min)")
-	 * @Description("Remove expired authorizations")
+	 * Register a Websocket client connection, so we can send commands/events to it
 	 */
-	public function clearExpiredAuthorizations(): void {
-		$this->server->clearExpiredAuthorizations();
+	public function registerClient(WebsocketServer $client): void {
+		$this->clients[$client->getUUID()] = $client;
 	}
 
 	/**
-	 * @HandlesCommand("webauth")
-	 * @Matches("/^webauth$/")
+	 * Register a Websocket client connection, so we don't keep a reference to it
 	 */
-	public function webauthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uuid = $this->server->authorize($sender, 3600);
-		$msg = "You can now authorize to the Websocket server for 1h with the ".
-			"crediantials <highlight>{$uuid}<end>.";
-		$sendto->reply($msg);
+	public function unregisterClient(WebsocketServer $client): void {
+		unset($this->clients[$client->getUUID()]);
 	}
 }

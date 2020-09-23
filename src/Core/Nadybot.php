@@ -226,8 +226,9 @@ class Nadybot extends AOChat {
 		}
 
 		$this->db->beginTransaction();
-		foreach (Registry::getAllInstances() as $name => $instance) {
-			$this->registerEvents($instance);
+		$allClasses = get_declared_classes();
+		foreach ($allClasses as $class) {
+			$this->registerEvents($class);
 		}
 		$this->db->commit();
 		$this->db->beginTransaction();
@@ -856,8 +857,8 @@ class Nadybot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
-	public function registerEvents(object $obj): void {
-		$reflection = new ReflectionAnnotatedClass($obj);
+	public function registerEvents(string $class): void {
+		$reflection = new ReflectionAnnotatedClass($class);
 		
 		if (!$reflection->hasAnnotation('ProvidesEvent')) {
 			return;

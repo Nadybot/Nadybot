@@ -4,7 +4,8 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
 	CommandReply,
-	Nadybot,
+    EventManager,
+    Nadybot,
 	Text,
 };
 
@@ -25,6 +26,8 @@ use Nadybot\Core\{
  *		description = 'Sets a new assist',
  *		help        = 'assist.txt'
  *	)
+ *	@ProvidesEvent("assist(clear)")
+ *	@ProvidesEvent("assist(add)")
  */
 class ChatAssistController {
 
@@ -42,6 +45,9 @@ class ChatAssistController {
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/**
 	 * Contains the assist macro message.
@@ -73,6 +79,9 @@ class ChatAssistController {
 
 		$this->assistMessage = null;
 		$sendto->reply("Assist has been cleared.");
+		$event = new AssistEvent();
+		$event->type = "assist(clear)";
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
@@ -86,6 +95,8 @@ class ChatAssistController {
 		}
 
 		$nameArray = preg_split("/\s+|,\s*/", $args[1]);
+		$event = new AssistEvent();
+		$event->type = "assist(add)";
 		
 		if (count($nameArray) === 1) {
 			$name = ucfirst(strtolower($args[1]));
@@ -99,10 +110,12 @@ class ChatAssistController {
 				$sendto->reply($msg);
 				return;
 			}
+			$event->players []= $name;
 
 			$link = $this->text->makeChatcmd("Click here to make an assist $name macro", "/macro $name /assist $name");
 			$this->assistMessage = $this->text->makeBlob("Assist $name Macro", $link);
 			$sendto->reply($this->assistMessage);
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 
@@ -114,12 +127,15 @@ class ChatAssistController {
 				$errors []= "Character <highlight>$name<end> does not exist.";
 			} elseif ($channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$errors []= "Character <highlight>$name<end> is not in this bot.";
+			} else {
+				$event->players []= $name;
 			}
 
 			$nameArray[$key] = "/assist $name";
 		}
 		if (count($errors)) {
 			$sendto->reply(join("\n", $errors));
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 
@@ -128,5 +144,6 @@ class ChatAssistController {
 		$this->assistMessage = '/macro assist ' . implode(" \\n ", $nameArray);
 
 		$sendto->reply($this->assistMessage);
+		$this->eventManager->fireEvent($event);
 	}
 }

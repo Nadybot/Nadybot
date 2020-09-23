@@ -105,7 +105,7 @@ class EventManager {
 			$eventObj = new Event();
 			$eventObj->type = 'setup';
 
-			$this->callEventHandler($eventObj, $filename);
+			$this->callEventHandler($eventObj, $filename, []);
 		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
@@ -275,7 +275,7 @@ class EventManager {
 				$eventObj->type = strtolower((string)$event['time']);
 
 				$this->cronevents[$key]['nextevent'] = $time + $event['time'];
-				$this->callEventHandler($eventObj, $event['filename']);
+				$this->callEventHandler($eventObj, $event['filename'], []);
 			}
 		}
 	}
@@ -328,17 +328,13 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent(Event $eventObj): void {
-		// if (isset($this->events[$eventObj->type])) {
-		// 	foreach ($this->events[$eventObj->type] as $filename) {
-		// 		$this->callEventHandler($eventObj, $filename);
-		// 	}
-		// }
+	public function fireEvent(Event $eventObj, ...$args): void {
 		foreach ($this->events as $type => $handlers) {
-			if ($eventObj->type === $type || fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
-				foreach ($handlers as $filename) {
-					$this->callEventHandler($eventObj, $filename);
-				}
+			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($handlers as $filename) {
+				$this->callEventHandler($eventObj, $filename, $args);
 			}
 		}
 	}
@@ -346,7 +342,7 @@ class EventManager {
 	/**
 	 * @throws StopExecutionException
 	 */
-	public function callEventHandler(Event $eventObj, string $handler): void {
+	public function callEventHandler(Event $eventObj, string $handler, array $args): void {
 		$this->logger->log('DEBUG', "Executing handler '$handler' for event type '$eventObj->type'");
 
 		try {
@@ -355,7 +351,7 @@ class EventManager {
 			if ($instance === null) {
 				$this->logger->log('ERROR', "Could not find instance for name '$name' in '$handler' for event type '$eventObj->type'");
 			} else {
-				$instance->$method($eventObj);
+				$instance->$method($eventObj, ...$args);
 			}
 		} catch (StopExecutionException $e) {
 			throw $e;

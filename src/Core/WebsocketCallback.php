@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
-class WebsocketEvent {
-	public WebsocketBase $websocket;
+class WebsocketCallback {
+	public WebsocketServer $websocket;
 	public string $eventName;
 	public ?string $data = null;
 	public ?int $code = null;

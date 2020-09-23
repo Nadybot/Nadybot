@@ -79,27 +79,6 @@ class WebsocketClient extends WebsocketBase {
 		$this->fireEvent(static::ON_ERROR, $event);
 	}
 
-	public function checkTimeout() {
-		if (!$this->isConnected() || !$this->connected) {
-			$this->throwError(
-				WebsocketErrorEvent::CONNECT_TIMEOUT,
-				"Connecting to {$this->uri} timed out."
-			);
-			return;
-		}
-		if (time() - $this->lastReadTime >= 30) {
-			$this->send("", 'ping', true);
-		}
-		if (time() - $this->lastReadTime >= 30 + $this->timeout) {
-			$this->throwError(
-				WebsocketErrorEvent::CONNECT_TIMEOUT,
-				"Connection to {$this->uri} timed out, no response to ping."
-			);
-		} else {
-			$this->timeoutChecker = $this->timer->callLater(5, [$this, "checkTimeout"]);
-		}
-	}
-
 	public function connect(): bool {
 		$urlParts = parse_url($this->uri);
 		if ($urlParts === false
@@ -108,14 +87,14 @@ class WebsocketClient extends WebsocketBase {
 			|| empty($urlParts['host'])
 		) {
 			$this->throwError(
-				WebsocketErrorEvent::INVALID_URL,
+				WebsocketError::INVALID_URL,
 				$this->uri . " is not a fully qualified url"
 			);
 			return false;
 		}
 		if (!in_array($urlParts['scheme'], ['ws', 'wss'])) {
 			$this->throwError(
-				WebsocketErrorEvent::INVALID_SCHEME,
+				WebsocketError::INVALID_SCHEME,
 				$this->uri . " is not a ws:// or wss:// uri"
 			);
 			return false;
@@ -237,7 +216,7 @@ class WebsocketClient extends WebsocketBase {
 		if (!preg_match('/Sec-WebSocket-Accept:\s*(.+)$/mUi', $response, $matches)) {
 			$address = $urlParts["scheme"] . '://' . $urlParts["host"] . $path;
 			$this->throwError(
-				WebsocketErrorEvent::WEBSOCKETS_NOT_SUPPORTED,
+				WebsocketError::WEBSOCKETS_NOT_SUPPORTED,
 				"Server at {$address} does not seem to support websockets: {$response}"
 			);
 			return false;
@@ -248,7 +227,7 @@ class WebsocketClient extends WebsocketBase {
 
 		if ($keyAccept !== $expectedResonse) {
 			$this->throwError(
-				WebsocketErrorEvent::INVALID_UPGRADE_RESPONSE,
+				WebsocketError::INVALID_UPGRADE_RESPONSE,
 				'Server sent bad upgrade response.'
 			);
 			return false;

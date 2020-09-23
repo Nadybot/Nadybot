@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
+	EventManager,
 	LoggerWrapper,
 	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -83,6 +84,8 @@ use Nadybot\Modules\{
  *		help        = 'victory.txt',
  *		alias       = 'victories'
  *	)
+ *  @ProvidesEvent("tower(attack)")
+ *  @ProvidesEvent("tower(win)")
  */
 class TowerController {
 
@@ -109,6 +112,9 @@ class TowerController {
 
 	/** @Inject */
 	public DiscordController $discordController;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public DB $db;
@@ -340,7 +346,7 @@ class TowerController {
 		}
 
 		$sql = "SELECT * FROM tower_site t ".
-			"JOIN playfields p ON (t1.playfield_id = p.id) ".
+			"JOIN playfields p ON (t.playfield_id = p.id) ".
 			"WHERE t.playfield_id = ?";
 	
 		/** @var SiteInfo[] */
@@ -1040,6 +1046,8 @@ class TowerController {
 		} else {
 			return;
 		}
+		
+		$event = new TowerVictoryEvent();
 
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -1050,13 +1058,14 @@ class TowerController {
 		$msg = $this->settingManager->getString('tower_spam_color').
 			"[TOWERS]<end> ".
 			"<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
-			" won against ".
+			" won against " .
 			"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
 
 		if ($lastAttack !== null) {
 			$towerInfo = $this->getTowerInfo($playfield->id, $lastAttack->site_number);
+			$event->site = $towerInfo;
 			$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$lastAttack->x_coords} {$lastAttack->y_coords} {$playfield->id}");
 			$timerLocation = $this->text->makeBlob(
 				"{$playfield->short_name} {$lastAttack->site_number}",
@@ -1100,6 +1109,8 @@ class TowerController {
 		}
 		
 		$this->recordVictory($lastAttack);
+		$event->attack = $lastAttack;
+		$this->eventManager->fireEvent($event);
 	}
 
 	protected function attacksCommandHandler(?int $pageLabel=null, array $where, string $cmd, CommandReply $sendto): void {
@@ -1287,6 +1298,11 @@ class TowerController {
 	}
 
 	protected function recordAttack(Player $whois, string $defFaction, string $defOrgName, int $xCoords, int $yCoords, TowerSite $closestSite): int {
+		$event = new TowerAttackEvent();
+		$event->attacker = $whois;
+		$event->defender = (object)["org" => $defOrgName, "faction" => $defFaction];
+		$event->site = $closestSite;
+		$event->type = "timer(start)";
 		$sql = "INSERT INTO tower_attack_<myname> ( ".
 				"`time`, `att_guild_name`, `att_faction`, `att_player`, ".
 				"`att_level`, `att_ai_level`, `att_profession`, `def_guild_name`, ".
@@ -1294,7 +1310,7 @@ class TowerController {
 				"`y_coords` ".
 			") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		return $this->db->exec(
+		$result = $this->db->exec(
 			$sql,
 			time(),
 			$whois->guild ?? null,
@@ -1310,6 +1326,8 @@ class TowerController {
 			$xCoords,
 			$yCoords
 		);
+		$this->eventManager->fireEvent($event);
+		return $result;
 	}
 
 	protected function getLastVictory(int $playfieldID, int $siteNumber): ?TowerAttackAndVictory {

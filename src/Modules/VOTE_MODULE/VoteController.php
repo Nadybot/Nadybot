@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	EventManager,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -36,6 +37,12 @@ use Nadybot\Core\{
  *		description = 'Create, view or delete polls',
  *		help        = 'vote.txt'
  *	)
+ *	@ProvidesEvent("poll(start)")
+ *	@ProvidesEvent("poll(end)")
+ *	@ProvidesEvent("poll(del)")
+ *	@ProvidesEvent("vote(cast)")
+ *	@ProvidesEvent("vote(del)")
+ *	@ProvidesEvent("vote(change)")
  */
 class VoteController {
 
@@ -65,6 +72,9 @@ class VoteController {
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public Timer $timer;
@@ -218,6 +228,17 @@ class VoteController {
 					self::STATUS_ENDED,
 					$poll->id
 				);
+				$event = new PollEvent();
+				$event->poll = clone($poll);
+				unset($event->poll->possible_answers);
+				/** @var ?Vote */
+				$event->votes = $this->db->fetchAll(
+					Vote::class,
+					"SELECT * FROM votes_<myname> WHERE `poll_id` = ?",
+					$poll->id,
+				);
+				$event->type = "poll(end)";
+				$this->eventManager->fireEvent($event);
 				unset($this->polls[$id]);
 			} elseif ($poll->status === self::STATUS_CREATED) {
 				$title = "Vote: $poll->question";
@@ -314,7 +335,7 @@ class VoteController {
 	 * @HandlesCommand("poll")
 	 * @Matches("/^poll (?:kill|del|delete|rem|remove|rm) (\d+)$/i")
 	 */
-	public function voteKillCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function pollKillCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
 		$owner = null;
 		if (!$this->accessManager->checkAccess($sender, "moderator")) {
@@ -329,9 +350,14 @@ class VoteController {
 		}
 		$this->db->exec("DELETE FROM votes_<myname> WHERE `poll_id` = ?", $topic->id);
 		$this->db->exec("DELETE FROM polls_<myname> WHERE `id` = ?", $topic->id);
+		$event = new PollEvent();
+		$event->poll = clone($topic);
+		unset($event->poll->possible_answers);
+		$event->type = "poll(del)";
 		unset($this->polls[$topic->id]);
 		$msg = "The poll <highlight>{$topic->question}<end> has been removed.";
 		$sendto->reply($msg);
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -355,6 +381,12 @@ class VoteController {
 		);
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
+			$event = new VoteEvent();
+			$event->poll = clone($topic);
+			unset($event->poll->possible_answers);
+			$event->type = "vote(del)";
+			$event->player = $sender;
+			$this->eventManager->fireEvent($event);
 		} else {
 			$msg = "You have not voted on <highlight>{$topic->question}<end>.";
 		}
@@ -459,6 +491,11 @@ class VoteController {
 			$topic->id,
 			$sender
 		);
+		$event = new VoteEvent();
+		$event->poll = clone($topic);
+		unset($event->poll->possible_answers);
+		$event->player = $sender;
+		$event->vote = $answer;
 		if ($oldVote) {
 			$this->db->exec(
 				"UPDATE votes_<myname> ".
@@ -470,6 +507,8 @@ class VoteController {
 			);
 			$msg = "You have changed your vote to ".
 				"<highlight>{$answer}<end> for \"{$topic->question}\".";
+			$event->type = "vote(change)";
+			$event->oldVote = $oldVote->answer;
 		} else {
 			$this->db->exec(
 				"INSERT INTO votes_<myname> ".
@@ -481,8 +520,10 @@ class VoteController {
 				$topic->id
 			);
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
+			$event->type = "vote(cast)";
 		}
 		$sendto->reply($msg);
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -529,6 +570,11 @@ class VoteController {
 		$msg = "Voting topic <highlight>{$topic->id}<end> has been created.";
 
 		$sendto->reply($msg);
+		$event = new PollEvent();
+		$event->poll = clone($topic);
+		unset($event->poll->possible_answers);
+		$event->type = "poll(start)";
+		$this->eventManager->fireEvent($event);
 	}
 	
 	public function getPollBlob(Poll $topic, ?string $sender=null) {
