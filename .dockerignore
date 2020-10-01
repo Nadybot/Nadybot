@@ -14,4 +14,6 @@ logs
 img
 tags
 style
+src/Api
+generateApiDoc.php
 extras/*

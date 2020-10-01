@@ -10,6 +10,8 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Socket\AsyncSocket,
 };
+use stdClass;
+use Throwable;
 
 /**
  * A convenient wrapper around AsyncSockets that emits
@@ -263,7 +265,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		$this->request->method = strtolower($matches[1]);
-		if (!in_array($this->request->method, [Request::GET, Request::POST, Request::HEAD])) {
+		if (!in_array($this->request->method, [Request::GET, Request::POST, Request::HEAD, Request::PUT, Request::DELETE])) {
 			$this->httpError(new Response(Response::NOT_IMPLEMENTED));
 			return;
 		}
@@ -309,13 +311,13 @@ class HttpProtocolWrapper {
 			$this->request->headers[$key] = $parts[1];
 			return;
 		}
-		if (in_array($this->request->method, [Request::GET, Request::HEAD], true)) {
-			$this->nextPart = static::EXPECT_DONE;
-			$this->request->received = microtime(true);
-			return;
-		}
 		if (!isset($this->request->headers['content-length'])
 			|| !is_numeric($this->request->headers['content-length'])) {
+			if (in_array($this->request->method, [Request::GET, Request::HEAD, Request::DELETE], true)) {
+				$this->nextPart = static::EXPECT_DONE;
+				$this->request->received = microtime(true);
+				return;
+			}
 			$this->httpError(new Response(Response::LENGTH_REQUIRED));
 			return;
 		}
@@ -389,8 +391,13 @@ class HttpProtocolWrapper {
 	 * Trigger the event handlers for the request
 	 */
 	public function handleRequest(): void {
-		$this->request->authorizedAs = $this->getAuthorizedUser();
+		$this->request->authenticatedAs = $this->getAuthorizedUser();
 		$event = new HttpEvent();
+		$response = $this->decodeRequestBody($this->request);
+		if ($response instanceof Response) {
+			$this->httpError($response);
+			return;
+		}
 		$event->request = $this->request;
 		$event->type = "http(" . strtolower($this->request->method) . ")";
 		$this->logger->log("DEBUG", "Firing {$event->type} event");
@@ -398,6 +405,37 @@ class HttpProtocolWrapper {
 		$this->request = new Request();
 		$this->nextPart = static::EXPECT_REQUEST;
 		$this->readQueue = "";
+	}
+
+	/**
+	 * Try and decode the request body in accordance of the given content type
+	 * @return null|Response null on success or a error Response to send
+	 */
+	public function decodeRequestBody(): ?Response {
+		if (!isset($this->request->body) || $this->request->body === "") {
+			return null;
+		}
+		if (!isset($this->request->headers['content-type'])) {
+			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
+		}
+		if ($this->request->headers['content-type'] === 'application/json') {
+			try {
+				return json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+			} catch (Throwable $error) {
+				return new Response(Response::BAD_REQUEST);
+			}
+		}
+		if ($this->request->headers['content-type'] === 'application/x-www-form-urlencoded') {
+			$parts = explode("&", $this->request->body);
+			$result = new stdClass();
+			foreach ($parts as $part) {
+				$kv = array_map("urldecode", explode("=", $part, 2));
+				$result->{$kv[0]} = $kv[1] ?? null;
+			}
+			$this->request->decodedBody = $result;
+			return null;
+		}
+		return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
 	}
 
 	public function __destruct() {

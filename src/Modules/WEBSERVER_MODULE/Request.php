@@ -12,10 +12,11 @@ class Request {
 	/** @var array<string,string> */
 	public array $headers = [];
 	public ?string $body = null;
+	public $decodedBody = null;
 	public array $query = [];
 	public string $method;
 	public string $path;
-	public ?string $authorizedAs = null;
+	public ?string $authenticatedAs = null;
 	public float $version;
 	public float $replied;
 	public ?float $received = null;

@@ -132,7 +132,7 @@ class ClassLoader {
 	public static function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
 		if ($dir = dir($path)) {
-			while (false !== ($file = $dir->read())) {
+			while (($file = $dir->read()) !== false) {
 				if (!is_dir($path . '/' . $file) && preg_match("/\\.php$/i", $file)) {
 					require_once "{$path}/{$file}";
 				}

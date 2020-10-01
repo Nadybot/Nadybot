@@ -16,6 +16,10 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 
 /**
  * @author Tyrence (RK2)
@@ -543,5 +547,19 @@ class OnlineController {
 			"Trader" => 7,
 		];
 		return $profToID[$profession] ?? null;
+	}
+
+	/**
+	 * Get a list of all people online in all linked channels
+	 * @Api("/online")
+	 * @GET
+	 * @AccessLevelFrom("online")
+	 * @ApiResult(code=200, class='OnlinePlayers', desc='A list of online players')
+	 */
+	public function apiOnlineEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$result = new OnlinePlayers();
+		$result->org = $this->getPlayers('guild');
+		$result->private_channel = $this->getPlayers('priv');
+		return new ApiResponse($result);
 	}
 }

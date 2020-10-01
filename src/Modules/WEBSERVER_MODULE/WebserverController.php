@@ -49,7 +49,7 @@ class WebserverController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	protected array $routes = ['get' => [], 'post' => []];
+	protected array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
 
 	/** @var array */
 	protected array $authentications = [];
@@ -62,7 +62,7 @@ class WebserverController {
 			'Enable webserver',
 			'edit',
 			'options',
-			'1',
+			'0',
 			'true;false',
 			'1;0'
 		);
@@ -160,7 +160,7 @@ class WebserverController {
 			$reflection = new ReflectionAnnotatedClass($instance);
 			foreach ($reflection->getMethods() as $method) {
 				/** @var \Addendum\ReflectionAnnotatedMethod $method */
-				foreach (["HttpGet", "HttpPost"] as $annoName) {
+				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete"] as $annoName) {
 					if (!$method->hasAnnotation($annoName)) {
 						continue;
 					}
@@ -181,7 +181,7 @@ class WebserverController {
 	 */
 	public function addRoute(string $method, string $path, callable $callback): void {
 		$route = $this->routeToRegExp($path);
-		if (!isset($this->routes[$route][$method])) {
+		if (!isset($this->routes[$method][$route])) {
 			$this->routes[$method][$route] = [];
 		}
 		$this->logger->log('DEBUG', "Adding route to {$path}");
@@ -200,7 +200,7 @@ class WebserverController {
 	/**
 	 * Convert the route notation /foo/%s/bar into a regexp
 	 */
-	protected function routeToRegExp(string $route): string {
+	public function routeToRegExp(string $route): string {
 		$match = preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
@@ -351,21 +351,30 @@ class WebserverController {
 	/**
 	 * @Event("http(get)")
 	 * @Event("http(head)")
+	 * @Event("http(post)")
+	 * @Event("http(put)")
+	 * @Event("http(delete)")
 	 * @Description("Call handlers for HTTP GET requests")
+	 * @DefaultStatus("1")
 	 */
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
-		if (!isset($event->request->authorizedAs)) {
+		if (!isset($event->request->authenticatedAs)) {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
 				["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
 			));
 			return;
 		}
+
 		$handlers = $this->getHandlersForRequest($event->request);
 		foreach ($handlers as $handler) {
 			$handler[0]($event->request, $server, ...$handler[1]);
 		}
 		if (isset($event->request->replied)) {
+			return;
+		}
+		if (!in_array($event->request->method, [Request::HEAD, Request::GET])) {
+			$server->httpError(new Response(Response::METHOD_NOT_ALLOWED));
 			return;
 		}
 		$response = $this->serveStaticFile($event->request);
@@ -374,14 +383,6 @@ class WebserverController {
 		} else {
 			$server->sendResponse($response);
 		}
-	}
-
-	/**
-	 * @Event("http(post)")
-	 * @Description("Call handlers for HTTP POST requests")
-	 */
-	public function postRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
-		$server->httpError(new Response(Response::NOT_IMPLEMENTED));
 	}
 
 	protected function serveStaticFile(Request $request): Response {

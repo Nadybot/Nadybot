@@ -191,4 +191,12 @@ class Response {
 		}
 		return $response;
 	}
+
+	public function setCode(int $code): self {
+		$this->code = $code;
+		if (isset(static::DEFAULT_RESPONSE_TEXT[$code])) {
+			$this->codeString = static::DEFAULT_RESPONSE_TEXT[$code];
+		}
+		return $this;
+	}
 }
