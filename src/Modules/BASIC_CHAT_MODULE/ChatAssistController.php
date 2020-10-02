@@ -65,17 +65,17 @@ class ChatAssistController {
 			} else {
 				$blob .= "<header2>Callers<end>\n";
 			}
-			foreach ($callerList->callers as $player) {
-				$blob .= "<tab>$player\n";
+			for ($i = 0; $i < count($callerList->callers); $i++) {
+				$blob .= "<tab>" . ($i + 1) . ". " . $callerList->callers[$i] . "\n";
 			}
-			$blob .= "\n<highlight>Macro<end>: /macro ";
+			$blob .= "\n<tab><highlight>Macro<end>: /macro ";
 			if (strlen($name)) {
-				$blob .= $this->chatBot->vars["name"];
-			} else {
 				$blob .= $callerList->name;
+			} else {
+				$blob .= $this->chatBot->vars["name"];
 			}
-			$blob . " assist " . join("\\n assist ", $callerList->callers);
-			$blob .= "\n\n";
+			$blob .= " assist " . join(" \\n assist ", $callerList->callers);
+			$blob .= "\n\n\n";
 		}
 		return $blob;
 	}
@@ -90,7 +90,7 @@ class ChatAssistController {
 			$sendto->reply($msg);
 			return;
 		}
-		$sendto->reply($this->text->makeBlob("Callers", $this->getAssistMessage()));
+		$sendto->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
 	}
 	
 	/**
@@ -200,10 +200,20 @@ class ChatAssistController {
 			$this->callers[$groupKey] = new CallerList();
 			$this->callers[$groupKey]->name = $groupName;
 			$this->callers[$groupKey]->callers = [$name];
-			$msg = "Added <highlight>{$name}<end> to the list of callers \"<highlight>{$groupName}<end>\"";
+			$msg = "Added <highlight>{$name}<end> to the new list of callers";
+			if (strlen($groupName)) {
+				$msg .= " \"<highlight>{$groupName}<end>\"";
+			}
 		} else {
+			if (in_array($name, $this->callers[$groupKey]->callers)) {
+				$sendto->reply("<highlight>{$name}<end> is already in the list of callers.");
+				return;
+			}
 			array_unshift($this->callers[$groupKey]->callers, $name);
-			$msg = "Added <highlight>{$name}<end> to the new list of callers \"<highlight>{$groupName}<end>\"";
+			$msg = "Added <highlight>{$name}<end> to the list of callers";
+			if (strlen($groupName)) {
+				$msg .= " \"<highlight>{$groupName}<end>\"";
+			}
 		}
 
 		$blob = $this->getAssistMessage();
