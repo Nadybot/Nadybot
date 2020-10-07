@@ -8,9 +8,13 @@
   </svg>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import { defineComponent, computed } from "vue";
-import { findIconDefinition } from "@fortawesome/fontawesome-svg-core";
+import {
+  findIconDefinition,
+  IconPrefix,
+  IconName,
+} from "@fortawesome/fontawesome-svg-core";
 
 export default defineComponent({
   name: "FontAwesomeIcon",
@@ -31,8 +35,8 @@ export default defineComponent({
   setup(props) {
     const definition = computed(() =>
       findIconDefinition({
-        prefix: props.type,
-        iconName: props.icon,
+        prefix: props.type as IconPrefix,
+        iconName: props.icon as IconName,
       })
     );
 
