@@ -1,21 +1,14 @@
 FROM alpine:edge
 
-WORKDIR /build
+# Mount the current folder to /build
 
-COPY package.json package-lock.json ./
+# Create and enter a temporary directory
+# so we do not overwrite package.json, package-lock.json or node_modules/
+WORKDIR /build-tmp
 
-RUN apk add --no-cache --virtual .node nodejs-current npm && \
-    npm i
-
-COPY . .
-
-RUN npm run build && \
-    mv dist /dist && \
-    adduser -h /dist -s /bin/false -D -H nadyui && \
-    chown -R nadyui:nadyui /dist && \
-    apk del .node && \
-    apk add --no-cache darkhttpd
-
-USER nadyui
-
-CMD ["darkhttpd", "/dist"]
+RUN cp -r /build/* /build-tmp/ && \
+    rm -rf /build-tmp/node_modules/ && \
+    apk add --no-cache --virtual .node nodejs-current npm && \
+    npm i && \
+    npm run build && \
+    mv dist /build/
