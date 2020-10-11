@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Sidebar title="nadyui"></Sidebar>
+    <sidebar title="nadyui" :items="items"></sidebar>
     <div class="content-container">
       <div class="container-fluid">
         <router-view />
@@ -18,24 +18,21 @@
 
 <script lang="ts">
 import "bootstrap/dist/css/bootstrap.min.css";
-import Sidebar from "@/components/Sidebar.vue";
 
 export default {
-  name: "example",
-  components: {
-    Sidebar,
-  },
-  data(): Record<string, unknown> {
+  name: "nadyui",
+
+  data(): Record<string, Array<Record<string, string>>> {
     return {
       items: [
         {
           name: "Home",
-          target: "Home",
+          path: "/",
           icon: "home",
         },
         {
           name: "Users",
-          target: "Users",
+          path: "/users",
           icon: "user",
         },
       ],
