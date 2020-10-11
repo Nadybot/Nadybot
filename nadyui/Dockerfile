@@ -4,11 +4,12 @@ FROM alpine:edge
 
 # Create and enter a temporary directory
 # so we do not overwrite package.json, package-lock.json or node_modules/
-WORKDIR /build-tmp
+WORKDIR /tmp/build
 
-RUN cp -r /build/* /build-tmp/ && \
-    rm -rf /build-tmp/node_modules/ && \
+RUN cp -r /build/* /tmp/build && \
+    rm -rf /tmp/build/node_modules/ && \
     apk add --no-cache --virtual .node nodejs-current npm && \
     npm i && \
     npm run build && \
+    rm -rf /build/dist && \
     mv dist /build/

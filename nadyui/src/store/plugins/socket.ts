@@ -1,7 +1,7 @@
 import { Store } from "vuex";
 
 const protocol = window.location.protocol == "https:" ? "wss" : "ws";
-const client = new WebSocket(`${protocol}://${window.location.host}/api`);
+const client = new WebSocket(`${protocol}://${window.location.host}/events`);
 
 export default function createWebSocketPlugin() {
   return function (store: Store<unknown>): void {
