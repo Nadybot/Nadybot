@@ -1,11 +1,20 @@
 <template>
   <div id="app">
     <Sidebar title="nadyui"></Sidebar>
-    <router-view />
+    <div class="content-container">
+      <div class="container-fluid">
+        <router-view />
+      </div>
+    </div>
   </div>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss">
+.content-container {
+  padding-top: 20px;
+  padding-left: 220px;
+}
+</style>
 
 <script lang="ts">
 import "bootstrap/dist/css/bootstrap.min.css";
