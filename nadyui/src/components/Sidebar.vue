@@ -69,24 +69,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
-  },
-
-  data() {
-    return {
-      // Sample data
-      items: [
-        {
-          name: "Home",
-          icon: "home",
-          path: "/",
-        },
-        {
-          name: "Users",
-          icon: "user",
-          path: "/users",
-        },
-      ],
-    };
+    items: {
+      type: Array,
+      required: true,
+    },
   },
 });
 </script>
