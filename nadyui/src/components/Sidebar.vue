@@ -1,9 +1,10 @@
 <template>
-  <nav id="sidebar" class="active">
-    <h1>
-      <router-link to="/" class="logo">{{ title }}</router-link>
-    </h1>
-    <ul class="list-unstyled components mb-5">
+  <div class="sidebar-container">
+    <div class="sidebar-logo">
+      {{ title }}
+    </div>
+    <ul class="sidebar-navigation">
+      <li class="header">Navigation</li>
       <sidebar-item
         v-for="item in items"
         :key="item.name"
@@ -12,10 +13,45 @@
         :name="item.name"
       ></sidebar-item>
     </ul>
-  </nav>
+  </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped>
+.sidebar-container {
+  position: fixed;
+  width: 220px;
+  height: 100%;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.sidebar-logo {
+  padding: 10px 15px 10px 30px;
+  font-size: 20px;
+  background-color: #2574a9;
+}
+
+.sidebar-navigation {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  position: relative;
+
+  .header {
+    font-size: 12px;
+    text-transform: uppercase;
+    background-color: #151515;
+    padding: 10px 15px 10px 30px;
+
+    &::before {
+      background-color: transparent;
+    }
+  }
+}
+</style>
 
 <script lang="ts">
 import { defineComponent } from "vue";

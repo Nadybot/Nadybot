@@ -3,6 +3,7 @@
     xmlns="http://www.w3.org/2000/svg"
     :class="$props.class"
     :viewBox="`0 0 ${width} ${height}`"
+    :style="style"
   >
     <path fill="currentColor" :d="svgPath" />
   </svg>
@@ -24,12 +25,23 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    size: {
+      type: Number,
+      default: 14,
+      required: false,
+    },
     type: {
       type: String,
       default: "fas",
       required: false,
     },
     class: String,
+  },
+
+  computed: {
+    style(): string {
+      return `max-width: ${this.size}px; max-height: ${this.size}px`;
+    },
   },
 
   setup(props) {
