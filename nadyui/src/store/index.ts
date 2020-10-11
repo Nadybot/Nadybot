@@ -12,6 +12,9 @@ export default createStore({
     websocketData(_, data: string): void {
       console.log(`got data: ${data}`);
     },
+    websocketClose(_, closeCode: number): void {
+      console.log(`websocket closed with code ${closeCode}`);
+    },
   },
   modules: {},
   plugins: [socket()],
