@@ -22,7 +22,7 @@ Looted from: <a href='chatcmd:///waypoint 1247.2 601.5 4880'>Arcorashs</a>, <a  
 <a href='itemref://284957/284957/1'>Adonis</a>
 <a href='itemref://284957/284957/1'><img src='rdb://293713'></a>
 Level Range: <highlight>131-160<end>
-Looted from: <a href='chatcmd:///waypoint 2061.5 635.9 4872'>Creepos</a>, <a  href='chatcmd:///waypoint 1976.9 631.4 4872'>Somphos</a> and <a  href='chatcmd:///waypoint 1919.9 284.1 4873'>Stingers</a>
+Looted from: <a href='chatcmd:///waypoint 2061.5 635.9 4872'>Creepos</a>, <a  href='chatcmd:///waypoint 1976.9 631.4 4872'>Somphos</a>, <a  href='chatcmd:///waypoint 1919.9 284.1 4873'>Stingers</a> and Molokhs
 
 <a href='itemref://284958/284958/1'>Penumbra</a>
 <a href='itemref://284958/284958/1'><img src='rdb://293712'></a>

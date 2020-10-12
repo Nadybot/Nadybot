@@ -13,8 +13,7 @@ use Nadybot\Core\{
 	PacketEvent,
 	Registry,
 	SettingManager,
-    StopExecutionException,
-    WebsocketBase,
+	WebsocketBase,
 	WebsocketCallback,
 	WebsocketServer,
 };
@@ -102,7 +101,7 @@ class WebsocketController {
 				"Connection" => "Upgrade",
 				"Upgrade" => "websocket",
 				"Sec-WebSocket-Version" => "13",
-				"Sec-WebSocket-Protocol" => "nadybot",
+				// "Sec-WebSocket-Protocol" => "nadybot",
 			]
 		);
 		$clientRequestedWebsocket = isset($request->headers["upgrade"])
@@ -129,7 +128,7 @@ class WebsocketController {
 				"Connection" => "Upgrade",
 				"Upgrade" => "websocket",
 				"Sec-WebSocket-Accept" => $responseKey,
-				"Sec-WebSocket-Protocol" => "nadybot",
+				// "Sec-WebSocket-Protocol" => "nadybot",
 			]
 		);
 	}

@@ -236,7 +236,7 @@ class CommandManager {
 	}
 
 	/**
-	 * Loads the active command into memory and activtes them
+	 * Loads the active command into memory and activates them
 	 */
 	public function loadCommands(): void {
 		$this->logger->log('DEBUG', "Loading enabled commands");

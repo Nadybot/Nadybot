@@ -321,7 +321,8 @@ class WhatBuffsController {
 		$tmp = explode(" ", $skill);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 		
-		return $this->db->query(
+		return $this->db->fetchAll(
+			Skill::class,
 			"SELECT id, name FROM (
 				SELECT DISTINCT id, name FROM skills WHERE $query
 				UNION

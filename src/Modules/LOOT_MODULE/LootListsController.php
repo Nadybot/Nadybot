@@ -4,6 +4,7 @@ namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\{
 	CommandAlias,
+	CommandManager,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -148,13 +149,16 @@ class LootListsController {
 	public SettingManager $settingManager;
 	
 	/** @Inject */
-	public RaidController $raidController;
+	public LootController $lootController;
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 	
 	/** @Setup */
 	public function setup(): void {
@@ -165,7 +169,7 @@ class LootListsController {
 			'Show pictures in loot lists',
 			'edit',
 			'options',
-			'1',
+			'0',
 			'true;false',
 			'1;0'
 		);
@@ -288,11 +292,11 @@ class LootListsController {
 	
 	public function addAPFLootToList(int $sector): void {
 		// adding apf stuff
-		$this->raidController->addRaidToLootList('APF', "Sector $sector");
+		$this->lootController->addRaidToLootList('APF', "Sector $sector");
 		$msg = "Sector $sector loot table was added to the loot list.";
 		$this->chatBot->sendPrivate($msg);
 
-		$msg = $this->raidController->getCurrentLootList();
+		$msg = $this->lootController->getCurrentLootList();
 		$this->chatBot->sendPrivate($msg);
 	}
 	
@@ -687,21 +691,29 @@ class LootListsController {
 		if (count($data) === 0) {
 			return null;
 		}
+		$auctionsEnabled = $this->commandManager->getActiveCommandHandler('bid', 'msg', 'bid start item') !== null;
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
 		foreach ($data as $row) {
 			$lootCmd = $this->text->makeChatcmd("To Loot", "/tell <myname> loot add $row->id");
+			$bidCmd = "";
+			if ($auctionsEnabled) {
+				$bidCmd = $this->text->makeChatcmd(
+					"Auction",
+					"/tell <myname> loot auction $row->id"
+				) . " - ";
+			}
 			if ($row->lowid) {
 				if ($showLootPics) {
 					$name = "<img src=rdb://{$row->icon}>";
 				} else {
 					$name = $row->name;
-					$blob .= $lootCmd . " - ";
+					$blob .= "{$bidCmd}{$lootCmd} - ";
 				}
 				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $name);
 			} else {
-				$blob .= "$lootCmd - <highlight>{$row->name}<end>";
+				$blob .= "{$bidCmd}{$lootCmd} - <highlight>{$row->name}<end>";
 			}
 			if ($showLootPics && $row->lowid) {
 				$blob .= "\n<highlight>{$row->name}<end>";

@@ -1,0 +1,20 @@
+To award everyone in the raid with raid points, use
+<tab><highlight><symbol>raid reward 'amount'<end>
+
+To remove points from everyone in the raid, use
+<tab><highlight><symbol>raid punish 'amount'<end>
+
+To check other people's raid points, use
+<tab><highlight>/tell <myname> points 'player'<end>
+
+Please note that this is sensitive information not to be given away!
+
+To increase a player's points, use
+<tab><highlight><symbol>points add 'player' 'amount' 'reason'<end>
+
+And please provide a detailed reason like 'Was with us at Libra' and not 'bug'.
+
+To remove points from a player, use
+<tab><highlight><symbol>points rem 'player' 'amount' 'reason'<end>
+
+And once again, explain in detail, why. Usually mislooting, so mention which item.

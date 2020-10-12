@@ -75,7 +75,10 @@ class Nadybot extends AOChat {
 
 	public bool $ready = false;
 
-	/** @var array<string,bool> $chatlist */
+	/**
+	 * Names of players in our private channel
+	 * @var array<string,bool>
+	 **/
 	public array $chatlist = [];
 
 	/**
@@ -368,6 +371,11 @@ class Nadybot extends AOChat {
 		$privColor = $this->settingManager->get('default_priv_color');
 
 		$this->send_privgroup($group, $privColor.$message);
+		$event = new AOChatEvent();
+		$event->type = "sendpriv";
+		$event->channel = $group;
+		$event->message = $message;
+		$this->eventManager->fireEvent($event);
 		if ($this->isDefaultPrivateChannel($group)) {
 			// relay to guild channel
 			if (!$disable_relay
@@ -468,6 +476,39 @@ class Nadybot extends AOChat {
 
 		$this->logger->logChat("Out. Msg.", $character, $message);
 		$this->send_tell($character, $tellColor.$message, "\0", $priority);
+		$event = new AOChatEvent();
+		$event->type = "sendmsg";
+		$event->channel = $character;
+		$event->message = $message;
+		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * Send a mass message via the chatproxy to another player/bot
+	 */
+	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
+		// If we're not using a chat proxy, this doesn't do anything
+		if (($this->vars["use_proxy"]??0) == 0) {
+			$this->sendTell(...func_get_args());
+			return;
+		}
+		// for when $text->makeBlob generates several pages
+		if (is_array($message)) {
+			foreach ($message as $page) {
+				$this->sendMassTell($page, $character, $priority);
+			}
+			return;
+		}
+
+		$priority ??= AOC_PRIORITY_HIGH;
+
+		if ($formatMessage) {
+			$message = $this->text->formatMessage($message);
+			$tellColor = $this->settingManager->get("default_tell_color");
+		}
+
+		$this->logger->logChat("Out. Msg.", $character, $message);
+		$this->send_tell($character, $tellColor.$message, "spam", $priority);
 	}
 
 	/**

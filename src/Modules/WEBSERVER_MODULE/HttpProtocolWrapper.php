@@ -198,8 +198,10 @@ class HttpProtocolWrapper {
 			|| (strtolower($this->request->headers["connection"]??"")) === "close"
 			|| $response->code >= 400;
 		if (!$requiresClose) {
-			$response->headers['Connection'] = 'Keep-Alive';
-			$response->headers['Keep-Alive'] = 'timeout=' . $this->asyncSocket->getTimeout();
+			if ($response->code !== Response::SWITCHING_PROTOCOLS) {
+				$response->headers['Connection'] = 'Keep-Alive';
+				$response->headers['Keep-Alive'] = 'timeout=' . $this->asyncSocket->getTimeout();
+			}
 		} else {
 			$response->headers['Connection'] = 'Close';
 			$this->logger->log('DEBUG', 'Not allowing keep-alives for this client/response.');

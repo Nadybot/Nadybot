@@ -116,8 +116,8 @@ namespace Nadybot\Core;
  * @property \Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController $privateChannelController
  * @property \Nadybot\Modules\QUOTE_MODULE\QuoteController $quoteController
  * @property \Nadybot\Modules\RAFFLE_MODULE\RaffleController $raffleController
- * @property \Nadybot\Modules\RAID_MODULE\LootListsController $lootListsController
- * @property \Nadybot\Modules\RAID_MODULE\RaidController $raidController
+ * @property \Nadybot\Modules\LOOT_MODULE\LootListsController $lootListsController
+ * @property \Nadybot\Modules\LOOT_MODULE\LootController $lootController
  * @property \Nadybot\Modules\RECIPE_MODULE\RecipeController $recipeController
  * @property \Nadybot\Modules\RELAY_MODULE\RelayController $relayController
  * @property \Nadybot\Modules\REPUTATION_MODULE\KillOnSightController $killOnSightController

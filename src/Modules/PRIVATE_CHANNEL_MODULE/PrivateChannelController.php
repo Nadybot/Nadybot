@@ -596,10 +596,10 @@ class PrivateChannelController {
 	
 	/**
 	 * @Event("connect")
-	 * @Description("Adds all members as buddies who have auto-invite enabled")
+	 * @Description("Adds all members as buddies")
 	 */
 	public function connectEvent(Event $eventObj): void {
-		$sql = "SELECT * FROM members_<myname> WHERE autoinv = 1";
+		$sql = "SELECT * FROM members_<myname>";
 		/** @var Member[] */
 		$members = $this->db->fetchAll(Member::class, $sql);
 		foreach ($members as $member) {

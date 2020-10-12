@@ -7,6 +7,10 @@ To add an item multiple times to the loot list:
 <highlight><tab><symbol>loot addmulti 'amount' 'item reference'<end>
 (e.g.: <symbol>loot addmulti 3 Lockpick)
 
+To add multiple items to the loot list:
+<highlight><tab><symbol>mloot 'item reference 1' 'item reference 2', ...<end>
+(e.g.: <symbol>mloot <a href="itemref://247707/247707/1">Solid Clump of Kyr'Ozch Bio-Material</a><a href='itemref://270339/270338/77'>Miy's Melee Armor Cloak</a>)
+
 To remove an item from the loot list:
 <highlight><tab><symbol>loot rem 'item number'<end>
 

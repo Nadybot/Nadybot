@@ -41,5 +41,10 @@
 		<appender_ref ref="defaultConsoleAppenderStdErr" />
 		<appender_ref ref="defaultFileAppender" />
 	</root>
+		
+	<!-- <logger name="WebserverController">
+           <level value="DEBUG" />
+           <appender_ref ref="defaultConsoleAppenderStdOut" />
+   </logger> -->
     
 </configuration>

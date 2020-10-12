@@ -1,0 +1,56 @@
+<header2>Basic raid commands<end>
+
+In order to start a raid, use
+<tab><highlight><symbol>raid start 'description'<end>
+
+The raid will be started with some default settings you can find in the config page of this module.
+
+Likewise, to stop a raid, use
+<tab><highlight><symbol>raid stop<end>
+
+Once a raid is running, players can <i><symbol>raid join</i> to enter. If you
+want to prevent more people from joining, use
+<tab><highlight><symbol>raid lock<end>
+<tab><highlight><symbol>raid unlock<end>
+
+to lock/unlock the raid. The raid leaders can still manually add players to the raid, but
+not the players themselves. You can then issue a
+<tab><highlight><symbol>raid notin<end>
+
+in order to warn all those people in the private channel that haven't joined yet.
+
+The reason to use the raid functionality is to easily check if everyone is with you,
+by issuing a
+<tab><highlight><symbol>raid check<end>
+
+before you step. By carefully checking for 'Cannot find &gt;player&lt;', you
+can easily spot who joined the raid but isn't here yet or was simply never
+invited.
+
+If you are running a point raid, points are given with
+<tab><highlight><symbol>raid reward 'amount'<end>
+
+to all members of the raid
+
+<header2>Advanced raid commands<end>
+
+Changing things
+<tab><highlight><symbol>raid desc 'new description'<end>
+<tab><highlight><symbol>raid spp 'Seconds per point'<end>
+<tab><highlight><symbol>raid lock<end>
+<tab><highlight><symbol>raid unlock<end>
+
+Adding/removing people
+<tab><highlight><symbol>raid add 'player'<end>
+<tab><highlight><symbol>raid kick 'player'<end>
+
+Giving/removing points
+<tab><highlight><symbol>raid reward 'points'<end>
+<tab><highlight><symbol>raid punish 'points'<end>
+<tab><highlight><symbol>points add 'player' 'points' 'reason'<end>
+<tab><highlight><symbol>points rem 'player' 'points' 'reason'<end>
+
+Running auctions
+<tab><highlight><symbol>bid start 'item'<end>
+<tab><highlight><symbol>bid cancel<end>
+<tab><highlight><symbol>bid end<end>

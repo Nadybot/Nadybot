@@ -541,7 +541,7 @@ class AOChat {
 			return false;
 		}
 		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_MSG_PRIVATE, [$uid, $msg, "\0"]));
+		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_MSG_PRIVATE, [$uid, $msg, $blob]));
 		$this->iteration();
 		return true;
 	}
@@ -632,7 +632,6 @@ class AOChat {
 		if (($gid = $this->get_uid($group)) === false) {
 			return false;
 		}
-
 		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
 	}
 

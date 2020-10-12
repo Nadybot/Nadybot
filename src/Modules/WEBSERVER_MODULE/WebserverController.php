@@ -399,6 +399,9 @@ class WebserverController {
 		if (is_dir($realFile)) {
 			$realFile .= "/index.html";
 		}
+		if (!@file_exists($realFile)) {
+			return new Response(Response::NOT_FOUND);
+		}
 		$response = new Response(
 			Response::OK,
 			['Content-Type' => $this->guessContentType($realFile)],
@@ -454,7 +457,7 @@ class WebserverController {
 	 */
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
-			if ($data[1] > time()) {
+			if ($data[1] < time()) {
 				unset($this->authentications[$user]);
 			}
 		}

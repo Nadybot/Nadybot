@@ -156,12 +156,13 @@ class WebsocketBase {
 	}
 
 	protected function write(string $data): bool {
-		$this->logger->log("INFO", "[" . ($this->uri ?? $this->peerName)."] Writing " . strlen($data) . " bytes of data to WebSocket");
+		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName)."] Writing " . strlen($data) . " bytes of data to WebSocket");
 		if (strlen($data) === 0) {
 			return true;
 		}
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
+			$this->logger->log("ERROR", "Error sending data");
 			$length = strlen($data);
 			@fclose($this->socket);
 			$this->throwError(
@@ -170,6 +171,7 @@ class WebsocketBase {
 			);
 			return false;
 		}
+		$this->logger->log("DEBUG", "$written byte sent");
 		$data = substr($data, $written);
 		if (strlen($data)) {
 			array_unshift($this->sendQueue, $data);
@@ -316,7 +318,7 @@ class WebsocketBase {
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
 					@fclose($this->socket);
-					$this->logger->log("INFO", "Socket closed with status " . $this->closeStatus ?? "<unknown>");
+					$this->logger->log("DEBUG", "Socket closed with status " . $this->closeStatus ?? "<unknown>");
 					$this->socket = null;
 					$event = $this->getEvent("close");
 					$event->code = $this->closeStatus;
