@@ -1,10 +1,18 @@
 import { createStore } from "vuex";
 
+import { getOnlineMembers } from "@/nadybot/http";
+
 import socket from "./plugins/socket";
 
 export default createStore({
-  state: {},
-  mutations: {},
+  state: {
+    users: [],
+  },
+  mutations: {
+    loadOnlineUsers(): void {
+      console.log(getOnlineMembers());
+    },
+  },
   actions: {
     websocketOpen(): void {
       console.log("websocket is open");
