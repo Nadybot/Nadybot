@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar-container">
     <div class="sidebar-logo">
-      {{ title }}
+      <img src="../assets/logo.png" />
     </div>
     <ul class="sidebar-navigation">
       <li class="header">Navigation</li>
@@ -29,9 +29,13 @@
 }
 
 .sidebar-logo {
-  padding: 10px 15px 10px 30px;
   font-size: 20px;
   background-color: #2574a9;
+  padding-bottom: 15px;
+
+  img {
+    max-width: 100%;
+  }
 }
 
 .sidebar-navigation {
@@ -65,10 +69,6 @@ export default defineComponent({
   },
 
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
     items: {
       type: Array,
       required: true,
