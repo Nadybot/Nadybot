@@ -141,7 +141,7 @@
 							"$ref": "#/components/schemas/OnlinePlayer"
 						}
 					},
-					"private_chanel": {
+					"private_channel": {
 						"type": "array",
 						"description": "All players online in the private channel",
 						"items": {
