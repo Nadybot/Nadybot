@@ -19,5 +19,5 @@ class OnlinePlayers {
 	 * All players online in the private channel
 	 * @var OnlinePlayer[]
 	 */
-	public array $private_chanel = [];
+	public array $private_channel = [];
 }
