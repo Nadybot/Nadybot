@@ -22,7 +22,7 @@ export default defineComponent({
       required: true,
     },
     title: {
-      type: Number,
+      type: String,
       required: true,
     },
     content: {

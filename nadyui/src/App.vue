@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <sidebar title="nadyui" :items="items"></sidebar>
+    <sidebar :items="items"></sidebar>
     <div class="content-container">
       <div class="container-fluid">
         <router-view />
