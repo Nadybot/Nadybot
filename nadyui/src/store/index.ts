@@ -3,14 +3,21 @@ import { createStore } from "vuex";
 import { getOnlineMembers } from "@/nadybot/http";
 
 import socket from "./plugins/socket";
+import { OnlinePlayers } from "@/nadybot/types";
+
+const emptyPlayers: OnlinePlayers = {
+  org: [],
+  private_channel: [],
+};
 
 export default createStore({
   state: {
-    users: [],
+    users: emptyPlayers,
   },
   mutations: {
-    loadOnlineUsers(): void {
-      console.log(getOnlineMembers());
+    async loadOnlineUsers(state): Promise<void> {
+      const users = await getOnlineMembers();
+      state.users = users;
     },
   },
   actions: {

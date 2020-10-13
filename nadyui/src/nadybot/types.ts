@@ -97,10 +97,10 @@ export interface OnlinePlayer extends PlayerBase {
 }
 
 // This is the list of all players considered to be online by the bot
-export type OnlinePlayers = {
+export interface OnlinePlayers {
   org: Array<OnlinePlayer>;
   private_channel: Array<OnlinePlayer>;
-};
+}
 
 export const breedDecoder = JsonDecoder.enumeration<Breed>(Breed, "Breed");
 export const genderDecoder = JsonDecoder.enumeration<Gender>(Gender, "Gender");
