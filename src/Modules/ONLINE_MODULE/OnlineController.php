@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	EventManager,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -35,6 +36,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
  *		description = 'Shows who is online',
  *		help        = 'online.txt'
  *	)
+ * @ProvidesEvent("online(member)")
+ * @ProvidesEvent("offline(member)")
  */
 class OnlineController {
 	protected const GROUP_OFF = 0;
@@ -55,6 +58,9 @@ class OnlineController {
 	
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Inject */
 	public AccessManager $accessManager;
@@ -213,6 +219,10 @@ class OnlineController {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+			$event = new OnlineEvent();
+			$event->type = "online(member)";
+			$event->player = $sender;
+			$this->eventManager->fireEvent($event);
 		}
 	}
 	
@@ -224,6 +234,10 @@ class OnlineController {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
+			$event = new OnlineEvent();
+			$event->type = "offline(member)";
+			$event->player = $sender;
+			$this->eventManager->fireEvent($event);
 		}
 	}
 	
