@@ -1,10 +1,8 @@
 <template>
-  <div id="app">
-    <sidebar :items="items"></sidebar>
-    <div class="content-container">
-      <div class="container-fluid">
-        <router-view />
-      </div>
+  <sidebar :items="items"></sidebar>
+  <div class="content-container">
+    <div class="container-fluid">
+      <router-view />
     </div>
   </div>
 </template>
