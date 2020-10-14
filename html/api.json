@@ -37,6 +37,7 @@
 					},
 					"level": {
 						"type": "integer",
+						"nullable": true,
 						"description": "What level (1-220) is the characer or null if unknown"
 					},
 					"breed": {
@@ -53,6 +54,7 @@
 					},
 					"profession": {
 						"type": "string",
+						"nullable": true,
 						"description": "The long profession name (e.g. \"Enforcer\", not \"enf\" or \"enfo\") or an empty string if unknown"
 					},
 					"prof_title": {
@@ -65,42 +67,52 @@
 					},
 					"ai_level": {
 						"type": "integer",
+						"nullable": true,
 						"description": "AI level of this player or null if unknown"
 					},
 					"org_id": {
 						"type": "integer",
+						"nullable": true,
 						"description": "The id of the org this player is in or null if none or unknown"
 					},
 					"org": {
 						"type": "string",
+						"nullable": true,
 						"description": "The name of the org this player is in or null if none/unknown"
 					},
 					"org_rank": {
 						"type": "string",
+						"nullable": true,
 						"description": "The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown"
 					},
 					"org_rank_id": {
 						"type": "integer",
+						"nullable": true,
 						"description": "The numeric rank of the player in their org or null if not in an org/unknown"
 					},
 					"dimension": {
 						"type": "integer",
+						"nullable": true,
 						"description": "In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19"
 					},
 					"head_id": {
 						"type": "integer",
+						"nullable": true,
 						"description": "Which head is the player using"
 					},
 					"pvp_rating": {
 						"type": "integer",
+						"nullable": true,
 						"description": "Numeric PvP-rating of the player (1-7) or null if unknown"
 					},
 					"pvp_title": {
 						"type": "string",
+						"nullable": true,
 						"description": "Name of the player's PvP title derived from their $pvp_rating or null if unknown"
 					},
 					"last_update": {
 						"type": "integer",
+						"nullable": true,
 						"description": "Unix timestamp of the last update of these data"
 					}
 				},
