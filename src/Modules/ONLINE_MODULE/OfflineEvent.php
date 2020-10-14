@@ -4,6 +4,6 @@ namespace Nadybot\Modules\ONLINE_MODULE;
 
 use Nadybot\Core\Event;
 
-class OnlineEvent extends Event {
-	public OnlinePlayer $player;
+class OfflineEvent extends Event {
+	public string $player;
 }

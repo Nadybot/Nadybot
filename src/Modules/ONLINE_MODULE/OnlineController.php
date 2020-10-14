@@ -217,13 +217,17 @@ class OnlineController {
 	 */
 	public function recordLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender])) {
-			$this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
-			$event = new OnlineEvent();
-			$event->type = "online(member)";
-			$event->player = $sender;
-			$this->eventManager->fireEvent($event);
+		if (!isset($this->chatBot->guildmembers[$sender])) {
+			return;
 		}
+		$player = $this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+		if ($player === null) {
+			return;
+		}
+		$event = new OnlineEvent();
+		$event->type = "online(member)";
+		$event->player = $player;
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -405,7 +409,7 @@ class OnlineController {
 		}
 	}
 	
-	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): void {
+	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
 		$sql = "SELECT name FROM `online` ".
 			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
 		$data = $this->db->query($sql, $sender, $channelType);
@@ -415,6 +419,12 @@ class OnlineController {
 				"VALUES (?, ?, ?, '<myname>', ?)";
 			$this->db->exec($sql, $sender, $channel, $channelType, time());
 		}
+		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
+			"FROM online o ".
+			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN players p ON o.name = p.name ".
+			"WHERE o.channel_type=? AND o.name=?";
+		return $this->db->fetch(OnlinePlayer::class, $sql, $channel, $sender);
 	}
 	
 	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
