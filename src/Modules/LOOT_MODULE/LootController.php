@@ -289,7 +289,7 @@ class LootController {
 
 		$item = $row->name;
 		if ($row->lowid) {
-			$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+			$item = $this->text->makeItem((int)$row->lowid, $row->highid, $row->ql, $row->name);
 		}
 		// We want this command to always use the same rights as the bid start
 		$this->commandManager->process($channel, "bid start {$item}", $sender, $sendto);

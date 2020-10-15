@@ -36,8 +36,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
  *		description = 'Shows who is online',
  *		help        = 'online.txt'
  *	)
- * @ProvidesEvent("online(member)")
- * @ProvidesEvent("offline(member)")
+ * @ProvidesEvent("online(org)")
+ * @ProvidesEvent("offline(org)")
  */
 class OnlineController {
 	protected const GROUP_OFF = 0;
@@ -225,7 +225,7 @@ class OnlineController {
 			return;
 		}
 		$event = new OnlineEvent();
-		$event->type = "online(member)";
+		$event->type = "online(org)";
 		$event->player = $player;
 		$this->eventManager->fireEvent($event);
 	}
@@ -239,7 +239,7 @@ class OnlineController {
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
 			$event = new OnlineEvent();
-			$event->type = "offline(member)";
+			$event->type = "offline(org)";
 			$event->player = $sender;
 			$this->eventManager->fireEvent($event);
 		}

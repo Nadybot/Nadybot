@@ -412,6 +412,21 @@ class CommandManager {
 		return $this->commands[$channel][$cmd] ?? null;
 	}
 
+	public function isCommandActive(string $cmd, string $channel): bool {
+		$parts = explode(" ", $cmd, 2);
+		if (count($parts) === 1) {
+			return isset($this->commands[$channel][$cmd]);
+		}
+		if (isset($this->subcommandManager->subcommands[$parts[0]])) {
+			foreach ($this->subcommandManager->subcommands[$parts[0]] as $row) {
+				if ($row->type === $channel && $row->cmd === $cmd) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Get the help text for a command
 	 *
