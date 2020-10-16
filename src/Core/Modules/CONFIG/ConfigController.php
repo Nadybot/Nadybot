@@ -453,24 +453,23 @@ class ConfigController {
 		$subcmd_list = '';
 		$output = $this->getSubCommandInfo($cmd, 'msg');
 		if ($output) {
-			$subcmd_list .= "<header2>Available Subcommands in tells<end>\n";
+			$subcmd_list .= "<header>Available Subcommands in tells<end>\n\n";
 			$subcmd_list .= $output;
 		}
 	
 		$output = $this->getSubCommandInfo($cmd, 'priv');
 		if ($output) {
-			$subcmd_list .= "<header2>Available Subcommands in Private Channel<end>\n";
+			$subcmd_list .= "<header>Available Subcommands in Private Channel<end>\n\n";
 			$subcmd_list .= $output;
 		}
 	
 		$output = $this->getSubCommandInfo($cmd, 'guild');
 		if ($output) {
-			$subcmd_list .= "<header2>Available Subcommands in Guild Channel<end>\n";
+			$subcmd_list .= "<header>Available Subcommands in Guild Channel<end>\n\n";
 			$subcmd_list .= $output;
 		}
 	
 		if ($subcmd_list) {
-			$blob .= "<header>Subcommands<end>\n\n";
 			$blob .= $subcmd_list;
 		}
 	
@@ -668,11 +667,20 @@ class ConfigController {
 		$msg .= $this->text->makeChatcmd("Disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "\n";
 
 		$msg .= "Set access level: ";
+		$showRaidAL = $this->db->queryRow(
+			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			'RAID_MODULE',
+			1
+		) !== null;
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel === 'none') {
 				continue;
 			}
-			$msg .= $this->text->makeChatcmd(ucfirst($accessLevel), "/tell <myname> config cmd {$cmd} admin {$type} $accessLevel") . "  ";
+			if (substr($accessLevel, 0, 5) === "raid_" && !$showRaidAL) {
+				continue;
+			}
+			$alName = $this->getAdminDescription($accessLevel);
+			$msg .= $this->text->makeChatcmd("{$alName}", "/tell <myname> config cmd {$cmd} admin {$type} $accessLevel") . "  ";
 		}
 		$msg .= "\n";
 		return $msg;
@@ -685,10 +693,15 @@ class ConfigController {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE dependson = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $cmd, $type);
+		$showRaidAL = $this->db->queryRow(
+			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			'RAID_MODULE',
+			1
+		) !== null;
 		foreach ($data as $row) {
-			$subcmd_list .= "Command: $row->cmd\n";
+			$subcmd_list .= "<pagebreak><header2>$row->cmd<end> ($type)\n";
 			if ($row->description != "") {
-				$subcmd_list .= "Description: $row->description\n";
+				$subcmd_list .= "<tab>Description: <highlight>$row->description<end>\n";
 			}
 
 			$row->admin = $this->getAdminDescription($row->admin);
@@ -699,17 +712,21 @@ class ConfigController {
 				$status = "<red>Disabled<end>";
 			}
 
-			$subcmd_list .= "Current Status: $status (Access: $row->admin) \n";
-			$subcmd_list .= "Set status: ";
+			$subcmd_list .= "<tab>Current Status: $status (Access: $row->admin) \n";
+			$subcmd_list .= "<tab>Set status: ";
 			$subcmd_list .= $this->text->makeChatcmd("Enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "  ";
 			$subcmd_list .= $this->text->makeChatcmd("Disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "\n";
 
-			$subcmd_list .= "Set access level: ";
+			$subcmd_list .= "<tab>Set access level: ";
 			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 				if ($accessLevel == 'none') {
 					continue;
 				}
-				$subcmd_list .= $this->text->makeChatcmd(ucfirst($accessLevel), "/tell <myname> config subcmd {$row->cmd} admin {$type} $accessLevel") . "  ";
+				if (substr($accessLevel, 0, 5) === "raid_" && !$showRaidAL) {
+					continue;
+				}
+				$alName = $this->getAdminDescription($accessLevel);
+				$subcmd_list .= $this->text->makeChatcmd($alName, "/tell <myname> config subcmd {$row->cmd} admin {$type} $accessLevel") . "  ";
 			}
 			$subcmd_list .= "\n\n";
 		}

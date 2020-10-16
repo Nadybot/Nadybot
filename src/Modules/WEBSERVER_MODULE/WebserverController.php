@@ -99,6 +99,12 @@ class WebserverController {
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
+			$superUser = $this->chatBot->vars['SuperAdmin'];
+			$uuid = $this->authenticate($superUser, 6 * 3600);
+			$this->logger->log(
+				'INFO',
+				"Superuser password for webserver created: {$superUser}:{$uuid}"
+			);
 		}
 		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
@@ -399,6 +405,9 @@ class WebserverController {
 		if (is_dir($realFile)) {
 			$realFile .= "/index.html";
 		}
+		if (!@file_exists($realFile)) {
+			return new Response(Response::NOT_FOUND);
+		}
 		$response = new Response(
 			Response::OK,
 			['Content-Type' => $this->guessContentType($realFile)],
@@ -454,7 +463,7 @@ class WebserverController {
 	 */
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
-			if ($data[1] > time()) {
+			if ($data[1] < time()) {
 				unset($this->authentications[$user]);
 			}
 		}

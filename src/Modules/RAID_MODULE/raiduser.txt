@@ -1,0 +1,9 @@
+In order to join a running raid, use
+<tab><highlight><symbol>raid join<end>
+
+Unless the raid is locked or there's currently no raid running, you will be added.
+
+In order to leave a running raid, use
+<tab><highlight><symbol>raid leave<end>
+
+Leaving the private channel will automatically kick you from the raid.

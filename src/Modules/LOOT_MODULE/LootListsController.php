@@ -4,6 +4,7 @@ namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\{
 	CommandAlias,
+	CommandManager,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -88,12 +89,6 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *		help        = 'pande.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'xan',
- *		accessLevel = 'all',
- *		description = 'Shows Legacy of the Xan loot categories',
- *		help        = 'xan.txt'
- *	)
- *	@DefineCommand(
  *		command     = 'vortexx',
  *		accessLevel = 'all',
  *		description = 'Shows possible Vortexx Loot',
@@ -123,6 +118,12 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *		description = 'Shows possible TOTW 201+ loot',
  *		help        = 'totw.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'lox',
+ *		accessLevel = 'all',
+ *		description = 'Shows Legacy of the Xan loot categories',
+ *		help        = 'xan.txt'
+ *	)
  */
 class LootListsController {
 
@@ -148,13 +149,16 @@ class LootListsController {
 	public SettingManager $settingManager;
 	
 	/** @Inject */
-	public RaidController $raidController;
+	public LootController $lootController;
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 	
 	/** @Setup */
 	public function setup(): void {
@@ -165,10 +169,13 @@ class LootListsController {
 			'Show pictures in loot lists',
 			'edit',
 			'options',
-			'1',
+			'0',
 			'true;false',
 			'1;0'
 		);
+		$this->commandAlias->register($this->moduleName, "12m", '12man');
+		$this->commandAlias->register($this->moduleName, "12m", '12-man');
+		$this->commandAlias->register($this->moduleName, "lox", 'xan');
 		$this->commandAlias->register($this->moduleName, "pande Beast Armor", 'beastarmor');
 		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweaps');
 		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweapons');
@@ -288,11 +295,11 @@ class LootListsController {
 	
 	public function addAPFLootToList(int $sector): void {
 		// adding apf stuff
-		$this->raidController->addRaidToLootList('APF', "Sector $sector");
+		$this->lootController->addRaidToLootList('APF', "Sector $sector");
 		$msg = "Sector $sector loot table was added to the loot list.";
 		$this->chatBot->sendPrivate($msg);
 
-		$msg = $this->raidController->getCurrentLootList();
+		$msg = $this->lootController->getCurrentLootList();
 		$this->chatBot->sendPrivate($msg);
 	}
 	
@@ -616,35 +623,6 @@ class LootListsController {
 	}
 
 	/**
-	 * @author Morgo (RK2)
-	 *
-	 * @HandlesCommand("xan")
-	 * @Matches("/^xan$/i")
-	 */
-	public function xanCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$list = $this->text->makeChatcmd("Vortexx", "/tell <myname> vortexx") . "\n";
-		$list .= "<tab>General\n";
-		$list .= "<tab>Symbiants (Beta)\n";
-		$list .= "<tab>Spirits (Beta)\n\n";
-
-		$list .= $this->text->makeChatcmd("Mitaar Hero", "/tell <myname> mitaar") . "\n";
-		$list .= "<tab>General\n";
-		$list .= "<tab>Symbiants (Beta)\n";
-		$list .= "<tab>Spirits (Beta)\n\n";
-
-		$list .= $this->text->makeChatcmd("12 Man", "/tell <myname> 12m") . "\n";
-		$list .= "<tab>General\n";
-		$list .= "<tab>Symbiants (Beta)\n";
-		$list .= "<tab>Spirits (Beta)\n";
-		$list .= "<tab>Profession Gems\n";
-
-		$list .= "\n\nXan Loot By Morgo (RK2)";
-
-		$msg = $this->text->makeBlob("Legacy of the Xan Loot", $list);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("poh")
 	 * @Matches("/^poh$/i")
 	 */
@@ -687,21 +665,40 @@ class LootListsController {
 		if (count($data) === 0) {
 			return null;
 		}
+		$auctionsEnabled = $this->commandManager->isCommandActive('bid (start|end|cancel).*', 'msg');
+		$lootEnabled = $this->commandManager->isCommandActive('loot .+', 'msg');
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
 		foreach ($data as $row) {
-			$lootCmd = $this->text->makeChatcmd("To Loot", "/tell <myname> loot add $row->id");
+			$actions = [];
+			if ($lootEnabled) {
+				$actions []= $this->text->makeChatcmd(
+					"loot",
+					"/tell <myname> loot add $row->id"
+				);
+			}
+			if ($lootEnabled && $auctionsEnabled) {
+				$actions []= $this->text->makeChatcmd(
+					"auction",
+					"/tell <myname> loot auction $row->id"
+				);
+			}
 			if ($row->lowid) {
 				if ($showLootPics) {
 					$name = "<img src=rdb://{$row->icon}>";
 				} else {
 					$name = $row->name;
-					$blob .= $lootCmd . " - ";
+					if (count($actions)) {
+						$blob .= "[" . join("] [", $actions) . "] - ";
+					}
 				}
 				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $name);
 			} else {
-				$blob .= "$lootCmd - <highlight>{$row->name}<end>";
+				if (count($actions)) {
+					$blob .= "[" . join("] [", $actions) . "] - ";
+				}
+				$blob .= "<highlight>{$row->name}<end>";
 			}
 			if ($showLootPics && $row->lowid) {
 				$blob .= "\n<highlight>{$row->name}<end>";
@@ -721,5 +718,32 @@ class LootListsController {
 		}
 
 		return $blob;
+	}
+
+	/**
+	 * @author Nadyita
+	 *
+	 * @HandlesCommand("lox")
+	 * @Matches("/^lox$/i")
+	 */
+	public function loxCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$list  = $this->text->makeChatcmd("Ground Chief Vortexx\n", "/tell <myname> vortexx");
+		$list .= "<tab>- Eye\n";
+		$list .= "<tab>- Left Arm\n";
+		$list .= "<tab>- Right Wrist\n";
+		$list .= "<tab>- Waist\n\n";
+		$list .= $this->text->makeChatcmd("The Xan (aka 12-man)\n", "/tell <myname> 12m");
+		$list .= "<tab>- Ear\n";
+		$list .= "<tab>- Right Arm\n";
+		$list .= "<tab>- Right Hand\n";
+		$list .= "<tab>- Thigh\n";
+		$list .= "<tab>- Feet\n\n";
+		$list .= $this->text->makeChatcmd("The Alien Threat (aka Mitaar)\n", "/tell <myname> mitaar");
+		$list .= "<tab>- Brain\n";
+		$list .= "<tab>- Chest\n";
+		$list .= "<tab>- Left Wrist\n";
+		$list .= "<tab>- Left Hand\n";
+		$msg = $this->text->makeBlob("LoX Hub Loot", $list);
+		$sendto->reply($msg);
 	}
 }

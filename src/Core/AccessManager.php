@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Nadybot\Core\DBSchema\Member;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
+use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Nadybot\Core\Modules\ALTS\AltsController;
 
 /**
@@ -17,14 +18,23 @@ class AccessManager {
 	 * @var array<string,int> $ACCESS_LEVELS
 	 */
 	private static array $ACCESS_LEVELS = [
-		'none'       => 0,
-		'superadmin' => 1,
-		'admin'      => 2,
-		'mod'        => 3,
-		'guild'      => 4,
-		'member'     => 5,
-		'rl'         => 6,
-		'all'        => 7,
+		'none'          => 0,
+		'superadmin'    => 1,
+		'admin'         => 2,
+		'mod'           => 3,
+		'guild'         => 4,
+		'raid_admin_3'  => 5,
+		'raid_admin_2'  => 6,
+		'raid_admin_1'  => 7,
+		'raid_leader_3' => 8,
+		'raid_leader_2' => 9,
+		'raid_leader_1' => 10,
+		// 'raid_level_3'  => 11,
+		// 'raid_level_2'  => 12,
+		// 'raid_level_1'  => 13,
+		'member'        => 14,
+		'rl'            => 15,
+		'all'           => 16,
 	];
 
 	/** @Inject */
@@ -39,6 +49,9 @@ class AccessManager {
 	/** @Inject */
 	public AdminManager $adminManager;
 
+	/** @Inject */
+	public SettingManager $settingManager;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -47,6 +60,9 @@ class AccessManager {
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public RaidRankController $raidRankController;
 
 	/**
 	 * This method checks if given $sender has at least $accessLevel rights.
@@ -119,14 +135,17 @@ class AccessManager {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
 			case "rl":
-				$displayName = "raidleader";
-				break;
+				return "raidleader";
 			case "mod":
-				$displayName = "moderator";
-				break;
+				return "moderator";
 			case "admin":
-				$displayName = "administrator";
-				break;
+				return "administrator";
+		}
+		if (substr($displayName, 0, 5) === "raid_") {
+			$setName = $this->settingManager->getString("name_{$displayName}");
+			if ($setName !== null) {
+				return $setName;
+			}
 		}
 
 		return $displayName;
@@ -147,6 +166,16 @@ class AccessManager {
 			if ($level >= 3) {
 				return "mod";
 			}
+		}
+		if (isset($this->raidRankController->ranks[$sender])) {
+			$rank = $this->raidRankController->ranks[$sender]->rank;
+			if ($rank >= 7) {
+				return "raid_admin_" . ($rank-6);
+			}
+			if ($rank >= 4) {
+				return "raid_leader_" . ($rank-3);
+			}
+			return "raid_level_{$rank}";
 		}
 		if ($this->chatLeaderController !== null && $this->chatLeaderController->getLeader() == $sender) {
 			return "rl";

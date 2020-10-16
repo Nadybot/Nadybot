@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	EventManager,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -35,8 +36,13 @@ use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
  *		description = 'Shows who is online',
  *		help        = 'online.txt'
  *	)
+ * @ProvidesEvent("online(org)")
+ * @ProvidesEvent("offline(org)")
  */
 class OnlineController {
+	protected const GROUP_OFF = 0;
+	protected const GROUP_BY_MAIN = 1;
+	protected const GROUP_BY_PROFESSION = 2;
 
 	/**
 	 * Name of the module.
@@ -52,6 +58,9 @@ class OnlineController {
 	
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Inject */
 	public AccessManager $accessManager;
@@ -115,6 +124,16 @@ class OnlineController {
 			"0",
 			"true;false",
 			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_group_by",
+			"Group online list by",
+			"edit",
+			"options",
+			"player",
+			"do not group;player;profession",
+			"0;1;2"
 		);
 
 		$this->commandAlias->register($this->moduleName, "online", "o");
@@ -198,9 +217,17 @@ class OnlineController {
 	 */
 	public function recordLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender])) {
-			$this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+		if (!isset($this->chatBot->guildmembers[$sender])) {
+			return;
 		}
+		$player = $this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+		if ($player === null) {
+			return;
+		}
+		$event = new OnlineEvent();
+		$event->type = "online(org)";
+		$event->player = $player;
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -211,6 +238,10 @@ class OnlineController {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
+			$event = new OnlineEvent();
+			$event->type = "offline(org)";
+			$event->player = $sender;
+			$this->eventManager->fireEvent($event);
 		}
 	}
 	
@@ -378,7 +409,7 @@ class OnlineController {
 		}
 	}
 	
-	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): void {
+	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
 		$sql = "SELECT name FROM `online` ".
 			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
 		$data = $this->db->query($sql, $sender, $channelType);
@@ -388,6 +419,12 @@ class OnlineController {
 				"VALUES (?, ?, ?, '<myname>', ?)";
 			$this->db->exec($sql, $sender, $channel, $channelType, time());
 		}
+		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
+			"FROM online o ".
+			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN players p ON o.name = p.name ".
+			"WHERE o.channel_type=? AND o.name=?";
+		return $this->db->fetch(OnlinePlayer::class, $sql, $channel, $sender);
 	}
 	
 	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
@@ -450,7 +487,8 @@ class OnlineController {
 			return "";
 		}
 
-		switch ($this->accessManager->getAccessLevelForCharacter($name)) {
+		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
+		switch ($accessLevel) {
 			case 'superadmin':
 				  return " $fancyColon <red>SuperAdmin<end>";
 			case 'admin':
@@ -459,6 +497,12 @@ class OnlineController {
 				  return " $fancyColon <green>Mod<end>";
 			case 'rl':
 				  return " $fancyColon <orange>RL<end>";
+		}
+		if (substr($accessLevel, 0, 5) === "raid_") {
+			$setName = $this->settingManager->getString("name_{$accessLevel}");
+			if ($setName !== null) {
+				return " $fancyColon <orange>$setName<end>";
+			}
 		}
 		return "";
 	}
@@ -482,7 +526,7 @@ class OnlineController {
 	 * @return OnlineList
 	 */
 	public function formatData(array $players, int $showOrgInfo): OnlineList {
-		$currentMain = "";
+		$currentGroup = "";
 		$separator = "-";
 		$list = new OnlineList();
 		$list->count = count($players);
@@ -492,40 +536,58 @@ class OnlineController {
 		if ($list->count === 0) {
 			return $list;
 		}
+		$groupBy = $this->settingManager->getInt('online_group_by');
 		foreach ($players as $player) {
-			if ($currentMain !== $player->pmain) {
+			if ($groupBy === static::GROUP_BY_MAIN && $currentGroup !== $player->pmain) {
 				$list->countMains++;
 				$list->blob .= "\n<pagebreak><highlight>$player->pmain<end> on\n";
-				$currentMain = $player->pmain;
+				$currentGroup = $player->pmain;
+			} elseif ($groupBy === static::GROUP_BY_PROFESSION && $currentGroup !== $player->profession) {
+				$list->countMains++;
+				$profIcon = "?";
+				if ($player->profession !== null) {
+					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+				}
+				$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
+				$currentGroup = $player->profession;
 			}
 
 			$admin = $this->getAdminInfo($player->name, $separator);
 			$afk = $this->getAfkInfo($player->afk, $separator);
 
 			if ($player->profession === null) {
-				$list->blob .= "<tab>| $player->name$admin$afk\n";
+				$list->blob .= "<tab>? $player->name$admin$afk\n";
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
 				$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
-				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
-				$list->blob.= "<tab>$profIcon $player->name - $player->level/<green>$player->ai_level<end> $prof$orgRank$admin$afk\n";
+				$profIcon = "";
+				if ($groupBy !== static::GROUP_BY_PROFESSION) {
+					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession)."> ";
+				}
+				$list->blob.= "<tab>{$profIcon}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$afk}\n";
 			}
 		}
 
-		return  $list;
+		return $list;
 	}
 
 	/**
 	 * @return OnlinePlayer[]
 	 */
 	public function getPlayers(string $channelType): array {
-		$sql = "
-			SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain
-			FROM online o
-			LEFT JOIN alts a ON o.name = a.alt
-			LEFT JOIN players p ON o.name = p.name
-			WHERE o.channel_type = ?
-			ORDER BY COALESCE(a.main, o.name) ASC";
+		$groupBy = $this->settingManager->getInt('online_group_by');
+		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
+			"FROM online o ".
+			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN players p ON o.name = p.name ".
+			"WHERE o.channel_type = ? ";
+		if ($groupBy === static::GROUP_BY_MAIN) {
+			$sql .= "ORDER BY COALESCE(a.main, o.name) ASC";
+		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
+			$sql .= "ORDER BY COALESCE(p.profession, 'Unknown') ASC, o.name ASC";
+		} else {
+			$sql .= "ORDER BY o.name ASC";
+		}
 		return $this->db->fetchAll(OnlinePLayer::class, $sql, $channelType);
 	}
 

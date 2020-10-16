@@ -1,4 +1,27 @@
 #This profile configures the bot to act as a raid bot.
 
 !config mod GUILD_MODULE disable all
+!config mod CITY_MODULE disable all
+!config mod FUN_MODULE disable all
+!config mod GSP_MODULE disable all
+!config mod IMPLANT_MODULE enable all
+!config mod ORGLIST_MODULE enable all
+!config mod SPIRITS_MODULE enable all
+!config mod WEATHER_MODULE enable all
+
+!config mod ALTS enable all
+!config mod BAN enable all
+!config mod BASIC_CHAT_MODULE enable all
+!config mod EVENTS_MODULE enable all
+!config mod HELPBOT_MODULE enable all
+!config mod LOOT_MODULE enable all
+!config mod NEWS_MODULE enable all
+!config mod ONLINE_MODULE enable all
+!config mod PRIVATE_CHANNEL_MODULE enable all
+!config mod RAFFLE_MODULE enable all
 !config mod RAID_MODULE enable all
+!config mod TIMERS_MODULE enable all
+!config mod WHOIS_MODULE enable all
+
+!settings save online_admin 1
+!settings save online_group_by 2

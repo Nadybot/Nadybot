@@ -3,10 +3,10 @@
 namespace Nadybot\Core;
 
 class TimerEvent {
-	/** @var int $time */
+	/** UNIX timestamp when this event is due */
 	public int $time = 0;
 
-	/** @var int $delay */
+	/** The original delay of this event */
 	public int $delay = 0;
 
 	/** @var callable $callback */

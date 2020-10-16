@@ -5,8 +5,8 @@ namespace Nadybot\Core\Socket;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
-    LegacyLogger,
-    LoggerWrapper,
+	LegacyLogger,
+	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,
 	Timer,
@@ -89,7 +89,7 @@ class AsyncSocket {
 		return $this->state;
 	}
 
-	public function getTimeout() : int {
+	public function getTimeout(): int {
 		return $this->timeout;
 	}
 
@@ -209,7 +209,7 @@ class AsyncSocket {
 	public function destroy(): void {
 		$this->logger->log('TRACE', 'Destroying ' . get_class());
 		$this->callbacks = [];
-		unset($this->socket);
+		$this->socket = null;
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 			unset($this->notifier);
@@ -234,6 +234,7 @@ class AsyncSocket {
 	}
 
 	protected function forceClose(): void {
+		$this->logger->log('DEBUG', 'Force closing connection');
 		if (!is_resource($this->socket) || $this->state === static::STATE_CLOSED) {
 			return;
 		}
@@ -280,7 +281,9 @@ class AsyncSocket {
 		if (($this->notifier->getType() & $type) === $type) {
 			return;
 		}
-		$this->logger->log('DEBUG', 'Subscribing to socket event ' . $type . ' ('.
+		$this->logger->log(
+			'DEBUG',
+			'Subscribing to socket event ' . $type . ' ('.
 			(($type === SocketNotifier::ACTIVITY_READ) ? 'read' : 'write').
 			')'
 		);
@@ -301,7 +304,9 @@ class AsyncSocket {
 		if (!isset($this->socketManager) || !isset($this->notifier) || (($this->notifier->getType() & $type) === 0)) {
 			return;
 		}
-		$this->logger->log('DEBUG', 'Unsubscribing from socket event ' . $type . ' ('.
+		$this->logger->log(
+			'DEBUG',
+			'Unsubscribing from socket event ' . $type . ' ('.
 			(($type === SocketNotifier::ACTIVITY_READ) ? 'read' : 'write').
 			')'
 		);

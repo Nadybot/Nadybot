@@ -63,6 +63,9 @@ class JsonExporter {
 			return json_encode($data);
 		}
 		if (is_array($data)) {
+			if (empty($data)) {
+				return '[]';
+			}
 			if (array_keys($data) === range(0, count($data) - 1)) {
 				return '[' . join(",", array_map(['static', __FUNCTION__], $data)) . ']';
 			}

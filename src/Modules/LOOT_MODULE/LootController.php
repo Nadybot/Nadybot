@@ -5,6 +5,7 @@ namespace Nadybot\Modules\LOOT_MODULE;
 use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
+	CommandManager,
 	DB,
 	Nadybot,
 	SettingManager,
@@ -36,6 +37,12 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
  *		help        = 'flatroll.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'mloot .+',
+ *		accessLevel = 'rl',
+ *		description = 'Put multiple items on the loot list',
+ *		help        = 'flatroll.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'reroll',
  *		accessLevel = 'rl',
  *		description = 'Reroll the residual loot list',
@@ -60,7 +67,7 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
  *		help        = 'add_rem.txt'
  *	)
  */
-class RaidController {
+class LootController {
 
 	/**
 	 * Name of the module.
@@ -80,6 +87,9 @@ class RaidController {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
@@ -252,6 +262,40 @@ class RaidController {
 	}
 
 	/**
+	 * Add an item from the raid_loot to the loot roll
+	 *
+	 * @HandlesCommand("loot .+")
+	 * @Matches("/^loot auction (\d+)$/i")
+	 */
+	public function lootAuctionByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
+
+		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
+			"FROM raid_loot r ".
+			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
+			"WHERE r.aoid IS NULL AND id = ? ".
+			"UNION ".
+			"SELECT *, COALESCE(a.name, r.name) AS name ".
+			"FROM raid_loot r ".
+			"JOIN aodb a ON (r.aoid = a.highid) ".
+			"WHERE r.aoid IS NOT NULL AND id = ?";
+		$row = $this->db->queryRow($sql, $id, $id);
+
+		if ($row === null) {
+			$msg = "Could not find item with id <highlight>$id<end> to add.";
+			$sendto->reply($msg);
+			return;
+		}
+
+		$item = $row->name;
+		if ($row->lowid) {
+			$item = $this->text->makeItem((int)$row->lowid, $row->highid, $row->ql, $row->name);
+		}
+		// We want this command to always use the same rights as the bid start
+		$this->commandManager->process($channel, "bid start {$item}", $sender, $sendto);
+	}
+
+	/**
 	 * Add an item to the loot roll
 	 *
 	 * @HandlesCommand("loot .+")
@@ -288,7 +332,7 @@ class RaidController {
 	/**
 	 * Add one item to the loot roll
 	 */
-	public function addLootItem(string $input, int $multiloot, string $sender): void {
+	public function addLootItem(string $input, int $multiloot, string $sender, $surpressMessage=false): void {
 		//Check if the item is a link
 		if (preg_match("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
 			$itemQL = (int)$arr[3];
@@ -352,8 +396,11 @@ class RaidController {
 			$this->loot[$key] = $item;
 		}
 
-		$msg = "$sender added <highlight>{$item->name}<end> (x$item->multiloot) to Slot <highlight>#$key<end>.";
+		$msg = "$sender added <highlight>{$item->display}<end> (x$item->multiloot) to Slot <highlight>#$key<end>.";
 		$msg .= " To add use <symbol>add $key, or <symbol>rem to remove yourself.";
+		if ($surpressMessage) {
+			return;
+		}
 		$this->chatBot->sendPrivate($msg);
 	}
 
@@ -691,5 +738,36 @@ class RaidController {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Add an item to the loot roll
+	 *
+	 * @HandlesCommand("mloot .+")
+	 * @Matches("/^mloot (.+)$/i")
+	 */
+	public function mlootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
+			$sendto->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+
+		$input = $args[1];
+		$syntaxCorrect = preg_match_all(
+			"|(<a [^>]*?href=['\"]itemref://\d+/\d+/\d+['\"]>.+?</a>)|",
+			$input,
+			$matches
+		);
+		if (!$syntaxCorrect) {
+			$sendto->reply("No items were identified. Only item references are supported.");
+			return;
+		}
+		foreach ($matches[1] as $item) {
+			$this->addLootItem($item, 1, $sender, true);
+		}
+		$lootList = $this->getCurrentLootList();
+		$this->chatBot->sendPrivate(
+			"{$sender} added " . count($matches[1]) . " items to the {$lootList}."
+		);
 	}
 }

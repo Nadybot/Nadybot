@@ -1,0 +1,55 @@
+DROP TABLE IF EXISTS `hodorraid_bidhistory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `hodorraid_bidhistory` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `points` int(11) DEFAULT 1,
+  `time` varchar(30) NOT NULL DEFAULT '1970-01-01 00:00:00',
+  `winner` varchar(30) DEFAULT NULL,
+  `auctioner` varchar(30) DEFAULT NULL,
+  `item` text DEFAULT NULL,
+  `paidback` int(11) DEFAULT NULL,
+  `paybackreason` text DEFAULT NULL,
+  `paidbackby` varchar(30) DEFAULT NULL,
+  `paidbacktime` varchar(30) NOT NULL DEFAULT '1970-01-01 00:00:00',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4989 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `hodorraid_raid_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `hodorraid_raid_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `points` decimal(11,2) DEFAULT 0.00,
+  `time` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `RaidParticipant` (`name`,`time`)
+) ENGINE=InnoDB AUTO_INCREMENT=48573 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `hodorraid_raid_points`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `hodorraid_raid_points` (
+  `username` varchar(25) NOT NULL,
+  `points` decimal(11,2) DEFAULT 0.00,
+  `raiding` tinyint(4) DEFAULT 0,
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `hodorraid_raid_points_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `hodorraid_raid_points_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `points` decimal(11,2) DEFAULT 0.00,
+  `by_who` varchar(20) DEFAULT NULL,
+  `time` int(11) DEFAULT NULL,
+  `why` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1173 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;

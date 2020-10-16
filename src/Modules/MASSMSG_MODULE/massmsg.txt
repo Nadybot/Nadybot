@@ -1,0 +1,15 @@
+In order to send a mass message to every member of this bot,
+except for those who are already in the private channel, use
+<tab><highlight><symbol>!massmsg Does anyone want to trade their ERU for my VLRD?<end>
+
+If you also want the bot to invite all members who are currently not in the private
+channel, you can use
+<tab><highlight><symbol>!massinv Starting a 12man in 10 minutes<end>
+
+If you don't want to receive mass messages or invites, use
+<tab><highlight><symbol>!massmsgs off<end>
+
+or
+<tab><highlight><symbol>!massmsgs on<end>
+
+to turn them back on.

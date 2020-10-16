@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	EventManager,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -19,13 +20,17 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
 use Nadybot\Modules\{
+	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
+	ONLINE_MODULE\OnlineEvent,
+	ONLINE_MODULE\OnlinePlayer,
 	RELAY_MODULE\RelayController
 };
 
 /**
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
+ * @author Nadyita (RK5)
  *
  * @Instance
  *
@@ -86,6 +91,8 @@ use Nadybot\Modules\{
  *		description = "Leave command for characters in private channel",
  *		help        = 'private_channel.txt'
  *	)
+ *	@ProvidesEvent("online(priv)")
+ *	@ProvidesEvent("offline(priv)")
  */
 class PrivateChannelController {
 
@@ -103,6 +110,9 @@ class PrivateChannelController {
 	 * @Inject
 	 */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public EventManager $eventManager;
 	
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -596,10 +606,10 @@ class PrivateChannelController {
 	
 	/**
 	 * @Event("connect")
-	 * @Description("Adds all members as buddies who have auto-invite enabled")
+	 * @Description("Adds all members as buddies")
 	 */
 	public function connectEvent(Event $eventObj): void {
-		$sql = "SELECT * FROM members_<myname> WHERE autoinv = 1";
+		$sql = "SELECT * FROM members_<myname>";
 		/** @var Member[] */
 		$members = $this->db->fetchAll(Member::class, $sql);
 		foreach ($members as $member) {
@@ -746,6 +756,15 @@ class PrivateChannelController {
 			$this->chatBot->sendGuild($msg, true);
 		}
 		$this->chatBot->sendPrivate($msg, true);
+		$event = new OnlineEvent();
+		$event->type = "online(priv)";
+		$event->player = new OnlinePlayer();
+		foreach ($whois as $key => $value) {
+			$event->player->$key = $value;
+		}
+		$event->player->online = true;
+		$event->player->pmain = $altInfo->main;
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**
@@ -759,6 +778,10 @@ class PrivateChannelController {
 		if ($this->settingManager->getBool("guest_relay")) {
 			$this->chatBot->sendGuild($msg, true);
 		}
+		$event = new OfflineEvent();
+		$event->type = "offline(priv)";
+		$event->player = $sender;
+		$this->eventManager->fireEvent($event);
 	}
 	
 	/**

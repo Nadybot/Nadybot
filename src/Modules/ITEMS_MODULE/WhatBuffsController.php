@@ -107,7 +107,7 @@ class WhatBuffsController {
 				FROM buffs b
 				JOIN item_buffs ib ON b.id = ib.item_id
 				JOIN skills s ON ib.attribute_id = s.id
-				WHERE (s.name IN ('SkillLockModified', '% Add. Nano Cost') OR ib.amount > 0)
+				WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
 				GROUP BY skill
 				HAVING num > 0
 				ORDER BY skill ASC";
@@ -202,7 +202,7 @@ class WhatBuffsController {
 			JOIN item_types it ON a.highid = it.item_id
 			JOIN item_buffs ib ON a.highid = ib.item_id
 			JOIN skills s ON ib.attribute_id = s.id
-			WHERE s.id = ? AND (s.name IN ('SkillLockModified', '% Add. Nano Cost') OR ib.amount > 0)
+			WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
 			GROUP BY a.name,it.item_type,a.lowql,a.highql,ib.amount
 
 			UNION ALL
@@ -211,7 +211,7 @@ class WhatBuffsController {
 			FROM buffs b
 			JOIN item_buffs ib ON ib.item_id = b.id
 			JOIN skills s ON ib.attribute_id = s.id
-			WHERE s.id = ? AND (s.name IN ('SkillLockModified', '% Add. Nano Cost') OR ib.amount > 0)
+			WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
 		) AS FOO
 		GROUP BY item_type
 		ORDER BY item_type ASC
@@ -245,7 +245,7 @@ class WhatBuffsController {
 				"LEFT JOIN aodb ON (aodb.lowid=buffs.use_id) ".
 				"WHERE s.id = ? ".
 				"AND (".
-					"s.name IN ('SkillLockModified', '% Add. Nano Cost') ".
+					"s.name IN ('SkillLockModifier', '% Add. Nano Cost') ".
 					"OR b.amount > 0 ".
 				") ".
 				"AND buffs.name NOT IN (".
@@ -267,7 +267,7 @@ class WhatBuffsController {
 				LEFT JOIN item_buffs b2 ON aodb.lowid = b2.item_id
 				LEFT JOIN weapon_attributes wa ON aodb.highid = wa.id
 				JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id
-				WHERE i.item_type = ? AND s.id = ? AND (s.name IN ('SkillLockModified', '% Add. Nano Cost') OR b.amount > 0)
+				WHERE i.item_type = ? AND s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR b.amount > 0)
 				AND ".$this->getItemsToExclude()."
 				GROUP BY aodb.name,aodb.lowql,aodb.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r
 				ORDER BY ABS(b.amount) DESC, name DESC
@@ -321,7 +321,8 @@ class WhatBuffsController {
 		$tmp = explode(" ", $skill);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 		
-		return $this->db->query(
+		return $this->db->fetchAll(
+			Skill::class,
 			"SELECT id, name FROM (
 				SELECT DISTINCT id, name FROM skills WHERE $query
 				UNION
