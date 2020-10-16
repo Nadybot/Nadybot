@@ -74,7 +74,7 @@ export interface PlayerBase {
   // The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown
   readonly org_rank: string;
   // The numeric rank of the player in their org or null if not in an org/unknown
-  readonly org_rank_id: number;
+  readonly org_rank_id: number | null;
   // In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
   readonly dimension: Dimension;
   // Which head is the player using
@@ -133,7 +133,7 @@ export const playerBaseDecoderMapping = {
   org_id: JsonDecoder.number,
   org: JsonDecoder.string,
   org_rank: JsonDecoder.string,
-  org_rank_id: JsonDecoder.number,
+  org_rank_id: JsonDecoder.nullable(JsonDecoder.number),
   dimension: dimensionDecoder,
   head_id: JsonDecoder.number,
   pvp_rating: JsonDecoder.number,

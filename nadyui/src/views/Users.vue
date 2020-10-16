@@ -1,21 +1,33 @@
 <template>
-  <user-card
-    title="hello"
-    imageUrl="https://web-cdn.funcom.com/ao/face/40210.jpg"
-    content="lorem ipsum dolor sit amet"
-  ></user-card>
-  <button class="btn btn-large btn-primary" :onclick="loadOnlineUsers">
-    Load Users Test Button
-  </button>
+  <table class="table table-hover">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="user in allUsers" :key="user.name">
+        <td>{{ user.name }}</td>
+      </tr>
+    </tbody>
+  </table>
 </template>
 
 <script lang="ts">
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
+import { defineComponent } from "vue";
 
-export default {
+const Component = defineComponent({
   name: "UsersList",
+
+  computed: {
+    ...mapGetters(["allUsers"]),
+  },
+
   methods: {
     ...mapMutations(["loadOnlineUsers"]),
   },
-};
+});
+
+export default Component;
 </script>
