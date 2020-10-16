@@ -731,9 +731,9 @@ class LootController {
 	/**
 	 * Get the loot key for the item with the name $name
 	 */
-	public function getLootItem(string $name): ?string {
+	public function getLootItem(string $name): ?int {
 		foreach ($this->loot as $key => $item) {
-			if ($item->name == $name) {
+			if ($item->name === $name) {
 				return $key;
 			}
 		}
