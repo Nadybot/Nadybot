@@ -56,8 +56,12 @@ class RaidRankController {
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
-	/** @Setup */
+	/**
+	 * @Setup
+	 * @todo: Add support for the raid levels
+	 */
 	public function setup(): void {
+		/**
 		$this->settingManager->add(
 			$this->moduleName,
 			'name_raid_level_1',
@@ -82,6 +86,7 @@ class RaidRankController {
 			'text',
 			'Elite Raider'
 		);
+		*/
 
 		$this->settingManager->add(
 			$this->moduleName,

@@ -29,9 +29,9 @@ class AccessManager {
 		'raid_leader_3' => 8,
 		'raid_leader_2' => 9,
 		'raid_leader_1' => 10,
-		'raid_level_3'  => 11,
-		'raid_level_2'  => 12,
-		'raid_level_1'  => 13,
+		// 'raid_level_3'  => 11,
+		// 'raid_level_2'  => 12,
+		// 'raid_level_1'  => 13,
 		'member'        => 14,
 		'rl'            => 15,
 		'all'           => 16,
@@ -276,20 +276,5 @@ class AccessManager {
 	 */
 	public function getAccessLevels(): array {
 		return self::$ACCESS_LEVELS;
-		$row = $this->db->queryRow(
-			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
-			'RAID_MODULE',
-			1
-		);
-		// if ($row !== null) {
-			return self::$ACCESS_LEVELS;
-		// }
-		return array_filter(
-			self::$ACCESS_LEVELS,
-			function(string $key): bool {
-				return substr($key, 0, 5) !== 'raid_';
-			},
-			ARRAY_FILTER_USE_KEY
-		);
 	}
 }
