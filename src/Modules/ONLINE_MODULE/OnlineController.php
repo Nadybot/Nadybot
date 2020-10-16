@@ -238,7 +238,7 @@ class OnlineController {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender])) {
 			$this->removePlayerFromOnlineList($sender, 'guild');
-			$event = new OnlineEvent();
+			$event = new OfflineEvent();
 			$event->type = "offline(org)";
 			$event->player = $sender;
 			$this->eventManager->fireEvent($event);
