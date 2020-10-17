@@ -253,7 +253,11 @@ class DiscordGatewayCommandHandler {
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id;
 		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("symbol");
-		if ( !$isCommand || strlen($event->message) < 2) {
+		if (
+			!$isCommand
+			|| strlen($event->message) < 2
+			|| !$this->settingManager->getBool('discord_process_commands')
+		) {
 			return;
 		}
 		$sendto = new DiscordMessageCommandReply(
