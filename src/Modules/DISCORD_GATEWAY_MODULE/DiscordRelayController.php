@@ -227,6 +227,7 @@ class DiscordRelayController {
 
 	/**
 	 * @Event("priv")
+	 * @Event("sendpriv");
 	 * @Description("Relay priv channel to Discord")
 	 */
 	public function relayPrivChannelEvent(Event $eventObj) {

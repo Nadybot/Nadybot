@@ -53,6 +53,9 @@ class DiscordGatewayCommandHandler {
 	/** @Inject */
 	public DiscordGatewayController $discordGatewayController;
 
+	/** @Inject */
+	public DiscordRelayController $discordRelayController;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -264,6 +267,9 @@ class DiscordGatewayCommandHandler {
 			$event->channel,
 		);
 		Registry::injectDependencies($sendto);
+		if ($this->settingManager->getBool('discord_relay_commands')) {
+			$this->discordRelayController->relayDiscordMessage($event->discord_message->member, $event->message);
+		}
 		$this->commandManager->process(
 			"priv",
 			substr($event->message, 1),
