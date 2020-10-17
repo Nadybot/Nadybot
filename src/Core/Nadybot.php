@@ -378,6 +378,7 @@ class Nadybot extends AOChat {
 		$event->type = "sendpriv";
 		$event->channel = $group;
 		$event->message = $message;
+		$event->sender = $this->vars["name"];
 		$this->eventManager->fireEvent($event);
 		if ($this->isDefaultPrivateChannel($group)) {
 			// relay to guild channel
