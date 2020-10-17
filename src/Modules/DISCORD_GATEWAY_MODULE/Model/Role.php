@@ -12,10 +12,8 @@ class Role extends JSONDataModel {
 	/** if this role is pinned in the user listing */
 	public bool $hoist;
 	public int $position;
-	/** legacy permission bit set */
-	public int $permissions;
 	/** permission bit set */
-	public string $permissions_new;
+	public int $permissions;
 	/** whether this role is managed by an integration */
 	public bool $managed;
 	/** whether this role is mentionable */

@@ -237,7 +237,7 @@ class DiscordGatewayCommandHandler {
 		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id;
 		$this->commandManager->process(
-			"priv",
+			"msg",
 			$event->message,
 			$this->getNameForDiscordId($discordUserId) ?? $discordUserId,
 			$sendto
