@@ -161,7 +161,7 @@ class DiscordGatewayController {
 			return;
 		}
 		$this->client = $this->websocket->createClient()
-			->withURI("wss://gateway.discord.gg/?v=7&encoding=json")
+			->withURI("wss://gateway.discord.gg/?v=8&encoding=json")
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
@@ -267,9 +267,11 @@ class DiscordGatewayController {
 		if ($payload->t === null) {
 			return;
 		}
-		$event->type = strtolower("discord({$payload->t})");
+		$newEvent = new DiscordGatewayEvent();
+		$newEvent->payload = $payload;
+		$newEvent->type = strtolower("discord({$payload->t})");
 		$this->logger->log("DEBUG", "New event: discord({$payload->t})");
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->fireEvent($newEvent);
 	}
 
 	/**

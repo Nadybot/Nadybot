@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 class WebsocketCallback {
-	public WebsocketServer $websocket;
+	public WebsocketBase $websocket;
 	public string $eventName;
 	public ?string $data = null;
 	public ?int $code = null;

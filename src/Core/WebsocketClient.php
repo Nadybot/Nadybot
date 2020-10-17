@@ -233,6 +233,7 @@ class WebsocketClient extends WebsocketBase {
 			return false;
 		}
 		$this->logger->log("DEBUG", "connection upgraded to websocket on {$this->uri}");
+		unset($this->notifier);
 		$this->listenForRead();
 		$event = $this->getEvent("connect");
 		$this->fireEvent(static::ON_CONNECT, $event);

@@ -31,10 +31,6 @@ class Guild extends JSONDataModel {
 	public ?string $afk_channel_id;
 	/** afk timeout in seconds */
 	public int $afk_timeout;
-	/** true if the server widget is enabled (deprecated, replaced with widget_enabled) */
-	public bool $embed_enabled;
-	/** the channel id that the widget will generate an invite to, or null if set to no invite (deprecated, replaced with widget_channel_id) */
-	public ?string $embed_channel_id;
 	/** verification level required for the guild */
 	public int $verification_level;
 	/** default message notifications level */
