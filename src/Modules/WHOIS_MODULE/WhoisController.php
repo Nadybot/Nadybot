@@ -303,7 +303,7 @@ class WhoisController {
 
 		$altInfo = $this->altsController->getAltInfo($name);
 		if (count($altInfo->alts) > 0) {
-			$msg .= " :: " . $altInfo->getAltsBlob(false, true);
+			$msg .= " :: " . $altInfo->getAltsBlob(true);
 		}
 		return $msg;
 	}

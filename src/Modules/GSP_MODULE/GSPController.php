@@ -152,6 +152,9 @@ class GSPController {
 	 * Announce if a new show has just started
 	 */
 	public function checkAndAnnounceIfShowStarted(HttpResponse $response): void {
+		if ($response->body === null || $response->error) {
+			return;
+		}
 		$show = new Show();
 		try {
 			$show->fromJSON(json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));

@@ -193,7 +193,7 @@ class LootController {
 		$msg = "Loot has been cleared by <highlight>$sender<end>.";
 		$this->chatBot->sendPrivate($msg);
 
-		if ($channel !== 'priv') {
+		if ($channel === 'msg') {
 			$sendto->reply($msg);
 		}
 	}

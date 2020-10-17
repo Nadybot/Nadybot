@@ -570,7 +570,7 @@ class GuildController {
 
 			$altInfo = $this->altsController->getAltInfo($sender);
 			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(false, true);
+				$msg .= " " . $altInfo->getAltsBlob(true);
 			}
 		}
 

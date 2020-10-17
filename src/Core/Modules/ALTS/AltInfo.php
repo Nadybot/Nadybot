@@ -18,10 +18,10 @@ class AltInfo {
 	public array $alts = [];
 
 	/**
-	 * Check of $sender is a validated alt or main
+	 * Check if $sender is a validated alt or main
 	 */
 	public function isValidated(string $sender): bool {
-		if ($sender == $this->main) {
+		if ($sender === $this->main) {
 			return true;
 		}
 
@@ -58,7 +58,7 @@ class AltInfo {
 	 * @param bool $firstPageOnly Only show the first page (login alt-list)
 	 * @return string|string[]
 	 */
-	public function getAltsBlob(bool $showValidateLinks=false, bool $firstPageOnly=false) {
+	public function getAltsBlob(bool $firstPageOnly=false) {
 		/** @var \Nadybot\Core\DB */
 		$db = Registry::getInstance('db');
 		/** @var \Nadybot\Core\SettingManager */
@@ -147,9 +147,8 @@ class AltInfo {
 				$blob .= " - " .join(", ", $extraInfo);
 			}
 			$blob .= $this->formatOnlineStatus($online);
-
-			if ($showValidateLinks && $row->validated == 0) {
-				$blob .= " [Unvalidated] " . $text->makeChatcmd('Validate', "/tell <myname> <symbol>altvalidate {$row->alt}");
+			if (!$row->validated) {
+				$blob .= " - <red>not validated<end>";
 			}
 
 			$blob .= "\n";

@@ -131,7 +131,7 @@ class OnlineController {
 			"Group online list by",
 			"edit",
 			"options",
-			"player",
+			"1",
 			"do not group;player;profession",
 			"0;1;2"
 		);
@@ -164,7 +164,7 @@ class OnlineController {
 		$sql = "SELECT DISTINCT p.*, o.afk, COALESCE(a.main, o.name) AS pmain, ".
 				"(CASE WHEN o2.name IS NULL THEN 0 ELSE 1 END) AS online ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
 			"LEFT JOIN alts a2 ON a2.main = COALESCE(a.main, o.name) ".
 			"LEFT JOIN players p ON a2.alt = p.name OR COALESCE(a.main, o.name) = p.name ".
 			"LEFT JOIN online o2 ON p.name = o2.name ".
@@ -421,7 +421,7 @@ class OnlineController {
 		}
 		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
 			"LEFT JOIN players p ON o.name = p.name ".
 			"WHERE o.channel_type=? AND o.name=?";
 		return $this->db->fetch(OnlinePlayer::class, $sql, $channel, $sender);
@@ -443,7 +443,6 @@ class OnlineController {
 
 		$privData = $this->getPlayers('priv');
 		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
-		// [$privCount, $privMain, $privBlob] = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
 
 		$totalCount = $orgList->count + $privList->count;
 		$totalMain = $orgList->countMains + $privList->countMains;
@@ -538,18 +537,24 @@ class OnlineController {
 		}
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		foreach ($players as $player) {
-			if ($groupBy === static::GROUP_BY_MAIN && $currentGroup !== $player->pmain) {
-				$list->countMains++;
-				$list->blob .= "\n<pagebreak><highlight>$player->pmain<end> on\n";
-				$currentGroup = $player->pmain;
-			} elseif ($groupBy === static::GROUP_BY_PROFESSION && $currentGroup !== $player->profession) {
-				$list->countMains++;
-				$profIcon = "?";
-				if ($player->profession !== null) {
-					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+			if ($groupBy === static::GROUP_BY_MAIN) {
+				if ($currentGroup !== $player->pmain) {
+					$list->countMains++;
+					$list->blob .= "\n<pagebreak><highlight>$player->pmain<end> on\n";
+					$currentGroup = $player->pmain;
 				}
-				$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
-				$currentGroup = $player->profession;
+			} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
+				$list->countMains++;
+				if ($currentGroup !== $player->profession) {
+					$profIcon = "?";
+					if ($player->profession !== null) {
+						$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+					}
+					$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
+					$currentGroup = $player->profession;
+				}
+			} else {
+				$list->countMains++;
 			}
 
 			$admin = $this->getAdminInfo($player->name, $separator);
@@ -578,7 +583,7 @@ class OnlineController {
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON o.name = a.alt ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
 			"LEFT JOIN players p ON o.name = p.name ".
 			"WHERE o.channel_type = ? ";
 		if ($groupBy === static::GROUP_BY_MAIN) {

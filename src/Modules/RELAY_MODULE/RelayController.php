@@ -453,7 +453,7 @@ class RelayController {
 
 			$altInfo = $this->altsController->getAltInfo($sender);
 			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(false, true);
+				$msg .= " " . $altInfo->getAltsBlob(true);
 			}
 
 			$logonMsg = $this->preferences->get($sender, 'logon_msg');
@@ -502,13 +502,13 @@ class RelayController {
 
 		if ($whois !== null) {
 			if (count($altInfo->alts) > 0) {
-				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel. " . $altInfo->getAltsBlob(false, true);
+				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel. " . $altInfo->getAltsBlob(true);
 			} else {
 				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 			}
 		} else {
 			if (count($altInfo->alts) > 0) {
-				$msg = "$sender has joined the private channel. " . $altInfo->getAltsBlob(false, true);
+				$msg = "$sender has joined the private channel. " . $altInfo->getAltsBlob(true);
 			} else {
 				$msg = "$sender has joined the private channel.";
 			}
