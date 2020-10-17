@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS `raid_log_<myname>` (
 	`time`              INT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS raid_log_<myname>_raid_id_idx ON raid_log_<myname>(`raid_id`);
-CREATE INDEX IF NOT EXISTS raid_log_<myname>_time_idx ON raid_log_<myname>(`time`);
+CREATE INDEX IF NOT EXISTS `raid_log_<myname>_raid_id_idx` ON `raid_log_<myname>`(`raid_id`);
+CREATE INDEX IF NOT EXISTS `raid_log_<myname>_time_idx` ON `raid_log_<myname>`(`time`);

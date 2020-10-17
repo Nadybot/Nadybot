@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS `raid_member_<myname>` (
 	`joined`   INT,
 	`left`     INT
 );
-CREATE INDEX raid_member_<myname>_raid_id_idx ON  raid_member_<myname>(raid_id);
-CREATE INDEX raid_member_<myname>_player_idx ON  raid_member_<myname>(player);
+CREATE INDEX IF NOT EXISTS `raid_member_<myname>_raid_id_idx` ON `raid_member_<myname>`(raid_id);
+CREATE INDEX IF NOT EXISTS `raid_member_<myname>_player_idx` ON `raid_member_<myname>`(player);
