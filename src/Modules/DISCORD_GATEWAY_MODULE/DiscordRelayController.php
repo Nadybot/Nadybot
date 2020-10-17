@@ -68,8 +68,8 @@ class DiscordRelayController {
 			"edit",
 			"options",
 			"0",
-			"false;true",
-			"0;1"
+			"true;false",
+			"1;0"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
