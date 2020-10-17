@@ -1,6 +1,6 @@
-[![Docker Repository on Quay](https://quay.io/repository/nadyita/nadybot/status "Docker Repository on Quay")](https://quay.io/repository/nadyita/nadybot)
+# ![N](img/nadybot64.png)adybot #
 
-# Nadybot #
+[![Docker Repository on Quay](https://quay.io/repository/nadyita/nadybot/status "Docker Repository on Quay")](https://quay.io/repository/nadyita/nadybot)
 
 Nadybot is the next-generation chatbot for Anarchy Online.
 
@@ -11,6 +11,7 @@ For all support questions and bug reports please contact me in-game (Nadychat) o
 ## Installation ##
 
 There are three ways that you can obtain Nadybot:
+
 * Release Archives (recommended for most users)
 * Latest Development
 * Cloning the Repository (recommended for developers).
@@ -227,7 +228,7 @@ Contra:
 * Requires a dedicated bot for providing the private channel used as a relay
 * If a bot restarts, the messages sent while it was down are not relayed retroactively
 
-In order to configure a private-channel-relay between bot `Alice` in org `The First Ones` and bot `Bobby` in the org `We can read you`, which will relay **all** messages without any prefix whatsoever between the 2 orgs, we will first need to setup the bot `Relayer`, providing the dedicated private channel. 
+In order to configure a private-channel-relay between bot `Alice` in org `The First Ones` and bot `Bobby` in the org `We can read you`, which will relay **all** messages without any prefix whatsoever between the 2 orgs, we will first need to setup the bot `Relayer`, providing the dedicated private channel.
 
 ```text
 !config mod PRIVATE_CHANNEL_MODULE enable all
