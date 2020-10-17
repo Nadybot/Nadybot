@@ -139,7 +139,7 @@ class Nadybot extends AOChat {
 			"`type` VARCHAR(18), ".
 			"`file` TEXT, ".
 			"`cmd` VARCHAR(50), ".
-			"`admin` VARCHAR(10), ".
+			"`admin` VARCHAR(30), ".
 			"`description` VARCHAR(75) DEFAULT 'none', ".
 			"`verify` INT DEFAULT '0', ".
 			"`status` INT DEFAULT '0', ".
@@ -147,6 +147,9 @@ class Nadybot extends AOChat {
 			"`help` VARCHAR(255)".
 			")"
 		);
+		if ($this->db->getType() === $this->db::MYSQL) {
+			$this->db->exec("ALTER TABLE cmdcfg_<myname> MODIFY COLUMN `admin` VARCHAR(30)");
+		}
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS eventcfg_<myname> (".
 			"`module` VARCHAR(50), ".
