@@ -18,11 +18,20 @@
           {{ user.profession }}
         </td>
         <td>{{ user.name }}</td>
-        <td>{{ user.level }}/{{ user.ai_level }}</td>
         <td>
-          <span class="badge" :class="user.faction.toLowerCase()">{{
-            user.org
-          }}</span>
+          {{ user.level }}
+          <span
+            class="badge badge-ai badge-pill badge-success"
+            v-if="user.ai_level > 0"
+            >{{ user.ai_level }}</span
+          >
+        </td>
+        <td>
+          <span
+            class="badge badge-faction"
+            :class="user.faction.toLowerCase()"
+            >{{ user.org }}</span
+          >
         </td>
         <td>{{ user.org_rank }}</td>
       </tr>
@@ -31,7 +40,7 @@
 </template>
 
 <style lang="scss" scoped>
-.badge {
+.badge-faction {
   color: black;
 
   &.omni {
@@ -46,6 +55,10 @@
     background-color: #afafaf;
     border: thin solid grey;
   }
+}
+
+.badge-ai {
+  vertical-align: text-top;
 }
 </style>
 
