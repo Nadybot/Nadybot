@@ -26,10 +26,18 @@ export default createStore({
       console.log(`Successfully loaded online members: ${users.org.length}`);
     },
     addOnlineOrgUser(state, player: OnlinePlayer): void {
-      state.users.org.push(player);
+      const old_item = state.users.org.find((p) => p.name == player.name);
+      if (!old_item) {
+        state.users.org.push(player);
+      }
     },
     addOnlinePrivUser(state, player: OnlinePlayer): void {
-      state.users.private_channel.push(player);
+      const old_item = state.users.private_channel.find(
+        (p) => p.name == player.name
+      );
+      if (!old_item) {
+        state.users.private_channel.push(player);
+      }
     },
     delOnlineOrgUser(state, player_name: string): void {
       state.users.org = state.users.org.filter(
