@@ -175,8 +175,11 @@ class Text {
 	 * @return string The link
 	 */
 	public function makeChatcmd(string $name, string $content, ?string $style=""): string {
+		if ($style !== "") {
+			$style .= " ";
+		}
 		$content = str_replace("'", '&#39;', $content);
-		return "<a $style href='chatcmd://$content'>$name</a>";
+		return "<a {$style}href='chatcmd://$content'>$name</a>";
 	}
 
 	/**
@@ -191,7 +194,10 @@ class Text {
 	 * @return string The link to the user
 	 */
 	public function makeUserlink(string $user, string $style=""): string {
-		return "<a $style href=user://$user>$user</a>";
+		if ($style !== "") {
+			$style .= " ";
+		}
+		return "<a {$style}href=user://$user>$user</a>";
 	}
 
 	/**
