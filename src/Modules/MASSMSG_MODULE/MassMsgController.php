@@ -112,7 +112,7 @@ class MassMsgController {
 				$this->chatBot->sendMassTell($message, $name);
 			}
 		);
-		$msg = $this->getMassMsgOptInOutBlob($result);
+		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
 	}
 
@@ -122,7 +122,7 @@ class MassMsgController {
 	 */
 	public function massInvCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$message = "<highlight>Invite from {$sender}<end>: ".
-			$this->settingManager->getString('massmsg_color') . $args[1] . "<end> :: ";
+			$this->settingManager->getString('massmsg_color') . $args[1] . "<end> :: ".
 			$this->getMassMsgOptInOutBlob();
 		$this->chatBot->sendPrivate($message, true);
 		$result = $this->massCallback(
@@ -131,7 +131,7 @@ class MassMsgController {
 				$this->chatBot->privategroup_invite($name);
 			}
 		);
-		$msg = $this->getMassMsgOptInOutBlob($result);
+		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
 	}
 
@@ -158,9 +158,18 @@ class MassMsgController {
 			}
 			$blob .= "\n";
 		}
-		$msg = "Your message was sent to <highlight>{$numSent}<end> people and ".
-		"read by <highlight>{$numInChat}<end> people in the private channel. ".
-		"{$numBlocked} people are blocking mass messages";
+		$person = function(int $num): string {
+			return ($num === 1) ? "person" : "people";
+		};
+		$isAre = function(int $num): string {
+			return ($num === 1) ? "is" : "are";
+		};
+		$msg = "Your message was sent to <highlight>{$numSent}<end> ".
+			$person($numSent).
+			" and read by <highlight>{$numInChat}<end> ".
+			$person($numInChat) . " in the private channel. ".
+			"{$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
+			" blocking mass messages";
 		$parts = (array)$this->text->makeBlob("Messaging details", $blob);
 		foreach ($parts as &$part) {
 			$part = "$msg :: $part";
@@ -183,7 +192,7 @@ class MassMsgController {
 				|| $this->buddylistManager->isOnline($member->name) !== true) {
 				continue;
 			}
-			if (!isset($this->chatBot->chatlist[$member->name])) {
+			if (isset($this->chatBot->chatlist[$member->name])) {
 				$result[$member->name]  = static::IN_CHAT;
 				continue;
 			}
