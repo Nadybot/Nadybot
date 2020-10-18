@@ -23,7 +23,11 @@ export default createStore({
     async loadOnlineUsers(state): Promise<void> {
       const users = await getOnlineMembers();
       state.users = users;
-      console.log(`Successfully loaded online members: ${users.org.length}`);
+      console.log(
+        `Successfully loaded online members: ${
+          users.org.length + users.private_channel.length
+        }`
+      );
     },
     addOnlineOrgUser(state, player: OnlinePlayer): void {
       const old_item = state.users.org.find((p) => p.name == player.name);
