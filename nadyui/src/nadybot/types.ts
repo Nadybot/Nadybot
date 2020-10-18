@@ -2,7 +2,7 @@ import { JsonDecoder } from "ts.data.json";
 
 export enum Breed {
   Solitus = "Solitus",
-  Nanomage = "Nanomage",
+  Nanomage = "Nano",
   Opifex = "Opifex",
   Atrox = "Atrox",
 }

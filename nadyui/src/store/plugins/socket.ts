@@ -9,12 +9,17 @@ export default function createWebSocketPlugin() {
 
     //subscribe to events
     client.onopen = function (_e: Event) {
-      client.send('{"command": "subscribe", "data": {"events": ["*"]}}');
+      client.send(
+        '{"command": "subscribe", "data": {"events": ["offline(*)", "online(*)"]}}'
+      );
       store.dispatch("websocketOpen");
     };
 
     client.onmessage = function (e: MessageEvent<string>) {
-      store.dispatch("websocketData", e.data);
+      const data = JSON.parse(e.data);
+      if (data.command == "event") {
+        store.dispatch(data.data.class, data.data);
+      }
     };
 
     client.onclose = function (e: CloseEvent) {
