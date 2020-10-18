@@ -759,6 +759,7 @@ class PrivateChannelController {
 		$event = new OnlineEvent();
 		$event->type = "online(priv)";
 		$event->player = new OnlinePlayer();
+		$event->channel = "priv";
 		foreach ($whois as $key => $value) {
 			$event->player->$key = $value;
 		}
@@ -781,6 +782,7 @@ class PrivateChannelController {
 		$event = new OfflineEvent();
 		$event->type = "offline(priv)";
 		$event->player = $sender;
+		$event->channel = "priv";
 		$this->eventManager->fireEvent($event);
 	}
 	

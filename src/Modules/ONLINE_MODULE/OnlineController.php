@@ -226,6 +226,7 @@ class OnlineController {
 		}
 		$event = new OnlineEvent();
 		$event->type = "online(org)";
+		$event->channel = "org";
 		$event->player = $player;
 		$this->eventManager->fireEvent($event);
 	}
@@ -241,6 +242,7 @@ class OnlineController {
 			$event = new OfflineEvent();
 			$event->type = "offline(org)";
 			$event->player = $sender;
+			$event->channel = "org";
 			$this->eventManager->fireEvent($event);
 		}
 	}

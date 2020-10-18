@@ -6,4 +6,5 @@ use Nadybot\Core\Event;
 
 class OfflineEvent extends Event {
 	public string $player;
+	public string $channel;
 }
