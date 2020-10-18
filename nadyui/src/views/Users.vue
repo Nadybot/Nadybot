@@ -66,6 +66,10 @@
 .badge-ai {
   vertical-align: text-top;
 }
+
+.th {
+  user-select: none;
+}
 </style>
 
 <script lang="ts">
