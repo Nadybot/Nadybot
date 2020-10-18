@@ -20,6 +20,7 @@ use Nadybot\Core\{
 
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	HttpProtocolWrapper,
+	JsonExporter,
 	Request,
 	Response,
 };
@@ -228,7 +229,7 @@ class WebsocketController {
 			foreach ($client->getSubscriptions() as $subscription) {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
-					$client->send(json_encode($packet, JSON_UNESCAPED_SLASHES), 'text', true);
+					$client->send(JsonExporter::encode($packet), 'text', true);
 					$this->logger->log('INFO', 'Sending ' . $class . ' to Websocket client');
 				}
 			}
