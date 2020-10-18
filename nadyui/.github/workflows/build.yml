@@ -1,0 +1,17 @@
+name: Test build
+on: [push]
+
+jobs:
+  build:
+    name: Build Vue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+      - name: Build files
+        run: |
+            ./build.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist-html
+          path: dist/
