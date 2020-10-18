@@ -426,7 +426,8 @@ class OnlineController {
 			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
 			"LEFT JOIN players p ON o.name = p.name ".
 			"WHERE o.channel_type=? AND o.name=?";
-		return $this->db->fetch(OnlinePlayer::class, $sql, $channel, $sender);
+		$op = $this->db->fetch(OnlinePlayer::class, $sql, $channelType, $sender);
+		return $op;
 	}
 	
 	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
