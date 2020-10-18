@@ -476,5 +476,55 @@ INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUE
 ('Temple of the Three Winds', 'Weapons', 1, 'Obsidian Desecrator', '2HE', 1, NULL),
 ('Temple of the Three Winds', 'Weapons', 1, 'Sacred Chalice', 'Doc', 1, NULL);
 
+-- GUPHs
+INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUES
+('Halloween', 'Griefing Uncle Pumpkin-Head',   1, 'Sparkling Freedom Arms 3927', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  10, 'Battered Freedom Arms 3927', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  40, 'Freedom Arms 3927a', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  44, 'Freedom Arms 3927', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  96, 'Freedom Arms 3927k', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Freedom Arms 3927k Ultra', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 108, 'Freedom Arms 3927 Notum', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 150, 'Freedom Arms 3927 Chapman', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 158, 'Freedom Arms 3927 Guerrilla', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 200, 'Freedom Arms 3927 G2', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Ai-X44 Android Head', 'QL1-200', 1, 152269),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'BBQ Shoulder Pillow', 'QL1-200', 1, 152258),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 175, 'Black Agent Cloak', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  25, 'Blue Baby Bronto Boots', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Bodum-Larga NCU', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Candied Fruit Armband', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Candy Cord', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Capsule of Thin Blood', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Carrier Craft', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Counterfeit Omni Epaulet', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 200, 'Extreme Low Light Targeting Scope', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Jones Energized Carbonan Helmet', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Metallic Hoop', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Nano Targeting Helper', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'NCU Robot Reed', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Neural Interpreting Nball - Handguns', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Omni Epaulet', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 175, 'Real Knickers Stockings', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  10, 'Reinforced Blackpants', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Ring of Endurance', 'QL1-300', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Ring of Essence', 'QL1-300', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head',  40, 'Starched Armbands', '', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Sunglasses of Syncopated Heartbeats', '', 1, 163631),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 100, 'Support Wire', 'QL1-200', 1, null),
+('Halloween', 'Griefing Uncle Pumpkin-Head', 175, 'White Agent Cloak', '', 1, null);
+
+-- HUPHs
+INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUES
+('Halloween', 'Harvesting Uncle Pumpkin-Head',   1, 'Nano Crystal (Junior Pumpkin-Head)', '', 6, null);
+
+-- HUPHs
+INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUES
+('Halloween', 'Solo Instance', 1, 'Freedom Arms 3927 Chameleon', 'Can drop from all special mobs', 1, null),
+('Halloween', 'Solo Instance', 1, 'Rabbit Ears - Black', 'Drops from boss mobs', 1, null),
+('Halloween', 'Solo Instance', 1, 'Rabbit Ears - Blue', 'Drops from boss mobs', 1, null),
+('Halloween', 'Solo Instance', 1, 'Scythe of the Harvester', 'Drops from end boss', 1, null),
+('Halloween', 'Solo Instance', 1, 'Beacon of the Harvester', 'Drops from end boss', 1, null);
+
 CREATE INDEX idx_raid_loot_raid ON raid_loot(raid);
 CREATE INDEX idx_raid_loot_category ON raid_loot(category);

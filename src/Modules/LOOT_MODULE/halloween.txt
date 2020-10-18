@@ -1,0 +1,2 @@
+To view the special loot that drops on Halloween:
+<highlight><tab><symbol>halloween<end>

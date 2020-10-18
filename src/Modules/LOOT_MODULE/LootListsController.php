@@ -119,6 +119,12 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *		help        = 'totw.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'halloween',
+ *		accessLevel = 'all',
+ *		description = 'Shows possible Halloween loot',
+ *		help        = 'halloween.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'lox',
  *		accessLevel = 'all',
  *		description = 'Shows Legacy of the Xan loot categories',
@@ -647,6 +653,36 @@ class LootListsController {
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons');
 		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
 
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("halloween")
+	 * @Matches("/^halloween$/i")
+	 */
+	public function halloweenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$guph = "Griefing Uncle Pumpkin-Heads can be found at the following locations:\n".
+			"<tab>- Level <black>0<end>10-<black>0<end>50: ".
+			$this->text->makeChatcmd("Holes in the Wall", "/waypoint 504 306 791") . "\n".
+			"<tab>- Level <black>0<end>50-100: ".
+			$this->text->makeChatcmd("Stret West Bank", "/waypoint 1411 1428 790") . "\n".
+			"<tab>- Level 100-150: ".
+			$this->text->makeChatcmd("2HO east of the grid", "/waypoint 850 1460 635") . "\n".
+			"<tab>- Level 125-180: ".
+			$this->text->makeChatcmd("4 Holes at the ferry", "/waypoint 1960 942 760") . "\n".
+			"<tab>- Level 150-200: ".
+			$this->text->makeChatcmd("Upper Stret East Bank", "/waypoint 1770 2391 650") . "\n".
+			"<tab>- Level 200-250: ".
+			$this->text->makeChatcmd("Broken Shores along the river", "/waypoint 1266 1889 665") . "\n".
+			"<tab>- Level <black>00<end>1-300: Notum Mining Area\n";
+		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head'));
+		$blob .= "\n<header2>Ganking Uncle Pumpkin-Head<end>\n\n".
+			"They drop the same loot as the GUPHs, but have a higher chance to drop the rare items.\n";
+		$huph = "They are only spawned by ARKs on Halloween events ".
+			"and cannot be found anywhere else.\n";
+		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head'));
+		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance');
+		$msg = $this->text->makeBlob("Halloween loot", $blob);
 		$sendto->reply($msg);
 	}
 
