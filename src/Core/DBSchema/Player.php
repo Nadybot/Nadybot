@@ -37,7 +37,7 @@ class Player extends DBRow {
 	public ?int $level = null;
 
 	/**
-	 * Any of Nanomage, Solitus, Atrox or Opifex. Also empty string if unknown
+	 * Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
 	 */
 	public string $breed = '';
 
