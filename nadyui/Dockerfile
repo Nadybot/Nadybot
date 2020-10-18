@@ -8,7 +8,7 @@ WORKDIR /tmp/build
 
 RUN cp -r /build/* /tmp/build && \
     rm -rf /tmp/build/node_modules/ && \
-    apk add --no-cache --virtual .node nodejs-current npm && \
+    apk add --no-cache --virtual .node nodejs-current npm git && \
     npm i && \
     npm run build && \
     rm -rf /build/dist && \
