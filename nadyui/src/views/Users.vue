@@ -1,42 +1,48 @@
 <template>
-  <table class="table table-hover table-striped">
-    <thead class="thead-dark">
-      <tr>
-        <th scope="col">Main</th>
-        <th scope="col">Profession</th>
-        <th scope="col">Character</th>
-        <th scope="col">Level</th>
-        <th scope="col">Org</th>
-        <th scope="col">Rank</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="user in allUsers" :key="user.name">
-        <td>{{ user.main_character }}</td>
-        <td>
-          <profession-icon :profession="user.profession" />
-          {{ user.profession }}
-        </td>
-        <td>{{ user.name }}</td>
-        <td>
-          {{ user.level }}
-          <span
-            class="badge badge-ai badge-pill badge-success"
-            v-if="user.ai_level > 0"
-            >{{ user.ai_level }}</span
+  <v-table :data="allUsers" class="table table-hover table-striped">
+    <template v-slot:head>
+      <thead class="thead-dark">
+        <tr>
+          <v-th sortKey="main_character" defaultSort="desc" scope="col"
+            >Main</v-th
           >
-        </td>
-        <td>
-          <span
-            class="badge badge-faction"
-            :class="user.faction.toLowerCase()"
-            >{{ user.org }}</span
-          >
-        </td>
-        <td>{{ user.org_rank }}</td>
-      </tr>
-    </tbody>
-  </table>
+          <v-th sortKey="profession" scope="col">Profession</v-th>
+          <v-th sortKey="name" scope="col">Character</v-th>
+          <v-th sortKey="level" scope="col">Level</v-th>
+          <v-th sortKey="org" scope="col">Org</v-th>
+          <v-th sortKey="org_rank" scope="col">Rank</v-th>
+        </tr>
+      </thead>
+    </template>
+    <template v-slot:body="{ displayData }">
+      <tbody>
+        <tr v-for="user in displayData" :key="user.name">
+          <td>{{ user.main_character }}</td>
+          <td>
+            <profession-icon :profession="user.profession" />
+            {{ user.profession }}
+          </td>
+          <td>{{ user.name }}</td>
+          <td>
+            {{ user.level }}
+            <span
+              class="badge badge-ai badge-pill badge-success"
+              v-if="user.ai_level > 0"
+              >{{ user.ai_level }}</span
+            >
+          </td>
+          <td>
+            <span
+              class="badge badge-faction"
+              :class="user.faction.toLowerCase()"
+              >{{ user.org }}</span
+            >
+          </td>
+          <td>{{ user.org_rank }}</td>
+        </tr>
+      </tbody>
+    </template>
+  </v-table>
 </template>
 
 <style lang="scss" scoped>
