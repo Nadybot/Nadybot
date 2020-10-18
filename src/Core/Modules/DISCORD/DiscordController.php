@@ -91,7 +91,7 @@ class DiscordController {
 	 * Reformat a Nadybot message for sending to Discord
 	 */
 	public function formatMessage(string $text): DiscordMessageOut {
-		$text = preg_replace('/([~`_])/', "\\\\$1", $text);
+		$text = preg_replace('/([~`_*])/', "\\\\$1", $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
 		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
@@ -123,6 +123,7 @@ class DiscordController {
 		);
 
 		$text = strip_tags($text);
+		$text = str_replace(["&lt;", "&gt;"], ["<", ">"], $text);
 		if (!count($embeds) && $linksReplaced > 0) {
 			$embed = new DiscordEmbed();
 			$embed->description = $text;
@@ -160,6 +161,10 @@ class DiscordController {
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];
+		if (preg_match("/^<font.*?>\*(.+?)\*\n/s", $matches[1], $headerMatch)) {
+			$embed->title = $headerMatch[1];
+			$matches[1] = preg_replace("/^(<font.*?>)\*(.+?)\*\n/s", "$1", $matches[1]);
+		}
 		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
 		$embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
 		if (strlen($embed->description) > 2048) {

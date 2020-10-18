@@ -351,14 +351,14 @@ class Nadybot extends AOChat {
 	 * Send a message to a private channel
 	 *
 	 * @param string|string[] $message One or more messages to send
-	 * @param boolean $disable_relay Set to true to disable relaying the message into the org/guild channel
+	 * @param boolean $disableRelay Set to true to disable relaying the message into the org/guild channel
 	 * @param string $group Name of the private group to send message into or null for the bot's own
 	 */
-	public function sendPrivate($message, bool $disable_relay=false, string $group=null): void {
+	public function sendPrivate($message, bool $disableRelay=false, string $group=null): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
-				$this->sendPrivate($page, $disable_relay, $group);
+				$this->sendPrivate($page, $disableRelay, $group);
 			}
 			return;
 		}
@@ -379,10 +379,10 @@ class Nadybot extends AOChat {
 		$event->channel = $group;
 		$event->message = $message;
 		$event->sender = $this->vars["name"];
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->fireEvent($event, $disableRelay);
 		if ($this->isDefaultPrivateChannel($group)) {
 			// relay to guild channel
-			if (!$disable_relay
+			if (!$disableRelay
 				&& $this->settingManager->getBool('guild_channel_status')
 				&& $this->settingManager->getBool("guest_relay")
 				&& $this->settingManager->getBool("guest_relay_commands")
@@ -391,7 +391,7 @@ class Nadybot extends AOChat {
 			}
 
 			// relay to bot relay
-			if (!$disable_relay && $this->settingManager->getString("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
+			if (!$disableRelay && $this->settingManager->getString("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
 				if (isset($this->chatBot->vars["my_guild"]) && strlen($this->chatBot->vars["my_guild"])) {
 					$this->relayController->sendMessageToRelay("grc [{$guildNameForRelay}] [Guest] {$senderLink}: $message");
 				} else {
@@ -405,11 +405,11 @@ class Nadybot extends AOChat {
 	 * Send one or more messages into the org/guild channel
 	 *
 	 * @param string|string[] $message One or more messages to send
-	 * @param boolean $disable_relay Set to true to disable relaying the message into the bot's private channel
+	 * @param boolean $disableRelay Set to true to disable relaying the message into the bot's private channel
 	 * @param int $priority The priority of the message or medium if unset
 	 * @return void
 	 */
-	public function sendGuild($message, bool $disable_relay=false, int $priority=null): void {
+	public function sendGuild($message, bool $disableRelay=false, int $priority=null): void {
 		if ($this->settingManager->get('guild_channel_status') != 1) {
 			return;
 		}
@@ -417,14 +417,12 @@ class Nadybot extends AOChat {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
-				$this->sendGuild($page, $disable_relay, $priority);
+				$this->sendGuild($page, $disableRelay, $priority);
 			}
 			return;
 		}
 
-		if ($priority == null) {
-			$priority = AOC_PRIORITY_MED;
-		}
+		$priority ??= AOC_PRIORITY_MED;
 
 		$message = $this->text->formatMessage($message);
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
@@ -433,9 +431,15 @@ class Nadybot extends AOChat {
 		$guildColor = $this->settingManager->get("default_guild_color");
 
 		$this->send_guild($guildColor.$message, "\0", $priority);
+		$event = new AOChatEvent();
+		$event->type = "sendguild";
+		$event->channel = $this->vars["my_guild"];
+		$event->message = $message;
+		$event->sender = $this->vars["name"];
+		$this->eventManager->fireEvent($event, $disableRelay);
 
 		// relay to private channel
-		if (!$disable_relay
+		if (!$disableRelay
 			&& $this->settingManager->getBool("guest_relay")
 			&& $this->settingManager->getBool("guest_relay_commands")
 		) {
@@ -443,7 +447,7 @@ class Nadybot extends AOChat {
 		}
 
 		// relay to bot relay
-		if (!$disable_relay
+		if (!$disableRelay
 			&& $this->settingManager->get("relaybot") !== "Off"
 			&& $this->settingManager->getBool("bot_relay_commands")
 		) {

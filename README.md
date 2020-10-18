@@ -365,8 +365,7 @@ It will instantly try and validate if this is a valid token.
 8. Paste it in a new browser tab and select your Org's Discord server (you will need Admin permissions there). Click "Authorize" and you're done.<br/>
 ![Invite Page](img/invite-page.png)
 
-9. Turn on your Discord modules with<br/>
-`!config mod DISCORD enable all`<br/>
+9. Turn on your Discord module with<br/>
 `!config mod DISCORD_GATEWAY_MODULE enable all`
 
 The token you copied will be used to log in as the bot. If you watch your bot's log, it should now show you that the Gateway module logs into the gateway and starts receiving events.

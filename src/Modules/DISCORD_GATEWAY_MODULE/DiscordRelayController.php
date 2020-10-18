@@ -12,8 +12,8 @@ use Nadybot\Core\{
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Channel;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
+use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
  * @author Nadyite (RK5)
@@ -41,10 +41,16 @@ class DiscordRelayController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
+	public RelayController $relayController;
+
+	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
 
 	/** @Inject */
 	public DiscordController $discordController;
+
+	/** @Inject */
+	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -225,20 +231,7 @@ class DiscordRelayController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @Event("priv")
-	 * @Event("sendpriv");
-	 * @Description("Relay priv channel to Discord")
-	 */
-	public function relayPrivChannelEvent(Event $eventObj) {
-		$sender = $eventObj->sender;
-		$message = $eventObj->message;
-		
-		// Check if the private channel relay is enabled
-		if (($this->settingManager->getInt("discord_relay") & 1) !== 1) {
-			return;
-		}
-
+	public function relayPrivChannelMessage(string $sender, string $message): void {
 		// Check if a channel to relay into was chosen
 		$relayChannel = $this->settingManager->getString("discord_relay_channel");
 		if ($relayChannel === "off") {
@@ -255,6 +248,66 @@ class DiscordRelayController {
 
 		//Relay the message to the discord channel
 		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
+	/**
+	 * @Event("priv")
+	 * @Event("sendpriv")
+	 * @Description("Relay priv channel to Discord")
+	 */
+	public function relayPrivChannelEvent(Event $eventObj, ?bool $disableRelay=false): void {
+		if ($disableRelay) {
+			return;
+		}
+		$sender = $eventObj->sender;
+		$message = $eventObj->message;
+		
+		// Check if the private channel relay is enabled
+		if (($this->settingManager->getInt("discord_relay") & 1) !== 1) {
+			return;
+		}
+
+		$this->relayPrivChannelMessage($sender, $message);
+	}
+
+	public function relayOrgChannelMessage(string $sender, string $message): void {
+		// Check if a channel to relay into was chosen
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		if ($relayChannel === "off") {
+			return;
+		}
+
+		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
+		if ($message[0] === $this->settingManager->getString("symbol")
+			&& !$this->settingManager->getBool("discord_relay_commands")) {
+			return;
+		}
+		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
+		$msg = "[{$guildNameForRelay}] {$sender}: {$message}";
+		$discordMsg = $this->discordController->formatMessage($msg);
+
+		//Relay the message to the discord channel
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
+	/**
+	 * @Event("guild")
+	 * @Event("sendguild")
+	 * @Description("Relay org channel to Discord")
+	 */
+	public function relayOrgChannelEvent(Event $eventObj, ?bool $disableRelay=false): void {
+		if ($disableRelay) {
+			return;
+		}
+		$sender = $eventObj->sender;
+		$message = $eventObj->message;
+
+		// Check if the org channel relay is enabled
+		if (($this->settingManager->getInt("discord_relay") & 2) !== 2) {
+			return;
+		}
+
+		$this->relayOrgChannelMessage($sender, $message);
 	}
 
 	/**
@@ -276,10 +329,14 @@ class DiscordRelayController {
 		$this->relayDiscordMessage($eventObj->discord_message->member, $message);
 	}
 
-	public function relayDiscordMessage(GuildMember $member, string $message): void {
-		$escapedMessage = $this->formatMessage($message);
+	public function relayDiscordMessage(GuildMember $member, string $message, bool $formatMessage=true): void {
+		$escapedMessage = $message;
+		if ($formatMessage) {
+			$escapedMessage = $this->formatMessage($message);
+		}
+		$senderName = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $member->getName();
 		$discordColorChannel = $this->settingManager->getString('discord_color_channel');
-		$message = "{$discordColorChannel}[Discord]<end> ". $member->getName() . ": ";
+		$message = "{$discordColorChannel}[Discord]<end> {$senderName}: ";
 		if (($this->settingManager->getInt("discord_relay") & 1) === 1) {
 			$discordColorPriv = $this->settingManager->getString('discord_color_priv');
 			$this->chatBot->sendPrivate(

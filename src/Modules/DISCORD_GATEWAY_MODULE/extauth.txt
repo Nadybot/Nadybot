@@ -1,5 +1,5 @@
 To request to be linked with an AO character 'charactername', from Discord send
-<tab><highlight><symbol>extauth 'charactername'<end>
+<tab><highlight><symbol>extauth request 'charactername'<end>
 
 and follow the instructions you received on 'charactername'.
 
