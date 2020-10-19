@@ -1,5 +1,9 @@
 <template>
-  <v-table :data="allUsers" class="table table-hover table-striped">
+  <v-table
+    :data="allUsers"
+    class="table table-hover table-striped"
+    v-bind:class="{ 'table-xs': allUsers.length > 18 }"
+  >
     <template v-slot:head>
       <thead class="thead-dark">
         <tr>
@@ -8,7 +12,7 @@
           >
           <v-th sortKey="profession" scope="col">Profession</v-th>
           <v-th sortKey="name" scope="col">Character</v-th>
-          <v-th sortKey="level" scope="col">Level</v-th>
+          <v-th :customSort="levelSort" scope="col">Level</v-th>
           <v-th sortKey="org" scope="col">Org</v-th>
           <v-th sortKey="org_rank" scope="col">Rank</v-th>
         </tr>
@@ -75,9 +79,29 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
+import { OnlinePlayer } from "@/nadybot/types";
 
 const Component = defineComponent({
   name: "UsersList",
+
+  methods: {
+    // Sort two players by their leve primarily and AI level secondarily
+    levelSort(a: OnlinePlayer, b: OnlinePlayer): number {
+      if (a.level == b.level) {
+        if (a.ai_level > b.ai_level) {
+          return 1;
+        } else if (a.ai_level == b.ai_level) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else if (a.level > b.level) {
+        return 1;
+      } else {
+        return -1;
+      }
+    },
+  },
 
   computed: {
     ...mapGetters(["allUsers"]),
