@@ -172,9 +172,9 @@ class Response {
 		if (isset($this->body) && !isset($this->headers["Content-Type"])) {
 			$this->headers["Content-Type"] = "text/html; charset=utf-8";
 		}
-		if (isset($this->body)) {
+		if (isset($this->body) || in_array($this->code, [static::OK, static::CREATED])) {
 			if (!array_key_exists('Content-Length', $this->headers)) {
-				$this->headers["Content-Length"] = strlen($this->body);
+				$this->headers["Content-Length"] = strlen($this->body??"");
 			}
 		}
 		$headers = "";

@@ -149,6 +149,19 @@ class DiscordGatewayController {
 			"off;priv;org;priv+org",
 			"0;1;2;3"
 		);
+		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
+	}
+
+	/**
+	 * Start, stop or restart the websocket connection if the token changes
+	 */
+	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
+		if ($oldValue !== "" && isset($this->client)) {
+			$this->client->close();
+		}
+		if ($newValue !== "") {
+			$this->timer->callLater(0, [$this, "connect"]);
+		}
 	}
 
 	/**
@@ -156,6 +169,10 @@ class DiscordGatewayController {
 	 * @Description("Connects to the Discord server")
 	 */
 	public function connectToDiscordgateway(): void {
+		$this->connect();
+	}
+
+	public function connect(): void {
 		$botToken = $this->settingManager->getString('discord_bot_token');
 		if (empty($botToken)) {
 			return;

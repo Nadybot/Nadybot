@@ -4,6 +4,7 @@ namespace Nadybot\Api;
 
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\Annotations\ApiResult;
+use Nadybot\Core\Annotations\RequestBody;
 
 class PathDoc {
 	public string $description;
@@ -12,5 +13,6 @@ class PathDoc {
 	public array $methods = [];
 	/** @var ApiResult[] */
 	public array $responses = [];
+	public ?RequestBody $requestBody = null;
 	public ReflectionAnnotatedMethod $phpMethod;
 }

@@ -422,9 +422,10 @@ class HttpProtocolWrapper {
 		}
 		if ($this->request->headers['content-type'] === 'application/json') {
 			try {
-				return json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+				$this->request->decodedBody = json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+				return null;
 			} catch (Throwable $error) {
-				return new Response(Response::BAD_REQUEST);
+				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
 			}
 		}
 		if ($this->request->headers['content-type'] === 'application/x-www-form-urlencoded') {

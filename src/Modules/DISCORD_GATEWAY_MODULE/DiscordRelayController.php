@@ -163,6 +163,75 @@ class DiscordRelayController {
 	}
 
 	/**
+	 * List the discord channels of all guilds and allow to pick one for notifications
+	 *
+	 * @HandlesCommand("discord")
+	 * @Matches("/^discord notify$/i")
+	 */
+	public function discordNotifyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		[$success, $blob] = $this->getChannelTree([$this, "channelNotifyPicker"]);
+		if (!$success) {
+			$sendto->reply($blob);
+			return;
+		}
+		$msg = $this->text->makeBlob("List of all Discord channels", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * Returns a channel name with a link to pick that one as notifications target
+	 */
+	protected function channelnotifyPicker(DiscordChannel $channel): string {
+		$name = $channel->name;
+		if ($channel->type === $channel::GUILD_TEXT) {
+			$name = "#" . $channel->name;
+		}
+		if ($channel->type !== $channel::GUILD_TEXT) {
+			return $name;
+		}
+		return "$name [".
+			$this->text->makeChatcmd("relay here", "/tell <myname> discord notify {$channel->id}").
+			"]";
+	}
+
+	/**
+	 * Pick a discord channel for notifications
+	 *
+	 * @HandlesCommand("discord")
+	 * @Matches("/^discord notify (.+)$/i")
+	 */
+	public function discordNotifyChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$channelId = $args[1];
+		if ($channelId === 'off') {
+			$this->settingManager->save('discord_notify_channel', 'off');
+			$msg = "Discord notifications turned off.";
+			$sendto->reply($msg);
+			return;
+		}
+		if (!$this->discordGatewayController->isConnected()) {
+			$msg = "The bot is not (yet) connected to discord.";
+			$sendto->reply($msg);
+			return;
+		}
+		$channel = $this->discordGatewayController->getChannel($channelId);
+		if ($channel === null) {
+			$msg = "The channel with the id <highlight>{$channelId}<end> does not exist.";
+			$sendto->reply($msg);
+			return;
+		}
+		if ($channel->type !== $channel::GUILD_TEXT) {
+			$msg = "I can only send notifications into text channels.";
+			$sendto->reply($msg);
+			return;
+		}
+		$this->settingManager->save('discord_notify_channel', $channelId);
+		$guilds = $this->discordGatewayController->getGuilds();
+		$guild = $guilds[$channel->guild_id];
+		$msg = "Now sending notifications into <highlight>{$guild->name}<end>\<highlight>#{$channel->name}<end> (ID {$channelId})";
+		$sendto->reply($msg);
+	}
+
+	/**
 	 * List the discord channels of all guilds and allow to pick one for relaying
 	 *
 	 * @HandlesCommand("discord")

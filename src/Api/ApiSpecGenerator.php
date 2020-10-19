@@ -11,6 +11,7 @@ use Nadybot\Core\Annotations\GET;
 use Nadybot\Core\Annotations\POST;
 use Nadybot\Core\Annotations\PUT;
 use Nadybot\Core\Annotations\QueryParam;
+use Nadybot\Core\Annotations\RequestBody;
 use Nadybot\Core\BotRunner;
 use Nadybot\Core\DBRow;
 use Nadybot\Core\Registry;
@@ -67,16 +68,17 @@ class ApiSpecGenerator {
 				}
 				$apiAnnotation = $method->getAnnotation("Api");
 				/** @var ReflectionParameter[] $params */
-				$params = array_slice($method->getParameters(),2);
+				$params = array_slice($method->getParameters(), 2);
 				$path = preg_replace_callback(
 					"/%[ds]/",
-					function(array $matches) use(&$params) {
+					function(array $matches) use (&$params) {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},
 					$apiAnnotation->value
 				);
-				$paths[$path] = $method;
+				$paths[$path] ??= [];
+				$paths[$path] []= $method;
 			}
 		}
 		return $paths;
@@ -224,33 +226,47 @@ class ApiSpecGenerator {
 		  
 		];
 		$newResult = [];
-		foreach ($mapping as $path => $refMethod) {
-			$doc = $this->getMethodDoc($refMethod);
-			$doc->path = $path;
-			$newResult[$path] = [];
-			$newResult[$path]["parameters"] = $this->getParamDocs($path, $refMethod);
-			foreach ($doc->methods as $method) {
-				$newResult[$path][$method] = [
-					"security" => [["basicAuth" => []]],
-					"description" => $doc->description,
-					"responses" => [],
-				];
-				foreach ($doc->responses as $code => $response) {
-					$this->addSchema($result["components"]["schemas"], $response->class);
-					$newResult[$path][$method]["responses"][$code] = [
-						"description" => $response->desc,
-						"content" => [
-							"application/json" => [
-								"schema" => [
-									'$ref' => "#/components/schemas/{$response->class}",
-								]
-							]
-						]
+		foreach ($mapping as $path => $refMethods) {
+			foreach ($refMethods as $refMethod) {
+				$doc = $this->getMethodDoc($refMethod);
+				$doc->path = $path;
+				$newResult[$path] ??= [];
+				$newResult[$path]["parameters"] = $this->getParamDocs($path, $refMethod);
+				foreach ($doc->methods as $method) {
+					$newResult[$path][$method] = [
+						"security" => [["basicAuth" => []]],
+						"description" => $doc->description,
+						"responses" => [],
 					];
+					if (isset($doc->requestBody)) {
+						$newResult[$path][$method]["requestBody"] = $this->getRequestBodyDefinition($doc->requestBody);
+						if (isset($doc->requestBody->class)) {
+							$this->addSchema($result["components"]["schemas"], $doc->requestBody->class);
+						}
+					}
+					foreach ($doc->responses as $code => $response) {
+						if (isset($response->class)) {
+							$this->addSchema($result["components"]["schemas"], $response->class);
+						}
+						$newResult[$path][$method]["responses"][$code] = [
+							"description" => $response->desc,
+						];
+						if (isset($response->class)) {
+							$refClass = ['$ref' => "#/components/schemas/{$response->class}"];
+							if (in_array($response->class, ["string", "int", "bool", "float"])) {
+								$refClass = ['type' => $response->class];
+							}
+							$newResult[$path][$method]["responses"][$code]["content"] = [
+								"application/json" => [
+									"schema" => $refClass
+								]
+							];
+						}
+					}
 				}
 			}
+			$result["paths"] = $newResult;
 		}
-		$result["paths"] = $newResult;
 		return $result;
 	}
 
@@ -318,9 +334,11 @@ class ApiSpecGenerator {
 		if (!$method->hasAnnotation("ApiResult")) {
 			// throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
 		}
-		foreach ($method->getAnnotations() as $anno) {
+		foreach ($method->getAllAnnotations() as $anno) {
 			if ($anno instanceof ApiResult) {
-				$doc->responses [$anno->code] = $anno;
+				$doc->responses[$anno->code] = $anno;
+			} elseif ($anno instanceof RequestBody) {
+				$doc->requestBody = $anno;
 			} elseif ($anno instanceof GET) {
 				$doc->methods []= "get";
 			} elseif ($anno instanceof POST) {
@@ -332,5 +350,37 @@ class ApiSpecGenerator {
 			}
 		}
 		return $doc;
+	}
+
+	public function getRequestBodyDefinition(RequestBody $requestBody): array {
+		$result = [];
+		if (isset($requestBody->desc)) {
+			$result["description"] = $requestBody->desc;
+		}
+		if (isset($requestBody->required)) {
+			$result["required"] = $requestBody->required;
+		}
+		$classes = explode("|", $requestBody->class);
+		foreach ($classes as &$class) {
+			$class = $this->getClassRef($class);
+		}
+		if (count($classes) > 1) {
+			$classes = ["oneOf" => $classes];
+		} else {
+			$classes = $classes[0];
+		}
+		$result["content"] = [
+			"application/json" => [
+				"schema" => $classes,
+			]
+		];
+		return $result;
+	}
+
+	protected function getClassRef(string $class): array {
+		if (in_array($class, ["string", "bool", "int", "float"])) {
+			return ["type" => $class];
+		}
+		return ['$ref' => "#/components/schemas/{$class}"];
 	}
 }
