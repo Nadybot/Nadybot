@@ -71,7 +71,7 @@
   vertical-align: text-top;
 }
 
-.th {
+.table th {
   user-select: none;
 }
 </style>
