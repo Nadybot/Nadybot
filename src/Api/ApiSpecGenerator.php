@@ -120,9 +120,17 @@ class ApiSpecGenerator {
 			if ($nameAndType === null) {
 				continue;
 			}
-			$newResult["properties"][$nameAndType[0]] = [
-				"type" => $nameAndType[1],
-			];
+			if (substr($nameAndType[1], 0, 1) === "#") {
+				$tmp = explode("/", $nameAndType[1]);
+				$this->addSchema($result, end($tmp));
+				$newResult["properties"][$nameAndType[0]] = [
+					'$ref' => $nameAndType[1],
+				];
+			} else {
+				$newResult["properties"][$nameAndType[0]] = [
+					"type" => $nameAndType[1],
+				];
+			}
 			if ($refProp->getType()->allowsNull()) {
 				$newResult["properties"][$nameAndType[0]]["nullable"] = true;
 			}
@@ -176,7 +184,9 @@ class ApiSpecGenerator {
 			}
 			return [$propName, $refType->getName()];
 		}
-		return [$propName, "#/components/schemas/" . $refType->getName()];
+		$name = explode("\\", $refType->getName());
+
+		return [$propName, "#/components/schemas/" . end($name)];
 	}
 
 	protected function getNameAndType(ReflectionProperty $refProperty): ?array {

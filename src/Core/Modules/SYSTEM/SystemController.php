@@ -22,6 +22,10 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Annotations\Setting;
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
 
 /**
  * @author Sebuda (RK2)
@@ -270,80 +274,129 @@ class SystemController {
 		$this->logger->log('INFO', "The Bot is shutting down.");
 		exit(10);
 	}
+	
+	public function getSystemInfo(): SystemInformation {
+		$info = new SystemInformation();
+
+		$info->basic = $basicInfo = new BasicSystemInformation();
+		$basicInfo->bot_name = $this->chatBot->vars["name"];
+		$basicInfo->bot_version = $this->chatBot->runner::$version;
+		$basicInfo->db_type = $this->db->getType();
+		$basicInfo->org = strlen($this->chatBot->vars['my_guild']??"")
+			? $this->chatBot->vars['my_guild']
+			: null;
+		$basicInfo->org_id = $this->chatBot->vars['my_guild_id'] ?? null;
+		$basicInfo->php_version = phpversion();
+		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+		$basicInfo->superadmin = strlen($this->chatBot->vars["SuperAdmin"]??"")
+			? $this->chatBot->vars["SuperAdmin"]
+			: null;
+
+		$info->memory = $memory = new MemoryInformation();
+		$memory->current_usage = memory_get_usage();
+		$memory->current_usage_real = memory_get_usage(true);
+		$memory->peak_usage = memory_get_peak_usage();
+		$memory->peak_usage_real = memory_get_peak_usage(true);
+		
+		$info->misc = $misc = new MiscSystemInformation();
+		$misc->uptime = time() - $this->chatBot->vars['startup'];
+		$misc->using_chat_proxy = ($this->chatBot->vars['use_proxy'] == 1);
+
+		$info->config = $config = new ConfigStatistics();
+		$config->active_aliases = $numAliases = count($this->commandAlias->getEnabledAliases());
+		foreach ($this->eventManager->events as $type => $events) {
+			$config->active_events += count($events);
+		}
+		$config->active_tell_commands = (count($this->commandManager->commands['msg']) - $numAliases);
+		$config->active_priv_commands = (count($this->commandManager->commands['priv']) - $numAliases);
+		$config->active_org_commands = (count($this->commandManager->commands['guild']) - $numAliases);
+		$config->active_subcommands = count($this->subcommandManager->subcommands);
+		$config->active_help_commands = count($this->helpManager->getAllHelpTopics(null));
+
+		$info->stats = $stats = new SystemStats();
+
+		$sql = "SELECT count(*) AS count FROM players";
+		$row = $this->db->queryRow($sql);
+		$stats->charinfo_cache_size = (int)$row->count;
+
+		foreach ($this->buddylistManager->buddyList as $key => $value) {
+			if (!isset($value['name'])) {
+				// skip the buddies that have been added but the server hasn't sent back an update yet
+				continue;
+			}
+			$stats->buddy_list_size++;
+		}
+		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
+		$stats->priv_channel_size = count($this->chatBot->chatlist);
+		$stats->org_size = count($this->chatBot->guildmembers);
+		$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+
+		foreach ($this->chatBot->grp as $gid => $status) {
+			$channel = new ChannelInfo();
+			$channel->id = unpack("N", substr($gid, 1))[1];
+			$channel->name = $this->chatBot->gid[$gid];
+			$info->channels []= $channel;
+		}
+
+		return $info;
+	}
 
 	/**
 	 * @HandlesCommand("system")
 	 * @Matches("/^system$/i")
 	 */
 	public function systemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$version = $this->chatBot->runner::$version;
-
-		$sql = "SELECT count(*) AS count FROM players";
-		$row = $this->db->queryRow($sql);
-		$numPlayerCache = $row->count;
-
-		$numBuddylist = 0;
-		foreach ($this->buddylistManager->buddyList as $key => $value) {
-			if (!isset($value['name'])) {
-				// skip the buddies that have been added but the server hasn't sent back an update yet
-				continue;
-			}
-			$numBuddylist++;
-		}
+		$info = $this->getSystemInfo();
 
 		$blob = "<header2>Basic Info<end>\n";
-		$blob .= "<tab>Name: <highlight><myname><end>\n";
-		$blob .= "<tab>SuperAdmin: <highlight>{$this->chatBot->vars['SuperAdmin']}<end>\n";
-		if (isset($this->chatBot->vars['my_guild_id'])) {
-			$blob .= "<tab>Guild: <highlight>'<myguild>' (" . $this->chatBot->vars['my_guild_id'] . ")<end>\n\n";
+		$blob .= "<tab>Name: <highlight>{$info->basic->bot_name}<end>\n";
+		if (isset($info->basic->superadmin)) {
+			$blob .= "<tab>SuperAdmin: <highlight>{$info->basic->superadmin}<end>\n";
+		} else {
+			$blob .= "<tab>SuperAdmin: - <highlight>none<end> -\n";
+		}
+		if (isset($info->basic->org)) {
+			$blob .= "<tab>Guild: <highlight>'{$info->basic->org}' ({$info->basic->org_id})<end>\n";
 		} else {
 			$blob .= "<tab>Guild: - <highlight>none<end> -\n";
 		}
 
-		$blob .= "<tab>Nadybot: <highlight>$version<end>\n";
-		$blob .= "<tab>PHP: <highlight>" . phpversion() . "<end>\n";
-		$blob .= "<tab>OS: <highlight>" . php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m') . "<end>\n";
-		$blob .= "<tab>Database: <highlight>" . $this->db->getType() . "<end>\n\n";
+		$blob .= "<tab>Nadybot: <highlight>{$info->basic->bot_version}<end>\n";
+		$blob .= "<tab>PHP: <highlight>{$info->basic->php_version}<end>\n";
+		$blob .= "<tab>OS: <highlight>{$info->basic->os}<end>\n";
+		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
 
 		$blob .= "<header2>Memory<end>\n";
-		$blob .= "<tab>Current Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_usage()) . "<end>\n";
-		$blob .= "<tab>Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_usage(true)) . "<end>\n";
-		$blob .= "<tab>Peak Memory Usage: <highlight>" . $this->util->bytesConvert(memory_get_peak_usage()) . "<end>\n";
-		$blob .= "<tab>Peak Memory Usage (Real): <highlight>" . $this->util->bytesConvert(memory_get_peak_usage(true)) . "<end>\n\n";
+		$blob .= "<tab>Current Memory Usage: <highlight>" . $this->util->bytesConvert($info->memory->current_usage) . "<end>\n";
+		$blob .= "<tab>Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert($info->memory->current_usage_real) . "<end>\n";
+		$blob .= "<tab>Peak Memory Usage: <highlight>" . $this->util->bytesConvert($info->memory->peak_usage) . "<end>\n";
+		$blob .= "<tab>Peak Memory Usage (Real): <highlight>" . $this->util->bytesConvert($info->memory->peak_usage_real) . "<end>\n\n";
 		
 		$blob .= "<header2>Misc<end>\n";
-		$date_string = $this->util->unixtimeToReadable(time() - $this->chatBot->vars['startup']);
-		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($this->chatBot->vars['use_proxy'] == 1 ? "enabled" : "disabled") . "<end>\n";
+		$date_string = $this->util->unixtimeToReadable($info->misc->uptime);
+		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($info->misc->using_chat_proxy ? "enabled" : "disabled") . "<end>\n";
 		$blob .= "<tab>Uptime: <highlight>$date_string<end>\n\n";
 
-		$eventnum = 0;
-		foreach ($this->eventManager->events as $type => $events) {
-			$eventnum += count($events);
-		}
-
-		$numAliases = count($this->commandAlias->getEnabledAliases());
-
 		$blob .= "<header2>Configuration<end>\n";
-		$blob .= "<tab>Active tell commands: <highlight>" . (count($this->commandManager->commands['msg']) - $numAliases) . "<end>\n";
-		$blob .= "<tab>Active private channel commands: <highlight>" . (count($this->commandManager->commands['priv']) - $numAliases) . "<end>\n";
-		$blob .= "<tab>Active guild channel commands: <highlight>" . (count($this->commandManager->commands['guild']) - $numAliases) . "<end>\n";
-		$blob .= "<tab>Active subcommands: <highlight>" . count($this->subcommandManager->subcommands) . "<end>\n";
-		$blob .= "<tab>Active command aliases: <highlight>" . $numAliases . "<end>\n";
-		$blob .= "<tab>Active events: <highlight>" . $eventnum . "<end>\n";
-		$blob .= "<tab>Active help commands: <highlight>" . count($this->helpManager->getAllHelpTopics(null)) . "<end>\n\n";
+		$blob .= "<tab>Active tell commands: <highlight>{$info->config->active_tell_commands}<end>\n";
+		$blob .= "<tab>Active private channel commands: <highlight>{$info->config->active_priv_commands}<end>\n";
+		$blob .= "<tab>Active org channel commands: <highlight>{$info->config->active_org_commands}<end>\n";
+		$blob .= "<tab>Active subcommands: <highlight>{$info->config->active_subcommands}<end>\n";
+		$blob .= "<tab>Active command aliases: <highlight>{$info->config->active_aliases}<end>\n";
+		$blob .= "<tab>Active events: <highlight>{$info->config->active_events}<end>\n";
+		$blob .= "<tab>Active help commands: <highlight>{$info->config->active_help_commands}<end>\n\n";
 
 		$blob .= "<header2>Stats<end>\n";
-		$blob .= "<tab>Characters on the buddy list: <highlight>$numBuddylist / " . count($this->buddylistManager->buddyList) . "<end>\n";
-		$blob .= "<tab>Maximum buddy list size: <highlight>" . $this->chatBot->getBuddyListSize() . "<end>\n";
-		$blob .= "<tab>Characters in the private channel: <highlight>" . count($this->chatBot->chatlist) . "<end>\n";
-		$blob .= "<tab>Guild members: <highlight>" . count($this->chatBot->guildmembers) . "<end>\n";
-		$blob .= "<tab>Character infos in cache: <highlight>" . $numPlayerCache . "<end>\n";
-		$blob .= "<tab>Messages in the chat queue: <highlight>" . count($this->chatBot->chatqueue->queue) . "<end>\n\n";
+		$blob .= "<tab>Characters on the buddy list: <highlight>{$info->stats->buddy_list_size}<end>\n";
+		$blob .= "<tab>Maximum buddy list size: <highlight>{$info->stats->max_buddy_list_size}<end>\n";
+		$blob .= "<tab>Characters in the private channel: <highlight>{$info->stats->priv_channel_size}<end>\n";
+		$blob .= "<tab>Guild members: <highlight>{$info->stats->org_size}<end>\n";
+		$blob .= "<tab>Character infos in cache: <highlight>{$info->stats->charinfo_cache_size}<end>\n";
+		$blob .= "<tab>Messages in the chat queue: <highlight>{$info->stats->chatqueue_length}<end>\n\n";
 
 		$blob .= "<header2>Public Channels<end>\n";
-		foreach ($this->chatBot->grp as $gid => $status) {
-			$string = unpack("N", substr($gid, 1));
-			$blob .= "<tab><highlight>{$this->chatBot->gid[$gid]}<end> (" . ord(substr($gid, 0, 1)) . " " . $string[1] . ")\n";
+		foreach ($info->channels as $channel) {
+			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->id})\n";
 		}
 
 		$msg = $this->text->makeBlob('System Info', $blob);
@@ -450,5 +503,16 @@ class SystemController {
 		$this->commandManager->process($type, $cmd, $sender, $showSendto);
 		
 		$sendto->reply("Command <highlight>$cmd<end> has been sent to <highlight>$name<end>.");
+	}
+
+	/**
+	 * Get system information
+	 * @Api("/sysinfo")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='SystemInformation', desc='Some basic system information')
+	 */
+	public function apiSysinfoGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse($this->getSystemInfo());
 	}
 }

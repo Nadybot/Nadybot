@@ -16,6 +16,187 @@
 	],
 	"components": {
 		"schemas": {
+			"BasicSystemInformation": {
+				"type": "object",
+				"properties": {
+					"bot_name": {
+						"type": "string",
+						"description": "Name of the bot character in AO"
+					},
+					"superadmin": {
+						"type": "string",
+						"nullable": true,
+						"description": "Name of the character running the bot, null if not set"
+					},
+					"org": {
+						"type": "string",
+						"nullable": true,
+						"description": "Name of the org this bot is in or null if not in an org"
+					},
+					"org_id": {
+						"type": "integer",
+						"nullable": true,
+						"description": "ID of the org this bot is in or null if not in an org"
+					},
+					"bot_version": {
+						"type": "string",
+						"description": "Which Nadybot version are we running?"
+					},
+					"php_version": {
+						"type": "string",
+						"description": "Which PHP version are we running?"
+					},
+					"os": {
+						"type": "string",
+						"description": "Which operating system/kernel are we running?"
+					},
+					"db_type": {
+						"type": "string",
+						"description": "Which database type (mysql/sqlite) are we using?"
+					}
+				}
+			},
+			"MemoryInformation": {
+				"type": "object",
+				"properties": {
+					"current_usage": {
+						"type": "integer",
+						"description": "Current memory usage in bytes"
+					},
+					"current_usage_real": {
+						"type": "integer",
+						"description": "Current memory usage in bytes including allocated system pages"
+					},
+					"peak_usage": {
+						"type": "integer",
+						"description": "Peak memory usage in bytes"
+					},
+					"peak_usage_real": {
+						"type": "integer",
+						"description": "Peak memory usage in bytes including allocated system pages"
+					}
+				}
+			},
+			"MiscSystemInformation": {
+				"type": "object",
+				"properties": {
+					"using_chat_proxy": {
+						"type": "boolean",
+						"description": "Is the bot using a chat proxy for mass messages or more than 1000 friends"
+					},
+					"uptime": {
+						"type": "integer",
+						"description": "Number of seconds since the bot was started"
+					}
+				}
+			},
+			"ConfigStatistics": {
+				"type": "object",
+				"properties": {
+					"active_tell_commands": {
+						"type": "integer",
+						"description": "Number of commands activated for use with /tell"
+					},
+					"active_priv_commands": {
+						"type": "integer",
+						"description": "Number of commands activated for use in the private channel"
+					},
+					"active_org_commands": {
+						"type": "integer",
+						"description": "Number of commands activated for use in the org channel"
+					},
+					"active_subcommands": {
+						"type": "integer",
+						"description": "Number of subcommands activated"
+					},
+					"active_aliases": {
+						"type": "integer",
+						"description": "Number of aliases"
+					},
+					"active_events": {
+						"type": "integer",
+						"description": "Number of currently active events"
+					},
+					"active_help_commands": {
+						"type": "integer",
+						"description": "Number of active help texts for commands"
+					}
+				}
+			},
+			"SystemStats": {
+				"type": "object",
+				"properties": {
+					"buddy_list_size": {
+						"type": "integer",
+						"description": "How many characters are currently on the friendlist"
+					},
+					"max_buddy_list_size": {
+						"type": "integer",
+						"description": "Maximum allowed characters for the friendlist"
+					},
+					"priv_channel_size": {
+						"type": "integer",
+						"description": "How many people are currently on the bot's private channel"
+					},
+					"org_size": {
+						"type": "integer",
+						"description": "How many people are in the bot's org? 0 if not in an org"
+					},
+					"charinfo_cache_size": {
+						"type": "integer",
+						"description": "How many character infos are currently cached?"
+					},
+					"chatqueue_length": {
+						"type": "integer",
+						"description": "How many messages are waiting to be sent?"
+					}
+				}
+			},
+			"ChannelInfo": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of the public channel"
+					},
+					"id": {
+						"type": "integer",
+						"description": "The ID the game uses for this channel"
+					}
+				}
+			},
+			"SystemInformation": {
+				"type": "object",
+				"properties": {
+					"basic": {
+						"$ref": "#/components/schemas/BasicSystemInformation",
+						"description": "Basic information like OS"
+					},
+					"memory": {
+						"$ref": "#/components/schemas/MemoryInformation",
+						"description": "Memory statistics"
+					},
+					"misc": {
+						"$ref": "#/components/schemas/MiscSystemInformation",
+						"description": "Information not fitting any other category"
+					},
+					"config": {
+						"$ref": "#/components/schemas/ConfigStatistics",
+						"description": "Statistics about some configurations"
+					},
+					"stats": {
+						"$ref": "#/components/schemas/SystemStats",
+						"description": "General bot statistics"
+					},
+					"channels": {
+						"type": "array",
+						"description": "Which channels is the bot listening to",
+						"items": {
+							"$ref": "#/components/schemas/ChannelInfo"
+						}
+					}
+				}
+			},
 			"Player": {
 				"type": "object",
 				"properties": {
@@ -276,6 +457,29 @@
 					},
 					"409": {
 						"description": "No setting found for that key"
+					}
+				}
+			}
+		},
+		"/sysinfo": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get system information",
+				"responses": {
+					"200": {
+						"description": "Some basic system information",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SystemInformation"
+								}
+							}
+						}
 					}
 				}
 			}
