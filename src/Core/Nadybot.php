@@ -367,7 +367,7 @@ class Nadybot extends AOChat {
 			$group = $this->setting->default_private_channel;
 		}
 
-		$message = $this->text->formatMessage($message);
+		$message = $this->text->formatMessage($origMsg = $message);
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
@@ -377,7 +377,7 @@ class Nadybot extends AOChat {
 		$event = new AOChatEvent();
 		$event->type = "sendpriv";
 		$event->channel = $group;
-		$event->message = $message;
+		$event->message = $origMsg;
 		$event->sender = $this->vars["name"];
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if ($this->isDefaultPrivateChannel($group)) {
@@ -424,7 +424,7 @@ class Nadybot extends AOChat {
 
 		$priority ??= AOC_PRIORITY_MED;
 
-		$message = $this->text->formatMessage($message);
+		$message = $this->text->formatMessage($origMsg = $message);
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
@@ -434,7 +434,7 @@ class Nadybot extends AOChat {
 		$event = new AOChatEvent();
 		$event->type = "sendguild";
 		$event->channel = $this->vars["my_guild"];
-		$event->message = $message;
+		$event->message = $origMsg;
 		$event->sender = $this->vars["name"];
 		$this->eventManager->fireEvent($event, $disableRelay);
 
