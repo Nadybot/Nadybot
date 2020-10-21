@@ -221,6 +221,10 @@ class DiscordGatewayCommandHandler {
 				$this->chatBot->sendTell("You have received a $msg.", $name);
 			}
 		);
+		$sendto->reply(
+			"I sent a tell to {$name} on Anarchy Online. ".
+			"Follow the instructions there to finish linking these 2 accounts."
+		);
 	}
 
 	/**

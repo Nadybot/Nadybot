@@ -95,6 +95,7 @@ class ApiSpecGenerator {
 	}
 
 	public function addSchema(array &$result, string $className): void {
+		$className = preg_replace("/\[\]$/", "", $className);
 		if (isset($result[$className])) {
 			return;
 		}
@@ -262,10 +263,7 @@ class ApiSpecGenerator {
 							"description" => $response->desc,
 						];
 						if (isset($response->class)) {
-							$refClass = ['$ref' => "#/components/schemas/{$response->class}"];
-							if (in_array($response->class, ["string", "int", "bool", "float"])) {
-								$refClass = ['type' => $response->class];
-							}
+							$refClass = $this->getClassRef($response->class);
 							$newResult[$path][$method]["responses"][$code]["content"] = [
 								"application/json" => [
 									"schema" => $refClass
@@ -388,6 +386,13 @@ class ApiSpecGenerator {
 	}
 
 	protected function getClassRef(string $class): array {
+		if (substr($class, -2) === '[]') {
+			return ["type" => "array", "items" => $this->getSimpleClassRef(substr($class, 0, -2))];
+		}
+		return $this->getSimpleClassRef($class);
+	}
+
+	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
 			return ["type" => $class];
 		}
