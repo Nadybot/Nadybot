@@ -49,7 +49,7 @@ class Text {
 		$content = str_replace('"', '&quot;', $content);
 		$header = str_replace('"', '&quot;', $header);
 
-		$content = $this->formatMessage($content);
+		// $content = $this->formatMessage($content);
 
 		// if the content is blank, add a space so the blob will at least appear
 		if ($content == '') {
@@ -88,7 +88,7 @@ class Text {
 		// escape double quotes
 		$content = str_replace('"', '&quot;', $content);
 
-		$content = $this->formatMessage($content);
+		// $content = $this->formatMessage($content);
 
 		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
