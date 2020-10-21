@@ -22,9 +22,11 @@ class DiscordMessageCommandReply implements CommandReply {
 	public Nadybot $chatBot;
 
 	protected string $channelId;
+	protected bool $isDirectMsg;
 
-	public function __construct(string $channelId) {
+	public function __construct(string $channelId, bool $isDirectMsg=false) {
 		$this->channelId = $channelId;
+		$this->isDirectMsg = $isDirectMsg;
 	}
 
 	public function reply($msg): void {
@@ -34,7 +36,9 @@ class DiscordMessageCommandReply implements CommandReply {
 		$fakeGM = new GuildMember();
 		$fakeGM->nick = $this->chatBot->vars["name"];
 		foreach ($msg as $msgPack) {
-			$this->discordRelayController->relayDiscordMessage($fakeGM, $msgPack, false);
+			if (!$this->isDirectMsg) {
+				$this->discordRelayController->relayDiscordMessage($fakeGM, $msgPack, false);
+			}
 			$messageObj = $this->discordController->formatMessage($msgPack);
 			$this->discordAPIClient->sendToChannel($this->channelId, $messageObj->toJSON());
 		}

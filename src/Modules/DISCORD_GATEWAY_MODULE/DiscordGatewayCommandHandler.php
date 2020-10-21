@@ -240,13 +240,17 @@ class DiscordGatewayCommandHandler {
 		}
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
+			true
 		);
 		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id;
+		if (!preg_match("/^extauth\s+request/", $event->message)) {
+			$discordUserId = $this->getNameForDiscordId($discordUserId) ?? $discordUserId;
+		}
 		$this->commandManager->process(
 			"msg",
 			$event->message,
-			$this->getNameForDiscordId($discordUserId) ?? $discordUserId,
+			$discordUserId,
 			$sendto
 		);
 	}
@@ -269,6 +273,7 @@ class DiscordGatewayCommandHandler {
 		}
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
+			false
 		);
 		Registry::injectDependencies($sendto);
 		if ($this->settingManager->getBool('discord_relay_commands')) {
