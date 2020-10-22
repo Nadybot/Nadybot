@@ -49,8 +49,8 @@ class DiscordController {
 			'The Discord bot token to send messages with',
 			'edit',
 			'text',
-			'',
-			'',
+			'off',
+			'off',
 			'',
 			'admin'
 		);
@@ -74,7 +74,7 @@ class DiscordController {
 	 * @throws Exception if new value is not a valid Discord Bot Token
 	 */
 	public function validateBotToken(string $settingName, string $oldValue, string $newValue): void {
-		if ($newValue === '') {
+		if ($newValue === '' || $newValue === 'off') {
 			return;
 		}
 		$response = $this->http
@@ -188,7 +188,7 @@ class DiscordController {
 	 */
 	public function sendDiscord($text): void {
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');
-		if ($discordBotToken === "") {
+		if ($discordBotToken === "" || $discordBotToken === 'off') {
 			return;
 		}
 		$discordChannel = $this->settingManager->getString('discord_notify_channel');

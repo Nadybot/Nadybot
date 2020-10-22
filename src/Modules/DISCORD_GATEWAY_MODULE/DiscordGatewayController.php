@@ -156,10 +156,11 @@ class DiscordGatewayController {
 	 * Start, stop or restart the websocket connection if the token changes
 	 */
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
-		if ($oldValue !== "" && isset($this->client)) {
+		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
+			$this->logger->log("INFO", "Closing Discord gateway connection.");
 			$this->client->close();
 		}
-		if ($newValue !== "") {
+		if ($newValue !== "" && $newValue !== 'off') {
 			$this->timer->callLater(0, [$this, "connect"]);
 		}
 	}
@@ -174,7 +175,7 @@ class DiscordGatewayController {
 
 	public function connect(): void {
 		$botToken = $this->settingManager->getString('discord_bot_token');
-		if (empty($botToken)) {
+		if (empty($botToken) || $botToken === 'off') {
 			return;
 		}
 		$this->client = $this->websocket->createClient()
