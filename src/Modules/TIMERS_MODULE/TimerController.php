@@ -126,6 +126,16 @@ class TimerController {
 			'mod',
 			'timer_alert_times.txt'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'timer_alert_location',
+			'Where to display timer alerts',
+			'edit',
+			"options",
+			"0",
+			"Source only;Source+Priv;Source+Guild;Source+Priv+Guild;Source+Discord;Source+Discord+Priv;Source+Discord+Guild;Source+Discord+Priv+Guild",
+			"0;1;2;3;4;5;6;7"
+		);
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',
 			[$this, 'changeTimerAlertTimes']
@@ -236,6 +246,16 @@ class TimerController {
 		$timeString = $args[3];
 		$timerName = $args[4];
 
+		$timerName = preg_replace("/^\+discord\s*/i", "", $timerName, -1, $addDiscord);
+		if ($addDiscord > 0) {
+			$alertChannel = $this->getTimerAlertChannel($channel, "discord");
+			if (empty($timerName)) {
+				$timerName = $sender;
+			}
+		} else {
+			$alertChannel = $this->getTimerAlertChannel($channel);
+		}
+
 		$timer = $this->get($timerName);
 		if ($timer !== null) {
 			$msg = "A timer with the name <highlight>$timerName<end> is already running.";
@@ -262,7 +282,7 @@ class TimerController {
 		
 		$alerts = $this->generateAlerts($sender, $timerName, $endTime, explode(' ', $this->setting->timer_alert_times));
 
-		$this->add($timerName, $sender, $channel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime);
+		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime);
 
 		$initialTimerSet = $this->util->unixtimeToReadable($initialRunTime);
 		$timerSet = $this->util->unixtimeToReadable($runTime);
@@ -311,6 +331,24 @@ class TimerController {
 		}
 		$sendto->reply($msg);
 	}
+
+	protected function getTimerAlertChannel(string ...$channels): string {
+		// Timers via tell always create tell alerts only
+		if ($channels === ["msg"]) {
+			return "msg";
+		}
+		$location = $this->settingManager->getInt('timer_alert_location');
+		if ($location & 1) {
+			$channels []= "priv";
+		}
+		if ($location & 2) {
+			$channels []= "guild";
+		}
+		if ($location & 4) {
+			$channels []= "discord";
+		}
+		return join(",", array_values(array_unique($channels)));
+	}
 	
 	/**
 	 * @HandlesCommand("timers")
@@ -329,8 +367,17 @@ class TimerController {
 		} else {
 			$runTime = $this->util->parseTime($timeString);
 		}
+		$name = preg_replace("/^\+discord\s*/i", "", $name, -1, $addDiscord);
+		if ($addDiscord > 0) {
+			$alertChannel = $this->getTimerAlertChannel($channel, "discord");
+			if (empty($name)) {
+				$name = $sender;
+			}
+		} else {
+			$alertChannel = $this->getTimerAlertChannel($channel);
+		}
 
-		$msg = $this->addTimer($sender, $name, $runTime, $channel);
+		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel);
 		$sendto->reply($msg);
 	}
 

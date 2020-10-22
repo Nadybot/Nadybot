@@ -13,5 +13,10 @@ To remove a timer (only your own):
 To create a repeating timer:
 <highlight><tab><symbol>rtimer 'intial time' 'repeating time' 'name'<end>
 
+If you want a timer to show up on discord as well in addition to the configured
+location, prefix the name with +discord like so:
+<highlight><tab><symbol>timer 10m +discord Test timer<end>
+<highlight><tab><symbol>rtimer 10m 8h +discord Test repeating timer<end>
+
 See <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a> for info on the format of the 'time' parameter.
 Note: you can use <symbol>timers and <symbol>timer interchangeably.
