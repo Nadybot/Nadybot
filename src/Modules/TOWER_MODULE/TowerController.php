@@ -1055,11 +1055,18 @@ class TowerController {
 			return;
 		}
 
-		$msg = $this->settingManager->getString('tower_spam_color').
-			"[TOWERS]<end> ".
-			"<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
-			" won against " .
-			"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
+		if (!$winnerFaction) {
+			$msg = $this->settingManager->getString('tower_spam_color').
+				"[TOWERS]<end> ".
+				"<" . strtolower($loserFaction) . ">{$loserOrgName}<end> ".
+				"abandoned their field";
+		} else {
+			$msg = $this->settingManager->getString('tower_spam_color').
+				"[TOWERS]<end> ".
+				"<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
+				" won against " .
+				"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
+		}
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
 
@@ -1075,6 +1082,8 @@ class TowerController {
 				"Information about {$playfield->short_name} {$lastAttack->site_number}"
 			);
 			$msg .= " in " . $timerLocation;
+		} else {
+			$msg .= " in {$playfield->short_name}";
 		}
 
 		if ($this->settingManager->getInt('tower_plant_timer') !== 0) {

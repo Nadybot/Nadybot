@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
-    AOChatEvent,
-    AOChatPacket,
+	AOChatEvent,
+	AOChatPacket,
 	CommandManager,
 	CommandReply,
 	Event,
@@ -43,6 +43,12 @@ use Nadybot\Core\{
  *	)
  *	@DefineCommand(
  *		command     = 'testtowervictory',
+ *		accessLevel = 'admin',
+ *		description = "Test the bot commands",
+ *		help        = 'test.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'testtowerabandon',
  *		accessLevel = 'admin',
  *		description = "Test the bot commands",
  *		help        = 'test.txt'
@@ -253,6 +259,20 @@ class TestController {
 	}
 	
 	/**
+	 * @HandlesCommand("testtowerabandon")
+	 * @Matches("/^testtowerabandon (clan|neutral|omni) ([^ ]+) (.+)$/i")
+	 */
+	public function testTowerAbandonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[1] = strtolower($args[1]);
+		$eventObj = new AOChatEvent();
+		$eventObj->sender = (string)0xFFFFFFFF;
+		$eventObj->channel = "Tower Battle Outcome";
+		$eventObj->message = "Notum Wars Update: The {$args[1]} organization {$args[2]} lost their base in {$args[3]}.";
+		$eventObj->type = 'towers';
+		$this->eventManager->fireEvent($eventObj);
+	}
+
+	/**
 	 * @HandlesCommand("testtowervictory")
 	 * @Matches("/^testtowervictory (Clan|Neutral|Omni) (.+) (Clan|Neutral|Omni) (.+) (.+)$/i")
 	 */
@@ -261,6 +281,7 @@ class TestController {
 		$eventObj->sender = (string)0xFFFFFFFF;
 		$eventObj->channel = "Tower Battle Outcome";
 		$eventObj->message = "The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!";
+		$eventObj->message = "Notum Wars Update: The {$args[1]} organization {$args[2]} lost their base in {$args[3]}.";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
@@ -306,7 +327,7 @@ class TestController {
 		} else {
 			$testEvent = new Event();
 			$testEvent->type = 'dummy';
-			$this->eventManager->callEventHandler($testEvent, $event);
+			$this->eventManager->callEventHandler($testEvent, $event, []);
 			$sendto->reply("Event has been fired.");
 		}
 	}
