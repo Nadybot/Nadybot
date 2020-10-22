@@ -208,6 +208,13 @@ class WebsocketClient extends WebsocketBase {
 		$this->socketManager->removeSocketNotifier($this->notifier);
 		// Server response headers must be terminated with double CR+LF
 		$response = stream_get_line($this->socket, 4096, "\r\n\r\n");
+		if ($response === false) {
+			$this->throwError(
+				WebsocketError::UNKNOWN_ERROR,
+				"Unknown error reading websocket upgrade reply"
+			);
+			return false;
+		}
 
 		$urlParts = parse_url($this->uri);
 		$path = ($urlParts["path"] ?? "/").
