@@ -4,13 +4,20 @@
 This is the first version named Nadybot and the first one to only support PHP7.4+.
 
 Features
-- Roll commands allow sending result to team/raid
-- Proper Discord relay integration
-- Support for notifications to Discord
+- Integrate a lightweight web server (yes, no kidding) and a REST API for some
+  basic endpoints which will in the future lead to a full-fledged
+  web interface for the bot. More on the wiki.
+- Roll commands now allow sending result to team/raid
+- Add a proper raid module for point raids. If activated, this will
+  give you 6 more ranks to assign rights to (3 raid leaders, 3 raid admins).
+  The raid and bid system is modelled after what Hodorraid is using.
+  More on the wiki.
+- Proper Discord relay integration with newest v8 API. More on the wiki.
+- Support for notifications to Discord for all major commands
 - Raffle module allows raffling multiple items, item groups
   and also introduces configurable raffle bonus points so that people
   not winning anything get better chances on next raffle
-- Added guideo for tradeskilling a sauna
+- Added guide for tradeskilling a sauna
 - Add module to check which nano a disc turns into
 - Add module to have bot relay darknet/lightnet messages from their
   private channels
@@ -24,6 +31,7 @@ Changes
 - Removed unneeded guides (map navigation anyone?)
 - News can now be marked as read, so they won't get shown again.
 - Votes are now stored in a different format
+- Documentation is slowly moving into a Github wiki
 
 Bug fixes
 - Orglist module can now once again download and search for orgs
@@ -31,9 +39,8 @@ Bug fixes
 Coding
 - Everything is now typed (where possible) and requires PHP 7.4 or higher
 - AsyncHttp is now truly async, even for SSL/TLS
-- Pushed back synchronous, blocking calls with Http
+- Pushed back synchronous blocking calls with Http
 - Introduced a Websocket client to allow Discord integration
-  and possibly later on remote-controlling the bot with a web interface.
 
 *****************************
 	Version 4.2:
@@ -84,9 +91,9 @@ Coding
 *****************************
 	Version 4.1:
 *****************************
-- Introduce a global PHP codingstyle for the project and fix all files so they adhere to it
+- Introduce a global PHP coding style for the project and fix all files so they adhere to it
 - Remove the API documentation for now as the tool used to build it currently doesn't work anymore
-- Add typehints to variables where possible and document functions and their return value, while still sticking to PHP5 compaibility
+- Add type-hints to variables where possible and document functions and their return value, while still sticking to PHP5 compaibility
 - Colorize the whompah-cities according to factions
 - Group search results for items
 - Better alignment for !history
