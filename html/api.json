@@ -16,6 +16,179 @@
 	],
 	"components": {
 		"schemas": {
+			"ConfigModule": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of the module"
+					},
+					"num_commands_enabled": {
+						"type": "integer",
+						"description": "How many commands are enabled"
+					},
+					"num_commands_disabled": {
+						"type": "integer",
+						"description": "How many commands are disabled"
+					},
+					"num_events_enabled": {
+						"type": "integer",
+						"description": "How many event are enabled"
+					},
+					"num_events_disabled": {
+						"type": "integer",
+						"description": "How many events are disabled"
+					},
+					"num_settings": {
+						"type": "integer",
+						"description": "How many settings are there?"
+					}
+				}
+			},
+			"SettingOption": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of this option for displaying"
+					},
+					"value": {
+						"type": "mixed",
+						"nullable": true,
+						"description": "Which value does this option represent?"
+					}
+				}
+			},
+			"ModuleSetting": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"description": "The type of this setting (bool, number, options, etc)"
+					},
+					"name": {
+						"type": "string",
+						"description": "The name of the setting"
+					},
+					"value": {
+						"type": "mixed",
+						"nullable": true,
+						"description": "The current value"
+					},
+					"options": {
+						"type": "array",
+						"description": "A list of predefined options to pick from",
+						"items": {
+							"$ref": "#/components/schemas/SettingOption"
+						}
+					},
+					"editable": {
+						"type": "boolean",
+						"description": "Is this a fixed setting (like database version) or can it be changed?"
+					},
+					"description": {
+						"type": "string",
+						"description": "A description of what this setting is for"
+					}
+				}
+			},
+			"ModuleEventConfig": {
+				"type": "object",
+				"properties": {
+					"event": {
+						"type": "string",
+						"description": "The event for this module"
+					},
+					"description": {
+						"type": "string",
+						"description": "What is supposed to happed when this event occurs?"
+					},
+					"enabled": {
+						"type": "boolean",
+						"description": "Is the event handler turned on?"
+					}
+				}
+			},
+			"ModuleSubommand": {
+				"type": "object",
+				"properties": {
+					"command": {
+						"type": "string",
+						"description": "The string or regexp that has to match this command"
+					},
+					"type": {
+						"type": "string",
+						"description": "Either \"cmd\" or \"subcmd\""
+					},
+					"access_level": {
+						"type": "string",
+						"description": "The access level you need to have in order to be allowed to use this command"
+					},
+					"enabled": {
+						"type": "boolean",
+						"description": "Is this command enabled?"
+					},
+					"org_avail": {
+						"type": "boolean",
+						"description": "Can this command be enabled in org channel?"
+					},
+					"org_enabled": {
+						"type": "boolean",
+						"description": "Is this command enabled in org channel?"
+					},
+					"priv_avail": {
+						"type": "boolean",
+						"description": "Can this command be enabled in priv channel?"
+					},
+					"priv_enabled": {
+						"type": "boolean",
+						"description": "Is this command enabled in priv channel?"
+					},
+					"msg_avail": {
+						"type": "boolean",
+						"description": "Can this command be enabled in direct messages?"
+					},
+					"msg_enabled": {
+						"type": "boolean",
+						"description": "Is this command enabled in direct messages?"
+					}
+				}
+			},
+			"ModuleCommand": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/ModuleSubommand"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"subcommands": {
+								"type": "array",
+								"description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled. *",
+								"items": {
+									"$ref": "#/components/schemas/ModuleSubommand"
+								}
+							}
+						}
+					}
+				]
+			},
+			"ModuleAccessLevel": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/SettingOption"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"numeric_value": {
+								"type": "integer",
+								"description": "Higher value means fewer rights. Use this to sort on"
+							}
+						}
+					}
+				]
+			},
 			"BasicSystemInformation": {
 				"type": "object",
 				"properties": {
@@ -353,6 +526,163 @@
 		}
 	},
 	"paths": {
+		"/module": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available modules to configure",
+				"responses": {
+					"200": {
+						"description": "A list of modules to configure",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ConfigModule"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/module/{module}/settings": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available settings for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all settings for this module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleSetting"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/module/{module}/events": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available events for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all events and their status for this module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleEventConfig"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/module/{module}/commands": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available events for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all command and possible subcommands this module provides",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleCommand"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/access_levels": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available events for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all access levels",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleAccessLevel"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/setting/{key}": {
 			"parameters": [
 				{

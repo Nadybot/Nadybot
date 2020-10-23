@@ -2,17 +2,27 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\DBSchema\Setting;
+
 abstract class SettingHandler {
 	/** @Inject */
 	public Text $text;
 
-	protected DBRow $row;
+	protected Setting $row;
 
 	/**
 	 * Construct a new handler out of a given database row
 	 */
-	public function __construct(DBRow $row) {
+	public function __construct(Setting $row) {
 		$this->row = $row;
+	}
+
+	public function isEditable(): bool {
+		return $this->row->mode === "edit";
+	}
+
+	public function getData(): Setting {
+		return $this->row;
 	}
 
 	/**

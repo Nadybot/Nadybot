@@ -132,7 +132,8 @@ class ApiSpecGenerator {
 					"type" => $nameAndType[1],
 				];
 			}
-			if ($refProp->getType()->allowsNull()) {
+			$refType = $refProp->getType();
+			if (!$refType || $refType->allowsNull()) {
 				$newResult["properties"][$nameAndType[0]]["nullable"] = true;
 			}
 			if (count($nameAndType) > 2 && strlen($nameAndType[2])) {

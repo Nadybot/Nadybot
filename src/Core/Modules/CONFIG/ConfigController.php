@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	HelpManager,
 	LoggerWrapper,
 	Registry,
+	SettingHandler,
 	SettingManager,
 	SubcommandManager,
 	Text,
@@ -22,6 +23,10 @@ use Nadybot\Core\DBSchema\{
 	CmdCfg,
 	Setting,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
 
 /**
  * @Instance
@@ -108,46 +113,33 @@ class ConfigController {
 			"<tab>ALL Commands - " .
 				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable all') . " " .
 				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable all') . "\n\n\n";
+		$modules = $this->getModules();
 	
-		$sql = "SELECT ".
-				"module, ".
-				"SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) count_enabled, ".
-				"SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) count_disabled ".
-			"FROM ".
-				"(SELECT module, status FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' ".
-					"UNION ".
-				"SELECT module, status FROM eventcfg_<myname> ".
-					"UNION ".
-				"SELECT module, 2 FROM settings_<myname>) t ".
-			"GROUP BY ".
-				"module ".
-			"ORDER BY ".
-				"module ASC";
-	
-		$data = $this->db->query($sql);
-		$count = count($data);
-		foreach ($data as $row) {
-			if ($row->count_enabled > 0 && $row->count_disabled > 0) {
+		foreach ($modules as $module) {
+			$numEnabled = $module->num_commands_enabled + $module->num_events_enabled;
+			$numDisabled = $module->num_commands_disabled + $module->num_events_disabled;
+			if ($numEnabled > 0 && $numDisabled > 0) {
 				$a = "<yellow>Partial<end>";
-			} elseif ($row->count_disabled === 0) {
+			} elseif ($numDisabled === 0) {
 				$a = "<green>Running<end>";
 			} else {
 				$a = "<red>Disabled<end>";
 			}
 	
-			$c = $this->text->makeChatcmd("Configure", "/tell <myname> config $row->module");
+			$c = $this->text->makeChatcmd("Configure", "/tell <myname> config $module->name");
 	
 			$on = "<black>On<end>";
-			if ($row->count_disabled > 0) {
-				$on = $this->text->makeChatcmd("On", "/tell <myname> config mod $row->module enable all");
+			if ($numDisabled > 0) {
+				$on = $this->text->makeChatcmd("On", "/tell <myname> config mod $module->name enable all");
 			}
 			$off = "<black>Off<end>";
-			if ($row->count_enabled > 0) {
-				$off = $this->text->makeChatcmd("Off", "/tell <myname> config mod $row->module disable all");
+			if ($numEnabled > 0) {
+				$off = $this->text->makeChatcmd("Off", "/tell <myname> config mod $module->name disable all");
 			}
-			$blob .= "($on / $off / $c) " . strtoupper($row->module) . " ($a)\n";
+			$blob .= "($on / $off / $c) " . strtoupper($module->name) . " ($a)\n";
 		}
 	
+		$count = count($modules);
 		$msg = $this->text->makeBlob("Module Config ($count)", $blob);
 		$sendto->reply($msg);
 	}
@@ -517,41 +509,23 @@ class ConfigController {
 	
 		$blob = "Enable/disable entire module: ($on/$off)\n";
 	
-		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname> WHERE `module` = ? ORDER BY mode, description", $module);
+		$data = $this->getModuleSettings($module);
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Settings<end>\n";
 		}
 	
 		foreach ($data as $row) {
-			$blob .= $row->description ?? "";
+			$blob .= "<tab>" . $row->getData()->description ?? "";
 	
-			if ($row->mode === "edit") {
-				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change $row->name") . ")";
+			if ($row->isEditable()) {
+				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
 			}
 	
-			$settingHandler = $this->settingManager->getSettingHandler($row);
-			$blob .= ": " . $settingHandler->displayValue() . "\n";
+			$blob .= ": " . $row->displayValue() . "\n";
 		}
 	
-		$sql = "SELECT ".
-				"*, ".
-				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
-				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
-				"SUM(CASE WHEN type ='priv' THEN 1 ELSE 0 END) priv_avail, ".
-				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
-				"SUM(CASE WHEN type ='msg' THEN 1 ELSE 0 END) msg_avail, ".
-				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status ".
-			"FROM ".
-				"cmdcfg_<myname> c ".
-			"WHERE ".
-				"(`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') ".
-				"AND `module` = ? ".
-			"GROUP BY ".
-				"cmd";
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, $module);
+		$data = $this->getAllRegisteredCommands($module);
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
@@ -593,9 +567,9 @@ class ConfigController {
 			}
 	
 			if ($row->description !== null && $row->description !== "") {
-				$blob .= "$cmdNameLink ($tell$guild$priv): $on  $off - ($row->description)\n";
+				$blob .= "<tab>$cmdNameLink ($tell$guild$priv): $on  $off - ($row->description)\n";
 			} else {
-				$blob .= "$cmdNameLink - ($tell$guild$priv): $on  $off\n";
+				$blob .= "<tab>$cmdNameLink - ($tell$guild$priv): $on  $off\n";
 			}
 		}
 	
@@ -616,9 +590,9 @@ class ConfigController {
 			}
 	
 			if ($row->description !== null && $row->description !== "none") {
-				$blob .= "$row->type ($row->description) - ($status): $on  $off \n";
+				$blob .= "<tab><highlight>$row->type<end> ($row->description) - ($status): $on  $off \n";
 			} else {
-				$blob .= "$row->type - ($status): $on  $off \n";
+				$blob .= "<tab><highlight>$row->type<end> - ($status): $on  $off \n";
 			}
 		}
 	
@@ -731,5 +705,187 @@ class ConfigController {
 			$subcmd_list .= "\n\n";
 		}
 		return $subcmd_list;
+	}
+
+	/**
+	 * Get a list of all installed modules and some stats regarding the settings
+	 * @return ConfigModule[]
+	 */
+	public function getModules(): array {
+		$sql = "SELECT ".
+				"module, ".
+				"SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS count_cmd_disabled, ".
+				"SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS count_cmd_enabled, ".
+				"SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS count_events_disabled, ".
+				"SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS count_events_enabled, ".
+				"SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS count_settings ".
+			"FROM ".
+				"(SELECT module, status FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' ".
+					"UNION ALL ".
+				"SELECT module, status+2 FROM eventcfg_<myname> ".
+					"UNION ALL ".
+				"SELECT module, 4 FROM settings_<myname>) t ".
+			"GROUP BY ".
+				"module ".
+			"ORDER BY ".
+				"module ASC";
+	
+		$data = $this->db->query($sql);
+		$result = [];
+		foreach ($data as $row) {
+			$config = new ConfigModule();
+			$config->name = $row->module;
+			$config->num_commands_enabled = (int)$row->count_cmd_enabled;
+			$config->num_commands_disabled = (int)$row->count_cmd_disabled;
+			$config->num_events_disabled = (int)$row->count_events_disabled;
+			$config->num_events_enabled = (int)$row->count_events_enabled;
+			$config->num_settings = (int)$row->count_settings;
+			$result []= $config;
+		}
+		return $result;
+	}
+
+	/**
+	 * Get a list of available modules to configure
+	 * @Api("/module")
+	 * @GET
+	 * @AccessLevel("mod")
+	 * @ApiResult(code=200, class='ConfigModule[]', desc='A list of modules to configure')
+	 */
+	public function apiConfigGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse($this->getModules());
+	}
+
+	/**
+	 * Get all settings for a module
+	 * @return SettingHandler[]
+	 */
+	public function getModuleSettings(string $module): array {
+		$module = strtoupper($module);
+	
+		/** @var Setting[] $data */
+		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname> WHERE `module` = ? ORDER BY mode, description", $module);
+		$data = array_map(
+			function(Setting $setting): SettingHandler {
+				return $this->settingManager->getSettingHandler($setting);
+			},
+			$data
+		);
+		return $data;
+	}
+
+	/**
+	 * Get a list of available settings for a module
+	 * @Api("/module/%s/settings")
+	 * @GET
+	 * @AccessLevel("mod")
+	 * @ApiResult(code=200, class='ModuleSetting[]', desc='A list of all settings for this module')
+	 */
+	public function apiConfigSettingsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
+		$settings = $this->getModuleSettings($module);
+		$result = [];
+		foreach ($settings as $setting) {
+			$result []= new ModuleSetting($setting->getData());
+		}
+		return new ApiResponse($result);
+	}
+
+	/**
+	 * Get a list of available events for a module
+	 * @Api("/module/%s/events")
+	 * @GET
+	 * @AccessLevel("mod")
+	 * @ApiResult(code=200, class='ModuleEventConfig[]', desc='A list of all events and their status for this module')
+	 */
+	public function apiConfigEventsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
+		/** @var EventCfg[] */
+		$events = $this->db->fetchAll(
+			EventCfg::class,
+			"SELECT * FROM eventcfg_<myname> ".
+			"WHERE `type` != 'setup' AND `module` = ?",
+			$module
+		);
+		$result = [];
+		foreach ($events as $event) {
+			$result []= new ModuleEventConfig($event);
+		}
+		return new ApiResponse($result);
+	}
+
+	/**
+	 * @return CmdCfg[]
+	 */
+	public function getAllRegisteredCommands(string $module): array {
+		$sql = "SELECT ".
+				"*, ".
+				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
+				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
+				"SUM(CASE WHEN type ='priv' THEN 1 ELSE 0 END) priv_avail, ".
+				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
+				"SUM(CASE WHEN type ='msg' THEN 1 ELSE 0 END) msg_avail, ".
+				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status ".
+			"FROM ".
+				"cmdcfg_<myname> c ".
+			"WHERE ".
+				"(`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') ".
+				"AND `module` = ? ".
+			"GROUP BY ".
+				"cmd";
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, $module);
+		return $data;
+	}
+
+	/**
+	 * Get a list of available events for a module
+	 * @Api("/module/%s/commands")
+	 * @GET
+	 * @AccessLevel("mod")
+	 * @ApiResult(code=200, class='ModuleCommand[]', desc='A list of all command and possible subcommands this module provides')
+	 */
+	public function apiConfigCommandsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
+		$cmds = $this->getAllRegisteredCommands($module);
+		/** @var array<string,ModuleSubommand> */
+		$result = [];
+		foreach ($cmds as $cmd) {
+			if ($cmd->cmdevent === "cmd") {
+				$result[$cmd->cmd] = new ModuleCommand($cmd);
+			} else {
+				$result[$cmd->dependson]->subcommands ??= [];
+				$result[$cmd->dependson]->subcommands []= new ModuleSubommand($cmd);
+			}
+		}
+		return new ApiResponse(array_values($result));
+	}
+
+	/**
+	 * Get a list of available events for a module
+	 * @Api("/access_levels")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='ModuleAccessLevel[]', desc='A list of all access levels')
+	 */
+	public function apiConfigAccessLevelsGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		/** @var CmdCfg[] $data */
+		$showRaidAL = $this->db->queryRow(
+			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			'RAID_MODULE',
+			1
+		) !== null;
+		$result = [];
+		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
+			if ($accessLevel == 'none') {
+				continue;
+			}
+			if (substr($accessLevel, 0, 5) === "raid_" && !$showRaidAL) {
+				continue;
+			}
+			$option = new ModuleAccessLevel();
+			$option->name = $this->getAdminDescription($accessLevel);
+			$option->value = $accessLevel;
+			$option->numeric_value = $level;
+			$result []= $option;
+		}
+		return new ApiResponse($result);
 	}
 }
