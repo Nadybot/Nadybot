@@ -114,10 +114,7 @@ class NanoController {
 			"ORDER BY ".
 				"strain ASC, ".
 				"sub_strain ASC, ".
-				"ql DESC, ".
-				"nano_cost DESC, ".
-				"nano_name LIKE 'Improved%' DESC, ".
-				"nano_name ASC ".
+				"sort_order ASC ".
 			"LIMIT ?";
 
 		/** @var Nano[] */
@@ -268,10 +265,7 @@ class NanoController {
 			$froobWhere.
 			"ORDER BY ".
 				"sub_strain ASC, ".
-				"ql DESC, ".
-				"nano_cost DESC, ".
-				"nano_name LIKE 'Improved%' DESC, ".
-				"nano_name ASC ";
+				"sort_order ASC";
 		/** @var Nano[] */
 		$data = $this->db->fetchAll(Nano::class, $sql, $nanoline, ...$sqlArgs);
 		if (!count($data)) {
