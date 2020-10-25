@@ -9,6 +9,7 @@ use PDOStatement;
 use Exception;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionNamedType;
 use ReflectionProperty;
 
 /**
@@ -229,10 +230,10 @@ class DB {
 		}
 		$refProp = $refClass->getProperty($colName);
 		$refType = $refProp->getType();
-		if ($refType === null) {
-			return null;
+		if ($refType instanceof ReflectionNamedType) {
+			return $refType->getName();
 		}
-		return $refType->getName();
+		return null;
 	}
 
 	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
@@ -404,6 +405,7 @@ class DB {
 	public function formatSql(string $sql): string {
 		$sql = str_replace("<dim>", $this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
+		$sql = str_replace("<Myname>", ucfirst($this->botname), $sql);
 		$sql = str_replace("<myguild>", $this->guild, $sql);
 
 		return $sql;

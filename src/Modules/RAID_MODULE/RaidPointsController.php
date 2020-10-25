@@ -170,7 +170,7 @@ class RaidPointsController {
 		$inserted = $this->db->exec(
 			"INSERT INTO raid_points_log_<myname> ".
 			"(`username`, `delta`, `time`, `changed_by`, `reason`, `ticker`, `raid_id`) ".
-			"VALUES(?, ?, ?, '<myname>', ?, ?, ?)",
+			"VALUES(?, ?, ?, '<Myname>', ?, ?, ?)",
 			$pointsChar,
 			1,
 			time(),
