@@ -437,7 +437,7 @@ class RaidPointsController {
 			$row = "$time  |  ".
 				(($log->delta > 0) ? '+' : '-').
 				$this->text->alignNumber(abs($log->delta), 4, $log->delta > 0 ? 'green' : 'red').
-				"  |  {$log->reason}";
+				"  |  {$log->reason} ({$log->changed_by})";
 			$rows []= $row;
 		}
 		return [$header, join("\n", $rows)];
