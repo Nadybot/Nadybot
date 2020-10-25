@@ -325,7 +325,7 @@ class AltsController {
 		$this->db->exec(
 			"UPDATE `alts` SET `validated` = ? ".
 			"WHERE `alt` LIKE ? AND `main` LIKE ?",
-			true,
+			1,
 			$sender,
 			$main
 		);
@@ -450,7 +450,7 @@ class AltsController {
 		$alt = ucfirst(strtolower($alt));
 
 		$sql = "INSERT INTO `alts` (`alt`, `main`, `validated`) VALUES (?, ?, ?)";
-		$added = $this->db->exec($sql, $alt, $main, $validated);
+		$added = $this->db->exec($sql, $alt, $main, (int)$validated);
 		if ($added > 0) {
 			$event = new AltEvent();
 			$event->main = $main;
