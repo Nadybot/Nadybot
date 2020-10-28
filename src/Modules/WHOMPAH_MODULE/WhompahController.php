@@ -182,7 +182,8 @@ class WhompahController {
 	public function findCity(string $search): ?WhompahCity {
 		$sql = "SELECT * FROM whompah_cities ".
 			"WHERE city_name LIKE ? OR short_name LIKE ?";
-		return $this->db->fetch(WhompahCity::class, $sql, $search, $search);
+		return $this->db->fetch(WhompahCity::class, $sql, $search, $search)
+			?: $this->db->fetch(WhompahCity::class, $sql, "%{$search}%", "%{$search}%");
 	}
 
 	/**
