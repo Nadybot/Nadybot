@@ -274,7 +274,7 @@ class WhatBuffsController {
 			";
 			/** @var ItemBuffSearchResult[] */
 			$data = $this->db->fetchAll(ItemBuffSearchResult::class, $sql, $category, $skill->id);
-			$result = $this->formatItems($data);
+			$result = $this->formatItems($data, $skill);
 		}
 
 		[$count, $blob] = $result;
@@ -341,7 +341,7 @@ class WhatBuffsController {
 	 * @param ItemBuffSearchResult[] $items The items that matched the search
 	 * @return (int|string)[]
 	 */
-	public function formatItems(array $items) {
+	public function formatItems(array $items, Skill $skill) {
 		$blob = '';
 		$maxBuff = 0;
 		foreach ($items as $item) {
@@ -361,11 +361,21 @@ class WhatBuffsController {
 				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount, $item->amount, 250);
 				$item->highql = 250;
 			}
-			$maxBuff = (int)max($maxBuff, $item->amount);
+			$maxBuff = (int)max($maxBuff, abs($item->amount));
 			if ($item->lowid === $item->highid) {
 				$itemMapping[$item->lowid] = $item;
 			}
 		}
+		$multiplier = 1;
+		if (in_array($skill->name, ["SkillLockModifier", "% Add. Nano Cost"])) {
+			$multiplier = -1;
+		}
+		usort(
+			$items,
+			function(ItemBuffSearchResult $a, ItemBuffSearchResult $b) use ($multiplier): int {
+				return ($b->amount <=> $a->amount) * $multiplier;
+			}
+		);
 		$ignoreItems = [];
 		foreach ($items as $item) {
 			if ($item->highid !== $item->lowid &&isset($itemMapping[$item->highid])) {
@@ -447,7 +457,7 @@ class WhatBuffsController {
 		$blob = '';
 		$maxBuff = 0;
 		foreach ($items as $item) {
-			$maxBuff = max($maxBuff, $item->amount);
+			$maxBuff = max($maxBuff, abs($item->amount));
 		}
 		$maxDigits = strlen((string)$maxBuff);
 		$items = $this->groupDrainsAndWrangles($items);
