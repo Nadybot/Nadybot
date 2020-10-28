@@ -23,5 +23,5 @@ class DBAuction extends DBRow {
 	public int $end;
 
 	/** Has the person who won this auction been reimbursed for accidental bidding? */
-	public bool $refunded;
+	public bool $reimbursed;
 }
