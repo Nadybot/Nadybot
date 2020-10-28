@@ -339,8 +339,10 @@ class DB {
 			$ps = $this->sql->prepare($sql);
 			$count = 1;
 			foreach ($params as $param) {
-				if ($param === "NULL") {
+				if ($param === "NULL" || $param === null) {
 					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
+				} elseif (is_bool($param)) {
+					$ps->bindValue($count++, $param, PDO::PARAM_BOOL);
 				} elseif (is_int($param)) {
 					$ps->bindValue($count++, $param, PDO::PARAM_INT);
 				} else {
@@ -560,5 +562,22 @@ class DB {
 			$this->formatSql($table),
 			$column
 		)->exists > 0;
+	}
+
+	/**
+	 * Insert a DBRow $row into the database table $table
+	 */
+	public function insert(string $table, DBRow $row): int {
+		$values = [];
+		$refClass = new ReflectionClass($row);
+		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
+		$colNames = [];
+		foreach ($props as $prop) {
+			$colNames []= "`{$prop->name}`";
+			$values []= $prop->getValue($row);
+		}
+		$sql = "INSERT INTO `{$table}` (" . join(", ", $colNames) . ") ".
+			"VALUES (" . join(", ", array_fill(0, count($colNames), "?")) . ")";
+		return $this->exec($sql, ...$values);
 	}
 }

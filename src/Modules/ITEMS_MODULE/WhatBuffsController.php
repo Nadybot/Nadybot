@@ -389,7 +389,8 @@ class WhatBuffsController {
 			if (in_array($item, $ignoreItems, true)) {
 				continue;
 			}
-			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
+			$sign = ($item->amount > 0) ? '+' : '-';
+			$prefix = $sign.$this->text->alignNumber(abs($item->amount), $maxDigits, 'highlight');
 			$blob .= $prefix . "  ";
 			if ($item->multi_m !== null || $item->multi_r !== null) {
 				$blob .= "2x ";
