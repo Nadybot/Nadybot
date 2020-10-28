@@ -34,7 +34,9 @@ INSERT INTO `whompah_cities` (`id`, `city_name`, `zone`, `faction`, `short_name`
 (25, 'Mutant Domain', 'Mutant Domain', 'Omni', 'md'),
 (26, 'Perpetual Wasteland', 'Perpetual Wasteland', 'Neutral', 'pw'),
 (27, 'Southern Fouls Hills', 'Southern Fouls Hills', 'Omni', 'sfh'),
-(28, 'Central Artery Valley', 'Central Artery Valley', 'Clan', 'cav');
+(28, 'Central Artery Valley', 'Central Artery Valley', 'Clan', 'cav'),
+(29, 'The Reck North', 'The Reck', 'Omni', 'trn'),
+(30, 'The Reck South', 'The Reck', 'Clan', 'trs');
 
 DROP TABLE IF EXISTS `whompah_cities_rel`;
 CREATE TABLE `whompah_cities_rel` (
@@ -58,6 +60,7 @@ INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES
 (6, 1),
 (6, 5),
 (6, 7),
+(6, 30),
 (7, 6),
 (7, 8),
 (7, 9),
@@ -80,6 +83,7 @@ INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES
 (15, 1),
 (15, 16),
 (15, 17),
+(15, 29),
 (16, 15),
 (16, 18),
 (16, 23),
@@ -111,6 +115,8 @@ INSERT INTO `whompah_cities_rel` (`city1_id`, `city2_id`) VALUES
 (28, 19),
 (19, 28),
 (19, 4),
+(29, 15),
+(30, 6),
 (4, 19);
 
 -- test congruency
