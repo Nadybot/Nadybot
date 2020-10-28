@@ -526,5 +526,46 @@ INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUE
 ('Halloween', 'Solo Instance', 1, 'Scythe of the Harvester', 'Drops from end boss', 1, null),
 ('Halloween', 'Solo Instance', 1, 'Beacon of the Harvester', 'Drops from end boss', 1, null);
 
+-- Subway 201+
+INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUES
+('Subway', 'Armor', 1, 'Boots of Gridspace Distortion', '', 1, null),
+('Subway', 'Armor', 1, 'Condemned Bulwark', '', 1, null),
+('Subway', 'Armor', 1, 'Counterfeit fr00b T-shirt', '', 1, null),
+('Subway', 'Armor', 1, 'Eumenides''s Omni-Pol Forest Body Armor', '', 1, null),
+('Subway', 'Armor', 1, 'Fetid Vagabond Cloak', '', 1, null),
+('Subway', 'Armor', 250, 'Fortified Construction Sleeves', '', 1, null),
+('Subway', 'Armor', 1, 'Mark of the Bloodless', '', 1, null),
+('Subway', 'Armor', 1, 'Notum-Infused Wool Balaclava Mask', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Sleeves', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Pants', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Gloves', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Helmet', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Boots', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Body Armor', '', 1, null),
+('Subway', 'Armor', 1, 'Reinforced Bau Cyber Female Body Armor', '', 1, null),
+('Subway', 'Armor', 220, 'Supreme Office Worker Suit', '', 1, null),
+('Subway', 'Armor', 200, 'Survivalist Leather Armor Legwear', '', 1, null),
+('Subway', 'Armor', 200, 'Symbiotic Nanite Gloves', '', 1, null),
+('Subway', 'Armor', 1, 'Vergil''s Black Trenchcoat', '', 1, null),
+('Subway', 'Belt', 1, 'Belt of Great Justice', '', 1, null),
+('Subway', 'HUD/Utils', 100, 'Amalgamated Research Attunement Device', '', 1, null),
+('Subway', 'HUD/Utils', 250, 'Aspect of Paralyzing Fear', '', 1, null),
+('Subway', 'HUD/Utils', 210, 'Combat Assist Wen-Wen', '', 1, null),
+('Subway', 'HUD/Utils', 250, 'Eye of The Psion', '', 1, null),
+('Subway', 'HUD/Utils', 100, 'Patchwork Defensive Drone', '', 1, null),
+('Subway', 'HUD/Utils', 250, 'Technical Guidance Personal Terminal', '', 1, null),
+('Subway', 'HUD/Utils', 1, 'Unstable Damage Augmentation Device', '', 1, null),
+('Subway', 'Weapons', 200, 'BBI Faithful 1000', '', 1, null),
+('Subway', 'Weapons', 300, 'Distraction Rifle', '', 1, null),
+('Subway', 'Weapons', 1, 'Illegally Augmented Ofab Mongoose', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally-Modified Dreadloch Tigress', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally Modified Dreadloch Panther', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally Modified Dreadloch Thrasher', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally Modified Dreadloch Remodulator', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally Modified Dreadloch Modified Shark', '', 1, null),
+('Subway', 'Weapons', 300, 'Illegally Modified Dreadloch Obliterator', '', 1, null),
+('Subway', 'Weapons', 200, 'Lost Blade of Elder Tsunayoshi', '', 1, null),
+('Subway', 'Weapons', 300, 'Vicious Support Beam of Malice', '', 1, null);
+
 CREATE INDEX idx_raid_loot_raid ON raid_loot(raid);
 CREATE INDEX idx_raid_loot_category ON raid_loot(category);
