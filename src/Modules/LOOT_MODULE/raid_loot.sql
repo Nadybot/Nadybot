@@ -543,6 +543,7 @@ INSERT INTO raid_loot (raid, category, ql, name, comment, multiloot, aoid) VALUE
 ('Subway', 'Armor', 1, 'Reinforced Bau Cyber Armor Boots', '', 1, null),
 ('Subway', 'Armor', 1, 'Reinforced Bau Cyber Body Armor', '', 1, null),
 ('Subway', 'Armor', 1, 'Reinforced Bau Cyber Female Body Armor', '', 1, null),
+('Subway', 'Armor', 250, 'Superior Ring of the Nucleus Basalis', '', 1, null),
 ('Subway', 'Armor', 220, 'Supreme Office Worker Suit', '', 1, null),
 ('Subway', 'Armor', 200, 'Survivalist Leather Armor Legwear', '', 1, null),
 ('Subway', 'Armor', 200, 'Symbiotic Nanite Gloves', '', 1, null),
