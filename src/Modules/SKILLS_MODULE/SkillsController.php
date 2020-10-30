@@ -12,6 +12,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
 
 /**
  * @author Tyrence (RK2)
@@ -692,6 +693,68 @@ class SkillsController {
 		$blob .= "\nRewritten by Nadyita (RK5)";
 		$msg = $this->text->makeBlob("Weapon Info for $name", $blob);
 
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("weapon")
+	 * @Matches('/^weapon (\d+) (.+)/i')
+	 * @Matches('/^weapon (.+)/i')
+	 */
+	public function weaponSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$ql = null;
+		$search = $args[1];
+		if (count($args) > 2) {
+			$ql = (int)$args[1];
+			$search = $args[2];
+		}
+		$data = $this->itemsController->findItemsFromLocal($search, $ql);
+		$kept = [];
+		$data = array_values(
+			array_filter(
+				$data,
+				function(ItemSearchResult $item) use ($ql, &$kept): bool {
+					if (isset($ql) && $ql < $item->lowql || $ql > $item->highql) {
+						return false;
+					}
+					if (isset($kept[$item->lowid])) {
+						return false;
+					}
+					if ($this->db->fetch(
+						WeaponAttribute::class,
+						"SELECT * FROM `weapon_attributes` WHERE `id`=? OR `id`=?",
+						$item->lowid,
+						$item->highid
+					) === null) {
+						return false;
+					}
+					$kept[$item->lowid] = true;
+					return true;
+				}
+			)
+		);
+		if (count($data) === 0) {
+			if ($ql !== null) {
+				$msg = "No QL <highlight>{$ql}<end> items found matching <highlight>{$search}<end>.";
+			} else {
+				$msg = "No items found matching <highlight>{$search}<end>.";
+			}
+			$sendto->reply($msg);
+			return;
+		}
+		if (count($data) === 1) {
+			$this->weaponCommand($message, $channel, $sender, $sendto, [$message, $data[0]->lowid, $ql ?? $data[0]->ql]);
+			return;
+		}
+		/** @var ItemSearchResult[] $data */
+		$blob = "<header2>Weapons matching {$search}<end>\n";
+		foreach ($data as $item) {
+			$useQL = $ql ?? $item->ql;
+			$itemLink = $this->text->makeItem($item->lowid, $item->highid, $useQL, $item->name);
+			$statsLink = $this->text->makeChatcmd("stats", "/tell <myname> weapon {$item->lowid} {$useQL}");
+			$blob .= "<tab>[{$statsLink}] {$itemLink} (QL {$useQL})\n";
+		}
+		$msg = $this->text->makeBlob("Weapons (" . count($data) .")", $blob);
 		$sendto->reply($msg);
 	}
 
