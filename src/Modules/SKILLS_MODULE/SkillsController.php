@@ -638,10 +638,12 @@ class SkillsController {
 		$rechargeTime = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->recharge_time, $highAttributes->recharge_time, $ql);
 		$rechargeTime /= 100;
 		$attackTime /= 100;
+		$itemLink = $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 
 		$blob = '';
 
 		$blob .= "<header2>Stats<end>\n";
+		$blob .= "<tab>Item:       {$itemLink}\n";
 		$blob .= "<tab>Attack:    <highlight>" . sprintf("%.2f", $attackTime) . "<end>s\n";
 		$blob .= "<tab>Recharge: <highlight>" . sprintf("%.2f", $rechargeTime) . "<end>s\n\n";
 
@@ -682,9 +684,18 @@ class SkillsController {
 			$blob .= "<tab>You need <highlight>".$skillCap."<end> Aimed Shot skill to cap your recharge at <highlight>".$weaponCap."<end>s.\n\n";
 			$found = true;
 		}
-
-		// brawl and dimach don't depend on weapon at all
-		// we don't have a formula for sneak attack
+		if ($highAttributes->brawl) {
+			$blob .= "<header2>Brawl<end>\n";
+			$blob .= "<tab>This weapon supports 1 brawl attack every <highlight>15s<end> (constant).\n\n";
+			$found = true;
+		}
+		if ($highAttributes->sneak_attack) {
+			$blob .= "<header2>Sneak Attack<end>\n";
+			$blob .= "<tab>This weapon supports sneak attacks.\n";
+			$blob .= "<tab>The recharge depends solely on your Sneak Attack Skill:\n";
+			$blob .= "<tab>40 - (Sneak Attack skill) / 150\n\n";
+			$found = true;
+		}
 
 		if (!$found) {
 			$blob .= "There are no specials on this weapon that could be calculated.\n\n";

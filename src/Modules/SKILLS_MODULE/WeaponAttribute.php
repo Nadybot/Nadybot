@@ -13,6 +13,8 @@ class WeaponAttribute extends DBRow {
 	public bool $fling_shot;
 	public bool $fast_attack;
 	public bool $aimed_shot;
+	public bool $brawl;
+	public bool $sneak_attack;
 	public ?int $multi_m;
 	public ?int $multi_r;
 }
