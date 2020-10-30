@@ -287,8 +287,8 @@ class GSPController {
 			$info = sprintf(
 				"%s   <highlight>%s<end> - %s",
 				$time->format("H:i:s"),
-				$song->artist,
-				$song->title,
+				$song->artist ?? "Unknown Artist",
+				$song->title ?? "Unknown Song",
 			);
 			if (isset($song->duration) && $song->duration > 0) {
 				$info .= " [".$this->msToTime($song->duration)."]";
