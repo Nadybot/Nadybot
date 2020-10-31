@@ -54,6 +54,18 @@ use Nadybot\Core\{
  *		help        = 'test.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'testorgattack',
+ *		accessLevel = 'admin',
+ *		description = "Test the bot commands",
+ *		help        = 'test.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'testorgattackprep',
+ *		accessLevel = 'admin',
+ *		description = "Test the bot commands",
+ *		help        = 'test.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'testos',
  *		accessLevel = 'admin',
  *		description = "Test the bot commands",
@@ -270,6 +282,52 @@ class TestController {
 		$eventObj->message = "Notum Wars Update: The {$args[1]} organization {$args[2]} lost their base in {$args[3]}.";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
+	}
+
+	/**
+	 * @HandlesCommand("testorgattack")
+	 * @Matches("/^testorgattack ([^ ]+) (.+)$/i")
+	 */
+	public function testOrgAttackCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$gid = $this->chatBot->get_gid('Org Msg');
+		if (!$gid) {
+			$this->chatBot->gid["sicrit"] = 'Org Msg';
+			$this->chatBot->gid["Org Msg"] = 'sicrit';
+			$gid = 'sicrit';
+		}
+		$testArgs = [
+			$gid,
+			(int)0xFFFFFFFF,
+			"The tower Control Tower - Neutral in Broken Shores was just reduced to 75 % health by {$args[1]} from the {$args[2]} organization!",
+		];
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
+
+		$this->chatBot->process_packet($packet);
+	}
+
+	/**
+	 * @HandlesCommand("testorgattackprep")
+	 * @Matches("/^testorgattackprep ([^ ]+) (.+)$/i")
+	 */
+	public function testOrgAttackPrepCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$gid = $this->chatBot->get_gid('Org Msg');
+		if (!$gid) {
+			$this->chatBot->gid["sicrit"] = 'Org Msg';
+			$this->chatBot->gid["Org Msg"] = 'sicrit';
+			$gid = 'sicrit';
+		}
+		$testArgs = [
+			$gid,
+			(int)0xFFFFFFFF,
+			"Your controller tower in Southern Forest of Xzawkaz in Deep Artery Valley has had its defense shield disabled by {$args[1]} (clan).The attacker is a member of the organization {$args[2]}.",
+		];
+		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
+		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet->args = $testArgs;
+
+		$this->chatBot->process_packet($packet);
 	}
 
 	/**
