@@ -228,7 +228,7 @@ class AccessManager {
 	}
 
 	/**
-	 * Compare the access levels of 2 characters
+	 * Compare the access levels of 2 characters, taking alts into account
 	 *
 	 * @return int 1 if the access level of $char1 is greater than the access level of $char2,
 	 *             -1 if the access level of $char1 is less than the access level of $char2,
