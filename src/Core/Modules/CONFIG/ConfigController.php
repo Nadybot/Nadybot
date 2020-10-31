@@ -859,13 +859,10 @@ class ConfigController {
 	}
 
 	/**
-	 * Get a list of available events for a module
-	 * @Api("/access_levels")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='ModuleAccessLevel[]', desc='A list of all access levels')
+	 * Get all accesslevels, their name, full name and numeric value
+	 * @return ModuleAccessLevel[]
 	 */
-	public function apiConfigAccessLevelsGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function getValidAccessLevels(): array {
 		/** @var CmdCfg[] $data */
 		$showRaidAL = $this->db->queryRow(
 			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
@@ -886,6 +883,17 @@ class ConfigController {
 			$option->numeric_value = $level;
 			$result []= $option;
 		}
-		return new ApiResponse($result);
+		return $result;
+	}
+
+	/**
+	 * Get a list of available events for a module
+	 * @Api("/access_levels")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='ModuleAccessLevel[]', desc='A list of all access levels')
+	 */
+	public function apiConfigAccessLevelsGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse($this->getValidAccessLevels());
 	}
 }

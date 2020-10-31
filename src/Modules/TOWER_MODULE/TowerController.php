@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TOWER_MODULE;
 
 use Nadybot\Core\{
+	AOChatEvent,
 	CommandReply,
 	DB,
 	DBSchema\Player,
@@ -188,6 +189,18 @@ class TowerController {
 	 * @AccessLevel("mod")
 	 */
 	public $defaultTowerPlantTimer = 0;
+
+	/**
+	 * @Setting("discord_notify_org_attacks")
+	 * @Description("Notify message for Discord if being attacked")
+	 * @Visibility("edit")
+	 * @Type("text")
+	 * @Options("off;@here Our field in {location} is being attacked by {player}")
+	 * @AccessLevel("mod")
+	 */
+	public $defaultDiscordNotifyOrgAttacks = "@here Our field in {location} is being attacked by {player}";
+
+	public int $lastDiscordNotify = 0;
 
 	public const TIMER_NAME = "Towerbattles";
 
@@ -800,6 +813,70 @@ class TowerController {
 			$args[1]
 		];
 		$this->victoryCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
+	}
+
+	/**
+	 * @Event("orgmsg")
+	 * @Description("Notify if org's towers are attacked")
+	 */
+	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): void {
+		if ($this->util->isValidSender($eventObj->sender)) {
+			return;
+		}
+		if (
+			!preg_match(
+				"/^The tower (.+?) in (.+?) was just reduced to \d+ % health ".
+				"by ([^ ]+) from the (.+?) organization!$/",
+				$eventObj->message,
+				$matches
+			)
+			&& !preg_match(
+				"/^The tower (.+?) in (.+?) was just reduced to \d+ % health by ([^ ]+)!$/",
+				$eventObj->message,
+				$matches
+			)
+			&& !preg_match(
+				"/^Your (.+?) tower in (?:.+?) in (.+?) has had its ".
+				"defense shield disabled by ([^ ]+) \(.+?\)\.\s*".
+				"The attacker is a member of the organization (.+?)\.$/",
+				$eventObj->message,
+				$matches
+			)
+		) {
+			return;
+		}
+		$discordMessage = $this->settingManager->getString('discord_notify_org_attacks');
+		if (empty($discordMessage) || $discordMessage === "off") {
+			return;
+		}
+		// One notification every 5 minutes seems enough
+		if (time() - $this->lastDiscordNotify < 300) {
+			return;
+		}
+		$attGuild = $matches[4] ?? null;
+		$attPlayer = $matches[3];
+		$playfieldName = $matches[2];
+		$whois = $this->playerManager->getByName($attPlayer);
+		if ($whois === null) {
+			$whois = new Player();
+			$whois->type = 'npc';
+			$whois->name = $attPlayer;
+			$whois->faction = 'Neutral';
+		} else {
+			$whois->type = 'player';
+		}
+		$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
+		if ($attGuild) {
+			$playerName .= " org \"{$whois->guild}\"";
+		}
+		$playerName .= ")";
+		$discordMessage = str_replace(
+			["{player}", "{location}"],
+			[$playerName, $playfieldName],
+			$discordMessage
+		);
+		$this->discordController->sendDiscord($discordMessage, true);
+		$this->lastDiscordNotify = time();
 	}
 
 	/**

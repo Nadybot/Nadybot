@@ -3,15 +3,19 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\{
+	AccessManager,
 	Event,
 	CommandReply,
 	Nadybot,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
+use Nadybot\Core\Modules\{
+	CONFIG\ConfigController,
+	DISCORD\DiscordAPIClient,
+	DISCORD\DiscordChannel,
+	DISCORD\DiscordController,
+};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -50,6 +54,12 @@ class DiscordRelayController {
 	public DiscordController $discordController;
 
 	/** @Inject */
+	public ConfigController $configController;
+
+	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
 	/** @Inject */
@@ -84,6 +94,20 @@ class DiscordRelayController {
 			"edit",
 			"discord_channel",
 			"off"
+		);
+		$ranks = $this->configController->getValidAccessLevels();
+		$allowedRanks = [];
+		foreach ($ranks as $rank) {
+			$allowedRanks []= $rank->value;
+		}
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_relay_mention_rank",
+			"Minimum ranks allowed to use @here and @everyone",
+			"edit",
+			"options",
+			"mod",
+			join(";", $allowedRanks)
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -296,7 +320,7 @@ class DiscordRelayController {
 		$this->settingManager->save('discord_relay_channel', $channelId);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[$channel->guild_id];
-		$msg = "Now relaying into <highlight>{$guild->name}<end>\<highlight>#{$channel->name}<end> (ID {$channelId})";
+		$msg = "Now relaying into <highlight>{$guild->name}<end>\\<highlight>#{$channel->name}<end> (ID {$channelId})";
 		$sendto->reply($msg);
 	}
 
@@ -314,6 +338,13 @@ class DiscordRelayController {
 		}
 		$msg = "[Guest] {$sender}: {$message}";
 		$discordMsg = $this->discordController->formatMessage($msg);
+		$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank');
+		$sendersRank = $this->accessManager->getAccessLevelForCharacter($sender);
+		if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
+			$discordMsg->allowed_mentions = (object)[
+				"parse" => ["users"]
+			];
+		}
 
 		//Relay the message to the discord channel
 		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());

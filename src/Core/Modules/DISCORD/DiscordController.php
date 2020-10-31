@@ -186,7 +186,7 @@ class DiscordController {
 	/**
 	 * Send a message to the configured Discord channel (if configured)
 	 */
-	public function sendDiscord($text): void {
+	public function sendDiscord($text, $allowGroupMentions=false): void {
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');
 		if ($discordBotToken === "" || $discordBotToken === 'off') {
 			return;
@@ -200,6 +200,14 @@ class DiscordController {
 		}
 		foreach ($text as $page) {
 			$message = $this->formatMessage($page);
+			$message->allowed_mentions = (object)[
+				"parse" => ["users"]
+			];
+			if (!$allowGroupMentions) {
+				$message->allowed_Mentions->parse []= ["roles"];
+				$message->allowed_Mentions->parse []= ["here"];
+				$message->allowed_Mentions->parse []= ["everyone"];
+			}
 			$this->discordAPIClient->sendToChannel($discordChannel, $message->toJSON());
 		}
 	}
