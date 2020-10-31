@@ -401,6 +401,17 @@ class CommandManager {
 	 * Get the command handler that is responsible for handling a command
 	 */
 	public function getActiveCommandHandler(string $cmd, string $channel, string $message): ?CommandHandler {
+		// Check if there is an alias for this command that should take precedence
+		$parts = explode(" ", $message);
+		// Only consider aliases like "raid add" and not "raid"
+		while (count($parts) > 1) {
+			$command = join(" ", $parts);
+			$handler = $this->commands[$channel][$command] ?? null;
+			if ($handler instanceof CommandHandler) {
+				return $handler;
+			}
+			array_pop($parts);
+		}
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {

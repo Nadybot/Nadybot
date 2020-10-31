@@ -89,15 +89,22 @@ class CommandAlias {
 	 * Check incoming commands if they are aliases for commands and execute them
 	 */
 	public function process(string $message, string $channel, string $sender, CommandReply $sendto): bool {
-		[$alias, $params] = explode(' ', $message, 2);
-		$alias = strtolower($alias);
-
-		// Check if this is an alias for a command
-		$row = $this->get($alias);
+		$params = explode(' ', $message);
+		while (count($params) && !isset($row)) {
+			$row = $this->get(strtolower(join(' ', $params)));
+			if (!isset($row)) {
+				array_pop($params);
+			}
+		}
 		if ($row === null) {
 			return false;
 		}
-
+		$tokens = explode(' ', $message, count($params)+1);
+		if (count($tokens) > count($params)) {
+			$params = $tokens[count($params)];
+		} else {
+			$params = "";
+		}
 		$this->logger->log('DEBUG', "Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
 		$cmd = $row->cmd;
 		if ($params) {
@@ -109,7 +116,7 @@ class CommandAlias {
 			// from 1 to MAX -Tyrence
 			preg_match_all("/{\\d+}/", $cmd, $matches);
 			$numMatches = count(array_unique($matches[0]));
-			if ($numMatches == 0) {
+			if ($numMatches === 0) {
 				$cmd .= " {0}";
 			}
 
