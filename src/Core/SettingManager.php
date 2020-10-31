@@ -282,7 +282,8 @@ class SettingManager {
 				$handler = new DiscordChannelSettingHandler($row);
 				break;
 			default:
-				$this->loggger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
+				$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
+				return null;
 		}
 		Registry::injectDependencies($handler);
 		return $handler;
