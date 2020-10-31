@@ -34,6 +34,12 @@ use Nadybot\Core\{
  *		help        = 'items.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'id',
+ *		accessLevel = 'all',
+ *		description = 'Searches for an itemid by name',
+ *		help        = 'items.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'updateitems',
  *		accessLevel = 'guild',
  *		description = 'Downloads the latest version of the items db',
@@ -124,6 +130,48 @@ class ItemsController {
 	public function findById(int $id): ?AODBEntry {
 		$sql = "SELECT * FROM aodb WHERE lowid = ? UNION SELECT * FROM aodb WHERE highid = ? LIMIT 1";
 		return $this->db->fetch(AODBEntry::class, $sql, $id, $id);
+	}
+
+	/**
+	 * @HandlesCommand("id")
+	 * @Matches("/^id (.+)$/i")
+	 */
+	public function idCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$search = $args[1];
+
+		$tmp = explode(" ", $search);
+		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'a.name');
+		$params []= $this->settingManager->getInt('maxitems');
+		/** @var AODBEntry[] */
+		$items = $this->db->fetchAll(
+			AODBEntry::class,
+			"SELECT a.* FROM aodb a ".
+			"LEFT JOIN item_groups g ON (g.item_id=a.lowid) ".
+			"LEFT JOIN item_group_names gn ON (g.group_id=gn.group_id) ".
+			"WHERE $query ".
+			"ORDER BY COALESCE(gn.name, a.name) ASC, a.lowql ASC ".
+			"LIMIT ?",
+			...$params
+		);
+		if (!count($items)) {
+			$sendto->reply("No items found matching <highlight>{$search}<end>.");
+			return;
+		}
+		$blob = "<header2><u>Low ID    Low QL    High ID    High QL    Name                                         </u><end>\n";
+		foreach ($items as $item) {
+			$itemLinkLow = $this->text->makeItem($item->lowid, $item->highid, $item->lowql, (string)$item->lowid);
+			$itemLinkHigh = $this->text->makeItem($item->lowid, $item->highid, $item->highql, (string)$item->highid);
+			$blob .= str_replace((string)$item->lowid, $itemLinkLow, $this->text->alignNumber($item->lowid, 6)).
+				"       " . $this->text->alignNumber($item->lowql, 3).
+				"     " . (($item->highid === $item->lowid) ? "        " : str_replace((string)$item->highid, $itemLinkHigh, $this->text->alignNumber($item->highid, 6))).
+				"         " . (($item->highid === $item->lowid) ? "         <black>|<end>" : $this->text->alignNumber($item->highql, 3) . "    ").
+				$item->name . "\n";
+		}
+		if (count($items) === $this->settingManager->getInt('maxitems')) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
+		}
+		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
+		$sendto->reply($msg);
 	}
 
 	/**

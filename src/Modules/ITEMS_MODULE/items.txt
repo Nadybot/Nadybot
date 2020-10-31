@@ -9,6 +9,9 @@ To search for an item by id:
 
 Note: to not include results that match a certain search term, precede term with a minus ('-').
 
+To search for item IDs by name:
+<highlight><tab><symbol>id 'name'<end>
+
 <header2>Examples:<end>
 
 Shows the First tier Armor for the Nano-Technician:
