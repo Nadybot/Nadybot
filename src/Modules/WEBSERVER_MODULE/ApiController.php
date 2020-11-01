@@ -232,7 +232,7 @@ class ApiController {
 		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
 			$response->headers['Content-Length'] = 0;
 			$response->setCode(Response::CREATED);
-		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::DELETE])) {
+		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
 			$response->setCode(Response::NO_CONTENT);
 		}
 		$server->sendResponse($response);

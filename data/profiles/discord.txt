@@ -1,0 +1,8 @@
+!config mod PRIVATE_CHANNEL_MODULE enable all
+!config mod DISCORD_GATEWAY_MODULE enable all
+!settings save discord_bot_token NzMxNTUyMTUyODI4MjQ4MTE1.XwntCA.nktzCG_UvS6flyzTTHO7mOqt2xQ
+!settings save discord_relay_channel 731553649184211064
+!settings save discord_process_commands 1
+!settings save discord_relay_commands 1
+!settings save discord_notify_voice_changes 3
+!settings save discord_relay 3

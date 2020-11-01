@@ -7,6 +7,7 @@ class Request {
 	public const POST = 'post';
 	public const HEAD = 'head';
 	public const PUT = 'put';
+	public const PATCH = 'patch';
 	public const DELETE = 'delete';
 
 	/** @var array<string,string> */
