@@ -39,7 +39,7 @@ class ModuleSetting {
 		$this->editable = $setting->mode === 'edit';
 		$this->description = $setting->description;
 		$this->name = $setting->name;
-		if (strlen($setting->options)) {
+		if (strlen($setting->options??"")) {
 			$options = explode(";", $setting->options);
 			$values = $options;
 			if (strlen($setting->intoptions)) {
