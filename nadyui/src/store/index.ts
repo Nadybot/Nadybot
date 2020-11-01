@@ -3,7 +3,7 @@ import { createStore } from "vuex";
 import { getOnlineMembers } from "@/nadybot/http";
 
 import socket from "./plugins/socket";
-import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types";
+import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
 
 const emptyPlayers: OnlinePlayers = {
   org: [],
