@@ -2,8 +2,7 @@
 /cache
 /conf/config*.php
 !/conf/config.template.php
-/data/*.db
-/data/*-journal
+/data/*
 *.log
 *.DS_Store
 *.xcuserdata
