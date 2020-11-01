@@ -267,7 +267,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		$this->request->method = strtolower($matches[1]);
-		if (!in_array($this->request->method, [Request::GET, Request::POST, Request::HEAD, Request::PUT, Request::DELETE])) {
+		if (!in_array($this->request->method, [Request::GET, Request::POST, Request::HEAD, Request::PUT, Request::PATCH, Request::DELETE])) {
 			$this->httpError(new Response(Response::NOT_IMPLEMENTED));
 			return;
 		}
