@@ -1,0 +1,7 @@
+In order to add someone to a running raid, use
+<tab><highlight><symbol>raid add 'player'<end>
+<tab><highlight><symbol>raidmember add 'player'<end>
+
+In order to remove someone from a running raid, use
+<tab><highlight><symbol>raid kick 'player'<end>
+<tab><highlight><symbol>raidmember rem 'player'<end>

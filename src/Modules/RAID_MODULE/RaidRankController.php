@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
+	CommandAlias,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -17,15 +18,15 @@ use Nadybot\Core\Modules\ALTS\AltsController;
  * @Instance
  * Commands this controller contains:
  * @DefineCommand(
- *     command       = 'raid admin .+',
+ *     command       = 'raidadmin',
  *     accessLevel   = 'raid_admin_2',
- *     description   = 'Promote/demote someone to raid admin',
+ *     description   = 'Promote/demote someone to/from raid admin',
  *     help          = 'raidranks.txt'
  * )
  * @DefineCommand(
- *     command       = 'raid leader .+',
+ *     command       = 'raidleader',
  *     accessLevel   = 'raid_admin_1',
- *     description   = 'Promote/demote someone to raid leader',
+ *     description   = 'Promote/demote someone to/from raid leader',
  *     help          = 'raidranks.txt'
  * )
  */
@@ -43,6 +44,9 @@ class RaidRankController {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
@@ -137,6 +141,8 @@ class RaidRankController {
 			'text',
 			'Veteran Raid Admin'
 		);
+		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
+		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
 	}
 
 	/**
@@ -225,7 +231,11 @@ class RaidRankController {
 		}
 
 		if ($this->checkExisting($who, $rank)) {
-			$sendto->reply("<highlight>$who<end> is already $rankName.");
+			$sendto->reply(
+				"<highlight>$who<end> is already $rankName. ".
+				"To promote/demote to a different rank, add the ".
+				"rank number (1, 2 or 3) to the command."
+			);
 			return false;
 		}
 
@@ -243,8 +253,15 @@ class RaidRankController {
 
 		$action = $this->addToLists($who, $rank);
 
-		$sendto->reply("<highlight>$who<end> has been $action to $rankName.");
-		$this->chatBot->sendTell("You have been $action to $rankName by <highlight>$sender<end>.", $who);
+		$sendto->reply(
+			"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
+			"to {$rankName}."
+		);
+		$this->chatBot->sendTell(
+			"You have been <highlight>{$action}<end> to {$rankName} ".
+			"by <highlight>$sender<end>.",
+			$who
+		);
 		return true;
 	}
 
@@ -273,28 +290,28 @@ class RaidRankController {
 	}
 
 	/**
-	 * @HandlesCommand("raid admin .+")
-	 * @Matches("/^raid admin (?:add|promote) (.+)$/i")
-	 * @Matches("/^raid admin (?:add|promote) (.+) (\d)$/i")
+	 * @HandlesCommand("raidadmin")
+	 * @Matches("/^raidadmin (?:add|promote) ([^ ]+)$/i")
+	 * @Matches("/^raidadmin (?:add|promote) ([^ ]+) (\d)$/i")
 	 */
 	public function raidAdminAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
-		$rank = 7;
+		$rank = 1;
 		if (count($args) > 2) {
 			$rank = (int)$args[2];
-			if ($rank < 7 | $rank > 9) {
-				$sendto->reply("The admin rank must be a number between 7 and 9");
+			if ($rank < 1 || $rank > 3) {
+				$sendto->reply("The admin rank must be a number between 1 and 3");
 				return;
 			}
 		}
-		$rankName = 'a raid admin';
+		$rankName = $this->settingManager->getString("name_raid_admin_$rank");
 
-		$this->add($who, $sender, $sendto, $rank, $rankName);
+		$this->add($who, $sender, $sendto, $rank+6, $rankName);
 	}
 
 	/**
-	 * @HandlesCommand("raid admin .+")
-	 * @Matches("/^raid admin (?:rem|del|rm|demote) (.+)$/i")
+	 * @HandlesCommand("raidadmin")
+	 * @Matches("/^raidadmin (?:rem|del|rm|demote) (.+)$/i")
 	 */
 	public function raidAdminRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
@@ -304,28 +321,28 @@ class RaidRankController {
 	}
 
 	/**
-	 * @HandlesCommand("raid leader .+")
-	 * @Matches("/^raid leader (?:add|promote) (.+)$/i")
-	 * @Matches("/^raid leader (?:add|promote) (.+) (\d)$/i")
+	 * @HandlesCommand("raidleader")
+	 * @Matches("/^raidleader (?:add|promote) ([^ ]+)$/i")
+	 * @Matches("/^raidleader (?:add|promote) ([^ ]+) (\d)$/i")
 	 */
 	public function raidLeaderAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
-		$rank = 4;
+		$rank = 1;
 		if (count($args) > 2) {
 			$rank = (int)$args[2];
-			if ($rank < 4 | $rank > 6) {
-				$sendto->reply("The leader rank must be a number between 4 and 6");
+			if ($rank < 1 | $rank > 3) {
+				$sendto->reply("The leader rank must be a number between 1 and 3");
 				return;
 			}
 		}
-		$rankName = 'a raid leader';
+		$rankName = $this->settingManager->getString("name_raid_leader_$rank");
 
-		$this->add($who, $sender, $sendto, $rank, $rankName);
+		$this->add($who, $sender, $sendto, $rank+3, $rankName);
 	}
 
 	/**
-	 * @HandlesCommand("raid leader .+")
-	 * @Matches("/^raid leader (?:rem|del|rm|demote) (.+)$/i")
+	 * @HandlesCommand("raidleader")
+	 * @Matches("/^raidleader (?:rem|del|rm|demote) (.+)$/i")
 	 */
 	public function raidLeaderRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));

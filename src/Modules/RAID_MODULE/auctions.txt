@@ -1,25 +1,3 @@
-<header2>For raiders<end>
-
-When an auction is running, use
-<tab><highlight>/tell <myname> bid 'number'<end>
-
-to place a bid for the item currently being auctioned. This is your maximum
-offer which the bot will use to automatically bid against other players
-bidding on the same item. The bot will only use up as much of your maximum
-offer as necessary to win the auction.
-
-You can also use the same command to increase an already given maximum offer,
-but not to lower it.
-
-To get a list of the last auctions, use
-<tab><highlight><symbol>bid history<end>
-
-To search for a specific item in the last auctions, use
-<tab><highlight><symbol>bid history 'search term'<end>
-
-
-<header2>For raid leaders<end>
-
 To auction an item, use
 <tab><highlight><symbol>bid start 'item'<end>
 
@@ -33,4 +11,4 @@ To refund someone for an accidentally won auction, use
 <tab><highlight><symbol>bid refund<end>
 
 This will usually not give back the full amount, but deduct a small
-tax, as confugured on the bot.
+tax, as configured on the bot.

@@ -1,0 +1,19 @@
+The raid module knows 2 new high-level ranks:
+<tab>- Raid Leader
+<tab>- Raid Admin
+
+To promote someone to a Raid Leader/Raid Admin, use
+<tab><highlight><symbol>raidleader add 'name'<end>
+<tab><highlight><symbol>raidadmin add 'name'<end>
+
+To promote/demote someone to a specific rank of Raid Leader/Raid Admin, use
+<tab><highlight><symbol>raidleader add 'name' 'rank'<end>
+<tab><highlight><symbol>raidadmin add 'name' 'rank'<end>
+
+where rank is a number between 1 and 3.
+
+Note: You can only promote someone up until, but excluding your own rank!
+
+You can also remove someone's Raid Leader/Admin status by using
+<tab><highlight><symbol>raidleader rem 'name'<end>
+<tab><highlight><symbol>raidadmin rem 'name'<end>

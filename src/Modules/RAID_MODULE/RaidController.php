@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	CommandManager,
 	DB,
+	DBSchema\Player,
 	EventManager,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -17,7 +18,6 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
-use Nadybot\Core\DBSchema\Player;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -279,7 +279,7 @@ class RaidController {
 		/** @var ?RaidLog */
 		$lastRaidLog = $this->db->fetch(
 			RaidLog::class,
-			"SELECT * FROM raid_log_<myname> WHERE `raid_id`=? ".
+			"SELECT * FROM `raid_log_<myname>` WHERE `raid_id`=? ".
 			"ORDER BY `time` DESC LIMIT 1",
 			$lastRaid->raid_id
 		);
@@ -633,7 +633,7 @@ class RaidController {
 	 */
 	public function logRaidChanges(Raid $raid): void {
 		$this->db->exec(
-			"INSERT INTO raid_log_<myname> (`raid_id`, `description`, `seconds_per_point`, `locked`, `time`, `announce_interval`) ".
+			"INSERT INTO `raid_log_<myname>` (`raid_id`, `description`, `seconds_per_point`, `locked`, `time`, `announce_interval`) ".
 			"VALUES (?, ?, ?, ?, ?, ?)",
 			$raid->raid_id,
 			$raid->description,
@@ -729,7 +729,7 @@ class RaidController {
 			return;
 		}
 		$this->db->exec(
-			"INSERT INTO raid_<myname> ".
+			"INSERT INTO `raid_<myname>` ".
 			"(`description`, `seconds_per_point`, `started`, `started_by`, `announce_interval`) ".
 			"VALUES (?, ?, ?, ?, ?)",
 			$raid->description,
@@ -758,7 +758,7 @@ class RaidController {
 		$raid->stopped = time();
 		$raid->stopped_by = $sender;
 		$this->db->exec(
-			"UPDATE raid_<myname> SET `stopped`=?, `stopped_by`=? WHERE `raid_id`=? AND `stopped` IS NULL",
+			"UPDATE `raid_<myname>` SET `stopped`=?, `stopped_by`=? WHERE `raid_id`=? AND `stopped` IS NULL",
 			$raid->stopped,
 			$raid->stopped_by,
 			$raid->raid_id

@@ -1,0 +1,16 @@
+In order to check if you are blocked from some raid aspects and for how long:
+<tab><highlight><symbol>raidblock<end>
+
+In order to temporarily block a player from attending aspects of the raids:
+<tab><highlight><symbol>raidblock bid 'player' 'duration' 'reason'<end>
+<tab><highlight><symbol>raidblock join 'player' 'duration' 'reason'<end>
+<tab><highlight><symbol>raidblock points 'player' 'duration' 'reason'<end>
+
+If you leave out the duration, the block is unlimited and needs to be manually lifted.
+
+To lift a block:
+<tab><highlight><symbol>raidblock rem 'player'<end>
+<tab><highlight><symbol>raidblock rem 'player' 'bid/join/points'<end>
+
+To check another player's blocks:
+<tab><highlight><symbol>raidblock 'player'<end>

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
+	CommandAlias,
 	CommandReply,
 	DB,
 	LoggerWrapper,
@@ -23,16 +24,9 @@ use Nadybot\Core\{
  * @package Nadybot\Modules\RAID_MODULE
  *
  * @DefineCommand(
- *     command       = 'raid reward .+',
+ *     command       = 'raidpoints',
  *     accessLevel   = 'raid_leader_1',
- *     description   = 'Reward people for raid participation',
- *     help          = 'raidpoints.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raid punish .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Punish people for accidentally given points',
+ *     description   = 'Add or remove points from all raiders',
  *     help          = 'raidpoints.txt'
  * )
  *
@@ -58,9 +52,9 @@ use Nadybot\Core\{
  * )
  *
  * @DefineCommand(
- *     command       = 'points (add|rem) .+',
+ *     command       = 'pointsmod',
  *     accessLevel   = 'raid_admin_1',
- *     description   = 'Manipulate raid points of another raider',
+ *     description   = 'Manipulate raid points of a single raider',
  *     help          = 'raidpoints.txt'
  * )
  *
@@ -82,6 +76,12 @@ class RaidPointsController {
 
 	/** @Inject */
 	public RaidMemberController $raidMemberController;
+
+	/** @Inject */
+	public RaidBlockController $raidBlockController;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public AltsController $altsController;
@@ -122,6 +122,10 @@ class RaidPointsController {
 		);
 		$this->db->loadSQLFile($this->moduleName, "raid_points");
 		$this->db->loadSQLFile($this->moduleName, "raid_points_log");
+		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
+		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");
+		$this->commandAlias->register($this->moduleName, "raidpoints reward", "raid reward");
+		$this->commandAlias->register($this->moduleName, "raidpoints punish", "raid punish");
 	}
 
 	/**
@@ -143,6 +147,9 @@ class RaidPointsController {
 			if ($raider->left !== null) {
 				continue;
 			}
+			if ($this->raidBlockController->isBlocked($raider->player, RaidBlockController::POINTS_GAIN)) {
+				continue;
+			}
 			$this->giveTickPoint($raider->player, $raid);
 		}
 	}
@@ -151,7 +158,6 @@ class RaidPointsController {
 	 * Give $player a point for participation in raid $raid
 	 */
 	public function giveTickPoint(string $player, Raid $raid): string {
-		$this->logger->log('INFO', 'Raid points ticker');
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
@@ -194,7 +200,7 @@ class RaidPointsController {
 			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
-		if (isset($raidd) && isset($raid->pointsGiven[$pointsChar])) {
+		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
 		if (isset($raid) && isset($raid->raiders[$player])) {
@@ -253,7 +259,10 @@ class RaidPointsController {
 		$numReceivers = 0;
 		$raid->pointsGiven = [];
 		foreach ($raid->raiders as $raider) {
-			if ($raider->left !== null) {
+			if (
+				$raider->left !== null
+				|| $this->raidBlockController->isBlocked($raider->player, RaidBlockController::POINTS_GAIN)
+			) {
 				continue;
 			}
 			$mainChar = $this->modifyRaidPoints($raider->player, $delta, ($delta > 0) ? "reward" : "penalty", $sender, $raid);
@@ -288,8 +297,8 @@ class RaidPointsController {
 	}
 
 	/**
-	 * @HandlesCommand("raid reward .+")
-	 * @Matches("/^raid reward (\d+)$/i")
+	 * @HandlesCommand("raidpoints")
+	 * @Matches("/^raidpoints reward (\d+)$/i")
 	 */
 	public function raidRewardCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raidController->raid)) {
@@ -311,8 +320,8 @@ class RaidPointsController {
 	}
 
 	/**
-	 * @HandlesCommand("raid punish .+")
-	 * @Matches("/^raid punish (\d+)$/i")
+	 * @HandlesCommand("raidpoints")
+	 * @Matches("/^raidpoints punish (\d+)$/i")
 	 */
 	public function raidPunishCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raidController->raid)) {
@@ -462,9 +471,9 @@ class RaidPointsController {
 	}
 
 	/**
-	 * @HandlesCommand("points (add|rem) .+")
-	 * @Matches("/^points add ([^ ]+) (\d+) (.+)$/i")
-	 * @Matches("/^points add (\d+) ([^ ]+) (.+)$/i")
+	 * @HandlesCommand("pointsmod")
+	 * @Matches("/^pointsmod add ([^ ]+) (\d+) (.+)$/i")
+	 * @Matches("/^pointsmod add (\d+) ([^ ]+) (.+)$/i")
 	 */
 	public function pointsAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$receiver = $args[1];
@@ -498,9 +507,9 @@ class RaidPointsController {
 	}
 
 	/**
-	 * @HandlesCommand("points (add|rem) .+")
-	 * @Matches("/^points rem ([^ ]+) (\d+) (.+)$/i")
-	 * @Matches("/^points rem (\d+) ([^ ]+) (.+)$/i")
+	 * @HandlesCommand("pointsmod")
+	 * @Matches("/^pointsmod rem ([^ ]+) (\d+) (.+)$/i")
+	 * @Matches("/^pointsmod rem (\d+) ([^ ]+) (.+)$/i")
 	 */
 	public function pointsRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$receiver = $args[1];

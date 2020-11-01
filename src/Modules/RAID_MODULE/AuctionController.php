@@ -3,16 +3,19 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use DateTime;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Timer;
-use Nadybot\Core\TimerEvent;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	CommandAlias,
+	CommandReply,
+	DB,
+	EventManager,
+	LoggerWrapper,
+	Nadybot,
+	SettingManager,
+	Text,
+	Timer,
+	TimerEvent,
+	Util,
+};
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
@@ -29,14 +32,14 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
  * )
  *
  * @DefineCommand(
- *     command       = 'bid (start|end|cancel).*',
+ *     command       = 'auction',
  *     accessLevel   = 'raid_leader_1',
- *     description   = 'Start an auction',
+ *     description   = 'Manage auctions',
  *     help          = 'auctions.txt'
  * )
 
  * @DefineCommand(
- *     command       = 'bid reimburse .+',
+ *     command       = 'auction reimburse .+',
  *     accessLevel   = 'raid_leader_1',
  *     description   = 'Give back points for an auction',
  *     help          = 'auctions.txt'
@@ -65,7 +68,13 @@ class AuctionController {
 	public RaidPointsController $raidPointsController;
 
 	/** @Inject */
+	public RaidBLockController $raidBlockController;
+
+	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -148,11 +157,18 @@ class AuctionController {
 			'10',
 		);
 		$this->db->loadSQLFile($this->moduleName, "auction");
+		$this->commandAlias->register($this->moduleName, "bid history", "bh");
+		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
+		$this->commandAlias->register($this->moduleName, "auction end", "bid end");
+		$this->commandAlias->register($this->moduleName, "auction cancel", "bid cancel");
+		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid reimburse");
+		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid payback");
+		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
 	/**
-	 * @HandlesCommand("bid (start|end|cancel).*")
-	 * @Matches("/^bid start (.+)$/i")
+	 * @HandlesCommand("auction")
+	 * @Matches("/^auction start (.+)$/i")
 	 */
 	public function bidStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
@@ -172,8 +188,8 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid (start|end|cancel).*")
-	 * @Matches("/^bid cancel$/i")
+	 * @HandlesCommand("auction")
+	 * @Matches("/^auction cancel$/i")
 	 */
 	public function bidCancelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->auction)) {
@@ -192,8 +208,8 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid (start|end|cancel).*")
-	 * @Matches("/^bid end$/i")
+	 * @HandlesCommand("auction")
+	 * @Matches("/^auction end$/i")
 	 */
 	public function bidEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->auction)) {
@@ -204,38 +220,38 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid reimburse .+")
-	 * @Matches("/^bid reimburse (.+)$/i")
-	 * @Matches("/^bid payback (.+)$/i")
-	 * @Matches("/^bid refund (.+)$/i")
+	 * @HandlesCommand("auction reimburse .+")
+	 * @Matches("/^auction reimburse (.+)$/i")
+	 * @Matches("/^auction payback (.+)$/i")
+	 * @Matches("/^auction refund (.+)$/i")
 	 */
 	public function bidReimburseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$winner = ucfirst(strtolower($args[1]));
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->fetch(
 			DBAuction::class,
-			"SELECT * FROM auction_<myname> ORDER BY id DESC LIMIT 1"
+			"SELECT * FROM `auction_<myname>` WHERE `winner`=? ORDER BY id DESC LIMIT 1",
+			$winner
 		);
 		if ($lastAuction === null) {
-			$sendto->reply("There's no auction that someon could be reimbursed for.");
+			$sendto->reply("<highlight>{$winner}<end> haven't won any auction that they could be reimbursed for.");
 			return;
 		}
-		if ($lastAuction->winner === null) {
-			$sendto->reply("The last auction didn't have a winner.");
-			return;
-		}
-		if ($lastAuction->refunded) {
-			$sendto->reply("{$lastAuction->winner} was already reimbursed for {$lastAuction->item}.");
+		if ($lastAuction->reimbursed) {
+			$sendto->reply(
+				"<highlight>{$lastAuction->winner}<end> was already reimbursed for {$lastAuction->item}."
+			);
 			return;
 		}
 		$penalty = $this->settingManager->getInt('auction_refund_tax');
 		$giveBack = max(
-			(int)floor($lastAuction->bid * ((100 - $penalty) / 100)),
+			(int)floor($lastAuction->cost * ((100 - $penalty) / 100)),
 			0
 		);
 		if ($giveBack === 0) {
 			$sendto->reply(
-				"{$lastAuction->bid} minus the {$penalty}% penalty would result in 0 ".
-				"points given back."
+				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? "s" : "").
+				" minus the {$penalty}% penalty would result in 0 points given back."
 			);
 			return;
 		}
@@ -243,15 +259,15 @@ class AuctionController {
 		$this->raidPointsController->modifyRaidPoints(
 			$lastAuction->winner,
 			$giveBack,
-			$args[1],
+			"Refund for " . $lastAuction->item,
 			$sender,
 			$raid
 		);
-		$this->db->exec("UPDATE auction_<myname> SET reimbursed=TRUE WHERE `id`=?", $lastAuction->id);
+		$this->db->exec("UPDATE `auction_<myname>` SET `reimbursed`=TRUE WHERE `id`=?", $lastAuction->id);
 		$this->chatBot->sendPrivate(
 			"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-			(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty): ".
-			"<highlight>{$args[1]}<end>."
+			(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
+			$lastAuction->item . "."
 		);
 	}
 
@@ -261,11 +277,19 @@ class AuctionController {
 	 */
 	public function bidCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if ($channel !== "msg") {
-			$sendto->reply("<red>The <symbol>bid command only works in tells");
+			$sendto->reply("<red>The <symbol>bid command only works in tells<end>.");
 			return;
 		}
 		if (!isset($this->auction)) {
 			$sendto->reply(static::ERR_NO_AUCTION);
+			return;
+		}
+		if ($this->raidBlockController->isBlocked($sender, RaidBlockController::AUCTION_BIDS)) {
+			$sendto->reply(
+				"You are currently blocked from ".
+				$this->raidBlockController->blockToString(RaidBlockController::AUCTION_BIDS).
+				"."
+			);
 			return;
 		}
 		if (
@@ -299,13 +323,18 @@ class AuctionController {
 		/** @var DBAuction[] */
 		$items = $this->db->fetchAll(
 			DBAuction::class,
-			"SELECT * FROM auction_<myname> ORDER BY `id` DESC LIMIT 25"
+			"SELECT * FROM `auction_<myname>` ORDER BY `id` DESC LIMIT 40"
 		);
 		if (!count($items)) {
 			$sendto->reply("No auctions have ever been started on this bot.");
 			return;
 		}
-		$sendto->reply($this->text->makeBlob("Last 25 auctions", $this->renderAuctionList($items)));
+		$sendto->reply(
+			$this->text->makeBlob(
+				"Last auctions (" . count($items) . ")",
+				$this->renderAuctionList($items)
+			)
+		);
 	}
 
 	/**
@@ -314,10 +343,14 @@ class AuctionController {
 	 */
 	public function bidHistorySearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$shortcuts = [
-			"boc"  => ["Burden of Competence"],
-			"acdc" => ["Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan"],
-			"belt" => ["Inertial Adjustment Processing Unit"],
-			"apf belt" => ["Inertial Adjustment Processing Unit"],
+			"boc"  => ["%Burden of Competence%"],
+			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],
+			"belt" => ["%Inertial Adjustment Processing Unit%"],
+			"apf belt" => ["%Inertial Adjustment Processing Unit%"],
+			"vlrd" => ["%Visible Light Remodulation Device%", "%vlrd%"],
+			"eru" => ["%Energy Redistribution Unit%"],
+			"nac" => ["%Notum Amplification Coil%"],
+			"ape" => ["%Action Probability Estimator%"],
 		];
 		$quickSearch = $shortcuts[strtolower($args[1])] ?? [];
 		if (count($quickSearch)) {
@@ -331,7 +364,7 @@ class AuctionController {
 		/** @var DBAuction[] */
 		$items = $this->db->fetchAll(
 			DBAuction::class,
-			"SELECT * FROM auction_<myname> WHERE $whereCriteria ORDER BY `end` DESC LIMIT 40",
+			"SELECT * FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `end` DESC LIMIT 40",
 			...$quickSearch
 		);
 		if (!count($items)) {
@@ -341,12 +374,26 @@ class AuctionController {
 		/** @var DBAuction */
 		$mostExpensiveItem = $this->db->fetch(
 			DBAuction::class,
-			"SELECT * FROM auction_<myname> WHERE $whereCriteria ORDER BY `cost` DESC LIMIT 1",
+			"SELECT * FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `cost` DESC LIMIT 1",
 			...$quickSearch
 		);
+		$avgCost = (float)$this->db->queryRow(
+			"SELECT AVG(`cost`) AS avg FROM `auction_<myname>` WHERE $whereCriteria",
+			...$quickSearch
+		)->avg;
+		$avgCostLastTen = (float)$this->db->queryRow(
+			"SELECT AVG(`cost`) AS avg FROM ".
+			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10)",
+			...$quickSearch
+		)->avg;
 		$text = "<header2>Most expensive result<end>\n".
 			"<tab>On " . DateTime::createFromFormat("U", (string)$mostExpensiveItem->end)->format("Y-m-d").
-			", {$mostExpensiveItem->winner} paid <highlight>{$mostExpensiveItem->cost}<end>.\n\n".
+			", <highlight>{$mostExpensiveItem->winner}<end> paid ".
+			"<highlight>" . number_format($mostExpensiveItem->cost) . "<end> raid points ".
+			"for " . preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $mostExpensiveItem->item) . "\n\n".
+		$text = "<header2>Average cost<end>\n".
+			"<tab>Total: <highlight>" . number_format($avgCost, 1) . "<end>\n".
+			"<tab>Last 10: <highlight>" . number_format($avgCostLastTen, 1) . "<end>\n\n".
 			$this->renderAuctionList($items);
 		$blob = $this->text->makeBlob("Auction history results for {$args[1]}", $text);
 		$sendto->reply($blob);
@@ -357,17 +404,17 @@ class AuctionController {
 		foreach ($items as $item) {
 			$result []= $this->renderAuctionItem($item);
 		}
-		return "<header2><u>Time                            Cost      Winner           Item                                   </u><end>\n".
+		return "<header2><u>Time                              Cost     Winner                                                  </u><end>\n".
 			join("\n", $result);
 	}
 
 	public function renderAuctionItem(DBAuction $item): string {
 		return sprintf(
-			"%s     %s     %-12s     %s",
+			"%s     %s     %s",
 			DateTime::createFromFormat("U", (string)$item->end)->format("Y-m-d H:i:s"),
-			$item->cost ? $this->text->alignNumber($item->cost, 5) : "      -",
-			$item->winner ?? "-",
-			$item->item
+			$item->cost ? $this->text->alignNumber($item->cost, 5, null, true) : "      -",
+			"<highlight>" . ($item->winner ?? "nobody") . "<end> won ".
+			preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $item->item)
 		);
 	}
 

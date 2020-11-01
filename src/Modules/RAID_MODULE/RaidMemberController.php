@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{
+	CommandAlias,
 	CommandReply,
 	DB,
 	Event,
@@ -25,17 +26,10 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
  * )
  *
  * @DefineCommand(
- *     command       = 'raid add .+',
+ *     command       = 'raidmember',
  *     accessLevel   = 'raid_leader_1',
- *     description   = 'Add someone to the raid',
- *     help          = 'raiduser.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raid kick .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Remove someone from the raid',
- *     help          = 'raiduser.txt'
+ *     description   = 'Add or remove someone from/to the raid',
+ *     help          = 'raidmember.txt'
  * )
  *
  * @ProvidesEvent("raid(join)")
@@ -57,7 +51,13 @@ class RaidMemberController {
 	public RaidController $raidController;
 
 	/** @Inject */
+	public RaidBlockController $raidBlockController;
+
+	/** @Inject */
 	public OnlineController $onlineController;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public Text $text;
@@ -69,6 +69,8 @@ class RaidMemberController {
 	 * @Setup
 	 */
 	public function setup(): void {
+		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
+		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
 		$this->db->loadSQLFile($this->moduleName, "raid_member");
 	}
 
@@ -77,16 +79,16 @@ class RaidMemberController {
 	 */
 	public function resumeRaid(Raid $raid): void {
 		$this->db->exec(
-			"UPDATE raid_member_<myname> ".
-			"SET left=? ".
-			"WHERE raid_id=?",
+			"UPDATE `raid_member_<myname>` ".
+			"SET `left`=? ".
+			"WHERE `raid_id`=?",
 			time(),
 			$raid->raid_id
 		);
 		/** @var RaidMember[] */
 		$raiders = $this->db->fetchAll(
 			RaidMember::class,
-			"SELECT * FROM raid_member_<myname> WHERE raid_id=?",
+			"SELECT * FROM `raid_member_<myname>` WHERE `raid_id`=?",
 			$raid->raid_id
 		);
 		foreach ($raiders as $raider) {
@@ -115,6 +117,11 @@ class RaidMemberController {
 			}
 			return "You are not in the private group.";
 		}
+		$isBlocked = $this->raidBlockController->isBlocked($player, RaidBlockController::JOIN_RAIDS);
+		if ($isBlocked && $sender === $player && !$force) {
+			$msg = "You are currently blocked from joining raids.";
+			return $msg;
+		}
 		if ($raid->locked && $sender === $player && !$force) {
 			$msg = "The raid is currently <red>locked<end>.";
 			if ($channel === 'priv') {
@@ -136,7 +143,7 @@ class RaidMemberController {
 			$raid->raiders[$player]->left = null;
 		}
 		$this->db->exec(
-			"INSERT INTO raid_member_<myname> (`raid_id`, `player`, `joined`) ".
+			"INSERT INTO `raid_member_<myname>` (`raid_id`, `player`, `joined`) ".
 			"VALUES (?, ?, ?)",
 			$raid->raid_id,
 			$player,
@@ -175,7 +182,7 @@ class RaidMemberController {
 		}
 		$raid->raiders[$player]->left = time();
 		$this->db->exec(
-			"UPDATE raid_member_<myname> SET `left`=? WHERE raid_id=? AND `player`=? AND `left` IS NULL",
+			"UPDATE `raid_member_<myname>` SET `left`=? WHERE `raid_id`=? AND `player`=? AND `left` IS NULL",
 			$raid->raiders[$player]->left,
 			$raid->raid_id,
 			$player
@@ -219,8 +226,8 @@ class RaidMemberController {
 	}
 
 	/**
-	 * @HandlesCommand("raid add .+")
-	 * @Matches("/^raid add (.+)$/i")
+	 * @HandlesCommand("raidmember")
+	 * @Matches("/^raidmember add (.+)$/i")
 	 */
 	public function raidAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$reply = $this->joinRaid($sender, ucfirst(strtolower($args[1])), $channel, true);
@@ -230,8 +237,8 @@ class RaidMemberController {
 	}
 
 	/**
-	 * @HandlesCommand("raid kick .+")
-	 * @Matches("/^raid kick (.+)$/i")
+	 * @HandlesCommand("raidmember")
+	 * @Matches("/^raidmember (?:rem|del|kick) (.+)$/i")
 	 */
 	public function raidKickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$reply = $this->leaveRaid($sender, $args[1]);
@@ -291,6 +298,10 @@ class RaidMemberController {
 						"/tell <myname> raid kick {$player}"
 					) . "]";
 				$active++;
+				if ($this->raidBlockController->isBlocked($player, RaidBlockController::POINTS_GAIN)) {
+					$line .= " :: blocked from ".
+						$this->raidBlockController->blockToString(RaidBlockController::POINTS_GAIN);
+				}
 			}
 			$lines []= $line;
 		}
@@ -302,7 +313,7 @@ class RaidMemberController {
 		foreach ($blobMsgs as &$msg) {
 			$msg = "<highlight>{$active}<end> active ".
 				"and <highlight>{$inactive}<end> inactive ".
-				"players in the raid :: $msg";
+				"player" . (($inactive !== 1) ? "s" : "") . " in the raid :: $msg";
 		}
 		return  $blobMsgs;
 	}
@@ -334,7 +345,7 @@ class RaidMemberController {
 			$lines []= $line;
 		}
 		if (count($activeNames) === 0) {
-			return ["<highlight>" . count($activeNames) . "<end> players in the raid"];
+			return ["<highlight>No<end> players in the raid"];
 		}
 		$checkCmd = $this->text->makeChatcmd(
 			"Check all raid members",
@@ -351,7 +362,8 @@ class RaidMemberController {
 			join("\n", $lines);
 		$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
 		foreach ($blobs as &$msg) {
-			$msg = "<highlight>" . count($activeNames) . "<end> players in the raid :: $msg";
+			$msg = "<highlight>" . count($activeNames) . "<end> player".
+				((count($activeNames) !== 1) ? "s" : "") . " in the raid :: $msg";
 		}
 		return $blobs;
 	}
