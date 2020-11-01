@@ -79,7 +79,7 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
-import { OnlinePlayer } from "@/nadybot/types";
+import { OnlinePlayer } from "@/nadybot/types/player";
 
 const Component = defineComponent({
   name: "UsersList",

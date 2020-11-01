@@ -102,22 +102,19 @@ export interface OnlinePlayers {
   private_channel: Array<OnlinePlayer>;
 }
 
-export const breedDecoder = JsonDecoder.enumeration<Breed>(Breed, "Breed");
-export const genderDecoder = JsonDecoder.enumeration<Gender>(Gender, "Gender");
-export const factionDecoder = JsonDecoder.enumeration<Faction>(
-  Faction,
-  "Faction"
-);
-export const professionDecoder = JsonDecoder.enumeration<Profession>(
+const breedDecoder = JsonDecoder.enumeration<Breed>(Breed, "Breed");
+const genderDecoder = JsonDecoder.enumeration<Gender>(Gender, "Gender");
+const factionDecoder = JsonDecoder.enumeration<Faction>(Faction, "Faction");
+const professionDecoder = JsonDecoder.enumeration<Profession>(
   Profession,
   "Profession"
 );
-export const dimensionDecoder = JsonDecoder.enumeration<Dimension>(
+const dimensionDecoder = JsonDecoder.enumeration<Dimension>(
   Dimension,
   "Dimension"
 );
 
-export const playerBaseDecoderMapping = {
+const playerBaseDecoderMapping = {
   charid: JsonDecoder.number,
   first_name: JsonDecoder.string,
   name: JsonDecoder.string,
@@ -140,28 +137,33 @@ export const playerBaseDecoderMapping = {
   pvp_title: JsonDecoder.nullable(JsonDecoder.string),
   last_update: JsonDecoder.number,
 };
-export const onlinePlayerExtraKeysMapping = {
+
+const onlinePlayerExtraKeysMapping = {
   afk_message: JsonDecoder.string,
   main_character: JsonDecoder.string,
   online: JsonDecoder.boolean,
 };
-export const onlinePlayerMapping = {
+
+const onlinePlayerMapping = {
   ...playerBaseDecoderMapping,
   ...onlinePlayerExtraKeysMapping,
 };
 
-export const playerBaseDecoder = JsonDecoder.objectStrict<PlayerBase>(
-  playerBaseDecoderMapping,
-  "PlayerBase"
-);
-export const onlinePlayerDecoder = JsonDecoder.objectStrict<OnlinePlayer>(
+// const playerBaseDecoder = JsonDecoder.objectStrict<PlayerBase>(
+//   playerBaseDecoderMapping,
+//   "PlayerBase"
+// );
+
+const onlinePlayerDecoder = JsonDecoder.objectStrict<OnlinePlayer>(
   onlinePlayerMapping,
   "OnlinePlayer"
 );
-export const onlinePlayerArrayDecoder = JsonDecoder.array<OnlinePlayer>(
+
+const onlinePlayerArrayDecoder = JsonDecoder.array<OnlinePlayer>(
   onlinePlayerDecoder,
   "OnlinePlayersArray"
 );
+
 export const onlinePlayersDecoder = JsonDecoder.objectStrict<OnlinePlayers>(
   {
     org: onlinePlayerArrayDecoder,
@@ -169,15 +171,3 @@ export const onlinePlayersDecoder = JsonDecoder.objectStrict<OnlinePlayers>(
   },
   "OnlinePlayers"
 );
-
-export class Player {
-  player: PlayerBase | OnlinePlayer;
-
-  constructor(model: PlayerBase | OnlinePlayer) {
-    this.player = model;
-  }
-
-  headUrl(): string {
-    return `https://web-cdn.funcom.com/ao/face/${this.player.head_id}.jpg`;
-  }
-}
