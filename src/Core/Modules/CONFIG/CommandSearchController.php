@@ -56,9 +56,9 @@ class CommandSearchController {
 			$access = true;
 		}
 
-		$sqlquery = "SELECT DISTINCT module, cmd, help, description, admin FROM cmdcfg_<myname> WHERE cmd = ?";
+		$sqlquery = "SELECT DISTINCT `module`, `cmd`, `help`, `description`, `admin` FROM `cmdcfg_<myname>` WHERE `cmd` = ?";
 		if (!$access) {
-			$sqlquery .= " AND status = 1";
+			$sqlquery .= " AND `status` = 1";
 		}
 		$results = $this->db->fetchAll(CommandSearchResult::class, $sqlquery, $arr[1]);
 		$results = $this->filterResultsByAccessLevel($sender, $results);
@@ -97,9 +97,9 @@ class CommandSearchController {
 	}
 	
 	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false) {
-		$sqlquery = "SELECT DISTINCT module, cmd, help, description, admin FROM cmdcfg_<myname>";
+		$sqlquery = "SELECT DISTINCT `module`, `cmd`, `help`, `description`, `admin` FROM `cmdcfg_<myname>`";
 		if (!$includeDisabled) {
-			$sqlquery .= " WHERE status = 1";
+			$sqlquery .= " WHERE `status` = 1";
 		}
 		/** @var CommandSearchResult[] $data */
 		$data = $this->db->fetchAll(CommandSearchResult::class, $sqlquery);

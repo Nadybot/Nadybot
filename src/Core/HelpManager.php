@@ -61,27 +61,25 @@ class HelpManager {
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
 
-		$sql = "
-			SELECT module, file, name, GROUP_CONCAT(admin) AS admin_list FROM
-				(SELECT module, admin, cmd AS name, help AS file FROM cmdcfg_<myname> WHERE cmdevent = 'cmd' AND cmd = ?  AND status = 1 AND help != ''
-				UNION
-				SELECT module, admin, name, help AS file FROM settings_<myname> WHERE name = ? AND help != ''
-				UNION
-				SELECT module, admin, name, file FROM hlpcfg_<myname> WHERE name = ? AND file != '') t
-			GROUP BY module, file";
+		$sql = "SELECT `module`, `file`, `name`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
+			"(SELECT `module`, `admin`, `cmd` AS `name`, `help` AS `file` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND `cmd` = ?  AND `status` = 1 AND `help` != '' ".
+				"UNION ".
+			"SELECT `module`, `admin`, `name`, `help` AS `file` FROM `settings_<myname>` WHERE `name` = ? AND `help` != '' ".
+				"UNION ".
+			"SELECT `module`, `admin`, `name`, `file` FROM `hlpcfg_<myname>` WHERE `name` = ? AND `file` != '') t ".
+			"GROUP BY `module`, `file`";
 		/** @var HelpTopic[] $data */
 		$data = $this->db->fetchAll(HelpTopic::class, $sql, $helpcmd, $helpcmd, $helpcmd);
 
 		if (count($data) === 0) {
 			$helpcmd = strtoupper($helpcmd);
-			$sql = "
-				SELECT module, file, name, GROUP_CONCAT(admin) AS admin_list FROM
-					(SELECT module, admin, cmd AS name, help AS file FROM cmdcfg_<myname> WHERE cmdevent = 'cmd' AND module = ? AND status = 1 AND help != ''
-					UNION
-					SELECT module, admin, name, help AS file FROM settings_<myname> WHERE module = ? AND help != ''
-					UNION
-					SELECT module, admin, name, file FROM hlpcfg_<myname> WHERE module = ? AND file != '') t
-			GROUP BY module, file";
+			$sql = "SELECT `module`, `file`, `name`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
+					"(SELECT `module`, `admin`, `cmd` AS name, `help` AS file FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND `module` = ? AND `status` = 1 AND `help` != '' ".
+						"UNION ".
+					"SELECT `module`, `admin`, `name`, `help` AS file FROM `settings_<myname>` WHERE `module` = ? AND `help` != '' ".
+						"UNION ".
+					"SELECT `module`, `admin`, `name`, `file` FROM `hlpcfg_<myname>` WHERE `module` = ? AND `file` != '') t ".
+					"GROUP BY `module`, `file`";
 			/** @var HelpTopic[] $data */
 			$data = $this->db->fetchAll(HelpTopic::class, $sql, $helpcmd, $helpcmd, $helpcmd);
 		}
@@ -122,15 +120,16 @@ class HelpManager {
 	 * @throws \Exception
 	 */
 	public function getAllHelpTopics($char): array {
-		$sql = "
-			SELECT module, file, name, description, sort, GROUP_CONCAT(admin) AS admin_list FROM (
-				SELECT module, admin, help AS file, name, description, 3 AS sort FROM settings_<myname> WHERE help != ''
-				UNION
-				SELECT module, admin, help AS file, cmd AS name, description, 2 AS sort FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' AND status = 1 AND help != ''
-				UNION
-				SELECT module, admin, file, name, description, 1 AS sort FROM hlpcfg_<myname>) t
-			GROUP BY module, file, name, description, sort
-			ORDER BY module, name, sort DESC, description";
+		$sql = "SELECT `module`, `file`, `name`, `description`, `sort`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
+			"( ".
+			"SELECT `module`, `admin`, `help` AS file, `name`, `description`, 3 AS sort FROM `settings_<myname>` WHERE `help` != '' ".
+				"UNION ".
+			"SELECT `module`, `admin`, `help` AS file, `cmd` AS name, `description`, 2 AS sort FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND status = 1 AND help != '' ".
+				"UNION ".
+			"SELECT `module`, `admin`, `file`, `name`, `description`, 1 AS sort FROM `hlpcfg_<myname>` ".
+			") t ".
+			"GROUP BY `module`, `file`, `name`, `description`, `sort` ".
+			"ORDER BY `module`, `name`, `sort` DESC, `description`";
 		/** @var HelpTopic[] $data */
 		$data = $this->db->fetchAll(HelpTopic::class, $sql);
 

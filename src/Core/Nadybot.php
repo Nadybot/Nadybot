@@ -200,33 +200,33 @@ class Nadybot extends AOChat {
 		);
 
 		// Prepare command/event settings table
-		$this->db->exec("UPDATE cmdcfg_<myname> SET `verify` = 0");
-		$this->db->exec("UPDATE eventcfg_<myname> SET `verify` = 0");
-		$this->db->exec("UPDATE settings_<myname> SET `verify` = 0");
-		$this->db->exec("UPDATE hlpcfg_<myname> SET `verify` = 0");
-		$this->db->exec("UPDATE eventcfg_<myname> SET `status` = 1 WHERE `type` = 'setup'");
+		$this->db->exec("UPDATE `cmdcfg_<myname>` SET `verify` = 0");
+		$this->db->exec("UPDATE `eventcfg_<myname>` SET `verify` = 0");
+		$this->db->exec("UPDATE `settings_<myname>` SET `verify` = 0");
+		$this->db->exec("UPDATE `hlpcfg_<myname>` SET `verify` = 0");
+		$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = 1 WHERE `type` = 'setup'");
 
 		// To reduce queries load core items into memory
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = 'subcmd'");
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'subcmd'");
 		foreach ($data as $row) {
 			$this->existing_subcmds[$row->type][$row->cmd] = true;
 		}
 
 		/** @var EventCfg[] $data */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname>");
+		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>`");
 		foreach ($data as $row) {
 			$this->existing_events[$row->type][$row->file] = true;
 		}
 
 		/** @var HlpCfg[] $data */
-		$data = $this->db->fetchAll(HlpCfg::class, "SELECT * FROM hlpcfg_<myname>");
+		$data = $this->db->fetchAll(HlpCfg::class, "SELECT * FROM `hlpcfg_<myname>`");
 		foreach ($data as $row) {
 			$this->existing_helps[$row->name] = true;
 		}
 
 		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname>");
+		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>`");
 		foreach ($data as $row) {
 			$this->existing_settings[$row->name] = true;
 		}
@@ -254,10 +254,10 @@ class Nadybot extends AOChat {
 		unset($this->existing_helps);
 
 		//Delete old entrys in the DB
-		$this->db->exec("DELETE FROM cmdcfg_<myname> WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM eventcfg_<myname> WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM settings_<myname> WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM hlpcfg_<myname> WHERE `verify` = 0");
+		$this->db->exec("DELETE FROM `cmdcfg_<myname>` WHERE `verify` = 0");
+		$this->db->exec("DELETE FROM `eventcfg_<myname>` WHERE `verify` = 0");
+		$this->db->exec("DELETE FROM `settings_<myname>` WHERE `verify` = 0");
+		$this->db->exec("DELETE FROM `hlpcfg_<myname>` WHERE `verify` = 0");
 
 		$this->commandManager->loadCommands();
 		$this->subcommandManager->loadSubcommands();

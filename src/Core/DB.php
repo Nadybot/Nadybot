@@ -536,7 +536,7 @@ class DB {
 		if ($this->getType() === static::SQLITE) {
 			return $this->queryRow(
 				"SELECT COUNT(*) AS `exists` ".
-				"FROM sqlite_master WHERE type=? AND name=?",
+				"FROM `sqlite_master` WHERE `type`=? AND `name`=?",
 				"table",
 				$this->formatSql($tableName)
 			)->exists > 0;

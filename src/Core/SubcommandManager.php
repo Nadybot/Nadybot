@@ -91,9 +91,9 @@ class SubcommandManager {
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(
 			CmdCfg::class,
-			"SELECT * FROM cmdcfg_<myname> ".
+			"SELECT * FROM `cmdcfg_<myname>` ".
 			"WHERE `status` = '1' AND `cmdevent` = 'subcmd' ".
-			"ORDER BY LENGTH(cmd) DESC, cmd LIKE '%.%' ASC"
+			"ORDER BY LENGTH(`cmd`) DESC, `cmd` LIKE '%.%' ASC"
 		);
 		foreach ($data as $row) {
 			$this->subcommands[$row->dependson] []= $row;

@@ -250,7 +250,7 @@ class EventManager {
 		$this->logger->log('DEBUG', "Loading enabled events");
 
 		/** @var EventCfg[] $data */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname> WHERE `status` = '1'");
+		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `status` = '1'");
 		foreach ($data as $row) {
 			$this->activate($row->type, $row->file);
 		}

@@ -162,7 +162,7 @@ class ConfigController {
 			 $confirmString = "all " . $args[2];
 		}
 	
-		$sql = "SELECT type, file, cmd, admin FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' AND ($typeSql)";
+		$sql = "SELECT `type`, `file`, `cmd`, `admin` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND ($typeSql)";
 		$data = $this->db->fetchAll(CmdCfg::class, $sql);
 		foreach ($data as $row) {
 			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
@@ -175,7 +175,7 @@ class ConfigController {
 			}
 		}
 	
-		$sql = "UPDATE cmdcfg_<myname> SET `status` = ? WHERE (`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') AND ($typeSql)";
+		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE (`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') AND ($typeSql)";
 		$sqlArgs []= $status;
 		$this->db->exec($sql, ...$sqlArgs);
 	
@@ -211,29 +211,29 @@ class ConfigController {
 	
 		$sqlArgs = [];
 		if ($args[1] === "mod" && $type === "all") {
-			$sql = "SELECT status, type, file, cmd, admin, cmdevent FROM cmdcfg_<myname> WHERE `module` = ?
-						UNION
-					SELECT status, type, file, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM eventcfg_<myname> WHERE `module` = ? AND `type` != 'setup'";
+			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? ".
+						"UNION ".
+					"SELECT `status`, `type`, `file`, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
 			$sqlArgs = [$module, $module];
 		} elseif ($args[1] === "mod" && $type !== "all") {
-			$sql = "SELECT status, type, file, cmd, admin, cmdevent FROM cmdcfg_<myname> WHERE `module` = ? AND `type` = ?
-						UNION
-					SELECT status, type, file, cmd AS '', admin AS '', cmdevent AS 'event' FROM eventcfg_<myname> WHERE `module` = ? AND `type` = ? AND `type` != 'setup'";
+			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? AND `type` = ? ".
+						"UNION ".
+					"SELECT `status`, `type`, `file`, '' AS `cmd`, '' AS `admin`, 'event' AS `cmdevent` FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` = ? AND `type` != 'setup'";
 			$sqlArgs = [$module, $type, $module, $event_type];
 		} elseif ($args[1] === "cmd" && $type !== "all") {
-			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
 			$sqlArgs = [$cmd, $type];
 		} elseif ($args[1] === "cmd" && $type === "all") {
-			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
 			$sqlArgs = [$cmd];
 		} elseif ($args[1] === "subcmd" && $type !== "all") {
-			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'subcmd'";
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'subcmd'";
 			$sqlArgs = [$cmd, $type];
 		} elseif ($args[1] === "subcmd" && $type === "all") {
-			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `cmdevent` = 'subcmd'";
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'subcmd'";
 			$sqlArgs = [$cmd];
 		} elseif ($args[1] === "event" && $file !== "") {
-			$sql = "SELECT *, 'event' AS cmdevent FROM eventcfg_<myname> WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
+			$sql = "SELECT *, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
 			$sqlArgs = [$file, $event_type];
 		} else {
 			return;
@@ -344,9 +344,9 @@ class ConfigController {
 		if ($category === "cmd") {
 			$sqlArgs = [$command];
 			if ($channel === "all") {
-				$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
+				$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
 			} else {
-				$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
+				$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
 				$sqlArgs []= $channel;
 			}
 			/** @var CmdCfg[] $data */
@@ -372,7 +372,7 @@ class ConfigController {
 				}
 			}
 		} else {  // if ($category == 'subcmd')
-			$sql = "SELECT * FROM cmdcfg_<myname> WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?";
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?";
 			/** @var CmdCfg[] $data */
 			$data = $this->db->fetchAll(CmdCfg::class, $sql, $channel, $command);
 			if (count($data) === 0) {
@@ -422,7 +422,7 @@ class ConfigController {
 		}
 	
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ?", $cmd);
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ?", $cmd);
 		if (count($data) === 0) {
 			$msg = "Could not find command <highlight>$cmd<end>.";
 			$sendto->reply($msg);
@@ -574,7 +574,7 @@ class ConfigController {
 		}
 	
 		/** @var EventCfg[] */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname> WHERE `type` != 'setup' AND `module` = ?", $module);
+		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `type` != 'setup' AND `module` = ?", $module);
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Events<end>\n";
@@ -618,7 +618,7 @@ class ConfigController {
 	private function getCommandInfo(string $cmd, string $type): string {
 		$msg = "";
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ? AND `type` = ?", $cmd, $type);
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ?", $cmd, $type);
 		if (count($data) == 0) {
 			$msg .= "<red>Unused<end>\n";
 		} elseif (count($data) > 1) {
@@ -642,7 +642,7 @@ class ConfigController {
 
 		$msg .= "Set access level: ";
 		$showRaidAL = $this->db->queryRow(
-			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
 			'RAID_MODULE',
 			1
 		) !== null;
@@ -666,9 +666,9 @@ class ConfigController {
 	private function getSubCommandInfo($cmd, $type) {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE dependson = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $cmd, $type);
+		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE dependson = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $cmd, $type);
 		$showRaidAL = $this->db->queryRow(
-			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
 			'RAID_MODULE',
 			1
 		) !== null;
@@ -713,22 +713,23 @@ class ConfigController {
 	 */
 	public function getModules(): array {
 		$sql = "SELECT ".
-				"module, ".
-				"SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS count_cmd_disabled, ".
-				"SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS count_cmd_enabled, ".
-				"SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS count_events_disabled, ".
-				"SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS count_events_enabled, ".
-				"SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS count_settings ".
-			"FROM ".
-				"(SELECT module, status FROM cmdcfg_<myname> WHERE `cmdevent` = 'cmd' ".
+				"`module`, ".
+				"SUM(CASE WHEN `status` = 0 THEN 1 ELSE 0 END) AS count_cmd_disabled, ".
+				"SUM(CASE WHEN `status` = 1 THEN 1 ELSE 0 END) AS count_cmd_enabled, ".
+				"SUM(CASE WHEN `status` = 2 THEN 1 ELSE 0 END) AS count_events_disabled, ".
+				"SUM(CASE WHEN `status` = 3 THEN 1 ELSE 0 END) AS count_events_enabled, ".
+				"SUM(CASE WHEN `status` = 4 THEN 1 ELSE 0 END) AS count_settings ".
+			"FROM (".
+				"SELECT `module`, `status` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' ".
 					"UNION ALL ".
-				"SELECT module, status+2 FROM eventcfg_<myname> ".
+				"SELECT `module`, `status`+2 FROM `eventcfg_<myname>` ".
 					"UNION ALL ".
-				"SELECT module, 4 FROM settings_<myname>) t ".
+				"SELECT `module`, 4 FROM `settings_<myname>` ".
+			") t ".
 			"GROUP BY ".
-				"module ".
+				"`module` ".
 			"ORDER BY ".
-				"module ASC";
+				"`module` ASC";
 	
 		$data = $this->db->query($sql);
 		$result = [];
@@ -764,7 +765,7 @@ class ConfigController {
 		$module = strtoupper($module);
 	
 		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname> WHERE `module` = ? ORDER BY mode, description", $module);
+		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>` WHERE `module` = ? ORDER BY `mode`, `description`", $module);
 		$data = array_map(
 			function(Setting $setting): SettingHandler {
 				return $this->settingManager->getSettingHandler($setting);
@@ -801,7 +802,7 @@ class ConfigController {
 		/** @var EventCfg[] */
 		$events = $this->db->fetchAll(
 			EventCfg::class,
-			"SELECT * FROM eventcfg_<myname> ".
+			"SELECT * FROM `eventcfg_<myname>` ".
 			"WHERE `type` != 'setup' AND `module` = ?",
 			$module
 		);
@@ -865,7 +866,7 @@ class ConfigController {
 	public function getValidAccessLevels(): array {
 		/** @var CmdCfg[] $data */
 		$showRaidAL = $this->db->queryRow(
-			"SELECT * from cmdcfg_<myname> WHERE module=? AND status=?",
+			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
 			'RAID_MODULE',
 			1
 		) !== null;

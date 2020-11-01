@@ -106,14 +106,14 @@ class CommandManager {
 
 		for ($i = 0; $i < count($channel); $i++) {
 			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
-			$row = $this->db->fetch(CmdCfg::class, "SELECT 1 FROM cmdcfg_<myname> WHERE cmd = ? AND type = ?", $command, $channel[$i]);
+			$row = $this->db->fetch(CmdCfg::class, "SELECT 1 FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ?", $command, $channel[$i]);
 
 			try {
 				if ($row !== null) {
-					$sql = "UPDATE cmdcfg_<myname> SET `module` = ?, `verify` = ?, `file` = ?, `description` = ?, `help` = ? WHERE `cmd` = ? AND `type` = ?";
+					$sql = "UPDATE `cmdcfg_<myname>` SET `module` = ?, `verify` = ?, `file` = ?, `description` = ?, `help` = ? WHERE `cmd` = ? AND `type` = ?";
 					$this->db->exec($sql, $module, '1', $filename, $description, $help, $command, $channel[$i]);
 				} else {
-					$sql = "INSERT INTO cmdcfg_<myname> (`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					$sql = "INSERT INTO `cmdcfg_<myname>` (`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 					$this->db->exec($sql, $module, $channel[$i], $filename, $command, $accessLevel[$i], $description, '1', 'cmd', $status, $help);
 				}
 			} catch (SQLException $e) {

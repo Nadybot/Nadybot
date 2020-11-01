@@ -216,7 +216,7 @@ class SettingManager {
 
 		//Upload Settings from the db that are set by modules
 		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM settings_<myname>");
+		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>`");
 		foreach ($data as $row) {
 			$this->settings[$row->name] = new SettingValue($row);
 		}

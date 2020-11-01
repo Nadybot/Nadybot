@@ -67,7 +67,7 @@ class SettingsController {
 	 */
 	public function settingsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
-		$sql = "SELECT * FROM settings_<myname> ORDER BY `module`";
+		$sql = "SELECT * FROM `settings_<myname>` ORDER BY `module`";
 		/** @var Setting[] $data */
 		$data = $this->db->fetchAll(Setting::class, $sql);
 		$currentModule = '';
@@ -100,7 +100,7 @@ class SettingsController {
 	 */
 	public function changeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$settingName = strtolower($args[1]);
-		$sql = "SELECT * FROM settings_<myname> WHERE `name` = ?";
+		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ?";
 		/** @var Setting $row */
 		$row = $this->db->fetch(Setting::class, $sql, $settingName);
 		if ($row === null) {
@@ -135,7 +135,7 @@ class SettingsController {
 	public function saveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = strtolower($args[1]);
 		$newValue = $args[2];
-		$sql = "SELECT * FROM settings_<myname> WHERE `name` = ?";
+		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ?";
 		/** @var Setting $row */
 		$setting = $this->db->fetch(Setting::class, $sql, $name);
 		if ($setting === null) {

@@ -30,7 +30,7 @@ class CommandAlias {
 		$this->logger->log('DEBUG', "Loading enabled command aliases");
 
 		/** @var CmdAlias[] */
-		$data = $this->db->fetchAll(CmdAlias::class, "SELECT cmd, alias FROM cmd_alias_<myname> WHERE status = 1");
+		$data = $this->db->fetchAll(CmdAlias::class, "SELECT `cmd`, `alias` FROM `cmd_alias_<myname>` WHERE `status` = 1");
 		foreach ($data as $row) {
 			$this->activate($row->cmd, $row->alias);
 		}
@@ -50,11 +50,11 @@ class CommandAlias {
 		if ($row !== null) {
 			// do not update an alias that a user created
 			if (!empty($row->module)) {
-				$sql = "UPDATE cmd_alias_<myname> SET module = ?, cmd = ? WHERE alias = ?";
+				$sql = "UPDATE `cmd_alias_<myname>` SET `module` = ?, `cmd` = ? WHERE `alias` = ?";
 				$this->db->exec($sql, $module, $command, $alias);
 			}
 		} else {
-			$sql = "INSERT INTO cmd_alias_<myname> (module, cmd, alias, status) VALUES (?, ?, ?, ?)";
+			$sql = "INSERT INTO `cmd_alias_<myname>` (`module`, `cmd`, `alias`, `status`) VALUES (?, ?, ?, ?)";
 			$this->db->exec($sql, $module, $command, $alias, $status);
 		}
 	}
@@ -144,7 +144,7 @@ class CommandAlias {
 	public function add(object $row): int {
 		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 
-		$sql = "INSERT INTO cmd_alias_<myname> (module, cmd, alias, status) VALUES (?, ?, ?, ?)";
+		$sql = "INSERT INTO `cmd_alias_<myname>` (`module`, `cmd`, `alias`, `status`) VALUES (?, ?, ?, ?)";
 		return $this->db->exec($sql, $row->module, $row->cmd, $row->alias, $row->status);
 	}
 
@@ -154,7 +154,7 @@ class CommandAlias {
 	public function update(object $row): int {
 		$this->logger->log('DEBUG', "Updating alias :($row->alias)");
 
-		$sql = "UPDATE cmd_alias_<myname> SET module = ?, cmd = ?, status = ? WHERE alias = ?";
+		$sql = "UPDATE `cmd_alias_<myname>` SET `module` = ?, `cmd` = ?, `status` = ? WHERE `alias` = ?";
 		return $this->db->exec($sql, $row->module, $row->cmd, $row->status, $row->alias);
 	}
 
@@ -164,7 +164,7 @@ class CommandAlias {
 	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
-		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE alias = ?";
+		$sql = "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `alias` = ?";
 		return $this->db->fetch(CmdAlias::class, $sql, $alias);
 	}
 
@@ -189,7 +189,7 @@ class CommandAlias {
 	 * @return CmdAlias[]
 	 */
 	public function findAliasesByCommand(string $command): array {
-		$sql = "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE cmd LIKE ?";
+		$sql = "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `cmd` LIKE ?";
 		return $this->db->fetchAll(CmdAlias::class, $sql, $command);
 	}
 
@@ -199,6 +199,6 @@ class CommandAlias {
 	 * @return CmdAlias[]
 	 */
 	public function getEnabledAliases(): array {
-		return $this->db->fetchAll(CmdAlias::class, "SELECT cmd, alias, module, status FROM cmd_alias_<myname> WHERE status = 1 ORDER BY alias ASC");
+		return $this->db->fetchAll(CmdAlias::class, "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `status` = 1 ORDER BY `alias` ASC");
 	}
 }

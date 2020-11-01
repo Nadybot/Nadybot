@@ -184,7 +184,7 @@ class AccessManager {
 			return "guild";
 		}
 
-		$sql = "SELECT name FROM members_<myname> WHERE `name` = ?";
+		$sql = "SELECT name FROM `members_<myname>` WHERE `name` = ?";
 		$row = $this->db->fetch(Member::class, $sql, $sender);
 		if ($row !== null) {
 			return "member";

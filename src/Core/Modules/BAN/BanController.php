@@ -265,7 +265,7 @@ class BanController {
 	 * @DefaultStatus("1")
 	 */
 	public function checkTempBan(Event $eventObj): void {
-		$numRows = $this->db->exec("DELETE FROM banlist_<myname> WHERE banend != 0 AND banend < ?", time());
+		$numRows = $this->db->exec("DELETE FROM `banlist_<myname>` WHERE `banend` != 0 AND `banend` < ?", time());
 
 		if ($numRows > 0) {
 			$this->uploadBanlist();
@@ -315,7 +315,7 @@ class BanController {
 	}
 
 	public function remove(int $charId): int {
-		$sql = "DELETE FROM banlist_<myname> WHERE charid = ?";
+		$sql = "DELETE FROM `banlist_<myname>` WHERE `charid` = ?";
 		$numrows = $this->db->exec($sql, $charId);
 
 		$this->uploadBanlist();
@@ -327,7 +327,7 @@ class BanController {
 		$this->banlist = [];
 
 		$sql = "SELECT b.*, IFNULL(p.name, b.charid) AS name ".
-			"FROM banlist_<myname> b LEFT JOIN players p ON b.charid = p.charid";
+			"FROM `banlist_<myname>` b LEFT JOIN players p ON b.charid = p.charid";
 		$data = $this->db->fetchAll(BanEntry::class, $sql);
 		foreach ($data as $row) {
 			$this->banlist[$row->charid] = $row;
