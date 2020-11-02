@@ -1,6 +1,6 @@
 <template>
   <sidebar :items="items"></sidebar>
-  <div class="content-container">
+  <div class="content-container pt-3">
     <div class="container-fluid">
       <router-view />
     </div>
@@ -9,7 +9,6 @@
 
 <style lang="scss">
 .content-container {
-  padding-top: 20px;
   padding-left: 220px;
 }
 </style>
