@@ -146,6 +146,10 @@
 						"type": "string",
 						"description": "Either \"cmd\" or \"subcmd\""
 					},
+					"description": {
+						"type": "string",
+						"description": "A short description of the command"
+					},
 					"access_level": {
 						"type": "string",
 						"description": "The access level you need to have in order to be allowed to use this command"

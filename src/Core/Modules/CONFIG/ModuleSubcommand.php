@@ -14,6 +14,9 @@ class ModuleSubcommand {
 	/** Either "cmd" or "subcmd" */
 	public string $type;
 
+	/** A short description of the command */
+	public string $description;
+
 	/**
 	 * The access level you need to have
 	 * in order to be allowed to use this command
@@ -44,6 +47,7 @@ class ModuleSubcommand {
 	public function __construct(CmdCfg $cfg) {
 		$this->command = $cfg->cmd;
 		$this->type = $cfg->cmdevent;
+		$this->description = $cfg->description;
 		$this->access_level = $cfg->admin;
 		$this->enabled = (bool)$cfg->status;
 		$this->org_avail = (bool)($cfg->guild_avail??false);
