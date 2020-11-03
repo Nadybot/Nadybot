@@ -62,7 +62,14 @@
 						"description": "Name of this option for displaying"
 					},
 					"value": {
-						"type": "mixed",
+						"oneOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "string"
+							}
+						],
 						"nullable": true,
 						"description": "Which value does this option represent?"
 					}
@@ -80,7 +87,17 @@
 						"description": "The name of the setting"
 					},
 					"value": {
-						"type": "mixed",
+						"oneOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "string"
+							},
+							{
+								"type": "boolean"
+							}
+						],
 						"nullable": true,
 						"description": "The current value"
 					},

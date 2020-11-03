@@ -122,11 +122,20 @@ class ApiSpecGenerator {
 			if ($nameAndType === null) {
 				continue;
 			}
-			if (substr($nameAndType[1], 0, 1) === "#") {
+			if (is_string($nameAndType[1]) && substr($nameAndType[1], 0, 1) === "#") {
 				$tmp = explode("/", $nameAndType[1]);
 				$this->addSchema($result, end($tmp));
 				$newResult["properties"][$nameAndType[0]] = [
 					'$ref' => $nameAndType[1],
+				];
+			} elseif (is_array($nameAndType[1])) {
+				$newResult["properties"][$nameAndType[0]] = [
+					"oneOf" => array_map(
+						function(string $type): array {
+							return ["type" => $type];
+						},
+						$nameAndType[1]
+					)
 				];
 			} else {
 				$newResult["properties"][$nameAndType[0]] = [
@@ -174,7 +183,19 @@ class ApiSpecGenerator {
 	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
-			return  [$propName, "mixed"];
+			$comment = $refProp->getDocComment();
+			if (!preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
+				return [$propName, "mixed"];
+			}
+			$types = explode("|", $matches[1]);
+			foreach ($types as &$type) {
+				if ($type === "int") {
+					$type = "integer";
+				} elseif ($type === "bool") {
+					$type = "boolean";
+				}
+			}
+			return [$propName, $types];
 		}
 		/** @var ReflectionNamedType */
 		$refType = $refProp->getType();

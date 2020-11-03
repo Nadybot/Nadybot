@@ -20,7 +20,10 @@ class ModuleSetting {
 	/** The name of the setting */
 	public string $name;
 
-	/** The current value */
+	/**
+	 * The current value
+	 * @var int|string|bool
+	 */
 	public $value = null;
 
 	/**
