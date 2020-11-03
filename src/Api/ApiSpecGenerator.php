@@ -8,6 +8,7 @@ use Exception;
 use Nadybot\Core\Annotations\ApiResult;
 use Nadybot\Core\Annotations\DELETE;
 use Nadybot\Core\Annotations\GET;
+use Nadybot\Core\Annotations\PATCH;
 use Nadybot\Core\Annotations\POST;
 use Nadybot\Core\Annotations\PUT;
 use Nadybot\Core\Annotations\QueryParam;
@@ -356,6 +357,8 @@ class ApiSpecGenerator {
 				$doc->methods []= "put";
 			} elseif ($anno instanceof DELETE) {
 				$doc->methods []= "delete";
+			} elseif ($anno instanceof PATCH) {
+				$doc->methods []= "patch";
 			}
 		}
 		return $doc;

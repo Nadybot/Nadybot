@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	HelpManager,
+	InsufficientAccessException,
 	LoggerWrapper,
 	Registry,
 	SettingHandler,
@@ -184,149 +185,235 @@ class ConfigController {
 	}
 
 	/**
-	 * This command handler turns a channel of a single command, subcommand,
-	 * module or event on or off.
+	 * This command handler turns one or all channels of a single module on or off
 	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config (subcmd|mod|cmd|event) (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 * @Matches("/^config mod (.+) (enable|disable) (priv|msg|guild|all)$/i")
 	 */
-	public function toggleChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($args[1] === "event") {
-			$temp = explode(" ", $args[2]);
-			$event_type = strtolower($temp[0]);
-			$file = $temp[1];
-		} elseif ($args[1] === 'cmd' || $args[1] === 'subcmd') {
-			$cmd = strtolower($args[2]);
-			$type = $args[4];
-		} else { // $args[1] == 'mod'
-			$module = strtoupper($args[2]);
-			$type = $args[4];
-		}
-	
-		if ($args[3] == "enable") {
-			$status = 1;
-		} else {
-			$status = 0;
-		}
-	
-		$sqlArgs = [];
-		if ($args[1] === "mod" && $type === "all") {
-			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? ".
-						"UNION ".
-					"SELECT `status`, `type`, `file`, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
-			$sqlArgs = [$module, $module];
-		} elseif ($args[1] === "mod" && $type !== "all") {
-			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? AND `type` = ? ".
-						"UNION ".
-					"SELECT `status`, `type`, `file`, '' AS `cmd`, '' AS `admin`, 'event' AS `cmdevent` FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` = ? AND `type` != 'setup'";
-			$sqlArgs = [$module, $type, $module, $event_type];
-		} elseif ($args[1] === "cmd" && $type !== "all") {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
-			$sqlArgs = [$cmd, $type];
-		} elseif ($args[1] === "cmd" && $type === "all") {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
-			$sqlArgs = [$cmd];
-		} elseif ($args[1] === "subcmd" && $type !== "all") {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'subcmd'";
-			$sqlArgs = [$cmd, $type];
-		} elseif ($args[1] === "subcmd" && $type === "all") {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'subcmd'";
-			$sqlArgs = [$cmd];
-		} elseif ($args[1] === "event" && $file !== "") {
-			$sql = "SELECT *, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
-			$sqlArgs = [$file, $event_type];
-		} else {
+	public function toggleModuleChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[2] = strtolower($args[2]);
+		$args[3] = strtolower($args[3]);
+		if (!$this->toggleModule($args[1], $args[3], $args[2] === "enable")) {
+			if ($args[3] === "all") {
+				$msg = "Could not find Module <highlight>{$args[1]}<end>.";
+			} else {
+				$msg = "Could not find module <highlight>{$args[1]}<end> for channel <highlight>{$args[3]}<end>.";
+			}
+			$sendto->reply($msg);
 			return;
+		}
+		$color = ($args[2] === "enable") ? "green" : "red";
+		if ($args[3] === "all") {
+			$msg = "Updated status of module <highlight>{$args[1]}<end> to <{$color}>{$args[2]}d<end>.";
+		} else {
+			$msg = "Updated status of module <highlight>{$args[1]}<end> in channel <highlight>{$args[3]}<end> to <{$color}>{$args[2]}d<end>.";
+		}
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * This command handler turns one or all channels of a single command on or off
+	 * Note: This handler has not been not registered, only activated.
+	 *
+	 * @Matches("/^config (cmd|subcmd) (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 */
+	public function toggleCommandChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[1] = strtolower($args[1]);
+		$args[3] = strtolower($args[3]);
+		$args[4] = strtolower($args[4]);
+		try {
+			$result = $this->toggleCmd(
+				$sender,
+				$args[1] === "subcmd",
+				$args[2],
+				$args[4],
+				$args[3] === "enable"
+			);
+		} catch (InsufficientAccessException $e) {
+			$sendto->reply($e->getMessage());
+			return;
+		}
+		$type = str_replace("cmd", "command", $args[1]);
+		if (!$result) {
+			if ($args[4] !== "all") {
+				$msg = "Could not find {$type} <highlight>{$args[2]}<end> for channel <highlight>{$args[4]}<end>.";
+			} else {
+				$msg = "Could not find {$type} <highlight>{$args[2]}<end>.";
+			}
+			$sendto->reply($msg);
+			return;
+		}
+		$color = ($args[3] === "enable") ? "green" : "red";
+		if ($args[4] === "all") {
+			$msg = "Updated status of {$type} <highlight>{$args[2]}<end> to <{$color}>{$args[3]}d<end>.";
+		} else {
+			$msg = "Updated status of {$type} <highlight>{$args[2]}<end> to <{$color}>{$args[3]}d<end> in channel <highlight>{$args[4]}<end>.";
+		}
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * This command handler turns one or all channels of a single event on or off
+	 * Note: This handler has not been not registered, only activated.
+	 *
+	 * @Matches("/^config event (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 */
+	public function toggleEventCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[2] = strtolower($args[2]);
+		$args[3] = strtolower($args[3]);
+		$temp = explode(" ", $args[1]);
+		$event_type = strtolower($temp[0]);
+		$file = $temp[1];
+
+		if ( !$this->toggleEvent($event_type, $file, $args[2] === "enable") ) {
+			$msg = "Could not find event <highlight>{$event_type}<end> for handler <highlight>{$file}<end>.";
+			$sendto->reply($msg);
+			return;
+		}
+	
+		$color = ($args[2] === "enable") ? "green" : "red";
+		$msg = "Updated status of event <highlight>{$event_type}<end> to <{$color}>{$args[2]}d<end>.";
+	
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * Enable or disable a command or subcommand for one or all channels
+	 */
+	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $type, bool $enable): bool {
+		$cmdEvent = $subCmd ? "subcmd" : "cmd";
+		$sqlArgs = [];
+		$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = ?";
+		$sqlArgs = [$cmd, $cmdEvent];
+		if ($type !== "all") {
+			$sqlArgs []= $type;
+			$sql .= " AND `type` = ?";
 		}
 	
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
 		
-		if ($args[1] === 'cmd' || $args[1] === 'subcmd') {
-			if (!$this->checkCommandAccessLevels($data, $sender)) {
-				$msg = "You do not have the required access level to change this command.";
-				$sendto->reply($msg);
-				return;
-			}
+		if (!$this->checkCommandAccessLevels($data, $sender)) {
+			throw new InsufficientAccessException("You do not have the required access level to change this command.");
 		}
 	
 		if (count($data) === 0) {
-			if ($args[1] === "mod" && $type === "all") {
-				$msg = "Could not find Module <highlight>$module<end>.";
-			} elseif ($args[1] === "mod" && $type !== "all") {
-				$msg = "Could not find module <highlight>$module<end> for channel <highlight>$type<end>.";
-			} elseif ($args[1] === "cmd" && $type !== "all") {
-				$msg = "Could not find command <highlight>$cmd<end> for channel <highlight>$type<end>.";
-			} elseif ($args[1] === "cmd" && $type === "all") {
-				$msg = "Could not find command <highlight>$cmd<end>.";
-			} elseif ($args[1] === "subcmd" && $type !== "all") {
-				$msg = "Could not find subcommand <highlight>$cmd<end> for channel <highlight>$type<end>.";
-			} elseif ($args[1] === "subcmd" && $type === "all") {
-				$msg = "Could not find subcommand <highlight>$cmd<end>.";
-			} elseif ($args[1] === "event" && $file !== "") {
-				$msg = "Could not find event <highlight>$event_type<end> for handler <highlight>$file<end>.";
-			}
-			$sendto->reply($msg);
-			return;
+			return false;
 		}
-	
-		if ($args[1] === "mod" && $type === "all") {
-			$msg = "Updated status of module <highlight>$module<end> to <highlight>".$args[3]."d<end>.";
-		} elseif ($args[1] === "mod" && $type !== "all") {
-			$msg = "Updated status of module <highlight>$module<end> in channel <highlight>$type<end> to <highlight>".$args[3]."d<end>.";
-		} elseif ($args[1] === "cmd" && $type !== "all") {
-			$msg = "Updated status of command <highlight>$cmd<end> to <highlight>".$args[3]."d<end> in channel <highlight>$type<end>.";
-		} elseif ($args[1] === "cmd" && $type === "all") {
-			$msg = "Updated status of command <highlight>$cmd<end> to <highlight>".$args[3]."d<end>.";
-		} elseif ($args[1] === "subcmd" && $type !== "all") {
-			$msg = "Updated status of subcommand <highlight>$cmd<end> to <highlight>".$args[3]."d<end> in channel <highlight>$type<end>.";
-		} elseif ($args[1] === "subcmd" && $type === "all") {
-			$msg = "Updated status of subcommand <highlight>$cmd<end> to <highlight>".$args[3]."d<end>.";
-		} elseif ($args[1] === "event" && $file !== "") {
-			$msg = "Updated status of event <highlight>$event_type<end> to <highlight>".$args[3]."d<end>.";
-		}
-	
-		$sendto->reply($msg);
 	
 		foreach ($data as $row) {
-			// only update the status if the status is different
-			if ($row->status !== $status) {
-				if ($row->cmdevent === "event") {
-					if ($status === 1) {
-						$this->eventManager->activate($row->type, $row->file);
-					} else {
-						$this->eventManager->deactivate($row->type, $row->file);
-					}
-				} elseif ($row->cmdevent === "cmd") {
-					if ($status === 1) {
-						$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
-					} else {
-						$this->commandManager->deactivate($row->type, $row->file, $row->cmd, $row->admin);
-					}
-				}
-			}
+			$this->toggleCmdCfg($row, $enable);
+		}
+
+		$sqlArgs = [(int)$enable, $cmd, $cmdEvent];
+	
+		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? ".
+				"WHERE `cmd` = ? AND `cmdevent` = ?";
+		if ($type !== "all") {
+			$sqlArgs []= $type;
+			$sql .= " AND `type` = ?";
+		}
+		$this->db->exec($sql, ...$sqlArgs);
+	
+		// for subcommands which are handled differently
+		$this->subcommandManager->loadSubcommands();
+		return true;
+	}
+
+	/**
+	 * Enable or disable an event
+	 */
+	public function toggleEvent(string $eventType, string $file, bool $enable): bool {
+		if ($file === "") {
+			return false;
+		}
+		$sql = "SELECT *, 'event' AS cmdevent FROM `eventcfg_<myname>` ".
+			"WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
+	
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, $file, $eventType);
+	
+		if (count($data) === 0) {
+			return false;
 		}
 	
-		if ($args[1] === "mod" && $type === "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `module` = ?", $status, $module);
-			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", $status, $module);
-		} elseif ($args[1] === "mod" && $type !== "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` = ?", $status, $module, $type);
-			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `module` = ? AND `type` = ? AND `type` != 'setup'", $status, $module, $event_type);
-		} elseif ($args[1] === "cmd" && $type !== "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'", $status, $cmd, $type);
-		} elseif ($args[1] === "cmd" && $type === "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `cmdevent` = 'cmd'", $status, $cmd);
-		} elseif ($args[1] === "subcmd" && $type !== "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $status, $cmd, $type);
-		} elseif ($args[1] === "subcmd" && $type === "all") {
-			$this->db->exec("UPDATE cmdcfg_<myname> SET `status` = ? WHERE `cmd` = ? AND `cmdevent` = 'subcmd'", $status, $cmd);
-		} elseif ($args[1] === "event" && $file !== "") {
-			$this->db->exec("UPDATE eventcfg_<myname> SET `status` = ? WHERE `type` = ? AND `file` = ? AND `type` != 'setup'", $status, $event_type, $file);
+		foreach ($data as $row) {
+			$this->toggleCmdCfg($row, $enable);
+		}
+	
+		$this->db->exec(
+			"UPDATE `eventcfg_<myname>` SET `status` = ? ".
+			"WHERE `type` = ? AND `file` = ? AND `type` != 'setup'",
+			(int)$enable,
+			$eventType,
+			$file
+		);
+	
+		return true;
+	}
+
+	/**
+	 * Enabel or disable all commands and events for a module
+	 * @param string $module Name of the module
+	 * @param string $channel  msg, prov or guild
+	 * @param bool $enable true for enabling, false for disabling
+	 * @return bool True for success, False if the module doesn't exist
+	 */
+	public function toggleModule(string $module, string $channel, bool $enable): bool {
+		$sqlArgs = [];
+		if ($channel === "all") {
+			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? ".
+						"UNION ".
+					"SELECT `status`, `type`, `file`, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
+			$sqlArgs = [$module, $module];
+		} else {
+			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? AND `type` = ? ".
+						"UNION ".
+					"SELECT `status`, `type`, `file`, '' AS `cmd`, '' AS `admin`, 'event' AS `cmdevent` FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
+			$sqlArgs = [$module, $channel, $module];
+		}
+	
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+		
+		if (count($data) === 0) {
+			return false;
+		}
+	
+		foreach ($data as $row) {
+			$this->toggleCmdCfg($row, $enable);
+		}
+	
+		if ($channel === "all") {
+			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ?", (int)$enable, $module);
+			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
+		} else {
+			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` = ?", (int)$enable, $module, $channel);
+			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
 		}
 	
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
+		return true;
+	}
+
+	public function toggleCmdCfg(CmdCfg $cfg, bool $enable): void {
+		if ((bool)$cfg->status === $enable) {
+			return;
+		}
+		if ($cfg->cmdevent === "event") {
+			if ($enable) {
+				$this->eventManager->activate($cfg->type, $cfg->file);
+			} else {
+				$this->eventManager->deactivate($cfg->type, $cfg->file);
+			}
+		} elseif ($cfg->cmdevent === "cmd") {
+			if ($enable) {
+				$this->commandManager->activate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+			} else {
+				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+			}
+		}
 	}
 
 	/**
@@ -758,6 +845,35 @@ class ConfigController {
 	}
 
 	/**
+	 * Activate or deactivate a module
+	 * @Api("/module/%s")
+	 * @PATCH
+	 * @PUT
+	 * @AccessLevel("mod")
+	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
+	 * @QueryParam(name='channel', type='string', desc='Either "msg", "priv", "guild" or "all"', required=false)
+	 * @ApiResult(code=200, desc='operation applied successfully')
+	 * @ApiResult(code=402, desc='Wrong or no operation given')
+	 */
+	public function apiConfigModifyEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
+		if (!isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$op = $request->decodedBody->op;
+		if (!in_array($op, ["enable", "disable"], true)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$channel = $request->query["channel"] ?? "all";
+		if (!in_array($channel, ["all", "msg", "priv", "guild"])) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		if ($this->toggleModule($module, $channel, $op === "enable")) {
+			return new Response(Response::NO_CONTENT);
+		}
+		return new Response(Response::NOT_FOUND);
+	}
+
+	/**
 	 * Get all settings for a module
 	 * @return SettingHandler[]
 	 */
@@ -838,7 +954,7 @@ class ConfigController {
 	}
 
 	/**
-	 * Get a list of available events for a module
+	 * Get a list of available commands for a module
 	 * @Api("/module/%s/commands")
 	 * @GET
 	 * @AccessLevel("mod")

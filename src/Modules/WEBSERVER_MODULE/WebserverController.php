@@ -166,12 +166,12 @@ class WebserverController {
 			$reflection = new ReflectionAnnotatedClass($instance);
 			foreach ($reflection->getMethods() as $method) {
 				/** @var \Addendum\ReflectionAnnotatedMethod $method */
-				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete"] as $annoName) {
+				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $annoName) {
 					if (!$method->hasAnnotation($annoName)) {
 						continue;
 					}
 					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var HttpGet|HttpPost $annotation */
+						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $annotation */
 						if (isset($annotation->value)) {
 							$this->addRoute($annotation->type, $annotation->value, $method->getClosure($instance));
 						}
@@ -360,6 +360,7 @@ class WebserverController {
 	 * @Event("http(post)")
 	 * @Event("http(put)")
 	 * @Event("http(delete)")
+	 * @Event("http(patch)")
 	 * @Description("Call handlers for HTTP GET requests")
 	 * @DefaultStatus("1")
 	 */

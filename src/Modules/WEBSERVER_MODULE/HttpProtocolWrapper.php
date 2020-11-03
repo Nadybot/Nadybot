@@ -22,6 +22,7 @@ use Throwable;
  * @ProvidesEvent("http(post)")
  * @ProvidesEvent("http(put)")
  * @ProvidesEvent("http(delete)")
+ * @ProvidesEvent("http(patch)")
  */
 class HttpProtocolWrapper {
 	public const EXPECT_REQUEST = 1;

@@ -9,6 +9,7 @@ use Nadybot\Core\Annotations\{
 	GET,
 	POST,
 	PUT,
+	PATCH,
 };
 use Nadybot\Core\{
 	AccessManager,
@@ -87,13 +88,13 @@ class ApiController {
 				} elseif ($method->hasAnnotation("AccessLevel")) {
 					$accessLevel = $method->getAnnotation("AccessLevel")->value;
 				}
-				foreach (["GET", "POST", "PUT", "DELETE"] as $annoName) {
+				foreach (["GET", "POST", "PUT", "DELETE", "PATCH"] as $annoName) {
 					if (!$method->hasAnnotation($annoName)) {
 						continue;
 					}
 					$methods = [];
 					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var GET|POST|PUT|DELETE $annotation */
+						/** @var GET|POST|PUT|DELETE|PATCH $annotation */
 						$methods []= strtolower($annoName);
 					}
 					$this->addApiRoute($routes, $methods, $method->getClosure($instance), $accessLevelFrom, $accessLevel);
@@ -189,6 +190,7 @@ class ApiController {
 	 * @HttpPost("/api/%s")
 	 * @HttpPut("/api/%s")
 	 * @HttpDelete("/api/%s")
+	 * @HttpPatch("/api/%s")
 	 * @Description("Handle API requests")
 	 */
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {

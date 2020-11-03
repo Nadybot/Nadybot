@@ -45,6 +45,15 @@
 					}
 				}
 			},
+			"Operation": {
+				"type": "object",
+				"properties": {
+					"op": {
+						"type": "string",
+						"description": "The operation to perform"
+					}
+				}
+			},
 			"SettingOption": {
 				"type": "object",
 				"properties": {
@@ -552,6 +561,81 @@
 				}
 			}
 		},
+		"/module/{module}": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "channel",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Either \"msg\", \"priv\", \"guild\" or \"all\""
+				}
+			],
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a module",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a module",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/module/{module}/settings": {
 			"parameters": [
 				{
@@ -639,7 +723,7 @@
 						"basicAuth": []
 					}
 				],
-				"description": "Get a list of available events for a module",
+				"description": "Get a list of available commands for a module",
 				"responses": {
 					"200": {
 						"description": "A list of all command and possible subcommands this module provides",
