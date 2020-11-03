@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\DBSchema\CmdCfg;
 
-class ModuleSubommand {
+class ModuleSubcommand {
 	public const TYPE_COMMAND = "cmd";
 	public const TYPE_SUBCOMMAND = "subcmd";
 

@@ -962,14 +962,14 @@ class ConfigController {
 	 */
 	public function apiConfigCommandsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$cmds = $this->getAllRegisteredCommands($module);
-		/** @var array<string,ModuleSubommand> */
+		/** @var array<string,ModuleSubcommand> */
 		$result = [];
 		foreach ($cmds as $cmd) {
 			if ($cmd->cmdevent === "cmd") {
 				$result[$cmd->cmd] = new ModuleCommand($cmd);
 			} else {
 				$result[$cmd->dependson]->subcommands ??= [];
-				$result[$cmd->dependson]->subcommands []= new ModuleSubommand($cmd);
+				$result[$cmd->dependson]->subcommands []= new ModuleSubcommand($cmd);
 			}
 		}
 		return new ApiResponse(array_values($result));
