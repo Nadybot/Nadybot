@@ -37,7 +37,7 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
  *		help        = 'flatroll.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'mloot .+',
+ *		command     = 'mloot',
  *		accessLevel = 'rl',
  *		description = 'Put multiple items on the loot list',
  *		help        = 'flatroll.txt'
@@ -743,7 +743,7 @@ class LootController {
 	/**
 	 * Add an item to the loot roll
 	 *
-	 * @HandlesCommand("mloot .+")
+	 * @HandlesCommand("mloot")
 	 * @Matches("/^mloot (.+)$/i")
 	 */
 	public function mlootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
