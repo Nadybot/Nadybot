@@ -12,7 +12,7 @@ class ConfigModule {
 	/** How many commands are disabled */
 	public int $num_commands_disabled = 0;
 
-	/** How many event are enabled */
+	/** How many events are enabled */
 	public int $num_events_enabled = 0;
 
 	/** How many events are disabled */

@@ -33,7 +33,7 @@
 					},
 					"num_events_enabled": {
 						"type": "integer",
-						"description": "How many event are enabled"
+						"description": "How many events are enabled"
 					},
 					"num_events_disabled": {
 						"type": "integer",
