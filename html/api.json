@@ -135,7 +135,7 @@
 					}
 				}
 			},
-			"ModuleSubommand": {
+			"ModuleSubcommand": {
 				"type": "object",
 				"properties": {
 					"command": {
@@ -183,7 +183,7 @@
 			"ModuleCommand": {
 				"allOf": [
 					{
-						"$ref": "#/components/schemas/ModuleSubommand"
+						"$ref": "#/components/schemas/ModuleSubcommand"
 					},
 					{
 						"type": "object",
@@ -192,7 +192,7 @@
 								"type": "array",
 								"description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled. *",
 								"items": {
-									"$ref": "#/components/schemas/ModuleSubommand"
+									"$ref": "#/components/schemas/ModuleSubcommand"
 								}
 							}
 						}
