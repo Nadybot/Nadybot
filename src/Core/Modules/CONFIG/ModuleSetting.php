@@ -45,7 +45,7 @@ class ModuleSetting {
 		if (strlen($setting->options??"")) {
 			$options = explode(";", $setting->options);
 			$values = $options;
-			if (strlen($setting->intoptions)) {
+			if (isset($setting->intoptions) && strlen($setting->intoptions)) {
 				$values = array_map('intval', explode(";", $setting->intoptions));
 			}
 			if ($options === ["true", "false"] && $values === [1, 0]) {
