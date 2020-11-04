@@ -99,6 +99,8 @@ export interface ModuleAccessLevel {
   value: string | number | boolean | null;
   // Higher value means fewer rights. Use this to sort on
   readonly numeric_value: number;
+  // Some ranks only work if a module is enabled
+  readonly enabled: boolean;
 }
 
 const configModuleDecoderMapping = {
@@ -219,6 +221,7 @@ const moduleAccessLevelDecoderMapping = {
   name: JsonDecoder.string,
   value: mixedDecoder,
   numeric_value: JsonDecoder.number,
+  enabled: JsonDecoder.boolean,
 };
 
 const moduleAccessLevelDecoder = JsonDecoder.objectStrict<ModuleAccessLevel>(
