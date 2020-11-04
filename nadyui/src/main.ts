@@ -10,6 +10,7 @@ import ProfessionIcon from "@/components/ProfessionIcon.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import Toggle from "@/components/Toggle.vue";
 import TriToggle from "@/components/TriToggle.vue";
+import TimePicker from "@/components/TimePicker.vue";
 import SmartTable from "vuejs-smart-table";
 
 library.add(fas);
@@ -23,4 +24,5 @@ createApp(App)
   .component("profession-icon", ProfessionIcon)
   .component("toggle", Toggle)
   .component("tri-toggle", TriToggle)
+  .component("time-picker", TimePicker)
   .mount("#app");

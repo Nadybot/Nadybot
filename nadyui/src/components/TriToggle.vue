@@ -127,7 +127,6 @@ export default defineComponent({
   },
 
   created(): void {
-    console.log(`Replacing ${this.toggled} with ${this.initial}`);
     this.toggled = this.initial;
   },
 
