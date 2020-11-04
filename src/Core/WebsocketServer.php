@@ -26,6 +26,7 @@ class WebsocketServer extends WebsocketBase {
 	public string $uuid;
 
 	public function __construct(AsyncSocket $socket) {
+		$this->maskData = false;
 		$this->socket = $socket->getSocket();
 		$this->connected = true;
 		$this->lastReadTime = time();

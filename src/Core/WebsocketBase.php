@@ -59,6 +59,7 @@ class WebsocketBase {
 	protected bool $connected = false;
 	protected ?int $lastReadTime = null;
 	protected ?TimerEvent $timeoutChecker = null;
+	public bool $maskData = true;
 
 	public function connect(): bool {
 		return true;
@@ -115,7 +116,7 @@ class WebsocketBase {
 			return;
 		}
 		if (time() - $this->lastReadTime >= 30) {
-			$this->send("", 'ping', true);
+			$this->send("", 'ping');
 		}
 		if (time() - $this->lastReadTime >= 30 + $this->timeout) {
 			$this->throwError(
@@ -270,7 +271,7 @@ class WebsocketBase {
 		}
 
 		if ($opcode === 'ping') {
-			$this->send($payload, 'pong', true);
+			$this->send($payload, 'pong');
 			return [$payload, $final];
 		} elseif ($opcode === 'pong') {
 		}
@@ -292,7 +293,7 @@ class WebsocketBase {
 		if ($this->isClosing) {
 			$this->isClosing = false;
 		} else {
-			$this->send($statusBin . 'Close acknowledged: ' . $status, 'close', true);
+			$this->send($statusBin . 'Close acknowledged: ' . $status, 'close');
 		}
 
 		// Close the socket.
@@ -340,11 +341,11 @@ class WebsocketBase {
 		}
 		$statusString = pack("n", $status);
 		$this->isClosing = true;
-		$this->send($statusString . $message, 'close', true);
+		$this->send($statusString . $message, 'close');
 		$this->logger->log("DEBUG", "Closing with status: {$status}.");
 	}
 
-	public function send(string $data, string $opcode='text', bool $masked=true): void {
+	public function send(string $data, string $opcode='text'): void {
 		if (!$this->isConnected()) {
 			$this->connect();
 		}
@@ -360,7 +361,7 @@ class WebsocketBase {
 			$chunk = array_shift($dataChunks);
 			$final = empty($dataChunks);
 
-			$frame = $this->toFrame($final, $chunk, $opcode, $masked);
+			$frame = $this->toFrame($final, $chunk, $opcode, $this->maskData);
 			$this->lastEnqueueTime = time();
 			$this->sendQueue []= $frame;
 
