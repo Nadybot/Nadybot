@@ -438,6 +438,8 @@ class WebserverController {
 				return "application/javascript";
 			case "json":
 				return "application/json";
+			case "svg":
+				return "image/svg+xml";
 			default:
 				return mime_content_type($file);
 		}
