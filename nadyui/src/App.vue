@@ -33,11 +33,6 @@ export default {
           icon: "user",
         },
         {
-          name: "Chat",
-          path: "/chat",
-          icon: "comment-alt",
-        },
-        {
           name: "Settings",
           path: "/settings",
           icon: "cog",
