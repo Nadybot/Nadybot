@@ -39,18 +39,9 @@
       <div class="card mt-3">
         <div class="card-header">Memory Information</div>
         <div class="card-body">
-          <div class="progress">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              :aria-valuenow="memoryPercent"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              :style="'width: ' + memoryPercent + '%;'"
-            ></div>
-          </div>
-          <p class="card-text mt-3">
-            Currently using {{ memoryCurrentMb }}/{{ memoryPeakMb }}MB of RAM
+          <p class="card-text">
+            Currently using {{ memoryCurrentMb }}MB, peak was at
+            {{ memoryPeakMb }}MB of RAM
           </p>
         </div>
       </div>
@@ -200,16 +191,6 @@ export default defineComponent({
   },
 
   computed: {
-    memoryPercent(): number {
-      if (this.info == null) {
-        return 0;
-      }
-      return Math.floor(
-        (this.info.memory.current_usage_real /
-          this.info.memory.peak_usage_real) *
-          100
-      );
-    },
     memoryCurrentMb(): number {
       if (this.info == null) {
         return 0;
