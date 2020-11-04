@@ -65,10 +65,12 @@ export enum CommandType {
 export interface ModuleSubcommand {
   // The string or regexp that has to match this command
   readonly command: string;
+  // A short description of the command
+  readonly description: string;
   // Either "cmd" or "subcmd"
   readonly type: CommandType;
   // The access level you need to have in order to be allowed to use this command
-  readonly access_level: string;
+  access_level: string;
   // Is this command enabled?
   enabled: boolean;
   // Can this command be enabled in org channel?
@@ -181,6 +183,7 @@ export const moduleEventConfigArrayDecoder = JsonDecoder.array(
 
 const moduleSubcommandDecoderMapping = {
   command: JsonDecoder.string,
+  description: JsonDecoder.string,
   type: commandTypeDecoder,
   access_level: JsonDecoder.string,
   enabled: JsonDecoder.boolean,
