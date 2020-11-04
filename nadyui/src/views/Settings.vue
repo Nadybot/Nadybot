@@ -255,7 +255,6 @@ export default defineComponent({
       settings = settings.filter(function (val) {
         return val.editable == true;
       });
-      console.log(settings);
       let commands = await getModuleCommands(module.name);
       let events = await getModuleEvents(module.name);
       this.selected_settings = settings;
@@ -267,7 +266,6 @@ export default defineComponent({
       let re = /#[0-9a-f]{3,6}/i;
       let matches = text.match(re);
       if (matches) {
-        console.log(`Found ${matches[0]} in ${text}`);
         return matches[0];
       }
       return null;
