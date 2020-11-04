@@ -112,42 +112,111 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="command in selected_commands" :key="command.name">
-              <td>{{ command.command }}</td>
-              <td>{{ command.description }}</td>
-              <td>
-                <select class="form-control custom-select custom-select-sm">
-                  <option
-                    v-for="access_level in access_levels"
-                    :key="access_level.name"
-                    :selected="access_level.value == command.access_level"
-                  >
-                    {{ access_level.name }}
-                  </option>
-                </select>
-              </td>
-              <td>
-                <input
-                  type="checkbox"
-                  :disabled="command.org_avail == false"
-                  :checked="command.org_enabled == true"
-                />
-              </td>
-              <td>
-                <input
-                  type="checkbox"
-                  :disabled="command.priv_avail == false"
-                  :checked="command.priv_enabled == true"
-                />
-              </td>
-              <td>
-                <input
-                  type="checkbox"
-                  :disabled="command.msg_avail == false"
-                  :checked="command.msg_enabled == true"
-                />
-              </td>
-            </tr>
+            <template
+              v-for="command in selected_commands"
+              :key="command.command"
+            >
+              <tr>
+                <td :class="{ 'pad-left': command.subcommands.length == 0 }">
+                  <fa
+                    v-if="command.subcommands.length > 0"
+                    @click="selectCommand(command)"
+                    :icon="
+                      selected_command &&
+                      command.command == selected_command.command
+                        ? 'chevron-down'
+                        : 'chevron-right'
+                    "
+                    invert="10"
+                  ></fa>
+                  {{ command.command }}
+                </td>
+                <td>{{ command.description }}</td>
+                <td>
+                  <select class="form-control custom-select custom-select-sm">
+                    <option
+                      v-for="access_level in access_levels"
+                      :key="access_level.name"
+                      :selected="access_level.value == command.access_level"
+                    >
+                      {{ access_level.name }}
+                    </option>
+                  </select>
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    :disabled="command.org_avail == false"
+                    :checked="command.org_enabled == true"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    :disabled="command.priv_avail == false"
+                    :checked="command.priv_enabled == true"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    :disabled="command.msg_avail == false"
+                    :checked="command.msg_enabled == true"
+                  />
+                </td>
+              </tr>
+
+              <template
+                v-if="
+                  selected_command &&
+                  command.command == selected_command.command
+                "
+              >
+                <tr
+                  v-for="subcommand in command.subcommands"
+                  :key="subcommand.command"
+                >
+                  <td class="pad-left border-left-thick">
+                    {{ subcommand.command }}
+                  </td>
+                  <td>{{ subcommand.description }}</td>
+                  <td>
+                    <select class="form-control custom-select custom-select-sm">
+                      <option
+                        v-for="access_level in access_levels"
+                        :key="access_level.name"
+                        :selected="
+                          access_level.value == subcommand.access_level
+                        "
+                      >
+                        {{ access_level.name }}
+                      </option>
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      :disabled="subcommand.org_avail == false"
+                      :checked="subcommand.org_enabled == true"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      :disabled="subcommand.priv_avail == false"
+                      :checked="subcommand.priv_enabled == true"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      :disabled="subcommand.msg_avail == false"
+                      :checked="subcommand.msg_enabled == true"
+                    />
+                  </td>
+                </tr>
+              </template>
+            </template>
           </tbody>
         </table>
       </div>
@@ -202,6 +271,22 @@
 .color-input {
   height: 1.6em;
 }
+
+.pad-left {
+  padding-left: 30px;
+}
+
+.pad-left-2 {
+  padding-left: 60px;
+}
+
+td {
+  white-space: nowrap;
+}
+
+.border-left-thick {
+  border-left: 3px solid #424242;
+}
 </style>
 
 <script lang="ts">
@@ -229,6 +314,7 @@ interface SettingsData {
   selected_settings: Array<ModuleSetting>;
   selected_commands: Array<ModuleCommand>;
   selected_events: Array<ModuleEventConfig>;
+  selected_command: ModuleCommand | null;
 }
 
 export default defineComponent({
@@ -270,6 +356,16 @@ export default defineComponent({
       }
       return null;
     },
+    selectCommand: function (command: ModuleCommand): void {
+      if (
+        this.selected_command &&
+        this.selected_command.command == command.command
+      ) {
+        this.selected_command = null;
+      } else {
+        this.selected_command = command;
+      }
+    },
   },
 
   data(): SettingsData {
@@ -280,6 +376,7 @@ export default defineComponent({
       selected_settings: [],
       selected_commands: [],
       selected_events: [],
+      selected_command: null,
     };
   },
 

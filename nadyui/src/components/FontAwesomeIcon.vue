@@ -1,12 +1,11 @@
 <template>
-  <img :src="path" :height="size" :width="size" class="inverted" />
+  <img
+    :src="path"
+    :height="size"
+    :width="size"
+    :style="'filter: invert(' + invert + '%);'"
+  />
 </template>
-
-<style lang="scss">
-.inverted {
-  filter: invert(100%);
-}
-</style>
 
 <script lang="ts">
 import { defineComponent } from "vue";
@@ -24,7 +23,11 @@ export default defineComponent({
       default: 14,
       required: false,
     },
-    class: String,
+    invert: {
+      type: Number,
+      default: 100,
+      required: false,
+    },
   },
 
   computed: {
