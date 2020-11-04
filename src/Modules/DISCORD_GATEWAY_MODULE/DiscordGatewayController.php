@@ -598,7 +598,6 @@ class DiscordGatewayController {
 		}
 	}
 
-
 	protected function getCurrentVoiceState(string $userId): ?VoiceState {
 		foreach ($this->guilds as $guildId => $guild) {
 			foreach ($guild->voice_states as $voice) {

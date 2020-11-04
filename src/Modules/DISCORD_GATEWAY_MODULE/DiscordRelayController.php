@@ -16,6 +16,7 @@ use Nadybot\Core\Modules\{
 	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
 };
+use Nadybot\Core\Modules\CONFIG\SettingOption;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -133,6 +134,39 @@ class DiscordRelayController {
 			"color",
 			"<font color=#C3C3C3>"
 		);
+	}
+
+	/**
+	 * Gives a list of all channels we have access to
+	 * @return SettingOption[]
+	 */
+	public function getChannelOptionList(): array {
+		$guilds = $this->discordGatewayController->getGuilds();
+		if (empty($guilds)) {
+			return [];
+		}
+		/** @var SettingOption[] */
+		$result = [];
+		foreach ($guilds as $guildId => $guild) {
+			foreach ($guild->channels as $channel) {
+				if ($channel->type !== $channel::GUILD_CATEGORY) {
+					continue;
+				}
+				foreach ($guild->channels as $subchannel) {
+					if (($subchannel->parent_id??null) !== $channel->id) {
+						continue;
+					}
+					if ($subchannel->type !== $subchannel::GUILD_TEXT) {
+						continue;
+					}
+					$option = new SettingOption();
+					$option->value = $subchannel->id;
+					$option->name = "{$guild->name} > {$channel->name} > #{$subchannel->name}";
+					$result []= $option;
+				}
+			}
+		}
+		return $result;
 	}
 
 	protected function getChannelTree(?callable $callback=null): array {

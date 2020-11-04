@@ -24,6 +24,7 @@ use Nadybot\Core\DBSchema\{
 	CmdCfg,
 	Setting,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordRelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
@@ -66,6 +67,9 @@ class ConfigController {
 	
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public DiscordRelayController $discordRelayController;
 	
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -902,7 +906,11 @@ class ConfigController {
 		$settings = $this->getModuleSettings($module);
 		$result = [];
 		foreach ($settings as $setting) {
-			$result []= new ModuleSetting($setting->getData());
+			$modSet = new ModuleSetting($setting->getData());
+			if ($modSet->type === $modSet::TYPE_DISCORD_CHANNEL) {
+				$modSet->options = $this->discordRelayController->getChannelOptionList();
+			}
+			$result[] = $modSet;
 		}
 		return new ApiResponse($result);
 	}
