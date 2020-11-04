@@ -138,6 +138,7 @@
                       v-for="access_level in access_levels"
                       :key="access_level.name"
                       :selected="access_level.value == command.access_level"
+                      :disabled="!access_level.enabled"
                     >
                       {{ access_level.name }}
                     </option>
@@ -188,6 +189,7 @@
                         :selected="
                           access_level.value == subcommand.access_level
                         "
+                        :disabled="!access_level.enabled"
                       >
                         {{ access_level.name }}
                       </option>
