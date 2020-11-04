@@ -28,7 +28,7 @@
       </option>
     </select>
     <div class="col-2 input-group-append" style="margin-left: -15px !important">
-      <span class="btn btn-sm btn-primary"><fa icon="clock" /></span>
+      <span class="btn btn-sm btn-secondary disabled"><fa icon="clock" /></span>
     </div>
   </div>
 </template>
