@@ -65,10 +65,6 @@ class ConfigApiConroller {
 		if ($channel === "org") {
 			$channel = "guild";
 		}
-		if (isset($body->enabled)) {
-			$parsed++;
-			$result += (int)$this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, $channel, $body->enabled);
-		}
 		if (isset($body->access_level)) {
 			$parsed++;
 			try {
@@ -80,6 +76,10 @@ class ConfigApiConroller {
 			} catch (Exception $e) {
 				$exception = $e;
 			}
+		}
+		if (isset($body->enabled)) {
+			$parsed++;
+			$result += (int)$this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, $channel, $body->enabled);
 		}
 		if ($parsed === 0) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
