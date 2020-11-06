@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Exception;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\{
 	EventCfg,
 };
+use Nadybot\Core\InsufficientAccessException;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordRelayController;
 
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -46,16 +48,94 @@ class ConfigApiConroller {
 
 	/**
 	 * Activate or deactivate a Command
-	 * @Api("/module/%s/commands/%s")
+	 * @Api("/module/%s/commands/%s/%s")
 	 * @PATCH
 	 * @AccessLevel("mod")
-	 * @RequestBody(class='ModuleCommand', desc='One of the parameters to change', required=true)
+	 * @RequestBody(class='ModuleSubcommandChannel', desc='One of the parameters to change', required=true)
+	 * @ApiResult(code=200, class='ModuleCommand' desc='operation applied successfully')
+	 * @ApiResult(code=402, desc='Wrong or no operation given')
+	 */
+	public function toggleCommandChannelSettingsEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command, string $channel): Response {
+		/** @var ModuleSubcommandChannel */
+		$body = $request->decodedBody ?? [];
+		$subCmd = (bool)preg_match("/\s/", $command);
+		$result = 0;
+		$parsed = 0;
+		$exception = null;
+		if ($channel === "org") {
+			$channel = "guild";
+		}
+		if (isset($body->enabled)) {
+			$parsed++;
+			$result += (int)$this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, $channel, $body->enabled);
+		}
+		if (isset($body->access_level)) {
+			$parsed++;
+			try {
+				if ($subCmd) {
+					$result += (int)($this->configController->changeSubcommandAL($request->authenticatedAs, $command, $channel, $body->access_level) === 1);
+				} else {
+					$result += (int)($this->configController->changeCommandAL($request->authenticatedAs, $command, $channel, $body->access_level) === 1);
+				}
+			} catch (Exception $e) {
+				$exception = $e;
+			}
+		}
+		if ($parsed === 0) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		if ($parsed === 1) {
+			if (isset($exception) && $exception instanceof InsufficientAccessException) {
+				return new Response(Response::FORBIDDEN);
+			}
+			if (isset($exception) && $exception instanceof Exception) {
+				return new Response(Response::UNPROCESSABLE_ENTITY);
+			}
+			if (isset($exception)) {
+				return new Response(Response::INTERNAL_SERVER_ERROR);
+			}
+		}
+		if ($result === 0 && !isset($exception)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$cmd = $this->configController->getRegisteredCommand($module, $command);
+		if (!isset($cmd)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if ($channel === "guild") {
+			$channel = "org";
+		}
+		$moduleCommand = new ModuleCommand($cmd);
+		return new ApiResponse($moduleCommand->{$channel});
+	}
+
+	/**
+	 * Activate or deactivate a command
+	 * @Api("/module/%s/commands/%s")
+	 * @PATCH
+	 * @PUT
+	 * @AccessLevel("mod")
+	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
 	 * @ApiResult(code=200, desc='operation applied successfully')
 	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
 	public function toggleCommandStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command): Response {
 		$op = $request->decodedBody->op ?? null;
 		if (!in_array($op, ["enable", "disable"], true)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$subCmd = (bool)preg_match("/\s/", $command);
+		try {
+			if ($this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, "all", $op === "enable") === true) {
+				$cmd = $this->configController->getRegisteredCommand($module, $command);
+				if (!isset($cmd)) {
+					return new Response(Response::NOT_FOUND);
+				}
+				return new ApiResponse(new ModuleSubcommand($cmd));
+			}
+		} catch (InsufficientAccessException $e) {
+			return new Response(Response::FORBIDDEN);
+		} catch (Exception $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		return new Response(Response::NOT_FOUND);

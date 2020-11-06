@@ -17,44 +17,33 @@ class ModuleSubcommand {
 	/** A short description of the command */
 	public string $description;
 
-	/**
-	 * The access level you need to have
-	 * in order to be allowed to use this command
-	 */
-	public string $access_level = "all";
+	/** Settings for tells */
+	public ?ModuleSubcommandChannel $msg;
 
-	/** Is this command enabled? */
-	public bool $enabled = false;
+	/** Settings for private channel */
+	public ?ModuleSubcommandChannel $priv;
 
-	/** Can this command be enabled in org channel? */
-	public bool $org_avail = false;
-
-	/** Is this command enabled in org channel? */
-	public bool $org_enabled = false;
-
-	/** Can this command be enabled in priv channel? */
-	public bool $priv_avail = false;
-
-	/** Is this command enabled in priv channel? */
-	public bool $priv_enabled = false;
-
-	/** Can this command be enabled in direct messages? */
-	public bool $msg_avail = false;
-
-	/** Is this command enabled in direct messages? */
-	public bool $msg_enabled = false;
+	/** Settings for org channel */
+	public ?ModuleSubcommandChannel $org;
 
 	public function __construct(CmdCfg $cfg) {
 		$this->command = $cfg->cmd;
 		$this->type = $cfg->cmdevent;
 		$this->description = $cfg->description;
-		$this->access_level = $cfg->admin;
-		$this->enabled = (bool)$cfg->status;
-		$this->org_avail = (bool)($cfg->guild_avail??false);
-		$this->priv_avail = (bool)($cfg->priv_avail??false);
-		$this->msg_avail = (bool)($cfg->msg_avail??false);
-		$this->org_enabled = (bool)($cfg->guild_status??false);
-		$this->priv_enabled = (bool)($cfg->priv_status??false);
-		$this->msg_enabled = (bool)($cfg->msg_status??false);
+		if ($cfg->guild_avail??false) {
+			$this->org = new ModuleSubcommandChannel();
+			$this->org->access_level = $cfg->guild_al??"none";
+			$this->org->enabled = (bool)($cfg->guild_status??0);
+		}
+		if ($cfg->priv_avail??false) {
+			$this->priv = new ModuleSubcommandChannel();
+			$this->priv->access_level = $cfg->priv_al??"none";
+			$this->priv->enabled = (bool)($cfg->priv_status??0);
+		}
+		if ($cfg->msg_avail??false) {
+			$this->msg = new ModuleSubcommandChannel();
+			$this->msg->access_level = $cfg->msg_al??"none";
+			$this->msg->enabled = (bool)($cfg->msg_status??0);
+		}
 	}
 }

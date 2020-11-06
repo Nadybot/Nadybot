@@ -422,55 +422,83 @@ class ConfigController {
 		$category = strtolower($args[1]);
 		$command = strtolower($args[2]);
 		$channel = strtolower($args[3]);
-		$accessLevel = $this->accessManager->getAccessLevel($args[4]);
+		$accessLevel = $args[4];
+
+		$type = "command";
+		try {
+			if ($category === "cmd") {
+				$result = $this->changeCommandAL($sender, $command, $channel, $accessLevel);
+			} else {
+				$type = "subcommand";
+				$result = $this->changeSubcommandAL($sender, $command, $channel, $accessLevel);
+			}
+		} catch (InsufficientAccessException $e) {
+			$msg = "You do not have the required access level to change this {$type}.";
+			$sendto->reply($msg);
+			return;
+		}
 	
-		if ($category === "cmd") {
-			$sqlArgs = [$command];
+		if ($result === 0) {
 			if ($channel === "all") {
-				$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
+				$msg = "Could not find {$type} <highlight>{$command}<end>.";
 			} else {
-				$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
-				$sqlArgs []= $channel;
+				$msg = "Could not find {$type} <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
 			}
-			/** @var CmdCfg[] $data */
-			$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
-	
-			if (count($data) === 0) {
-				if ($channel === "all") {
-					$msg = "Could not find command <highlight>$command<end>.";
-				} else {
-					$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-				}
-			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
-				$msg = "You do not have the required access level to change this command.";
-			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
-				$msg = "You may not set the access level for a command above your own access level.";
-			} else {
-				$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
-		
-				if ($channel == "all") {
-					$msg = "Updated access of command <highlight>$command<end> to <highlight>$accessLevel<end>.";
-				} else {
-					$msg = "Updated access of command <highlight>$command<end> in channel <highlight>$channel<end> to <highlight>$accessLevel<end>.";
-				}
-			}
-		} else {  // if ($category == 'subcmd')
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?";
-			/** @var CmdCfg[] $data */
-			$data = $this->db->fetchAll(CmdCfg::class, $sql, $channel, $command);
-			if (count($data) === 0) {
-				$msg = "Could not find subcommand <highlight>$command<end> for channel <highlight>$channel<end>.";
-			} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
-				$msg = "You do not have the required access level to change this subcommand.";
-			} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
-				$msg = "You may not set the access level for a subcommand above your own access level.";
-			} else {
-				$this->db->exec("UPDATE cmdcfg_<myname> SET `admin` = ? WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?", $accessLevel, $channel, $command);
-				$this->subcommandManager->loadSubcommands();
-				$msg = "Updated access of subcommand <highlight>$command<end> in channel <highlight>$channel<end> to <highlight>$accessLevel<end>.";
-			}
+			$sendto->reply($msg);
+			return;
+		}
+		if ($result === -1) {
+			$msg = "You may not set the access level for a {$type} above your own access level.";
+			$sendto->reply($msg);
+			return;
+		}
+		if ($channel === "all") {
+			$msg = "Updated access of {$type} <highlight>{$command}<end> to <highlight>{$accessLevel}<end>.";
+		} else {
+			$msg = "Updated access of {$type} <highlight>{$command}<end> in channel <highlight>{$channel}<end> to <highlight>{$accessLevel}<end>.";
 		}
 		$sendto->reply($msg);
+	}
+		
+	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+	
+		$sqlArgs = [$command];
+		if ($channel === "all") {
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
+		} else {
+			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
+			$sqlArgs []= $channel;
+		}
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+	
+		if (count($data) === 0) {
+			return 0;
+		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
+			throw new InsufficientAccessException("You do not have the required access level to change this command.");
+		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
+			return -1;
+		}
+		$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
+		return 1;
+	}
+
+	public function changeSubcommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?";
+		/** @var CmdCfg[] $data */
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, $channel, $command);
+		if (count($data) === 0) {
+			return 0;
+		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
+			throw new InsufficientAccessException("You do not have the required access level to change this subcommand.");
+		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
+			return -1;
+		}
+		$this->db->exec("UPDATE cmdcfg_<myname> SET `admin` = ? WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?", $accessLevel, $channel, $command);
+		$this->subcommandManager->loadSubcommands();
+		return 1;
 	}
 	
 	/**
@@ -883,10 +911,13 @@ class ConfigController {
 				"*, ".
 				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
 				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
-				"SUM(CASE WHEN type ='priv' THEN 1 ELSE 0 END) priv_avail, ".
+				"MAX(CASE WHEN type = 'guild' THEN admin ELSE NULL END) guild_al, ".
+				"SUM(CASE WHEN type = 'priv' THEN 1 ELSE 0 END) priv_avail, ".
 				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
-				"SUM(CASE WHEN type ='msg' THEN 1 ELSE 0 END) msg_avail, ".
-				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status ".
+				"MAX(CASE WHEN type = 'priv' THEN admin ELSE null END) priv_al, ".
+				"SUM(CASE WHEN type = 'msg' THEN 1 ELSE 0 END) msg_avail, ".
+				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status, ".
+				"MAX(CASE WHEN type = 'msg' THEN admin ELSE null END) msg_al ".
 			"FROM ".
 				"cmdcfg_<myname> c ".
 			"WHERE ".
@@ -896,6 +927,31 @@ class ConfigController {
 				"cmd";
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, $module);
+		return $data;
+	}
+
+	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {
+		$sql = "SELECT ".
+				"*, ".
+				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
+				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
+				"MAX(CASE WHEN type = 'guild' THEN admin ELSE NULL END) guild_al, ".
+				"SUM(CASE WHEN type = 'priv' THEN 1 ELSE 0 END) priv_avail, ".
+				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
+				"MAX(CASE WHEN type = 'priv' THEN admin ELSE null END) priv_al, ".
+				"SUM(CASE WHEN type = 'msg' THEN 1 ELSE 0 END) msg_avail, ".
+				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status, ".
+				"MAX(CASE WHEN type = 'msg' THEN admin ELSE null END) msg_al ".
+			"FROM ".
+				"cmdcfg_<myname> c ".
+			"WHERE ".
+				"(`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') ".
+				"AND `module` = ? ".
+				"AND `cmd` = ? ".
+			"GROUP BY ".
+				"cmd";
+		/** @var ?CmdCfg $data */
+		$data = $this->db->fetch(CmdCfg::class, $sql, $module, $command);
 		return $data;
 	}
 }
