@@ -51,8 +51,8 @@ class ConfigApiConroller {
 	 * @Api("/module/%s/commands/%s/%s")
 	 * @PATCH
 	 * @AccessLevel("mod")
-	 * @RequestBody(class='ModuleSubcommandChannel', desc='One of the parameters to change', required=true)
-	 * @ApiResult(code=200, class='ModuleCommand' desc='operation applied successfully')
+	 * @RequestBody(class='ModuleSubcommandChannel', desc='Parameters to change', required=true)
+	 * @ApiResult(code=200, class='ModuleCommand', desc='operation applied successfully')
 	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
 	public function toggleCommandChannelSettingsEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command, string $channel): Response {
