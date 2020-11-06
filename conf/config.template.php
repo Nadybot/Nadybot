@@ -32,6 +32,9 @@ $vars['cachefolder'] = "./cache/";
 // Default status for new modules? 1 for enabled, 0 for disabled.
 $vars['default_module_status'] = 0;
 
+// Enable the readline-based console interface to the bot?
+$vars['enable_console_client'] = 1;
+
 // Use AO Chat Proxy? 1 for enabled, 0 for disabled.
 $vars['use_proxy']    = 0;
 $vars['proxy_server'] = "127.0.0.1";
