@@ -40,23 +40,41 @@
                   type="number"
                   class="form-control form-control-sm"
                   :value="setting.value"
+                  v-model.number="setting.value"
+                  @change="changeSetting(setting)"
                 />
                 <toggle
                   v-if="setting.type == 'bool'"
-                  :initial="setting.value"
+                  v-model="setting.value"
+                  @change="changeSetting(setting)"
                 ></toggle>
                 <select
                   v-if="
                     setting.type == 'options' ||
-                    setting.type == 'int_options' ||
                     setting.type == 'discord_channel'
                   "
                   class="form-control custom-select custom-select-sm"
+                  v-model="setting.value"
+                  @change="changeSetting(setting)"
                 >
                   <option
                     v-for="option in setting.options"
                     :key="option.name"
-                    :selected="setting.value == option.value"
+                    :value="option.value"
+                  >
+                    {{ option.name }}
+                  </option>
+                </select>
+                <select
+                  v-if="setting.type == 'int_options'"
+                  class="form-control custom-select custom-select-sm"
+                  v-model.number="setting.value"
+                  @change="changeSetting(setting)"
+                >
+                  <option
+                    v-for="option in setting.options"
+                    :key="option.name"
+                    :value="option.value"
                   >
                     {{ option.name }}
                   </option>
@@ -65,17 +83,21 @@
                   v-if="setting.type == 'text'"
                   type="text"
                   class="form-control form-control-sm"
-                  :value="setting.value"
+                  v-model="setting.value"
+                  @change="changeSetting(setting)"
                 />
                 <input
                   v-if="setting.type == 'color'"
                   type="color"
                   class="form-control form-control-sm color-input"
                   :value="findColorFromTag(setting.value)"
+                  @input="(e) => (setting.value = e.target.value)"
+                  @change="changeSetting(setting)"
                 />
                 <time-picker
                   v-if="setting.type == 'time'"
-                  :initial-value="setting.value"
+                  v-model="setting.value"
+                  @change="changeSetting(setting)"
                 />
               </div>
             </li>
@@ -97,8 +119,8 @@
                 <span class="custom-muted ml-5">{{ event.event }}</span></span
               >
               <toggle
-                :initial="event.enabled"
-                :handler="toggleEvent.bind(null, event)"
+                v-model="event.enabled"
+                @change="toggleEvent(event)"
               ></toggle>
             </li>
           </ul>
@@ -444,6 +466,7 @@ import {
   toggleModule,
   toggleEvent,
   toggleCommand,
+  changeSetting,
 } from "@/nadybot/http";
 import {
   ConfigModule,
@@ -531,16 +554,13 @@ export default defineComponent({
         this.access_levels = access_levels;
       }
     },
-    toggleEvent: async function (
-      event: ModuleEventConfig,
-      enabled: boolean
-    ): Promise<void> {
+    toggleEvent: async function (event: ModuleEventConfig): Promise<void> {
       if (this.selected) {
         await toggleEvent(
           this.selected.name,
           event.event,
           event.handler,
-          enabled
+          event.enabled
         );
       }
     },
@@ -557,6 +577,11 @@ export default defineComponent({
           config.access_level,
           config.enabled
         );
+      }
+    },
+    changeSetting: async function (setting: ModuleSetting): Promise<void> {
+      if (this.selected) {
+        await changeSetting(this.selected.name, setting.name, setting.value);
       }
     },
   },
