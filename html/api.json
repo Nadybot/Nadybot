@@ -834,6 +834,40 @@
 						}
 					}
 				}
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a Command",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ModuleCommand"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Parameters to change",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModuleSubcommandChannel"
+							}
+						}
+					}
+				}
 			}
 		},
 		"/module/{module}/commands/{command}": {

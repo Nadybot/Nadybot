@@ -165,6 +165,7 @@ class ConfigApiConroller {
 	 * Activate or deactivate a Command
 	 * @Api("/module/%s/commands/%s/%s")
 	 * @PATCH
+	 * @PUT
 	 * @AccessLevel("mod")
 	 * @RequestBody(class='ModuleSubcommandChannel', desc='Parameters to change', required=true)
 	 * @ApiResult(code=200, class='ModuleCommand', desc='operation applied successfully')
