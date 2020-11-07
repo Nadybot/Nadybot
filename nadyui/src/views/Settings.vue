@@ -10,7 +10,10 @@
           :class="{ active: selected && module.name == selected.name }"
         >
           {{ module.name }}
-          <tri-toggle :initial="getClassForModule(module)"></tri-toggle>
+          <tri-toggle
+            :initial="getClassForModule(module)"
+            :handler="toggleModule.bind(null, module)"
+          ></tri-toggle>
         </li>
       </ul>
     </div>
@@ -376,10 +379,6 @@ td {
 .border-left-thick {
   border-left: 3px solid #424242;
 }
-
-.desc {
-  width: 40%;
-}
 </style>
 
 <script lang="ts">
@@ -391,6 +390,7 @@ import {
   getModuleEvents,
   getModuleCommands,
   getAccessLevels,
+  toggleModule,
 } from "@/nadybot/http";
 import {
   ConfigModule,
@@ -457,6 +457,24 @@ export default defineComponent({
         this.selected_command = null;
       } else {
         this.selected_command = command;
+      }
+    },
+    toggleModule: async function (
+      module: ConfigModule,
+      enabled: boolean
+    ): Promise<void> {
+      await toggleModule(module.name, enabled);
+
+      if (this.selected && this.selected.name == module.name) {
+        await this.selectModule(module);
+      }
+
+      if (module.name == "RAID_MODULE") {
+        let access_levels = await getAccessLevels();
+        access_levels.sort(function (a, b) {
+          return a.numeric_value - b.numeric_value;
+        });
+        this.access_levels = access_levels;
       }
     },
   },

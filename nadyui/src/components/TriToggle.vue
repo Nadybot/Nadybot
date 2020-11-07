@@ -123,6 +123,14 @@ export default defineComponent({
       } else {
         this.toggled = "all";
       }
+
+      if (this.handler) {
+        if (this.toggled == "all") {
+          this.handler(true);
+        } else {
+          this.handler(false);
+        }
+      }
     },
   },
 
@@ -135,6 +143,10 @@ export default defineComponent({
       type: String,
       required: false,
       default: "none",
+    },
+    handler: {
+      type: Function,
+      required: false,
     },
   },
 });

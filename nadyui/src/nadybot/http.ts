@@ -54,3 +54,11 @@ export async function getAccessLevels(): Promise<Array<ModuleAccessLevel>> {
   const response = await axios.get("/api/access_levels");
   return await moduleAccessLevelArrayDecoder.decodePromise(response.data);
 }
+
+export async function toggleModule(
+  name: string,
+  enabled: boolean
+): Promise<void> {
+  const op = enabled ? "enable" : "disable";
+  await axios.put(`/api/module/${name}`, { op: op });
+}
