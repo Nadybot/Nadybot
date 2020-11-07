@@ -74,3 +74,16 @@ export async function toggleEvent(
     op: op,
   });
 }
+
+export async function toggleCommand(
+  module: string,
+  name: string,
+  channel: string,
+  access_level: string,
+  enabled: boolean
+): Promise<void> {
+  await axios.put(`/api/module/${module}/commands/${name}/${channel}`, {
+    access_level: access_level,
+    enabled: enabled,
+  });
+}

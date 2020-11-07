@@ -143,11 +143,17 @@
                       <div class="input-group-text">
                         <input
                           type="checkbox"
-                          :checked="command.org.enabled == true"
+                          :value="command.org.enabled"
+                          v-model="command.org.enabled"
+                          @change="toggleCommand(command, 'org', command.org)"
                         />
                       </div>
                     </div>
-                    <select class="form-control custom-select custom-select-sm">
+                    <select
+                      class="form-control custom-select custom-select-sm"
+                      v-model="command.org.access_level"
+                      @change="toggleCommand(command, 'org', command.org)"
+                    >
                       <option
                         v-for="access_level in access_levels"
                         :key="access_level.name"
@@ -155,6 +161,7 @@
                           access_level.value == command.org.access_level
                         "
                         :disabled="!access_level.enabled"
+                        :value="access_level.value"
                       >
                         {{ access_level.name }}
                       </option>
@@ -168,11 +175,17 @@
                       <div class="input-group-text">
                         <input
                           type="checkbox"
-                          :checked="command.priv.enabled == true"
+                          :value="command.priv.enabled"
+                          v-model="command.priv.enabled"
+                          @change="toggleCommand(command, 'priv', command.priv)"
                         />
                       </div>
                     </div>
-                    <select class="form-control custom-select custom-select-sm">
+                    <select
+                      class="form-control custom-select custom-select-sm"
+                      v-model="command.priv.access_level"
+                      @change="toggleCommand(command, 'priv', command.priv)"
+                    >
                       <option
                         v-for="access_level in access_levels"
                         :key="access_level.name"
@@ -180,6 +193,7 @@
                           access_level.value == command.priv.access_level
                         "
                         :disabled="!access_level.enabled"
+                        :value="access_level.value"
                       >
                         {{ access_level.name }}
                       </option>
@@ -193,11 +207,17 @@
                       <div class="input-group-text">
                         <input
                           type="checkbox"
-                          :checked="command.msg.enabled == true"
+                          :value="command.msg.enabled"
+                          v-model="command.msg.enabled"
+                          @change="toggleCommand(command, 'msg', command.msg)"
                         />
                       </div>
                     </div>
-                    <select class="form-control custom-select custom-select-sm">
+                    <select
+                      class="form-control custom-select custom-select-sm"
+                      v-model="command.msg.access_level"
+                      @change="toggleCommand(command, 'msg', command.msg)"
+                    >
                       <option
                         v-for="access_level in access_levels"
                         :key="access_level.name"
@@ -205,6 +225,7 @@
                           access_level.value == command.msg.access_level
                         "
                         :disabled="!access_level.enabled"
+                        :value="access_level.value"
                       >
                         {{ access_level.name }}
                       </option>
@@ -234,12 +255,20 @@
                         <div class="input-group-text">
                           <input
                             type="checkbox"
-                            :checked="subcommand.org.enabled == true"
+                            :value="subcommand.org.enabled"
+                            v-model="subcommand.org.enabled"
+                            @change="
+                              toggleCommand(subcommand, 'org', subcommand.org)
+                            "
                           />
                         </div>
                       </div>
                       <select
                         class="form-control custom-select custom-select-sm"
+                        v-model="subcommand.org.access_level"
+                        @change="
+                          toggleCommand(subcommand, 'org', subcommand.org)
+                        "
                       >
                         <option
                           v-for="access_level in access_levels"
@@ -248,6 +277,7 @@
                             access_level.value == subcommand.org.access_level
                           "
                           :disabled="!access_level.enabled"
+                          :value="access_level.value"
                         >
                           {{ access_level.name }}
                         </option>
@@ -261,12 +291,20 @@
                         <div class="input-group-text">
                           <input
                             type="checkbox"
-                            :checked="subcommand.priv.enabled == true"
+                            :value="subcommand.priv.enabled"
+                            v-model="subcommand.priv.enabled"
+                            @change="
+                              toggleCommand(subcommand, 'priv', subcommand.priv)
+                            "
                           />
                         </div>
                       </div>
                       <select
                         class="form-control custom-select custom-select-sm"
+                        v-model="subcommand.priv.access_level"
+                        @change="
+                          toggleCommand(subcommand, 'priv', subcommand.priv)
+                        "
                       >
                         <option
                           v-for="access_level in access_levels"
@@ -275,6 +313,7 @@
                             access_level.value == subcommand.priv.access_level
                           "
                           :disabled="!access_level.enabled"
+                          :value="access_level.value"
                         >
                           {{ access_level.name }}
                         </option>
@@ -288,12 +327,20 @@
                         <div class="input-group-text">
                           <input
                             type="checkbox"
-                            :checked="subcommand.msg.enabled == true"
+                            :value="subcommand.msg.enabled"
+                            v-model="subcommand.msg.enabled"
+                            @change="
+                              toggleCommand(subcommand, 'msg', subcommand.msg)
+                            "
                           />
                         </div>
                       </div>
                       <select
                         class="form-control custom-select custom-select-sm"
+                        v-model="subcommand.msg.access_level"
+                        @change="
+                          toggleCommand(subcommand, 'msg', subcommand.msg)
+                        "
                       >
                         <option
                           v-for="access_level in access_levels"
@@ -302,6 +349,7 @@
                             access_level.value == subcommand.msg.access_level
                           "
                           :disabled="!access_level.enabled"
+                          :value="access_level.value"
                         >
                           {{ access_level.name }}
                         </option>
@@ -395,6 +443,7 @@ import {
   getAccessLevels,
   toggleModule,
   toggleEvent,
+  toggleCommand,
 } from "@/nadybot/http";
 import {
   ConfigModule,
@@ -402,6 +451,7 @@ import {
   ModuleCommand,
   ModuleEventConfig,
   ModuleSetting,
+  ModuleSubcommandChannel,
 } from "@/nadybot/types/settings";
 
 interface SettingsData {
@@ -491,6 +541,21 @@ export default defineComponent({
           event.event,
           event.handler,
           enabled
+        );
+      }
+    },
+    toggleCommand: async function (
+      command: ModuleCommand,
+      channel: string,
+      config: ModuleSubcommandChannel
+    ): Promise<void> {
+      if (this.selected) {
+        await toggleCommand(
+          this.selected.name,
+          command.command,
+          channel,
+          config.access_level,
+          config.enabled
         );
       }
     },
