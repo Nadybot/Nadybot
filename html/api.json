@@ -1,1787 +1,3 @@
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#243 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(14) "ConfigModule[]"
-  public string $desc =>
-  string(30) "A list of modules to configure"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#234 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#208 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#170 (1) {
-          public $value =>
-          string(7) "/module"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#351 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#250 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#243 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(14) "ConfigModule[]"
-          public string $desc =>
-          string(30) "A list of modules to configure"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(17) "moduleGetEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#420 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(13) "ModuleCommand"
-  public string $desc =>
-  string(30) "operation applied successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#239 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#58 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#352 (1) {
-          public $value =>
-          string(25) "/module/%s/commands/%s/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#347 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#291 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#285 (4) {
-          public string $class =>
-          string(23) "ModuleSubcommandChannel"
-          public string $desc =>
-          string(20) "Parameters to change"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#420 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(13) "ModuleCommand"
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#320 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(36) "toggleCommandChannelSettingsEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#320 (4) {
-  public int $code =>
-  int(402)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(27) "Wrong or no operation given"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#239 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#58 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#352 (1) {
-          public $value =>
-          string(25) "/module/%s/commands/%s/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#347 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#291 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#285 (4) {
-          public string $class =>
-          string(23) "ModuleSubcommandChannel"
-          public string $desc =>
-          string(20) "Parameters to change"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#420 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(13) "ModuleCommand"
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#320 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(36) "toggleCommandChannelSettingsEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#18 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(30) "operation applied successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#67 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#418 (1) {
-    private $annotations =>
-    array(6) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#200 (1) {
-          public $value =>
-          string(22) "/module/%s/commands/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#164 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#152 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#345 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#27 (4) {
-          public string $class =>
-          string(9) "Operation"
-          public string $desc =>
-          string(28) "Either "enable" or "disable""
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#18 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#263 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(27) "toggleCommandStatusEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#263 (4) {
-  public int $code =>
-  int(402)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(27) "Wrong or no operation given"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#67 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#418 (1) {
-    private $annotations =>
-    array(6) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#200 (1) {
-          public $value =>
-          string(22) "/module/%s/commands/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#164 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#152 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#345 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#27 (4) {
-          public string $class =>
-          string(9) "Operation"
-          public string $desc =>
-          string(28) "Either "enable" or "disable""
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#18 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#263 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(27) "toggleCommandStatusEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#111 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(30) "operation applied successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#42 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#223 (1) {
-    private $annotations =>
-    array(7) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#307 (1) {
-          public $value =>
-          string(10) "/module/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#244 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#400 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#301 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#299 (4) {
-          public string $class =>
-          string(9) "Operation"
-          public string $desc =>
-          string(28) "Either "enable" or "disable""
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\QueryParam' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\QueryParam#355 (6) {
-          public string $name =>
-          string(7) "channel"
-          public bool $required =>
-          bool(false)
-          public string $in =>
-          string(5) "query"
-          public string $desc =>
-          string(38) "Either "msg", "priv", "guild" or "all""
-          public string $type =>
-          string(6) "string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#111 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#17 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(26) "toggleModuleStatusEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#17 (4) {
-  public int $code =>
-  int(402)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(27) "Wrong or no operation given"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#42 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#223 (1) {
-    private $annotations =>
-    array(7) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#307 (1) {
-          public $value =>
-          string(10) "/module/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PATCH' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PATCH#244 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#400 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#301 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#299 (4) {
-          public string $class =>
-          string(9) "Operation"
-          public string $desc =>
-          string(28) "Either "enable" or "disable""
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\QueryParam' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\QueryParam#355 (6) {
-          public string $name =>
-          string(7) "channel"
-          public bool $required =>
-          bool(false)
-          public string $in =>
-          string(5) "query"
-          public string $desc =>
-          string(38) "Either "msg", "priv", "guild" or "all""
-          public string $type =>
-          string(6) "string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#111 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(30) "operation applied successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#17 (4) {
-          public int $code =>
-          int(402)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(27) "Wrong or no operation given"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(26) "toggleModuleStatusEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#187 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(15) "ModuleSetting[]"
-  public string $desc =>
-  string(38) "A list of all settings for this module"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#413 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#75 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#151 (1) {
-          public $value =>
-          string(19) "/module/%s/settings"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#74 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#174 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#187 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(15) "ModuleSetting[]"
-          public string $desc =>
-          string(38) "A list of all settings for this module"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(28) "apiConfigSettingsGetEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#333 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(19) "ModuleEventConfig[]"
-  public string $desc =>
-  string(53) "A list of all events and their status for this module"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#342 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#209 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#227 (1) {
-          public $value =>
-          string(17) "/module/%s/events"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#145 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#12 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#333 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(19) "ModuleEventConfig[]"
-          public string $desc =>
-          string(53) "A list of all events and their status for this module"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(26) "apiConfigEventsGetEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#399 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(15) "ModuleCommand[]"
-  public string $desc =>
-  string(67) "A list of all command and possible subcommands this module provides"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#47 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#357 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#72 (1) {
-          public $value =>
-          string(19) "/module/%s/commands"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#296 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#391 (1) {
-          public $value =>
-          string(3) "mod"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#399 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(15) "ModuleCommand[]"
-          public string $desc =>
-          string(67) "A list of all command and possible subcommands this module provides"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(28) "apiConfigCommandsGetEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#144 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(19) "ModuleAccessLevel[]"
-  public string $desc =>
-  string(27) "A list of all access levels"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#130 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#331 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#133 (1) {
-          public $value =>
-          string(14) "/access_levels"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#281 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#167 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#144 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(19) "ModuleAccessLevel[]"
-          public string $desc =>
-          string(27) "A list of all access levels"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(32) "apiConfigAccessLevelsGetEndpoint"
-  public $class =>
-  string(46) "Nadybot\Core\Modules\CONFIG\ConfigApiConroller"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#46 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(6) "string"
-  public string $desc =>
-  string(16) "The stored value"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#288 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#43 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#397 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#20 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#14 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#46 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(16) "The stored value"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#334 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(15) "No value stored"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(21) "apiSettingGetEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#334 (4) {
-  public int $code =>
-  int(204)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(15) "No value stored"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#288 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#43 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#397 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#20 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#14 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#46 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(16) "The stored value"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#334 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(15) "No value stored"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(21) "apiSettingGetEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#363 (4) {
-  public int $code =>
-  int(201)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(39) "The new setting was stored successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#366 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#246 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#383 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\POST' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\POST#100 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#409 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(3) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#363 (4) {
-          public int $code =>
-          int(201)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(39) "The new setting was stored successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#305 (4) {
-          public int $code =>
-          int(409)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(33) "There is already a setting stored"
-          public $value =>
-          NULL
-        }
-        [2] =>
-        class Nadybot\Core\Annotations\ApiResult#4 (4) {
-          public int $code =>
-          int(415)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(48) "You tried to pass more than just a simple string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#388 (4) {
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(26) "The data you want to store"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(22) "apiSettingPostEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#305 (4) {
-  public int $code =>
-  int(409)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(33) "There is already a setting stored"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#366 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#246 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#383 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\POST' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\POST#100 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#409 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(3) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#363 (4) {
-          public int $code =>
-          int(201)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(39) "The new setting was stored successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#305 (4) {
-          public int $code =>
-          int(409)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(33) "There is already a setting stored"
-          public $value =>
-          NULL
-        }
-        [2] =>
-        class Nadybot\Core\Annotations\ApiResult#4 (4) {
-          public int $code =>
-          int(415)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(48) "You tried to pass more than just a simple string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#388 (4) {
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(26) "The data you want to store"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(22) "apiSettingPostEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#4 (4) {
-  public int $code =>
-  int(415)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(48) "You tried to pass more than just a simple string"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#366 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#246 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#383 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\POST' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\POST#100 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#409 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(3) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#363 (4) {
-          public int $code =>
-          int(201)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(39) "The new setting was stored successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#305 (4) {
-          public int $code =>
-          int(409)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(33) "There is already a setting stored"
-          public $value =>
-          NULL
-        }
-        [2] =>
-        class Nadybot\Core\Annotations\ApiResult#4 (4) {
-          public int $code =>
-          int(415)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(48) "You tried to pass more than just a simple string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#388 (4) {
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(26) "The data you want to store"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(22) "apiSettingPostEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#114 (4) {
-  public int $code =>
-  int(204)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(39) "The new setting was stored successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#393 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#205 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#172 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#25 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#330 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#114 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(39) "The new setting was stored successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#340 (4) {
-          public int $code =>
-          int(415)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(48) "You tried to pass more than just a simple string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#264 (4) {
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(26) "The data you want to store"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(21) "apiSettingPutEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#340 (4) {
-  public int $code =>
-  int(415)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(48) "You tried to pass more than just a simple string"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#393 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#205 (1) {
-    private $annotations =>
-    array(5) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#172 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\PUT' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\PUT#25 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#330 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#114 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(39) "The new setting was stored successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#340 (4) {
-          public int $code =>
-          int(415)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(48) "You tried to pass more than just a simple string"
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\RequestBody' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\RequestBody#264 (4) {
-          public string $class =>
-          string(6) "string"
-          public string $desc =>
-          string(26) "The data you want to store"
-          public bool $required =>
-          bool(true)
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(21) "apiSettingPutEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#203 (4) {
-  public int $code =>
-  int(204)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(40) "The new setting was deleted successfully"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#51 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#348 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#277 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\DELETE' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\DELETE#171 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#346 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#203 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(40) "The new setting was deleted successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#232 (4) {
-          public int $code =>
-          int(409)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(29) "No setting found for that key"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(24) "apiSettingDeleteEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#232 (4) {
-  public int $code =>
-  int(409)
-  public string $class =>
-  *uninitialized*
-  public string $desc =>
-  string(29) "No setting found for that key"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#51 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#348 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#277 (1) {
-          public $value =>
-          string(11) "/setting/%s"
-        }
-      }
-      'Nadybot\Core\Annotations\DELETE' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\DELETE#171 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#346 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(2) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#203 (4) {
-          public int $code =>
-          int(204)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(40) "The new setting was deleted successfully"
-          public $value =>
-          NULL
-        }
-        [1] =>
-        class Nadybot\Core\Annotations\ApiResult#232 (4) {
-          public int $code =>
-          int(409)
-          public string $class =>
-          *uninitialized*
-          public string $desc =>
-          string(29) "No setting found for that key"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(24) "apiSettingDeleteEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\PREFERENCES\Preferences"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#77 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(17) "SystemInformation"
-  public string $desc =>
-  string(29) "Some basic system information"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#188 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#139 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#365 (1) {
-          public $value =>
-          string(8) "/sysinfo"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#381 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevel' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevel#113 (1) {
-          public $value =>
-          string(3) "all"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#77 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(17) "SystemInformation"
-          public string $desc =>
-          string(29) "Some basic system information"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(21) "apiSysinfoGetEndpoint"
-  public $class =>
-  string(44) "Nadybot\Core\Modules\SYSTEM\SystemController"
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Nadybot\Core\Annotations\ApiResult#327 (4) {
-  public int $code =>
-  int(200)
-  public string $class =>
-  string(13) "OnlinePlayers"
-  public string $desc =>
-  string(24) "A list of online players"
-  public $value =>
-  NULL
-}
-/home/mark/bot/Nadybot/src/Api/ApiSpecGenerator.php:370:
-class Addendum\ReflectionAnnotatedMethod#220 (3) {
-  private $annotations =>
-  class Addendum\AnnotationsCollection#271 (1) {
-    private $annotations =>
-    array(4) {
-      'Nadybot\Core\Annotations\Api' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\Api#367 (1) {
-          public $value =>
-          string(7) "/online"
-        }
-      }
-      'Nadybot\Core\Annotations\GET' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\GET#159 (1) {
-          public $value =>
-          NULL
-        }
-      }
-      'Nadybot\Core\Annotations\AccessLevelFrom' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\AccessLevelFrom#195 (1) {
-          public $value =>
-          string(6) "online"
-        }
-      }
-      'Nadybot\Core\Annotations\ApiResult' =>
-      array(1) {
-        [0] =>
-        class Nadybot\Core\Annotations\ApiResult#327 (4) {
-          public int $code =>
-          int(200)
-          public string $class =>
-          string(13) "OnlinePlayers"
-          public string $desc =>
-          string(24) "A list of online players"
-          public $value =>
-          NULL
-        }
-      }
-    }
-  }
-  public $name =>
-  string(17) "apiOnlineEndpoint"
-  public $class =>
-  string(46) "Nadybot\Modules\ONLINE_MODULE\OnlineController"
-}
 {
 	"openapi": "3.0.0",
 	"info": {
@@ -1826,6 +42,15 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 					"num_settings": {
 						"type": "integer",
 						"description": "How many settings are there?"
+					}
+				}
+			},
+			"Operation": {
+				"type": "object",
+				"properties": {
+					"op": {
+						"type": "string",
+						"description": "The operation to perform"
 					}
 				}
 			},
@@ -1892,15 +117,6 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 						}
 					}
 				]
-			},
-			"Operation": {
-				"type": "object",
-				"properties": {
-					"op": {
-						"type": "string",
-						"description": "The operation to perform"
-					}
-				}
 			},
 			"SettingOption": {
 				"type": "object",
@@ -1972,6 +188,10 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 					"event": {
 						"type": "string",
 						"description": "The event for this module"
+					},
+					"handler": {
+						"type": "string",
+						"description": "The function handling this event"
 					},
 					"description": {
 						"type": "string",
@@ -2366,6 +586,194 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 				}
 			}
 		},
+		"/module/{module}/events/{event}/{handler}": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "event",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "handler",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate an event",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Module or Event not found"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate an event",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Module or Event not found"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/module/{module}/settings/{setting}": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "setting",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a setting's value",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Wrong module or setting"
+					},
+					"422": {
+						"description": "Invalid value given"
+					}
+				},
+				"requestBody": {
+					"description": "New value for the setting",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "bool"
+									},
+									{
+										"type": "int"
+									}
+								]
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a setting's value",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Wrong module or setting"
+					},
+					"422": {
+						"description": "Invalid value given"
+					}
+				},
+				"requestBody": {
+					"description": "New value for the setting",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "bool"
+									},
+									{
+										"type": "int"
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
 		"/module/{module}/commands/{command}/{channel}": {
 			"parameters": [
 				{
@@ -2411,7 +819,7 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 							}
 						}
 					},
-					"402": {
+					"422": {
 						"description": "Wrong or no operation given"
 					}
 				},
@@ -2530,7 +938,7 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 				],
 				"description": "Activate or deactivate a module",
 				"responses": {
-					"200": {
+					"204": {
 						"description": "operation applied successfully"
 					},
 					"402": {
@@ -2557,7 +965,7 @@ class Addendum\ReflectionAnnotatedMethod#220 (3) {
 				],
 				"description": "Activate or deactivate a module",
 				"responses": {
-					"200": {
+					"204": {
 						"description": "operation applied successfully"
 					},
 					"402": {

@@ -367,7 +367,6 @@ class ApiSpecGenerator {
 		}
 		foreach ($method->getAllAnnotations() as $anno) {
 			if ($anno instanceof ApiResult) {
-var_dump($anno, $method);
 				$doc->responses[$anno->code] = $anno;
 			} elseif ($anno instanceof RequestBody) {
 				$doc->requestBody = $anno;

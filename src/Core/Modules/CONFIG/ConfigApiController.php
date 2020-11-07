@@ -54,6 +54,41 @@ class ConfigApiConroller {
 	}
 
 	/**
+	 * Activate or deactivate an event
+	 * @Api("/module/%s/events/%s/%s")
+	 * @PATCH
+	 * @PUT
+	 * @AccessLevel("mod")
+	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
+	 * @ApiResult(code=204, desc='operation applied successfully')
+	 * @ApiResult(code=402, desc='Wrong or no operation given')
+	 * @ApiResult(code=404, desc='Module or Event not found')
+	 */
+	public function toggleEventStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $event, string $handler): Response {
+		$op = $request->decodedBody->op ?? null;
+		if (!in_array($op, ["enable", "disable"], true)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+
+		try {
+			if (!$this->configController->toggleEvent($event, $handler, $op === "enable")) {
+				return new Response(
+					Response::NOT_FOUND,
+					['Content-Type' => 'text/plain'],
+					"Event or handler not found"
+				);
+			}
+		} catch (Exception $e) {
+			return new Response(
+				Response::UNPROCESSABLE_ENTITY,
+				['Content-Type' => 'text/plain'],
+				$e->getMessage()
+			);
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
 	 * Change a setting's value
 	 * @Api("/module/%s/settings/%s")
 	 * @PATCH
@@ -79,7 +114,11 @@ class ConfigApiConroller {
 		}
 		if ($modSet->type === $modSet::TYPE_BOOL) {
 			if (!is_bool($value)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Bool value required");
+				return new Response(
+					Response::UNPROCESSABLE_ENTITY,
+					["Content-Type: text/plain"],
+					"Bool value required"
+				);
 			}
 			$value = $value ? "1" : "0";
 		} elseif (
@@ -94,10 +133,18 @@ class ConfigApiConroller {
 			)
 		) {
 			if (!is_int($value)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Integer value required");
+				return new Response(
+					Response::UNPROCESSABLE_ENTITY,
+					["Content-Type: text/plain"],
+					"Integer value required"
+				);
 			}
 		} elseif (!is_string($value)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "String value required");
+			return new Response(
+				Response::UNPROCESSABLE_ENTITY,
+				["Content-Type: text/plain"],
+				"String value required"
+			);
 		}
 		try {
 			$newValueToSave = $settingHandler->save((string)$value);
@@ -105,7 +152,11 @@ class ConfigApiConroller {
 				return new Response(Response::NOT_FOUND);
 			}
 		} catch (Exception $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Invalid value: " . $e->getMessage());
+			return new Response(
+				Response::UNPROCESSABLE_ENTITY,
+				["Content-Type: text/plain"],
+				"Invalid value: " . $e->getMessage()
+			);
 		}
 		return new Response(Response::NO_CONTENT);
 	}
