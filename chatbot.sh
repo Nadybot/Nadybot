@@ -2,7 +2,7 @@
 
 case $# in
 0)
-	php -f mainloop.php ./conf/config.php
+	php -f main.php ./conf/config.php
 ;;
 1)
 	param=`echo $1 | tr '[:upper:]' '[:lower:]'`
