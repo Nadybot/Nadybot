@@ -136,7 +136,7 @@ class SettingsController {
 		$name = strtolower($args[1]);
 		$newValue = $args[2];
 		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ?";
-		/** @var Setting $row */
+		/** @var ?Setting */
 		$setting = $this->db->fetch(Setting::class, $sql, $name);
 		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";

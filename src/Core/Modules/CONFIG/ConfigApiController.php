@@ -3,17 +3,21 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\{
-	EventCfg,
+use Nadybot\Core\{
+	DB,
+	DBSchema\EventCfg,
+	DBSchema\Setting,
+	InsufficientAccessException,
+	SettingManager,
 };
-use Nadybot\Core\InsufficientAccessException;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordRelayController;
 
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\{
+	DISCORD_GATEWAY_MODULE\DiscordRelayController,
+	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\Request,
+	WEBSERVER_MODULE\Response,
+};
 
 /**
  * @Instance
@@ -33,6 +37,9 @@ class ConfigApiConroller {
 	public ConfigController $configController;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public DB $db;
 
 	/**
@@ -47,13 +54,70 @@ class ConfigApiConroller {
 	}
 
 	/**
+	 * Change a setting's value
+	 * @Api("/module/%s/settings/%s")
+	 * @PATCH
+	 * @PUT
+	 * @AccessLevel("mod")
+	 * @RequestBody(class='string|bool|int', desc='New value for the setting', required=true)
+	 * @ApiResult(code=204, desc='operation applied successfully')
+	 * @ApiResult(code=404, desc='Wrong module or setting')
+	 * @ApiResult(code=422, desc='Invalid value given')
+	 */
+	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
+		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ? AND `module` = ?";
+		/** @var Setting */
+		$oldSetting = $this->db->fetch(Setting::class, $sql, $setting, $module);
+		if ($oldSetting === null) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$settingHandler = $this->settingManager->getSettingHandler($oldSetting);
+		$modSet = new ModuleSetting($oldSetting);
+		$value = $request->decodedBody ?? null;
+		if (!is_string($value) && !is_int($value) && !is_bool($value)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		if ($modSet->type === $modSet::TYPE_BOOL) {
+			if (!is_bool($value)) {
+				return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Bool value required");
+			}
+			$value = $value ? "1" : "0";
+		} elseif (
+			in_array(
+				$modSet->type,
+				[
+					$modSet::TYPE_DISCORD_CHANNEL,
+					$modSet::TYPE_INT_OPTIONS,
+					$modSet::TYPE_NUMBER,
+					$modSet::TYPE_TIME
+				]
+			)
+		) {
+			if (!is_int($value)) {
+				return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Integer value required");
+			}
+		} elseif (!is_string($value)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "String value required");
+		}
+		try {
+			$newValueToSave = $settingHandler->save((string)$value);
+			if (!$this->settingManager->save($setting, $newValueToSave)) {
+				return new Response(Response::NOT_FOUND);
+			}
+		} catch (Exception $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, ["Content-type: text/plain"], "Invalid value: " . $e->getMessage());
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
 	 * Activate or deactivate a Command
 	 * @Api("/module/%s/commands/%s/%s")
 	 * @PATCH
 	 * @AccessLevel("mod")
 	 * @RequestBody(class='ModuleSubcommandChannel', desc='Parameters to change', required=true)
 	 * @ApiResult(code=200, class='ModuleCommand', desc='operation applied successfully')
-	 * @ApiResult(code=402, desc='Wrong or no operation given')
+	 * @ApiResult(code=422, desc='Wrong or no operation given')
 	 */
 	public function toggleCommandChannelSettingsEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command, string $channel): Response {
 		/** @var ModuleSubcommandChannel */
@@ -149,7 +213,7 @@ class ConfigApiConroller {
 	 * @AccessLevel("mod")
 	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
 	 * @QueryParam(name='channel', type='string', desc='Either "msg", "priv", "guild" or "all"', required=false)
-	 * @ApiResult(code=200, desc='operation applied successfully')
+	 * @ApiResult(code=204, desc='operation applied successfully')
 	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
 	public function toggleModuleStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
