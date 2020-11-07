@@ -79,6 +79,7 @@ class ModuleSetting {
 				break;
 			case 'discord_channel':
 				$this->type = static::TYPE_DISCORD_CHANNEL;
+				$this->value = (string)$setting->value;
 				break;
 			case 'options':
 				if ($this->type === static::TYPE_BOOL) {
