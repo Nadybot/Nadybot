@@ -582,6 +582,14 @@ export default defineComponent({
     changeSetting: async function (setting: ModuleSetting): Promise<void> {
       if (this.selected) {
         await changeSetting(this.selected.name, setting.name, setting.value);
+
+        if (this.selected.name == "RAID_MODULE") {
+          let access_levels = await getAccessLevels();
+          access_levels.sort(function (a, b) {
+            return a.numeric_value - b.numeric_value;
+          });
+          this.access_levels = access_levels;
+        }
       }
     },
   },
