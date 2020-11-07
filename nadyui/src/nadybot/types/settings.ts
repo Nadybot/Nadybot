@@ -51,6 +51,8 @@ export interface ModuleSetting {
 export interface ModuleEventConfig {
   // The event for this module
   readonly event: string;
+  // The function handling this event
+  readonly handler: string;
   // What is supposed to happed when this event occurs?
   readonly description: string;
   // Is the event handler turned on?
@@ -62,6 +64,13 @@ export enum CommandType {
   Subcommand = "subcmd",
 }
 
+export interface ModuleSubcommandChannel {
+  // The access level you need to have in order to be allowed to use this command in this channel
+  access_level: string;
+  // Can this command be used in this channel?
+  enabled: boolean;
+}
+
 export interface ModuleSubcommand {
   // The string or regexp that has to match this command
   readonly command: string;
@@ -69,22 +78,12 @@ export interface ModuleSubcommand {
   readonly description: string;
   // Either "cmd" or "subcmd"
   readonly type: CommandType;
-  // The access level you need to have in order to be allowed to use this command
-  access_level: string;
-  // Is this command enabled?
-  enabled: boolean;
-  // Can this command be enabled in org channel?
-  readonly org_avail: boolean;
-  // Is this command enabled in org channel?
-  org_enabled: boolean;
-  // Can this command be enabled in priv channel?
-  readonly priv_avail: boolean;
-  // Is this command enabled in priv channel?
-  priv_enabled: boolean;
-  // Can this command be enabled in direct messages?
-  readonly msg_avail: boolean;
-  // Is this command enabled in direct messages?
-  msg_enabled: boolean;
+  // Settings for tells
+  msg: ModuleSubcommandChannel | null;
+  // Settings for private channel
+  priv: ModuleSubcommandChannel | null;
+  // Settings for org channel
+  org: ModuleSubcommandChannel | null;
 }
 
 export interface ModuleCommand extends ModuleSubcommand {
@@ -169,6 +168,7 @@ export const moduleSettingArrayDecoder = JsonDecoder.array(
 
 const moduleEventConfigDecoderMapping = {
   event: JsonDecoder.string,
+  handler: JsonDecoder.string,
   description: JsonDecoder.string,
   enabled: JsonDecoder.boolean,
 };
@@ -183,18 +183,22 @@ export const moduleEventConfigArrayDecoder = JsonDecoder.array(
   "ModuleEventConfigArray"
 );
 
+const moduleSubcommandChannelDecoderMapping = {
+  access_level: JsonDecoder.string,
+  enabled: JsonDecoder.boolean,
+};
+
+const moduleSubcommandChannelDecoder = JsonDecoder.objectStrict<
+  ModuleSubcommandChannel
+>(moduleSubcommandChannelDecoderMapping, "ModuleSubcommandChannel");
+
 const moduleSubcommandDecoderMapping = {
   command: JsonDecoder.string,
   description: JsonDecoder.string,
   type: commandTypeDecoder,
-  access_level: JsonDecoder.string,
-  enabled: JsonDecoder.boolean,
-  org_avail: JsonDecoder.boolean,
-  org_enabled: JsonDecoder.boolean,
-  priv_avail: JsonDecoder.boolean,
-  priv_enabled: JsonDecoder.boolean,
-  msg_avail: JsonDecoder.boolean,
-  msg_enabled: JsonDecoder.boolean,
+  msg: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
+  priv: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
+  org: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
 };
 
 const moduleSubcommandDecoder = JsonDecoder.objectStrict<ModuleSubcommand>(

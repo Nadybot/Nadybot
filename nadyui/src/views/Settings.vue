@@ -104,8 +104,7 @@
           <thead>
             <tr class="table-head-light">
               <th scope="col" class="text-nowrap">Command</th>
-              <th scope="col" class="w-75">Description</th>
-              <th scope="col" class="w-25">Access Level</th>
+              <th scope="col" class="desc">Description</th>
               <th scope="col">Org</th>
               <th scope="col">Priv</th>
               <th scope="col">Tell</th>
@@ -133,37 +132,79 @@
                 </td>
                 <td>{{ command.description }}</td>
                 <td>
-                  <select class="form-control custom-select custom-select-sm">
-                    <option
-                      v-for="access_level in access_levels"
-                      :key="access_level.name"
-                      :selected="access_level.value == command.access_level"
-                      :disabled="!access_level.enabled"
-                    >
-                      {{ access_level.name }}
-                    </option>
-                  </select>
+                  <div class="input-group" v-if="command.org">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :checked="command.org.enabled == true"
+                        />
+                      </div>
+                    </div>
+                    <select class="form-control custom-select custom-select-sm">
+                      <option
+                        v-for="access_level in access_levels"
+                        :key="access_level.name"
+                        :selected="
+                          access_level.value == command.org.access_level
+                        "
+                        :disabled="!access_level.enabled"
+                      >
+                        {{ access_level.name }}
+                      </option>
+                    </select>
+                  </div>
+                  <template v-else>Unavailable</template>
                 </td>
                 <td>
-                  <input
-                    type="checkbox"
-                    :disabled="command.org_avail == false"
-                    :checked="command.org_enabled == true"
-                  />
+                  <div class="input-group" v-if="command.priv">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :checked="command.priv.enabled == true"
+                        />
+                      </div>
+                    </div>
+                    <select class="form-control custom-select custom-select-sm">
+                      <option
+                        v-for="access_level in access_levels"
+                        :key="access_level.name"
+                        :selected="
+                          access_level.value == command.priv.access_level
+                        "
+                        :disabled="!access_level.enabled"
+                      >
+                        {{ access_level.name }}
+                      </option>
+                    </select>
+                  </div>
+                  <template v-else>Unavailable</template>
                 </td>
                 <td>
-                  <input
-                    type="checkbox"
-                    :disabled="command.priv_avail == false"
-                    :checked="command.priv_enabled == true"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    :disabled="command.msg_avail == false"
-                    :checked="command.msg_enabled == true"
-                  />
+                  <div class="input-group" v-if="command.msg">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :checked="command.msg.enabled == true"
+                        />
+                      </div>
+                    </div>
+                    <select class="form-control custom-select custom-select-sm">
+                      <option
+                        v-for="access_level in access_levels"
+                        :key="access_level.name"
+                        :selected="
+                          access_level.value == command.msg.access_level
+                        "
+                        :disabled="!access_level.enabled"
+                      >
+                        {{ access_level.name }}
+                      </option>
+                    </select>
+                  </div>
+                  <template v-else>Unavailable</template>
                 </td>
               </tr>
 
@@ -182,39 +223,85 @@
                   </td>
                   <td>{{ subcommand.description }}</td>
                   <td>
-                    <select class="form-control custom-select custom-select-sm">
-                      <option
-                        v-for="access_level in access_levels"
-                        :key="access_level.name"
-                        :selected="
-                          access_level.value == subcommand.access_level
-                        "
-                        :disabled="!access_level.enabled"
+                    <div class="input-group" v-if="subcommand.org">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">
+                          <input
+                            type="checkbox"
+                            :checked="subcommand.org.enabled == true"
+                          />
+                        </div>
+                      </div>
+                      <select
+                        class="form-control custom-select custom-select-sm"
                       >
-                        {{ access_level.name }}
-                      </option>
-                    </select>
+                        <option
+                          v-for="access_level in access_levels"
+                          :key="access_level.name"
+                          :selected="
+                            access_level.value == subcommand.org.access_level
+                          "
+                          :disabled="!access_level.enabled"
+                        >
+                          {{ access_level.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <template v-else>Unavailable</template>
                   </td>
                   <td>
-                    <input
-                      type="checkbox"
-                      :disabled="subcommand.org_avail == false"
-                      :checked="subcommand.org_enabled == true"
-                    />
+                    <div class="input-group" v-if="subcommand.priv">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">
+                          <input
+                            type="checkbox"
+                            :checked="subcommand.priv.enabled == true"
+                          />
+                        </div>
+                      </div>
+                      <select
+                        class="form-control custom-select custom-select-sm"
+                      >
+                        <option
+                          v-for="access_level in access_levels"
+                          :key="access_level.name"
+                          :selected="
+                            access_level.value == subcommand.priv.access_level
+                          "
+                          :disabled="!access_level.enabled"
+                        >
+                          {{ access_level.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <template v-else>Unavailable</template>
                   </td>
                   <td>
-                    <input
-                      type="checkbox"
-                      :disabled="subcommand.priv_avail == false"
-                      :checked="subcommand.priv_enabled == true"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      :disabled="subcommand.msg_avail == false"
-                      :checked="subcommand.msg_enabled == true"
-                    />
+                    <div class="input-group" v-if="subcommand.msg">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">
+                          <input
+                            type="checkbox"
+                            :checked="subcommand.msg.enabled == true"
+                          />
+                        </div>
+                      </div>
+                      <select
+                        class="form-control custom-select custom-select-sm"
+                      >
+                        <option
+                          v-for="access_level in access_levels"
+                          :key="access_level.name"
+                          :selected="
+                            access_level.value == subcommand.msg.access_level
+                          "
+                          :disabled="!access_level.enabled"
+                        >
+                          {{ access_level.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <template v-else>Unavailable</template>
                   </td>
                 </tr>
               </template>
@@ -288,6 +375,10 @@ td {
 
 .border-left-thick {
   border-left: 3px solid #424242;
+}
+
+.desc {
+  width: 40%;
 }
 </style>
 
