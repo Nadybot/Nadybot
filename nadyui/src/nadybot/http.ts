@@ -62,3 +62,15 @@ export async function toggleModule(
   const op = enabled ? "enable" : "disable";
   await axios.put(`/api/module/${name}`, { op: op });
 }
+
+export async function toggleEvent(
+  module: string,
+  name: string,
+  handler: string,
+  enabled: boolean
+): Promise<void> {
+  const op = enabled ? "enable" : "disable";
+  await axios.put(`/api/module/${module}/events/${name}/${handler}`, {
+    op: op,
+  });
+}

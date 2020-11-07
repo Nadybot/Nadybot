@@ -96,7 +96,10 @@
                 >{{ event.description }}
                 <span class="custom-muted ml-5">{{ event.event }}</span></span
               >
-              <toggle :initial="event.enabled"></toggle>
+              <toggle
+                :initial="event.enabled"
+                :handler="toggleEvent.bind(null, event)"
+              ></toggle>
             </li>
           </ul>
         </div>
@@ -391,6 +394,7 @@ import {
   getModuleCommands,
   getAccessLevels,
   toggleModule,
+  toggleEvent,
 } from "@/nadybot/http";
 import {
   ConfigModule,
@@ -475,6 +479,19 @@ export default defineComponent({
           return a.numeric_value - b.numeric_value;
         });
         this.access_levels = access_levels;
+      }
+    },
+    toggleEvent: async function (
+      event: ModuleEventConfig,
+      enabled: boolean
+    ): Promise<void> {
+      if (this.selected) {
+        await toggleEvent(
+          this.selected.name,
+          event.event,
+          event.handler,
+          enabled
+        );
       }
     },
   },
