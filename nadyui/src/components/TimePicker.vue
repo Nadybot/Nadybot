@@ -2,8 +2,8 @@
   <div class="input-group">
     <select
       class="form-control col-4 custom-select custom-select-sm"
-      :value="hour"
-      v-model="hour"
+      v-model.number="hour"
+      @change="update"
     >
       <option v-for="hour in 24" :key="hour" :value="hour - 1">
         {{ hour - 1 }}h
@@ -11,8 +11,8 @@
     </select>
     <select
       class="form-control col-4 custom-select custom-select-sm"
-      :value="minute"
-      v-model="minute"
+      v-model.number="minute"
+      @change="update"
     >
       <option v-for="minute in 60" :key="minute" :value="minute - 1">
         {{ minute - 1 }}m
@@ -20,8 +20,8 @@
     </select>
     <select
       class="form-control col-4 custom-select custom-select-sm"
-      :value="second"
-      v-model="second"
+      v-model.number="second"
+      @change="update"
     >
       <option v-for="second in 60" :key="second" :value="second - 1">
         {{ second - 1 }}s
@@ -45,11 +45,18 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "TimePicker",
   props: {
-    initialValue: {
-      name: "initial-value",
+    modelValue: {
       type: Number,
       required: false,
       default: 0,
+    },
+  },
+  methods: {
+    update: function () {
+      this.$emit(
+        "update:modelValue",
+        this.hour * 3600 + this.minute * 60 + this.second
+      );
     },
   },
   data: function () {
@@ -59,14 +66,9 @@ export default defineComponent({
       second: 0,
     };
   },
-  computed: {
-    value(): number {
-      return this.hour * 3600 + this.minute * 60 + this.second;
-    },
-  },
   created() {
-    this.hour = Math.floor(this.initialValue / 3600);
-    let left_seconds = this.initialValue - this.hour * 3600;
+    this.hour = Math.floor(this.modelValue / 3600);
+    let left_seconds = this.modelValue - this.hour * 3600;
     this.minute = Math.floor(left_seconds / 60);
     this.second = left_seconds - this.minute * 60;
   },

@@ -3,8 +3,8 @@
     type="button"
     class="btn btn-toggle"
     data-toggle="button"
-    :aria-pressed="toggled"
-    :class="{ active: toggled === true }"
+    :aria-pressed="modelValue"
+    :class="{ active: modelValue }"
     @click="toggleState"
     autocomplete="off"
   >
@@ -112,27 +112,15 @@ export default defineComponent({
 
   methods: {
     toggleState: function (): void {
-      this.toggled = !this.toggled;
-
-      if (this.handler) {
-        this.handler(this.toggled);
-      }
+      this.$emit("update:modelValue", !this.modelValue);
+      this.$emit("change");
     },
-  },
-
-  created(): void {
-    this.toggled = this.initial;
   },
 
   props: {
-    initial: {
+    modelValue: {
       type: Boolean,
-      required: false,
-      default: true,
-    },
-    handler: {
-      type: Function,
-      required: false,
+      required: true,
     },
   },
 });
