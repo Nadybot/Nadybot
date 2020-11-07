@@ -125,7 +125,6 @@ class ConfigApiConroller {
 			in_array(
 				$modSet->type,
 				[
-					$modSet::TYPE_DISCORD_CHANNEL,
 					$modSet::TYPE_INT_OPTIONS,
 					$modSet::TYPE_NUMBER,
 					$modSet::TYPE_TIME
@@ -145,6 +144,11 @@ class ConfigApiConroller {
 				["Content-Type: text/plain"],
 				"String value required"
 			);
+		}
+		if ($modSet->type === $modSet::TYPE_COLOR) {
+			if (preg_match("/(#[0-9a-fA-F]{6})/", $value, $matches)) {
+				$value = "<font color='{$matches[1]}'>";
+			}
 		}
 		try {
 			$newValueToSave = $settingHandler->save((string)$value);
