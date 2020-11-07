@@ -113,6 +113,10 @@ export default defineComponent({
   methods: {
     toggleState: function (): void {
       this.toggled = !this.toggled;
+
+      if (this.handler) {
+        this.handler(this.toggled);
+      }
     },
   },
 
@@ -125,6 +129,10 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: true,
+    },
+    handler: {
+      type: Function,
+      required: false,
     },
   },
 });
