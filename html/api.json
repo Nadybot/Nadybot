@@ -722,10 +722,10 @@
 										"type": "string"
 									},
 									{
-										"type": "bool"
+										"type": "boolean"
 									},
 									{
-										"type": "int"
+										"type": "integer"
 									}
 								]
 							}
@@ -762,10 +762,10 @@
 										"type": "string"
 									},
 									{
-										"type": "bool"
+										"type": "boolean"
 									},
 									{
-										"type": "int"
+										"type": "integer"
 									}
 								]
 							}

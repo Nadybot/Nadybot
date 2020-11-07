@@ -419,7 +419,7 @@ class ApiSpecGenerator {
 
 	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
-			return ["type" => $class];
+			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];
 		}
 		return ['$ref' => "#/components/schemas/{$class}"];
 	}
