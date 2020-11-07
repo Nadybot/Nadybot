@@ -82,8 +82,12 @@ export async function toggleCommand(
   access_level: string,
   enabled: boolean
 ): Promise<void> {
-  await axios.put(`/api/module/${module}/commands/${name}/${channel}`, {
-    access_level: access_level,
-    enabled: enabled,
-  });
+  const encoded_command_name = encodeURIComponent(name);
+  await axios.put(
+    `/api/module/${module}/commands/${encoded_command_name}/${channel}`,
+    {
+      access_level: access_level,
+      enabled: enabled,
+    }
+  );
 }
