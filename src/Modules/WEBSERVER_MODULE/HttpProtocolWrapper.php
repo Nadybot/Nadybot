@@ -421,7 +421,7 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers['content-type'])) {
 			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
 		}
-		if ($this->request->headers['content-type'] === 'application/json') {
+		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
 			try {
 				$this->request->decodedBody = json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
 				return null;
@@ -429,7 +429,7 @@ class HttpProtocolWrapper {
 				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
 			}
 		}
-		if ($this->request->headers['content-type'] === 'application/x-www-form-urlencoded') {
+		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
 			$parts = explode("&", $this->request->body);
 			$result = new stdClass();
 			foreach ($parts as $part) {
