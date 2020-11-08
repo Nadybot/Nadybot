@@ -97,12 +97,11 @@ export async function changeSetting(
   name: string,
   value: string | number | boolean | null
 ): Promise<void> {
-  // Very ugly and hacky way
-  if (typeof value == "string") {
-    value = JSON.stringify(value);
-  }
-
-  await axios.put(`/api/module/${module}/settings/${name}`, value?.toString(), {
-    headers: { "Content-Type": "application/json" },
-  });
+  await axios.put(
+    `/api/module/${module}/settings/${name}`,
+    JSON.stringify(value),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }

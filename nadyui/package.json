@@ -1,7 +1,11 @@
 {
   "name": "nadyui",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.0-rc.1",
+  "author": "Jens Reidel <adrian@travitia.xyz>",
+  "homepage": "https://github.com/Nadybot/nadyui",
+  "bugs": "https://github.com/Nadybot/nadyui/issues",
+  "repository": "github:Nadybot/nadyui",
+  "license": "BSD-3-Clause",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
