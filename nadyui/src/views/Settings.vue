@@ -144,10 +144,15 @@
               :key="command.command"
             >
               <tr>
-                <td :class="{ 'pad-left': command.subcommands.length == 0 }">
+                <td
+                  :class="{
+                    'pad-left': command.subcommands.length == 0,
+                    clickable: command.subcommands.length > 0,
+                  }"
+                  @click="selectCommand(command)"
+                >
                   <fa
                     v-if="command.subcommands.length > 0"
-                    @click="selectCommand(command)"
                     :icon="
                       selected_command &&
                       command.command == selected_command.command
@@ -451,6 +456,11 @@ td {
 
 .border-left-thick {
   border-left: 3px solid #424242;
+}
+
+td.clickable:hover,
+.module-item:hover {
+  cursor: pointer;
 }
 </style>
 

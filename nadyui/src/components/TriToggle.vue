@@ -119,9 +119,7 @@ export default defineComponent({
         next_toggle = true;
       }
 
-      console.log(`next value is ${next_toggle}`);
       this.$emit("update:modelValue", next_toggle);
-      this.$emit("click");
     },
   },
 
