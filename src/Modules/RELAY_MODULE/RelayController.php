@@ -188,6 +188,118 @@ class RelayController {
 			'',
 			'none'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_bot_color_org',
+			"Color of bot messages from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_bot_color_priv',
+			"Color of bot messages from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guild_tag_color_org',
+			"Color of the guild name tag from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guild_tag_color_priv',
+			"Color of the guild name tag from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guild_color_org',
+			"Color of the org chat from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guild_color_priv',
+			"Color of the org chat from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guest_tag_color_org',
+			"Color of the [Guest] tag from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guest_tag_color_priv',
+			"Color of the [Guest] tag from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guest_color_org',
+			"Color of the guest channel messages from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guest_color_priv',
+			"Color of the guest channel messages from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_raidbot_tag_color_org',
+			"Color of the raidboot name tag from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_raidbot_tag_color_priv',
+			"Color of the raidboot name tag from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_raidbot_color_org',
+			"Color of the raidboot chat from relay to org channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_raidbot_color_priv',
+			"Color of the raidboot chat from relay to priv channel",
+			'edit',
+			"color",
+			"<font color='#C3C3C3'>"
+		);
 		
 		$this->commandAlias->register(
 			$this->moduleName,
@@ -291,6 +403,34 @@ class RelayController {
 	public function receiveRelayMessagePrivEvent(Event $eventObj): void {
 		$this->processIncomingRelayMessage($eventObj->sender, $eventObj->message);
 	}
+
+	public function replaceRelayColors(string $channel, string $text): string {
+		$colors = [
+			"relay_bot_color",
+			"relay_guild_tag_color",
+			"relay_guild_color",
+			"relay_guest_tag_color",
+			"relay_guest_color",
+			"relay_raidbot_tag_color",
+			"relay_raidbot_color",
+
+		];
+		if (substr($text, 0, 4) === "<v2>") {
+			$text = str_replace("</end>", "</font>", $text);
+			return preg_replace_callback(
+				"/<(" . join("|", $colors) . ")>/",
+				function (array $matches) use ($channel): string {
+					return $this->settingManager->getString($matches[1] . "_{$channel}");
+				},
+				substr($text, 4)
+			);
+		}
+		if ($channel === "org") {
+			return $this->settingManager->getString('relay_color_guild') . $text;
+		} else {
+			return $this->settingManager->getString('relay_color_priv') . $text;
+		}
+	}
 	
 	public function processIncomingRelayMessage(string $sender, string $message): void {
 		if (!in_array(strtolower($sender), explode(",", strtolower($this->settingManager->getString('relaybot'))))
@@ -299,12 +439,18 @@ class RelayController {
 		}
 		$msg = $arr[1];
 		if (!$this->matchesFilter($this->settingManager->getString('relay_filter_in'), $message)) {
-			$this->chatBot->sendGuild($this->settingManager->getString('relay_color_guild') . $msg, true);
+			$this->chatBot->sendGuild(
+				$this->replaceRelayColors("org", $msg),
+				true
+			);
 		}
 
 		if ($this->settingManager->getBool("guest_relay")) {
 			if (!$this->matchesFilter($this->settingManager->getString('relay_filter_in_priv'), $message)) {
-				$this->chatBot->sendPrivate($this->settingManager->getString('relay_color_priv') . $msg, true);
+				$this->chatBot->sendPrivate(
+					$this->replaceRelayColors("priv", $msg),
+					true
+				);
 			}
 		}
 	}
@@ -385,18 +531,30 @@ class RelayController {
 		}
 
 		if (!$this->util->isValidSender($sender)) {
-			$sender_link = '';
+			$sender_link = '<relay_bot_color>';
 		} else {
 			$sender_link = ' ' . $this->text->makeUserlink($sender) . ':';
 		}
 
 		if ($type === "guild") {
-			$msg = "grc [<myguild>]{$sender_link} {$relayMessage}";
+			$msg = "grc <v2><relay_guild_tag_color>[<myguild>]</end>{$sender_link} ";
+			if ($this->util->isValidSender($sender)) {
+				$msg .= "<relay_guild_color>";
+			}
+			$msg .= "{$relayMessage}</end>";
 		} elseif ($type === "priv") {
 			if (strlen($this->chatBot->vars["my_guild"])) {
-				$msg = "grc [<myguild>] [Guest]{$sender_link} {$relayMessage}";
+				$msg = "grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_guest_tag_color>[Guest]</end>{$sender_link} ";
+				if ($this->util->isValidSender($sender)) {
+					$msg .= "<relay_guest_color>";
+				}
+				$msg .= "{$relayMessage}</end>";
 			} else {
-				$msg = "grc [<myname>]{$sender_link} {$relayMessage}";
+				$msg = "grc <v2><relay_raidbot_tag_color>[<myname>]</end>{$sender_link} ";
+				if ($this->util->isValidSender($sender)) {
+					$msg .= "<relay_raidbot_color>";
+				}
+				$msg .= "{$relayMessage}</end>";
 			}
 		} else {
 			$this->logger->log('WARN', "Invalid type; expecting 'guild' or 'priv'.  Actual: '$type'");
@@ -426,7 +584,7 @@ class RelayController {
 		if ($this->settingManager->getString("relaybot") === "Off") {
 			return;
 		}
-		$msg = "grc [<myguild>] {$eventObj->message}<end>";
+		$msg = "grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>{$eventObj->message}</end><end>";
 		$this->sendMessageToRelay($msg);
 	}
 	
@@ -463,9 +621,9 @@ class RelayController {
 		}
 
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc [<myguild>] ".$msg);
+			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>".$msg);
 		} else {
-			$this->sendMessageToRelay("grc [<myname>] ".$msg);
+			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>".$msg);
 		}
 	}
 	
@@ -482,9 +640,9 @@ class RelayController {
 			return;
 		}
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc [<myguild>] <highlight>{$sender}<end> logged off");
+			$this->sendMessageToRelay("grc <v2><relay_guest_tag_color>[<myguild>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
 		} else {
-			$this->sendMessageToRelay("grc [<myname>] <highlight>{$sender}<end> logged off");
+			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
 		}
 	}
 	
@@ -515,9 +673,9 @@ class RelayController {
 		}
 
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc [<myguild>] " . $msg);
+			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>" . $msg);
 		} else {
-			$this->sendMessageToRelay("grc [<myname>] " . $msg);
+			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>" . $msg);
 		}
 	}
 	
@@ -532,9 +690,9 @@ class RelayController {
 		}
 		$msg = "<highlight>{$sender}<end> has left the private channel.";
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc [<myguild>] " . $msg);
+			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>" . $msg);
 		} else {
-			$this->sendMessageToRelay("grc [<myname>] " . $msg);
+			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>" . $msg);
 		}
 	}
 	
