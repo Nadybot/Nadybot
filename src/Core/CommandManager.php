@@ -383,7 +383,7 @@ class CommandManager {
 				if ($arr !== false) {
 					// methods will return false to indicate a syntax error, so when a false is returned,
 					// we set $syntaxError = true, otherwise we set it to false
-					$syntaxError = ($instance->$method($message, $channel, $sender, $sendto, $arr) === false);
+					$syntaxError = ($instance->$method($message, $channel, $sender, $sendto, is_bool($arr) ? [] : $arr) === false);
 					if ($syntaxError == false) {
 						// we can stop looking, command was handled successfully
 
