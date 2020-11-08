@@ -11,8 +11,8 @@
         >
           {{ module.name }}
           <tri-toggle
-            :initial="getClassForModule(module)"
-            :handler="toggleModule.bind(null, module)"
+            :model-value="getClassForModule(module)"
+            @update:model-value="toggleModule(module, $event)"
           ></tri-toggle>
         </li>
       </ul>
@@ -386,7 +386,7 @@
         </table>
       </div>
     </div>
-    <h2 class="pl-5" v-else>Select a module to change its configuation.</h2>
+    <h2 class="pl-5" v-else>Select a module to change its configuration.</h2>
   </div>
 </template>
 
@@ -541,17 +541,14 @@ export default defineComponent({
       enabled: boolean
     ): Promise<void> {
       await toggleModule(module.name, enabled);
+      await this.reloadModules();
 
       if (this.selected && this.selected.name == module.name) {
         await this.selectModule(module);
       }
 
       if (module.name == "RAID_MODULE") {
-        let access_levels = await getAccessLevels();
-        access_levels.sort(function (a, b) {
-          return a.numeric_value - b.numeric_value;
-        });
-        this.access_levels = access_levels;
+        await this.reloadAccessLevels();
       }
     },
     toggleEvent: async function (event: ModuleEventConfig): Promise<void> {
@@ -562,6 +559,8 @@ export default defineComponent({
           event.handler,
           event.enabled
         );
+
+        await this.reloadModules();
       }
     },
     toggleCommand: async function (
@@ -577,6 +576,12 @@ export default defineComponent({
           config.access_level,
           config.enabled
         );
+
+        if (this.selected.name == "RAID_MODULE") {
+          await this.reloadAccessLevels();
+        }
+
+        await this.reloadModules();
       }
     },
     changeSetting: async function (setting: ModuleSetting): Promise<void> {
@@ -584,13 +589,19 @@ export default defineComponent({
         await changeSetting(this.selected.name, setting.name, setting.value);
 
         if (this.selected.name == "RAID_MODULE") {
-          let access_levels = await getAccessLevels();
-          access_levels.sort(function (a, b) {
-            return a.numeric_value - b.numeric_value;
-          });
-          this.access_levels = access_levels;
+          await this.reloadAccessLevels();
         }
       }
+    },
+    reloadAccessLevels: async function (): Promise<void> {
+      let access_levels = await getAccessLevels();
+      access_levels.sort(function (a, b) {
+        return a.numeric_value - b.numeric_value;
+      });
+      this.access_levels = access_levels;
+    },
+    reloadModules: async function (): Promise<void> {
+      this.modules = await getModules();
     },
   },
 

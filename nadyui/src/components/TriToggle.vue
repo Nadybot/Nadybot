@@ -3,7 +3,7 @@
     type="button"
     class="btn btn-tri-toggle"
     data-toggle="button"
-    :class="toggled"
+    :class="modelValue"
     @click="toggleState"
     autocomplete="off"
   >
@@ -108,45 +108,28 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "TriToggle",
 
-  data: function () {
-    return {
-      toggled: "none",
-    };
-  },
-
   methods: {
     toggleState: function (): void {
-      if (this.toggled == "some") {
-        this.toggled = "all";
-      } else if (this.toggled == "all") {
-        this.toggled = "none";
+      let next_toggle;
+      if (this.modelValue == "some") {
+        next_toggle = true;
+      } else if (this.modelValue == "all") {
+        next_toggle = false;
       } else {
-        this.toggled = "all";
+        next_toggle = true;
       }
 
-      if (this.handler) {
-        if (this.toggled == "all") {
-          this.handler(true);
-        } else {
-          this.handler(false);
-        }
-      }
+      console.log(`next value is ${next_toggle}`);
+      this.$emit("update:modelValue", next_toggle);
+      this.$emit("click");
     },
-  },
-
-  created(): void {
-    this.toggled = this.initial;
   },
 
   props: {
-    initial: {
+    modelValue: {
       type: String,
       required: false,
       default: "none",
-    },
-    handler: {
-      type: Function,
-      required: false,
     },
   },
 });
