@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -73,6 +74,9 @@ class RaidController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public PlayerManager $playerManager;
 
 	/** @Inject */
 	public Timer $timer;
@@ -625,6 +629,69 @@ class RaidController {
 				" - {$log->reason}  (by {$log->changed_by})\n";
 		}
 		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$args[2]}", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid dual$/i")
+	 */
+	public function raidDualCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
+		/** @var array<string,bool> */
+		$mains = [];
+		/** @var array<string,array<string,bool>> */
+		$duals = [];
+		foreach ($this->raid->raiders as $name => $raider) {
+			if ($raider->left !== null) {
+				continue;
+			}
+			$altInfo = $this->altsController->getAltInfo($raider->player);
+			if (isset($mains[$altInfo->main])) {
+				continue;
+			}
+			$mains[$altInfo->main] = true;
+			foreach ($altInfo->alts as $alt => $true) {
+				if ($alt === $name) {
+					continue;
+				}
+				if (!isset($this->chatBot->chatlist[$alt])) {
+					continue;
+				}
+				$duals[$name] ??= [];
+				$duals[$name][$alt] = isset($this->raid->raiders[$alt]);
+			}
+		}
+		if (!count($duals)) {
+			$sendto->reply("No one is currently dual-logged.");
+			return;
+		}
+		$blob = "";
+		foreach ($duals as $name => $alts) {
+			$player = $this->playerManager->getByName($name);
+			if ($player === null) {
+				continue;
+			}
+			$blob .="<header2>{$name}<end>\n";
+			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
+			foreach ($alts as $alt => $inRaid) {
+				$player = $this->playerManager->getByName($alt);
+				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
+				if ($inRaid) {
+					$blob .= " :: <red>in raid<end>";
+				}
+				$blob .= "\n";
+			}
+			$blob .= "\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Dual-logged players (" . count($duals) .")",
+			$blob,
+			"Dual-logged players with at last 1 char in the raid"
+		);
 		$sendto->reply($msg);
 	}
 
