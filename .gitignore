@@ -9,3 +9,5 @@
 *.xcworkspace
 /extras
 /vendor
+/html/*
+!/html/api.json
