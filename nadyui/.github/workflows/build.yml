@@ -11,7 +11,34 @@ jobs:
       - name: Build files
         run: |
           ./build.sh
-      - uses: actions/upload-artifact@v2
+          cd dist
+          zip -r nadyui.zip *
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Create release
+        uses: pajlada/create-release@v2.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: dist-html
-          path: dist/
+          tag_name: ci-${{ steps.extract_branch.outputs.branch }}
+          release_name: ${{ steps.extract_branch.outputs.branch }}
+          body: |
+              1 ${{ github.eventName }}
+              2 ${{ github.sha }}
+              3 ${{ github.ref }}
+              4 ${{ github.workflow }}
+              5 ${{ github.action }}
+              6 ${{ github.actor }}
+          prerelease: true
+          id: create_release
+      - name: Upload build artifact
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./nadyui.zip
+          asset_name: nadyui.zip
+          asset_content_type: application/zip
