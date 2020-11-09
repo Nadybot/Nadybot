@@ -1,5 +1,5 @@
 <template>
-  <img :src="require(`@/assets/${profession}.png`)" />
+  <img :src="require(`@/assets/${profession}.svg`)" />
 </template>
 
 <style lang="scss" scoped>

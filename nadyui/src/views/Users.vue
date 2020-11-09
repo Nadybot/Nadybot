@@ -7,7 +7,7 @@
     <template v-slot:head>
       <thead class="thead-dark">
         <tr>
-          <v-th sortKey="main_character" defaultSort="desc" scope="col"
+          <v-th sortKey="main_character" defaultSort="asc" scope="col"
             >Main</v-th
           >
           <v-th sortKey="profession" scope="col">Profession</v-th>

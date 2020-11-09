@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg309"
+   width="527.85614"
+   height="565.36169"
+   viewBox="0 0 527.85615 565.3617"
+   sodipodi:docname="Nano-Technician.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata315">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs313">
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Colorize"
+       id="filter325">
+      <feColorMatrix
+         values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 -0.21 -0.72 -0.07 2 0 "
+         result="fbSourceGraphic"
+         id="feColorMatrix323" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix327" />
+      <feComposite
+         in2="fbSourceGraphic"
+         id="feComposite329"
+         operator="arithmetic"
+         k1="0.463936"
+         k2="1"
+         result="composite1"
+         in="fbSourceGraphic"
+         k3="0"
+         k4="0" />
+      <feColorMatrix
+         id="feColorMatrix331"
+         in="composite1"
+         values="1"
+         type="saturate"
+         result="colormatrix1" />
+      <feFlood
+         id="feFlood333"
+         flood-opacity="1"
+         flood-color="rgb(0,177,255)"
+         result="flood1" />
+      <feBlend
+         in2="colormatrix1"
+         id="feBlend335"
+         in="flood1"
+         mode="multiply"
+         result="blend1" />
+      <feBlend
+         in2="blend1"
+         id="feBlend337"
+         mode="screen"
+         result="blend2" />
+      <feColorMatrix
+         id="feColorMatrix339"
+         in="blend2"
+         values="1"
+         type="saturate"
+         result="colormatrix2" />
+      <feComposite
+         in2="fbSourceGraphic"
+         id="feComposite341"
+         in="colormatrix2"
+         operator="in"
+         result="composite2" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1028"
+     id="namedview311"
+     showgrid="false"
+     inkscape:zoom="1.2480468"
+     inkscape:cx="47.312535"
+     inkscape:cy="293.71042"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g317" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g317"
+     transform="translate(-294.82206,-47.622921)">
+    <path
+       style="fill:#000000;stroke-width:1.33333;filter:url(#filter325)"
+       d="m 552.47733,611.32971 c -15.28694,-3.96356 -23.21534,-15.56127 -24.18233,-35.37401 -3.36448,-68.93563 -4.2279,-77.05723 -10.48918,-98.66358 -6.929,-23.91052 -26.83744,-53.04916 -50.87714,-74.46546 -35.16805,-31.33022 -57.84884,-39.43674 -114.45136,-40.90693 -45.80243,-1.18967 -54.38175,-7.19239 -54.38175,-30.98245 0,-24.24582 8.71447,-31.88891 53.71508,-33.16157 54.51396,-1.54168 77.74984,-9.99481 112.45137,-40.90942 24.03969,-21.4163 43.94813,-50.55494 50.87713,-74.46546 6.26128,-21.60635 7.12471,-29.72795 10.48919,-98.66358 2.41953,-49.57443 60.85284,-47.676091 63.05216,2.04839 4.18956,94.72206 7.27941,107.61502 34.4476,143.73873 24.21423,32.19601 52.93715,54.63368 80.68256,63.02732 9.1082,2.75545 13.6861,3.10394 51.33334,3.90782 56.84984,1.21391 61.74786,7.29894 59.9458,33.95527 -1.82178,26.94795 -6.47439,32.94579 -59.9458,34.16642 -34.80591,0.79454 -39.66515,1.18401 -48.66667,3.90065 -27.71915,8.36557 -56.46309,30.81708 -80.68256,63.02007 -27.16819,36.12371 -30.25804,49.01667 -34.4476,143.73872 -1.12966,25.54024 -18.2496,41.43542 -38.86984,36.08907 z"
+       id="path321"
+       sodipodi:nodetypes="ssssssssssssssssssss" />
+    <path
+       style="fill:#000000;stroke-width:5.33273"
+       d="m 531.9665,602.18015 c -7.39301,-8.17189 -10.65335,-23.47714 -13.38039,-62.81336 -7.56589,-109.13347 -59.27305,-163.12785 -164.01992,-171.2753 -48.89714,-3.80332 -59.74413,-10.66394 -59.74413,-37.7877 0,-27.12381 10.84699,-33.98443 59.74413,-37.78774 104.74687,-8.14745 156.45403,-62.14184 164.01992,-171.27532 4.12269,-59.468174 11.8424,-73.617809 40.16402,-73.617809 28.32159,0 36.04127,14.149635 40.16403,73.617809 7.56587,109.13348 59.27303,163.12787 164.0199,171.27532 48.89716,3.80331 59.74413,10.66393 59.74413,37.78774 0,27.12376 -10.84697,33.98438 -59.74413,37.7877 -104.74687,8.14745 -156.45403,62.14183 -164.0199,171.2753 -4.12276,59.46816 -11.84244,73.61783 -40.16403,73.61783 -10.30945,0 -20.85894,-4.25561 -26.78363,-10.80447 z m 42.06985,-17.19694 c 4.39556,-7.0013 8.58439,-32.09905 10.05512,-60.2463 5.46695,-104.62757 62.93418,-164.77308 164.06063,-171.70666 81.33492,-5.57663 81.33492,-39.87632 0,-45.45296 C 647.02565,300.6437 589.55842,240.4982 584.09147,135.87063 c -5.22348,-99.96801 -45.45923,-99.96801 -50.68269,0 -5.46695,104.62757 -62.93416,164.77307 -164.06065,171.70666 -81.3349,5.57664 -81.3349,39.87633 0,45.45296 101.12649,6.93358 158.5937,67.07909 164.06065,171.70666 2.55856,48.96586 10.72461,72.2469 25.34135,72.2469 4.26358,0 11.14239,-5.40027 15.28622,-12.0006 z"
+       id="path357" />
+  </g>
+</svg>
