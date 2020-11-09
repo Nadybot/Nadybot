@@ -7,4 +7,5 @@ class HttpResponse {
 	public array $headers = [];
 	public ?string $body = null;
 	public ?string $error = null;
+	public ?HttpRequest $request = null;
 }

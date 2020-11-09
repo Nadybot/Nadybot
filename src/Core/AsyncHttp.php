@@ -249,6 +249,7 @@ class AsyncHttp {
 	 */
 	private function buildResponse(): HttpResponse {
 		$response = new HttpResponse();
+		$response->request = $this->request;
 		if (empty($this->errorString)) {
 			$response->headers = $this->responseHeaders;
 			$response->body    = $this->getResponseBody();

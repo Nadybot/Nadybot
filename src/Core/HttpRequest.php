@@ -108,6 +108,14 @@ class HttpRequest {
 		return $this->streamScheme;
 	}
 
+	public function getURI(): string {
+		return ($this->uriComponents["scheme"]??"http") . "://".
+			($this->uriComponents["host"]??"").
+			(($this->uriComponents["port"]??null) ?: "").
+			($this->uriComponents["path"]??"").
+			($this->uriComponents["query"] ? "?" . $this->uriComponents["query"] : "");
+	}
+
 	public function getData(): string {
 		$data = $this->getHeaderData();
 		if ($this->method == 'post') {
