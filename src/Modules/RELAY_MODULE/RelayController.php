@@ -640,7 +640,7 @@ class RelayController {
 			return;
 		}
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc <v2><relay_guest_tag_color>[<myguild>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
+			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
 		} else {
 			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
 		}
