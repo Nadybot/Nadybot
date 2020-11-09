@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
+	Timer,
 };
 use Nadybot\Core\Modules\{
 	CONFIG\ConfigController,
@@ -61,6 +62,9 @@ class DiscordRelayController {
 	public AccessManager $accessManager;
 
 	/** @Inject */
+	public Timer $timer;
+
+	/** @Inject */
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
 	/** @Inject */
@@ -96,20 +100,6 @@ class DiscordRelayController {
 			"discord_channel",
 			"off"
 		);
-		$ranks = $this->configController->getValidAccessLevels();
-		$allowedRanks = [];
-		foreach ($ranks as $rank) {
-			$allowedRanks []= $rank->value;
-		}
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_mention_rank",
-			"Minimum ranks allowed to use @here and @everyone",
-			"edit",
-			"options",
-			"mod",
-			join(";", $allowedRanks)
-		);
 		$this->settingManager->add(
 			$this->moduleName,
 			"discord_color_guild",
@@ -133,6 +123,26 @@ class DiscordRelayController {
 			"edit",
 			"color",
 			"<font color=#C3C3C3>"
+		);
+
+		$this->timer->callLater(
+			0,
+			function() {
+				$ranks = $this->configController->getValidAccessLevels();
+				$allowedRanks = [];
+				foreach ($ranks as $rank) {
+					$allowedRanks []= $rank->value;
+				}
+				$this->settingManager->add(
+					$this->moduleName,
+					"discord_relay_mention_rank",
+					"Minimum ranks allowed to use @here and @everyone",
+					"edit",
+					"options",
+					"mod",
+					join(";", $allowedRanks)
+				);
+			}
 		);
 	}
 
