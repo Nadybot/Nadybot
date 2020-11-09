@@ -13,6 +13,7 @@ jobs:
           ./build.sh
           cd dist
           zip -r nadyui.zip *
+          mv nadyui.zip ..
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
@@ -25,7 +26,7 @@ jobs:
           tag_name: ci-${{ steps.extract_branch.outputs.branch }}
           release_name: ${{ steps.extract_branch.outputs.branch }}
           body: |
-              Automated CI build done by ${{ github.actor }}
+              Automated CI build done by ${{ github.actor }} from commit ${{ github.sha }}
           prerelease: true
         id: create_release
       - name: Upload build artifact
