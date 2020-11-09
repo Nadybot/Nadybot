@@ -25,14 +25,9 @@ jobs:
           tag_name: ci-${{ steps.extract_branch.outputs.branch }}
           release_name: ${{ steps.extract_branch.outputs.branch }}
           body: |
-              1 ${{ github.eventName }}
-              2 ${{ github.sha }}
-              3 ${{ github.ref }}
-              4 ${{ github.workflow }}
-              5 ${{ github.action }}
-              6 ${{ github.actor }}
+              Automated CI build done by ${{ github.actor }}
           prerelease: true
-          id: create_release
+        id: create_release
       - name: Upload build artifact
         uses: actions/upload-release-asset@v1
         env:
