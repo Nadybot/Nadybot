@@ -1,0 +1,9 @@
+To manually install the WebUI "NadyUI", run
+<tab><highlight><symbol>webui install 'stable'<end> or
+<tab><highlight><symbol>webui install 'unstable'<end>
+
+This will clean up the html directory and install the chosen branch.
+If you want to use the module's auto updater, please see the corresponding setting.
+
+You can also remove any NadyUI installation with
+<tab><highlight><symbol>webui uninstall<end>
