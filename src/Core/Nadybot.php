@@ -392,7 +392,7 @@ class Nadybot extends AOChat {
 
 			// relay to bot relay
 			if (!$disableRelay && $this->settingManager->getString("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
-				if (isset($this->chatBot->vars["my_guild"]) && strlen($this->chatBot->vars["my_guild"])) {
+				if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
 					$this->relayController->sendMessageToRelay("grc <v2><relay_guild_tag_color>[{$guildNameForRelay}]</end> <relay_guest_tag_color>[Guest]</end> {$senderLink}: <relay_bot_color>$message</end>");
 				} else {
 					$this->relayController->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> {$senderLink}: <relay_bot_color>$message</end>");
