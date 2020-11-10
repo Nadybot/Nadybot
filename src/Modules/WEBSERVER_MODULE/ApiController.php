@@ -4,12 +4,14 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Addendum\ReflectionAnnotatedClass;
 use Closure;
+use Exception;
 use Nadybot\Core\Annotations\{
 	DELETE,
 	GET,
 	POST,
 	PUT,
 	PATCH,
+	RequestBody,
 };
 use Nadybot\Core\{
 	AccessManager,
@@ -19,8 +21,11 @@ use Nadybot\Core\{
 	Registry,
 	SettingManager,
 };
+use ReflectionClass;
 use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionNamedType;
+use ReflectionProperty;
 
 /**
  * @Instance
@@ -97,7 +102,7 @@ class ApiController {
 						/** @var GET|POST|PUT|DELETE|PATCH $annotation */
 						$methods []= strtolower($annoName);
 					}
-					$this->addApiRoute($routes, $methods, $method->getClosure($instance), $accessLevelFrom, $accessLevel);
+					$this->addApiRoute($routes, $methods, $method->getClosure($instance), $accessLevelFrom, $accessLevel, $method);
 				}
 			}
 		}
@@ -107,7 +112,7 @@ class ApiController {
 	/**
 	 * Add a HTTP route handler for a path
 	 */
-	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al): void {
+	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
@@ -115,6 +120,7 @@ class ApiController {
 			$handler->path = $path;
 			$handler->route = $route;
 			$handler->allowedMethods = $methods;
+			$handler->reflectionMethod = $refMet;
 			$handler->handler = Closure::fromCallable($callback);
 			$handler->accessLevel = $al;
 			$handler->accessLevelFrom = $alf;
@@ -185,6 +191,49 @@ class ApiController {
 		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->admin);
 	}
 
+	protected function checkBodyIsComplete(Request $request, ApiHandler $apiHandler): bool {
+		if (!in_array($request->method, [$request::PUT, $request::POST])) {
+			return true;
+		}
+		if ($request->decodedBody === null) {
+			return true;
+		}
+		$refClass = new ReflectionClass($request->decodedBody);
+		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
+		foreach ($refProps as $refProp) {
+			if (!$refProp->isInitialized($request->decodedBody)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	protected function checkBodyFormat(Request $request, ApiHandler $apiHandler): bool {
+		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
+			return true;
+		}
+		if (!$apiHandler->reflectionMethod->hasAnnotation("RequestBody")) {
+			return true;
+		}
+		/** @var RequestBody */
+		$reqBody = $apiHandler->reflectionMethod->getAnnotation("RequestBody");
+		if ($request->decodedBody === null) {
+			if (!$reqBody->required) {
+				return true;
+			}
+			return false;
+		}
+		if (JsonImporter::matchesType($reqBody->class, $request->decodedBody)) {
+			return true;
+		}
+		try {
+			$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
+		} catch (Exception $e) {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * @HttpGet("/api/%s")
 	 * @HttpPost("/api/%s")
@@ -195,7 +244,7 @@ class ApiController {
 	 */
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
 		if (!$this->settingManager->getBool('api')) {
-			// return;
+			return;
 		}
 		$handler = $this->getHandlerForRequest($request);
 		if ($handler === null) {
@@ -217,6 +266,14 @@ class ApiController {
 		}
 		if (!$authorized) {
 			$server->httpError(new Response(Response::FORBIDDEN));
+			return;
+		}
+		if ($this->checkBodyFormat($request, $handler) === false) {
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
+			return;
+		}
+		if ($this->checkBodyIsComplete($request, $handler) === false) {
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
 			return;
 		}
 		/** @var Response */

@@ -11,5 +11,5 @@ class ModuleSubcommandChannel {
 	public string $access_level;
 
 	/** Can this command be used in this channel? */
-	public bool $enabled = false;
+	public bool $enabled;
 }
