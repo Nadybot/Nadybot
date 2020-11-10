@@ -7,17 +7,22 @@ Features
 - Integrate a lightweight web server (yes, no kidding) and a REST API for some
   basic endpoints which will in the future lead to a full-fledged
   web interface for the bot. More on the wiki.
+  Right now, the web UI only allows changing the configuration easily.
 - Roll commands now allow sending result to team/raid
 - Add a proper raid module for point raids. If activated, this will
   give you 6 more ranks to assign rights to (3 raid leaders, 3 raid admins).
   The raid and bid system is modelled after what Hodorraid is using.
   More on the wiki.
 - Proper Discord relay integration with newest v8 API. More on the wiki.
+- Bot relay now support grc protocol v2, allowing total customizability of
+  all colors.
 - Support for notifications to Discord for all major commands
 - Raffle module allows raffling multiple items, item groups
   and also introduces configurable raffle bonus points so that people
   not winning anything get better chances on next raffle
 - Added guide for tradeskilling a sauna
+- !weapon command now has a built-in  search function for names,
+  so you no longer need the aoid.
 - Add module to check which nano a disc turns into
 - Add module to have bot relay darknet/lightnet messages from their
   private channels
