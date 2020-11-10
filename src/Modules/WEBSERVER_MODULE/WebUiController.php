@@ -88,7 +88,8 @@ class WebUiController {
 			$sendto = new GuildChannelCommandReply($this->chatBot);
 		}
 		$sendto->reply("Checking for new NadyUI release...");
-		$this->processNadyUIRelease($channel, $sendto, function() {});
+		$this->processNadyUIRelease($channel, $sendto, function() {
+		});
 	}
 		
 	protected function getGitHubData(HttpResponse $response, ?CommandReply $sendto): ?HttpResponse {
@@ -259,7 +260,8 @@ class WebUiController {
 	 * @Matches("/^webui install (.+)$/")
 	 */
 	public function webUiInstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->processNadyUIRelease($args[1], $sendto, function() {});
+		$this->processNadyUIRelease($args[1], $sendto, function() {
+		});
 	}
 
 	/**
