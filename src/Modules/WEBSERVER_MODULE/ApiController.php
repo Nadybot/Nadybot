@@ -195,7 +195,7 @@ class ApiController {
 		if (!in_array($request->method, [$request::PUT, $request::POST])) {
 			return true;
 		}
-		if ($request->decodedBody === null) {
+		if ($request->decodedBody === null || !is_object($request->decodedBody)) {
 			return true;
 		}
 		$refClass = new ReflectionClass($request->decodedBody);
