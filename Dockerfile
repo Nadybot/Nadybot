@@ -26,6 +26,8 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php7-simplexml \
     php7-dom \
     php7-pcntl \
+    php7-zip \
+    php7-fileinfo \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
 
