@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
@@ -67,6 +68,9 @@ class OnlineController {
 	
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public DiscordGatewayController $discordGatewayController;
 	
 	/** @Inject */
 	public Text $text;
@@ -134,6 +138,16 @@ class OnlineController {
 			"1",
 			"do not group;player;profession",
 			"0;1;2"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_show_discord",
+			"Show players in discord voice channels",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
 		);
 
 		$this->commandAlias->register($this->moduleName, "online", "o");
@@ -447,6 +461,11 @@ class OnlineController {
 		$privData = $this->getPlayers('priv');
 		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
 
+		$discData = [];
+		if ($this->settingManager->getBool("online_show_discord")) {
+			$discData = $this->discordGatewayController->getPlayersInVoiceChannels();
+		}
+
 		$totalCount = $orgList->count + $privList->count;
 		$totalMain = $orgList->countMains + $privList->countMains;
 
@@ -459,6 +478,17 @@ class OnlineController {
 		if ($privList->count > 0) {
 			$blob .= "<header2>Private Channel ($privList->countMains)<end>\n";
 			$blob .= $privList->blob;
+			$blob .= "\n\n";
+		}
+		foreach ($discData as $serverName => $channels) {
+			foreach  ($channels as $channel => $users) {
+				$blob .= "<header2>{$serverName} &gt; {$channel} (" . count($users) . ")<end>\n";
+				foreach ($users as $user) {
+					$blob .= "<tab>{$user}\n";
+					$totalCount++;
+					$totalMain++;
+				}
+			}
 			$blob .= "\n\n";
 		}
 

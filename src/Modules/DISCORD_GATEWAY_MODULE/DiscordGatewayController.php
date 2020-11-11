@@ -11,7 +11,8 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
-	Timer,
+    SQLException,
+    Timer,
 	Websocket,
 	WebsocketClient,
 	WebsocketError,
@@ -87,6 +88,9 @@ class DiscordGatewayController {
 
 	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
+
+	/** @Inject */
+	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
 	/** @Inject */
 	public CommandManager $commandManager;
@@ -418,6 +422,16 @@ class DiscordGatewayController {
 		$guild = new Guild();
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[(string)$guild->id] = $guild;
+		foreach ($guild->voice_states as $voiceState) {
+			$this->discordAPIClient->getGuildMember(
+				(string)$guild->id,
+				$voiceState->user_id,
+				function(GuildMember $member, VoiceState $voiceState) {
+					$voiceState->member = $member;
+				},
+				$voiceState
+			);
+		}
 	}
 
 	/**
@@ -547,6 +561,27 @@ class DiscordGatewayController {
 				$this->eventManager->fireEvent($event);
 			}
 		);
+	}
+
+	/**
+	 * @return array<string,array<string,array<string>>>
+	 */
+	public function getPlayersInVoiceChannels(): array {
+		$channels = [];
+		foreach ($this->guilds as $guildId => $guild) {
+			foreach ($guild->voice_states as $voiceState) {
+var_dump($voiceState);
+				$channel = $this->getChannel($voiceState->channel_id);
+				$channels[$guild->name] ??= [];
+				if (!isset($voiceState->member)) {
+					continue;
+				}
+				$channels[$guild->name][$channel->name] ??= [];
+				$player = $this->discordGatewayCommandHandler->getNameForDiscordId($voiceState->member->user->id??"") ?? $voiceState->member->getName();
+				$channels[$guild->name][$channel->name] []= $player;
+			}
+		}
+		return $channels;
 	}
 
 	protected function handleVoiceChannelJoin(VoiceState $voiceState): void {
