@@ -118,8 +118,12 @@ class VoteController {
 
 		if ($this->db->tableExists("vote_<myname>")) {
 			$this->convertDBfromV1toV2();
+		} else {
+			$this->cacheVotes();
 		}
+	}
 
+	public function cacheVotes(): void {
 		/** @var Poll[] */
 		$topics = $this->db->fetchAll(
 			Poll::class,
@@ -183,6 +187,7 @@ class VoteController {
 		}
 		$this->db->exec("DROP TABLE vote_<myname>");
 		$this->logger->log("INFO", "Conversion completed");
+		$this->cacheVotes();
 	}
 
 	public function getPoll(int $id, string $creator=null): ?Poll {
