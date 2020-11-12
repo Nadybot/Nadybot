@@ -1,4 +1,3 @@
-import axios from "axios";
 import { OnlinePlayers, onlinePlayersDecoder } from "./types/player";
 import { SystemInformation, systemInformationDecoder } from "./types/stats";
 import {
@@ -14,45 +13,64 @@ import {
   moduleAccessLevelArrayDecoder,
 } from "./types/settings";
 
+// any is safe since we can JSON.stringify it
+// eslint-disable-next-line
+async function putJson(url: string, json: any): Promise<Response> {
+  return await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(json),
+  });
+}
+
 export async function getOnlineMembers(): Promise<OnlinePlayers> {
-  const response = await axios.get("/api/online");
-  return await onlinePlayersDecoder.decodePromise(response.data);
+  const response = await fetch("/api/online");
+  const json = await response.json();
+  return await onlinePlayersDecoder.decodePromise(json);
 }
 
 export async function getSystemInformation(): Promise<SystemInformation> {
-  const response = await axios.get("/api/sysinfo");
-  return await systemInformationDecoder.decodePromise(response.data);
+  const response = await fetch("/api/sysinfo");
+  const json = await response.json();
+  return await systemInformationDecoder.decodePromise(json);
 }
 
 export async function getModules(): Promise<Array<ConfigModule>> {
-  const response = await axios.get("/api/module");
-  return await configModuleArrayDecoder.decodePromise(response.data);
+  const response = await fetch("/api/module");
+  const json = await response.json();
+  return await configModuleArrayDecoder.decodePromise(json);
 }
 
 export async function getModuleSettings(
   moduleName: string
 ): Promise<Array<ModuleSetting>> {
-  const response = await axios.get(`/api/module/${moduleName}/settings`);
-  return await moduleSettingArrayDecoder.decodePromise(response.data);
+  const response = await fetch(`/api/module/${moduleName}/settings`);
+  const json = await response.json();
+  return await moduleSettingArrayDecoder.decodePromise(json);
 }
 
 export async function getModuleEvents(
   moduleName: string
 ): Promise<Array<ModuleEventConfig>> {
-  const response = await axios.get(`/api/module/${moduleName}/events`);
-  return await moduleEventConfigArrayDecoder.decodePromise(response.data);
+  const response = await fetch(`/api/module/${moduleName}/events`);
+  const json = await response.json();
+  return await moduleEventConfigArrayDecoder.decodePromise(json);
 }
 
 export async function getModuleCommands(
   moduleName: string
 ): Promise<Array<ModuleCommand>> {
-  const response = await axios.get(`/api/module/${moduleName}/commands`);
-  return await moduleCommandArrayDecoder.decodePromise(response.data);
+  const response = await fetch(`/api/module/${moduleName}/commands`);
+  const json = await response.json();
+  return await moduleCommandArrayDecoder.decodePromise(json);
 }
 
 export async function getAccessLevels(): Promise<Array<ModuleAccessLevel>> {
-  const response = await axios.get("/api/access_levels");
-  return await moduleAccessLevelArrayDecoder.decodePromise(response.data);
+  const response = await fetch("/api/access_levels");
+  const json = await response.json();
+  return await moduleAccessLevelArrayDecoder.decodePromise(json);
 }
 
 export async function toggleModule(
@@ -60,7 +78,7 @@ export async function toggleModule(
   enabled: boolean
 ): Promise<void> {
   const op = enabled ? "enable" : "disable";
-  await axios.put(`/api/module/${name}`, { op: op });
+  await putJson(`/api/module/${name}`, { op: op });
 }
 
 export async function toggleEvent(
@@ -70,7 +88,7 @@ export async function toggleEvent(
   enabled: boolean
 ): Promise<void> {
   const op = enabled ? "enable" : "disable";
-  await axios.put(`/api/module/${module}/events/${name}/${handler}`, {
+  await putJson(`/api/module/${module}/events/${name}/${handler}`, {
     op: op,
   });
 }
@@ -83,7 +101,7 @@ export async function toggleCommand(
   enabled: boolean
 ): Promise<void> {
   const encoded_command_name = encodeURIComponent(name);
-  await axios.put(
+  await putJson(
     `/api/module/${module}/commands/${encoded_command_name}/${channel}`,
     {
       access_level: access_level,
@@ -97,11 +115,5 @@ export async function changeSetting(
   name: string,
   value: string | number | boolean | null
 ): Promise<void> {
-  await axios.put(
-    `/api/module/${module}/settings/${name}`,
-    JSON.stringify(value),
-    {
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  await putJson(`/api/module/${module}/settings/${name}`, value);
 }
