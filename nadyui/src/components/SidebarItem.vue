@@ -1,7 +1,7 @@
 <template>
   <li>
     <router-link :to="$props.path"
-      ><fa :icon="$props.icon" /> {{ name }}</router-link
+      ><fa :icon="$props.icon" size="20" /> {{ name }}</router-link
     >
   </li>
 </template>
@@ -34,17 +34,18 @@ li {
     padding: 10px 15px 10px 30px;
     display: block;
     color: #fff;
+    text-decoration: none;
 
     &:active,
     &:hover,
     &:focus {
-      text-decoration: none;
       outline: none;
     }
   }
 
-  svg {
-    margin-right: 10px;
+  img {
+    vertical-align: bottom;
+    margin-right: 3px;
   }
 }
 </style>

@@ -1,0 +1,53 @@
+@mixin switch($res: 'sm') {
+    $index: 1rem;
+    $mainVal: 1rem;
+
+    @if $res == 'md' {
+        $index: 2rem;
+        $mainVal: 1.5rem;
+    } @else if $res == 'lg' {
+        $index: 3rem;
+        $mainVal: 2rem;
+    } @else if $res == 'xl' {
+        $index: 4rem;
+        $mainVal: 2.5rem;
+    }
+
+    margin-bottom: $index / 2; /* JUST FOR STYLING PURPOSE */
+
+    .form-check-input {
+        height: $mainVal;
+        width: calc(#{$index} + 0.75rem);
+        border-radius: $mainVal * 2;
+    }
+}
+
+.form-check-input {
+  clear: left;
+}
+
+// YOU CAN PUT ALL RESOLUTION HERE
+// sm - DEFAULT, md, lg, xl
+
+.form-switch.form-switch-sm {
+    @include switch();
+}
+
+.form-switch.form-switch-md {
+    @include switch('md');
+}
+
+.form-switch.form-switch-lg {
+    @include switch('lg');
+}
+
+.form-switch.form-switch-xl {
+    @include switch('xl');
+}
+
+.form-switch .form-check-input[type="checkbox"]:indeterminate {
+    background-color: #79afff;
+    border-color: #79afff;
+    background-position: 50%;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='%23fff'/%3E%3C/svg%3E");
+}
