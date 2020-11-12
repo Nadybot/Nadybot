@@ -481,14 +481,19 @@ class OnlineController {
 			$blob .= "\n\n";
 		}
 		foreach ($discData as $serverName => $channels) {
-			foreach  ($channels as $channel => $users) {
-				$blob .= "<header2>{$serverName} &gt; {$channel} (" . count($users) . ")<end>\n";
+			$guildCount = 0;
+			$guildUsers = "";
+			foreach ($channels as $channel => $users) {
+				$guildUsers .= "\n<highlight>{$channel}<end>\n";
 				foreach ($users as $user) {
-					$blob .= "<tab>{$user}\n";
+					$guildUsers .= "<tab>{$user}\n";
+					$guildCount++;
 					$totalCount++;
 					$totalMain++;
 				}
 			}
+			$blob .= "<header2>{$serverName} ({$guildCount})<end>\n".
+				$guildUsers;
 			$blob .= "\n\n";
 		}
 
