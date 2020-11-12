@@ -15,6 +15,7 @@
 
 <script lang="ts">
 import "bootstrap/dist/css/bootstrap.min.css";
+import "@/styles/switch-sizing.scss";
 
 export default {
   name: "nadyui",

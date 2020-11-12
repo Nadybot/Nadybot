@@ -10,14 +10,29 @@
           :class="{ active: selected && module.name == selected.name }"
         >
           {{ module.name }}
-          <tri-toggle
-            :model-value="getClassForModule(module)"
-            @update:model-value="toggleModule(module, $event)"
-          ></tri-toggle>
+          <div
+            class="form-check form-switch form-switch-md form-switch-right mb-0"
+          >
+            <input
+              class="form-check-input mt-0"
+              type="checkbox"
+              @click="toggleModule(module)"
+              :checked="
+                module.num_commands_disabled + module.num_events_disabled == 0
+              "
+              :indeterminate.prop="
+                module.num_commands_disabled + module.num_events_disabled > 0 &&
+                module.num_commands_enabled + module.num_events_enabled > 0
+              "
+              :class="{
+                'border-lightblue': selected && module.name == selected.name,
+              }"
+            />
+          </div>
         </li>
       </ul>
     </div>
-    <div class="w-75 px-5 overflow-auto setting-container" v-if="selected">
+    <div class="w-75 px-3 overflow-auto setting-container" v-if="selected">
       <h1 class="mb-4">{{ selected.name }}</h1>
 
       <div v-if="selected_settings.length > 0">
@@ -39,21 +54,26 @@
                   v-if="setting.type == 'number'"
                   type="number"
                   class="form-control form-control-sm"
-                  :value="setting.value"
                   v-model.number="setting.value"
                   @change="changeSetting(setting)"
                 />
-                <toggle
+                <div
                   v-if="setting.type == 'bool'"
-                  v-model="setting.value"
-                  @change="changeSetting(setting)"
-                ></toggle>
+                  class="form-check form-switch form-switch-md form-switch-right"
+                >
+                  <input
+                    class="form-check-input mt-0"
+                    type="checkbox"
+                    v-model="setting.value"
+                    @change="changeSetting(setting)"
+                  />
+                </div>
                 <select
                   v-if="
                     setting.type == 'options' ||
                     setting.type == 'discord_channel'
                   "
-                  class="form-control custom-select custom-select-sm"
+                  class="form-select form-select-sm"
                   v-model="setting.value"
                   @change="changeSetting(setting)"
                 >
@@ -67,7 +87,7 @@
                 </select>
                 <select
                   v-if="setting.type == 'int_options'"
-                  class="form-control custom-select custom-select-sm"
+                  class="form-select form-select-sm"
                   v-model.number="setting.value"
                   @change="changeSetting(setting)"
                 >
@@ -118,10 +138,16 @@
                 >{{ event.description }}
                 <span class="custom-muted ml-5">{{ event.event }}</span></span
               >
-              <toggle
-                v-model="event.enabled"
-                @change="toggleEvent(event)"
-              ></toggle>
+              <div
+                class="form-check form-switch form-switch-md form-switch-right mb-0"
+              >
+                <input
+                  class="form-check-input mt-0"
+                  type="checkbox"
+                  v-model="event.enabled"
+                  @change="toggleEvent(event)"
+                />
+              </div>
             </li>
           </ul>
         </div>
@@ -166,18 +192,16 @@
                 <td>{{ command.description }}</td>
                 <td>
                   <div class="input-group" v-if="command.org">
-                    <div class="input-group-prepend">
-                      <div class="input-group-text">
-                        <input
-                          type="checkbox"
-                          :value="command.org.enabled"
-                          v-model="command.org.enabled"
-                          @change="toggleCommand(command, 'org', command.org)"
-                        />
-                      </div>
+                    <div class="input-group-text">
+                      <input
+                        type="checkbox"
+                        :value="command.org.enabled"
+                        v-model="command.org.enabled"
+                        @change="toggleCommand(command, 'org', command.org)"
+                      />
                     </div>
                     <select
-                      class="form-control custom-select custom-select-sm"
+                      class="form-select form-select-sm"
                       v-model="command.org.access_level"
                       @change="toggleCommand(command, 'org', command.org)"
                     >
@@ -198,18 +222,16 @@
                 </td>
                 <td>
                   <div class="input-group" v-if="command.priv">
-                    <div class="input-group-prepend">
-                      <div class="input-group-text">
-                        <input
-                          type="checkbox"
-                          :value="command.priv.enabled"
-                          v-model="command.priv.enabled"
-                          @change="toggleCommand(command, 'priv', command.priv)"
-                        />
-                      </div>
+                    <div class="input-group-text">
+                      <input
+                        type="checkbox"
+                        :value="command.priv.enabled"
+                        v-model="command.priv.enabled"
+                        @change="toggleCommand(command, 'priv', command.priv)"
+                      />
                     </div>
                     <select
-                      class="form-control custom-select custom-select-sm"
+                      class="form-select form-select-sm"
                       v-model="command.priv.access_level"
                       @change="toggleCommand(command, 'priv', command.priv)"
                     >
@@ -230,18 +252,16 @@
                 </td>
                 <td>
                   <div class="input-group" v-if="command.msg">
-                    <div class="input-group-prepend">
-                      <div class="input-group-text">
-                        <input
-                          type="checkbox"
-                          :value="command.msg.enabled"
-                          v-model="command.msg.enabled"
-                          @change="toggleCommand(command, 'msg', command.msg)"
-                        />
-                      </div>
+                    <div class="input-group-text">
+                      <input
+                        type="checkbox"
+                        :value="command.msg.enabled"
+                        v-model="command.msg.enabled"
+                        @change="toggleCommand(command, 'msg', command.msg)"
+                      />
                     </div>
                     <select
-                      class="form-control custom-select custom-select-sm"
+                      class="form-select form-select-sm"
                       v-model="command.msg.access_level"
                       @change="toggleCommand(command, 'msg', command.msg)"
                     >
@@ -278,20 +298,18 @@
                   <td>{{ subcommand.description }}</td>
                   <td>
                     <div class="input-group" v-if="subcommand.org">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">
-                          <input
-                            type="checkbox"
-                            :value="subcommand.org.enabled"
-                            v-model="subcommand.org.enabled"
-                            @change="
-                              toggleCommand(subcommand, 'org', subcommand.org)
-                            "
-                          />
-                        </div>
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :value="subcommand.org.enabled"
+                          v-model="subcommand.org.enabled"
+                          @change="
+                            toggleCommand(subcommand, 'org', subcommand.org)
+                          "
+                        />
                       </div>
                       <select
-                        class="form-control custom-select custom-select-sm"
+                        class="form-select form-select-sm"
                         v-model="subcommand.org.access_level"
                         @change="
                           toggleCommand(subcommand, 'org', subcommand.org)
@@ -314,20 +332,18 @@
                   </td>
                   <td>
                     <div class="input-group" v-if="subcommand.priv">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">
-                          <input
-                            type="checkbox"
-                            :value="subcommand.priv.enabled"
-                            v-model="subcommand.priv.enabled"
-                            @change="
-                              toggleCommand(subcommand, 'priv', subcommand.priv)
-                            "
-                          />
-                        </div>
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :value="subcommand.priv.enabled"
+                          v-model="subcommand.priv.enabled"
+                          @change="
+                            toggleCommand(subcommand, 'priv', subcommand.priv)
+                          "
+                        />
                       </div>
                       <select
-                        class="form-control custom-select custom-select-sm"
+                        class="form-select form-select-sm"
                         v-model="subcommand.priv.access_level"
                         @change="
                           toggleCommand(subcommand, 'priv', subcommand.priv)
@@ -350,20 +366,18 @@
                   </td>
                   <td>
                     <div class="input-group" v-if="subcommand.msg">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">
-                          <input
-                            type="checkbox"
-                            :value="subcommand.msg.enabled"
-                            v-model="subcommand.msg.enabled"
-                            @change="
-                              toggleCommand(subcommand, 'msg', subcommand.msg)
-                            "
-                          />
-                        </div>
+                      <div class="input-group-text">
+                        <input
+                          type="checkbox"
+                          :value="subcommand.msg.enabled"
+                          v-model="subcommand.msg.enabled"
+                          @change="
+                            toggleCommand(subcommand, 'msg', subcommand.msg)
+                          "
+                        />
                       </div>
                       <select
-                        class="form-control custom-select custom-select-sm"
+                        class="form-select form-select-sm"
                         v-model="subcommand.msg.access_level"
                         @change="
                           toggleCommand(subcommand, 'msg', subcommand.msg)
@@ -391,7 +405,9 @@
         </table>
       </div>
     </div>
-    <h2 class="pl-5" v-else>Select a module to change its configuration.</h2>
+    <h2 class="pl-3 w-75" v-else>
+      Select a module to change its configuration.
+    </h2>
   </div>
 </template>
 
@@ -439,6 +455,7 @@
 }
 
 .color-input {
+  min-height: 0;
   height: 1.6em;
 }
 
@@ -461,6 +478,19 @@ td {
 td.clickable:hover,
 .module-item:hover {
   cursor: pointer;
+}
+
+.form-switch-right {
+  display: inline;
+
+  input {
+    position: absolute;
+    right: 1rem;
+  }
+}
+
+.border-lightblue:checked {
+  border: 1px solid #88b1d5;
 }
 </style>
 
@@ -546,10 +576,11 @@ export default defineComponent({
         this.selected_command = command;
       }
     },
-    toggleModule: async function (
-      module: ConfigModule,
-      enabled: boolean
-    ): Promise<void> {
+    toggleModule: async function (module: ConfigModule): Promise<void> {
+      const enabled = !(
+        module.num_commands_disabled + module.num_events_disabled ==
+        0
+      );
       await toggleModule(module.name, enabled);
       await this.reloadModules();
 

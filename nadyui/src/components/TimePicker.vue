@@ -1,7 +1,7 @@
 <template>
   <div class="input-group">
     <select
-      class="form-control col-4 custom-select custom-select-sm"
+      class="form-select form-select-sm col-4"
       v-model.number="hour"
       @change="update"
     >
@@ -10,7 +10,7 @@
       </option>
     </select>
     <select
-      class="form-control col-4 custom-select custom-select-sm"
+      class="form-select form-select-sm col-4"
       v-model.number="minute"
       @change="update"
     >
@@ -19,7 +19,7 @@
       </option>
     </select>
     <select
-      class="form-control col-4 custom-select custom-select-sm"
+      class="form-select form-select-sm col-4"
       v-model.number="second"
       @change="update"
     >
@@ -27,9 +27,9 @@
         {{ second - 1 }}s
       </option>
     </select>
-    <div class="col-2 input-group-append" style="margin-left: -15px !important">
-      <span class="btn btn-sm btn-secondary disabled"><fa icon="clock" /></span>
-    </div>
+    <button class="btn btn-sm btn-secondary disabled" type="button">
+      <fa icon="clock" />
+    </button>
   </div>
 </template>
 

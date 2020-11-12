@@ -5,7 +5,7 @@
     v-bind:class="{ 'table-xs': allUsers.length > 18 }"
   >
     <template v-slot:head>
-      <thead class="thead-dark">
+      <thead class="table-dark">
         <tr>
           <v-th sortKey="main_character" defaultSort="asc" scope="col"
             >Main</v-th
