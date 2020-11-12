@@ -62,7 +62,7 @@
   }
 
   &.neutral {
-    background-color: #afafaf;
+    background-color: #efdecd;
     border: thin solid grey;
   }
 }
