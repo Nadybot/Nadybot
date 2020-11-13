@@ -189,6 +189,10 @@ class WebsocketBase {
 		}
 		$packet = array_shift($this->sendQueue);
 		// $this->logger->log("INFO", "Sending packet " . var_export($packet, true));
+		if (!is_string($packet)) {
+			$this->logger->log('ERROR', "Illegal item found in send queue: " . var_export($packet, true));
+			return;
+		}
 		$this->write($packet);
 	}
 
