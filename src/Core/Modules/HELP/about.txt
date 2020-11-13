@@ -6,9 +6,9 @@ I would like to thanks the following people:
 - <highlight>Patate-1 (RK5)<end> for exploring game mechanics and always coming up with a formula.
 - <highlight>Lucier (RK1)<end> for tons of discussions about game mechanics.
 - <highlight>Yakachi (RK5)<end> for his work on NadyUI and insights into the Discord protocol.
-- <highlight>Silly (RK5)<end> for her support, ideas and enduring my coding sprees.
+- <highlight>Sillyowl (RK5)<end> for her support, ideas and enduring my coding sprees.
 - <highlight>Karinnos (RK5)<end> for the lovely icons.
-- <highlight>Leri (RK5)<end> for suggestions for the raid module.
+- <highlight>Lerineer (RK5)<end> for suggestions to and testing of the raid module.
 
 And finally:
 - All the people who have contributed modules, ideas, and bug reports to help make Nadybot the best bot AO has ever seen.
