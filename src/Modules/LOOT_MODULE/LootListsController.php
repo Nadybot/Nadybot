@@ -657,6 +657,7 @@ class LootListsController {
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU');
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons');
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings');
 		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
 
 		$sendto->reply($msg);
