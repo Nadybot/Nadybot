@@ -7,12 +7,12 @@
     <template v-slot:head>
       <thead class="table-dark">
         <tr>
+          <v-th sortKey="name" scope="col">Character</v-th>
+          <v-th sortKey="profession" scope="col">Profession</v-th>
+          <v-th :customSort="levelSort" scope="col">Level</v-th>
           <v-th sortKey="main_character" defaultSort="asc" scope="col"
             >Main</v-th
           >
-          <v-th sortKey="profession" scope="col">Profession</v-th>
-          <v-th sortKey="name" scope="col">Character</v-th>
-          <v-th :customSort="levelSort" scope="col">Level</v-th>
           <v-th sortKey="org" scope="col">Org</v-th>
           <v-th sortKey="org_rank" scope="col">Rank</v-th>
         </tr>
@@ -21,12 +21,11 @@
     <template v-slot:body="{ displayData }">
       <tbody>
         <tr v-for="user in displayData" :key="user.name">
-          <td>{{ user.main_character }}</td>
+          <td>{{ user.name }}</td>
           <td>
             <profession-icon :profession="user.profession" />
             {{ user.profession }}
           </td>
-          <td>{{ user.name }}</td>
           <td>
             {{ user.level }}
             <span
@@ -35,6 +34,7 @@
               >{{ user.ai_level }}</span
             >
           </td>
+          <td>{{ user.main_character }}</td>
           <td>
             <span
               class="badge badge-faction"
