@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
-class CloseEvents {
+use Nadybot\Modules\WEBSOCKET_MODULE\CloseEvents as WsCloseEvents;
+
+class CloseEvents extends WsCloseEvents {
 	/** We're not sure what went wrong. Try reconnecting? */
 	public const UNKNOWN_ERROR = 4000;
 	/** You sent an invalid Gateway opcode or an invalid payload for an opcode. Don't do that! */

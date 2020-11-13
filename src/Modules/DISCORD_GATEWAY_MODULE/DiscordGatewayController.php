@@ -11,8 +11,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
-    SQLException,
-    Timer,
+	Timer,
 	Websocket,
 	WebsocketClient,
 	WebsocketError,
@@ -332,16 +331,16 @@ class DiscordGatewayController {
 		if ($code === null) {
 			return true; // No idea what went wrong, most likely network issues
 		}
-		return in_array(
+		return !in_array(
 			$code,
 			[
-				CloseEvents::UNKNOWN_ERROR,
-				CloseEvents::UNKNOWN_OPCODE,
-				CloseEvents::DECODE_ERROR,
-				CloseEvents::NOT_AUTHENTICATED,
-				CloseEvents::ALREADY_AUTHENTICATED,
-				CloseEvents::INVALID_SEQ,
-				CloseEvents::SESSION_TIMED_OUT,
+				CloseEvents::NORMAL,
+				CloseEvents::AUTHENTICATION_FAILED,
+				CloseEvents::INVALID_SHARD,
+				CloseEvents::SHARDING_REQUIRED,
+				CloseEvents::INVALID_API_VERSION,
+				CloseEvents::INVALID_INTENT,
+				CloseEvents::DISALLOWED_INTENT,
 			]
 		);
 	}
@@ -570,7 +569,6 @@ class DiscordGatewayController {
 		$channels = [];
 		foreach ($this->guilds as $guildId => $guild) {
 			foreach ($guild->voice_states as $voiceState) {
-var_dump($voiceState);
 				$channel = $this->getChannel($voiceState->channel_id);
 				$channels[$guild->name] ??= [];
 				if (!isset($voiceState->member)) {
