@@ -73,12 +73,6 @@
 
 .table th {
   user-select: none;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    vertical-align: text-bottom;
-  }
 }
 </style>
 
