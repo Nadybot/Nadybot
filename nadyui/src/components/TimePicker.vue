@@ -34,8 +34,8 @@
 </template>
 
 <style lang="scss" scoped>
-.input-group-append {
-  padding-right: 0;
+.btn img {
+  vertical-align: sub;
 }
 </style>
 
