@@ -631,6 +631,8 @@ export default defineComponent({
 
         if (this.selected.name == "RAID_MODULE") {
           await this.reloadAccessLevels();
+        } else if (this.selected.name == "DISCORD") {
+          this.selected_settings = await getModuleSettings(this.selected.name);
         }
       }
     },
