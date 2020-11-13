@@ -7,12 +7,10 @@
     <template v-slot:head>
       <thead class="table-dark">
         <tr>
-          <v-th sortKey="name" scope="col">Character</v-th>
+          <v-th sortKey="name" defaultSort="asc" scope="col">Character</v-th>
           <v-th sortKey="profession" scope="col">Profession</v-th>
           <v-th :customSort="levelSort" scope="col">Level</v-th>
-          <v-th sortKey="main_character" defaultSort="asc" scope="col"
-            >Main</v-th
-          >
+          <v-th sortKey="main_character" scope="col">Main</v-th>
           <v-th sortKey="org" scope="col">Org</v-th>
           <v-th sortKey="org_rank" scope="col">Rank</v-th>
         </tr>
