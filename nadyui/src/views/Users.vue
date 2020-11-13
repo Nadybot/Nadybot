@@ -30,7 +30,7 @@
           <td>
             {{ user.level }}
             <span
-              class="badge badge-ai badge-pill badge-success"
+              class="badge badge-ai rounded-pill bg-success"
               v-if="user.ai_level > 0"
               >{{ user.ai_level }}</span
             >
