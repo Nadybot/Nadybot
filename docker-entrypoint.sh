@@ -15,7 +15,7 @@ errorMessage() {
 [ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -E '^(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)$' ) && errorMessage 'You have specified an invalid $CONFIG_LOG_LEVEL. Allowed values are TRACE, DEBUG, INFO, WARN, ERROR and FATAL.'
 
 cd /nadybot
-cat > conf/config.php << DONE
+cat > /tmp/config.php << DONE
 <?php declare(strict_types=1);
 
 \$vars['login']      = "$CONFIG_LOGIN";
@@ -55,4 +55,4 @@ DONE
 
 sed -i -e "s/<level value=\"INFO\"/<level value=\"${CONFIG_LOG_LEVEL:-INFO}\"/" conf/log4php.xml
 
-exec php7 -f main.php -- conf/config.php "$@"
+exec php7 -f main.php -- /tmp/config.php "$@"
