@@ -4,7 +4,8 @@
 
 <style lang="scss" scoped>
 img {
-  height: 22px;
+  height: 20px;
+  vertical-align: text-bottom;
 }
 </style>
 
