@@ -102,8 +102,24 @@ class DiscordRelayController {
 		);
 		$this->settingManager->add(
 			$this->moduleName,
+			"discord_color_sender_guild",
+			"Color of sender name in Discord messages relayed into org chat",
+			"edit",
+			"color",
+			"<font color=#C3C3C3>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_color_sender_priv",
+			"Color of sender name in Discord messages relayed into priv channel",
+			"edit",
+			"color",
+			"<font color=#C3C3C3>"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"discord_color_guild",
-			"Discord relay color in guild channel",
+			"Color of Discord messages relayed into org chat",
 			"edit",
 			"color",
 			"<font color=#C3C3C3>"
@@ -111,7 +127,7 @@ class DiscordRelayController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"discord_color_priv",
-			"Discord relay color in private channel",
+			"Color of Discord messages relayed into priv channel",
 			"edit",
 			"color",
 			"<font color=#C3C3C3>"
@@ -119,7 +135,7 @@ class DiscordRelayController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"discord_color_channel",
-			"Color for Discord Channel relay(ChannelName)",
+			"Color of the Discord tag when relaying",
 			"edit",
 			"color",
 			"<font color=#C3C3C3>"
@@ -480,18 +496,20 @@ class DiscordRelayController {
 		}
 		$senderName = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $member->getName();
 		$discordColorChannel = $this->settingManager->getString('discord_color_channel');
-		$message = "{$discordColorChannel}[Discord]<end> {$senderName}: ";
+		$message = "{$discordColorChannel}[Discord]<end> ";
 		if (($this->settingManager->getInt("discord_relay") & 1) === 1) {
+			$discordColorSenderPriv = $this->settingManager->getString('discord_color_sender_priv');
 			$discordColorPriv = $this->settingManager->getString('discord_color_priv');
 			$this->chatBot->sendPrivate(
-				$message . "{$discordColorPriv}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderPriv}{$senderName}<end>: {$discordColorPriv}{$escapedMessage}<end>",
 				true
 			);
 		}
 		if (($this->settingManager->getInt("discord_relay") & 2) === 2) {
+			$discordColorSenderGuild = $this->settingManager->getString('discord_color_sender_guild');
 			$discordColorGuild = $this->settingManager->getString('discord_color_guild');
 			$this->chatBot->sendGuild(
-				$message . "{$discordColorGuild}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderGuild}{$senderName}<end>: {$discordColorGuild}{$escapedMessage}<end>",
 				true
 			);
 		}
