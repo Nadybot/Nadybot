@@ -482,7 +482,13 @@ class GuildController {
 
 			// in case some of the org members were already on the buddy list, we need to restart the bot
 			// in order to get them to appear on the online list
-			posix_kill(posix_getpid(), SIGINT);
+			if (function_exists('posix_kill')) {
+				posix_kill(posix_getpid(), SIGINT);
+			} elseif (function_exists('sapi_windows_generate_ctrl_event')) {
+				sapi_windows_generate_ctrl_event(PHP_WINDOWS_EVENT_CTRL_C, getmypid());
+			} else {
+				exit(0);
+			}
 			return;
 		}
 	}
