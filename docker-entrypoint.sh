@@ -37,6 +37,7 @@ cat > /tmp/config.php << DONE
 \$vars['default_module_status'] = ${CONFIG_DEFAULT_MODULE_STATUS:-0};
 // Use AO Chat Proxy? 1 for enabled, 0 for disabled.
 \$vars['use_proxy'] = ${CONFIG_USE_PROXY:-0};
+\$vars['enable_console_client'] = ${CONFIG_ENABLE_CONSOLE:-0};
 \$vars['proxy_server'] = "${CONFIG_PROXY_SERVER:-127.0.0.1}";
 \$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
 \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
