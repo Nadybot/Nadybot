@@ -1,2 +1,4 @@
+@echo off
 title Nadybot
-php -c php-win.ini -f mainloop.php ./conf/config.php
+SET PHP_INI_SCAN_DIR=%CD%
+start php -f main.php ./conf/config.php
