@@ -29,7 +29,7 @@ class Patcher {
 		} else {
 			fwrite(STDERR, 'You are using an unsupported version of Composer.' . PHP_EOL);
 		}
-		if ($operation::TYPE === 'install') {
+		if ($operationType === 'install') {
 			/** @var \Composer\DependencyResolver\Operation\InstallOperation $operation */
 			$package = $operation->getPackage();
 		} else {
