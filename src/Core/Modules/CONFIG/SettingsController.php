@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
 use Nadybot\Core\{
+	AccessManager,
 	CommandManager,
 	CommandReply,
 	DB,
@@ -53,6 +54,9 @@ class SettingsController {
 	/** @Inject */
 	public CommandManager $commandManager;
 
+	/** @Inject */
+	public AccessManager $accessManager;
+
 	/**
 	 * @Setup
 	 * This handler is called on bot startup.
@@ -85,7 +89,7 @@ class SettingsController {
 
 			$settingHandler = $this->settingManager->getSettingHandler($row);
 			if ($settingHandler instanceof SettingHandler) {
-				$blob .= ": " . $settingHandler->displayValue();
+				$blob .= ": " . $settingHandler->displayValue($sender);
 			}
 			$blob .= "\n";
 		}
@@ -113,7 +117,7 @@ class SettingsController {
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
-		$blob .= "<tab>Current Value: " . $settingHandler->displayValue() . "\n\n";
+		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($sender) . "\n\n";
 		$blob .= $settingHandler->getDescription();
 		$blob .= $settingHandler->getOptions();
 
@@ -140,6 +144,11 @@ class SettingsController {
 		$setting = $this->db->fetch(Setting::class, $sql, $name);
 		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";
+			$sendto->reply($msg);
+			return;
+		}
+		if (!$this->accessManager->checkAccess($sender, $setting->admin)) {
+			$msg = "You don't have the necessary rights to change this setting.";
 			$sendto->reply($msg);
 			return;
 		}

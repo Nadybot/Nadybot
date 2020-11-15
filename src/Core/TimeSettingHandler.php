@@ -14,7 +14,7 @@ class TimeSettingHandler extends SettingHandler {
 	/**
 	 * @inheritDoc
 	 */
-	public function displayValue(): string {
+	public function displayValue(string $sender): string {
 		return "<highlight>" . $this->util->unixtimeToReadable((int)$this->row->value) . "<end>";
 	}
 

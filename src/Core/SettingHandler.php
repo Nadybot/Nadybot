@@ -28,7 +28,7 @@ abstract class SettingHandler {
 	/**
 	 * Get a displayable representation of the setting
 	 */
-	public function displayValue(): string {
+	public function displayValue(string $sender): string {
 		if ($this->row->intoptions === "") {
 			return "<highlight>" . htmlspecialchars($this->row->value) . "<end>";
 		}

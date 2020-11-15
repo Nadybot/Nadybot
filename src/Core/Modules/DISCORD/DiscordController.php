@@ -48,15 +48,11 @@ class DiscordController {
 			'discord_bot_token',
 			'The Discord bot token to send messages with',
 			'edit',
-			'text',
+			'discord_bot_token',
 			'off',
 			'off',
 			'',
-			'admin'
-		);
-		$this->settingManager->registerChangeListener(
-			"discord_bot_token",
-			[$this, "validateBotToken"]
+			'superadmin'
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -64,27 +60,11 @@ class DiscordController {
 			"Discord channel to send notifications to",
 			"edit",
 			"discord_channel",
-			"off"
+			"off",
+			"",
+			"",
+			"admin"
 		);
-	}
-
-	/**
-	 * Check if the given $newValue is a valid Discord Bot Token
-	 *
-	 * @throws Exception if new value is not a valid Discord Bot Token
-	 */
-	public function validateBotToken(string $settingName, string $oldValue, string $newValue): void {
-		if ($newValue === '' || $newValue === 'off') {
-			return;
-		}
-		$response = $this->http
-			->get(DiscordAPIClient::DISCORD_API . "/users/@me")
-			->withHeader('Authorization', 'Bot ' . $newValue)
-			->withTimeout(10)
-			->waitAndReturnResponse();
-		if ($response->headers["status-code"] !== "200") {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
-		}
 	}
 
 	protected function aoIconsToEmojis(string $text): string {

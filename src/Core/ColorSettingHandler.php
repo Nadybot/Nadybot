@@ -12,7 +12,7 @@ class ColorSettingHandler extends SettingHandler {
 	/**
 	 * Get a displayable representation of the setting
 	 */
-	public function displayValue(): string {
+	public function displayValue(string $sender): string {
 		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
 	}
 

@@ -68,7 +68,7 @@ class SettingManager {
 		}
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel'])) {
+		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token'])) {
 			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
 		}
 
@@ -280,6 +280,9 @@ class SettingManager {
 				break;
 			case 'discord_channel':
 				$handler = new DiscordChannelSettingHandler($row);
+				break;
+			case 'discord_bot_token':
+				$handler = new DiscordBotTokenSettingHandler($row);
 				break;
 			default:
 				$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");

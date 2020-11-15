@@ -629,11 +629,11 @@ class ConfigController {
 		foreach ($data as $row) {
 			$blob .= "<tab>" . $row->getData()->description ?? "";
 	
-			if ($row->isEditable()) {
+			if ($row->isEditable() && $this->accessManager->checkAccess($sender, $row->getData()->admin)) {
 				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
 			}
 	
-			$blob .= ": " . $row->displayValue() . "\n";
+			$blob .= ": " . $row->displayValue($sender) . "\n";
 		}
 	
 		$data = $this->getAllRegisteredCommands($module);

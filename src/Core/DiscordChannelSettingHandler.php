@@ -73,7 +73,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		return $newValue;
 	}
 
-	public function displayValue(): string {
+	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
 		if ($newValue === "off") {
 			return "<highlight>{$newValue}<end>";
