@@ -12,7 +12,7 @@ class StdinHandler {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public SocketManager $socketManager;
 
@@ -21,6 +21,9 @@ class StdinHandler {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	public SocketNotifier $notifier;
 	public $socket;
@@ -58,6 +61,10 @@ class StdinHandler {
 	 */
 	public function setup(): void {
 		if (!$this->chatBot->vars["enable_console_client"]) {
+			return;
+		}
+		if (!function_exists('readline_callback_handler_install')) {
+			$this->logger->log('WARN', 'readline not supported on this platform, disabling stdin');
 			return;
 		}
 		$this->loadHistory();
