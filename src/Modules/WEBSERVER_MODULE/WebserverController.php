@@ -325,16 +325,16 @@ class WebserverController {
 		if (!empty($this->chatBot->vars['my_guild'])) {
 			$dn["organizationName"] = $this->chatBot->vars['my_guild'];
 		}
-		
+
 		$privKey = openssl_pkey_new();
 		$cert    = openssl_csr_new($dn, $privKey);
 		$cert    = openssl_csr_sign($cert, null, $privKey, 365, null, time());
-		
+
 		$pem = [];
 		openssl_x509_export($cert, $pem[0]);
 		openssl_pkey_export($privKey, $pem[1]);
 		$pem = implode("", $pem);
-		
+
 		// Save PEM file
 		$pemfile = '/tmp/server.pem';
 		file_put_contents($pemfile, $pem);
@@ -399,12 +399,12 @@ class WebserverController {
 			$realFile === false
 			|| (
 				$realFile !== $realBaseDir
-				&& strncmp($realFile, $realBaseDir.'/', strlen($realBaseDir)+1) !== 0)
+				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0)
 		 ) {
 			return new Response(Response::NOT_FOUND);
 		}
 		if (is_dir($realFile)) {
-			$realFile .= "/index.html";
+			$realFile .= DIRECTORY_SEPARATOR . "index.html";
 		}
 		if (!@file_exists($realFile)) {
 			return new Response(Response::NOT_FOUND);
