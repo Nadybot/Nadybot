@@ -22,7 +22,14 @@ class Patcher {
 	public static function patch(PackageEvent $event) {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
-		if ($operation->getJobType() === 'install') {
+		if (method_exists($operation, 'getJobType')) {
+			$operationType = $operation->getJobType();
+		} elseif (defined(get_class($operation) . '::TYPE')) {
+			$operationType = $operation::TYPE;
+		} else {
+			fwrite(STDERR, 'You are using an unsupported version of Composer.' . PHP_EOL);
+		}
+		if ($operation::TYPE === 'install') {
 			/** @var \Composer\DependencyResolver\Operation\InstallOperation $operation */
 			$package = $operation->getPackage();
 		} else {
@@ -38,7 +45,7 @@ class Patcher {
 	}
 
 	/**
-	 * Patch Addendum to support muilti-line annotations
+	 * Patch Addendum to support multi-line annotations
 	 *
 	 * @param string $vendorDir The installation basepath
 	 * @param \Composer\Package\Package $package The package being installed
