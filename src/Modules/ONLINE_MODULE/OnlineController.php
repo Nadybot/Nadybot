@@ -149,6 +149,16 @@ class OnlineController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"afk_brb_without_symbol",
+			"React to afk and brb even without command prefix",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
 
 		$this->commandAlias->register($this->moduleName, "online", "o");
 		$this->commandAlias->register($this->moduleName, "online", "sm");
@@ -397,14 +407,18 @@ class OnlineController {
 	public function afk(string $sender, string $message, string $type): void {
 		$msg = null;
 		$symbol = $this->settingManager->getString('symbol');
-		if (preg_match("/^\Q$symbol\E?afk$/i", $message)) {
+		$symbolModifier = "";
+		if ($this->settingManager->getBool('afk_brb_without_symbol')) {
+			$symbolModifier = "?";
+		}
+		if (preg_match("/^\Q$symbol\E${symbolModifier}afk$/i", $message)) {
 			$reason = time();
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
-		} elseif (preg_match("/^\Q$symbol\E?brb(.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}brb(.*)$/i", $message, $arr)) {
 			$reason = time() . '|brb ' . trim($arr[1]);
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
-		} elseif (preg_match("/^\Q$symbol\E?afk[, ]+(.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}afk[, ]+(.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
 			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
 			$msg = "<highlight>$sender<end> is now AFK.";
