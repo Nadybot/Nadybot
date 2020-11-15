@@ -27,7 +27,7 @@ class Patcher {
 		} elseif (defined(get_class($operation) . '::TYPE')) {
 			$operationType = $operation::TYPE;
 		} else {
-			fwrite(STDERR, 'You are using an unsupported version of Composer.' . PHP_EOL);
+			throw new Exception('You are using an unsupported version of Composer');
 		}
 		if ($operationType === 'install') {
 			/** @var \Composer\DependencyResolver\Operation\InstallOperation $operation */
