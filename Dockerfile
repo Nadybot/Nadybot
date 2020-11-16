@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM quay.io/jitesoft/alpine:latest
 
 LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Nadybot"
