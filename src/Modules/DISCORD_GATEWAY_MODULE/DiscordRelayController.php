@@ -17,7 +17,9 @@ use Nadybot\Core\Modules\{
 	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\Modules\CONFIG\SettingOption;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -59,7 +61,13 @@ class DiscordRelayController {
 	public ConfigController $configController;
 
 	/** @Inject */
+	public PlayerManager $playerManager;
+
+	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public AltsController $altsController;
 
 	/** @Inject */
 	public Timer $timer;
@@ -421,7 +429,7 @@ class DiscordRelayController {
 		}
 		$sender = $eventObj->sender;
 		$message = $eventObj->message;
-		
+
 		// Check if the private channel relay is enabled
 		if (($this->settingManager->getInt("discord_relay") & 1) !== 1) {
 			return;
@@ -596,5 +604,127 @@ class DiscordRelayController {
 		);
 		$text = htmlspecialchars($text);
 		return $this->text->formatMessage($text);
+	}
+
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Sends a message to Discord when someone joins the private channel")
+	 */
+	public function relayJoinPrivMessagesEvent(Event $eventObj): void {
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		if ($relayChannel === "off" || empty($relayChannel)) {
+			return;
+		}
+		$sender = $eventObj->sender;
+		$whois = $this->playerManager->getByName($sender);
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$mainName = "";
+		if ($altInfo->main !== $sender) {
+			$mainName = " ({$altInfo->main})";
+		}
+
+		if ($whois !== null) {
+			$msg = $this->playerManager->getInfo($whois) . "{$mainName} has joined the private channel.";
+		} else {
+			$msg = "{$sender}{$mainName} has joined the private channel.";
+		}
+		$discordMsg = $this->discordController->formatMessage($msg);
+		$discordMsg->allowed_mentions = (object)[
+			"parse" => ["users"]
+		];
+
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
+	/**
+	 * @Event("leavePriv")
+	 * @Description("Sends a message to Discordthe relay when someone leaves the private channel")
+	 */
+	public function relayLeavePrivMessagesEvent(Event $eventObj): void {
+		$sender = $eventObj->sender;
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		if ($relayChannel === "off" || empty($relayChannel)) {
+			return;
+		}
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$mainName = "";
+		if ($altInfo->main !== $sender) {
+			$mainName = " ({$altInfo->main})";
+		}
+		$msg = "<highlight>{$sender}<end>{$mainName} has left the private channel.";
+		$discordMsg = $this->discordController->formatMessage($msg);
+		$discordMsg->allowed_mentions = (object)[
+			"parse" => ["users"]
+		];
+
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
+	/**
+	 * @Event("logOn")
+	 * @Description("Sends Org logon messages to Discord")
+	 */
+	public function relayLogonMessagesEvent(Event $eventObj): void {
+		$sender = $eventObj->sender;
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		if ($relayChannel === "off"
+			|| empty($relayChannel)
+			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()) {
+			return;
+		}
+		$whois = $this->playerManager->getByName($sender);
+
+		$msg = '';
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$mainChar = "";
+		if ($altInfo->main !== $sender) {
+			$mainChar = " ({$altInfo->main})";
+		}
+		if ($whois === null) {
+			$msg = "{$sender}{$mainChar} logged on.";
+		} else {
+			$msg = $this->playerManager->getInfo($whois);
+
+			$msg .= "{$mainChar} logged on.";
+
+			$logonMsg = $this->preferences->get($sender, 'logon_msg');
+			if ($logonMsg !== null && $logonMsg !== '') {
+				$msg .= " - " . $logonMsg;
+			}
+		}
+		$discordMsg = $this->discordController->formatMessage($msg);
+		$discordMsg->allowed_mentions = (object)[
+			"parse" => ["users"]
+		];
+
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
+	/**
+	 * @Event("logOff")
+	 * @Description("Sends Logoff messages over the relay")
+	 */
+	public function relayLogoffMessagesEvent(Event $eventObj): void {
+		$sender = $eventObj->sender;
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		if ($relayChannel === "off"
+			|| empty($relayChannel)
+			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()) {
+			return;
+		}
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$mainChar = "";
+		if ($altInfo->main !== $sender) {
+			$mainChar = " ({$altInfo->main})";
+		}
+		$msg = "<highlight>{$sender}<end>{$mainChar} logged off";
+		$discordMsg = $this->discordController->formatMessage($msg);
+		$discordMsg->allowed_mentions = (object)[
+			"parse" => ["users"]
+		];
+
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
 	}
 }
