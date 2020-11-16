@@ -20,6 +20,7 @@ use Nadybot\Core\Modules\{
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\Modules\CONFIG\SettingOption;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -65,6 +66,9 @@ class DiscordRelayController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public Preferences $preferences;
 
 	/** @Inject */
 	public AltsController $altsController;
