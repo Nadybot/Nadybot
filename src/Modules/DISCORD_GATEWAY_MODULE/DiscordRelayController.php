@@ -106,6 +106,16 @@ class DiscordRelayController {
 		);
 		$this->settingManager->add(
 			$this->moduleName,
+			"discord_prefix_relay",
+			"Prefix messages to Discord with org/botname",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"discord_relay_channel",
 			"Discord channel to relay into",
 			"edit",
@@ -408,7 +418,12 @@ class DiscordRelayController {
 			&& !$this->settingManager->getBool("discord_relay_commands")) {
 			return;
 		}
-		$msg = "[Guest] {$sender}: {$message}";
+		if (strlen($this->chatBot->vars["my_guild"])) {
+			$msg = "[Guest] ";
+		} elseif ($this->settingManager->getBool('discord_prefix_relay')) {
+			$msg = "[<myname>] ";
+		}
+		$msg .= "{$sender}: {$message}";
 		$discordMsg = $this->discordController->formatMessage($msg);
 		$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank');
 		$sendersRank = $this->accessManager->getAccessLevelForCharacter($sender);
@@ -454,8 +469,11 @@ class DiscordRelayController {
 			&& !$this->settingManager->getBool("discord_relay_commands")) {
 			return;
 		}
-		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
-		$msg = "[{$guildNameForRelay}] {$sender}: {$message}";
+		if ($this->settingManager->getBool('discord_prefix_relay')) {
+			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
+			$msg = "[{$guildNameForRelay}] ";
+		}
+		$msg .= "{$sender}: {$message}";
 		$discordMsg = $this->discordController->formatMessage($msg);
 
 		//Relay the message to the discord channel
@@ -610,6 +628,23 @@ class DiscordRelayController {
 		return $this->text->formatMessage($text);
 	}
 
+	public function relayPrivOnlineEvent(string $msg): void {
+		if ($this->settingManager->getBool('discord_prefix_relay')) {
+			if (strlen($this->chatBot->vars["my_guild"])) {
+				$msg = "[Guest] {$msg}";
+			} elseif ($this->settingManager->getBool('discord_prefix_relay')) {
+				$msg = "[<myname>] {$msg}";
+			}
+		}
+		$discordMsg = $this->discordController->formatMessage($msg);
+		$discordMsg->allowed_mentions = (object)[
+			"parse" => ["users"]
+		];
+
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
+		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+	}
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Sends a message to Discord when someone joins the private channel")
@@ -632,12 +667,7 @@ class DiscordRelayController {
 		} else {
 			$msg = "{$sender}{$mainName} has joined the private channel.";
 		}
-		$discordMsg = $this->discordController->formatMessage($msg);
-		$discordMsg->allowed_mentions = (object)[
-			"parse" => ["users"]
-		];
-
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->relayPrivOnlineEvent($msg);
 	}
 
 	/**
@@ -656,11 +686,20 @@ class DiscordRelayController {
 			$mainName = " ({$altInfo->main})";
 		}
 		$msg = "<highlight>{$sender}<end>{$mainName} has left the private channel.";
+		$this->relayPrivOnlineEvent($msg);
+	}
+
+	public function relayOrgOnlineEvent(string $msg): void {
+		if ($this->settingManager->getBool('discord_prefix_relay')) {
+			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
+			$msg = "[{$guildNameForRelay}] {$msg}";
+		}
 		$discordMsg = $this->discordController->formatMessage($msg);
 		$discordMsg->allowed_mentions = (object)[
 			"parse" => ["users"]
 		];
 
+		$relayChannel = $this->settingManager->getString("discord_relay_channel");
 		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
 	}
 
@@ -697,12 +736,7 @@ class DiscordRelayController {
 				$msg .= " - " . $logonMsg;
 			}
 		}
-		$discordMsg = $this->discordController->formatMessage($msg);
-		$discordMsg->allowed_mentions = (object)[
-			"parse" => ["users"]
-		];
-
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->relayOrgOnlineEvent($msg);
 	}
 
 	/**
@@ -724,11 +758,6 @@ class DiscordRelayController {
 			$mainChar = " ({$altInfo->main})";
 		}
 		$msg = "<highlight>{$sender}<end>{$mainChar} logged off";
-		$discordMsg = $this->discordController->formatMessage($msg);
-		$discordMsg->allowed_mentions = (object)[
-			"parse" => ["users"]
-		];
-
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->relayOrgOnlineEvent($msg);
 	}
 }
