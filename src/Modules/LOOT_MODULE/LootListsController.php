@@ -671,6 +671,7 @@ class LootListsController {
 		$blob  = $this->findRaidLoot('Subway', 'Armor');
 		$blob .= $this->findRaidLoot('Subway', 'Weapons');
 		$blob .= $this->findRaidLoot('Subway', 'Belt');
+		$blob .= $this->findRaidLoot('Subway', 'Rings');
 		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils');
 		$msg = $this->text->makeBlob("Subway Loot", $blob);
 
