@@ -19,6 +19,7 @@ use Nadybot\Core\Modules\{
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\Modules\CONFIG\SettingOption;
+use Nadybot\Core\Modules\DISCORD\DiscordUser;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
@@ -516,7 +517,53 @@ class DiscordRelayController {
 		if ($message[0] === $this->settingManager->getString("symbol")) {
 			return;
 		}
-		$this->relayDiscordMessage($eventObj->discord_message->member, $message);
+		$this->resolveDiscordMentions(
+			$eventObj->discord_message->guild_id??null,
+			$message,
+			function(string $message) use ($eventObj): void {
+				$this->relayDiscordMessage($eventObj->discord_message->member, $message);
+			}
+		);
+	}
+
+	/**
+	 * Recursively resolve all mentions in $message and then call $callback
+	 */
+	public function resolveDiscordMentions(?string $guildId, string $message, callable $callback): void {
+		if (!preg_match("/<@!?(\d+)>/", $message, $matches)) {
+			$callback($message);
+			return;
+		}
+		$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
+		if (isset($niceName)) {
+			$message = preg_replace("/<@!?" . $matches[1] . ">/", "@{$niceName}", $message);
+			$this->resolveDiscordMentions($guildId, $message, $callback);
+			return;
+		}
+		if (isset($guildId)) {
+			$this->discordAPIClient->getGuildMember(
+				$guildId,
+				$matches[1],
+				function(GuildMember $member, string $guildId, string $message, callable $callback) {
+					$message = preg_replace("/<@!?" . $member->user->id . ">/", "@" . $member->getName(), $message);
+					$this->resolveDiscordMentions($guildId, $message, $callback);
+				},
+				$guildId,
+				$message,
+				$callback
+			);
+			return;
+		}
+		$this->discordAPIClient->getUser(
+			$matches[1],
+			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
+				$message = preg_replace("/<@!?" . $user->id . ">/", "@{$user->username}", $message);
+				$this->resolveDiscordMentions($guildId, $message, $callback);
+			},
+			$guildId,
+			$message,
+			$callback
+		);
 	}
 
 	public function relayDiscordMessage(GuildMember $member, string $message, bool $formatMessage=true): void {
