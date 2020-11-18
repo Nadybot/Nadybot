@@ -121,7 +121,7 @@ class OrglistController {
 		// check if search is a character and add character's org to org list if it's not already in the list
 		$name = ucfirst(strtolower($search));
 		$whois = $this->playerManager->getByName($name);
-		if ($whois === null || $whois->guild_id === 0) {
+		if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
 			return $orgs;
 		}
 		$found = false;
