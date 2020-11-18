@@ -110,9 +110,38 @@ class GuildController {
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "org_members");
 		
-		$this->settingManager->add($this->moduleName, "max_logon_msg_size", "Maximum characters a logon message can have", "edit", "number", "200", "100;200;300;400", '', "mod");
-		$this->settingManager->add($this->moduleName, "max_logoff_msg_size", "Maximum characters a logoff message can have", "edit", "number", "200", "100;200;300;400", '', "mod");
-		$this->settingManager->add($this->moduleName, "first_and_last_alt_only", "Show logon/logoff for first/last alt only", "edit", "options", "0", "true;false", "1;0");
+		$this->settingManager->add(
+			$this->moduleName,
+			"max_logon_msg_size",
+			"Maximum characters a logon message can have",
+			"edit",
+			"number",
+			"200",
+			"100;200;300;400",
+			'',
+			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"max_logoff_msg_size",
+			"Maximum characters a logoff message can have",
+			"edit",
+			"number",
+			"200",
+			"100;200;300;400",
+			'',
+			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"first_and_last_alt_only",
+			"Show logon/logoff for first/last alt only",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 		
 		$this->chatBot->guildmembers = [];
 		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id ".
@@ -547,6 +576,44 @@ class GuildController {
 		}
 	}
 
+	public function getLogonMessage(string $player, bool $suppressAltList=false): ?string {
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is already online, don't show logon message
+			$altInfo = $this->altsController->getAltInfo($player);
+			if (count($altInfo->getOnlineAlts()) > 1) {
+				return null;
+			}
+		}
+
+		$whois = $this->playerManager->getByName($player);
+
+		$msg = '';
+		if ($whois === null) {
+			$msg = "$player logged on.";
+		} else {
+			$msg = $this->playerManager->getInfo($whois);
+
+			$msg .= " logged on.";
+
+			$altInfo = $this->altsController->getAltInfo($player);
+			if ($suppressAltList) {
+				if ($altInfo->main !== $player) {
+					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+				}
+			} else {
+				if (count($altInfo->alts) > 0) {
+					$msg .= " " . $altInfo->getAltsBlob(true);
+				}
+			}
+		}
+
+		$logonMsg = $this->preferences->get($player, 'logon_msg');
+		if ($logonMsg !== null && $logonMsg !== '') {
+			$msg .= " - " . $logonMsg;
+		}
+		return $msg;
+	}
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Shows an org member logon in chat")
@@ -556,33 +623,9 @@ class GuildController {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
 			return;
 		}
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
-			// if at least one alt/main is still online, don't show logoff message
-			$altInfo = $this->altsController->getAltInfo($sender);
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return;
-			}
-		}
-
-		$whois = $this->playerManager->getByName($sender);
-
-		$msg = '';
-		if ($whois === null) {
-			$msg = "$sender logged on.";
-		} else {
-			$msg = $this->playerManager->getInfo($whois);
-
-			$msg .= " logged on.";
-
-			$altInfo = $this->altsController->getAltInfo($sender);
-			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(true);
-			}
-		}
-
-		$logon_msg = $this->preferences->get($sender, 'logon_msg');
-		if ($logon_msg !== null && $logon_msg !== '') {
-			$msg .= " - " . $logon_msg;
+		$msg = $this->getLogonMessage($sender);
+		if ($msg === null) {
+			return;
 		}
 
 		$this->chatBot->sendGuild($msg, true);
@@ -591,6 +634,23 @@ class GuildController {
 		if ($this->settingManager->getBool("guest_relay")) {
 			$this->chatBot->sendPrivate($msg, true);
 		}
+	}
+
+	public function getLogoffMessage(string $player): ?string {
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is still online, don't show logoff message
+			$altInfo = $this->altsController->getAltInfo($player);
+			if (count($altInfo->getOnlineAlts()) > 0) {
+				return null;
+			}
+		}
+
+		$msg = "$player logged off.";
+		$logoffMessage = $this->preferences->get($player, 'logoff_msg');
+		if ($logoffMessage !== null && $logoffMessage !== '') {
+			$msg .= " " . $logoffMessage;
+		}
+		return $msg;
 	}
 	
 	/**
@@ -602,18 +662,10 @@ class GuildController {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
 			return;
 		}
-		if ($this->settingManager->get('first_and_last_alt_only') == 1) {
-			// if at least one alt/main is already online, don't show logoff message
-			$altInfo = $this->altsController->getAltInfo($sender);
-			if (count($altInfo->getOnlineAlts()) > 0) {
-				return;
-			}
-		}
 
-		$msg = "$sender logged off.";
-		$logoffMessage = $this->preferences->get($sender, 'logoff_msg');
-		if ($logoffMessage !== null && $logoffMessage !== '') {
-			$msg .= " " . $logoffMessage;
+		$msg = $this->getLogoffMessage($sender);
+		if ($msg === null) {
+			return;
 		}
 
 		$this->chatBot->sendGuild($msg, true);

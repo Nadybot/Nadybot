@@ -728,44 +728,73 @@ class PrivateChannelController {
 		$this->chatBot->privategroup_invite($sender);
 		$this->chatBot->sendTell($msg, $sender);
 	}
-	
+
+	public function getLogonMessage(string $player, bool $suppressAltList=false): ?string {
+		$altInfo = $this->altsController->getAltInfo($player);
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is already online, don't show logon message
+			if (count($altInfo->getOnlineAlts()) > 1) {
+				return null;
+			}
+		}
+
+		$whois = $this->playerManager->getByName($player);
+		if ($whois !== null) {
+			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
+		} else {
+			$msg = "$player has joined the private channel.";
+		}
+		if ($suppressAltList) {
+			if ($altInfo->main !== $player) {
+				$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+			}
+		} else {
+			if (count($altInfo->alts) > 0) {
+				$msg .= " " . $altInfo->getAltsBlob(true);
+			}
+		}
+		return $msg;
+	}
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Displays a message when a character joins the private channel")
 	 */
 	public function joinPrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
-		$whois = $this->playerManager->getByName($sender);
 
-		$altInfo = $this->altsController->getAltInfo($sender);
-
-		if ($whois !== null) {
-			if (count($altInfo->alts) > 0) {
-				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel. " . $altInfo->getAltsBlob(true);
-			} else {
-				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
+		$msg = $this->getLogonMessage($sender);
+		if ($msg !== null) {
+			if ($this->settingManager->getBool("guest_relay")) {
+				$this->chatBot->sendGuild($msg, true);
 			}
-		} else {
-			$msg = "$sender has joined the private channel.";
-			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(true);
-			}
+			$this->chatBot->sendPrivate($msg, true);
 		}
-
-		if ($this->settingManager->getBool("guest_relay")) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		$this->chatBot->sendPrivate($msg, true);
 		$event = new OnlineEvent();
 		$event->type = "online(priv)";
 		$event->player = new OnlinePlayer();
 		$event->channel = "priv";
+		$whois = $this->playerManager->getByName($sender);
 		foreach ($whois as $key => $value) {
 			$event->player->$key = $value;
 		}
 		$event->player->online = true;
+		$altInfo = $this->altsController->getAltInfo($sender);
 		$event->player->pmain = $altInfo->main;
 		$this->eventManager->fireEvent($event);
+	}
+
+	public function getLogoffMessage(string $player): ?string {
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is still online, don't show logoff message
+			$altInfo = $this->altsController->getAltInfo($player);
+			if (count($altInfo->getOnlineAlts()) > 0) {
+				return null;
+			}
+		}
+
+		$msg = "<highlight>{$player}<end> has left the private channel.";
+		return $msg;
 	}
 	
 	/**
@@ -774,7 +803,10 @@ class PrivateChannelController {
 	 */
 	public function leavePrivateChannelMessageEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		$msg = "<highlight>$sender<end> has left the private channel.";
+		$msg = $this->getLogoffMessage($sender);
+		if ($msg === null) {
+			return;
+		}
 
 		if ($this->settingManager->getBool("guest_relay")) {
 			$this->chatBot->sendGuild($msg, true);

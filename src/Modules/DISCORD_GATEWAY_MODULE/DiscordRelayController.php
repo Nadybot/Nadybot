@@ -23,6 +23,8 @@ use Nadybot\Core\Modules\DISCORD\DiscordUser;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
+use Nadybot\Modules\GUILD_MODULE\GuildController;
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
@@ -58,6 +60,12 @@ class DiscordRelayController {
 
 	/** @Inject */
 	public DiscordController $discordController;
+
+	/** @Inject */
+	public GuildController $guildController;
+
+	/** @Inject */
+	public PrivateChannelController $privateChannelController;
 
 	/** @Inject */
 	public ConfigController $configController;
@@ -702,17 +710,9 @@ class DiscordRelayController {
 			return;
 		}
 		$sender = $eventObj->sender;
-		$whois = $this->playerManager->getByName($sender);
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$mainName = "";
-		if ($altInfo->main !== $sender) {
-			$mainName = " ({$altInfo->main})";
-		}
-
-		if ($whois !== null) {
-			$msg = $this->playerManager->getInfo($whois) . "{$mainName} has joined the private channel.";
-		} else {
-			$msg = "{$sender}{$mainName} has joined the private channel.";
+		$msg = $this->privateChannelController->getLogonMessage($sender, true);
+		if ($msg === null) {
+			return;
 		}
 		$this->relayPrivOnlineEvent($msg);
 	}
@@ -727,12 +727,10 @@ class DiscordRelayController {
 		if ($relayChannel === "off" || empty($relayChannel)) {
 			return;
 		}
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$mainName = "";
-		if ($altInfo->main !== $sender) {
-			$mainName = " ({$altInfo->main})";
+		$msg = $this->privateChannelController->getLogoffMessage($sender);
+		if ($msg === null) {
+			return;
 		}
-		$msg = "<highlight>{$sender}<end>{$mainName} has left the private channel.";
 		$this->relayPrivOnlineEvent($msg);
 	}
 
@@ -763,25 +761,9 @@ class DiscordRelayController {
 			|| !$this->chatBot->isReady()) {
 			return;
 		}
-		$whois = $this->playerManager->getByName($sender);
-
-		$msg = '';
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$mainChar = "";
-		if ($altInfo->main !== $sender) {
-			$mainChar = " ({$altInfo->main})";
-		}
-		if ($whois === null) {
-			$msg = "{$sender}{$mainChar} logged on.";
-		} else {
-			$msg = $this->playerManager->getInfo($whois);
-
-			$msg .= "{$mainChar} logged on.";
-
-			$logonMsg = $this->preferences->get($sender, 'logon_msg');
-			if ($logonMsg !== null && $logonMsg !== '') {
-				$msg .= " - " . $logonMsg;
-			}
+		$msg = $this->guildController->getLogonMessage($sender, true);
+		if ($msg === null) {
+			return;
 		}
 		$this->relayOrgOnlineEvent($msg);
 	}
@@ -799,12 +781,10 @@ class DiscordRelayController {
 			|| !$this->chatBot->isReady()) {
 			return;
 		}
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$mainChar = "";
-		if ($altInfo->main !== $sender) {
-			$mainChar = " ({$altInfo->main})";
+		$msg = $this->guildController->getLogoffMessage($sender);
+		if ($msg === null) {
+			return;
 		}
-		$msg = "<highlight>{$sender}<end>{$mainChar} logged off";
 		$this->relayOrgOnlineEvent($msg);
 	}
 }

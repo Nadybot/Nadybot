@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 };
+use Nadybot\Modules\GUILD_MODULE\GuildController;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 
 /**
@@ -67,6 +68,9 @@ class RelayController {
 	
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public GuildController $guildController;
 
 	/** @Inject */
 	public AMQP $amqp;
@@ -599,25 +603,9 @@ class RelayController {
 			|| !$this->chatBot->isReady()) {
 			return;
 		}
-		$whois = $this->playerManager->getByName($sender);
-
-		$msg = '';
-		if ($whois === null) {
-			$msg = "$sender logged on.";
-		} else {
-			$msg = $this->playerManager->getInfo($whois);
-
-			$msg .= " logged on.";
-
-			$altInfo = $this->altsController->getAltInfo($sender);
-			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(true);
-			}
-
-			$logonMsg = $this->preferences->get($sender, 'logon_msg');
-			if ($logonMsg !== null && $logonMsg !== '') {
-				$msg .= " - " . $logonMsg;
-			}
+		$msg = $this->guildController->getLogonMessage($sender);
+		if ($msg === null) {
+			return;
 		}
 
 		if (strlen($this->chatBot->vars["my_guild"])) {
@@ -639,10 +627,14 @@ class RelayController {
 		) {
 			return;
 		}
+		$msg = $this->guildController->getLogoffMessage($sender);
+		if ($msg === null) {
+			return;
+		}
 		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
+			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>{$msg}</end>");
 		} else {
-			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color><highlight>{$sender}<end> logged off</end>");
+			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>{$msg}</end>");
 		}
 	}
 	
