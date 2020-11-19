@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS banlist_<myname> (
 	banend INT
 );
 
-CREATE INDEX `banlist_<myname>_banend_idx` ON `banlist_<myname>`(`banend`);
+CREATE INDEX IF NOT EXISTS `banlist_<myname>_banend_idx` ON `banlist_<myname>`(`banend`);
