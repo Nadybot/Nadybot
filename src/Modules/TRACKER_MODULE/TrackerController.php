@@ -15,6 +15,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
+use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
 use Nadybot\Modules\TOWER_MODULE\TrackerEvent;
 
 /**
@@ -33,6 +35,12 @@ use Nadybot\Modules\TOWER_MODULE\TrackerEvent;
  *	@ProvidesEvent("tracker(logoff)")
  */
 class TrackerController {
+	/** No grouping, just sorting */
+	public const GROUP_NONE = 0;
+	/** Group by title level */
+	public const GROUP_TL = 1;
+	/** Group by profession */
+	public const GROUP_PROF = 2;
 
 	/**
 	 * Name of the module.
@@ -66,6 +74,9 @@ class TrackerController {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public OnlineController $onlineController;
 	
 	/**
 	 * @Setup
@@ -139,6 +150,16 @@ class TrackerController {
 			'true;false',
 			'1;0',
 			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tracker_group_by",
+			"Group online list by",
+			"edit",
+			"options",
+			"1",
+			"do not group;title level;profession",
+			"0;1;2"
 		);
 	}
 	
@@ -349,7 +370,7 @@ class TrackerController {
 	
 	/**
 	 * @HandlesCommand("track")
-	 * @Matches("/^track rem (.+)$/i")
+	 * @Matches("/^track (?:rem|del) (.+)$/i")
 	 */
 	public function trackRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -415,7 +436,119 @@ class TrackerController {
 
 		$sendto->reply($msg);
 	}
-	
+
+	/**
+	 * @HandlesCommand("track")
+	 * @Matches("/^track online$/i")
+	 */
+	public function trackOnlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, ".
+			"(SELECT `event`='logon' FROM `tracking_<myname>` t WHERE t.uid=tu.uid ORDER BY `dt` DESC LIMIT 1) AS online ".
+			"FROM `tracked_users_<myname>` tu ".
+			"JOIN players p ON tu.`name` = p.`name` ".
+			"WHERE `online` IS TRUE ".
+			"ORDER BY p.name ASC";
+		/** @var OnlinePlayer[] */
+		$data = $this->db->fetchAll(OnlinePlayer::class, $sql);
+		if (!count($data)) {
+			$sendto->reply("No tracked players are currently online.");
+			return;
+		}
+		$blob = $this->renderOnlineList($data);
+		$msg = $this->text->makeBlob("Online tracked players (" . count($data). ")", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * Get the blob with details about the tracked players currently online
+	 * @param OnlinePlayer[] $players
+	 * @return string The blob
+	 */
+	public function renderOnlineList(array $players): string {
+		$groupBy = $this->settingManager->getInt('tracker_group_by');
+		$groups = [];
+		if ($groupBy === static::GROUP_TL) {
+			foreach ($players as $player) {
+				$tl = $this->util->levelToTL($player->level);
+				$groups[$tl] ??= (object)['title' => 'TL'.$tl, 'members' => [], 'sort' => $tl];
+				$groups[$tl]->members []= $player;
+			}
+		} elseif ($groupBy === static::GROUP_PROF) {
+			foreach ($players as $player) {
+				$prof = $player->profession;
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->onlineController->getProfessionId($player->profession).">";
+				$groups[$prof] ??= (object)[
+					'title' => $profIcon . " {$player->profession}",
+					'members' => [],
+					'sort' => $player->profession,
+				];
+				$groups[$prof]->members []= $player;
+			}
+		} else {
+			$groups["all"] ??= (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
+		}
+		usort($groups, function(object $a, object $b): int {
+			return $a->sort <=> $b->sort;
+		});
+		$parts = [];
+		foreach ($groups as $group) {
+			$parts []= "<header2>{$group->title} (" . count($group->members) . ")<end>\n".
+				$this->renderPlayerGroup($group->members, $groupBy);
+		}
+
+		return join("\n\n", $parts);
+	}
+
+	/**
+	 * Return the content of the online list for one player group
+	 * @param OnlinePlayer[] $players The list of players in that group
+	 * @return string The blob for this group
+	 */
+	public function renderPlayerGroup(array $players, int $groupBy): string {
+		return "<tab>" . join(
+			"\n<tab>",
+			array_map(
+				function(OnlinePlayer $player) use ($groupBy) {
+					return $this->renderPlayerLine($player, $groupBy);
+				},
+				$players
+			)
+		);
+	}
+
+	/**
+	 * Render a single online-line of a player
+	 * @param OnlinePlayer $player The player to render
+	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't showthe prof icon
+	 * @return string A single like without newlines
+	 */
+	public function renderPlayerLine(OnlinePlayer $player, int $groupBy): string {
+		$faction = strtolower($player->faction);
+		$blob = "";
+		if ($groupBy !== static::GROUP_PROF) {
+			if ($player->profession === null) {
+				$blob .= "? ";
+			} else {
+				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
+					$this->onlineController->getProfessionId($player->profession) . "> ";
+			}
+		}
+		if ($this->settingManager->getBool('tracker_use_faction_color')) {
+			$blob .= "<{$faction}>{$player->name}<end>";
+		} else {
+			$blob .= "<highlight>{$player->name}<end>";
+		}
+		$prof = $this->util->getProfessionAbbreviation($player->profession);
+		$blob .= " ({$player->level}/<green>{$player->ai_level}<end>, {$prof})";
+		if ($player->guild !== null && $player->guild !== '') {
+			$blob .= " :: <{$faction}>{$player->guild}<end> ({$player->guild_rank})";
+		}
+		$historyLink = $this->text->makeChatcmd("history", "/tell <myname> track {$player->name}");
+		$removeLink = $this->text->makeChatcmd("untrack", "/tell <myname> track rem {$player->name}");
+		$blob .= " [{$removeLink}] [{$historyLink}]";
+		return $blob;
+	}
+
 	/**
 	 * @HandlesCommand("track")
 	 * @Matches("/^track (.+)$/i")
