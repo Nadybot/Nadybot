@@ -78,12 +78,11 @@ class DB {
 
 			$mysqlVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 
-			// for MySQL 5.5 and later, use 'default_storage_engine'
-			// for previous versions use 'storage_engine'
-			if (version_compare($mysqlVersion, "5.5") >= 0) {
-				$this->exec("SET default_storage_engine = MyISAM");
-			} else {
-				$this->exec("SET storage_engine = MyISAM");
+			// MariaDB 10.0.12 made aria storage stable which is read-optimized
+			if (preg_match("/MariaDB-\d+:([0-9.]+)/", $mysqlVersion, $matches)) {
+				if (version_compare($matches[1], "10.0.12") >= 0) {
+					$this->exec("SET default_storage_engine = aria");
+				}
 			}
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
