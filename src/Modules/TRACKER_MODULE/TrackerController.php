@@ -442,11 +442,10 @@ class TrackerController {
 	 * @Matches("/^track online$/i")
 	 */
 	public function trackOnlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, ".
-			"(SELECT `event`='logon' FROM `tracking_<myname>` t WHERE t.uid=tu.uid ORDER BY `dt` DESC LIMIT 1) AS online ".
+		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, TRUE as `online` ".
 			"FROM `tracked_users_<myname>` tu ".
 			"JOIN players p ON tu.`name` = p.`name` ".
-			"WHERE `online` IS TRUE ".
+			"WHERE (SELECT `event` FROM `tracking_<myname>` t WHERE t.uid=tu.uid ORDER BY `dt` DESC LIMIT 1) = 'logon' ".
 			"ORDER BY p.name ASC";
 		/** @var OnlinePlayer[] */
 		$data = $this->db->fetchAll(OnlinePlayer::class, $sql);
