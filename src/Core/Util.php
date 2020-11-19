@@ -566,4 +566,27 @@ class Util {
 	public function isInteger($input): bool {
 		return(ctype_digit(strval($input)));
 	}
+
+	/** Calculate the title level from the player's level */
+	public function levelToTL(int $level): int {
+		if ($level < 15) {
+			return 1;
+		}
+		if ($level < 50) {
+			return 2;
+		}
+		if ($level < 100) {
+			return 3;
+		}
+		if ($level < 150) {
+			return 4;
+		}
+		if ($level < 190) {
+			return 5;
+		}
+		if ($level < 205) {
+			return 6;
+		}
+		return 7;
+	}
 }
