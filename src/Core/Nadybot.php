@@ -150,6 +150,9 @@ class Nadybot extends AOChat {
 		if ($this->db->getType() === $this->db::MYSQL) {
 			$this->db->exec("ALTER TABLE cmdcfg_<myname> MODIFY COLUMN `admin` VARCHAR(30)");
 		}
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_verify_idx` ON `cmdcfg_<myname>`(`verify`)");
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_cmd_idx` ON `cmdcfg_<myname>`(`cmd`)");
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_type_idx` ON `cmdcfg_<myname>`(`type`)");
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS eventcfg_<myname> (".
 			"`module` VARCHAR(50), ".
@@ -164,6 +167,9 @@ class Nadybot extends AOChat {
 		if ($this->db->getType() === $this->db::MYSQL) {
 			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `type` `type` VARCHAR(50)");
 		}
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_type_idx` ON `eventcfg_<myname>`(`type`)");
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_file_idx` ON `eventcfg_<myname>`(`file`)");
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_module_idx` ON `eventcfg_<myname>`(`module`)");
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS settings_<myname> (".
 			"`name` VARCHAR(50) NOT NULL, ".
@@ -180,6 +186,7 @@ class Nadybot extends AOChat {
 			"`help` VARCHAR(255)".
 			")"
 		);
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `settings_<myname>_name_idx` ON `settings_<myname>`(`name`)");
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS hlpcfg_<myname> (".
 			"`name` VARCHAR(25) NOT NULL, ".
@@ -190,6 +197,7 @@ class Nadybot extends AOChat {
 			"`verify` INT DEFAULT '0'".
 			")"
 		);
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `hlpcfg_<myname>_name_idx` ON `hlpcfg_<myname>`(`name`)");
 		$this->db->exec(
 			"CREATE TABLE IF NOT EXISTS cmd_alias_<myname> (".
 			"`cmd` VARCHAR(255) NOT NULL, ".
@@ -198,6 +206,7 @@ class Nadybot extends AOChat {
 			"`status` INT DEFAULT '0'".
 			")"
 		);
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmd_alias_<myname>_alias_idx` ON `cmd_alias_<myname>`(`alias`)");
 
 		// Prepare command/event settings table
 		$this->db->exec("UPDATE `cmdcfg_<myname>` SET `verify` = 0");

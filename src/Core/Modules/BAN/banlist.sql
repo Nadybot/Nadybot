@@ -5,3 +5,5 @@ CREATE TABLE IF NOT EXISTS banlist_<myname> (
 	reason TEXT,
 	banend INT
 );
+
+CREATE INDEX `banlist_<myname>_banend_idx` ON `banlist_<myname>`(`banend`);

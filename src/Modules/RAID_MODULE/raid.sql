@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS `raid_<myname>` (
 
 CREATE INDEX IF NOT EXISTS `raid_<myname>_started_idx` ON `raid_<myname>`(`started`);
 CREATE INDEX IF NOT EXISTS `raid_<myname>_stopped_idx` ON `raid_<myname>`(`stopped`);
+CREATE INDEX IF NOT EXISTS `raid_<myname>_raid_id_idx` ON `raid_<myname>`(`raid_id`);
