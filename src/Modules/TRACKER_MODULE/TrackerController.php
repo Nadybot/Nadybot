@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\TOWER_MODULE\TrackerEvent;
 
 /**
@@ -62,6 +63,9 @@ class TrackerController {
 	
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public PlayerManager $playerManager;
 	
 	/**
 	 * @Setup
@@ -79,6 +83,61 @@ class TrackerController {
 			'0',
 			'none;priv;org;priv+org;discord;discord+priv;discord+org;discord+priv+org',
 			'0;1;2;3;4;5;6;7',
+			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'tracker_layout',
+			'How to show if a tracked person logs on/off',
+			'edit',
+			'options',
+			'0',
+			'TRACK: "info" logged on/off.;+/- "info"',
+			'0;1',
+			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'tracker_use_faction_color',
+			"Use faction color for the name of the tracked person",
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
+			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'tracker_show_level',
+			"Show the tracked person's level",
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
+			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'tracker_show_prof',
+			"Show the tracked person's profession",
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
+			'mod',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'tracker_show_org',
+			"Show the tracked person's org",
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
 			'mod',
 		);
 	}
@@ -122,7 +181,7 @@ class TrackerController {
 			'logon'
 		);
 		
-		$msg = "TRACK: <highlight>$eventObj->sender<end> logged <green>on<end>.";
+		$msg = $this->getLogonMessage($eventObj->sender);
 		
 		if ($this->settingManager->getInt('show_tracker_events') & 1) {
 			$this->chatBot->sendPrivate($msg, true);
@@ -137,6 +196,52 @@ class TrackerController {
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logon)";
 		$this->eventManager->fireEvent($event);
+	}
+
+	public function getTrackerLayout(bool $online): string {
+		$style = $this->settingManager->getInt('tracker_layout');
+		$color = $online ? "<green>" : "<red>";
+		switch ($style) {
+			case 0:
+				return "TRACK: %s logged {$color}" . ($online ? "on" : "off") . "<end>.";
+			case 1:
+				return "{$color}" . ($online ? "+" : "-") . "<end> %s";
+		}
+	}
+
+	public function getLogonMessage(string $player): string {
+		$format = $this->getTrackerLayout(true);
+		$whois = $this->playerManager->getByName($player);
+		$info = "";
+		if ($whois === null) {
+			$info = "<highlight>{$player}<end>";
+			return sprintf($format, $info);
+		}
+		$faction = strtolower($whois->faction);
+		if ($this->settingManager->getBool('tracker_use_faction_color')) {
+			$info = "<{$faction}>{$player}<end>";
+		} else {
+			$info = "<highlight>{$player}<end>";
+		}
+		$bracketed = [];
+		$showLevel = $this->settingManager->getBool('tracker_show_level');
+		$showProf = $this->settingManager->getBool('tracker_show_prof');
+		$showOrg = $this->settingManager->getBool('tracker_show_org');
+		if ($showLevel) {
+			$bracketed []= "<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end>";
+		}
+		if ($showProf) {
+			$bracketed []= $whois->profession;
+		}
+		if (count($bracketed)) {
+			$info .= " (" . join(", ", $bracketed) . ")";
+		} elseif ($showOrg) {
+			$info .= ", ";
+		}
+		if ($showOrg && $whois->guild !== null && strlen($whois->guild)) {
+			$info .= " <{$faction}>{$whois->guild}<end>";
+		}
+		return sprintf($format, $info);
 	}
 	
 	/**
@@ -164,7 +269,7 @@ class TrackerController {
 			'logoff'
 		);
 		
-		$msg = "TRACK: <highlight>{$eventObj->sender}<end> logged <orange>off<end>.";
+		$msg = $this->getLogoffMessage($eventObj->sender);
 		
 		if ($this->settingManager->getInt('show_tracker_events') & 1) {
 			$this->chatBot->sendPrivate($msg, true);
@@ -179,6 +284,18 @@ class TrackerController {
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
+	}
+
+	public function getLogoffMessage(string $player): string {
+		$format = $this->getTrackerLayout(false);
+		$whois = $this->playerManager->getByName($player);
+		if ($whois === null || !$this->settingManager->getBool('tracker_use_faction_color')) {
+			$info = "<highlight>{$player}<end>";
+		} else {
+			$faction = strtolower($whois->faction);
+			$info = "<{$faction}>{$player}<end>";
+		}
+		return sprintf($format, $info);
 	}
 
 	/**
