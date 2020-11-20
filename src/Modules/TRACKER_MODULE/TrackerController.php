@@ -445,10 +445,15 @@ class TrackerController {
 		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, TRUE as `online` ".
 			"FROM `tracked_users_<myname>` tu ".
 			"JOIN players p ON tu.`name` = p.`name` ".
-			"WHERE (SELECT `event` FROM `tracking_<myname>` t WHERE t.uid=tu.uid ORDER BY `dt` DESC LIMIT 1) = 'logon' ".
 			"ORDER BY p.name ASC";
 		/** @var OnlinePlayer[] */
 		$data = $this->db->fetchAll(OnlinePlayer::class, $sql);
+		$data = array_filter(
+			$data,
+			function (OnlinePlayer $player): bool {
+				return $this->buddylistManager->isOnline($player->name) === true;
+			}
+		);
 		if (!count($data)) {
 			$sendto->reply("No tracked players are currently online.");
 			return;

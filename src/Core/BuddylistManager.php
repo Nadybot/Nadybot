@@ -25,7 +25,7 @@ class BuddylistManager {
 	 * Check if a friend is online
 	 *
 	 * @param string $name The name of the friend
-	 * @return bool|null null when online status is unknown, 1 when buddy is online, 0 when buddy is offline
+	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
 		if (strtolower($this->chatBot->vars['name']) == strtolower($name)) {
