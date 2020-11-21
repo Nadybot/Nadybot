@@ -8,8 +8,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	SettingManager,
 };
-use Nadybot\Core\Annotations\Command;
 use Nadybot\Core\DBSchema\Player;
 
 /**
@@ -46,10 +46,23 @@ class BuffPerksController {
 	
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
 	
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "perks");
+		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
+		$path = __DIR__ . "/perks.csv";
+		$mtime = @filemtime($path);
+		$dbVersion = 0;
+		if ($this->settingManager->exists("perks_db_version")) {
+			$dbVersion = (int)$this->settingManager->get("perks_db_version");
+		}
+		if ( ($mtime === false || $dbVersion >= $mtime)
+			&& preg_match("/database already up to date/", $msg)) {
+			return;
+		}
 		
 		$perkInfo = $this->getPerkInfo();
 		
@@ -79,6 +92,8 @@ class BuffPerksController {
 
 			$perkId++;
 		}
+		$newVersion = max($mtime ?: time(), $dbVersion);
+		$this->settingManager->save("perks_db_version", (string)$newVersion);
 	}
 	
 	/**
