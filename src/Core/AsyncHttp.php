@@ -331,9 +331,8 @@ class AsyncHttp {
 				} elseif ($sslResult === false) {
 					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
 						$this->getStreamUri());
-				} elseif ($sslResult === 0) {
-					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
-						$this->getStreamUri() . " because socket was non-blocking");
+					@fclose($this->stream);
+					return;
 				}
 				$this->setupStreamNotify();
 			}
