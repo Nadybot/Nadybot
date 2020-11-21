@@ -9,6 +9,8 @@ use Nadybot\Core\{
 	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
+use Nadybot\Core\Annotations\Command;
+use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
@@ -89,33 +91,39 @@ class BuffPerksController {
 	 */
 	public function buffPerksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (count($args) === 1) {
-			$whois = $this->playerManager->getByName($sender);
-			if (empty($whois)) {
-				$msg = "Could not retrieve whois info for you.";
-				$sendto->reply($msg);
-				return;
-			} else {
-				$profession = $whois->profession;
-				$minLevel = $whois->level;
-			}
-		} else {
-			if (($first = $this->util->getProfessionName($args[1])) !== '') {
-				$profession = $first;
-				$minLevel = $args[2];
-			} elseif (($second = $this->util->getProfessionName($args[2])) !== '') {
-				$profession = $second;
-				$minLevel = $args[1];
-			} else {
-				$msg = "Could not find profession <highlight>$args[1]<end> or <highlight>$args[2]<end>.";
-				$sendto->reply($msg);
-				return;
-			}
+			$this->playerManager->getByNameAsync(
+				function(?Player $whois) use ($args, $sendto): void {
+					if (empty($whois)) {
+						$msg = "Could not retrieve whois info for you.";
+						$sendto->reply($msg);
+						return;
+					}
+					$this->showPerks($whois->profession, $whois->level, null, $sendto);
+				},
+				$sender
+			);
+			return;
 		}
+		if (($first = $this->util->getProfessionName($args[1])) !== '') {
+			$profession = $first;
+			$minLevel = (int)$args[2];
+		} elseif (($second = $this->util->getProfessionName($args[2])) !== '') {
+			$profession = $second;
+			$minLevel = (int)$args[1];
+		} else {
+			$msg = "Could not find profession <highlight>$args[1]<end> or <highlight>$args[2]<end>.";
+			$sendto->reply($msg);
+			return;
+		}
+		$this->showPerks($profession, $minLevel, $args[3] ?? null, $sendto);
+	}
+
+	protected function showPerks(string $profession, int $minLevel, string $search=null, CommandReply $sendto): void {
 		
 		$params =  [$profession, $minLevel];
 		
-		if (count($args) === 4) {
-			$tmp = explode(" ", $args[3]);
+		if ($search !== null) {
+			$tmp = explode(" ", $search);
 			[$skillQuery, $newParams] = $this->util->generateQueryFromParams($tmp, 'plb.skill');
 			$params = [...$params, ...$newParams];
 			$skillQuery = "AND " . $skillQuery;

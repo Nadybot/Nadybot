@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Text,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
@@ -627,21 +628,25 @@ class LootController {
 			}
 		}
 
-		$player = $this->playerManager->getByName($sender);
-		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
-			$privMsg = "$sender removed themselves from all rolls.";
-		} elseif ($player->gender === "Female") {
-			$privMsg = "$sender removed herself from all rolls.";
-		} else {
-			$privMsg = "$sender removed himself from all rolls.";
-		}
-		$tellMsg = "You removed yourself from all rolls.";
-		if ($this->settingManager->getInt('add_on_loot') & 1) {
-			$this->chatBot->sendTell($tellMsg, $sender);
-		}
-		if ($this->settingManager->getInt('add_on_loot') & 2) {
-			$this->chatBot->sendPrivate($privMsg);
-		}
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use ($sender): void {
+				if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
+					$privMsg = "$sender removed themselves from all rolls.";
+				} elseif ($player->gender === "Female") {
+					$privMsg = "$sender removed herself from all rolls.";
+				} else {
+					$privMsg = "$sender removed himself from all rolls.";
+				}
+				$tellMsg = "You removed yourself from all rolls.";
+				if ($this->settingManager->getInt('add_on_loot') & 1) {
+					$this->chatBot->sendTell($tellMsg, $sender);
+				}
+				if ($this->settingManager->getInt('add_on_loot') & 2) {
+					$this->chatBot->sendPrivate($privMsg);
+				}
+			},
+			$sender
+		);
 	}
 
 	/**

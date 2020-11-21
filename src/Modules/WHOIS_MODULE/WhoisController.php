@@ -70,7 +70,7 @@ class WhoisController {
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];
 	
-	private $replyInfo = null;
+	private $replyInfo = [];
 	
 	/** @Setup */
 	public function setup(): void {
@@ -223,34 +223,42 @@ class WhoisController {
 		if ($uid) {
 			$online = $this->buddylistManager->isOnline($name);
 			if ($online === null) {
-				$this->replyInfo['charname'] = $name;
-				$this->replyInfo['sendto'] = $sendto;
+				$this->replyInfo[$name] = $sendto;
 				$this->buddylistManager->add($name, 'is_online');
 			} else {
-				$sendto->reply($this->getOutput($name, $online));
+				$this->getOutputAsync([$sendto, "reply"], $name, $online);
 			}
-		} elseif ($this->playerManager->lookup($name, $dimension) !== null) {
-			$output = $this->getOutput($name, false);
-			$output = str_replace('<red>Offline<end>', '<red>Inactive<end>', $output);
-			$sendto->reply($output);
 		} elseif (strlen($name) < 4) {
 			$sendto->reply("<highlight>{$name}<end> is too short. Minimum length is 4 characters.");
 		} elseif (strlen($name) > 12) {
 			$sendto->reply("<highlight>{$name}<end> is too long. Maximum length is 12 characters.");
 		} else {
-			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
+			$this->playerManager->lookupAsync($name, $dimension, [$this, "showInactivePlayer"], $sendto, $name);
 		}
 	}
-	
-	public function getOutput(string $name, bool $online): string {
+
+	/**
+	 * Callback to render whois of players without uid
+	 */
+	public function showInactivePlayer(?Player $player, CommandReply $sendto, string $name): void {
+		if ($player === null) {
+			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
+			return;
+		}
+		$this->getOutputAsync([$sendto, "reply"], $name, false);
+	}
+
+	private function playerToWhois(?Player $whois, string $name, bool $online): string {
 		$charID = $this->chatBot->get_uid($name);
 		$lookupNameLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $name");
-		$lookupCharIdLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $charID");
-		$whois = $this->playerManager->getByName($name);
+		if ($charID) {
+			$lookupCharIdLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $charID");
+		}
+
 		if ($whois === null) {
 			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
 			$blob .= "Name: <highlight>{$name}<end> {$lookupNameLink}\n";
-			if ($charID !== false) {
+			if ($charID) {
 				$blob .= "Character ID: <highlight>{$charID}<end> {$lookupCharIdLink}\n\n";
 			}
 			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
@@ -260,7 +268,7 @@ class WhoisController {
 		}
 
 		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> {$lookupNameLink}\n";
-		if (isset($whois->guild)) {
+		if (isset($whois->guild) && $whois->guild !== "") {
 			$orglistLink = $this->text->makeChatcmd("See members", "/tell <myname> orglist $whois->guild_id");
 			$orginfoLink = $this->text->makeChatcmd("Info", "/tell <myname> whoisorg $whois->guild_id");
 			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [$orginfoLink] [$orglistLink]\n";
@@ -308,6 +316,15 @@ class WhoisController {
 		return $msg;
 	}
 
+	public function getOutputAsync(callable $callback, string $name, bool $online): void {
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use ($callback, $name, $online): void {
+				$callback($this->playerToWhois($player, $name, $online));
+			},
+			$name
+		);
+	}
+
 	public function getFullName(Player $whois): string {
 		$msg = "";
 		
@@ -330,12 +347,18 @@ class WhoisController {
 	 */
 	public function logonEvent(Event $eventObj): void {
 		$name = $eventObj->sender;
-		if ($this->replyInfo === null || $name !== $this->replyInfo['charname']) {
+		if (!isset($this->replyInfo[$name])) {
 			return;
 		}
-		$this->replyInfo['sendto']->reply($this->getOutput($name, true));
-		$this->buddylistManager->remove($name, 'is_online');
-		$this->replyInfo = null;
+		$this->getOutputAsync(
+			function(string $msg) use ($name): void {
+				$this->replyInfo[$name]->reply($msg);
+				$this->buddylistManager->remove($name, 'is_online');
+				unset($this->replyInfo[$name]);
+			},
+			$name,
+			true
+		);
 	}
 	
 	/**
@@ -344,11 +367,17 @@ class WhoisController {
 	 */
 	public function logoffEvent(Event $eventObj): void {
 		$name = $eventObj->sender;
-		if ($this->replyInfo === null || $name !== $this->replyInfo['charname']) {
+		if (!isset($this->replyInfo[$name])) {
 			return;
 		}
-		$this->replyInfo['sendto']->reply($this->getOutput($name, false));
-		$this->buddylistManager->remove($name, 'is_online');
-		$this->replyInfo = null;
+		$this->getOutputAsync(
+			function(string $msg) use ($name): void {
+				$this->replyInfo[$name]->reply($msg);
+				$this->buddylistManager->remove($name, 'is_online');
+				unset($this->replyInfo[$name]);
+			},
+			$name,
+			false
+		);
 	}
 }

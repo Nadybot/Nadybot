@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 };
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 
@@ -603,16 +604,13 @@ class RelayController {
 			|| !$this->chatBot->isReady()) {
 			return;
 		}
-		$msg = $this->guildController->getLogonMessage($sender);
-		if ($msg === null) {
-			return;
-		}
-
-		if (strlen($this->chatBot->vars["my_guild"])) {
-			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>".$msg);
-		} else {
-			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>".$msg);
-		}
+		$this->guildController->getLogonMessageAsync($sender, false, function(string $msg): void {
+			if (strlen($this->chatBot->vars["my_guild"])) {
+				$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>".$msg);
+			} else {
+				$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>".$msg);
+			}
+		});
 	}
 	
 	/**
@@ -647,7 +645,15 @@ class RelayController {
 		if ($this->settingManager->get('relaybot') === 'Off') {
 			return;
 		}
-		$whois = $this->playerManager->getByName($sender);
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use ($sender): void {
+				$this->relayJoinMessage($player, $sender);
+			},
+			$sender
+		);
+	}
+
+	protected function relayJoinMessage(?Player $whois, string $sender): void {
 		$altInfo = $this->altsController->getAltInfo($sender);
 
 		if ($whois !== null) {

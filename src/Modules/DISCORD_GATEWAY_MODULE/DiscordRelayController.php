@@ -710,11 +710,7 @@ class DiscordRelayController {
 			return;
 		}
 		$sender = $eventObj->sender;
-		$msg = $this->privateChannelController->getLogonMessage($sender, true);
-		if ($msg === null) {
-			return;
-		}
-		$this->relayPrivOnlineEvent($msg);
+		$msg = $this->privateChannelController->getLogonMessageAsync($sender, true, [$this, "relayPrivOnlineEvent"]);
 	}
 
 	/**
@@ -761,11 +757,7 @@ class DiscordRelayController {
 			|| !$this->chatBot->isReady()) {
 			return;
 		}
-		$msg = $this->guildController->getLogonMessage($sender, true);
-		if ($msg === null) {
-			return;
-		}
-		$this->relayOrgOnlineEvent($msg);
+		$this->guildController->getLogonMessageAsync($sender, true, [$this, "relayOrgOnlineEvent"]);
 	}
 
 	/**

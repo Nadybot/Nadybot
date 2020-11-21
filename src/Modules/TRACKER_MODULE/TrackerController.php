@@ -6,18 +6,22 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CommandReply,
 	DB,
+	DBSchema\Player,
 	Event,
 	EventManager,
 	Modules\DISCORD\DiscordController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
-use Nadybot\Modules\TOWER_MODULE\TrackerEvent;
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlineController,
+	ONLINE_MODULE\OnlinePlayer,
+	TOWER_MODULE\TrackerEvent,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -180,7 +184,7 @@ class TrackerController {
 	 * @Event("logOn")
 	 * @Description("Records a tracked user logging on")
 	 */
-	public function trackLogonEvent(Event $eventObj): void {
+	public function trackLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
@@ -188,31 +192,35 @@ class TrackerController {
 		/** @var TrackedUser[] */
 		$data = $this->db->fetchAll(
 			TrackedUser::class,
-			"SELECT * FROM tracked_users_<myname> WHERE uid = ?",
+			"SELECT * FROM `tracked_users_<myname>` WHERE `uid` = ?",
 			$uid
 		);
 		if (count($data) === 0) {
 			return;
 		}
 		$this->db->exec(
-			"INSERT INTO tracking_<myname> (uid, dt, event) ".
+			"INSERT INTO `tracking_<myname>` (`uid`, `dt`, `event`) ".
 			"VALUES (?, ?, ?)",
 			$uid,
 			time(),
 			'logon'
 		);
-		
-		$msg = $this->getLogonMessage($eventObj->sender);
-		
-		if ($this->settingManager->getInt('show_tracker_events') & 1) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($this->settingManager->getInt('show_tracker_events') & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($this->settingManager->getInt('show_tracker_events') & 4) {
-			$this->discordController->sendDiscord($msg);
-		}
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use ($eventObj): void {
+				$msg = $this->getLogonMessage($player, $eventObj->sender);
+				
+				if ($this->settingManager->getInt('show_tracker_events') & 1) {
+					$this->chatBot->sendPrivate($msg, true);
+				}
+				if ($this->settingManager->getInt('show_tracker_events') & 2) {
+					$this->chatBot->sendGuild($msg, true);
+				}
+				if ($this->settingManager->getInt('show_tracker_events') & 4) {
+					$this->discordController->sendDiscord($msg);
+				}
+			},
+			$eventObj->sender
+		);
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logon)";
@@ -230,37 +238,39 @@ class TrackerController {
 		}
 	}
 
-	public function getLogonMessage(string $player): string {
+	/**
+	 * Get the message to show when a tracked player logs on
+	 */
+	public function getLogonMessage(?Player $player, string $name): string {
 		$format = $this->getTrackerLayout(true);
-		$whois = $this->playerManager->getByName($player);
 		$info = "";
-		if ($whois === null) {
-			$info = "<highlight>{$player}<end>";
+		if ($player === null) {
+			$info = "<highlight>{$name}<end>";
 			return sprintf($format, $info);
 		}
-		$faction = strtolower($whois->faction);
+		$faction = strtolower($player->faction);
 		if ($this->settingManager->getBool('tracker_use_faction_color')) {
-			$info = "<{$faction}>{$player}<end>";
+			$info = "<{$faction}>{$name}<end>";
 		} else {
-			$info = "<highlight>{$player}<end>";
+			$info = "<highlight>{$name}<end>";
 		}
 		$bracketed = [];
 		$showLevel = $this->settingManager->getBool('tracker_show_level');
 		$showProf = $this->settingManager->getBool('tracker_show_prof');
 		$showOrg = $this->settingManager->getBool('tracker_show_org');
 		if ($showLevel) {
-			$bracketed []= "<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end>";
+			$bracketed []= "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
 		}
 		if ($showProf) {
-			$bracketed []= $whois->profession;
+			$bracketed []= $player->profession;
 		}
 		if (count($bracketed)) {
 			$info .= " (" . join(", ", $bracketed) . ")";
 		} elseif ($showOrg) {
 			$info .= ", ";
 		}
-		if ($showOrg && $whois->guild !== null && strlen($whois->guild)) {
-			$info .= " <{$faction}>{$whois->guild}<end>";
+		if ($showOrg && $player->guild !== null && strlen($player->guild)) {
+			$info .= " <{$faction}>{$player->guild}<end>";
 		}
 		return sprintf($format, $info);
 	}
@@ -269,7 +279,7 @@ class TrackerController {
 	 * @Event("logOff")
 	 * @Description("Records a tracked user logging off")
 	 */
-	public function trackLogoffEvent(Event $eventObj): void {
+	public function trackLogoffEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
@@ -290,31 +300,38 @@ class TrackerController {
 			'logoff'
 		);
 		
-		$msg = $this->getLogoffMessage($eventObj->sender);
-		
-		if ($this->settingManager->getInt('show_tracker_events') & 1) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($this->settingManager->getInt('show_tracker_events') & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($this->settingManager->getInt('show_tracker_events') & 4) {
-			$this->discordController->sendDiscord($msg);
-		}
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use ($eventObj): void {
+				$msg = $this->getLogoffMessage($player, $eventObj->sender);
+				
+				if ($this->settingManager->getInt('show_tracker_events') & 1) {
+					$this->chatBot->sendPrivate($msg, true);
+				}
+				if ($this->settingManager->getInt('show_tracker_events') & 2) {
+					$this->chatBot->sendGuild($msg, true);
+				}
+				if ($this->settingManager->getInt('show_tracker_events') & 4) {
+					$this->discordController->sendDiscord($msg);
+				}
+			},
+			$eventObj->sender
+		);
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getLogoffMessage(string $player): string {
+	/**
+	 * Get the message to show when a tracked player logs off
+	 */
+	public function getLogoffMessage(?Player $player, string $name): string {
 		$format = $this->getTrackerLayout(false);
-		$whois = $this->playerManager->getByName($player);
-		if ($whois === null || !$this->settingManager->getBool('tracker_use_faction_color')) {
-			$info = "<highlight>{$player}<end>";
+		if ($player === null || !$this->settingManager->getBool('tracker_use_faction_color')) {
+			$info = "<highlight>{$name}<end>";
 		} else {
-			$faction = strtolower($whois->faction);
-			$info = "<{$faction}>{$player}<end>";
+			$faction = strtolower($player->faction);
+			$info = "<{$faction}>{$name}<end>";
 		}
 		return sprintf($format, $info);
 	}

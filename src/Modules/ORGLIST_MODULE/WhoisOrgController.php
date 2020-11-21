@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
@@ -62,24 +63,30 @@ class WhoisOrgController {
 		
 		if (preg_match("/^\d+$/", $args[1])) {
 			$orgId = (int)$args[1];
-		} else {
-			// Someone's name.  Doing a whois to get an orgID.
-			$name = ucfirst(strtolower($args[1]));
-			$whois = $this->playerManager->getByName($name, $dimension);
-
-			if ($whois === null) {
-				$msg = "Could not find character info for $name.";
-				$sendto->reply($msg);
-				return;
-			} elseif ($whois->guild_id === 0) {
-				$msg = "Character <highlight>$name<end> does not seem to be in an org.";
-				$sendto->reply($msg);
-				return;
-			} else {
-				$orgId = $whois->guild_id;
-			}
+			$this->sendOrgInfo($orgId, $sendto, $dimension);
+			return;
 		}
+		// Someone's name.  Doing a whois to get an orgID.
+		$name = ucfirst(strtolower($args[1]));
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($name, $sendto, $dimension): void {
+				if ($whois === null) {
+					$msg = "Could not find character info for $name.";
+					$sendto->reply($msg);
+					return;
+				} elseif ($whois->guild_id === 0) {
+					$msg = "Character <highlight>$name<end> does not seem to be in an org.";
+					$sendto->reply($msg);
+					return;
+				}
+				$this->sendOrgInfo($whois->guild_id, $sendto, $dimension);
+			},
+			$name,
+			$dimension
+		);
+	}
 
+	protected function sendOrgInfo(int $orgId, CommandReply $sendto, int $dimension): void {
 		$msg = "Getting org info...";
 		$sendto->reply($msg);
 

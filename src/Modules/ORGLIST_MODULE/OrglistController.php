@@ -97,51 +97,56 @@ class OrglistController {
 			$this->checkOrglist((int)$search, $sendto);
 			return;
 		}
-		$orgs = $this->getMatches($search);
-		$count = count($orgs);
+		$this->getMatches(
+			$search,
+			function(array $orgs) use ($sendto, $search): void {
+				$count = count($orgs);
 
-		if ($count === 0) {
-			$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
-			$sendto->reply($msg);
-		} elseif ($count === 1) {
-			$this->checkOrglist($orgs[0]->id, $sendto);
-		} else {
-			$blob = $this->findOrgController->formatResults($orgs);
-			$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
-			$sendto->reply($msg);
-		}
+				if ($count === 0) {
+					$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
+					$sendto->reply($msg);
+				} elseif ($count === 1) {
+					$this->checkOrglist($orgs[0]->id, $sendto);
+				} else {
+					$blob = $this->findOrgController->formatResults($orgs);
+					$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+					$sendto->reply($msg);
+				}
+			}
+		);
 	}
 	
 	/**
 	 * @return Organization[]
 	 */
-	public function getMatches(string $search): array {
+	public function getMatches(string $search, callable $callback): void {
 		$orgs = $this->findOrgController->lookupOrg($search);
 
 		// check if search is a character and add character's org to org list if it's not already in the list
 		$name = ucfirst(strtolower($search));
-		$whois = $this->playerManager->getByName($name);
-		if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
-			return $orgs;
-		}
-		$found = false;
-		foreach ($orgs as $org) {
-			if ($org->id == $whois->guild_id) {
-				$found = true;
-				break;
-			}
-		}
-		
-		if (!$found) {
-			$obj = new Organization();
-			$obj->name = $whois->guild;
-			$obj->id = $whois->guild_id;
-			$obj->faction = $whois->faction;
-			$obj->num_members = 0;
-			$orgs []= $obj;
-		}
-
-		return $orgs;
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($orgs, $callback): void {
+				if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
+					$callback($orgs);
+					return;
+				}
+				foreach ($orgs as $org) {
+					if ($org->id === $whois->guild_id) {
+						$callback($orgs);
+						return;
+					}
+				}
+				
+				$obj = new Organization();
+				$obj->name = $whois->guild;
+				$obj->id = $whois->guild_id;
+				$obj->faction = $whois->faction;
+				$obj->num_members = 0;
+				$orgs []= $obj;
+				$callback($orgs);
+			},
+			$name
+		);
 	}
 	
 	public function checkOrglist(int $orgid, CommandReply $sendto): void {

@@ -43,6 +43,29 @@ class PlayerManager {
 		);
 		return $result;
 	}
+	
+	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+		$result = [];
+		$left = count($names);
+		if ($left === 0) {
+			$callback([]);
+			return;
+		}
+		foreach ($names as $name) {
+			$this->getByNameAsync(
+				function(?Player $player) use (&$result, &$left, $callback, $name): void {
+					$result[$name] = $player;
+					$left--;
+					if ($left === 0) {
+						$callback($result);
+					}
+				},
+				$name,
+				$dimension,
+				$forceUpdate
+			);
+		}
+	}
 
 	public function getByNameAsync(callable $callback, string $name, int $dimension=null, bool $forceUpdate=false): void {
 		$this->getByNameCallback($callback, false, $name, $dimension, $forceUpdate);

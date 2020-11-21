@@ -853,30 +853,34 @@ class TowerController {
 		if (time() - $this->lastDiscordNotify < 300) {
 			return;
 		}
-		$attGuild = $matches[4] ?? null;
-		$attPlayer = $matches[3];
-		$playfieldName = $matches[2];
-		$whois = $this->playerManager->getByName($attPlayer);
-		if ($whois === null) {
-			$whois = new Player();
-			$whois->type = 'npc';
-			$whois->name = $attPlayer;
-			$whois->faction = 'Neutral';
-		} else {
-			$whois->type = 'player';
-		}
-		$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
-		if ($attGuild) {
-			$playerName .= " org \"{$whois->guild}\"";
-		}
-		$playerName .= ")";
-		$discordMessage = str_replace(
-			["{player}", "{location}"],
-			[$playerName, $playfieldName],
-			$discordMessage
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use($matches, $discordMessage): void {
+				$attGuild = $matches[4] ?? null;
+				$attPlayer = $matches[3];
+				$playfieldName = $matches[2];
+				if ($whois === null) {
+					$whois = new Player();
+					$whois->type = 'npc';
+					$whois->name = $attPlayer;
+					$whois->faction = 'Neutral';
+				} else {
+					$whois->type = 'player';
+				}
+				$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
+				if ($attGuild) {
+					$playerName .= " org \"{$whois->guild}\"";
+				}
+				$playerName .= ")";
+				$discordMessage = str_replace(
+					["{player}", "{location}"],
+					[$playerName, $playfieldName],
+					$discordMessage
+				);
+				$this->discordController->sendDiscord($discordMessage, true);
+				$this->lastDiscordNotify = time();
+			},
+			$matches[3]
 		);
-		$this->discordController->sendDiscord($discordMessage, true);
-		$this->lastDiscordNotify = time();
 	}
 
 	/**
@@ -885,7 +889,8 @@ class TowerController {
 	 * @Event("towers")
 	 * @Description("Record attack messages")
 	 */
-	public function attackMessagesEvent(Event $eventObj): void {
+	public function attackMessagesEvent(AOChatEvent $eventObj): void {
+		$attack = new Attack();
 		if (preg_match(
 			"/^The (Clan|Neutral|Omni) organization ".
 			"(.+) just entered a state of war! ".
@@ -895,14 +900,14 @@ class TowerController {
 			$eventObj->message,
 			$arr
 		)) {
-			$attSide = ucfirst(strtolower($arr[1]));  // comes across as a string instead of a reference, so convert to title case
-			$attGuild = $arr[2];
-			$attPlayer = $arr[3];
-			$defSide = ucfirst(strtolower($arr[4]));  // comes across as a string instead of a reference, so convert to title case
-			$defGuild = $arr[5];
-			$playfieldName = $arr[6];
-			$xCoords = (int)$arr[7];
-			$yCoords = (int)$arr[8];
+			$attack->attSide = ucfirst(strtolower($arr[1]));  // comes across as a string instead of a reference, so convert to title case
+			$attack->attGuild = $arr[2];
+			$attack->attPlayer = $arr[3];
+			$attack->defSide = ucfirst(strtolower($arr[4]));  // comes across as a string instead of a reference, so convert to title case
+			$attack->defGuild = $arr[5];
+			$attack->playfieldName = $arr[6];
+			$attack->xCoords = (int)$arr[7];
+			$attack->yCoords = (int)$arr[8];
 		} elseif (preg_match(
 			"/^(.+) just attacked the (Clan|Neutral|Omni) organization ".
 			"(.+)'s tower in ".
@@ -910,46 +915,54 @@ class TowerController {
 			$eventObj->message,
 			$arr
 		)) {
-			$attPlayer = $arr[1];
-			$defSide = ucfirst(strtolower($arr[2]));  // comes across as a string instead of a reference, so convert to title case
-			$defGuild = $arr[3];
-			$playfieldName = $arr[4];
-			$xCoords = (int)$arr[5];
-			$yCoords = (int)$arr[6];
+			$attack->attPlayer = $arr[1];
+			$attack->defSide = ucfirst(strtolower($arr[2]));  // comes across as a string instead of a reference, so convert to title case
+			$attack->defGuild = $arr[3];
+			$attack->playfieldName = $arr[4];
+			$attack->xCoords = (int)$arr[5];
+			$attack->yCoords = (int)$arr[6];
 		} else {
 			return;
 		}
 		
 		// regardless of what the player lookup says, we use the information from the
 		// attack message where applicable because that will always be most up to date
-		$whois = $this->playerManager->getByName($attPlayer);
+		$this->playerManager->getByNameAsync(
+			function(?Player $player) use($attack): void {
+				$this->handleAttack($attack, $player);
+			},
+			$attack->attPlayer
+		);
+	}
+
+	public function handleAttack(Attack $attack, ?Player $whois): void {
 		if ($whois === null) {
 			$whois = new Player();
 			$whois->type = 'npc';
 			
 			// in case it's not a player who causes attack message (pet, mob, etc)
-			$whois->name = $attPlayer;
+			$whois->name = $attack->attPlayer;
 			$whois->faction = 'Neutral';
 		} else {
 			$whois->type = 'player';
 		}
-		if (isset($attSide)) {
-			$whois->faction = $attSide;
+		if (isset($attack->attSide)) {
+			$whois->faction = $attack->attSide;
 		}
-		if (isset($attGuild)) {
-			$whois->guild = $attGuild;
+		if (isset($attack->attGuild)) {
+			$whois->guild = $attack->attGuild;
 		}
 		
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
+		$playfield = $this->playfieldController->getPlayfieldByName($attack->playfieldName);
 		if ($playfield === null) {
-			$this->logger->log('error', "ERROR! Could not find Playfield \"$playfieldName\"");
+			$this->logger->log('error', "ERROR! Could not find Playfield \"{$attack->playfieldName}\"");
 			return;
 		}
-		$closestSite = $this->getClosestSite($playfield->id, $xCoords, $yCoords);
+		$closestSite = $this->getClosestSite($playfield->id, $attack->xCoords, $attack->yCoords);
 
 		$defender = new Defender();
-		$defender->faction   = $defSide;
-		$defender->guild     = $defGuild;
+		$defender->faction   = $attack->defSide;
+		$defender->guild     = $attack->defGuild;
 		$defender->playfield = $playfield;
 		$defender->site      = $closestSite;
 
@@ -959,11 +972,11 @@ class TowerController {
 		}
 
 		if ($closestSite === null) {
-			$this->logger->log('error', "ERROR! Could not find closest site: ({$playfieldName}) '{$playfield->id}' '{$xCoords}' '{$yCoords}'");
+			$this->logger->log('error', "ERROR! Could not find closest site: ({$attack->playfieldName}) '{$playfield->id}' '{$attack->xCoords}' '{$attack->yCoords}'");
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
-			$this->recordAttack($whois, $defSide, $defGuild, $xCoords, $yCoords, $closestSite);
-			$this->logger->log('debug', "Site being attacked: ({$playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
+			$this->recordAttack($whois, $attack, $closestSite);
+			$this->logger->log('debug', "Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
 
 			// Beginning of the 'more' window
 			$link = "Attacker: <highlight>";
@@ -971,7 +984,7 @@ class TowerController {
 				$link .= $whois->firstname . " ";
 			}
 
-			$link .= '"' . $attPlayer . '"';
+			$link .= '"' . $attack->attPlayer . '"';
 			if (isset($whois->lastname) && strlen($whois->lastname)) {
 				$link .= " " . $whois->lastname;
 			}
@@ -1003,18 +1016,18 @@ class TowerController {
 
 			$link .= "\n";
 
-			$link .= "Defender: <highlight>$defGuild<end>\n";
-			$link .= "Alignment: <highlight>$defSide<end>\n\n";
+			$link .= "Defender: <highlight>{$attack->defGuild}<end>\n";
+			$link .= "Alignment: <highlight>{$attack->defSide}<end>\n\n";
 
 			$baseLink = $this->text->makeChatcmd("{$playfield->short_name} {$closestSite->site_number}", "/tell <myname> lc {$playfield->short_name} {$closestSite->site_number}");
-			$attackWaypoint = $this->text->makeChatcmd("{$xCoords}x{$yCoords}", "/waypoint {$xCoords} {$yCoords} {$playfield->id}");
+			$attackWaypoint = $this->text->makeChatcmd("{$attack->xCoords}x{$attack->yCoords}", "/waypoint {$attack->xCoords} {$attack->yCoords} {$playfield->id}");
 			$link .= "Playfield: <highlight>{$baseLink} ({$closestSite->min_ql}-{$closestSite->max_ql})<end>\n";
 			$link .= "Location: <highlight>{$closestSite->site_name} ({$attackWaypoint})<end>\n";
 
 			$more = $this->text->makeBlob("{$playfield->short_name} {$closestSite->site_number}", $link, 'Advanced Tower Info');
 		}
 
-		$targetOrg = "<".strtolower($defSide).">".$defGuild."<end>";
+		$targetOrg = "<".strtolower($attack->defSide).">{$attack->defGuild}<end>";
 
 		// Starting tower message to org/private chat
 		$msg = $this->settingManager->getString('tower_spam_color').
@@ -1022,7 +1035,7 @@ class TowerController {
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {
-			$msg .= "<".strtolower($whois->faction).">$attPlayer<end>";
+			$msg .= "<".strtolower($whois->faction).">{$attack->attPlayer}<end>";
 		}
 		$msg .= " attacked $targetOrg";
 
@@ -1383,10 +1396,10 @@ class TowerController {
 		);
 	}
 
-	protected function recordAttack(Player $whois, string $defFaction, string $defOrgName, int $xCoords, int $yCoords, TowerSite $closestSite): int {
+	protected function recordAttack(Player $whois, Attack $attack, TowerSite $closestSite): int {
 		$event = new TowerAttackEvent();
 		$event->attacker = $whois;
-		$event->defender = (object)["org" => $defOrgName, "faction" => $defFaction];
+		$event->defender = (object)["org" => $attack->defOrgName, "faction" => $attack->defFaction];
 		$event->site = $closestSite;
 		$event->type = "timer(start)";
 		$sql = "INSERT INTO tower_attack_<myname> ( ".
@@ -1405,12 +1418,12 @@ class TowerController {
 			$whois->level ?? null,
 			$whois->ai_level ?? null,
 			$whois->profession ?? null,
-			$defOrgName,
-			$defFaction,
+			$attack->defOrgName,
+			$attack->defFaction,
 			$closestSite->playfield_id,
 			$closestSite->site_number,
-			$xCoords,
-			$yCoords
+			$attack->xCoords,
+			$attack->yCoords
 		);
 		$this->eventManager->fireEvent($event);
 		return $result;

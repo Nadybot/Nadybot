@@ -198,7 +198,8 @@ class AltsController {
 			}
 	
 			// update character information
-			$this->playerManager->getByName($name);
+			$this->playerManager->getByNameAsync(function() {
+			}, $name);
 		}
 	
 		if ($success > 0) {
