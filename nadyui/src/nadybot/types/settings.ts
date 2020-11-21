@@ -188,9 +188,10 @@ const moduleSubcommandChannelDecoderMapping = {
   enabled: JsonDecoder.boolean,
 };
 
-const moduleSubcommandChannelDecoder = JsonDecoder.objectStrict<
-  ModuleSubcommandChannel
->(moduleSubcommandChannelDecoderMapping, "ModuleSubcommandChannel");
+const moduleSubcommandChannelDecoder = JsonDecoder.objectStrict<ModuleSubcommandChannel>(
+  moduleSubcommandChannelDecoderMapping,
+  "ModuleSubcommandChannel"
+);
 
 const moduleSubcommandDecoderMapping = {
   command: JsonDecoder.string,
