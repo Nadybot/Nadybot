@@ -291,6 +291,7 @@ class AsyncHttp {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
+		stream_set_blocking($this->stream, false);
 		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
 		return true;
 	}
@@ -335,8 +336,6 @@ class AsyncHttp {
 						$this->getStreamUri() . " because socket was non-blocking");
 				}
 				$this->setupStreamNotify();
-				// From here on, we can be async, but TLS handshake must be sync
-				stream_set_blocking($this->stream, false);
 			}
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
