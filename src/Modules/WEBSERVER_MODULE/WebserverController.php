@@ -449,7 +449,8 @@ class WebserverController {
 	 * Check if $user is allowed to login with password $pass
 	 * @return null|string null if password is wrong, the username that was sent if correct
 	 */
-	public function checkAuthorization(string $user, string $password): ?string {
+	public function checkAuthentication(string $user, string $password): ?string {
+		$user = ucfirst(strtolower($user));
 		if (!isset($this->authentications[$user])) {
 			return null;
 		}

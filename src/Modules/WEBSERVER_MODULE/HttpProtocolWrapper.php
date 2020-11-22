@@ -367,7 +367,7 @@ class HttpProtocolWrapper {
 	/**
 	 * Return the username for which this connection as authorized or null if unauthorized
 	 */
-	protected function getAuthorizedUser(): ?string {
+	protected function getAuthenticatedUser(): ?string {
 		if (!isset($this->request->headers["authorization"])) {
 			return null;
 		}
@@ -383,18 +383,18 @@ class HttpProtocolWrapper {
 		if (count($userPass) !== 2) {
 			return null;
 		}
-		$authorizedUser = $this->webserverController->checkAuthorization($userPass[0], $userPass[1]);
-		if ($authorizedUser === null) {
+		$authenticatedUser = $this->webserverController->checkAuthentication($userPass[0], $userPass[1]);
+		if ($authenticatedUser === null) {
 			return null;
 		}
-		return $authorizedUser;
+		return $authenticatedUser;
 	}
 
 	/**
 	 * Trigger the event handlers for the request
 	 */
 	public function handleRequest(): void {
-		$this->request->authenticatedAs = $this->getAuthorizedUser();
+		$this->request->authenticatedAs = $this->getAuthenticatedUser();
 		$event = new HttpEvent();
 		$response = $this->decodeRequestBody($this->request);
 		if ($response instanceof Response) {
