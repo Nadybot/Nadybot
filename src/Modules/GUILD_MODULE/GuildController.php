@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
@@ -556,7 +557,8 @@ class GuildController {
 			}
 
 			// update character info
-			$this->playerManager->getByName($name);
+			$this->playerManager->getByNameAsync(function() {
+			}, $name);
 		} elseif (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr) || preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
 
@@ -576,17 +578,7 @@ class GuildController {
 		}
 	}
 
-	public function getLogonMessage(string $player, bool $suppressAltList=false): ?string {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
-			// if at least one alt/main is already online, don't show logon message
-			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return null;
-			}
-		}
-
-		$whois = $this->playerManager->getByName($player);
-
+	public function getLogonForPlayer(?Player $whois, string $player, bool $suppressAltList): string {
 		$msg = '';
 		if ($whois === null) {
 			$msg = "$player logged on.";
@@ -614,6 +606,24 @@ class GuildController {
 		return $msg;
 	}
 
+	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is already online, don't show logon message
+			$altInfo = $this->altsController->getAltInfo($player);
+			if (count($altInfo->getOnlineAlts()) > 1) {
+				return;
+			}
+		}
+
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($callback, $player, $suppressAltList): void {
+				$msg = $this->getLogonForPlayer($whois, $player, $suppressAltList);
+				$callback($msg);
+			},
+			$player
+		);
+	}
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Shows an org member logon in chat")
@@ -623,17 +633,14 @@ class GuildController {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
 			return;
 		}
-		$msg = $this->getLogonMessage($sender);
-		if ($msg === null) {
-			return;
-		}
+		$this->getLogonMessageAsync($sender, false, function(string $msg): void {
+			$this->chatBot->sendGuild($msg, true);
 
-		$this->chatBot->sendGuild($msg, true);
-
-		//private channel part
-		if ($this->settingManager->getBool("guest_relay")) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
+			//private channel part
+			if ($this->settingManager->getBool("guest_relay")) {
+				$this->chatBot->sendPrivate($msg, true);
+			}
+		});
 	}
 
 	public function getLogoffMessage(string $player): ?string {

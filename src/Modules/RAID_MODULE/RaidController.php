@@ -453,7 +453,7 @@ class RaidController {
 	 * @Matches("/^raid check$/i")
 	 */
 	public function raidCheckCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply($this->raidMemberController->getRaidCheckBlob($this->raid));
+		$this->raidMemberController->sendRaidCheckBlob($this->raid, $sendto);
 	}
 
 	/**
@@ -474,17 +474,26 @@ class RaidController {
 			$sendto->reply("Everyone is in the raid.");
 			return;
 		}
+		$this->playerManager->massGetByNameAsync(
+			function(array $result) use ($sendto) {
+				$this->reportNotInResult($result, $sendto);
+			},
+			$notInRaid
+		);
+	}
+	
+	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
-		foreach ($notInRaid as $player) {
+		foreach ($players as $name => $player) {
 			if ($player instanceof Player) {
 				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
 					$this->onlineController->getProfessionId($player->profession).">";
 				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level}\n";
 			} else {
-				$blob .= "<tab>{$player}\n";
+				$blob .= "<tab>{$name}\n";
 			}
 		}
-		$msgs = (array)$this->text->makeBlob(count($notInRaid) . " players", $blob, "Players not in the raid");
+		$msgs = (array)$this->text->makeBlob(count($players) . " players", $blob, "Players not in the raid");
 		foreach ($msgs as &$msg) {
 			$msg = "Sent not in raid warning to $msg.";
 		}
@@ -669,30 +678,39 @@ class RaidController {
 			$sendto->reply("No one is currently dual-logged.");
 			return;
 		}
-		$blob = "";
+		$toLookup = [];
 		foreach ($duals as $name => $alts) {
-			$player = $this->playerManager->getByName($name);
-			if ($player === null) {
-				continue;
-			}
-			$blob .="<header2>{$name}<end>\n";
-			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
-			foreach ($alts as $alt => $inRaid) {
-				$player = $this->playerManager->getByName($alt);
-				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
-				if ($inRaid) {
-					$blob .= " :: <red>in raid<end>";
-				}
-				$blob .= "\n";
-			}
-			$blob .= "\n";
+			$toLookup = [...$toLookup, $name, ...array_keys($alts)];
 		}
-		$msg = $this->text->makeBlob(
-			"Dual-logged players (" . count($duals) .")",
-			$blob,
-			"Dual-logged players with at last 1 char in the raid"
+		$this->playerManager->massGetByNameAsync(
+			function (array $lookup) use ($duals, $sendto): void {
+				$blob = "";
+				foreach ($duals as $name => $alts) {
+					$player = $lookup[$name];
+					if ($player === null) {
+						continue;
+					}
+					$blob .="<header2>{$name}<end>\n";
+					$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
+					foreach ($alts as $alt => $inRaid) {
+						$player = $lookup[$alt];
+						$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
+						if ($inRaid) {
+							$blob .= " :: <red>in raid<end>";
+						}
+						$blob .= "\n";
+					}
+					$blob .= "\n";
+				}
+				$msg = $this->text->makeBlob(
+					"Dual-logged players (" . count($duals) .")",
+					$blob,
+					"Dual-logged players with at last 1 char in the raid"
+				);
+				$sendto->reply($msg);
+			},
+			$toLookup
 		);
-		$sendto->reply($msg);
 	}
 
 	/**

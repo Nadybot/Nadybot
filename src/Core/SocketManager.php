@@ -6,6 +6,7 @@ namespace Nadybot\Core;
  * @Instance
  */
 class SocketManager {
+	/** @var SocketNotifier[] */
 	private array $socketNotifiers = [];
 	private array $monitoredSocketsByType = [
 		SocketNotifier::ACTIVITY_READ  => [],

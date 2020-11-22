@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use Nadybot\Core\{
 	DB,
 	Http,
+	HttpResponse,
 	Nadybot,
 	SQLException,
 	Util,
@@ -30,6 +31,47 @@ class PlayerManager {
 	public Http $http;
 
 	public function getByName(string $name, int $dimension=null, bool $forceUpdate=false): ?Player {
+		$result = null;
+		$this->getByNameCallback(
+			function(?Player $player) use (&$result): void {
+				$result = $player;
+			},
+			true,
+			$name,
+			$dimension,
+			$forceUpdate
+		);
+		return $result;
+	}
+	
+	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+		$result = [];
+		$left = count($names);
+		if ($left === 0) {
+			$callback([]);
+			return;
+		}
+		foreach ($names as $name) {
+			$this->getByNameAsync(
+				function(?Player $player) use (&$result, &$left, $callback, $name): void {
+					$result[$name] = $player;
+					$left--;
+					if ($left === 0) {
+						$callback($result);
+					}
+				},
+				$name,
+				$dimension,
+				$forceUpdate
+			);
+		}
+	}
+
+	public function getByNameAsync(callable $callback, string $name, int $dimension=null, bool $forceUpdate=false): void {
+		$this->getByNameCallback($callback, false, $name, $dimension, $forceUpdate);
+	}
+
+	public function getByNameCallback(callable $callback, bool $sync, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
 		$dimension ??= (int)$this->chatBot->vars['dimension'];
 
 		$name = ucfirst(strtolower($name));
@@ -40,29 +82,47 @@ class PlayerManager {
 		}
 
 		$player = $this->findInDb($name, $dimension);
-
-		if ($player === null || $forceUpdate) {
-			$player = $this->lookup($name, $dimension);
-			if ($player !== null && $charid !== false) {
-				$player->charid = $charid;
-				$this->update($player);
-			}
-		} elseif ($player->last_update < (time() - 86400)) {
-			$player2 = $this->lookup($name, $dimension);
-			if ($player2 !== null) {
-				$player = $player2;
-				if ($charid !== false) {
-					$player->charid = $charid;
-					$this->update($player);
-				}
-			} else {
-				$player->source .= ' (old-cache)';
-			}
-		} else {
-			$player->source .= ' (current-cache)';
+		$lookup = [$this, "lookupAsync"];
+		if ($sync) {
+			$lookup = function(string $name, int $dimension, callable $handler) use ($charid): void {
+				$player = $this->lookup($name, $dimension);
+				$handler($player);
+			};
 		}
 
-		return $player;
+		if ($player === null || $forceUpdate) {
+			$lookup(
+				$name,
+				$dimension,
+				function(?Player $player) use ($charid, $callback): void {
+					if ($player !== null && $charid !== false) {
+						$player->charid = $charid;
+						$this->update($player);
+					}
+					$callback($player);
+				}
+			);
+		} elseif ($player->last_update < (time() - 86400)) {
+			$lookup(
+				$name,
+				$dimension,
+				function(?Player $player2) use ($charid, $callback, $player): void {
+					if ($player2 !== null) {
+						$player = $player2;
+						if ($charid !== false) {
+							$player->charid = $charid;
+							$this->update($player);
+						}
+					} else {
+						$player->source .= ' (old-cache)';
+					}
+					$callback($player);
+				}
+			);
+		} else {
+			$player->source .= ' (current-cache)';
+			$callback($player);
+		}
 	}
 
 	public function findInDb(string $name, int $dimension): ?Player {
@@ -81,8 +141,35 @@ class PlayerManager {
 		return null;
 	}
 
+	public function lookupAsync(string $name, int $dimension, callable $callback, ...$args): void {
+		$this->lookupUrlAsync(
+			"http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json",
+			function (?Player $player) use ($dimension, $name, $callback, $args): void {
+				if (isset($player) && $player->name === $name) {
+					$player->source = 'people.anarchy-online.com';
+					$player->dimension = $dimension;
+				}
+				$callback($player, ...$args);
+			}
+		);
+	}
+
 	private function lookupUrl(string $url): ?Player {
 		$response = $this->http->get($url)->waitAndReturnResponse();
+		return $this->parsePlayerFromLookup($response);
+	}
+
+	private function lookupUrlAsync(string $url, callable $callback): void {
+		$this->http
+			->get($url)
+			->withCallback(
+				function(HttpResponse $response) use ($callback): void {
+					$callback($this->parsePlayerFromLookup($response));
+				}
+			);
+	}
+
+	private function parsePlayerFromLookup(HttpResponse $response): ?Player {
 		if (!isset($response) || $response->headers["status-code"] !== "200") {
 			return null;
 		}

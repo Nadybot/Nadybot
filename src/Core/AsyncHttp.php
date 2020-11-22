@@ -291,6 +291,7 @@ class AsyncHttp {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
+		stream_set_blocking($this->stream, false);
 		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
 		return true;
 	}
@@ -321,25 +322,27 @@ class AsyncHttp {
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
-			function() {
-				$this->logger->log('DEBUG', "Activating TLS");
-				$this->socketManager->removeSocketNotifier($this->notifier);
-				$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-				if ($sslResult === true) {
-					$this->logger->log('DEBUG', "TLS crypto activated succesfully");
-				} elseif ($sslResult === false) {
-					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
-						$this->getStreamUri());
-				} elseif ($sslResult === 0) {
-					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
-						$this->getStreamUri() . " because socket was non-blocking");
-				}
-				$this->setupStreamNotify();
-				// From here on, we can be async, but TLS handshake must be sync
-				stream_set_blocking($this->stream, false);
-			}
+			[$this, "handleTlsHandshake"]
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
+	}
+
+	public function handleTlsHandshake(): void {
+		$this->logger->log('DEBUG', "Activating TLS");
+		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+		if ($sslResult === true) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+			$this->logger->log('DEBUG', "TLS crypto activated succesfully");
+			$this->setupStreamNotify();
+		} elseif ($sslResult === false) {
+			$this->abortWithMessage(
+				"Failed to activate TLS for the connection to ".
+				$this->getStreamUri()
+			);
+			return;
+		} elseif ($sslResult === 0) {
+			// Do nothing, just wait for next tick
+		}
 	}
 
 	/**

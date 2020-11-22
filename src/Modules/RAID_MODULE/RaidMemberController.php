@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
+	DBSchema\Player,
 	Event,
 	EventManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -250,14 +251,14 @@ class RaidMemberController {
 	/**
 	 * Warn everyone on the private channel who's not in the raid $raid
 	 *
-	 * @return Player[]
+	 * @return string[]
 	 */
 	public function sendNotInRaidWarning(Raid $raid): array {
-		/** @var Player[] */
+		/** @var string[] */
 		$notInRaid = [];
 		foreach ($this->chatBot->chatlist as $player => $online) {
 			if (!isset($raid->raiders[$player]) || $raid->raiders[$player]->left !== null) {
-				$notInRaid []= $this->playerManager->getByName($player) ?? $player;
+				$notInRaid []= $player;
 			}
 		}
 		if (!count($notInRaid)) {
@@ -271,7 +272,7 @@ class RaidMemberController {
 					$this->raidController->getRaidJoinLink(),
 					"Raid information"
 				),
-				$player->name ?? $player
+				$player
 			);
 		}
 		return $notInRaid;
@@ -319,37 +320,54 @@ class RaidMemberController {
 	}
 
 	/**
-	 * Get the blob for the !raid check command
+	 * Send the blob for the !raid check command to $sendto
 	 */
-	public function getRaidCheckBlob(Raid $raid): array {
-		ksort($raid->raiders);
-		$lines = [];
+	public function sendRaidCheckBlob(Raid $raid, CommandReply $sendto): void {
 		$activeNames = [];
 		foreach ($raid->raiders as $player => $raider) {
 			if ($raider->left !== null) {
 				continue;
 			}
 			$activeNames []= $raider->player;
-			$pInfo = $this->playerManager->getByName($raider->player);
+		}
+		$this->playerManager->massGetByNameAsync(
+			function(array $result) use ($sendto): void {
+				$this->sendRaidCheckBlobResult($result, $sendto);
+			},
+			$activeNames
+		);
+	}
+
+	/**
+	 * Send the raid check blob with all active players to $sendto
+	 *
+	 * @param array<string,?Player> $activePlayers List of all the players in the raid
+	 * @param CommandReply $sendto Where to send the reply to
+	 */
+	protected function sendRaidCheckBlobResult(array $activePlayers, CommandReply $sendto): void {
+		ksort($activePlayers);
+		$lines = [];
+		foreach ($activePlayers as $name => $pInfo) {
 			if ($pInfo === null) {
 				continue;
 			}
 			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
 				$this->onlineController->getProfessionId($pInfo->profession).">";
-			$line  = "<tab>{$profIcon} {$raider->player} - ".
+			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
 				"{$pInfo->level}/{$pInfo->ai_level} ".
 				"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
 				" [".
-				$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $player").
+				$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $name").
 				"]";
 			$lines []= $line;
 		}
-		if (count($activeNames) === 0) {
-			return ["<highlight>No<end> players in the raid"];
+		if (count($activePlayers) === 0) {
+			$sendto->reply("<highlight>No<end> players in the raid");
+			return;
 		}
 		$checkCmd = $this->text->makeChatcmd(
 			"Check all raid members",
-			"/assist " . join(" \\n /assist ", $activeNames)
+			"/assist " . join(" \\n /assist ", array_keys($activePlayers))
 		);
 		$notInCmd = $this->text->makeChatcmd(
 			"raid notin",
@@ -362,10 +380,10 @@ class RaidMemberController {
 			join("\n", $lines);
 		$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
 		foreach ($blobs as &$msg) {
-			$msg = "<highlight>" . count($activeNames) . "<end> player".
-				((count($activeNames) !== 1) ? "s" : "") . " in the raid :: $msg";
+			$msg = "<highlight>" . count($activePlayers) . "<end> player".
+				((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: $msg";
 		}
-		return $blobs;
+		$sendto->reply($blobs);
 	}
 
 	/**

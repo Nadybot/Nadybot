@@ -19,6 +19,8 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
+use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -729,16 +731,7 @@ class PrivateChannelController {
 		$this->chatBot->sendTell($msg, $sender);
 	}
 
-	public function getLogonMessage(string $player, bool $suppressAltList=false): ?string {
-		$altInfo = $this->altsController->getAltInfo($player);
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
-			// if at least one alt/main is already online, don't show logon message
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return null;
-			}
-		}
-
-		$whois = $this->playerManager->getByName($player);
+	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): string {
 		if ($whois !== null) {
 			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 		} else {
@@ -756,6 +749,24 @@ class PrivateChannelController {
 		return $msg;
 	}
 
+	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
+		$altInfo = $this->altsController->getAltInfo($player);
+		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+			// if at least one alt/main is already online, don't show logon message
+			if (count($altInfo->getOnlineAlts()) > 1) {
+				return;
+			}
+		}
+
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($player, $suppressAltList, $callback, $altInfo): void {
+				$msg = $this->getLogonMessageForPlayer($whois, $player, $suppressAltList, $altInfo);
+				$callback($msg);
+			},
+			$player
+		);
+	}
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Displays a message when a character joins the private channel")
@@ -763,25 +774,28 @@ class PrivateChannelController {
 	public function joinPrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
 
-		$msg = $this->getLogonMessage($sender);
-		if ($msg !== null) {
+		$this->getLogonMessageAsync($sender, false, function(string $msg): void {
 			if ($this->settingManager->getBool("guest_relay")) {
 				$this->chatBot->sendGuild($msg, true);
 			}
 			$this->chatBot->sendPrivate($msg, true);
-		}
-		$event = new OnlineEvent();
-		$event->type = "online(priv)";
-		$event->player = new OnlinePlayer();
-		$event->channel = "priv";
-		$whois = $this->playerManager->getByName($sender);
-		foreach ($whois as $key => $value) {
-			$event->player->$key = $value;
-		}
-		$event->player->online = true;
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$event->player->pmain = $altInfo->main;
-		$this->eventManager->fireEvent($event);
+		});
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($sender): void {
+				$event = new OnlineEvent();
+				$event->type = "online(priv)";
+				$event->player = new OnlinePlayer();
+				$event->channel = "priv";
+				foreach ($whois as $key => $value) {
+					$event->player->$key = $value;
+				}
+				$event->player->online = true;
+				$altInfo = $this->altsController->getAltInfo($sender);
+				$event->player->pmain = $altInfo->main;
+				$this->eventManager->fireEvent($event);
+			},
+			$sender
+		);
 	}
 
 	public function getLogoffMessage(string $player): ?string {
