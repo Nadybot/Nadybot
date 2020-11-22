@@ -274,7 +274,8 @@ class DiscordGatewayCommandHandler {
 		}
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
-			false
+			false,
+			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
 		if ($this->settingManager->getBool('discord_relay_commands')) {
