@@ -306,6 +306,21 @@ class DB {
 				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
 			}
 		}
+		if ($this->type === self::MYSQL && preg_match('/CREATE INDEX IF NOT EXISTS ([^ ]+) ON ([^ (]+)(.+)$/', $sql, $match)) {
+			$indexQuery = "SELECT COUNT(1) AS indexthere ".
+				"FROM INFORMATION_SCHEMA.STATISTICS ".
+				"WHERE table_schema=DATABASE() ".
+				"AND table_name=? ".
+				"AND index_name=?";
+			$tableName = preg_replace("/^`(.+?)`$/", "$1", $match[2]);
+			$indexName = preg_replace("/^`(.+?)`$/", "$1", $match[1]);
+			$ps = $this->executeQuery($indexQuery, [$tableName, $indexName]);
+			$indexResult = $ps->fetch(PDO::FETCH_ASSOC);
+			if ($indexResult !== null && (int)$indexResult["indexthere"] > 0) {
+				return 1;
+			}
+			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
+		}
 
 		$args = $this->getParameters(func_get_args());
 
