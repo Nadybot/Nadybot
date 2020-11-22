@@ -291,7 +291,9 @@ class AsyncHttp {
 			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
 			return false;
 		}
-		stream_set_blocking($this->stream, false);
+		if (!BotRunner::isWindows()) {
+			stream_set_blocking($this->stream, false);
+		}
 		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
 		return true;
 	}
