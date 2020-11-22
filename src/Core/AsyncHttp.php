@@ -322,22 +322,31 @@ class AsyncHttp {
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
-			function() {
-				$this->logger->log('DEBUG', "Activating TLS");
-				$this->socketManager->removeSocketNotifier($this->notifier);
-				$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-				if ($sslResult === true) {
-					$this->logger->log('DEBUG', "TLS crypto activated succesfully");
-				} elseif ($sslResult === false) {
-					$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
-						$this->getStreamUri());
-					$this->abortWithMessage("Failed to activate TLS for the connection");
-					return;
-				}
-				$this->setupStreamNotify();
-			}
+			[$this, "handleTlsHandshake"]
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
+	}
+
+	public function handleTlsHandshake(): void {
+		$this->logger->log('DEBUG', "Activating TLS");
+		$this->socketManager->removeSocketNotifier($this->notifier);
+		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+		if ($sslResult === true) {
+			$this->logger->log('DEBUG', "TLS crypto activated succesfully");
+			$this->setupStreamNotify();
+		} elseif ($sslResult === false) {
+			$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
+				$this->getStreamUri());
+			$this->abortWithMessage("Failed to activate TLS for the connection");
+			return;
+		} elseif ($sslResult === 0) {
+			$this->notifier = new SocketNotifier(
+				$this->stream,
+				SocketNotifier::ACTIVITY_WRITE|SocketNotifier::ACTIVITY_READ,
+				[$this, "handleTlsHandshake"]
+			);
+			$this->socketManager->addSocketNotifier($this->notifier);
+		}
 	}
 
 	/**
