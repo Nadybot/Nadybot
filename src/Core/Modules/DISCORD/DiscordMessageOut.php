@@ -10,6 +10,7 @@ class DiscordMessageOut {
 	public ?object $embed = null;
 	public ?string $payload_json = null;
 	public ?object $allowed_mentions = null;
+	public ?object $message_reference = null;
 
 	public function __construct(string $content) {
 		$this->content = $content;

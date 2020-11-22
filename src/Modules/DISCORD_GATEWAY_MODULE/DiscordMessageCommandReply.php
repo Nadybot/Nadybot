@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
+use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
@@ -23,10 +24,12 @@ class DiscordMessageCommandReply implements CommandReply {
 
 	protected string $channelId;
 	protected bool $isDirectMsg;
+	protected ?DiscordMessageIn $message;
 
-	public function __construct(string $channelId, bool $isDirectMsg=false) {
+	public function __construct(string $channelId, bool $isDirectMsg=false, ?DiscordMessageIn $message=null) {
 		$this->channelId = $channelId;
 		$this->isDirectMsg = $isDirectMsg;
+		$this->message = $message;
 	}
 
 	public function reply($msg): void {
@@ -40,6 +43,9 @@ class DiscordMessageCommandReply implements CommandReply {
 				$this->discordRelayController->relayDiscordMessage($fakeGM, $msgPack, false);
 			}
 			$messageObj = $this->discordController->formatMessage($msgPack);
+			if (isset($this->message)) {
+				$messageObj->message_reference = (object)["message_id" => $this->message->id];
+			}
 			$this->discordAPIClient->sendToChannel($this->channelId, $messageObj->toJSON());
 		}
 	}

@@ -240,7 +240,8 @@ class DiscordGatewayCommandHandler {
 		}
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
-			true
+			true,
+			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id;
