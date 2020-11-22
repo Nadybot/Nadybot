@@ -335,9 +335,10 @@ class AsyncHttp {
 			$this->logger->log('DEBUG', "TLS crypto activated succesfully");
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
-			$this->logger->log('ERROR', "Failed to activate TLS for the connection to ".
-				$this->getStreamUri());
-			$this->abortWithMessage("Failed to activate TLS for the connection");
+			$this->abortWithMessage(
+				"Failed to activate TLS for the connection to ".
+				$this->getStreamUri()
+			);
 			return;
 		} elseif ($sslResult === 0) {
 			// Do nothing, just wait for next tick
