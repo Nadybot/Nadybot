@@ -443,7 +443,7 @@ class DiscordRelayController {
 		}
 
 		//Relay the message to the discord channel
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
 	}
 
 	/**
@@ -486,7 +486,7 @@ class DiscordRelayController {
 		$discordMsg = $this->discordController->formatMessage($msg);
 
 		//Relay the message to the discord channel
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
 	}
 
 	/**
@@ -697,7 +697,7 @@ class DiscordRelayController {
 		];
 
 		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
 	}
 
 	/**
@@ -741,7 +741,7 @@ class DiscordRelayController {
 		];
 
 		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		$this->discordAPIClient->sendToChannel($relayChannel, $discordMsg->toJSON());
+		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
 	}
 
 	/**
