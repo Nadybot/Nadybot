@@ -152,9 +152,6 @@ class DiscordGatewayCommandHandler {
 	 */
 	public function extAuthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$discordUserId = $sender;
-		if ($channel !== "msg") {
-			return;
-		}
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>$authedAs<end>.";
 			$sendto->reply($msg);
@@ -281,10 +278,13 @@ class DiscordGatewayCommandHandler {
 		if ($this->settingManager->getBool('discord_relay_commands')) {
 			$this->discordRelayController->relayDiscordMessage($event->discord_message->member, $event->message);
 		}
+		if (!preg_match("/^extauth\s+request/", $event->message)) {
+			$discordUserId = $this->getNameForDiscordId($discordUserId) ?? $discordUserId;
+		}
 		$this->commandManager->process(
 			"priv",
 			substr($event->message, 1),
-			$this->getNameForDiscordId($discordUserId) ?? $discordUserId,
+			$discordUserId,
 			$sendto
 		);
 	}
