@@ -159,8 +159,10 @@ class ConfigController {
 			 $confirmString = "all " . $args[2];
 		}
 	
-		$sql = "SELECT `type`, `file`, `cmd`, `admin` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND ($typeSql)";
-		$data = $this->db->fetchAll(CmdCfg::class, $sql);
+		$sql = "SELECT `type`, `file`, `cmd`, `admin` ".
+			"FROM `cmdcfg_<myname>` ".
+			"WHERE `cmdevent` = 'cmd' AND ($typeSql)";
+		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
 		foreach ($data as $row) {
 			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
 				continue;
@@ -173,7 +175,7 @@ class ConfigController {
 		}
 	
 		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE (`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') AND ($typeSql)";
-		$sqlArgs []= $status;
+		$sqlArgs = [$status, ...$sqlArgs];
 		$this->db->exec($sql, ...$sqlArgs);
 	
 		$msg = "Successfully <highlight>" . ($status === 1 ? "enabled" : "disabled") . "<end> $confirmString commands.";
