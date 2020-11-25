@@ -8,10 +8,16 @@ use ReflectionException;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
+use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
 
 /**
  * @Instance
+ * @ProvidesEvent("command(forbidden)")
+ * @ProvidesEvent("command(success)")
+ * @ProvidesEvent("command(unknown)")
+ * @ProvidesEvent("command(help)")
+ * @ProvidesEvent("command(error)")
  */
 class CommandManager {
 
@@ -26,6 +32,9 @@ class CommandManager {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public HelpManager $helpManager;
@@ -44,6 +53,9 @@ class CommandManager {
 
 	/** @Inject */
 	public UsageController $usageController;
+
+	/** @Inject */
+	public LimitsController $limitsController;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -283,7 +295,15 @@ class CommandManager {
 		$cmd = explode(' ', $message, 2)[0];
 		$cmd = strtolower($cmd);
 
+		if ($this->limitsController->isIgnored($sender)) {
+			return;
+		}
 		$commandHandler = $this->getActiveCommandHandler($cmd, $channel, $message);
+		$event = new CmdEvent();
+		$event->channel = $channel;
+		$event->cmd = $cmd;
+		$event->sender = $sender;
+		$event->cmdHandler = $commandHandler;
 
 		// if command doesn't exist
 		if ($commandHandler === null) {
@@ -298,30 +318,41 @@ class CommandManager {
 			$cmdNames = array_map([$this, 'mapToCmd'], $similarCommands);
 
 			$sendto->reply("Error! Unknown command. Did you mean..." . implode(", ", $cmdNames) . '?');
+			$event->type = "command(unknown)";
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 
 		// if the character doesn't have access
 		if (!$this->checkAccessLevel($channel, $message, $sender, $sendto, $cmd, $commandHandler)) {
+			$event->type = "command(forbidden)";
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 
 		try {
 			$handler = $this->callCommandHandler($commandHandler, $message, $channel, $sender, $sendto);
+			$event->type = "command(success)";
 
 			if ($handler === null) {
 				$help = $this->getHelpForCommand($cmd, $channel, $sender);
 				$sendto->reply($help);
+				$event->type = "command(help)";
+				$this->eventManager->fireEvent($event);
 			}
 		} catch (StopExecutionException $e) {
+			$event->type = "command(error)";
 			throw $e;
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", $e->getMessage(), $e);
 			$sendto->reply("There was an SQL error executing your command.");
+			$event->type = "command(error)";
 		} catch (Throwable $e) {
 			$this->logger->log("ERROR", "Error executing '$message': " . $e->getMessage(), $e);
 			$sendto->reply("There was an error executing your command: " . $e->getMessage());
+			$event->type = "command(error)";
 		}
+		$this->eventManager->fireEvent($event);
 
 		try {
 			// record usage stats (in try/catch block in case there is an error)
