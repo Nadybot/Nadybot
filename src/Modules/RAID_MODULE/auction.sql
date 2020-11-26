@@ -10,4 +10,3 @@ CREATE TABLE IF NOT EXISTS `auction_<myname>` (
 );
 
 CREATE INDEX IF NOT EXISTS `auction_<myname>_raid_id_idx` ON `auction_<myname>`(`raid_id`);
-CREATE INDEX IF NOT EXISTS `auction_<myname>_item_idx` ON `auction_<myname>`(`item`);
