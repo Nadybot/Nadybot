@@ -854,7 +854,7 @@ INSERT INTO `boss_lootdb` VALUES
 (205,'Spirit of Saccelum'),
 (206,'Silken Legchopper Gloves'),
 (206,'This Axe Belongs to Jack'),
-(206,'Supporting Carbonan Holder'),
+(206,'Supporting Carbonan Holster'),
 (206,'Band of Beeswax'),
 (206,'Band of Dog Molars'),
 (206,'Band of Snake Skin'),

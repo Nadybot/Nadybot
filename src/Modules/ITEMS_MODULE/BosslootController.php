@@ -5,6 +5,7 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBRow;
+use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
@@ -49,6 +50,9 @@ class BosslootController {
 	
 	/** @Inject */
 	public Util $util;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @Setup */
 	public function setup(): void {
@@ -104,6 +108,10 @@ class BosslootController {
 			$row->bossid
 		);
 		foreach ($data as $row2) {
+			if (!isset($row2->icon)) {
+				$this->logger->log('ERROR', "Missing item in AODB: {$row2->itemname}.");
+				continue;
+			}
 			$blob .= $this->text->makeImage($row2->icon) . "\n";
 			$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
 		}
