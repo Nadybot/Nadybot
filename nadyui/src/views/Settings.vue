@@ -99,6 +99,21 @@
                     {{ option.name }}
                   </option>
                 </select>
+                <select
+                  v-if="setting.type == 'rank'"
+                  class="form-select form-select-sm"
+                  v-model="setting.value"
+                  @change="changeSetting(setting)"
+                >
+                  <option
+                    v-for="access_level in access_levels"
+                    :key="access_level.name"
+                    :disabled="!access_level.enabled"
+                    :value="access_level.value"
+                  >
+                    {{ access_level.name }}
+                  </option>
+                </select>
                 <input
                   v-if="setting.type == 'text'"
                   type="text"
@@ -551,6 +566,7 @@ export default defineComponent({
       settings = settings.filter(function (val) {
         return val.editable == true;
       });
+      console.log(settings);
       let commands = await getModuleCommands(module.name);
       let events = await getModuleEvents(module.name);
       this.selected_settings = settings;
