@@ -111,7 +111,7 @@ class LimitsController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"tell_error_msg_type",
-			"How to show error messages when limit requirements are not met",
+			"How to show error messages when limit requirements are not met?",
 			"edit",
 			"options",
 			"2",
@@ -121,7 +121,7 @@ class LimitsController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"limits_cmd_type",
-			"Ratelimit: which commands to count",
+			"Ratelimit: Which commands to account for?",
 			"edit",
 			"options",
 			"0",
@@ -131,7 +131,7 @@ class LimitsController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"limits_window",
-			"Ratelimit: which time window to account",
+			"Ratelimit: Which time window to check?",
 			"edit",
 			"options",
 			"5",
@@ -141,50 +141,39 @@ class LimitsController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"limits_threshold",
-			"Ratelimit: how many commands/window trigger actions",
+			"Ratelimit: How many commands per time window trigger actions?",
 			"edit",
 			"number",
-			"0",
+			"5",
 			"off;2;3;4;5;6;7;8;9;10",
 			"0;2;3;4;5;6;7;8;9;10"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
 			"limits_overrate_action",
-			"Ratelimit: what to do when players are over the rate",
+			"Ratelimit: Action when players exceed the allowed command rate",
 			"edit",
 			"options",
 			"4",
-			"Kick;tempban;Kick+tempban;temp ignore",
-			"1;2;3;4"
+			"Kick;Temp. ban;Kick+Temp. ban;Temp. ignore;Kick+Temp. ignore",
+			"1;2;3;4;5"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
 			"limits_ignore_duration",
-			"Ratelimit: how long to tempban or ignore",
+			"Ratelimit: How long to temporarily ban or ignore?",
 			"edit",
 			"time",
 			"5m",
 			"1m;2m;5m;10m;30m;1h;6h",
 		);
-		$this->timer->callLater(
-			0,
-			function() {
-				$ranks = $this->configController->getValidAccessLevels();
-				$allowedRanks = [];
-				foreach ($ranks as $rank) {
-					$allowedRanks []= $rank->value;
-				}
-				$this->settingManager->add(
-					$this->moduleName,
-					"limits_exempt_rank",
-					"Ratelimit: Ignore for everyone of this rank or higher",
-					"edit",
-					"options",
-					"mod",
-					join(";", $allowedRanks)
-				);
-			}
+		$this->settingManager->add(
+			$this->moduleName,
+			"limits_exempt_rank",
+			"Ratelimit: Ignore ratelimit for everyone of this rank or higher",
+			"edit",
+			"rank",
+			"mod"
 		);
 	}
 	
@@ -403,6 +392,27 @@ class LimitsController {
 			if ($expires < $now) {
 				unset($this->ignoreList[$name]);
 				$this->logger->log('INFO', "Unignoring {$name} again.");
+			}
+		}
+	}
+
+	/**
+	 * @Event("timer(10min)")
+	 * @Description("Cleanup expired command counts")
+	 * @DefaultStatus("1")
+	 */
+	public function expireBuckets(): void {
+		$now = time();
+		$timeWindow = $this->settingManager->getInt('limits_window');
+		foreach ($this->limitBucket as $user => &$bucket) {
+			$bucket = array_filter(
+				$bucket,
+				function(int $ts) use ($now, $timeWindow): bool {
+					return $ts >= $now - $timeWindow;
+				}
+			);
+			if (empty($bucket)) {
+				unset($this->limitBucket[$user]);
 			}
 		}
 	}

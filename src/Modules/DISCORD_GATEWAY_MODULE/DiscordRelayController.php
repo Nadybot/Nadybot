@@ -171,25 +171,13 @@ class DiscordRelayController {
 			"color",
 			"<font color=#C3C3C3>"
 		);
-
-		$this->timer->callLater(
-			0,
-			function() {
-				$ranks = $this->configController->getValidAccessLevels();
-				$allowedRanks = [];
-				foreach ($ranks as $rank) {
-					$allowedRanks []= $rank->value;
-				}
-				$this->settingManager->add(
-					$this->moduleName,
-					"discord_relay_mention_rank",
-					"Minimum ranks allowed to use @here and @everyone",
-					"edit",
-					"options",
-					"mod",
-					join(";", $allowedRanks)
-				);
-			}
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_relay_mention_rank",
+			"Minimum ranks allowed to use @here and @everyone",
+			"edit",
+			"rank",
+			"mod"
 		);
 	}
 
