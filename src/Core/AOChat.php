@@ -857,7 +857,7 @@ class AOChat {
 		// Make negative if sign-bit is set in 32-bit value
 		if (bccomp($strValue, $bit32) !== -1) {
 			$strValue = bcsub($strValue, $bit32);
-			return (int)$strValue - 0x80000000;
+			$strValue = bcsub($strValue, $bit32);
 		}
 
 		return (int)$strValue;
