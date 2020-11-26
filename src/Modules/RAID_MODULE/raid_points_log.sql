@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `raid_points_log_<myname>` (
 );
 
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_username_idx` ON `raid_points_log_<myname>`(`username`);
-CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_readon_idx` ON `raid_points_log_<myname>`(`reason`);
+CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_reason_idx` ON `raid_points_log_<myname>`((`reason` IN ('reward', 'penalty')));
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_changed_by_idx` ON `raid_points_log_<myname>`(`changed_by`);
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_time_idx` ON `raid_points_log_<myname>`(`time`);
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_ticker_idx` ON `raid_points_log_<myname>`(`ticker`);
