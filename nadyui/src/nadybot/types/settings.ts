@@ -31,6 +31,7 @@ export enum SettingType {
   color = "color",
   discord_channel = "discord_channel",
   time = "time",
+  rank = "rank",
 }
 
 export interface ModuleSetting {
