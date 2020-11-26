@@ -46,7 +46,7 @@ class DiscordMessageCommandReply implements CommandReply {
 			if (isset($this->message)) {
 				$messageObj->message_reference = (object)["message_id" => $this->message->id];
 			}
-			$this->discordAPIClient->sendToChannel($this->channelId, $messageObj->toJSON());
+			$this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON());
 		}
 	}
 }

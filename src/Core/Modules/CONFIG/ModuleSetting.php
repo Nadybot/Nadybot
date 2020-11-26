@@ -13,6 +13,7 @@ class ModuleSetting {
 	public const TYPE_TIME = 'time';
 	public const TYPE_OPTIONS = 'options';
 	public const TYPE_INT_OPTIONS = 'int_options';
+	public const TYPE_RANK = 'rank';
 
 	/** The type of this setting (bool, number, options, etc) */
 	public string $type = self::TYPE_TEXT;
@@ -92,6 +93,10 @@ class ModuleSetting {
 						$this->value = (int)$setting->value;
 					}
 				}
+				break;
+			case 'rank':
+				$this->type = static::TYPE_RANK;
+				$this->value = (string)$setting->value;
 				break;
 			default:
 				$this->type = static::TYPE_TEXT;

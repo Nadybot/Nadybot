@@ -28,6 +28,9 @@ class DiscordAPIClient {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	protected array $outQueue = [];
+	protected bool $queueProcessing = false;
+
 	protected $guildMemberCache = [];
 	protected $userCache = [];
 
@@ -49,11 +52,39 @@ class DiscordAPIClient {
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	public function queueToChannel(string $channel, string $message, ?callable $callback=null): void {
+		$this->outQueue []= func_get_args();
+		if ($this->queueProcessing === false) {
+			$this->processQueue();
+		}
+	}
+
 	public function sendToChannel(string $channel, string $message, ?callable $callback=null): void {
+		array_unshift($this->outQueue, func_get_args());
+		if ($this->queueProcessing === false) {
+			$this->processQueue();
+		}
+	}
+	
+	public function processQueue(): void {
+		if (empty($this->outQueue)) {
+			$this->queueProcessing = false;
+			return;
+		}
+		$this->queueProcessing = true;
+		$params = array_shift($this->outQueue);
+		$this->immediatelySendToChannel(...$params);
+	}
+
+	protected function immediatelySendToChannel(string $channel, string $message, ?callable $callback=null): void {
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $callback);
 		$this->post(
 			self::DISCORD_API . "/channels/{$channel}/messages",
 			$message
-		)->withCallback($this->getErrorWrapper(new DiscordMessageIn(), $callback));
+		)->withCallback(function() use ($errorHandler): void {
+			$this->processQueue();
+			$errorHandler(...func_get_args());
+		});
 	}
 
 	public function sendToUser(string $user, DiscordMessageOut $message, ?callable $callback=null): void {
@@ -180,6 +211,6 @@ class DiscordAPIClient {
 	}
 
 	protected function parseSendToUserReply(DiscordChannel $channel, string $message, ?callable $callback=null): void {
-		$this->sendToChannel($channel->id, $message, $callback);
+		$this->queueToChannel($channel->id, $message, $callback);
 	}
 }

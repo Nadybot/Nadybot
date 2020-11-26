@@ -87,7 +87,7 @@ class DiscordController {
 		$text = preg_replace_callback(
 			"/<img src=['\"]?tdb:\/\/id:([A-Z0-9_]+)['\"]?>/",
 			function(array $matches) use ($mapping): string {
-				return $mapping[$matches[1]] ?? $matches[1];
+				return ($mapping[$matches[1]] ?? $matches[1]) . " ";
 			},
 			$text
 		);
