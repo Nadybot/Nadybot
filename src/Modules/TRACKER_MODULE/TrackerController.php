@@ -20,7 +20,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlinePlayer,
-	TOWER_MODULE\TrackerEvent,
 };
 
 /**
