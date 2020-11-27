@@ -306,6 +306,8 @@ class DB {
 				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
 			}
 		}
+
+		$args = $this->getParameters(func_get_args());
 		if ($this->type === self::MYSQL && preg_match('/CREATE INDEX IF NOT EXISTS ([^ ]+) ON ([^ (]+)(.+)$/', $sql, $match)) {
 			$indexQuery = "SELECT COUNT(1) AS indexthere ".
 				"FROM INFORMATION_SCHEMA.STATISTICS ".
@@ -320,9 +322,18 @@ class DB {
 				return 1;
 			}
 			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
+			try {
+				$ps = $this->executeQuery($sql, $args);
+				return $ps->rowCount();
+			} catch (SQLException $e) {
+				$this->logger->log(
+					"WARN",
+					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
+					"consider upgrading to the latest MariaDB or use SQLite."
+				);
+				return 1;
+			}
 		}
-
-		$args = $this->getParameters(func_get_args());
 
 		$ps = $this->executeQuery($sql, $args);
 
