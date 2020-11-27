@@ -100,11 +100,11 @@ class WebsocketBase {
 
 	public function isConnected() {
 		return isset($this->socket)
-			&& is_resource($this->socket)
+			&& ($this->socket instanceof \Socket || (is_resource($this->socket)
 			&& (
 				get_resource_type($this->socket) === 'persistent stream'
 				|| get_resource_type($this->socket) === 'stream'
-			);
+			)));
 	}
 
 	public function checkTimeout() {

@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Timer,
 	TimerEvent,
 };
+use Throwable;
 
 class AsyncSocket {
 	public const DATA = 'data';
@@ -58,11 +59,12 @@ class AsyncSocket {
 	protected int $state = self::STATE_READY;
 
 	public function __construct($socket) {
-		if (!is_resource($socket)) {
+		try {
+			$this->socket = $socket;
+			stream_set_blocking($this->socket, false);
+		} catch (Throwable $e) {
 			throw new InvalidArgumentException("Argument 1 to " . get_class() . "::__construct() must be a socket.");
 		}
-		$this->socket = $socket;
-		stream_set_blocking($this->socket, false);
 	}
 
 	/**
@@ -235,7 +237,7 @@ class AsyncSocket {
 
 	protected function forceClose(): void {
 		$this->logger->log('DEBUG', 'Force closing connection');
-		if (!is_resource($this->socket) || $this->state === static::STATE_CLOSED) {
+		if ((!is_resource($this->socket) && !($this->socket instanceof \Socket)) || $this->state === static::STATE_CLOSED) {
 			return;
 		}
 		@fclose($this->socket);

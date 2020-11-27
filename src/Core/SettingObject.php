@@ -9,8 +9,8 @@ class SettingObject {
 	/** @Inject */
 	public SettingManager $settingManager;
 
-	public function __set(string $name, $value): bool {
-		return $this->settingManager->save($name, $value);
+	public function __set(string $name, $value): void {
+		$this->settingManager->save($name, $value);
 	}
 
 	public function __get(string $name) {

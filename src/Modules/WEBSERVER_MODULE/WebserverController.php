@@ -299,7 +299,7 @@ class WebserverController {
 	 * Shutdown the webserver
 	 */
 	public function shutdown(): bool {
-		if (!isset($this->serverSocket) || !is_resource($this->serverSocket)) {
+		if (!isset($this->serverSocket) || (!is_resource($this->serverSocket) && !($this->serverSocket instanceof \Socket))) {
 			return true;
 		}
 		@fclose($this->serverSocket);

@@ -419,7 +419,7 @@ class DB {
 	 * Format SQL code by replacing placeholders like <myname>
 	 */
 	public function formatSql(string $sql): string {
-		$sql = str_replace("<dim>", $this->dim, $sql);
+		$sql = str_replace("<dim>", (string)$this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
 		$sql = str_replace("<Myname>", ucfirst($this->botname), $sql);
 		$sql = str_replace("<myguild>", $this->guild, $sql);

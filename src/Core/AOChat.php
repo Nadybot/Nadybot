@@ -173,7 +173,7 @@ class AOChat {
 	 * Disconnect from the chat server (if connected) and init varaibles
 	 */
 	public function disconnect(): void {
-		if (is_resource($this->socket)) {
+		if (is_resource($this->socket) || $this->socket instanceof \Socket) {
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
@@ -194,7 +194,7 @@ class AOChat {
 	 */
 	public function connect(string $server, int $port) {
 		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		if (!is_resource($this->socket)) {
+		if ($this->socket === false) {
 			$this->socket = null;
 			$this->logger->log('error', "Could not create socket");
 			die();
@@ -751,7 +751,7 @@ class AOChat {
 	public function bigdechex(string $x): string {
 		$r = "";
 		while ($x !== "0") {
-			$r = dechex(bcmod($x, "16")) . $r;
+			$r = dechex((int)bcmod($x, "16")) . $r;
 			$x = bcdiv($x, "16");
 		}
 		return $r;
