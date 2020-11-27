@@ -566,7 +566,6 @@ export default defineComponent({
       settings = settings.filter(function (val) {
         return val.editable == true;
       });
-      console.log(settings);
       let commands = await getModuleCommands(module.name);
       let events = await getModuleEvents(module.name);
       this.selected_settings = settings;
