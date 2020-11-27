@@ -778,7 +778,7 @@ class AOChat {
 	 * hex display, and then switch back to the decimal display.
 	 * @see http://www.hackersquest.com/boards/viewtopic.php?t=4884&start=75
 	 */
-	public function negativeToUnsigned(int $value): string {
+	public function negativeToUnsigned(float $value): string {
 		$strValue = (string)$value;
 		if (bccomp($strValue, "0") !== -1) {
 			return $value;
@@ -808,7 +808,7 @@ class AOChat {
 	 * On linux systems, unpack("H*", pack("L*", <value>)) returns differently than on Windows.
 	 * This can be used instead of unpack/pack to get the value we need.
 	 */
-	public function safeDecHexReverseEndian(int $value): string {
+	public function safeDecHexReverseEndian(float $value): string {
 		$result = "";
 		$value = $this->reduceTo32Bit($value);
 		$hex   = substr("00000000".dechex($value), -8);
@@ -830,7 +830,7 @@ class AOChat {
 	 * the result will be zero or positive.
 	 * @author Feetus (RK1)
 	 */
-	public function reduceTo32Bit(int $value): int {
+	public function reduceTo32Bit(float $value): int {
 		$strValue = (string)$value;
 		// If its negative, lets go positive ... its easier to do everything as positive.
 		if (bccomp($strValue, "0") === -1) {
