@@ -48,7 +48,7 @@ class ClassLoader {
 	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->log('INFO', "Loading CORE modules...");
-		$core_modules = ['CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS', 'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE', 'COLORS', 'DISCORD'];
+		$core_modules = ['CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS', 'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE', 'COLORS', 'DISCORD', 'CONSOLE'];
 		foreach ($core_modules as $moduleName) {
 			$this->registerModule(__DIR__ . "/Modules", $moduleName);
 		}

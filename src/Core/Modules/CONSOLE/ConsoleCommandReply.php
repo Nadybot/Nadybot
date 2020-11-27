@@ -1,8 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core;
+namespace Nadybot\Core\Modules\CONSOLE;
 
-class StdinCommandReply implements CommandReply {
+use Nadybot\Core\CommandReply;
+use Nadybot\Core\Nadybot;
+
+class ConsoleCommandReply implements CommandReply {
 	private Nadybot $chatBot;
 
 	public function __construct(Nadybot $chatBot) {

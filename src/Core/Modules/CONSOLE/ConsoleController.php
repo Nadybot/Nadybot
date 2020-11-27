@@ -1,12 +1,21 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core;
+namespace Nadybot\Core\Modules\CONSOLE;
+
+use Nadybot\Core\{
+	CommandManager,
+	EventManager,
+	LoggerWrapper,
+	Nadybot,
+	SocketManager,
+	SocketNotifier,
+	Timer,
+};
 
 /**
  * @Instance
- * @package Nadybot\Core
  */
-class StdinHandler {
+class ConsoleController {
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -32,7 +41,9 @@ class StdinHandler {
 	public LoggerWrapper $logger;
 
 	public SocketNotifier $notifier;
+
 	public $socket;
+
 	public bool $useReadline = false;
 
 	public function getCacheFile(): string {
@@ -63,20 +74,13 @@ class StdinHandler {
 		return readline_write_history($file);
 	}
 
-	/** @Setup */
-	public function setup(): void {
-		$this->eventManager->register(
-			'StdinHandler',
-			'connect',
-			"stdinhandler.setupConsole",
-			"Initialize the StdIn console",
-			null,
-			1,
-		);
-	}
-
 	/**
-	 * The console should not appear before we are really online
+	 * @Event("connect")
+	 * @Description("Initializes the console")
+	 * @DefaultStatus("1")
+	 *
+	 * This is an Event("connect") instead of Setup since you cannot use the console
+	 * before the bot is fully ready anyway
 	 */
 	public function setupConsole(): void {
 		if (!$this->chatBot->vars["enable_console_client"]) {
@@ -134,7 +138,7 @@ class StdinHandler {
 			readline_add_history($line);
 			$this->saveHistory();
 		}
-		$handler = new StdinCommandReply($this->chatBot);
+		$handler = new ConsoleCommandReply($this->chatBot);
 		$this->commandManager->process("msg", $line, $this->chatBot->vars["SuperAdmin"], $handler);
 	}
 }
