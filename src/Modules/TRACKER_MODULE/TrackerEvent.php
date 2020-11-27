@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\TOWER_MODULE;
+namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\Event;
 

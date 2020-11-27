@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\User\Modules;
+namespace Nadybot\Modules\WATCHDOG_MODULE;
 
 use Nadybot\Core\Event;
 use Nadybot\Core\EventManager;

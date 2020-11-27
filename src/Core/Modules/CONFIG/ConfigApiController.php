@@ -23,7 +23,7 @@ use Nadybot\Modules\{
  * @Instance
  * @package Nadybot\Core\Modules\CONFIG
  */
-class ConfigApiConroller {
+class ConfigApiController {
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.

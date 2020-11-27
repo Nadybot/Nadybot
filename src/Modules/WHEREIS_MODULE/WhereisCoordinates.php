@@ -1,9 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\User\Modules\SPAWNTIME_MODULE;
+namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use Nadybot\Modules\HELPBOT_MODULE\Playfield;
 use Nadybot\Modules\WHEREIS_MODULE\WhereisTrait;
+use Nadybot\User\Modules\SPAWNTIME_MODULE\Spawntime;
 
 class WhereisCoordinates extends Playfield {
 	use WhereisTrait;
