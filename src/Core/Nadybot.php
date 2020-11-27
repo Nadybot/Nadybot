@@ -154,10 +154,10 @@ class Nadybot extends AOChat {
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_cmd_idx` ON `cmdcfg_<myname>`(`cmd`)");
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_type_idx` ON `cmdcfg_<myname>`(`type`)");
 		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS eventcfg_<myname> (".
+			"CREATE TABLE IF NOT EXISTS `eventcfg_<myname>` (".
 			"`module` VARCHAR(50), ".
 			"`type` VARCHAR(50), ".
-			"`file` VARCHAR(255), ".
+			"`file` VARCHAR(100), ".
 			"`description` VARCHAR(75) DEFAULT 'none', ".
 			"`verify` INT DEFAULT '0', ".
 			"`status` INT DEFAULT '0', ".
@@ -166,6 +166,7 @@ class Nadybot extends AOChat {
 		);
 		if ($this->db->getType() === $this->db::MYSQL) {
 			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `type` `type` VARCHAR(50)");
+			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `file` `file` VARCHAR(100)");
 		}
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_type_idx` ON `eventcfg_<myname>`(`type`)");
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_file_idx` ON `eventcfg_<myname>`(`file`)");

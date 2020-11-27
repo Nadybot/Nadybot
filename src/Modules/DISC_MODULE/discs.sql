@@ -4,9 +4,9 @@ CREATE TABLE discs(
 	crystal_id INT NOT NULL,
 	crystal_ql INT NOT NULL,
 	disc_ql INT NOT NULL,
-	disc_name VARCHAR(200) NOT NULL,
-	crystal_name VARCHAR(200) NOT NULL,
-	comment VARCHAR(200)
+	disc_name VARCHAR(75) NOT NULL,
+	crystal_name VARCHAR(70) NOT NULL,
+	comment VARCHAR(50)
 );
 INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_name) VALUES
 (144818,125753,156,156,'Instruction Disc (Calling of Altumus)','Nano Crystal (Calling of Altumus)'),
@@ -2014,4 +2014,4 @@ INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_n
 (147271,28794,179,179,'Instruction Disc (Wrack and Ruin)','Nano Crystal (Wrack and Ruin)', 'Used for building the Omni-Med Battle Boots'),
 (204526,204432,197,197,'Instruction Disc (Vaccine of Divestiture)','NanoCrystal (Vaccine of Divestiture)', 'Used for building the Omni-Med Battle Helmet');
 
-CREATE INDEX discs_disc_name_idx ON discs(disc_name);
+CREATE INDEX IF NOT EXISTS `discs_disc_name_idx` ON `discs`(`disc_name`);
