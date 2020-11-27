@@ -9,4 +9,6 @@ class Recipe extends DBRow {
 	public string $name;
 	public string $author;
 	public string $recipe;
+	/** Last modification of the recipe */
+	public int $date;
 }

@@ -57,6 +57,7 @@ class RecipeController {
 		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
 		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
 		$recipe->recipe = implode("", $lines);
+		$recipe->date = filemtime($this->path . $fileName);
 
 		return $recipe;
 	}
@@ -75,6 +76,7 @@ class RecipeController {
 		}
 		$recipe->name = $data->name ?? "<unnamed>";
 		$recipe->author = $data->author ?? "<unknown>";
+		$recipe->date = filemtime($this->path . $fileName);
 		/** @var array<string,AODBEntry> */
 		$items = [];
 		foreach ($data->items as $item) {
@@ -127,6 +129,10 @@ class RecipeController {
 		return $recipe;
 	}
 	
+	/** @Setup */
+	public function setup(): void {
+		$this->db->loadSQLFile($this->moduleName, "recipes");
+	}
 
 	/**
 	 * @Event("connect")
@@ -136,29 +142,53 @@ class RecipeController {
 	 * This is an Event("connect") instead of Setup since it depends on the items db being loaded
 	 */
 	public function connectEvent(): void {
-		$this->db->loadSQLFile($this->moduleName, "recipes", true);
-
 		$this->path = __DIR__ . "/recipes/";
 		if (($handle = opendir($this->path)) === false) {
 			throw new Exception("Could not open '$this->path' for loading recipes");
 		}
+		/** @var array<string,Recipe> */
+		$recipes = [];
+		/** @var Recipe[] */
+		$allRecipes = $this->db->fetchAll(Recipe::class, "SELECT * FROM `recipes`");
+		foreach ($allRecipes as $recipe) {
+			$recipes[$recipe->id] = $recipe;
+		}
 		while (($fileName = readdir($handle)) !== false) {
+			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
+				|| (isset($recipes[$args[1]])
+					&& filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
+			 ) {
+				continue;
+			}
 			// if file has the correct extension, load recipe into database
-			if (preg_match("/(\d+)\.txt/", $fileName, $args)) {
+			if ($args[2] === 'txt') {
 				$recipe = $this->parseTextFile((int)$args[1], $fileName);
-			} elseif (preg_match("/(\d+)\.json/", $fileName, $args)) {
+			} elseif ($args[2] === 'json') {
 				$recipe = $this->parseJSONFile((int)$args[1], $fileName);
 			} else {
 				continue;
 			}
-			$this->db->exec(
-				"INSERT INTO recipes (id, name, author, recipe) ".
-				"VALUES (?, ?, ?, ?)",
-				$recipe->id,
-				$recipe->name,
-				$recipe->author,
-				$recipe->recipe
-			);
+			if (isset($recipes[$args[1]])) {
+				$this->db->exec(
+					"UPDATE `recipes` SET `name`=?, `author`=?, `recipe`=?, `date`=? ".
+					"WHERE `id`=?",
+					$recipe->name,
+					$recipe->author,
+					$recipe->recipe,
+					$recipe->date,
+					$recipe->id,
+				);
+			} else {
+				$this->db->exec(
+					"INSERT INTO `recipes` (`id`, `name`, `author`, `recipe`, `date`) ".
+					"VALUES (?, ?, ?, ?, ?)",
+					$recipe->id,
+					$recipe->name,
+					$recipe->author,
+					$recipe->recipe,
+					$recipe->date
+				);
+			}
 		}
 		closedir($handle);
 	}
