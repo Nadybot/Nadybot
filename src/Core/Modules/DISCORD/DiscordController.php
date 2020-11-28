@@ -83,6 +83,7 @@ class DiscordController {
 			"GFX_GUI_ICON_PROFESSION_12" => "⚱️",
 			"GFX_GUI_ICON_PROFESSION_14" => "🛡️",
 			"GFX_GUI_ICON_PROFESSION_15" => "🗡️",
+			"GFX_GUI_WINDOW_QUESTIONMARK" => "❓",
 		];
 		$text = preg_replace_callback(
 			"/<img src=['\"]?tdb:\/\/id:([A-Z0-9_]+)['\"]?>/",
