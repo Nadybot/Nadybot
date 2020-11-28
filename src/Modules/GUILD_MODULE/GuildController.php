@@ -578,7 +578,7 @@ class GuildController {
 		}
 	}
 
-	public function getLogonForPlayer(?Player $whois, string $player, bool $suppressAltList): string {
+	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
 		$msg = '';
 		if ($whois === null) {
 			$msg = "$player logged on.";
@@ -594,7 +594,13 @@ class GuildController {
 				}
 			} else {
 				if (count($altInfo->alts) > 0) {
-					$msg .= " " . $altInfo->getAltsBlob(true);
+					$altInfo->getAltsBlobAsync(
+						function($blob) use ($msg, $callback): void {
+							$callback("{$msg} {$blob}");
+						},
+						true
+					);
+					return;
 				}
 			}
 		}
@@ -603,7 +609,7 @@ class GuildController {
 		if ($logonMsg !== null && $logonMsg !== '') {
 			$msg .= " - " . $logonMsg;
 		}
-		return $msg;
+		$callback($msg);
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
@@ -617,8 +623,7 @@ class GuildController {
 
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($callback, $player, $suppressAltList): void {
-				$msg = $this->getLogonForPlayer($whois, $player, $suppressAltList);
-				$callback($msg);
+				$this->getLogonForPlayer($callback, $whois, $player, $suppressAltList);
 			},
 			$player
 		);

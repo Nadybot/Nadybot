@@ -293,11 +293,10 @@ class AltsController {
 		$altInfo = $this->getAltInfo($name, true);
 		if (count($altInfo->alts) === 0) {
 			$msg = "No alts are registered for <highlight>{$name}<end>.";
-		} else {
-			$msg = $altInfo->getAltsBlob();
+			$sendto->reply($msg);
+			return;
 		}
-	
-		$sendto->reply($msg);
+		$altInfo->getAltsBlobAsync([$sendto, "reply"]);
 	}
 
 	/**

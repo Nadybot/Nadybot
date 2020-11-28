@@ -34,6 +34,11 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
  *		accessLevel = 'all',
  *		description = 'Relays incoming messages to guildchat'
  *	)
+ *  @DefineCommand(
+ *		command     = 'gcr',
+ *		accessLevel = 'all',
+ *		description = 'Relays incoming bebot messages to guildchat'
+ *	)
  */
 class RelayController {
 
@@ -386,6 +391,13 @@ class RelayController {
 	}
 
 	/**
+	 * @HandlesCommand("gcr")
+	 */
+	public function gcrCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->processIncomingRelayMessage($sender, $message);
+	}
+
+	/**
 	 * @Event("amqp")
 	 * @Description("Receive relay messages from other bots via AMQP")
 	 */
@@ -409,6 +421,131 @@ class RelayController {
 		$this->processIncomingRelayMessage($eventObj->sender, $eventObj->message);
 	}
 
+	/**
+	 * Parse and replace BeBot-style color-codes (##red##) with their actual colors (<font>)
+	 */
+	public function replaceBeBotColors(string $text): string {
+		$colors = [
+			"aqua"         => "#00FFFF",
+			"beige"        => "#FFE3A1",
+			"black"        => "#000000",
+			"blue"         => "#0000FF",
+			"bluegray"     => "#8CB6FF",
+			"bluesilver"   => "#9AD5D9",
+			"brown"        => "#999926",
+			"darkaqua"     => "#2299FF",
+			"darklime"     => "#00A651",
+			"darkorange"   => "#DF6718",
+			"darkpink"     => "#FF0099",
+			"forestgreen"  => "#66AA66",
+			"fuchsia"      => "#FF00FF",
+			"gold"         => "#CCAA44",
+			"gray"         => "#808080",
+			"green"        => "#008000",
+			"lightbeige"   => "#FFFFC9",
+			"lightfuchsia" => "#FF63FF",
+			"lightgray"    => "#D9D9D2",
+			"lightgreen"   => "#00DD44",
+			"brightgreen"  => "#00F000",
+			"lightmaroon"  => "#FF0040",
+			"lightteal"    => "#15E0A0",
+			"dullteal"     => "#30D2FF",
+			"lightyellow"  => "#DEDE42",
+			"lime"         => "#00FF00",
+			"maroon"       => "#800000",
+			"navy"         => "#000080",
+			"olive"        => "#808000",
+			"orange"       => "#FF7718",
+			"pink"         => "#FF8CFC",
+			"purple"       => "#800080",
+			"red"          => "#FF0000",
+			"redpink"      => "#FF61A6",
+			"seablue"      => "#6699FF",
+			"seagreen"     => "#66FF99",
+			"silver"       => "#C0C0C0",
+			"tan"          => "#DDDD44",
+			"teal"         => "#008080",
+			"white"        => "#FFFFFF",
+			"yellow"       => "#FFFF00",
+			"omni"         => "#00FFFF",
+			"clan"         => "#FF9933",
+			"neutral"      => "#FFFFFF",
+		];
+		$hlColor = $this->settingManager->getString('default_highlight_color');
+		if (preg_match("/(#[A-F0-9]{6})/i", $hlColor, $matches)) {
+			$colors["highlight"] = $matches[1];
+		}
+
+		$colorAliases = [
+			"admin"          => "pink",
+			"cash"           => "gold",
+			"ccheader"       => "white",
+			"cctext"         => "lightgray",
+			"clan"           => "brightgreen",
+			"emote"          => "darkpink",
+			"error"          => "red",
+			"feedback"       => "yellow",
+			"gm"             => "redpink",
+			"infoheader"     => "lightgreen",
+			"infoheadline"   => "tan",
+			"infotext"       => "forestgreen",
+			"infotextbold"   => "white",
+			"megotxp"        => "yellow",
+			"meheald"        => "bluegray",
+			"mehitbynano"    => "white",
+			"mehitother"     => "lightgray",
+			"menubar"        => "lightteal",
+			"misc"           => "white",
+			"monsterhitme"   => "red",
+			"mypet"          => "orange",
+			"newbie"         => "seagreen",
+			"news"           => "brightgreen",
+			"none"           => "fuchsia",
+			"npcchat"        => "bluesilver",
+			"npcdescription" => "yellow",
+			"npcemote"       => "lightbeige",
+			"npcooc"         => "lightbeige",
+			"npcquestion"    => "lightgreen",
+			"npcsystem"      => "red",
+			"npctrade"       => "lightbeige",
+			"otherhitbynano" => "bluesilver",
+			"otherpet"       => "darkorange",
+			"pgroup"         => "white",
+			"playerhitme"    => "red",
+			"seekingteam"    => "seablue",
+			"shout"          => "lightbeige",
+			"skillcolor"     => "beige",
+			"system"         => "white",
+			"team"           => "seagreen",
+			"tell"           => "aqua",
+			"tooltip"        => "black",
+			"tower"          => "lightfuchsia",
+			"vicinity"       => "lightyellow",
+			"whisper"        => "dullteal",
+		];
+		$colorizedText = preg_replace_callback(
+			"/##([a-zA-Z]+)##/",
+			function (array $matches) use ($colorAliases, $colors): string {
+				$color = strtolower($matches[1]);
+				if (isset($colorAliases[$color])) {
+					$color = $colorAliases[$color];
+				}
+				if (isset($colors[$color])) {
+					return "<font color={$colors[$color]}>";
+				} elseif ($color === "end") {
+					return "</font>";
+				}
+				return $matches[0];
+			},
+			$text
+		);
+		return $colorizedText;
+	}
+
+	/**
+	 * Replace the color-tags of relay messages with their actual colors
+	 * depending on where we relay into (org or priv)
+	 */
 	public function replaceRelayColors(string $channel, string $text): string {
 		$colors = [
 			"relay_bot_color",
@@ -420,6 +557,26 @@ class RelayController {
 			"relay_raidbot_color",
 
 		];
+		if (strpos($text, "##relay_channel##") !== false) {
+			// BeBot relay
+			$text = preg_replace("/##relay_channel##\[(.*?)\]##end##/", "<relay_guild_tag_color>[$1]</font>", $text);
+			$text = preg_replace("/\[##relay_channel##(.*?)##end##\]/", "<relay_guild_tag_color>[$1]</font>", $text);
+			$text = preg_replace("/##relay_message##(.*)##end##$/", "$1", $text);
+			$text = preg_replace("/##logon_logo(n|ff)_spam##/", "<relay_bot_color>", $text);
+			$text = preg_replace("/##logon_ailevel##(.*?)##end##/", "<font color=#00DE42>$1<font>", $text);
+			$text = preg_replace("/##logon_organization##(.*?)##end##/", "$1", $text);
+			$text = preg_replace(
+				"/##(?:relay_mainname|logon_level)##(.+?)##end##/",
+				$this->settingManager->getString('default_highlight_color') . "$1</font>",
+				$text
+			);
+			$text = preg_replace(
+				"/##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##/",
+				"<a href=user://$1>$1</a>$2",
+				$text
+			);
+			$text = "<v2>" . $this->replaceBeBotColors($text);
+		}
 		if (substr($text, 0, 4) === "<v2>") {
 			$text = str_replace("</end>", "</font>", $text);
 			return preg_replace_callback(
@@ -438,8 +595,8 @@ class RelayController {
 	}
 	
 	public function processIncomingRelayMessage(string $sender, string $message): void {
-		if (!in_array(strtolower($sender), explode(",", strtolower($this->settingManager->getString('relaybot'))))
-			|| !preg_match("/^grc (.+)$/s", $message, $arr)) {
+		if (/*!in_array(strtolower($sender), explode(",", strtolower($this->settingManager->getString('relaybot'))))
+			||*/ !preg_match("/^(?:grc|gcr) (.+)$/s", $message, $arr)) {
 			return;
 		}
 		$msg = $arr[1];
@@ -657,19 +814,32 @@ class RelayController {
 		$altInfo = $this->altsController->getAltInfo($sender);
 
 		if ($whois !== null) {
+			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 			if (count($altInfo->alts) > 0) {
-				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel. " . $altInfo->getAltsBlob(true);
-			} else {
-				$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
+				$altInfo->getAltsBlobAsync(
+					function($blob) use ($msg): void {
+						$this->relayMsgFromPriv("{$msg} {$blob}");
+					},
+					true
+				);
+				return;
 			}
 		} else {
+			$msg = "$sender has joined the private channel.";
 			if (count($altInfo->alts) > 0) {
-				$msg = "$sender has joined the private channel. " . $altInfo->getAltsBlob(true);
-			} else {
-				$msg = "$sender has joined the private channel.";
+				$altInfo->getAltsBlobAsync(
+					function($blob) use ($msg): void {
+						$this->relayMsgFromPriv("{$msg} {$blob}");
+					},
+					true
+				);
+				return;
 			}
 		}
+		$this->relayMsgFromPriv($msg);
+	}
 
+	public function relayMsgFromPriv(string $msg): void {
 		if (strlen($this->chatBot->vars["my_guild"])) {
 			$this->sendMessageToRelay("grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>" . $msg);
 		} else {

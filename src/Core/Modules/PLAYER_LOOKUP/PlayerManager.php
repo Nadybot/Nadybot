@@ -162,6 +162,7 @@ class PlayerManager {
 	private function lookupUrlAsync(string $url, callable $callback): void {
 		$this->http
 			->get($url)
+			->withTimeout(10)
 			->withCallback(
 				function(HttpResponse $response) use ($callback): void {
 					$callback($this->parsePlayerFromLookup($response));

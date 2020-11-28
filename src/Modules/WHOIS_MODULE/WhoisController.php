@@ -248,7 +248,7 @@ class WhoisController {
 		$this->getOutputAsync([$sendto, "reply"], $name, false);
 	}
 
-	private function playerToWhois(?Player $whois, string $name, bool $online): string {
+	private function playerToWhois(callable $callback, ?Player $whois, string $name, bool $online): void {
 		$charID = $this->chatBot->get_uid($name);
 		$lookupNameLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $name");
 		if ($charID) {
@@ -264,7 +264,8 @@ class WhoisController {
 			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
 
 			$msg = $this->text->makeBlob("Basic Info for $name", $blob);
-			return $msg;
+			$callback($msg);
+			return;
 		}
 
 		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> {$lookupNameLink}\n";
@@ -310,16 +311,22 @@ class WhoisController {
 		$msg .= " :: " . $this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}");
 
 		$altInfo = $this->altsController->getAltInfo($name);
-		if (count($altInfo->alts) > 0) {
-			$msg .= " :: " . $altInfo->getAltsBlob(true);
+		if (count($altInfo->alts) === 0) {
+			$callback($msg);
+			return;
 		}
-		return $msg;
+		$altInfo->getAltsBlobAsync(
+			function($blob) use ($msg, $callback): void {
+				$callback("{$msg} :: {$blob}");
+			},
+			true
+		);
 	}
 
 	public function getOutputAsync(callable $callback, string $name, bool $online): void {
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($callback, $name, $online): void {
-				$callback($this->playerToWhois($player, $name, $online));
+				$this->playerToWhois($callback, $player, $name, $online);
 			},
 			$name
 		);

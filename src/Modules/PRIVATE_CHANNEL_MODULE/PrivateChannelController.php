@@ -731,7 +731,7 @@ class PrivateChannelController {
 		$this->chatBot->sendTell($msg, $sender);
 	}
 
-	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): string {
+	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {
 		if ($whois !== null) {
 			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
 		} else {
@@ -743,10 +743,16 @@ class PrivateChannelController {
 			}
 		} else {
 			if (count($altInfo->alts) > 0) {
-				$msg .= " " . $altInfo->getAltsBlob(true);
+				$altInfo->getAltsBlobAsync(
+					function(string $blob) use ($msg, $callback): void {
+						$callback("{$msg} {$blob}");
+					},
+					true
+				);
+				return;
 			}
 		}
-		return $msg;
+		$callback($msg);
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
@@ -760,8 +766,7 @@ class PrivateChannelController {
 
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($player, $suppressAltList, $callback, $altInfo): void {
-				$msg = $this->getLogonMessageForPlayer($whois, $player, $suppressAltList, $altInfo);
-				$callback($msg);
+				$this->getLogonMessageForPlayer($callback, $whois, $player, $suppressAltList, $altInfo);
 			},
 			$player
 		);

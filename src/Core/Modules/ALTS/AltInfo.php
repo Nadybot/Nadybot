@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Nadybot\Core\DBSchema\Alt;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Registry;
 
 class AltInfo {
@@ -59,12 +60,41 @@ class AltInfo {
 	 * @return string|string[]
 	 */
 	public function getAltsBlob(bool $firstPageOnly=false) {
+		if (count($this->alts) === 0) {
+			return "No registered alts.";
+		}
+
+		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
+		$playerManager = Registry::getInstance('playerManager');
+
+		$player = $playerManager->getByName($this->main);
+		return $this->getAltsBlobForPlayer($player, $firstPageOnly);
+	}
+
+	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
+		if (count($this->alts) === 0) {
+			$callback("No registered alts.");
+		}
+
+		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
+		$playerManager = Registry::getInstance('playerManager');
+
+		$playerManager->getByNameAsync(
+			function (?Player $player) use ($firstPageOnly, $callback): void {
+				$callback($this->getAltsBlobForPlayer($player, $firstPageOnly));
+			},
+			$this->main
+		);
+	}
+
+	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly) {
+		if (!isset($player)) {
+			return "Main character not found.";
+		}
 		/** @var \Nadybot\Core\DB */
 		$db = Registry::getInstance('db');
 		/** @var \Nadybot\Core\SettingManager */
 		$settingManager = Registry::getInstance('settingManager');
-		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
-		$playerManager = Registry::getInstance('playerManager');
 		/** @var \Nadybot\Core\BuddylistManager */
 		$buddylistManager = Registry::getInstance('buddylistManager');
 		/** @var \Nadybot\Core\Text */
@@ -72,34 +102,30 @@ class AltInfo {
 		/** @var \Nadybot\Core\Util */
 		$util = Registry::getInstance('util');
 
-		if (count($this->alts) === 0) {
-			return "No registered alts.";
-		}
 		$profDisplay = $settingManager->getInt('alts_profession_display');
 
 		$online = $buddylistManager->isOnline($this->main);
-		$character = $playerManager->getByName($this->main);
-		$blob  = $text->alignNumber($character->level, 3, "highlight");
+		$blob  = $text->alignNumber($player->level, 3, "highlight");
 		$blob .= " ";
-		$blob .= $text->alignNumber($character->ai_level, 2, "green");
+		$blob .= $text->alignNumber($player->ai_level, 2, "green");
 		$blob .= " ";
-		if ($profDisplay & 1 && $character->profession !== null) {
-			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($character->profession)."> ";
+		if ($profDisplay & 1 && $player->profession !== null) {
+			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($player->profession)."> ";
 		} elseif ($profDisplay & 1) {
 			$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 		}
 		$blob .= $this->formatCharName($this->main, $online);
 
 		$extraInfo = [];
-		if ($profDisplay & 2 && $character->profession !== null) {
-			$extraInfo []= $util->getProfessionAbbreviation($character->profession);
+		if ($profDisplay & 2 && $player->profession !== null) {
+			$extraInfo []= $util->getProfessionAbbreviation($player->profession);
 		}
-		if ($profDisplay & 4 && $character->profession !== null) {
-			$extraInfo []= $character->profession;
+		if ($profDisplay & 4 && $player->profession !== null) {
+			$extraInfo []= $player->profession;
 		}
-		if ($settingManager->getBool('alts_show_org') && $character->faction !== null && !$firstPageOnly) {
-			$factionColor = strtolower($character->faction);
-			$orgName = strlen($character->guild) ? $character->guild : $character->faction;
+		if ($settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
+			$factionColor = strtolower($player->faction);
+			$orgName = strlen($player->guild) ? $player->guild : $player->faction;
 			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 		}
 		if (count($extraInfo)) {
@@ -158,9 +184,8 @@ class AltInfo {
 
 		if ($firstPageOnly && is_array($msg)) {
 			return $msg[0];
-		} else {
-			return $msg;
 		}
+		return $msg;
 	}
 
 	/**
