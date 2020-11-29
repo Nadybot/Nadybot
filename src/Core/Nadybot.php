@@ -165,8 +165,8 @@ class Nadybot extends AOChat {
 			")"
 		);
 		if ($this->db->getType() === $this->db::MYSQL) {
-			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `type` `type` VARCHAR(50)");
-			$this->db->exec("ALTER TABLE eventcfg_<myname> CHANGE `file` `file` VARCHAR(100)");
+			$this->db->exec("ALTER TABLE `eventcfg_<myname>` CHANGE `type` `type` VARCHAR(50)");
+			$this->db->exec("ALTER TABLE `eventcfg_<myname>` CHANGE `file` `file` VARCHAR(100)");
 		}
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_type_idx` ON `eventcfg_<myname>`(`type`)");
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_file_idx` ON `eventcfg_<myname>`(`file`)");
