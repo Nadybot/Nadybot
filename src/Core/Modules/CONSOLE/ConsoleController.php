@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	EventManager,
 	LoggerWrapper,
 	Nadybot,
+	SettingManager,
 	SocketManager,
 	SocketNotifier,
 	Timer,
@@ -31,6 +32,9 @@ class ConsoleController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -138,6 +142,12 @@ class ConsoleController {
 	public function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
 			return;
+		}
+		if (substr($line, 0, 1) === $this->settingManager->getString('symbol')) {
+			$line = substr($line, 1);
+			if (trim($line) === '') {
+				return;
+			}
 		}
 		if ($this->useReadline) {
 			readline_add_history($line);
