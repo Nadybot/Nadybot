@@ -308,7 +308,10 @@ class CommandManager {
 		// if command doesn't exist
 		if ($commandHandler === null) {
 			// if they've disabled feedback for guild or private channel, just return
-			if (($channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback')) || ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))) {
+			if (
+				($channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
+				|| ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
+			) {
 				return;
 			}
 

@@ -71,6 +71,25 @@ class DiscordGatewayCommandHandler {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_unknown_cmd_errors",
+			"Show a message for unknown commands on Discord",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_symbol",
+			"Discord command prefix symbol",
+			"edit",
+			"text",
+			"!",
+			"!;#;*;@;$;+;-",
+		);
 		$this->db->loadSQLFile($this->moduleName, "discord_mapping");
 	}
 
@@ -231,7 +250,7 @@ class DiscordGatewayCommandHandler {
 	 * @Description("Handle commands from Discord private messages")
 	 */
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
-		$isCommand = substr($event->message, 0, 1) === $this->settingManager->get("symbol");
+		$isCommand = substr($event->message, 0, 1) === $this->settingManager->get("discord_symbol");
 		if ( $isCommand ) {
 			$event->message = substr($event->message, 1);
 		}
@@ -261,12 +280,17 @@ class DiscordGatewayCommandHandler {
 	 */
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id;
-		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("symbol");
+		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("discord_symbol");
 		if (
 			!$isCommand
 			|| strlen($event->message) < 2
 			|| !$this->settingManager->getBool('discord_process_commands')
 		) {
+			return;
+		}
+		$cmd = strtolower(explode(" ", substr($event->message, 1))[0]);
+		$commandHandler = $this->commandManager->getActiveCommandHandler($cmd, "priv", substr($event->message, 1));
+		if ($commandHandler === null && !$this->settingManager->getBool('discord_unknown_cmd_errors')) {
 			return;
 		}
 		$sendto = new DiscordMessageCommandReply(
