@@ -13,21 +13,30 @@ const emptyPlayers: OnlinePlayers = {
 export default createStore({
   state: {
     users: emptyPlayers,
+    users_failed: false,
   },
   getters: {
     allUsers(state): Array<OnlinePlayer> {
       return state.users.org.concat(state.users.private_channel);
     },
+    usersFailed(state): boolean {
+      return state.users_failed;
+    },
   },
   mutations: {
     async loadOnlineUsers(state): Promise<void> {
-      const users = await getOnlineMembers();
-      state.users = users;
-      console.log(
-        `Successfully loaded online members: ${
-          users.org.length + users.private_channel.length
-        }`
-      );
+      try {
+        const users = await getOnlineMembers();
+        state.users = users;
+        state.users_failed = false;
+        console.log(
+          `Successfully loaded online members: ${
+            users.org.length + users.private_channel.length
+          }`
+        );
+      } catch {
+        state.users_failed = true;
+      }
     },
     addOnlineOrgUser(state, player: OnlinePlayer): void {
       const old_item = state.users.org.find((p) => p.name == player.name);

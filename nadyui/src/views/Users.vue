@@ -1,4 +1,18 @@
 <template>
+  <div
+    v-if="usersFailed && showAlert"
+    class="alert alert-danger alert-dismissible"
+    role="alert"
+  >
+    Fetching online members failed, ONLINE_MODULE might be disabled.
+    <a class="alert-link hoverable" @click="enableOnlineModule()">Enable now</a>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      @click="showAlert = false"
+    ></button>
+  </div>
   <v-table
     :data="allUsers"
     class="table table-hover table-striped"
@@ -72,17 +86,37 @@
 .table th {
   user-select: none;
 }
+
+.hoverable:hover {
+  cursor: pointer;
+}
 </style>
 
 <script lang="ts">
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { defineComponent } from "vue";
 import { OnlinePlayer } from "@/nadybot/types/player";
+import { toggleModule } from "@/nadybot/http";
 
-const Component = defineComponent({
+interface AlertData {
+  showAlert: boolean;
+}
+
+export default defineComponent({
   name: "UsersList",
 
+  data(): AlertData {
+    return {
+      showAlert: true,
+    };
+  },
+
   methods: {
+    async enableOnlineModule(): Promise<void> {
+      await toggleModule("ONLINE_MODULE", true);
+      await this.loadOnlineUsers();
+      this.showAlert = false;
+    },
     // Sort two players by their leve primarily and AI level secondarily
     levelSort(a: OnlinePlayer, b: OnlinePlayer): number {
       if (a.level == b.level) {
@@ -99,12 +133,11 @@ const Component = defineComponent({
         return -1;
       }
     },
+    ...mapMutations(["loadOnlineUsers"]),
   },
 
   computed: {
-    ...mapGetters(["allUsers"]),
+    ...mapGetters(["allUsers", "usersFailed"]),
   },
 });
-
-export default Component;
 </script>
