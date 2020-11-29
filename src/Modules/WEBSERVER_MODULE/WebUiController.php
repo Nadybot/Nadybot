@@ -12,7 +12,6 @@ use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\PrivateChannelCommandReply;
 use Nadybot\Core\SettingManager;
-use Nadybot\Core\SQLException;
 use Nadybot\Core\Timer;
 use Throwable;
 use ZipArchive;
@@ -38,6 +37,9 @@ class WebUiController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
+	public WebserverController $webserverController;
+
+	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
@@ -54,7 +56,7 @@ class WebUiController {
 			"Which NadyUI webfrontend version to subscribe to",
 			"edit",
 			"options",
-			"off",
+			"stable",
 			"off;stable;unstable"
 		);
 		$this->settingManager->registerChangeListener(
@@ -73,6 +75,7 @@ class WebUiController {
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Automatically upgrade NadyUI")
+	 * @DefaultStatus("1")
 	 */
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');
@@ -177,13 +180,27 @@ class WebUiController {
 		}
 		if ($currentVersion === 0) {
 			$action = "<green>installed<end> with version";
+			if ($this->settingManager->getBool('webserver')) {
+				$schema = $this->settingManager->getBool('webserver_tls') ? "https" : "http";
+				$port = $this->settingManager->getInt('webserver_port');
+				$superUser = $this->chatBot->vars['SuperAdmin'];
+				$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
+				$this->logger->log(
+					"INFO",
+					">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
+				);
+				$this->logger->log(
+					"INFO",
+					">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
+				);
+			}
 		} elseif ($dlVersion > $currentVersion) {
 			$action = "<green>upgraded<end> to version";
 		} elseif ($dlVersion < $currentVersion) {
 			$action = "<green>downgraded<end> to version";
 		}
 		$this->settingManager->save($settingName, (string)$dlVersion);
-		$msg = "NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
+		$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
 		$sendto->reply($msg);
 		$callback();
 	}

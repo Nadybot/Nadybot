@@ -59,7 +59,7 @@ class ApiController {
 			'Enable REST API',
 			'edit',
 			'options',
-			'0',
+			'1',
 			'true;false',
 			'1;0'
 		);

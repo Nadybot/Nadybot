@@ -61,7 +61,7 @@ class WebsocketController {
 			'Enable the websocket handler',
 			'edit',
 			'options',
-			'0',
+			'1',
 			'true;false',
 			'1;0'
 		);
@@ -69,6 +69,7 @@ class WebsocketController {
 
 	/**
 	 * @HttpGet("/events")
+	 * @DefaultStatus("1")
 	 */
 	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
 		if (!$this->settingManager->getBool('websocket')) {
@@ -190,6 +191,7 @@ class WebsocketController {
 	/**
 	 * @Event("websocket(subscribe)")
 	 * @Description("Handle Websocket event subscriptions")
+	 * @DefaultStatus("1")
 	 */
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
@@ -211,6 +213,7 @@ class WebsocketController {
 	/**
 	 * @Event("*")
 	 * @Description("Distribute events to Websocket clients")
+	 * @DefaultStatus("1")
 	 */
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'

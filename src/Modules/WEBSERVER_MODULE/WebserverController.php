@@ -62,9 +62,10 @@ class WebserverController {
 			'Enable webserver',
 			'edit',
 			'options',
-			'0',
+			'1',
 			'true;false',
-			'1;0'
+			'1;0',
+			'superadmin'
 		);
 
 		$this->settingManager->add(
@@ -73,7 +74,10 @@ class WebserverController {
 			'Path to the SSL/TLS certificate',
 			'edit',
 			'text',
-			''
+			'',
+			'',
+			'',
+			'superadmin'
 		);
 
 		$this->settingManager->add(
@@ -82,7 +86,21 @@ class WebserverController {
 			'On which port does the HTTP server listen',
 			'edit',
 			'number',
-			'8080'
+			'8080',
+			'',
+			'',
+			'superadmin'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_addr',
+			'Where to listen for HTTP requests',
+			'edit',
+			'text',
+			'127.0.0.1',
+			'127.0.0.1;0.0.0.0',
+			'',
+			'superadmin'
 		);
 
 		$this->settingManager->add(
@@ -93,21 +111,17 @@ class WebserverController {
 			'options',
 			'0',
 			'true;false',
-			'1;0'
+			'1;0',
+			'superadmin'
 		);
 
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
-			$superUser = $this->chatBot->vars['SuperAdmin'];
-			$uuid = $this->authenticate($superUser, 6 * 3600);
-			$this->logger->log(
-				'INFO',
-				"Superuser password for webserver created: {$superUser}:{$uuid}"
-			);
 		}
 		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
+		$this->settingManager->registerChangeListener('webserver_addr', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
 	}
@@ -257,6 +271,7 @@ class WebserverController {
 	 */
 	public function listen(): bool {
 		$port = $this->settingManager->getInt('webserver_port');
+		$addr = $this->settingManager->getString('webserver_addr');
 		$context = stream_context_create();
 		$tls = $this->settingManager->getBool('webserver_tls');
 		if ($tls) {
@@ -269,8 +284,8 @@ class WebserverController {
 			stream_context_set_option($context, 'ssl', 'verify_peer', false);
 		}
 
-		$this->serverSocket = stream_socket_server(
-			"tcp://0.0.0.0:$port",
+		$this->serverSocket = @stream_socket_server(
+			"tcp://{$addr}:{$port}",
 			$errno,
 			$errstr,
 			STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
@@ -464,6 +479,7 @@ class WebserverController {
 	/**
 	 * @Event("timer(10min)")
 	 * @Description("Remove expired authentications")
+	 * @DefaultStatus("1")
 	 */
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
