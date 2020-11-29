@@ -140,6 +140,27 @@ class DiscordGatewayController {
 		return null;
 	}
 
+	public function lookupChannel(string $channelId, callable $callback, ...$args): void {
+		$channel = $this->getChannel($channelId);
+		if (isset($channel)) {
+			$callback($channel, ...$args);
+			return;
+		}
+		$this->discordAPIClient->getChannel(
+			$channelId,
+			function(DiscordChannel $channel, callable $callback, ...$args): void {
+				$guildId = $channel->guild_id;
+				if (!isset($guildId) || !isset($this->guilds[$guildId])) {
+					return;
+				}
+				$this->guilds[$guildId]->channels []= $channel;
+				$callback($channel, ...$args);
+			},
+			$callback,
+			...$args
+		);
+	}
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -584,21 +605,29 @@ class DiscordGatewayController {
 
 	protected function handleVoiceChannelJoin(VoiceState $voiceState): void {
 		$this->removeFromVoice($voiceState->user_id);
-		$channel = $this->getChannel($voiceState->channel_id);
-		if (!isset($voiceState->guild_id) || !isset($channel)) {
+		if (!isset($voiceState->guild_id)) {
 			return;
 		}
 		$this->guilds[$voiceState->guild_id]->voice_states []= $voiceState;
+		$this->lookupChannel(
+			$voiceState->channel_id,
+			[$this, "handleAsyncVoiceChannelJoin"],
+			$voiceState
+		);
+	}
+
+	public function handleAsyncVoiceChannelJoin(DiscordChannel $channel, VoiceState $voiceState): void {
 		$this->discordAPIClient->getGuildMember(
 			$voiceState->guild_id,
 			$voiceState->user_id,
-			function (GuildMember $member) use ($channel) {
+			function (GuildMember $member, DiscordChannel $channel) {
 				$event = new DiscordVoiceEvent();
 				$event->type = "discord_voice_join";
 				$event->discord_channel = $channel;
 				$event->member = $member;
 				$this->eventManager->fireEvent($event);
-			}
+			},
+			$channel
 		);
 	}
 

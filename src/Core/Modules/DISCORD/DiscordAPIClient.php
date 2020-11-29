@@ -112,6 +112,18 @@ class DiscordAPIClient {
 		}
 	}
 
+	public function getChannel(string $channelId, callable $callback, ...$args): void {
+		$this->get(
+			self::DISCORD_API . "/channels/{$channelId}"
+		)->withCallback(
+			$this->getErrorWrapper(
+				new DiscordChannel(),
+				$callback,
+				...$args
+			)
+		);
+	}
+
 	public function getUser(string $userId, callable $callback, ...$args): void {
 		if (isset($this->userCache[$userId])) {
 			$callback($this->userCache[$userId], ...$args);
