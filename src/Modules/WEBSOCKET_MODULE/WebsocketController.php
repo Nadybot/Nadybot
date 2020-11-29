@@ -90,7 +90,7 @@ class WebsocketController {
 		$websocketHandler->on(WebsocketServer::ON_CLOSE, [$this, "clientDisconnected"]);
 		$websocketHandler->on(WebsocketServer::ON_ERROR, [$this, "clientError"]);
 
-		$this->logger->log("INFO", "Upgrading connection to WebSocket");
+		$this->logger->log("DEBUG", "Upgrading connection to WebSocket");
 	}
 
 	/**
@@ -152,7 +152,7 @@ class WebsocketController {
 	 * Handle the Websocket client sending data
 	 */
 	public function clientSentData(WebsocketCallback $event) {
-		$this->logger->log("INFO", "[Data inc.] {$event->data}");
+		$this->logger->log("DEBUG", "[Data inc.] {$event->data}");
 		try {
 			if (!is_string($event->data)) {
 				throw new Exception();
@@ -196,7 +196,7 @@ class WebsocketController {
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
 			$server->subscribe(...$event->data->events);
-			$this->logger->log('INFO', 'Websocket subscribed to ' . join(",", $event->data->events));
+			$this->logger->log('DEBUG', 'Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
 			$event->websocket->close(4002);
 		}
