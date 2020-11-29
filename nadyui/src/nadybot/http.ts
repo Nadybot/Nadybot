@@ -27,6 +27,9 @@ async function putJson(url: string, json: any): Promise<Response> {
 
 export async function getOnlineMembers(): Promise<OnlinePlayers> {
   const response = await fetch("/api/online");
+  if (response.status == 403) {
+    throw new Error("cannot fetch online members");
+  }
   const json = await response.json();
   return await onlinePlayersDecoder.decodePromise(json);
 }
