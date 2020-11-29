@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
+	BotRunner,
 	CommandManager,
 	EventManager,
 	LoggerWrapper,
@@ -84,6 +85,10 @@ class ConsoleController {
 	 */
 	public function setupConsole(): void {
 		if (!$this->chatBot->vars["enable_console_client"]) {
+			return;
+		}
+		if (BotRunner::isWindows()) {
+			$this->logger->log('WARN', 'Console not available on Windows');
 			return;
 		}
 		$this->useReadline = function_exists('readline_callback_handler_install');
