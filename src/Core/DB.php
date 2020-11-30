@@ -598,11 +598,32 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$colNames = [];
 		foreach ($props as $prop) {
-			$colNames []= "`{$prop->name}`";
-			$values []= $prop->getValue($row);
+			if ($prop->isInitialized($row)) {
+				$colNames []= "`{$prop->name}`";
+				$values []= $prop->getValue($row);
+			}
 		}
 		$sql = "INSERT INTO `{$table}` (" . join(", ", $colNames) . ") ".
 			"VALUES (" . join(", ", array_fill(0, count($colNames), "?")) . ")";
 		return $this->exec($sql, ...$values);
+	}
+
+	/**
+	 * Update a DBRow $row in the database table $table, using property $key in the where
+	 */
+	public function update(string $table, string $key, DBRow $row): int {
+		$values = [];
+		$refClass = new ReflectionClass($row);
+		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
+		$colNames = [];
+		foreach ($props as $prop) {
+			if ($prop->isInitialized($row) && $prop->name !== $key) {
+				$colNames []= "`{$prop->name}`=?";
+				$values []= $prop->getValue($row);
+			}
+		}
+		$sql = "UPDATE `{$table}` SET " . join(", ", $colNames) . " ".
+			"WHERE `{$key}`=?";
+		return $this->exec($sql, ...[...$values, $row->{$key}]);
 	}
 }

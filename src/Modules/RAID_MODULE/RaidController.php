@@ -511,7 +511,7 @@ class RaidController {
 			"SUM(`delta`) AS points ".
 			"FROM `raid_<myname>` r ".
 			"JOIN `raid_points_log_<myname>` p ON (r.raid_id=p.raid_id) ".
-			"WHERE p.`reason` IN ('reward', 'penalty') OR p.`ticker` IS TRUE ".
+			"WHERE p.`individual` IS FALSE OR p.`ticker` IS TRUE ".
 			"GROUP BY r.`raid_id` ".
 			"ORDER BY r.`raid_id` DESC LIMIT ?",
 			50
@@ -574,7 +574,7 @@ class RaidController {
 			RaidPointsLog::class,
 			"SELECT `username`, SUM(`delta`) AS `delta` FROM `raid_points_log_<myname>` ".
 			"WHERE `raid_id`=? ".
-			"AND (`reason` IN ('reward', 'penalty') OR `ticker` IS TRUE) ".
+			"AND `individual` IS FALSE ".
 			"GROUP BY `username` ORDER BY `username` ASC",
 			(int)$args[1]
 		);
@@ -635,7 +635,11 @@ class RaidController {
 		foreach ($logs as $log) {
 			$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
 				$this->text->alignNumber(abs($log->delta), 5, $log->delta > 0 ? 'green' : 'red').
-				" - {$log->reason}  (by {$log->changed_by})\n";
+				" - ".
+				($log->individual ? "<highlight>" : "").
+				$log->reason.
+				($log->individual ? "<end>" : "").
+				" (by {$log->changed_by})\n";
 		}
 		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$args[2]}", $blob);
 		$sendto->reply($msg);

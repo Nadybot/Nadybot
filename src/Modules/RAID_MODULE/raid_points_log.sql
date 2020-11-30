@@ -3,13 +3,13 @@ CREATE TABLE IF NOT EXISTS `raid_points_log_<myname>` (
 	`delta`      INT NOT NULL,
 	`time`       INT NOT NULL,
 	`changed_by` VARCHAR(20) NOT NULL,
+	`individual` BOOLEAN NOT NULL DEFAULT TRUE,
 	`reason`     VARCHAR(255) DEFAULT 'unknown',
 	`ticker`     BOOLEAN NOT NULL DEFAULT FALSE,
 	`raid_id`    INT
 );
 
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_username_idx` ON `raid_points_log_<myname>`(`username`);
-CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_reason_idx` ON `raid_points_log_<myname>`((`reason` IN ('reward', 'penalty')));
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_changed_by_idx` ON `raid_points_log_<myname>`(`changed_by`);
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_time_idx` ON `raid_points_log_<myname>`(`time`);
 CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_ticker_idx` ON `raid_points_log_<myname>`(`ticker`);

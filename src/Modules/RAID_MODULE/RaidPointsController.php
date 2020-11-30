@@ -64,6 +64,20 @@ use Nadybot\Core\{
  *     description   = 'Show the top 25 raiders',
  *     help          = 'raidpoints_raiders.txt'
  * )
+ *
+ * @DefineCommand(
+ *     command       = 'reward',
+ *     accessLevel   = 'member',
+ *     description   = 'Show the raid rewards for the raids',
+ *     help          = 'reward.txt'
+ * )
+ *
+ * @DefineCommand(
+ *     command       = 'reward .+',
+ *     accessLevel   = 'raid_admin_1',
+ *     description   = 'Create, Edit and Remove raid reward entries',
+ *     help          = 'reward.txt'
+ * )
  */
 class RaidPointsController {
 	public string $moduleName;
@@ -122,6 +136,12 @@ class RaidPointsController {
 		);
 		$this->db->loadSQLFile($this->moduleName, "raid_points");
 		$this->db->loadSQLFile($this->moduleName, "raid_points_log");
+		if (!$this->db->columnExists("raid_points_log_<myname>", "individual")) {
+			$this->db->exec("ALTER TABLE `raid_points_log_<myname>` ADD COLUMN `individual` BOOLEAN NOT NULL DEFAULT TRUE");
+			$this->db->exec("UPDATE `raid_points_log_<myname>` SET `individual`=(`ticker` IS FALSE AND `reason` NOT IN ('reward', 'penalty'))");
+		}
+		$this->db->exec("CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_individual_idx` ON `raid_points_log_<myname>`(`individual`)");
+		$this->db->loadSQLFile($this->moduleName, "raid_reward");
 		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
 		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");
 		$this->commandAlias->register($this->moduleName, "raidpoints reward", "raid reward");
@@ -175,13 +195,15 @@ class RaidPointsController {
 		}
 		$inserted = $this->db->exec(
 			"INSERT INTO raid_points_log_<myname> ".
-			"(`username`, `delta`, `time`, `changed_by`, `reason`, `ticker`, `raid_id`) ".
-			"VALUES(?, ?, ?, '<Myname>', ?, ?, ?)",
+			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `individual`, `raid_id`) ".
+			"VALUES(?, ?, ?, '<Myname>', ?, ?, ?, ?)",
 			$pointsChar,
 			1,
 			time(),
+			false,
 			'raid participation',
 			true,
+			false,
 			$raid->raid_id
 		);
 		$this->giveRaidPoints($pointsChar, 1);
@@ -193,7 +215,7 @@ class RaidPointsController {
 	 * @return string The name of the character (main) receiving the points
 	 * @throws Exception on error
 	 */
-	public function modifyRaidPoints(string $player, int $delta, string $reason, string $changedBy, ?Raid $raid): string {
+	public function modifyRaidPoints(string $player, int $delta, bool $individual, string $reason, string $changedBy, ?Raid $raid): string {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
@@ -208,12 +230,13 @@ class RaidPointsController {
 		}
 		$inserted = $this->db->exec(
 			"INSERT INTO raid_points_log_<myname> ".
-			"(`username`, `delta`, `time`, `changed_by`, `reason`, `ticker`, `raid_id`) ".
-			"VALUES(?, ?, ?, ?, ?, ?, ?)",
+			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `raid_id`) ".
+			"VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
 			$pointsChar,
 			$delta,
 			time(),
 			$changedBy,
+			$individual,
 			$reason,
 			false,
 			$raid->raid_id ?? null
@@ -254,10 +277,11 @@ class RaidPointsController {
 	 * Give everyone in the raid $raid $delta points, authorized by $sender
 	 * @return int Number of players receiving points
 	 */
-	public function awardRaidPoints(Raid $raid, string $sender, int $delta): int {
+	public function awardRaidPoints(Raid $raid, string $sender, int $delta, ?string $reason=null): int {
 		ksort($raid->raiders);
 		$numReceivers = 0;
 		$raid->pointsGiven = [];
+		$reason ??= ($delta > 0) ? "reward" : "penalty";
 		foreach ($raid->raiders as $raider) {
 			if (
 				$raider->left !== null
@@ -265,7 +289,7 @@ class RaidPointsController {
 			) {
 				continue;
 			}
-			$mainChar = $this->modifyRaidPoints($raider->player, $delta, ($delta > 0) ? "reward" : "penalty", $sender, $raid);
+			$mainChar = $this->modifyRaidPoints($raider->player, $delta, false, $reason, $sender, $raid);
 			$raid->pointsGiven[$mainChar] = true;
 			$numReceivers++;
 		}
@@ -299,6 +323,8 @@ class RaidPointsController {
 	/**
 	 * @HandlesCommand("raidpoints")
 	 * @Matches("/^raidpoints reward (\d+)$/i")
+	 * @Matches("/^raidpoints reward (\d+) (.+)$/i")
+	 * @Matches("/^raidpoints reward (.+)$/i")
 	 */
 	public function raidRewardCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raidController->raid)) {
@@ -306,7 +332,16 @@ class RaidPointsController {
 			return;
 		}
 		$raid = $this->raidController->raid;
-		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1]);
+		if (!preg_match("/^\d+$/", $args[1])) {
+			$reward = $this->getRaidReward($args[1]);
+			if (!isset($reward)) {
+				$sendto->reply("No predefined reward named <highlight>{$args[1]}<end> found.");
+				return;
+			}
+			$args[1] = $reward->points;
+			$args[2] = $reward->reason;
+		}
+		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1], $args[2] ?? null);
 		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$args[1]}<end> points were given";
 		if ($args[1] === '1') {
@@ -322,6 +357,7 @@ class RaidPointsController {
 	/**
 	 * @HandlesCommand("raidpoints")
 	 * @Matches("/^raidpoints punish (\d+)$/i")
+	 * @Matches("/^raidpoints punish (\d+) (.+)$/i")
 	 */
 	public function raidPunishCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raidController->raid)) {
@@ -329,7 +365,7 @@ class RaidPointsController {
 			return;
 		}
 		$raid = $this->raidController->raid;
-		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1] * -1);
+		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1] * -1, $args[2] ?? null);
 		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$args[1]} points<end> were removed";
 		if ($args[1] === '1') {
@@ -443,6 +479,10 @@ class RaidPointsController {
 		$rows = [];
 		foreach ($pointLogs as $log) {
 			$time = DateTime::createFromFormat("U", (string)$log->time)->format("Y-m-d H:i:s");
+			if ($log->individual) {
+				$log->reason = "<highlight>{$log->reason}<end>";
+				$time = "<highlight>{$time}<end>";
+			}
 			$row = "$time  |  ".
 				(($log->delta > 0) ? '+' : '-').
 				$this->text->alignNumber(abs($log->delta), 4, $log->delta > 0 ? 'green' : 'red').
@@ -493,7 +533,7 @@ class RaidPointsController {
 			return;
 		}
 		$raid = $this->raidController->raid ?? null;
-		$this->modifyRaidPoints($receiver, (int)$delta, $args[3], $sender, $raid);
+		$this->modifyRaidPoints($receiver, (int)$delta, true, $args[3], $sender, $raid);
 		$this->chatBot->sendPrivate("<highlight>{$sender}<end> added <highlight>{$delta}<end> points to ".
 			"<highlight>{$receiver}'s<end> account: <highlight>{$args[3]}<end>.");
 		$this->chatBot->sendTell(
@@ -529,7 +569,7 @@ class RaidPointsController {
 			return;
 		}
 		$raid = $this->raidController->raid ?? null;
-		$this->modifyRaidPoints($receiver, -1 * (int)$delta, $args[3], $sender, $raid);
+		$this->modifyRaidPoints($receiver, -1 * (int)$delta, true, $args[3], $sender, $raid);
 		$this->chatBot->sendPrivate("<highlight>{$sender}<end> removed <highlight>{$delta}<end> points from ".
 			"<highlight>{$receiver}'s<end> account: <highlight>{$args[3]}<end>.");
 	}
@@ -588,5 +628,112 @@ class RaidPointsController {
 			'Raid points merged successfully to a new total of '.
 			($mainPoints??0 + $altsPoints)
 		);
+	}
+
+	/**
+	 * @HandlesCommand("reward")
+	 * @Matches("/^reward$/i")
+	 */
+	public function rewardListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		/** @var RaidReward[] */
+		$rewards = $this->db->fetchAll(RaidReward::class, "SELECT * FROM `raid_reward_<myname>` ORDER BY `name` ASC");
+		if (empty($rewards)) {
+			$sendto->reply("There are currently no raid rewards defined.");
+			return;
+		}
+		$blob = "";
+		foreach ($rewards as $reward) {
+			$blob .= "<header2>{$reward->name}<end>\n".
+				"<tab>Points: <highlight>{$reward->points}<end>\n".
+				"<tab>Log: <highlight>{$reward->reason}<end>\n".
+				"<tab>ID: <highlight>{$reward->id}<end> [".
+				$this->text->makeChatcmd("remove", "/tell <myname> reward rem {$reward->id}").
+				"]\n\n";
+		}
+		$msg = $this->text->makeBlob("Raid rewards (" . count($rewards). ")", $blob);
+		$sendto->reply($msg);
+	}
+
+	public function getRaidReward(string $name): ?RaidReward {
+		return $this->db->fetch(
+			RaidReward::class,
+			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE  ?",
+			$name
+		);
+	}
+
+	/**
+	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward add ([^ ]+) (\d+) (.+)$/i")
+	 */
+	public function rewardAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($this->getRaidReward($args[1])) {
+			$sendto->reply("The raid reward <highlight>{$args[1]}<end> is already defined.");
+			return;
+		}
+		$reward = new RaidReward();
+		$reward->name = $args[1];
+		$reward->points = (int)$args[2];
+		$reward->reason = $args[3];
+		if (strlen($reward->name) > 20) {
+			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
+			return;
+		}
+		if (strlen($reward->reason) > 100) {
+			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
+			return;
+		}
+		$this->db->insert("raid_reward_<myname>", $reward);
+		$sendto->reply("New reward <highlight>{$reward->name}<end> created.");
+	}
+
+	/**
+	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward (?:rem|del) (.+)$/i")
+	 */
+	public function rewardRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$name = $args[1];
+		if (!preg_match("/^\d+$/", $args[1])) {
+			$reward = $this->getRaidReward($args[1]);
+			if (!isset($reward)) {
+				$sendto->reply("The raid reward <highlight>{$args[1]}<end> does not exist.");
+				return;
+			}
+			$id = $reward->id;
+			$name = $reward->name;
+		} else {
+			$id = (int)$args[1];
+		}
+		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE id=?", $id);
+		if ($deleted) {
+			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
+		} else {
+			$sendto->reply("Raid reward <highlight>{$name}<end> was not found.");
+		}
+	}
+
+	/**
+	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+) (.+)$/i")
+	 */
+	public function rewardChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$reward = $this->getRaidReward($args[1]);
+		if (!isset($reward)) {
+			$sendto->reply("The raid reward <highlight>{$args[1]}<end> is not yet defined.");
+			return;
+		}
+		$reward->name = $args[1];
+		$reward->points = (int)$args[2];
+		$reward->reason = $args[3];
+		if (strlen($reward->name) > 20) {
+			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
+			return;
+		}
+		if (strlen($reward->reason) > 100) {
+			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
+			return;
+		}
+		$this->db->update("raid_reward_<myname>", "id", $reward);
+		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 }

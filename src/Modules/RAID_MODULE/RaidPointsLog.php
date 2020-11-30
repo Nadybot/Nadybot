@@ -17,6 +17,9 @@ class RaidPointsLog extends DBRow {
 	/** Who gave or took points? */
 	public string $changed_by;
 
+	/** Was this change for this player only? */
+	public bool $individual;
+
 	/** Why were points given  or taken? */
 	public string $reason = 'unknown';
 
