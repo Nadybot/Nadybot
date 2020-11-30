@@ -668,6 +668,22 @@ class DiscordRelayController {
 			$text
 		);
 		$text = htmlspecialchars($text);
+		if (class_exists("IntlChar")) {
+			$text = preg_replace_callback(
+				"/([\x{0450}-\x{fffff}])/u",
+				function (array $matches): string {
+					$char = \IntlChar::charName($matches[1]);
+					if ($char === "ZERO WIDTH JOINER"
+						|| substr($char, 0, 19) === "VARIATION SELECTOR-"
+						|| substr($char, 0, 14) === "EMOJI MODIFIER"
+					) {
+						return "";
+					}
+					return ":{$char}:";
+				},
+				$text
+			);
+		}
 		return $this->text->formatMessage($text);
 	}
 
