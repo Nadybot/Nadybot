@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS tower_attack_<myname> (
 	`time` int,
 	`att_guild_name` VARCHAR(50),
 	`att_faction` VARCHAR(10),
-	`att_player` VARCHAR(20),
+	`att_player` VARCHAR(50),
 	`att_level` int,
 	`att_ai_level` int,
 	`att_profession` VARCHAR(15),

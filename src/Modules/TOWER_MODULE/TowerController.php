@@ -222,6 +222,9 @@ class TowerController {
 		$this->db->loadSQLFile($this->moduleName, 'tower_attack');
 		$this->db->loadSQLFile($this->moduleName, 'scout_info');
 		$this->db->loadSQLFile($this->moduleName, 'tower_site');
+		if ($this->db->getType() === $this->db::MYSQL) {
+			$this->db->exec("ALTER TABLE `tower_attack_<myname>` CHANGE COLUMN `att_player` `att_player` VARCHAR(50)");
+		}
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -854,7 +857,7 @@ class TowerController {
 			return;
 		}
 		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use($matches, $discordMessage): void {
+			function(?Player $whois) use ($matches, $discordMessage): void {
 				$attGuild = $matches[4] ?? null;
 				$attPlayer = $matches[3];
 				$playfieldName = $matches[2];
@@ -928,7 +931,7 @@ class TowerController {
 		// regardless of what the player lookup says, we use the information from the
 		// attack message where applicable because that will always be most up to date
 		$this->playerManager->getByNameAsync(
-			function(?Player $player) use($attack): void {
+			function(?Player $player) use ($attack): void {
 				$this->handleAttack($attack, $player);
 			},
 			$attack->attPlayer
