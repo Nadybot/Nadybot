@@ -1,0 +1,13 @@
+To get a list of pre-defined reward points for raids, use
+<tab><highlight><symbol>reward<end>
+
+To create a new entry, use something like
+<tab><highlight><symbol>reward add beast 80 Beast kill<end>
+<tab><highlight><symbol>reward add zod 25 Zodiac<end>
+<tab><highlight><symbol>reward add capri 25 Capricorn<end>
+
+To delete an existing entry, either click on the link in <highlight><symbol>reward<end> or
+<tab><highlight><symbol>reward rem beast<end>
+
+To change a pre-defined entry, you can use
+<tab><highlight><symbol>reward chnage beast 120 Beast kill<end>

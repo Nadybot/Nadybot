@@ -142,6 +142,7 @@ class RaidPointsController {
 		}
 		$this->db->exec("CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_individual_idx` ON `raid_points_log_<myname>`(`individual`)");
 		$this->db->loadSQLFile($this->moduleName, "raid_reward");
+		$this->commandAlias->register($this->moduleName, "reward", "rewards");
 		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
 		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");
 		$this->commandAlias->register($this->moduleName, "raidpoints reward", "raid reward");
