@@ -420,7 +420,7 @@ class DiscordRelayController {
 		} elseif ($this->settingManager->getBool('discord_prefix_relay')) {
 			$msg = "[<myname>] ";
 		}
-		$msg .= "{$sender}: {$message}";
+		$msg .= "<highlight>{$sender}<end>: {$message}";
 		$discordMsg = $this->discordController->formatMessage($msg);
 		$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank');
 		$sendersRank = $this->accessManager->getAccessLevelForCharacter($sender);
@@ -470,7 +470,7 @@ class DiscordRelayController {
 			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 			$msg = "[{$guildNameForRelay}] ";
 		}
-		$msg .= "{$sender}: {$message}";
+		$msg .= "<highlight>{$sender}<end>: {$message}";
 		$discordMsg = $this->discordController->formatMessage($msg);
 
 		//Relay the message to the discord channel
