@@ -845,7 +845,7 @@ class PrivateChannelController {
 		$sender = $eventObj->sender;
 		$this->onlineController->addPlayerToOnlineList(
 			$sender,
-			$this->chatBot->vars['guild'] . ' Guests',
+			$this->chatBot->vars['my_guild'] . ' Guests',
 			'priv'
 		);
 	}
