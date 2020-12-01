@@ -126,6 +126,9 @@ class WhoisController {
 		$charData = new CharData();
 		$charData->charid = $packet->args[0];
 		$charData->name = $packet->args[1];
+		if ($charData->charid === -1 || $charData->charid === 4294967295) {
+			return;
+		}
 		$this->nameHistoryCache []= $charData;
 	}
 	
