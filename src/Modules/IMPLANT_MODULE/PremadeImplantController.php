@@ -134,9 +134,9 @@ class PremadeImplantController {
 		$sql = "SELECT i.Name AS slot, ".
 				"p2.Name AS profession, ".
 				"a.Name AS ability, ".
-				"CASE WHEN c1.ClusterID = 0 THEN 'N/A' ELSE c1.LongName END AS shiny, ".
-				"CASE WHEN c2.ClusterID = 0 THEN 'N/A' ELSE c2.LongName END AS bright, ".
-				"CASE WHEN c3.ClusterID = 0 THEN 'N/A' ELSE c3.LongName END AS faded ".
+				"CASE WHEN c1.ClusterID = 0 THEN '-' ELSE c1.LongName END AS shiny, ".
+				"CASE WHEN c2.ClusterID = 0 THEN '-' ELSE c2.LongName END AS bright, ".
+				"CASE WHEN c3.ClusterID = 0 THEN '-' ELSE c3.LongName END AS faded ".
 			"FROM premade_implant p ".
 			"JOIN ImplantType i ON p.ImplantTypeID = i.ImplantTypeID ".
 			"JOIN Profession p2 ON p.ProfessionID = p2.ID ".
@@ -154,14 +154,23 @@ class PremadeImplantController {
 	 */
 	public function formatResults(array $implants): string {
 		$blob = "";
+		$slotMap = [];
 		foreach ($implants as $implant) {
-			$blob .= $this->getFormattedLine($implant);
+			$slotMap[$implant->slot] ??= [];
+			$slotMap[$implant->slot] []= $implant;
+		}
+		foreach ($slotMap as $slot => $implants) {
+			$blob .= "<header2>{$slot}<end>\n";
+			foreach ($implants as $implant) {
+				$blob .= $this->getFormattedLine($implant);
+			}
 		}
 
 		return $blob;
 	}
 
 	public function getFormattedLine(PremadeSearchResult $implant): string {
-		return "<header2>$implant->profession<end> $implant->slot (<highlight>$implant->ability<end>) - Clusters: $implant->shiny, $implant->bright, $implant->faded\n";
+		return "<tab><highlight>{$implant->profession}<end> ({$implant->ability})\n".
+			"<tab>S: $implant->shiny\n<tab>B: $implant->bright\n<tab>F: $implant->faded\n\n";
 	}
 }
