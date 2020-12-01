@@ -336,6 +336,9 @@ class GSPController {
 	 * Create a message with information about what's currently playing on GSP
 	 */
 	public function renderPlaylist(HttpResponse $response): string {
+		if (!isset($response->body) || $response->error) {
+			return "GSP seems to have problems with their service. Please try again later.";
+		}
 		$show = new Show();
 		try {
 			$show->fromJSON(json_decode($response->body));
