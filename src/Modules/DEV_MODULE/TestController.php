@@ -42,6 +42,12 @@ use Nadybot\Core\{
  *		help        = 'test.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'testtowerattackorgless',
+ *		accessLevel = 'admin',
+ *		description = "Test the bot commands",
+ *		help        = 'test.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = 'testtowervictory',
  *		accessLevel = 'admin',
  *		description = "Test the bot commands",
@@ -266,6 +272,19 @@ class TestController {
 		$eventObj->sender = -1;
 		$eventObj->channel = "All Towers";
 		$eventObj->message = "The $args[1] organization $args[2] just entered a state of war! $args[3] attacked the $args[4] organization $args[5]'s tower in $args[6] at location ($args[7],$args[8]).";
+		$eventObj->type = 'towers';
+		$this->eventManager->fireEvent($eventObj);
+	}
+
+	/**
+	 * @HandlesCommand("testtowerattackorgless")
+	 * @Matches("/^testtowerattackorgless (.+) (clan|neutral|omni) (.+) (.+) (\d+) (\d+)$/i")
+	 */
+	public function testTowerAttackOrglessCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$eventObj = new AOChatEvent();
+		$eventObj->sender = -1;
+		$eventObj->channel = "All Towers";
+		$eventObj->message = "{$args[1]} just attacked the ".strtolower($args[2])." organization $args[3]'s tower in $args[4] at location ($args[5], $args[6]).";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}

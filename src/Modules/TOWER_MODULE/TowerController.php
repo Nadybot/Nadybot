@@ -951,10 +951,10 @@ class TowerController {
 		}
 		if (isset($attack->attSide)) {
 			$whois->faction = $attack->attSide;
+		} else {
+			$whois->factionGuess = true;
 		}
-		if (isset($attack->attGuild)) {
-			$whois->guild = $attack->attGuild;
-		}
+		$whois->guild = $attack->attGuild ?? null;
 		
 		$playfield = $this->playfieldController->getPlayfieldByName($attack->playfieldName);
 		if ($playfield === null) {
@@ -982,7 +982,11 @@ class TowerController {
 			$this->logger->log('debug', "Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
 
 			// Beginning of the 'more' window
-			$link = "Attacker: <highlight>";
+			$link = "";
+			if (isset($whois->factionGuess)) {
+				$link .= "<highlight>Warning:<end> The attacker could also be a pet with a fake name!\n\n";
+			}
+			$link .= "Attacker: <highlight>";
 			if (isset($whois->firstname) && strlen($whois->firstname)) {
 				$link .= $whois->firstname . " ";
 			}
@@ -1008,7 +1012,7 @@ class TowerController {
 				$link .= "Level: <highlight>{$whois->level}/<green>{$whois->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
 			}
 
-			$link .= "Alignment: <highlight>$whois->faction<end>\n";
+			$link .= "Alignment: <highlight>{$whois->faction}<end>\n";
 
 			if (isset($whois->guild)) {
 				$link .= "Organization: <highlight>$whois->guild<end>\n";
@@ -1037,13 +1041,15 @@ class TowerController {
 			"[TOWERS]<end> ";
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
+		} elseif (isset($whois->factionGuess)) {
+			$msg .= "{$attack->attPlayer} (<" . strtolower($whois->faction) . ">{$whois->faction}<end> <highlight>{$whois->profession}<end> or fake name)";
 		} else {
 			$msg .= "<".strtolower($whois->faction).">{$attack->attPlayer}<end>";
 		}
 		$msg .= " attacked $targetOrg";
 
 		// tower_attack_spam >= 2 (normal) includes attacker stats
-		if ($this->settingManager->getInt("tower_attack_spam") && $whois->type !== 'npc') {
+		if ($this->settingManager->getInt("tower_attack_spam") && $whois->type !== 'npc' && !isset($whois->factionGuess)) {
 			$msg .= " - ".preg_replace(
 				"/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
 				'',
