@@ -2,7 +2,10 @@
 
 case $# in
 0)
-	php -f main.php ./conf/config.php
+	true
+	while [ $? -ne 10 ]; do
+		php -f main.php ./conf/config.php
+	done
 ;;
 1)
 	param=`echo $1 | tr '[:upper:]' '[:lower:]'`
@@ -21,7 +24,10 @@ case $# in
 		then
 			echo "Error! '$1' is not allowed!"
 		else
-			php -f mainloop.php "./conf/$param.php"
+			true
+			while [ $? -ne 10 ]; do
+				php -f main.php "./conf/$param.php"
+			done
 		fi
 	fi
 ;;
