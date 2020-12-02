@@ -9,5 +9,5 @@ class Cluster extends DBRow {
 	public int $EffectTypeID;
 	public string $LongName;
 	public int $NPReq;
-	public string $AltName;
+	public int $SkillID;
 }

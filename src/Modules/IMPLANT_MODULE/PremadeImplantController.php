@@ -8,6 +8,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\ITEMS_MODULE\Skill;
+use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
 /**
  * @author Tyrence (RK2)
@@ -35,6 +37,9 @@ class PremadeImplantController {
 
 	/** @Inject */
 	public Text $text;
+
+	/** @Inject */
+	public WhatBuffsController $whatBuffsController;
 
 	/** @Inject */
 	public Util $util;
@@ -66,7 +71,7 @@ class PremadeImplantController {
 			$results = $this->searchByModifier($searchTerms);
 		}
 
-		if ($results !== null) {
+		if (!empty($results)) {
 			$blob = $this->formatResults($results);
 			$blob .= "\n\nWritten by Tyrence (RK2)";
 			$msg = $this->text->makeBlob("Implant Search Results for '$searchTerms'", $blob);
@@ -125,11 +130,14 @@ class PremadeImplantController {
 	 * @return PremadeSearchResult[]
 	 */
 	public function searchByModifier(string $modifier): array {
-		[$shinyQuery, $shinyParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c1.LongName');
-		[$brightQuery, $brightParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c2.LongName');
-		[$fadedQuery, $fadedParams] = $this->util->generateQueryFromParams(explode(' ', $modifier), 'c3.LongName');
-		
-		$params = array_merge($shinyParams, $brightParams, $fadedParams);
+		$skills = $this->whatBuffsController->searchForSkill($modifier);
+		$skillIds = array_map(
+			function(Skill $s): int {
+				return $s->id;
+			},
+			$skills
+		);
+		$placeHolder = join(",", array_fill(0, count($skillIds), "?"));
 		
 		$sql = "SELECT i.Name AS slot, ".
 				"p2.Name AS profession, ".
@@ -144,9 +152,11 @@ class PremadeImplantController {
 			"JOIN Cluster c1 ON p.ShinyClusterID = c1.ClusterID ".
 			"JOIN Cluster c2 ON p.BrightClusterID = c2.ClusterID ".
 			"JOIN Cluster c3 ON p.FadedClusterID = c3.ClusterID ".
-			"WHERE ($shinyQuery) OR ($brightQuery) OR ($fadedQuery)";
+			"WHERE c1.SkillID IN ($placeHolder) ".
+			"OR c2.SkillID IN ($placeHolder) ".
+			"OR c3.SkillID IN ($placeHolder)";
 
-		return $this->db->fetchAll(PremadeSearchResult::class, $sql, ...$params);
+		return $this->db->fetchAll(PremadeSearchResult::class, $sql, ...[...$skillIds, ...$skillIds, ...$skillIds]);
 	}
 
 	/**
@@ -171,6 +181,8 @@ class PremadeImplantController {
 
 	public function getFormattedLine(PremadeSearchResult $implant): string {
 		return "<tab><highlight>{$implant->profession}<end> ({$implant->ability})\n".
-			"<tab>S: $implant->shiny\n<tab>B: $implant->bright\n<tab>F: $implant->faded\n\n";
+			"<tab>S: $implant->shiny\n".
+			"<tab>B: $implant->bright\n".
+			"<tab>F: $implant->faded\n\n";
 	}
 }
