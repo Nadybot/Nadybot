@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use Nadybot\Core\CacheManager;
+use Throwable;
 
 /**
  * @Instance
@@ -19,7 +20,7 @@ class PlayerHistoryManager {
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
 		$cb = function($data) {
-			return $data !== "[]";
+			return isset($data) && $data !== "[]";
 		};
 		
 		$cacheResult = $this->cacheManager->lookup($url, $groupName, $filename, $cb, $maxCacheAge);
@@ -30,7 +31,11 @@ class PlayerHistoryManager {
 		$obj = new PlayerHistory();
 		$obj->name = $name;
 		$obj->data = [];
-		$history = json_decode($cacheResult->data);
+		try {
+			$history = json_decode($cacheResult->data, false, 512, JSON_THROW_ON_ERROR);
+		} catch (Throwable $e) {
+			return null;
+		}
 		foreach ($history as $entry) {
 			$historyEntry = new PlayerHistoryData();
 			$historyEntry->fromJSON($entry);
