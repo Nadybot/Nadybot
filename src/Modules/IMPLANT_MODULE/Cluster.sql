@@ -4,10 +4,10 @@ CREATE TABLE Cluster (
 	EffectTypeID INT NOT NULL,
 	LongName VARCHAR(50) NOT NULL,
 	NPReq INT NOT NULL,
-	SkillID INT NOT NULL
+	SkillID INT
 );
 INSERT INTO Cluster (ClusterID, EffectTypeID, LongName, NPReq, SkillID) VALUES
-(0,1,'',0,''),
+(0,1,'',0,null),
 (2,1,'1 Handed Blunt Weapons',720,102),
 (3,1,'1 Handed Edged Weapon',760,103),
 (4,1,'2 Handed Blunt Weapons',720,107),
