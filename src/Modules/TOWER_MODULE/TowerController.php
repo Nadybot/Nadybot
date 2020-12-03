@@ -1408,10 +1408,10 @@ class TowerController {
 	protected function recordAttack(Player $whois, Attack $attack, TowerSite $closestSite): int {
 		$event = new TowerAttackEvent();
 		$event->attacker = $whois;
-		$event->defender = (object)["org" => $attack->defOrgName, "faction" => $attack->defFaction];
+		$event->defender = (object)["org" => $attack->defGuild, "faction" => $attack->defSide];
 		$event->site = $closestSite;
-		$event->type = "timer(start)";
-		$sql = "INSERT INTO tower_attack_<myname> ( ".
+		$event->type = "tower(attack)";
+		$sql = "INSERT INTO `tower_attack_<myname>` ( ".
 				"`time`, `att_guild_name`, `att_faction`, `att_player`, ".
 				"`att_level`, `att_ai_level`, `att_profession`, `def_guild_name`, ".
 				"`def_faction`, `playfield_id`, `site_number`, `x_coords`, ".
@@ -1427,8 +1427,8 @@ class TowerController {
 			$whois->level ?? null,
 			$whois->ai_level ?? null,
 			$whois->profession ?? null,
-			$attack->defOrgName,
-			$attack->defFaction,
+			$attack->defGuild,
+			$attack->defSide,
 			$closestSite->playfield_id,
 			$closestSite->site_number,
 			$attack->xCoords,
