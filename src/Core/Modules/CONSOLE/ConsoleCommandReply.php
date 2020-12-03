@@ -44,10 +44,19 @@ class ConsoleCommandReply implements CommandReply {
 			"<myguild>" => $this->chatBot->vars["my_guild"],
 			"<tab>" => "    ",
 			"<end>" => "\e[0m",
+			"<u>" => "\e[4m",
+			"</u>" => "\e[24m",
 			"<symbol>" => "",
 			"<br>" => "\n"
 		];
 
+		$message = preg_replace_callback(
+			"/<black>(.*?)<end>/",
+			function(array $matches): string {
+				return str_repeat(" ", strlen($matches[1]));
+			},
+			$message
+		);
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
 		$message = preg_replace("/<font color=[\"']?#.{6}[\"']>/", "", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "\e[4m" . "$2" . "\e[0m", $message);
@@ -64,7 +73,7 @@ class ConsoleCommandReply implements CommandReply {
 			$message
 		);
 		if (count($parts)) {
-			$message .= "\n\n" . join("\n---------------------------------\n", $parts);
+			$message .= "\n\n" . join("\n" . str_repeat("-", 75) . "\n", $parts);
 		}
 
 		return $message;
