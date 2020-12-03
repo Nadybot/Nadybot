@@ -229,9 +229,13 @@ class AsyncHttp {
 	 * Removes socket notifier from bot's reactor loop and closes the stream.
 	 */
 	private function close(): void {
-		$this->socketManager->removeSocketNotifier($this->notifier);
-		$this->notifier = null;
-		fclose($this->stream);
+		if (isset($this->notifier)) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+			$this->notifier = null;
+		}
+		if (isset($this->stream) && $this->stream !== false) {
+			fclose($this->stream);
+		}
 	}
 
 	/**
