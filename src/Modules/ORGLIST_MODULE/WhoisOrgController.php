@@ -11,6 +11,7 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * @author Tyrence (RK2)
@@ -50,6 +51,9 @@ class WhoisOrgController {
 	
 	/** @Inject */
 	public GuildManager $guildManager;
+
+	/** @Inject */
+	public OnlineController $onlineController;
 	
 	/**
 	 * @HandlesCommand("whoisorg")
@@ -129,7 +133,7 @@ class WhoisOrgController {
 		$averageLevel = round($sumLevels/$numMembers);
 
 		$link = "<header2>General Info<end>\n";
-		$link .= "<tab>Faction: <highlight>$leader->faction<end>\n";
+		$link .= "<tab>Faction: <" . strtolower($leader->faction) . ">$leader->faction<end>\n";
 		$link .= "<tab>Lowest lvl: <highlight>$minLevel<end>\n";
 		$link .= "<tab>Highest lvl: <highlight>$maxLevel<end>\n";
 		$link .= "<tab>Average lvl: <highlight>$averageLevel<end>\n\n";
@@ -144,6 +148,7 @@ class WhoisOrgController {
 		ksort($countProfs);
 		$link .= "<header2>Members ($numMembers)<end>\n";
 		foreach ($countProfs as $prof => $profMembers) {
+			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->onlineController->getProfessionId($prof).">";
 			$link .= "<tab>".
 				$this->text->alignNumber($profMembers, 3, "highlight").
 				"  (".
@@ -151,7 +156,7 @@ class WhoisOrgController {
 					(int)round(($profMembers*100)/$numMembers, 1),
 					(count($countProfs) > 1 ) ? 2 : 3
 				).
-				"%)  $prof\n";
+				"%)  $profIcon $prof\n";
 		}
 		$msg = $this->text->makeBlob("Org Info for $org->orgname", $link);
 
