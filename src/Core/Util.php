@@ -364,7 +364,12 @@ class Util {
 	 * @param int|string $sender
 	 */
 	public function isValidSender($sender): bool {
-		return (string)0xFFFFFFFF !== $sender;
+		$isValid = !in_array(
+			$sender,
+			[(string)0xFFFFFFFF, (int)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
+			true
+		);
+		return $isValid;
 	}
 
 	/**
