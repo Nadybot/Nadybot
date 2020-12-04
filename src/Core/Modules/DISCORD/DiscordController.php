@@ -212,7 +212,18 @@ class DiscordController {
 				"value" => $fix($fields[$i+1]),
 			];
 			$field["name"] = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field["name"]);
-			$embed->fields []= $field;
+			if (strlen($field["value"]) > 1024) {
+				$parts = preg_split("/(.{1,1024})\n/s", $field["value"], -1, PREG_SPLIT_DELIM_CAPTURE);
+				$field["value"] = $parts[1];
+				$embed->fields []= $field;
+				$field["name"] .= " (continued)";
+				for ($i = 3; $i < count($parts); $i += 2) {
+					$field["value"] = $parts[$i];
+					$embed->fields []= $field;
+				}
+			} else {
+				$embed->fields []= $field;
+			}
 		}
 		$embed->description = $fix($fields[0]);
 		// $embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
