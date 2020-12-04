@@ -174,7 +174,7 @@ class PlayerManager {
 		if (!isset($response) || $response->headers["status-code"] !== "200") {
 			return null;
 		}
-		if ($response->body === "null") {
+		if (!isset($response->body) || $response->body === "null") {
 			return null;
 		}
 		[$char, $org] = json_decode($response->body);
