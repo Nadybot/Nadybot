@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Timer,
+	Util,
 };
 use Nadybot\Core\Modules\{
 	CONFIG\ConfigController,
@@ -84,6 +85,9 @@ class DiscordRelayController {
 
 	/** @Inject */
 	public Timer $timer;
+
+	/** @Inject */
+	public Util $util;
 
 	/** @Inject */
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
@@ -470,7 +474,10 @@ class DiscordRelayController {
 			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 			$msg = "[{$guildNameForRelay}] ";
 		}
-		$msg .= "<highlight>{$sender}<end>: {$message}";
+		if ($this->util->isValidSender($sender)) {
+			$msg .= "<highlight>{$sender}<end>: ";
+		}
+		$msg .= $message;
 		$discordMsg = $this->discordController->formatMessage($msg);
 
 		//Relay the message to the discord channel
