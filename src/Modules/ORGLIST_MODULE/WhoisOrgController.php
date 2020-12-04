@@ -5,6 +5,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
@@ -63,7 +64,7 @@ class WhoisOrgController {
 		
 		if (preg_match("/^\d+$/", $args[1])) {
 			$orgId = (int)$args[1];
-			$this->sendOrgInfo($orgId, $sendto, $dimension);
+			$this->sendOrgIdInfo($orgId, $sendto, $dimension);
 			return;
 		}
 		// Someone's name.  Doing a whois to get an orgID.
@@ -79,18 +80,21 @@ class WhoisOrgController {
 					$sendto->reply($msg);
 					return;
 				}
-				$this->sendOrgInfo($whois->guild_id, $sendto, $dimension);
+				$this->sendOrgIdInfo($whois->guild_id, $sendto, $dimension);
 			},
 			$name,
 			$dimension
 		);
 	}
 
-	protected function sendOrgInfo(int $orgId, CommandReply $sendto, int $dimension): void {
+	protected function sendOrgIdInfo(int $orgId, CommandReply $sendto, int $dimension): void {
 		$msg = "Getting org info...";
 		$sendto->reply($msg);
 
-		$org = $this->guildManager->getById($orgId, $dimension);
+		$this->guildManager->getByIdAsync($orgId, $dimension, false, [$this, "sendOrgInfo"], $sendto);
+	}
+
+	public function sendOrgInfo(?Guild $org, CommandReply $sendto): void {
 		if ($org === null) {
 			$msg = "Error in getting the org info. ".
 				"Either the org does not exist or AO's server ".

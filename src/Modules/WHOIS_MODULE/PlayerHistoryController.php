@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WHOIS_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
@@ -49,7 +50,10 @@ class PlayerHistoryController {
 			$dimension = (int)$args[2];
 		}
 
-		$history = $this->playerHistoryManager->lookup($name, $dimension);
+		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $sendto);
+	}
+
+	public function servePlayerHistory(?PlayerHistory $history, string $name, int $dimension, CommandReply $sendto): void {
 		if ($history === null) {
 			$msg = "Could not get History of $name on RK$dimension.";
 			$sendto->reply($msg);

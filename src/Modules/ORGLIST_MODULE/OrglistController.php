@@ -14,6 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @author Tyrence (RK2)
@@ -163,8 +164,10 @@ class OrglistController {
 
 		$sendto->reply("Downloading org roster for org id $orgid...");
 
-		$org = $this->guildManager->getById($orgid);
+		$this->guildManager->getByIdAsync($orgid, null, false, [$this, "checkOrg"], $sendto);
+	}
 
+	public function checkOrg(?Guild $org, CommandReply $sendto): void {
 		if ($org === null) {
 			$msg = "Error in getting the Org info. Either org does not exist or AO's server was too slow to respond.";
 			$sendto->reply($msg);

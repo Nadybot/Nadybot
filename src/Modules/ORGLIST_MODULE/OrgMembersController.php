@@ -5,6 +5,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Nadybot\Core\Text;
 
@@ -45,16 +46,17 @@ class OrgMembersController {
 	public function orgmembers2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$guildId = (int)$args[1];
 
-		$msg = "Getting org info...";
-		$sendto->reply($msg);
+		$sendto->reply("Getting org info...");
 
-		$org = $this->guildManager->getById($guildId);
+		$this->guildManager->getByIdAsync($guildId, null, false, [$this, "showOrglist"], $guildId, $sendto);
+	}
+
+	public function showOrglist(?Guild $org, int $guildId, CommandReply $sendto): void {
 		if ($org === null) {
 			$msg = "Error in getting the org info. Either org does not exist or AO's server was too slow to respond.";
 			$sendto->reply($msg);
 			return;
 		}
-
 		$sql = "SELECT * FROM players WHERE guild_id = ? AND dimension = '<dim>' ORDER BY name ASC";
 		/** @var Player[] */
 		$players = $this->db->fetchAll(Player::class, $sql, $guildId);

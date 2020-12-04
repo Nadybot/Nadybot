@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @author Tyrence (RK2)
@@ -412,23 +413,27 @@ class GuildController {
 	 */
 	public function updateorgCommand($message, $channel, $sender, $sendto, $args) {
 		$sendto->reply("Starting Roster update");
-		$this->updateOrgRoster();
-		$sendto->reply("Finished Roster update");
+		$this->updateOrgRoster([$sendto, "reply"], "Finished Roster update");
 	}
 	
-	public function updateOrgRoster() {
+	public function updateOrgRoster(?callable $callback=null, ...$args) {
 		if (!$this->isGuildBot()) {
 			return;
 		}
 		$this->logger->log('INFO', "Starting Roster update");
 
 		// Get the guild info
-		$org = $this->guildManager->getById(
+		$this->guildManager->getByIdAsync(
 			$this->chatBot->vars["my_guild_id"],
 			$this->chatBot->vars["dimension"],
-			true
+			true,
+			[$this, "updateRosterForGuild"],
+			$callback,
+			...$args
 		);
+	}
 
+	public function updateRosterForGuild(?Guild $org, ?callable $callback, ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
 			$this->logger->log('ERROR', "Error downloading the guild roster xml file");
@@ -520,6 +525,9 @@ class GuildController {
 				exit(0);
 			}
 			return;
+		}
+		if (isset($callback)) {
+			$callback(...$args);
 		}
 	}
 
