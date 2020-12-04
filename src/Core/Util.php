@@ -39,6 +39,7 @@ class Util {
 		}
 
 		$units = [
+			"year" => 31536000,
 			"day" => 86400,
 			"hr" => 3600,
 			"min" => 60,
