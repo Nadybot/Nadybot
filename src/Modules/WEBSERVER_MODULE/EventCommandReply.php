@@ -31,6 +31,13 @@ class EventCommandReply implements CommandReply {
 		if (!preg_match("/<popup id=\"(\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
 			return $msgs;
 		}
+		$msgs[0]->message = preg_replace(
+			"/<popup id=\"".
+			preg_quote($matches[1], "/").
+			"\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/",
+			"<popup id=\"{$matches[1]}\">{$matches[2]}</popup>",
+			$msgs[0]->message
+		);
 		$msgs[0]->popups->{$matches[1]} = preg_replace("/ \(Page 1 \/ \d+\)<\/h1>/", "</h1>", $msgs[0]->popups->{$matches[1]});
 		for ($i = 1; $i < count($msgs); $i++) {
 			if (preg_match(
