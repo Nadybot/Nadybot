@@ -16,10 +16,38 @@ class EventCommandReply implements CommandReply {
 
 	public function reply($msg): void {
 		$event = new CommandReplyEvent();
-		$event->msgs = array_map([$this, "parseOldFormat"], (array)$msg);
+		$event->msgs = $this->tryToUnbreakPopups(
+			array_map([$this, "parseOldFormat"], (array)$msg)
+		);
 		$event->uuid = $this->uuid;
 		$event->type = "cmdreply";
 		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * Try to reverse the splitting of a large message into multiple ones
+	 */
+	public function tryToUnbreakPopups(array $msgs): array {
+		if (!preg_match("/<popup id=\"(\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
+			return $msgs;
+		}
+		$msgs[0]->popups->{$matches[1]} = preg_replace("/ \(Page 1 \/ \d+\)<\/h1>/", "</h1>", $msgs[0]->popups->{$matches[1]});
+		for ($i = 1; $i < count($msgs); $i++) {
+			if (preg_match(
+				"/<popup id=\"(\d+)\">" .
+					preg_quote($matches[2], "/") .
+					"<\/popup> " .
+					"\(Page <strong>\d+ \/ " .
+					preg_quote($matches[3], "/") .
+					"<\/strong>\)/",
+				$msgs[$i]->message,
+				$matches2
+			)) {
+				$expand = preg_replace("/^<h1>.+?<\/h1><br \/><br \/>/", "", $msgs[$i]->popups->{$matches2[1]});
+				$msgs[0]->popups->{$matches[1]} .= $expand;
+			}
+		}
+		return [$msgs[0]];
 	}
 
 	public function formatMsg(string $message): string {
