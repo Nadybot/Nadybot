@@ -19,6 +19,7 @@ use Nadybot\Core\{
 };
 
 use Nadybot\Modules\WEBSERVER_MODULE\{
+	CommandReplyEvent,
 	HttpProtocolWrapper,
 	JsonExporter,
 	Request,
@@ -91,6 +92,10 @@ class WebsocketController {
 		$websocketHandler->on(WebsocketServer::ON_ERROR, [$this, "clientError"]);
 
 		$this->logger->log("DEBUG", "Upgrading connection to WebSocket");
+		$packet = new WebsocketCommand();
+		$packet->command = "uuid";
+		$packet->data = $websocketHandler->getUUID();
+		$websocketHandler->send(JsonExporter::encode($packet), 'text');
 	}
 
 	/**
@@ -229,6 +234,9 @@ class WebsocketController {
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;
 		foreach ($this->clients as $uuid => $client) {
+			if ($event instanceof CommandReplyEvent && $event->uuid !== $uuid) {
+				continue;
+			}
 			foreach ($client->getSubscriptions() as $subscription) {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
@@ -251,5 +259,12 @@ class WebsocketController {
 	 */
 	public function unregisterClient(WebsocketServer $client): void {
 		unset($this->clients[$client->getUUID()]);
+	}
+
+	/**
+	 * Check if a Websocket client connection exists
+	 */
+	public function clientExists(string $uuid): bool {
+		return isset($this->clients[$uuid]);
 	}
 }
