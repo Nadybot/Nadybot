@@ -228,15 +228,16 @@ class TestController {
 	
 	public function runTests(array $commands, string $sender, string $type, CommandReply $sendto): void {
 		foreach ($commands as $line) {
-			if ($line[0] == "!") {
-				if ($this->settingManager->getBool('show_test_commands')) {
-					$this->chatBot->sendTell($line, $sender);
-				} else {
-					$this->logger->log('INFO', $line);
-				}
-				$line = substr($line, 1);
-				$this->commandManager->process($type, $line, $sender, $sendto);
+			if ($line[0] !== "!") {
+				continue;
 			}
+			if ($this->settingManager->getBool('show_test_commands')) {
+				$this->chatBot->sendTell($line, $sender);
+			} else {
+				$this->logger->log('INFO', $line);
+			}
+			$line = substr($line, 1);
+			$this->commandManager->process($type, $line, $sender, $sendto);
 		}
 	}
 	

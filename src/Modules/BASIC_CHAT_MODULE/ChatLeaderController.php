@@ -6,8 +6,8 @@ use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
 	Event,
-    EventManager,
-    Nadybot,
+	EventManager,
+	Nadybot,
 	SettingManager,
 };
 

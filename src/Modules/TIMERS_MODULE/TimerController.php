@@ -231,7 +231,7 @@ class TimerController {
 			}
 		}
 		if ($sent === false) {
-			$this->chatBot->sendTell($msg, $timer->owner);
+			$this->chatBot->sendMassTell($msg, $timer->owner);
 		}
 	}
 
