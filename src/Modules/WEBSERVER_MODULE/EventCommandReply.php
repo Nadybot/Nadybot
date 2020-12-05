@@ -70,6 +70,14 @@ class EventCommandReply implements CommandReply {
 			},
 			$message
 		);
+		$message = preg_replace_callback(
+			"/(\r?\n[-*][^\r\n]+){2,}/s",
+			function (array $matches): string {
+				$text = preg_replace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
+				return "\n<ul>$text</ul>";
+			},
+			$message
+		);
 		$message = preg_replace("/\r?\n/", "<br />", $message);
 		$message = preg_replace("/<a href=['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<item lowid=$1 highid=$2 ql=$3>$4</item>", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s", "<command cmd=\"$1\">$2</command>", $message);
