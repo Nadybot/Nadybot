@@ -356,7 +356,7 @@ class EventsController {
 
 		if ($this->chatBot->isReady() && isset($this->chatBot->guildmembers[$sender])) {
 			if ($this->hasRecentEvents()) {
-				$this->chatBot->sendTell($this->getEvents(), $sender);
+				$this->chatBot->sendMassTell($this->getEvents(), $sender);
 			}
 		}
 	}
@@ -369,7 +369,7 @@ class EventsController {
 		$sender = $eventObj->sender;
 
 		if ($this->hasRecentEvents()) {
-			$this->chatBot->sendTell($this->getEvents(), $sender);
+			$this->chatBot->sendMassTell($this->getEvents(), $sender);
 		}
 	}
 	

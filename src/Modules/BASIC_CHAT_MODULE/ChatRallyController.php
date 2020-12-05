@@ -165,7 +165,7 @@ class ChatRallyController {
 
 		$rally = $this->get();
 		if ($rally !== '') {
-			$this->chatBot->sendTell($rally, $sender);
+			$this->chatBot->sendMassTell($rally, $sender);
 		}
 	}
 

@@ -5,8 +5,8 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	Event,
-    EventManager,
-    Nadybot,
+	EventManager,
+	Nadybot,
 	SettingManager,
 	Text,
 	Util,
@@ -153,7 +153,7 @@ class ChatTopicController {
 		}
 		if (isset($this->chatBot->guildmembers[$eventObj->sender]) && $this->chatBot->isReady()) {
 			$msg = $this->buildTopicMessage();
-			$this->chatBot->sendTell($msg, $eventObj->sender);
+			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
 	}
 
@@ -166,7 +166,7 @@ class ChatTopicController {
 			return;
 		}
 		$msg = $this->buildTopicMessage();
-		$this->chatBot->sendTell($msg, $eventObj->sender);
+		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 	
 	public function setTopic(string $name, string $msg): void {

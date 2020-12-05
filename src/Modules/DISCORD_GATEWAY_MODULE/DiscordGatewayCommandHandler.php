@@ -234,7 +234,7 @@ class DiscordGatewayCommandHandler {
 						$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
 					"]";
 				$msg = $this->text->makeBlob("Request to link your account with $sender", $blob);
-				$this->chatBot->sendTell("You have received a $msg.", $name);
+				$this->chatBot->sendMassTell("You have received a $msg.", $name);
 			}
 		);
 		$sendto->reply(

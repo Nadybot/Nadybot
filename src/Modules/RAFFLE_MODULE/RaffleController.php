@@ -310,7 +310,7 @@ class RaffleController {
 			);
 			return;
 		}
-		$this->chatBot->sendTell(
+		$this->chatBot->sendMassTell(
 			"You have entered the raffle for ".
 			$this->raffle->slots[$slot]->toString() . ".",
 			$sender
@@ -379,7 +379,7 @@ class RaffleController {
 			);
 			return;
 		}
-		$this->chatBot->sendTell(
+		$this->chatBot->sendMassTell(
 			"You have left the raffle for ".
 			$this->raffle->slots[$slot]->toString() . ".",
 			$sender

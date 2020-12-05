@@ -322,7 +322,7 @@ class PrivateChannelController {
 		$msg = "Invited <highlight>$name<end> to this channel.";
 		$this->chatBot->privategroup_invite($name);
 		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
-		$this->chatBot->sendTell($msg2, $name);
+		$this->chatBot->sendMassTell($msg2, $name);
 
 		$sendto->reply($msg);
 	}
@@ -728,7 +728,7 @@ class PrivateChannelController {
 			"Use <highlight><symbol>autoinvite<end> to control ".
 			"your auto invite preference.";
 		$this->chatBot->privategroup_invite($sender);
-		$this->chatBot->sendTell($msg, $sender);
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
 	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {
@@ -867,7 +867,7 @@ class PrivateChannelController {
 		$sender = $eventObj->sender;
 		$msg = "";
 		$msg = $this->onlineController->getOnlineList();
-		$this->chatBot->sendTell($msg, $sender);
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 	
 	public function addUser(string $name, $autoInvite=true): string {

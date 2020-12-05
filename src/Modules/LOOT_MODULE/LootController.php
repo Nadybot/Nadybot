@@ -573,13 +573,13 @@ class LootController {
 		$slot = (int)$args[1];
 		$found = false;
 		if (count($this->loot) === 0) {
-			$this->chatBot->sendTell("No loot list available.", $sender);
+			$this->chatBot->sendMassTell("No loot list available.", $sender);
 			return;
 		}
 		//Check if the slot exists
 		if (!isset($this->loot[$slot])) {
 			$msg = "The slot you are trying to add in does not exist.";
-			$this->chatBot->sendTell($msg, $sender);
+			$this->chatBot->sendMassTell($msg, $sender);
 			return;
 		}
 
@@ -604,7 +604,7 @@ class LootController {
 		}
 
 		if ($this->settingManager->get('add_on_loot') & 1) {
-			$this->chatBot->sendTell($tellMsg, $sender);
+			$this->chatBot->sendMassTell($tellMsg, $sender);
 		}
 		if ($this->settingManager->get('add_on_loot') & 2) {
 			$this->chatBot->sendPrivate($privMsg);
@@ -639,7 +639,7 @@ class LootController {
 				}
 				$tellMsg = "You removed yourself from all rolls.";
 				if ($this->settingManager->getInt('add_on_loot') & 1) {
-					$this->chatBot->sendTell($tellMsg, $sender);
+					$this->chatBot->sendMassTell($tellMsg, $sender);
 				}
 				if ($this->settingManager->getInt('add_on_loot') & 2) {
 					$this->chatBot->sendPrivate($privMsg);

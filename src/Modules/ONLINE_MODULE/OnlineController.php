@@ -279,7 +279,7 @@ class OnlineController {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
 			$msg = $this->getOnlineList();
-			$this->chatBot->sendTell($msg, $sender);
+			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
 	

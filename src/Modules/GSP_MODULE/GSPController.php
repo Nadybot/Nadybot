@@ -224,7 +224,7 @@ class GSPController {
 			return;
 		}
 		$msg = $this->getNotificationMessage();
-		$this->chatBot->sendTell($msg, $sender);
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
 	/**

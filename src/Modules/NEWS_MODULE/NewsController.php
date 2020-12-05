@@ -198,7 +198,7 @@ class NewsController {
 			return;
 		}
 		if ($this->hasRecentNews($sender)) {
-			$this->chatBot->sendTell($this->getNews($sender, true), $sender);
+			$this->chatBot->sendMassTell($this->getNews($sender, true), $sender);
 		}
 	}
 	
@@ -208,7 +208,7 @@ class NewsController {
 	 */
 	public function privateChannelJoinEvent(Event $eventObj): void {
 		if ($this->hasRecentNews($eventObj->sender)) {
-			$this->chatBot->sendTell($this->getNews($eventObj->sender, true), $eventObj->sender);
+			$this->chatBot->sendMassTell($this->getNews($eventObj->sender, true), $eventObj->sender);
 		}
 	}
 	

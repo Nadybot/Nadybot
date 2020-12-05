@@ -225,10 +225,10 @@ class LimitsController {
 	 */
 	public function handleLimitCheckFail(string $msg, string $sender): void {
 		if ($this->settingManager->getInt('tell_error_msg_type') === 2) {
-			$this->chatBot->sendTell($msg, $sender);
+			$this->chatBot->sendMassTell($msg, $sender);
 		} elseif ($this->settingManager->getInt('tell_error_msg_type') === 1) {
 			$msg = "Error! You do not have access to this bot.";
-			$this->chatBot->sendTell($msg, $sender);
+			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
 	

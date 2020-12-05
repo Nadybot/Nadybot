@@ -254,7 +254,7 @@ class CloakController {
 		// send message to all online alts
 		$altInfo = $this->altsController->getAltInfo($row->player);
 		foreach ($altInfo->getOnlineAlts() as $name) {
-			$this->chatBot->sendTell($msg, $name);
+			$this->chatBot->sendMassTell($msg, $name);
 		}
 	}
 	
@@ -304,7 +304,7 @@ class CloakController {
 		}
 
 		if ($case <= $this->settingManager->getInt("showcloakstatus")) {
-			$this->chatBot->sendTell($msg, $eventObj->sender);
+			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
 	}
 }
