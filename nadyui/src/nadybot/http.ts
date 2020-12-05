@@ -25,6 +25,18 @@ async function putJson(url: string, json: any): Promise<Response> {
   });
 }
 
+// any is safe since we can JSON.stringify it
+// eslint-disable-next-line
+async function postJson(url: string, json: any): Promise<Response> {
+  return await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(json),
+  });
+}
+
 export async function getOnlineMembers(): Promise<OnlinePlayers> {
   const response = await fetch("/api/online");
   if (response.status == 403) {
@@ -119,4 +131,11 @@ export async function changeSetting(
   value: string | number | boolean | null
 ): Promise<void> {
   await putJson(`/api/module/${module}/settings/${name}`, value);
+}
+
+export async function executeCommand(
+  uuid: string,
+  command: string
+): Promise<void> {
+  await postJson(`/api/execute/${uuid}`, command);
 }

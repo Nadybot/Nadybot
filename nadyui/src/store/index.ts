@@ -1,6 +1,6 @@
 import { createStore } from "vuex";
 
-import { getOnlineMembers } from "@/nadybot/http";
+import { executeCommand, getOnlineMembers } from "@/nadybot/http";
 
 import socket from "./plugins/socket";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
@@ -14,6 +14,7 @@ export default createStore({
   state: {
     users: emptyPlayers,
     users_failed: false,
+    uuid: "",
   },
   getters: {
     allUsers(state): Array<OnlinePlayer> {
@@ -68,7 +69,11 @@ export default createStore({
       context.commit("loadOnlineUsers");
     },
     websocketClose(_, closeCode: number): void {
-      console.log(`websocket closed with code ${closeCode}`);
+      console.log(`Websocket closed with code ${closeCode}`);
+    },
+    websocketUuidUpdate(context, uuid: string): void {
+      context.state.uuid = uuid;
+      console.log("Successfully set UUID for outgoing commands");
     },
     OnlineEvent(context, data: Record<string, unknown>): void {
       const player = data.player as OnlinePlayer;
@@ -87,6 +92,9 @@ export default createStore({
       } else {
         context.commit("delOnlinePrivUser", player_name);
       }
+    },
+    async executeCommand(context, command: string): Promise<void> {
+      await executeCommand(context.state.uuid, command);
     },
   },
   modules: {},

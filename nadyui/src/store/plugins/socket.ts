@@ -10,7 +10,7 @@ export default function createWebSocketPlugin() {
     //subscribe to events
     client.onopen = function (_e: Event) {
       client.send(
-        '{"command": "subscribe", "data": {"events": ["offline(*)", "online(*)"]}}'
+        '{"command": "subscribe", "data": {"events": ["offline(*)", "online(*)", "cmdreply"]}}'
       );
       store.dispatch("websocketOpen");
     };
@@ -19,6 +19,8 @@ export default function createWebSocketPlugin() {
       const data = JSON.parse(e.data);
       if (data.command == "event") {
         store.dispatch(data.data.class, data.data);
+      } else if (data.command == "uuid") {
+        store.dispatch("websocketUuidUpdate", data.data);
       }
     };
 
