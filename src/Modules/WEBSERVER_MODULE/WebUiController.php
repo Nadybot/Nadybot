@@ -166,6 +166,9 @@ class WebUiController {
 			} else {
 				$this->logger->log("INFO", "Already using the latest version of NadyUI");
 			}
+			if ($this->chatBot->getUptime() < 120) {
+				$this->createAdminLogin();
+			}
 			return;
 		}
 		try {
@@ -180,20 +183,7 @@ class WebUiController {
 		}
 		if ($currentVersion === 0) {
 			$action = "<green>installed<end> with version";
-			if ($this->settingManager->getBool('webserver')) {
-				$schema = $this->settingManager->getBool('webserver_tls') ? "https" : "http";
-				$port = $this->settingManager->getInt('webserver_port');
-				$superUser = $this->chatBot->vars['SuperAdmin'];
-				$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
-				$this->logger->log(
-					"INFO",
-					">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
-				);
-				$this->logger->log(
-					"INFO",
-					">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
-				);
-			}
+			$this->createAdminLogin();
 		} elseif ($dlVersion > $currentVersion) {
 			$action = "<green>upgraded<end> to version";
 		} elseif ($dlVersion < $currentVersion) {
@@ -203,6 +193,24 @@ class WebUiController {
 		$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
 		$sendto->reply($msg);
 		$callback();
+	}
+
+	protected function createAdminLogin(): void {
+		if (!$this->settingManager->getBool('webserver')) {
+			return;
+		}
+		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
+		$port = $this->settingManager->getInt('webserver_port');
+		$superUser = $this->chatBot->vars['SuperAdmin'];
+		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
+		$this->logger->log(
+			"INFO",
+			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
+		);
+		$this->logger->log(
+			"INFO",
+			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
+		);
 	}
 
 	/**
