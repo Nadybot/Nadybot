@@ -17,8 +17,8 @@ use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
-    PlayerHistoryData,
-    PlayerHistoryManager,
+	PlayerHistoryData,
+	PlayerHistoryManager,
 	PlayerManager,
 };
 use PhpAmqpLib\Exception\AMQPConnectionClosedException;
