@@ -215,7 +215,7 @@ class QuoteController {
 	
 	public function getMaxId(): int {
 		$row = $this->db->queryRow("SELECT COALESCE(MAX(id), 0) AS max_id FROM `quote`");
-		return $row->max_id;
+		return (int)$row->max_id;
 	}
 
 	public function getQuoteInfo(int $id=null) {
