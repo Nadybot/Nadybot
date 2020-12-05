@@ -1303,6 +1303,48 @@
 					}
 				}
 			}
+		},
+		"/execute/{uuid}": {
+			"parameters": [
+				{
+					"name": "uuid",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Execute a command, result is sent via websocket",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Invalid UUID provided"
+					},
+					"422": {
+						"description": "Unparseable data received"
+					}
+				},
+				"requestBody": {
+					"description": "The command to execute as typed in",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
