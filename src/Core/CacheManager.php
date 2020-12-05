@@ -18,6 +18,9 @@ class CacheManager {
 
 	/** @Inject */
 	public Util $util;
+	
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * The directory where to store the cache information
@@ -35,6 +38,101 @@ class CacheManager {
 		if (!@is_dir($this->cacheDir)) {
 			mkdir($this->cacheDir, 0777);
 		}
+	}
+		
+	public function forceLookupFromCache(string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge): ?CacheResult {
+		// Check if a xml file of the person exists and if it is up to date
+		if (!$this->cacheExists($groupName, $filename)) {
+			return null;
+		}
+		$cacheAge = $this->getCacheAge($groupName, $filename);
+		if ($cacheAge > $maxCacheAge) {
+			return null;
+		}
+		$data = $this->retrieve($groupName, $filename);
+		if (!$isValidCallback($data)) {
+			$this->remove($groupName, $filename);
+			return null;
+		}
+		$cacheResult = new CacheResult();
+		$cacheResult->data = $data;
+		$cacheResult->cacheAge = $cacheAge;
+		$cacheResult->usedCache = true;
+		$cacheResult->oldCache = false;
+		$cacheResult->success = true;
+		return $cacheResult;
+	}
+
+	/**
+	 * Lookup information in the cache or retrieve it when outdated and call the callback
+	 */
+	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
+		if (empty($groupName)) {
+			$this->logger->log("ERROR", "Cache group name cannot be empty");
+			return;
+		}
+
+		// Check if an xml file of the person exists and if it is up to date
+		if (!$forceUpdate) {
+			$cachedResult = $this->forceLookupFromCache($groupName, $filename, $isValidCallback, $maxCacheAge);
+			if (isset($cachedResult)) {
+				$callback($cachedResult, ...$args);
+				return;
+			}
+		}
+		//If no old history file was found or it was invalid try to update it from url
+		$this->http->get($url)
+			->withTimeout(10)
+			->withCallback([$this, "handleCacheLookup"], $groupName, $filename, $isValidCallback, $callback, ...$args);
+	}
+
+	/**
+	 * Handle HTTP replies to lookups for the cache
+	 */
+	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, ...$args): void {
+		if ($response->error) {
+			$this->logger->log("WARN", $response->error);
+		}
+		if (!isset($response->body)) {
+			$this->logger->log("WARN", "Empty reply received from " . $response->request->getURI());
+		}
+		if (empty($response->error)
+			&& isset($response->body)
+			&& $isValidCallback($response->body)
+		) {
+			// Lookup for the URL was successful, now update the cache and return data
+			$cacheResult = new CacheResult();
+			$cacheResult->data = $response->body;
+			$cacheResult->cacheAge = 0;
+			$cacheResult->usedCache = false;
+			$cacheResult->oldCache = false;
+			$cacheResult->success = true;
+			$this->store($groupName, $filename, $cacheResult->data);
+			$callback($cacheResult, ...$args);
+			return;
+		}
+		//If the site was not responding or the data was invalid and we
+		// also have no old cache, report that
+		if (!$this->cacheExists($groupName, $filename)) {
+			$callback(new CacheResult(), ...$args);
+			return;
+		}
+		// If we have an old cache entry, use that one, it's better than nothing
+		$data = $this->retrieve($groupName, $filename);
+		if (!call_user_func($isValidCallback, $data)) {
+			// Old cache data is invalid? Delete and report no data found
+			$this->remove($groupName, $filename);
+			$callback(new CacheResult(), ...$args);
+			return;
+		}
+
+		$cacheResult = new CacheResult();
+		$cacheResult->data = $data;
+		$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename);
+		$cacheResult->usedCache = true;
+		$cacheResult->oldCache = true;
+		$cacheResult->success = true;
+		$callback($cacheResult, ...$args);
 	}
 
 	/**

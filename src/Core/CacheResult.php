@@ -33,5 +33,5 @@ class CacheResult {
 	/**
 	 * The cached data as retrieved from the URL's body
 	 */
-	public ?string $data;
+	public ?string $data = null;
 }

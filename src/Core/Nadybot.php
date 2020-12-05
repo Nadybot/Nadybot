@@ -807,12 +807,14 @@ class Nadybot extends AOChat {
 		}
 
 		// check tell limits
-		if (!$this->limitsController->check($sender, $message)) {
-			return;
-		}
-
-		$sendto = new PrivateMessageCommandReply($this, $sender);
-		$this->commandManager->process($type, $message, $sender, $sendto);
+		$this->limitsController->checkAndExecute(
+			$sender,
+			$message,
+			function() use ($sender, $type, $message): void {
+				$sendto = new PrivateMessageCommandReply($this, $sender);
+				$this->commandManager->process($type, $message, $sender, $sendto);
+			}
+		);
 	}
 
 	/**

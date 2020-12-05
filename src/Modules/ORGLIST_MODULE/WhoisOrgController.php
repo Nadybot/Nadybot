@@ -5,11 +5,13 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * @author Tyrence (RK2)
@@ -49,6 +51,9 @@ class WhoisOrgController {
 	
 	/** @Inject */
 	public GuildManager $guildManager;
+
+	/** @Inject */
+	public OnlineController $onlineController;
 	
 	/**
 	 * @HandlesCommand("whoisorg")
@@ -63,7 +68,7 @@ class WhoisOrgController {
 		
 		if (preg_match("/^\d+$/", $args[1])) {
 			$orgId = (int)$args[1];
-			$this->sendOrgInfo($orgId, $sendto, $dimension);
+			$this->sendOrgIdInfo($orgId, $sendto, $dimension);
 			return;
 		}
 		// Someone's name.  Doing a whois to get an orgID.
@@ -79,18 +84,21 @@ class WhoisOrgController {
 					$sendto->reply($msg);
 					return;
 				}
-				$this->sendOrgInfo($whois->guild_id, $sendto, $dimension);
+				$this->sendOrgIdInfo($whois->guild_id, $sendto, $dimension);
 			},
 			$name,
 			$dimension
 		);
 	}
 
-	protected function sendOrgInfo(int $orgId, CommandReply $sendto, int $dimension): void {
+	protected function sendOrgIdInfo(int $orgId, CommandReply $sendto, int $dimension): void {
 		$msg = "Getting org info...";
 		$sendto->reply($msg);
 
-		$org = $this->guildManager->getById($orgId, $dimension);
+		$this->guildManager->getByIdAsync($orgId, $dimension, false, [$this, "sendOrgInfo"], $sendto);
+	}
+
+	public function sendOrgInfo(?Guild $org, CommandReply $sendto): void {
 		if ($org === null) {
 			$msg = "Error in getting the org info. ".
 				"Either the org does not exist or AO's server ".
@@ -125,7 +133,7 @@ class WhoisOrgController {
 		$averageLevel = round($sumLevels/$numMembers);
 
 		$link = "<header2>General Info<end>\n";
-		$link .= "<tab>Faction: <highlight>$leader->faction<end>\n";
+		$link .= "<tab>Faction: <" . strtolower($leader->faction) . ">$leader->faction<end>\n";
 		$link .= "<tab>Lowest lvl: <highlight>$minLevel<end>\n";
 		$link .= "<tab>Highest lvl: <highlight>$maxLevel<end>\n";
 		$link .= "<tab>Average lvl: <highlight>$averageLevel<end>\n\n";
@@ -140,6 +148,7 @@ class WhoisOrgController {
 		ksort($countProfs);
 		$link .= "<header2>Members ($numMembers)<end>\n";
 		foreach ($countProfs as $prof => $profMembers) {
+			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->onlineController->getProfessionId($prof).">";
 			$link .= "<tab>".
 				$this->text->alignNumber($profMembers, 3, "highlight").
 				"  (".
@@ -147,7 +156,7 @@ class WhoisOrgController {
 					(int)round(($profMembers*100)/$numMembers, 1),
 					(count($countProfs) > 1 ) ? 2 : 3
 				).
-				"%)  $prof\n";
+				"%)  $profIcon $prof\n";
 		}
 		$msg = $this->text->makeBlob("Org Info for $org->orgname", $link);
 

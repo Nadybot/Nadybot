@@ -174,7 +174,7 @@ class PlayerManager {
 		if (!isset($response) || $response->headers["status-code"] !== "200") {
 			return null;
 		}
-		if ($response->body === "null") {
+		if (!isset($response->body) || $response->body === "null") {
 			return null;
 		}
 		[$char, $org] = json_decode($response->body);
@@ -191,7 +191,7 @@ class PlayerManager {
 		$obj->faction        = $char->SIDE;
 		$obj->profession     = $char->PROF;
 		$obj->prof_title     = $char->PROFNAME;
-		$obj->ai_rank        = $char->RANK_name;
+		$obj->ai_rank        = $char->RANK_name ?? '';
 		$obj->ai_level       = $char->ALIENLEVEL;
 		$obj->guild_id       = $org->ORG_INSTANCE;
 		$obj->guild          = $org->NAME ?? '';
