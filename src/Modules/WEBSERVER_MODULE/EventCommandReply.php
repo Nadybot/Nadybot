@@ -84,7 +84,7 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/<a href='chatcmd:\/\/\/start\s+(.*?)'>(.*?)<\/a>/s", "<a href=\"$1\">$2</a>", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "<command cmd=\"$1\">$2</command>", $message);
 		$message = str_ireplace(array_keys($symbols), array_values($symbols), $message);
-		$message = preg_replace("/<img src=['\"]?rdb:\/\/\d+['\"]?>/s", "<img rdb=\"$1\" />", $message);
+		$message = preg_replace("/<img src=['\"]?rdb:\/\/(\d+)['\"]?>/s", "<img rdb=\"$1\" />", $message);
 		$message = preg_replace("/<font color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
 		$message = preg_replace("/<\/font>/", "</color>", $message);
 		return $message;

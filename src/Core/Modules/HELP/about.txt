@@ -1,7 +1,7 @@
 Version: <version>
 Project Site: <a href='chatcmd:///start https://github.com/Nadybot/Nadybot'>https://github.com/Nadybot/Nadybot</a>
 
-I would like to thanks the following people:
+I would like to thank the following people:
 - <highlight>Tyrence (RK5)<end> for taking care of Budabot until 4.0.
 - <highlight>Patate-1 (RK5)<end> for exploring game mechanics and always coming up with a formula.
 - <highlight>Lucier (RK1)<end> for tons of discussions about game mechanics.
