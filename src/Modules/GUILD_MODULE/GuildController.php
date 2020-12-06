@@ -588,23 +588,27 @@ class GuildController {
 
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
 		$msg = '';
+		$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
+		if ($logonMsg !== null && $logonMsg !== '') {
+			$logonMsg = " - {$logonMsg}";
+		}
 		if ($whois === null) {
-			$msg = "$player logged on.";
+			$msg = "$player logged on";
 		} else {
 			$msg = $this->playerManager->getInfo($whois);
 
-			$msg .= " logged on.";
+			$msg .= " logged on";
 
 			$altInfo = $this->altsController->getAltInfo($player);
 			if ($suppressAltList) {
 				if ($altInfo->main !== $player) {
-					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+					$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
 				}
 			} else {
 				if (count($altInfo->alts) > 0) {
 					$altInfo->getAltsBlobAsync(
-						function($blob) use ($msg, $callback): void {
-							$callback("{$msg} {$blob}");
+						function($blob) use ($msg, $callback, $logonMsg): void {
+							$callback("{$msg}. {$blob}{$logonMsg}");
 						},
 						true
 					);
@@ -613,11 +617,7 @@ class GuildController {
 			}
 		}
 
-		$logonMsg = $this->preferences->get($player, 'logon_msg');
-		if ($logonMsg !== null && $logonMsg !== '') {
-			$msg .= " - " . $logonMsg;
-		}
-		$callback($msg);
+		$callback($msg.$logonMsg);
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
