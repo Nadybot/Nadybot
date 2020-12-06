@@ -1,27 +1,40 @@
 import { createStore } from "vuex";
 
-import { executeCommand, getOnlineMembers } from "@/nadybot/http";
-
 import socket from "./plugins/socket";
+import { executeCommand, getOnlineMembers } from "@/nadybot/http";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
+import { CommandReply, Message } from "@/nadybot/types/command_reply";
 
 const emptyPlayers: OnlinePlayers = {
   org: [],
   private_channel: [],
 };
 
+interface State {
+  users: OnlinePlayers;
+  users_failed: boolean;
+  uuid: string;
+  messages: Array<Message>;
+}
+
+const intitialState: State = {
+  users: emptyPlayers,
+  users_failed: false,
+  uuid: "",
+  messages: [],
+};
+
 export default createStore({
-  state: {
-    users: emptyPlayers,
-    users_failed: false,
-    uuid: "",
-  },
+  state: intitialState,
   getters: {
     allUsers(state): Array<OnlinePlayer> {
       return state.users.org.concat(state.users.private_channel);
     },
     usersFailed(state): boolean {
       return state.users_failed;
+    },
+    messages(state): Array<Message> {
+      return state.messages;
     },
   },
   mutations: {
@@ -93,7 +106,16 @@ export default createStore({
         context.commit("delOnlinePrivUser", player_name);
       }
     },
+    CommandReplyEvent(context, data: CommandReply): void {
+      context.state.messages.push(...data.msgs);
+    },
     async executeCommand(context, command: string): Promise<void> {
+      const message: Message = {
+        message: command,
+        popups: {},
+        from_user: true,
+      };
+      context.state.messages.push(message);
       await executeCommand(context.state.uuid, command);
     },
   },
