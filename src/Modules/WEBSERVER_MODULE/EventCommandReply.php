@@ -50,7 +50,7 @@ class EventCommandReply implements CommandReply {
 				$msgs[$i]->message,
 				$matches2
 			)) {
-				$expand = preg_replace("/^<h1>.+?<\/h1><br \/><br \/>/", "", $msgs[$i]->popups->{$matches2[1]});
+				$expand = preg_replace("/^<h1>.+?<\/h1>(<br \/>)*/", "", $msgs[$i]->popups->{$matches2[1]});
 				$msgs[0]->popups->{$matches[1]} .= $expand;
 			}
 		}
@@ -73,11 +73,10 @@ class EventCommandReply implements CommandReply {
 			"cyan" => "#00FFFF",
 			"violet" => "#8F00FF",
 	
-			"neutral" => "#111111",
-			"omni" => "#222222",
-			"clan" => "#333333",
-			"unknown" => "#444444",
-	
+			"neutral" => "#E6E1A6",
+			"omni" => "#00FFFF",
+			"clan" => "#F79410",
+			"unknown" => "#FF0000",
 		];
 	
 		$symbols = [
@@ -90,12 +89,15 @@ class EventCommandReply implements CommandReply {
 	
 		$stack = [];
 		$message = preg_replace_callback(
-			"/<(end|" . join("|", array_keys($colors)) . ")>/",
+			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color=[\"']?(#.{6})[\"'])>/i",
 			function(array $matches) use (&$stack, $colors): string {
 				if ($matches[1] === "end") {
 					return "</" . array_pop($stack) . ">";
+				} elseif (preg_match("/font\s+color=[\"']?(#.{6})[\"']/i", $matches[1], $colorMatch)) {
+					$tag = $colorMatch[1];
+				} else {
+					$tag = $colors[strtolower($matches[1])];
 				}
-				$tag = $colors[$matches[1]];
 				if (substr($tag, 0, 1) === "#") {
 					$stack []= "color";
 					return "<color value=\"$tag\">";
@@ -120,10 +122,18 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/<a href='chatcmd:\/\/\/start\s+(.*?)'>(.*?)<\/a>/s", "<a href=\"$1\">$2</a>", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "<command cmd=\"$1\">$2</command>", $message);
 		$message = str_ireplace(array_keys($symbols), array_values($symbols), $message);
+		$message = preg_replace_callback(
+			"/<img src=['\"]?tdb:\/\/id:GFX_GUI_ICON_PROFESSION_(\d+)['\"]?>/s",
+			function (array $matches): string {
+				return "<img prof=\"" . $this->professionIdToName((int)$matches[1]) . "\" />";
+			},
+			$message
+		);
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/(\d+)['\"]?>/s", "<img rdb=\"$1\" />", $message);
 		$message = preg_replace("/<font color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
 		$message = preg_replace("/<\/font>/", "</color>", $message);
 		$message = preg_replace("/&(?![a-zA-Z]+;)/", "&amp;", $message);
+		$message = preg_replace("/<\/h(\d)>(<br\s*\/>)+/", "</h$1>", $message);
 
 		return $message;
 	}
@@ -134,7 +144,7 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace_callback(
 			"/<a href=\"text:\/\/(.+?)\">(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
-				$parts[++$id] = $this->formatMsg(preg_replace("/^<font.*?>(<end>)?/", "", html_entity_decode($matches[1])));
+				$parts[++$id] = $this->formatMsg(preg_replace("/^<font.*?>(<end>)?/", "", str_replace("&quot;", '"', $matches[1])));
 				return "<popup id=\"$id\">" . $this->formatMsg($matches[2]) . "</popup>";
 			},
 			$message
@@ -144,5 +154,25 @@ class EventCommandReply implements CommandReply {
 		  "message" => $this->formatMsg($message),
 		  "popups" => (object)$parts
 		];
+	}
+
+	public function professionIdToName(int $id): string {
+		$idToProf = [
+			1  => "Soldier",
+			2  => "Martial Artist",
+			3  => "Engineer",
+			4  => "Fixer",
+			5  => "Agent",
+			6  => "Adventurer",
+			7  => "Trader",
+			8  => "Bureaucrat",
+			9  => "Enforcer",
+			10 => "Doctor",
+			11 => "Nano-Technician",
+			12 => "Meta-Physicist",
+			14 => "Keeper",
+			15 => "Shade",
+		];
+		return $idToProf[$id] ?? "Unknown";
 	}
 }
