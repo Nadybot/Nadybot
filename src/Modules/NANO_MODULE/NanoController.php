@@ -130,14 +130,15 @@ class NanoController {
 		$currentNanoline = -1;
 		$currentSubstrain = null;
 		foreach ($data as $row) {
+			$defColor = $this->settingManager->getString('default_window_color');
 			if ($currentNanoline !== $row->strain || $currentSubstrain !== $row->sub_strain) {
 				if (!empty($row->strain)) {
 					$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines $row->strain");
-					$blob .= "\n<header2>$row->school<end> &gt; <header2>$row->strain<end>";
+					$blob .= "\n<header2>$row->school {$defColor}&gt;<end> $row->strain";
 					if ($row->sub_strain) {
-						$blob .= " &gt; <header2>$row->sub_strain<end>";
+						$blob .= " {$defColor}&gt;<end> $row->sub_strain";
 					}
-					$blob .= " - [$nanolineLink]\n";
+					$blob .= "{$defColor} - [$nanolineLink]<end><end>\n";
 				} else {
 					$blob .= "\n<header2>Unknown/General<end>\n";
 				}
