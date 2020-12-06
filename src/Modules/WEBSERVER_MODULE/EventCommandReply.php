@@ -123,6 +123,8 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/(\d+)['\"]?>/s", "<img rdb=\"$1\" />", $message);
 		$message = preg_replace("/<font color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
 		$message = preg_replace("/<\/font>/", "</color>", $message);
+		$message = preg_replace("/&(?![a-zA-Z]+;)/", "&amp;", $message);
+
 		return $message;
 	}
 	
