@@ -38,6 +38,11 @@ export default {
           path: "/settings",
           icon: "cog",
         },
+        {
+          name: "Console",
+          path: "/console",
+          icon: "terminal",
+        },
       ],
     };
   },

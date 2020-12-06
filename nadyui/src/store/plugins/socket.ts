@@ -15,7 +15,7 @@ export default function createWebSocketPlugin() {
       store.dispatch("websocketOpen");
     };
 
-    client.onmessage = function (e: MessageEvent<string>) {
+    client.onmessage = async function (e: MessageEvent<string>) {
       const data = JSON.parse(e.data);
       if (data.command == "event") {
         store.dispatch(data.data.class, data.data);
