@@ -10,6 +10,6 @@ class DefineCommand extends Annotation {
 	public ?string $accessLevel = null;
 	public ?string $description = null;
 	public ?string $help = null;
-	public int $defaultStatus = 0;
+	public ?int $defaultStatus = null;
 	public ?string $alias = null;
 }
