@@ -186,11 +186,11 @@ class PlayerManager {
 		$obj->name           = $char->NAME;
 		$obj->lastname       = trim($char->LASTNAME);
 		$obj->level          = $char->LEVELX;
-		$obj->breed          = $char->BREED;
-		$obj->gender         = $char->SEX;
-		$obj->faction        = $char->SIDE;
+		$obj->breed          = $char->BREED ?? '';
+		$obj->gender         = $char->SEX ?? '';
+		$obj->faction        = $char->SIDE ?? '';
 		$obj->profession     = $char->PROF;
-		$obj->prof_title     = $char->PROFNAME;
+		$obj->prof_title     = $char->PROFNAME ?? '';
 		$obj->ai_rank        = $char->RANK_name ?? '';
 		$obj->ai_level       = $char->ALIENLEVEL;
 		$obj->guild_id       = $org->ORG_INSTANCE;
