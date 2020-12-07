@@ -42,7 +42,7 @@ function formatNode(messageId: number, node: Element): string {
     const highId = node.getAttribute("highid");
     const ql = node.getAttribute("ql");
     if (lowId && highId && ql) {
-      result += `<a href="https://aoitems.com/item/${lowId}/${ql}/">`;
+      result += `<a href="https://aoitems.com/item/${lowId}/${ql}/" target="_blank">`;
     } else {
       result += "<a>";
     }
@@ -50,7 +50,7 @@ function formatNode(messageId: number, node: Element): string {
   } else if (node.nodeName == "nano") {
     const id = node.getAttribute("id");
     if (id) {
-      result += `<a href="https://aoitems.com/item/${id}/">`;
+      result += `<a href="https://aoitems.com/item/${id}/" target="_blank">`;
     } else {
       result += "<a>";
     }
@@ -66,7 +66,7 @@ function formatNode(messageId: number, node: Element): string {
   } else if (node.nodeName == "a") {
     const target = node.getAttribute("href");
     if (target) {
-      result += `<a href="${target}">`;
+      result += `<a href="${target}" target="_blank">`;
     } else {
       result += "<a>";
     }
