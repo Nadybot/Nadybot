@@ -97,6 +97,7 @@ interface ConsoleData {
   inputText: string;
   commandHistory: Array<string>;
   historyIdx: number;
+  activePopup: string;
 }
 
 // https://stackoverflow.com/questions/12709074/how-do-you-explicitly-set-a-new-property-on-window-in-typescript
@@ -115,12 +116,13 @@ export default defineComponent({
       inputText: "",
       commandHistory: [],
       historyIdx: 0,
+      activePopup: "",
     };
   },
 
   created(): void {
     window.togglePopup = this.togglePopup.bind(this);
-    window.executeCommand = this.executeCommand.bind(this);
+    window.executeCommand = this.runCommand.bind(this);
   },
 
   mounted(): void {
@@ -162,14 +164,17 @@ export default defineComponent({
       return real;
     },
     togglePopup: function (msgId: number, popupId: number): void {
-      const elem = document.getElementById(`popup-${msgId}-${popupId}`);
+      const popup = `popup-${msgId}-${popupId}`;
+      const elem = document.getElementById(popup);
       if (elem) {
+        this.activePopup = popup;
         elem.classList.add("show");
       }
     },
     closePopup: function (msgId: number, popupId: number): void {
       const elem = document.getElementById(`popup-${msgId}-${popupId}`);
       if (elem) {
+        this.activePopup = "";
         elem.classList.remove("show");
       }
     },
@@ -177,6 +182,12 @@ export default defineComponent({
       // Soft wrapper for executeCommand with history integration
       this.commandHistory.push(command);
       this.historyIdx = 0;
+      if (this.activePopup) {
+        const elem = document.getElementById(this.activePopup);
+        if (elem) {
+          elem.classList.remove("show");
+        }
+      }
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
