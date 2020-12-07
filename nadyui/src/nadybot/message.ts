@@ -111,3 +111,26 @@ export function formatXmlDocument(id: number, document: XMLDocument): string {
   }
   return formatNode(id, rootNode as Element);
 }
+
+export function formatXmlDocumentPopup(document: XMLDocument): string {
+  const rootNode = document.firstChild;
+  if (!rootNode) {
+    return "";
+  }
+  if (rootNode.firstChild) {
+    rootNode.removeChild(rootNode.firstChild);
+  }
+  // Assume there are no popups in a popup
+  return formatNode(0, rootNode as Element);
+}
+
+export function formatModalTitle(document: XMLDocument): string {
+  const firstChild = document.firstChild;
+  if (firstChild && firstChild.firstChild) {
+    // No popups in popup title, so 0 is fine
+    // It will be a h3 so strip those tags manually
+    const formatted = formatNode(0, firstChild.firstChild as Element);
+    return formatted.substr(4, formatted.length - 5);
+  }
+  return "";
+}
