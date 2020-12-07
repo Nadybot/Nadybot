@@ -4,13 +4,22 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\SettingManager;
 
 class EventCommandReply implements CommandReply {
-	protected EventManager $eventManager;
+	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
 	protected string $uuid;
 
-	public function __construct(EventManager $eventManager, string $uuid) {
-		$this->eventManager = $eventManager;
+	public function __construct(string $uuid) {
 		$this->uuid = $uuid;
 	}
 
@@ -50,11 +59,18 @@ class EventCommandReply implements CommandReply {
 				$msgs[$i]->message,
 				$matches2
 			)) {
-				$expand = preg_replace("/^<h1>.+?<\/h1>(<br \/>)*/", "", $msgs[$i]->popups->{$matches2[1]});
+				$expand = preg_replace("/^<h1>.+?<\/h1>(<br \/>){0,2}/", "", $msgs[$i]->popups->{$matches2[1]});
 				$msgs[0]->popups->{$matches[1]} .= $expand;
 			}
 		}
 		return [$msgs[0]];
+	}
+
+	protected function getColorFromSetting(string $setting): string {
+		if (preg_match('/#[0-9A-F]{6}/', $this->settingManager->getString($setting), $matches)) {
+			return $matches[0];
+		}
+		return "#000000";
 	}
 
 	public function formatMsg(string $message): string {
@@ -73,15 +89,15 @@ class EventCommandReply implements CommandReply {
 			"cyan" => "#00FFFF",
 			"violet" => "#8F00FF",
 	
-			"neutral" => "#E6E1A6",
-			"omni" => "#00FFFF",
-			"clan" => "#F79410",
-			"unknown" => "#FF0000",
+			"neutral" => $this->getColorFromSetting('default_neut_color'),
+			"omni" => $this->getColorFromSetting('default_omni_color'),
+			"clan" => $this->getColorFromSetting('default_clan_color'),
+			"unknown" => $this->getColorFromSetting('default_unknown_color'),
 		];
 	
 		$symbols = [
-			"<myname>" => "Ich",
-			"<myguild>" => "Gilde",
+			"<myname>" => $this->chatBot->vars["name"],
+			"<myguild>" => $this->chatBot->vars["my_guild"],
 			"<tab>" => "<tab />",
 			"<symbol>" => "",
 			"<br>" => "<br />",
@@ -118,7 +134,13 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/\r?\n/", "<br />", $message);
 		$message = preg_replace("/<a href=['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</item>", $message);
 		$message = preg_replace("/<a href=['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<nano id=\"$1\">$2</nano>", $message);
-		$message = preg_replace("/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s", "<command cmd=\"$1\">$2</command>", $message);
+		$message = preg_replace_callback(
+			"/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s",
+			function(array $matches): string {
+				return '<command cmd="' . htmlentities($matches[1]) . "\">{$matches[2]}</command>";
+			},
+			$message
+		);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/start\s+(.*?)'>(.*?)<\/a>/s", "<a href=\"$1\">$2</a>", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "<command cmd=\"$1\">$2</command>", $message);
 		$message = str_ireplace(array_keys($symbols), array_values($symbols), $message);
@@ -132,8 +154,8 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/(\d+)['\"]?>/s", "<img rdb=\"$1\" />", $message);
 		$message = preg_replace("/<font color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
 		$message = preg_replace("/<\/font>/", "</color>", $message);
-		$message = preg_replace("/&(?![a-zA-Z]+;)/", "&amp;", $message);
-		$message = preg_replace("/<\/h(\d)>(<br\s*\/>)+/", "</h$1>", $message);
+		$message = preg_replace("/&(?!(?:[a-zA-Z]+|#\d+);)/", "&amp;", $message);
+		$message = preg_replace("/<\/h(\d)>(<br\s*\/>){1,2}/", "</h$1>", $message);
 
 		return $message;
 	}
@@ -144,7 +166,7 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace_callback(
 			"/<a href=\"text:\/\/(.+?)\">(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
-				$parts[++$id] = $this->formatMsg(preg_replace("/^<font.*?>(<end>)?/", "", str_replace("&quot;", '"', $matches[1])));
+				$parts[++$id] = $this->formatMsg(preg_replace("/^<font.*?>(<end>)?/", "", str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[1])));
 				return "<popup id=\"$id\">" . $this->formatMsg($matches[2]) . "</popup>";
 			},
 			$message

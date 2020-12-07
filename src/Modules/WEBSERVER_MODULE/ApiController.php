@@ -330,7 +330,8 @@ class ApiController {
 			return new Response(Response::NOT_FOUND);
 		}
 		if (strlen($msg)) {
-			$handler = new EventCommandReply($this->eventManager, $uuid);
+			$handler = new EventCommandReply($uuid);
+			Registry::injectDependencies($handler);
 			$this->commandManager->process("msg", $msg, $request->authenticatedAs, $handler);
 		}
 		return new Response(Response::NO_CONTENT);
