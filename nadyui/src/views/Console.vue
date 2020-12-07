@@ -136,10 +136,7 @@ export default defineComponent({
     maybeSend: async function (e: KeyboardEvent): Promise<void> {
       if (e.key == "Enter") {
         await this.runCommand(this.inputText);
-        const scroll = document.getElementById("console-list");
-        if (scroll) {
-          scroll.scrollTop = scroll.scrollHeight;
-        }
+        this.scrollOutputDown();
         this.inputText = "";
       } else if (
         e.key == "ArrowUp" &&
@@ -178,6 +175,12 @@ export default defineComponent({
         elem.classList.remove("show");
       }
     },
+    scrollOutputDown: function (): void {
+      const scroll = document.getElementById("console-list");
+      if (scroll) {
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+    },
     runCommand: async function (command: string): Promise<void> {
       // Soft wrapper for executeCommand with history integration
       this.commandHistory.push(command);
@@ -188,6 +191,7 @@ export default defineComponent({
           elem.classList.remove("show");
         }
       }
+      this.scrollOutputDown();
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
