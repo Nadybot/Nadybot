@@ -71,15 +71,19 @@
   z-index: -1;
 }
 
-.modal-dialog {
-  min-width: 50vw;
+.modal {
+  backdrop-filter: blur(5px);
 
-  .modal-content {
-    border: 1.5px solid #fff;
-    max-height: 94vh;
+  .modal-dialog {
+    min-width: 50vw;
 
-    .modal-body {
-      overflow-y: scroll;
+    .modal-content {
+      border: 1.5px solid #fff;
+      max-height: 94vh;
+
+      .modal-body {
+        overflow-y: scroll;
+      }
     }
   }
 }
@@ -177,10 +181,7 @@ export default defineComponent({
   },
 
   mounted(): void {
-    const elem = document.getElementById("command-input-field");
-    if (elem) {
-      elem.focus();
-    }
+    this.focusInput();
     document.addEventListener("keydown", this.closePopupIfEscape);
   },
 
@@ -194,6 +195,12 @@ export default defineComponent({
   },
 
   methods: {
+    focusInput: function (): void {
+      const elem = document.getElementById("command-input-field");
+      if (elem) {
+        elem.focus();
+      }
+    },
     maybeSend: async function (e: KeyboardEvent): Promise<void> {
       if (e.key == "Enter") {
         await this.runCommand(this.inputText);
@@ -243,6 +250,7 @@ export default defineComponent({
           this.activePopup = "";
           elem.classList.remove("show");
         }
+        this.focusInput();
       }
     },
     closePopupIfEscape: function (e: KeyboardEvent): void {
