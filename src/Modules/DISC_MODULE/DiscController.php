@@ -149,7 +149,7 @@ class DiscController {
 	 *
 	 * @param Disc[] $discs The discs that matched the search
 	 */
-	public function getDiscChoiceDialogue(array $discs): string {
+	public function getDiscChoiceDialogue(array $discs): array {
 		$blob = [];
 		foreach ($discs as $disc) {
 			$text = $this->text->makeChatcmd($disc->disc_name, "/tell <myname> disc ".$disc->disc_name);
@@ -168,6 +168,6 @@ class DiscController {
 				$msg
 			);
 		}
-		return "Found ${msg}.";
+		return ["Found ${msg}."];
 	}
 }
