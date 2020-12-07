@@ -11,7 +11,7 @@ function formatNode(messageId: number, node: Element): string {
   let result = "";
   let closingTag: string | null = null;
   if (node.nodeName == "strong") {
-    result += "<strong>";
+    result += `<strong class="make-lighter-strong">`;
     closingTag = "</strong>";
   } else if (node.nodeName == "color") {
     const value = node.getAttribute("value");
@@ -24,11 +24,11 @@ function formatNode(messageId: number, node: Element): string {
     }
     closingTag = "</span>";
   } else if (node.nodeName == "h1") {
-    result += "<h3>";
-    closingTag = "</h3>";
-  } else if (node.nodeName == "h2") {
     result += "<h4>";
     closingTag = "</h4>";
+  } else if (node.nodeName == "h2") {
+    result += `<h5 class="heading-orange">`;
+    closingTag = "</h5>";
   } else if (node.nodeName == "br") {
     result += "<br />";
   } else if (node.nodeName == "tab") {
@@ -39,6 +39,9 @@ function formatNode(messageId: number, node: Element): string {
   } else if (node.nodeName == "li") {
     result += `<li>`;
     closingTag = "</li>";
+  } else if (node.nodeName == "u") {
+    result += "<u>";
+    closingTag = "</u>";
   } else if (node.nodeName == "item") {
     const lowId = node.getAttribute("lowid");
     const highId = node.getAttribute("highid");

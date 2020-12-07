@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="usersFailed && showAlert"
+    v-if="users_failed && showAlert"
     class="alert alert-danger alert-dismissible"
     role="alert"
   >
@@ -93,7 +93,7 @@
 </style>
 
 <script lang="ts">
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapState } from "vuex";
 import { defineComponent } from "vue";
 import { OnlinePlayer } from "@/nadybot/types/player";
 import { toggleModule } from "@/nadybot/http";
@@ -137,7 +137,8 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(["allUsers", "usersFailed"]),
+    ...mapGetters(["allUsers"]),
+    ...mapState(["users_failed"]),
   },
 });
 </script>

@@ -84,6 +84,14 @@
   }
 }
 
+.make-lighter-strong {
+  color: #bff;
+}
+
+.heading-orange {
+  color: orange;
+}
+
 body.dark {
   &,
   .list-group-item:not(.list-group-item-dark),
@@ -119,7 +127,7 @@ body.dark {
 </style>
 
 <script lang="ts">
-import { mapGetters, mapActions, mapMutations } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 import { defineComponent } from "vue";
 
 import {
@@ -132,7 +140,7 @@ import {
 interface ConsoleData {
   inputText: string;
   historyIdx: number;
-  activePopup: string;
+  activePopup: string | null;
 }
 
 // https://stackoverflow.com/questions/12709074/how-do-you-explicitly-set-a-new-property-on-window-in-typescript
@@ -150,7 +158,7 @@ export default defineComponent({
     return {
       inputText: "",
       historyIdx: 0,
-      activePopup: "",
+      activePopup: null,
     };
   },
 
@@ -176,6 +184,15 @@ export default defineComponent({
     document.addEventListener("keydown", this.closePopupIfEscape);
   },
 
+  watch: {
+    messages: {
+      handler: function (): void {
+        setTimeout(this.scrollOutputDown, 100);
+      },
+      deep: true,
+    },
+  },
+
   methods: {
     maybeSend: async function (e: KeyboardEvent): Promise<void> {
       if (e.key == "Enter") {
@@ -184,17 +201,17 @@ export default defineComponent({
         this.inputText = "";
       } else if (
         e.key == "ArrowUp" &&
-        this.historyIdx < this.consoleHistory.length
+        this.historyIdx < this.console_history.length
       ) {
         // Go back in history
-        this.inputText = this.consoleHistory[
-          this.consoleHistory.length - this.historyIdx - 1
+        this.inputText = this.console_history[
+          this.console_history.length - this.historyIdx - 1
         ];
         this.historyIdx++;
       } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
         // Go forward in history
-        this.inputText = this.consoleHistory[
-          this.consoleHistory.length - this.historyIdx + 1
+        this.inputText = this.console_history[
+          this.console_history.length - this.historyIdx + 1
         ];
         this.historyIdx--;
       }
@@ -220,10 +237,12 @@ export default defineComponent({
       }
     },
     closeActivePopup: function (): void {
-      const elem = document.getElementById(this.activePopup);
-      if (elem) {
-        this.activePopup = "";
-        elem.classList.remove("show");
+      if (this.activePopup) {
+        const elem = document.getElementById(this.activePopup);
+        if (elem) {
+          this.activePopup = "";
+          elem.classList.remove("show");
+        }
       }
     },
     closePopupIfEscape: function (e: KeyboardEvent): void {
@@ -238,19 +257,16 @@ export default defineComponent({
       }
     },
     runCommand: async function (command: string): Promise<void> {
-      // Soft wrapper for executeCommand with this.consoleHistory integration
+      // Soft wrapper for executeCommand with history integration
       this.addHistoryEntry(command);
       this.historyIdx = 0;
       this.closeActivePopup();
-      this.scrollOutputDown();
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
     ...mapMutations(["addHistoryEntry"]),
   },
 
-  computed: {
-    ...mapGetters(["messages", "consoleHistory"]),
-  },
+  computed: mapState(["messages", "console_history"]),
 });
 </script>
