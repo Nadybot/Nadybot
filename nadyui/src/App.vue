@@ -8,6 +8,14 @@
 </template>
 
 <style lang="scss">
+// Some weird Firefox bug resolves system-ui to Cantarell no matter what
+// Roboto has fixed-width digits and looks good, Verdana is the in-game font
+body {
+  font-family: Roboto, Verdana, system-ui, -apple-system, "Segoe UI",
+    "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 .content-container {
   padding-left: 220px;
 }
