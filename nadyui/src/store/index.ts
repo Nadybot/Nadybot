@@ -32,15 +32,6 @@ export default createStore({
     allUsers(state): Array<OnlinePlayer> {
       return state.users.org.concat(state.users.private_channel);
     },
-    usersFailed(state): boolean {
-      return state.users_failed;
-    },
-    messages(state): Array<Message> {
-      return state.messages;
-    },
-    consoleHistory(state): Array<string> {
-      return state.console_history;
-    },
   },
   mutations: {
     async loadOnlineUsers(state): Promise<void> {
