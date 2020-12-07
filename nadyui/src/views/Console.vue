@@ -34,6 +34,7 @@
   <input
     type="text"
     class="form-control input-fixed-bottom"
+    id="command-input-field"
     placeholder="Enter a command"
     aria-label="Enter a command"
     @keyup="maybeSend"
@@ -112,6 +113,13 @@ export default defineComponent({
   created(): void {
     window.togglePopup = this.togglePopup.bind(this);
     window.executeCommand = this.executeCommand.bind(this);
+  },
+
+  mounted(): void {
+    const elem = document.getElementById("command-input-field");
+    if (elem) {
+      elem.focus();
+    }
   },
 
   methods: {

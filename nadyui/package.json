@@ -15,7 +15,7 @@
     "bootstrap": "^5.0.0-alpha",
     "ts.data.json": "^1.5.0",
     "vue": "^3.0.4",
-    "vue-router": "^4.0.0-rc.6",
+    "vue-router": "^4.0.1",
     "vuejs-smart-table": "git+https://github.com/Gelbpunkt/vuejs-smart-table.git",
     "vuex": "^4.0.0-rc.2"
   },
