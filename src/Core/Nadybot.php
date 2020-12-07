@@ -1024,13 +1024,14 @@ class Nadybot extends AOChat {
 				}
 			} elseif ($method->hasAnnotation('Event')) {
 				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
+					$defaultStatus = @$method->getAnnotation('DefaultStatus')->value;
 					$this->eventManager->register(
 						$moduleName,
 						$eventAnnotation->value,
 						$name . '.' . $method->name,
 						@$method->getAnnotation('Description')->value,
 						@$method->getAnnotation('Help')->value,
-						(int)@$method->getAnnotation('DefaultStatus')->value
+						isset($defaultStatus) ? (int)$defaultStatus : null
 					);
 				}
 			}
