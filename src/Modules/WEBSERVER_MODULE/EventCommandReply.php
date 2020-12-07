@@ -104,15 +104,22 @@ class EventCommandReply implements CommandReply {
 		];
 	
 		$stack = [];
+		$message = preg_replace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
-			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color=[\"']?(#.{6})[\"'])>/i",
+			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color\s*=\s*[\"']?(#.{6})[\"']?)>/i",
 			function(array $matches) use (&$stack, $colors): string {
 				if ($matches[1] === "end") {
+					if (empty($stack)) {
+						return "";
+					}
 					return "</" . array_pop($stack) . ">";
-				} elseif (preg_match("/font\s+color=[\"']?(#.{6})[\"']/i", $matches[1], $colorMatch)) {
+				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
 					$tag = $colorMatch[1];
 				} else {
 					$tag = $colors[strtolower($matches[1])];
+				}
+				if ($tag === null) {
+					return "";
 				}
 				if (substr($tag, 0, 1) === "#") {
 					$stack []= "color";
@@ -123,6 +130,9 @@ class EventCommandReply implements CommandReply {
 			},
 			$message
 		);
+		while (count($stack)) {
+			$message .= "</" . array_pop($stack) . ">";
+		}
 		$message = preg_replace_callback(
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
 			function (array $matches): string {
@@ -134,6 +144,7 @@ class EventCommandReply implements CommandReply {
 		$message = preg_replace("/\r?\n/", "<br />", $message);
 		$message = preg_replace("/<a href=['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</item>", $message);
 		$message = preg_replace("/<a href=['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<nano id=\"$1\">$2</nano>", $message);
+		$message = preg_replace("/<a href=['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<skill id=\"$1\">$2</skill>", $message);
 		$message = preg_replace_callback(
 			"/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s",
 			function(array $matches): string {
@@ -153,7 +164,6 @@ class EventCommandReply implements CommandReply {
 		);
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/(\d+)['\"]?>/s", "<img rdb=\"$1\" />", $message);
 		$message = preg_replace("/<font color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
-		$message = preg_replace("/<\/font>/", "</color>", $message);
 		$message = preg_replace("/&(?!(?:[a-zA-Z]+|#\d+);)/", "&amp;", $message);
 		$message = preg_replace("/<\/h(\d)>(<br\s*\/>){1,2}/", "</h$1>", $message);
 
