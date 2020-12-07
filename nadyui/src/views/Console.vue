@@ -68,17 +68,21 @@
   z-index: -1;
 }
 
-.modal-content {
-  overflow-y: scroll;
-  max-height: 94vh;
+.modal-dialog {
+  min-width: 50vw;
 
-  .btn-close {
-    padding: 0.5rem 0.5rem;
-    right: 0.5rem;
-    top: 0.5rem;
-    position: sticky;
-    z-index: 50000;
-    margin-left: auto;
+  .modal-content {
+    overflow-y: scroll;
+    max-height: 94vh;
+
+    .btn-close {
+      padding: 0.5rem 0.5rem;
+      right: 0.5rem;
+      top: 0.5rem;
+      position: sticky;
+      z-index: 50000;
+      margin-left: auto;
+    }
   }
 }
 </style>

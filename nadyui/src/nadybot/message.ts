@@ -22,11 +22,11 @@ function formatNode(messageId: number, node: Element): string {
     }
     closingTag = "</span>";
   } else if (node.nodeName == "h1") {
-    result += "<h2>";
-    closingTag = "</h2>";
-  } else if (node.nodeName == "h2") {
     result += "<h3>";
     closingTag = "</h3>";
+  } else if (node.nodeName == "h2") {
+    result += "<h4>";
+    closingTag = "</h4>";
   } else if (node.nodeName == "br") {
     result += "<br />";
   } else if (node.nodeName == "tab") {
