@@ -95,6 +95,8 @@ import { parseXml, formatXmlDocument } from "@/nadybot/message";
 
 interface ConsoleData {
   inputText: string;
+  commandHistory: Array<string>;
+  historyIdx: number;
 }
 
 // https://stackoverflow.com/questions/12709074/how-do-you-explicitly-set-a-new-property-on-window-in-typescript
@@ -111,6 +113,8 @@ export default defineComponent({
   data(): ConsoleData {
     return {
       inputText: "",
+      commandHistory: [],
+      historyIdx: 0,
     };
   },
 
@@ -129,12 +133,27 @@ export default defineComponent({
   methods: {
     maybeSend: async function (e: KeyboardEvent): Promise<void> {
       if (e.key == "Enter") {
-        await this.executeCommand(this.inputText);
+        await this.runCommand(this.inputText);
         const scroll = document.getElementById("console-list");
         if (scroll) {
           scroll.scrollTop = scroll.scrollHeight;
         }
         this.inputText = "";
+      } else if (
+        e.key == "ArrowUp" &&
+        this.historyIdx < this.commandHistory.length
+      ) {
+        // Go back in history
+        this.inputText = this.commandHistory[
+          this.commandHistory.length - this.historyIdx - 1
+        ];
+        this.historyIdx++;
+      } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
+        // Go forward in history
+        this.inputText = this.commandHistory[
+          this.commandHistory.length - this.historyIdx + 1
+        ];
+        this.historyIdx--;
       }
     },
     formatMsg: function (id: number, msg: string): string {
@@ -153,6 +172,12 @@ export default defineComponent({
       if (elem) {
         elem.classList.remove("show");
       }
+    },
+    runCommand: async function (command: string): Promise<void> {
+      // Soft wrapper for executeCommand with history integration
+      this.commandHistory.push(command);
+      this.historyIdx = 0;
+      await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
   },
