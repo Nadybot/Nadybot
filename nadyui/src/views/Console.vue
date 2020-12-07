@@ -106,14 +106,13 @@ body.dark {
 </style>
 
 <script lang="ts">
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 import { defineComponent } from "vue";
 
 import { parseXml, formatXmlDocument } from "@/nadybot/message";
 
 interface ConsoleData {
   inputText: string;
-  commandHistory: Array<string>;
   historyIdx: number;
   activePopup: string;
 }
@@ -132,7 +131,6 @@ export default defineComponent({
   data(): ConsoleData {
     return {
       inputText: "",
-      commandHistory: [],
       historyIdx: 0,
       activePopup: "",
     };
@@ -168,17 +166,17 @@ export default defineComponent({
         this.inputText = "";
       } else if (
         e.key == "ArrowUp" &&
-        this.historyIdx < this.commandHistory.length
+        this.historyIdx < this.consoleHistory.length
       ) {
-        // Go back in history
-        this.inputText = this.commandHistory[
-          this.commandHistory.length - this.historyIdx - 1
+        // Go back in this.consoleHistory
+        this.inputText = this.consoleHistory[
+          this.consoleHistory.length - this.historyIdx - 1
         ];
         this.historyIdx++;
       } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
-        // Go forward in history
-        this.inputText = this.commandHistory[
-          this.commandHistory.length - this.historyIdx + 1
+        // Go forward in this.consoleHistory
+        this.inputText = this.consoleHistory[
+          this.consoleHistory.length - this.historyIdx + 1
         ];
         this.historyIdx--;
       }
@@ -215,18 +213,19 @@ export default defineComponent({
       }
     },
     runCommand: async function (command: string): Promise<void> {
-      // Soft wrapper for executeCommand with history integration
-      this.commandHistory.push(command);
+      // Soft wrapper for executeCommand with this.consoleHistory integration
+      this.addHistoryEntry(command);
       this.historyIdx = 0;
       this.closeActivePopup();
       this.scrollOutputDown();
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
+    ...mapMutations(["addHistoryEntry"]),
   },
 
   computed: {
-    ...mapGetters(["messages"]),
+    ...mapGetters(["messages", "consoleHistory"]),
   },
 });
 </script>

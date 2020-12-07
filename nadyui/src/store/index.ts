@@ -15,6 +15,7 @@ interface State {
   users_failed: boolean;
   uuid: string;
   messages: Array<Message>;
+  console_history: Array<string>;
 }
 
 const initialState: State = {
@@ -22,6 +23,7 @@ const initialState: State = {
   users_failed: false,
   uuid: "",
   messages: [],
+  console_history: [],
 };
 
 export default createStore({
@@ -35,6 +37,9 @@ export default createStore({
     },
     messages(state): Array<Message> {
       return state.messages;
+    },
+    consoleHistory(state): Array<string> {
+      return state.console_history;
     },
   },
   mutations: {
@@ -75,6 +80,9 @@ export default createStore({
       state.users.private_channel = state.users.private_channel.filter(
         (player) => player.name != player_name
       );
+    },
+    addHistoryEntry(state, entry: string): void {
+      state.console_history.push(entry);
     },
   },
   actions: {
