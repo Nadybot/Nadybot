@@ -18,13 +18,16 @@
       >
         <div class="modal-dialog model-dialog-scrollable">
           <div class="modal-content">
-            <button
-              type="button"
-              class="btn-close"
-              @click="closeActivePopup()"
-              aria-label="Close"
-            ></button>
-            <div class="modal-body" v-html="formatMsg(msgid, popup)"></div>
+            <div class="modal-header">
+              <h5 class="modal-title" v-html="getModalTitle(popup)"></h5>
+              <button
+                type="button"
+                class="btn-close"
+                @click="closeActivePopup()"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body" v-html="formatPopup(popup)"></div>
           </div>
         </div>
       </div>
@@ -55,11 +58,11 @@
 }
 
 .triggers-action {
-  color: #0d6efd;
+  color: #5798f9;
   text-decoration: underline;
 
   &:hover {
-    color: #0a58ca;
+    color: #397fe6;
     cursor: pointer;
   }
 }
@@ -74,15 +77,6 @@
   .modal-content {
     overflow-y: scroll;
     max-height: 94vh;
-
-    .btn-close {
-      padding: 0.5rem 0.5rem;
-      right: 0.5rem;
-      top: 0.5rem;
-      position: sticky;
-      z-index: 50000;
-      margin-left: auto;
-    }
   }
 }
 
@@ -94,6 +88,13 @@ body.dark {
     color: #89d2e8;
   }
 
+  .modal-header {
+    position: sticky;
+    top: 0;
+    background-color: #333;
+    z-index: 100000;
+  }
+
   .btn-close {
     filter: invert(100%);
     opacity: 1;
@@ -102,6 +103,14 @@ body.dark {
   .form-control {
     background-color: #c6c8ca;
   }
+
+  .container-fluid a {
+    color: #5798f9;
+
+    &:hover {
+      color: #397fe6;
+    }
+  }
 }
 </style>
 
@@ -109,7 +118,12 @@ body.dark {
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import { defineComponent } from "vue";
 
-import { parseXml, formatXmlDocument } from "@/nadybot/message";
+import {
+  parseXml,
+  formatXmlDocument,
+  formatModalTitle,
+  formatXmlDocumentPopup,
+} from "@/nadybot/message";
 
 interface ConsoleData {
   inputText: string;
@@ -168,13 +182,13 @@ export default defineComponent({
         e.key == "ArrowUp" &&
         this.historyIdx < this.consoleHistory.length
       ) {
-        // Go back in this.consoleHistory
+        // Go back in history
         this.inputText = this.consoleHistory[
           this.consoleHistory.length - this.historyIdx - 1
         ];
         this.historyIdx++;
       } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
-        // Go forward in this.consoleHistory
+        // Go forward in history
         this.inputText = this.consoleHistory[
           this.consoleHistory.length - this.historyIdx + 1
         ];
@@ -183,8 +197,15 @@ export default defineComponent({
     },
     formatMsg: function (id: number, msg: string): string {
       const parsed = parseXml(msg);
-      const real = formatXmlDocument(id, parsed);
-      return real;
+      return formatXmlDocument(id, parsed);
+    },
+    getModalTitle: function (msg: string): string {
+      const parsed = parseXml(msg);
+      return formatModalTitle(parsed);
+    },
+    formatPopup: function (msg: string): string {
+      const parsed = parseXml(msg);
+      return formatXmlDocumentPopup(parsed);
     },
     togglePopup: function (msgId: number, popupId: number): void {
       const popup = `popup-${msgId}-${popupId}`;
