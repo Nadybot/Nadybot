@@ -4,7 +4,7 @@
       v-for="(msg, msgid) in messages"
       :key="msgid"
       class="list-group-item"
-      :class="{ 'list-group-item-secondary': msg.from_user }"
+      :class="{ 'list-group-item-dark': msg.from_user }"
       v-html="formatMsg(msgid, msg.message)"
     ></li>
 
@@ -85,6 +85,24 @@
     }
   }
 }
+
+body.dark {
+  &,
+  .list-group-item:not(.list-group-item-dark),
+  .modal-dialog .modal-content {
+    background-color: #333;
+    color: #89d2e8;
+  }
+
+  .btn-close {
+    filter: invert(100%);
+    opacity: 1;
+  }
+
+  .form-control {
+    background-color: #c6c8ca;
+  }
+}
 </style>
 
 <script lang="ts">
@@ -118,6 +136,15 @@ export default defineComponent({
       historyIdx: 0,
       activePopup: "",
     };
+  },
+
+  // Darkmode per view hack
+  beforeCreate(): void {
+    document.body.className = "dark";
+  },
+
+  beforeUnmount(): void {
+    document.body.className = "";
   },
 
   created(): void {

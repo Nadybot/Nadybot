@@ -15,8 +15,10 @@ function formatNode(messageId: number, node: Element): string {
     closingTag = "</strong>";
   } else if (node.nodeName == "color") {
     const value = node.getAttribute("value");
-    if (value) {
+    if (value && value != "#000000") {
       result += `<span style="color:${value}">`;
+    } else if (value) {
+      result += `<span style="opacity:0">`;
     } else {
       result += `<span>`;
     }
