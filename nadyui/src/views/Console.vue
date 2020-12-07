@@ -75,8 +75,12 @@
   min-width: 50vw;
 
   .modal-content {
-    overflow-y: scroll;
+    border: 1.5px solid #fff;
     max-height: 94vh;
+
+    .modal-body {
+      overflow-y: scroll;
+    }
   }
 }
 
