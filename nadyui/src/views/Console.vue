@@ -21,7 +21,7 @@
             <button
               type="button"
               class="btn-close"
-              @click="closePopup(msgid, id)"
+              @click="closeActivePopup()"
               aria-label="Close"
             ></button>
             <div class="modal-body" v-html="formatMsg(msgid, popup)"></div>
@@ -130,6 +130,7 @@ export default defineComponent({
     if (elem) {
       elem.focus();
     }
+    document.addEventListener("keydown", this.closePopupIfEscape);
   },
 
   methods: {
@@ -168,11 +169,16 @@ export default defineComponent({
         elem.classList.add("show");
       }
     },
-    closePopup: function (msgId: number, popupId: number): void {
-      const elem = document.getElementById(`popup-${msgId}-${popupId}`);
+    closeActivePopup: function (): void {
+      const elem = document.getElementById(this.activePopup);
       if (elem) {
         this.activePopup = "";
         elem.classList.remove("show");
+      }
+    },
+    closePopupIfEscape: function (e: KeyboardEvent): void {
+      if (e.key == "Escape") {
+        this.closeActivePopup();
       }
     },
     scrollOutputDown: function (): void {
@@ -185,12 +191,7 @@ export default defineComponent({
       // Soft wrapper for executeCommand with history integration
       this.commandHistory.push(command);
       this.historyIdx = 0;
-      if (this.activePopup) {
-        const elem = document.getElementById(this.activePopup);
-        if (elem) {
-          elem.classList.remove("show");
-        }
-      }
+      this.closeActivePopup();
       this.scrollOutputDown();
       await this.executeCommand(command);
     },
