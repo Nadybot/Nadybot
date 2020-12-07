@@ -17,7 +17,7 @@ interface State {
   messages: Array<Message>;
 }
 
-const intitialState: State = {
+const initialState: State = {
   users: emptyPlayers,
   users_failed: false,
   uuid: "",
@@ -25,7 +25,7 @@ const intitialState: State = {
 };
 
 export default createStore({
-  state: intitialState,
+  state: initialState,
   getters: {
     allUsers(state): Array<OnlinePlayer> {
       return state.users.org.concat(state.users.private_channel);
