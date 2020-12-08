@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Socket,
 	Timer,
 	Socket\AsyncSocket,
-	Socket\TlsServerStart,
 };
 
 /**
@@ -68,6 +67,7 @@ class WebserverController {
 			'superadmin'
 		);
 
+/*
 		$this->settingManager->add(
 			$this->moduleName,
 			'webserver_certificate',
@@ -79,6 +79,7 @@ class WebserverController {
 			'',
 			'superadmin'
 		);
+*/
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -103,6 +104,7 @@ class WebserverController {
 			'superadmin'
 		);
 
+/*
 		$this->settingManager->add(
 			$this->moduleName,
 			'webserver_tls',
@@ -114,6 +116,7 @@ class WebserverController {
 			'1;0',
 			'superadmin'
 		);
+*/
 
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
@@ -122,8 +125,10 @@ class WebserverController {
 		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_addr', [$this, "webserverSettingChanged"]);
+/*
 		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
+*/
 	}
 
 	/**
@@ -250,10 +255,12 @@ class WebserverController {
 		$this->logger->log('DEBUG', 'New client connected from ' . $peerName);
 		$wrapper = $this->socket->wrap($newSocket);
 		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
+/*
 		if ($this->settingManager->getBool('webserver_tls')) {
 			$this->logger->log("DEBUG", "Queueing TLS handshake");
 			$wrapper->writeClosureInterface(new TlsServerStart());
 		}
+*/
 		$httpWrapper = new HttpProtocolWrapper();
 		Registry::injectDependencies($httpWrapper);
 		$httpWrapper->wrapAsyncSocket($wrapper);
@@ -273,6 +280,7 @@ class WebserverController {
 		$port = $this->settingManager->getInt('webserver_port');
 		$addr = $this->settingManager->getString('webserver_addr');
 		$context = stream_context_create();
+/*
 		$tls = $this->settingManager->getBool('webserver_tls');
 		if ($tls) {
 			$certPath = $this->settingManager->get('webserver_certificate');
@@ -283,7 +291,7 @@ class WebserverController {
 			stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
 			stream_context_set_option($context, 'ssl', 'verify_peer', false);
 		}
-
+*/
 		$this->serverSocket = @stream_socket_server(
 			"tcp://{$addr}:{$port}",
 			$errno,
@@ -293,7 +301,7 @@ class WebserverController {
 		);
 
 		if ($this->serverSocket === false) {
-			$error = "Could not open listening socket: {$errstr} ({$errno})";
+			$error = "Could not listen on {$addr} port {$port}: {$errstr} ({$errno})";
 			$this->logger->log('ERROR', $error);
 			return false;
 		}
@@ -302,11 +310,7 @@ class WebserverController {
 		$wrapper->setTimeout(0);
 		$wrapper->on(AsyncSocket::DATA, [$this, "clientConnected"]);
 
-		if ($tls) {
-			$this->logger->log('INFO', "HTTPS server listening on port {$port}");
-		} else {
-			$this->logger->log('INFO', "HTTP server listening on port {$port}");
-		}
+		$this->logger->log('INFO', "HTTP server listening on port {$port}");
 		return true;
 	}
 
@@ -325,6 +329,7 @@ class WebserverController {
 	/**
 	 * Generate a new self-signed certificate for this bot and return the path to it
 	 */
+/*
 	public function generateCertificate(): string {
 		if (@file_exists("/tmp/server.pem")) {
 			return "/tmp/server.pem";
@@ -355,6 +360,7 @@ class WebserverController {
 		file_put_contents($pemfile, $pem);
 		return $pemfile;
 	}
+*/
 
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
@@ -432,7 +438,7 @@ class WebserverController {
 		if ($response->body === false) {
 			return new Response(Response::FORBIDDEN);
 		}
-		$lastmodified = filemtime($realFile);
+		$lastmodified = @filemtime($realFile);
 		if ($lastmodified !== false) {
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
 			$response->headers['Last-Modified'] = $modifiedDate;
