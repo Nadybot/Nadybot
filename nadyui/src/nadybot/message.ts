@@ -50,7 +50,7 @@ function formatNode(messageId: number, node: Element): string {
   } else if (node.nodeName == "br") {
     result += "<br />";
   } else if (node.nodeName == "tab") {
-    result += "&#09;";
+    result += "&emsp;";
   } else if (node.nodeName == "ul") {
     result += "<ul>";
     closingTag = "</ul>";
