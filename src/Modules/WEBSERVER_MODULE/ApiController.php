@@ -17,10 +17,12 @@ use Nadybot\Core\{
 	AccessManager,
 	CommandHandler,
 	CommandManager,
+	EventManager,
 	LoggerWrapper,
 	Registry,
 	SettingManager,
 };
+use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -29,6 +31,7 @@ use ReflectionProperty;
 
 /**
  * @Instance
+ * @ProvidesEvent("cmdreply")
  */
 class ApiController {
 	public string $moduleName;
@@ -44,6 +47,12 @@ class ApiController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
+	public WebsocketController $websocketController;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -297,5 +306,34 @@ class ApiController {
 			$response->setCode(Response::NO_CONTENT);
 		}
 		$server->sendResponse($response);
+	}
+
+	/**
+	 * Execute a command, result is sent via websocket
+	 * @Api("/execute/%s")
+	 * @POST
+	 * @AccessLevel("member")
+	 * @RequestBody(class='string', desc='The command to execute as typed in', required=true)
+	 * @ApiResult(code=204, desc='operation applied successfully')
+	 * @ApiResult(code=404, desc='Invalid UUID provided')
+	 * @ApiResult(code=422, desc='Unparseable data received')
+	 */
+	public function apiExecuteCommand(Request $request, HttpProtocolWrapper $server, string $uuid): Response {
+		if (!is_string($request->decodedBody)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$msg = $request->decodedBody;
+		if (substr($msg, 0, 1) === $this->settingManager->getString('symbol')) {
+			$msg = substr($msg, 1);
+		}
+		if ($this->websocketController->clientExists($uuid) === false) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if (strlen($msg)) {
+			$handler = new EventCommandReply($uuid);
+			Registry::injectDependencies($handler);
+			$this->commandManager->process("msg", $msg, $request->authenticatedAs, $handler);
+		}
+		return new Response(Response::NO_CONTENT);
 	}
 }
