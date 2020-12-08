@@ -1,5 +1,23 @@
 const parser = new DOMParser();
 
+// Somewhat hacky way to get all images with proper URLs after webpack
+const profIcons: Record<string, string> = {
+  Adventurer: require("@/assets/Adventurer.svg"),
+  Agent: require("@/assets/Agent.svg"),
+  Bureaucrat: require("@/assets/Bureaucrat.svg"),
+  Doctor: require("@/assets/Doctor.svg"),
+  Enforcer: require("@/assets/Enforcer.svg"),
+  Engineer: require("@/assets/Engineer.svg"),
+  Fixer: require("@/assets/Fixer.svg"),
+  Keeper: require("@/assets/Keeper.svg"),
+  "Martial Artist": require("@/assets/Martial Artist.svg"),
+  "Meta-Physicist": require("@/assets/Meta-Physicist.svg"),
+  "Nano-Technician": require("@/assets/Nano-Technician.svg"),
+  Shade: require("@/assets/Shade.svg"),
+  Soldier: require("@/assets/Soldier.svg"),
+  Trader: require("@/assets/Trader.svg"),
+};
+
 export function parseXml(body: string): XMLDocument {
   // A little hack so we can iterate the children of the root node
   body = `<msg>${body}</msg>`;
@@ -78,8 +96,12 @@ function formatNode(messageId: number, node: Element): string {
     closingTag = "</a>";
   } else if (node.nodeName == "img") {
     const rdb = node.getAttribute("rdb");
+    const prof = node.getAttribute("prof");
     if (rdb) {
       result += `<img src="https://static.aoitems.com/icon/${rdb}">`;
+      closingTag = "</img>";
+    } else if (prof) {
+      result += `<img src="${profIcons[prof]}" class="prof-icon">`;
       closingTag = "</img>";
     }
   } else if (node.nodeName == "i") {

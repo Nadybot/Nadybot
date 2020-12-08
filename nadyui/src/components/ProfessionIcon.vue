@@ -1,9 +1,9 @@
 <template>
-  <img :src="require(`@/assets/${profession}.svg`)" />
+  <img :src="require(`@/assets/${profession}.svg`)" class="prof-icon" />
 </template>
 
-<style lang="scss" scoped>
-img {
+<style lang="scss">
+.prof-icon {
   height: 20px;
   vertical-align: text-bottom;
 }
