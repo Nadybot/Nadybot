@@ -95,6 +95,11 @@
 
 .heading-orange {
   color: orange;
+  margin-bottom: 0;
+
+  &:not(:first-child) {
+    margin-top: 16px;
+  }
 }
 
 body.dark {
