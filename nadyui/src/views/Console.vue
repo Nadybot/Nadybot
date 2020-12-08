@@ -72,6 +72,7 @@
 }
 
 .modal {
+  background: rgba(1, 1, 1, 0.8);
   backdrop-filter: blur(5px);
 
   .modal-dialog {
