@@ -24,6 +24,20 @@ export function parseXml(body: string): XMLDocument {
   return parser.parseFromString(body, "text/xml");
 }
 
+const itemRegex = /<item lowid="(\d+)" highid="(\d+)" ql="(\d+)">(.*?)<\/item>/gm;
+
+export function replaceItemRefs(text: string): string {
+  const matches = text.replace(
+    itemRegex,
+    `<a href="itemref://$1/$2/$3">$4</a>`
+  );
+  return matches;
+}
+
+function encodeSpecialCharacters(input: string): string {
+  return input.replaceAll('"', "&quot;");
+}
+
 function formatNode(messageId: number, node: Element): string {
   // Figure the starting element based on node type
   let result = "";
@@ -81,7 +95,8 @@ function formatNode(messageId: number, node: Element): string {
   } else if (node.nodeName == "command") {
     const targetCommand = node.getAttribute("cmd");
     if (targetCommand) {
-      result += `<span class="triggers-action" onclick="executeCommand('${targetCommand}')">`;
+      const action = encodeSpecialCharacters(targetCommand);
+      result += `<span class="triggers-action" onclick="executeCommand('${action}')">`;
     } else {
       result += "<span>";
     }

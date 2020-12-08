@@ -4,6 +4,7 @@ import socket from "./plugins/socket";
 import { executeCommand, getOnlineMembers } from "@/nadybot/http";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
 import { CommandReply, Message } from "@/nadybot/types/command_reply";
+import { replaceItemRefs } from "@/nadybot/message";
 
 const emptyPlayers: OnlinePlayers = {
   org: [],
@@ -115,7 +116,8 @@ export default createStore({
         from_user: true,
       };
       context.state.messages.push(message);
-      await executeCommand(context.state.uuid, command);
+      const formattedCommand = replaceItemRefs(command);
+      await executeCommand(context.state.uuid, formattedCommand);
     },
   },
   modules: {},
