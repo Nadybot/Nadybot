@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Throwable;
+
 class EventLoop {
 
 	/** @Inject */
@@ -19,21 +21,28 @@ class EventLoop {
 	/** @Inject */
 	public Timer $timer;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	public function execSingleLoop(): void {
-		$this->chatBot->processAllPackets();
+		try {
+			$this->chatBot->processAllPackets();
 
-		if ($this->chatBot->isReady()) {
-			$socketActivity = $this->socketManager->checkMonitoredSockets();
-			$this->eventManager->executeConnectEvents();
-			$this->timer->executeTimerEvents();
-			$this->amqp->processMessages();
-			$this->eventManager->crons();
+			if ($this->chatBot->isReady()) {
+				$socketActivity = $this->socketManager->checkMonitoredSockets();
+				$this->eventManager->executeConnectEvents();
+				$this->timer->executeTimerEvents();
+				$this->amqp->processMessages();
+				$this->eventManager->crons();
 
-			if (!$socketActivity) {
-				usleep(10000);
-			} else {
-				usleep(200);
+				if (!$socketActivity) {
+					usleep(10000);
+				} else {
+					usleep(200);
+				}
 			}
+		} catch (Throwable $e) {
+			$this->logger->log('ERROR', $e->getMessage() . PHP_EOL . $e->getTraceAsString(), $e);
 		}
 	}
 }
