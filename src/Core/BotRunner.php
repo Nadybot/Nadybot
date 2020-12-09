@@ -13,7 +13,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public static string $version = "5.0";
+	public const VERSION = "5.0";
 
 	/**
 	 * The command line arguments
@@ -41,7 +41,7 @@ class BotRunner {
 	 */
 	public static function getVersion(): string {
 		if (!@file_exists(dirname(dirname(__DIR__)) . '/.git')) {
-			return static::$version;
+			return static::VERSION;
 		}
 		set_error_handler(function($num, $str, $file, $line) {
 			throw new ErrorException($str, 0, $num, $file, $line);
@@ -49,7 +49,7 @@ class BotRunner {
 		try {
 			$ref = explode(": ", trim(@file_get_contents(dirname(dirname(__DIR__)) . '/.git/HEAD')), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
-			$latestTag = static::getLatestTag($ref);
+			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
 			}
@@ -58,7 +58,7 @@ class BotRunner {
 			}
 			return "{$latestTag[1]}";
 		} catch (\Throwable $e) {
-			return static::$version;
+			return static::VERSION;
 		} finally {
 			restore_error_handler();
 		}
@@ -84,7 +84,7 @@ class BotRunner {
 	 *
 	 * @return string[]
 	 */
-	public static function getCommitsForRef(string $ref): array {
+	public static function getCommitsForHead(string $ref): array {
 		$file = trim(file_get_contents(dirname(dirname(__DIR__)) . "/.git/logs/{$ref}"));
 		$commits = array_reverse(explode("\n", $file));
 		$result = [];
@@ -102,9 +102,9 @@ class BotRunner {
 	 * and return how many commits were done since then
 	 * Like [number of commits, tag]
 	 */
-	public static function getLatestTag(string $ref): ?array {
+	public static function getLatestTag(): ?array {
 		$tags = static::getTagsForHashes();
-		$commits = static::getCommitsForRef($ref);
+		$commits = static::getCommitsForHead('HEAD');
 		for ($i = 0; $i < count($commits); $i++) {
 			if (isset($tags[$commits[$i]])) {
 				return [$i, preg_replace("/^v/", "", $tags[$commits[$i]])];
@@ -184,7 +184,7 @@ class BotRunner {
 	 * Get a message describing the bot's codebase
 	 */
 	private function getInitialInfoMessage(): string {
-		$version = sprintf("%-12s", self::getVersion());
+		$version = substr(sprintf("%-23s", self::getVersion()), 0, 23);
 		return
 			"+------------------------------------------------------------------+".PHP_EOL.
 			'|                                                                  |'.PHP_EOL.
@@ -198,7 +198,7 @@ class BotRunner {
 			'| 888    Y888 "Y888888  "Y88888  "Y88888 88888P"   "Y88P"   "Y888  |'.PHP_EOL.
 			'|                                    888                           |'.PHP_EOL.
 			'|                               Y8b d88P                           |'.PHP_EOL.
-			'| Nadybot '.$version.'            Y88P"                            |'.PHP_EOL.
+			'| Nadybot ' . $version .        ' Y88P"                            |'.PHP_EOL.
 			'|                                                                  |'.PHP_EOL.
 			'| Project Site:     https://github.com/Nadybot/Nadybot             |'.PHP_EOL.
 			'| In-Game Contact:  Nadyita                                        |'.PHP_EOL.
