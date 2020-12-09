@@ -92,7 +92,7 @@ class BotRunner {
 			return static::$latestTag;
 		}
 		$tagString = shell_exec("git describe --tags --abbrev=1");
-		if (!preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
+		if (!isset($tagString) || !preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
 			return static::$latestTag = null;
 		}
 		return static::$latestTag = [(int)$matches[2], $matches[1]];
