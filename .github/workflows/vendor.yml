@@ -1,7 +1,7 @@
 name: Create release bundle
 on:
   release:
-    types: [published, prereleased]
+    types: [published]
 
 jobs:
   build:
