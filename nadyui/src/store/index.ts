@@ -4,7 +4,7 @@ import socket from "./plugins/socket";
 import { executeCommand, getOnlineMembers } from "@/nadybot/http";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
 import { CommandReply, Message } from "@/nadybot/types/command_reply";
-import { replaceItemRefs } from "@/nadybot/message";
+import { parseXml, replaceItemRefs } from "@/nadybot/message";
 
 const emptyPlayers: OnlinePlayers = {
   org: [],
@@ -107,11 +107,22 @@ export default createStore({
       }
     },
     CommandReplyEvent(context, data: CommandReply): void {
-      context.state.messages.push(...data.msgs);
+      data.msgs.forEach(function (msg) {
+        const new_message: Message = {
+          message: parseXml(msg.message),
+          popups: {},
+          from_user: false,
+        };
+        for (const key in msg.popups) {
+          const new_content = parseXml(msg.popups[key]);
+          new_message.popups[key] = new_content;
+        }
+        context.state.messages.push(new_message);
+      });
     },
     async executeCommand(context, command: string): Promise<void> {
       const message: Message = {
-        message: command,
+        message: parseXml(command),
         popups: {},
         from_user: true,
       };

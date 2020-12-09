@@ -4,6 +4,8 @@ import router from "./router";
 import store from "./store";
 
 import FontAwesomeIcon from "@/components/FontAwesomeIcon.vue";
+import AOMessage from "@/components/AOMessage.vue";
+import Message from "@/components/Message.vue";
 import ProfessionIcon from "@/components/ProfessionIcon.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import TimePicker from "@/components/TimePicker.vue";
@@ -17,4 +19,6 @@ createApp(App)
   .component("fa", FontAwesomeIcon)
   .component("profession-icon", ProfessionIcon)
   .component("time-picker", TimePicker)
+  .component("ao-message", AOMessage)
+  .component("message", Message)
   .mount("#app");
