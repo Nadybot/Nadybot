@@ -1,14 +1,20 @@
 import { JsonDecoder } from "ts.data.json";
 
-export interface Message {
+export interface MessageIncoming {
   message: string;
   popups: Record<string, string>;
   from_user: boolean;
 }
 
+export interface Message {
+  message: XMLDocument;
+  popups: Record<string, XMLDocument>;
+  from_user: boolean;
+}
+
 export interface CommandReply {
   class: string;
-  msgs: Array<Message>;
+  msgs: Array<MessageIncoming>;
   type: string;
   uuid: string;
 }
@@ -19,7 +25,7 @@ const MessageDecoderMapping = {
   from_user: JsonDecoder.failover(false, JsonDecoder.boolean),
 };
 
-const messageDecoder = JsonDecoder.objectStrict<Message>(
+const messageDecoder = JsonDecoder.objectStrict<MessageIncoming>(
   MessageDecoderMapping,
   "Message"
 );

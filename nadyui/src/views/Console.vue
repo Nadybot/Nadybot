@@ -1,37 +1,17 @@
 <template>
   <ul class="list-group" id="console-list">
     <li
-      v-for="(msg, msgid) in messages"
-      :key="msgid"
+      v-for="msg in messages"
+      :key="msg"
       class="list-group-item"
       :class="{ 'list-group-item-dark': msg.from_user }"
-      v-html="formatMsg(msgid, msg.message)"
-    ></li>
-
-    <template v-for="(msg, msgid) in messages">
-      <div
-        v-for="(popup, id) in msg.popups"
-        :key="id"
-        class="modal fade d-block"
-        :id="'popup-' + msgid + '-' + id"
-        tabindex="-1"
-      >
-        <div class="modal-dialog model-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" v-html="getModalTitle(popup)"></h5>
-              <button
-                type="button"
-                class="btn-close"
-                @click="closeActivePopup()"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body" v-html="formatPopup(popup)"></div>
-          </div>
-        </div>
-      </div>
-    </template>
+    >
+      <message
+        :content="msg.message"
+        :popups="msg.popups"
+        @run-command="runCommand($event)"
+      ></message>
+    </li>
   </ul>
 
   <input
@@ -57,69 +37,11 @@
   max-width: 87.3vw;
 }
 
-.triggers-action {
-  color: #5798f9;
-  text-decoration: underline;
-
-  &:hover {
-    color: #397fe6;
-    cursor: pointer;
-  }
-}
-
-.fade:not(.show) {
-  z-index: -1;
-}
-
-.modal {
-  background: rgba(1, 1, 1, 0.8);
-  backdrop-filter: blur(5px);
-
-  .modal-dialog {
-    min-width: 50vw;
-
-    .modal-content {
-      border: 1.5px solid #fff;
-      max-height: 94vh;
-
-      .modal-body {
-        overflow-y: scroll;
-      }
-    }
-  }
-}
-
-.make-lighter-strong {
-  color: #bff;
-}
-
-.heading-orange {
-  color: orange;
-  margin-bottom: 0;
-
-  &:not(:first-child) {
-    margin-top: 16px;
-  }
-}
-
 body.dark {
   &,
-  .list-group-item:not(.list-group-item-dark),
-  .modal-dialog .modal-content {
+  .list-group-item:not(.list-group-item-dark) {
     background-color: #333;
     color: #89d2e8;
-  }
-
-  .modal-header {
-    position: sticky;
-    top: 0;
-    background-color: #333;
-    z-index: 100000;
-  }
-
-  .btn-close {
-    filter: invert(100%);
-    opacity: 1;
   }
 
   .form-control {
@@ -140,25 +62,9 @@ body.dark {
 import { mapActions, mapMutations, mapState } from "vuex";
 import { defineComponent } from "vue";
 
-import {
-  parseXml,
-  formatXmlDocument,
-  formatModalTitle,
-  formatXmlDocumentPopup,
-} from "@/nadybot/message";
-
 interface ConsoleData {
   inputText: string;
   historyIdx: number;
-  activePopup: string | null;
-}
-
-// https://stackoverflow.com/questions/12709074/how-do-you-explicitly-set-a-new-property-on-window-in-typescript
-declare global {
-  interface Window {
-    togglePopup: (msgId: number, popupId: number) => void;
-    executeCommand: (command: string) => void;
-  }
 }
 
 export default defineComponent({
@@ -168,7 +74,6 @@ export default defineComponent({
     return {
       inputText: "",
       historyIdx: 0,
-      activePopup: null,
     };
   },
 
@@ -181,14 +86,8 @@ export default defineComponent({
     document.body.className = "";
   },
 
-  created(): void {
-    window.togglePopup = this.togglePopup.bind(this);
-    window.executeCommand = this.runCommand.bind(this);
-  },
-
   mounted(): void {
     this.focusInput();
-    document.addEventListener("keydown", this.closePopupIfEscape);
   },
 
   watch: {
@@ -229,41 +128,6 @@ export default defineComponent({
         this.historyIdx--;
       }
     },
-    formatMsg: function (id: number, msg: string): string {
-      const parsed = parseXml(msg);
-      return formatXmlDocument(id, parsed);
-    },
-    getModalTitle: function (msg: string): string {
-      const parsed = parseXml(msg);
-      return formatModalTitle(parsed);
-    },
-    formatPopup: function (msg: string): string {
-      const parsed = parseXml(msg);
-      return formatXmlDocumentPopup(parsed);
-    },
-    togglePopup: function (msgId: number, popupId: number): void {
-      const popup = `popup-${msgId}-${popupId}`;
-      const elem = document.getElementById(popup);
-      if (elem) {
-        this.activePopup = popup;
-        elem.classList.add("show");
-      }
-    },
-    closeActivePopup: function (): void {
-      if (this.activePopup) {
-        const elem = document.getElementById(this.activePopup);
-        if (elem) {
-          this.activePopup = "";
-          elem.classList.remove("show");
-        }
-        this.focusInput();
-      }
-    },
-    closePopupIfEscape: function (e: KeyboardEvent): void {
-      if (e.key == "Escape") {
-        this.closeActivePopup();
-      }
-    },
     scrollOutputDown: function (): void {
       const scroll = document.getElementById("console-list");
       if (scroll) {
@@ -274,7 +138,6 @@ export default defineComponent({
       // Soft wrapper for executeCommand with history integration
       this.addHistoryEntry(command);
       this.historyIdx = 0;
-      this.closeActivePopup();
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
