@@ -1,7 +1,7 @@
 name: Create release bundle
 on:
   release:
-    types: [published]
+    types: [published, prereleased]
 
 jobs:
   build:
@@ -16,6 +16,10 @@ jobs:
           composer install --no-dev --no-suggest
           rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests"
           composer dumpautoload --no-dev --optimize
+      - name: Update version number
+        shell: bash
+        run: |
+          sed -i'' -e 's/public const VERSION = "[^"]*";/public const VERSION = "${{ github.event.release.tag_name }}";/g' src/Core/BotRunner.php
       - name: Create directory zip
         shell: bash
         run: |
