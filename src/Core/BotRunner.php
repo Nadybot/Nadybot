@@ -24,6 +24,8 @@ class BotRunner {
 
 	private ?ConfigFile $configFile;
 
+	protected static $latestTag = null;
+
 	/**
 	 * Create a new instance
 	 */
@@ -79,23 +81,6 @@ class BotRunner {
 		return $result;
 	}
 
-	/**
-	 * Get an array of commit IDs for a source reference
-	 *
-	 * @return string[]
-	 */
-	public static function getCommitsForHead(string $ref): array {
-		$file = trim(file_get_contents(dirname(dirname(__DIR__)) . "/.git/logs/{$ref}"));
-		$commits = array_reverse(explode("\n", $file));
-		$result = [];
-		foreach ($commits as &$commit) {
-			$parts = explode(" ", $commit);
-			if (count($parts) > 1) {
-				$result []= $parts[1];
-			}
-		}
-		return $result;
-	}
 
 	/**
 	 * Calculate the latest tag that $red was tagged with
@@ -103,14 +88,14 @@ class BotRunner {
 	 * Like [number of commits, tag]
 	 */
 	public static function getLatestTag(): ?array {
-		$tags = static::getTagsForHashes();
-		$commits = static::getCommitsForHead('HEAD');
-		for ($i = 0; $i < count($commits); $i++) {
-			if (isset($tags[$commits[$i]])) {
-				return [$i, preg_replace("/^v/", "", $tags[$commits[$i]])];
-			}
+		if (isset(static::$latestTag)) {
+			return static::$latestTag;
 		}
-		return null;
+		$tagString = shell_exec("git describe --tags --abbrev=1");
+		if (!preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
+			return static::$latestTag = null;
+		}
+		return static::$latestTag = [(int)$matches[2], $matches[1]];
 	}
 
 	/**
