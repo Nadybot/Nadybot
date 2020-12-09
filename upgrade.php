@@ -73,9 +73,9 @@ function checkIfColumnExists($db, $table, $column) {
 function normalizeVersion($version) {
 	// RC versions should come before GA versions when sorted in ASCENDING direction
 	return str_replace(
-		"_RC",
-		".0.",
-		str_replace("_GA", ".1", $version)
+		["_RC", "_GA"],
+		[".0.", ".1"],
+		preg_replace("/@.*/", ".1", $version)
 	);
 }
 

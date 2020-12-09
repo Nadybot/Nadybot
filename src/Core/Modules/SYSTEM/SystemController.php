@@ -229,7 +229,7 @@ class SystemController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		$this->settingManager->save('version', $this->chatBot->runner::$version);
+		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 		
@@ -280,7 +280,7 @@ class SystemController {
 
 		$info->basic = $basicInfo = new BasicSystemInformation();
 		$basicInfo->bot_name = $this->chatBot->vars["name"];
-		$basicInfo->bot_version = $this->chatBot->runner::$version;
+		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType();
 		$basicInfo->org = strlen($this->chatBot->vars['my_guild']??"")
 			? $this->chatBot->vars['my_guild']
@@ -478,7 +478,7 @@ class SystemController {
 			}
 		}
 		
-		$version = $this->chatBot->runner::$version;
+		$version = $this->chatBot->runner::getVersion();
 		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
 
 		// send a message to guild channel

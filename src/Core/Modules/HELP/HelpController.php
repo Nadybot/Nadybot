@@ -63,7 +63,7 @@ class HelpController {
 	
 	public function getAbout() {
 		$data = file_get_contents(__DIR__ . "/about.txt");
-		$version = BotRunner::$version;
+		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);
 		return $this->text->makeBlob("About Nadybot $version", $data);
 	}

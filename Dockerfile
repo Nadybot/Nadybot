@@ -1,4 +1,5 @@
 FROM quay.io/jitesoft/alpine:latest
+ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Nadybot"
@@ -41,7 +42,10 @@ RUN apk --no-cache add composer && \
     composer clear-cache && \
     chown -R nadybot:nadybot vendor && \
     apk del --no-cache composer && \
-    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml
+    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
+	if [ "x${VERSION}" != "x" ]; then \
+		sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
+	fi
 
 
 USER nadybot

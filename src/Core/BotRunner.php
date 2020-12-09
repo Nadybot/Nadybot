@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use LoggerConfiguratorDefault;
 use Logger;
+use ErrorException;
 use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\SETUP\Setup;
 
@@ -12,7 +13,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public static string $version = "5.0";
+	public const VERSION = "5.0";
 
 	/**
 	 * The command line arguments
@@ -23,6 +24,8 @@ class BotRunner {
 
 	private ?ConfigFile $configFile;
 
+	protected static $latestTag = null;
+
 	/**
 	 * Create a new instance
 	 */
@@ -30,7 +33,69 @@ class BotRunner {
 		$this->argv = $argv;
 
 		global $version;
-		$version = self::$version;
+		$version = self::getVersion();
+	}
+
+	/**
+	 * Return the version number of the bot.
+	 * Depending on where you got the source from,
+	 * it's either the latest tag, the branch or a fixed version
+	 */
+	public static function getVersion(): string {
+		if (!@file_exists(dirname(dirname(__DIR__)) . '/.git')) {
+			return static::VERSION;
+		}
+		set_error_handler(function($num, $str, $file, $line) {
+			throw new ErrorException($str, 0, $num, $file, $line);
+		});
+		try {
+			$ref = explode(": ", trim(@file_get_contents(dirname(dirname(__DIR__)) . '/.git/HEAD')), 2)[1];
+			$branch = explode("/", $ref, 3)[2];
+			$latestTag = static::getLatestTag();
+			if (!isset($latestTag)) {
+				return $branch;
+			}
+			if ($latestTag[0]) {
+				return "{$latestTag[1]}@{$branch}";
+			}
+			return "{$latestTag[1]}";
+		} catch (\Throwable $e) {
+			return static::VERSION;
+		} finally {
+			restore_error_handler();
+		}
+	}
+
+	/**
+	 * Read all currently defined tags and their hashes
+	 * and return them in [hash => tag]
+	 *
+	 * @return array<string,string>
+	 */
+	public static function getTagsForHashes(): array {
+		$result = [];
+		$files = glob(dirname(dirname(__DIR__)) . '/.git/refs/tags/*');
+		foreach (array_reverse($files) as $file) {
+			$result[trim(file_get_contents($file))] = basename($file);
+		}
+		return $result;
+	}
+
+
+	/**
+	 * Calculate the latest tag that $red was tagged with
+	 * and return how many commits were done since then
+	 * Like [number of commits, tag]
+	 */
+	public static function getLatestTag(): ?array {
+		if (isset(static::$latestTag)) {
+			return static::$latestTag;
+		}
+		$tagString = shell_exec("git describe --tags --abbrev=1");
+		if (!isset($tagString) || !preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
+			return static::$latestTag = null;
+		}
+		return static::$latestTag = [(int)$matches[2], $matches[1]];
 	}
 
 	/**
@@ -62,7 +127,7 @@ class BotRunner {
 
 		$this->setWindowTitle();
 
-		$version = self::$version;
+		$version = self::getVersion();
 		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()."...");
 
 		$classLoader = new ClassLoader($vars['module_load_paths']);
@@ -104,7 +169,7 @@ class BotRunner {
 	 * Get a message describing the bot's codebase
 	 */
 	private function getInitialInfoMessage(): string {
-		$version = sprintf("%-12s", self::$version);
+		$version = substr(sprintf("%-23s", self::getVersion()), 0, 23);
 		return
 			"+------------------------------------------------------------------+".PHP_EOL.
 			'|                                                                  |'.PHP_EOL.
@@ -118,7 +183,7 @@ class BotRunner {
 			'| 888    Y888 "Y888888  "Y88888  "Y88888 88888P"   "Y88P"   "Y888  |'.PHP_EOL.
 			'|                                    888                           |'.PHP_EOL.
 			'|                               Y8b d88P                           |'.PHP_EOL.
-			'| Nadybot '.$version.'            Y88P"                            |'.PHP_EOL.
+			'| Nadybot ' . $version .        ' Y88P"                            |'.PHP_EOL.
 			'|                                                                  |'.PHP_EOL.
 			'| Project Site:     https://github.com/Nadybot/Nadybot             |'.PHP_EOL.
 			'| In-Game Contact:  Nadyita                                        |'.PHP_EOL.
