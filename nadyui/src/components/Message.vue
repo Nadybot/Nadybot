@@ -2,7 +2,7 @@
   <ao-message
     :content="content"
     @open-popup="active_popup = $event"
-    @run-command="$emit('run-command', $event)"
+    @run-command="runCommand($event)"
   ></ao-message>
 
   <div
@@ -31,7 +31,7 @@
         <div class="modal-body">
           <ao-message
             :content="removeFirstChild(popup)"
-            @run-command="$emit('run-command', $event)"
+            @run-command="runCommand($event)"
           ></ao-message>
         </div>
       </div>
@@ -123,6 +123,10 @@ export default defineComponent({
       if (e.key == "Escape") {
         this.active_popup = null;
       }
+    },
+    runCommand: function (e: string): void {
+      this.active_popup = null;
+      this.$emit("run-command", e);
     },
   },
 
