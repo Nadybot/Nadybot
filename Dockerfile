@@ -2,7 +2,8 @@ FROM quay.io/jitesoft/alpine:latest
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
-      description="self-sustaining docker image to run latest Nadybot"
+      description="self-sustaining docker image to run latest Nadybot" \
+      org.opencontainers.image.source="https://github.com/Nadybot/Nadybot"
 
 ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
 
