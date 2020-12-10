@@ -5,7 +5,7 @@ on:
       - unstable
       - stable
     tags:
-      - *
+      - '*'
 jobs:
   build:
     name: Create docker image
