@@ -1,0 +1,36 @@
+name: Build and push docker image
+on:
+  push:
+    branches:
+      - unstable
+      - stable
+    tags:
+      - *
+jobs:
+  build:
+    name: Create docker image
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v2
+        - name: Login to Quay Registry
+          run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
+        - name: Get the version
+          id: vars
+          run: |
+            TAG=$(git describe --tags --abbrev=0)
+            BRANCH="${GITHUB_REF:10}"
+            VERSION="${TAG}"
+            if [ "${TAG}" != "$(git describe --tags --abbrev=1)" ]; then
+              VERSION="${TAG}@${GITHUB_REF:10}"
+              TAG="${GITHUB_REF:10}"
+            fi
+            echo ::set-output name=tag::$(echo ${VERSION})
+            echo ::set-output name=branch::$(echo ${BRANCH})
+        - name: Build the tagged Docker image
+          run: docker build --file Dockerfile --build-arg VERSION="${VERSION}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" .
+        - name: Push the tagged Docker image
+          run: |
+            docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}"
+            docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}"
+
