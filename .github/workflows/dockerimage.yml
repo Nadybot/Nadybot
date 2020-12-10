@@ -35,10 +35,17 @@ jobs:
             echo ::set-output name=branch::$(echo ${BRANCH})
         - name: Build the tagged Docker image
           shell: bash
-          run: docker build --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" .
+          run: |
+            docker build --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
+              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
+              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
+              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" .
         - name: Push the tagged Docker image
           shell: bash
           run: |
             docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}"
             docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}"
+            docker push "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}"
+            docker push "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}"
 
