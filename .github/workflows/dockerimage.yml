@@ -23,16 +23,19 @@ jobs:
           id: vars
           shell: bash
           run: |
-            VERSION=$(git describe --tags --abbrev=0)
+            TAG=$(git describe --tags --abbrev=0)
+            VERSION="${TAG}"
             BRANCH="${GITHUB_REF:10}"
             if [ "${VERSION}" != "$(git describe --tags --abbrev=1)" ]; then
               VERSION="${VERSION}@${GITHUB_REF:10}"
+              TAG="${GITHUB_REF:10}"
             fi
-            echo ::set-output name=tag::$(echo ${VERSION})
+            echo ::set-output name=tag::$(echo ${TAG})
+            echo ::set-output name=version::$(echo ${VERSION})
             echo ::set-output name=branch::$(echo ${BRANCH})
         - name: Build the tagged Docker image
           shell: bash
-          run: docker build --file Dockerfile --build-arg VERSION="${VERSION}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" .
+          run: docker build --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" .
         - name: Push the tagged Docker image
           shell: bash
           run: |
