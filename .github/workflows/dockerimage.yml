@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
         - name: Checkout sources
-          uses: actions/checkout@v2
+          uses: actions/checkout@v2.2.0
+          with:
+            fetch-depth: 0
         - name: Login to Quay Registry
           shell: bash
           run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
