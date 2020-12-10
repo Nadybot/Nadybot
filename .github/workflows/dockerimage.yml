@@ -18,7 +18,9 @@ jobs:
             fetch-depth: 0
         - name: Login to Quay Registry
           shell: bash
-          run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
+          run: |
+            echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
+            echo "${{ secrets.GHCR_PAT }}" | docker login -u nadyita --password-stdin ghcr.io
         - name: Get the version
           id: vars
           shell: bash
