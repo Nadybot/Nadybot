@@ -16,7 +16,7 @@ jobs:
           uses: actions/checkout@v2.2.0
           with:
             fetch-depth: 0
-        - name: Login to Quay Registry
+        - name: Login to registries
           shell: bash
           run: |
             echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
