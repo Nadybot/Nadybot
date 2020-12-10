@@ -25,10 +25,10 @@ jobs:
           run: |
             TAG=$(git describe --tags --abbrev=0)
             VERSION="${TAG}"
-            BRANCH="${GITHUB_REF:10}"
-            if [ "${VERSION}" != "$(git describe --tags --abbrev=1)" ]; then
-              VERSION="${VERSION}@${GITHUB_REF:10}"
-              TAG="${GITHUB_REF:10}"
+            BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+            if [ "${TAG}" != "$(git describe --tags --abbrev=1)" ]; then
+              VERSION="${TAG}@${BRANCH}"
+              TAG="${BRANCH}"
             fi
             echo ::set-output name=tag::$(echo ${TAG})
             echo ::set-output name=version::$(echo ${VERSION})
