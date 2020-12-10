@@ -1,0 +1,53 @@
+name: Build and push docker image
+on:
+  push:
+    branches:
+      - unstable
+      - stable
+      - new-build-action
+    tags:
+      - '*'
+jobs:
+  build:
+    name: Create docker image
+    runs-on: ubuntu-20.04
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v2.2.0
+          with:
+            fetch-depth: 0
+        - name: Login to registries
+          shell: bash
+          run: |
+            echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io/nadyita
+            echo "${{ secrets.GHCR_PAT }}" | docker login -u nadyita --password-stdin ghcr.io
+        - name: Get the version
+          id: vars
+          shell: bash
+          run: |
+            TAG=$(git describe --tags --abbrev=0)
+            VERSION="${TAG}"
+            BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+            if [ "${TAG}" != "$(git describe --tags --abbrev=1)" ]; then
+              VERSION="${TAG}@${BRANCH}"
+              TAG="${BRANCH}"
+            fi
+            echo ::set-output name=tag::$(echo ${TAG})
+            echo ::set-output name=version::$(echo ${VERSION})
+            echo ::set-output name=branch::$(echo ${BRANCH})
+        - name: Build the tagged Docker image
+          shell: bash
+          run: |
+            docker build --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
+              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
+              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
+              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" .
+        - name: Push the tagged Docker image
+          shell: bash
+          run: |
+            docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}"
+            docker push "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}"
+            docker push "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}"
+            docker push "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}"
+
