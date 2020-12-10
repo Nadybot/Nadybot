@@ -534,15 +534,18 @@ class RaffleController {
 		}
 		$inWinners = join(",", array_fill(0, count($winners), '?'));
 		$inLosers =  join(",", array_fill(0, count($losers), '?'));
-		$losersUpdate = array_map(
-			function(DBRow $row): string {
-				return $row->name;
-			},
-			$this->db->query(
-				"SELECT name FROM raffle_bonus_<myname> WHERE name IN ($inLosers)",
-				...$losers
-			)
-		);
+		$losersUpdate = [];
+		if (count($losers)) {
+			$losersUpdate = array_map(
+				function(DBRow $row): string {
+					return $row->name;
+				},
+				$this->db->query(
+					"SELECT name FROM raffle_bonus_<myname> WHERE name IN ($inLosers)",
+					...$losers
+				)
+			);
+		}
 		$losersInsert = array_diff($losers, $losersUpdate);
 		$inLosers =  join(",", array_fill(0, count($losersUpdate), '?'));
 		if (count($losersUpdate)) {
@@ -559,10 +562,12 @@ class RaffleController {
 				...$losersInsert
 			);
 		}
-		$this->db->exec(
-			"UPDATE raffle_bonus_<myname> SET bonus=0 WHERE name IN ($inWinners)",
-			...$winners
-		);
+		if (count($winners)) {
+			$this->db->exec(
+				"UPDATE raffle_bonus_<myname> SET bonus=0 WHERE name IN ($inWinners)",
+				...$winners
+			);
+		}
 	}
 
 	public function announceRaffleResults(Raffle $raffle): void {
