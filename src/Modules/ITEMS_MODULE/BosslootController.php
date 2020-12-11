@@ -101,9 +101,11 @@ class BosslootController {
 		$blob  = "Location: <highlight>{$row->answer}<end>\n\n";
 		$blob .= "Loot:\n\n";
 
-		$data = $this->db->query(
+		/** @var AODBEntry[] */
+		$data = $this->db->fetchAll(
+			AODBEntry::class,
 			"SELECT * FROM boss_lootdb b ".
-			"LEFT JOIN aodb a ON (b.itemname = a.name) ".
+			"LEFT JOIN aodb a ON (b.aoid=a.lowid OR (b.aoid IS NULL AND b.itemname = a.name)) ".
 			"WHERE b.bossid = ?",
 			$row->bossid
 		);
