@@ -66,7 +66,11 @@ class ChatAssistController {
 				$blob .= "<header2>Callers<end>\n";
 			}
 			for ($i = 0; $i < count($callerList->callers); $i++) {
-				$blob .= "<tab>" . ($i + 1) . ". " . $callerList->callers[$i] . "\n";
+				$caller = $callerList->callers[$i];
+				$blob .= "<tab>" . ($i + 1) . ". " . $caller.
+					" [" . $this->text->makeChatcmd("Macro", "/macro {$caller} /assist {$caller}") . "]".
+					" [" . $this->text->makeChatcmd("Assist", "/assist {$caller}") . "]".
+					"\n";
 			}
 			$blob .= "\n<tab><highlight>Macro<end>: /macro ";
 			if (strlen($name)) {
@@ -74,7 +78,12 @@ class ChatAssistController {
 			} else {
 				$blob .= $this->chatBot->vars["name"];
 			}
-			$blob .= " assist " . join(" \\n assist ", $callerList->callers);
+			$blob .= " /assist " . join(" \\n /assist ", $callerList->callers);
+			$blob .= "\n<tab><highlight>Once<end>: ".
+				$this->text->makeChatcmd(
+					"Assist",
+					"/assist " . join(" \\n /assist ", $callerList->callers)
+				);
 			$blob .= "\n\n\n";
 		}
 		return $blob;
