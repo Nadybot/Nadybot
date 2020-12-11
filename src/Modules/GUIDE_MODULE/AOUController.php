@@ -5,6 +5,8 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 use DOMDocument;
 use DOMElement;
 use Nadybot\Core\{
+	CacheManager,
+	CacheResult,
 	CommandReply,
 	DBRow,
 	Http,
@@ -12,6 +14,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -41,10 +44,22 @@ class AOUController {
 	public ItemsController $itemsController;
 
 	/** @Inject */
+	public CacheManager $cacheManager;
+
+	/** @Inject */
 	public Http $http;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	
+	public function isValidXML(?string $data): bool {
+		try {
+			$dom = new DOMDocument();
+			return $dom->loadXML($data) !== false;
+		} catch (Throwable $e) {
+			return false;
+		}
+	}
+
 	/**
 	 * View an AO-U guide.
 	 *
@@ -58,24 +73,27 @@ class AOUController {
 			'mode' => 'view',
 			'id' => $guideId
 		];
-		$this->http
-			->get(self::AOU_URL)
-			->withQueryParams($params)
-			->withCallback(
-				function(HttpResponse $response) use ($guideId, $sendto) {
-					$this->displayAOUGuide($response, $guideId, $sendto);
-				}
-			);
+		$this->cacheManager->asyncLookup(
+			self::AOU_URL . '&' . http_build_query($params),
+			"guide",
+			"{$guideId}.xml",
+			[$this, "isValidXML"],
+			24*3600,
+			false,
+			[$this, "displayAOUGuide"],
+			$guideId,
+			$sendto
+		);
 	}
 
-	public function displayAOUGuide(HttpResponse $response, int $guideId, CommandReply $sendto): void {
-		if ($response->headers["status-code"] !== "200") {
+	public function displayAOUGuide(CacheResult $result, int $guideId, CommandReply $sendto): void {
+		if (!$result->success) {
 			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
 			$sendto->reply($msg);
 			return;
 		}
-		$guide = $response->body;
-		$dom = new DOMDocument;
+		$guide = $result->data;
+		$dom = new DOMDocument();
 		$dom->loadXML($guide);
 		
 		if ($dom->getElementsByTagName('error')->length > 0) {
@@ -93,8 +111,7 @@ class AOUController {
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
 
-		$blob = '';
-		$blob .= $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
+		$blob = $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
 		$blob .= "Updated: <highlight>" . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
 		$blob .= "Profession: <highlight>" . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
@@ -274,20 +291,20 @@ class AOUController {
 	}
 	
 	private function processInput(string $input): string {
-		$input = preg_replace_callback("/\\[(item|itemname|itemicon)( nolink)?\\](\\d+)\\[\\/(item|itemname|itemicon)\\]/i", [$this, 'replaceItem'], $input);
-		$input = preg_replace_callback("/\\[waypoint ([^\\]]+)\\]([^\\]]*)\\[\\/waypoint\\]/", [$this, 'replaceWaypoint'], $input);
-		$input = preg_replace_callback("/\\[(localurl|url)=([^ \\]]+)\\]([^\\[]+)\\[\\/(localurl|url)\\]/", [$this, 'replaceGuideLinks'], $input);
-		$input = preg_replace("/\\[img\\]([^\\[]+)\\[\\/img\\]/", "-image-", $input);
-		$input = preg_replace("/\\[color=#([0-9A-F]+)\\]([^\\[]+)\\[\\/color\\]/", "<font color=#\\1>\\2</font>", $input);
-		$input = preg_replace("/\\[color=([^\\]]+)\\]([^\\[]+)\\[\\/color\\]/", "<\\1>\\2<end>", $input);
-		$input = str_replace("[center]", "<center>", $input);
-		$input = str_replace("[/center]", "</center>", $input);
-		$input = str_replace("[i]", "<i>", $input);
-		$input = str_replace("[/i]", "</i>", $input);
-		$input = str_replace("[b]", "<highlight>", $input);
-		$input = str_replace("[/b]", "<end>", $input);
+		$input = preg_replace("/(\[size.+?\])\[b\]/i", "[b]$1", $input);
+		$input = preg_replace("/(\[color.+?\])\[b\]/i", "[b]$1", $input);
+		$input = preg_replace_callback("/\[(item|itemname|itemicon)( nolink)?\](\d+)\[\/(item|itemname|itemicon)\]/i", [$this, 'replaceItem'], $input);
+		$input = preg_replace_callback("/\[waypoint ([^\]]+)\]([^\]]*)\[\/waypoint\]/", [$this, 'replaceWaypoint'], $input);
+		$input = preg_replace_callback("/\[(localurl|url)=([^ \]]+)\]([^\[]+)\[\/(localurl|url)\]/", [$this, 'replaceGuideLinks'], $input);
+		$input = preg_replace("/\[img\](.*?)\[\/img\]/", "-image-", $input);
+		$input = preg_replace("/\[color=#([0-9A-F]+)\]/", "<font color=#$1>", $input);
+		$input = preg_replace("/\[color=(.+?)\]/", "<$1>", $input);
+		$input = preg_replace("/\[\/color\]/", "<end>", $input);
+		$input = str_replace(["[center]", "[/center]"], ["<center>", "</center>"], $input);
+		$input = str_replace(["[i]", "[/i]"], ["<i>", "</i>"], $input);
+		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
 
-		$pattern = "/(\\[[^\\]]+\\])/";
+		$pattern = "/(\[.+?\])/";
 		$matches = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
