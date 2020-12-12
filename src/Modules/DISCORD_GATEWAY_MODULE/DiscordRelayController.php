@@ -574,14 +574,18 @@ class DiscordRelayController {
 		if ($formatMessage) {
 			$escapedMessage = $this->formatMessage($message);
 		}
+		if ($escapedMessage === '') {
+			return;
+		}
 		$senderName = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $member->getName();
+		$senderDisplayName = trim(preg_replace("/([\x{0450}-\x{fffff}])/u", "", $senderName));
 		$discordColorChannel = $this->settingManager->getString('discord_color_channel');
 		$message = "{$discordColorChannel}[Discord]<end> ";
 		if (($this->settingManager->getInt("discord_relay") & 1) === 1) {
 			$discordColorSenderPriv = $this->settingManager->getString('discord_color_sender_priv');
 			$discordColorPriv = $this->settingManager->getString('discord_color_priv');
 			$this->chatBot->sendPrivate(
-				$message . "{$discordColorSenderPriv}{$senderName}<end>: {$discordColorPriv}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderPriv}{$senderDisplayName}<end>: {$discordColorPriv}{$escapedMessage}<end>",
 				true
 			);
 		}
@@ -589,7 +593,7 @@ class DiscordRelayController {
 			$discordColorSenderGuild = $this->settingManager->getString('discord_color_sender_guild');
 			$discordColorGuild = $this->settingManager->getString('discord_color_guild');
 			$this->chatBot->sendGuild(
-				$message . "{$discordColorSenderGuild}{$senderName}<end>: {$discordColorGuild}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderGuild}{$senderDisplayName}<end>: {$discordColorGuild}{$escapedMessage}<end>",
 				true
 			);
 		}
@@ -666,18 +670,20 @@ class DiscordRelayController {
 			"🤦" => ":facepalm:",
 			"🤷" => ":shrug:",
 		];
-		$text = preg_replace("/\*\*(.+?)\*\*/", "<highlight>$1<end>", $text);
-		$text = preg_replace("/\*(.+?)\*/", "<i>$1</i>", $text);
-		$text = preg_replace("/`(.+?)`/", "$1", $text);
+		$text = preg_replace("/<:([a-z0-9]+):(\d+)>/i", ":$1:", $text);
+		$text = preg_replace("/```(.+?)```/s", "$1", $text);
+		$text = preg_replace("/`(.+?)`/s", "$1", $text);
+		$text = htmlspecialchars($text);
+		$text = preg_replace("/\*\*(.+?)\*\*/s", "<highlight>$1<end>", $text);
+		$text = preg_replace("/\*(.+?)\*/s", "<i>$1</i>", $text);
 		$text = str_replace(
 			array_keys($smileyMapping),
 			array_values($smileyMapping),
 			$text
 		);
-		$text = htmlspecialchars($text);
 		if (class_exists("IntlChar")) {
 			$text = preg_replace_callback(
-				"/([\x{0450}-\x{fffff}])/u",
+				"/([\x{0450}-\x{2018}\x{2020}-\x{fffff}])/u",
 				function (array $matches): string {
 					$char = \IntlChar::charName($matches[1]);
 					if ($char === "ZERO WIDTH JOINER"
