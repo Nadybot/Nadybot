@@ -231,4 +231,19 @@ class ChatAssistController {
 		$event->lists = array_values($this->callers);
 		$this->eventManager->fireEvent($event);
 	}
+
+	/**
+	 * @HandlesCommand("assist .+")
+	 * @Matches("/^assist ([^ ]{4,12})$/i")
+	 */
+	public function assistOnceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$name = ucfirst(strtolower($args[1]));
+		if (!$this->chatBot->get_uid($name)) {
+			$sendto->reply("No player named <highlight>{$name}<end> found.");
+			return;
+		}
+		$blob = "<header2>Assist macro<end>\n".
+			"<tab>" . $this->text->makeChatcmd("Click me for a macro", "/macro {$name} /assist {$name}");
+		$sendto->reply("Please all " . $this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}"));
+	}
 }

@@ -5,10 +5,13 @@ To create an assist macro for a single player:
 <highlight><tab><symbol>assist 'player'<end>
 
 To create an assist macro for a multiple players:
-<highlight><tab><symbol>assist 'player1' 'player2' 'player3' ...<end>
+<highlight><tab><symbol>assist add 'player1' 'player2' 'player3' ...<end>
 
 To add a new player to the assist list:
 <highlight><tab><symbol>assist add 'player'<end>
 
 To clear the assist macro:
 <highlight><tab><symbol>assist clear<end>
+
+To add a caller to a caller-list named 'NORTH':
+<highlight><tab><symbol>assist add NORTH 'player1'<end>
