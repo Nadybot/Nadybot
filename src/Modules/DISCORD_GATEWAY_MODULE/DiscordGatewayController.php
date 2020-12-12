@@ -105,6 +105,7 @@ class DiscordGatewayController {
 	protected bool $mustReconnect = false;
 	protected int $lastHeartbeat = 0;
 	protected int $heartbeatInterval = 40;
+	protected int $reconnectDelay = 5;
 	protected ?DiscordUser $me = null;
 	protected ?string $sessionId = null;
 	/** @var array<string,Guild> */
@@ -324,6 +325,7 @@ class DiscordGatewayController {
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
 		$this->logger->log("DEBUG", "Discord Gateway requests reconnect");
 		$this->mustReconnect = true;
+		$this->reconnectDelay = 1;
 		$this->client->close(1000);
 	}
 
@@ -384,13 +386,16 @@ class DiscordGatewayController {
 			$this->lastSequenceNumber = null;
 			$this->sessionId = null;
 		}
+		$this->guilds = [];
+		$this->me = null;
 		if (
 			(($event->code ?? null) === 1000 && $this->mustReconnect)
 			|| $this->shouldReconnect($event->code ?? null)
 		) {
-			$this->logger->log("INFO", "Reconnecting to Discord gateway");
+			$this->logger->log("INFO", "Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
 			$this->mustReconnect = false;
-			$this->timer->callLater(0, [$this->client, 'connect']);
+			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
+			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 		}
 	}
 
@@ -514,6 +519,7 @@ class DiscordGatewayController {
 			"Successfully logged into Discord Gateway as ".
 			$user->username . "#" . $user->discriminator
 		);
+		$this->reconnectDelay = 5;
 	}
 
 	/**
