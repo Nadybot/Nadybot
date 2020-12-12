@@ -1,4 +1,4 @@
-<header> :::::: Light Settings :::::: <end>
+<header>Light Settings<end>
 
 <a href='chatcmd:///fxscript Tweak_Rubi-Ka_SunLight #'>RKLight</a>
 
@@ -16,4 +16,4 @@
 
 (zone to reset light settings)
 
-<highlight>By DrUrban (RK1)<end>
+By DrUrban (RK1)

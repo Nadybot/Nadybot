@@ -50,13 +50,15 @@ class GuideController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->commandAlias->register($this->moduleName, "guides breed", "breed");
 		$this->commandAlias->register($this->moduleName, "guides healdelta", "healdelta");
 		$this->commandAlias->register($this->moduleName, "guides lag", "lag");
 		$this->commandAlias->register($this->moduleName, "guides nanodelta", "nanodelta");
 		$this->commandAlias->register($this->moduleName, "guides stats", "stats");
 		$this->commandAlias->register($this->moduleName, "aou 11", "title");
 		$this->commandAlias->register($this->moduleName, "guides doja", "doja");
+		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
+		$this->commandAlias->register($this->moduleName, "guides gos", "faction");
+		$this->commandAlias->register($this->moduleName, "guides gos", "guardian");
 		$this->commandAlias->register($this->moduleName, "guides adminhelp", "adminhelp");
 		$this->commandAlias->register($this->moduleName, "guides light", "light");
 
@@ -79,18 +81,19 @@ class GuideController {
 		while (($fileName = readdir($handle)) !== false) {
 			// if file has the correct extension, it's a topic file
 			if ($this->util->endsWith($fileName, self::FILE_EXT)) {
-				$topicList[] = basename($fileName, self::FILE_EXT);
+				$firstLine = strip_tags(trim(file($this->path . '/' . $fileName)[0]));
+				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
 			}
 		}
 
 		closedir($handle);
 
-		sort($topicList);
+		ksort($topicList);
 
 		$linkContents = "<header2>Available guides<end>\n";
-		foreach ($topicList as $topic) {
+		foreach ($topicList as $topic => $file) {
 			$linkContents .= "<tab>".
-				$this->text->makeChatcmd($topic, "/tell <myname> guides $topic") . "\n";
+				$this->text->makeChatcmd($topic, "/tell <myname> guides $file") . "\n";
 		}
 
 		if (count($topicList)) {
@@ -114,7 +117,10 @@ class GuideController {
 		if ($info === false) {
 			$msg = "No guide named <highlight>$fileName<end> was found.";
 		} else {
-			$msg = $this->text->makeBlob('Guide for "' . ucfirst($fileName) . '"', $info);
+			$lines = explode("\n", $info);
+			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
+			$info = trim(implode("\n", $lines));
+			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		}
 		$sendto->reply($msg);
 	}

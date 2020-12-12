@@ -1,32 +1,29 @@
-<header>:::::: How to use the Chatfilter for Creditspammer :::::<end>
+<header>How to use the Chatfilter for Creditspammers<end>
 
-If you want to see a complete guide about the Chatfilter go <a href='chatcmd:///tell <myname> guides chatfilter'>here</a>!
+There is also a <a href='chatcmd:///tell <myname> guides chatfilter'>Complete guide about chatfilters</a>.
 
-<u>First we add specific letters to the filter for Egpal:</u>
+<header2>Filter Egpal<end>
 
-<highlight>/filter add [eE][- _.]*[gG][- _.]*[pP][- _.]*[aA][- _.]*[lL]<end>
-<a href='chatcmd:///filter add [eE][- _.]*[gG][- _.]*[pP][- _.]*[aA][- _.]*[lL]'>Singleclick to add</a>
+<highlight>/filter add [eE][- _.]*[gG][- _.]*[pP][- _.]*[aA][- _.]*[lL]<end><tab>[<a href='chatcmd:///filter add [eE][- _.]*[gG][- _.]*[pP][- _.]*[aA][- _.]*[lL]'>do it</a>]
 
-<u>Then we add MMOOK creditspammer to filter:</u>
+<header2>Filter MMOOK creditspammers<end>
 
-<highlight>/filter add [Mm][Mm][Oo][Oo][Kk]<end>
-<a href='chatcmd:///filter add [Mm][Mm][Oo][Oo][Kk]'>Singleclick to add</a>
+<highlight>/filter add [Mm][Mm][Oo][Oo][Kk]<end><tab>[<a href='chatcmd:///filter add [Mm][Mm][Oo][Oo][Kk]'>do it</a>]
 
-<u>Now we enable the filter:</u>
+<header2>Enable the filter<end>
 
-<highlight>/filter enable<end>
-<a href='chatcmd:///filter enable'>Singleclick to enable</a>
+<highlight>/filter enable<end><tab><a href='chatcmd:///filter enable'>do it</a>]
 
-<u>To see if the filter is correct and look at the entries:</u>
+<header2>Checking the filters<end>
 
-<highlight>/filter list<end>
-<a href='chatcmd:///filter list'>Singleclick to list</a>
+<highlight>/filter list<end><tab>[<a href='chatcmd:///filter list'>do it</a>]
 
 
 Now you can block all the annoying cred spammers, be aware that all are talking about "Egpal" or "MMOOK" will get blocked too!
 Same goes for this guide in all channels because it contain the filtered words. (but not for a seperate private window with the bot)
 
+<header2>Credits<end>
 
 Source: AO forum and AOU
 
-by <highlight>longsdale<end>
+by longsdale

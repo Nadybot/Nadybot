@@ -1,4 +1,4 @@
-<header> :::::: Doja Chips :::::: <end>
+<header>DOJA Chips<end>
 
 Below you can read about where to loot DOJA Chips. This information will show you the level requirements and the mobs that will drop the DOJA Chips for each level range. There are two types of Doja Chips, normal and special. You can turn one normal and one special chip in each day. Clicking the monster links below will set a waypoint to help you find your way.
 
@@ -54,4 +54,4 @@ Level Range: <highlight>211-219<end>
 <a href='itemref://284960/284960/1'><img src='rdb://293725'></a>
 Level Range: <highlight>220<end>
 
-<highlight>Written by Mackten (RK1), with special thanks to Marebone (RK2)<end>
+Written by Mackten (RK1), with special thanks to Marebone (RK2)

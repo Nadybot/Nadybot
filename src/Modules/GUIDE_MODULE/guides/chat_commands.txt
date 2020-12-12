@@ -1,48 +1,39 @@
-<header>::::: Chat Commands :::::<end>
+<header>Chat Commands<end>
 
-Here u can find an overview of some commands with samples.
+Here you can find an overview of some commands with samples.
 
 <header2>Playtime<end>
 
-<highlight>/played<end>
+<highlight>/played<end><tab>[<a href='chatcmd:///played'>try it</a>]
 
 Tells you for how long you have played this character. Also gives you the local time, both in-game and real-time.
 
-<a href='chatcmd:///played'>Example Here</a>
-
 <header2>Date of Birth<end>
 
-<highlight>/born<end>
+<highlight>/born<end><tab>[<a href='chatcmd:///born'>try it</a>]
 
 Tells you when character was created.
 
-<a href='chatcmd:///born'>Example Here</a>
-
 <header2>Stucked<end>
 
-<highlight>/stuck<end>
+<highlight>/stuck<end><tab>[<a href='chatcmd:///stuck'>try it</a>]
 
-When you are stuck, sit down and use this command and you will be moved
-
-<a href='chatcmd:///stuck'>Example Here</a>
+When you are stuck, sit down and use this command and you will be moved after 30s.
 
 <header2>Tip of the Day Infowindow<end>
 
-<highlight>/TipOfTheDay<end>
+<highlight>/TipOfTheDay<end><tab>[<a href='chatcmd:///tipoftheday'>try it</a>]
 
 Will bring up the next tip.
 
-<a href='chatcmd:///tipoftheday'>Example Here</a>
-
 <header2>Messagebox<end>
 
-<highlight>/messagebox [text]<end>
+<highlight>/messagebox [text]<end><tab>[<a href='chatcmd:///messagebox YAY u have done it'>try it</a>]
 
 Opens a messagebox with [text] in it and a OK button to close it.
 
-<a href='chatcmd:///messagebox YAY u have done it'>Example Here</a>
+<header2>Credits<end>
 
+Source: <a href='chatcmd:///start http://wiki.aodb.us/wiki/Chat_command'>http://wiki.aodb.us/wiki/Chat_command</a>
 
-Source: http://wiki.aodb.us/wiki/Chat_command
-
-by <highlight>longsdale<end>
+by longsdale

@@ -67,19 +67,19 @@ class ChatAssistController {
 			}
 			for ($i = 0; $i < count($callerList->callers); $i++) {
 				$caller = $callerList->callers[$i];
-				$blob .= "<tab>" . ($i + 1) . ". " . $caller.
+				$blob .= "<tab>" . ($i + 1) . ". <highlight>" . $caller . "<end>".
 					" [" . $this->text->makeChatcmd("Macro", "/macro {$caller} /assist {$caller}") . "]".
 					" [" . $this->text->makeChatcmd("Assist", "/assist {$caller}") . "]".
 					"\n";
 			}
-			$blob .= "\n<tab><highlight>Macro<end>: /macro ";
+			$blob .= "\n<tab>Macro: <highlight>/macro ";
 			if (strlen($name)) {
 				$blob .= $callerList->name;
 			} else {
 				$blob .= $this->chatBot->vars["name"];
 			}
 			$blob .= " /assist " . join(" \\n /assist ", $callerList->callers);
-			$blob .= "\n<tab><highlight>Once<end>: ".
+			$blob .= "<end>\n<tab>Once: ".
 				$this->text->makeChatcmd(
 					"Assist",
 					"/assist " . join(" \\n /assist ", $callerList->callers)

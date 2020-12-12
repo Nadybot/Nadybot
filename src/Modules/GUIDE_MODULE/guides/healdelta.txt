@@ -1,49 +1,37 @@
-<header> :::::: Heal Delta :::::: <end>
+<header>Healdelta<end>
 
 <header2>Tick by Stamina<end>
 
-Stamina  ->   HD tick standing/sitting
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ff9999>000<tab><tab>-><tab>29s / 14s</font>
-<font color=#ffcccc>030<tab><tab>-><tab>28s / 14s</font>
-<font color=#ff9999>060<tab><tab>-><tab>27s / 13s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ffcccc>090<tab><tab>-><tab>26s / 13s</font>
-<font color=#ff9999>120<tab><tab>-><tab>25s / 12s</font>
-<font color=#ffcccc>150<tab><tab>-><tab>24s / 12s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ff9999>180<tab><tab>-><tab>23s / 11s</font>
-<font color=#ffcccc>210<tab><tab>-><tab>22s / 11s</font>
-<font color=#ff9999>240<tab><tab>-><tab>21s / 10s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ffcccc>270<tab><tab>-><tab>20s / 10s</font>
-<font color=#ff9999>300<tab><tab>-><tab>19s / 09s</font>
-<font color=#ffcccc>330<tab><tab>-><tab>18s / 09s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ff9999>360<tab><tab>-><tab>17s / 08s</font>
-<font color=#ffcccc>390<tab><tab>-><tab>16s / 08s</font>
-<font color=#ff9999>420<tab><tab>-><tab>15s / 07s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ffcccc>450<tab><tab>-><tab>14s / 07s</font>
-<font color=#ff9999>480<tab><tab>-><tab>13s / 06s</font>
-<font color=#ffcccc>510<tab><tab>-><tab>12s / 06s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ff9999>540<tab><tab>-><tab>11s / 05s</font>
-<font color=#ffcccc>570<tab><tab>-><tab>10s / 05s</font>
-<font color=#ff9999>600<tab><tab>-><tab>09s / 04s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ffcccc>630<tab><tab>-><tab>08s / 04s</font>
-<font color=#ff9999>660<tab><tab>-><tab>07s / 03s</font>
-<font color=#ffcccc>690<tab><tab>-><tab>06s / 03s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ff9999>720<tab><tab>-><tab>05s / 02s</font>
-<font color=#ffcccc>750<tab><tab>-><tab>04s / 02s</font>
-<font color=#ff9999>780<tab><tab>-><tab>03s / 01s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-<font color=#ffcccc>810<tab><tab>-><tab>02s / 01s</font>
-<tab><img src=tdb://id:GFX_GUI_FRIENDLIST_SPLITTER>
-
-by Imoutochan (RK1)
+Stamina | Standing | Sitting
+---------------------------
+     <black>00<end>0  |       29s  |     14s
+     <black>0<end>30  |       28s  |     14s
+     <black>0<end>60  |       27s  |     13s
+     <black>0<end>90  |       26s  |     13s
+     120  |       25s  |     12s
+     150  |       24s  |     12s
+     180  |       23s  |     11s
+     210  |       22s  |     11s
+     240  |       21s  |     10s
+     270  |       20s  |     10s
+     300  |       19s  |     <black>0<end>9s
+     330  |       18s  |     <black>0<end>9s
+     360  |       17s  |     <black>0<end>8s
+     390  |       16s  |     <black>0<end>8s
+     420  |       15s  |     <black>0<end>7s
+     450  |       14s  |     <black>0<end>7s
+     480  |       13s  |     <black>0<end>6s
+     510  |       12s  |     <black>0<end>6s
+     540  |       11s  |     <black>0<end>5s
+     570  |       10s  |     <black>0<end>5s
+     600  |       <black>0<end>9s  |     <black>0<end>4s
+     630  |       <black>0<end>8s  |     <black>0<end>4s
+     660  |       <black>0<end>7s  |     <black>0<end>3s
+     690  |       <black>0<end>6s  |     <black>0<end>3s
+     720  |       <black>0<end>5s  |     <black>0<end>2s
+     750  |       <black>0<end>4s  |     <black>0<end>2s
+     780  |       <black>0<end>3s  |     <black>0<end>1s
+     810  |       <black>0<end>2s  |     <black>0<end>1s
 
 <header2>Hitpoints by Breed<end>
 
@@ -61,5 +49,7 @@ healdelta tickrate formula:
 
 example (870-810)/30=2 secs  
 
-<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=525410'>http://forums.anarchy-online.com/showthread.php?t=525410</a>
-<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=435274'>http://forums.anarchy-online.com/showthread.php?t=435274</a>
+<header2>References<end>
+
+<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=525410'>Forum Thread 1</a>
+<a href='chatcmd:///start http://forums.anarchy-online.com/showthread.php?t=435274'>Forum Thread 2</a>
