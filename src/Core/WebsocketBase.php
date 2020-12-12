@@ -253,7 +253,11 @@ class WebsocketBase {
 				$payloadLength = unpack("n", $data)[1];
 			} else {
 				$data = $this->read(8); // 127: Payload is a 64-bit unsigned int
-				$payloadLength = unpack("J", $data)[1];
+				if (PHP_INT_SIZE < 8) {
+					$payloadLength = unpack("N", substr($data, 4))[1];
+				} else {
+					$payloadLength = unpack("J", $data)[1];
+				}
 			}
 		}
 
