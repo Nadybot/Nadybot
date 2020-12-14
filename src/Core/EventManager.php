@@ -129,6 +129,17 @@ class EventManager {
 	}
 
 	/**
+	 * Change the time when a cron event gets called next time
+	 */
+	public function setCronNextEvent(int $key, int $nextEvent): bool {
+		if (!isset($this->cronevents[$key])) {
+			return false;
+		}
+		$this->cronevents[$key]['nextevent'] = $nextEvent;
+		return true;
+	}
+
+	/**
 	 * Deactivates an event
 	 */
 	public function deactivate(string $type, string $filename): void {
@@ -276,7 +287,7 @@ class EventManager {
 				$eventObj->type = strtolower((string)$event['time']);
 
 				$this->cronevents[$key]['nextevent'] = $time + $event['time'];
-				$this->callEventHandler($eventObj, $event['filename'], []);
+				$this->callEventHandler($eventObj, $event['filename'], [$key]);
 			}
 		}
 	}

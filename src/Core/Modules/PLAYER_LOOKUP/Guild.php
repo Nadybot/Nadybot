@@ -8,6 +8,10 @@ class Guild {
 	public int $guild_id;
 	public string $orgname;
 	public string $orgside;
+
 	/** @var array<string,Player> */
 	public array $members = [];
+
+	/** When was the guild information last updated on PORK */
+	public ?int $last_update;
 }
