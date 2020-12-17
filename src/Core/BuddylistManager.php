@@ -69,22 +69,21 @@ class BuddylistManager {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || $type === null || $type == '') {
 			return false;
-		} else {
-			if (!isset($this->buddyList[$uid])) {
-				$this->logger->log('debug', "$name buddy added");
-				if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
-					$this->logger->log('error', "Error adding '$name' to buddy list--buddy list is full");
-				}
-				$this->chatBot->buddy_add($uid);
-			}
-
-			if (!isset($this->buddyList[$uid]['types'][$type])) {
-				$this->buddyList[$uid]['types'][$type] = 1;
-				$this->logger->log('debug', "$name buddy added (type: $type)");
-			}
-
-			return true;
 		}
+		if (!isset($this->buddyList[$uid])) {
+			$this->logger->log('debug', "$name buddy added");
+			if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
+				$this->logger->log('error', "Error adding '$name' to buddy list--buddy list is full");
+			}
+			$this->chatBot->buddy_add($uid);
+		}
+
+		if (!isset($this->buddyList[$uid]['types'][$type])) {
+			$this->buddyList[$uid]['types'][$type] = 1;
+			$this->logger->log('debug', "$name buddy added (type: $type)");
+		}
+
+		return true;
 	}
 
 	/**

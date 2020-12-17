@@ -815,7 +815,7 @@ class RelayController {
 
 		if ($whois !== null) {
 			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
-			if (count($altInfo->alts) > 0) {
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$altInfo->getAltsBlobAsync(
 					function($blob) use ($msg): void {
 						$this->relayMsgFromPriv("{$msg} {$blob}");
@@ -826,7 +826,7 @@ class RelayController {
 			}
 		} else {
 			$msg = "$sender has joined the private channel.";
-			if (count($altInfo->alts) > 0) {
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$altInfo->getAltsBlobAsync(
 					function($blob) use ($msg): void {
 						$this->relayMsgFromPriv("{$msg} {$blob}");

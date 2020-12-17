@@ -278,12 +278,8 @@ class ItemsController {
 							fwrite($fh, $contents);
 							fclose($fh);
 
-							$this->db->beginTransaction();
-
 							// load the sql file into the db
 							$this->db->loadSQLFile("ITEMS_MODULE", $currentDB);
-
-							$this->db->commit();
 
 							$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
 

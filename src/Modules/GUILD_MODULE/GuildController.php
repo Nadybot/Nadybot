@@ -605,7 +605,7 @@ class GuildController {
 					$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
 				}
 			} else {
-				if (count($altInfo->alts) > 0) {
+				if (count($altInfo->getAllValidatedAlts()) > 0) {
 					$altInfo->getAltsBlobAsync(
 						function($blob) use ($msg, $callback, $logonMsg): void {
 							$callback("{$msg}. {$blob}{$logonMsg}");

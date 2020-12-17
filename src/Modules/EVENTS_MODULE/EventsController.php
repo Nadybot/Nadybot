@@ -209,7 +209,7 @@ class EventsController {
 
 			$altInfo = $this->altsController->getAltInfo($name);
 			$alt = '';
-			if (count($altInfo->alts) > 0) {
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				if ($altInfo->main == $name) {
 					$alt = " <highlight>::<end> " . $this->text->makeChatcmd("Alts", "/tell <myname> alts $name");
 				} else {
