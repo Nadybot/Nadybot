@@ -140,7 +140,7 @@ class AltsController {
 			$this->db->exec("ALTER TABLE `alts` CHANGE `validated` `validated_by_alt` BOOLEAN DEFAULT FALSE");
 			$this->db->exec("ALTER TABLE `alts` ADD COLUMN `validated_by_main` BOOLEAN DEFAULT FALSE");
 			$this->db->exec("ALTER TABLE `alts` ADD COLUMN `added_via` VARCHAR(15)");
-			$this->db->exec("UPDATE `alts` SET `validated_by_main`aa=true, added_via='<Myname>'");
+			$this->db->exec("UPDATE `alts` SET `validated_by_main`=true, added_via='<Myname>'");
 		} else {
 			$this->db->exec("ALTER TABLE `alts` RENAME TO `temp.alts_<myname>`");
 			$this->db->exec(file_get_contents(__DIR__ . '/alts.sql'));
@@ -183,17 +183,17 @@ class AltsController {
 	public function addAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/* get all names in an array */
 		$names = preg_split('/\s+/', $args[1]);
-	
+
 		$sender = ucfirst(strtolower($sender));
-	
+
 		$senderAltInfo = $this->getAltInfo($sender, true);
 		if (!$senderAltInfo->isValidated($sender)) {
 			$sendto->reply("You can only add alts from a main or validated alt.");
 			return;
 		}
-	
+
 		$success = 0;
-	
+
 		// Pop a name from the array until none are left
 		foreach ($names as $name) {
 			$name = ucfirst(strtolower($name));
@@ -202,14 +202,14 @@ class AltsController {
 				$sendto->reply($msg);
 				continue;
 			}
-	
+
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$msg = "Character <highlight>{$name}<end> does not exist.";
 				$sendto->reply($msg);
 				continue;
 			}
-	
+
 			$altInfo = $this->getAltInfo($name, true);
 			if ($altInfo->main === $senderAltInfo->main) {
 				if ($altInfo->isValidated($name)) {
@@ -222,7 +222,7 @@ class AltsController {
 				$sendto->reply($msg);
 				continue;
 			}
-	
+
 			if (count($altInfo->alts) > 0) {
 				// already registered to someone else
 				if ($altInfo->main === $name) {
@@ -239,9 +239,9 @@ class AltsController {
 				$sendto->reply($msg);
 				continue;
 			}
-	
+
 			$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
-	
+
 			// insert into database
 			$this->addAlt($senderAltInfo->main, $name, true, $validated);
 			$success++;
@@ -252,12 +252,12 @@ class AltsController {
 					$this->buddylistManager->add($name, static::ALT_VALIDATE);
 				}
 			}
-	
+
 			// update character information
 			$this->playerManager->getByNameAsync(function() {
 			}, $name);
 		}
-	
+
 		if ($success === 0) {
 			return;
 		}
@@ -281,13 +281,13 @@ class AltsController {
 	 */
 	public function addMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$newMain = ucfirst(strtolower($args[1]));
-	
+
 		if ($newMain === $sender) {
 			$msg = "You cannot add yourself as your own alt.";
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		$senderAltInfo = $this->getAltInfo($sender, true);
 
 		if ($senderAltInfo->main === $newMain) {
@@ -313,9 +313,9 @@ class AltsController {
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		$newMainAltInfo = $this->getAltInfo($newMain, true);
-	
+
 		// insert into database
 		$this->addAlt($newMainAltInfo->main, $sender, false, true);
 
@@ -334,14 +334,14 @@ class AltsController {
 		if (!isset($sentTo)) {
 			$this->buddylistManager->add($newMainAltInfo->main, static::MAIN_VALIDATE);
 		}
-	
+
 		// update character information for both, main and alt
 		$this->playerManager->getByNameAsync(function() {
 		}, $newMain);
 		$this->playerManager->getByNameAsync(function() {
 		}, $sender);
 		// @todo Send a warning if the new main's accesslevel is lower than ours
-	
+
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".
 			"Make sure to confirm the request on <highlight>";
 		if (isset($sentTo)) {
@@ -362,9 +362,9 @@ class AltsController {
 	 */
 	public function removeAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[2]));
-	
+
 		$altInfo = $this->getAltInfo($sender, true);
-	
+
 		// You can only remove alts if you're the main or a validated alt
 		// or if you remove yourself
 		if ($altInfo->main === $name) {
@@ -394,27 +394,27 @@ class AltsController {
 	 */
 	public function setMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$altInfo = $this->getAltInfo($sender);
-	
+
 		if ($altInfo->main === $sender) {
 			$msg = "<highlight>{$sender}<end> is already registered as your main.";
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		if (!$altInfo->isValidated($sender)) {
 			$msg = "You must run this command from a validated character.";
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		$this->db->beginTransaction();
 		try {
 			// remove all the old alt information
 			$this->db->exec("DELETE FROM `alts` WHERE `main` = ?", $altInfo->main);
-		
+
 			// add current main to new main as an alt
 			$this->addAlt($sender, $altInfo->main, true, true);
-		
+
 			// add current alts to new main
 			foreach ($altInfo->alts as $alt => $validated) {
 				if ($alt !== $sender) {
@@ -427,7 +427,7 @@ class AltsController {
 			$sendto->reply("There was a database error changing your main. No changes were made.");
 			return;
 		}
-	
+
 		// @todo Send a warning if the new main's accesslevel is not the highest
 		$msg = "Your main is now <highlight>{$sender}<end>.";
 		$sendto->reply($msg);
@@ -446,7 +446,7 @@ class AltsController {
 		} else {
 			$name = $sender;
 		}
-	
+
 		$altInfo = $this->getAltInfo($name, true);
 		if (count($altInfo->alts) === 0) {
 			$msg = "No alts are registered for <highlight>{$name}<end>.";
@@ -486,7 +486,7 @@ class AltsController {
 
 		$this->db->exec(
 			"UPDATE `alts` SET `validated_by_main` = true ".
-			"WHERE `alt` LIKE ? AND `main` LIKE ?",
+			"WHERE `alt` = ? AND `main` = ?",
 			$toValidate,
 			$altInfo->main
 		);
@@ -509,7 +509,7 @@ class AltsController {
 
 		$this->db->exec(
 			"UPDATE `alts` SET `validated_by_alt` = true ".
-			"WHERE `alt` LIKE ? AND `main` LIKE ?",
+			"WHERE `alt` = ? AND `main` = ?",
 			$sender,
 			$altInfo->main
 		);
@@ -557,7 +557,7 @@ class AltsController {
 		}
 
 		$this->db->exec(
-			"DELETE FROM `alts` WHERE `alt` LIKE ? AND `main` LIKE ?",
+			"DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?",
 			$toDecline,
 			$altInfo->main
 		);
@@ -579,7 +579,7 @@ class AltsController {
 		}
 
 		$this->db->exec(
-			"DELETE FROM `alts` WHERE `alt` LIKE ? AND `main` LIKE ?",
+			"DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?",
 			$sender,
 			$altInfo->main,
 		);
@@ -601,7 +601,7 @@ class AltsController {
 
 	protected function removeMainFromBuddyListIfPossible(string $main): void {
 		$hasUnvalidatedAlts = $this->db->queryRow(
-			"SELECT * FROM `alts` WHERE `main` LIKE ? AND `validated_by_main` IS FALSE",
+			"SELECT * FROM `alts` WHERE `main` = ? AND `validated_by_main` IS FALSE",
 			$main
 		);
 		if ($hasUnvalidatedAlts) {
@@ -694,9 +694,9 @@ class AltsController {
 		}
 		$sql = "SELECT * FROM `alts` ".
 			"WHERE (".
-				"(`main` LIKE ?) ".
+				"(`main` = ?) ".
 				"OR ".
-				"(`main` LIKE (SELECT `main` FROM `alts` WHERE `alt` LIKE ? $validatedWhere))".
+				"(`main` = (SELECT `main` FROM `alts` WHERE `alt` = ? $validatedWhere))".
 			") $validatedWhere";
 		/** @var Alt[] */
 		$data = $this->db->fetchAll(Alt::class, $sql, $player, $player);
@@ -737,7 +737,7 @@ class AltsController {
 	 * This method removes given a $alt from being $main's alt character.
 	 */
 	public function remAlt(string $main, string $alt): int {
-		$sql = "DELETE FROM `alts` WHERE `alt` LIKE ? AND `main` LIKE ?";
+		$sql = "DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?";
 		$deleted = $this->db->exec($sql, $alt, $main);
 		if ($deleted > 0) {
 			$event = new AltEvent();
