@@ -258,17 +258,19 @@ class AltsController {
 			}, $name);
 		}
 	
-		if ($success > 0) {
-			$s = ($success === 1 ? "s" : "");
-			$numAlts = ($success === 1 ? "Alt" : "$success alts");
-			if ($validated) {
-				$msg = "{$numAlts} added successfully.";
-			} else {
-				$msg = "{$numAlts} added successfully, but require{$s} confirmation. ".
-					"Make sure to confirm you as their main on them.";
-			}
-			$sendto->reply($msg);
+		if ($success === 0) {
+			return;
 		}
+		$s = ($success === 1 ? "s" : "");
+		$numAlts = ($success === 1 ? "Alt" : "$success alts");
+		if ($validated) {
+			$msg = "{$numAlts} added successfully.";
+		} else {
+			$msg = "{$numAlts} added successfully, but require{$s} confirmation. ".
+				"Make sure to confirm you as their main on them.";
+		}
+		// @todo Send a warning if the alt's accesslevel is higher than ours
+		$sendto->reply($msg);
 	}
 
 	/**
@@ -338,6 +340,7 @@ class AltsController {
 		}, $newMain);
 		$this->playerManager->getByNameAsync(function() {
 		}, $sender);
+		// @todo Send a warning if the new main's accesslevel is lower than ours
 	
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".
 			"Make sure to confirm the request on <highlight>";
@@ -425,6 +428,7 @@ class AltsController {
 			return;
 		}
 	
+		// @todo Send a warning if the new main's accesslevel is not the highest
 		$msg = "Your main is now <highlight>{$sender}<end>.";
 		$sendto->reply($msg);
 	}
