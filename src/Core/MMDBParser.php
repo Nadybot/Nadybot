@@ -179,7 +179,7 @@ class MMDBParser {
 		$char = '';
 
 		$char = fread($in, 1);
-		while ($char !== "\0") {
+		while ($char !== "\0" && !feof($in)) {
 			$message .= $char;
 			$char = fread($in, 1);
 		}
