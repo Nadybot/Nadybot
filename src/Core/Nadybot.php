@@ -1096,17 +1096,14 @@ class Nadybot extends AOChat {
 	}
 
 	/**
-	 * Get the OrgID for a ChannelID
-	 *
-	 * @return int|bool The OrgID or false if there was an error calculating it
+	 * Get the OrgID for a ChannelID or null if not an org channel
 	 */
-	public function getOrgId(string $channelId) {
-		$b = unpack("C*", $channelId);
-		if ($b[1] == 3) {
-			return ($b[2] << 24) + ($b[3] << 16) + ($b[4] << 8) + ($b[5]);
-		} else {
-			return false;
+	public function getOrgId(string $channelId): ?int {
+		$b = unpack("Ctype/Nid", $channelId);
+		if ($b['type'] === 3) {
+			return $b['id'];
 		}
+		return null;
 	}
 
 	/**
