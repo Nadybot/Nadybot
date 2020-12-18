@@ -143,7 +143,7 @@ class AltsController {
 			$this->db->exec("UPDATE `alts` SET `validated_by_main`aa=true, added_via='<Myname>'");
 		} else {
 			$this->db->exec("ALTER TABLE `alts` RENAME TO `temp.alts_<myname>`");
-			$this->db->exec(file_get_contents(__DIR__ . '/alts_new.sql'));
+			$this->db->exec(file_get_contents(__DIR__ . '/alts.sql'));
 			$this->db->exec(
 				"INSERT INTO `alts` ".
 				"(`alt`, `main`, `validated_by_alt`, `validated_by_main`, `added_via`) ".
@@ -158,11 +158,17 @@ class AltsController {
 	 * @Description("Add unvalidated alts/mains to friendlist")
 	 */
 	public function addNonValidatedAsBuddies(): void {
-		$alts = $this->db->query("SELECT `alt` FROM `alts` WHERE `validated_by_alt` IS FALSE");
+		$alts = $this->db->query(
+			"SELECT `alt` FROM `alts` ".
+			"WHERE `validated_by_alt` IS FALSE AND `added_via`='<Myname>'"
+		);
 		foreach ($alts as $alt) {
 			$this->buddylistManager->add($alt->alt, static::ALT_VALIDATE);
 		}
-		$mains = $this->db->query("SELECT DISTINCT(`main`) FROM `alts` WHERE `validated_by_main` IS FALSE");
+		$mains = $this->db->query(
+			"SELECT DISTINCT(`main`) FROM `alts` ".
+			"WHERE `validated_by_main` IS FALSE AND `added_via`='<Myname>'"
+		);
 		foreach ($mains as $main) {
 			$this->buddylistManager->add($main->main, static::MAIN_VALIDATE);
 		}
