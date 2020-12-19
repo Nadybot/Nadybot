@@ -40,32 +40,32 @@ class OrglistController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
-	
+
 	/** @Inject */
 	public GuildManager $guildManager;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public FindOrgController $findOrgController;
-	
+
 	protected ?Orglist $orglist = null;
 	/** @var array<string,string[]> */
 	protected array $orgrankmap = [];
-	
+
 	public function __construct() {
 		$this->orgrankmap["Anarchism"]  = ["Anarchist"];
 		$this->orgrankmap["Monarchy"]   = ["Monarch",   "Counsil",      "Follower"];
@@ -74,7 +74,7 @@ class OrglistController {
 		$this->orgrankmap["Faction"]    = ["Director",  "Board Member", "Executive",       "Member",         "Applicant"];
 		$this->orgrankmap["Department"] = ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"];
 	}
-	
+
 	/**
 	 * @HandlesCommand("orglist")
 	 * @Matches("/^orglist end$/i")
@@ -86,7 +86,7 @@ class OrglistController {
 			$sendto->reply("There is no orglist currently running.");
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("orglist")
 	 * @Matches("/^orglist (.+)$/i")
@@ -116,7 +116,7 @@ class OrglistController {
 			}
 		);
 	}
-	
+
 	/**
 	 * @return Organization[]
 	 */
@@ -137,7 +137,7 @@ class OrglistController {
 						return;
 					}
 				}
-				
+
 				$obj = new Organization();
 				$obj->name = $whois->guild;
 				$obj->id = $whois->guild_id;
@@ -149,7 +149,7 @@ class OrglistController {
 			$name
 		);
 	}
-	
+
 	public function checkOrglist(int $orgid, CommandReply $sendto): void {
 		// Check if we are already doing a list.
 		if (isset($this->orglist)) {
@@ -157,7 +157,7 @@ class OrglistController {
 			$sendto->reply($msg);
 			return;
 		}
-		
+
 		$this->orglist = new Orglist();
 		$this->orglist->start = time();
 		$this->orglist->sendto = $sendto;
@@ -200,17 +200,17 @@ class OrglistController {
 		}
 
 		$sendto->reply("Checking online status for " . count($org->members) ." members of <highlight>$org->orgname<end>…");
-		
+
 		$this->checkOnline($org->members);
 		$this->addOrgMembersToBuddylist();
 
 		unset($org);
-		
+
 		if (count($this->orglist->added) == 0) {
 			$this->orglistEnd();
 		}
 	}
-	
+
 	/**
 	 * @param array<string,Player> $members
 	 * @return string[]
@@ -227,14 +227,14 @@ class OrglistController {
 				break;
 			}
 		}
-		
+
 		// it's possible we haven't narrowed it down to 1 at this point
 		// If we haven't found the org yet, it can only be
 		// Republic or Department with only a president.
 		// choose the first one
 		return array_shift($forms);
 	}
-	
+
 	/**
 	 * @param array<string,Player> $members
 	 */
@@ -253,7 +253,7 @@ class OrglistController {
 			}
 		}
 	}
-	
+
 	public function addOrgMembersToBuddylist(): void {
 		foreach ($this->orglist->check as $name => $value) {
 			if (!$this->checkBuddylistSize()) {
@@ -265,7 +265,7 @@ class OrglistController {
 			$this->buddylistManager->add($name, 'onlineorg');
 		}
 	}
-	
+
 	public function orglistEnd(): void {
 		$orgcolor["offline"] = "<font color='#555555'>";   // Offline names
 
@@ -278,7 +278,7 @@ class OrglistController {
 		}
 		unset($this->orglist);
 	}
-	
+
 	/**
 	 * @return string[]
 	 */
@@ -334,10 +334,10 @@ class OrglistController {
 
 		$totaltime = time() - $timestart;
 		$blob .= "\nLookup took $totaltime seconds.";
-		
+
 		return (array)$this->text->makeBlob("Orglist for '{$this->orglist->org}' ($totalonline / $totalcount)", $blob);
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Event("logOff")
@@ -374,7 +374,11 @@ class OrglistController {
 			$this->orglistEnd();
 		}
 	}
-	
+
+	/**
+	 * Check if we are allowed to add more buddies or if we should
+	 * slow down, because our buddylist gets too full
+	 */
 	public function checkBuddylistSize(): bool {
 		return count($this->buddylistManager->buddyList) < ($this->chatBot->getBuddyListSize() - 5);
 	}
