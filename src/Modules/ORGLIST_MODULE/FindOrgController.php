@@ -36,25 +36,25 @@ class FindOrgController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public Http $http;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	private $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -66,14 +66,14 @@ class FindOrgController {
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "organizations");
 	}
-	
+
 	/**
 	 * @HandlesCommand("findorg")
 	 * @Matches("/^findorg (.+)$/i")
 	 */
 	public function findOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
-		
+
 		$orgs = $this->lookupOrg($search);
 		$count = count($orgs);
 
@@ -85,7 +85,7 @@ class FindOrgController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @return Organization[]
 	 * @throws SQLException
@@ -94,14 +94,14 @@ class FindOrgController {
 		$tmp = explode(" ", $search);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
 		$params []= $limit;
-		
+
 		$sql = "SELECT * FROM organizations WHERE $query LIMIT ?";
-		
+
 		$orgs = $this->db->fetchAll(Organization::class, $sql, ...$params);
-		
+
 		return $orgs;
 	}
-	
+
 	/**
 	 * @param Organization[] $orgs
 	 */
@@ -155,13 +155,13 @@ class FindOrgController {
 				$obj->num_members = (int)$match[4];
 				$obj->faction = $match[6];
 				//$obj->governingForm = $match[7]; unused
-			
+
 				$this->db->exec("INSERT INTO organizations (id, name, faction, num_members) VALUES (?, ?, ?, ?)", $obj->id, $obj->name, $obj->faction, $obj->num_members);
 			}
 			$this->db->commit();
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
-				$this->logger->log("DEBUG", "Finished downloading orgs");
+				$this->logger->log("INFO", "Finished downloading orglists");
 				return;
 			}
 			$this->http
@@ -176,7 +176,7 @@ class FindOrgController {
 			$this->db->rollback();
 		}
 	}
-	
+
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Parses all orgs from People of Rubi Ka")
@@ -187,7 +187,7 @@ class FindOrgController {
 
 	public function downloadOrglist(): void {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
-		
+
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http
