@@ -437,7 +437,7 @@ class AOChat {
 			return $this->id[$u];
 		}
 
-		$this->sendLookupPacket($u);
+		$this->sendLookupPacket((string)$u);
 		// $this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
