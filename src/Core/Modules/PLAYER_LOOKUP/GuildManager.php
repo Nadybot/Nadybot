@@ -25,16 +25,16 @@ use Nadybot\Core\DBSchema\Player;
 class GuildManager {
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public CacheManager $cacheManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
 
@@ -55,7 +55,7 @@ class GuildManager {
 	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= (int)$this->chatBot->vars["dimension"];
-		
+
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$maxCacheAge = 86400;
 		if (
@@ -83,7 +83,7 @@ class GuildManager {
 	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= (int)$this->chatBot->vars["dimension"];
-		
+
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
 		$filename = "$guildID.$dimension.json";
@@ -116,9 +116,9 @@ class GuildManager {
 			$callback(null, ...$args);
 			return;
 		}
-		
+
 		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data);
-		
+
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);
 			return;
@@ -146,9 +146,7 @@ class GuildManager {
 		foreach ($members as $member) {
 			$name = $member->NAME;
 			if (!isset($this->chatBot->id[$name])) {
-				$this->chatBot->sendPacket(
-					new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $name)
-				);
+				$this->chatBot->sendLookupPacket($name);
 			}
 		}
 
@@ -178,7 +176,7 @@ class GuildManager {
 			$guild->members[$name]->guild_rank_id = $member->RANK;
 			$guild->members[$name]->dimension     = $dimension;
 			$guild->members[$name]->source        = 'org_roster';
-			
+
 			$guild->members[$name]->head_id       = $member->HEADID;
 			$guild->members[$name]->pvp_rating    = $member->PVPRATING;
 			$guild->members[$name]->pvp_title     = $member->PVPTITLE;

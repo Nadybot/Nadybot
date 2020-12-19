@@ -105,6 +105,8 @@ class AOChat {
 	 */
 	public array $id;
 
+	public array $pendingIdLookups = [];
+
 	/**
 	 * A lookup cache for group name => id and id => group name
 	 *
@@ -290,7 +292,7 @@ class AOChat {
 		$data = $this->readData($len);
 
 		$packet = new AOChatPacket("in", $type, $data);
-		
+
 		if ($this->logger->isEnabledFor('debug')) {
 			$this->logger->log('debug', print_r($packet, true));
 		}
@@ -303,6 +305,7 @@ class AOChat {
 				$name = ucfirst(strtolower($name));
 				$this->id[$id]   = $name;
 				$this->id[$name] = $id;
+				unset($this->pendingIdLookups[$name]);
 				break;
 
 			case AOCP_GROUP_ANNOUNCE:
@@ -343,7 +346,7 @@ class AOChat {
 	 */
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
-		
+
 		$this->logger->log('debug', $data);
 
 		socket_write($this->socket, $data, strlen($data));
@@ -434,7 +437,8 @@ class AOChat {
 			return $this->id[$u];
 		}
 
-		$this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
+		$this->sendLookupPacket($u);
+		// $this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
 			$packet = $this->waitForPacket(1);
@@ -444,6 +448,17 @@ class AOChat {
 		}
 
 		return isset($this->id[$u]) ? $this->id[$u] : false;
+	}
+
+
+	public function sendLookupPacket(string $userName): void {
+		$time = time();
+		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
+		if (isset($lastLookup) && $lastLookup > $time - 10) {
+			return;
+		}
+		$this->pendingIdLookups[$userName] = $time;
+		$this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $userName));
 	}
 
 	/**
@@ -965,7 +980,7 @@ class AOChat {
 		}
 		return [$a, $b];
 	}
-	
+
 	/**
 	 * Parse parameters of extended Messages
 	 *
@@ -1025,7 +1040,7 @@ class AOChat {
 					}
 					$args[] = $str;
 					break;
-					
+
 				case "~":
 					// reached end of message
 					break 2;
@@ -1038,7 +1053,7 @@ class AOChat {
 
 		return $args;
 	}
-	
+
 	/**
 	 * Decode the next 5-byte block of 4 ascii85-encoded bytes and move the pointer
 	 *
@@ -1053,7 +1068,7 @@ class AOChat {
 		$str = substr($str, 5);
 		return $n;
 	}
-	
+
 	/**
 	 * Read an extended message and return it
 	 *
@@ -1081,7 +1096,7 @@ class AOChat {
 		if (empty($msg)) {
 			return null;
 		}
-		
+
 		$message = '';
 		while (substr($msg, 0, 2) === "~&") {
 			// remove header '~&'
@@ -1101,7 +1116,7 @@ class AOChat {
 				}
 			}
 		}
-		
+
 		return $message;
 	}
 }
