@@ -314,7 +314,7 @@ class WhoisController {
 		$msg .= " :: " . $this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}");
 
 		$altInfo = $this->altsController->getAltInfo($name);
-		if (count($altInfo->alts) === 0) {
+		if (count($altInfo->getAllValidatedAlts()) === 0) {
 			$callback($msg);
 			return;
 		}

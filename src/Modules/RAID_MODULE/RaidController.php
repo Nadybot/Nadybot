@@ -667,7 +667,7 @@ class RaidController {
 				continue;
 			}
 			$mains[$altInfo->main] = true;
-			foreach ($altInfo->alts as $alt => $true) {
+			foreach ($altInfo->getAllValidatedAlts() as $alt) {
 				if ($alt === $name) {
 					continue;
 				}

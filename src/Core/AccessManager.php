@@ -201,7 +201,7 @@ class AccessManager {
 		$accessLevel = $this->getSingleAccessLevel($sender);
 
 		$altInfo = $this->altsController->getAltInfo($sender);
-		if ($sender != $altInfo->main && $altInfo->isValidated($sender)) {
+		if ($sender !== $altInfo->main && $altInfo->isValidated($sender)) {
 			$mainAccessLevel = $this->getSingleAccessLevel($altInfo->main);
 			if ($this->compareAccessLevels($mainAccessLevel, $accessLevel) > 0) {
 				$accessLevel = $mainAccessLevel;

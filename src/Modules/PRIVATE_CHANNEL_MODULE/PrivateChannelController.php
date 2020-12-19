@@ -742,7 +742,7 @@ class PrivateChannelController {
 				$msg .= " Alt of <highlight>{$altInfo->main}<end>";
 			}
 		} else {
-			if (count($altInfo->alts) > 0) {
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$altInfo->getAltsBlobAsync(
 					function(string $blob) use ($msg, $callback): void {
 						$callback("{$msg} {$blob}");

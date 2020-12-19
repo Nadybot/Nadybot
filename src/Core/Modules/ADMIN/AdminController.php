@@ -209,8 +209,8 @@ class AdminController {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main == $who) {
-			foreach ($altInfo->alts as $alt => $validated) {
-				if ($validated == 1 && ($showOfflineAlts || $this->buddylistManager->isOnline($alt))) {
+			foreach ($altInfo->getAllValidatedAlts() as $alt) {
+				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
 					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
 				}
 			}

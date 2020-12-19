@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 
 class AltInfo {
@@ -14,7 +15,7 @@ class AltInfo {
 	 * The list of alts for this character
 	 * Format is [name => validated (true) or false]
 	 *
-	 * @var array<string,bool>
+	 * @var array<string,AltValidationStatus>
 	 */
 	public array $alts = [];
 
@@ -22,17 +23,15 @@ class AltInfo {
 	 * Check if $sender is a validated alt or main
 	 */
 	public function isValidated(string $sender): bool {
+		$sender = ucfirst(strtolower($sender));
 		if ($sender === $this->main) {
 			return true;
 		}
 
-		foreach ($this->alts as $alt => $validated) {
-			if ($sender === $alt) {
-				return $validated;
-			}
+		if (!isset($this->alts[$sender])) {
+			return false;
 		}
-
-		return false;
+		return $this->alts[$sender]->validated_by_alt && $this->alts[$sender]->validated_by_main;
 	}
 
 	/**
@@ -45,7 +44,7 @@ class AltInfo {
 		}
 		$arr = [$this->main];
 		foreach ($this->alts as $alt => $validated) {
-			if ($validated) {
+			if ($validated->validated_by_alt && $validated->validated_by_main) {
 				$arr []= $alt;
 			}
 		}
@@ -53,9 +52,41 @@ class AltInfo {
 	}
 
 	/**
+	 * Get a list of all validated alts
+	 * @return string[]
+	 */
+	public function getAllValidatedAlts(): array {
+		$alts = [];
+		foreach ($this->alts as $alt => $status) {
+			if ($this->isValidated($alt)) {
+				$alts []= $alt;
+			}
+		}
+		return $alts;
+	}
+
+	/**
+	 * Get a list of all alts requiring validation from main
+	 * @return string[]
+	 */
+	public function getAllMainUnvalidatedAlts(bool $onlyMine=true): array {
+		$alts = [];
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance('chatBot');
+		foreach ($this->alts as $alt => $status) {
+			if ($onlyMine && $status->added_via !== $chatBot->vars["name"]) {
+				continue;
+			}
+			if (!$status->validated_by_main) {
+				$alts []= $alt;
+			}
+		}
+		return $alts;
+	}
+
+	/**
 	 * Get the altlist of this character as a string to display
 	 *
-	 * @param bool $showValidateLinks Show links to validate the alt if unvalidated
 	 * @param bool $firstPageOnly Only show the first page (login alt-list)
 	 * @return string|string[]
 	 */
@@ -134,7 +165,7 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		$sql = "SELECT `alt`, `main`, `validated`, p.* ".
+		$sql = "SELECT `alt`, `main`, `validated_by_main`, `validated_by_alt`, p.* ".
 			"FROM `alts` a ".
 			"LEFT JOIN players p ON (a.alt = p.name AND p.dimension = '<dim>') ".
 			"WHERE `main` LIKE ? ";
@@ -173,7 +204,7 @@ class AltInfo {
 				$blob .= " - " .join(", ", $extraInfo);
 			}
 			$blob .= $this->formatOnlineStatus($online);
-			if (!$row->validated) {
+			if (!$row->validated_by_alt || !$row->validated_by_main) {
 				$blob .= " - <red>not validated<end>";
 			}
 
