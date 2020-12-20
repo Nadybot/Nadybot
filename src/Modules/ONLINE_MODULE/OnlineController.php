@@ -50,44 +50,44 @@ class OnlineController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
 	public DiscordGatewayController $discordGatewayController;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	/** @Setup */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "online");
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"online_expire",
@@ -163,7 +163,7 @@ class OnlineController {
 		$this->commandAlias->register($this->moduleName, "online", "o");
 		$this->commandAlias->register($this->moduleName, "online", "sm");
 	}
-	
+
 	/**
 	 * @HandlesCommand("online")
 	 * @Matches("/^online$/i")
@@ -188,7 +188,7 @@ class OnlineController {
 		$sql = "SELECT DISTINCT p.*, o.afk, COALESCE(a.main, o.name) AS pmain, ".
 				"(CASE WHEN o2.name IS NULL THEN 0 ELSE 1 END) AS online ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
 			"LEFT JOIN alts a2 ON a2.main = COALESCE(a.main, o.name) ".
 			"LEFT JOIN players p ON a2.alt = p.name OR COALESCE(a.main, o.name) = p.name ".
 			"LEFT JOIN online o2 ON p.name = o2.name ".
@@ -234,7 +234,7 @@ class OnlineController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Records an org member login in db")
@@ -254,7 +254,7 @@ class OnlineController {
 		$event->player = $player;
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Records an org member logoff in db")
@@ -270,7 +270,7 @@ class OnlineController {
 			$this->eventManager->fireEvent($event);
 		}
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Sends a tell to players on logon showing who is online in org")
@@ -282,7 +282,7 @@ class OnlineController {
 			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
-	
+
 	/**
 	 * @Event("timer(10mins)")
 	 * @Description("Online check")
@@ -336,7 +336,7 @@ class OnlineController {
 		$sql = "DELETE FROM `online` WHERE (`dt` < ? AND added_by = '<myname>') OR (`dt` < ?)";
 		$this->db->exec($sql, $time, ($time - $this->settingManager->get('online_expire')));
 	}
-	
+
 	/**
 	 * @Event("priv")
 	 * @Description("Afk check")
@@ -345,7 +345,7 @@ class OnlineController {
 	public function afkCheckPrivateChannelEvent(Event $eventObj) {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Afk check")
@@ -354,7 +354,7 @@ class OnlineController {
 	public function afkCheckGuildChannelEvent(Event $eventObj) {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
-	
+
 	/**
 	 * @Event("priv")
 	 * @Description("Sets a member afk")
@@ -363,7 +363,7 @@ class OnlineController {
 	public function afkPrivateChannelEvent(Event $eventObj) {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Sets a member afk")
@@ -372,7 +372,7 @@ class OnlineController {
 	public function afkGuildChannelEvent(Event $eventObj): void {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
-	
+
 	/**
 	 * Set someone back from afk if needed
 	 */
@@ -396,14 +396,14 @@ class OnlineController {
 		// $sender is back
 		$this->db->exec("UPDATE online SET `afk` = '' WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
 		$msg = "<highlight>{$sender}<end> is back after $timeString.";
-		
+
 		if ('priv' == $type) {
 			$this->chatBot->sendPrivate($msg);
 		} elseif ('guild' == $type) {
 			$this->chatBot->sendGuild($msg);
 		}
 	}
-	
+
 	public function afk(string $sender, string $message, string $type): void {
 		$msg = null;
 		$symbol = $this->settingManager->getString('symbol');
@@ -430,7 +430,7 @@ class OnlineController {
 			} elseif ('guild' == $type) {
 				$this->chatBot->sendGuild($msg);
 			}
-			
+
 			// if 'afk' was used as a command, throw StopExecutionException to prevent
 			// normal command handling from occurring
 			if ($message[0] == $symbol) {
@@ -438,7 +438,7 @@ class OnlineController {
 			}
 		}
 	}
-	
+
 	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
 		$sql = "SELECT name FROM `online` ".
 			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
@@ -451,19 +451,19 @@ class OnlineController {
 		}
 		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
 			"LEFT JOIN players p ON o.name = p.name ".
 			"WHERE o.channel_type=? AND o.name=?";
 		$op = $this->db->fetch(OnlinePlayer::class, $sql, $channelType, $sender);
 		return $op;
 	}
-	
+
 	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
 		$sql = "DELETE FROM `online` ".
 			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
 		$this->db->exec($sql, $sender, $channelType);
 	}
-	
+
 	/**
 	 * Get a page or multiple pages with the online list
 	 * @return string[]
@@ -635,7 +635,7 @@ class OnlineController {
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
 			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated IS TRUE) ".
+			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
 			"LEFT JOIN players p ON o.name = p.name ".
 			"WHERE o.channel_type = ? ";
 		if ($groupBy === static::GROUP_BY_MAIN) {
