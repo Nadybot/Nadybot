@@ -83,7 +83,7 @@ class BotRunner {
 
 
 	/**
-	 * Calculate the latest tag that $red was tagged with
+	 * Calculate the latest tag that the checkout was tagged with
 	 * and return how many commits were done since then
 	 * Like [number of commits, tag]
 	 */
@@ -91,11 +91,24 @@ class BotRunner {
 		if (isset(static::$latestTag)) {
 			return static::$latestTag;
 		}
-		$tagString = shell_exec("git describe --tags --abbrev=1");
-		if (!isset($tagString) || !preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
+		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+
+		$pid = proc_open("git describe --tags --abbrev=1", $descriptors, $pipes);
+		if ($pid === false) {
 			return static::$latestTag = null;
 		}
-		return static::$latestTag = [(int)$matches[2], $matches[1]];
+		fclose($pipes[0]);
+		$tagString = trim(stream_get_contents($pipes[1]));
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		proc_close($pid);
+		if (isset($tagString) && preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
+			return static::$latestTag = [(int)$matches[2], $matches[1]];
+		}
+		if (isset($tagString) && preg_match("/^(\d+\.\d+(?:-[^\d].+))$/", $tagString, $matches)) {
+			return static::$latestTag = [0, $matches[1]];
+		}
+		return static::$latestTag = null;
 	}
 
 	/**
