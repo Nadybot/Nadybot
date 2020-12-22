@@ -28,12 +28,11 @@ class BuddylistManager {
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
-		if (strtolower($this->chatBot->vars['name']) == strtolower($name)) {
+		if (strtolower($this->chatBot->vars['name']) === strtolower($name)) {
 			return true;
-		} else {
-			$buddy = $this->getBuddy($name);
-			return ($buddy === null ? null : (bool)$buddy['online']);
 		}
+		$buddy = $this->getBuddy($name);
+		return ($buddy === null ? null : (bool)$buddy['online']);
 	}
 
 	/**
@@ -53,9 +52,22 @@ class BuddylistManager {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || !isset($this->buddyList[$uid])) {
 			return null;
-		} else {
-			return $this->buddyList[$uid];
 		}
+		return $this->buddyList[$uid];
+	}
+
+	/**
+	 * Get the names of all people in the friendlist who are online
+	 * @return string[]
+	 */
+	public function getOnline(): array {
+		$result = [];
+		foreach ($this->buddyList as $uid => $data) {
+			if ($data["online"]) {
+				$result []= $data["name"];
+			}
+		}
+		return $result;
 	}
 
 	/**
