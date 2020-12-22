@@ -225,6 +225,17 @@ class SystemController {
 	public string $defaultAccessDeniedNotifyPriv = "1";
 
 	/**
+	 * @Setting("force_mass_tells")
+	 * @Description("When using the proxy, always send tells via the workers")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $forceMassTells = "0";
+
+	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */

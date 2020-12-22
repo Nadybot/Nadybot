@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
+use JsonException;
 use Nadybot\Core\Annotations\DefineCommand;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
@@ -13,6 +14,7 @@ use Nadybot\Core\DBSchema\{
 	HlpCfg,
 	Setting,
 };
+use Throwable;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -496,6 +498,11 @@ class Nadybot extends AOChat {
 			foreach ($message as $page) {
 				$this->sendTell($page, $character, $priority);
 			}
+		}
+		if ( ($this->vars["use_proxy"]??0) == 1
+			&& $this->settingManager->getBool('force_mass_tells')
+		) {
+			$this->sendMassTell($message, $character, $priority, $formatMessage);
 			return;
 		}
 
@@ -520,7 +527,7 @@ class Nadybot extends AOChat {
 	/**
 	 * Send a mass message via the chatproxy to another player/bot
 	 */
-	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
+	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true, int $worker=null): void {
 		// If we're not using a chat proxy, this doesn't do anything
 		if (($this->vars["use_proxy"]??0) == 0) {
 			$this->sendTell(...func_get_args());
@@ -542,7 +549,11 @@ class Nadybot extends AOChat {
 		}
 
 		$this->logger->logChat("Out. Msg.", $character, $message);
-		$this->send_tell($character, $tellColor.$message, "spam", $priority);
+		$extra = "spam";
+		if (isset($worker)) {
+			$extra .= "-{$worker}";
+		}
+		$this->send_tell($character, $tellColor.$message, $extra, $priority);
 	}
 
 	/**
@@ -758,7 +769,7 @@ class Nadybot extends AOChat {
 	/**
 	 * Handle an incoming tell
 	 */
-	public function processPrivateMessage(int $senderId, string $message): void {
+	public function processPrivateMessage(int $senderId, string $message, string $extra): void {
 		$type = "msg";
 		$sender = $this->lookup_user($senderId);
 
@@ -773,6 +784,15 @@ class Nadybot extends AOChat {
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 		$eventObj->message = $message;
+		if ($extra !== "\0") {
+			try {
+				$extraData = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+				if (isset($extraData->id)) {
+					$eventObj->worker = $extraData->id;
+				}
+			} catch (Throwable $e) {
+			}
+		}
 
 		$this->logger->logChat("Inc. Msg.", $sender, $message);
 
@@ -810,8 +830,8 @@ class Nadybot extends AOChat {
 		$this->limitsController->checkAndExecute(
 			$sender,
 			$message,
-			function() use ($sender, $type, $message): void {
-				$sendto = new PrivateMessageCommandReply($this, $sender);
+			function() use ($sender, $type, $message, $eventObj): void {
+				$sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
 				$this->commandManager->process($type, $message, $sender, $sendto);
 			}
 		);
@@ -936,7 +956,7 @@ class Nadybot extends AOChat {
 
 	public function registerEvents(string $class): void {
 		$reflection = new ReflectionAnnotatedClass($class);
-		
+
 		if (!$reflection->hasAnnotation('ProvidesEvent')) {
 			return;
 		}
