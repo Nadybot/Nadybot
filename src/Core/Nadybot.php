@@ -550,7 +550,7 @@ class Nadybot extends AOChat {
 
 		$this->logger->logChat("Out. Msg.", $character, $message);
 		$extra = "spam";
-		if (isset($worker)) {
+		if (isset($worker) && $this->settingManager->getBool('reply_on_same_worker')) {
 			$extra .= "-{$worker}";
 		}
 		$this->send_tell($character, $tellColor.$message, $extra, $priority);
