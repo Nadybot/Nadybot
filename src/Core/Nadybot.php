@@ -498,6 +498,7 @@ class Nadybot extends AOChat {
 			foreach ($message as $page) {
 				$this->sendTell($page, $character, $priority);
 			}
+			return;
 		}
 		if ( ($this->vars["use_proxy"]??0) == 1
 			&& $this->settingManager->getBool('force_mass_tells')
