@@ -8,6 +8,7 @@
           @click="selectModule(module)"
           class="list-group-item d-flex justify-content-between align-items-center module-item"
           :class="{ active: selected && module.name == selected.name }"
+          :title="module.description ? module.description.split('.')[0] : ''"
         >
           {{ module.name }}
           <div
@@ -33,7 +34,13 @@
       </ul>
     </div>
     <div class="w-75 px-3 overflow-auto setting-container" v-if="selected">
-      <h1 class="mb-4">{{ selected.name }}</h1>
+      <h1 class="mb-3">{{ selected.name }}</h1>
+
+      <p
+        class="mb-3"
+        v-if="selected.description"
+        v-html="renderDescription(selected.description)"
+      ></p>
 
       <div v-if="selected_settings.length > 0">
         <div class="card w-100">
@@ -560,6 +567,11 @@ export default defineComponent({
       } else {
         return "none";
       }
+    },
+    renderDescription: function (desc: string): string {
+      let text = desc.replaceAll("\n\n", "<br>");
+      var urlRegex = /(\b(https?|ftp|file):\/\/([-A-Z0-9+&@#%?=~_|!:,.;]*)([-A-Z0-9+&@#%?/=~_|!:,.;]*)[-A-Z0-9+&@#/%=~_|])/gi;
+      return text.replace(urlRegex, "<a href='$1' target='_blank'>$1</a>");
     },
     selectModule: async function (module: ConfigModule): Promise<void> {
       let settings = await getModuleSettings(module.name);

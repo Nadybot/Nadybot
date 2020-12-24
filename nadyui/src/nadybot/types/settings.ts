@@ -3,6 +3,8 @@ import { JsonDecoder } from "ts.data.json";
 export interface ConfigModule {
   // Name of the module
   readonly name: string;
+  // Description of the module
+  readonly description: string | null;
   // How many commands are enabled
   num_commands_enabled: number;
   // How many commands are disabled
@@ -105,6 +107,7 @@ export interface ModuleAccessLevel {
 
 const configModuleDecoderMapping = {
   name: JsonDecoder.string,
+  description: JsonDecoder.nullable(JsonDecoder.string),
   num_commands_enabled: JsonDecoder.number,
   num_commands_disabled: JsonDecoder.number,
   num_events_enabled: JsonDecoder.number,
