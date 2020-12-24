@@ -288,6 +288,22 @@ class ConfigApiController {
 	}
 
 	/**
+	 * Get the description of a module
+	 * @Api("/module/%s/description")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='string', desc='A description of the module')
+	 * @ApiResult(code=204, desc='No description set')
+	 */
+	public function apiModuleDescriptionGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
+		$description = $this->configController->getModuleDescription($module);
+		if (!isset($description)) {
+			return new Response(Response::NO_CONTENT);
+		}
+		return new ApiResponse($description);
+	}
+
+	/**
 	 * Get a list of available settings for a module
 	 * @Api("/module/%s/settings")
 	 * @GET
