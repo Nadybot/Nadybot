@@ -884,6 +884,7 @@ class ConfigController {
 		foreach ($data as $row) {
 			$config = new ConfigModule();
 			$config->name = $row->module;
+			$config->description = $this->getModuleDescription($config->name);
 			$config->num_commands_enabled = (int)$row->count_cmd_enabled;
 			$config->num_commands_disabled = (int)$row->count_cmd_disabled;
 			$config->num_events_disabled = (int)$row->count_events_disabled;
