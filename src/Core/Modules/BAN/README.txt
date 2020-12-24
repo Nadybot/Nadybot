@@ -1,0 +1,1 @@
+Allows you to manage manual banning of people.
