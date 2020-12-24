@@ -640,16 +640,22 @@ class ConfigController {
 		$module = strtoupper($args[1]);
 		$found = false;
 
-		$blob = "";
-		$description = $this->getModuleDescription($module);
-		if (isset($description)) {
-			$description = implode("<br>", explode("\n", $description));
-			$blob .= "<i>{$description}</i>\n\n";
-		}
 		$on = $this->text->makeChatcmd("Enable", "/tell <myname> config mod {$module} enable all");
 		$off = $this->text->makeChatcmd("Disable", "/tell <myname> config mod {$module} disable all");
 
-		$blob .= "Enable/disable entire module: ($on/$off)\n";
+		$blob = "Enable/disable entire module: ($on/$off)\n";
+		$description = $this->getModuleDescription($module);
+		if (isset($description)) {
+			$description = implode("<br><tab>", explode("\n", $description));
+			$description = preg_replace_callback(
+				"/(https?:\/\/[^\s\n<]+)/s",
+				function(array $matches): string {
+					return $this->text->makeChatcmd($matches[1], "/start {$matches[1]}");
+				},
+				$description
+			);
+			$blob .= "\n<header2>Description<end>\n<tab>{$description}\n";
+		}
 
 		$data = $this->getModuleSettings($module);
 		if (count($data) > 0) {
