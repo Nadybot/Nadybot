@@ -1,0 +1,1 @@
+This allows players to take notes for later.

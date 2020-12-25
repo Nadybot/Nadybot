@@ -1,0 +1,1 @@
+The timers module acts like an alarm clock and a stopwatch combined.

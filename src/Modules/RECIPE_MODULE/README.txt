@@ -1,0 +1,1 @@
+This module is an interface to Nadybot's tradeskill recipes.

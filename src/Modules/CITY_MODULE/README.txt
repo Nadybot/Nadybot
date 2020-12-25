@@ -1,0 +1,1 @@
+The city module keeps track of the city's cloak as well as alien attacks.

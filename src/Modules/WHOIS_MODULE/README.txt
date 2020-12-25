@@ -1,0 +1,1 @@
+Query information about any player, whether online, offline or inactive.
