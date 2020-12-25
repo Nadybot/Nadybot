@@ -787,7 +787,7 @@ class Nadybot extends AOChat {
 		if ($extra !== "\0") {
 			try {
 				$extraData = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
-				if (isset($extraData->id)) {
+				if (isset($extra) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
 			} catch (Throwable $e) {
