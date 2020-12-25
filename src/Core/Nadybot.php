@@ -495,7 +495,7 @@ class Nadybot extends AOChat {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
-				$this->sendTell($page, $character, $priority);
+				$this->sendTell($page, $character, $priority, $formatMessage);
 			}
 			return;
 		}
@@ -536,7 +536,7 @@ class Nadybot extends AOChat {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
-				$this->sendMassTell($page, $character, $priority);
+				$this->sendMassTell($page, $character, $priority, $formatMessage, $worker);
 			}
 			return;
 		}
