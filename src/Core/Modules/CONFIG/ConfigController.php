@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	HelpManager,
 	InsufficientAccessException,
 	LoggerWrapper,
+	Nadybot,
 	Registry,
 	SettingHandler,
 	SettingManager,
@@ -59,10 +60,13 @@ class ConfigController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
-	
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -111,7 +115,7 @@ class ConfigController {
 				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable all') . " " .
 				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable all') . "\n\n\n";
 		$modules = $this->getModules();
-	
+
 		foreach ($modules as $module) {
 			$numEnabled = $module->num_commands_enabled + $module->num_events_enabled;
 			$numDisabled = $module->num_commands_disabled + $module->num_events_disabled;
@@ -122,9 +126,9 @@ class ConfigController {
 			} else {
 				$a = "<red>Disabled<end>";
 			}
-	
+
 			$c = $this->text->makeChatcmd("Configure", "/tell <myname> config $module->name");
-	
+
 			$on = "<black>On<end>";
 			if ($numDisabled > 0) {
 				$on = $this->text->makeChatcmd("On", "/tell <myname> config mod $module->name enable all");
@@ -135,7 +139,7 @@ class ConfigController {
 			}
 			$blob .= "($on / $off / $c) " . strtoupper($module->name) . " ($a)\n";
 		}
-	
+
 		$count = count($modules);
 		$msg = $this->text->makeBlob("Module Config ($count)", $blob);
 		$sendto->reply($msg);
@@ -158,7 +162,7 @@ class ConfigController {
 			 $sqlArgs[] = $args[2];
 			 $confirmString = "all " . $args[2];
 		}
-	
+
 		$sql = "SELECT `type`, `file`, `cmd`, `admin` ".
 			"FROM `cmdcfg_<myname>` ".
 			"WHERE `cmdevent` = 'cmd' AND ($typeSql)";
@@ -173,11 +177,11 @@ class ConfigController {
 				$this->commandManager->deactivate($row->type, $row->file, $row->cmd);
 			}
 		}
-	
+
 		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE (`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') AND ($typeSql)";
 		$sqlArgs = [$status, ...$sqlArgs];
 		$this->db->exec($sql, ...$sqlArgs);
-	
+
 		$msg = "Successfully <highlight>" . ($status === 1 ? "enabled" : "disabled") . "<end> $confirmString commands.";
 		$sendto->reply($msg);
 	}
@@ -268,10 +272,10 @@ class ConfigController {
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		$color = ($args[2] === "enable") ? "green" : "red";
 		$msg = "Updated status of event <highlight>{$event_type}<end> to <{$color}>{$args[2]}d<end>.";
-	
+
 		$sendto->reply($msg);
 	}
 
@@ -287,24 +291,24 @@ class ConfigController {
 			$sqlArgs []= $type;
 			$sql .= " AND `type` = ?";
 		}
-	
+
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
-		
+
 		if (!$this->checkCommandAccessLevels($data, $sender)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this command.");
 		}
-	
+
 		if (count($data) === 0) {
 			return false;
 		}
-	
+
 		foreach ($data as $row) {
 			$this->toggleCmdCfg($row, $enable);
 		}
 
 		$sqlArgs = [(int)$enable, $cmd, $cmdEvent];
-	
+
 		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? ".
 				"WHERE `cmd` = ? AND `cmdevent` = ?";
 		if ($type !== "all") {
@@ -312,7 +316,7 @@ class ConfigController {
 			$sql .= " AND `type` = ?";
 		}
 		$this->db->exec($sql, ...$sqlArgs);
-	
+
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
 		return true;
@@ -327,18 +331,18 @@ class ConfigController {
 		}
 		$sql = "SELECT *, 'event' AS cmdevent FROM `eventcfg_<myname>` ".
 			"WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
-	
+
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, $file, $eventType);
-	
+
 		if (count($data) === 0) {
 			return false;
 		}
-	
+
 		foreach ($data as $row) {
 			$this->toggleCmdCfg($row, $enable);
 		}
-	
+
 		$this->db->exec(
 			"UPDATE `eventcfg_<myname>` SET `status` = ? ".
 			"WHERE `type` = ? AND `file` = ? AND `type` != 'setup'",
@@ -346,7 +350,7 @@ class ConfigController {
 			$eventType,
 			$file
 		);
-	
+
 		return true;
 	}
 
@@ -370,18 +374,18 @@ class ConfigController {
 					"SELECT `status`, `type`, `file`, '' AS `cmd`, '' AS `admin`, 'event' AS `cmdevent` FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
 			$sqlArgs = [$module, $channel, $module];
 		}
-	
+
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
-		
+
 		if (count($data) === 0) {
 			return false;
 		}
-	
+
 		foreach ($data as $row) {
 			$this->toggleCmdCfg($row, $enable);
 		}
-	
+
 		if ($channel === "all") {
 			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ?", (int)$enable, $module);
 			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
@@ -389,7 +393,7 @@ class ConfigController {
 			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` = ?", (int)$enable, $module, $channel);
 			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
 		}
-	
+
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
 		return true;
@@ -439,7 +443,7 @@ class ConfigController {
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		if ($result === 0) {
 			if ($channel === "all") {
 				$msg = "Could not find {$type} <highlight>{$command}<end>.";
@@ -461,10 +465,10 @@ class ConfigController {
 		}
 		$sendto->reply($msg);
 	}
-		
+
 	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-	
+
 		$sqlArgs = [$command];
 		if ($channel === "all") {
 			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
@@ -474,7 +478,7 @@ class ConfigController {
 		}
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
-	
+
 		if (count($data) === 0) {
 			return 0;
 		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
@@ -502,7 +506,7 @@ class ConfigController {
 		$this->subcommandManager->loadSubcommands();
 		return 1;
 	}
-	
+
 	/**
 	 * Check if sender has access to all commands in $data
 	 *
@@ -528,12 +532,12 @@ class ConfigController {
 	 */
 	public function configCommandCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = strtolower($args[1]);
-	
+
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
 		if ($aliasCmd !== null) {
 			$cmd = $aliasCmd;
 		}
-	
+
 		/** @var CmdCfg[] $data */
 		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ?", $cmd);
 		if (count($data) === 0) {
@@ -542,7 +546,7 @@ class ConfigController {
 			return;
 		}
 		$blob = '';
-	
+
 		$blob .= "<header2>Tells:<end> ";
 		$blob .= $this->getCommandInfo($cmd, 'msg');
 		$blob .= "\n\n";
@@ -550,39 +554,39 @@ class ConfigController {
 		$blob .= "<header2>Private Channel:<end> ";
 		$blob .= $this->getCommandInfo($cmd, 'priv');
 		$blob .= "\n\n";
-		
+
 		$blob .= "<header2>Guild Channel:<end> ";
 		$blob .= $this->getCommandInfo($cmd, 'guild');
 		$blob .= "\n\n";
-	
+
 		$subcmd_list = '';
 		$output = $this->getSubCommandInfo($cmd, 'msg');
 		if ($output) {
 			$subcmd_list .= "<header>Available Subcommands in tells<end>\n\n";
 			$subcmd_list .= $output;
 		}
-	
+
 		$output = $this->getSubCommandInfo($cmd, 'priv');
 		if ($output) {
 			$subcmd_list .= "<header>Available Subcommands in Private Channel<end>\n\n";
 			$subcmd_list .= $output;
 		}
-	
+
 		$output = $this->getSubCommandInfo($cmd, 'guild');
 		if ($output) {
 			$subcmd_list .= "<header>Available Subcommands in Guild Channel<end>\n\n";
 			$subcmd_list .= $output;
 		}
-	
+
 		if ($subcmd_list) {
 			$blob .= $subcmd_list;
 		}
-	
+
 		$help = $this->helpManager->find($cmd, $sender);
 		if ($help !== null) {
 			$blob .= "<header>Help ($cmd)<end>\n\n" . $help;
 		}
-	
+
 		$msg = $this->text->makeBlob(ucfirst($cmd)." Config", $blob);
 		$sendto->reply($msg);
 	}
@@ -607,6 +611,25 @@ class ConfigController {
 		return $blob;
 	}
 
+	public function getModuleDescription(string $module): ?string {
+		$module = strtoupper($module);
+		$path = $this->chatBot->runner->classLoader->registeredModules[$module] ?? null;
+		if (!isset($path)) {
+			return null;
+		}
+		$files = array_values(array_filter(
+			glob("{$path}/*", GLOB_NOSORT),
+			function (string $file): bool {
+				return strtolower(basename($file)) === "readme.txt";
+			}
+		));
+		if (!count($files)) {
+			return null;
+		}
+		return trim(file_get_contents($files[0]));
+	}
+
+
 	/**
 	 * This command handler shows configuration and controls for a single module.
 	 * Note: This handler has not been not registered, only activated.
@@ -616,28 +639,40 @@ class ConfigController {
 	public function configModuleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$module = strtoupper($args[1]);
 		$found = false;
-	
+
 		$on = $this->text->makeChatcmd("Enable", "/tell <myname> config mod {$module} enable all");
 		$off = $this->text->makeChatcmd("Disable", "/tell <myname> config mod {$module} disable all");
-	
+
 		$blob = "Enable/disable entire module: ($on/$off)\n";
-	
+		$description = $this->getModuleDescription($module);
+		if (isset($description)) {
+			$description = implode("<br><tab>", explode("\n", $description));
+			$description = preg_replace_callback(
+				"/(https?:\/\/[^\s\n<]+)/s",
+				function(array $matches): string {
+					return $this->text->makeChatcmd($matches[1], "/start {$matches[1]}");
+				},
+				$description
+			);
+			$blob .= "\n<header2>Description<end>\n<tab>{$description}\n";
+		}
+
 		$data = $this->getModuleSettings($module);
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Settings<end>\n";
 		}
-	
+
 		foreach ($data as $row) {
 			$blob .= "<tab>" . $row->getData()->description ?? "";
-	
+
 			if ($row->isEditable() && $this->accessManager->checkAccess($sender, $row->getData()->admin)) {
 				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
 			}
-	
+
 			$blob .= ": " . $row->displayValue($sender) . "\n";
 		}
-	
+
 		$data = $this->getAllRegisteredCommands($module);
 		if (count($data) > 0) {
 			$found = true;
@@ -647,7 +682,7 @@ class ConfigController {
 			$guild = '';
 			$priv = '';
 			$msg = '';
-	
+
 			if ($row->cmdevent === 'cmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");
@@ -657,35 +692,35 @@ class ConfigController {
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config subcmd $row->cmd disable all");
 				$cmdNameLink = $row->cmd;
 			}
-	
+
 			$tell = "<red>T<end>";
 			if ($row->msg_avail == 0) {
 				$tell = "|_";
 			} elseif ($row->msg_status === 1) {
 				$tell = "<green>T<end>";
 			}
-	
+
 			$guild = "|<red>G<end>";
 			if ($row->guild_avail === 0) {
 				$guild = "|_";
 			} elseif ($row->guild_status === 1) {
 				$guild = "|<green>G<end>";
 			}
-	
+
 			$priv = "|<red>P<end>";
 			if ($row->priv_avail === 0) {
 				$priv = "|_";
 			} elseif ($row->priv_status === 1) {
 				$priv = "|<green>P<end>";
 			}
-	
+
 			if ($row->description !== null && $row->description !== "") {
 				$blob .= "<tab>$cmdNameLink ($tell$guild$priv): $on  $off - ($row->description)\n";
 			} else {
 				$blob .= "<tab>$cmdNameLink - ($tell$guild$priv): $on  $off\n";
 			}
 		}
-	
+
 		/** @var EventCfg[] */
 		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `type` != 'setup' AND `module` = ?", $module);
 		if (count($data) > 0) {
@@ -695,20 +730,20 @@ class ConfigController {
 		foreach ($data as $row) {
 			$on = $this->text->makeChatcmd("ON", "/tell <myname> config event ".$row->type." ".$row->file." enable all");
 			$off = $this->text->makeChatcmd("OFF", "/tell <myname> config event ".$row->type." ".$row->file." disable all");
-	
+
 			if ($row->status == 1) {
 				$status = "<green>Enabled<end>";
 			} else {
 				$status = "<red>Disabled<end>";
 			}
-	
+
 			if ($row->description !== null && $row->description !== "none") {
 				$blob .= "<tab><highlight>$row->type<end> ($row->description) - ($status): $on  $off \n";
 			} else {
 				$blob .= "<tab><highlight>$row->type<end> - ($status): $on  $off \n";
 			}
 		}
-	
+
 		if ($found) {
 			$msg = $this->text->makeBlob("$module Configuration", $blob);
 		} else {
@@ -843,12 +878,13 @@ class ConfigController {
 				"`module` ".
 			"ORDER BY ".
 				"`module` ASC";
-	
+
 		$data = $this->db->query($sql);
 		$result = [];
 		foreach ($data as $row) {
 			$config = new ConfigModule();
 			$config->name = $row->module;
+			$config->description = $this->getModuleDescription($config->name);
 			$config->num_commands_enabled = (int)$row->count_cmd_enabled;
 			$config->num_commands_disabled = (int)$row->count_cmd_disabled;
 			$config->num_events_disabled = (int)$row->count_events_disabled;
@@ -893,7 +929,7 @@ class ConfigController {
 	 */
 	public function getModuleSettings(string $module): array {
 		$module = strtoupper($module);
-	
+
 		/** @var Setting[] $data */
 		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>` WHERE `module` = ? ORDER BY `mode`, `description`", $module);
 		$data = array_map(

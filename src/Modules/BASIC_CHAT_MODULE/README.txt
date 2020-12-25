@@ -1,0 +1,1 @@
+This module provides basic raid-command functionality.

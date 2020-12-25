@@ -24,6 +24,8 @@ class BotRunner {
 
 	private ?ConfigFile $configFile;
 
+	public ClassLoader $classLoader;
+
 	protected static $latestTag = null;
 
 	/**
@@ -143,9 +145,9 @@ class BotRunner {
 		$version = self::getVersion();
 		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()."...");
 
-		$classLoader = new ClassLoader($vars['module_load_paths']);
-		Registry::injectDependencies($classLoader);
-		$classLoader->loadInstances();
+		$this->classLoader = new ClassLoader($vars['module_load_paths']);
+		Registry::injectDependencies($this->classLoader);
+		$this->classLoader->loadInstances();
 
 		$this->connectToDatabase();
 		$this->clearDatabaseInformation();
