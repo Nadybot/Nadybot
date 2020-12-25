@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use Addendum\ReflectionAnnotatedClass;
-use JsonException;
 use Nadybot\Core\Annotations\DefineCommand;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
