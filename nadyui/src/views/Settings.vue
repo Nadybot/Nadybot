@@ -36,11 +36,9 @@
     <div class="w-75 px-3 overflow-auto setting-container" v-if="selected">
       <h1 class="mb-3">{{ selected.name }}</h1>
 
-      <p
-        class="mb-3"
-        v-if="selected.description"
-        v-html="renderDescription(selected.description)"
-      ></p>
+      <div v-if="selected.description" class="callout callout-info mb-3">
+        <p v-html="renderDescription(selected.description)"></p>
+      </div>
 
       <div v-if="selected_settings.length > 0">
         <div class="card w-100">
