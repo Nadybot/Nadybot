@@ -47,7 +47,7 @@ class BosslootController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
 
@@ -68,7 +68,7 @@ class BosslootController {
 	 */
 	public function bossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower($args[1]);
-		
+
 		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'bossname');
 
 		$bosses = $this->db->query(
@@ -160,14 +160,15 @@ class BosslootController {
 			"WHERE b.bossid = ?",
 			$row->bossid
 		);
-			
+
 		$blob = '<pagebreak>' . $this->text->makeChatcmd($row->bossname, "/tell <myname> boss $row->bossname") . "\n";
-		$blob .= "Location: <highlight>{$row->answer}<end>\n";
-		$blob .= "Loot: ";
+		$blob .= "<tab>Location: <highlight>{$row->answer}<end>\n";
+		$blob .= "<tab>Loot: ";
+		$lootItems = [];
 		foreach ($data as $row2) {
-			$blob .= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . ', ';
+			$lootItems []= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname);
 		}
-		$blob .= "\n\n";
+		$blob .= join(", ", $lootItems) . "\n\n";
 		return $blob;
 	}
 }
