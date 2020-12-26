@@ -9,6 +9,9 @@ use ReflectionProperty;
 
 class JsonImporter {
 	public static function expandClassname(string $class): ?string {
+		if (class_exists($class)) {
+			return $class;
+		}
 		$allClasses = get_declared_classes();
 		foreach ($allClasses as $fullClass) {
 			$parts = explode("\\", $fullClass);
@@ -38,7 +41,7 @@ class JsonImporter {
 				throw new Exception("Illegal type definition: {$type}");
 			}
 			$checkType = $typeMatch[0];
-			
+
 			if ($checkType === "string" && is_string($value)) {
 				return true;
 			}
@@ -127,6 +130,16 @@ class JsonImporter {
 		if ($fullClass !== null) {
 			$newObj = static::convert($fullClass, $obj->{$name});
 			$refProp->setValue($result, $newObj);
+			return;
+		}
+		// Support string[], int[] and the likes for simple types
+		if (preg_match("/^(.+?)\[\]$/", $type, $matches) && is_array($obj->{$name})) {
+			foreach ($obj->{$name} as $value) {
+				if (!static::matchesType($type, $value)) {
+					throw new Exception("Invalid type found");
+				}
+			}
+			$refProp->setValue($result, $obj->{$name});
 			return;
 		}
 		if (static::matchesType($type, $obj->{$name})) {
