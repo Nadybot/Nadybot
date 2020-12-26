@@ -247,6 +247,17 @@ class SystemController {
 	public string $replyOnSameWorker = "0";
 
 	/**
+	 * @Setting("paging_on_same_worker")
+	 * @Description("When using the proxy, always send multi-page replies via one worker ")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $pagingOnSameWorker = "1";
+
+	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
@@ -323,6 +334,9 @@ class SystemController {
 		$info->misc = $misc = new MiscSystemInformation();
 		$misc->uptime = time() - $this->chatBot->vars['startup'];
 		$misc->using_chat_proxy = ($this->chatBot->vars['use_proxy'] == 1);
+		if ($misc->using_chat_proxy) {
+			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
+		}
 
 		$info->config = $config = new ConfigStatistics();
 		$config->active_aliases = $numAliases = count($this->commandAlias->getEnabledAliases());
@@ -397,7 +411,25 @@ class SystemController {
 		$blob .= "<header2>Misc<end>\n";
 		$date_string = $this->util->unixtimeToReadable($info->misc->uptime);
 		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($info->misc->using_chat_proxy ? "enabled" : "disabled") . "<end>\n";
-		$blob .= "<tab>Uptime: <highlight>$date_string<end>\n\n";
+		if ($info->misc->using_chat_proxy && $info->misc->proxy_capabilities->name !== "unknown") {
+			$cap = $info->misc->proxy_capabilities;
+			$blob .= "<tab>Proxy Software: <highlight>{$cap->name} {$cap->version}<end>\n";
+			if (count($cap->send_modes)) {
+				$blob .= "<tab>Supported send modes: <highlight>" . join("<end>, <highlight>", $cap->send_modes) . "<end>\n";
+			}
+			if (isset($cap->default_mode)) {
+				$blob .= "<tab>Default send mode: <highlight>{$cap->default_mode}<end>\n";
+			}
+			if (isset($cap->workers) && count($cap->workers)) {
+				$blob .= "<tab>Workers: <highlight>" . join("<end>, <highlight>", $cap->workers) . "<end>\n";
+			}
+			if (isset($cap->started_at)) {
+				$blob .= "<tab>Proxy uptime: <highlight>".
+					$this->util->unixtimeToReadable(time() - $cap->started_at).
+					"<end>\n";
+			}
+		}
+		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
 		$blob .= "<tab>Active tell commands: <highlight>{$info->config->active_tell_commands}<end>\n";

@@ -13,6 +13,7 @@ use Nadybot\Core\DBSchema\{
 	HlpCfg,
 	Setting,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Throwable;
 
 /**
@@ -26,6 +27,8 @@ use Throwable;
  * @Instance("chatBot")
  */
 class Nadybot extends AOChat {
+
+	public const PING_IDENTIFIER = "Nadybot";
 
 	/** @Inject */
 	public DB $db;
@@ -117,6 +120,10 @@ class Nadybot extends AOChat {
 
 	protected int $started = 0;
 
+	protected int $numSpamMsgsSent = 0;
+
+	public ProxyCapabilities $proxyCapabilities;
+
 	/**
 	 * Initialize the bot
 	 *
@@ -126,6 +133,7 @@ class Nadybot extends AOChat {
 		$this->started = time();
 		$this->runner = $runner;
 		$this->vars = $vars;
+		$this->proxyCapabilities = new ProxyCapabilities();
 
 		// Set startup time
 		$this->vars["startup"] = time();
@@ -300,6 +308,10 @@ class Nadybot extends AOChat {
 			$this->logger->log('ERROR', "Character selection failed! Could not login on as character '{$this->vars["name"]}'.");
 			sleep(10);
 			die();
+		}
+
+		if (($this->vars["use_proxy"]??0) == 1) {
+			$this->queryProxyFeatures();
 		}
 
 		$this->buddyListSize += 1000;
@@ -492,17 +504,17 @@ class Nadybot extends AOChat {
 	 * @return void
 	 */
 	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
+		if ( ($this->vars["use_proxy"]??0) == 1
+			&& $this->settingManager->getBool('force_mass_tells')
+		) {
+			$this->sendMassTell($message, $character, $priority, $formatMessage);
+			return;
+		}
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
 				$this->sendTell($page, $character, $priority, $formatMessage);
 			}
-			return;
-		}
-		if ( ($this->vars["use_proxy"]??0) == 1
-			&& $this->settingManager->getBool('force_mass_tells')
-		) {
-			$this->sendMassTell($message, $character, $priority, $formatMessage);
 			return;
 		}
 
@@ -528,32 +540,47 @@ class Nadybot extends AOChat {
 	 * Send a mass message via the chatproxy to another player/bot
 	 */
 	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true, int $worker=null): void {
-		// If we're not using a chat proxy, this doesn't do anything
-		if (($this->vars["use_proxy"]??0) == 0) {
-			$this->sendTell(...func_get_args());
-			return;
-		}
-		// for when $text->makeBlob generates several pages
-		if (is_array($message)) {
-			foreach ($message as $page) {
-				$this->sendMassTell($page, $character, $priority, $formatMessage, $worker);
-			}
-			return;
-		}
-
 		$priority ??= AOC_PRIORITY_HIGH;
 
-		if ($formatMessage) {
-			$message = $this->text->formatMessage($message);
-			$tellColor = $this->settingManager->get("default_tell_color");
+		// If we're not using a chat proxy, this doesn't do anything
+		if (($this->vars["use_proxy"]??0) == 0) {
+			$this->sendTell($message, $character, $priority, $formatMessage);
+			return;
 		}
-
-		$this->logger->logChat("Out. Msg.", $character, $message);
-		$extra = "spam";
-		if (isset($worker) && $this->settingManager->getBool('reply_on_same_worker')) {
-			$extra .= "-{$worker}";
+		$this->numSpamMsgsSent++;
+		$message = (array)$message;
+		$sendToWorker = $this->proxyCapabilities->supportsSendMode(ProxyCapabilities::SEND_BY_WORKER)
+			&& isset($worker)
+			&& $this->settingManager->getBool('reply_on_same_worker');
+		$sendByMsg = $this->proxyCapabilities->supportsSendMode(ProxyCapabilities::SEND_BY_MSGID)
+			&& $this->settingManager->getBool('paging_on_same_worker')
+			&& count($message) > 1;
+		foreach ($message as $page) {
+			if ($formatMessage) {
+				$message = $this->text->formatMessage($page);
+				$tellColor = $this->settingManager->get("default_tell_color");
+			}
+			if (!$this->proxyCapabilities->supportsSelectors()) {
+				$extra = "spam";
+			} elseif ($sendToWorker) {
+				$extra = json_encode((object)[
+					"mode" => ProxyCapabilities::SEND_BY_WORKER,
+					"worker" => $worker
+					]);
+			} elseif ($sendByMsg) {
+				$extra = json_encode((object)[
+					"mode" => ProxyCapabilities::SEND_BY_MSGID,
+					"msgid" => $this->numSpamMsgsSent
+				]);
+			} else {
+				$extra = json_encode((object)[
+					"mode" => ProxyCapabilities::SEND_PROXY_DEFAULT,
+				]);
+			}
+			var_dump($extra);
+			$this->logger->logChat("Out. Msg.", $character, $page);
+			$this->send_tell($character, $tellColor.$message, $extra, $priority);
 		}
-		$this->send_tell($character, $tellColor.$message, $extra, $priority);
 	}
 
 	/**
@@ -643,6 +670,9 @@ class Nadybot extends AOChat {
 					break;
 				case AOCP_PRIVGRP_INVITE: // 50, private channel invite
 					$this->processPrivateChannelInvite(...$packet->args);
+					break;
+				case AOCP_PING: // 100, pong
+					$this->processPingReply(...$packet->args);
 					break;
 			}
 		} catch (StopExecutionException $e) {
@@ -952,6 +982,32 @@ class Nadybot extends AOChat {
 		$this->logger->logChat("Priv Channel Invitation", -1, "$sender channel invited.");
 
 		$this->eventManager->fireEvent($eventObj);
+	}
+
+	public function processPingReply(string $reply): void {
+		if ($reply === static::PING_IDENTIFIER) {
+			return;
+		}
+		try {
+			$this->proxyCapabilities = JsonImporter::decode(ProxyCapabilities::class, $reply);
+		} catch (Throwable $e) {
+			return;
+		}
+	}
+
+	public function queryProxyFeatures(): void {
+		$this->sendPing(json_encode((object)["cmd" => "capabilities"]));
+	}
+
+	/**
+	 * Send a ping packet to keep the connection open
+	 */
+	public function sendPing(string $payload=null): bool {
+		if (!isset($payload)) {
+			$payload = static::PING_IDENTIFIER;
+		}
+		$this->last_ping = time();
+		return $this->sendPacket(new AOChatPacket("out", AOCP_PING, $payload));
 	}
 
 	public function registerEvents(string $class): void {
