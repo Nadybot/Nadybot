@@ -39,10 +39,12 @@ class ProxyCapabilities {
 	 */
 	public array $workers = [];
 
+	/** Check if the proxy supports a send mode */
 	public function supportsSendMode(string $sendMode): bool {
 		return in_array($sendMode, $this->send_modes, true);
 	}
 
+	/** Check if the proxy supports mode selectors */
 	public function supportsSelectors(): bool {
 		return $this->name !== "unknown";
 	}
