@@ -35,11 +35,26 @@ export interface MemoryInformation {
   readonly peak_usage_real: number;
 }
 
+interface ProxyCapabilities {
+  // Name of the proxy software
+  readonly name: string | null;
+  // Version of the proxy software
+  readonly version: string | null;
+  // Modes the proxy supports for sending messages
+  readonly send_modes: Array<string>;
+  // The mode the proxy will use when sending proxy-default
+  readonly default_mode: string | null;
+  // Unix timestamp when the proxy was started
+  readonly started_at: number | null;
+}
+
 export interface MiscSystemInformation {
   // Is the bot using a chat proxy for mass messages or more than 1000 friends
   readonly using_chat_proxy: boolean;
   // Number of seconds since the bot was started
   readonly uptime: number;
+  // If the proxy is used, this describes in detail what the proxy supports
+  readonly proxy_capabilities: ProxyCapabilities;
 }
 
 export interface ConfigStatistics {
@@ -114,9 +129,24 @@ const memoryInformationDecoderMapping = {
   peak_usage_real: JsonDecoder.number,
 };
 
+const proxyCapabilitiesDecoderMapping = {
+  name: JsonDecoder.nullable(JsonDecoder.string),
+  version: JsonDecoder.nullable(JsonDecoder.string),
+  send_modes: JsonDecoder.array(JsonDecoder.string, "SendModeArray"),
+  default_mode: JsonDecoder.nullable(JsonDecoder.string),
+  started_at: JsonDecoder.nullable(JsonDecoder.number),
+};
+
+const proxyCapabilitiesDecoder = JsonDecoder.object<ProxyCapabilities>(
+  proxyCapabilitiesDecoderMapping,
+  "ProxyCapabilites",
+  { default_mode: "default-mode", started_at: "started-at" }
+);
+
 const miscSystemInformationDecoderMapping = {
   using_chat_proxy: JsonDecoder.boolean,
   uptime: JsonDecoder.number,
+  proxy_capabilities: proxyCapabilitiesDecoder,
 };
 
 const configStatisticsDecoderMapping = {

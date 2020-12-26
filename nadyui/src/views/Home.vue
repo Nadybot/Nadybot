@@ -7,31 +7,31 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="col-3">Bot name:</div>
-            <div class="text-right col-9">{{ info.basic.bot_name }}</div>
+            <div class="text-end col-9">{{ info.basic.bot_name }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">Superadmin:</div>
-            <div class="text-right col-9">{{ info.basic.superadmin }}</div>
+            <div class="text-end col-9">{{ info.basic.superadmin }}</div>
           </li>
           <li class="list-group-item" v-if="info.basic.org">
             <div class="col-3">Org:</div>
-            <div class="text-right col-9">{{ info.basic.org }}</div>
+            <div class="text-end col-9">{{ info.basic.org }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">Bot version:</div>
-            <div class="text-right col-9">{{ info.basic.bot_version }}</div>
+            <div class="text-end col-9">{{ info.basic.bot_version }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">PHP version:</div>
-            <div class="text-right col-9">{{ info.basic.php_version }}</div>
+            <div class="text-end col-9">{{ info.basic.php_version }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">OS:</div>
-            <div class="text-right col-9">{{ info.basic.os }}</div>
+            <div class="text-end col-9">{{ info.basic.os }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">DB type:</div>
-            <div class="text-right col-9">{{ info.basic.db_type }}</div>
+            <div class="text-end col-9">{{ info.basic.db_type }}</div>
           </li>
         </ul>
       </div>
@@ -51,11 +51,60 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="col-8">Chat proxy enabled:</div>
-            <div class="text-right col-4">{{ info.misc.using_chat_proxy }}</div>
+            <div class="text-end col-4">{{ info.misc.using_chat_proxy }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">Uptime:</div>
-            <div class="text-right col-9">{{ uptime }}</div>
+            <div class="text-end col-9">{{ uptime }}</div>
+          </li>
+        </ul>
+      </div>
+
+      <div
+        v-if="info.misc.using_chat_proxy && info.misc.proxy_capabilities.name"
+        class="card mt-3"
+      >
+        <div class="card-header">Proxy Capabilities</div>
+        <ul class="list-group list-group-flush">
+          <li v-if="info.misc.proxy_capabilities.name" class="list-group-item">
+            <div class="col-8">Name:</div>
+            <div class="text-end col-4">
+              {{ info.misc.proxy_capabilities.name }}
+            </div>
+          </li>
+          <li
+            v-if="info.misc.proxy_capabilities.version"
+            class="list-group-item"
+          >
+            <div class="col-3">Version:</div>
+            <div class="text-end col-9">
+              {{ info.misc.proxy_capabilities.version }}
+            </div>
+          </li>
+          <li
+            v-if="info.misc.proxy_capabilities.send_modes.length > 0"
+            class="list-group-item"
+          >
+            <div class="col-3">Send Modes:</div>
+            <div class="text-end col-9 small-font">
+              {{ info.misc.proxy_capabilities.send_modes.join(", ") }}
+            </div>
+          </li>
+          <li
+            v-if="info.misc.proxy_capabilities.default_mode"
+            class="list-group-item"
+          >
+            <div class="col-3">Default Mode:</div>
+            <div class="text-end col-9">
+              {{ info.misc.proxy_capabilities.default_mode }}
+            </div>
+          </li>
+          <li
+            v-if="info.misc.proxy_capabilities.started_at"
+            class="list-group-item"
+          >
+            <div class="col-3">Uptime:</div>
+            <div class="text-end col-9">{{ proxyUptime }}</div>
           </li>
         </ul>
       </div>
@@ -66,39 +115,39 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="col-8">Active tell commands:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.config.active_tell_commands }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active priv commands:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.config.active_priv_commands }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active org commands:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.config.active_org_commands }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active subcommands:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.config.active_subcommands }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active aliases:</div>
-            <div class="text-right col-4">{{ info.config.active_aliases }}</div>
+            <div class="text-end col-4">{{ info.config.active_aliases }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active events:</div>
-            <div class="text-right col-4">{{ info.config.active_events }}</div>
+            <div class="text-end col-4">{{ info.config.active_events }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Active help commands:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.config.active_help_commands }}
             </div>
           </li>
@@ -110,37 +159,37 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="col-8">Buddy list size:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.buddy_list_size }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Max buddy list size:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.max_buddy_list_size }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Private channel size:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.priv_channel_size }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Org size:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.org_size }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Charinfo cache size:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.charinfo_cache_size }}
             </div>
           </li>
           <li class="list-group-item">
             <div class="col-8">Chat queue length:</div>
-            <div class="text-right col-4">
+            <div class="text-end col-4">
               {{ info.stats.chatqueue_length }}
             </div>
           </li>
@@ -168,6 +217,10 @@
 .list-group-item div {
   display: inline-block;
   padding: 0;
+}
+
+.small-font {
+  font-size: 94%;
 }
 </style>
 
@@ -215,6 +268,21 @@ export default defineComponent({
       let date = new Date(0);
       date.setSeconds(this.info.misc.uptime);
       return date.toISOString().substr(11, 8);
+    },
+    proxyUptime(): string {
+      if (
+        this.info == null ||
+        this.info.misc.proxy_capabilities.started_at == null
+      ) {
+        return "";
+      }
+      let now = new Date();
+      let diff = new Date(
+        Math.abs(
+          now.getTime() - this.info.misc.proxy_capabilities.started_at * 1000
+        )
+      );
+      return diff.toISOString().substr(11, 8);
     },
   },
 
