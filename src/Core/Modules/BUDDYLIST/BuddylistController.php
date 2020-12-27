@@ -75,8 +75,7 @@ class BuddylistController {
 					$count--;
 				}
 			}
-
-			$blob .= $value->name . " $removed [" . implode(', ', array_keys($value->types ?? ["?" => true])) . "]\n";
+			$blob .= $this->renderBuddyLine($value);
 		}
 
 		if ($cleanup) {
@@ -142,6 +141,17 @@ class BuddylistController {
 		$sendto->reply($msg);
 	}
 
+	/** Render a BuddylistEntry as a string */
+	public function renderBuddyLine(BuddylistEntry $entry): string {
+		$blob = $entry->name;
+		if (count($entry->types ?? [])) {
+			$blob .= " [" . implode(', ', array_keys($entry->types)) . "]";
+		} else {
+			$blob .= " [-]";
+		}
+		return "$blob\n";
+	}
+
 	/**
 	 * @HandlesCommand("buddylist")
 	 * @Matches("/^buddylist search (.*)$/i")
@@ -159,7 +169,7 @@ class BuddylistController {
 		foreach ($this->getSortedBuddyList() as $value) {
 			if (preg_match("/$search/i", $value->name)) {
 				$count++;
-				$blob .= $value->name . " [" . implode(', ', array_keys($value->types ?? ["?" => true])) . "]\n";
+				$blob .= $this->renderBuddyLine($value);
 			}
 		}
 

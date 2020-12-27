@@ -3,10 +3,10 @@
 namespace Nadybot\Core;
 
 class BuddylistEntry {
-	/** User ID */
+	/** User ID of the buddy */
 	public int $uid;
 
-	/** Name */
+	/** Name of the buddy */
 	public string $name;
 
 	/** Set to true if the buddy was confirmed to be on the list by AO */
