@@ -17,6 +17,7 @@ class ProxyCapabilities {
 
 	/**
 	 * Modes the proxy support for sending messages
+	 * @json:name=send-modes
 	 * @var string[]
 	 */
 	public array $send_modes = [];
