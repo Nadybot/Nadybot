@@ -30,6 +30,9 @@ class ApiSpecGenerator {
 		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") as $file) {
 			require_once $file;
 		}
+		foreach (glob(__DIR__ . "/../Core/*.php") as $file) {
+			require_once $file;
+		}
 		foreach (glob(__DIR__ . "/../Modules/*/*.php") as $file) {
 			require_once $file;
 		}
@@ -158,9 +161,7 @@ class ApiSpecGenerator {
 					throw new Exception("Untyped array found");
 				}
 				$parts = explode("\\", $matches[1]);
-				$newResult["properties"][$nameAndType[0]]["items"] = [
-					'$ref' => '#/components/schemas/' . end($parts)
-				];
+				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
 				$this->addSchema($result, end($parts));
 			}
 		}
@@ -257,7 +258,7 @@ class ApiSpecGenerator {
 					]
 				]
 			]
-		  
+
 		];
 		$newResult = [];
 		foreach ($mapping as $path => $refMethods) {
