@@ -45,7 +45,7 @@ class BuddylistController {
 	 * @Matches("/^buddylist (clean)$/i")
 	 */
 	public function buddylistShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) == 2) {
+		if (count($args) === 2) {
 			$cleanup = true;
 		}
 
@@ -69,13 +69,13 @@ class BuddylistController {
 				$orphanCount++;
 				if ($cleanup) {
 					$this->buddylistManager->remove($value->name);
-					$removed = "<red>REMOVED<end>";
+					$removed = " <red>REMOVED<end>";
 
 					// don't count removed characters
 					$count--;
 				}
 			}
-			$blob .= $this->renderBuddyLine($value);
+			$blob .= $this->renderBuddyLine($value, $removed);
 		}
 
 		if ($cleanup) {
@@ -142,14 +142,14 @@ class BuddylistController {
 	}
 
 	/** Render a BuddylistEntry as a string */
-	public function renderBuddyLine(BuddylistEntry $entry): string {
-		$blob = $entry->name;
+	public function renderBuddyLine(BuddylistEntry $entry, string $suffix=""): string {
+		$blob = $entry->name . $suffix;
 		if (count($entry->types ?? [])) {
 			$blob .= " [" . implode(', ', array_keys($entry->types)) . "]";
 		} else {
 			$blob .= " [-]";
 		}
-		return "$blob\n";
+		return "{$blob}\n";
 	}
 
 	/**
