@@ -1,0 +1,1 @@
+Allows you to search for the position of NPCs or landmarks.

@@ -1,0 +1,1 @@
+Calculates the fastest travelroute via whompahs betwen two points.

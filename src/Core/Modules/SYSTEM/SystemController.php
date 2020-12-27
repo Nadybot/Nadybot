@@ -355,13 +355,7 @@ class SystemController {
 		$row = $this->db->queryRow($sql);
 		$stats->charinfo_cache_size = (int)$row->count;
 
-		foreach ($this->buddylistManager->buddyList as $key => $value) {
-			if (!isset($value['name'])) {
-				// skip the buddies that have been added but the server hasn't sent back an update yet
-				continue;
-			}
-			$stats->buddy_list_size++;
-		}
+		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
 		$stats->priv_channel_size = count($this->chatBot->chatlist);
 		$stats->org_size = count($this->chatBot->guildmembers);

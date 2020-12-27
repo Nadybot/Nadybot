@@ -15,6 +15,8 @@ class ClassLoader {
 	 */
 	private array $moduleLoadPaths;
 
+	public array $registeredModules = [];
+
 	/**
 	 * Initialize the class loader
 	 *
@@ -123,6 +125,7 @@ class ClassLoader {
 			$this->logger->log('ERROR', "Could not load module {$moduleName}. No classes found with @Instance annotation!");
 			return;
 		}
+		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
 	}
 
 	/**

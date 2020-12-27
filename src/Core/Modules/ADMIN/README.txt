@@ -1,0 +1,1 @@
+The admin module allows you to manage the members of the mod and admin group.

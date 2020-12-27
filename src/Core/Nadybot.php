@@ -767,7 +767,7 @@ class Nadybot extends AOChat {
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
 
-		$this->buddylistManager->update($userId, $status);
+		$this->buddylistManager->update($userId, (bool)$status);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
 		if ($sender === "") {

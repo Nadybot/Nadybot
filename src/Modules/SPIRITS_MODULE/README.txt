@@ -1,0 +1,1 @@
+A module to let you search and list in and for all spirits.

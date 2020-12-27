@@ -53,7 +53,7 @@ class AlienBioController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	private const LE_ARMOR_TYPES  = ['64', '295', '468', '935'];
 	private const LE_WEAPON_TYPES = ['18', '34', '687', '812'];
 	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
@@ -188,7 +188,7 @@ class AlienBioController {
 			$sendto->reply($msg);
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("bioinfo")
 	 * @Matches("/^bioinfo$/i")
@@ -196,20 +196,20 @@ class AlienBioController {
 	public function bioinfoListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
-		
+
 		$blob .= "\n<header2>OFAB Weapon Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_WEAPON_TYPES);
-		
+
 		$blob .= "\n<header2>AI Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::AI_ARMOR_TYPES);
-		
+
 		$blob .= "\n<header2>AI Weapon Types<end>\n";
 		$blob .= $this->getTypeBlob(self::AI_WEAPON_TYPES);
-		
+
 		$msg = $this->text->makeBlob("Bio-Material Types", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @param string[] $types
 	 */
@@ -254,13 +254,13 @@ class AlienBioController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Returns information of how much weapon of given $ql requires skills
 	 * to upgrade it.
 	 */
 	private function getWeaponInfo(int $ql): string {
-		$requiredMEandWS = floor($ql * 6);
+		$requiredMEandWS = (int)floor($ql * 6);
 		$text = "\n\n<highlight>QL $ql<end> is the highest weapon this type will combine into.";
 		if ($ql !== 300) {
 			$text .= "\nNote: <highlight>The weapon can bump several QL's.<end>";
@@ -320,12 +320,12 @@ class AlienBioController {
 		$item = $this->itemsController->getItem($name, $ql);
 
 		// Ensures that the maximum AI weapon that combines into doesn't go over QL 300 when the user presents a QL 271+ bio-material
-		$maxAIType = floor($ql / 0.9);
+		$maxAIType = (int)floor($ql / 0.9);
 		if ($maxAIType > 300 || $maxAIType < 1) {
 			$maxAIType = 300;
 		}
 
-		$requiredEEandCL = floor($ql * 4.5);
+		$requiredEEandCL = (int)floor($ql * 4.5);
 
 		$row = $this->db->queryRow("SELECT specials FROM alienweaponspecials WHERE type = ?", $type);
 		$specials = $row->specials;
@@ -353,29 +353,29 @@ class AlienBioController {
 	 */
 	private function alienArmorBio(int $ql, string $type): string {
 		// All the min/max QL and tradeskill calcs for the mutated/pristine process
-		$minQL = floor($ql * 0.8);
+		$minQL = (int)floor($ql * 0.8);
 		if ($minQL < 1) {
 			$minQL = 1;
 		}
 		$maxQL = 300;
 		if ($ql >= 1 && $ql <= 240) {
-			$maxQL = floor($ql / 0.8);
+			$maxQL = (int)floor($ql / 0.8);
 		}
 
-		$requiredCL         = floor($minQL * 4.5);
-		$requiredPharma     = floor($ql    * 6);
-		$requiredNP         = floor($minQL * 6);
-		$requiredPsychology = floor($ql    * 6);
-		$max_psyco          = floor($maxQL * 6);
-		$requiredEEandCL    = floor($ql    * 4.5);
+		$requiredCL         = (int)floor($minQL * 4.5);
+		$requiredPharma     = (int)floor($ql    * 6);
+		$requiredNP         = (int)floor($minQL * 6);
+		$requiredPsychology = (int)floor($ql    * 6);
+		$max_psyco          = (int)floor($maxQL * 6);
+		$requiredEEandCL    = (int)floor($ql    * 4.5);
 		$name = "UNKNOWN";
 		if (strtolower($type) == "mutated") {
 			$name = "Mutated Kyr'Ozch Bio-Material";
-			$reqiredChem = floor($ql * 7);
+			$reqiredChem = (int)floor($ql * 7);
 			$chemMsg = "7 * QL";
 		} elseif (strtolower($type) == "pristine") {
 			$name = "Pristine Kyr'Ozch Bio-Material";
-			$reqiredChem = floor($ql * 4.5);
+			$reqiredChem = (int)floor($ql * 4.5);
 			$chemMsg = "4.5 * QL";
 			$extraInfo = "(<highlight>less tradeskill requirements than mutated.<end>)";
 		}
@@ -416,11 +416,11 @@ class AlienBioController {
 		$name = "Kyr'Ozch Viral Serum";
 		$item = $this->itemsController->getItem($name, $ql);
 
-		$requiredPharma  = floor($ql * 3.5);
-		$requiredChemAndME = floor($ql * 4);
-		$requiredEE      = floor($ql * 4.5);
-		$requiredCL      = floor($ql * 5);
-		$requiredEEandCL     = floor($ql * 4.5);
+		$requiredPharma    = (int)floor($ql * 3.5);
+		$requiredChemAndME = (int)floor($ql * 4);
+		$requiredEE        = (int)floor($ql * 4.5);
+		$requiredCL        = (int)floor($ql * 5);
+		$requiredEEandCL   = (int)floor($ql * 4.5);
 
 		$blob = $item . "\n\n";
 		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";

@@ -1,0 +1,1 @@
+This module allows searching for items and buffs.
