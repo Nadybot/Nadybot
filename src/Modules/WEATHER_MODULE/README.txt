@@ -1,0 +1,1 @@
+Allows you to query how the weather is at any location in the world.

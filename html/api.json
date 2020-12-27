@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.0"
+		"version": "5.0-RC3"
 	},
 	"servers": [
 		{
@@ -284,12 +284,55 @@
 					}
 				}
 			},
+			"ProxyCapabilities": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"nullable": true,
+						"description": "Name of the proxy software"
+					},
+					"version": {
+						"type": "string",
+						"nullable": true,
+						"description": "Version of the proxy software"
+					},
+					"send_modes": {
+						"type": "array",
+						"description": "Modes the proxy support for sending messages",
+						"items": {
+							"type": "string"
+						}
+					},
+					"default-mode": {
+						"type": "string",
+						"nullable": true,
+						"description": "The mode the proxy will use when sending proxy-default"
+					},
+					"started-at": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Unix timestamp when the proxy was started"
+					},
+					"workers": {
+						"type": "array",
+						"description": "Names of the workers",
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			},
 			"MiscSystemInformation": {
 				"type": "object",
 				"properties": {
 					"using_chat_proxy": {
 						"type": "boolean",
 						"description": "Is the bot using a chat proxy for mass messages or more than 1000 friends"
+					},
+					"proxy_capabilities": {
+						"$ref": "#/components/schemas/ProxyCapabilities",
+						"description": "If the proxy is used, this describes in detail what the proxy supports"
 					},
 					"uptime": {
 						"type": "integer",
@@ -1015,6 +1058,41 @@
 								"$ref": "#/components/schemas/Operation"
 							}
 						}
+					}
+				}
+			}
+		},
+		"/module/{module}/description": {
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get the description of a module",
+				"responses": {
+					"200": {
+						"description": "A description of the module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"204": {
+						"description": "No description set"
 					}
 				}
 			}

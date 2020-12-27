@@ -1,0 +1,1 @@
+Reminds you about GSP shows and shows you what they are playing right now.

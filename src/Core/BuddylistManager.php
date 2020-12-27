@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
 
@@ -6,56 +6,75 @@ namespace Nadybot\Core;
  * @Instance
  */
 class BuddylistManager {
-
 	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
-	public $chatBot;
+	public Nadybot $chatBot;
 
 	/**
-	 * @var \Nadybot\Core\LoggerWrapper $logger
 	 * @Logger
 	 */
-	public $logger;
+	public LoggerWrapper $logger;
 
-	public $buddyList = [];
+	/**
+	 * List of all player son the friendlist, real or just queued up
+	 * @var array<int,BuddylistEntry>
+	 */
+	public array $buddyList = [];
 
 	/**
 	 * Check if a friend is online
 	 *
-	 * @param string $name The name of the friend
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
-		if (strtolower($this->chatBot->vars['name']) == strtolower($name)) {
+		if (strtolower($this->chatBot->vars['name']) === strtolower($name)) {
 			return true;
-		} else {
-			$buddy = $this->getBuddy($name);
-			return ($buddy === null ? null : (bool)$buddy['online']);
 		}
+		$buddy = $this->getBuddy($name);
+		return $buddy ? $buddy->online : null;
+	}
+
+	/**
+	 * Get how many friends are really on the buddylist
+	 * This ignores the ones that are only queued up for addition
+	 */
+	public function countConfirmedBuddies(): int {
+		return count(
+			array_filter(
+				$this->buddyList,
+				function(BuddylistEntry $entry): bool {
+					return $entry->known;
+				}
+			)
+		);
 	}
 
 	/**
 	 * Get information stored about a friend
 	 *
-	 * The information is [
-	 *   "uid"    => The UID,
-	 *   "name"   => The name,
-	 *   "online" => 1 or 0
-	 *   "known"  => 1 or 0
-	 * ]
-	 *
-	 * @param string $name
-	 * @return mixed[] ["uid" => uid, "name" => name, "online" => 1/0, "known" => 1/0]
+	 * @param int|string $name
 	 */
-	public function getBuddy($name) {
+	public function getBuddy($name): ?BuddylistEntry {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || !isset($this->buddyList[$uid])) {
 			return null;
-		} else {
-			return $this->buddyList[$uid];
 		}
+		return $this->buddyList[$uid];
+	}
+
+	/**
+	 * Get the names of all people in the friendlist who are online
+	 * @return string[]
+	 */
+	public function getOnline(): array {
+		$result = [];
+		foreach ($this->buddyList as $uid => $data) {
+			if ($data->online) {
+				$result []= $data->name;
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -65,7 +84,7 @@ class BuddylistManager {
 	 * @param string $type The reason why to add ("member", "admin", "org", "onlineorg", "is_online", "tracking")
 	 * @return bool true on success, otherwise false
 	 */
-	public function add($name, $type) {
+	public function add(string $name, string $type): bool {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false || $type === null || $type == '') {
 			return false;
@@ -76,10 +95,14 @@ class BuddylistManager {
 				$this->logger->log('error', "Error adding '$name' to buddy list--buddy list is full");
 			}
 			$this->chatBot->buddy_add($uid);
+			// Initialize with an unconfirmed entry
+			$this->buddyList[$uid] = new BuddylistEntry();
+			$this->buddyList[$uid]->uid = $uid;
+			$this->buddyList[$uid]->name = $name;
+			$this->buddyList[$uid]->known = false;
 		}
-
-		if (!isset($this->buddyList[$uid]['types'][$type])) {
-			$this->buddyList[$uid]['types'][$type] = 1;
+		if (!$this->buddyList[$uid]->hasType($type)) {
+			$this->buddyList[$uid]->setType($type);
 			$this->logger->log('debug', "$name buddy added (type: $type)");
 		}
 
@@ -97,50 +120,45 @@ class BuddylistManager {
 	 * @param string $type The reason for which to remove ("member", "admin", "org", "onlineorg", "is_online", "tracking")
 	 * @return bool true on success, otherwise false
 	 */
-	public function remove($name, $type='') {
+	public function remove(string $name, string $type=''): bool {
 		$uid = $this->chatBot->get_uid($name);
 		if ($uid === false) {
 			return false;
-		} elseif (isset($this->buddyList[$uid])) {
-			if (isset($this->buddyList[$uid]['types'][$type])) {
-				unset($this->buddyList[$uid]['types'][$type]);
-				$this->logger->log('debug', "$name buddy type removed (type: $type)");
-			}
-
-			if (count($this->buddyList[$uid]['types']) == 0) {
-				$this->logger->log('debug', "$name buddy removed");
-				$this->chatBot->buddy_remove($uid);
-			}
-
-			return true;
-		} else {
+		}
+		if (!isset($this->buddyList[$uid])) {
 			return false;
 		}
+		if ($this->buddyList[$uid]->hasType($type)) {
+			$this->buddyList[$uid]->unsetType($type);
+			$this->logger->log('debug', "$name buddy type removed (type: $type)");
+		}
+
+		if (count($this->buddyList[$uid]->types) === 0) {
+			$this->logger->log('debug', "$name buddy removed");
+			$this->chatBot->buddy_remove($uid);
+		}
+
+		return true;
 	}
 
 	/**
 	 * Update the cached information in the friendlist
-	 *
-	 * @param mixed[] $args [(int)User ID, (int)online, (int)known]
-	 * @return void
 	 */
-	public function update($userId, $status) {
+	public function update(int $userId, bool $status): void {
 		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
-		$this->buddyList[$userId]['uid'] = $userId;
-		$this->buddyList[$userId]['name'] = $sender;
-		$this->buddyList[$userId]['online'] = ($status ? 1 : 0);
-		$this->buddyList[$userId]['known'] = 1;
+		$this->buddyList[$userId] ??= new BuddylistEntry();
+		$this->buddyList[$userId]->uid = $userId;
+		$this->buddyList[$userId]->name = (string)$sender;
+		$this->buddyList[$userId]->online = $status;
+		$this->buddyList[$userId]->known = true;
 	}
 
 	/**
 	 * Forcefully delete cached information in the friendlist
-	 *
-	 * @param mixed[] $args [(int)User ID]
-	 * @return void
 	 */
-	public function updateRemoved($bid) {
-		unset($this->buddyList[$bid]);
+	public function updateRemoved(int $uid): void {
+		unset($this->buddyList[$uid]);
 	}
 }

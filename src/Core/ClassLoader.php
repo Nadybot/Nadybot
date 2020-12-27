@@ -15,6 +15,8 @@ class ClassLoader {
 	 */
 	private array $moduleLoadPaths;
 
+	public array $registeredModules = [];
+
 	/**
 	 * Initialize the class loader
 	 *
@@ -29,8 +31,8 @@ class ClassLoader {
 	 */
 	public function loadInstances(): void {
 		$newInstances = $this->getNewInstancesInDir(__DIR__);
-		foreach ($newInstances as $name => $className) {
-			Registry::setInstance($name, new $className);
+		foreach ($newInstances as $name => $class) {
+			Registry::setInstance($name, new $class->className);
 		}
 
 		$this->loadCoreModules();
@@ -109,10 +111,11 @@ class ClassLoader {
 		}
 
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
-		foreach ($newInstances as $name => $className) {
-			$obj = new $className;
+		foreach ($newInstances as $name => $class) {
+			$className = $class->className;
+			$obj = new $className();
 			$obj->moduleName = $moduleName;
-			if (Registry::instanceExists($name)) {
+			if (Registry::instanceExists($name) && !$class->overwrite) {
 				$this->logger->log('WARN', "Instance with name '$name' already registered--replaced with new instance");
 			}
 			Registry::setInstance($name, $obj);
@@ -122,12 +125,13 @@ class ClassLoader {
 			$this->logger->log('ERROR', "Could not load module {$moduleName}. No classes found with @Instance annotation!");
 			return;
 		}
+		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
 	}
 
 	/**
 	 * Get a list of all module which provide an @Instance for a directory
 	 *
-	 * @return string[] A mapping [module name => class name]
+	 * @return array<string,ClassInstance> A mapping [module name => class info]
 	 */
 	public static function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
@@ -145,12 +149,16 @@ class ClassLoader {
 		foreach ($new as $className) {
 			$reflection = new ReflectionAnnotatedClass($className);
 			if ($reflection->hasAnnotation('Instance')) {
+				$instance = new ClassInstance();
+				$instance->className = $className;
 				if ($reflection->getAnnotation('Instance')->value !== null) {
 					$name = $reflection->getAnnotation('Instance')->value;
+					$instance->overwrite = $reflection->getAnnotation('Instance')->overwrite ?? false;
 				} else {
 					$name = Registry::formatName($className);
 				}
-				$newInstances[$name] = $className;
+				$instance->name = $name;
+				$newInstances[$name] = $instance;
 			}
 		}
 		return $newInstances;

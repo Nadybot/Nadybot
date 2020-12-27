@@ -95,13 +95,13 @@ class SystemController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public CommandManager $commandManager;
-	
+
 	/** @Inject */
 	public EventManager $eventManager;
 
@@ -113,7 +113,7 @@ class SystemController {
 
 	/** @Inject */
 	public HelpManager $helpManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
@@ -201,7 +201,7 @@ class SystemController {
 	 * @AccessLevel("mod")
 	 */
 	public string $defaultVersion = "0";
-	
+
 	/**
 	 * @Setting("access_denied_notify_guild")
 	 * @Description("Notify guild channel when a player is denied access to a command in tell")
@@ -212,7 +212,7 @@ class SystemController {
 	 * @AccessLevel("mod")
 	 */
 	public string $defaultAccessDeniedNotifyGuild = "1";
-	
+
 	/**
 	 * @Setting("access_denied_notify_priv")
 	 * @Description("Notify private channel when a player is denied access to a command in tell")
@@ -225,6 +225,39 @@ class SystemController {
 	public string $defaultAccessDeniedNotifyPriv = "1";
 
 	/**
+	 * @Setting("force_mass_tells")
+	 * @Description("When using the proxy, always send tells via the workers")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $forceMassTells = "0";
+
+	/**
+	 * @Setting("reply_on_same_worker")
+	 * @Description("When using the proxy, always reply via the worker that sent the tell")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $replyOnSameWorker = "0";
+
+	/**
+	 * @Setting("paging_on_same_worker")
+	 * @Description("When using the proxy, always send multi-page replies via one worker ")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $pagingOnSameWorker = "1";
+
+	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
@@ -232,7 +265,7 @@ class SystemController {
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
-		
+
 		$name = $this->chatBot->vars['name'];
 		$this->settingManager->add(
 			$this->moduleName,
@@ -244,7 +277,7 @@ class SystemController {
 			$name
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("restart")
 	 * @Matches("/^restart$/i")
@@ -274,7 +307,7 @@ class SystemController {
 		$this->logger->log('INFO', "The Bot is shutting down.");
 		exit(10);
 	}
-	
+
 	public function getSystemInfo(): SystemInformation {
 		$info = new SystemInformation();
 
@@ -297,10 +330,13 @@ class SystemController {
 		$memory->current_usage_real = memory_get_usage(true);
 		$memory->peak_usage = memory_get_peak_usage();
 		$memory->peak_usage_real = memory_get_peak_usage(true);
-		
+
 		$info->misc = $misc = new MiscSystemInformation();
 		$misc->uptime = time() - $this->chatBot->vars['startup'];
 		$misc->using_chat_proxy = ($this->chatBot->vars['use_proxy'] == 1);
+		if ($misc->using_chat_proxy) {
+			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
+		}
 
 		$info->config = $config = new ConfigStatistics();
 		$config->active_aliases = $numAliases = count($this->commandAlias->getEnabledAliases());
@@ -319,13 +355,7 @@ class SystemController {
 		$row = $this->db->queryRow($sql);
 		$stats->charinfo_cache_size = (int)$row->count;
 
-		foreach ($this->buddylistManager->buddyList as $key => $value) {
-			if (!isset($value['name'])) {
-				// skip the buddies that have been added but the server hasn't sent back an update yet
-				continue;
-			}
-			$stats->buddy_list_size++;
-		}
+		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
 		$stats->priv_channel_size = count($this->chatBot->chatlist);
 		$stats->org_size = count($this->chatBot->guildmembers);
@@ -371,11 +401,29 @@ class SystemController {
 		$blob .= "<tab>Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert($info->memory->current_usage_real) . "<end>\n";
 		$blob .= "<tab>Peak Memory Usage: <highlight>" . $this->util->bytesConvert($info->memory->peak_usage) . "<end>\n";
 		$blob .= "<tab>Peak Memory Usage (Real): <highlight>" . $this->util->bytesConvert($info->memory->peak_usage_real) . "<end>\n\n";
-		
+
 		$blob .= "<header2>Misc<end>\n";
 		$date_string = $this->util->unixtimeToReadable($info->misc->uptime);
 		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($info->misc->using_chat_proxy ? "enabled" : "disabled") . "<end>\n";
-		$blob .= "<tab>Uptime: <highlight>$date_string<end>\n\n";
+		if ($info->misc->using_chat_proxy && $info->misc->proxy_capabilities->name !== "unknown") {
+			$cap = $info->misc->proxy_capabilities;
+			$blob .= "<tab>Proxy Software: <highlight>{$cap->name} {$cap->version}<end>\n";
+			if (count($cap->send_modes)) {
+				$blob .= "<tab>Supported send modes: <highlight>" . join("<end>, <highlight>", $cap->send_modes) . "<end>\n";
+			}
+			if (isset($cap->default_mode)) {
+				$blob .= "<tab>Default send mode: <highlight>{$cap->default_mode}<end>\n";
+			}
+			if (isset($cap->workers) && count($cap->workers)) {
+				$blob .= "<tab>Workers: <highlight>" . join("<end>, <highlight>", $cap->workers) . "<end>\n";
+			}
+			if (isset($cap->started_at)) {
+				$blob .= "<tab>Proxy uptime: <highlight>".
+					$this->util->unixtimeToReadable(time() - $cap->started_at).
+					"<end>\n";
+			}
+		}
+		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
 		$blob .= "<tab>Active tell commands: <highlight>{$info->config->active_tell_commands}<end>\n";
@@ -417,9 +465,9 @@ class SystemController {
 				return;
 			}
 		}
-	
+
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
-	
+
 		$msg = "Access level for <highlight>$name<end> is <highlight>$accessLevel<end>.";
 		$sendto->reply($msg);
 	}
@@ -436,7 +484,7 @@ class SystemController {
 			$num += count($priority);
 		}
 		$this->chatBot->chatqueue->queue = [];
-	
+
 		$sendto->reply("Chat queue has been cleared of $num messages.");
 	}
 
@@ -477,7 +525,7 @@ class SystemController {
 				$this->chatBot->sendTell("<myname> is now <green>online<end>.", $name);
 			}
 		}
-		
+
 		$version = $this->chatBot->runner::getVersion();
 		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
 
@@ -485,7 +533,7 @@ class SystemController {
 		$this->chatBot->sendGuild($msg, true);
 		$this->chatBot->sendPrivate($msg, true);
 	}
-	
+
 	/**
 	 * @HandlesCommand("showcommand")
 	 * @Matches("/^showcommand ([^ ]+) (.+)$/i")
@@ -498,10 +546,10 @@ class SystemController {
 			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		}
-	
+
 		$showSendto = new PrivateMessageCommandReply($this->chatBot, $name);
 		$this->commandManager->process($type, $cmd, $sender, $showSendto);
-		
+
 		$sendto->reply("Command <highlight>$cmd<end> has been sent to <highlight>$name<end>.");
 	}
 

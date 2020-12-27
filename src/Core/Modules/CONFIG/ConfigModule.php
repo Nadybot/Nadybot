@@ -20,4 +20,7 @@ class ConfigModule {
 
 	/** How many settings are there? */
 	public int $num_settings = 0;
+
+	/** Description of the module or null if none */
+	public ?string $description = null;
 }

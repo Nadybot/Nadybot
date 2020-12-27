@@ -98,6 +98,10 @@ class OrglistController {
 			$this->checkOrglist((int)$search, $sendto);
 			return;
 		}
+		if (!$this->findOrgController->isReady()) {
+			$this->findOrgController->sendNotReadyError($sendto);
+			return;
+		}
 		$this->getMatches(
 			$search,
 			function(array $orgs) use ($sendto, $search): void {

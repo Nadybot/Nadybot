@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use Nadybot\Core\{
+	AccessManager,
 	BuddylistManager,
 	CommandReply,
 	DB,
@@ -45,6 +46,7 @@ use Nadybot\Core\{
 class MassMsgController {
 	public const BLOCKED = 'blocked';
 	public const IN_CHAT = 'in chat';
+	public const IN_ORG  = 'in org';
 	public const SENT    = 'sent';
 
 	public const PREF = 'massmsgs';
@@ -59,6 +61,9 @@ class MassMsgController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public AccessManager $accessManager;
 
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
@@ -104,9 +109,10 @@ class MassMsgController {
 	 */
 	public function massMsgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$message = "<highlight>Message from {$sender}<end>: ".
-			$this->settingManager->getString('massmsg_color') . $args[1] . "<end> :: ".
-			$this->getMassMsgOptInOutBlob();
+			$this->settingManager->getString('massmsg_color') . $args[1] . "<end>";
 		$this->chatBot->sendPrivate($message, true);
+		$this->chatBot->sendGuild($message, true);
+		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback(
 			function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
@@ -122,9 +128,10 @@ class MassMsgController {
 	 */
 	public function massInvCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$message = "<highlight>Invite from {$sender}<end>: ".
-			$this->settingManager->getString('massmsg_color') . $args[1] . "<end> :: ".
-			$this->getMassMsgOptInOutBlob();
+			$this->settingManager->getString('massmsg_color') . $args[1] . "<end>";
 		$this->chatBot->sendPrivate($message, true);
+		$this->chatBot->sendGuild($message, true);
+		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback(
 			function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
@@ -143,6 +150,7 @@ class MassMsgController {
 		$blob = "<header2>Result of your mass message<end>\n";
 		$numSent = 0;
 		$numInChat = 0;
+		$numInOrg = 0;
 		$numBlocked = 0;
 		foreach ($result as $player => $action) {
 			$blob .= "<tab>$player: ";
@@ -152,6 +160,9 @@ class MassMsgController {
 			} elseif ($action === static::IN_CHAT) {
 				$blob .= "<green>read in chat<end>";
 				$numInChat++;
+			} elseif ($action === static::IN_ORG) {
+				$blob .= "<green>read in org<end>";
+				$numInOrg++;
 			} elseif ($action === static::SENT) {
 				$blob .= "<green>message sent<end>";
 				$numSent++;
@@ -167,9 +178,16 @@ class MassMsgController {
 		$msg = "Your message was sent to <highlight>{$numSent}<end> ".
 			$person($numSent).
 			" and read by <highlight>{$numInChat}<end> ".
-			$person($numInChat) . " in the private channel. ".
-			"{$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
+			$person($numInChat) . " in the private channel";
+		if ($numInOrg > 0) {
+			$msg .= " and by <highlight>{$numInOrg}<end> ".
+			$person($numInOrg) . " in the org chat";
+		}
+		$msg .= ".";
+		if ($numBlocked > 0) {
+			$msg .= " {$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
 			" blocking mass messages";
+		}
 		$parts = (array)$this->text->makeBlob("Messaging details", $blob);
 		foreach ($parts as &$part) {
 			$part = "$msg :: $part";
@@ -183,24 +201,25 @@ class MassMsgController {
 	 * @return array<string,string> array(name => status)
 	 */
 	protected function massCallback(callable $callback): array {
-		$sql = "SELECT * FROM members_<myname>";
-		/** @var Member[] */
-		$members = $this->db->fetchAll(Member::class, $sql);
-		$result = [];
-		foreach ($members as $member) {
-			if ($member->name === $this->chatBot->vars["name"]
-				|| $this->buddylistManager->isOnline($member->name) !== true) {
+		$online = $this->buddylistManager->getOnline();
+		foreach ($online as $name) {
+			if ($name === $this->chatBot->vars["name"]
+				|| !$this->accessManager->checkAccess($name, "member")) {
 				continue;
 			}
-			if (isset($this->chatBot->chatlist[$member->name])) {
-				$result[$member->name]  = static::IN_CHAT;
+			if (isset($this->chatBot->chatlist[$name])) {
+				$result[$name] = static::IN_CHAT;
 				continue;
 			}
-			if ($this->preferences->get($member->name, static::PREF) === 'no') {
-				$result[$member->name]  = static::BLOCKED;
+			if (isset($this->chatBot->guildmembers[$name])) {
+				$result[$name] = static::IN_ORG;
+				continue;
+			}
+			if ($this->preferences->get($name, static::PREF) === 'no') {
+				$result[$name] = static::BLOCKED;
 			} else {
-				$callback($member->name);
-				$result[$member->name]  = static::SENT;
+				$callback($name);
+				$result[$name] = static::SENT;
 			}
 		}
 		return $result;

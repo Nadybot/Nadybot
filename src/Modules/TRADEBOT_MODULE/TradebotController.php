@@ -25,10 +25,10 @@ class TradebotController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -37,12 +37,12 @@ class TradebotController {
 		'Darknet' => [
 			'join' => ['!register', '!autoinvite on'],
 			'leave' => ['!autoinvite off', '!unregister'],
-			'match' => '/^\[[a-z]+\]/i',
+			'match' => '/^\[([a-z]+)\]/i',
 		],
 		'Lightnet' => [
 			'join' => ['register', 'autoinvite on'],
 			'leave' => ['autoinvite off', 'unregister'],
-			'match' => '/^\[[a-z]+\]/i',
+			'match' => '/^\[([a-z]+)\]/i',
 		]
 	];
 
@@ -63,13 +63,22 @@ class TradebotController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"tradebot_channel_spam",
-			"Showing Tradebot messages in",
+			"Show Tradebot messages in",
 			"edit",
 			"options",
 			"3",
 			"Off;Priv;Org;Priv+Org",
 			"0;1;2;3",
 			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tradebot_channels",
+			"Show only the following channels (comma-separated)",
+			"edit",
+			"text",
+			"*",
+			"None;*"
 		);
 
 		$this->settingManager->registerChangeListener(
@@ -144,7 +153,7 @@ class TradebotController {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @Event("extPriv")
 	 * @Description("Relay messages from the tradebot to org/private channel")
@@ -182,7 +191,7 @@ class TradebotController {
 			$this->chatBot->sendPrivate($message, true);
 		}
 	}
-	
+
 	/**
 	 * Relay incoming priv-messages of tradebots to org/priv chat,
 	 * but filter out join- and leave-messages of people.
@@ -190,9 +199,11 @@ class TradebotController {
 	public function processIncomingTradeMessage(string $sender, string $message) {
 		// Only relay messages starting with something in square brackets
 		$match = self::BOT_DATA[$sender]["match"];
-		if (!preg_match($match, strip_tags($message))) {
+		if (!preg_match($match, strip_tags($message), $matches)
+			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
+
 		if ($this->settingManager->getInt("tradebot_channel_spam") & 2) {
 			$this->chatBot->sendGuild($message, true);
 		}
@@ -200,7 +211,24 @@ class TradebotController {
 			$this->chatBot->sendPrivate($message, true);
 		}
 	}
-	
+
+	/**
+	 * Check if the message is from a tradenet channel that we are subscribed to
+	 */
+	protected function isSubscribedTo(string $channel): bool {
+		$channelString = $this->settingManager->getString('tradebot_channels');
+		if ($channelString === 'None') {
+			return false;
+		}
+		$subbed = explode(",", $channelString);
+		foreach ($subbed as $subChannel) {
+			if (fnmatch($subChannel, $channel, FNM_CASEFOLD)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @Event("extJoinPrivRequest")
 	 * @Description("Accept private channel join invitation from the trade bots")

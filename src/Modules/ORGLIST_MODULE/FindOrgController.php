@@ -55,6 +55,8 @@ class FindOrgController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	protected bool $ready = false;
+
 	private $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -68,10 +70,27 @@ class FindOrgController {
 	}
 
 	/**
+	 * Check if the orglists are currently ready to be used
+	 */
+	public function isReady(): bool {
+		return $this->ready;
+	}
+
+	public function sendNotReadyError(CommandReply $sendto): void {
+		$sendto->reply(
+			"The org roster is currently being updated, please wait."
+		);
+	}
+
+	/**
 	 * @HandlesCommand("findorg")
 	 * @Matches("/^findorg (.+)$/i")
 	 */
 	public function findOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->isReady()) {
+			$this->sendNotReadyError($sendto);
+			return;
+		}
 		$search = $args[1];
 
 		$orgs = $this->lookupOrg($search);
@@ -118,6 +137,7 @@ class FindOrgController {
 
 	public function handleOrglistResponse(string $url, int $searchIndex, HttpResponse $response) {
 		if ($response === null || $response->headers["status-code"] !== "200") {
+			$this->ready = true;
 			return;
 		}
 		$search = $this->searches[$searchIndex];
@@ -162,6 +182,7 @@ class FindOrgController {
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
 				$this->logger->log("INFO", "Finished downloading orglists");
+				$this->ready = true;
 				return;
 			}
 			$this->http
@@ -174,6 +195,7 @@ class FindOrgController {
 		} catch (Exception $e) {
 			$this->logger->log("ERROR", "Error downloading orgs");
 			$this->db->rollback();
+			$this->ready = true;
 		}
 	}
 
@@ -188,6 +210,7 @@ class FindOrgController {
 	public function downloadOrglist(): void {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
 
+		$this->ready = false;
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http

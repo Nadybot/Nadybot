@@ -43,6 +43,11 @@ class DB {
 	 */
 	private int $dim;
 
+	/**
+	 * The database name
+	 */
+	protected string $dbName;
+
 	private string $guild;
 	private string $lastQuery;
 	private bool $inTransaction = false;
@@ -65,6 +70,7 @@ class DB {
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
 		global $vars;
+		$this->dbName = $dbName;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
 		$this->dim = $vars["dimension"];
@@ -583,9 +589,10 @@ class DB {
 		}
 		return $this->queryRow(
 			"SELECT COUNT(*) AS `exists` FROM information_schema.columns ".
-			"WHERE table_name = ? AND column_name = ?",
+			"WHERE TABLE_NAME = ? AND COLUMN_NAME = ? AND TABLE_SCHEMA = ?",
 			$this->formatSql($table),
-			$column
+			$column,
+			$this->dbName ?? null
 		)->exists > 0;
 	}
 
