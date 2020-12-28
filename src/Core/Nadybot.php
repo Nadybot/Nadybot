@@ -577,7 +577,6 @@ class Nadybot extends AOChat {
 					"mode" => ProxyCapabilities::SEND_PROXY_DEFAULT,
 				]);
 			}
-			var_dump($extra);
 			$this->logger->logChat("Out. Msg.", $character, $page);
 			$this->send_tell($character, $tellColor.$message, $extra, $priority);
 		}
