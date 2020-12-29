@@ -1,0 +1,7 @@
+To check what's the current mission from Arbiter Vincenzo Palmiero, use
+<tab><highlight><symbol>arbiter<end>
+
+To check which mission will be active at a future date/time, use
+<tab><highlight><symbol>arbiter june 6th 2025<end>
+<tab><highlight><symbol>arbiter next week<end>
+<tab><highlight><symbol>arbiter saturday<end>
