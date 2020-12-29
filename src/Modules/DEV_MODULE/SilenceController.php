@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\CmdCfg,
+	LoggerWrapper,
 	Text,
 };
 
@@ -46,6 +47,9 @@ class SilenceController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 	
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 	
@@ -85,6 +89,11 @@ class SilenceController {
 	public function silenceAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$command = strtolower($args[1]);
 		$channel = strtolower($args[2]);
+		if ($channel === "org") {
+			$channel = "guild";
+		} elseif ($channel === "tell") {
+			$channel = "msg";
+		}
 		
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) == 0) {
