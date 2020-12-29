@@ -4,8 +4,8 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use DateTime;
 use Nadybot\Core\{
-    CommandAlias,
-    CommandReply,
+	CommandAlias,
+	CommandReply,
 	Text,
 	Util,
 };
