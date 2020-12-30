@@ -1198,4 +1198,29 @@ class Nadybot extends AOChat {
 	public function getUptime(): int {
 		return time() - $this->started;
 	}
+
+	/**
+	 * Lookup the username of a user id
+	 */
+	public function lookupID(int $id): ?string {
+		if (isset($this->id[$id])) {
+			return $this->id[$id];
+		}
+
+		$buddyPayload = json_encode(["mode" => ProxyCapabilities::SEND_BY_WORKER, "worker" => 0]);
+		$removeFromBuddylist = !isset($this->buddylistManager->buddyList[$id]);
+		$this->buddy_add($id, $buddyPayload);
+		// Adding a non-existing uid as a buddy will never give any reply back.
+		// Because Funcom guarantees that the order of packet-replies is the same as the requests,
+		// we know that as soon as we have the reply to a (always succeeding) user lookup,
+		// the buddy packet must have arrived already. If not, the UID was deleted
+		unset($this->id["0"]);
+		$this->lookup_user("0");
+		if ($removeFromBuddylist) {
+			$this->buddylistManager->removeId($id);
+		}
+
+		return $this->id[$id] ?? null;
+	}
+
 }
