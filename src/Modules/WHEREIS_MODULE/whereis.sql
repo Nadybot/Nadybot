@@ -678,4 +678,13 @@ INSERT INTO `whereis` (name, answer, keywords, playfield_id, xcoord, ycoord) VAL
 ('Gartua the Gate Guardian', 'totw 201+, eastern path', NULL, 0, 0, 0),
 ('Aztur the Immortal (raid)', 'totw 201+, eastern path', NULL, 0, 0, 0),
 ('Khalum the Weaver of Flesh', 'totw 201+, eastern path', NULL, 0, 0, 0),
-('Uklesh the Beguiling', 'totw 201+, eastern path', NULL, 0, 0, 0);
+('Uklesh the Beguiling', 'totw 201+, eastern path', NULL, 0, 0, 0),
+('Unrelenting Fear', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Pulsing hatred', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Notum Habit', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Sanity''s Edge', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Thief of Reason', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Fragment of Sanity', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Jealousy', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Betrayer of Memory', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844),
+('Mind Shard', 'Steps of Madness in Omni Forest', NULL, 716, 800, 2844);

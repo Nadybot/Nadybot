@@ -23,6 +23,13 @@ class ProxyCapabilities {
 	public array $send_modes = [];
 
 	/**
+	 * Modes the proxy support for adding buddies
+	 * @json:name=buddy-modes
+	 * @var string[]
+	 */
+	public array $buddy_modes = [];
+
+	/**
 	 * The mode the proxy will use when sending proxy-default
 	 * @json:name=default-mode
 	 */
@@ -43,6 +50,11 @@ class ProxyCapabilities {
 	/** Check if the proxy supports a send mode */
 	public function supportsSendMode(string $sendMode): bool {
 		return in_array($sendMode, $this->send_modes, true);
+	}
+
+	/** Check if the proxy supports a buddy mode */
+	public function supportsBuddyMode(string $buddyMode): bool {
+		return in_array($buddyMode, $this->buddy_modes, true);
 	}
 
 	/** Check if the proxy supports mode selectors */
