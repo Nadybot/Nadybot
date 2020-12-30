@@ -280,4 +280,5 @@ INSERT INTO `boss_namedb` (`bossid`, `bossname`) VALUES
 (276, 'Gartua the Gate Guardian'),
 (277, 'Aztur the Immortal (raid)'),
 (278, 'Khalum the Weaver of Flesh'),
-(279, 'Uklesh the Beguiling');
+(279, 'Uklesh the Beguiling'),
+(280, 'Loren Warr');
