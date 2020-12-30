@@ -17,7 +17,7 @@ class BuddylistManager {
 	public LoggerWrapper $logger;
 
 	/**
-	 * List of all player son the friendlist, real or just queued up
+	 * List of all players on the friendlist, real or just queued up
 	 * @var array<int,BuddylistEntry>
 	 */
 	public array $buddyList = [];
@@ -89,6 +89,14 @@ class BuddylistManager {
 		if ($uid === false || $type === null || $type == '') {
 			return false;
 		}
+		return $this->addId($uid, $type);
+	}
+
+	/**
+	 * Add a user id to the bot's friendlist for a given purpose
+	 */
+	public function addId(int $uid, string $type): bool {
+		$name = $this->chatBot->id[$uid] ?? (string)$uid;
 		if (!isset($this->buddyList[$uid])) {
 			$this->logger->log('debug', "$name buddy added");
 			if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
@@ -125,6 +133,18 @@ class BuddylistManager {
 		if ($uid === false) {
 			return false;
 		}
+		return $this->removeId($uid, $type);
+	}
+
+	/**
+	 * Remove a user from the bot's friendlist for a given purpose
+	 *
+	 * This does not necessarily remove the user from the friendlist, because
+	 * they might be on it for more than 1 reason. The user is noly really removed
+	 * when the last reason to be on the list was removed.
+	 */
+	public function removeId(int $uid, string $type=''): bool {
+		$name = $this->chatBot->id[$uid] ?? (string)$uid;
 		if (!isset($this->buddyList[$uid])) {
 			return false;
 		}
