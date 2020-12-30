@@ -712,11 +712,11 @@ class AOChat {
 	/**
 	 * Add someone to our friend list
 	 */
-	public function buddy_add(int $uid): bool {
+	public function buddy_add(int $uid, string $payload="\1"): bool {
 		if ($uid === $this->char->id) {
 			return false;
 		}
-		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, "\1"]));
+		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, $payload]));
 	}
 
 	/**
