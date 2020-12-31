@@ -506,6 +506,7 @@ class Nadybot extends AOChat {
 	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
 		if ( ($this->vars["use_proxy"]??0) == 1
 			&& $this->settingManager->getBool('force_mass_tells')
+			&& $this->settingManager->getBool('allow_mass_tells')
 		) {
 			$this->sendMassTell($message, $character, $priority, $formatMessage);
 			return;
@@ -542,8 +543,9 @@ class Nadybot extends AOChat {
 	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true, int $worker=null): void {
 		$priority ??= AOC_PRIORITY_HIGH;
 
-		// If we're not using a chat proxy, this doesn't do anything
-		if (($this->vars["use_proxy"]??0) == 0) {
+		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
+		if (($this->vars["use_proxy"]??0) == 0
+			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
 		}
@@ -1222,5 +1224,4 @@ class Nadybot extends AOChat {
 
 		return $this->id[$id] ?? null;
 	}
-
 }
