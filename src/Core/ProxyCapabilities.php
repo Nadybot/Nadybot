@@ -30,6 +30,12 @@ class ProxyCapabilities {
 	public array $buddy_modes = [];
 
 	/**
+	 * Set when the proxy enforces rate-limits
+	 * @json:name=rate-limited
+	 */
+	public bool $rate_limited = false;
+
+	/**
 	 * The mode the proxy will use when sending proxy-default
 	 * @json:name=default-mode
 	 */
