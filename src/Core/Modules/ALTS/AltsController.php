@@ -266,8 +266,8 @@ class AltsController {
 		if ($validated) {
 			$msg = "{$numAlts} added successfully.";
 		} else {
-			$msg = "{$numAlts} added successfully, but require{$s} confirmation. ".
-				"Make sure to confirm you as their main on them.";
+			$msg = "{$numAlts} added successfully, but <highlight>require{$s} confirmation<end>. ".
+				"Make sure to confirm you as their main.";
 		}
 		// @todo Send a warning if the alt's accesslevel is higher than ours
 		$sendto->reply($msg);
