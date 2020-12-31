@@ -1249,6 +1249,7 @@ INSERT INTO `boss_lootdb` VALUES
 (281, 'Ring of Essence', null),
 (281, 'Nano Targeting Helper', null),
 (282, 'Father Time Costume', null),
+(282, 'Inert Reaper of Time', null),
 (283, 'Fear-forged Blade', null),
 (284, 'Nervejolter', null),
 (285, 'Neutrino Flash', null),
