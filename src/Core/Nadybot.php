@@ -989,6 +989,9 @@ class Nadybot extends AOChat {
 		}
 		try {
 			$this->proxyCapabilities = JsonImporter::decode(ProxyCapabilities::class, $reply);
+			if ($this->proxyCapabilities->rate_limited) {
+				$this->chatqueue->limit = PHP_INT_MAX;
+			}
 		} catch (Throwable $e) {
 			return;
 		}
