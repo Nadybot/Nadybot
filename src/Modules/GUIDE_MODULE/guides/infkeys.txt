@@ -1,0 +1,23 @@
+<header>Inferno Key Patterns<end>
+
+<header2>Redeemed (Clan)<end>
+<tab>1. [<a href='chatcmd:///tell <myname> pb The Indomitable Chimera'>drops</a>] <a href='itemref://234280/234280/220'>The Indomitable Chimera</a>
+<tab>2. [<a href='chatcmd:///tell <myname> pb Ahpta'>drops</a>] <a href='itemref://234170/234170/220'>Ahpta</a>
+<tab>3. [<a href='chatcmd:///tell <myname> pb Relief Teals'>drops</a>] <a href='itemref://234125/234125/220'>Relief Teals</a>
+<tab>4. [<a href='chatcmd:///tell <myname> pb Taille Frees'>drops</a>] <a href='itemref://234197/234197/220'>Taille Frees</a>
+<tab>5. [<a href='chatcmd:///tell <myname> pb Lya'>drops</a>] <a href='itemref://234224/234224/220'>Lya</a>
+<tab>6. [<a href='chatcmd:///tell <myname> pb Fester Leila'>drops</a>] <a href='itemref://234152/234152/220'>Fester Leila</a>
+<tab>7. [<a href='chatcmd:///tell <myname> pb Pazuzu'>drops</a>] <a href='itemref://234251/234251/220'>Pazuzu</a>
+<tab>8. <black>[drops]<end> <a href='itemref://239489/239489/255'>Nyame</a> (AoE nukes, Nanoshutdown helps)
+<tab>9. <black>[drops]<end> <a href='itemref://234327/234327/255'>Arch Bigot Aliel</a> (AoE, Nanoshutdown helps)
+
+<header2>Unredeemed (Omni)<end>
+<tab>1. [<a href='chatcmd:///tell <myname> pb Odqan'>drops</a>] <a href='itemref://234386/234386/220'>Odqan</a>
+<tab>2. [<a href='chatcmd:///tell <myname> pbThe Indomitable Chimera'>drops</a>] <a href='itemref://234280/234280/220'>The Indomitable Chimera</a>
+<tab>3. [<a href='chatcmd:///tell <myname> pb Ahpta'>drops</a>] <a href='itemref://234170/234170/220'>Ahpta</a>
+<tab>4. [<a href='chatcmd:///tell <myname> pb Ushqa'>drops</a>] <a href='itemref://234179/234179/220'>Ushqa</a>
+<tab>5. [<a href='chatcmd:///tell <myname> pb Ho'>drops</a>] <a href='itemref://239678/239678/220'>Ho</a>
+<tab>6. [<a href='chatcmd:///tell <myname> pb Haqa'>drops</a>] <a href='itemref://234188/234188/220'>Haqa</a>
+<tab>7. [<a href='chatcmd:///tell <myname> pb Arch Bigot Biap'>drops</a>] <a href='itemref://234271/234271/220'>Arch Bigot Biap</a>
+<tab>8. [<a href='chatcmd:///tell <myname> pb Asase Ya'>drops</a>] <a href='itemref://234318/234318/255'>Asase Ya</a>
+<tab>9. <black>[drops]<end> <a href='itemref://234309/234309/255'>Arch Bigot Lohel</a> (AoE, Nanoshutdown helps)
