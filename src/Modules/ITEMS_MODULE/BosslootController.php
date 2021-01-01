@@ -166,21 +166,27 @@ class BosslootController {
 		$output = "There were no matches for your search.";
 		if ($count !== 0) {
 			foreach ($loot as $row) {
-				$blob .= $this->getBossLootOutput($row);
+				$blob .= $this->getBossLootOutput($row, $search);
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
 		}
 		$sendto->reply($output);
 	}
 
-	public function getBossLootOutput(BossNamedb $row): string {
+	public function getBossLootOutput(BossNamedb $row, ?string $search=null): string {
+		$query = "";
+		$params = [];
+		if (isset($search)) {
+			[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'b.itemname');
+			$query = " AND {$query}";
+		}
 		/** @var BossLootdb[] */
 		$data = $this->db->fetchAll(
 			BossLootdb::class,
 			"SELECT * FROM boss_lootdb b ".
 			"LEFT JOIN aodb a ON (b.itemname = a.name) ".
-			"WHERE b.bossid = ?",
-			$row->bossid
+			"WHERE b.bossid = ?{$query}",
+			...[$row->bossid, ...$params]
 		);
 
 		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss $row->bossname") . "]<end>\n";
@@ -203,9 +209,14 @@ class BosslootController {
 		$blob .= "<tab>Loot: ";
 		$lootItems = [];
 		foreach ($data as $row2) {
-			$lootItems []= $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname);
+			$item = $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname);
+			$lootItems []= $item;
 		}
-		$blob .= join(", ", $lootItems) . "\n\n";
+		if (isset($search)) {
+			$blob .= join("\n<tab><black>Loot: <end>", $lootItems) . "\n\n";
+		} else {
+			$blob .= join(", ", $lootItems) . "\n\n";
+		}
 		return $blob;
 	}
 }
