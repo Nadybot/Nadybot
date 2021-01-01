@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS playfields;
 CREATE TABLE playfields (
 	`id` INT(11) PRIMARY KEY NOT NULL,
-	`long_name` VARCHAR(25) NOT NULL UNIQUE,
+	`long_name` VARCHAR(26) NOT NULL UNIQUE,
 	`short_name` VARCHAR(15) UNIQUE
 );
 INSERT INTO playfields (id, long_name, short_name) VALUES
