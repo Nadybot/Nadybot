@@ -42,36 +42,36 @@ class WhoisController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];
-	
+
 	private $replyInfo = [];
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "name_history");
@@ -79,7 +79,7 @@ class WhoisController {
 		$this->commandAlias->register($this->moduleName, "whois", "w");
 		$this->commandAlias->register($this->moduleName, "whois", "is");
 	}
-	
+
 	/**
 	 * @Event("timer(1min)")
 	 * @Description("Save cache of names and charIds to database")
@@ -112,7 +112,7 @@ class WhoisController {
 
 		$this->nameHistoryCache = [];
 	}
-	
+
 	/**
 	 * @Event("packet(20)")
 	 * @Event("packet(21)")
@@ -131,7 +131,7 @@ class WhoisController {
 		}
 		$this->nameHistoryCache []= $charData;
 	}
-	
+
 	/**
 	 * @HandlesCommand("lookup")
 	 * @Matches("/^lookup (\d+)$/i")
@@ -162,7 +162,7 @@ class WhoisController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("lookup")
 	 * @Matches("/^lookup (.+)$/i")
@@ -195,7 +195,7 @@ class WhoisController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function getNameHistory(int $charID, int $dimension): string {
 		$sql = "SELECT * FROM name_history ".
 			"WHERE charid = ? ".
@@ -214,7 +214,7 @@ class WhoisController {
 
 		return $blob;
 	}
-	
+
 	/**
 	 * @HandlesCommand("whois")
 	 * @Matches("/^whois (.+)$/i")
@@ -337,7 +337,7 @@ class WhoisController {
 
 	public function getFullName(Player $whois): string {
 		$msg = "";
-		
+
 		if (isset($whois->firstname)) {
 			$msg .= $whois->firstname . " ";
 		}
@@ -350,7 +350,7 @@ class WhoisController {
 
 		return $msg;
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Gets online status of character")
@@ -370,7 +370,7 @@ class WhoisController {
 			true
 		);
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Gets offline status of character")

@@ -24,7 +24,7 @@ use Nadybot\Core\{
  *	)
  */
 class WhatBuffsController {
-	
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -32,22 +32,22 @@ class WhatBuffsController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
 	public CommandManager $commandManager;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "item_buffs");
@@ -95,7 +95,7 @@ class WhatBuffsController {
 	 */
 	public function whatbuffs2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = ucfirst(strtolower($args[1]));
-		
+
 		if (!$this->verifySlot($type)) {
 			$msg = "Could not find any items of type <highlight>$type<end>.";
 			$sendto->reply($msg);
@@ -230,7 +230,7 @@ class WhatBuffsController {
 		$msg = $this->text->makeBlob("WhatBuffs $skillName - Choose Type", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Gives a blob with all items buffing $skill in slot $category
 	 * @return string|string[]
@@ -296,7 +296,7 @@ class WhatBuffsController {
 			ucfirst(strtolower($type))
 		) !== null;
 	}
-	
+
 	/**
 	 * Search for all skills and skill aliases matching $skill
 	 *
@@ -317,10 +317,10 @@ class WhatBuffsController {
 		if (count($results) === 1) {
 			return $results;
 		}
-		
+
 		$tmp = explode(" ", $skill);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
-		
+
 		return $this->db->fetchAll(
 			Skill::class,
 			"SELECT id, name FROM (
@@ -482,17 +482,17 @@ class WhatBuffsController {
 		$count = count($items);
 		return [$count, $blob];
 	}
-	
+
 	/**
 	 * Show what buffs $skillName in slot $category
 	 * @return string|string[]
 	 */
 	public function showSearchResults(string $category, string $skillName) {
 		$category = ucfirst(strtolower($category));
-		
+
 		$skills = $this->searchForSkill($skillName);
 		$count = count($skills);
-		
+
 		if ($count === 0) {
 			$msg = "Could not find any skills matching <highlight>$skillName<end>.";
 		} elseif ($count === 1) {
@@ -505,7 +505,7 @@ class WhatBuffsController {
 			}
 			$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);
 		}
-		
+
 		return $msg;
 	}
 }

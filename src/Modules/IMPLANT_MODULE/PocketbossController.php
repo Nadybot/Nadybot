@@ -39,13 +39,13 @@ class PocketbossController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -53,7 +53,7 @@ class PocketbossController {
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "pocketboss");
 	}
-	
+
 	/**
 	 * @HandlesCommand("pocketboss")
 	 * @Matches("/^pocketboss (.+)$/i")
@@ -79,7 +79,7 @@ class PocketbossController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function singlePbBlob(string $name): string {
 		/** @var Pocketboss[] */
 		$data = $this->db->fetchAll(
@@ -96,14 +96,14 @@ class PocketbossController {
 			}
 			$symbs .= $this->text->makeItem($symb->itemid, $symb->itemid, $symb->ql, $name) . " ($symb->ql)\n";
 		}
-		
+
 		$blob = "Location: <highlight>$symb->pb_location, $symb->bp_location<end>\n";
 		$blob .= "Found on: <highlight>$symb->bp_mob, Level $symb->bp_lvl<end>\n\n";
 		$blob .= $symbs;
 
 		return $blob;
 	}
-	
+
 	/**
 	 * @return Pocketboss[]
 	 */
@@ -116,7 +116,7 @@ class PocketbossController {
 		if ($row !== null) {
 			return [$row];
 		}
-		
+
 		$tmp = explode(" ", $search);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, '`pb`');
 
@@ -126,7 +126,7 @@ class PocketbossController {
 			...$params
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("symbiant")
 	 * @Matches("/^symbiant ([a-z]+)$/i")
@@ -139,7 +139,7 @@ class PocketbossController {
 		$slot = '%';
 		$symbtype = '%';
 		$line = '%';
-		
+
 		$lines = $this->db->query("SELECT DISTINCT line FROM pocketboss");
 
 		for ($i = 1; $i <= $paramCount; $i++) {

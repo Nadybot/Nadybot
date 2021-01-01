@@ -38,10 +38,10 @@ class ChatAssistController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public Text $text;
 
@@ -50,7 +50,7 @@ class ChatAssistController {
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/**
 	 * Names of all callers
 	 * @var array<string,CallerList>
@@ -101,7 +101,7 @@ class ChatAssistController {
 		}
 		$sendto->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
 	}
-	
+
 	/**
 	 * @HandlesCommand("assist .+")
 	 * @Matches("/^assist clear$/i")
@@ -130,7 +130,7 @@ class ChatAssistController {
 		}
 
 		$nameArray = preg_split("/\s+|\s*,\s*/", $args[1]);
-		
+
 		$errors = [];
 		$callers = [];
 		$groupName = "";
@@ -195,7 +195,7 @@ class ChatAssistController {
 		$groupKey = strtolower($groupName);
 		$event = new AssistEvent();
 		$event->type = "assist(add)";
-		
+
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {

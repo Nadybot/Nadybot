@@ -13,7 +13,7 @@ class PlayerHistoryManager {
 
 	/** @Inject */
 	public CacheManager $cacheManager;
-	
+
 	public function asyncLookup(string $name, int $dimension, callable $callback, ...$args): void {
 		$name = ucfirst(strtolower($name));
 		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
@@ -23,7 +23,7 @@ class PlayerHistoryManager {
 		$cb = function($data) {
 			return isset($data) && $data !== "[]";
 		};
-		
+
 		$this->cacheManager->asyncLookup(
 			$url,
 			$groupName,
@@ -47,7 +47,7 @@ class PlayerHistoryManager {
 		$cb = function($data) {
 			return isset($data) && $data !== "[]";
 		};
-		
+
 		$cacheResult = $this->cacheManager->lookup($url, $groupName, $filename, $cb, $maxCacheAge);
 		$playerHistory = null;
 		$this->handleCacheResult(
@@ -61,7 +61,7 @@ class PlayerHistoryManager {
 	}
 
 	public function handleCacheResult(?CacheResult $cacheResult, string $name, callable $callback, ...$args): void {
-		
+
 		if ($cacheResult->success !== true) {
 			$callback(null, ...$args);
 			return;

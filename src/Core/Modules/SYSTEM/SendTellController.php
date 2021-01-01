@@ -28,13 +28,13 @@ class SendTellController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * @HandlesCommand("sendtell")
 	 * @Matches("/^sendtell ([a-z0-9-]+) (.+)$/i")
@@ -42,7 +42,7 @@ class SendTellController {
 	public function sendtellCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$message = $args[2];
-		
+
 		$this->logger->logChat("Out. Msg.", $name, $message);
 		$this->chatBot->send_tell($name, $message, "\0", AOC_PRIORITY_MED);
 		$sendto->reply("Message has been sent to <highlight>$name<end>.");

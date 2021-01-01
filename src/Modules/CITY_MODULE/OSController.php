@@ -18,13 +18,13 @@ class OSController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public TimerController $timerController;
-	
+
 	/**
 	 * @Event("orgmsg")
 	 * @Description("Sets a timer when an OS/AS is launched")

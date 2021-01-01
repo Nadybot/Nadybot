@@ -20,7 +20,7 @@ use Nadybot\Core\{
  *	)
  */
 class SameChannelResponseController {
-	
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -32,7 +32,7 @@ class SameChannelResponseController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * @HandlesCommand("demo")
 	 * @Matches("/^demo (.+)$/si")

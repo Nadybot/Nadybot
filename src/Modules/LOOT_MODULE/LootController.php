@@ -610,7 +610,7 @@ class LootController {
 			$this->chatBot->sendPrivate($privMsg);
 		}
 	}
-	
+
 	/**
 	 * Remove yourself from all loot rolls
 	 *

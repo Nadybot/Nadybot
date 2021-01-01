@@ -18,7 +18,7 @@ class MessageInfoCommandReply implements CommandReply {
 		if (!is_array($msg)) {
 			$msg = [$msg];
 		}
-		
+
 		foreach ($msg as $page) {
 			$elapsed = round($endTime - $this->startTime, 4);
 			$this->sendto->reply($page);

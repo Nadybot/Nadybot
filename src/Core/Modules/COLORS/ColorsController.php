@@ -66,7 +66,7 @@ class ColorsController {
 	 * @AccessLevel("mod")
 	 */
 	public string $defaultDefaultHeaderColor = "<font color='#FFFF00'>";
-	
+
 	/**
 	 * @Setting("default_header2_color")
 	 * @Description("default header2 color")

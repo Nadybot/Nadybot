@@ -54,19 +54,19 @@ class VoteController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
 
@@ -86,7 +86,7 @@ class VoteController {
 	private $polls = [];
 
 	public const DELIMITER = "|";
-	
+
 	// status indicates the last alert that happened (not the next alert that will happen)
 	public const STATUS_CREATED = 0;
 	public const STATUS_STARTED = 1;
@@ -94,14 +94,14 @@ class VoteController {
 	public const STATUS_15_MINUTES_LEFT = 3;
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'vote');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"vote_channel_spam",
@@ -333,7 +333,7 @@ class VoteController {
 		$msg = $this->text->makeBlob("All voting topics", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * This command handler deletes polls.
 	 *
@@ -364,7 +364,7 @@ class VoteController {
 		$sendto->reply($msg);
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * This command handler removes someones vote from a running vote.
 	 *
@@ -397,7 +397,7 @@ class VoteController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * This command handler ends a running vote.
 	 *
@@ -431,7 +431,7 @@ class VoteController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("poll")
 	 * @Matches("/^poll(?: show| view)? (\d+)$/i")
@@ -443,9 +443,9 @@ class VoteController {
 			$sendto->reply("There is no poll Nr. <highlight>{$id}<end>.");
 			return;
 		}
-		
+
 		$blob = $this->getPollBlob($topic, $sender);
-	
+
 		/** @var ?Vote */
 		$vote = $this->db->fetch(
 			Vote::class,
@@ -464,10 +464,10 @@ class VoteController {
 		if ($privmsg) {
 			$sendto->reply($privmsg);
 		}
-		
+
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("vote")
 	 * @Matches("/^vote (\d+) (.+)$/i")
@@ -475,7 +475,7 @@ class VoteController {
 	public function voteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
 		$answer = $args[2];
-		
+
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$msg = "Poll Nr. <highlight>{$id}<end> does not exist.";
@@ -530,7 +530,7 @@ class VoteController {
 		$sendto->reply($msg);
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * @HandlesCommand("poll")
 	 * @Matches("/^poll (?:add|create|new) ([^ ]+)\s+(.+)$/i")
@@ -581,7 +581,7 @@ class VoteController {
 		$event->type = "poll(start)";
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	public function getPollBlob(Poll $topic, ?string $sender=null) {
 		/** @var Vote[] */
 		$votes = $this->db->fetchAll(
@@ -589,7 +589,7 @@ class VoteController {
 			"SELECT * FROM votes_<myname> WHERE `poll_id` = ?",
 			$topic->id
 		);
-		
+
 		$results = [];
 		foreach ($topic->answers as $answer) {
 			$results[$answer] = 0;

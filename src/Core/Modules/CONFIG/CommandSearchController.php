@@ -75,7 +75,7 @@ class CommandSearchController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Remove all commands that we don't have access to
 	 *
@@ -95,7 +95,7 @@ class CommandSearchController {
 		}
 		return $results;
 	}
-	
+
 	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false) {
 		$sqlquery = "SELECT DISTINCT `module`, `cmd`, `help`, `description`, `admin` FROM `cmdcfg_<myname>`";
 		if (!$includeDisabled) {
@@ -120,7 +120,7 @@ class CommandSearchController {
 		}
 		$results = $data;
 		usort($results, [$this, 'sortBySimilarity']);
-		
+
 		return $results;
 	}
 

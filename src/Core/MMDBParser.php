@@ -9,9 +9,9 @@ namespace Nadybot\Core;
  */
 class MMDBParser {
 	private array $mmdb = [];
-	
+
 	private LoggerWrapper $logger;
-	
+
 	public function __construct($file) {
 		$this->logger = new LoggerWrapper('MMDBParser');
 	}
@@ -70,7 +70,7 @@ class MMDBParser {
 			fclose($in);
 			return null;
 		}
-		
+
 		fseek($in, $category['offset']);
 
 		// find all instances
@@ -82,12 +82,12 @@ class MMDBParser {
 			$previousInstance = $instance;
 			$instance = $this->readEntry($in);
 		}
-		
+
 		fclose($in);
 
 		return $instances;
 	}
-	
+
 	/**
 	 * @return array<string,int>[]
 	 */
@@ -109,7 +109,7 @@ class MMDBParser {
 			$previousCategory = $category;
 			$category = $this->readEntry($in);
 		}
-		
+
 		fclose($in);
 
 		return $categories;

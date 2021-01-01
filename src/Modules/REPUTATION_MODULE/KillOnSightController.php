@@ -42,19 +42,19 @@ class KillOnSightController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'kos');
@@ -82,13 +82,13 @@ class KillOnSightController {
 			if (!empty($entry->comment)) {
 				$comment = " - $entry->comment";
 			}
-			
+
 			$blob .= "<tab><highlight>$entry->name<end>$comment (added by $entry->submitter <highlight>" . $this->util->unixtimeToReadable(time() - $entry->dt) . "<end> ago)\n";
 		}
 		$msg = $this->text->makeBlob("Kill-On-Sight List ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("kos add .+")
 	 * @Matches("/^kos add ([a-z0-9-]+)$/i")
@@ -97,7 +97,7 @@ class KillOnSightController {
 	public function kosAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$charid = $this->chatBot->get_uid($name);
-		
+
 		if (!$charid) {
 			$sendto->reply("Character <highlight>$name<end> does not exist.");
 			return;
@@ -115,13 +115,13 @@ class KillOnSightController {
 		if (isset($args[2])) {
 			$comment = trim($args[2]);
 		}
-		
+
 		$sql = "INSERT INTO kos (name, comment, submitter, dt) VALUES (?, ?, ?, ?)";
 		$this->db->exec($sql, $name, $comment, $sender, time());
 		$msg = "Character <highlight>$name<end> has been added to the Kill-On-Sight list.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("kos rem .+")
 	 * @Matches("/^kos rem (.+)$/i")

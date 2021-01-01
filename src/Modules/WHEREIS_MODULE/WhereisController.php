@@ -31,13 +31,13 @@ class WhereisController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -55,7 +55,7 @@ class WhereisController {
 		$words = explode(' ', $search);
 		[$query1, $params1] = $this->util->generateQueryFromParams($words, 'name');
 		[$query2, $params2] = $this->util->generateQueryFromParams($words, 'keywords');
-		
+
 		$sql = "SELECT * FROM whereis w ".
 			"LEFT JOIN playfields p ON w.playfield_id = p.id ".
 			"WHERE ($query1) OR ($query2)";

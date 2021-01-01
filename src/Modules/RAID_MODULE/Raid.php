@@ -79,7 +79,7 @@ class Raid extends DBRow {
 		$this->last_announcement = time();
 		$this->last_award_from_ticker = time();
 	}
-	
+
 	public function getAnnounceMessage(?string $joinMessage=null): string {
 		$msg = "Raid is running: <highlight>{$this->description}<end> :: ";
 		if ($this->locked) {

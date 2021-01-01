@@ -43,7 +43,7 @@ class EventlistController {
 			$params []= "%" . $args[1] . "%";
 			$cmdSearchSql = "WHERE type LIKE ?";
 		}
-	
+
 		$sql = "SELECT ".
 				"type, ".
 				"description, ".
@@ -59,7 +59,7 @@ class EventlistController {
 		/** @var EventCfg[] $data */
 		$data = $this->db->fetchAll(EventCfg::class, $sql, ...$params);
 		$count = count($data);
-	
+
 		if ($count === 0) {
 			$msg = "No events of type <highlight>{$args[1]}<end> found.";
 			$sendto->reply($msg);
@@ -86,7 +86,7 @@ class EventlistController {
 				$blob .= " - $row->description\n";
 			}
 		}
-	
+
 		$msg = $this->text->makeBlob("Event List ($count)", $blob);
 		$sendto->reply($msg);
 	}

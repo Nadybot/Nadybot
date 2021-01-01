@@ -28,16 +28,16 @@ class OrgHistoryController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * @Setup
 	 */
@@ -81,7 +81,7 @@ class OrgHistoryController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("orghistory")
 	 * @Matches("/^orghistory (.+)$/i")
@@ -119,7 +119,7 @@ class OrgHistoryController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function formatOrgAction(OrgHistory $row): string {
 		if ($row->action === "left") {
 			return "<highlight>$row->actor<end> $row->action. [$row->organization] " . $this->util->date($row->time) . "\n";

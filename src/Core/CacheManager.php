@@ -18,7 +18,7 @@ class CacheManager {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -39,7 +39,7 @@ class CacheManager {
 			mkdir($this->cacheDir, 0777);
 		}
 	}
-		
+
 	public function forceLookupFromCache(string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge): ?CacheResult {
 		// Check if a xml file of the person exists and if it is up to date
 		if (!$this->cacheExists($groupName, $filename)) {
