@@ -31,7 +31,7 @@ class PremadeImplantController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -43,9 +43,9 @@ class PremadeImplantController {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-	
+
 	/**
 	 * @Setup
 	 */
@@ -138,7 +138,7 @@ class PremadeImplantController {
 			$skills
 		);
 		$placeHolder = join(",", array_fill(0, count($skillIds), "?"));
-		
+
 		$sql = "SELECT i.Name AS slot, ".
 				"p2.Name AS profession, ".
 				"a.Name AS ability, ".

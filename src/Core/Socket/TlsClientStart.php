@@ -10,7 +10,7 @@ class TlsClientStart implements WriteClosureInterface {
 		}
 		return null;
 	}
-	
+
 	public function allowReading(): bool {
 		return false;
 	}

@@ -27,7 +27,7 @@ use Exception;
 class AMQP {
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 

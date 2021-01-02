@@ -35,7 +35,7 @@ class UnixtimeController {
 	 */
 	public function reloadinstanceAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$time = $args[1];
-		
+
 		$msg = "$time is " . $this->util->date($time) . ".";
 		$sendto->reply($msg);
 	}

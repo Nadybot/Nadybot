@@ -42,37 +42,37 @@ class CityWaveController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/** @Inject */
 	public TimerController $timerController;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Inject */
 	public SettingObject $setting;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	public const TIMER_NAME = "City Raid";
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'city_wave_times',
@@ -101,7 +101,7 @@ class CityWaveController {
 			[$this, 'changeWaveTimes']
 		);
 	}
-	
+
 	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, $data): void {
 		$alertTimes = explode(' ', $newValue);
 		if (count($alertTimes) !== 9) {
@@ -115,7 +115,7 @@ class CityWaveController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("citywave")
 	 * @Matches("/^citywave start$/i")
@@ -143,7 +143,7 @@ class CityWaveController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("citywave")
 	 * @Matches("/^citywave$/i")
@@ -159,7 +159,7 @@ class CityWaveController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Starts a wave counter when cloak is lowered")
@@ -169,7 +169,7 @@ class CityWaveController {
 			$this->startWaveCounter();
 		}
 	}
-	
+
 	public function getWave(): ?int {
 		$timer = $this->timerController->get(self::TIMER_NAME);
 		if ($timer === null) {
@@ -203,12 +203,12 @@ class CityWaveController {
 		}
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	public function startWaveCounter(string $name=null): void {
 		$event = new CityWaveEvent();
 		$event->type = "cityraid(start)";
 		$this->eventManager->fireEvent($event);
-		
+
 		if ($name === null) {
 			$this->announce("Wave counter started.");
 		} else {

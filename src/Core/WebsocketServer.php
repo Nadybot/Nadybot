@@ -19,10 +19,10 @@ class WebsocketServer extends WebsocketBase {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	
+
 	/** @var string[] */
 	protected array $subscriptions = [];
-	
+
 	public string $uuid;
 
 	public function __construct(AsyncSocket $socket) {
@@ -41,15 +41,15 @@ class WebsocketServer extends WebsocketBase {
 		$this->listenForWebsocketReadWrite();
 		$this->websocketController->registerClient($this);
 	}
-	
+
 	public function getUUID(): string {
 		return $this->uuid;
 	}
-	
+
 	public function subscribe(string ...$events): void {
 		$this->subscriptions = $events;
 	}
-	
+
 	/** @return string[] */
 	public function getSubscriptions(): array {
 		return $this->subscriptions;

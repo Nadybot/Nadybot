@@ -45,7 +45,7 @@
     Blank lines MAY be added to improve readability and to indicate related blocks of code except where explicitly forbidden. -->
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
         <properties>
-            <property name="ignoreBlankLines" value="true"/>
+            <property name="ignoreBlankLines" value="false"/>
         </properties>
     </rule>
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace.StartFile">

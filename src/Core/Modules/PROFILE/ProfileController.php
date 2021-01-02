@@ -43,37 +43,37 @@ class ProfileController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public CommandManager $commandManager;
 
 	/** @Inject */
 	public LoggerWrapper $logger;
-	
+
 	private string $path;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->path = getcwd() . "/data/profiles/";
-		
+
 		// make sure that the profile folder exists
 		if (!@is_dir($this->path)) {
 			mkdir($this->path, 0777);
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("profile")
 	 * @Matches("/^profile$/i")
@@ -112,7 +112,7 @@ class ProfileController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("profile")
 	 * @Matches("/^profile view ([a-z0-9_-]+)$/i")
@@ -131,7 +131,7 @@ class ProfileController {
 		$msg = $this->text->makeBlob("Profile $profileName", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("profile")
 	 * @Matches("/^profile save ([a-z0-9_-]+)$/i")
@@ -181,7 +181,7 @@ class ProfileController {
 		$msg = "Profile <highlight>$profileName<end> has been saved.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("profile")
 	 * @Matches("/^profile (rem|remove|del|delete) ([a-z0-9_-]+)$/i")
@@ -201,7 +201,7 @@ class ProfileController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("profile")
 	 * @Matches("/^profile load ([a-z0-9_-]+)$/i")
@@ -209,7 +209,7 @@ class ProfileController {
 	public function profileLoadCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$profileName = $args[1];
 		$filename = $this->getFilename($profileName);
-		
+
 		if (!@file_exists($filename)) {
 			$msg = "Profile <highlight>$profileName<end> does not exist.";
 			$sendto->reply($msg);
@@ -224,11 +224,11 @@ class ProfileController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function getFilename(string $profileName): string {
 		return $this->path . DIRECTORY_SEPARATOR . $profileName . static::FILE_EXT;
 	}
-	
+
 	public function loadProfile(string $filename, string $sender): ?string {
 		$profileData = file_get_contents($filename);
 		$lines = explode("\n", $profileData);

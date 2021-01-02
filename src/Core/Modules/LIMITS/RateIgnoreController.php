@@ -34,16 +34,16 @@ class RateIgnoreController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public $util;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * @Setup
 	 */
@@ -58,7 +58,7 @@ class RateIgnoreController {
 		);
 		$this->db->exec("DROP TABLE IF EXISTS whitelist");
 	}
-	
+
 	/**
 	 * @HandlesCommand("rateignore")
 	 * @Matches("/^rateignore$/i")
@@ -78,7 +78,7 @@ class RateIgnoreController {
 		$msg = $this->text->makeBlob("Rate limit ignore list", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("rateignore")
 	 * @Matches("/^rateignore add (.+)$/i")
@@ -86,7 +86,7 @@ class RateIgnoreController {
 	public function rateignoreAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sendto->reply($this->add($args[1], $sender));
 	}
-	
+
 	/**
 	 * @HandlesCommand("rateignore")
 	 * @Matches("/^rateignore (rem|remove|del|delete) (.+)$/i")

@@ -103,7 +103,7 @@ class PrivateChannelController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -115,44 +115,44 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
-	
+
 	/** @Inject */
 	public OnlineController $onlineController;
-	
+
 	/** @Inject */
 	public RelayController $relayController;
-	
+
 	/** @Inject */
 	public Timer $timer;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "private_chat");
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"guest_color_channel",
@@ -276,7 +276,7 @@ class PrivateChannelController {
 		$msg = $this->text->makeBlob("Members ($count)", $list);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("member")
 	 * @Matches("/^member add ([a-z].+)$/i")
@@ -286,7 +286,7 @@ class PrivateChannelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("member")
 	 * @Matches("/^member (?:del|rem|rm|delete|remove) ([a-z].+)$/i")
@@ -296,7 +296,7 @@ class PrivateChannelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("invite")
 	 * @Matches("/^invite ([a-z].+)$/i")
@@ -326,7 +326,7 @@ class PrivateChannelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("kick")
 	 * @Matches("/^kick (.+)$/i")
@@ -348,7 +348,7 @@ class PrivateChannelController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("autoinvite")
 	 * @Matches("/^autoinvite (on|off)$/i")
@@ -380,7 +380,7 @@ class PrivateChannelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("count")
 	 * @Matches("/^count (levels?|lvls?)$/i")
@@ -423,7 +423,7 @@ class PrivateChannelController {
 			"TL7: <highlight>$tl7<end>";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("count")
 	 * @Matches("/^count (all|profs?)$/i")
@@ -475,7 +475,7 @@ class PrivateChannelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("count")
 	 * @Matches("/^count orgs?$/i")
@@ -516,7 +516,7 @@ class PrivateChannelController {
 		$msg = $this->text->makeBlob("Organizations ($numOrgs)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("count")
 	 * @Matches("/^count (.*)$/i")
@@ -561,7 +561,7 @@ class PrivateChannelController {
 	public function kickallNowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->chatBot->privategroup_kick_all();
 	}
-	
+
 	/**
 	 * @HandlesCommand("kickall")
 	 * @Matches("/^kickall( now)?$/i")
@@ -571,7 +571,7 @@ class PrivateChannelController {
 		$this->chatBot->sendPrivate($msg);
 		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
 	}
-	
+
 	/**
 	 * @HandlesCommand("join")
 	 * @Matches("/^join$/i")
@@ -597,7 +597,7 @@ class PrivateChannelController {
 			"auto invite preference.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("leave")
 	 * @Matches("/^leave$/i")
@@ -605,7 +605,7 @@ class PrivateChannelController {
 	public function leaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->chatBot->privategroup_kick($sender);
 	}
-	
+
 	/**
 	 * @Event("connect")
 	 * @Description("Adds all members as buddies")
@@ -638,7 +638,7 @@ class PrivateChannelController {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Private channel relay from guild channel")
@@ -646,7 +646,7 @@ class PrivateChannelController {
 	public function relayPrivateChannelEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		$message = $eventObj->message;
-	
+
 		// Check if the private channel relay is enabled
 		if (!$this->settingManager->getBool("guest_relay")) {
 			return;
@@ -678,7 +678,7 @@ class PrivateChannelController {
 		}
 		$this->chatBot->sendPrivate($msg, true);
 	}
-	
+
 	/**
 	 * @Event("priv")
 	 * @Description("Guild channel relay from priv channel")
@@ -686,7 +686,7 @@ class PrivateChannelController {
 	public function relayGuildChannelEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		$message = $eventObj->message;
-		
+
 		// Check if the private channel relay is enabled
 		if (!$this->settingManager->getBool("guest_relay")) {
 			return;
@@ -707,7 +707,7 @@ class PrivateChannelController {
 			": {$guestColorGuild}{$message}<end>";
 		$this->chatBot->sendGuild($msg, true);
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Auto-invite members on logon")
@@ -815,7 +815,7 @@ class PrivateChannelController {
 		$msg = "<highlight>{$player}<end> has left the private channel.";
 		return $msg;
 	}
-	
+
 	/**
 	 * @Event("leavePriv")
 	 * @Description("Displays a message when a character leaves the private channel")
@@ -836,7 +836,7 @@ class PrivateChannelController {
 		$event->channel = "priv";
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Updates the database when a character joins the private channel")
@@ -849,7 +849,7 @@ class PrivateChannelController {
 			'priv'
 		);
 	}
-	
+
 	/**
 	 * @Event("leavePriv")
 	 * @Description("Updates the database when a character leaves the private channel")
@@ -858,7 +858,7 @@ class PrivateChannelController {
 		$sender = $eventObj->sender;
 		$this->onlineController->removePlayerFromOnlineList($sender, 'priv');
 	}
-	
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Sends the online list to people as they join the private channel")
@@ -869,7 +869,7 @@ class PrivateChannelController {
 		$msg = $this->onlineController->getOnlineList();
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
-	
+
 	public function addUser(string $name, $autoInvite=true): string {
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
@@ -887,7 +887,7 @@ class PrivateChannelController {
 		$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
-	
+
 	public function removeUser(string $name): string {
 		$name = ucfirst(strtolower($name));
 

@@ -29,7 +29,7 @@ class ClusterController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -64,14 +64,14 @@ class ClusterController {
 		$msg = $this->text->makeBlob("Cluster List ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cluster")
 	 * @Matches("/^cluster (.+)$/i")
 	 */
 	public function clusterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = trim($args[1]);
-		
+
 		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'LongName');
 
 		$sql = "SELECT * FROM Cluster WHERE $query";
@@ -94,7 +94,7 @@ class ClusterController {
 				"WHERE c1.ClusterID = ? ".
 				"ORDER BY c2.ClusterTypeID DESC";
 			$results = $this->db->query($sql, $cluster->ClusterID);
-			
+
 			$blob .= "<pagebreak><header2>$cluster->LongName<end>:\n";
 
 			foreach ($results as $row) {

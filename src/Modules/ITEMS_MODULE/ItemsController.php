@@ -47,7 +47,7 @@ use Nadybot\Core\{
  *	)
  */
 class ItemsController {
-	
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -64,10 +64,10 @@ class ItemsController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -76,7 +76,7 @@ class ItemsController {
 		$this->db->loadSQLFile($this->moduleName, "aodb");
 		$this->db->loadSQLFile($this->moduleName, "item_groups");
 		$this->db->loadSQLFile($this->moduleName, "item_group_names");
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'maxitems',
@@ -97,7 +97,7 @@ class ItemsController {
 		$msg = $this->findItems($args);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("itemid")
 	 * @Matches("/^itemid (\d+)$/i")
@@ -126,7 +126,7 @@ class ItemsController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function findById(int $id): ?AODBEntry {
 		$sql = "SELECT * FROM aodb WHERE lowid = ? UNION SELECT * FROM aodb WHERE highid = ? LIMIT 1";
 		return $this->db->fetch(AODBEntry::class, $sql, $id, $id);
@@ -325,7 +325,7 @@ class ItemsController {
 		}
 
 		$search = htmlspecialchars_decode($search);
-	
+
 		// local database
 		$data = $this->findItemsFromLocal($search, $ql);
 
@@ -336,7 +336,7 @@ class ItemsController {
 
 		return $msg;
 	}
-	
+
 	/**
 	 * Search for items in the local database
 	 * @param string $search The searchterm
@@ -380,10 +380,10 @@ class ItemsController {
 			"ORDER BY g.id ASC";
 		$data = $this->db->fetchAll(ItemSearchResult::class, $sql, ...$params);
 		// $data = $this->orderSearchResults($data, $search);
-		
+
 		return $data;
 	}
-	
+
 	/**
 	 * @param ItemSearchResult[] $data
 	 * @param string $search
@@ -441,7 +441,7 @@ class ItemsController {
 
 		return $link;
 	}
-	
+
 	/**
 	 * Sort by exact word matches higher than partial word matches
 	 * @param ItemSearchResult[] $data
@@ -467,7 +467,7 @@ class ItemsController {
 			}
 			$row->numExactMatches = $numExactMatches;
 		}
-		
+
 		/*
 		$this->util->mergesort($data, function($a, $b) {
 			if ($a->numExactMatches == $b->numExactMatches) {
@@ -563,7 +563,7 @@ class ItemsController {
 		}
 		return $list;
 	}
-	
+
 	public function findByName(string $name, ?int $ql=null): ?AODBEntry {
 		if ($ql === null) {
 			return $this->db->fetch(
@@ -590,7 +590,7 @@ class ItemsController {
 		}
 		return $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 	}
-	
+
 	public function getItemAndIcon(string $name, ?int $ql=null): string {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
@@ -622,7 +622,7 @@ class ItemsController {
 		$longestCommonSubstringIndexInFirst = 0;
 		$table = [];
 		$largestFound = 0;
-	
+
 		$firstLength = count($first);
 		$secondLength = count($second);
 		for ($i = 0; $i < $firstLength; $i++) {
@@ -631,12 +631,12 @@ class ItemsController {
 					if (!isset($table[$i])) {
 						$table[$i] = [];
 					}
-	
+
 					$table[$i][$j] = 1;
 					if ($i > 0 && $j > 0 && isset($table[$i-1][$j-1])) {
 						$table[$i][$j] = $table[$i-1][$j-1] + 1;
 					}
-	
+
 					if ($table[$i][$j] > $largestFound) {
 						$largestFound = $table[$i][$j];
 						$longestCommonSubstringIndexInFirst = $i - $largestFound + 1;

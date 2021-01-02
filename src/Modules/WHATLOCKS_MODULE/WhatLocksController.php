@@ -24,15 +24,15 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
  *	)
  */
 class WhatLocksController {
-	
+
 	public string $moduleName;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -97,10 +97,10 @@ class WhatLocksController {
 		if (count($results) === 1) {
 			return $results;
 		}
-		
+
 		$tmp = explode(" ", $skill);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
-		
+
 		return $this->db->fetchAll(
 			Skill::class,
 			"SELECT DISTINCT id, name FROM skills WHERE $query",

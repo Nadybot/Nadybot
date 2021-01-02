@@ -42,7 +42,7 @@ class RecipeController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
 
@@ -128,7 +128,7 @@ class RecipeController {
 		}
 		return $recipe;
 	}
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "recipes");
@@ -192,14 +192,14 @@ class RecipeController {
 		}
 		closedir($handle);
 	}
-	
+
 	/**
 	 * @HandlesCommand("recipe")
 	 * @Matches("/^recipe (\d+)$/i")
 	 */
 	public function recipeShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
-		
+
 		/** @var ?Recipe */
 		$row = $this->db->fetch(Recipe::class, "SELECT * FROM recipes WHERE id = ?", $id);
 
@@ -210,7 +210,7 @@ class RecipeController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("recipe")
 	 * @Matches("/^recipe (.+)$/i")
@@ -219,7 +219,7 @@ class RecipeController {
 		if (preg_match('|<a href="itemref://(\d+)/(\d+)/(\d+)">([^<]+)</a>|', $args[1], $matches)) {
 			$lowId = (int)$matches[1];
 			$search = $matches[4];
-			
+
 			/** @var Recipe[] */
 			$data = $this->db->fetchAll(
 				Recipe::class,
@@ -229,7 +229,7 @@ class RecipeController {
 			);
 		} else {
 			$search = $args[1];
-			
+
 			[$query, $queryParams] = $this->util->generateQueryFromParams(explode(" ", $search), "recipe");
 			/** @var Recipe[] */
 			$data = $this->db->fetchAll(
@@ -238,7 +238,7 @@ class RecipeController {
 				...$queryParams
 			);
 		}
-		
+
 		$count = count($data);
 
 		if ($count === 0) {
@@ -260,12 +260,12 @@ class RecipeController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function formatRecipeText(string $input): string {
 		$input = str_replace("\\n", "\n", $input);
 		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', [$this, 'replaceItem'], $input);
 		$input = preg_replace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
-		
+
 		// we can't use <myname> in the sql since that will get converted on load,
 		// and we need to wait to convert until display time due to the possibility
 		// of several bots sharing the same db
@@ -273,7 +273,7 @@ class RecipeController {
 
 		return $input;
 	}
-	
+
 	/**
 	 * @return string[]
 	 */

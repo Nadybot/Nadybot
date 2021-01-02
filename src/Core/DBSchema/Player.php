@@ -62,7 +62,7 @@ class Player extends DBRow {
 	 * @var string
 	 */
 	public string $prof_title= '';
-	
+
 	/**
 	 * The name of the ai_level as a rank or empty string if unknown
 	 */

@@ -34,37 +34,37 @@ class BroadcastController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public RateIgnoreController $rateIgnoreController;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @var array<string,Broadcast> */
 	private array $broadcastList = [];
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'broadcast');
-		
+
 		$this->loadBroadcastListIntoMemory();
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"broadcast_to_guild",
@@ -86,7 +86,7 @@ class BroadcastController {
 			"1;0"
 		);
 	}
-	
+
 	private function loadBroadcastListIntoMemory(): void {
 		//Upload broadcast bots to memory
 		/** @var Broadcast[] */
@@ -96,7 +96,7 @@ class BroadcastController {
 			$this->broadcastList[$row->name] = $row;
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("broadcast")
 	 * @Matches("/^broadcast$/i")
@@ -155,7 +155,7 @@ class BroadcastController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("broadcast")
 	 * @Matches("/^broadcast (rem|remove) (.+)$/i")
@@ -186,12 +186,12 @@ class BroadcastController {
 	public function incomingMessageEvent(Event $eventObj): void {
 		if ($this->isValidBroadcastSender($eventObj->sender)) {
 			$this->processIncomingMessage($eventObj->sender, $eventObj->message);
-			
+
 			// keeps the bot from sending a message back
 			throw new StopExecutionException();
 		}
 	}
-	
+
 	public function isValidBroadcastSender(string $sender): bool {
 		return isset($this->broadcastList[$sender]);
 	}

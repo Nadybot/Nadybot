@@ -31,10 +31,10 @@ class PlayerHistoryController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public PlayerHistoryManager $playerHistoryManager;
 

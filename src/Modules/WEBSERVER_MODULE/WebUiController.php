@@ -47,7 +47,7 @@ class WebUiController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -71,7 +71,7 @@ class WebUiController {
 		}
 		$this->timer->callLater(0, [$this, "updateWebUI"]);
 	}
-	
+
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Automatically upgrade NadyUI")
@@ -94,7 +94,7 @@ class WebUiController {
 		$this->processNadyUIRelease($channel, $sendto, function() {
 		});
 	}
-		
+
 	protected function getGitHubData(HttpResponse $response, ?CommandReply $sendto): ?HttpResponse {
 		$msg = null;
 		if ($response->error) {
@@ -279,7 +279,7 @@ class WebUiController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("webui")
 	 * @Matches("/^webui install (.+)$/")

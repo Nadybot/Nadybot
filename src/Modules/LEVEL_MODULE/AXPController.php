@@ -28,7 +28,7 @@ class AXPController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @var array<array> */
 	private array $aiRanks = [
 		[1_500,      5, "Fledgling"],
@@ -62,7 +62,7 @@ class AXPController {
 		[5_475_604, 195, "Vanquisher"],
 		[5_968_409, 200, "Vindicator"],
 	];
-	
+
 	/**
 	 * @HandlesCommand("axp")
 	 * @Matches("/^axp$/i")
@@ -81,7 +81,7 @@ class AXPController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("axp")
 	 * @Matches("/^axp (\d+)$/i")
@@ -97,7 +97,7 @@ class AXPController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("axp")
 	 * @Matches("/^axp (\d+)\s+(\d+)$/i")

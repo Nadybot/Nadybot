@@ -65,7 +65,7 @@ class DiscordAPIClient {
 			$this->processQueue();
 		}
 	}
-	
+
 	public function processQueue(): void {
 		if (empty($this->outQueue)) {
 			$this->queueProcessing = false;

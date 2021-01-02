@@ -32,7 +32,7 @@ class AliasController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/**
 	 * This command handler add a command alias.
 	 *
@@ -42,13 +42,13 @@ class AliasController {
 	public function aliasAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$alias = strtolower($args[1]);
 		$cmd = $args[2];
-	
+
 		$alias_obj = new CmdAlias();
 		$alias_obj->module = '';
 		$alias_obj->cmd = $cmd;
 		$alias_obj->alias = $alias;
 		$alias_obj->status = 1;
-	
+
 		$commands = $this->commandManager->get($alias);
 		$enabled = false;
 		foreach ($commands as $command) {
@@ -104,7 +104,7 @@ class AliasController {
 				}
 			}
 		}
-	
+
 		$msg = $this->text->makeBlob('Alias List', $blob);
 		$sendto->reply($msg);
 	}
@@ -117,7 +117,7 @@ class AliasController {
 	 */
 	public function aliasRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$alias = strtolower($args[1]);
-	
+
 		$row = $this->commandAlias->get($alias);
 		if ($row === null || $row->status != 1) {
 			$msg = "Could not find alias <highlight>{$alias}<end>!";
@@ -125,7 +125,7 @@ class AliasController {
 			$row->status = 0;
 			$this->commandAlias->update($row);
 			$this->commandAlias->deactivate($alias);
-	
+
 			$msg = "Alias <highlight>{$alias}<end> removed successfully.";
 		}
 		$sendto->reply($msg);

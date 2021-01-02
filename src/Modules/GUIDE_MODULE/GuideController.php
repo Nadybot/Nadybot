@@ -35,16 +35,16 @@ class GuideController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	private string $path;
 	private const FILE_EXT = ".txt";
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -64,7 +64,7 @@ class GuideController {
 
 		$this->path = __DIR__ . "/guides/";
 	}
-	
+
 	/**
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides$/i")
@@ -103,7 +103,7 @@ class GuideController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides ([a-z0-9_-]+)$/i")

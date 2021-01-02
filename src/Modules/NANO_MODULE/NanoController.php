@@ -53,26 +53,26 @@ class NanoController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'nanos');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'maxnano',
@@ -159,7 +159,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanolines")
 	 * @Matches("/^nanolines$/i")
@@ -206,7 +206,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanolines")
 	 * @Matches("/^nanolines (.+)$/i")
@@ -239,7 +239,7 @@ class NanoController {
 			$this->nanolinesList($profession, $froobOnly, $sendto);
 		}
 	}
-	
+
 	/**
 	 * Show all nanos of a nanoline grouped by sub-strain
 	 */
@@ -350,7 +350,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanoloc")
 	 * @Matches("/^nanoloc$/i")
@@ -374,7 +374,7 @@ class NanoController {
 		$msg = $this->text->makeBlob("Nano Locations", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanoloc")
 	 * @Matches("/^nanoloc (.+)$/i")

@@ -52,7 +52,7 @@ class NewsController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
 
@@ -201,7 +201,7 @@ class NewsController {
 			$this->chatBot->sendMassTell($this->getNews($sender, true), $sender);
 		}
 	}
-	
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Sends news to players joining private channel")
@@ -211,7 +211,7 @@ class NewsController {
 			$this->chatBot->sendMassTell($this->getNews($eventObj->sender, true), $eventObj->sender);
 		}
 	}
-	
+
 	/**
 	 * Check if there are recent news for player $player
 	 */
@@ -301,7 +301,7 @@ class NewsController {
 	 */
 	public function newsRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
-		
+
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -352,7 +352,7 @@ class NewsController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function getNewsItem(int $id): ?News {
 		return $this->db->fetch(
 			News::class,

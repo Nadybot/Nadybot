@@ -35,10 +35,10 @@ class OrgMembersController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public GuildManager $guildManager;
-	
+
 	/**
 	 * @HandlesCommand("orgmembers")
 	 * @Matches("/^orgmembers ([1-9]\d*)$/i")

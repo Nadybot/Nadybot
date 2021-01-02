@@ -45,17 +45,17 @@ class LevelController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'levels');
-		
+
 		$this->commandAlias->register($this->moduleName, "level", "pvp");
 		$this->commandAlias->register($this->moduleName, "level", "lvl");
 	}
@@ -82,7 +82,7 @@ class LevelController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("missions")
 	 * @Matches("/^missions (\d+)$/i")
@@ -105,7 +105,7 @@ class LevelController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("xp")
 	 * @Matches("/^xp (\d+)$/i")
@@ -124,7 +124,7 @@ class LevelController {
 		$msg = "At level <highlight>{$row->level}<end> you need <highlight>".number_format($row->xpsk)."<end> ${xp} to level up.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("xp")
 	 * @Matches("/^xp (\d+) (\d+)$/i")

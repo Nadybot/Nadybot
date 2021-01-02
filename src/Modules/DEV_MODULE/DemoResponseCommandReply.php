@@ -8,7 +8,7 @@ class DemoResponseCommandReply implements CommandReply {
 	private CommandReply $sendto;
 	private string $channel;
 	private string $botname;
-	
+
 	public function __construct(string $channel, CommandReply $sendto, string $botname) {
 		$this->channel = $channel;
 		$this->sendto = $sendto;

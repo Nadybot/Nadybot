@@ -136,7 +136,7 @@ class TestController {
 	 */
 	public function setup(): void {
 		$this->path = __DIR__ . "/tests/";
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"show_test_commands",
@@ -158,7 +158,7 @@ class TestController {
 			"1;0"
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("test")
 	 * @Matches("/^test$/i")
@@ -198,7 +198,7 @@ class TestController {
 		$time = $this->util->unixtimeToReadable(time() - $starttime);
 		$sendto->reply("Finished tests. Time: $time");
 	}
-	
+
 	/**
 	 * @HandlesCommand("test")
 	 * @Matches("/^test ([a-z0-9_-]+)$/i")
@@ -213,7 +213,7 @@ class TestController {
 			$mockSendto = new MockCommandReply();
 			$mockSendto->logger = $this->logger;
 		}
-	
+
 		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
 		if ($lines === false) {
 			$sendto->reply("Could not find test <highlight>$file<end> to run.");
@@ -225,7 +225,7 @@ class TestController {
 			$sendto->reply("Finished test $file. Time: $time");
 		}
 	}
-	
+
 	public function runTests(array $commands, string $sender, string $type, CommandReply $sendto): void {
 		foreach ($commands as $line) {
 			if ($line[0] !== "!") {
@@ -240,7 +240,7 @@ class TestController {
 			$this->commandManager->process($type, $line, $sender, $sendto);
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("testorgjoin")
 	 * @Matches("/^testorgjoin (.+)$/i")
@@ -263,7 +263,7 @@ class TestController {
 
 		$this->chatBot->process_packet($packet);
 	}
-	
+
 	/**
 	 * @HandlesCommand("testtowerattack")
 	 * @Matches("/^testtowerattack (clan|neutral|omni) (.+) (.+) (clan|neutral|omni) (.+) (.+) (\d+) (\d+)$/i")
@@ -289,7 +289,7 @@ class TestController {
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
-	
+
 	/**
 	 * @HandlesCommand("testtowerabandon")
 	 * @Matches("/^testtowerabandon (clan|neutral|omni) ([^ ]+) (.+)$/i")
@@ -363,14 +363,14 @@ class TestController {
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
-	
+
 	/**
 	 * @HandlesCommand("testos")
 	 * @Matches("/^testos (.+)$/i")
 	 */
 	public function testOSCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$launcher = ucfirst(strtolower($args[1]));
-	
+
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -395,7 +395,7 @@ class TestController {
 	 */
 	public function testEventCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$event = $args[1];
-		
+
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
 		if ($instance === null) {
@@ -409,7 +409,7 @@ class TestController {
 			$sendto->reply("Event has been fired.");
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("testcloaklower")
 	 * @Matches("/^testcloaklower$/i")
@@ -431,7 +431,7 @@ class TestController {
 
 		$this->chatBot->process_packet($packet);
 	}
-	
+
 	/**
 	 * @HandlesCommand("testcloakraise")
 	 * @Matches("/^testcloakraise$/i")
@@ -453,7 +453,7 @@ class TestController {
 
 		$this->chatBot->process_packet($packet);
 	}
-	
+
 	/**
 	 * @HandlesCommand("msginfo")
 	 * @Matches("/^msginfo (.+)$/i")

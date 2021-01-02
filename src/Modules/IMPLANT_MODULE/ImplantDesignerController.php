@@ -39,19 +39,19 @@ class ImplantDesignerController {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public ImplantController $implantController;
 
 	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
 	private $grades = ['shiny', 'bright', 'faded'];
-	
+
 	/** @Setup */
 	public function setup() {
 		$this->design = new stdClass;
-		
+
 		$this->db->loadSQLFile($this->moduleName, "implant_design");
-		
+
 		$this->db->loadSQLFile($this->moduleName, "Ability");
 		$this->db->loadSQLFile($this->moduleName, "Cluster");
 		$this->db->loadSQLFile($this->moduleName, "ClusterImplantMap");
@@ -66,7 +66,7 @@ class ImplantDesignerController {
 		$this->db->loadSQLFile($this->moduleName, "SymbiantClusterMatrix");
 		$this->db->loadSQLFile($this->moduleName, "SymbiantProfessionMatrix");
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner$/i")
@@ -76,10 +76,10 @@ class ImplantDesignerController {
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	private function getImplantDesignerBuild(string $sender): string {
 		$design = $this->getDesign($sender, '@');
-	
+
 		$blob = $this->text->makeChatcmd("Results", "/tell <myname> implantdesigner results");
 		$blob .= "<tab>";
 		$blob .= $this->text->makeChatcmd("Clear All", "/tell <myname> implantdesigner clear");
@@ -97,7 +97,7 @@ class ImplantDesignerController {
 
 		return $blob;
 	}
-	
+
 	private function getImplantSummary(object $slotObj): string {
 		if ($slotObj->symb !== null) {
 			$msg = " " . $slotObj->symb->name . "\n";
@@ -109,7 +109,7 @@ class ImplantDesignerController {
 				$msg .= " - Treatment: {$implant->Treatment} {$implant->AbilityName}: {$implant->Ability}";
 			}
 			$msg .= "\n";
-			
+
 			foreach ($this->grades as $grade) {
 				if (empty($slotObj->$grade)) {
 					$msg .= "<tab><highlight>-Empty-<end>\n";
@@ -122,13 +122,13 @@ class ImplantDesignerController {
 		}
 		return $msg;
 	}
-	
+
 	private function getClusterModAmount(int $ql, string $grade, int $effectId): int {
 		$sql = "SELECT ID, Name, MinValLow, MaxValLow, MinValHigh, MaxValHigh ".
 			"FROM EffectTypeMatrix ".
 			"WHERE ID = ?";
 		$row = $this->db->queryRow($sql, $effectId);
-		
+
 		if ($ql < 201) {
 			$minVal = $row->MinValLow;
 			$maxVal = $row->MaxValLow;
@@ -140,7 +140,7 @@ class ImplantDesignerController {
 			$minQl = 201;
 			$maxQl = 300;
 		}
-		
+
 		$modAmount = $this->util->interpolate($minQl, $maxQl, $minVal, $maxVal, $ql);
 		if ($grade == 'bright') {
 			$modAmount = round($modAmount * 0.6, 0);
@@ -150,7 +150,7 @@ class ImplantDesignerController {
 
 		return (int)$modAmount;
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner clear$/i")
@@ -159,7 +159,7 @@ class ImplantDesignerController {
 		$this->saveDesign($sender, '@', new stdClass());
 		$msg = "Implant Designer has been cleared.";
 		$sendto->reply($msg);
-		
+
 		// send results
 		$blob = $this->getImplantDesignerBuild($sender);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
@@ -185,10 +185,10 @@ class ImplantDesignerController {
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
 		$blob .= "\n-------------------------\n\n";
-		
+
 		$design = $this->getDesign($sender, '@');
 		$slotObj = $design->$slot;
-		
+
 		if ($slotObj->symb !== null) {
 			$symb = $slotObj->symb;
 			$blob .= $symb->name ."\n\n";
@@ -211,22 +211,22 @@ class ImplantDesignerController {
 				$blob .= " - Treatment: {$implant->Treatment} {$implant->AbilityName}: {$implant->Ability}";
 			}
 			$blob .= "\n\n";
-			
+
 			$blob .= "<header2>Shiny<end>";
 			$blob .= $this->showClusterChoices($design, $slot, 'shiny');
-			
+
 			$blob .= "<header2>Bright<end>";
 			$blob .= $this->showClusterChoices($design, $slot, 'bright');
-			
+
 			$blob .= "<header2>Faded<end>";
 			$blob .= $this->showClusterChoices($design, $slot, 'faded');
 		}
-		
+
 		$msg = $this->text->makeBlob("Implant Designer ($slot)", $blob);
 
 		$sendto->reply($msg);
 	}
-	
+
 	private function getSymbiantsLinks(string $slot): string {
 		$artilleryLink = $this->text->makeChatcmd("Artillery", "/tell <myname> symb $slot artillery");
 		$controlLink = $this->text->makeChatcmd("Control", "/tell <myname> symb $slot control");
@@ -235,7 +235,7 @@ class ImplantDesignerController {
 		$supportLink = $this->text->makeChatcmd("Support", "/tell <myname> symb $slot support");
 		return "<header2>Symbiants<end>  $artilleryLink  $controlLink  $exterminationLink  $infantryLink  $supportLink";
 	}
-	
+
 	private function showClusterChoices(object $design, string $slot, string $grade): string {
 		$msg = '';
 		if (!empty($design->$slot->$grade)) {
@@ -250,7 +250,7 @@ class ImplantDesignerController {
 		$msg .= "\n\n";
 		return $msg;
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (shiny|bright|faded|symb) (.+)$/i")
@@ -259,18 +259,18 @@ class ImplantDesignerController {
 		$slot = strtolower($args[1]);
 		$type = strtolower($args[2]);
 		$item = $args[3];
-		
+
 		$design = $this->getDesign($sender, '@');
 		$slotObj = &$design->$slot;
-		
+
 		if ($type == 'symb') {
 			$sql = "SELECT s.ID, s.Name, s.TreatmentReq, s.LevelReq ".
 				"FROM Symbiant s ".
 				"JOIN ImplantType i	ON s.SlotID = i.ImplantTypeID ".
 				"WHERE i.ShortName = ?  AND s.Name = ?";
-			
+
 			$symbRow = $this->db->queryRow($sql, $slot, $item);
-			
+
 			if ($symbRow === null) {
 				$msg = "Could not find symbiant <highlight>$item<end>.";
 			} else {
@@ -279,26 +279,26 @@ class ImplantDesignerController {
 				unset($slotObj->bright);
 				unset($slotObj->faded);
 				unset($slotObj->ql);
-				
+
 				$symb = new stdClass();
 				$symb->name = $symbRow->Name;
 				$symb->Treatment = $symbRow->TreatmentReq;
 				$symb->Level = $symbRow->LevelReq;
-				
+
 				// add requirements
 				$sql = "SELECT a.Name, s.Amount ".
 					"FROM SymbiantAbilityMatrix s ".
 					"JOIN Ability a ON s.AbilityID = a.AbilityID ".
 					"WHERE SymbiantID = ?";
 				$symb->reqs = $this->db->query($sql, $symbRow->ID);
-				
+
 				// add mods
 				$sql = "SELECT c.LongName AS Name, s.Amount ".
 					"FROM SymbiantClusterMatrix s ".
 					"JOIN Cluster c ON s.ClusterID = c.ClusterID ".
 					"WHERE SymbiantID = ?";
 				$symb->mods = $this->db->query($sql, $symbRow->ID);
-				
+
 				$slotObj->symb = $symb;
 				$msg = "<highlight>$slot(symb)<end> has been set to <highlight>$symb->name<end>.";
 			}
@@ -316,17 +316,17 @@ class ImplantDesignerController {
 				$msg = "<highlight>$slot($type)<end> has been set to <highlight>$item<end>.";
 			}
 		}
-		
+
 		$this->saveDesign($sender, '@', $design);
-		
+
 		$sendto->reply($msg);
-	
+
 		// send results
 		$blob = $this->getImplantDesignerBuild($sender);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (\d+)$/i")
@@ -334,38 +334,38 @@ class ImplantDesignerController {
 	public function implantdesignerSlotQLCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
 		$ql = (int)$args[2];
-		
+
 		$design = $this->getDesign($sender, '@');
 		$slotObj = $design->$slot;
 		unset($slotObj->symb);
 		$slotObj->ql = $ql;
 		$this->saveDesign($sender, '@', $design);
-		
+
 		$msg = "<highlight>$slot<end> has been set to QL <highlight>$ql<end>.";
 
 		$sendto->reply($msg);
-		
+
 		// send results
 		$blob = $this->getImplantDesignerBuild($sender);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) clear$/i")
 	 */
 	public function implantdesignerSlotClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$slot = strtolower($args[1]);
-		
+
 		$design = $this->getDesign($sender, '@');
 		unset($design->$slot);
 		$this->saveDesign($sender, '@', $design);
-		
+
 		$msg = "<highlight>$slot<end> has been cleared.";
 
 		$sendto->reply($msg);
-		
+
 		// send results
 		$blob = $this->getImplantDesignerBuild($sender);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
@@ -489,38 +489,38 @@ class ImplantDesignerController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("implantdesigner")
 	 * @Matches("/^implantdesigner (result|results)$/i")
 	 */
 	public function implantdesignerResultCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = $this->getImplantDesignerResults($sender);
-		
+
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function getImplantDesignerResults(string $name): string {
 		$design = $this->getDesign($name, '@');
-		
+
 		$mods = [];
 		$reqs = ['Treatment' => 0, 'Level' => 1];  // force treatment and level to be shown first
 		$implants = [];
 		$clusters = [];
-		
+
 		foreach ($this->slots as $slot) {
 			$slotObj = $design->$slot;
-			
+
 			// skip empty slots
 			if (empty($slotObj)) {
 				continue;
 			}
-			
+
 			if (!empty($slotObj->symb)) {
 				$symb = $slotObj->symb;
-				
+
 				// add reqs
 				if ($symb->Treatment > $reqs['Treatment']) {
 					$reqs['Treatment'] = $symb->Treatment;
@@ -533,7 +533,7 @@ class ImplantDesignerController {
 						$reqs[$req->Name] = $req->Amount;
 					}
 				}
-				
+
 				// add mods
 				foreach ($symb->mods as $mod) {
 					$mods[$mod->Name] += $mod->Amount;
@@ -543,7 +543,7 @@ class ImplantDesignerController {
 				if (!empty($slotObj->ql)) {
 					$ql = $slotObj->ql;
 				}
-				
+
 				// add reqs
 				$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
 				if ($implant->Treatment > $reqs['Treatment']) {
@@ -552,20 +552,20 @@ class ImplantDesignerController {
 				if ($implant->Ability > $reqs[$implant->AbilityName]) {
 					$reqs[$implant->AbilityName] = $implant->Ability;
 				}
-				
+
 				// add implant
 				$obj = new stdClass();
 				$obj->ql = $ql;
 				$obj->slot = $slot;
 				$implants []= $obj;
-				
+
 				// add mods
 				foreach ($this->grades as $grade) {
 					if (!empty($slotObj->$grade)) {
 						$effectTypeIdName = ucfirst(strtolower($grade)) . 'EffectTypeID';
 						$effectId = $implant->$effectTypeIdName;
 						$mods[$slotObj->$grade] += $this->getClusterModAmount($ql, $grade, $effectId);
-						
+
 						// add cluster
 						$obj = new stdClass();
 						$obj->ql = $this->implantController->getClusterMinQl($ql, $grade);
@@ -577,10 +577,10 @@ class ImplantDesignerController {
 				}
 			}
 		}
-		
+
 		// sort mods by name alphabetically
 		ksort($mods);
-		
+
 		// sort clusters by name alphabetically, and then by grade, shiny first
 		$grades = $this->grades;
 		usort($clusters, function(object $cluster1, object $cluster2) use ($grades): int {
@@ -592,36 +592,36 @@ class ImplantDesignerController {
 			}
 			return $val <=> 0;
 		});
-		
+
 		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 		$blob .= "\n---------\n\n";
-		
+
 		$blob .= "<header2>Requirements to Equip<end>\n";
 		foreach ($reqs as $requirement => $amount) {
 			$blob .= "$requirement: <highlight>$amount<end>\n";
 		}
 		$blob .= "\n";
-		
+
 		$blob .= "<header2>Skills Gained<end>\n";
 		foreach ($mods as $skill => $amount) {
 			$blob .= "$skill: <highlight>$amount<end>\n";
 		}
 		$blob .= "\n";
-		
+
 		$blob .= "<header2>Basic Implants Needed<end>\n";
 		foreach ($implants as $implant) {
 			$blob .= "<highlight>$implant->slot<end> ($implant->ql)\n";
 		}
 		$blob .= "\n";
-		
+
 		$blob .= "<header2>Clusters Needed<end>\n";
 		foreach ($clusters as $cluster) {
 			$blob .= "<highlight>{$cluster->name}<end>, {$cluster->grade} ({$cluster->ql}+)\n";
 		}
-		
+
 		return $blob;
 	}
-	
+
 	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?object {
 		$shiny = empty($shiny) ? '' : $shiny;
 		$bright = empty($bright) ? '' : $bright;
@@ -649,7 +649,7 @@ class ImplantDesignerController {
 		}
 		return $this->addImplantInfo($row, $ql);
 	}
-	
+
 	private function addImplantInfo(DBRow $implantInfo, int $ql): object {
 		if ($ql < 201) {
 			$minAbility = $implantInfo->AbilityQL1;
@@ -666,13 +666,13 @@ class ImplantDesignerController {
 			$minQl = 201;
 			$maxQl = 300;
 		}
-		
+
 		$implantInfo->Ability = $this->util->interpolate($minQl, $maxQl, $minAbility, $maxAbility, $ql);
 		$implantInfo->Treatment = $this->util->interpolate($minQl, $maxQl, $minTreatment, $maxTreatment, $ql);
-		
+
 		return $implantInfo;
 	}
-	
+
 	public function getClustersForSlot(string $implantType, string $clusterType): array {
 		$sql = "SELECT LongName AS skill ".
 			"FROM Cluster c1 ".
@@ -681,7 +681,7 @@ class ImplantDesignerController {
 				"JOIN ImplantType i ON c2.ImplantTypeID = i.ImplantTypeID ".
 			"WHERE i.ShortName = ? ".
 				"AND c3.Name = ?";
-				
+
 		return $this->db->query($sql, strtolower($implantType), strtolower($clusterType));
 	}
 
@@ -693,7 +693,7 @@ class ImplantDesignerController {
 		}
 		return json_decode($row->design);
 	}
-	
+
 	public function saveDesign(string $sender, string $name, object $design): void {
 		$json = json_encode($design);
 		$sql = "UPDATE implant_design SET design = ?, dt = ? WHERE owner = ? AND name = ?";

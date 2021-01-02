@@ -53,16 +53,16 @@ class TrackerController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
@@ -71,7 +71,7 @@ class TrackerController {
 
 	/** @Inject */
 	public DiscordController $discordController;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
@@ -80,14 +80,14 @@ class TrackerController {
 
 	/** @Inject */
 	public OnlineController $onlineController;
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'tracked_users');
 		$this->db->loadSQLFile($this->moduleName, 'tracking');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'show_tracker_events',
@@ -165,7 +165,7 @@ class TrackerController {
 			"0;1;2"
 		);
 	}
-	
+
 	/**
 	 * @Event("connect")
 	 * @Description("Adds all players on the track list to the buddy list")
@@ -178,7 +178,7 @@ class TrackerController {
 			$this->buddylistManager->add($row->name, 'tracking');
 		}
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Records a tracked user logging on")
@@ -207,7 +207,7 @@ class TrackerController {
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
 				$msg = $this->getLogonMessage($player, $eventObj->sender);
-				
+
 				if ($this->settingManager->getInt('show_tracker_events') & 1) {
 					$this->chatBot->sendPrivate($msg, true);
 				}
@@ -273,7 +273,7 @@ class TrackerController {
 		}
 		return sprintf($format, $info);
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Records a tracked user logging off")
@@ -298,11 +298,11 @@ class TrackerController {
 			time(),
 			'logoff'
 		);
-		
+
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
 				$msg = $this->getLogoffMessage($player, $eventObj->sender);
-				
+
 				if ($this->settingManager->getInt('show_tracker_events') & 1) {
 					$this->chatBot->sendPrivate($msg, true);
 				}
@@ -383,7 +383,7 @@ class TrackerController {
 		$msg = $this->text->makeBlob("Tracklist ({$numrows})", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("track")
 	 * @Matches("/^track (?:rem|del) (.+)$/i")
@@ -413,7 +413,7 @@ class TrackerController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("track")
 	 * @Matches("/^track add (.+)$/i")

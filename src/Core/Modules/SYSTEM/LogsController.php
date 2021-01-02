@@ -93,7 +93,7 @@ class LogsController {
 				}
 				$contents .= $line . "\n";
 			}
-			
+
 			if (empty($contents)) {
 				$msg = "File is empty or nothing matched your search criteria.";
 			} else {

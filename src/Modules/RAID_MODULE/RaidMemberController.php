@@ -65,7 +65,7 @@ class RaidMemberController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * @Setup
 	 */

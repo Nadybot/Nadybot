@@ -114,7 +114,7 @@ class BanController {
 		$who = ucfirst(strtolower($args[1]));
 		$length = $this->util->parseTime($args[2]);
 		$reason = $args[4];
-	
+
 		if (!$this->banPlayer($who, $sender, $length, $reason, $sendto)) {
 			return;
 		}
@@ -139,11 +139,11 @@ class BanController {
 	public function banPlayerWithTimeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$length = $this->util->parseTime($args[2]);
-	
+
 		if (!$this->banPlayer($who, $sender, $length, '', $sendto)) {
 			return;
 		}
-	
+
 		$timeString = $this->util->unixtimeToReadable($length);
 		$sendto->reply("You have banned <highlight>$who<end> from this bot for $timeString.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
@@ -164,11 +164,11 @@ class BanController {
 	public function banPlayerWithReasonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$reason = $args[3];
-	
+
 		if (!$this->banPlayer($who, $sender, null, $reason, $sendto)) {
 			return;
 		}
-	
+
 		$sendto->reply("You have permanently banned <highlight>$who<end> from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
 			$this->chatBot->sendTell("You have been permanently banned from this bot by <highlight>$sender<end>. Reason: $reason", $who);
@@ -190,7 +190,7 @@ class BanController {
 		if (!$this->banPlayer($who, $sender, null, '', $sendto)) {
 			return;
 		}
-	
+
 		$sendto->reply("You have permanently banned <highlight>$who<end> from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
 			$this->chatBot->sendTell("You have been permanently banned from this bot by <highlight>$sender<end>.", $who);
@@ -222,7 +222,7 @@ class BanController {
 			} else {
 				$blob .= "<tab>Ban ends: <highlight>Never<end>\n";
 			}
-		
+
 			if ($ban->reason != '') {
 				$blob .= "<tab>Reason: <highlight>{$ban->reason}<end>\n";
 			}
@@ -250,9 +250,9 @@ class BanController {
 			$sendto->reply("<highlight>$who<end> is not banned on this bot.");
 			return;
 		}
-	
+
 		$this->remove($charId);
-	
+
 		$sendto->reply("You have unbanned <highlight>$who<end> from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
 			$this->chatBot->sendTell("You have been unbanned from this bot by $sender.", $who);
@@ -286,7 +286,7 @@ class BanController {
 			$sendto->reply("Character <highlight>$who<end> is already banned.");
 			return false;
 		}
-	
+
 		if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
 			$sendto->reply("You must have an access level higher than <highlight>$who<end> to perform this action.");
 			return false;

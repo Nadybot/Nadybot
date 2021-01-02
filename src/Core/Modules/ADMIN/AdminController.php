@@ -53,28 +53,28 @@ class AdminController {
 
 	/** @Inject */
 	public AdminManager $adminManager;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
 
@@ -90,7 +90,7 @@ class AdminController {
 		$this->commandAlias->register($this->moduleName, "mod add", "addmod");
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
-	
+
 	/**
 	 * @HandlesCommand("admin")
 	 * @Matches("/^admin add (.+)$/i")
@@ -102,7 +102,7 @@ class AdminController {
 
 		$this->add($who, $sender, $sendto, $intlevel, $rank);
 	}
-	
+
 	/**
 	 * @HandlesCommand("mod")
 	 * @Matches("/^mod add (.+)$/i")
@@ -114,7 +114,7 @@ class AdminController {
 
 		$this->add($who, $sender, $sendto, $intlevel, $rank);
 	}
-	
+
 	/**
 	 * @HandlesCommand("admin")
 	 * @Matches("/^admin rem (.+)$/i")
@@ -126,7 +126,7 @@ class AdminController {
 
 		$this->remove($who, $sender, $sendto, $intlevel, $rank);
 	}
-	
+
 	/**
 	 * @HandlesCommand("mod")
 	 * @Matches("/^mod rem (.+)$/i")
@@ -138,7 +138,7 @@ class AdminController {
 
 		$this->remove($who, $sender, $sendto, $intlevel, $rank);
 	}
-	
+
 	/**
 	 * @HandlesCommand("adminlist")
 	 * @Matches("/^adminlist$/i")
@@ -176,7 +176,7 @@ class AdminController {
 		$link = $this->text->makeBlob('Bot administrators', $blob);
 		$sendto->reply($link);
 	}
-	
+
 	/**
 	 * @Event("connect")
 	 * @Description("Add administrators and moderators to the buddy list")
@@ -189,7 +189,7 @@ class AdminController {
 			$this->buddylistManager->add($row->name, 'admin');
 		}
 	}
-	
+
 	/**
 	 * Get the string of the online status
 	 * @param string $who Playername
@@ -204,7 +204,7 @@ class AdminController {
 			return " (<red>Offline<end>)";
 		}
 	}
-	
+
 	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);
@@ -217,7 +217,7 @@ class AdminController {
 		}
 		return $blob;
 	}
-	
+
 	public function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if ($this->chatBot->get_uid($who) == null) {
 			$sendto->reply("Character <highlight>$who<end> does not exist.");
@@ -246,7 +246,7 @@ class AdminController {
 		$this->chatBot->sendTell("You have been $action to $rank by <highlight>$sender<end>.", $who);
 		return true;
 	}
-	
+
 	public function remove(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if (!$this->adminManager->checkExisting($who, $intlevel)) {
 			$sendto->reply("<highlight>$who<end> is not $rank.");
@@ -269,12 +269,12 @@ class AdminController {
 		$this->chatBot->sendTell("You have been removed as $rank by <highlight>$sender<end>.", $who);
 		return true;
 	}
-	
+
 	public function checkAltsInheritAdmin(string $who): bool {
 		$ai = $this->altsController->getAltInfo($who);
 		return $ai->main == $who;
 	}
-	
+
 	public function checkAccessLevel(string $actor, string $actee) {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);

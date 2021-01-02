@@ -20,13 +20,13 @@ use Nadybot\Core\DBSchema\Player;
 class PlayerManager {
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public Http $http;
 
@@ -43,7 +43,7 @@ class PlayerManager {
 		);
 		return $result;
 	}
-	
+
 	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
 		$result = [];
 		$left = count($names);
@@ -211,9 +211,9 @@ class PlayerManager {
 	public function update(Player $char): void {
 		$sql = "DELETE FROM players WHERE `name` = ? AND `dimension` = ?";
 		$this->db->exec($sql, $char->name, $char->dimension);
-		
+
 		$char->guild_id ??= 0;
-		
+
 		if ($char->guild_rank_id === '') {
 			$char->guild_rank_id = -1;
 		}
@@ -319,7 +319,7 @@ class PlayerManager {
 
 		return $msg;
 	}
-	
+
 	/**
 	 * Search for players in the database
 	 *

@@ -27,13 +27,13 @@ class FightController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * @HandlesCommand("fight")
 	 * @Matches("/^fight (.+) vs (.+)$/i")

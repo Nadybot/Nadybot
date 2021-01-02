@@ -101,23 +101,23 @@ class DevController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
 	}
-	
+
 	/**
 	 * @HandlesCommand("showcmdregex")
 	 * @Matches("/^showcmdregex (.+)$/i")
 	 */
 	public function showcmdregexCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = $args[1];
-		
+
 		// get all command handlers
 		$handlers = $this->getAllCommandHandlers($cmd, $channel);
-		
+
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
 		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($sender, $accessManager) {
 			return $accessManager->checkAccess($sender, $handler->admin);
 		});
-		
+
 		// get calls for handlers
 		/** @var string[] */
 		$calls = array_reduce(
@@ -153,7 +153,7 @@ class DevController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @return CommandHandler[]
 	 */
@@ -171,7 +171,7 @@ class DevController {
 		}
 		return $handlers;
 	}
-	
+
 	/**
 	 * @HandlesCommand("intransaction")
 	 * @Matches("/^intransaction$/i")
@@ -184,18 +184,18 @@ class DevController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("rollbacktransaction")
 	 * @Matches("/^rollbacktransaction$/i")
 	 */
 	public function rollbackTransactionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->db->rollback();
-		
+
 		$msg = "The active transaction has been rolled back.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("stacktrace")
 	 * @Matches("/^stacktrace$/i")
@@ -206,7 +206,7 @@ class DevController {
 		$msg = $this->text->makeBlob("Current Stacktrace ($count)", $stacktrace);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cmdhandlers")
 	 * @Matches("/^cmdhandlers (.*)$/i")
@@ -214,7 +214,7 @@ class DevController {
 	public function cmdhandlersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmdArray = explode(" ", $args[1], 2);
 		$cmd = $cmdArray[0];
-		
+
 		$blob = '';
 
 		// command
@@ -232,7 +232,7 @@ class DevController {
 		}
 
 		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);
-		
+
 		$sendto->reply($msg);
 	}
 
@@ -247,7 +247,7 @@ class DevController {
 		$name = $args[4];
 		$sendto->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
-	
+
 	/**
 	 * @HandlesCommand("createblob")
 	 * @Matches("/^createblob (\d+)$/i")
@@ -260,14 +260,14 @@ class DevController {
 		} else {
 			$numBlobs = 1;
 		}
-		
+
 		for ($i = 0; $i < $numBlobs; $i++) {
 			$blob = $this->randString($length);
 			$msg = $this->text->makeBlob("Blob $i", $blob);
 			$sendto->reply($msg);
 		}
 	}
-	
+
 	public function randString(int $length, string $charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 \n'): string {
 		$str = '';
 		$count = strlen($charset);

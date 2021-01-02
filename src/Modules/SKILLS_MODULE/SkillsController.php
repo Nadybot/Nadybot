@@ -95,7 +95,7 @@ class SkillsController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -104,29 +104,29 @@ class SkillsController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "weapon_attributes");
-	
+
 		$this->commandAlias->register($this->moduleName, "weapon", "specials");
 		$this->commandAlias->register($this->moduleName, "weapon", "inits");
 		$this->commandAlias->register($this->moduleName, "aimshot", "as");
 		$this->commandAlias->register($this->moduleName, "aimshot", "aimedshot");
 	}
-	
+
 	/**
 	 * @HandlesCommand("aggdef")
 	 * @Matches("/^aggdef (\d*\.?\d+) (\d*\.?\d+) (\d+)$/i")
@@ -153,7 +153,7 @@ class SkillsController {
 		}
 		return $fancyBar;
 	}
-	
+
 	public function getAggDefOutput(float $AttTim, float $RechT, int $InitS): string {
 		if ($InitS < 1200) {
 			$AttCalc	= round(((($AttTim - ($InitS / 600)) - 1)/0.02) + 87.5, 2);
@@ -195,7 +195,7 @@ class SkillsController {
 		$blob .= "Note that at the neutral position (87.5%), your attack and recharge time will match that of the weapon you are using.";
 		$blob .= "\n\nBased upon a RINGBOT module made by NoGoal(RK2)\n";
 		$blob .= "Modified for Budabot by Healnjoo and Nadyita";
-		
+
 		return $blob;
 	}
 
@@ -211,19 +211,19 @@ class SkillsController {
 		}
 		return (int)round(max(max($initAttack, $initRecharge), 0), 0);
 	}
-	
+
 	public function getInitsNeededFullAgg(float $attackTime, float $rechargeTime) {
 		return $this->getInitsForPercent(100, $attackTime, $rechargeTime);
 	}
-	
+
 	public function getInitsNeededNeutral(float $attackTime, float $rechargeTime) {
 		return $this->getInitsForPercent(87.5, $attackTime, $rechargeTime);
 	}
-	
+
 	public function getInitsNeededFullDef(float $attackTime, float $rechargeTime) {
 		return $this->getInitsForPercent(0, $attackTime, $rechargeTime);
 	}
-	
+
 	/**
 	 * @HandlesCommand("aimshot")
 	 * @Matches("/^aimshot (\d*\.?\d+) (\d*\.?\d+) (\d+)$/i")
@@ -252,7 +252,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Aimed Shot Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("brawl")
 	 * @Matches("/^brawl (\d+)$/i")
@@ -295,7 +295,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Brawl Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("burst")
 	 * @Matches("/^burst (\d*\.?\d+) (\d*\.?\d+) (\d+) (\d+)$/i")
@@ -323,7 +323,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Burst Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("dimach")
 	 * @Matches("/^dimach (\d+)$/i")
@@ -379,7 +379,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Dimach Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("fastattack")
 	 * @Matches("/^fastattack (\d*\.?\d+) (\d+)$/i")
@@ -407,7 +407,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Fast Attack Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("fling")
 	 * @Matches("/^fling (\d*\.?\d+) (\d+)$/i")
@@ -430,7 +430,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Fling Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("fullauto")
 	 * @Matches("/^fullauto (\d*\.?\d+) (\d*\.?\d+) (\d+) (\d+)$/i")
@@ -464,7 +464,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Full Auto Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("mafist")
 	 * @Matches("/^mafist (\d+)$/i")
@@ -517,7 +517,7 @@ class SkillsController {
 
 		$blob = "MA Skill: <highlight>{$maSkill}<end>\n\n";
 		$maSkill = min(3000, $maSkill);
-		
+
 		$min = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maMinList[$i], $maMinList[($i + 1)], $maSkill);
 		$max = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maMaxList[$i], $maMaxList[($i + 1)], $maSkill);
 		$crit = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maCritList[$i], $maCritList[($i + 1)], $maSkill);
@@ -548,7 +548,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Martial Arts Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanoinit")
 	 * @Matches("/^nanoinit (\d*\.?\d+) (\d+)$/i")
@@ -581,7 +581,7 @@ class SkillsController {
 		$blob .= "  Full Agg (100%): <highlight>${fullAggInits}<end> inits\n";
 		$blob .= "  Neutral (87.5%): <highlight>${neutralInits}<end> inits\n";
 		$blob .= "  Full Def (0%):     <highlight>${fulldefInits}<end> inits\n\n";
-		
+
 		$bar = "llllllllllllllllllllllllllllllllllllllllllllllllll";
 		$markerPos = (int)round($barSetting/100*strlen($bar), 0);
 		$leftBar    = substr($bar, 0, $markerPos);
@@ -592,7 +592,7 @@ class SkillsController {
 		$msg = $this->text->makeBlob("Nano Init Results", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("weapon")
 	 * @Matches('|^weapon <a href="itemref://(\d+)/(\d+)/(\d+)">|i')

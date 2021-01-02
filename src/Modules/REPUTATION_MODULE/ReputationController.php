@@ -31,22 +31,22 @@ class ReputationController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -60,7 +60,7 @@ class ReputationController {
 			'',
 			"mod"
 		);
-		
+
 		$this->db->loadSQLFile($this->moduleName, 'reputation');
 	}
 
@@ -111,7 +111,7 @@ class ReputationController {
 		$msg = $this->text->makeBlob("Reputation List ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("reputation")
 	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (\+1|\-1) (.+)$/i")
@@ -149,7 +149,7 @@ class ReputationController {
 		$this->db->exec($sql, $name, $rep, $comment, $sender, time());
 		$sendto->reply("<highlight>$rep<end> reputation for <highlight>$name<end> added successfully.");
 	}
-	
+
 	/**
 	 * @HandlesCommand("reputation")
 	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (all)$/i")
@@ -157,7 +157,7 @@ class ReputationController {
 	 */
 	public function reputationViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
-		
+
 		$limit = 10;
 		if (count($args) === 3) {
 			$limit = 1000;
@@ -199,7 +199,7 @@ class ReputationController {
 			$time = $this->util->unixtimeToReadable(time() - $row->dt);
 			$blob .= "<tab>$row->comment<end> (<highlight>$row->by<end>, {$time} ago)\n";
 		}
-		
+
 		if ($limit !== 1000 && count($data) >= $limit) {
 			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
 		}

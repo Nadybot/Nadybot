@@ -88,13 +88,13 @@ class EventCommandReply implements CommandReply {
 			"grey" => "#C3C3C3",
 			"cyan" => "#00FFFF",
 			"violet" => "#8F00FF",
-	
+
 			"neutral" => $this->getColorFromSetting('default_neut_color'),
 			"omni" => $this->getColorFromSetting('default_omni_color'),
 			"clan" => $this->getColorFromSetting('default_clan_color'),
 			"unknown" => $this->getColorFromSetting('default_unknown_color'),
 		];
-	
+
 		$symbols = [
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
@@ -102,7 +102,7 @@ class EventCommandReply implements CommandReply {
 			"<symbol>" => "",
 			"<br>" => "<br />",
 		];
-	
+
 		$stack = [];
 		$message = preg_replace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
@@ -169,7 +169,7 @@ class EventCommandReply implements CommandReply {
 
 		return $message;
 	}
-	
+
 	public function parseOldFormat(string $message): object {
 		$parts = [];
 		$id = 0;
@@ -181,7 +181,7 @@ class EventCommandReply implements CommandReply {
 			},
 			$message
 		);
-	
+
 		return (object)[
 		  "message" => $this->formatMsg($message),
 		  "popups" => (object)$parts

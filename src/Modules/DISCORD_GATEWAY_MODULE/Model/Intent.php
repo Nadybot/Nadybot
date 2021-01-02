@@ -78,7 +78,7 @@ class Intent {
 	 * - CHANNEL_PINS_UPDATE
 	 */
 	public const DIRECT_MESSAGES = 1 << 12;
-	
+
 	/**
 	 * - MESSAGE_REACTION_ADD
 	 * - MESSAGE_REACTION_REMOVE

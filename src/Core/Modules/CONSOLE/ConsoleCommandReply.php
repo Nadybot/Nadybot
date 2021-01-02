@@ -18,7 +18,7 @@ class ConsoleCommandReply implements CommandReply {
 			echo($this->chatBot->vars["name"] . ": {$text}\n");
 		}
 	}
-	
+
 	public function formatMsg(string $message) {
 		$array = [
 			"<header>" => "\e[1;4m",

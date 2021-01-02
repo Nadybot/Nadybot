@@ -51,7 +51,7 @@ class UsageController {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public Text $text;
 
@@ -63,7 +63,7 @@ class UsageController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'usage');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"record_usage_stats",
@@ -91,7 +91,7 @@ class UsageController {
 			'0'
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("usage")
 	 * @Matches("/^usage player ([0-9a-z-]+)$/i")
@@ -111,9 +111,9 @@ class UsageController {
 
 		$timeString = $this->util->unixtimeToReadable($time);
 		$time = time() - $time;
-	
+
 		$player = ucfirst(strtolower($args[1]));
-	
+
 		$sql = "SELECT command, COUNT(command) AS count FROM usage_<myname> WHERE sender = ? AND dt > ? GROUP BY command ORDER BY count DESC";
 		$data = $this->db->query($sql, $player, $time);
 		$count = count($data);
@@ -130,7 +130,7 @@ class UsageController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("usage")
 	 * @Matches("/^usage cmd ([0-9a-z_-]+)$/i")
@@ -150,9 +150,9 @@ class UsageController {
 
 		$timeString = $this->util->unixtimeToReadable($time);
 		$time = time() - $time;
-	
+
 		$cmd = strtolower($args[1]);
-	
+
 		$sql = "SELECT sender, COUNT(sender) AS count FROM usage_<myname> WHERE command = ? AND dt > ? GROUP BY sender ORDER BY count DESC";
 		$data = $this->db->query($sql, $cmd, $time);
 		$count = count($data);
@@ -169,7 +169,7 @@ class UsageController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("usage")
 	 * @Matches("/^usage$/i")
@@ -190,11 +190,11 @@ class UsageController {
 		$timeString = $this->util->unixtimeToReadable($time);
 		$time = time() - $time;
 		$limit = 25;
-		
+
 		// channel usage
 		$sql = "SELECT type, COUNT(type) cnt FROM usage_<myname> WHERE dt > ? GROUP BY type ORDER BY type";
 		$data = $this->db->query($sql, $time);
-		
+
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
 			if ($row->type === "msg") {
@@ -206,7 +206,7 @@ class UsageController {
 			}
 		}
 		$blob .= "\n";
-		
+
 		// most used commands
 		$sql = "SELECT command, COUNT(command) AS count FROM usage_<myname> WHERE dt > ? GROUP BY command ORDER BY count DESC LIMIT ?";
 		$data = $this->db->query($sql, $time, $limit);

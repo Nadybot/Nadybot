@@ -44,19 +44,19 @@ class BankController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, 'bank');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'bank_file_location',
@@ -159,7 +159,7 @@ class BankController {
 		$search = htmlspecialchars_decode($args[1]);
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->getInt('max_bank_items');
-		
+
 		[$whereStatement, $sqlParams] = $this->util->generateQueryFromParams($words, 'name');
 		$sqlParams []= $limit;
 

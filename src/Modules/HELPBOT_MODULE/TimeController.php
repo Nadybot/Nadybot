@@ -28,7 +28,7 @@ class TimeController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Util $util;
 
@@ -98,7 +98,7 @@ class TimeController {
 		$link .= "<tab><highlight>Alabama/Illinois/Iowa/Michigan/Minnesota/Oklahoma/Edmonton<end>\n";
 		$link .= "<tab><tab>Standard Time (CST = GMT-6): " . $this->getTimezone("CST")->time . "\n";
 		$link .= "<tab><tab>Summer Time (CDT = GMT-5): " . $this->getTimezone("CDT")->time . "\n\n";
-		
+
 		$link .= "<header2>Unix time<end>\n";
 		$link .= "<tab><tab>" . time() . "\n";
 
@@ -106,7 +106,7 @@ class TimeController {
 		$msg .= " " . $this->text->makeBlob("All Timezones", $link);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("time")
 	 * @Matches("/^time (.+)$/i")
@@ -122,7 +122,7 @@ class TimeController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function getTimezone($tz) {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();

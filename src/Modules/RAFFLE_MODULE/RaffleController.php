@@ -42,10 +42,10 @@ class RaffleController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
 
@@ -68,7 +68,7 @@ class RaffleController {
 	public Util $util;
 
 	public ?Raffle $raffle = null;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "raffle_bonus");
@@ -240,7 +240,7 @@ class RaffleController {
 		$this->eventManager->fireEvent($event);
 		$this->raffle = null;
 	}
-	
+
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle end$/i")
@@ -260,7 +260,7 @@ class RaffleController {
 
 		$this->endRaffle();
 	}
-	
+
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle join$/i")
@@ -316,7 +316,7 @@ class RaffleController {
 			$sender
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("raffle")
 	 * @Matches("/^raffle leave$/i")
@@ -385,7 +385,7 @@ class RaffleController {
 			$sender
 		);
 	}
-	
+
 	/**
 	 * @Event("timer(1sec)")
 	 * @Description("Announce and/or end raffle")
@@ -489,7 +489,7 @@ class RaffleController {
 		}
 		return $result;
 	}
-	
+
 	public function endRaffle(): void {
 		$raffle = $this->raffle;
 		$this->raffle = null;

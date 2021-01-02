@@ -105,7 +105,7 @@ class RaidController {
 	public ?Raid $raid = null;
 
 	public const ERR_NO_RAID = "There's currently no raid running.";
-		
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -396,7 +396,7 @@ class RaidController {
 			$this->raid->announce_interval = $newInterval;
 			$sendto->reply("Raid announcement interval changed to <highlight>{$args[1]}<end>.");
 		}
-		
+
 		$this->logRaidChanges($this->raid);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
@@ -481,7 +481,7 @@ class RaidController {
 			$notInRaid
 		);
 	}
-	
+
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
 		foreach ($players as $name => $player) {

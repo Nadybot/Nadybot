@@ -25,7 +25,7 @@ class HtmlDecodeController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public CommandManager $commandManager;
 

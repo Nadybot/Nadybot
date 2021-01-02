@@ -62,7 +62,7 @@ class EventsController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
@@ -71,13 +71,13 @@ class EventsController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "events");
@@ -92,7 +92,7 @@ class EventsController {
 			"5;10;15;20"
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events")
 	 * @Matches("/^events$/i")
@@ -139,7 +139,7 @@ class EventsController {
 		$msg = "You have been added to the event.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events")
 	 * @Matches("/^events leave (\d+)$/i")
@@ -173,7 +173,7 @@ class EventsController {
 		$msg = "You have been removed from the event.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events")
 	 * @Matches("/^events list (\d+)$/i")
@@ -223,7 +223,7 @@ class EventsController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events add .+")
 	 * @Matches("/^events add (.+)$/i")
@@ -235,7 +235,7 @@ class EventsController {
 		$msg = "Event: '$eventName' was added [Event ID $event_id].";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events (rem|del) .+")
 	 * @Matches("/^events (?:rem|del) (\d+)$/i")
@@ -252,7 +252,7 @@ class EventsController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events setdesc .+")
 	 * @Matches("/^events setdesc (\d+) (.+)$/i")
@@ -269,7 +269,7 @@ class EventsController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("events setdate .+")
 	 * @Matches("/^events setdate (\d+) (\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12]\d|3[01]) ([0-1]?\d|[2][0-3]):([0-5]\d)(?::([0-5]\d))?$/i")
@@ -288,7 +288,7 @@ class EventsController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function getEvents(): ?string {
 		$sql = "SELECT * FROM events ORDER BY `event_date` DESC LIMIT ?";
 		/** @var EventModel[] */
@@ -346,7 +346,7 @@ class EventsController {
 
 		return $this->text->makeBlob("Events" . " [Last updated " . $this->util->date($updated)."]", $link);
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Show events to org members logging on")
@@ -360,7 +360,7 @@ class EventsController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Show events to characters joining the private channel")
@@ -372,7 +372,7 @@ class EventsController {
 			$this->chatBot->sendMassTell($this->getEvents(), $sender);
 		}
 	}
-	
+
 	public function hasRecentEvents(): bool {
 		$sevenDays = time() - (86400 * 7);
 		$row = $this->db->queryRow("SELECT * FROM events WHERE `event_date` > ? LIMIT 1", $sevenDays);

@@ -32,22 +32,22 @@ class QuoteController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public AccessManager $accessManager;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -89,7 +89,7 @@ class QuoteController {
 		$msg = "Quote <highlight>$id<end> has been added.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote (rem|del|remove|delete) (\d+)$/i")
@@ -121,7 +121,7 @@ class QuoteController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote search (.+)$/i")
@@ -169,7 +169,7 @@ class QuoteController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote (\d+)$/i")
@@ -177,9 +177,9 @@ class QuoteController {
 	 */
 	public function quoteShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)($args[2] ?? $args[1]);
-		
+
 		$result = $this->getQuoteInfo($id);
-		
+
 		if ($result === null) {
 			$msg = "No quote found with ID <highlight>$id<end>.";
 			$sendto->reply($msg);
@@ -196,7 +196,7 @@ class QuoteController {
 			$this->chatBot->sendGuild($msg);
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("quote")
 	 * @Matches("/^quote$/i")
@@ -204,7 +204,7 @@ class QuoteController {
 	public function quoteShowRandomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		// choose a random quote to show
 		$result = $this->getQuoteInfo(null);
-		
+
 		if ($result === null) {
 			$msg = "There are no quotes to show.";
 		} else {
@@ -212,7 +212,7 @@ class QuoteController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function getMaxId(): int {
 		$row = $this->db->queryRow("SELECT COALESCE(MAX(id), 0) AS max_id FROM `quote`");
 		return (int)$row->max_id;

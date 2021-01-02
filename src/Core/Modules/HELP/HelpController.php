@@ -35,7 +35,7 @@ class HelpController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
@@ -57,17 +57,17 @@ class HelpController {
 			"all",
 			"Info about the development of Nadybot"
 		);
-		
+
 		$this->commandAlias->register($this->moduleName, "help about", "about");
 	}
-	
+
 	public function getAbout() {
 		$data = file_get_contents(__DIR__ . "/about.txt");
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);
 		return $this->text->makeBlob("About Nadybot $version", $data);
 	}
-	
+
 	/**
 	 * @HandlesCommand("help")
 	 * @Matches("/^help$/i")
@@ -95,20 +95,20 @@ class HelpController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("help")
 	 * @Matches("/^help (.+)$/i")
 	 */
 	public function helpShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$helpcmd = strtolower($args[1]);
-		
+
 		if ($helpcmd === 'about') {
 			$msg = $this->getAbout();
 			$sendto->reply($msg);
 			return;
 		}
-	
+
 		// check for alias
 		$row = $this->commandAlias->get($helpcmd);
 		if ($row !== null && $row->status === 1) {
