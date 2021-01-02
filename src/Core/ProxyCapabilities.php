@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-class ProxyCapabilities {
+class ProxyCapabilities extends ProxyReply {
 	public const SEND_ROUND_ROBIN = "round-robin";
 	public const SEND_BY_CHARID = "by-charid";
 	public const SEND_BY_MSGID = "by-msgid";

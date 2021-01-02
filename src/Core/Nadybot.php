@@ -760,7 +760,7 @@ class Nadybot extends AOChat {
 	/**
 	 * Handle logon/logoff events of friends
 	 */
-	public function processBuddyUpdate(int $userId, int $status): void {
+	public function processBuddyUpdate(int $userId, int $status, string $extra): void {
 		$sender = $this->lookup_user($userId);
 
 		$eventObj = new UserStateEvent();
@@ -768,7 +768,14 @@ class Nadybot extends AOChat {
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
 
-		$this->buddylistManager->update($userId, (bool)$status);
+		$worker = 0;
+		try {
+			$payload = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$worker = $payload->id ?? 0;
+		} catch (Throwable $e) {
+		}
+
+		$this->buddylistManager->update($userId, (bool)$status, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
 		if ($sender === "") {
@@ -986,17 +993,52 @@ class Nadybot extends AOChat {
 	}
 
 	public function processPingReply(string $reply): void {
+		$classMapping = [
+			"capabilities" => ProxyCapabilities::class,
+			"ping" => PingReply::class,
+		];
 		if ($reply === static::PING_IDENTIFIER) {
 			return;
 		}
 		try {
-			$this->proxyCapabilities = JsonImporter::decode(ProxyCapabilities::class, $reply);
-			if ($this->proxyCapabilities->rate_limited) {
-				$this->chatqueue->limit = PHP_INT_MAX;
+			$obj = json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
+				return;
 			}
+			/** @var ProxyReply $obj */
+			$obj = JsonImporter::convert($classMapping[$obj->type], $obj);
+			$this->processProxyReply($obj);
 		} catch (Throwable $e) {
 			return;
 		}
+	}
+
+	/** Handle a proxy command reply */
+	public function processProxyReply(ProxyReply $reply): void {
+		switch ($reply->type) {
+			case "capabilities":
+				$this->processProxyCapabilities($reply);
+				return;
+			case "ping":
+				$this->processWorkerPong($reply);
+				return;
+		}
+	}
+
+	/** Proxy send us capabilities information */
+	public function processProxyCapabilities(ProxyCapabilities $reply): void {
+		$this->proxyCapabilities = $reply;
+		if ($reply->rate_limited) {
+			$this->chatqueue->limit = PHP_INT_MAX;
+		}
+	}
+
+	/** A worker did a ping for us */
+	public function processWorkerPong(PingReply $reply): void {
+		$event = new PongEvent();
+		$event->type = "pong";
+		$event->worker = $reply->worker;
+		$this->eventManager->fireEvent($event);
 	}
 
 	public function queryProxyFeatures(): void {
@@ -1012,6 +1054,21 @@ class Nadybot extends AOChat {
 		}
 		$this->last_ping = time();
 		return $this->sendPacket(new AOChatPacket("out", AOCP_PING, $payload));
+	}
+
+	/**
+	 * Send a ping packet via a worker to keep the connection open
+	 */
+	public function sendPingViaWorker(int $worker, string $payload): bool {
+		return $this->sendPing(
+			json_encode(
+				(object)[
+					"cmd" => "ping",
+					"worker" => $worker,
+					"payload" => $payload,
+				]
+			)
+		);
 	}
 
 	public function registerEvents(string $class): void {

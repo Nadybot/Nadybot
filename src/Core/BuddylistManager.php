@@ -164,7 +164,7 @@ class BuddylistManager {
 	/**
 	 * Update the cached information in the friendlist
 	 */
-	public function update(int $userId, bool $status): void {
+	public function update(int $userId, bool $status, int $worker=0): void {
 		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
@@ -173,6 +173,7 @@ class BuddylistManager {
 		$this->buddyList[$userId]->name = (string)$sender;
 		$this->buddyList[$userId]->online = $status;
 		$this->buddyList[$userId]->known = true;
+		$this->buddyList[$userId]->worker = $worker;
 	}
 
 	/**
