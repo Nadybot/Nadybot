@@ -22,6 +22,13 @@ use Nadybot\Core\{
  *		description = 'Find items or nanos that buff an ability or skill',
  *		help        = 'whatbuffs.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'whatbuffsfroob',
+ *		accessLevel = 'all',
+ *		alias       = 'wbf',
+ *		description = 'Find froob-friendly items or nanos that buff an ability or skill',
+ *		help        = 'whatbuffs.txt'
+ *	)
  */
 class WhatBuffsController {
 
@@ -64,7 +71,7 @@ class WhatBuffsController {
 	 */
 	public function getItemsToExclude(): string {
 		$excludes = [
-			"aodb.name != 'Brad Test Nano'",
+			"a.name != 'Brad Test Nano'",
 		];
 		return implode(" AND ", $excludes);
 	}
@@ -74,18 +81,34 @@ class WhatBuffsController {
 	 * @Matches("/^whatbuffs$/i")
 	 */
 	public function whatbuffsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showSkillChoice($sendto, false);
+	}
+
+	/**
+	 * @HandlesCommand("whatbuffsfroob")
+	 * @Matches("/^whatbuffsfroobs?$/i")
+	 */
+	public function whatbuffsFroobCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showSkillChoice($sendto, true);
+	}
+
+	public function showSkillChoice(CommandReply $sendto, bool $froobFriendly): void {
+		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
+		$suffix = $froobFriendly ? "Froob" : "";
 		$blob = '';
-		$data = $this->db->query(
+		/** @var Skill[] */
+		$skills = $this->db->fetchAll(
+			Skill::class,
 			"SELECT DISTINCT s.name ".
 			"FROM skills s ".
 			"JOIN item_buffs b ON (b.attribute_id=s.id) ".
 			"ORDER BY name ASC"
 		);
-		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd($row->name, "/tell <myname> whatbuffs $row->name") . "\n";
+		foreach ($skills as $skill) {
+			$blob .= $this->text->makeChatcmd($skill->name, "/tell <myname> {$command} $skill->name") . "\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
-		$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);
+		$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -95,43 +118,56 @@ class WhatBuffsController {
 	 */
 	public function whatbuffs2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = ucfirst(strtolower($args[1]));
+		$this->showSkillsBuffingType($type, false, "whatbuffs", $sendto);
+	}
 
+	/**
+	 * @HandlesCommand("whatbuffsfroob")
+	 * @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	 */
+	public function whatbuffsfroob2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$type = ucfirst(strtolower($args[1]));
+		$this->showSkillsBuffingType($type, true, "whatbuffsfroob", $sendto);
+	}
+
+	public function showSkillsBuffingType(string $type, bool $froobFriendly, string $command, CommandReply $sendto): void {
 		if (!$this->verifySlot($type)) {
 			$msg = "Could not find any items of type <highlight>$type<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 		if ($type === 'Nanoprogram') {
-			$sql = "
-				SELECT s.name AS skill, COUNT(1) AS num
-				FROM buffs b
-				JOIN item_buffs ib ON b.id = ib.item_id
-				JOIN skills s ON ib.attribute_id = s.id
-				WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
-				GROUP BY skill
-				HAVING num > 0
-				ORDER BY skill ASC";
+			$sql = "SELECT s.name AS skill, COUNT(1) AS num ".
+				"FROM buffs b ".
+				"JOIN item_buffs ib ON b.id = ib.item_id ".
+				"JOIN skills s ON ib.attribute_id = s.id ".
+				"WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
+				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
+				"GROUP BY skill ".
+				"HAVING num > 0 ".
+				"ORDER BY skill ASC";
 			$data = $this->db->query($sql);
 		} else {
-			$sql = "
-				SELECT s.name AS skill, COUNT(1) AS num
-				FROM aodb
-				JOIN item_types i ON aodb.highid = i.item_id
-				JOIN item_buffs b ON aodb.highid = b.item_id
-				JOIN skills s ON b.attribute_id = s.id
-				WHERE i.item_type = ?
-				AND ".$this->getItemsToExclude()."
-				GROUP BY skill
-				HAVING num > 0
-				ORDER BY skill ASC";
+			$sql = "SELECT s.name AS skill, COUNT(1) AS num ".
+				"FROM aodb a ".
+				"JOIN item_types i ON aodb.highid = i.item_id ".
+				"JOIN item_buffs b ON aodb.highid = b.item_id ".
+				"JOIN skills s ON b.attribute_id = s.id ".
+				"WHERE i.item_type = ? ".
+				"AND ".$this->getItemsToExclude()." ".
+				($froobFriendly ? "AND a.froob_friendly IS TRUE " : "").
+				"GROUP BY skill ".
+				"HAVING num > 0 ".
+				"ORDER BY skill ASC";
 			$data = $this->db->query($sql, $type);
 		}
 		$blob = '';
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> whatbuffs $type $row->skill") . " ($row->num)\n";
+			$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> {$command} $type $row->skill") . " ($row->num)\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
-		$msg = $this->text->makeBlob("WhatBuffs $type - Choose Skill", $blob);
+		$suffix = $froobFriendly ? "Froob" : "";
+		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$type} - Choose Skill", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -144,7 +180,23 @@ class WhatBuffsController {
 		$skill = $args[2];
 
 		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill);
+			$msg = $this->showSearchResults($type, $skill, false);
+		} else {
+			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
+		}
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("whatbuffsfroob")
+	 * @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower) ((?!smt).+)$/i")
+	 */
+	public function whatbuffsfroob3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$type = $args[1];
+		$skill = $args[2];
+
+		if ($this->verifySlot($type)) {
+			$msg = $this->showSearchResults($type, $skill, true);
 		} else {
 			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
 		}
@@ -160,7 +212,23 @@ class WhatBuffsController {
 		$type = $args[2];
 
 		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill);
+			$msg = $this->showSearchResults($type, $skill, false);
+		} else {
+			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
+		}
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("whatbuffsfroob")
+	 * @Matches("/^whatbuffsfroobs? (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	 */
+	public function whatbuffsfroob4Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$skill = $args[1];
+		$type = $args[2];
+
+		if ($this->verifySlot($type)) {
+			$msg = $this->showSearchResults($type, $skill, true);
 		} else {
 			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
 		}
@@ -172,7 +240,21 @@ class WhatBuffsController {
 	 * @Matches("/^whatbuffs (.+)$/i")
 	 */
 	public function whatbuffs5Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->handleOtherComandline(false, $sendto, $args);
+	}
+
+	/**
+	 * @HandlesCommand("whatbuffsfroob")
+	 * @Matches("/^whatbuffsfroobs? (.+)$/i")
+	 */
+	public function whatbuffsfroob5Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->handleOtherComandline(true, $sendto, $args);
+	}
+
+	public function handleOtherComandline(bool $froobFriendly, CommandReply $sendto, array $args): void {
 		$skill = $args[1];
+		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
+		$suffix = $froobFriendly ? "Froob" : "";
 
 		$data = $this->searchForSkill($skill);
 		$count = count($data);
@@ -186,36 +268,36 @@ class WhatBuffsController {
 		if ($count > 1) {
 			$blob .= "Choose a skill:\n\n";
 			foreach ($data as $row) {
-				$blob .= $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> whatbuffs $row->name") . "\n";
+				$blob .= $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> {$command} {$row->name}") . "\n";
 			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
-			$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);
+			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 			$sendto->reply($msg);
 			return;
 		}
 		$skillId = $data[0]->id;
 		$skillName = $data[0]->name;
-		$sql = "
-		SELECT item_type, COUNT(*) AS num FROM (
-			SELECT it.item_type
-			FROM aodb a
-			JOIN item_types it ON a.highid = it.item_id
-			JOIN item_buffs ib ON a.highid = ib.item_id
-			JOIN skills s ON ib.attribute_id = s.id
-			WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
-			GROUP BY a.name,it.item_type,a.lowql,a.highql,ib.amount
+		$sql = "SELECT item_type, COUNT(*) AS num FROM (".
+			"SELECT it.item_type ".
+			"FROM aodb a ".
+			"JOIN item_types it ON a.highid = it.item_id ".
+			"JOIN item_buffs ib ON a.highid = ib.item_id ".
+			"JOIN skills s ON ib.attribute_id = s.id ".
+			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
+			($froobFriendly ? " AND a.froob_friendly IS TRUE " : "").
+			"GROUP BY a.name,it.item_type,a.lowql,a.highql,ib.amount ".
 
-			UNION ALL
+			"UNION ALL ".
 
-			SELECT 'Nanoprogram' AS item_type
-			FROM buffs b
-			JOIN item_buffs ib ON ib.item_id = b.id
-			JOIN skills s ON ib.attribute_id = s.id
-			WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0)
-		) AS FOO
-		GROUP BY item_type
-		ORDER BY item_type ASC
-		";
+			"SELECT 'Nanoprogram' AS item_type ".
+			"FROM buffs b ".
+			"JOIN item_buffs ib ON ib.item_id = b.id ".
+			"JOIN skills s ON ib.attribute_id = s.id ".
+			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
+			($froobFriendly ? " AND b.froob_friendly IS TRUE " : "").
+		") AS FOO ".
+		"GROUP BY item_type ".
+		"ORDER BY item_type ASC";
 		$data = $this->db->query($sql, $skillId, $skillId);
 		if (count($data) === 0) {
 			$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
@@ -224,10 +306,10 @@ class WhatBuffsController {
 		}
 		$blob = '';
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> whatbuffs $row->item_type $skillName") . " ($row->num)\n";
+			$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skillName}") . " ($row->num)\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
-		$msg = $this->text->makeBlob("WhatBuffs $skillName - Choose Type", $blob);
+		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$skillName} - Choose Type", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -235,43 +317,44 @@ class WhatBuffsController {
 	 * Gives a blob with all items buffing $skill in slot $category
 	 * @return string|string[]
 	 */
-	public function getSearchResults(string $category, Skill $skill) {
+	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly) {
+		$suffix = $froobFriendly ? "Froob" : "";
 		if ($category === 'Nanoprogram') {
-			$sql = "SELECT buffs.*, b.amount, aodb.lowid, aodb.highid, ".
-					"aodb.lowql,aodb.name AS use_name ".
-				"FROM buffs ".
-				"JOIN item_buffs b ON buffs.id = b.item_id ".
-				"JOIN skills s ON b.attribute_id = s.id ".
-				"LEFT JOIN aodb ON (aodb.lowid=buffs.use_id) ".
+			$sql = "SELECT b.*, ib.amount, a.lowid, a.highid, ".
+					"a.lowql,a.name AS use_name ".
+				"FROM buffs b ".
+				"JOIN item_buffs ib ON b.id = ib.item_id ".
+				"JOIN skills s ON ib.attribute_id = s.id ".
+				"LEFT JOIN aodb a ON (a.lowid=b.use_id) ".
 				"WHERE s.id = ? ".
 				"AND (".
 					"s.name IN ('SkillLockModifier', '% Add. Nano Cost') ".
-					"OR b.amount > 0 ".
+					"OR ib.amount > 0 ".
 				") ".
-				"AND buffs.name NOT IN (".
+				"AND b.name NOT IN (".
 					"'Ineptitude Transfer', ".
 					"'Accumulated Interest', ".
 					"'Unforgiven Debts', ".
 					"'Payment Plan' ".
 				") ".
-				"ORDER BY ABS(b.amount) DESC, buffs.name ASC";
+				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
+				"ORDER BY ABS(ib.amount) DESC, b.name ASC";
 			/** @var NanoBuffSearchResult[] */
 			$data = $this->db->fetchAll(NanoBuffSearchResult::class, $sql, $skill->id);
 			$result = $this->formatBuffs($data);
 		} else {
-			$sql = "
-				SELECT aodb.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r
-				FROM aodb
-				JOIN item_types i ON aodb.highid = i.item_id
-				JOIN item_buffs b ON aodb.highid = b.item_id
-				LEFT JOIN item_buffs b2 ON aodb.lowid = b2.item_id
-				LEFT JOIN weapon_attributes wa ON aodb.highid = wa.id
-				JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id
-				WHERE i.item_type = ? AND s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR b.amount > 0)
-				AND ".$this->getItemsToExclude()."
-				GROUP BY aodb.name,aodb.lowql,aodb.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r
-				ORDER BY ABS(b.amount) DESC, name DESC
-			";
+			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r ".
+				"FROM aodb a ".
+				"JOIN item_types i ON a.highid = i.item_id ".
+				"JOIN item_buffs b ON a.highid = b.item_id ".
+				"LEFT JOIN item_buffs b2 ON a.lowid = b2.item_id ".
+				"LEFT JOIN weapon_attributes wa ON a.highid = wa.id ".
+				"JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id ".
+				"WHERE i.item_type = ? AND s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR b.amount > 0) ".
+				"AND ".$this->getItemsToExclude()." ".
+				($froobFriendly ? "AND a.froob_friendly IS TRUE " : "").
+				"GROUP BY a.name,a.lowql,a.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r ".
+				"ORDER BY ABS(b.amount) DESC, name DESC";
 			/** @var ItemBuffSearchResult[] */
 			$data = $this->db->fetchAll(ItemBuffSearchResult::class, $sql, $category, $skill->id);
 			$result = $this->formatItems($data, $skill);
@@ -282,7 +365,7 @@ class WhatBuffsController {
 			$msg = "No items found of type <highlight>$category<end> that buff <highlight>$skill->name<end>.";
 		} else {
 			$blob .= "\nItem Extraction Info provided by AOIA+";
-			$msg = $this->text->makeBlob("WhatBuffs - $category $skill->name ($count)", $blob);
+			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$count})", $blob);
 		}
 		return $msg;
 	}
@@ -323,11 +406,11 @@ class WhatBuffsController {
 
 		return $this->db->fetchAll(
 			Skill::class,
-			"SELECT id, name FROM (
-				SELECT DISTINCT id, name FROM skills WHERE $query
-				UNION
-				SELECT DISTINCT id, name FROM skill_alias WHERE $query
-			) AS foo GROUP BY id ORDER BY name ASC",
+			"SELECT id, name FROM ( ".
+				"SELECT DISTINCT id, name FROM skills WHERE $query ".
+				"UNION ".
+				"SELECT DISTINCT id, name FROM skill_alias WHERE $query ".
+			") AS foo GROUP BY id ORDER BY name ASC",
 			...[...$params, ...$params]
 		);
 	}
@@ -487,23 +570,25 @@ class WhatBuffsController {
 	 * Show what buffs $skillName in slot $category
 	 * @return string|string[]
 	 */
-	public function showSearchResults(string $category, string $skillName) {
+	public function showSearchResults(string $category, string $skillName, bool $froobFriendly) {
 		$category = ucfirst(strtolower($category));
 
 		$skills = $this->searchForSkill($skillName);
 		$count = count($skills);
 
 		if ($count === 0) {
-			$msg = "Could not find any skills matching <highlight>$skillName<end>.";
+			$msg = "Could not find any skills matching <highlight>{$skillName}<end>.";
 		} elseif ($count === 1) {
 			$skill = $skills[0];
-			$msg = $this->getSearchResults($category, $skill);
+			$msg = $this->getSearchResults($category, $skill, $froobFriendly);
 		} else {
 			$blob = '';
+			$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
+			$suffix = $froobFriendly ? "Froob" : "";
 			foreach ($skills as $skill) {
-				$blob .= $this->text->makeChatcmd(ucfirst($skill->name), "/tell <myname> whatbuffs $category $skill->name") . "\n";
+				$blob .= $this->text->makeChatcmd(ucfirst($skill->name), "/tell <myname> {$command} {$category} {$skill->name}") . "\n";
 			}
-			$msg = $this->text->makeBlob("WhatBuffs - Choose Skill", $blob);
+			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		}
 
 		return $msg;
