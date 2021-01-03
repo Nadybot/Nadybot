@@ -3,3 +3,6 @@ To find items or nanos that buff an ability or skill:
 <highlight><tab><symbol>whatbuffs 'type'<end>
 <highlight><tab><symbol>whatbuffs 'skill'<end>
 <highlight><tab><symbol>whatbuffs 'type' 'skill'<end>
+
+Use <highlight>whatbuffsfroob<end> or simply <highlight>wbf<end> if you
+want to see items usable by or buffs castable on froobs only.
