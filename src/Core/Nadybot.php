@@ -14,6 +14,7 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Exception;
 use Throwable;
 
 /**
@@ -1003,13 +1004,15 @@ class Nadybot extends AOChat {
 		try {
 			$obj = json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
 			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
-				return;
+				throw new Exception();
 			}
 			/** @var ProxyReply $obj */
 			$obj = JsonImporter::convert($classMapping[$obj->type], $obj);
 			$this->processProxyReply($obj);
 		} catch (Throwable $e) {
-			return;
+			// If we are either not a json pong or no proper reply, we are still a pong
+			// Could be no proxy or proxy not supporting the command
+			$this->eventManager->fireEvent(new PongEvent(0));
 		}
 	}
 
@@ -1025,24 +1028,22 @@ class Nadybot extends AOChat {
 		}
 	}
 
+	/** A worker did a ping for us */
+	public function processWorkerPong(PingReply $reply): void {
+		$this->eventManager->fireEvent(new PongEvent($reply->worker));
+	}
+
+	/** Send a query to the proxy and ask for its supported capabilities */
+	public function queryProxyFeatures(): void {
+		$this->sendPing(json_encode((object)["cmd" => "capabilities"]));
+	}
+
 	/** Proxy send us capabilities information */
 	public function processProxyCapabilities(ProxyCapabilities $reply): void {
 		$this->proxyCapabilities = $reply;
 		if ($reply->rate_limited) {
 			$this->chatqueue->limit = PHP_INT_MAX;
 		}
-	}
-
-	/** A worker did a ping for us */
-	public function processWorkerPong(PingReply $reply): void {
-		$event = new PongEvent();
-		$event->type = "pong";
-		$event->worker = $reply->worker;
-		$this->eventManager->fireEvent($event);
-	}
-
-	public function queryProxyFeatures(): void {
-		$this->sendPing(json_encode((object)["cmd" => "capabilities"]));
 	}
 
 	/**
