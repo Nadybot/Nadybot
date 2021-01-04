@@ -189,6 +189,8 @@ class RaidController {
 			" / ".
 			$this->text->makeChatcmd("Leave", "/tell <myname> raid leave").
 			" the raid.";
+                $blob .= "\n\n".
+                        $this->text->makeChatcmd("Go LFT", "/lft <myname>");
 		return $blob;
 	}
 
