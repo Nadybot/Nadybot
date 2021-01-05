@@ -15,6 +15,9 @@ class BuddylistEntry {
 	/** Online-status of the buddy */
 	public bool $online = false;
 
+	/** Which worker holds this as their buddy */
+	public int $worker = 0;
+
 	/**
 	 * Internal list to track, why someone is on the buddy-list
 	 * @var array<string,bool>
