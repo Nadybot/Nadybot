@@ -995,8 +995,8 @@ class Nadybot extends AOChat {
 
 	public function processPingReply(string $reply): void {
 		$classMapping = [
-			"capabilities" => ProxyCapabilities::class,
-			"ping" => PingReply::class,
+			ProxyCapabilities::CMD_CAPABILITIES => ProxyCapabilities::class,
+			ProxyCapabilities::CMD_PING => PingReply::class,
 		];
 		if ($reply === static::PING_IDENTIFIER) {
 			return;
@@ -1019,10 +1019,10 @@ class Nadybot extends AOChat {
 	/** Handle a proxy command reply */
 	public function processProxyReply(ProxyReply $reply): void {
 		switch ($reply->type) {
-			case "capabilities":
+			case ProxyCapabilities::CMD_CAPABILITIES:
 				$this->processProxyCapabilities($reply);
 				return;
-			case "ping":
+			case ProxyCapabilities::CMD_PING:
 				$this->processWorkerPong($reply);
 				return;
 		}
@@ -1035,7 +1035,7 @@ class Nadybot extends AOChat {
 
 	/** Send a query to the proxy and ask for its supported capabilities */
 	public function queryProxyFeatures(): void {
-		$this->sendPing(json_encode((object)["cmd" => "capabilities"]));
+		$this->sendPing(json_encode((object)["cmd" => ProxyCapabilities::CMD_CAPABILITIES]));
 	}
 
 	/** Proxy send us capabilities information */
@@ -1064,7 +1064,7 @@ class Nadybot extends AOChat {
 		return $this->sendPing(
 			json_encode(
 				(object)[
-					"cmd" => "ping",
+					"cmd" => ProxyCapabilities::CMD_PING,
 					"worker" => $worker,
 					"payload" => $payload,
 				]
