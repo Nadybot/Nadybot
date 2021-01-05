@@ -419,6 +419,9 @@ class SystemController {
 		if ($info->misc->using_chat_proxy && $info->misc->proxy_capabilities->name !== "unknown") {
 			$cap = $info->misc->proxy_capabilities;
 			$blob .= "<tab>Proxy Software: <highlight>{$cap->name} {$cap->version}<end>\n";
+			if (count($cap->supported_cmds)) {
+				$blob .= "<tab>Supported commands <highlight>" . join("<end>, <highlight>", $cap->supported_cmds) . "<end>\n";
+			}
 			if (count($cap->send_modes)) {
 				$blob .= "<tab>Supported send modes: <highlight>" . join("<end>, <highlight>", $cap->send_modes) . "<end>\n";
 			}
