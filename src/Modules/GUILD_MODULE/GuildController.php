@@ -111,6 +111,7 @@ class GuildController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "org_members");
+		$this->db->loadSQLFile($this->moduleName, "org_rank_mapping");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -138,6 +139,16 @@ class GuildController {
 			$this->moduleName,
 			"first_and_last_alt_only",
 			"Show logon/logoff for first/last alt only",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"map_org_ranks_to_bot_ranks",
+			"Map org ranks to bot ranks",
 			"edit",
 			"options",
 			"0",
@@ -411,7 +422,7 @@ class GuildController {
 	 * @HandlesCommand("updateorg")
 	 * @Matches("/^updateorg$/i")
 	 */
-	public function updateorgCommand($message, $channel, $sender, $sendto, $args) {
+	public function updateorgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sendto->reply("Starting Roster update");
 		$this->updateOrgRoster([$sendto, "reply"], "Finished Roster update");
 	}
