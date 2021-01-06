@@ -148,6 +148,7 @@ class AOMsg {
 		$message = preg_replace("/<a href=['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</item>", $message);
 		$message = preg_replace("/<a href=['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<nano id=\"$1\">$2</nano>", $message);
 		$message = preg_replace("/<a href=['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<skill id=\"$1\">$2</skill>", $message);
+		$message = preg_replace("/<a href=['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<user name=\"$1\">$2</user>", $message);
 		$message = preg_replace_callback(
 			"/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s",
 			function(array $matches): string {
