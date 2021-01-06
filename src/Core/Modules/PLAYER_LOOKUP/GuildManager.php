@@ -58,10 +58,7 @@ class GuildManager {
 
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$maxCacheAge = 86400;
-		if (
-			isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guildID
-		) {
+		if ($this->isMyGuild($guildID)) {
 			$maxCacheAge = 21600;
 		}
 
@@ -109,6 +106,14 @@ class GuildManager {
 		return $result;
 	}
 
+	/**
+	 * Check if $guildId is the bot's guild id
+	 */
+	public function isMyGuild(int $guildId): bool {
+		return isset($this->chatBot->vars["my_guild_id"])
+			&& $this->chatBot->vars["my_guild_id"] === $guildId;
+	}
+
 	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, ...$args): void {
 
 		// if there is still no valid data available give an error back
@@ -130,7 +135,7 @@ class GuildManager {
 		$guild->orgname = $orgInfo->NAME;
 		$guild->orgside = $orgInfo->SIDE_NAME;
 		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
-		if ($luDateTime) {
+		if ($luDateTime && $this->isMyGuild($guild->guild_id)) {
 			$guild->last_update = $luDateTime->getTimestamp();
 			// Try to time the next rosterupdate to occur 1 day and 10m after the last export
 			$key = $this->eventManager->getKeyForCronEvent(24*3600, 'guildcontroller.downloadOrgRosterEvent');
