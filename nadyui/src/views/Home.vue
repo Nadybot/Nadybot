@@ -272,6 +272,7 @@ export default defineComponent({
     proxyUptime(): string {
       if (
         this.info == null ||
+        this.info.misc.proxy_capabilities == undefined ||
         this.info.misc.proxy_capabilities.started_at == null
       ) {
         return "";

@@ -208,6 +208,20 @@
     </template>
   </a>
 
+  <a v-else-if="content.nodeName == 'user'"
+    ><template v-for="child in content.childNodes" :key="child">
+      <template v-if="isTextNode(child)">
+        {{ child.textContent }}
+      </template>
+      <ao-message
+        v-else
+        :content="child"
+        @open-popup="$emit('open-popup', $event)"
+        @run-command="$emit('run-command', $event)"
+      ></ao-message>
+    </template>
+  </a>
+
   <template v-else-if="content.nodeName == 'img'">
     <img
       v-if="content.getAttribute('rdb')"
@@ -285,7 +299,7 @@ export default defineComponent({
 
   props: {
     content: {
-      type: XMLDocument,
+      type: Node,
       required: true,
     },
     formatForTitle: {

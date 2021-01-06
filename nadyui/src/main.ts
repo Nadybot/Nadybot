@@ -5,6 +5,7 @@ import store from "./store";
 
 import FontAwesomeIcon from "@/components/FontAwesomeIcon.vue";
 import AOMessage from "@/components/AOMessage.vue";
+import Popup from "@/components/Popup.vue";
 import Message from "@/components/Message.vue";
 import ProfessionIcon from "@/components/ProfessionIcon.vue";
 import Sidebar from "@/components/Sidebar.vue";
@@ -21,4 +22,5 @@ createApp(App)
   .component("time-picker", TimePicker)
   .component("ao-message", AOMessage)
   .component("message", Message)
+  .component("popup", Popup)
   .mount("#app");

@@ -1,7 +1,7 @@
 <template>
   <li>
     <router-link :to="$props.path"
-      ><fa :icon="$props.icon" size="20" /> {{ name }}</router-link
+      ><fa :icon="$props.icon" :size="20" /> {{ name }}</router-link
     >
   </li>
 </template>
