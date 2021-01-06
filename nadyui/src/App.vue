@@ -52,6 +52,11 @@ export default {
           path: "/console",
           icon: "terminal",
         },
+        {
+          name: "Chat",
+          path: "/chat",
+          icon: "comment",
+        },
       ],
     };
   },

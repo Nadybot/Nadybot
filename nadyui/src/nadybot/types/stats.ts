@@ -54,7 +54,7 @@ export interface MiscSystemInformation {
   // Number of seconds since the bot was started
   readonly uptime: number;
   // If the proxy is used, this describes in detail what the proxy supports
-  readonly proxy_capabilities: ProxyCapabilities;
+  readonly proxy_capabilities?: ProxyCapabilities;
 }
 
 export interface ConfigStatistics {
@@ -140,13 +140,17 @@ const proxyCapabilitiesDecoderMapping = {
 const proxyCapabilitiesDecoder = JsonDecoder.object<ProxyCapabilities>(
   proxyCapabilitiesDecoderMapping,
   "ProxyCapabilites",
-  { default_mode: "default-mode", started_at: "started-at" }
+  {
+    default_mode: "default-mode",
+    started_at: "started-at",
+    send_modes: "send-modes",
+  }
 );
 
 const miscSystemInformationDecoderMapping = {
   using_chat_proxy: JsonDecoder.boolean,
   uptime: JsonDecoder.number,
-  proxy_capabilities: proxyCapabilitiesDecoder,
+  proxy_capabilities: JsonDecoder.optional(proxyCapabilitiesDecoder),
 };
 
 const configStatisticsDecoderMapping = {

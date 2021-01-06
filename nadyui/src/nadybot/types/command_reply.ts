@@ -6,6 +6,23 @@ export interface MessageIncoming {
   from_user: boolean;
 }
 
+export interface ChatMessageIncoming {
+  channel: string;
+  message: string;
+  structMessage: {
+    message: string;
+    popups: Record<string, string>;
+  };
+  sender: string;
+}
+
+export interface ChatMessage {
+  channel: string;
+  message: XMLDocument;
+  popups: Record<string, XMLDocument>;
+  sender: string;
+}
+
 export interface Message {
   message: XMLDocument;
   popups: Record<string, XMLDocument>;

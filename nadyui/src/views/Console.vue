@@ -1,7 +1,7 @@
 <template>
   <ul class="list-group" id="console-list">
     <li
-      v-for="msg in messages"
+      v-for="msg in console_messages"
       :key="msg"
       class="list-group-item"
       :class="{ 'list-group-item-dark': msg.from_user }"
@@ -91,7 +91,7 @@ export default defineComponent({
   },
 
   watch: {
-    messages: {
+    console_messages: {
       handler: function (): void {
         setTimeout(this.scrollOutputDown, 100);
       },
@@ -136,14 +136,14 @@ export default defineComponent({
     },
     runCommand: async function (command: string): Promise<void> {
       // Soft wrapper for executeCommand with history integration
-      this.addHistoryEntry(command);
+      this.addConsoleHistoryEntry(command);
       this.historyIdx = 0;
       await this.executeCommand(command);
     },
     ...mapActions(["executeCommand"]),
-    ...mapMutations(["addHistoryEntry"]),
+    ...mapMutations(["addConsoleHistoryEntry"]),
   },
 
-  computed: mapState(["messages", "console_history"]),
+  computed: mapState(["console_messages", "console_history"]),
 });
 </script>

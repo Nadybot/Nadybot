@@ -139,3 +139,10 @@ export async function executeCommand(
 ): Promise<void> {
   await postJson(`/api/execute/${uuid}`, command);
 }
+
+export async function sendMessage(
+  channel: "priv" | "org",
+  text: string
+): Promise<void> {
+  await postJson(`/api/chat/${channel}`, text);
+}

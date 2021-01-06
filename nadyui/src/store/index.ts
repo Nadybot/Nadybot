@@ -3,7 +3,12 @@ import { createStore } from "vuex";
 import socket from "./plugins/socket";
 import { executeCommand, getOnlineMembers } from "@/nadybot/http";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
-import { CommandReply, Message } from "@/nadybot/types/command_reply";
+import {
+  CommandReply,
+  Message,
+  ChatMessageIncoming,
+  ChatMessage,
+} from "@/nadybot/types/command_reply";
 import { parseXml, replaceItemRefs } from "@/nadybot/message";
 
 const emptyPlayers: OnlinePlayers = {
@@ -15,16 +20,20 @@ interface State {
   users: OnlinePlayers;
   users_failed: boolean;
   uuid: string;
-  messages: Array<Message>;
+  console_messages: Array<Message>;
+  chat_messages: Array<ChatMessage>;
   console_history: Array<string>;
+  chat_history: Array<string>;
 }
 
 const initialState: State = {
   users: emptyPlayers,
   users_failed: false,
   uuid: "",
-  messages: [],
+  console_messages: [],
+  chat_messages: [],
   console_history: [],
+  chat_history: [],
 };
 
 export default createStore({
@@ -73,8 +82,11 @@ export default createStore({
         (player) => player.name != player_name
       );
     },
-    addHistoryEntry(state, entry: string): void {
+    addConsoleHistoryEntry(state, entry: string): void {
       state.console_history.push(entry);
+    },
+    addChatHistoryEntry(state, entry: string): void {
+      state.chat_history.push(entry);
     },
   },
   actions: {
@@ -117,8 +129,21 @@ export default createStore({
           const new_content = parseXml(msg.popups[key]);
           new_message.popups[key] = new_content;
         }
-        context.state.messages.push(new_message);
+        context.state.console_messages.push(new_message);
       });
+    },
+    AOChatEventXML(context, msg: ChatMessageIncoming): void {
+      const new_message: ChatMessage = {
+        message: parseXml(msg.structMessage.message),
+        channel: msg.channel,
+        sender: msg.sender,
+        popups: {},
+      };
+      for (const key in msg.structMessage.popups) {
+        const new_content = parseXml(msg.structMessage.popups[key]);
+        new_message.popups[key] = new_content;
+      }
+      context.state.chat_messages.push(new_message);
     },
     async executeCommand(context, command: string): Promise<void> {
       const message: Message = {
@@ -126,7 +151,7 @@ export default createStore({
         popups: {},
         from_user: true,
       };
-      context.state.messages.push(message);
+      context.state.console_messages.push(message);
       const formattedCommand = replaceItemRefs(command);
       await executeCommand(context.state.uuid, formattedCommand);
     },

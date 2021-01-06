@@ -10,7 +10,7 @@ export default function createWebSocketPlugin() {
     //subscribe to events
     client.onopen = function (_e: Event) {
       client.send(
-        '{"command": "subscribe", "data": {"events": ["offline(*)", "online(*)", "cmdreply"]}}'
+        '{"command": "subscribe", "data": {"events": ["offline(*)", "online(*)", "cmdreply", "chat(*)"]}}'
       );
       store.dispatch("websocketOpen");
     };
