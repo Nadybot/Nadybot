@@ -7,6 +7,7 @@ use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
+	AOChatEvent,
 	Event,
 	EventManager,
 	LoggerWrapper,
@@ -213,6 +214,18 @@ class WebsocketController {
 	 */
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketServer $server): void {
 		// Not implemented yet
+	}
+
+	/**
+	 * @Event("sendguild")
+	 * @Event("guild")
+	 * @Event("sendpriv")
+	 * @Event("priv")
+	 * @Description("Convert messages for to webchat format")
+	 */
+	public function convertChatEvents(AOChatEvent $event): void {
+		$xmlEvent = AOChatEventXML::fromAOChatEvent($event);
+		$this->eventManager->fireEvent($xmlEvent);
 	}
 
 	/**
