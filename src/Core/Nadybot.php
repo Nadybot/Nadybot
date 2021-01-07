@@ -387,7 +387,7 @@ class Nadybot extends AOChat {
 	 * @param boolean $disableRelay Set to true to disable relaying the message into the org/guild channel
 	 * @param string $group Name of the private group to send message into or null for the bot's own
 	 */
-	public function sendPrivate($message, bool $disableRelay=false, string $group=null): void {
+	public function sendPrivate($message, bool $disableRelay=false, string $group=null, bool $addDefaultColor=true): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
@@ -404,7 +404,10 @@ class Nadybot extends AOChat {
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
-		$privColor = $this->settingManager->get('default_priv_color');
+		$privColor = "";
+		if ($addDefaultColor) {
+			$privColor = $this->settingManager->get('default_priv_color');
+		}
 
 		$this->send_privgroup($group, $privColor.$message);
 		$event = new AOChatEvent();
@@ -420,7 +423,7 @@ class Nadybot extends AOChat {
 				&& $this->settingManager->getBool("guest_relay")
 				&& $this->settingManager->getBool("guest_relay_commands")
 			) {
-				$this->send_guild("</font>{$guestColorChannel}[Guest]</font> {$senderLink}: {$privColor}$message</font>", "\0");
+				$this->sendGuild("{$guestColorChannel}[Guest]<end> {$senderLink}{$privColor}: $message</font>", true, null, false);
 			}
 
 			// relay to bot relay
@@ -449,7 +452,7 @@ class Nadybot extends AOChat {
 	 * @param int $priority The priority of the message or medium if unset
 	 * @return void
 	 */
-	public function sendGuild($message, bool $disableRelay=false, int $priority=null): void {
+	public function sendGuild($message, bool $disableRelay=false, int $priority=null, bool $addDefaultColor=true): void {
 		if ($this->settingManager->get('guild_channel_status') != 1) {
 			return;
 		}
@@ -468,7 +471,10 @@ class Nadybot extends AOChat {
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
-		$guildColor = $this->settingManager->get("default_guild_color");
+		$guildColor = "";
+		if ($addDefaultColor) {
+			$guildColor = $this->settingManager->get("default_guild_color");
+		}
 
 		$this->send_guild($guildColor.$message, "\0", $priority);
 		$event = new AOChatEvent();
@@ -482,8 +488,9 @@ class Nadybot extends AOChat {
 		if (!$disableRelay
 			&& $this->settingManager->getBool("guest_relay")
 			&& $this->settingManager->getBool("guest_relay_commands")
+			&& count($this->chatlist) > 0
 		) {
-			$this->send_privgroup($this->setting->default_private_channel, "</font>{$guestColorChannel}[{$guildNameForRelay}]</font> {$senderLink}: {$guildColor}$message</font>");
+			$this->sendPrivate("{$guestColorChannel}[{$guildNameForRelay}]<end> {$senderLink}{$guildColor}: $message<end>", true, null, false);
 		}
 
 		// relay to bot relay
