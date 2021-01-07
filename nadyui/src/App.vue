@@ -25,6 +25,7 @@ body {
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@/styles/switch-sizing.scss";
 import "@/styles/callout.scss";
+import "@/styles/dark.scss";
 
 export default {
   name: "nadyui",
