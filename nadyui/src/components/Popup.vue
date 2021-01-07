@@ -47,6 +47,10 @@
       }
     }
 
+    .modal-title span {
+      color: #89d2e8 !important;
+    }
+
     .modal-content {
       border: 1.5px solid #fff;
       max-height: 94vh;
@@ -81,9 +85,19 @@ export default defineComponent({
   computed: {
     title(): Node | null {
       if (this.content.firstChild && this.content.firstChild.firstChild) {
-        return this.content.firstChild.removeChild(
+        const child = this.content.firstChild.removeChild(
           this.content.firstChild.firstChild
         );
+        const nodes = Array.from(this.content.firstChild.childNodes);
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+          if (node.nodeName == "br") {
+            this.content.firstChild.removeChild(node);
+          } else {
+            break;
+          }
+        }
+        return child;
       }
       return null;
     },
