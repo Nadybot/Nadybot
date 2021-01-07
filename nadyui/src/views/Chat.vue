@@ -1,8 +1,7 @@
 <template>
   <ul class="list-group" id="chat-list">
-    <template v-for="msg in chat_messages">
+    <template v-for="msg in chat_messages" :key="msg">
       <li
-        :key="msg"
         class="list-group-item org-text"
         v-if="
           systemInformation &&
@@ -136,6 +135,19 @@ export default defineComponent({
       if (scroll) {
         scroll.scrollTop = scroll.scrollHeight;
       }
+    },
+    runCommand: async function (text: string) {
+      if (this.systemInformation) {
+        text = text.replace(
+          `tell ${this.systemInformation.basic.bot_name}`,
+          ""
+        );
+      }
+      text = text.trim();
+      if (!text.startsWith("!")) {
+        text = `!${text}`;
+      }
+      await this.sendChatMessage(this.inputChannel, text);
     },
     sendChatMessage: async function (
       channel: "priv" | "org",
