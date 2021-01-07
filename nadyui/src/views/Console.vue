@@ -30,32 +30,6 @@
   height: 90vh;
   overflow-y: scroll;
 }
-
-.input-fixed-bottom {
-  bottom: 1.8vh;
-  position: fixed;
-  max-width: 87.3vw;
-}
-
-body.dark {
-  &,
-  .list-group-item:not(.list-group-item-dark) {
-    background-color: #333;
-    color: #89d2e8;
-  }
-
-  .form-control {
-    background-color: #c6c8ca;
-  }
-
-  .container-fluid a {
-    color: #5798f9;
-
-    &:hover {
-      color: #397fe6;
-    }
-  }
-}
 </style>
 
 <script lang="ts">
