@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\CommandManager;
+use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\PrivateChannelCommandReply;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
@@ -16,6 +19,9 @@ class WebchatApiController {
 
 	/** @Inject */
 	public GuildController $guildController;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -46,6 +52,11 @@ class WebchatApiController {
 			$msg = "<end>{$guestColorChannel}[Web]<end> {$guestColorGuest}{$sender}: {$message}<end>";
 			$this->chatBot->sendPrivate($msg, true);
 		}
+		if ($message[0] === $this->settingManager->get("symbol") && strlen($message) > 1) {
+			$message = substr($message, 1);
+			$sendto = new GuildChannelCommandReply($this->chatBot);
+			$this->commandManager->process("guild", $message, $request->authenticatedAs, $sendto);
+		}
 		return new Response(Response::NO_CONTENT);
 	}
 
@@ -65,6 +76,11 @@ class WebchatApiController {
 		$msg = "<end>{$guestColorChannel}[Web]<end> {$guestColorGuild}{$sender}: {$message}<end>";
 		$this->chatBot->sendPrivate($msg, true);
 		$this->chatBot->sendGuild($msg, true);
+		if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+			$message = substr($message, 1);
+			$sendto = new PrivateChannelCommandReply($this->chatBot, $this->settingManager->getString('default_private_channel'));
+			$this->commandManager->process("priv", $message, $sender, $sendto);
+		}
 		return new Response(Response::NO_CONTENT);
 	}
 }
