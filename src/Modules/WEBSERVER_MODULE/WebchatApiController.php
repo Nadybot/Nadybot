@@ -79,7 +79,7 @@ class WebchatApiController {
 		if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
 			$message = substr($message, 1);
 			$sendto = new PrivateChannelCommandReply($this->chatBot, $this->settingManager->getString('default_private_channel'));
-			$this->commandManager->process("priv", $message, $sender, $sendto);
+			$this->commandManager->process("priv", $message, $request->authenticatedAs, $sendto);
 		}
 		return new Response(Response::NO_CONTENT);
 	}
