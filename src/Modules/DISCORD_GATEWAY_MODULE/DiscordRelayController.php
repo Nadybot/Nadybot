@@ -585,7 +585,7 @@ class DiscordRelayController {
 			$discordColorSenderPriv = $this->settingManager->getString('discord_color_sender_priv');
 			$discordColorPriv = $this->settingManager->getString('discord_color_priv');
 			$this->chatBot->sendPrivate(
-				$message . "{$discordColorSenderPriv}{$senderDisplayName}<end>: {$discordColorPriv}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderPriv}{$senderDisplayName}<end>{$discordColorPriv}: {$escapedMessage}<end>",
 				true
 			);
 		}
@@ -593,7 +593,7 @@ class DiscordRelayController {
 			$discordColorSenderGuild = $this->settingManager->getString('discord_color_sender_guild');
 			$discordColorGuild = $this->settingManager->getString('discord_color_guild');
 			$this->chatBot->sendGuild(
-				$message . "{$discordColorSenderGuild}{$senderDisplayName}<end>: {$discordColorGuild}{$escapedMessage}<end>",
+				$message . "{$discordColorSenderGuild}{$senderDisplayName}<end>{$discordColorGuild}: {$escapedMessage}<end>",
 				true
 			);
 		}
