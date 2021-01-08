@@ -423,7 +423,7 @@ class Nadybot extends AOChat {
 				&& $this->settingManager->getBool("guest_relay")
 				&& $this->settingManager->getBool("guest_relay_commands")
 			) {
-				$this->sendGuild("{$guestColorChannel}[Guest]<end> {$senderLink}{$privColor}: $message</font>", true, null, false);
+				$this->sendGuild("{$guestColorChannel}[Guest]<end> {$senderLink}{$privColor}: {$origMsg}</font>", true, null, false);
 			}
 
 			// relay to bot relay
@@ -490,7 +490,7 @@ class Nadybot extends AOChat {
 			&& $this->settingManager->getBool("guest_relay_commands")
 			&& count($this->chatlist) > 0
 		) {
-			$this->sendPrivate("{$guestColorChannel}[{$guildNameForRelay}]<end> {$senderLink}{$guildColor}: $message<end>", true, null, false);
+			$this->sendPrivate("{$guestColorChannel}[{$guildNameForRelay}]<end> {$senderLink}{$guildColor}: {$origMsg}<end>", true, null, false);
 		}
 
 		// relay to bot relay
