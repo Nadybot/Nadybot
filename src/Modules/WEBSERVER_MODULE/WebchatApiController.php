@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CommandManager;
+use Nadybot\Core\EventManager;
 use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\PrivateChannelCommandReply;
@@ -27,6 +29,9 @@ class WebchatApiController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
 	public Text $text;
 
 	/**
@@ -43,6 +48,12 @@ class WebchatApiController {
 		if (!$this->guildController->isGuildBot()) {
 			return new Response(Response::NOT_FOUND);
 		}
+		$event = new AOChatEvent();
+		$event->type = "web";
+		$event->channel = $this->chatBot->vars["my_guild"];
+		$event->message = $message;
+		$event->sender = $request->authenticatedAs;
+		$this->eventManager->fireEvent($event);
 		$guestColorChannel = $this->settingManager->get("guest_color_channel");
 		$guestColorGuest = $this->settingManager->get("guest_color_guest");
 		$sender = $this->text->makeUserlink($request->authenticatedAs);
@@ -70,6 +81,12 @@ class WebchatApiController {
 	 */
 	public function sendPrivMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$message = $request->decodedBody;
+		$event = new AOChatEvent();
+		$event->type = "web";
+		$event->channel = $this->chatBot->vars["name"];
+		$event->message = $message;
+		$event->sender = $request->authenticatedAs;
+		$this->eventManager->fireEvent($event);
 		$sender = $this->text->makeUserlink($request->authenticatedAs);
 		$guestColorChannel = $this->settingManager->get("guest_color_channel");
 		$guestColorGuild = $this->settingManager->get("guest_color_guild");
