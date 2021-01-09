@@ -197,17 +197,20 @@ class WebChatConverter {
 	}
 
 	public function toXML(AOMsg $msg): string {
-		$xml = "<?xml version='1.0' standalone='yes'?>".
-			"<message xmlns:ao=\"ao:bot:common\">".
-			"<text>{$msg->message}</text>";
+		$data = "";
 		if (count(get_object_vars($msg->popups))) {
-			$xml .= "<data>";
+			$data .= "<data>";
 			foreach ($msg->popups as $key => $value) {
-				$xml .= "<section id=\"{$key}\">{$value}</section>";
+				$data .= "<section id=\"{$key}\">{$value}</section>";
 			}
-			$xml .= "</data>";
+			$data .= "</data>";
 		}
-		$xml .= "</message>";
+		$needNS = str_contains($data, "<ao:") || str_contains($msg->message, "<ao:");
+		$xml = "<?xml version='1.0' standalone='yes'?>".
+			"<message" . ($needNS ? " xmlns:ao=\"ao:bot:common\"" : "") . ">".
+			"<text>{$msg->message}</text>".
+			$data.
+			"</message>";
 		return $xml;
 	}
 
