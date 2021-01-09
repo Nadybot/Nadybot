@@ -4,18 +4,13 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
 
 class EventCommandReply implements CommandReply {
 	/** @Inject */
 	public EventManager $eventManager;
 
 	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
-	public Nadybot $chatBot;
+	public WebChatConverter $webChatConverter;
 
 	protected string $uuid;
 
@@ -25,7 +20,7 @@ class EventCommandReply implements CommandReply {
 
 	public function reply($msg): void {
 		$event = new CommandReplyEvent();
-		$event->msgs = AOMsg::fromMsgs((array)$msg);
+		$event->msgs = $this->webChatConverter->convertMessages((array)$msg);
 		$event->uuid = $this->uuid;
 		$event->type = "cmdreply";
 		$this->eventManager->fireEvent($event);
