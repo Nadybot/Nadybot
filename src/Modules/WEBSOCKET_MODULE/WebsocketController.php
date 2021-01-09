@@ -25,6 +25,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	JsonExporter,
 	Request,
 	Response,
+	WebChatConverter,
 };
 
 /**
@@ -45,6 +46,9 @@ class WebsocketController {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public WebChatConverter $webChatConverter;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -224,6 +228,8 @@ class WebsocketController {
 	 * @Description("Convert messages for to webchat format")
 	 */
 	public function convertChatEvents(AOChatEvent $event): void {
+		var_dump($this->webChatConverter->convertMessage($event->message));
+		return;
 		$xmlEvent = AOChatEventXML::fromAOChatEvent($event);
 		$this->eventManager->fireEvent($xmlEvent);
 	}
