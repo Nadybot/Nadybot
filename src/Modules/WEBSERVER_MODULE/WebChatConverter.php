@@ -41,22 +41,22 @@ class WebChatConverter {
 	 * @return string[]
 	 */
 	public function tryToUnbreakPopups(array $msgs): array {
-		if (!preg_match("/<ao:popup id=\"(\d)\">(.+?)<\/ao:popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
+		if (!preg_match("/<popup ref=\"(ao-\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
 			return $msgs;
 		}
 		$msgs[0]->message = preg_replace(
-			"/<ao:popup id=\"".
+			"/<popup ref=\"".
 			preg_quote($matches[1], "/").
-			"\">(.+?)<\/ao:popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/",
-			"<ao:popup id=\"{$matches[1]}\">{$matches[2]}</ao:popup>",
+			"\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/",
+			"<popup ref=\"{$matches[1]}\">{$matches[2]}</popup>",
 			$msgs[0]->message
 		);
 		$msgs[0]->popups->{$matches[1]} = preg_replace("/ \(Page 1 \/ \d+\)<\/h1>/", "</h1>", $msgs[0]->popups->{$matches[1]});
 		for ($i = 1; $i < count($msgs); $i++) {
 			if (preg_match(
-				"/<ao:popup id=\"(\d+)\">" .
+				"/<popup ref=\"(ao-\d+)\">" .
 					preg_quote($matches[2], "/") .
-					"<\/ao:popup> " .
+					"<\/popup> " .
 					"\(Page <strong>\d+ \/ " .
 					preg_quote($matches[3], "/") .
 					"<\/strong>\)/",
@@ -102,7 +102,7 @@ class WebChatConverter {
 		$symbols = [
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
-			"<tab>" => "<tab />",
+			"<tab>" => "<indent />",
 			"<symbol>" => "",
 			"<br>" => "<br />",
 		];
@@ -127,7 +127,7 @@ class WebChatConverter {
 				}
 				if (substr($tag, 0, 1) === "#") {
 					$stack []= "color";
-					return "<color value=\"$tag\">";
+					return "<color fg=\"$tag\">";
 				}
 				$stack []= preg_replace("/[<>]/", "", $tag);
 				return $tag;
@@ -168,7 +168,7 @@ class WebChatConverter {
 			$message
 		);
 		$message = preg_replace("/<img\s+src\s*=\s*['\"]?rdb:\/\/(\d+)['\"]?>/s", "<ao:img rdb=\"$1\" />", $message);
-		$message = preg_replace("/<font\s+color=[\"']?(#.{6})[\"']>/", "<color value=\"$1\">", $message);
+		$message = preg_replace("/<font\s+color=[\"']?(#.{6})[\"']>/", "<color fg=\"$1\">", $message);
 		$message = preg_replace("/&(?!(?:[a-zA-Z]+|#\d+);)/", "&amp;", $message);
 		$message = preg_replace("/<\/h(\d)>(<br\s*\/>){1,2}/", "</h$1>", $message);
 
@@ -188,7 +188,7 @@ class WebChatConverter {
 						str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2])
 					)
 				);
-				return "<ao:popup id=\"ao-$id\">" . $this->formatMsg($matches[3]) . "</ao:popup>";
+				return "<popup ref=\"ao-$id\">" . $this->formatMsg($matches[3]) . "</popup>";
 			},
 			$message
 		);
@@ -198,14 +198,16 @@ class WebChatConverter {
 
 	public function toXML(AOMsg $msg): string {
 		$xml = "<?xml version='1.0' standalone='yes'?>".
-			"<ao:message xmlns:ao=\"ao:bot:common\">{$msg->message}</ao:message>";
+			"<message xmlns:ao=\"ao:bot:common\">".
+			"<text>{$msg->message}</text>";
 		if (count(get_object_vars($msg->popups))) {
-			$xml .= "<ao:popups>";
+			$xml .= "<data>";
 			foreach ($msg->popups as $key => $value) {
-				$xml .= "<ao:popup id=\"{$key}\">{$value}</ao:popup>";
+				$xml .= "<section id=\"{$key}\">{$value}</section>";
 			}
-			$xml .= "</ao:popups>";
+			$xml .= "</data>";
 		}
+		$xml .= "</message>";
 		return $xml;
 	}
 

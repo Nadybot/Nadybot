@@ -225,13 +225,12 @@ class WebsocketController {
 	 * @Event("guild")
 	 * @Event("sendpriv")
 	 * @Event("priv")
-	 * @Description("Convert messages for to webchat format")
+	 * @Description("Convert messages to webchat format")
 	 */
 	public function convertChatEvents(AOChatEvent $event): void {
-		var_dump($this->webChatConverter->convertMessage($event->message));
-		return;
-		$xmlEvent = AOChatEventXML::fromAOChatEvent($event);
-		$this->eventManager->fireEvent($xmlEvent);
+		$event->message = $this->webChatConverter->convertMessage($event->message);
+		$event->type = "chat(" . str_replace("send", "", $event->type) . ")";
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
