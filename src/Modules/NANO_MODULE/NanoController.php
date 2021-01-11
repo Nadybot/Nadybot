@@ -362,13 +362,21 @@ class NanoController {
 			"GROUP BY location ".
 			"ORDER BY location ASC"
 		);
-
-		$blob = '';
+		$nanoCount = [];
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(
-				$row->location,
-				"/tell <myname> nanoloc $row->location"
-			) . " ($row->count) \n";
+			$locations = preg_split("/\s*\/\s*/", $row->location);
+			foreach ($locations as $loc) {
+				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
+			}
+		}
+		ksort($nanoCount);
+
+		$blob = "<header2>All nano locations<end>\n";
+		foreach ($nanoCount as $loc => $count) {
+			$blob .= "<tab>" . $this->text->makeChatcmd(
+				$loc,
+				"/tell <myname> nanoloc $loc"
+			) . " ($count) \n";
 		}
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Locations", $blob);
@@ -388,7 +396,7 @@ class NanoController {
 			"ORDER BY nano_name ASC";
 
 		/** @var Nano[] */
-		$nanos = $this->db->fetchAll(Nano::class, $sql, $location);
+		$nanos = $this->db->fetchAll(Nano::class, $sql, "%{$location}%");
 
 		$count = count($nanos);
 		if ($count == 0) {
