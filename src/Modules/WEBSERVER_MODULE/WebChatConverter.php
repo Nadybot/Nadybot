@@ -30,8 +30,11 @@ class WebChatConverter {
 	 * @return string[]
 	 */
 	public function convertMessages(array $msgs): array {
-		return $this->tryToUnbreakPopups(
-			array_map([$this, "parseAOFormat"], $msgs)
+		return array_map(
+			[$this, "toXML"],
+			$this->tryToUnbreakPopups(
+				array_map([$this, "parseAOFormat"], $msgs)
+			)
 		);
 	}
 
