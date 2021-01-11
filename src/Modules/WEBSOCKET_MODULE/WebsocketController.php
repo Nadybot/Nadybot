@@ -228,9 +228,10 @@ class WebsocketController {
 	 * @Description("Convert messages to webchat format")
 	 */
 	public function convertChatEvents(AOChatEvent $event): void {
-		$event->message = $this->webChatConverter->convertMessage($event->message);
-		$event->type = "chat(" . str_replace("send", "", $event->type) . ")";
-		$this->eventManager->fireEvent($event);
+		$xmlMessage = clone($event);
+		$xmlMessage->message = $this->webChatConverter->convertMessage($xmlMessage->message);
+		$xmlMessage->type = "chat(" . str_replace("send", "", $xmlMessage->type) . ")";
+		$this->eventManager->fireEvent($xmlMessage);
 	}
 
 	/**
