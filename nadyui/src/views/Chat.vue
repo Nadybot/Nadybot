@@ -49,6 +49,7 @@ $org-color: #00f700;
 
 .org-text {
   color: $org-color !important;
+  padding: 0.25rem 0.5rem;
 }
 </style>
 
@@ -130,7 +131,7 @@ export default defineComponent({
       }
     },
     scrollOutputDown: function (): void {
-      const scroll = document.getElementById("console-list");
+      const scroll = document.getElementById("chat-list");
       if (scroll) {
         scroll.scrollTop = scroll.scrollHeight;
       }
