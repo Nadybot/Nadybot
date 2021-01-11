@@ -11,7 +11,6 @@
       >
         [{{ msg.channel }}]&nbsp;{{ msg.sender }}:&nbsp;<message
           :content="msg.message"
-          :popups="msg.popups"
           @run-command="runCommand($event)"
         ></message>
       </li>

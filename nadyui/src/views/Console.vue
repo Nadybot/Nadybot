@@ -8,7 +8,6 @@
     >
       <message
         :content="msg.message"
-        :popups="msg.popups"
         @run-command="runCommand($event)"
       ></message>
     </li>

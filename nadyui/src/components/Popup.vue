@@ -73,7 +73,7 @@ export default defineComponent({
 
   props: {
     content: {
-      type: XMLDocument,
+      type: Element,
       required: true,
     },
     show: {
@@ -84,15 +84,13 @@ export default defineComponent({
 
   computed: {
     title(): Node | null {
-      if (this.content.firstChild && this.content.firstChild.firstChild) {
-        const child = this.content.firstChild.removeChild(
-          this.content.firstChild.firstChild
-        );
-        const nodes = Array.from(this.content.firstChild.childNodes);
+      if (this.content.firstChild) {
+        const child = this.content.removeChild(this.content.firstChild);
+        const nodes = Array.from(this.content.childNodes);
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
           if (node.nodeName == "br") {
-            this.content.firstChild.removeChild(node);
+            this.content.removeChild(node);
           } else {
             break;
           }

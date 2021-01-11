@@ -9,47 +9,30 @@ export interface MessageIncoming {
 export interface ChatMessageIncoming {
   channel: string;
   message: string;
-  structMessage: {
-    message: string;
-    popups: Record<string, string>;
-  };
   sender: string;
 }
 
 export interface ChatMessage {
   channel: string;
   message: XMLDocument;
-  popups: Record<string, XMLDocument>;
   sender: string;
 }
 
 export interface Message {
   message: XMLDocument;
-  popups: Record<string, XMLDocument>;
   from_user: boolean;
 }
 
 export interface CommandReply {
   class: string;
-  msgs: Array<MessageIncoming>;
+  msgs: Array<string>;
   type: string;
   uuid: string;
 }
 
-const MessageDecoderMapping = {
-  message: JsonDecoder.string,
-  popups: JsonDecoder.dictionary(JsonDecoder.string, "popups"),
-  from_user: JsonDecoder.failover(false, JsonDecoder.boolean),
-};
-
-const messageDecoder = JsonDecoder.objectStrict<MessageIncoming>(
-  MessageDecoderMapping,
-  "Message"
-);
-
 const CommandReplyDecoderMapping = {
   class: JsonDecoder.string,
-  msgs: JsonDecoder.array(messageDecoder, "MessageArray"),
+  msgs: JsonDecoder.array(JsonDecoder.string, "MessageArray"),
   type: JsonDecoder.string,
   uuid: JsonDecoder.string,
 };
