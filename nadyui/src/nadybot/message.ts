@@ -1,8 +1,6 @@
 const parser = new DOMParser();
 
 export function parseXml(body: string): XMLDocument {
-  // A little hack so we can iterate the children of the root node
-  body = `<msg>${body}</msg>`;
   return parser.parseFromString(body, "text/xml");
 }
 

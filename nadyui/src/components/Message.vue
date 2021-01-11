@@ -1,7 +1,7 @@
 <template>
   <ao-message
-    v-if="content"
-    :content="content"
+    v-if="text"
+    :content="text"
     @open-popup="active_popup = $event"
     @run-command="runCommand($event)"
   ></ao-message>
@@ -46,10 +46,6 @@ export default defineComponent({
       type: XMLDocument,
       required: true,
     },
-    popups: {
-      type: Object,
-      required: true,
-    },
   },
 
   methods: {
@@ -68,6 +64,36 @@ export default defineComponent({
     runCommand: function (e: string): void {
       this.active_popup = null;
       this.$emit("run-command", e);
+    },
+  },
+
+  computed: {
+    popups: function (): Record<string, Element> {
+      let messageNode = this.content.children[0];
+      let dataNode = messageNode.lastElementChild;
+      if (dataNode && dataNode.nodeName == "data") {
+        let popups: { [id: string]: Element } = {};
+        let amt = dataNode.children.length;
+        for (var i = 0; i < amt; i++) {
+          let node = dataNode.children[i];
+          let id = node.getAttribute("id");
+          if (id) {
+            popups[id] = node;
+          }
+        }
+        return popups;
+      }
+      return {};
+    },
+    text: function (): Node | null {
+      let messageNode = this.content.firstChild;
+      if (messageNode) {
+        let textNode = messageNode.firstChild;
+        if (textNode && textNode.nodeName == "text") {
+          return textNode;
+        }
+      }
+      return null;
     },
   },
 

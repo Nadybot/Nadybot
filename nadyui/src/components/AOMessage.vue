@@ -15,8 +15,8 @@
 
   <span
     v-else-if="content.nodeName == 'color'"
-    :style="'color:' + content.getAttribute('value')"
-    :class="{ invisible: content.getAttribute('value') == '#000000' }"
+    :style="'color:' + content.getAttribute('fg')"
+    :class="{ invisible: content.getAttribute('fg') == '#000000' }"
     ><template v-for="child in content.childNodes" :key="child">
       <template v-if="isTextNode(child)">
         {{ child.textContent }}
@@ -74,7 +74,7 @@
 
   <br v-else-if="content.nodeName == 'br'" />
 
-  <template v-else-if="content.nodeName == 'tab'">&emsp;</template>
+  <template v-else-if="content.nodeName == 'indent'">&emsp;</template>
 
   <ul v-else-if="content.nodeName == 'ul'">
     <template v-for="child in content.childNodes" :key="child">
@@ -119,7 +119,7 @@
   </u>
 
   <a
-    v-else-if="content.nodeName == 'item'"
+    v-else-if="content.nodeName == 'ao:item'"
     :href="
       'https://aoitems.com/item/' +
       content.getAttribute('lowid') +
@@ -141,7 +141,7 @@
   </a>
 
   <a
-    v-else-if="content.nodeName == 'nano'"
+    v-else-if="content.nodeName == 'ao:nano'"
     :href="'https://aoitems.com/item/' + content.getAttribute('id')"
     target="_blank"
     ><template v-for="child in content.childNodes" :key="child">
@@ -158,7 +158,7 @@
   </a>
 
   <span
-    v-else-if="content.nodeName == 'command'"
+    v-else-if="content.nodeName == 'ao:command'"
     class="triggers-action"
     @click="$emit('run-command', content.getAttribute('cmd'))"
     ><template v-for="child in content.childNodes" :key="child">
@@ -177,7 +177,7 @@
   <span
     v-else-if="content.nodeName == 'popup'"
     class="triggers-action"
-    @click="$emit('open-popup', content.getAttribute('id'))"
+    @click="$emit('open-popup', content.getAttribute('ref'))"
     ><template v-for="child in content.childNodes" :key="child">
       <template v-if="isTextNode(child)">
         {{ child.textContent }}
@@ -208,7 +208,7 @@
     </template>
   </a>
 
-  <a v-else-if="content.nodeName == 'user'"
+  <a v-else-if="content.nodeName == 'ao:user'"
     ><template v-for="child in content.childNodes" :key="child">
       <template v-if="isTextNode(child)">
         {{ child.textContent }}
@@ -222,7 +222,7 @@
     </template>
   </a>
 
-  <template v-else-if="content.nodeName == 'img'">
+  <template v-else-if="content.nodeName == 'ao:img'">
     <img
       v-if="content.getAttribute('rdb')"
       :src="'https://static.aoitems.com/icon/' + content.getAttribute('rdb')"

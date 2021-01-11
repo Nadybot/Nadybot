@@ -121,34 +121,23 @@ export default createStore({
     CommandReplyEvent(context, data: CommandReply): void {
       data.msgs.forEach(function (msg) {
         const new_message: Message = {
-          message: parseXml(msg.message),
-          popups: {},
+          message: parseXml(msg),
           from_user: false,
         };
-        for (const key in msg.popups) {
-          const new_content = parseXml(msg.popups[key]);
-          new_message.popups[key] = new_content;
-        }
         context.state.console_messages.push(new_message);
       });
     },
-    AOChatEventXML(context, msg: ChatMessageIncoming): void {
+    AOChatEvent(context, msg: ChatMessageIncoming): void {
       const new_message: ChatMessage = {
-        message: parseXml(msg.structMessage.message),
+        message: parseXml(msg.message),
         channel: msg.channel,
         sender: msg.sender,
-        popups: {},
       };
-      for (const key in msg.structMessage.popups) {
-        const new_content = parseXml(msg.structMessage.popups[key]);
-        new_message.popups[key] = new_content;
-      }
       context.state.chat_messages.push(new_message);
     },
     async executeCommand(context, command: string): Promise<void> {
       const message: Message = {
-        message: parseXml(command),
-        popups: {},
+        message: parseXml(`<message><text>${command}</text></message>`),
         from_user: true,
       };
       context.state.console_messages.push(message);
