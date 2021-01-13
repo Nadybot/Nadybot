@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Exception;
 use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
@@ -111,6 +112,10 @@ class GuildRankController {
 	 * @Matches("/^maprank$/i")
 	 */
 	public function maprankListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+		if (!$this->guildController->isGuildBot()) {
+			$sendto->reply("The bot must be in an org.");
+			return;
+		}
 		$this->guildManager->getByIdAsync(
 			$this->chatBot->vars["my_guild_id"],
 			null,
@@ -157,6 +162,10 @@ class GuildRankController {
 	 * @Matches("/^maprank (\d+)(?: to)? (.+)$/i")
 	 */
 	public function maprankCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+		if (!$this->guildController->isGuildBot()) {
+			$sendto->reply("The bot must be in an org.");
+			return;
+		}
 		$this->guildManager->getByIdAsync(
 			$this->chatBot->vars["my_guild_id"],
 			null,
@@ -176,9 +185,16 @@ class GuildRankController {
 		}
 		$ranks = $this->orglistController->getOrgRanks($guild->governing_form);
 		$accessLevels = $this->accessManager->getAccessLevels();
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		try {
+			$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		} catch (Exception $e) {
+			// Catch system error about invalid access level
+		}
 		if (!isset($accessLevels[$accessLevel])) {
-			$sendto->reply("<highlight>{$accessLevel}<end> is not a valid access level. Please use the short form.");
+			$sendto->reply(
+				"<highlight>{$accessLevel}<end> is not a valid access level. ".
+				"Please use the short form like 'admin', 'mod' or 'rl'."
+			);
 			return;
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
@@ -189,6 +205,11 @@ class GuildRankController {
 		}
 		if (!isset($ranks[$rank])) {
 			$sendto->reply("{$guild->governing_form} doesn't have a rank #{$rank}.");
+			return;
+		}
+		$currentEAL = $this->getEffectiveAccessLevel($rank);
+		if ($this->accessManager->compareAccessLevels($accessLevel, $currentEAL) < 0) {
+			$sendto->reply("You cannot assign declining access levels.");
 			return;
 		}
 		$alName = $this->accessManager->getDisplayName($accessLevel);
@@ -228,6 +249,10 @@ class GuildRankController {
 	 * @Matches("/^maprank\s+(?:del|delete|rem|remove)\s+(\d+)$/i")
 	 */
 	public function maprankDelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+		if (!$this->guildController->isGuildBot()) {
+			$sendto->reply("The bot must be in an org.");
+			return;
+		}
 		$this->guildManager->getByIdAsync(
 			$this->chatBot->vars["my_guild_id"],
 			null,
@@ -301,7 +326,11 @@ class GuildRankController {
 		foreach ($ranks as $id => $name) {
 			$blob .= "<tab>{$id}: <highlight>{$name}<end>\n";
 		}
-		$msg = $this->text->makeBlob($guild->governing_form, $blob);
+		$msg = $this->text->makeBlob(
+			"Ranks of {$guild->governing_form} (" . count($ranks) . ")",
+			$blob,
+			$guild->governing_form
+		);
 		$sendto->reply($msg);
 	}
 }
