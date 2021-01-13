@@ -164,11 +164,12 @@ class GuildRankController {
 			[$this, "setRankMapping"],
 			(int)$args[1],
 			$args[2],
+			$sender,
 			$sendto
 		);
 	}
 
-	public function setRankMapping(?Guild $guild, int $rank, string $accessLevel, CommandReply $sendto): void {
+	public function setRankMapping(?Guild $guild, int $rank, string $accessLevel, string $sender, CommandReply $sendto): void {
 		if (!isset($guild)) {
 			$sendto->reply("This org's governing form cannot be determined.");
 			return;
@@ -178,6 +179,12 @@ class GuildRankController {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		if (!isset($accessLevels[$accessLevel])) {
 			$sendto->reply("<highlight>{$accessLevel}<end> is not a valid access level. Please use the short form.");
+			return;
+		}
+		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
+		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $accessLevel) > 0;
+		if ($senderAL !== "superadmin" && !$senderHasHigherAL) {
+			$sendto->reply("You can only manage access levels below your own.");
 			return;
 		}
 		if (!isset($ranks[$rank])) {
@@ -227,11 +234,12 @@ class GuildRankController {
 			false,
 			[$this, "delRankMapping"],
 			(int)$args[1],
+			$sender,
 			$sendto
 		);
 	}
 
-	public function delRankMapping(?Guild $guild, int $rank, CommandReply $sendto): void {
+	public function delRankMapping(?Guild $guild, int $rank, string $sender, CommandReply $sendto): void {
 		if (!isset($guild)) {
 			$sendto->reply("This org's governing form cannot be determined.");
 			return;
@@ -241,12 +249,28 @@ class GuildRankController {
 			$sendto->reply("{$guild->governing_form} doesn't have a rank #{$rank}.");
 			return;
 		}
-		$deleted = $this->db->exec("DELETE FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?", $rank);
-		if ($deleted === 0) {
+		/** @var ?OrgRankMapping */
+		$oldEntry = $this->db->fetch(
+			OrgRankMapping::class,
+			"SELECT * FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?",
+			$rank
+		);
+		if (!isset($oldEntry)) {
 			$sendto->reply("You haven't defined any access level for <highlight>{$ranks[$rank]}<end>.");
 			return;
 		}
-		$sendto->reply("The accesslevel mapping for <highlight>{$ranks[$rank]}<end> was deleted successfully.");
+		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
+		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $oldEntry->access_level) > 0;
+		if ($senderAL !== "superadmin" && !$senderHasHigherAL) {
+			$sendto->reply("You can only manage access levels below your own.");
+			return;
+		}
+		$this->db->exec("DELETE FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?", $rank);
+		$sendto->reply(
+			"The access level mapping <highlight>{$ranks[$rank]}<end> to ".
+			"<highlight>" . $this->accessManager->getDisplayName($oldEntry->access_level) . "<end> ".
+			"was deleted successfully."
+		);
 	}
 
 	/**
