@@ -208,7 +208,7 @@ class WebChatConverter {
 			}
 			$data .= "</data>";
 		}
-		$needNS = str_contains($data, "<ao:") || str_contains($msg->message, "<ao:");
+		$needNS = strstr($data, "<ao:") !== false || strstr($msg->message, "<ao:") !== false;
 		$xml = "<?xml version='1.0' standalone='yes'?>".
 			"<message" . ($needNS ? " xmlns:ao=\"ao:bot:common\"" : "") . ">".
 			"<text>{$msg->message}</text>".
