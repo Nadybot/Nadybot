@@ -605,6 +605,10 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$colNames = [];
 		foreach ($props as $prop) {
+			$comment = $prop->getDocComment();
+			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+				continue;
+			}
 			if ($prop->isInitialized($row)) {
 				$colNames []= "`{$prop->name}`";
 				$values []= $prop->getValue($row);
@@ -624,6 +628,10 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$colNames = [];
 		foreach ($props as $prop) {
+			$comment = $prop->getDocComment();
+			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+				continue;
+			}
 			if ($prop->isInitialized($row) && $prop->name !== $key) {
 				$colNames []= "`{$prop->name}`=?";
 				$values []= $prop->getValue($row);
