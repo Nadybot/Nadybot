@@ -259,6 +259,7 @@ class AuctionController {
 		$this->raidPointsController->modifyRaidPoints(
 			$lastAuction->winner,
 			$giveBack,
+			true,
 			"Refund for " . $lastAuction->item,
 			$sender,
 			$raid
@@ -518,6 +519,7 @@ class AuctionController {
 			$this->raidPointsController->modifyRaidPoints(
 				$this->auction->top_bidder,
 				$this->auction->bid * -1,
+				true,
 				$this->auction->item->toString(),
 				$sender ?? $this->chatBot->vars["name"],
 				$this->raidController->raid ?? null
