@@ -22,6 +22,7 @@ class Raid extends DBRow {
 	/**
 	 * UNIX timestamp of the last time the raid force received
 	 * raid points for participation
+	 * @db:ignore
 	 */
 	public int $last_award_from_ticker = 0;
 
@@ -33,6 +34,7 @@ class Raid extends DBRow {
 
 	/**
 	 * UNIX timestamp when the raid was announced the last time
+	 * @db:ignore
 	 */
 	public int $last_announcement = 0;
 
@@ -64,14 +66,19 @@ class Raid extends DBRow {
 	/**
 	 * List of all players who are or were in the raid
 	 * @var array<string,RaidMember>
+	 * @db:ignore
 	 */
 	public array $raiders = [];
 
 	/**
 	 * Internal array to track which mains already received points
+	 * @db:ignore
 	 */
 	public array $pointsGiven = [];
 
+	/**
+	 * @db:ignore
+	 */
 	public bool $we_are_most_recent_message = false;
 
 	public function __construct() {
