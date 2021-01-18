@@ -156,7 +156,7 @@ class AMQP {
 			$this->logger->log('INFO', 'Connection to AMQP server timed out.');
 			return null;
 		} catch (AMQPIOException $e) {
-			$this->logger->log('INFO', 'Connection to AMQP server interruped.');
+			$this->logger->log('INFO', 'Connection to AMQP server interrupted.');
 			return null;
 		} catch (AMQPProtocolChannelException $e) {
 			$this->logger->log('INFO', 'AMQP error: ' . $e->getMessage());
@@ -198,7 +198,7 @@ class AMQP {
 			$this->channel = null;
 			return null;
 		} catch (AMQPIOException $e) {
-			$this->logger->log('INFO', 'Sending message to AMQP server interruped.');
+			$this->logger->log('INFO', 'Sending message to AMQP server interrupted.');
 			$this->channel = null;
 			return null;
 		} catch (ErrorException $e) {
@@ -285,7 +285,7 @@ class AMQP {
 				$this->channel = null;
 				return;
 			} catch (ErrorException $e) {
-				$this->logger->log('INFO', 'Error receving AMQP message: ' . $e->getMessage());
+				$this->logger->log('INFO', 'Error receiving AMQP message: ' . $e->getMessage());
 				$this->channel = null;
 				return;
 			}

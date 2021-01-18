@@ -14,7 +14,7 @@ Author:
 #L "Overheated Compiler" "251221" >= QL200
 
 <img src=rdb://99236>
-#L "Cannister of Powder" "253153" >= QL200
+#L "Canister of Powder" "253153" >= QL200
 
 </font><font color=#FFFF00>------------------------------
 </font><font color=#FF0000>Recipe</font><font color=#FFFF00>
@@ -38,7 +38,7 @@ Disassembled Belt with Memory
 
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-Cannister of Powder
+Canister of Powder
 </font><font color=#FFFFFF>+</font><font color=#009B00>
 Disassembled Belt with Memory and Compiler
 </font><font color=#FFFFFF>=</font><font color=#009B00>

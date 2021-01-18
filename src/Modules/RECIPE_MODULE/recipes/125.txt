@@ -29,4 +29,4 @@ Painted Yalmaha
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-You can remove paint by using a #L "Auto Paint - Adaga Paint Remover" "207719" (in theory), but apparently it doesnt work with all the painted yalms.. like Gold Flash for example.
+You can remove paint by using a #L "Auto Paint - Adaga Paint Remover" "207719" (in theory), but apparently it doesn't work with all the painted yalms.. like Gold Flash for example.

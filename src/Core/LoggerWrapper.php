@@ -45,7 +45,7 @@ class LoggerWrapper {
 	/**
 	 * Log a chat message, stripping potential HTML code from it
 	 *
-	 * @param sring $channel Either "Buddy" or an org or privchannel name
+	 * @param string $channel Either "Buddy" or an org or private-channel name
 	 * @param string|int $sender The name of the sender, or a number representing the channel
 	 * @param string $message The message to log
 	 * @return void

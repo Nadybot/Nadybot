@@ -228,7 +228,7 @@ class RaidController {
 				"]\n";
 		}
 		$blob .= "Description: <highlight>{$this->raid->description}<end>\n";
-		$blob .= "Raid anouncement: <highlight>";
+		$blob .= "Raid announcement: <highlight>";
 		if ($this->raid->announce_interval === 0) {
 			$blob .= "off<end> [".
 				$this->text->makeChatcmd(

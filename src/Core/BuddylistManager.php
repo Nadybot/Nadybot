@@ -121,7 +121,7 @@ class BuddylistManager {
 	 * Remove a user to the bot's friendlist for a given purpose
 	 *
 	 * This does not necessarily remove the user from the friendlist, because
-	 * they might be on it for more than 1 reason. The user is oly really removed
+	 * they might be on it for more than 1 reason. The user is only really removed
 	 * when the last reason to be on the list was removed.
 	 *
 	 * @param string $name The name of the player

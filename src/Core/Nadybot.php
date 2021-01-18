@@ -273,7 +273,7 @@ class Nadybot extends AOChat {
 		unset($this->existing_settings);
 		unset($this->existing_helps);
 
-		//Delete old entrys in the DB
+		//Delete old entries in the DB
 		$this->db->exec("DELETE FROM `cmdcfg_<myname>` WHERE `verify` = 0");
 		$this->db->exec("DELETE FROM `eventcfg_<myname>` WHERE `verify` = 0");
 		$this->db->exec("DELETE FROM `settings_<myname>` WHERE `verify` = 0");
@@ -642,7 +642,7 @@ class Nadybot extends AOChat {
 	}
 
 	/**
-	 * Proccess an incoming message packet that the bot receives
+	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
 		try {

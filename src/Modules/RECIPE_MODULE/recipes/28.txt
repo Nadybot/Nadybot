@@ -73,7 +73,7 @@ Floorplan
 Regular Building Structure
 </font><font color=#FFFFFF>=</font><font color=#009B00>
 <img src=rdb://255801>
-a Stucture
+a Structure
 ( ie : #L "Omni-Tek Notum Silo" "254144" )
 </font><font color=#FFFF00>Skills: |  ??  |</font><font color=#009B00>
 
@@ -165,7 +165,7 @@ HQ Floorplan
 Superior Building Structure
 </font><font color=#FFFFFF>=</font><font color=#009B00>
 <img src=rdb://255790>
-a HQ Stucture
+a HQ Structure
 ( ie : #L "Small Omni-Tek Organization Headquarters" "254210" )
 </font><font color=#FFFF00>Skills: |  ??  |</font><font color=#009B00>
 

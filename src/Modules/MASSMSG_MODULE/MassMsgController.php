@@ -231,7 +231,7 @@ class MassMsgController {
 	 */
 	public function massMessagesOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->preferences->save($sender, static::PREF, 'no');
-		$sendto->reply("You will no longe receive mass messages or mass invites from this bot.");
+		$sendto->reply("You will no longer receive mass messages or mass invites from this bot.");
 	}
 
 	/**

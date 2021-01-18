@@ -61,7 +61,7 @@ class TrickleController {
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$ability = $this->util->getAbility($array[$i]);
 			if ($ability === null) {
-				$msg = "Unknwon ability <highlight>{$array[$i]}<end>.";
+				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
 				$sendto->reply($msg);
 				return;
 			}

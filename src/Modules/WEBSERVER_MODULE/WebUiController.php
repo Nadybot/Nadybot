@@ -214,7 +214,7 @@ class WebUiController {
 	}
 
 	/**
-	 * Remove all files from the NadyUI installation (if any) and reset teh version in the DB
+	 * Remove all files from the NadyUI installation (if any) and reset the version in the DB
 	 */
 	public function uninstallNadyUi(bool $updateDB=false): bool {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {

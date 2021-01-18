@@ -18,7 +18,7 @@ class CloseEvents {
 	public const RESERVED = 1004;
 	/** Expected close status, received none */
 	public const NO_STATUS = 1005;
-	/** No close code frame has been receieved */
+	/** No close code frame has been received */
 	public const ABNORMAL = 1006;
 	/** Endpoint received inconsistent message (e.g. malformed UTF-8) */
 	public const UNSUPPORTED_PAYLOAD = 1007;

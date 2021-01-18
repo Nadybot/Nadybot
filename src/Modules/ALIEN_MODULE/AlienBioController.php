@@ -398,9 +398,9 @@ class AlienBioController {
 
 		$blob .= "\n\nFor Supple, Arithmetic, or Enduring:\n\n" .
 			"<highlight>When completed, the armor piece can have as low as<end> QL $minQL <highlight>combined into it, depending on available tradeskill options.\n\n" .
-			"Does not change QL's, therefore takes<end> $requiredPsychology <highlight>Psychology for available combinations.<end>\n\n" .
+			"Does not change QLs, therefore takes<end> $requiredPsychology <highlight>Psychology for available combinations.<end>\n\n" .
 			"For Spiritual, Strong, or Observant:\n\n" .
-			"<highlight>When completed, the armor piece can combine upto<end> QL $maxQL<highlight>, depending on available tradeskill options.\n\n" .
+			"<highlight>When completed, the armor piece can combine up to<end> QL $maxQL<highlight>, depending on available tradeskill options.\n\n" .
 			"Changes QL depending on targets QL. The max combination is: (<end>QL $maxQL<highlight>) (<end>$max_psyco Psychology required for this combination<highlight>)<end>";
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";

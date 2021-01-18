@@ -130,4 +130,4 @@ Crystalised Memories of a Defender
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-You can further upgrade this item, but thats another recipe... #L "Click here" "/tell {myname} recipe 596" to see it.
+You can further upgrade this item, but that's another recipe... #L "Click here" "/tell {myname} recipe 596" to see it.

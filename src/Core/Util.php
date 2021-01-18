@@ -448,10 +448,10 @@ class Util {
 	}
 
 	/**
-	 * Generate an SQL query from a column and a list of criterias
+	 * Generate an SQL query from a column and a list of criteria
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
-	 * @param string $column The table column to test agains
+	 * @param string $column The table column to test against
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 */
 	public function generateQueryFromParams(array $params, string $column): array {

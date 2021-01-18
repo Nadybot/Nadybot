@@ -163,7 +163,7 @@ class Setup {
 		$this->showStep(
 			"Do you want to have all modules/commands enabled\n".
 			"by default?\n".
-			"This is usefull when you are using this bot the\n".
+			"This is useful when you are using this bot the\n".
 			"first time so that all commands are available\n".
 			"from the beginning.  If you say 'no' to this question\n".
 			"you will need to enable the commands manually.\n".
