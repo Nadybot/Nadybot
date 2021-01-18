@@ -98,7 +98,7 @@ Coding
 *****************************
 - Introduce a global PHP coding style for the project and fix all files so they adhere to it
 - Remove the API documentation for now as the tool used to build it currently doesn't work anymore
-- Add type-hints to variables where possible and document functions and their return value, while still sticking to PHP5 compaibility
+- Add type-hints to variables where possible and document functions and their return value, while still sticking to PHP5 compatibility
 - Colorize the whompah-cities according to factions
 - Group search results for items
 - Better alignment for !history
@@ -612,20 +612,20 @@ added packet(id) event type and removed allpackets event type
 - updated the bot with the new chat servers since the 18.4.1 update
 - fixed various settings' help-file links that were broken
 - added flatbot's roll system (which includes multi-loot, re-rolling, and various rolling methods) and then i fixed it up a bit (small edits here and there). Special thanks to: Wyziddyj (for making it) and Egads (for making it public).
-- fixed a bug that allowed alts to add other people as alts of themselves, thereby creating a whole new alts list, seperate from the original main.
+- fixed a bug that allowed alts to add other people as alts of themselves, thereby creating a whole new alts list, separate from the original main.
 - added  a long long (:D)!altsadmin command so mods can add/delete/fix alt listings.
 - added capability to add/delete alts 'from an alt', without having to log onto their main toon.
 - added a !botnotify command to combat those times when the chat server crashes and the bots start spamming org chat. A simple !botnotify off will stop the bot from spamming org chat with long lists of the org-members signing off.  Use !botnotify help for more details.*
 - fixed a minor bug where the bot was unable to update char info for players having apostrophes in their first/last name
 
-* I havent have any real chat server crashes to test this on so far. But it works in practice so far.
+* I haven't have any real chat server crashes to test this on so far. But it works in practice so far.
 
 *****************************
 	Version 0.6.3:
 *****************************
 - Changed the name of the php.ini to php-win.ini
 - Added the loading of the php-win.ini in the Batchfile and in the mainloop.php(if the OS is Windows)
-- Fixed some SQL querys in the Online Module that were still not compatible with MySQL
+- Fixed some SQL queries in the Online Module that were still not compatible with MySQL
 - Added that the orgmembers var gets created during the start of the Bot
 - Adding a command similar to updatme just for the orgroster
 - Added that you can show also only orgmembers from a specific profession similar to online
@@ -633,7 +633,7 @@ added packet(id) event type and removed allpackets event type
 - Added that players can join the guestchannel without an invite of an orgmember. You can set if everyone or just players on guestlist can join.
 - Added that verify and guestjoin commands by-pass the tell requirements
 - Added that a member can set himself as setting afk kiting
-- Added that when the name of the player is beeing mentioned in the channel and he is afk, a message will be shown on the channel
+- Added that when the name of the player is being mentioned in the channel and he is afk, a message will be shown on the channel
 - Changed the look of the orgmembers command a bit
 - Fixed a problem with using " in a timer name
 - Added support for adding/kicking admins
@@ -675,7 +675,7 @@ added packet(id) event type and removed allpackets event type
 - Fixed some references to wrong files(no affect on windows as it isn't case-sensitive)
 - Fixed an SQL Select Statement error in the count command
 - Fixed an rounding mistake in the oe command
-- Fixed that the sender name of tells was shown instead of the recievers one at the console
+- Fixed that the sender name of tells was shown instead of the receivers one at the console
 - Added that only php files will be accepted that are in lowercases
 - Added the XML Infofile required for the BotManager
 - Updated the Itemsdatabase to 17.0.1
@@ -691,7 +691,7 @@ added packet(id) event type and removed allpackets event type
 - Some old helpfile descriptions weren't stored correctly in the Database  
 - The log functions(file and console) are put now into one function to. Also the format of the output has been changed a bit.  
 - Messages from the Bot itself are shown in the logfiles and the console now too.  
-- Added that you can set in which channel you want to see the city attacks.(usefull when you have 2bots(1raidbot and 1 orgbot) so they don't show both the attack in your guild channel)  
+- Added that you can set in which channel you want to see the city attacks.(useful when you have 2bots(1raidbot and 1 orgbot) so they don't show both the attack in your guild channel)  
 - Fixed a problem when assigning some to a team when he had a number in his name  
 - Fixed that players that left the Bot couldn't be removed from a team  
 - Using a command with prefix(like # or !) in tells will work now too  
@@ -700,7 +700,7 @@ added packet(id) event type and removed allpackets event type
 - Removed the loot module as it is now part of the raidmodule  
 - Added that you can see the rank too on the orgmembers function
 - Fixed a problem with commands that are used in different modules but where shown on one cmd config window
-- Changed the Forum adress in various scripts
+- Changed the Forum address in various scripts
 - Added that you can set the color for the guestchannel relay text(changed that you can set different colors for channel, username and channelcolor)
 - Added that you can relay also the commands and results
 - Added that you can set if the guestchannel will be always/automatic/never relayed
@@ -716,7 +716,7 @@ added packet(id) event type and removed allpackets event type
 - The Organization XML file from the Bot org will be able to update every 6hrs while the rest is still set to 24hrs.
 - Updated to PHP5.2
 - Added a Exec command to the DB Class
-- Added a Function to the DB class to change the Create Table statements for SQLite(as they are compatibel with the ones used for MYSQL f.e. the autoincrement columns)
+- Added a Function to the DB class to change the Create Table statements for SQLite(as they are compatible with the ones used for MYSQL f.e. the autoincrement columns)
 - Fixed some issues with using MySQL as Database
 - Added that Newsentrys can be deleted
 - Fixed that guestchannel players were not shown on the !count commands
@@ -741,7 +741,7 @@ added packet(id) event type and removed allpackets event type
 - Updated the loot module for the new itemstable
 - gueslist is showing if the user is online/in chat or offline
 - Memberslist shows now if the user is online/offline and in chat
-- Added Versionsnumber and Supportforum adress(startup logo)
+- Added Versionsnumber and Supportforum address(startup logo)
 - Added a little funmodule
 - guests list looks the same way as the online list and the guestslist is now sorted after player names
 - Added autoreinvite for players that have been in the privgrp after a bot restart or crasg
@@ -752,7 +752,7 @@ added packet(id) event type and removed allpackets event type
 - The logonmsg that is relayed looks now the same way as normal logons
 - Added a list to show current orgmembers, their stats and when they logged off the last time
 - Fixed a problem with the new timer syntax and removed debug messages
-- Fixed a bug in one of the SELECT query statements(some entrys has been shown double or more)
+- Fixed a bug in one of the SELECT query statements(some entries has been shown double or more)
 - Updated the Header in all Files which licence infos and stuff 
 - Added a GPL licence file 
 - Added a file with the patchnotes 

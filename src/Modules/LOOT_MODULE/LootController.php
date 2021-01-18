@@ -418,7 +418,7 @@ class LootController {
 		}
 
 		$key = (int)$args[1];
-		// validate item existance on loot list
+		// validate item existence on loot list
 		if ($key === 0 || $key > count($this->loot)) {
 			$sendto->reply("There is no item at slot <highlight>#".$key."<end>");
 			return;
@@ -458,7 +458,7 @@ class LootController {
 			return;
 		}
 
-		// Readd remaining loot
+		// Re-add remaining loot
 		foreach ($this->residual as $key => $item) {
 			$this->loot[$key] = $item;
 			$this->loot[$key]->added_by = $sender;

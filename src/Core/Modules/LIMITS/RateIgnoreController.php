@@ -124,10 +124,10 @@ class RateIgnoreController {
 	}
 
 	/**
-	 * Remove someone from the ratelimit ignore list
+	 * Remove someone from the rate-limit ignore list
 	 *
 	 * @param string $user Who to remove
-	 * @return string Message with success or falure
+	 * @return string Message with success or failure
 	 * @throws SQLException
 	 */
 	public function remove(string $user): string {

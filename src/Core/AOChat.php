@@ -172,7 +172,7 @@ class AOChat {
 	}
 
 	/**
-	 * Disconnect from the chat server (if connected) and init varaibles
+	 * Disconnect from the chat server (if connected) and init variables
 	 */
 	public function disconnect(): void {
 		if (is_resource($this->socket) || $this->socket instanceof \Socket) {
@@ -242,7 +242,7 @@ class AOChat {
 	 * Returns the packet if one arrived or null if none arrived in $time seconds.
 	 *
 	 * @param integer $time The  amount of seconds to wait for
-	 * @return \Nadybot\Core\AOChatPacket|false|null The recived package or null if none arrived or false if we couldn't parse it
+	 * @return \Nadybot\Core\AOChatPacket|false|null The received package or null if none arrived or false if we couldn't parse it
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
@@ -599,7 +599,7 @@ class AOChat {
 	/**
 	 * Join a channel
 	 *
-	 * @param int|string $group Channel id or channle name to join
+	 * @param int|string $group Channel id or channel name to join
 	 */
 	public function group_join($group): bool {
 		if (($gid = $this->get_gid($group)) === false) {
@@ -785,7 +785,7 @@ class AOChat {
 	}
 
 	/**
-	 * This function returns the binary equivalent postive integer to a given negative integer of arbitrary length.
+	 * This function returns the binary equivalent positive integer to a given negative integer of arbitrary length.
 	 *
 	 * This would be the same as taking a signed negative
 	 * number and treating it as if it were unsigned. To see a simple example of this
@@ -917,9 +917,9 @@ class AOChat {
 		$strlen = pack("N", strlen($str));
 
 		$plain   = $prefix . $strlen . $str . $pad;
-		$crypted = $this->aoChatCrypt($dhK, $plain);
+		$encrypted = $this->aoChatCrypt($dhK, $plain);
 
-		return $dhX . "-" . $crypted;
+		return $dhX . "-" . $encrypted;
 	}
 
 	/**

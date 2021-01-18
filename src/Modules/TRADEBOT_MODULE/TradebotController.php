@@ -182,7 +182,7 @@ class TradebotController {
 	}
 
 	/**
-	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errros
+	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors
 	 */
 	public function processIncomingTradebotMessage(string $sender, string $message): void {
 		$message = "Received message from Tradebot <highlight>$sender<end>: $message";

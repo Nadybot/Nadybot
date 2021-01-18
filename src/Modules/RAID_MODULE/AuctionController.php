@@ -556,7 +556,7 @@ class AuctionController {
 			"<header2>How it works<end>\n".
 			"Bidding works like ebay: You bid the maximum number of points you would like ".
 			"to spend on an item.\n".
-			"The actual number of points spent will be that of the second hightest bidder plus one,\n".
+			"The actual number of points spent will be that of the second highest bidder plus one,\n".
 			"so you will only actually bid as many points as needed - not more.\n\n".
 			"<header2>Note<end>\n".
 			"When 2 people are bidding the same amount for an item, the first person ".

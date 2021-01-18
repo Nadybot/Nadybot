@@ -26,7 +26,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord channel ID (nmber up to 20 digits).\n".
 			"You can get the ID of a channel by turning on Developer mode in Discord, ".
-			"right-clicking on a channel and chosing \"Copy ID\".\n".
+			"right-clicking on a channel and choosing \"Copy ID\".\n".
 			"To turn on Developer Mode in Discord:\n".
 			"<tab>* press ctrl + , (opens User Settings)\n".
 			"<tab>* choose \"Appearance\"\n".

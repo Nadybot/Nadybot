@@ -3,6 +3,6 @@
 namespace Nadybot\Core;
 
 class ProxyReply {
-	/** Type of tjhe reply from the proxy */
+	/** Type of the reply from the proxy */
 	public string $type;
 }

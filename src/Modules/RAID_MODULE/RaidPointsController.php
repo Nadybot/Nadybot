@@ -254,7 +254,7 @@ class RaidPointsController {
 	}
 
 	/**
-	 * Low level function to modify a player's points, returning sucess or not
+	 * Low level function to modify a player's points, returning success or not
 	 */
 	protected function giveRaidPoints(string $player, int $delta): bool {
 		$updated = $this->db->exec(

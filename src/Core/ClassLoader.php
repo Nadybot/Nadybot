@@ -90,7 +90,7 @@ class ClassLoader {
 	}
 
 	/**
-	 * Register a modue in a basedir and check compatibility
+	 * Register a module in a basedir and check compatibility
 	 */
 	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory

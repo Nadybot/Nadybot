@@ -277,7 +277,7 @@ class GSPController {
 	/**
 	 * Get an array of song descriptions
 	 *
-	 * @param Song[] $history The history (playlist) as an aray of songs
+	 * @param Song[] $history The history (playlist) as an array of songs
 	 * @return string[] Rendered song information about the playlist
 	 */
 	protected function getPlaylistInfos(array $history): array {

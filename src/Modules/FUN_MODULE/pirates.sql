@@ -1,6 +1,6 @@
 DELETE FROM fun WHERE type = 'pirates';
 INSERT INTO fun (type, content) VALUES
-('pirates', 'Lord Beckett: You''re mad!<br>Jack Sparrow: well thats good cause If I wasn''t, this''d probably never work.'),
+('pirates', 'Lord Beckett: You''re mad!<br>Jack Sparrow: well that''s good cause If I wasn''t, this''d probably never work.'),
 ('pirates', 'Barbossa: There''s not been a gathering like this in our lifetime.<br>Jack Sparrow: And I owe them all money.'),
 ('pirates', 'Jack Sparrow: Did no one come to save me just because they missed me?'),
 ('pirates', 'Elizabeth Swann: It never would''ve worked out between us.<br>Jack Sparrow: Keep telling yourself that, darling.'),

@@ -158,4 +158,4 @@ Trader
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-Thats tier 2 complete only #L "Tier 3" "/tell {myname} recipe 57" to go!
+That's tier 2 complete only #L "Tier 3" "/tell {myname} recipe 57" to go!

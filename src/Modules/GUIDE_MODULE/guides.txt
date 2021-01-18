@@ -6,15 +6,15 @@ To see a specific guide:
 
 <header2>Common guides<end>
 
-To see infomation about the different breeds:
+To see information about the different breeds:
 <highlight><tab><symbol>guides breed<end>
 <highlight><tab><symbol>breed<end>
 
-To see infomation about healdelta:
+To see information about healdelta:
 <highlight><tab><symbol>guides healdelta<end>
 <highlight><tab><symbol>healdelta<end>
 
-To see infomation about nanodelta:
+To see information about nanodelta:
 <highlight><tab><symbol>guides nanodelta<end>
 <highlight><tab><symbol>nanodelta<end>
 

@@ -423,7 +423,7 @@ class TimerController {
 	 * Generate alerts out of an alert specification
 	 *
 	 * @param string $sender Name of the player
-	 * @param string $name Name ofthe alert
+	 * @param string $name Name of the alert
 	 * @param int $endTime When to trigger the timer
 	 * @param string[] $alertTimes A list og alert times (human readable)
 	 * @return Alert[]
