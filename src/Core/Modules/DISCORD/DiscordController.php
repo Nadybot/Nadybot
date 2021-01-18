@@ -217,8 +217,8 @@ class DiscordController {
 				$field["value"] = $parts[1];
 				$embed->fields []= $field;
 				$field["name"] .= " (continued)";
-				for ($i = 3; $i < count($parts); $i += 2) {
-					$field["value"] = $parts[$i];
+				for ($j = 3; $j < count($parts); $j += 2) {
+					$field["value"] = $parts[$j];
 					$embed->fields []= $field;
 				}
 			} else {
