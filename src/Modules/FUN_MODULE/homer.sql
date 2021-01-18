@@ -309,7 +309,7 @@ INSERT INTO fun (type, content) VALUES
 ('homer', 'I''ll lucky if I could get just half-an-hour to get funky [Rocker Homer]. '),
 ('homer', 'Oh! I haven''t changed since high school and suddenly I am uncool.'),
 ('homer', 'People know your name. You don''t know theirs. It''s great [about being a rocker].'),
-('homer', 'It''s mor important to be with my family than being cool.'),
+('homer', 'It''s more important to be with my family than being cool.'),
 ('homer', 'Guide : This man here is more than 200 MILLION years old.  Homer : Pssst ... I got more bones than he has. If you''re trying to impress me, you failed.  Guide : It''s not the bones ...  Homer : You failed to impress me.'),
 ('homer', 'Boy, everyone is stupid except me.'),
 ('homer', 'You put the beer in the coconut and throw the can away.'),
