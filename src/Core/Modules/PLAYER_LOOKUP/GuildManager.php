@@ -132,6 +132,7 @@ class GuildManager {
 		// parsing of the member data
 		$guild = new Guild();
 		$guild->guild_id = $guildID;
+		$guild->governing_form = $orgInfo->GOVERNINGNAME;
 		$guild->orgname = $orgInfo->NAME;
 		$guild->orgside = $orgInfo->SIDE_NAME;
 		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
