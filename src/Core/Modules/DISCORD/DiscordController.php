@@ -142,9 +142,9 @@ class DiscordController {
 		$embeds = [];
 		$text = preg_replace_callback(
 			'|<a href="text://(.+?)">(.+?)</a>|s',
-			function (array $matches) use (&$embeds): string {
+			function (array $matches) use (&$embeds, $text): string {
 				$embeds []= $this->parsePopupToEmbed($matches);
-				return "";
+				return ($text === $matches[0]) ? "" : "__**" . $matches[2] . "**__";
 			},
 			$text
 		);
