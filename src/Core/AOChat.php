@@ -72,7 +72,7 @@ define('AOC_GROUP_NOASIAN',     0x00000020);
 define('AOC_GROUP_MUTE',        0x01010000);
 define('AOC_GROUP_LOG',         0x02020000);
 
-define('AOC_FLOOD_LIMIT',                7);
+define('AOC_FLOOD_LIMIT',                5);
 define('AOC_FLOOD_INC',                  2);
 
 define('AOEM_UNKNOWN',                0xFF);
