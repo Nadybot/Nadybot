@@ -17,6 +17,8 @@ use ReflectionProperty;
  */
 class DB {
 
+	public const SQLITE_MIN_VERSION = "3.23.0";
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
@@ -99,6 +101,14 @@ class DB {
 
 			$this->sql = new PDO("sqlite:".$dbName);
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+				throw new Exception(
+					"Your SQLite $sqliteVersion is too old to run Nadybot. ".
+					"Please upgrade to SQLite " . static::SQLITE_MIN_VERSION . " or newer ".
+					"or switch to MySQL/MariaDB."
+				);
+			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
 		}
