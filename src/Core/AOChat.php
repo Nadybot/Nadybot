@@ -156,7 +156,7 @@ class AOChat {
 	/**
 	 * The chat queue
 	 */
-	public ?AOChatQueue $chatqueue;
+	public ?QueueInterface $chatqueue;
 
 	/**
 	 * The parser for the MMDB
@@ -212,7 +212,7 @@ class AOChat {
 			return null;
 		}
 
-		$this->chatqueue = new AOChatQueue(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
+		$this->chatqueue = new LeakyBucket(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
 
 		return $this->socket;
 	}

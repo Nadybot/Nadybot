@@ -19,11 +19,13 @@ namespace Nadybot\Core;
  * [2]: <http://www.hackersquest.org/ao/>
  */
 
-define('AOC_PRIORITY_HIGH', 1000);
-define('AOC_PRIORITY_MED',   500);
-define('AOC_PRIORITY_LOW',   100);
+if (!defined("AOC_PRIORITY_HIGH")) {
+	define('AOC_PRIORITY_HIGH', 1000);
+	define('AOC_PRIORITY_MED',   500);
+	define('AOC_PRIORITY_LOW',   100);
+}
 
-class AOChatQueue {
+class AOChatQueueAuno implements QueueInterface {
 
 	/**
 	 * The packet queue for each priority (low, med, high)
@@ -51,6 +53,11 @@ class AOChatQueue {
 	 * The amount of time in seconds to wait after the limit has been reached
 	 */
 	public int $increment;
+
+	/**
+	 * Is the queueing enabled or can we just send at any rate
+	 */
+	public bool $enabled = true;
 
 	/**
 	 * Create a new Chat Queue with a burst of $limit messages and $increment seconds between messages after burst
@@ -89,7 +96,7 @@ class AOChatQueue {
 			return null;
 		}
 		$now = time();
-		if ($this->point > $now) {
+		if ($this->enabled && $this->point > $now) {
 			return null;
 		}
 
@@ -113,5 +120,9 @@ class AOChatQueue {
 			}
 		}
 		return null;
+	}
+
+	public function disable(): void {
+		$this->enabled = false;
 	}
 }
