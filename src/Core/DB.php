@@ -58,6 +58,10 @@ class DB {
 
 	private LoggerWrapper $logger;
 
+	protected array $sqlReplacements = [];
+	protected array $sqlRegexpReplacements = [];
+	protected array $sqlCreateReplacements = [];
+
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 
@@ -92,6 +96,7 @@ class DB {
 					$this->exec("SET default_storage_engine = aria");
 				}
 			}
+			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
 				$dbName = "./data/$dbName";
@@ -102,12 +107,18 @@ class DB {
 			$this->sql = new PDO("sqlite:".$dbName);
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
+			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
+			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
 			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
-				throw new Exception(
-					"Your SQLite $sqliteVersion is too old to run Nadybot. ".
-					"Please upgrade to SQLite " . static::SQLITE_MIN_VERSION . " or newer ".
-					"or switch to MySQL/MariaDB."
-				);
+				$this->sqlCreateReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
+				$this->sqlCreateReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
+				$this->sqlReplacements[" IS TRUE"] = "=1";
+				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
+				$this->sqlReplacements[" IS FALSE"] = "=0";
+				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
+				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
+				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
 			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
@@ -309,18 +320,30 @@ class DB {
 	}
 
 	/**
+	 * Change the SQL to work in a variety of MySQL/SQLite versions
+	 */
+	public function applySQLCompatFixes(string $sql): string {
+		if (!empty($this->sqlReplacements)) {
+			$search = array_keys($this->sqlReplacements);
+			$replace = array_values($this->sqlReplacements);
+			$sql = str_ireplace($search, $replace, $sql);
+		}
+		foreach ($this->sqlRegexpReplacements as $search => $replace) {
+			$sql = preg_replace($search, $replace, $sql);
+		}
+		return $sql;
+	}
+
+	/**
 	 * Execute a query and return the number of affected rows
 	 */
 	public function exec(string $sql): int {
 		$sql = $this->formatSql($sql);
 
-		if (substr_compare($sql, "create", 0, 6, true) === 0) {
-			if ($this->type === self::MYSQL) {
-				$sql = str_ireplace("AUTOINCREMENT", "AUTO_INCREMENT", $sql);
-			} elseif ($this->type === self::SQLITE) {
-				$sql = str_ireplace("AUTO_INCREMENT", "AUTOINCREMENT", $sql);
-				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
-			}
+		if (!empty($this->sqlCreateReplacements) && substr_compare($sql, "create ", 0, 7, true) === 0) {
+			$search = array_keys($this->sqlCreateReplacements);
+			$replace = array_values($this->sqlCreateReplacements);
+			$sql = str_ireplace($search, $replace, $sql);
 		}
 
 		$args = $this->getParameters(func_get_args());
@@ -373,6 +396,7 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
+		$sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
 
