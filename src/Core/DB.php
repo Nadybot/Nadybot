@@ -59,6 +59,7 @@ class DB {
 	private LoggerWrapper $logger;
 
 	protected array $sqlReplacements = [];
+	protected array $sqlRegexpReplacements = [];
 	protected array $sqlCreateReplacements = [];
 
 	public const MYSQL = 'mysql';
@@ -111,6 +112,13 @@ class DB {
 			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
 			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
 				$this->sqlReplacements[" IS TRUE"] = "=1";
+				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
+				$this->sqlReplacements[" IS FALSE"] = "=0";
+				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
+				$this->sqlReplacements[" DEFAULT TRUE"] = "DEFAULT 1";
+				$this->sqlReplacements[" DEFAULT FALSE"] = "DEFAULT 0";
+				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/"] = "1";
+				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/"] = "0";
 			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
@@ -321,6 +329,9 @@ class DB {
 			$search = array_keys($this->sqlReplacements);
 			$replace = array_values($this->sqlReplacements);
 			$sql = str_ireplace($search, $replace, $sql);
+		}
+		foreach ($this->sqlRegexpReplacements as $search => $replace) {
+			$sql = preg_replace($search, $replace, $sql);
 		}
 		if (!empty($this->sqlCreateReplacements) && substr_compare($sql, "create ", 0, 7, true) === 0) {
 			$search = array_keys($this->sqlCreateReplacements);
