@@ -320,11 +320,9 @@ class DB {
 	}
 
 	/**
-	 * Execute a query and return the number of affected rows
+	 * Change the SQL to work in a variety of MySQL/SQLite versions
 	 */
-	public function exec(string $sql): int {
-		$sql = $this->formatSql($sql);
-
+	public function applySQLCompatFixes(string $sql): string {
 		if (!empty($this->sqlReplacements)) {
 			$search = array_keys($this->sqlReplacements);
 			$replace = array_values($this->sqlReplacements);
@@ -333,6 +331,15 @@ class DB {
 		foreach ($this->sqlRegexpReplacements as $search => $replace) {
 			$sql = preg_replace($search, $replace, $sql);
 		}
+		return $sql;
+	}
+
+	/**
+	 * Execute a query and return the number of affected rows
+	 */
+	public function exec(string $sql): int {
+		$sql = $this->formatSql($sql);
+
 		if (!empty($this->sqlCreateReplacements) && substr_compare($sql, "create ", 0, 7, true) === 0) {
 			$search = array_keys($this->sqlCreateReplacements);
 			$replace = array_values($this->sqlCreateReplacements);
@@ -389,6 +396,7 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
+		$sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
 
