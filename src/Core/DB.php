@@ -117,8 +117,8 @@ class DB {
 				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
 				$this->sqlReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
 				$this->sqlReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
-				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/"] = "1";
-				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/"] = "0";
+				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
+				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
 			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
