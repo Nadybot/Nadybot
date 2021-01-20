@@ -111,12 +111,12 @@ class DB {
 			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
 			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
 			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+				$this->sqlCreateReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
+				$this->sqlCreateReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
 				$this->sqlReplacements[" IS TRUE"] = "=1";
 				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
 				$this->sqlReplacements[" IS FALSE"] = "=0";
 				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
-				$this->sqlReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
-				$this->sqlReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
 				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
 				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
 			}
