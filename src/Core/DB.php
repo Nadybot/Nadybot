@@ -115,8 +115,8 @@ class DB {
 				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
 				$this->sqlReplacements[" IS FALSE"] = "=0";
 				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
-				$this->sqlReplacements[" DEFAULT TRUE"] = "DEFAULT 1";
-				$this->sqlReplacements[" DEFAULT FALSE"] = "DEFAULT 0";
+				$this->sqlReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
+				$this->sqlReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
 				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/"] = "1";
 				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/"] = "0";
 			}
