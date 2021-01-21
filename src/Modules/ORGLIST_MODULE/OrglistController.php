@@ -184,7 +184,11 @@ class OrglistController {
 		}
 
 		$this->orglist->org = $org->orgname;
-		$this->orglist->orgtype = $org->governing_form ?? $this->getOrgGoverningForm($org->members);
+		if (isset($org->governing_form) && isset($this->orgrankmap[$org->governing_form])) {
+			$this->orglist->orgtype = $this->orgrankmap[$org->governing_form];
+		} else {
+			$this->orglist->orgtype = $this->getOrgGoverningForm($org->members);
+		}
 
 		// Check each name if they are already on the buddylist (and get online status now)
 		// Or make note of the name so we can add it to the buddylist later.
