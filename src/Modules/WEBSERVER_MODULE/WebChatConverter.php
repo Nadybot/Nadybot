@@ -149,19 +149,19 @@ class WebChatConverter {
 			$message
 		);
 		$message = preg_replace("/\r?\n/", "<br />", $message);
-		$message = preg_replace("/<a href=['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
-		$message = preg_replace("/<a href=['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
-		$message = preg_replace("/<a href=['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:skill id=\"$1\">$2</ao:skill>", $message);
-		$message = preg_replace("/<a href=['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<ao:user name=\"$1\">$2</ao:user>", $message);
+		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
+		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
+		$message = preg_replace("/<a\s+href\s*=\s*['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:skill id=\"$1\">$2</ao:skill>", $message);
+		$message = preg_replace("/<a\s+href\s*=\s*['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<ao:user name=\"$1\">$2</ao:user>", $message);
 		$message = preg_replace_callback(
-			"/<a href='chatcmd:\/\/\/tell\s+<myname>\s+(.*?)'>(.*?)<\/a>/s",
+			"/<a\s+href\s*=\s*(['\"])chatcmd:\/\/\/tell\s+<myname>\s+(.*?)\\1>(.*?)<\/a>/s",
 			function(array $matches): string {
-				return '<ao:command cmd="' . htmlentities($matches[1]) . "\">{$matches[2]}</ao:command>";
+				return '<ao:command cmd="' . htmlentities($matches[2]) . "\">{$matches[3]}</ao:command>";
 			},
 			$message
 		);
-		$message = preg_replace("/<a href='chatcmd:\/\/\/start\s+(.*?)'>(.*?)<\/a>/s", "<a href=\"$1\">$2</a>", $message);
-		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "<ao:command cmd=\"$1\">$2</ao:command>", $message);
+		$message = preg_replace("/<a\s+href=(['\"])chatcmd:\/\/\/start\s+(.*?)\\1>(.*?)<\/a>/s", "<a href=\"$2\">$3</a>", $message);
+		$message = preg_replace("/<a\s+href=(['\"])chatcmd:\/\/\/(.*?)\\1>(.*?)<\/a>/s", "<ao:command cmd=\"$2\">$3</ao:command>", $message);
 		$message = str_ireplace(array_keys($symbols), array_values($symbols), $message);
 		$message = preg_replace_callback(
 			"/<img src=['\"]?tdb:\/\/id:GFX_GUI_ICON_PROFESSION_(\d+)['\"]?>/s",
@@ -178,6 +178,16 @@ class WebChatConverter {
 		return $message;
 	}
 
+	/** Fix illegal HTML by closing/removing unclosed tags */
+	public function fixUnclosedTags(string $message): string {
+		$message = preg_replace("/<(\/?[a-z]+):/", "<$1___", $message);
+		$xml = new \DOMDocument();
+		@$xml->loadHTML($message);
+		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $xml->saveXML());
+		$message = preg_replace("/<([\/a-z]+)___/", "<$1:", $message);
+		return $message;
+	}
+
 	public function parseAOFormat(string $message): AOMsg {
 		$parts = [];
 		$id = 0;
@@ -186,9 +196,13 @@ class WebChatConverter {
 			function (array $matches) use (&$parts, &$id): string {
 				$parts["ao-" . ++$id] = $this->formatMsg(
 					preg_replace(
-						"/^<font.*?>(<end>)?/",
+						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
-						str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2])
+						preg_replace(
+							"/^\s*<font[^>]*>(.+)<\/font>/s",
+							"<header>$1<end>",
+							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2])
+						)
 					)
 				);
 				return "<popup ref=\"ao-$id\">" . $this->formatMsg($matches[3]) . "</popup>";
@@ -204,14 +218,14 @@ class WebChatConverter {
 		if (count(get_object_vars($msg->popups))) {
 			$data .= "<data>";
 			foreach ($msg->popups as $key => $value) {
-				$data .= "<section id=\"{$key}\">{$value}</section>";
+				$data .= "<section id=\"{$key}\">" . $this->fixUnclosedTags($value) . "</section>";
 			}
 			$data .= "</data>";
 		}
 		$needNS = strstr($data, "<ao:") !== false || strstr($msg->message, "<ao:") !== false;
 		$xml = "<?xml version='1.0' standalone='yes'?>".
 			"<message" . ($needNS ? " xmlns:ao=\"ao:bot:common\"" : "") . ">".
-			"<text>{$msg->message}</text>".
+			"<text>" . $this->fixUnclosedTags($msg->message) . "</text>".
 			$data.
 			"</message>";
 		return $xml;
