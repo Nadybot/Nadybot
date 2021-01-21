@@ -193,12 +193,13 @@ class HelpbotController {
 		$calc = strtolower($args[1]);
 
 		// check if the calc string includes not allowed chars
-		$numValidChars = strspn($calc, "0123456789.+-*%()/\\ ");
+		$numValidChars = strspn($calc, "0123456789.+^-*%()/\\ ");
 
 		if ($numValidChars !== strlen($calc)) {
 			$sendto->reply("Cannot compute.");
 			return;
 		}
+		$calc = str_replace("^", "**", $calc);
 		try {
 			$result = 0;
 			$calc = "\$result = ".$calc.";";
@@ -210,8 +211,10 @@ class HelpbotController {
 			$sendto->reply("Cannot compute.");
 			return;
 		}
-		preg_match_all("{(\d*\.?\d+|[+%()/-]|\*+)}", $args[1], $matches);
+		preg_match_all("{(\d*\.?\d+|[+%()/-^]|\*+)}", $args[1], $matches);
 		$expression = join(" ", $matches[1]);
+		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
+		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);
 
 		$msg ="{$expression} = <highlight>{$result}<end>";
 		$sendto->reply($msg);
