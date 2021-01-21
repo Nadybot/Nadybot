@@ -20,6 +20,9 @@ class CommentCategory extends DBRow {
 	/** The minimum access level required to write comments of this category */
 	public string $min_al_write = 'all';
 
+	/** Whether the category is from the system (false) or from a user (true) */
+	public bool $user_managed = true;
+
 	public function __construct() {
 		$this->created_at = time();
 	}

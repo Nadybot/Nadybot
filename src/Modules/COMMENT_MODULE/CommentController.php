@@ -9,7 +9,9 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Nadybot,
-	Text,
+	SettingManager,
+    SQLException,
+    Text,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -50,6 +52,9 @@ class CommentController {
 	public AccessManager $accessManager;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
@@ -61,7 +66,6 @@ class CommentController {
 	/** @Inject */
 	public Text $text;
 
-	public const RAID="raid";
 	public const ADMIN="admin";
 
 	/**
@@ -72,14 +76,17 @@ class CommentController {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
-		if ($this->getCategory(static::RAID) === null) {
-			$raidCat = new CommentCategory();
-			$raidCat->name = static::RAID;
-			$raidCat->created_by = $this->chatBot->vars["name"];
-			$raidCat->min_al_read = "raid_leader_1";
-			$raidCat->min_al_write = "raid_leader_2";
-			$this->db->insert("comment_categories_<myname>", $raidCat);
-		}
+		$this->settingManager->add(
+			$this->moduleName,
+			"comment_cooldown",
+			"How long is the cooldown between leaving 2 comments for the same character",
+			"edit",
+			"time",
+			"6h",
+			"1s;1h;6h;24h",
+			'',
+			"mod"
+		);
 	}
 
 	/** Read a single category by its name */
@@ -89,6 +96,11 @@ class CommentController {
 			"SELECT * FROM `comment_categories_<myname>` WHERE `name` LIKE ?",
 			$category
 		);
+	}
+
+	/** Create a new category */
+	public function saveCategory(CommentCategory $category): int {
+		return $this->db->insert("comment_categories_<myname>", $category);
 	}
 
 	/**
@@ -138,12 +150,12 @@ class CommentController {
 	 */
 	public function deleteCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$category = $args[1];
-		if (strtolower($category) === static::RAID) {
-			$sendto->reply("You cannot delete the built-in category <highlight>{$category}<end>.");
-			return;
-		}
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
+			if ($cat->user_managed === false) {
+				$sendto->reply("You cannot delete the built-in category <highlight>{$category}<end>.");
+				return;
+			}
 			$senderAl = $this->accessManager->getAccessLevelForCharacter($sender);
 			if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
 				|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
@@ -197,7 +209,7 @@ class CommentController {
 			$cat->name = $category;
 			$cat->min_al_read = $alRead;
 			$cat->min_al_write = $alWrite;
-			$this->db->insert("comment_categories_<myname>", $cat);
+			$this->saveCategory($cat);
 			$sendto->reply("Category <highlight>{$category}<end> successfully created.");
 			return;
 		}
@@ -243,13 +255,70 @@ class CommentController {
 			);
 			return;
 		}
+		if ($this->altsController->getAltInfo($sender)->main === $this->altsController->getAltInfo($character)->main) {
+			$sendto->reply("You cannot comment on yourself.");
+			return;
+		}
 		$comment = new Comment();
 		$comment->category = $cat->name;
 		$comment->character = $character;
 		$comment->comment = trim($commentText);
 		$comment->created_by = $sender;
-		$this->db->insert("comments_<myname>", $comment);
+		$cooldown = $this->saveComment($comment);
+		if ($cooldown > 0) {
+			$sendto->reply(
+				"You have to wait <highlight>" . $this->util->unixtimeToReadable($cooldown) . "<end> ".
+				"before posting another comment about <highlight>{$character}<end>."
+			);
+			return;
+		}
 		$sendto->reply("Comment about <highlight>{$character}<end> successfully saved.");
+	}
+
+	/**
+	 * Calculate how many seconds to wait before posting another comment
+	 * about the same character again.
+	 */
+	protected function getCommentCooldown(Comment $comment): int {
+		if ($comment->created_by === $this->chatBot->vars["name"]) {
+			return 0;
+		}
+		$cooldown = $this->settingManager->getInt("comment_cooldown");
+		// Get all comments about that same character
+		$comments = $this->getComments(null, $comment->character);
+		// Only keep those that were created by the same person creating one now
+		$ownComments = array_values(
+			array_filter(
+				$comments,
+				function(Comment $com) use($comment): bool {
+					return $com->created_by === $comment->created_by;
+				}
+			)
+		);
+		// They are sorted by time, so last element is the newest
+		$lastComment = end($ownComments);
+		if (!isset($lastComment)) {
+			return 0;
+		}
+		// If the age of the last comment is less than the cooldown, return the remaining cooldown
+		if (time() - $lastComment->created_at < $cooldown) {
+			return $cooldown - time() + $lastComment->created_at;
+		}
+		return 0;
+	}
+
+	/**
+	 * Save a comment and take the cooldown into consideration
+	 * @return int 0 for success, otherwise the remaining time in seconds for posting
+	 */
+	public function saveComment(Comment $comment): int {
+		$cooldown = $this->getCommentCooldown($comment);
+		if ($cooldown > 0) {
+			return $cooldown;
+		}
+
+		$this->db->insert("comments_<myname>", $comment);
+		return 0;
 	}
 
 	/**

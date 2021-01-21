@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
@@ -109,6 +110,7 @@ class RaidController {
 	public ?Raid $raid = null;
 
 	public const ERR_NO_RAID = "There's currently no raid running.";
+	public const CAT_RAID = "raid";
 
 	/** @Setup */
 	public function setup(): void {
@@ -170,6 +172,20 @@ class RaidController {
 		$this->db->loadSQLFile($this->moduleName, "raid");
 		$this->db->loadSQLFile($this->moduleName, "raid_log");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
+		$this->timer->callLater(0, [$this, 'createCommentCategory']);
+	}
+
+	public function createCommentCategory(): void {
+		if ($this->commentController->getCategory(static::CAT_RAID) !== null) {
+			return;
+		}
+		$raidCat = new CommentCategory();
+		$raidCat->name = static::CAT_RAID;
+		$raidCat->created_by = $this->chatBot->vars["name"];
+		$raidCat->min_al_read = "raid_leader_1";
+		$raidCat->min_al_write = "raid_leader_2";
+		$raidCat->user_managed = false;
+		$this->commentController->saveCategory($raidCat);
 	}
 
 	/**
@@ -879,11 +895,11 @@ class RaidController {
 			return;
 		}
 		$raiderNames = array_keys($this->raid->raiders);
-		$category = $this->commentController->getCategory(CommentController::RAID);
+		$category = $this->commentController->getCategory(static::CAT_RAID);
 		if (!isset($category)) {
 			$sendto->reply(
 				"Someone deleted the comment category ".
-				"<highlight>" . CommentController::RAID . "<end>."
+				"<highlight>" . static::CAT_RAID . "<end>."
 			);
 			return;
 		}
@@ -904,7 +920,7 @@ class RaidController {
 	 * @Matches("/^raid (?:notes?|comments?) (?:add|create|new) (\w+) (.+)$/i")
 	 */
 	public function raidCommentAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args = [$args[0], $args[1], CommentController::RAID, $args[2]];
+		$args = [$args[0], $args[1], static::CAT_RAID, $args[2]];
 		$this->commentController->addCommentCommand(...func_get_args());
 	}
 }
