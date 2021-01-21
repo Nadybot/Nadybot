@@ -12,9 +12,11 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Tyrence (RK2)
@@ -67,6 +69,12 @@ class WhoisController {
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
+	/** @Inject */
+	public CommentController $commentController;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];
 
@@ -75,6 +83,18 @@ class WhoisController {
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "name_history");
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'whois_add_comments',
+			'Show link to comments if found',
+			'edit',
+			'options',
+			'1',
+			'true;false',
+			'1;0',
+			'mod'
+		);
 
 		$this->commandAlias->register($this->moduleName, "whois", "w");
 		$this->commandAlias->register($this->moduleName, "whois", "is");
@@ -312,6 +332,13 @@ class WhoisController {
 			$msg .= " :: <red>Offline<end>";
 		}
 		$msg .= " :: " . $this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}");
+		if ($this->settingManager->getBool('whois_add_comments')) {
+			$comments = $this->commentController->getComments(null, $whois->name);
+			if ($numComments = count($comments)) {
+				$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
+				$msg .= " :: " . $this->text->makeChatcmd($comText, "/tell <myname> comments get {$whois->name}");
+			}
+		}
 
 		$altInfo = $this->altsController->getAltInfo($name);
 		if (count($altInfo->getAllValidatedAlts()) === 0) {
