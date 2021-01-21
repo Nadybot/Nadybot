@@ -223,7 +223,6 @@ class TradebotController {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
-		var_dump($message);
 		if ($this->settingManager->getBool('tradebot_add_comments')) {
 			$message = $this->addCommentsToMessage($message);
 		}
