@@ -90,7 +90,6 @@ class LeakyBucket implements QueueInterface {
 
 		foreach (array_keys($this->queue) as $priority) {
 			while (true) {
-
 				$current = microtime(true);
 				$timePassed = $current - $this->lastRefill;
 
@@ -101,7 +100,6 @@ class LeakyBucket implements QueueInterface {
 				}
 				$this->bucketFill = min($this->bucketSize, $this->bucketFill);
 				if ($this->enabled && $this->bucketFill < 1) {
-echo("DEBUG:: queue full, cannot get packet\n");
 					return null;
 				}
 				$item = array_shift($this->queue[$priority]);
