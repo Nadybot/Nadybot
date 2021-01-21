@@ -1049,7 +1049,7 @@ class Nadybot extends AOChat {
 	public function processProxyCapabilities(ProxyCapabilities $reply): void {
 		$this->proxyCapabilities = $reply;
 		if ($reply->rate_limited) {
-			$this->chatqueue->limit = PHP_INT_MAX;
+			$this->chatqueue->disable();
 		}
 	}
 

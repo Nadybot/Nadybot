@@ -72,7 +72,7 @@ define('AOC_GROUP_NOASIAN',     0x00000020);
 define('AOC_GROUP_MUTE',        0x01010000);
 define('AOC_GROUP_LOG',         0x02020000);
 
-define('AOC_FLOOD_LIMIT',                7);
+define('AOC_FLOOD_LIMIT',                5);
 define('AOC_FLOOD_INC',                  2);
 
 define('AOEM_UNKNOWN',                0xFF);
@@ -156,7 +156,7 @@ class AOChat {
 	/**
 	 * The chat queue
 	 */
-	public ?AOChatQueue $chatqueue;
+	public ?QueueInterface $chatqueue;
 
 	/**
 	 * The parser for the MMDB
@@ -212,7 +212,7 @@ class AOChat {
 			return null;
 		}
 
-		$this->chatqueue = new AOChatQueue(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
+		$this->chatqueue = new LeakyBucket(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
 
 		return $this->socket;
 	}
