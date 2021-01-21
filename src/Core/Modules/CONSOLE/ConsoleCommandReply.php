@@ -46,6 +46,8 @@ class ConsoleCommandReply implements CommandReply {
 			"<end>" => "\e[0m",
 			"<u>" => "\e[4m",
 			"</u>" => "\e[24m",
+			"<i>" => "\e[3m",
+			"</i>" => "\e[23m",
 			"<symbol>" => "",
 			"<br>" => "\n"
 		];
