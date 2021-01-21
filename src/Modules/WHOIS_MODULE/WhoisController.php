@@ -336,7 +336,9 @@ class WhoisController {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
 				$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
-				$msg .= " :: " . $this->text->makeChatcmd($comText, "/tell <myname> comments get {$whois->name}");
+				$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
+					" if you have the necessary access level.";
+				$msg .= " :: " . $this->text->makeBlob($comText, $blob);
 			}
 		}
 

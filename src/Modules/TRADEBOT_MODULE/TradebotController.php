@@ -223,6 +223,7 @@ class TradebotController {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
+		var_dump($message);
 		if ($this->settingManager->getBool('tradebot_add_comments')) {
 			$message = $this->addCommentsToMessage($message);
 		}
@@ -244,7 +245,9 @@ class TradebotController {
 			return $message;
 		}
 		$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
-		$message .= " [" . $this->text->makeChatcmd($comText, "/tell <myname> comments get {$match[1]}") . "]";
+		$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
+			" if you have the necessary access level.";
+		$message .= " [" . $this->text->makeBlob($comText, $blob) . "]";
 		return $message;
 	}
 
