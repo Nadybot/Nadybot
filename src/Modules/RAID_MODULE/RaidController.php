@@ -172,12 +172,12 @@ class RaidController {
 		$this->db->loadSQLFile($this->moduleName, "raid");
 		$this->db->loadSQLFile($this->moduleName, "raid_log");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
-		$this->timer->callLater(0, [$this, 'createCommentCategory']);
 	}
 
-	public function createCommentCategory(): void {
-		if ($this->commentController->getCategory(static::CAT_RAID) !== null) {
-			return;
+	public function getRaidCategory(): CommentCategory {
+		$raidCat = $this->commentController->getCategory(static::CAT_RAID);
+		if ($raidCat !== null) {
+			return $raidCat;
 		}
 		$raidCat = new CommentCategory();
 		$raidCat->name = static::CAT_RAID;
@@ -186,6 +186,7 @@ class RaidController {
 		$raidCat->min_al_write = "raid_leader_2";
 		$raidCat->user_managed = false;
 		$this->commentController->saveCategory($raidCat);
+		return $raidCat;
 	}
 
 	/**
@@ -895,23 +896,16 @@ class RaidController {
 			return;
 		}
 		$raiderNames = array_keys($this->raid->raiders);
-		$category = $this->commentController->getCategory(static::CAT_RAID);
-		if (!isset($category)) {
-			$sendto->reply(
-				"Someone deleted the comment category ".
-				"<highlight>" . static::CAT_RAID . "<end>."
-			);
-			return;
-		}
+		$category = $this->getRaidCategory();
 		$comments = $this->commentController->getComments($category, ...$raiderNames);
 		$comments = $this->commentController->filterInaccessibleComments($comments, $sender);
 		if (!count($comments)) {
 			$sendto->reply("There are no notes about any raider that you have access to.");
 			return;
 		}
-		$blob = $this->commentController->formatComments($comments, true);
-		$msg = "Comments about the current raiders (" . count($comments) . ")";
-		$msg = $this->text->makeBlob($msg, $blob);
+		$format = $this->commentController->formatComments($comments, true);
+		$msg = "Comments ({$format->numComments}) about the current raiders ({$format->numMains})";
+		$msg = $this->text->makeBlob($msg, $format->blob);
 		$sendto->reply($msg);
 	}
 
@@ -920,7 +914,16 @@ class RaidController {
 	 * @Matches("/^raid (?:notes?|comments?) (?:add|create|new) (\w+) (.+)$/i")
 	 */
 	public function raidCommentAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args = [$args[0], $args[1], static::CAT_RAID, $args[2]];
+		$args = [$args[0], $args[1], $this->getRaidCategory()->name, $args[2]];
 		$this->commentController->addCommentCommand(...func_get_args());
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (?:notes?|comments?) (?:get|read|search|find) (\w+)$/i")
+	 */
+	public function raidCommentSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args []= $this->getRaidCategory()->name;
+		$this->commentController->searchCommentCommand(...func_get_args());
 	}
 }

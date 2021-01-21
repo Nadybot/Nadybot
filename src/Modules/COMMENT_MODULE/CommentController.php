@@ -10,8 +10,7 @@ use Nadybot\Core\{
 	DB,
 	Nadybot,
 	SettingManager,
-    SQLException,
-    Text,
+	Text,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -360,11 +359,11 @@ class CommentController {
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = $this->formatComments($comments, false, !isset($category));
+		$formatted = $this->formatComments($comments, false, !isset($category));
 		$msg = "Comments about {$character}".
 			(isset($category) ? " in category {$category->name}" : "").
 			" (" . count($comments) . ")";
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = $this->text->makeBlob($msg, $formatted->blob);
 		$sendto->reply($msg);
 	}
 
@@ -394,12 +393,15 @@ class CommentController {
 	 * Format the blob for a list of commnts
 	 * @param Comment[] $comments
 	 */
-	public function formatComments(array $comments, bool $groupByMain, bool $addCategory=false): string {
+	public function formatComments(array $comments, bool $groupByMain, bool $addCategory=false): FormattedComments {
+		$result = new FormattedComments();
+		$result->numComments = count($comments);
 		$chars = [];
 		foreach ($comments as $comment) {
 			$chars[$comment->character] ??= [];
 			$chars[$comment->character] []= $comment;
 		}
+		$result->numChars = count($chars);
 		if ($groupByMain) {
 			$grouped = [];
 			foreach ($chars as $char => $comments) {
@@ -410,6 +412,7 @@ class CommentController {
 		} else {
 			$grouped = $chars;
 		}
+		$result->numMains = count($grouped);
 		$blob = "";
 		foreach ($grouped as $main => $comments) {
 			$blob .= "<pagebreak><header2>{$main}<end>\n";
@@ -422,7 +425,8 @@ class CommentController {
 				)
 			) . "\n\n";
 		}
-		return $blob;
+		$result->blob = $blob;
+		return $result;
 	}
 
 	/** Format a single comment */
@@ -482,6 +486,17 @@ class CommentController {
 		$sql .= " ORDER BY `created_at` ASC";
 		/** @var Comment[] */
 		$comments = $this->db->fetchAll(Comment::class, $sql, ...$params);
+		return $comments;
+	}
+
+	/**
+	 * Read all comments about of a category
+	 *
+	 * @return Comment[]
+	 */
+	public function readCategoryComments(CommentCategory $category): array {
+		$sql = "SELECT * FROM `comments_<myname>` WHERE `category` LIKE ? ORDER BY `created_at` ASC";
+		$comments = $this->db->fetchAll(Comment::class, $sql, $category->name);
 		return $comments;
 	}
 }
