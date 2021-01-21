@@ -54,3 +54,7 @@ Running auctions
 <tab><highlight><symbol>bid start 'item'<end>
 <tab><highlight><symbol>bid cancel<end>
 <tab><highlight><symbol>bid end<end>
+
+Checking notes
+<tab><highlight><symbol>raid comments<end>
+<tab><highlight><symbol>raid comment add 'player' 'note'<end>

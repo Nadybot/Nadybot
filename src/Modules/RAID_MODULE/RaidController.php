@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -92,6 +93,9 @@ class RaidController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public CommentController $commentController;
 
 	/** @Inject */
 	public RaidRankController $raidRankController;
@@ -859,5 +863,48 @@ class RaidController {
 		$event->type = "raid(stop)";
 		$event->player = ucfirst(strtolower($sender));
 		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (notes?|comments?)$/i")
+	 */
+	public function raidCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($channel !== 'msg') {
+			$sendto->reply("<red>The '<symbol>raid {$args[1]}' command only works in tells<end>.");
+			return;
+		}
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
+		$raiderNames = array_keys($this->raid->raiders);
+		$category = $this->commentController->getCategory(CommentController::RAID);
+		if (!isset($category)) {
+			$sendto->reply(
+				"Someone deleted the comment category ".
+				"<highlight>" . CommentController::RAID . "<end>."
+			);
+			return;
+		}
+		$comments = $this->commentController->getComments($category, ...$raiderNames);
+		$comments = $this->commentController->filterInaccessibleComments($comments, $sender);
+		if (!count($comments)) {
+			$sendto->reply("There are no notes about any raider that you have access to.");
+			return;
+		}
+		$blob = $this->commentController->formatComments($comments, true);
+		$msg = "Comments about the current raiders (" . count($comments) . ")";
+		$msg = $this->text->makeBlob($msg, $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (?:notes?|comments?) (?:add|create|new) (\w+) (.+)$/i")
+	 */
+	public function raidCommentAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args = [$args[0], $args[1], CommentController::RAID, $args[2]];
+		$this->commentController->addCommentCommand(...func_get_args());
 	}
 }
