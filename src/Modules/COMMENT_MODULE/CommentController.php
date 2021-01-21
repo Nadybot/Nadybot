@@ -490,6 +490,27 @@ class CommentController {
 	}
 
 	/**
+	 * Count all comments about a list of players or their alts/main, optionally limited to a category
+	 *
+	 * @return Comment[]
+	 */
+	public function countComments(?CommentCategory $category, string ...$characters): int {
+		$sql = "SELECT COUNT(*) AS num FROM `comments_<myname>` WHERE `character` IN";
+		$params = [];
+		foreach ($characters as $character) {
+			$altInfo = $this->altsController->getAltInfo($character);
+			$params = [...$params, $altInfo->main, ...$altInfo->getAllValidatedAlts()];
+		}
+		$sql .= "(" . join(",", array_fill(0, count($params), "?")) . ")";
+		if (isset($category)) {
+			$sql .= " AND `category`=?";
+			$params []= $category->name;
+		}
+		$comments = $this->db->queryRow($sql, ...$params);
+		return (int)$comments->num;
+	}
+
+	/**
 	 * Read all comments about of a category
 	 *
 	 * @return Comment[]

@@ -87,7 +87,7 @@ class WhoisController {
 		$this->settingManager->add(
 			$this->moduleName,
 			'whois_add_comments',
-			'Show link to comments if found',
+			'Add link to comments if found',
 			'edit',
 			'options',
 			'1',
@@ -333,8 +333,8 @@ class WhoisController {
 		}
 		$msg .= " :: " . $this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}");
 		if ($this->settingManager->getBool('whois_add_comments')) {
-			$comments = $this->commentController->getComments(null, $whois->name);
-			if ($numComments = count($comments)) {
+			$numComments = $this->commentController->countComments(null, $whois->name);
+			if ($numComments) {
 				$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
 				$msg .= " :: " . $this->text->makeChatcmd($comText, "/tell <myname> comments get {$whois->name}");
 			}
