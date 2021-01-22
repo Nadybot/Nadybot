@@ -317,13 +317,13 @@ class NanoController {
 			}
 		}
 		$sql = "SELECT distinct school,strain,froob_friendly ".
-		"FROM nanos ".
-		"WHERE professions LIKE ? ".
-		$froobWhere.
-		"GROUP BY school,strain ".
-		"ORDER BY ".
-			"school ASC, ".
-			"strain ASC";
+			"FROM nanos ".
+			"WHERE professions LIKE ? ".
+			$froobWhere.
+			"GROUP BY school,strain ".
+			"ORDER BY ".
+				"school ASC, ".
+				"strain ASC";
 		$data = $this->db->query($sql, "%${profession}%");
 
 		$shortProf = $profession;
@@ -339,6 +339,9 @@ class NanoController {
 		foreach ($data as $row) {
 			$strain = $row->strain;
 			if ($lastSchool === null || $lastSchool !== $row->school) {
+				if ($lastSchool !== null) {
+					$blob .="\n";
+				}
 				$blob .= "<pagebreak><header2>{$row->school}<end>\n";
 				$lastSchool = $row->school;
 			}
