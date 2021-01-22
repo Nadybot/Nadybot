@@ -17,3 +17,4 @@ style
 src/Api
 generateApiDoc.php
 extras/*
+.codespellrc
