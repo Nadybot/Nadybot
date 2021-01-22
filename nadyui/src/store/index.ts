@@ -144,7 +144,8 @@ export default createStore({
       // Display the <text> note content as notification
       // if chat is not currently focused
       if (
-        router.currentRoute.value.name != "Chat" &&
+        (!window.document.hasFocus() ||
+          router.currentRoute.value.name != "Chat") &&
         xml.firstElementChild &&
         xml.firstElementChild.firstElementChild &&
         xml.firstElementChild.firstElementChild.nodeName == "text" &&
