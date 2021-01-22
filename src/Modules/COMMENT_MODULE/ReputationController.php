@@ -77,32 +77,34 @@ class ReputationController {
 			return;
 		}
 		$oldData = $this->db->query("SELECT * FROM `reputation`");
-		$this->logger->log(
-			"INFO",
-			"Converting " . count($oldData) . " DB entries from reputation to comments"
-		);
-		$cat = $this->getReputationCategory();
-		$this->db->beginTransaction();
-		try {
-			foreach ($oldData as $row) {
-				$comment = new Comment();
-				$comment->category = $cat->name;
-				$comment->character = $row->name;
-				$comment->comment = "{$row->reputation} {$row->comment}";
-				$comment->created_at = $row->dt;
-				$comment->created_by = $row->by;
-				$this->commentController->saveComment($comment);
-			}
-		} catch (SQLException $e) {
+		if (count($oldData) > 0) {
 			$this->logger->log(
-				"WARNING",
-				"Error during conversion: " . $e->getMessage() . " - rolling back"
+				"INFO",
+				"Converting " . count($oldData) . " DB entries from reputation to comments"
 			);
-			$this->db->rollback();
-			return;
+			$cat = $this->getReputationCategory();
+			$this->db->beginTransaction();
+			try {
+				foreach ($oldData as $row) {
+					$comment = new Comment();
+					$comment->category = $cat->name;
+					$comment->character = $row->name;
+					$comment->comment = "{$row->reputation} {$row->comment}";
+					$comment->created_at = $row->dt;
+					$comment->created_by = $row->by;
+					$this->commentController->saveComment($comment);
+				}
+			} catch (SQLException $e) {
+				$this->logger->log(
+					"WARNING",
+					"Error during conversion: " . $e->getMessage() . " - rolling back"
+				);
+				$this->db->rollback();
+				return;
+			}
+			$this->db->commit();
 		}
-		$this->db->commit();
-		$this->logger->log("INFO", "Converstion finished successfully, removing old table");
+		$this->logger->log("INFO", "Conversion finished successfully, removing old table");
 		$this->db->exec("DROP TABLE `reputation`");
 	}
 

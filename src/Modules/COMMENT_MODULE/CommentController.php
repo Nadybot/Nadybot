@@ -192,11 +192,11 @@ class CommentController {
 	 */
 	public function addCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$category = $args[1];
-		$alRead = $args[2];
-		$alWrite = (count($args) > 3) ? $args[3] : $alRead;
+		$alForReading = $args[2];
+		$alForWriting = (count($args) > 3) ? $args[3] : $alForReading;
 		try {
-			$alRead = $this->accessManager->getAccessLevel($alRead);
-			$alWrite = $this->accessManager->getAccessLevel($alWrite);
+			$alForReading = $this->accessManager->getAccessLevel($alForReading);
+			$alForWriting = $this->accessManager->getAccessLevel($alForWriting);
 		} catch (Exception $e) {
 			$sendto->reply($e->getMessage());
 			return;
@@ -206,23 +206,23 @@ class CommentController {
 			$cat = new CommentCategory();
 			$cat->created_by = $sender;
 			$cat->name = $category;
-			$cat->min_al_read = $alRead;
-			$cat->min_al_write = $alWrite;
+			$cat->min_al_read = $alForReading;
+			$cat->min_al_write = $alForWriting;
 			$this->saveCategory($cat);
 			$sendto->reply("Category <highlight>{$category}<end> successfully created.");
 			return;
 		}
-		$senderAl = $this->accessManager->getAccessLevelForCharacter($sender);
-		if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
-			|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
+		$alOfSender = $this->accessManager->getAccessLevelForCharacter($sender);
+		if ($this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_read) <0
+			|| $this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_write) <0) {
 			$sendto->reply(
 				"You can only change the required access levels of categories ".
 				"to which you have read and write access."
 			);
 			return;
 		}
-		$cat->min_al_read = $alRead;
-		$cat->min_al_write = $alWrite;
+		$cat->min_al_read = $alForReading;
+		$cat->min_al_write = $alForWriting;
 		$this->db->update("comment_categories_<myname>", "name", $cat);
 		$sendto->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
 	}
@@ -289,7 +289,7 @@ class CommentController {
 		$ownComments = array_values(
 			array_filter(
 				$comments,
-				function(Comment $com) use($comment): bool {
+				function(Comment $com) use ($comment): bool {
 					return $com->created_by === $comment->created_by;
 				}
 			)
@@ -390,7 +390,7 @@ class CommentController {
 	}
 
 	/**
-	 * Format the blob for a list of commnts
+	 * Format the blob for a list of comments
 	 * @param Comment[] $comments
 	 */
 	public function formatComments(array $comments, bool $groupByMain, bool $addCategory=false): FormattedComments {
