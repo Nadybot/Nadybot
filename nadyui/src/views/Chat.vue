@@ -59,6 +59,7 @@ import { defineComponent } from "vue";
 import { replaceItemRefs } from "@/nadybot/message";
 import { sendMessage, getSystemInformation } from "@/nadybot/http";
 import { SystemInformation } from "@/nadybot/types/stats";
+import { requestPermission } from "@/utils/notify";
 
 interface ChatData {
   inputText: string;
@@ -163,6 +164,7 @@ export default defineComponent({
 
   async created(): Promise<void> {
     this.systemInformation = await getSystemInformation();
+    await requestPermission();
   },
 
   computed: mapState(["chat_messages", "chat_history"]),
