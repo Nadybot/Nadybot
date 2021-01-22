@@ -66,14 +66,16 @@ class ConsoleCommandReply implements CommandReply {
 		$message = preg_replace("/\n<img src=['\"]?rdb:\/\/\d+['\"]?>\n/s", "\n", $message);
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/\d+['\"]?>/s", "", $message);
 		$parts = [];
-		$message = preg_replace_callback(
-			"/<a href=\"text:\/\/(.+?)\">(.*?)<\/a>/s",
-			function(array $matches) use (&$parts): string {
-				$parts []= html_entity_decode($matches[1]);
-				return "\e[4m" . $matches[2] . "\e[0m";
-			},
-			$message
-		);
+		$message = html_entity_decode(
+				preg_replace_callback(
+				"/<a href=\"text:\/\/(.+?)\">(.*?)<\/a>/s",
+				function(array $matches) use (&$parts): string {
+					$parts []= html_entity_decode($matches[1]);
+					return "\e[4m" . $matches[2] . "\e[0m";
+				},
+				$message
+			)
+			);
 		if (count($parts)) {
 			$message .= "\n\n" . join("\n" . str_repeat("-", 75) . "\n", $parts);
 		}
