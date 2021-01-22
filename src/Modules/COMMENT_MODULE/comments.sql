@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `comments_<myname>`(
-	`id` INT PRIMARY KEY NOT NULL,
+	`id` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	`character` VARCHAR(15) NOT NULL,
 	`created_by` VARCHAR(15) NOT NULL,
 	`created_at` INT NOT NULL,
