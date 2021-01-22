@@ -97,14 +97,18 @@ class ReputationController {
 			} catch (SQLException $e) {
 				$this->logger->log(
 					"WARNING",
-					"Error during conversion: " . $e->getMessage() . " - rolling back"
+					"Error during the conversion of the reputation table: ".
+					$e->getMessage() . " - rolling back"
 				);
 				$this->db->rollback();
 				return;
 			}
 			$this->db->commit();
 		}
-		$this->logger->log("INFO", "Conversion finished successfully, removing old table");
+		$this->logger->log(
+			"INFO",
+			"Conversion of reputation table finished successfully, removing old table"
+		);
 		$this->db->exec("DROP TABLE `reputation`");
 	}
 
