@@ -125,6 +125,10 @@ class CommentController {
 			CommentCategory::class,
 			"SELECT * FROM `comment_categories_<myname>`"
 		);
+		if (count($categories) === 0) {
+			$sendto->reply("There are currently no comment categories defined.");
+			return;
+		}
 		$blob = "";
 		foreach ($categories as $category) {
 			$blob .= "<pagebreak><header2>{$category->name}<end>\n".
