@@ -182,7 +182,7 @@ class WebChatConverter {
 	public function fixUnclosedTags(string $message): string {
 		$message = preg_replace("/<(\/?[a-z]+):/", "<$1___", $message);
 		$xml = new \DOMDocument();
-		@$xml->loadHTML($message);
+		@$xml->loadHTML('<?xml encoding="UTF-8">' . $message);
 		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $xml->saveXML());
 		$message = preg_replace("/<([\/a-z]+)___/", "<$1:", $message);
 		return $message;
