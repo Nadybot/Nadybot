@@ -5,11 +5,13 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
+	LoggerWrapper,
 	Nadybot,
 	SettingManager,
+	SQLException,
 	Text,
-    Timer,
-    Util,
+	Timer,
+	Util,
 };
 
 /**
@@ -55,25 +57,52 @@ class ReputationController {
 	/** @Inject */
 	public Timer $timer;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	/** @Setup */
 	public function setup(): void {
 		if ($this->db->tableExists("reputation")) {
+			$this->logger->log("INFO", "Old reputation table found in database");
 			$this->timer->callLater(0, [$this, "migrateReputationTable"]);
 		}
 	}
 
+	/**
+	 * Migrate the old "reputation" table into "comments_<myname>"
+	 */
 	public function migrateReputationTable(): void {
-		$oldData = $this->db->query("SELECT * FROM `reputation`");
-		$cat = $this->getReputationCategory();
-		foreach ($oldData as $row) {
-			$comment = new Comment();
-			$comment->category = $cat->name;
-			$comment->character = $row->name;
-			$comment->comment = "{$row->reputation} {$row->comment}";
-			$comment->created_at = $row->dt;
-			$comment->created_by = $row->by;
-			$this->commentController->saveComment($comment);
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(1, [$this, "migrateReputationTable"]);
+			return;
 		}
+		$oldData = $this->db->query("SELECT * FROM `reputation`");
+		$this->logger->log(
+			"INFO",
+			"Converting " . count($oldData) . " DB entries from reputation to comments"
+		);
+		$cat = $this->getReputationCategory();
+		$this->db->beginTransaction();
+		try {
+			foreach ($oldData as $row) {
+				$comment = new Comment();
+				$comment->category = $cat->name;
+				$comment->character = $row->name;
+				$comment->comment = "{$row->reputation} {$row->comment}";
+				$comment->created_at = $row->dt;
+				$comment->created_by = $row->by;
+				$this->commentController->saveComment($comment);
+			}
+		} catch (SQLException $e) {
+			$this->logger->log(
+				"WARNING",
+				"Error during conversion: " . $e->getMessage() . " - rolling back"
+			);
+			$this->db->rollback();
+			return;
+		}
+		$this->db->commit();
+		$this->logger->log("INFO", "Converstion finished successfully, removing old table");
 		$this->db->exec("DROP TABLE `reputation`");
 	}
 
