@@ -30,6 +30,7 @@ use Nadybot\Core\{
  */
 class ReputationController {
 	public const CAT_REPUTATION = "reputation";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.

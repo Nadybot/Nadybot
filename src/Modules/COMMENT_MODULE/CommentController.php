@@ -135,7 +135,17 @@ class CommentController {
 				"<end>\n".
 				"<tab>Write Access: <highlight>".
 				$this->accessManager->getDisplayName($category->min_al_write).
-				"<end>\n\n";
+				"<end>\n".
+				"<tab>Action: ";
+			if ($category->user_managed) {
+				$blob .= $this->text->makeChatcmd(
+					"delete",
+					"/tell <myname> comment category rem {$category->name}"
+				);
+			} else {
+				$blob .= "<i>System categories cannot be deleted.</i>";
+			}
+			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob("Comment categories (" . count($categories) . ")", $blob);
 		$sendto->reply($msg);
