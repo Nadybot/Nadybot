@@ -35,7 +35,7 @@ class LeakyBucket implements QueueInterface {
 
 	/**
 	 * The current fill level of the bucket
-	 * i.e. how many mesages can we send right now
+	 * i.e. how many messages can we send right now
 	 * without being rate-limited
 	 */
 	protected float $bucketFill;
