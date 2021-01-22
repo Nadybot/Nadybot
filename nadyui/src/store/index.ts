@@ -1,7 +1,12 @@
 import { createStore } from "vuex";
+import router from "@/router";
 
 import socket from "./plugins/socket";
-import { executeCommand, getOnlineMembers } from "@/nadybot/http";
+import {
+  executeCommand,
+  getOnlineMembers,
+  getSystemInformation,
+} from "@/nadybot/http";
 import { OnlinePlayers, OnlinePlayer } from "@/nadybot/types/player";
 import {
   CommandReply,
@@ -10,6 +15,8 @@ import {
   ChatMessage,
 } from "@/nadybot/types/command_reply";
 import { parseXml, replaceItemRefs } from "@/nadybot/message";
+import { notify } from "@/utils/notify";
+import { SystemInformation } from "@/nadybot/types/stats";
 
 const emptyPlayers: OnlinePlayers = {
   org: [],
@@ -24,6 +31,7 @@ interface State {
   chat_messages: Array<ChatMessage>;
   console_history: Array<string>;
   chat_history: Array<string>;
+  system_information: SystemInformation | null;
 }
 
 const initialState: State = {
@@ -34,6 +42,7 @@ const initialState: State = {
   chat_messages: [],
   console_history: [],
   chat_history: [],
+  system_information: null,
 };
 
 export default createStore({
@@ -96,9 +105,12 @@ export default createStore({
     websocketClose(_, closeCode: number): void {
       console.log(`Websocket closed with code ${closeCode}`);
     },
-    websocketUuidUpdate(context, uuid: string): void {
+    async websocketUuidUpdate(context, uuid: string): Promise<void> {
       context.state.uuid = uuid;
-      console.log("Successfully set UUID for outgoing commands");
+      context.state.system_information = await getSystemInformation();
+      console.log(
+        "Successfully set UUID for outgoing commands and fetched system information"
+      );
     },
     OnlineEvent(context, data: Record<string, unknown>): void {
       const player = data.player as OnlinePlayer;
@@ -127,9 +139,27 @@ export default createStore({
         context.state.console_messages.push(new_message);
       });
     },
-    AOChatEvent(context, msg: ChatMessageIncoming): void {
+    async AOChatEvent(context, msg: ChatMessageIncoming): Promise<void> {
+      const xml = parseXml(msg.message);
+      // Display the <text> note content as notification
+      // if chat is not currently focused
+      if (
+        router.currentRoute.value.name != "Chat" &&
+        xml.firstElementChild &&
+        xml.firstElementChild.firstElementChild &&
+        xml.firstElementChild.firstElementChild.nodeName == "text" &&
+        xml.firstElementChild.firstElementChild.textContent &&
+        this.state.system_information &&
+        (!this.state.system_information.basic.org ||
+          this.state.system_information.basic.bot_name != msg.channel)
+      ) {
+        await notify(
+          `Message from ${msg.sender}`,
+          xml.firstElementChild.firstElementChild.textContent
+        );
+      }
       const new_message: ChatMessage = {
-        message: parseXml(msg.message),
+        message: xml,
         channel: msg.channel,
         sender: msg.sender,
       };
