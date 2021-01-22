@@ -1,0 +1,13 @@
+name: Lint the code
+on: [push, pull_request]
+
+jobs:
+  codespell:
+    name: Codespell
+    runs-on: ubuntu-20.04
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v2.2.0
+
+        - name: Run Codespell
+          uses: codespell-project/actions-codespell@master
