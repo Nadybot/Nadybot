@@ -1,0 +1,14 @@
+<header2>List<end>
+<tab>To get a list of all comments about a character and their alts:
+<tab><tab><highlight><symbol>comment get 'name'<end>
+
+<tab>To get a list of all "raid" comments about a character and their alts:
+<tab><tab><highlight><symbol>comment get 'name' raid<end>
+
+<header2>Create comment<end>
+<tab>To add a new comment about the player 'Nadya' of type 'raid'
+<tab><tab><highlight><symbol>comment add Nadya raid Obviously no clue how to shackle<end>
+
+<header2>Delete comment<end>
+<tab>To delete comment #1
+<tab><tab><highlight><symbol>comment delete 1<end>
