@@ -260,16 +260,16 @@ class PackageController {
 			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				if ($pGroup->highest_supported && ($installedVersion??"") !== "") {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
-						$installLink = $this->text->makeChatcmd(
+						$installLink = "[" . $this->text->makeChatcmd(
 							"update",
 							"/tell <myname> package update {$pGroup->highest_supported->name} {$pGroup->highest_supported->version}"
-						);
+						) . "]";
 					}
 				} else {
-					$installLink = $this->text->makeChatcmd(
+					$installLink = "[" . $this->text->makeChatcmd(
 						"install",
 						"/tell <myname> package install {$pGroup->highest_supported->name} {$pGroup->highest_supported->version}"
-					);
+					) . "]";
 				}
 			} elseif ($package->state === static::BUILT_INT) {
 				$installLink = "<i>Included in Nadybot now</i>";
