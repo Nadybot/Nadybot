@@ -372,12 +372,34 @@ class PackageController {
 		$html = preg_replace("/\n/", "", $html);
 		$html = preg_replace("/<h1.*?>/", "<header2>", $html);
 		$html = preg_replace("/<\/h1>/", "<end>\n", $html);
+		$html = preg_replace("/<blockquote>/", "&gt;&gt; ", $html);
+		$html = preg_replace("/<\/blockquote>/", "\n", $html);
 		$html = preg_replace("/<h2.*?>/", "\n<u>", $html);
 		$html = preg_replace("/<\/h2>/", "</u>\n", $html);
+		$html = preg_replace("/<em.*?>/", "\n<i>", $html);
+		$html = preg_replace("/<\/em>/", "</i>\n", $html);
 		$html = preg_replace("/<p>/", "<tab>", $html);
 		$html = preg_replace("/<\/p>/", "\n", $html);
-		$html = preg_replace("/<code>/", "<highlight>", $html);
-		$html = preg_replace("/<\/code>/", "<end>", $html);
+		$html = preg_replace("/<a.*?>/", "", $html);
+		$html = preg_replace("/<\/a>/", "", $html);
+		$html = preg_replace("/<(code|strong)>/", "<highlight>", $html);
+		$html = preg_replace("/<\/(code|strong)>/", "<end>", $html);
+		$html = str_replace("&nbsp;", " ", $html);
+		$html = preg_replace_callback(
+			"/<ol.*?>(.*?)<\/ol>/",
+			function (array $matches): string {
+				$num = 0;
+				return preg_replace_callback(
+					"/<li>(.*?)<\/li>/",
+					function (array $matches) use (&$num): string {
+						$num++;
+						return "<tab>{$num}. {$matches[1]}\n";
+					},
+					$matches[1]
+				);
+			},
+			$html
+		);
 		return $html;
 	}
 
@@ -602,6 +624,10 @@ class PackageController {
 			$this->removePackageInstallation($cmd, $targetDir);
 		}
 
+		$this->db->exec(
+			"DELETE FROM `package_files_<myname>` WHERE module=?",
+			$cmd->package
+		);
 		if (!$this->installAndRegisterZip($zip, $cmd, $targetDir)) {
 			return;
 		}
@@ -646,10 +672,6 @@ class PackageController {
 				@unlink($fullFilename);
 			}
 		}
-		$this->db->exec(
-			"DELETE FROM `package_files_<myname>` WHERE module=?",
-			$cmd->package
-		);
 		return true;
 	}
 
@@ -660,8 +682,11 @@ class PackageController {
 	public function installAndRegisterZip(ZipArchive $zip, PackageAction $cmd, string $targetDir): bool {
 		$subDir = $this->getSubdir($zip);
 		for ($i = 0; $i < $zip->numFiles; $i++) {
-			$targetFile = "{$targetDir}/{$cmd->package}/".
-				substr($zip->getNameIndex($i), strlen($subDir));
+			$fileName = $zip->getNameIndex($i);
+			if ($subDir ===  $fileName) {
+				continue;
+			}
+			$targetFile = "{$targetDir}/{$cmd->package}/" . substr($fileName, strlen($subDir));
 			if (substr($targetFile, -1, 1) === "/") {
 				if (@mkdir($targetFile, 0700, true) === false) {
 					$cmd->sendto->reply(
