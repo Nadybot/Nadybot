@@ -22,7 +22,7 @@ class SemanticVersion {
 	}
 
 	public static function normalizeVersion(string $version): string {
-		$version = preg_replace("/@.+$/", "", $version);
+		$version = preg_replace("/@.+$/", "", strtolower($version));
 		if (preg_match("/[^\d]$/", $version)) {
 			$version .= "1";
 		}
