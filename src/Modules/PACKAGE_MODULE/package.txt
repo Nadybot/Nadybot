@@ -5,6 +5,9 @@ To get information about a specific package, use
 <tab><highlight><symbol>package info 'package'<end>
 
 To install a package, use:
+<tab><highlight><symbol>package install 'package'<end>
+
+To install a package in a specific version, use:
 <tab><highlight><symbol>package install 'package' 'version'<end>
 
 To update an already installed package to a specific version, use:
@@ -12,3 +15,6 @@ To update an already installed package to a specific version, use:
 
 To update an already installed package to the latest version, use:
 <tab><highlight><symbol>package update 'package'<end>
+
+To uninstall a package, use:
+<tab><highlight><symbol>package uninstall 'package'<end>
