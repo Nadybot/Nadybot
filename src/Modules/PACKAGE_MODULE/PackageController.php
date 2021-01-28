@@ -88,6 +88,9 @@ class PackageController {
 		}
 		if ($dh = opendir($targetDir)) {
 			while (($dir = readdir($dh)) !== false) {
+				if (in_array($dir, [".", ".."], true)) {
+					continue;
+				}
 				$this->scanExtraModule($targetDir, $dir);
 			}
 			closedir($dh);
@@ -259,6 +262,7 @@ class PackageController {
 			$package = $pGroup->highest;
 			$infoLink = $this->text->makeChatcmd("details", "/tell <myname> package info {$package->name}");
 			$installLink = "";
+			$installedVersion = null;
 			if ($package->state === static::EXTRA) {
 				$res = $this->db->queryRow(
 					"SELECT MAX(`version`) AS `cur` FROM `package_files_<myname>` ".
