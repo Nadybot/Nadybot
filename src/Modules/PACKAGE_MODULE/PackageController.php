@@ -514,6 +514,14 @@ class PackageController {
 	 * @Matches("/^packages?\s+(?:uninstall|delete|remove|erase|del|rm)\s+(.+)$/i")
 	 */
 	public function packageUninstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+			$sendto->reply(
+				"In order to be allowed to uninstall modules from within Nadybot, ".
+				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
+				"bot's config file."
+			);
+			return;
+		}
 		$module = strtoupper($args[1]);
 		$instType = $this->getInstalledModuleType($module);
 		if ($instType === static::UNINST) {
