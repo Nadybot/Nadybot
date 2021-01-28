@@ -43,13 +43,15 @@ class ConsoleCommandReply implements CommandReply {
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
 			"<tab>" => "    ",
-			"<end>" => "\e[0m",
+			"<end>" => "\e[22;24m",
 			"<u>" => "\e[4m",
 			"</u>" => "\e[24m",
 			"<i>" => "\e[3m",
 			"</i>" => "\e[23m",
 			"<symbol>" => "",
-			"<br>" => "\n"
+			"<br>" => "\n",
+			"<br/>" => "\n",
+			"<br />" => "\n"
 		];
 
 		$message = preg_replace_callback(
