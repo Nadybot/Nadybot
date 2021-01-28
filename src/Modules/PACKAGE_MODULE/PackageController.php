@@ -103,6 +103,9 @@ class PackageController {
 		if (realpath(dirname($path)) === realpath(dirname(__DIR__))) {
 			return static::BUILT_INT;
 		}
+		if (realpath(dirname($path)) === realpath(dirname(dirname(__DIR__))."/Core/Modules")) {
+			return static::BUILT_INT;
+		}
 		return static::EXTRA;
 	}
 
@@ -120,19 +123,21 @@ class PackageController {
 		}
 
 		$version = $this->getInstalledVersion($module, $targetDir);
-		$dirIterator = new RecursiveDirectoryIterator("{$targetDir}/{$module}", RecursiveDirectoryIterator::SKIP_DOTS);
-		$iterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::SELF_FIRST);
+		$dirIterator = new RecursiveDirectoryIterator(
+			"{$targetDir}/{$module}"
+		);
+		$iterator = new RecursiveIteratorIterator(
+			$dirIterator,
+			RecursiveIteratorIterator::SELF_FIRST
+		);
 
 		foreach ($iterator as $file) {
 			/** @var SplFileInfo $file */
 			if (in_array($file->getFilename(), [".", ".."], true)) {
 				continue;
 			}
-			if (preg_match("/(^|\/)\.git(\/|$)/", $file->getPathname())) {
-				continue;
-			}
 			$relPath = substr($file->getPathname(), strlen($targetDir) + 1);
-			if (substr($relPath, 0, 1) === ".") {
+			if (substr($relPath, 0, 2) === "..") {
 				continue;
 			}
 			$this->db->exec(
@@ -163,7 +168,9 @@ class PackageController {
 			[$this, "isValidJSON"],
 			3600,
 			false,
-			[$this, "parsePackages"], $callback, ...$args
+			[$this, "parsePackages"],
+			$callback,
+			...$args
 		);
 	}
 
@@ -176,7 +183,9 @@ class PackageController {
 			[$this, "isValidJSON"],
 			3600,
 			false,
-			[$this, "parsePackages"], $callback, ...$args
+			[$this, "parsePackages"],
+			$callback,
+			...$args
 		);
 	}
 
@@ -241,10 +250,11 @@ class PackageController {
 			}
 			$pGroup->highest ??= $package;
 			if ($package->compatible) {
-				$pGroup->highest_supported = $package;
+				$pGroup->highest_supported ??= $package;
 			}
 		}
 		$blobs = [];
+		ksort($groupedPackages);
 		foreach ($groupedPackages as $pName => $pGroup) {
 			$package = $pGroup->highest;
 			$infoLink = $this->text->makeChatcmd("details", "/tell <myname> package info {$package->name}");
@@ -276,24 +286,32 @@ class PackageController {
 			}
 			$blob = "<pagebreak><header2>{$package->name}<end>\n".
 				"<tab>Description: <highlight>{$package->short_description}<end>\n".
-				"<tab>Author: <highlight>{$package->author}<end>\n".
-				"<tab>Newest version: <highlight>{$package->version}<end> [{$infoLink}]\n";
+				"<tab>Newest version: <highlight>{$package->version}<end> [{$infoLink}]";
+			if ($pGroup->highest_supported->version === $package->version) {
+				$blob .= " {$installLink}";
+			} else {
+				$blob .= "\n<tab>Highest compatible version: ".
+					($pGroup->highest_supported
+						? "<highlight>{$pGroup->highest_supported->version}"
+						: "<red>none (needs Nadybot " . htmlspecialchars($pGroup->highest->bot_version) . ")"
+					).
+					"<end> {$installLink}";
+			}
+			$blob .= "\n";
 			if (isset($installedVersion)) {
 				$blob .= "<tab>Installed: <highlight>".
 					($installedVersion ?: "unknown version").
-					"<end>\n";
+					"<end> [".
+					$this->text->makeChatcmd(
+						"uninstall",
+						"/tell <myname> package uninstall {$package->name}"
+					) . "]\n";
 			}
-			$blob .= "<tab>Highest compatible version: ".
-				($pGroup->highest_supported
-					? "<highlight>{$pGroup->highest_supported->version}"
-					: "<red>none (needs Nadybot " . htmlspecialchars($pGroup->highest->bot_version) . ")"
-				).
-				"<end> {$installLink}";
 			$blobs []= $blob;
 		}
 		$msg = $this->text->makeBlob(
 			"Available Packages (" . count($groupedPackages) . ")",
-			join("\n\n", $blobs)
+			join("\n", $blobs)
 		);
 		$sendto->reply($msg);
 	}
@@ -335,12 +353,16 @@ class PackageController {
 		} elseif (isset($installedVersion)) {
 			$blob .= "<tab>Installed: <highlight>".
 				($installedVersion !== "" ? $installedVersion : "yes, unknown version").
-				"<end>\n";
+				"<end> [".
+				$this->text->makeChatcmd(
+					"uninstall",
+					"/tell <myname> package uninstall {$packages[0]->name}"
+				) . "]\n";
 		}
 		$blob .= "\n<header2>Available versions<end>\n";
 		foreach ($packages as $package) {
 			$blob .= "<tab><highlight>{$package->version}<end>";
-			if (1 || $package->compatible) {
+			if ($package->compatible) {
 				if ($package->state === static::EXTRA) {
 					$installLink = $this->text->makeChatcmd(
 						"install",
@@ -369,34 +391,55 @@ class PackageController {
 
 	/** Try to render the API's HTML into AOML */
 	public function renderHTML(string $html): string {
+		$html = preg_replace_callback(
+			"/<code.*?>(.+?)<\/code>/is",
+			function (array $matches): string {
+				return "<highlight>" . str_replace("\n", "<br />", $matches[1]) . "<end>";
+			},
+			$html
+		);
 		$html = preg_replace("/\n/", "", $html);
+		$html = preg_replace("/<br \/>/", "\n", $html);
 		$html = preg_replace("/<h1.*?>/", "<header2>", $html);
 		$html = preg_replace("/<\/h1>/", "<end>\n", $html);
 		$html = preg_replace("/<blockquote>/", "&gt;&gt; ", $html);
-		$html = preg_replace("/<\/blockquote>/", "\n", $html);
-		$html = preg_replace("/<h2.*?>/", "\n<u>", $html);
+		$html = preg_replace("/<\/blockquote>/", "", $html);
+		$html = preg_replace("/<h2.*?>/", "<u>", $html);
 		$html = preg_replace("/<\/h2>/", "</u>\n", $html);
-		$html = preg_replace("/<em.*?>/", "\n<i>", $html);
-		$html = preg_replace("/<\/em>/", "</i>\n", $html);
-		$html = preg_replace("/<p>/", "<tab>", $html);
-		$html = preg_replace("/<\/p>/", "\n", $html);
-		$html = preg_replace("/<a.*?>/", "", $html);
-		$html = preg_replace("/<\/a>/", "", $html);
+		$html = preg_replace("/<em.*?>/", "<i>", $html);
+		$html = preg_replace("/<\/em>/", "</i>", $html);
+		$html = preg_replace("/<p>/", "", $html);
+		$html = preg_replace("/<\/p>/", "\n\n", $html);
+		$html = preg_replace("/<a.*?>/", "<u><blue>", $html);
+		$html = preg_replace("/<\/a>/", "<end></u>", $html);
+		$html = preg_replace("/<pre.*?>/", "", $html);
+		$html = preg_replace("/<\/pre>/", "", $html);
 		$html = preg_replace("/<(code|strong)>/", "<highlight>", $html);
 		$html = preg_replace("/<\/(code|strong)>/", "<end>", $html);
 		$html = str_replace("&nbsp;", " ", $html);
 		$html = preg_replace_callback(
-			"/<ol.*?>(.*?)<\/ol>/",
+			"/<ol.*?>(.*?)<\/ol>/is",
 			function (array $matches): string {
 				$num = 0;
 				return preg_replace_callback(
-					"/<li>(.*?)<\/li>/",
+					"/<li>(.*?)<\/li>/is",
 					function (array $matches) use (&$num): string {
 						$num++;
 						return "<tab>{$num}. {$matches[1]}\n";
 					},
 					$matches[1]
 				);
+			},
+			$html
+		);
+		$html = preg_replace_callback(
+			"/<ul.*?>(.*?)<\/ul>/is",
+			function (array $matches): string {
+				return preg_replace(
+					"/<li>(.*?)<\/li>/is",
+					"<tab>* $1\n",
+					$matches[1]
+				) . "\n";
 			},
 			$html
 		);
@@ -426,11 +469,12 @@ class PackageController {
 
 	/**
 	 * @HandlesCommand("package")
+	 * @Matches("/^packages?\s+install\s+([a-z_0-9-]+)$/i")
 	 * @Matches("/^packages?\s+install\s+([a-z_0-9-]+)\s+(.+)$/i")
 	 */
 	public function packageInstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = new PackageAction($args[1], PackageAction::INSTALL);
-		$cmd->version = new SemanticVersion($args[2]);
+		$cmd->version = $args[2] ? new SemanticVersion($args[2]) : null;
 		$cmd->sender = $sender;
 		$cmd->sendto = $sendto;
 		$this->getPackage($args[1], [$this, "checkAndInstall"], $cmd);
@@ -447,6 +491,81 @@ class PackageController {
 		$cmd->sender = $sender;
 		$cmd->sendto = $sendto;
 		$this->getPackage($args[1], [$this, "checkAndInstall"], $cmd);
+	}
+
+	/**
+	 * @HandlesCommand("package")
+	 * @Matches("/^packages?\s+(?:uninstall|delete|remove|erase|del|rm)\s+(.+)$/i")
+	 */
+	public function packageUninstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$module = strtoupper($args[1]);
+		$instType = $this->getInstalledModuleType($module);
+		if ($instType === static::UNINST) {
+			$sendto->reply("<highlight>{$module}<end> is not installed.");
+			return;
+		}
+		if ($instType === static::BUILT_INT) {
+			$sendto->reply(
+				"<highlight>{$module}<end> is a built-in Nadybot module and ".
+				"cannot be uninstalled."
+			);
+			return;
+		}
+		$path = realpath($this->chatBot->runner->classLoader->registeredModules[$module]);
+		$dirIterator = new RecursiveDirectoryIterator($path);
+		$iterator = new RecursiveIteratorIterator(
+			$dirIterator,
+			RecursiveIteratorIterator::SELF_FIRST
+		);
+
+		$toDelete = [];
+		foreach ($iterator as $file) {
+			/** @var SplFileInfo $file */
+			if (in_array($file->getFilename(), [".", ".."], true)) {
+				continue;
+			}
+			$relPath = substr($file->getPathname(), strlen($path) + 1);
+			if (substr($relPath, 0, 2) === "..") {
+				continue;
+			}
+			$toDelete []= $file->getRealPath();
+		}
+		$toDelete []= $path;
+		usort(
+			$toDelete,
+			function (string $file1, $file2): int {
+				return strlen($file2) <=> strlen($file1);
+			}
+		);
+		$baseDir = dirname($path) . "/";
+		foreach ($toDelete as $file) {
+			$relFile = substr($file, strlen($baseDir));
+			if (!@file_exists($file)) {
+				continue;
+			}
+			if (is_dir($file)) {
+				$this->logger->log("INFO", "rmdir {$relFile}");
+				if (!@rmdir($file)) {
+					$sendto->reply(
+						"Error deleting directory {$relFile}:" . error_get_last()["message"]
+					);
+					return;
+				}
+			} else {
+				$this->logger->log("INFO", "del {$relFile}");
+				if (!@unlink($file)) {
+					$sendto->reply(
+						"Error deleting {$relFile}:" . error_get_last()["message"]
+					);
+					return;
+				}
+			}
+		}
+		$sendto->reply(
+			"<highlight>{$args[1]}<end> uninstalled. Restart the bot ".
+			"for the changes to take effect."
+		);
+		unset($this->chatBot->runner->classLoader->registeredModules[$module]);
 	}
 
 	/**
@@ -507,7 +626,7 @@ class PackageController {
 					}
 				)
 			);
-			$newestPackage = end($packages);
+			$newestPackage = $packages[0] ?? false;
 			if ($newestPackage === false) {
 				$cmd->sendto->reply(
 					"No version of <highlight>{$cmd->package}<end> found that ".
@@ -620,9 +739,7 @@ class PackageController {
 				return;
 			}
 		}
-		if ($cmd->action === $cmd::UPGRADE) {
-			$this->removePackageInstallation($cmd, $targetDir);
-		}
+		$this->removePackageInstallation($cmd, $targetDir);
 
 		$this->db->exec(
 			"DELETE FROM `package_files_<myname>` WHERE module=?",
@@ -645,6 +762,7 @@ class PackageController {
 				"Restart the bot for the changes to take effect."
 			);
 		}
+		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir;
 	}
 
 	/**
@@ -730,9 +848,9 @@ class PackageController {
 		if (!isset($cmd->oldVersion)) {
 			return true;
 		}
+		// Installed in unknown (pre-aopkg format) version
 		if ((string)$cmd->oldVersion === "") {
-			$cmd->sendto->reply("<highlight>{$cmd->package}<end> is already installed.");
-			return false;
+			return true;
 		}
 		$cmp = $cmd->oldVersion->cmp($cmd->version);
 		if ($cmp < 0 && $cmd->action !== $cmd::UPGRADE) {
