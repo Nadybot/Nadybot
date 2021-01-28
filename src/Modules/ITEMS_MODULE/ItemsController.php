@@ -330,7 +330,8 @@ class ItemsController {
 		$data = $this->findItemsFromLocal($search, $ql);
 
 		$aoiaPlusLink = $this->text->makeChatcmd("AOIA+", "/start https://sourceforge.net/projects/aoiaplus");
-		$footer = "Item DB rips created using the $aoiaPlusLink tool.";
+		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
+			"Item DB rips created using the $aoiaPlusLink tool.";
 
 		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->get('aodb_db_version'), 'local', $footer);
 
@@ -419,7 +420,7 @@ class ItemsController {
 			}
 			return $msg;
 		} elseif ($groups < 4) {
-			return trim($this->formatSearchResults($data, $ql, false));
+			return trim($this->formatSearchResults($data, $ql, false, $search));
 		}
 		$blob = "Version: <highlight>$version<end>\n";
 		if ($ql !== null) {
@@ -432,7 +433,7 @@ class ItemsController {
 			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
 		}
 		$blob .= "\n";
-		$blob .= $this->formatSearchResults($data, $ql, true);
+		$blob .= $this->formatSearchResults($data, $ql, true, $search);
 		if ($numItems === $this->settingManager->getInt('maxitems')) {
 			$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
 		}
@@ -487,11 +488,12 @@ class ItemsController {
 	 * @param bool $showImages
 	 * @return string
 	 */
-	public function formatSearchResults(array $data, ?int $ql, bool $showImages) {
+	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null) {
 		$list = '';
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
+			$row->origName = $row->name;
 			$newGroup = false;
 			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
 				continue;
@@ -500,6 +502,14 @@ class ItemsController {
 				$lastQL = null;
 				$newGroup = true;
 				// If this is a group of items, name them by their longest common name
+				if (isset($nameMatches)) {
+					if (substr($list, -2, 2) === ", ") {
+						$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+					} else {
+						$list .= "<red>]<end>";
+					}
+					unset($nameMatches);
+				}
 				if (isset($row->group_id)) {
 					$itemNames = [];
 					for ($j=$itemNum; $j < count($data); $j++) {
@@ -542,6 +552,19 @@ class ItemsController {
 				} else {
 					$list .= ", ";
 				}
+				if (isset($search) && $this->itemNameMatchesSearch($row->origName, $search)) {
+					if (!isset($nameMatches)) {
+						$list .= "<red>[<end>";
+						$nameMatches = true;
+					}
+				} elseif (isset($nameMatches)) {
+					if (substr($list, -2, 2) === ", ") {
+						$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+					} else {
+						$list .= "<red>]<end>";
+					}
+					unset($nameMatches);
+				}
 				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, (string)$row->ql);
 				if ($ql === $row->ql) {
 					$list .= "<yellow>[<end>$item<yellow>]<end>";
@@ -561,7 +584,28 @@ class ItemsController {
 				$lastQL = $row->ql;
 			}
 		}
+		if (isset($nameMatches)) {
+			if (substr($list, -2, 2) === ", ") {
+				$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+			} else {
+				$list .= "<red>]<end>";
+			}
+			unset($nameMatches);
+		}
 		return $list;
+	}
+
+	public function itemNameMatchesSearch(string $itemName, ?string $search): bool {
+		if (!isset($search)) {
+			return false;
+		}
+		$tokens = preg_split("/\s+/", $search);
+		foreach ($tokens as $token) {
+			if (stripos($itemName, $token) === false) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public function findByName(string $name, ?int $ql=null): ?AODBEntry {
