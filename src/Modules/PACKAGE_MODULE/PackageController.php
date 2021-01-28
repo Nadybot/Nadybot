@@ -473,6 +473,14 @@ class PackageController {
 	 * @Matches("/^packages?\s+install\s+([a-z_0-9-]+)\s+(.+)$/i")
 	 */
 	public function packageInstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+			$sendto->reply(
+				"In order to be allowed to install modules from within Nadybot, ".
+				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
+				"bot's config file."
+			);
+			return;
+		}
 		$cmd = new PackageAction($args[1], PackageAction::INSTALL);
 		$cmd->version = $args[2] ? new SemanticVersion($args[2]) : null;
 		$cmd->sender = $sender;
@@ -486,6 +494,14 @@ class PackageController {
 	 * @Matches("/^packages?\s+update\s+([a-z_0-9-]+)\s+(.+)$/i")
 	 */
 	public function packageUpdateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+			$sendto->reply(
+				"In order to be allowed to update modules from within Nadybot, ".
+				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
+				"bot's config file."
+			);
+			return;
+		}
 		$cmd = new PackageAction($args[1], PackageAction::UPGRADE);
 		$cmd->version = $args[2] ? new SemanticVersion($args[2]) : null;
 		$cmd->sender = $sender;
