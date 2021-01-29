@@ -158,8 +158,8 @@ class WebserverController {
 	 */
 	public function authenticate(string $player, int $duration=3600): string {
 		do {
-			$uuid = bin2hex(openssl_random_pseudo_bytes(12, $strong));
-		} while (!$strong || isset($this->authentications[$uuid]));
+			$uuid = bin2hex(random_bytes(12));
+		} while (isset($this->authentications[$uuid]));
 		$this->authentications[$player] = [$uuid, time() + $duration];
 		return $uuid;
 	}
@@ -462,7 +462,10 @@ class WebserverController {
 			case "svg":
 				return "image/svg+xml";
 			default:
-				return mime_content_type($file);
+				if (extension_loaded("fileinfo")) {
+					return mime_content_type($file);
+				}
+				return "application/octet-stream";
 		}
 	}
 

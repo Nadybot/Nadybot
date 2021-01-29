@@ -204,7 +204,7 @@ class DiscordGatewayCommandHandler {
 		);
 		// Never tried to link before
 		if ($data === null) {
-			$uid = strtoupper(unpack("H*", openssl_random_pseudo_bytes(16))[1]);
+			$uid = strtoupper(bin2hex(random_bytes(16)));
 			$this->db->exec(
 				"INSERT INTO discord_mapping_<myname> ".
 				"(name, discord_id, token, created) ".

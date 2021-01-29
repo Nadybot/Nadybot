@@ -111,6 +111,35 @@ class BotRunner {
 			return static::$latestTag = [0, $matches[1]];
 		}
 		return static::$latestTag = null;
+	
+	}
+
+	public function checkRequiredModules(): void {
+		$missing = [];
+		$requiredModules = [
+			"bcmath",
+			"ctype",
+			"date",
+			"dom",
+			"filter",
+			"gmp",
+			"json",
+			"pcre",
+			"PDO",
+			"Reflection",
+			"sockets",
+		];
+		foreach ($requiredModules as $requiredModule) {
+			if (!extension_loaded($requiredModule)) {
+				$missing []= $requiredModule;
+			}
+		}
+		if (!count($missing)) {
+			return;
+		}
+		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		sleep(5);
+		exit(1);
 	}
 
 	/**
@@ -119,6 +148,7 @@ class BotRunner {
 	public function run(): void {
 		// set default timezone
 		date_default_timezone_set("UTC");
+		$this->checkRequiredModules();
 
 		echo $this->getInitialInfoMessage();
 
