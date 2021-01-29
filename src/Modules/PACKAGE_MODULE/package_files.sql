@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS `package_files_<myname>`(
 	`file` TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS `package_files_<myname>_module_idx` on `package_files_<myname>`(`module`);
-CREATE INDEX IF NOT EXISTS `package_files_<myname>_version_idx` on `package_files_<myname>`(`version`);
+CREATE INDEX IF NOT EXISTS `package_files_<myname>_module_idx` ON `package_files_<myname>`(`module`);
+CREATE INDEX IF NOT EXISTS `package_files_<myname>_version_idx` ON `package_files_<myname>`(`version`);
