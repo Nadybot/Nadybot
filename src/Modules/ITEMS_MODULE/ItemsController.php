@@ -592,6 +592,16 @@ class ItemsController {
 			}
 			unset($nameMatches);
 		}
+		$list = preg_replace_callback(
+			"/^([^<]+?)<red>\[<end>(.+)<red>\]<end>$/m",
+			function(array $matches): string {
+				if (strpos($matches[2], "<red>") !== false) {
+					return $matches[0];
+				}
+				return $matches[1].$matches[2];
+			},
+			$list
+		);
 		return $list;
 	}
 
