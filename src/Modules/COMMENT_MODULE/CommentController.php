@@ -8,9 +8,11 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
-	Nadybot,
+    LoggerWrapper,
+    Nadybot,
 	SettingManager,
-	Text,
+    SQLException,
+    Text,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -65,13 +67,15 @@ class CommentController {
 	/** @Inject */
 	public Text $text;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	public const ADMIN="admin";
 
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "comments");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
@@ -86,20 +90,131 @@ class CommentController {
 			'',
 			"mod"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"share_comments",
+			"Share comments between bots on same database",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			'1;0',
+			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"table_name_comments",
+			"Database table for comments",
+			"noedit",
+			"text",
+			"comments_<myname>",
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"table_name_comment_categories",
+			"Database table for comment categories",
+			"noedit",
+			"text",
+			"comment_categories_<myname>",
+		);
+		$this->settingManager->registerChangeListener(
+			"share_comments",
+			[$this, "changeTableSharing"]
+		);
+		$this->db->registerTableName(
+			"comments",
+			$this->settingManager->getString("table_name_comments")
+		);
+		$this->db->registerTableName(
+			"comment_categories",
+			$this->settingManager->getString("table_name_comment_categories")
+		);
+		$this->db->loadSQLFile($this->moduleName, "comments");
+	}
+
+	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, $data): void {
+		if ($oldValue === $newValue) {
+			return;
+		}
+		$this->logger->log("INFO", "Comment sharing changed");
+		$oldCommentTable = $this->settingManager->getString("table_name_comments");
+		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
+		$schema = file_get_contents(__DIR__ . "/comments.sql");
+		if ($schema === false) {
+			throw new Exception("Cannot load SQL schema file: " . error_get_last()["message"]);
+		}
+		$schemaStatements = array_diff(explode(";", trim($schema)), [""]);
+		$this->db->beginTransaction();
+		try {
+			// read all current entries
+			/** @var Comment[] */
+			$comments = $this->db->fetchAll(Comment::class, "SELECT * FROM `<table:comments>`");
+			/** @var CommentCategory[] */
+			$cats = $this->db->fetchAll(CommentCategory::class, "SELECT * FROM `<table:comment_categories>`");
+			if ($newValue === "1") {
+				// save new name
+				$newCommentTable = "comments";
+				$newCategoryTable = "comment_categories";
+			} else {
+				// save new name
+				$newCommentTable = "comments_<myname>";
+				$newCategoryTable = "comment_categories_<myname>";
+			}
+			$this->db->registerTableName("comments", $newCommentTable);
+			$this->db->registerTableName("comment_categories", $newCategoryTable);
+			// make sure own table schema exists
+			$this->logger->log("INFO", "Ensuring new tables and indexes exist");
+			foreach ($schemaStatements as $sql) {
+				$this->db->exec($sql);
+			}
+			// copy all categories and comments to the shared table if they do not exist already
+			$this->logger->log("INFO", "Copying comment categories from {$oldCategoryTable} to {$newCategoryTable}.");
+			foreach ($cats as $cat) {
+				$sql = "SELECT COUNT(*) AS `exists` FROM `<table:comment_categories>` WHERE name=?";
+				if (!$this->db->queryRow($sql, $cat->name)->exists) {
+					$this->db->insert("<table:comment_categories>", $cat);
+				}
+			}
+			$this->logger->log("INFO", "Copying comments from {$oldCommentTable} to {$newCommentTable}.");
+			foreach ($comments as $comment) {
+				$sql = "SELECT COUNT(*) AS `exists` FROM `<table:comments>` WHERE ".
+					"`character`=? AND `created_by`=? AND `category`=? AND `comment`=?";
+				$commentExists = $this->db->queryRow(
+					$sql,
+					$comment->character,
+					$comment->created_by,
+					$comment->category,
+					$comment->comment
+				)->exists;
+				if (!$commentExists) {
+					$this->db->insert("<table:comments>", $comment);
+				}
+			}
+		} catch (SQLException $e) {
+			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage());
+			$this->db->rollback();
+			$this->db->registerTableName("comments", $oldCommentTable);
+			$this->db->registerTableName("comment_categories", $oldCategoryTable);
+			throw new Exception("There was an error copying the comments in the database");
+		}
+		$this->db->commit();
+		$this->settingManager->save("table_name_comments", $newCommentTable);
+		$this->settingManager->save("table_name_comment_categories", $newCategoryTable);
+		$this->logger->log("INFO", "All comments and categories copied successfully");
 	}
 
 	/** Read a single category by its name */
 	public function getCategory(string $category): ?CommentCategory {
 		return $this->db->fetch(
 			CommentCategory::class,
-			"SELECT * FROM `comment_categories_<myname>` WHERE `name` LIKE ?",
+			"SELECT * FROM `<table:comment_categories>` WHERE `name` LIKE ?",
 			$category
 		);
 	}
 
 	/** Create a new category */
 	public function saveCategory(CommentCategory $category): int {
-		return $this->db->insert("comment_categories_<myname>", $category);
+		return $this->db->insert("<table:comment_categories>", $category);
 	}
 
 	/**
@@ -108,8 +223,8 @@ class CommentController {
 	 * @return int|null Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
-		$comments = $this->db->exec("DELETE FROM `comments_<myname>` WHERE `category` LIKE ?", $category);
-		$deleted = $this->db->exec("DELETE FROM `comment_categories_<myname>` WHERE `name` LIKE ?", $category);
+		$comments = $this->db->exec("DELETE FROM `<table:comments>` WHERE `category` LIKE ?", $category);
+		$deleted = $this->db->exec("DELETE FROM `<table:comment_categories>` WHERE `name` LIKE ?", $category);
 		return $deleted ? $comments : null;
 	}
 
@@ -123,7 +238,7 @@ class CommentController {
 		/** @var CommentCategory[] */
 		$categories = $this->db->fetchAll(
 			CommentCategory::class,
-			"SELECT * FROM `comment_categories_<myname>`"
+			"SELECT * FROM `<table:comment_categories>`"
 		);
 		if (count($categories) === 0) {
 			$sendto->reply("There are currently no comment categories defined.");
@@ -237,7 +352,7 @@ class CommentController {
 		}
 		$cat->min_al_read = $alForReading;
 		$cat->min_al_write = $alForWriting;
-		$this->db->update("comment_categories_<myname>", "name", $cat);
+		$this->db->update("<table:comment_categories>", "name", $cat);
 		$sendto->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
 	}
 
@@ -330,7 +445,7 @@ class CommentController {
 			return $cooldown;
 		}
 
-		$this->db->insert("comments_<myname>", $comment);
+		$this->db->insert("<table:comments>", $comment);
 		return 0;
 	}
 
@@ -462,7 +577,7 @@ class CommentController {
 	public function deleteCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
 		/** @var ?Comment */
-		$comment = $this->db->fetch(Comment::class, "SELECT * FROM `comments_<myname>` WHERE `id`=?", $id);
+		$comment = $this->db->fetch(Comment::class, "SELECT * FROM `<table:comments>` WHERE `id`=?", $id);
 		if (!isset($comment)) {
 			$sendto->reply("The comment <highlight>#{$id}<end> does not exist.");
 			return;
@@ -476,7 +591,7 @@ class CommentController {
 			$sendto->reply("You don't have the necessary access level to delete this comment.");
 			return;
 		}
-		$this->db->exec("DELETE FROM `comments_<myname>` WHERE `id`=?", $id);
+		$this->db->exec("DELETE FROM `<table:comments>` WHERE `id`=?", $id);
 		$sendto->reply("Comment deleted.");
 	}
 
@@ -486,7 +601,7 @@ class CommentController {
 	 * @return Comment[]
 	 */
 	public function getComments(?CommentCategory $category, string ...$characters): array {
-		$sql = "SELECT * FROM `comments_<myname>` WHERE `character` IN";
+		$sql = "SELECT * FROM `<table:comments>` WHERE `character` IN";
 		$params = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
@@ -509,7 +624,7 @@ class CommentController {
 	 * @return Comment[]
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
-		$sql = "SELECT COUNT(*) AS num FROM `comments_<myname>` WHERE `character` IN";
+		$sql = "SELECT COUNT(*) AS num FROM `<table:comments>` WHERE `character` IN";
 		$params = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
@@ -530,7 +645,7 @@ class CommentController {
 	 * @return Comment[]
 	 */
 	public function readCategoryComments(CommentCategory $category): array {
-		$sql = "SELECT * FROM `comments_<myname>` WHERE `category` LIKE ? ORDER BY `created_at` ASC";
+		$sql = "SELECT * FROM `<table:comments>` WHERE `category` LIKE ? ORDER BY `created_at` ASC";
 		$comments = $this->db->fetchAll(Comment::class, $sql, $category->name);
 		return $comments;
 	}

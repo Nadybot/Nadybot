@@ -70,7 +70,7 @@ class ReputationController {
 	}
 
 	/**
-	 * Migrate the old "reputation" table into "comments_<myname>"
+	 * Migrate the old "reputation" table into "<table:comments>"
 	 */
 	public function migrateReputationTable(): void {
 		if ($this->db->inTransaction()) {

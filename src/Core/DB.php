@@ -62,6 +62,8 @@ class DB {
 	protected array $sqlRegexpReplacements = [];
 	protected array $sqlCreateReplacements = [];
 
+	protected array $tableNames = [];
+
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 
@@ -470,6 +472,13 @@ class DB {
 	 * Format SQL code by replacing placeholders like <myname>
 	 */
 	public function formatSql(string $sql): string {
+		$sql = preg_replace_callback(
+			"/<table:(.+?)>/",
+			function (array $matches): string {
+				return $this->tableNames[$matches[1]] ?? $matches[0];
+			},
+			$sql
+		);
 		$sql = str_replace("<dim>", (string)$this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
 		$sql = str_replace("<Myname>", ucfirst($this->botname), $sql);
@@ -674,5 +683,10 @@ class DB {
 		$sql = "UPDATE `{$table}` SET " . join(", ", $colNames) . " ".
 			"WHERE `{$key}`=?";
 		return $this->exec($sql, ...[...$values, $row->{$key}]);
+	}
+
+	/** Register a table name for a key */
+	public function registerTableName(string $key, string $table): void {
+		$this->tableNames[$key] = $table;
 	}
 }
