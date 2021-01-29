@@ -601,7 +601,12 @@ class ItemsController {
 		}
 		$tokens = preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
-			if (stripos($itemName, $token) === false) {
+			if (substr($token, 0, 1) === "-"
+				&& stripos($itemName, substr($token, 1)) !== false) {
+				return false;
+			}
+			if (substr($token, 0, 1) !== "-"
+				&& stripos($itemName, $token) === false) {
 				return false;
 			}
 		}
