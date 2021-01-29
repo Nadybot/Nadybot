@@ -8,11 +8,11 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
-    LoggerWrapper,
-    Nadybot,
+	LoggerWrapper,
+	Nadybot,
 	SettingManager,
-    SQLException,
-    Text,
+	SQLException,
+	Text,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -79,7 +79,8 @@ class CommentController {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
-		$this->settingManager->add(
+		$sm = $this->settingManager;
+		$sm->add(
 			$this->moduleName,
 			"comment_cooldown",
 			"How long is the cooldown between leaving 2 comments for the same character",
@@ -90,7 +91,7 @@ class CommentController {
 			'',
 			"mod"
 		);
-		$this->settingManager->add(
+		$sm->add(
 			$this->moduleName,
 			"share_comments",
 			"Share comments between bots on same database",
@@ -101,7 +102,7 @@ class CommentController {
 			'1;0',
 			"mod"
 		);
-		$this->settingManager->add(
+		$sm->add(
 			$this->moduleName,
 			"table_name_comments",
 			"Database table for comments",
@@ -109,7 +110,7 @@ class CommentController {
 			"text",
 			"comments_<myname>",
 		);
-		$this->settingManager->add(
+		$sm->add(
 			$this->moduleName,
 			"table_name_comment_categories",
 			"Database table for comment categories",
@@ -117,18 +118,9 @@ class CommentController {
 			"text",
 			"comment_categories_<myname>",
 		);
-		$this->settingManager->registerChangeListener(
-			"share_comments",
-			[$this, "changeTableSharing"]
-		);
-		$this->db->registerTableName(
-			"comments",
-			$this->settingManager->getString("table_name_comments")
-		);
-		$this->db->registerTableName(
-			"comment_categories",
-			$this->settingManager->getString("table_name_comment_categories")
-		);
+		$this->db->registerTableName("comments", $sm->getString("table_name_comments"));
+		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories"));
+		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 		$this->db->loadSQLFile($this->moduleName, "comments");
 	}
 
@@ -136,10 +128,10 @@ class CommentController {
 		if ($oldValue === $newValue) {
 			return;
 		}
-		$this->logger->log("INFO", "Comment sharing changed");
+		$this->logger->log("DEBUG", "Comment sharing changed");
 		$oldCommentTable = $this->settingManager->getString("table_name_comments");
 		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
-		$schema = file_get_contents(__DIR__ . "/comments.sql");
+		$schema = @file_get_contents(__DIR__ . "/comments.sql");
 		if ($schema === false) {
 			throw new Exception("Cannot load SQL schema file: " . error_get_last()["message"]);
 		}
@@ -189,6 +181,10 @@ class CommentController {
 				if (!$commentExists) {
 					$this->db->insert("<table:comments>", $comment);
 				}
+			}
+			if ($newValue === "1") {
+				$this->db->exec("DROP TABLE {$oldCommentTable}");
+				$this->db->exec("DROP TABLE {$oldCategoryTable}");
 			}
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage());
