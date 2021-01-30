@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `comments_<myname>`(
+CREATE TABLE IF NOT EXISTS `<table:comments>`(
 	`id` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	`character` VARCHAR(15) NOT NULL,
 	`created_by` VARCHAR(15) NOT NULL,
@@ -6,10 +6,10 @@ CREATE TABLE IF NOT EXISTS `comments_<myname>`(
 	`category` VARCHAR(20) NOT NULL,
 	`comment` TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS `comments_<myname>_character_idx` ON `comments_<myname>`(`character`);
-CREATE INDEX IF NOT EXISTS `comments_<myname>_category_idx` ON `comments_<myname>`(`category`);
+CREATE INDEX IF NOT EXISTS `<table:comments>_character_idx` ON `<table:comments>`(`character`);
+CREATE INDEX IF NOT EXISTS `<table:comments>_category_idx` ON `<table:comments>`(`category`);
 
-CREATE TABLE IF NOT EXISTS `comment_categories_<myname>`(
+CREATE TABLE IF NOT EXISTS `<table:comment_categories>`(
 	`name` VARCHAR(20) PRIMARY KEY NOT NULL,
 	`created_by` VARCHAR(15) NOT NULL,
 	`created_at` INT NOT NULL,
