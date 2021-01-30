@@ -179,6 +179,7 @@ class CommentController {
 					$comment->comment
 				)->exists;
 				if (!$commentExists) {
+					unset($comment->id);
 					$this->db->insert("<table:comments>", $comment);
 				}
 			}
