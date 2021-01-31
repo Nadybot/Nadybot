@@ -350,7 +350,7 @@ class TowerController {
 	 * This command handler shows status of towers.
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc ([0-9a-z]+)$/i")
+	 * @Matches("/^lc ([0-9a-z]+[a-z])$/i")
 	 */
 	public function lc2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfieldName = strtoupper($args[1]);
@@ -386,7 +386,7 @@ class TowerController {
 	 * This command handler shows status of towers.
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc ([0-9a-z]+) (\d+)$/i")
+	 * @Matches("/^lc ([0-9a-z]+[a-z])\s*(\d+)$/i")
 	 */
 	public function lc3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfieldName = strtoupper($args[1]);
