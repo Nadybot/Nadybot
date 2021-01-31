@@ -55,6 +55,8 @@ class GuideController {
 		$this->commandAlias->register($this->moduleName, "guides nanodelta", "nanodelta");
 		$this->commandAlias->register($this->moduleName, "guides stats", "stats");
 		$this->commandAlias->register($this->moduleName, "aou 11", "title");
+		$this->commandAlias->register($this->moduleName, "guides breed", "breed");
+		$this->commandAlias->register($this->moduleName, "guides breed", "breeds");
 		$this->commandAlias->register($this->moduleName, "guides doja", "doja");
 		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
 		$this->commandAlias->register($this->moduleName, "guides gos", "faction");

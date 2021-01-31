@@ -47,7 +47,7 @@ Base is 4 for atrox, 3 for opi/sol, 2 for nanomage
 healdelta tickrate formula:
 (870 - stam) / 30 = tickrate
 
-example (870-810)/30=2 secs  
+example (870-810)/30=2 secs
 
 <header2>References<end>
 
