@@ -57,6 +57,9 @@ class JsonImporter {
 			if ($checkType === "bool" && is_bool($value)) {
 				return true;
 			}
+			if (preg_match("/^[a-zA-Z_0-9]+$/", $checkType) && is_object($value)) {
+				return true;
+			}
 			if (preg_match("/^array<([a-z]+),(.+)>$/", $checkType, $matches)) {
 				if (is_object($value)) {
 					$value = (array)$value;
@@ -136,7 +139,15 @@ class JsonImporter {
 		if (preg_match("/^(.+?)\[\]$/", $type, $matches) && is_array($obj->{$name})) {
 			foreach ($obj->{$name} as $value) {
 				if (!static::matchesType($type, $value)) {
-					throw new Exception("Invalid type found");
+					throw new Exception("Invalid type found: {$type}");
+				}
+				$className = static::expandClassname($matches[1]);
+				if (isset($className)) {
+					$newValue = [];
+					foreach ($obj->{$name} as $value) {
+						$newValue []= static::convert($className, $value);
+					}
+					$refProp->setValue($result, $newValue);
 				}
 			}
 			$refProp->setValue($result, $obj->{$name});
@@ -146,7 +157,7 @@ class JsonImporter {
 			$refProp->setValue($result, $obj->{$name});
 			return;
 		}
-		throw new Exception("Invalid type found");
+		throw new Exception("Invalid type found: {$type}");
 	}
 
 	public static function convert(string $class, object $obj): ?object {

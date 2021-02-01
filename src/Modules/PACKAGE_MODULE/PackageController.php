@@ -539,7 +539,9 @@ class PackageController {
 			);
 			return;
 		}
-		$path = realpath($this->chatBot->runner->classLoader->registeredModules[$module]);
+		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
+		$path = realpath($modulePath);
+		$this->logger->log('DEBUG', "Removing {$modulePath} ({$path}) recursively");
 		$dirIterator = new RecursiveDirectoryIterator($path);
 		$iterator = new RecursiveIteratorIterator(
 			$dirIterator,
@@ -548,17 +550,22 @@ class PackageController {
 
 		$toDelete = [];
 		foreach ($iterator as $file) {
+			$this->logger->log('DEBUG', "Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
 			/** @var SplFileInfo $file */
 			if (in_array($file->getFilename(), [".", ".."], true)) {
+				$this->logger->log('DEBUG', "Skipping, because . or ..");
 				continue;
 			}
 			$relPath = substr($file->getPathname(), strlen($path) + 1);
 			if (substr($relPath, 0, 2) === "..") {
+				$this->logger->log('DEBUG', "Skipping, because . or ..");
 				continue;
 			}
+			$this->logger->log('DEBUG', "Adding as " . $file->getRealPath());
 			$toDelete []= $file->getRealPath();
 		}
 		$toDelete []= $path;
+		$this->logger->log('DEBUG', "Sorting by path length descending");
 		usort(
 			$toDelete,
 			function (string $file1, $file2): int {
@@ -567,8 +574,10 @@ class PackageController {
 		);
 		$baseDir = dirname($path) . "/";
 		foreach ($toDelete as $file) {
+			$this->logger->log('DEBUG', "Removing {$file}");
 			$relFile = substr($file, strlen($baseDir));
 			if (!@file_exists($file)) {
+				$this->logger->log('DEBUG', "{$file} does not exist");
 				continue;
 			}
 			if (is_dir($file)) {
@@ -589,6 +598,7 @@ class PackageController {
 				}
 			}
 		}
+		$this->logger->log('DEBUG', "Deleting done");
 		$sendto->reply(
 			"<highlight>{$args[1]}<end> uninstalled. Restart the bot ".
 			"for the changes to take effect."
@@ -618,6 +628,22 @@ class PackageController {
 				"<highlight>{$cmd->package}<end> is a built-in module in ".
 				"Nadybot " . BotRunner::getVersion() ." and cannot be managed ".
 				"with this command."
+			);
+			return;
+		}
+		$missingExtensions = [];
+		foreach ($packages[0]->requires as $requirement) {
+			if (preg_match("/^ext-(.+)$/", $requirement->name, $matches)) {
+				if (!extension_loaded($matches[1])) {
+					$missingExtensions[$matches[1]] = true;
+				}
+			}
+		}
+		if (count($missingExtensions)) {
+			$cmd->sendto->reply(
+				"<highlight>{$cmd->package}<end> needs the following missing PHP ".
+				"extension" . ((count($missingExtensions) > 1) ? "s" : "") . " ".
+				"<highlight>" . join(", ", array_keys($missingExtensions)) . "<end>."
 			);
 			return;
 		}
@@ -790,7 +816,7 @@ class PackageController {
 				"Restart the bot for the changes to take effect."
 			);
 		}
-		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir;
+		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir . "/" . $cmd->package;
 	}
 
 	/**
