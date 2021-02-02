@@ -247,7 +247,8 @@ class WebsocketController {
 		if ($isPrivatPacket) {
 			return;
 		}
-		$class = end($parts = explode("\\", get_class($event)));
+		$parts = explode("\\", get_class($event));
+		$class = end($parts);
 		$event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
@@ -260,7 +261,7 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->log('Debug', 'Sending ' . $class . ' to Websocket client');
+					$this->logger->log('Debug', "Sending {$class} to Websocket client");
 				}
 			}
 		}

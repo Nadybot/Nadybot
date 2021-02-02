@@ -150,8 +150,8 @@ class WhatBuffsController {
 		} else {
 			$sql = "SELECT s.name AS skill, COUNT(1) AS num ".
 				"FROM aodb a ".
-				"JOIN item_types i ON aodb.highid = i.item_id ".
-				"JOIN item_buffs b ON aodb.highid = b.item_id ".
+				"JOIN item_types i ON a.highid = i.item_id ".
+				"JOIN item_buffs b ON a.highid = b.item_id ".
 				"JOIN skills s ON b.attribute_id = s.id ".
 				"WHERE i.item_type = ? ".
 				"AND ".$this->getItemsToExclude()." ".

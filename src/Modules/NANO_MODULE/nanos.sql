@@ -3025,7 +3025,7 @@ INSERT INTO nanos(crystal_id, nano_id, ql, crystal_name, nano_name, school, stra
 (296514,296513,1,'Lil Spider Pet','Lil Spider Pet','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,14),
 (295316,295315,1,'Mechpuppy Pet (Test Reward Series 1)','Mechpuppy Pet','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,25),
 (290121,290122,1,'Mr. Wheelie Pet (Mr. Wheelie - Series 1)','Mr. Wheelie - Series 1','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,23),
-(293829,293828,1,'NipponTech M3H-Rho \"Mizuni\" Life-Like Robotic Catgirl Companion','NipponTech M3H-Rho \"Mizuni\" Life-Like Robotic Catgirl Companion','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,27),
+(293829,293828,1,'NipponTech M3H-Rho "Mizuni" Life-Like Robotic Catgirl Companion','NipponTech M3H-Rho "Mizuni" Life-Like Robotic Catgirl Companion','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,27),
 (290063,290062,1,'Robotoy Pet (Robotoy Pet Series 1)','Robotoy Pet Series 1','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,24),
 (295328,295327,1,'Sabrekitty Pet (Test Reward Series 1)','Sabrekitty Pet','Pets','Social Pets',926,'','General','Item Shop/Event',40,1,3),
 (300572,300571,1,'Nano Crystal (Silvertail)','Silvertail','Pets','Social Pets',926,'','General','No longer drops',40,1,11),

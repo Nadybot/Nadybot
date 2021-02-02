@@ -110,8 +110,8 @@ class FunController {
 			$cred = rand(10000, 9999999);
 			$msg = $row->content;
 			$msg = str_replace("*name*", $sender, $msg);
-			$msg = str_replace("*dmg*", $dmg, $msg);
-			$msg = str_replace("*creds*", $cred, $msg);
+			$msg = str_replace("*dmg*", (string)$dmg, $msg);
+			$msg = str_replace("*creds*", (string)$cred, $msg);
 		}
 
 		return $msg;

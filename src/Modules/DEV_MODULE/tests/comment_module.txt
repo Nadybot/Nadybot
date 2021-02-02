@@ -1,23 +1,6 @@
 #reputation_module
 /text Start REPUTATION_MODULE
 
-!kos
-!kos rem
-!kos rem Nadyita
-!kos rem -1
-!kos rem 0
-!kos rem 1
-!kos add
-!kos add Nadyita
-!kos add -1
-!kos add 0
-!kos add 1
-!kos rem
-!kos rem Nadyita
-!kos rem -1
-!kos rem 0
-!kos rem 1
-
 !reputation
 !reputation Nadyitaerror +1 Nice guy overall, cannot recommend enough
 !reputation Nadyitaerror -1 Nice guy overall, cannot recommend enough
@@ -33,5 +16,12 @@
 !reputation 0 all
 !reputation Nadyita
 !reputation Nadyita all
+
+!comment categories
+!comment categories add test member
+!comment categories rem test
+!comment categories add test member member
+!comment add Nadyita test Stupid comment
+!comment categories rem test
 
 /text End REPUTATION_MODULE
