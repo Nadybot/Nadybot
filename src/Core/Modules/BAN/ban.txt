@@ -7,6 +7,9 @@ To permanent ban a character from the bot (without a reason specified):
 To remove a character from the banlist:
 <highlight><tab><symbol>unban <i>playername</i><end>
 
+To remove a character and all their alts from the banlist:
+<highlight><tab><symbol>unban all <i>playername</i><end>
+
 To temporarily ban a character from the bot (without a reason specified):
 <highlight><tab><symbol>ban <i>time</i> <i>playername</i><end>
 
