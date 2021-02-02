@@ -40,6 +40,9 @@ class WebserverController {
 	public Socket $socket;
 
 	/** @Inject */
+	public AsyncSocket $asyncSocket;
+
+	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
@@ -309,6 +312,7 @@ class WebserverController {
 		$wrapper = $this->socket->wrap($this->serverSocket);
 		$wrapper->setTimeout(0);
 		$wrapper->on(AsyncSocket::DATA, [$this, "clientConnected"]);
+		$this->asyncSocket = $wrapper;
 
 		$this->logger->log('INFO', "HTTP server listening on port {$port}");
 		return true;
@@ -321,7 +325,12 @@ class WebserverController {
 		if (!isset($this->serverSocket) || (!is_resource($this->serverSocket) && !($this->serverSocket instanceof \Socket))) {
 			return true;
 		}
-		@fclose($this->serverSocket);
+		if (isset($this->asyncSocket)) {
+			$this->asyncSocket->destroy();
+			@fclose($this->serverSocket);
+		} else {
+			@fclose($this->serverSocket);
+		}
 		$this->logger->log('INFO', "Webserver shutdown");
 		return true;
 	}
