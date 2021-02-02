@@ -126,7 +126,7 @@ class SpiritsController {
 			$title = "Spirits QL $qllorange to $qlhirange";
 			/** @var Spirit[] */
 			$data = $this->db->fetchAll(
-				Spirirt::class,
+				Spirit::class,
 				"SELECT * FROM spiritsdb where ql >= ? AND ql <= ? ORDER BY ql",
 				$qllorange,
 				$qlhirange
