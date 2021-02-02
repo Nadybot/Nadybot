@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$(realpath "$0")")"
+
 case $# in
 0)
 	true
