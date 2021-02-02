@@ -40,9 +40,6 @@ class WebserverController {
 	public Socket $socket;
 
 	/** @Inject */
-	public AsyncSocket $asyncSocket;
-
-	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
@@ -55,6 +52,8 @@ class WebserverController {
 
 	/** @var array */
 	protected array $authentications = [];
+
+	protected AsyncSocket $asyncSocket;
 
 	/** @Setup */
 	public function setup(): void {
