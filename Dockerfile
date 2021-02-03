@@ -1,4 +1,4 @@
-FROM quay.io/jitesoft/alpine:latest
+FROM quay.io/nadyita/alpine:latest
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
@@ -22,7 +22,6 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php7-ctype \
     php7-bcmath \
     php7-json \
-    php7-openssl \
     php7-posix \
     php7-xml \
     php7-simplexml \
@@ -44,9 +43,9 @@ RUN apk --no-cache add composer && \
     chown -R nadybot:nadybot vendor && \
     apk del --no-cache composer && \
     sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
-	if [ "x${VERSION}" != "x" ]; then \
-		sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
-	fi
+    if [ "x${VERSION}" != "x" ]; then \
+        sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
+    fi
 
 
 USER nadybot
