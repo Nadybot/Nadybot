@@ -51,9 +51,9 @@ cat > /tmp/config.php << DONE
 \$vars['amqp_user'] = "${CONFIG_AMQP_USER}";
 \$vars['amqp_password'] = "${CONFIG_AMQP_PASSWORD}";
 \$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
-define("USE_RUNKIT_CLASS_LOADING", false);
 DONE
 
 sed -i -e "s/<level value=\"INFO\"/<level value=\"${CONFIG_LOG_LEVEL:-INFO}\"/" conf/log4php.xml
 
-exec php7 -f main.php -- /tmp/config.php "$@"
+PHP=$(which php8 php7 php | head -n 1)
+exec "$PHP" -f main.php -- /tmp/config.php "$@"

@@ -112,7 +112,6 @@ class BotRunner {
 			return static::$latestTag = [0, $matches[1]];
 		}
 		return static::$latestTag = null;
-
 	}
 
 	public function checkRequiredModules(): void {
