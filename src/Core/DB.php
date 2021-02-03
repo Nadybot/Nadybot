@@ -64,6 +64,8 @@ class DB {
 
 	protected array $tableNames = [];
 
+	private Closure $reconnect;
+
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 
@@ -77,7 +79,12 @@ class DB {
 	 * @throws Exception for unsupported database types
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
+		$this->reconnect = function() use ($type, $dbName, $host, $user, $pass): void {
+			$this->connect($type, $dbName, $host, $user, $pass);
+		};
 		global $vars;
+		$errorShown = isset($this->sql);
+		unset($this->sql);
 		$this->dbName = $dbName;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
@@ -85,7 +92,28 @@ class DB {
 		$this->guild = str_replace("'", "''", $vars["my_guild"]);
 
 		if ($this->type === self::MYSQL) {
-			$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
+			do {
+				try {
+					$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
+				} catch (PDOException $e) {
+					if (!$errorShown) {
+						$this->logger->log(
+							"ERROR",
+							"Cannot connect to the MySQL db at {$host}: ".
+							trim($e->errorInfo[2])
+						);
+						$this->logger->log(
+							"INFO",
+							"Will keep retrying until the db is back up again"
+						);
+						$errorShown = true;
+					}
+					sleep(1);
+				}
+			} while (!isset($this->sql));
+			if ($errorShown) {
+				$this->logger->log("INFO", "Database connection re-established");
+			}
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$this->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->exec("SET time_zone = '+00:00'");
@@ -422,6 +450,14 @@ class DB {
 			if ($this->type === self::SQLITE && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);
+			}
+			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
+				$this->logger->log(
+					'WARNING',
+					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
+				);
+				call_user_func($this->reconnect);
+				return $this->executeQuery(...func_get_args());
 			}
 			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}

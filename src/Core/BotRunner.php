@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Closure;
 use LoggerConfiguratorDefault;
 use Logger;
 use ErrorException;
@@ -113,6 +114,35 @@ class BotRunner {
 		return static::$latestTag = null;
 	}
 
+	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
+	protected function installCtrlCHandler(): Closure {
+		$signalHandler = function (int $sigNo): void {
+			LegacyLogger::log('INFO', 'StartUp', 'Shutdown requested.');
+			exit;
+		};
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, true);
+		} elseif (function_exists('pcntl_signal')) {
+			pcntl_signal(SIGINT, $signalHandler);
+			pcntl_signal(SIGTERM, $signalHandler);
+			pcntl_async_signals(true);
+		} else {
+			LegacyLogger::log('ERROR', 'Startup', 'You need to have the pcntl extension on Linux');
+			exit(1);
+		}
+		return $signalHandler;
+	}
+
+	/** Uninstall a previously installed signal handler */
+	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, false);
+		} elseif (function_exists('pcntl_signal')) {
+			pcntl_signal(SIGINT, SIG_DFL);
+			pcntl_signal(SIGTERM, SIG_DFL);
+		}
+	}
+
 	/**
 	 * Run the bot in an endless loop
 	 */
@@ -149,8 +179,10 @@ class BotRunner {
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 
+		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
 		$this->clearDatabaseInformation();
+		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
 
