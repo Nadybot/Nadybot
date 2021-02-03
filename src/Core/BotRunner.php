@@ -111,27 +111,31 @@ class BotRunner {
 			return static::$latestTag = [0, $matches[1]];
 		}
 		return static::$latestTag = null;
-	
+
 	}
 
 	public function checkRequiredModules(): void {
 		$missing = [];
 		$requiredModules = [
-			"bcmath",
+			["bcmath", "gmp"],
 			"ctype",
 			"date",
 			"dom",
 			"filter",
-			"gmp",
 			"json",
 			"pcre",
 			"PDO",
+			["pdo_mysql", "pdo_sqlite"],
 			"Reflection",
 			"sockets",
 		];
 		foreach ($requiredModules as $requiredModule) {
-			if (!extension_loaded($requiredModule)) {
+			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
+			} elseif (is_array($requiredModule)) {
+				if (!count(array_filter($requiredModule, "extension_loaded"))) {
+					$missing []= join(" or ", $requiredModule);
+				}
 			}
 		}
 		if (!count($missing)) {
