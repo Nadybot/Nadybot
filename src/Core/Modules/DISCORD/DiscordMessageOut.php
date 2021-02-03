@@ -8,7 +8,6 @@ class DiscordMessageOut {
 	public bool $tts = false;
 	public ?string $file = null;
 	public ?object $embed = null;
-	public ?string $payload_json = null;
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;
 
@@ -17,6 +16,6 @@ class DiscordMessageOut {
 	}
 
 	public function toJSON(): string {
-		return json_encode($this, JSON_PRETTY_PRINT);
+		return json_encode($this, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 	}
 }
