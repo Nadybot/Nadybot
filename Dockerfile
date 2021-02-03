@@ -1,4 +1,4 @@
-FROM quay.io/jitesoft/alpine:latest
+FROM quay.io/nadyita/alpine:latest
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
