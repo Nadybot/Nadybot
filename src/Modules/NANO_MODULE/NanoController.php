@@ -146,7 +146,9 @@ class NanoController {
 				$currentSubstrain = $row->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($row);
-			$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
+			$crystalLink = isset($row->crystal_id)
+				? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
+				: "Crystal";
 			$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
 			$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
 			$blob .= "<tab>$info\n";
@@ -286,7 +288,9 @@ class NanoController {
 				$lastSubStrain = $nano->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($nano);
-			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
+			$crystalLink = isset($nano->crystal_id)
+				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
+				: "Crystal";
 			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
 		}
 		$blob .= $this->getFooter();
@@ -410,7 +414,9 @@ class NanoController {
 		$blob = '';
 		foreach ($nanos as $nano) {
 			$nanoLink = $this->makeNanoLink($nano);
-			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
+			$crystalLink = isset($nano->crystal_id)
+				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
+				: "Crystal";
 			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink";
 			if ($nano->professions) {
 				$blob .= " - <highlight>" . join("<end>, <highlight>", explode(":", $nano->professions)) . "<end>";

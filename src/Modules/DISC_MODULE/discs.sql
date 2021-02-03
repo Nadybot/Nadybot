@@ -2012,6 +2012,7 @@ INSERT INTO discs(disc_id, crystal_id, crystal_ql, disc_ql, disc_name, crystal_n
 (147236,44209,185,185,'Instruction Disc (Sentient Nano Gorger)','Nano Crystal (Sentient Nano Gorger)', 'Used for building the Omni-Med Battle Gloves'),
 (147268,99587,185,185,'Instruction Disc (Uncontrollable Body Tremors)','Nano Crystal (Uncontrollable Body Tremors)', 'Used for building the Omni-Med Battle Pants'),
 (147271,28794,179,179,'Instruction Disc (Wrack and Ruin)','Nano Crystal (Wrack and Ruin)', 'Used for building the Omni-Med Battle Boots'),
-(204526,204432,197,197,'Instruction Disc (Vaccine of Divestiture)','NanoCrystal (Vaccine of Divestiture)', 'Used for building the Omni-Med Battle Helmet');
+(204526,204432,197,197,'Instruction Disc (Vaccine of Divestiture)','NanoCrystal (Vaccine of Divestiture)', 'Used for building the Omni-Med Battle Helmet'),
+(146778,85146,50,53,'Instruction Disc (Playful Cub (Other))','Shattered Nano Crystal','Can be uploaded');
 
 CREATE INDEX IF NOT EXISTS `discs_disc_name_idx` ON `discs`(`disc_name`);
