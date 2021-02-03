@@ -33,7 +33,7 @@ class DB {
 	/**
 	 * The PDO object to talk to the database
 	 */
-	private ?PDO $sql;
+	private PDO $sql;
 
 	/**
 	 * The name of the bot
@@ -83,7 +83,8 @@ class DB {
 			$this->connect($type, $dbName, $host, $user, $pass);
 		};
 		global $vars;
-		$this->sql = null;
+		$errorShown = isset($this->sql);
+		unset($this->sql);
 		$this->dbName = $dbName;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
@@ -91,21 +92,27 @@ class DB {
 		$this->guild = str_replace("'", "''", $vars["my_guild"]);
 
 		if ($this->type === self::MYSQL) {
-			$errorShown = false;
 			do {
 				try {
 					$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
 				} catch (PDOException $e) {
 					if (!$errorShown) {
-						$this->logger->log("ERROR", "Cannot connect to the MySQL db at {$host}: " . $e->errorInfo[2]);
-						$this->logger->log("INFO", "Will keep retrying until the db is back up again");
+						$this->logger->log(
+							"ERROR",
+							"Cannot connect to the MySQL db at {$host}: ".
+							trim($e->errorInfo[2])
+						);
+						$this->logger->log(
+							"INFO",
+							"Will keep retrying until the db is back up again"
+						);
 						$errorShown = true;
 					}
-					usleep(100000);
+					sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection established");
+				$this->logger->log("INFO", "Database connection re-established");
 			}
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$this->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
@@ -446,7 +453,8 @@ class DB {
 			}
 			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
 				$this->logger->log(
-					'WARNING', 'DB had recoverable error: ' . $e->errorInfo[2] . ' - reconnecting'
+					'WARNING',
+					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
 				);
 				call_user_func($this->reconnect);
 				return $this->executeQuery(...func_get_args());
