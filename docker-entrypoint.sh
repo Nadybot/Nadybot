@@ -56,4 +56,9 @@ DONE
 sed -i -e "s/<level value=\"INFO\"/<level value=\"${CONFIG_LOG_LEVEL:-INFO}\"/" conf/log4php.xml
 
 PHP=$(which php8 php7 php | head -n 1)
-exec "$PHP" -f main.php -- /tmp/config.php "$@"
+PARAMS=""
+if [ -n "$CONFIG_JIT_BUFFER_SIZE" ]; then
+  PARAMS="-dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
+fi
+
+exec "$PHP" $PARAMS -f main.php -- /tmp/config.php "$@"
