@@ -10,9 +10,7 @@ ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
 RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
     php8-cli \
     php8-sqlite3 \
-    php8-iconv \
     php8-phar \
-    php8-gmp \
     php8-curl \
     php8-sockets \
     php8-pdo \
@@ -23,10 +21,9 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php8-bcmath \
     php8-json \
     php8-posix \
-    php8-xml \
     php8-simplexml \
     php8-dom \
-    php8-pcntl \
+	php8-pcntl \
     php8-zip \
     php8-fileinfo \
     && \
@@ -37,13 +34,17 @@ COPY --chown=nadybot:nadybot . /nadybot
 
 RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     chmod +x /usr/bin/composer && \
-    apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add sudo && \
+    apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
+        sudo \
+		php8-xml \
+	&& \
     cd /nadybot && \
     sudo -u nadybot composer install --no-dev && \
     rm -rf "$(sudo -u nadybot composer config vendor-dir)/niktux/addendum/Tests" && \
     sudo -u nadybot composer dumpautoload --no-dev --optimize && \
     sudo -u nadybot composer clear-cache && \
     rm -f /usr/bin/composer && \
+    apk del --no-cache sudo php8-xml && \
     sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \

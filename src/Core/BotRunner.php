@@ -125,10 +125,18 @@ class BotRunner {
 			"json",
 			"pcre",
 			"PDO",
+			"simplexml",
 			["pdo_mysql", "pdo_sqlite"],
 			"Reflection",
 			"sockets",
 		];
+		if (strlen($this->configFile->getVar('amqp_server')??"")
+			&& strlen($this->configFile->getVar('amqp_user')??"")
+			&& strlen($this->configFile->getVar('amqp_password')??"")
+		) {
+			$requiredModules []= "mbstring";
+		}
+		if ($this->configFile->getVar("amqp_server"));
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
@@ -181,16 +189,16 @@ class BotRunner {
 	public function run(): void {
 		// set default timezone
 		date_default_timezone_set("UTC");
+
+		// load $vars
+		global $vars;
+		$vars = $this->getConfigVars();
 		$this->checkRequiredModules();
 
 		echo $this->getInitialInfoMessage();
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-
-		// load $vars
-		global $vars;
-		$vars = $this->getConfigVars();
 		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
 			die("Invalid timezone: \"{$vars['timezone']}\"\n");
 		}

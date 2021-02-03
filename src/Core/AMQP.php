@@ -11,7 +11,6 @@ use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
-use Nadybot\Core\Event;
 use ErrorException;
 use Exception;
 
