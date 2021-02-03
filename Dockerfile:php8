@@ -23,7 +23,7 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php8-posix \
     php8-simplexml \
     php8-dom \
-	php8-pcntl \
+    php8-pcntl \
     php8-zip \
     php8-fileinfo \
     && \
@@ -36,8 +36,8 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     chmod +x /usr/bin/composer && \
     apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
         sudo \
-		php8-xml \
-	&& \
+        php8-xml \
+    && \
     cd /nadybot && \
     sudo -u nadybot composer install --no-dev && \
     rm -rf "$(sudo -u nadybot composer config vendor-dir)/niktux/addendum/Tests" && \
