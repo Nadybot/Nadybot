@@ -761,6 +761,14 @@ class PackageController {
 
 	/** Install a requested package that comes as a callback */
 	public function installPackage(HttpResponse $response, PackageAction $cmd): void {
+		if (!extension_loaded("zip")) {
+			$cmd->sendto->reply(
+				"Your PHP version does not have the \"zip\" extension installed. ".
+				"If you want to be able to use this command, make sure to add that ".
+				"extension on your system."
+			);
+			return;
+		}
 		$zip = $this->getResponseZip($response, $cmd);
 		if (!isset($zip)) {
 			return;
