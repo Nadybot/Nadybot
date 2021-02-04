@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use DateTime;
 use Exception;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\EventManager;
 use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
@@ -35,6 +36,9 @@ class WebUiController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public WebserverController $webserverController;
@@ -122,6 +126,14 @@ class WebUiController {
 	}
 
 	public function processNadyUIRelease(string $channel, ?CommandReply $sendto, callable $callback): void {
+		if (!extension_loaded("zip")) {
+			$sendto->reply(
+				"In order to install or update NadyUI from within the bot, ".
+				"you must have the PHP Zip extension installed."
+			);
+			$this->eventManager->deactivateIfActivated($this, "updateWebUI");
+			return;
+		}
 		$uri = sprintf(
 			"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
 			$channel
@@ -180,6 +192,7 @@ class WebUiController {
 				$sendto->reply($msg);
 			}
 			$this->logger->log('ERROR', $msg);
+			return;
 		}
 		if ($currentVersion === 0) {
 			$action = "<green>installed<end> with version";
