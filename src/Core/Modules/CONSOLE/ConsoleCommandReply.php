@@ -65,6 +65,7 @@ class ConsoleCommandReply implements CommandReply {
 		$message = preg_replace("/<font color=[\"']?#.{6}[\"']>/", "", $message);
 		$message = preg_replace("/<a href='chatcmd:\/\/\/(.*?)'>(.*?)<\/a>/s", "\e[4m" . "$2" . "\e[0m", $message);
 		$message = preg_replace("/<a href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>(.*?)<\/a>/s", "[item:$1]", $message);
+		$message = preg_replace("/<a href=['\"]?itemid:\/\/53019\/\d+['\"]?>(.*?)<\/a>/s", "[nano:$1]", $message);
 		$message = preg_replace("/\n<img src=['\"]?rdb:\/\/\d+['\"]?>\n/s", "\n", $message);
 		$message = preg_replace("/<img src=['\"]?rdb:\/\/\d+['\"]?>/s", "", $message);
 		$parts = [];
