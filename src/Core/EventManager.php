@@ -43,6 +43,9 @@ class EventManager {
 
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
+	protected bool $eventsReady = false;
+	/** Events that were disabled before eventhandler was initialized */
+	protected array $dontActivateEvents = [];
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 
@@ -226,9 +229,14 @@ class EventManager {
 			} else {
 				$time = $this->getTimerEventTime($type);
 				if ($time > 0) {
-					$key = $this->getKeyForCronEvent($time, $call);
-					if ($key !== null) {
-						unset($this->cronevents[$key]);
+					if ($this->eventsReady === false) {
+						$this->dontActivateEvents[$type] ??= [];
+						$this->dontActivateEvents[$type][$call] = true;
+					} else {
+						$key = $this->getKeyForCronEvent($time, $call);
+						if ($key !== null) {
+							unset($this->cronevents[$key]);
+						}
 					}
 				} else {
 					$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($call). The type is not a recognized event type!");
@@ -263,8 +271,14 @@ class EventManager {
 		/** @var EventCfg[] $data */
 		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `status` = '1'");
 		foreach ($data as $row) {
-			$this->activate($row->type, $row->file);
+			if (isset($this->dontActivateEvents[$row->type][$row->file])) {
+				unset($this->dontActivateEvents[$row->type][$row->file]);
+			} else {
+				$this->activate($row->type, $row->file);
+			}
 		}
+		$this->eventsReady = true;
+		$this->dontActivateEvents = [];
 	}
 
 	/**
