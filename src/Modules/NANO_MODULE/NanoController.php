@@ -263,7 +263,7 @@ class NanoController {
 		}
 		$sql = "SELECT *  ".
 			"FROM nanos ".
-			"WHERE strain = ? ".
+			"WHERE strain LIKE ? ".
 			$profWhere.
 			$froobWhere.
 			"ORDER BY ".
