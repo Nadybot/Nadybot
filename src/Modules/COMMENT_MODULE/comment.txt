@@ -5,6 +5,9 @@
 <tab>To get a list of all "raid" comments about a character and their alts:
 <tab><tab><highlight><symbol>comment get 'name' raid<end>
 
+<tab>To get a list of all "raid" comments about all characters:
+<tab><tab><highlight><symbol>comment list raid<end>
+
 <header2>Create comment<end>
 <tab>To add a new comment about the player 'Nadya' of type 'raid'
 <tab><tab><highlight><symbol>comment add Nadya raid Obviously no clue how to shackle<end>

@@ -78,6 +78,8 @@ class CommentController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
+		$this->commandAlias->register($this->moduleName, "comment add {1} kos {2}", "kos add");
+		$this->commandAlias->register($this->moduleName, "comment list kos", "kos");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
 		$sm = $this->settingManager;
 		$sm->add(
@@ -122,6 +124,15 @@ class CommentController {
 		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories"));
 		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 		$this->db->loadSQLFile($this->moduleName, "comments");
+		if (!$this->getCategory("kos")) {
+			$kos = new CommentCategory();
+			$kos->name = "kos";
+			$kos->created_by = $this->chatBot->vars["name"];
+			$kos->user_managed = false;
+			$kos->min_al_read = "guild";
+			$kos->min_al_write = "guild";
+			$this->saveCategory($kos);
+		}
 	}
 
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, $data): void {
@@ -450,45 +461,33 @@ class CommentController {
 	 * Command to read comments about a player
 	 *
 	 * @HandlesCommand("comment")
-	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)$/i")
-	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)\s+(\w+)$/i")
+	 * @Matches("/^comment\s+list\s+(\w+)$/i")
 	 */
-	public function searchCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$character = ucfirst(strtolower($args[1]));
-		if (!$this->chatBot->get_uid($character)) {
-			$sendto->reply("No player named <highlight>{$character}<end> found.");
+	public function listCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$categoryName = $args[1];
+		$category = $this->getCategory($categoryName);
+		if ($category === null) {
+			$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
 			return;
 		}
-
-		$category = null;
-		if (count($args) > 2) {
-			$categoryName = $args[2];
-			$category = $this->getCategory($categoryName);
-			if ($category === null) {
-				$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
-				return;
-			}
-			if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
-				$sendto->reply(
-					"You don't have the required access level to read comments of type ".
-					"<highlight>{$categoryName}<end>."
-				);
-				return;
-			}
+		if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
+			$sendto->reply(
+				"You don't have the required access level to read comments of type ".
+				"<highlight>{$categoryName}<end>."
+			);
+			return;
 		}
+		$sql = "SELECT * FROM `<table:comments>` WHERE `category`=? ORDER BY `created_at` ASC";
 		/** @var Comment[] */
-		$comments = $this->getComments($category, $character);
-		$comments = $this->filterInaccessibleComments($comments, $sender);
+		$comments = $this->db->fetchAll(Comment::class, $sql, $categoryName);
 		if (!count($comments)) {
-			$msg = "No comments found for <highlight>{$character}<end>".
-			(isset($category) ? " in category <highlight>{$category->name}<end>." : ".");
+			$msg = "No comments found in category <highlight>{$categoryName}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
-		$formatted = $this->formatComments($comments, false, !isset($category));
-		$msg = "Comments about {$character}".
-			(isset($category) ? " in category {$category->name}" : "").
-			" (" . count($comments) . ")";
+		$formatted = $this->formatComments($comments, false, false);
+		$msg = "Comments in {$categoryName} ".
+			"(" . count($comments) . ")";
 		$msg = $this->text->makeBlob($msg, $formatted->blob);
 		$sendto->reply($msg);
 	}
