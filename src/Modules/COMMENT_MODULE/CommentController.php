@@ -78,7 +78,7 @@ class CommentController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
-		$this->commandAlias->register($this->moduleName, "comment add {1} kos {2}", "kos add");
+		$this->commandAlias->register($this->moduleName, "comment add {1} kos {2:Kill on sight}", "kos add");
 		$this->commandAlias->register($this->moduleName, "comment list kos", "kos");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
 		$sm = $this->settingManager;
