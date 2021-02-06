@@ -107,41 +107,40 @@ class CommandAlias {
 		}
 		$this->logger->log('DEBUG', "Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
 		$cmd = $row->cmd;
-		if ($params) {
-			// count number of parameters and don't split more than that so that the
-			// last parameter will have whatever is left
 
-			// TODO: figure out highest numbered parameter and use that as $numMatches
-			// otherwise this will break if the parameters do not include every number
-			// from 1 to MAX -Tyrence
-			preg_match_all("/\{\\d+(:.*?)?\}/", $cmd, $matches);
-			$numMatches = count(array_unique($matches[0]));
-			if ($numMatches === 0) {
-				$cmd .= " {0}";
-			}
+		// count number of parameters and don't split more than that so that the
+		// last parameter will have whatever is left
 
-			$aliasParams = explode(' ', $params, $numMatches);
-
-			// add the entire param string as the {0} parameter
-			array_unshift($aliasParams, $params);
-
-			// replace parameter placeholders with their values
-			$cmd = preg_replace_callback(
-				"/\{(\d+)(:.*?)?\}/",
-				function (array $matches) use ($aliasParams): string {
-					if (isset($aliasParams[$matches[1]])) {
-						return $aliasParams[$matches[1]];
-					}
-					if (count($matches) < 3) {
-						return $matches[0];
-					}
-					return substr($matches[2], 1);
-				},
-				$cmd
-			);
+		// TODO: figure out highest numbered parameter and use that as $numMatches
+		// otherwise this will break if the parameters do not include every number
+		// from 1 to MAX -Tyrence
+		preg_match_all("/\{\\d+(:.*?)?\}/", $cmd, $matches);
+		$numMatches = count(array_unique($matches[0]));
+		if ($numMatches === 0) {
+			$cmd .= " {0}";
 		}
+
+		$aliasParams = $params === "" ? [] : explode(' ', $params, $numMatches);
+
+		// add the entire param string as the {0} parameter
+		array_unshift($aliasParams, $params);
+
+		// replace parameter placeholders with their values
+		$cmd = preg_replace_callback(
+			"/\{(\d+)(:.*?)?\}/",
+			function (array $matches) use ($aliasParams): string {
+				if (isset($aliasParams[$matches[1]])) {
+					return $aliasParams[$matches[1]];
+				}
+				if (count($matches) < 3) {
+					return $matches[0];
+				}
+				return substr($matches[2], 1);
+			},
+			$cmd
+		);
 		// if parameter placeholders still exist, then they did not pass enough parameters
-		if (preg_match("/{\\d+}/", $cmd)) {
+		if (preg_match("/\{\\d+(:.*?)?\}/", $cmd)) {
 			return false;
 		}
 		$this->commandManager->process($channel, $cmd, $sender, $sendto);
