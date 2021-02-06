@@ -4,7 +4,7 @@ To show a list of the current aliases:
 <highlight><tab><symbol>alias list<end>
 
 To create an alias:
-<highlight><tab><symbol>alias add <i>alias_name</i> <i>command to execue</i><end>
+<highlight><tab><symbol>alias add <i>alias_name</i> <i>command to execute</i><end>
 
 To create an alias consisting of more than 1 word, enclose it in single or double quotes:
 <highlight><tab><symbol>alias add <i>"alias name"</i> <i>command to execute</i><end>
