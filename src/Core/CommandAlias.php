@@ -114,16 +114,19 @@ class CommandAlias {
 		preg_match_all("/\{(\\d+)(:.*?)?\}/", $cmd, $matches);
 		$values = array_map("intval", $matches[1]);
 		$numMatches = max([0, ...$values]);
+		// If there aren't any defined parameters, but player gave arguments, process them:
 		if ($numMatches === 0 && !count($values) && $params !== "") {
 			$cmd .= " {0}";
 		}
 
-		$aliasParams = $params === "" ? [] : explode(' ', $params, $numMatches);
+		$aliasParams = [];
+		if ($params !== "") {
+			$aliasParams = explode(' ', $params, $numMatches);
+			// add the entire param string as the {0} parameter
+			array_unshift($aliasParams, $params);
+		}
 
-		// add the entire param string as the {0} parameter
-		array_unshift($aliasParams, $params);
-
-		// replace parameter placeholders with their values
+		// replace parameter placeholders with their values or the default
 		$cmd = preg_replace_callback(
 			"/\{(\d+)(:.*?)?\}/",
 			function (array $matches) use ($aliasParams): string {
