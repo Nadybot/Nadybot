@@ -37,6 +37,8 @@ class AliasController {
 	 * This command handler add a command alias.
 	 *
 	 * @HandlesCommand("alias")
+	 * @Matches('/^alias add "([a-z 0-9]+?)" (.+)/si')
+	 * @Matches("/^alias add '([a-z 0-9]+?)' (.+)/si")
 	 * @Matches("/^alias add ([a-z0-9]+) (.+)/si")
 	 */
 	public function aliasAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -113,7 +115,7 @@ class AliasController {
 	 * This command handler remove a command alias.
 	 *
 	 * @HandlesCommand("alias")
-	 * @Matches("/^alias rem ([a-z0-9]+)/i")
+	 * @Matches("/^alias rem ([a-z 0-9]+)/i")
 	 */
 	public function aliasRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$alias = strtolower($args[1]);
