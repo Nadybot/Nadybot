@@ -108,20 +108,19 @@ class CommandAlias {
 		$this->logger->log('DEBUG', "Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
 		$cmd = $row->cmd;
 
-		// count number of parameters and don't split more than that so that the
+		// Determine highest placeholder and don't split more than that so that the
 		// last parameter will have whatever is left
-
 		preg_match_all("/\{(\\d+)(:.*?)?\}/", $cmd, $matches);
-		$values = array_map("intval", $matches[1]);
-		$numMatches = max([0, ...$values]);
+		$placeholders = array_map("intval", $matches[1]);
+		$highestPlaceholder = max([0, ...$placeholders]);
 		// If there aren't any defined parameters, but player gave arguments, process them:
-		if ($numMatches === 0 && !count($values) && $params !== "") {
+		if ($highestPlaceholder === 0 && !count($placeholders) && $params !== "") {
 			$cmd .= " {0}";
 		}
 
 		$aliasParams = [];
 		if ($params !== "") {
-			$aliasParams = explode(' ', $params, $numMatches);
+			$aliasParams = explode(' ', $params, $highestPlaceholder);
 			// add the entire param string as the {0} parameter
 			array_unshift($aliasParams, $params);
 		}
