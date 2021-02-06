@@ -34,26 +34,26 @@ class PlayfieldController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'playfields');
-		
+
 		$this->commandAlias->register($this->moduleName, "playfields", "playfield");
 	}
 
@@ -74,14 +74,14 @@ class PlayfieldController {
 		$msg = $this->text->makeBlob("Playfields", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("playfields")
 	 * @Matches("/^playfields (.+)$/i")
 	 */
 	public function playfieldShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower(trim($args[1]));
-		
+
 		[$longQuery, $longParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'long_name');
 		[$shortQuery, $shortParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'short_name');
 
@@ -118,9 +118,9 @@ class PlayfieldController {
 		//Pos: ([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: (.+)
 		$xCoords = $args[1];
 		$yCoords = $args[2];
-		
+
 		$playfieldName = $args[4];
-		
+
 		$playfield = $this->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
 			$sendto->reply("Could not find playfield '$playfieldName'.");
@@ -128,7 +128,7 @@ class PlayfieldController {
 		}
 		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name, $playfield->id));
 	}
-	
+
 	/**
 	 * @HandlesCommand("waypoint")
 	 * @Matches("/^waypoint \(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i")
@@ -144,10 +144,10 @@ class PlayfieldController {
 		} else {
 			$playfieldName = $playfield->short_name;
 		}
-		
+
 		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
 	}
-	
+
 	/**
 	 * @HandlesCommand("waypoint")
 	 * @Matches("/^waypoint ([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i")
@@ -163,10 +163,10 @@ class PlayfieldController {
 		} else {
 			$playfieldName = $playfield->short_name;
 		}
-		
+
 		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
 	}
-	
+
 	/**
 	 * @HandlesCommand("waypoint")
 	 * @Matches("/^waypoint ([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i")
@@ -185,13 +185,13 @@ class PlayfieldController {
 			$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
 		}
 	}
-	
+
 	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): string {
 		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: $link";
 		return $this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
 	}
-	
+
 	public function getPlayfieldByName(string $playfieldName): ?Playfield {
 		$sql = "SELECT * FROM playfields WHERE `long_name` LIKE ? OR `short_name` LIKE ? LIMIT 1";
 

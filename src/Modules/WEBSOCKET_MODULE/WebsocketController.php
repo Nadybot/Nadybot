@@ -7,6 +7,7 @@ use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
+	AOChatEvent,
 	Event,
 	EventManager,
 	LoggerWrapper,
@@ -24,6 +25,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	JsonExporter,
 	Request,
 	Response,
+	WebChatConverter,
 };
 
 /**
@@ -44,6 +46,9 @@ class WebsocketController {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public WebChatConverter $webChatConverter;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -216,6 +221,20 @@ class WebsocketController {
 	}
 
 	/**
+	 * @Event("sendguild")
+	 * @Event("guild")
+	 * @Event("sendpriv")
+	 * @Event("priv")
+	 * @Description("Convert messages to webchat format")
+	 */
+	public function convertChatEvents(AOChatEvent $event): void {
+		$xmlMessage = clone($event);
+		$xmlMessage->message = $this->webChatConverter->convertMessage($xmlMessage->message);
+		$xmlMessage->type = "chat(" . str_replace("send", "", $xmlMessage->type) . ")";
+		$this->eventManager->fireEvent($xmlMessage);
+	}
+
+	/**
 	 * @Event("*")
 	 * @Description("Distribute events to Websocket clients")
 	 * @DefaultStatus("1")
@@ -228,7 +247,8 @@ class WebsocketController {
 		if ($isPrivatPacket) {
 			return;
 		}
-		$class = end($parts = explode("\\", get_class($event)));
+		$parts = explode("\\", get_class($event));
+		$class = end($parts);
 		$event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
@@ -241,7 +261,7 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->log('Debug', 'Sending ' . $class . ' to Websocket client');
+					$this->logger->log('Debug', "Sending {$class} to Websocket client");
 				}
 			}
 		}

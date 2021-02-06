@@ -20,7 +20,7 @@ There is also a <a href='chatcmd:///tell <myname> guides chatfilter'>Complete gu
 
 
 Now you can block all the annoying cred spammers, be aware that all are talking about "Egpal" or "MMOOK" will get blocked too!
-Same goes for this guide in all channels because it contain the filtered words. (but not for a seperate private window with the bot)
+Same goes for this guide in all channels because it contain the filtered words. (but not for a separate private window with the bot)
 
 <header2>Credits<end>
 

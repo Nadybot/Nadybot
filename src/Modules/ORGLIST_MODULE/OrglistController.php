@@ -63,16 +63,20 @@ class OrglistController {
 	public FindOrgController $findOrgController;
 
 	protected ?Orglist $orglist = null;
-	/** @var array<string,string[]> */
-	protected array $orgrankmap = [];
 
-	public function __construct() {
-		$this->orgrankmap["Anarchism"]  = ["Anarchist"];
-		$this->orgrankmap["Monarchy"]   = ["Monarch",   "Counsil",      "Follower"];
-		$this->orgrankmap["Feudalism"]  = ["Lord",      "Knight",       "Vassal",          "Peasant"];
-		$this->orgrankmap["Republic"]   = ["President", "Advisor",      "Veteran",         "Member",         "Applicant"];
-		$this->orgrankmap["Faction"]    = ["Director",  "Board Member", "Executive",       "Member",         "Applicant"];
-		$this->orgrankmap["Department"] = ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"];
+	/** @var array<string,string[]> */
+	protected array $orgrankmap = [
+		"Anarchism"  => ["Anarchist"],
+		"Monarchy"   => ["Monarch",   "Counsil",      "Follower"],
+		"Feudalism"  => ["Lord",      "Knight",       "Vassal",          "Peasant"],
+		"Republic"   => ["President", "Advisor",      "Veteran",         "Member",         "Applicant"],
+		"Faction"    => ["Director",  "Board Member", "Executive",       "Member",         "Applicant"],
+		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
+	];
+
+	/** Get a hierarchical array of all the ranks in the goven governing form */
+	public function getOrgRanks(string $governingForm): array {
+		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
 
 	/**
@@ -180,7 +184,11 @@ class OrglistController {
 		}
 
 		$this->orglist->org = $org->orgname;
-		$this->orglist->orgtype = $this->getOrgGoverningForm($org->members);
+		if (isset($org->governing_form) && isset($this->orgrankmap[$org->governing_form])) {
+			$this->orglist->orgtype = $this->orgrankmap[$org->governing_form];
+		} else {
+			$this->orglist->orgtype = $this->getOrgGoverningForm($org->members);
+		}
 
 		// Check each name if they are already on the buddylist (and get online status now)
 		// Or make note of the name so we can add it to the buddylist later.

@@ -71,13 +71,13 @@ class FunController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * @Setup
 	 */
@@ -92,7 +92,7 @@ class FunController {
 		$this->db->loadSQLFile($this->moduleName, "homer");
 		$this->db->loadSQLFile($this->moduleName, "pirates");
 	}
-	
+
 	public function getFunItem(string $type, string $sender, int $number=null): string {
 		/** @var Fun[] */
 		$data = $this->db->fetchAll(Fun::class, "SELECT * FROM fun WHERE type = ?", $type);
@@ -102,7 +102,7 @@ class FunController {
 		} else {
 			$row = $data[$number];
 		}
-		
+
 		if ($row === null) {
 			$msg = "There is no item with that id.";
 		} else {
@@ -110,13 +110,13 @@ class FunController {
 			$cred = rand(10000, 9999999);
 			$msg = $row->content;
 			$msg = str_replace("*name*", $sender, $msg);
-			$msg = str_replace("*dmg*", $dmg, $msg);
-			$msg = str_replace("*creds*", $cred, $msg);
+			$msg = str_replace("*dmg*", (string)$dmg, $msg);
+			$msg = str_replace("*creds*", (string)$cred, $msg);
 		}
-		
+
 		return $msg;
 	}
-	
+
 	/**
 	 * @HandlesCommand("beer")
 	 * @Matches("/^beer$/i")
@@ -126,7 +126,7 @@ class FunController {
 		$msg = $this->getFunItem('beer', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("brain")
 	 * @Matches("/^brain$/i")
@@ -141,7 +141,7 @@ class FunController {
 		$msg = $this->getFunItem('brain', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("chuck")
 	 * @Matches("/^chuck$/i")
@@ -156,7 +156,7 @@ class FunController {
 		$msg = $this->getFunItem('chuck', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cybor")
 	 * @Matches("/^cybor$/i")
@@ -169,7 +169,7 @@ class FunController {
 		$msg = $this->getFunItem('cybor', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("dwight")
 	 * @Matches("/^dwight$/i")
@@ -192,7 +192,7 @@ class FunController {
 		$msg = $this->getFunItem('fc', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("homer")
 	 * @Matches("/^homer$/i")
@@ -206,7 +206,7 @@ class FunController {
 		$msg = $this->getFunItem('homer', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("pirates")
 	 * @Matches("/^pirates$/i")

@@ -1,1 +1,0 @@
-This is like amazon reviews for players.

@@ -24,15 +24,15 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
  *	)
  */
 class WhatLocksController {
-	
+
 	public string $moduleName;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -97,10 +97,10 @@ class WhatLocksController {
 		if (count($results) === 1) {
 			return $results;
 		}
-		
+
 		$tmp = explode(" ", $skill);
 		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
-		
+
 		return $this->db->fetchAll(
 			Skill::class,
 			"SELECT DISTINCT id, name FROM skills WHERE $query",
@@ -156,10 +156,10 @@ class WhatLocksController {
 			return;
 		}
 		// Last element has the longest lock time, so determine how many time characters are useless
-		$longestSuperflous = $this->prettyDuration((int)$items[count($items)-1]->duration)[0];
+		$longestSuperfluous = $this->prettyDuration((int)$items[count($items)-1]->duration)[0];
 		$lines = array_map(
-			function(WhatLocks $item) use ($longestSuperflous) {
-				return $this->prettyDuration((int)$item->duration, (int)$longestSuperflous)[1].
+			function(WhatLocks $item) use ($longestSuperfluous) {
+				return $this->prettyDuration((int)$item->duration, (int)$longestSuperfluous)[1].
 					" - " .
 					$this->text->makeItem($item->lowid, $item->highid, $item->lowql, $item->name);
 			},
@@ -202,10 +202,10 @@ class WhatLocksController {
 			},
 			$short
 		);
-		$superflous = strlen(preg_replace("/^([0, dhm]*).*/", "$1", $short));
-		$valuable = strlen($short) - $superflous;
-		$result = "<black>" . substr($short, $cutAway, $superflous-$cutAway) . "<end>".
+		$superfluous = strlen(preg_replace("/^([0, dhm]*).*/", "$1", $short));
+		$valuable = strlen($short) - $superfluous;
+		$result = "<black>" . substr($short, $cutAway, $superfluous-$cutAway) . "<end>".
 			substr($short, -1 * $valuable);
-		return [$superflous, $result];
+		return [$superfluous, $result];
 	}
 }

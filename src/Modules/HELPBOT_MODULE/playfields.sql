@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS playfields;
 CREATE TABLE playfields (
 	`id` INT(11) PRIMARY KEY NOT NULL,
-	`long_name` VARCHAR(25) NOT NULL UNIQUE,
+	`long_name` VARCHAR(26) NOT NULL UNIQUE,
 	`short_name` VARCHAR(15) UNIQUE
 );
 INSERT INTO playfields (id, long_name, short_name) VALUES
@@ -47,14 +47,19 @@ INSERT INTO playfields (id, long_name, short_name) VALUES
 (635, 'Stret East Bank', 'SEB'),
 (790, 'Stret West Bank', 'SWB'),
 (795, 'The Longest Road', 'TLR'),
+(750, 'The Reck', 'TR'),
 (640, 'Tir', 'TIR'),
 (646, 'Tir County', 'TC'),
 (650, 'Upper Stret East Bank', 'USEB'),
 (600, 'Varmint Woods', 'VW'),
 (551, 'Wailing Wastes', 'WW'),
 (586, 'Wartorn Valley', 'WV'),
+(950, 'Holoworld: Omni Training', 'HWO'),
+(952, 'Park: Clan Training', 'PCT'),
+(954, 'Junkyard: Neutral Training', 'JY'),
+(4582, 'ICC Shuttleport', 'ISP'),
 (6550, 'Uturn Canyon', 'UC'),
-(6551, 'Uturn Forest', 'UF'), 
+(6551, 'Uturn Forest', 'UF'),
 (6102, 'Three Craters East', '3CE'),
 (6101, 'Three Craters West', '3CW'),
 (6553, 'Arete', 'ARETE'),

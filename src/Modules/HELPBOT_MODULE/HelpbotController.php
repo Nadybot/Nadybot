@@ -44,16 +44,16 @@ class HelpbotController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -61,36 +61,41 @@ class HelpbotController {
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'dyna');
 	}
-	
+
 	/**
 	 * @HandlesCommand("dyna")
 	 * @Matches("/^dyna ([0-9]+)$/i")
 	 */
 	public function dynaLevelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
-		$range1 = $search - 25;
-		$range2 = $search + 25;
+		$range1 = (int)floor($search - $search / 10);
+		$range2 = (int)ceil($search + $search / 10);
 		/** @var DynaDB[] */
 		$data = $this->db->fetchAll(
 			DynaDB::class,
 			"SELECT * FROM dynadb d ".
 			"JOIN playfields p ON d.playfield_id = p.id ".
-			"WHERE minQl > ? AND minQl < ? ORDER BY `minQl`",
+			"WHERE maxQl >= ? AND minQl <= ? ORDER BY p.`long_name` ASC, `minQl` ASC",
 			$range1,
 			$range2
 		);
 		$count = count($data);
+		if (!$count) {
+			$sendto->reply(
+				"No dynacamps found between level <highlight>{$range1}<end> ".
+				"and <highlight>{$range2}<end>."
+			);
+			return;
+		}
 
-		$blob = "Results of Dynacamp Search for '$search'\n\n";
+		$blob = "Results of Dynacams level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
-		
-		$blob .= "Dyna camp information taken from CSP help files: http://creativestudent.com/ao/files-helpfiles.html";
 
 		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("dyna")
 	 * @Matches("/^dyna (.+)$/i")
@@ -99,36 +104,52 @@ class HelpbotController {
 		$search = str_replace(" ", "%", $args[1]);
 		$data = $this->db->query(
 			"SELECT * ".
-			"FROM dynadb d ".
-			"JOIN playfields p ON d.playfield_id = p.id ".
-			"WHERE long_name LIKE ? OR short_name LIKE ? OR mob LIKE ? ".
-			"ORDER BY `minQl`",
+			"FROM `dynadb` d ".
+			"JOIN `playfields` p ON d.`playfield_id` = p.`id` ".
+			"WHERE `long_name` LIKE ? OR `short_name` LIKE ? OR `mob` LIKE ? ".
+			"ORDER BY p.`long_name` ASC, `minQl` ASC",
 			"%{$search}%",
 			"%{$search}%",
 			"%{$search}%"
 		);
 		$count = count($data);
 
-		$blob = "Results of Dynacamp Search for '$search'\n\n";
+		if (!$count) {
+			$sendto->reply("No dyna names or locations matched <highlight>{$args[1]}<end>.");
+			return;
+		}
+		$blob = "Results of Dynacamp Search for <highlight>{$args[1]}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
-		
-		$blob .= "Dyna camp information taken from CSP help files: http://creativestudent.com/ao/files-helpfiles.html";
 
 		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
+	/**
+	 * Format the dynacamp results as a blob for a popup
+	 */
 	private function formatResults(array $data): string {
 		$blob = '';
+		$lastPF = '';
 		foreach ($data as $row) {
-			$coordLink = $this->text->makeChatcmd("{$row->long_name} {$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
-			$blob .="<pagebreak>$coordLink\n";
-			$blob .="$row->mob - Level <highlight>{$row->minQl}-{$row->maxQl}<end>\n\n";
+			if ($lastPF !== $row->long_name) {
+				if ($lastPF !== '') {
+					$blob .= "\n";
+				}
+				$blob .= "<pagebreak><header2>{$row->long_name}<end>\n";
+				$lastPF = $row->long_name;
+			}
+			$coordLink = $this->text->makeChatcmd("{$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
+			$range = "{$row->minQl}-{$row->maxQl}";
+			if (strlen($range) < 7) {
+				$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
+			}
+			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at $coordLink\n";
 		}
 		return $blob;
 	}
-	
+
 	/**
 	 * @HandlesCommand("oe")
 	 * @Matches("/^oe ([0-9]+)$/i")
@@ -163,7 +184,7 @@ class HelpbotController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("calc")
 	 * @Matches("/^calc (.+)$/i")
@@ -172,23 +193,30 @@ class HelpbotController {
 		$calc = strtolower($args[1]);
 
 		// check if the calc string includes not allowed chars
-		$numValidChars = strspn($calc, "0123456789.+-*%()/\\ ");
+		$numValidChars = strspn($calc, "0123456789.+^-*%()/\\ ");
 
 		if ($numValidChars !== strlen($calc)) {
 			$sendto->reply("Cannot compute.");
 			return;
 		}
+		$calc = str_replace("^", "**", $calc);
 		try {
 			$result = 0;
 			$calc = "\$result = ".$calc.";";
 			eval($calc);
-			
-			$result = round($result, 4);
+
+			$result = preg_replace("/\.?0+$/", "", number_format(round($result, 4), 4));
+			$result = str_replace(",", "<end>,<highlight>", $result);
 		} catch (ParseError $e) {
 			$sendto->reply("Cannot compute.");
 			return;
 		}
-		$msg = $args[1]." = <highlight>".$result."<end>";
+		preg_match_all("{(\d*\.?\d+|[+%()/-^]|\*+)}", $args[1], $matches);
+		$expression = join(" ", $matches[1]);
+		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
+		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);
+
+		$msg ="{$expression} = <highlight>{$result}<end>";
 		$sendto->reply($msg);
 	}
 }

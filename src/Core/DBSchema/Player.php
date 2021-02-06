@@ -32,7 +32,7 @@ class Player extends DBRow {
 	public string $lastname = '';
 
 	/**
-	 * What level (1-220) is the characer or null if unknown
+	 * What level (1-220) is the character or null if unknown
 	 */
 	public ?int $level = null;
 
@@ -62,7 +62,7 @@ class Player extends DBRow {
 	 * @var string
 	 */
 	public string $prof_title= '';
-	
+
 	/**
 	 * The name of the ai_level as a rank or empty string if unknown
 	 */

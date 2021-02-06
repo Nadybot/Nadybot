@@ -36,14 +36,14 @@ class TimezoneController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/**
 	 * @HandlesCommand("timezone")
 	 * @Matches("/^timezone$/i")
 	 */
 	public function timezoneCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$timezoneAreas = $this->getTimezoneAreas();
-		
+
 		$blob = '';
 		foreach ($timezoneAreas as $area => $code) {
 			$blob .= $this->text->makeChatcmd($area, "/tell <myname> timezone $area") . "\n";
@@ -51,16 +51,16 @@ class TimezoneController {
 		$msg = $this->text->makeBlob("Timezone Areas", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("timezone")
 	 * @Matches("/^timezone set ([^ ]*)$/i")
 	 */
 	public function timezoneSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$timezone = $args[1];
-		
+
 		$result = date_default_timezone_set($timezone);
-		
+
 		if ($result === false) {
 			$msg = "<highlight>$timezone<end> is not a valid timezone.";
 			$sendto->reply($msg);
@@ -80,7 +80,7 @@ class TimezoneController {
 	 */
 	public function timezoneAreaCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$area = $args[1];
-		
+
 		$timezoneAreas = $this->getTimezoneAreas();
 		$code = $timezoneAreas[$area];
 		if (empty($code)) {
@@ -88,11 +88,11 @@ class TimezoneController {
 			$sendto->reply($msg);
 			return;
 		}
-		
+
 		/** @var string[] */
 		$timezones = DateTimeZone::listIdentifiers($code);
 		$count = count($timezones);
-		
+
 		$blob = '';
 		foreach ($timezones as $timezone) {
 			$blob .= $this->text->makeChatcmd($timezone, "/tell <myname> timezone set $timezone") . "\n";
@@ -100,7 +100,7 @@ class TimezoneController {
 		$msg = $this->text->makeBlob("Timezones for $area ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @return array<string,int>
 	 */

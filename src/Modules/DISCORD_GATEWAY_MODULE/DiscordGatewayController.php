@@ -387,7 +387,6 @@ class DiscordGatewayController {
 			$this->sessionId = null;
 		}
 		$this->guilds = [];
-		$this->me = null;
 		if (
 			(($event->code ?? null) === 1000 && $this->mustReconnect)
 			|| $this->shouldReconnect($event->code ?? null)

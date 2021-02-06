@@ -7,6 +7,7 @@ use Nadybot\Core\DBSchema\Member;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
@@ -60,6 +61,9 @@ class AccessManager {
 
 	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public GuildRankController $guildRankController;
 
 	/** @Inject */
 	public RaidRankController $raidRankController;
@@ -151,37 +155,49 @@ class AccessManager {
 		return $displayName;
 	}
 
+	public function highestRank(string $al1, string $al2): string {
+		$cmd = $this->compareAccessLevels($al1, $al2);
+		return ($cmd > 0) ? $al1 : $al2;
+	}
+
 	/**
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
 	 */
 	public function getSingleAccessLevel(string $sender): string {
+		$orgRank = "all";
+		if (isset($this->chatBot->guildmembers[$sender])
+			&& $this->settingManager->getBool('map_org_ranks_to_bot_ranks')) {
+			$orgRank = $this->guildRankController->getEffectiveAccessLevel(
+				$this->chatBot->guildmembers[$sender]
+			);
+		}
 		if ($this->chatBot->vars["SuperAdmin"] == $sender) {
 			return "superadmin";
 		}
 		if (isset($this->adminManager->admins[$sender])) {
 			$level = $this->adminManager->admins[$sender]["level"];
 			if ($level >= 4) {
-				return "admin";
+				return $this->highestRank($orgRank, "admin");
 			}
 			if ($level >= 3) {
-				return "mod";
+				return $this->highestRank($orgRank, "mod");
 			}
 		}
 		if (isset($this->raidRankController->ranks[$sender])) {
 			$rank = $this->raidRankController->ranks[$sender]->rank;
 			if ($rank >= 7) {
-				return "raid_admin_" . ($rank-6);
+				return $this->highestRank("raid_admin_" . ($rank-6), $orgRank);
 			}
 			if ($rank >= 4) {
-				return "raid_leader_" . ($rank-3);
+				return $this->highestRank("raid_leader_" . ($rank-3), $orgRank);
 			}
-			return "raid_level_{$rank}";
+			return $this->highestRank("raid_level_{$rank}", $orgRank);
 		}
 		if ($this->chatLeaderController !== null && $this->chatLeaderController->getLeader() == $sender) {
-			return "rl";
+			return $this->highestRank("rl", $orgRank);
 		}
 		if (isset($this->chatBot->guildmembers[$sender])) {
-			return "guild";
+			return $this->highestRank("guild", $orgRank);
 		}
 
 		$sql = "SELECT name FROM `members_<myname>` WHERE `name` = ?";

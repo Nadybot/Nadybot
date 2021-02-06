@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Closure;
 use LoggerConfiguratorDefault;
 use Logger;
 use ErrorException;
@@ -113,6 +114,75 @@ class BotRunner {
 		return static::$latestTag = null;
 	}
 
+	public function checkRequiredModules(): void {
+		$missing = [];
+		$requiredModules = [
+			["bcmath", "gmp"],
+			"ctype",
+			"date",
+			"dom",
+			"filter",
+			"json",
+			"pcre",
+			"PDO",
+			"simplexml",
+			["pdo_mysql", "pdo_sqlite"],
+			"Reflection",
+			"sockets",
+		];
+		if (strlen($this->configFile->getVar('amqp_server')??"")
+			&& strlen($this->configFile->getVar('amqp_user')??"")
+			&& strlen($this->configFile->getVar('amqp_password')??"")
+		) {
+			$requiredModules []= "mbstring";
+		}
+		if ($this->configFile->getVar("amqp_server"));
+		foreach ($requiredModules as $requiredModule) {
+			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
+				$missing []= $requiredModule;
+			} elseif (is_array($requiredModule)) {
+				if (!count(array_filter($requiredModule, "extension_loaded"))) {
+					$missing []= join(" or ", $requiredModule);
+				}
+			}
+		}
+		if (!count($missing)) {
+			return;
+		}
+		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		sleep(5);
+		exit(1);
+	}
+
+	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
+	protected function installCtrlCHandler(): Closure {
+		$signalHandler = function (int $sigNo): void {
+			LegacyLogger::log('INFO', 'StartUp', 'Shutdown requested.');
+			exit;
+		};
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, true);
+		} elseif (function_exists('pcntl_signal')) {
+			pcntl_signal(SIGINT, $signalHandler);
+			pcntl_signal(SIGTERM, $signalHandler);
+			pcntl_async_signals(true);
+		} else {
+			LegacyLogger::log('ERROR', 'Startup', 'You need to have the pcntl extension on Linux');
+			exit(1);
+		}
+		return $signalHandler;
+	}
+
+	/** Uninstall a previously installed signal handler */
+	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, false);
+		} elseif (function_exists('pcntl_signal')) {
+			pcntl_signal(SIGINT, SIG_DFL);
+			pcntl_signal(SIGTERM, SIG_DFL);
+		}
+	}
+
 	/**
 	 * Run the bot in an endless loop
 	 */
@@ -120,14 +190,15 @@ class BotRunner {
 		// set default timezone
 		date_default_timezone_set("UTC");
 
+		// load $vars
+		global $vars;
+		$vars = $this->getConfigVars();
+		$this->checkRequiredModules();
+
 		echo $this->getInitialInfoMessage();
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-
-		// load $vars
-		global $vars;
-		$vars = $this->getConfigVars();
 		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
 			die("Invalid timezone: \"{$vars['timezone']}\"\n");
 		}
@@ -149,8 +220,10 @@ class BotRunner {
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 
+		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
 		$this->clearDatabaseInformation();
+		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
 

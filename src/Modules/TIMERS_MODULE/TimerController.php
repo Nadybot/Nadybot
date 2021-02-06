@@ -67,16 +67,16 @@ class TimerController {
 
 	/** @Inject */
 	public DiscordController $discordController;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public SettingObject $setting;
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -279,7 +279,7 @@ class TimerController {
 		}
 
 		$endTime = time() + $initialRunTime;
-		
+
 		$alerts = $this->generateAlerts($sender, $timerName, $endTime, explode(' ', $this->setting->timer_alert_times));
 
 		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime);
@@ -290,7 +290,7 @@ class TimerController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("timers")
 	 * @Matches("/^timers view (.+)$/i")
@@ -349,7 +349,7 @@ class TimerController {
 		}
 		return join(",", array_values(array_unique($channels)));
 	}
-	
+
 	/**
 	 * @HandlesCommand("timers")
 	 * @Matches("/^(timers add|timers) ([a-z0-9]+)$/i")
@@ -361,7 +361,7 @@ class TimerController {
 		if (count($args) > 3) {
 			$name = $args[3];
 		}
-		
+
 		if (preg_match("/^\\d+$/", $timeString)) {
 			$runTime = $args[2] * 60;
 		} else {
@@ -418,19 +418,19 @@ class TimerController {
 		$msg = $this->text->makeBlob("Timers ($count)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Generate alerts out of an alert specification
 	 *
 	 * @param string $sender Name of the player
-	 * @param string $name Name ofthe alert
+	 * @param string $name Name of the alert
 	 * @param int $endTime When to trigger the timer
 	 * @param string[] $alertTimes A list og alert times (human readable)
 	 * @return Alert[]
 	 */
 	public function generateAlerts(string $sender, string $name, int $endTime, array $alertTimes): array {
 		$alerts = [];
-		
+
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$timeString = $this->util->unixtimeToReadable($time);
@@ -441,7 +441,7 @@ class TimerController {
 				$alerts []= $alert;
 			}
 		}
-		
+
 		if ($endTime > time()) {
 			$alert = new Alert;
 			if ($name === $sender) {
@@ -452,7 +452,7 @@ class TimerController {
 			$alert->time = $endTime;
 			$alerts []= $alert;
 		}
-		
+
 		return $alerts;
 	}
 
@@ -479,13 +479,13 @@ class TimerController {
 		if ($runTime < 1) {
 			return "You must enter a valid time parameter.";
 		}
-		
+
 		if (strlen($name) > 255) {
 			return "You cannot use timer names longer than 255 characters.";
 		}
 
 		$endTime = time() + $runTime;
-		
+
 		if ($alerts === null) {
 			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
 		}

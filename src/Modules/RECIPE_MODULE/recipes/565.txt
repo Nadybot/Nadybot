@@ -46,7 +46,7 @@ Nano Cube
 #L "Nano Cube (Poisoned Thorns)" "254436": #L "Pattern of Impending Death" "255551"
 #L "Nano Cube (Frost Blades)" "254438": #L "Pattern of Inevitable Death" "255552"
 #L "Nano Cube (Magma Covering)" "254440": #L "Pattern of Imminent Death" "255553"
-#L "Nano Cube (Self Illumination)" "254442": #L "Pattern of the Occurence of Death" "255554"
+#L "Nano Cube (Self Illumination)" "254442": #L "Pattern of the Occurrence of Death" "255554"
 
 </font><font color=#FFFF00>------------------------------
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>

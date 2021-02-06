@@ -27,13 +27,13 @@ class FightController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * @HandlesCommand("fight")
 	 * @Matches("/^fight (.+) vs (.+)$/i")
@@ -45,7 +45,7 @@ class FightController {
 
 		// Checks if user is trying to get Chuck Norris to fight another Chuck Norris
 		if ($this->isChuckNorris($player1) && $this->isChuckNorris($player2)) {
-			$msg = "Theres only enough room in this world for one Chuck Norris!";
+			$msg = "There's only enough room in this world for one Chuck Norris!";
 			$sendto->reply($msg);
 			return;
 		}
@@ -53,7 +53,7 @@ class FightController {
 		// This checks if the user is trying to get two of the same people fighting each other
 		if (strcasecmp($player1, $player2) === 0) {
 			$twin = [
-				"Dejavu?",
+				"Déjà vu?",
 				"$player1 can't fight $player2, it may break the voids of space and time!",
 				"As much as I'd love to see $player1 punching himself/herself in the face, it just isn't theoretical..."];
 

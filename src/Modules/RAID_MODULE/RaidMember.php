@@ -21,7 +21,10 @@ class RaidMember extends DBRow {
 	/** UNIX Timestamp when they left the raid/were kicked, null if still in */
 	public ?int $left = null;
 
-	/** How many points have they gotten in this raid */
+	/**
+	 * How many points have they gotten in this raid
+	 * @db:ignore
+	 */
 	public int $points = 0;
 
 	public function __construct() {

@@ -27,21 +27,21 @@ class NotesController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "notes");
 	}
-	
+
 	/**
 	 * @HandlesCommand("notes")
 	 * @Matches("/^notes$/i")
@@ -49,7 +49,7 @@ class NotesController {
 	public function notesListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
-		
+
 		if ($main !== $sender) {
 			// convert all notes to be assigned to the main
 			$sql = "UPDATE notes SET owner = ? WHERE owner = ?";
@@ -102,14 +102,14 @@ class NotesController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("notes")
 	 * @Matches("/^notes rem (\d+)$/i")
 	 */
 	public function notesRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
-		
+
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
 

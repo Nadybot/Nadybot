@@ -142,9 +142,9 @@ class DiscordController {
 		$embeds = [];
 		$text = preg_replace_callback(
 			'|<a href="text://(.+?)">(.+?)</a>|s',
-			function (array $matches) use (&$embeds): string {
+			function (array $matches) use (&$embeds, $text): string {
 				$embeds []= $this->parsePopupToEmbed($matches);
-				return "";
+				return ($text === $matches[0]) ? "" : "__**" . $matches[2] . "**__";
 			},
 			$text
 		);
@@ -217,8 +217,8 @@ class DiscordController {
 				$field["value"] = $parts[1];
 				$embed->fields []= $field;
 				$field["name"] .= " (continued)";
-				for ($i = 3; $i < count($parts); $i += 2) {
-					$field["value"] = $parts[$i];
+				for ($j = 3; $j < count($parts); $j += 2) {
+					$field["value"] = $parts[$j];
 					$embed->fields []= $field;
 				}
 			} else {

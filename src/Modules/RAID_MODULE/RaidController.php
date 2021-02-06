@@ -19,6 +19,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
+use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -94,6 +96,9 @@ class RaidController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public CommentController $commentController;
+
+	/** @Inject */
 	public RaidRankController $raidRankController;
 
 	/** @Inject */
@@ -105,7 +110,8 @@ class RaidController {
 	public ?Raid $raid = null;
 
 	public const ERR_NO_RAID = "There's currently no raid running.";
-		
+	public const CAT_RAID = "raid";
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -168,6 +174,21 @@ class RaidController {
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
 	}
 
+	public function getRaidCategory(): CommentCategory {
+		$raidCat = $this->commentController->getCategory(static::CAT_RAID);
+		if ($raidCat !== null) {
+			return $raidCat;
+		}
+		$raidCat = new CommentCategory();
+		$raidCat->name = static::CAT_RAID;
+		$raidCat->created_by = $this->chatBot->vars["name"];
+		$raidCat->min_al_read = "raid_leader_1";
+		$raidCat->min_al_write = "raid_leader_2";
+		$raidCat->user_managed = false;
+		$this->commentController->saveCategory($raidCat);
+		return $raidCat;
+	}
+
 	/**
 	 * Get the content of the popup that shows you how to join the raid
 	 */
@@ -189,6 +210,8 @@ class RaidController {
 			" / ".
 			$this->text->makeChatcmd("Leave", "/tell <myname> raid leave").
 			" the raid.";
+		$blob .= "\n\n".
+			$this->text->makeChatcmd("Go LFT", "/lft <myname>");
 		return $blob;
 	}
 
@@ -226,7 +249,7 @@ class RaidController {
 				"]\n";
 		}
 		$blob .= "Description: <highlight>{$this->raid->description}<end>\n";
-		$blob .= "Raid anouncement: <highlight>";
+		$blob .= "Raid announcement: <highlight>";
 		if ($this->raid->announce_interval === 0) {
 			$blob .= "off<end> [".
 				$this->text->makeChatcmd(
@@ -396,7 +419,7 @@ class RaidController {
 			$this->raid->announce_interval = $newInterval;
 			$sendto->reply("Raid announcement interval changed to <highlight>{$args[1]}<end>.");
 		}
-		
+
 		$this->logRaidChanges($this->raid);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
@@ -481,7 +504,7 @@ class RaidController {
 			$notInRaid
 		);
 	}
-	
+
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
 		foreach ($players as $name => $player) {
@@ -857,5 +880,50 @@ class RaidController {
 		$event->type = "raid(stop)";
 		$event->player = ucfirst(strtolower($sender));
 		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (notes?|comments?)$/i")
+	 */
+	public function raidCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($channel !== 'msg') {
+			$sendto->reply("<red>The '<symbol>raid {$args[1]}' command only works in tells<end>.");
+			return;
+		}
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
+		$raiderNames = array_keys($this->raid->raiders);
+		$category = $this->getRaidCategory();
+		$comments = $this->commentController->getComments($category, ...$raiderNames);
+		$comments = $this->commentController->filterInaccessibleComments($comments, $sender);
+		if (!count($comments)) {
+			$sendto->reply("There are no notes about any raider that you have access to.");
+			return;
+		}
+		$format = $this->commentController->formatComments($comments, true);
+		$msg = "Comments ({$format->numComments}) about the current raiders ({$format->numMains})";
+		$msg = $this->text->makeBlob($msg, $format->blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (?:notes?|comments?) (?:add|create|new) (\w+) (.+)$/i")
+	 */
+	public function raidCommentAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args = [$args[0], $args[1], $this->getRaidCategory()->name, $args[2]];
+		$this->commentController->addCommentCommand(...func_get_args());
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 * @Matches("/^raid (?:notes?|comments?) (?:get|read|search|find) (\w+)$/i")
+	 */
+	public function raidCommentSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args []= $this->getRaidCategory()->name;
+		$this->commentController->searchCommentCommand(...func_get_args());
 	}
 }

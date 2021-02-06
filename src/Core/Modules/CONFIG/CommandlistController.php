@@ -52,7 +52,7 @@ class CommandlistController {
 			}
 			$cmdSearchSql = "AND c.admin LIKE ?";
 		}
-	
+
 		$sql = "SELECT ".
 				"`cmd`, ".
 				"`cmdevent`, ".
@@ -79,7 +79,7 @@ class CommandlistController {
 		/** @var CommandListEntry[] $data */
 		$data = $this->db->fetchAll(CommandListEntry::class, $sql, ...$params);
 		$count = count($data);
-	
+
 		if ($count === 0) {
 			$msg = "No commands were found.";
 			$sendto->reply($msg);
@@ -92,7 +92,7 @@ class CommandlistController {
 			} else {
 				$cmd = $row->cmd;
 			}
-		
+
 			if ($this->accessManager->checkAccess($sender, 'moderator')) {
 				$onLink = "<black>ON<end>";
 				if ($row->guild_status === 0 || $row->msg_status === 0 || $row->priv_status === 0) {
@@ -105,31 +105,31 @@ class CommandlistController {
 				$rightsLink = $this->text->makeChatcmd('RIGHTS', "/tell <myname> config cmd $cmd");
 				$links = "$rightsLink  $onLink  $offLink";
 			}
-		
+
 			$tell = "<red>T<end>";
 			if ($row->msg_avail === 0) {
 				$tell = "_";
 			} elseif ($row->msg_status === 1) {
 				$tell = "<green>T<end>";
 			}
-		
+
 			$guild = "<red>G<end>";
 			if ($row->guild_avail === 0) {
 				$guild = "_";
 			} elseif ($row->guild_status === 1) {
 				$guild = "<green>G<end>";
 			}
-		
+
 			$priv = "<red>P<end>";
 			if ($row->priv_avail === 0) {
 				$priv = "_";
 			} elseif ($row->priv_status === 1) {
 				$priv = "<green>P<end>";
 			}
-		
+
 			$blob .= "{$links}  [{$tell}|{$guild}|{$priv}] <highlight>{$row->cmd}<end>: {$row->description}\n";
 		}
-		
+
 		$msg = $this->text->makeBlob("Command List ($count)", $blob);
 		$sendto->reply($msg);
 	}

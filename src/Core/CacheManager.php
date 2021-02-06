@@ -18,7 +18,7 @@ class CacheManager {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -39,7 +39,7 @@ class CacheManager {
 			mkdir($this->cacheDir, 0777);
 		}
 	}
-		
+
 	public function forceLookupFromCache(string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge): ?CacheResult {
 		// Check if a xml file of the person exists and if it is up to date
 		if (!$this->cacheExists($groupName, $filename)) {
@@ -154,7 +154,7 @@ class CacheManager {
 
 		$cacheResult = new CacheResult();
 
-		// Check if a xml file of the person exists and if it is uptodate
+		// Check if a xml file of the person exists and if it is up-to-date
 		if (!$forceUpdate && $this->cacheExists($groupName, $filename)) {
 			$cacheAge = $this->getCacheAge($groupName, $filename);
 			if ($cacheAge < $maxCacheAge) {
@@ -220,7 +220,7 @@ class CacheManager {
 
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
-		// at least in windows, modifcation timestamp will not change unless this is done
+		// at least in windows, modification timestamp will not change unless this is done
 		// not sure why that is the case -tyrence
 		@unlink($cacheFile);
 

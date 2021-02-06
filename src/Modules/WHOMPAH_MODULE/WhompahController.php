@@ -27,28 +27,28 @@ class WhompahController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'whompah_cities');
-		
+
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompahs');
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompa');
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompas');
 	}
-	
+
 	/**
 	 * @HandlesCommand("whompah")
 	 * @Matches("/^whompah$/i")
@@ -110,7 +110,7 @@ class WhompahController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("whompah")
 	 * @Matches("/^whompah (.+)$/i")

@@ -4,13 +4,13 @@ To search for an item using the local database:
 To search for a specific QL of an item:
 <highlight><tab><symbol>items 'QL' 'item name'<end>
 
-To search for an item by id:
-<highlight><tab><symbol>itemid 'id'<end>
-
-Note: to not include results that match a certain search term, precede term with a minus ('-').
-
 To search for item IDs by name:
 <highlight><tab><symbol>id 'name'<end>
+
+<i>Note: to not include results that match a certain search term, precede term with a minus ('-').</i>
+
+To search for an item by id:
+<highlight><tab><symbol>itemid 'id'<end>
 
 <header2>Examples:<end>
 
@@ -25,3 +25,6 @@ Shows results with 'panther' but not 'ofab' in the name
 
 Shows Burden of Competence
 <highlight><tab><symbol>itemid 244718<end>
+
+Search for the item id of 'Burden of Competence'
+<highlight><tab><symbol>id burden competence<end>

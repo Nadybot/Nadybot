@@ -38,12 +38,12 @@ use Nadybot\Core\{
  */
 
 class ChatLeaderController {
-	
+
 	public string $moduleName;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
@@ -111,7 +111,7 @@ class ChatLeaderController {
 			$sendto->reply($msg);
 		}
 	}
-	
+
 	public function setLeader(string $name, string $sender): ?string {
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
@@ -224,7 +224,7 @@ class ChatLeaderController {
 		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
 		return $msg;
 	}
-	
+
 	public function getLeader(): ?string {
 		return $this->leader;
 	}

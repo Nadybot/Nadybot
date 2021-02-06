@@ -4,7 +4,7 @@ Author:
 </font><font color=#FF0000>Ingredients </font><font color=#009B00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-</font><font color=#FF0000> *** </font><font color=#FFFF00> Before you go on, this armor is one of rarest found on Rubi-Ka. So far only handfull of pieces were found, even if it made ingame years ago (only confirmed drop is reported from lvl 59 Nano Breed mob inside mission). And since it's limited buffs, mostly collectors would be interested in it. </font><font color=#FF0000> *** </font><font color=#009B00>
+</font><font color=#FF0000> *** </font><font color=#FFFF00> Before you go on, this armor is one of rarest found on Rubi-Ka. So far only handful of pieces were found, even if it made ingame years ago (only confirmed drop is reported from lvl 59 Nano Breed mob inside mission). And since it's limited buffs, mostly collectors would be interested in it. </font><font color=#FF0000> *** </font><font color=#009B00>
 
 #L "Nano Breed Survival Suit Body Armor" "206609"
 <img src=rdb://13252>

@@ -97,7 +97,7 @@ class DiscordGatewayCommandHandler {
 		/** @var ?DiscordMapping */
 		$data = $this->db->fetch(
 			DiscordMapping::class,
-			"SELECT * FROM discord_mapping_<myname> WHERE discord_id=? AND confirmed IS NOT NULL",
+			"SELECT * FROM `discord_mapping_<myname>` WHERE `discord_id`=? AND `confirmed` IS NOT NULL",
 			$discordId
 		);
 		return $data ? $data->name : null;
@@ -115,7 +115,7 @@ class DiscordGatewayCommandHandler {
 		/** @var ?DiscordMapping */
 		$data = $this->db->fetch(
 			DiscordMapping::class,
-			"SELECT * FROM discord_mapping_<myname> WHERE name=? AND confirmed IS NOT NULL",
+			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `confirmed` IS NOT NULL",
 			$args[1]
 		);
 		if ($data !== null) {
@@ -125,7 +125,7 @@ class DiscordGatewayCommandHandler {
 		}
 		$data = $this->db->fetch(
 			DiscordMapping::class,
-			"SELECT * FROM discord_mapping_<myname> WHERE name=? AND token=?",
+			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `token`=?",
 			$sender,
 			$uid
 		);
@@ -135,9 +135,9 @@ class DiscordGatewayCommandHandler {
 			return;
 		}
 		$this->db->exec(
-			"UPDATE discord_mapping_<myname> ".
-			"SET confirmed=?, token=null ".
-			"WHERE token=? AND name=?",
+			"UPDATE `discord_mapping_<myname>` ".
+			"SET `confirmed`=?, `token`=null ".
+			"WHERE `token`=? AND `name`=?",
 			time(),
 			$uid,
 			$sender
@@ -155,9 +155,9 @@ class DiscordGatewayCommandHandler {
 			return;
 		}
 		$uid = strtoupper($args[1]);
-		$this->db-exec(
-			"DELETE FROM discord_mapping_<myname> ".
-			"WHERE token=? AND name=?",
+		$this->db->exec(
+			"DELETE FROM `discord_mapping_<myname>` ".
+			"WHERE `token`=? AND `name`=?",
 			$uid,
 			$sender
 		);
@@ -187,7 +187,7 @@ class DiscordGatewayCommandHandler {
 		/** @var ?DiscordMapping */
 		$data = $this->db->fetch(
 			DiscordMapping::class,
-			"SELECT * FROM discord_mapping_<myname> WHERE name=? AND confirmed IS NOT NULL",
+			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `confirmed` IS NOT NULL",
 			$args[1]
 		);
 		if ($data !== null) {
@@ -198,16 +198,16 @@ class DiscordGatewayCommandHandler {
 		/** @var ?DiscordMapping */
 		$data = $this->db->fetch(
 			DiscordMapping::class,
-			"SELECT * FROM discord_mapping_<myname> WHERE name=? AND discord_id=?",
+			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `discord_id`=?",
 			$args[1],
 			$discordUserId
 		);
 		// Never tried to link before
 		if ($data === null) {
-			$uid = strtoupper(unpack("H*", openssl_random_pseudo_bytes(16))[1]);
+			$uid = strtoupper(bin2hex(random_bytes(16)));
 			$this->db->exec(
-				"INSERT INTO discord_mapping_<myname> ".
-				"(name, discord_id, token, created) ".
+				"INSERT INTO `discord_mapping_<myname>` ".
+				"(`name`, `discord_id`, `token`, `created`) ".
 				"VALUES(?, ?, ?, ?)",
 				$name,
 				$discordUserId,

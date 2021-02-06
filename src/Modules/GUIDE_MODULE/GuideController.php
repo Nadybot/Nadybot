@@ -35,16 +35,16 @@ class GuideController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	private string $path;
 	private const FILE_EXT = ".txt";
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -55,6 +55,8 @@ class GuideController {
 		$this->commandAlias->register($this->moduleName, "guides nanodelta", "nanodelta");
 		$this->commandAlias->register($this->moduleName, "guides stats", "stats");
 		$this->commandAlias->register($this->moduleName, "aou 11", "title");
+		$this->commandAlias->register($this->moduleName, "guides breed", "breed");
+		$this->commandAlias->register($this->moduleName, "guides breed", "breeds");
 		$this->commandAlias->register($this->moduleName, "guides doja", "doja");
 		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
 		$this->commandAlias->register($this->moduleName, "guides gos", "faction");
@@ -64,7 +66,7 @@ class GuideController {
 
 		$this->path = __DIR__ . "/guides/";
 	}
-	
+
 	/**
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides$/i")
@@ -103,7 +105,7 @@ class GuideController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("guides")
 	 * @Matches("/^guides ([a-z0-9_-]+)$/i")

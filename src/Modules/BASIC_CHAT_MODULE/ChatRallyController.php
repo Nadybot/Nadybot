@@ -66,7 +66,7 @@ class ChatRallyController {
 	public function rallyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->replyCurrentRally($sendto);
 	}
-	
+
 	/**
 	 * This command handler ...
 	 * @HandlesCommand("rally .+")
@@ -123,7 +123,7 @@ class ChatRallyController {
 
 		$this->replyCurrentRally($sendto);
 	}
-	
+
 	/**
 	 * This command handler sets rally waypoint, using following example syntaxes:
 	 *  - rally (10.9 30 y 20 2434234)
@@ -187,7 +187,7 @@ class ChatRallyController {
 	public function clear(): void {
 		$this->settingManager->save("rally", '');
 	}
-	
+
 	public function replyCurrentRally(CommandReply $sendto): void {
 		$rally = $this->get();
 		if ($rally === '') {

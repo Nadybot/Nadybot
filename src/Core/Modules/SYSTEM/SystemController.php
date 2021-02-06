@@ -225,6 +225,17 @@ class SystemController {
 	public string $defaultAccessDeniedNotifyPriv = "1";
 
 	/**
+	 * @Setting("allow_mass_tells")
+	 * @Description("When using the proxy, allow sending tells via the workers")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $allowMassTells = "1";
+
+	/**
 	 * @Setting("force_mass_tells")
 	 * @Description("When using the proxy, always send tells via the workers")
 	 * @Visibility("edit")
@@ -408,6 +419,9 @@ class SystemController {
 		if ($info->misc->using_chat_proxy && $info->misc->proxy_capabilities->name !== "unknown") {
 			$cap = $info->misc->proxy_capabilities;
 			$blob .= "<tab>Proxy Software: <highlight>{$cap->name} {$cap->version}<end>\n";
+			if (count($cap->supported_cmds)) {
+				$blob .= "<tab>Supported commands <highlight>" . join("<end>, <highlight>", $cap->supported_cmds) . "<end>\n";
+			}
 			if (count($cap->send_modes)) {
 				$blob .= "<tab>Supported send modes: <highlight>" . join("<end>, <highlight>", $cap->send_modes) . "<end>\n";
 			}

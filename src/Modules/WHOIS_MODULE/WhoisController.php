@@ -12,9 +12,11 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Tyrence (RK2)
@@ -42,44 +44,62 @@ class WhoisController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
+	/** @Inject */
+	public CommentController $commentController;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];
-	
+
 	private $replyInfo = [];
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "name_history");
 
+		$this->settingManager->add(
+			$this->moduleName,
+			'whois_add_comments',
+			'Add link to comments if found',
+			'edit',
+			'options',
+			'1',
+			'true;false',
+			'1;0',
+			'mod'
+		);
+
 		$this->commandAlias->register($this->moduleName, "whois", "w");
 		$this->commandAlias->register($this->moduleName, "whois", "is");
 	}
-	
+
 	/**
 	 * @Event("timer(1min)")
 	 * @Description("Save cache of names and charIds to database")
@@ -112,7 +132,7 @@ class WhoisController {
 
 		$this->nameHistoryCache = [];
 	}
-	
+
 	/**
 	 * @Event("packet(20)")
 	 * @Event("packet(21)")
@@ -131,7 +151,7 @@ class WhoisController {
 		}
 		$this->nameHistoryCache []= $charData;
 	}
-	
+
 	/**
 	 * @HandlesCommand("lookup")
 	 * @Matches("/^lookup (\d+)$/i")
@@ -162,7 +182,7 @@ class WhoisController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("lookup")
 	 * @Matches("/^lookup (.+)$/i")
@@ -195,7 +215,7 @@ class WhoisController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	public function getNameHistory(int $charID, int $dimension): string {
 		$sql = "SELECT * FROM name_history ".
 			"WHERE charid = ? ".
@@ -214,7 +234,7 @@ class WhoisController {
 
 		return $blob;
 	}
-	
+
 	/**
 	 * @HandlesCommand("whois")
 	 * @Matches("/^whois (.+)$/i")
@@ -312,6 +332,15 @@ class WhoisController {
 			$msg .= " :: <red>Offline<end>";
 		}
 		$msg .= " :: " . $this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}");
+		if ($this->settingManager->getBool('whois_add_comments')) {
+			$numComments = $this->commentController->countComments(null, $whois->name);
+			if ($numComments) {
+				$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
+				$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
+					" if you have the necessary access level.";
+				$msg .= " :: " . $this->text->makeBlob($comText, $blob);
+			}
+		}
 
 		$altInfo = $this->altsController->getAltInfo($name);
 		if (count($altInfo->getAllValidatedAlts()) === 0) {
@@ -337,7 +366,7 @@ class WhoisController {
 
 	public function getFullName(Player $whois): string {
 		$msg = "";
-		
+
 		if (isset($whois->firstname)) {
 			$msg .= $whois->firstname . " ";
 		}
@@ -350,7 +379,7 @@ class WhoisController {
 
 		return $msg;
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Gets online status of character")
@@ -370,7 +399,7 @@ class WhoisController {
 			true
 		);
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Gets offline status of character")

@@ -44,7 +44,7 @@ class SQLController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
-	
+
 	/** @Inject */
 	public DB $db;
 

@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS kos (
-	`name` VARCHAR(20) NOT NULL,
-	`comment` VARCHAR(2000) NOT NULL,
-	`submitter` VARCHAR(20) NOT NULL,
-	`dt` INT NOT NULL
-);

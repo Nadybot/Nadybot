@@ -50,28 +50,28 @@ class RelayController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Inject */
 	public Preferences $preferences;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
@@ -80,7 +80,7 @@ class RelayController {
 
 	/** @Inject */
 	public AMQP $amqp;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -310,7 +310,7 @@ class RelayController {
 			"color",
 			"<font color='#C3C3C3'>"
 		);
-		
+
 		$this->commandAlias->register(
 			$this->moduleName,
 			"macro settings save relaytype 1|settings save relaysymbol Always relay|settings save relaybot",
@@ -382,7 +382,7 @@ class RelayController {
 			$this->amqp->connectExchange($exchObject);
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("grc")
 	 */
@@ -404,7 +404,7 @@ class RelayController {
 	public function receiveRelayMessageAMQP(Event $eventObj): void {
 		$this->processIncomingRelayMessage($eventObj->channel, $eventObj->message);
 	}
-	
+
 	/**
 	 * @Event("extPriv")
 	 * @Description("Receive relay messages from other bots in the relay bot private channel")
@@ -412,7 +412,7 @@ class RelayController {
 	public function receiveRelayMessageExtPrivEvent(Event $eventObj): void {
 		$this->processIncomingRelayMessage($eventObj->channel, $eventObj->message);
 	}
-	
+
 	/**
 	 * @Event("priv")
 	 * @Description("Receive relay messages from other bots in this bot's own private channel")
@@ -593,7 +593,7 @@ class RelayController {
 			return $this->settingManager->getString('relay_color_priv') . $text;
 		}
 	}
-	
+
 	public function processIncomingRelayMessage(string $sender, string $message): void {
 		if (/*!in_array(strtolower($sender), explode(",", strtolower($this->settingManager->getString('relaybot'))))
 			||*/ !preg_match("/^(?:grc|gcr) (.+)$/s", $message, $arr)) {
@@ -616,7 +616,7 @@ class RelayController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Sends org chat to relay")
@@ -624,7 +624,7 @@ class RelayController {
 	public function orgChatToRelayEvent(Event $eventObj): void {
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
-	
+
 	/**
 	 * @Event("priv")
 	 * @Description("Sends private channel chat to relay")
@@ -664,7 +664,7 @@ class RelayController {
 		$escapedFilter = str_replace("/", "\\/", $filter);
 		return (bool)@preg_match("/$escapedFilter/", $message);
 	}
-	
+
 	public function processOutgoingRelayMessage($sender, string $message, string $type): void {
 		if ($this->settingManager->getString("relaybot") === "Off") {
 			return;
@@ -724,7 +724,7 @@ class RelayController {
 		}
 		$this->sendMessageToRelay($msg);
 	}
-	
+
 	/**
 	 * @Event("extJoinPrivRequest")
 	 * @Description("Accept private channel join invitation from the relay bot")
@@ -737,7 +737,7 @@ class RelayController {
 			$this->chatBot->privategroup_join($sender);
 		}
 	}
-	
+
 	/**
 	 * @Event("orgmsg")
 	 * @Description("Relay Org Messages")
@@ -749,7 +749,7 @@ class RelayController {
 		$msg = "grc <v2><relay_guild_tag_color>[<myguild>]</end> <relay_bot_color>{$eventObj->message}</end><end>";
 		$this->sendMessageToRelay($msg);
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Sends Logon messages over the relay")
@@ -769,7 +769,7 @@ class RelayController {
 			}
 		});
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Sends Logoff messages over the relay")
@@ -792,7 +792,7 @@ class RelayController {
 			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>{$msg}</end>");
 		}
 	}
-	
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Sends a message to the relay when someone joins the private channel")
@@ -846,7 +846,7 @@ class RelayController {
 			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>" . $msg);
 		}
 	}
-	
+
 	/**
 	 * @Event("leavePriv")
 	 * @Description("Sends a message to the relay when someone leaves the private channel")
@@ -863,7 +863,7 @@ class RelayController {
 			$this->sendMessageToRelay("grc <v2><relay_raidbot_tag_color>[<myname>]</end> <relay_bot_color>" . $msg);
 		}
 	}
-	
+
 	public function sendMessageToRelay(string $message): void {
 		$relayBot = $this->settingManager->getString('relaybot');
 		$message = str_ireplace("<myguild>", $this->getGuildAbbreviation(), $message);

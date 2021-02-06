@@ -50,16 +50,16 @@ class SilenceController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "silence_cmd");
 	}
-	
+
 	/**
 	 * @HandlesCommand("silence")
 	 * @Matches("/^silence$/i")
@@ -81,7 +81,7 @@ class SilenceController {
 		$msg = $this->text->makeBlob("Silenced Commands", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("silence")
 	 * @Matches("/^silence (.+) (.+)$/i")
@@ -94,7 +94,7 @@ class SilenceController {
 		} elseif ($channel === "tell") {
 			$channel = "msg";
 		}
-		
+
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) == 0) {
 			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
@@ -106,7 +106,7 @@ class SilenceController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("unsilence")
 	 * @Matches("/^unsilence (.+) (.+)$/i")
@@ -114,7 +114,7 @@ class SilenceController {
 	public function unsilenceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$command = strtolower($args[1]);
 		$channel = strtolower($args[2]);
-		
+
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) === 0) {
 			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
@@ -126,24 +126,24 @@ class SilenceController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	public function nullCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->logger->log('DEBUG', "Silencing command '$message' for channel '$channel'");
 	}
-	
+
 	public function addSilencedCommand(CmdCfg $row) {
 		$this->commandManager->activate($row->type, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		$sql = "INSERT INTO silence_cmd_<myname> (cmd, channel) VALUES (?, ?)";
 		$this->db->exec($sql, $row->cmd, $row->type);
 	}
-	
+
 	public function isSilencedCommand(CmdCfg $row): bool {
 		$sql = "SELECT * FROM silence_cmd_<myname> WHERE cmd = ? AND channel = ?";
 		/** @var ?SilenceCmd */
 		$row = $this->db->fetch(SilenceCmd::class, $sql, $row->cmd, $row->type);
 		return $row !== null;
 	}
-	
+
 	public function removeSilencedCommand(CmdCfg $row) {
 		$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
 		$sql = "DELETE FROM silence_cmd_<myname> WHERE cmd = ? AND channel = ?";

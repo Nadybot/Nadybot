@@ -9,6 +9,9 @@ class Guild {
 	public string $orgname;
 	public string $orgside;
 
+	/** Anarchy, Republic, etc. */
+	public string $governing_form = "Anarchy";
+
 	/** @var array<string,Player> */
 	public array $members = [];
 

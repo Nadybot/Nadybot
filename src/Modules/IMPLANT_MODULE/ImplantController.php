@@ -35,7 +35,7 @@ class ImplantController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -44,13 +44,13 @@ class ImplantController {
 
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "implant_requirements");
 		$this->db->loadSQLFile($this->moduleName, "premade_implant");
 	}
-	
+
 	/**
 	 * @HandlesCommand("implant")
 	 * @Matches("/^implant (\d+)$/i")
@@ -93,7 +93,7 @@ class ImplantController {
 		$msg = "$link: <highlight>$reqs->ability<end> Ability, <highlight>$reqs->treatment<end> Treatment";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("ladder")
 	 * @Matches("/^ladder (.+) (\d+)$/i")
@@ -101,11 +101,11 @@ class ImplantController {
 	public function ladderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = strtolower($args[1]);
 		$startingValue = (int)$args[2];
-		
+
 		if ($type === 'treat') {
 			$type = 'treatment';
 		}
-		
+
 		// allow treatment, ability, or any of the 6 abilities
 		if ($type !== 'treatment' && $type !== 'ability') {
 			$type = $this->util->getAbility($type, true);
@@ -117,15 +117,15 @@ class ImplantController {
 
 		$value = $startingValue;
 		$prefix = $type == 'treatment' ? 'skill' : 'ability';
-		
+
 		$blob = "Starting $type: $value\n\n-------------------\n\n";
-		
+
 		if ($type == 'treatment') {
 			if ($value < 11) {
 				$sendto->reply("Base treatment must be at least <highlight>11<end>.");
 				return;
 			}
-		
+
 			$getMax = function(int $value): ImplantRequirements {
 				return $this->findMaxImplantQlByReqs(10000, $value);
 			};
@@ -134,7 +134,7 @@ class ImplantController {
 				$sendto->reply("Base ability must be at least <highlight>6<end>.");
 				return;
 			}
-		
+
 			$getMax = function(int $value): ImplantRequirements {
 				return $this->findMaxImplantQlByReqs($value, 10000);
 			};
@@ -148,7 +148,7 @@ class ImplantController {
 		// will continue to loop as long as at least one implant is added each loop
 		while ($added) {
 			$added = false;
-			
+
 			// add shiny
 			$tempValue = $shiny === null ? $value : $value - $shiny->{$prefix . 'Shiny'};
 			/** @var ImplantRequirements */
@@ -164,7 +164,7 @@ class ImplantController {
 				$lowest = $shiny->{'lowest' . ucfirst($prefix) . 'Shiny'};
 				$blob .= "<highlight>Add shiny QL $shiny->ql<end> ($lowest) - Treatment: {$shiny->treatment}, Ability: {$shiny->ability}\n\n";
 			}
-			
+
 			// add bright
 			$tempValue = $bright === null ? $value : $value - $bright->{$prefix . 'Bright'};
 			$newBright = $getMax($tempValue);
@@ -179,7 +179,7 @@ class ImplantController {
 				$lowest = $bright->{'lowest' . ucfirst($prefix) . 'Bright'};
 				$blob .= "<highlight>Add bright QL $bright->ql<end> ($lowest) - Treatment: {$bright->treatment}, Ability: {$bright->ability}\n\n";
 			}
-			
+
 			// add faded
 			$tempValue = $faded === null ? $value : $value - $faded->{$prefix . 'Faded'};
 			$newFaded = $getMax($tempValue);
@@ -195,11 +195,11 @@ class ImplantController {
 				$blob .= "<highlight>Add faded QL $faded->ql<end> ($lowest) - Treatment: {$faded->treatment}, Ability: {$faded->ability}\n\n";
 			}
 		}
-		
+
 		$blob .= "-------------------\n\nEnding $type: $value";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
 		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst(strtolower($type)), $blob);
-		
+
 		$sendto->reply($msg);
 	}
 
@@ -292,7 +292,7 @@ class ImplantController {
 			}
 		}
 	}
-	
+
 	public function getClusterMinQl(int $ql, string $grade): int {
 		if ($grade == 'shiny') {
 			return (int)floor($ql * 0.86);

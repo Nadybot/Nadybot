@@ -1,0 +1,28 @@
+<header2>List<end>
+<tab>To get a list of all defined comment categories:
+<tab><tab><highlight><symbol>comment categories<end>
+
+<header2>Create categories<end>
+<tab>To add a new category named 'admin' with a minimum accesslevel
+<tab>of moderator for reading and writing comments:
+<tab><tab><highlight><symbol>comment category add admin mod<end>
+
+<tab>To add a new category named 'raid' with a minimum accesslevel
+<tab>of raid_leader_1 for reading and raid_leader_2 for writing:
+<tab><tab><highlight><symbol>comment category add raid raid_leader_1 raid_leader_2<end>
+
+<header2>Edit categories<end>
+<tab>To change the access level for reading and writing of the category 'admin' to moderator:
+<tab><tab><highlight><symbol>comment category change admin mod<end>
+
+<tab>To change the access level of the category 'admin'
+<tab>to moderator for reading and admin for writing:
+<tab><tab><highlight><symbol>comment category change admin mod admin<end>
+
+<tab><i>Note that you can only change categories to which you have the access level for reading and writing</i>
+
+<header2>Delete categories<end>
+<tab>To delete the category 'admin' and all the comments in that category:
+<tab><tab><highlight><symbol>comment category del admin<end>
+
+<tab><i>Note that you can only delete categories to which you have the access level for reading and writing</i>

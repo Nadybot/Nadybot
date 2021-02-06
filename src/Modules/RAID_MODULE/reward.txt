@@ -10,4 +10,4 @@ To delete an existing entry, either click on the link in <highlight><symbol>rewa
 <tab><highlight><symbol>reward rem beast<end>
 
 To change a pre-defined entry, you can use
-<tab><highlight><symbol>reward chnage beast 120 Beast kill<end>
+<tab><highlight><symbol>reward change beast 120 Beast kill<end>

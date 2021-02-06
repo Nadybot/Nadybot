@@ -228,7 +228,7 @@ class CommandManager {
 		if (count($data) === 0) {
 			return 0;
 		}
-		
+
 		if ($admin == '' || $admin == null) {
 			$adminSql = '';
 		} else {

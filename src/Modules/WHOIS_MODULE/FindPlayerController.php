@@ -27,23 +27,23 @@ class FindPlayerController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/**
 	 * @HandlesCommand("findplayer")
 	 * @Matches("/^findplayer (.+)$/i")
 	 */
 	public function findplayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
-		
+
 		$players = $this->playerManager->searchForPlayers(
 			$search,
 			(int)$this->chatBot->vars['dimension']

@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	JSONDataModel,
 	LoggerWrapper,
 	SettingManager,
+	Timer,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
@@ -24,6 +25,9 @@ class DiscordAPIClient {
 
 	/** @Inject */
 	public Http $http;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -65,7 +69,7 @@ class DiscordAPIClient {
 			$this->processQueue();
 		}
 	}
-	
+
 	public function processQueue(): void {
 		if (empty($this->outQueue)) {
 			$this->queueProcessing = false;
@@ -81,10 +85,18 @@ class DiscordAPIClient {
 		$this->post(
 			self::DISCORD_API . "/channels/{$channel}/messages",
 			$message
-		)->withCallback(function() use ($errorHandler): void {
-			$this->processQueue();
-			$errorHandler(...func_get_args());
-		});
+		)->withCallback(
+			function(HttpResponse $response, $message) use ($errorHandler): void {
+				if (isset($response->headers) && $response->headers["status-code"] === "429") {
+					array_unshift($this->outQueue, $message);
+					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);
+				} else {
+					$this->processQueue();
+					$errorHandler(...func_get_args());
+				}
+			},
+			func_get_args()
+		);
 	}
 
 	public function sendToUser(string $user, DiscordMessageOut $message, ?callable $callback=null): void {

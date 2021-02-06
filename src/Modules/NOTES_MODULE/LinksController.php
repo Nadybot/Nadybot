@@ -30,10 +30,10 @@ class LinksController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
@@ -42,7 +42,7 @@ class LinksController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "links");
@@ -57,7 +57,7 @@ class LinksController {
 			"1;0"
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("links")
 	 * @Matches("/^links$/i")
@@ -111,7 +111,7 @@ class LinksController {
 		$msg = "Link added successfully.";
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("links")
 	 * @Matches("/^links rem (\d+)$/i")

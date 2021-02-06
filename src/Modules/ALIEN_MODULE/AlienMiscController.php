@@ -60,10 +60,10 @@ class AlienMiscController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
 
@@ -98,7 +98,7 @@ class AlienMiscController {
 		$msg = $this->text->makeBlob("LE Procs (Choose profession)", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * This command handler shows the LE procs for a particular profession.
 	 *

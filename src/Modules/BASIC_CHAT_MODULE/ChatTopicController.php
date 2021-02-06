@@ -38,19 +38,19 @@ class ChatTopicController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public ChatRallyController $chatRallyController;
 
@@ -168,7 +168,7 @@ class ChatTopicController {
 		$msg = $this->buildTopicMessage();
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
-	
+
 	public function setTopic(string $name, string $msg): void {
 		$this->settingManager->save("topic_time", (string)time());
 		$this->settingManager->save("topic_setby", $name);

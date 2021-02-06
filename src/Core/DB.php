@@ -17,6 +17,8 @@ use ReflectionProperty;
  */
 class DB {
 
+	public const SQLITE_MIN_VERSION = "3.23.0";
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
@@ -56,6 +58,14 @@ class DB {
 
 	private LoggerWrapper $logger;
 
+	protected array $sqlReplacements = [];
+	protected array $sqlRegexpReplacements = [];
+	protected array $sqlCreateReplacements = [];
+
+	protected array $tableNames = [];
+
+	private Closure $reconnect;
+
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 
@@ -69,7 +79,12 @@ class DB {
 	 * @throws Exception for unsupported database types
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
+		$this->reconnect = function() use ($type, $dbName, $host, $user, $pass): void {
+			$this->connect($type, $dbName, $host, $user, $pass);
+		};
 		global $vars;
+		$errorShown = isset($this->sql);
+		unset($this->sql);
 		$this->dbName = $dbName;
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
@@ -77,7 +92,28 @@ class DB {
 		$this->guild = str_replace("'", "''", $vars["my_guild"]);
 
 		if ($this->type === self::MYSQL) {
-			$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
+			do {
+				try {
+					$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
+				} catch (PDOException $e) {
+					if (!$errorShown) {
+						$this->logger->log(
+							"ERROR",
+							"Cannot connect to the MySQL db at {$host}: ".
+							trim($e->errorInfo[2])
+						);
+						$this->logger->log(
+							"INFO",
+							"Will keep retrying until the db is back up again"
+						);
+						$errorShown = true;
+					}
+					sleep(1);
+				}
+			} while (!isset($this->sql));
+			if ($errorShown) {
+				$this->logger->log("INFO", "Database connection re-established");
+			}
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$this->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->exec("SET time_zone = '+00:00'");
@@ -90,6 +126,7 @@ class DB {
 					$this->exec("SET default_storage_engine = aria");
 				}
 			}
+			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
 				$dbName = "./data/$dbName";
@@ -99,6 +136,20 @@ class DB {
 
 			$this->sql = new PDO("sqlite:".$dbName);
 			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
+			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
+			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
+			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+				$this->sqlCreateReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
+				$this->sqlCreateReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
+				$this->sqlReplacements[" IS TRUE"] = "=1";
+				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
+				$this->sqlReplacements[" IS FALSE"] = "=0";
+				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
+				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
+				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
+			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
 		}
@@ -299,18 +350,30 @@ class DB {
 	}
 
 	/**
+	 * Change the SQL to work in a variety of MySQL/SQLite versions
+	 */
+	public function applySQLCompatFixes(string $sql): string {
+		if (!empty($this->sqlReplacements)) {
+			$search = array_keys($this->sqlReplacements);
+			$replace = array_values($this->sqlReplacements);
+			$sql = str_ireplace($search, $replace, $sql);
+		}
+		foreach ($this->sqlRegexpReplacements as $search => $replace) {
+			$sql = preg_replace($search, $replace, $sql);
+		}
+		return $sql;
+	}
+
+	/**
 	 * Execute a query and return the number of affected rows
 	 */
 	public function exec(string $sql): int {
 		$sql = $this->formatSql($sql);
 
-		if (substr_compare($sql, "create", 0, 6, true) === 0) {
-			if ($this->type === self::MYSQL) {
-				$sql = str_ireplace("AUTOINCREMENT", "AUTO_INCREMENT", $sql);
-			} elseif ($this->type === self::SQLITE) {
-				$sql = str_ireplace("AUTO_INCREMENT", "AUTOINCREMENT", $sql);
-				$sql = str_ireplace(" INT ", " INTEGER ", $sql);
-			}
+		if (!empty($this->sqlCreateReplacements) && substr_compare($sql, "create ", 0, 7, true) === 0) {
+			$search = array_keys($this->sqlCreateReplacements);
+			$replace = array_values($this->sqlCreateReplacements);
+			$sql = str_ireplace($search, $replace, $sql);
 		}
 
 		$args = $this->getParameters(func_get_args());
@@ -363,6 +426,7 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
+		$sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
 
@@ -386,6 +450,14 @@ class DB {
 			if ($this->type === self::SQLITE && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);
+			}
+			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
+				$this->logger->log(
+					'WARNING',
+					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
+				);
+				call_user_func($this->reconnect);
+				return $this->executeQuery(...func_get_args());
 			}
 			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}
@@ -436,6 +508,13 @@ class DB {
 	 * Format SQL code by replacing placeholders like <myname>
 	 */
 	public function formatSql(string $sql): string {
+		$sql = preg_replace_callback(
+			"/<table:(.+?)>/",
+			function (array $matches): string {
+				return $this->tableNames[$matches[1]] ?? $matches[0];
+			},
+			$sql
+		);
 		$sql = str_replace("<dim>", (string)$this->dim, $sql);
 		$sql = str_replace("<myname>", $this->botname, $sql);
 		$sql = str_replace("<Myname>", ucfirst($this->botname), $sql);
@@ -605,6 +684,10 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$colNames = [];
 		foreach ($props as $prop) {
+			$comment = $prop->getDocComment();
+			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+				continue;
+			}
 			if ($prop->isInitialized($row)) {
 				$colNames []= "`{$prop->name}`";
 				$values []= $prop->getValue($row);
@@ -624,6 +707,10 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$colNames = [];
 		foreach ($props as $prop) {
+			$comment = $prop->getDocComment();
+			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+				continue;
+			}
 			if ($prop->isInitialized($row) && $prop->name !== $key) {
 				$colNames []= "`{$prop->name}`=?";
 				$values []= $prop->getValue($row);
@@ -632,5 +719,10 @@ class DB {
 		$sql = "UPDATE `{$table}` SET " . join(", ", $colNames) . " ".
 			"WHERE `{$key}`=?";
 		return $this->exec($sql, ...[...$values, $row->{$key}]);
+	}
+
+	/** Register a table name for a key */
+	public function registerTableName(string $key, string $table): void {
+		$this->tableNames[$key] = $table;
 	}
 }

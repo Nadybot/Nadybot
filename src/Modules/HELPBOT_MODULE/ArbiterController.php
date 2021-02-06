@@ -164,7 +164,13 @@ class ArbiterController {
 			$blob .= $this->util->date($event->start) . ": <highlight>{$event->longName}<end>\n";
 		}
 		$blob .= "\n\n<i>All arbiter weeks last for 8 days (Sunday 00:00 to Sunday 23:59)</i>";
-		$msg .= " " . $this->text->makeBlob("Upcoming arbiter events", $blob);
+		if ($upcomingEvents[0]->isActiveOn($time)) {
+			$msg .= " " . $this->text->makeBlob("Upcoming arbiter events", $blob);
+		} else {
+			$msg .= " " . $this->text->makeBlob("Next arbiter event", $blob, "Upcoming arbiter events").
+				" is " . $upcomingEvents[0]->longName . " in ".
+				$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . ".";
+		}
 		$sendto->reply($msg);
 	}
 }

@@ -37,34 +37,34 @@ class CloakController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'org_city');
-	
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"showcloakstatus",
@@ -85,7 +85,7 @@ class CloakController {
 			"2m;5m;10m;15m;20m"
 		);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cloak")
 	 * @Matches("/^cloak$/i")
@@ -163,7 +163,7 @@ class CloakController {
 		$event->player = $sender;
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * @Event("guild")
 	 * @Description("Records when the cloak is raised or lowered")
@@ -186,7 +186,7 @@ class CloakController {
 		$event->player = $arr[1];
 		$this->eventManager->fireEvent($event);
 	}
-	
+
 	/**
 	 * @Event("timer(1min)")
 	 * @Description("Checks timer to see if cloak can be raised or lowered")
@@ -215,7 +215,7 @@ class CloakController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @Event("timer(1min)")
 	 * @Description("Reminds the player who lowered cloak to raise it")
@@ -257,7 +257,7 @@ class CloakController {
 			$this->chatBot->sendMassTell($msg, $name);
 		}
 	}
-	
+
 	/**
 	 * @Event("logOn")
 	 * @Description("Show cloak status to guild members logging in")

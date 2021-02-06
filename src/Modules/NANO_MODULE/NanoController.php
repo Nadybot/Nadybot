@@ -53,26 +53,26 @@ class NanoController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'nanos');
-		
+
 		$this->settingManager->add(
 			$this->moduleName,
 			'maxnano',
@@ -146,7 +146,9 @@ class NanoController {
 				$currentSubstrain = $row->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($row);
-			$crystalLink = $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal");
+			$crystalLink = isset($row->crystal_id)
+				? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
+				: "Crystal";
 			$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
 			$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
 			$blob .= "<tab>$info\n";
@@ -159,7 +161,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanolines")
 	 * @Matches("/^nanolines$/i")
@@ -206,7 +208,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanolines")
 	 * @Matches("/^nanolines (.+)$/i")
@@ -239,7 +241,7 @@ class NanoController {
 			$this->nanolinesList($profession, $froobOnly, $sendto);
 		}
 	}
-	
+
 	/**
 	 * Show all nanos of a nanoline grouped by sub-strain
 	 */
@@ -261,7 +263,7 @@ class NanoController {
 		}
 		$sql = "SELECT *  ".
 			"FROM nanos ".
-			"WHERE strain = ? ".
+			"WHERE strain LIKE ? ".
 			$profWhere.
 			$froobWhere.
 			"ORDER BY ".
@@ -286,7 +288,9 @@ class NanoController {
 				$lastSubStrain = $nano->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($nano);
-			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
+			$crystalLink = isset($nano->crystal_id)
+				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
+				: "Crystal";
 			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
 		}
 		$blob .= $this->getFooter();
@@ -317,13 +321,13 @@ class NanoController {
 			}
 		}
 		$sql = "SELECT distinct school,strain,froob_friendly ".
-		"FROM nanos ".
-		"WHERE professions LIKE ? ".
-		$froobWhere.
-		"GROUP BY school,strain ".
-		"ORDER BY ".
-			"school ASC, ".
-			"strain ASC";
+			"FROM nanos ".
+			"WHERE professions LIKE ? ".
+			$froobWhere.
+			"GROUP BY school,strain ".
+			"ORDER BY ".
+				"school ASC, ".
+				"strain ASC";
 		$data = $this->db->query($sql, "%${profession}%");
 
 		$shortProf = $profession;
@@ -339,6 +343,9 @@ class NanoController {
 		foreach ($data as $row) {
 			$strain = $row->strain;
 			if ($lastSchool === null || $lastSchool !== $row->school) {
+				if ($lastSchool !== null) {
+					$blob .="\n";
+				}
 				$blob .= "<pagebreak><header2>{$row->school}<end>\n";
 				$lastSchool = $row->school;
 			}
@@ -350,7 +357,7 @@ class NanoController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanoloc")
 	 * @Matches("/^nanoloc$/i")
@@ -362,19 +369,27 @@ class NanoController {
 			"GROUP BY location ".
 			"ORDER BY location ASC"
 		);
-
-		$blob = '';
+		$nanoCount = [];
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(
-				$row->location,
-				"/tell <myname> nanoloc $row->location"
-			) . " ($row->count) \n";
+			$locations = preg_split("/\s*\/\s*/", $row->location);
+			foreach ($locations as $loc) {
+				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
+			}
+		}
+		ksort($nanoCount);
+
+		$blob = "<header2>All nano locations<end>\n";
+		foreach ($nanoCount as $loc => $count) {
+			$blob .= "<tab>" . $this->text->makeChatcmd(
+				$loc,
+				"/tell <myname> nanoloc $loc"
+			) . " ($count) \n";
 		}
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Locations", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("nanoloc")
 	 * @Matches("/^nanoloc (.+)$/i")
@@ -388,7 +403,7 @@ class NanoController {
 			"ORDER BY nano_name ASC";
 
 		/** @var Nano[] */
-		$nanos = $this->db->fetchAll(Nano::class, $sql, $location);
+		$nanos = $this->db->fetchAll(Nano::class, $sql, "%{$location}%");
 
 		$count = count($nanos);
 		if ($count == 0) {
@@ -399,7 +414,9 @@ class NanoController {
 		$blob = '';
 		foreach ($nanos as $nano) {
 			$nanoLink = $this->makeNanoLink($nano);
-			$crystalLink = $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal");
+			$crystalLink = isset($nano->crystal_id)
+				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
+				: "Crystal";
 			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink";
 			if ($nano->professions) {
 				$blob .= " - <highlight>" . join("<end>, <highlight>", explode(":", $nano->professions)) . "<end>";

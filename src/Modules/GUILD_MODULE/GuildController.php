@@ -72,46 +72,47 @@ class GuildController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public GuildManager $guildManager;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public AltsController $altsController;
-	
+
 	/** @Inject */
 	public Preferences $preferences;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "org_members");
-		
+		$this->db->loadSQLFile($this->moduleName, "org_rank_mapping");
+
 		$this->settingManager->add(
 			$this->moduleName,
 			"max_logon_msg_size",
@@ -144,7 +145,17 @@ class GuildController {
 			"true;false",
 			"1;0"
 		);
-		
+		$this->settingManager->add(
+			$this->moduleName,
+			"map_org_ranks_to_bot_ranks",
+			"Map org ranks to bot ranks",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
+
 		$this->chatBot->guildmembers = [];
 		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id ".
 			"FROM org_members_<myname> o ".
@@ -170,7 +181,7 @@ class GuildController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("logon")
 	 * @Matches("/^logon (.+)$/i")
@@ -189,7 +200,7 @@ class GuildController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("logoff")
 	 * @Matches("/^logoff$/i")
@@ -204,7 +215,7 @@ class GuildController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("logoff")
 	 * @Matches("/^logoff (.+)$/i")
@@ -223,7 +234,7 @@ class GuildController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("lastseen")
 	 * @Matches("/^lastseen (.+)$/i")
@@ -243,7 +254,7 @@ class GuildController {
 		foreach ($onlineAlts as $onlineAlt) {
 			$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
 		}
-		
+
 		$alts = $altInfo->getAllAlts();
 		$nameSearch = implode(",", array_fill(0, count($alts), "?"));
 		/** @var OrgMember[] */
@@ -274,7 +285,7 @@ class GuildController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("recentseen")
 	 * @Matches("/^recentseen ([a-z0-9]+)/i")
@@ -313,7 +324,7 @@ class GuildController {
 		$highlight = false;
 
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
-		
+
 		$prevToon = '';
 		foreach ($data as $row) {
 			if ($row->main === $prevToon) {
@@ -338,7 +349,7 @@ class GuildController {
 		$msg = $this->text->makeBlob("$numRecentCount recently seen org members", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("notify")
 	 * @Matches("/^notify (on|add) (.+)$/i")
@@ -375,7 +386,7 @@ class GuildController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("notify")
 	 * @Matches("/^notify (off|rem) (.+)$/i")
@@ -406,16 +417,16 @@ class GuildController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("updateorg")
 	 * @Matches("/^updateorg$/i")
 	 */
-	public function updateorgCommand($message, $channel, $sender, $sendto, $args) {
+	public function updateorgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$sendto->reply("Starting Roster update");
 		$this->updateOrgRoster([$sendto, "reply"], "Finished Roster update");
 	}
-	
+
 	public function updateOrgRoster(?callable $callback=null, ...$args) {
 		if (!$this->isGuildBot()) {
 			return;
@@ -538,7 +549,7 @@ class GuildController {
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateOrgRoster();
 	}
-	
+
 	/**
 	 * @Event("orgmsg")
 	 * @Description("Automatically update guild roster as characters join and leave the guild")
@@ -672,7 +683,7 @@ class GuildController {
 		}
 		return $msg;
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Shows an org member logoff in chat")
@@ -695,7 +706,7 @@ class GuildController {
 			$this->chatBot->sendPrivate($msg, true);
 		}
 	}
-	
+
 	/**
 	 * @Event("logOff")
 	 * @Description("Record org member logoff for lastseen command")
@@ -706,12 +717,12 @@ class GuildController {
 			$this->db->exec("UPDATE org_members_<myname> SET `logged_off` = ? WHERE `name` = ?", time(), $sender);
 		}
 	}
-	
+
 	public function isGuildBot(): bool {
 		return !empty($this->chatBot->vars["my_guild"])
 			&& !empty($this->chatBot->vars["my_guild_id"]);
 	}
-	
+
 	/**
 	 * @Event("connect")
 	 * @Description("Verifies that org name is correct")
@@ -730,7 +741,7 @@ class GuildController {
 			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
-	
+
 	public function getOrgChannelIdByOrgId(int $orgId): ?string {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr($gid, 1));

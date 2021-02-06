@@ -39,7 +39,7 @@ class AOUController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
 
@@ -50,7 +50,7 @@ class AOUController {
 	public Http $http;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
-	
+
 	public function isValidXML(?string $data): bool {
 		try {
 			$dom = new DOMDocument();
@@ -95,7 +95,7 @@ class AOUController {
 		$guide = $result->data;
 		$dom = new DOMDocument();
 		$dom->loadXML($guide);
-		
+
 		if ($dom->getElementsByTagName('error')->length > 0) {
 			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>: " .
 				$dom->getElementsByTagName('text')->item(0)->nodeValue;
@@ -126,7 +126,7 @@ class AOUController {
 		$msg = $this->text->makeBlob($title, $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
 	 *
@@ -138,7 +138,7 @@ class AOUController {
 
 		$this->searchAndShowAOUGuide($search, true, $sendto);
 	}
-	
+
 	/**
 	 * Search for an AO-U guide.
 	 *
@@ -150,7 +150,7 @@ class AOUController {
 
 		$this->searchAndShowAOUGuide($search, false, $sendto);
 	}
-	
+
 	public function searchAndShowAOUGuide(string $search, bool $searchGuideText, CommandReply $sendto): void {
 		$params = [
 			'mode' => 'search',
@@ -176,13 +176,13 @@ class AOUController {
 
 		$dom = new DOMDocument();
 		$dom->loadXML($results);
-		
+
 		$sections = $dom->getElementsByTagName('section');
 		$blob = '';
 		$count = 0;
 		foreach ($sections as $section) {
 			$category = $this->getSearchResultCategory($section);
-		
+
 			$guides = $section->getElementsByTagName('guide');
 			$tempBlob = '';
 			$found = false;
@@ -196,7 +196,7 @@ class AOUController {
 					$found = true;
 				}
 			}
-			
+
 			if ($found) {
 				$blob .= "<pagebreak><header2>" . $category . "<end>\n";
 				$blob .= $tempBlob;
@@ -221,7 +221,7 @@ class AOUController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 *
 	 * @param string $haystack
@@ -236,7 +236,7 @@ class AOUController {
 		}
 		return true;
 	}
-	
+
 	private function getSearchResultCategory(DOMElement $section): string {
 		$folders = $section->getElementsByTagName('folder');
 		$output = [];
@@ -245,7 +245,7 @@ class AOUController {
 		}
 		return implode(" - ", array_reverse($output));
 	}
-	
+
 	private function getGuideObject(DOMElement $guide): AOUGuide {
 		$obj = new AOUGuide();
 		$obj->id = (int)$guide->getElementsByTagName('id')->item(0)->nodeValue;
@@ -253,11 +253,11 @@ class AOUController {
 		$obj->description = $guide->getElementsByTagName('desc')->item(0)->nodeValue;
 		return $obj;
 	}
-	
+
 	private function replaceItem(array $arr): string {
 		$type = $arr[1];
 		$id = (int)$arr[3];
-		
+
 		$output = '';
 
 		$row = $this->itemsController->findById($id);
@@ -268,7 +268,7 @@ class AOUController {
 		}
 		return $output;
 	}
-	
+
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
@@ -276,20 +276,20 @@ class AOUController {
 			[$name, $value] = explode("=", $param);
 			$$name = $value;
 		}
-		
+
 		return $this->text->makeChatcmd($label . " ({$x}x{$y})", "/waypoint $x $y $pf");
 	}
-	
+
 	private function replaceGuideLinks(array $arr): string {
 		$url = $arr[2];
 		$label = $arr[3];
-		
+
 		if (preg_match("/pid=(\\d+)/", $url, $idArray)) {
 			return $this->text->makeChatcmd($label, "/tell <myname> aou " . $idArray[1]);
 		}
 		return $this->text->makeChatcmd($label, "/start $url");
 	}
-	
+
 	private function processInput(string $input): string {
 		$input = preg_replace("/(\[size.+?\])\[b\]/i", "[b]$1", $input);
 		$input = preg_replace("/(\[color.+?\])\[b\]/i", "[b]$1", $input);
@@ -314,7 +314,7 @@ class AOUController {
 
 		return $output;
 	}
-	
+
 	private function processTag(string $tag): string {
 		switch ($tag) {
 			case "[ts_ts]":
@@ -334,13 +334,13 @@ class AOUController {
 
 		return $tag;
 	}
-	
+
 	private function generateItemMarkup(string $type, DBRow $obj): string {
 		$output = '';
 		if ($type == "item" || $type == "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);
 		}
-		
+
 		if ($type == "item" || $type == "itemname") {
 			$output .= $this->text->makeItem($obj->lowid, $obj->highid, $obj->highql, $obj->name);
 		}

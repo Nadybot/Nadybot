@@ -55,16 +55,16 @@ class CacheController {
 		$msg = $this->text->makeBlob("Cache Groups", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache browse ([a-z0-9_-]+)$/i")
 	 */
 	public function cacheBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
-		
+
 		$path = $this->chatBot->vars['cachefolder'] . $group;
-	
+
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
 			$fileInfo = stat($path . "/" . $file);
@@ -75,7 +75,7 @@ class CacheController {
 		$msg = $this->text->makeBlob("Cache Group: $group", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache rem ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
@@ -83,7 +83,7 @@ class CacheController {
 	public function cacheRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
 		$file = $args[2];
-		
+
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$$this->cacheManager->remove($group, $file);
 			$msg = "Cache file <highlight>$file<end> in cache group <highlight>$group<end> has been deleted.";
@@ -92,7 +92,7 @@ class CacheController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("cache")
 	 * @Matches("/^cache view ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
@@ -100,7 +100,7 @@ class CacheController {
 	public function cacheViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$group = $args[1];
 		$file = $args[2];
-		
+
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file);
 			if (preg_match("/\.json$/", $file)) {

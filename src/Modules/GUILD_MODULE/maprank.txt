@@ -1,0 +1,11 @@
+To get a list of all your mappings org rank to bot access level:
+<tab><highlight><symbol>maprank<end>
+
+To give admin rights to org rank 0 (President, Monarch, Lorg, etc.) :
+<tab><highlight><symbol>maprank 0 to admin<end>
+
+To remove give mod rights to org rank 1 (Knight, Advisor, Board Member, etc.) or higher :
+<tab><highlight><symbol>maprank 1 to mod<end>
+
+To remove the special rights for org rank 1 or higher:
+<tab><highlight><symbol>maprank rem 1<end>

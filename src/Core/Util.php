@@ -448,10 +448,10 @@ class Util {
 	}
 
 	/**
-	 * Generate an SQL query from a column and a list of criterias
+	 * Generate an SQL query from a column and a list of criteria
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
-	 * @param string $column The table column to test agains
+	 * @param string $column The table column to test against
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 */
 	public function generateQueryFromParams(array $params, string $column): array {
@@ -550,8 +550,12 @@ class Util {
 	 * @return string[] An array of file names in that directory
 	 */
 	public function getFilesInDirectory(string $path): array {
-		return array_values(array_filter(scandir($path), function ($f) use ($path) {
-			return !is_dir($path . DIRECTORY_SEPARATOR . $f);
+		$files = @scandir($path);
+		if (!is_array($files)) {
+			return [];
+		}
+		return array_values(array_filter($files, function (string $f) use ($path): bool {
+			return !@is_dir($path . DIRECTORY_SEPARATOR . $f);
 		}));
 	}
 
@@ -561,8 +565,12 @@ class Util {
 	 * @return string[] An array of dir names in that directory
 	 */
 	public function getDirectoriesInDirectory(string $path): array {
-		return array_values(array_filter(scandir($path), function ($f) use ($path) {
-			return $f !== '.' && $f !== '..' && is_dir($path . DIRECTORY_SEPARATOR . $f);
+		$files = @scandir($path);
+		if (!is_array($files)) {
+			return [];
+		}
+		return array_values(array_filter($files, function (string $f) use ($path): bool {
+			return $f !== '.' && $f !== '..' && @is_dir($path . DIRECTORY_SEPARATOR . $f);
 		}));
 	}
 

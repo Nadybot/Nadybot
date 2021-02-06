@@ -44,22 +44,22 @@ class RandomController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
-	
+
 	/**
 	 * @Setting("time_between_rolls")
 	 * @Description("How much time is required between rolls from the same person")
@@ -68,17 +68,17 @@ class RandomController {
 	 * @Options("10s;30s;60s;90s")
 	 */
 	public string $defaultTimeBetweenRolls = "30s";
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'roll');
-		
+
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
 	}
-	
+
 	/**
 	 * @HandlesCommand("random")
 	 * @Matches("/^random (.+)$/i")
@@ -169,7 +169,7 @@ class RandomController {
 
 		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
 	}
-	
+
 	/**
 	 * @HandlesCommand("roll")
 	 * @Matches("/^roll (.+)$/i")
@@ -212,7 +212,7 @@ class RandomController {
 		}
 		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
-	
+
 	/**
 	 * @HandlesCommand("verify")
 	 * @Matches("/^verify ([0-9]+)$/i")
@@ -235,7 +235,7 @@ class RandomController {
 
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Roll and record the result
 	 * @param string $sender Name of the person rolling

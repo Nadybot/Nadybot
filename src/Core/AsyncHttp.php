@@ -336,7 +336,7 @@ class AsyncHttp {
 		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 		if ($sslResult === true) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
-			$this->logger->log('DEBUG', "TLS crypto activated succesfully");
+			$this->logger->log('DEBUG', "TLS crypto activated successfully");
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
 			$this->abortWithMessage(

@@ -15,7 +15,7 @@ class NumberSettingHandler extends SettingHandler {
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>number</i><end>\n\n";
 		return $msg;
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 * @throws Exception when not a number

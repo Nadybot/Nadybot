@@ -9,10 +9,10 @@ class Text {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 

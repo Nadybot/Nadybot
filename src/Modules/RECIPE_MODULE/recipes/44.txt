@@ -4,7 +4,7 @@ Author:
 </font><font color=#FF0000>A bit of Theory</font><font color=#009B00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-In order to be efficient, The Basic Implant must be loaded with one or more Clusters. In fact, theses Basics Implants are only the support for the clusters which give the bonus. There's three kind of Clusters : Shining ones, Bright ones and finally Faded ones. Shining Clusters are the most powerful ones, Bright ones come second and Faded ones are the weakest, in theses proportions :
+In order to be efficient, The Basic Implant must be loaded with one or more Clusters. In fact, these Basics Implants are only the support for the clusters which give the bonus. There's three kind of Clusters : Shining ones, Bright ones and finally Faded ones. Shining Clusters are the most powerful ones, Bright ones come second and Faded ones are the weakest, in these proportions :
 
 </font><font color=#FFFF00> Shining = Bright + Faded </font><font color=#009B00> (to equal QL).
 </font><font color=#FFFF00> Bright = 60% of Shining </font><font color=#009B00> (to equal QL).
@@ -34,7 +34,7 @@ The QL of the Clusters combined with an Implant of a given QL are lowered or upp
 
 You can find there a very useful software to help you designing your Implants: #L "Nanonanny" "/start http://www.timezulu.com.au/NanoNanny/".
 
-All the Implants are requiring some skill in Treatement, as well as a Secondary Skill (a main attribute) dependingon the all clusters fitted in the Implant.  According to this, it may be helpful to put a not so useful Cluster rather than another one, just to make this Secondary Skill deviate to a more higher main Attribute. Thus allowing you put higher QL of Implant.
+All the Implants are requiring some skill in Treatment, as well as a Secondary Skill (a main attribute) depending on the all clusters fitted in the Implant.  According to this, it may be helpful to put a not so useful Cluster rather than another one, just to make this Secondary Skill deviate to a more higher main Attribute. Thus allowing you put higher QL of Implant.
 
 Another way to solve this problem is using "Implant Stepping". This tactic has been modified some patches ago, now you must have your Implant Slot in the Wear panel already empty before putting a new Implant. This still allow to have a intermediary implant in one Slot upping a main Attribute as you put your final Implant in another Slot (ie : you are two point short in Psy to put your QL60 Head implant, so you use a Chest Implant QL10, with a Bright Psychic Cluster on, which give you +5 Psy). This process still request you to plan your Implant Scheme a bit more...
 

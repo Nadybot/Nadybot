@@ -144,10 +144,10 @@ class LootListsController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
-	
+
 	/** @Inject */
 	public DB $db;
 
@@ -159,7 +159,7 @@ class LootListsController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public LootController $lootController;
 
@@ -171,7 +171,7 @@ class LootListsController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'raid_loot');
@@ -208,7 +208,7 @@ class LootListsController {
 		$this->commandAlias->register($this->moduleName, "pande Scorpio", 'scorpio');
 		$this->commandAlias->register($this->moduleName, "pande Bastion", 'bastion');
 	}
-	
+
 	/**
 	 * @author Dare2005 (RK2), based on code for dbloot module by
 	 * @author Chachy (RK2)
@@ -238,7 +238,7 @@ class LootListsController {
 		$msg = $this->text->makeBlob("DB1 Loot", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
@@ -265,7 +265,7 @@ class LootListsController {
 		$msg = $this->text->makeBlob("$raid Loot", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("13")
 	 * @Matches("/^13$/i")
@@ -278,7 +278,7 @@ class LootListsController {
 
 		$this->addAPFLootToList(13);
 	}
-	
+
 	/**
 	 * @HandlesCommand("28")
 	 * @Matches("/^28$/i")
@@ -291,7 +291,7 @@ class LootListsController {
 
 		$this->addAPFLootToList(28);
 	}
-	
+
 	/**
 	 * @HandlesCommand("35")
 	 * @Matches("/^35$/i")
@@ -304,7 +304,7 @@ class LootListsController {
 
 		$this->addAPFLootToList(35);
 	}
-	
+
 	public function addAPFLootToList(int $sector): void {
 		// adding apf stuff
 		$this->lootController->addRaidToLootList('APF', "Sector $sector");
@@ -314,7 +314,7 @@ class LootListsController {
 		$msg = $this->lootController->getCurrentLootList();
 		$this->chatBot->sendPrivate($msg);
 	}
-	
+
 	/**
 	 * @HandlesCommand("apf")
 	 * @Matches("/^apf (7|13|28|35)$/i")
@@ -537,7 +537,7 @@ class LootListsController {
 		}
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @return string|string[]|null
 	 */
@@ -550,7 +550,7 @@ class LootListsController {
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
 		return $this->text->makeBlob("$raid \"$category\" Loot", $blob);
 	}
-	
+
 	/**
 	 * @author Marinerecon (RK2)
 	 *
@@ -590,7 +590,7 @@ class LootListsController {
 		$msg = $this->text->makeBlob("Pandemonium Loot", $list);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @author Morgo (RK2)
 	 *
@@ -604,7 +604,7 @@ class LootListsController {
 		$msg = $this->text->makeBlob("Vortexx loot", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @author Morgo (RK2)
 	 *
@@ -618,7 +618,7 @@ class LootListsController {
 		$msg = $this->text->makeBlob("Mitaar loot", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @author Morgo (RK2)
 	 *

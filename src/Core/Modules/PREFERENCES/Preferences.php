@@ -22,14 +22,14 @@ class Preferences {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/**
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'preferences');
 	}
-	
+
 	public function save(string $sender, string $name, string $value): void {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);

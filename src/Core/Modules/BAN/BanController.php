@@ -6,12 +6,14 @@ use Nadybot\Core\{
 	Event,
 	AccessManager,
 	CommandReply,
+	Modules\ALTS\AltsController,
 	Util,
 	Nadybot,
 	SettingManager,
 	Text,
 	DB,
 	DBSchema\BanEntry,
+    SQLException,
 };
 
 /**
@@ -52,6 +54,9 @@ class BanController {
 	public AccessManager $accessManager;
 
 	/** @Inject */
+	public AltsController $altsController;
+
+	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
@@ -85,6 +90,17 @@ class BanController {
 	public string $defaultNotifyBannedPlayer = "1";
 
 	/**
+	 * @Setting("ban_all_alts")
+	 * @Description("Always ban all alts, not just 1 char")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public string $defaultBanAllAlts = "0";
+
+	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
@@ -114,16 +130,21 @@ class BanController {
 		$who = ucfirst(strtolower($args[1]));
 		$length = $this->util->parseTime($args[2]);
 		$reason = $args[4];
-	
+
 		if (!$this->banPlayer($who, $sender, $length, $reason, $sendto)) {
 			return;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($length);
-		$sendto->reply("You have banned <highlight>$who<end> from this bot for $timeString.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendTell("You have been banned from this bot by <highlight>$sender<end> for $timeString. Reason: $reason", $who);
+		$sendto->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
+		if (!$this->settingManager->getBool('notify_banned_player')) {
+			return;
 		}
+		$this->chatBot->sendMassTell(
+			"You have been banned from this bot by <highlight>{$sender}<end> for {$timeString}. ".
+			"Reason: $reason",
+			$who
+		);
 	}
 
 	/**
@@ -139,16 +160,20 @@ class BanController {
 	public function banPlayerWithTimeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$length = $this->util->parseTime($args[2]);
-	
+
 		if (!$this->banPlayer($who, $sender, $length, '', $sendto)) {
 			return;
 		}
-	
+
 		$timeString = $this->util->unixtimeToReadable($length);
-		$sendto->reply("You have banned <highlight>$who<end> from this bot for $timeString.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendTell("You have been banned from this bot by <highlight>$sender<end> for $timeString.", $who);
+		$sendto->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
+		if (!$this->settingManager->getBool('notify_banned_player')) {
+			return;
 		}
+		$this->chatBot->sendMassTell(
+			"You have been banned from this bot by <highlight>{$sender}<end> for {$timeString}.",
+			$who
+		);
 	}
 
 	/**
@@ -164,15 +189,20 @@ class BanController {
 	public function banPlayerWithReasonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$who = ucfirst(strtolower($args[1]));
 		$reason = $args[3];
-	
+
 		if (!$this->banPlayer($who, $sender, null, $reason, $sendto)) {
 			return;
 		}
-	
-		$sendto->reply("You have permanently banned <highlight>$who<end> from this bot.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendTell("You have been permanently banned from this bot by <highlight>$sender<end>. Reason: $reason", $who);
+
+		$sendto->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
+		if (!$this->settingManager->getBool('notify_banned_player')) {
+			return;
 		}
+		$this->chatBot->sendMassTell(
+			"You have been permanently banned from this bot by <highlight>{$sender}<end>. ".
+			"Reason: {$reason}",
+			$who
+		);
 	}
 
 	/**
@@ -190,11 +220,15 @@ class BanController {
 		if (!$this->banPlayer($who, $sender, null, '', $sendto)) {
 			return;
 		}
-	
-		$sendto->reply("You have permanently banned <highlight>$who<end> from this bot.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendTell("You have been permanently banned from this bot by <highlight>$sender<end>.", $who);
+
+		$sendto->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
+		if (!$this->settingManager->getBool('notify_banned_player')) {
+			return;
 		}
+		$this->chatBot->sendMassTell(
+			"You have been permanently banned from this bot by <highlight>{$sender}<end>.",
+			$who
+		);
 	}
 
 	/**
@@ -206,8 +240,7 @@ class BanController {
 	public function banlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$banlist = $this->getBanlist();
 		$count = count($banlist);
-
-		if ($count == 0) {
+		if ($count === 0) {
 			$msg = "No one is currently banned from this bot.";
 			$sendto->reply($msg);
 			return;
@@ -217,13 +250,13 @@ class BanController {
 			$blob = "<header2>{$ban->name}<end>\n";
 			$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
 			$blob .= "<tab>By: <highlight>{$ban->admin}<end>\n";
-			if ($ban->banend !== 0) {
+			if (isset($ban->banend) && $ban->banend !== 0) {
 				$blob .= "<tab>Ban ends: <highlight>" . $this->util->unixtimeToReadable($ban->banend - time(), false) . "<end>\n";
 			} else {
 				$blob .= "<tab>Ban ends: <highlight>Never<end>\n";
 			}
-		
-			if ($ban->reason != '') {
+
+			if (isset($ban->reason) && $ban->reason !== '') {
 				$blob .= "<tab>Reason: <highlight>{$ban->reason}<end>\n";
 			}
 			$bans []= $blob;
@@ -231,6 +264,44 @@ class BanController {
 		$blob = join("\n<pagebreak>", $bans);
 		$msg = $this->text->makeBlob("Banlist ($count)", $blob);
 		$sendto->reply($msg);
+	}
+
+	/**
+	 * This command handler unbans a player and all their alts from this bot.
+	 *
+	 * Command parameter is:
+	 *  - name of one of the player's characters
+	 *
+	 * @HandlesCommand("unban")
+	 * @Matches("/^unban all (.+)$/i")
+	 */
+	public function unbanAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$who = ucfirst(strtolower($args[1]));
+
+		$charId = $this->chatBot->get_uid($who);
+		if (!$charId) {
+			$sendto->reply("Player <highlight>{$who}<end> doesn't exist.");
+			return;
+		}
+		if (!$this->isBanned($charId)) {
+			$sendto->reply("<highlight>$who<end> is not banned on this bot.");
+			return;
+		}
+
+		$altInfo = $this->altsController->getAltInfo($who);
+		$toUnban = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
+		foreach ($toUnban as $charName) {
+			$charId = $this->chatBot->get_uid($charName);
+			if (!$charId || !$this->isBanned($charId)) {
+				continue;
+			}
+			$this->remove($charId);
+		}
+
+		$sendto->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
+		if ($this->settingManager->getBool('notify_banned_player')) {
+			$this->chatBot->sendMassTell("You have been unbanned from this bot by $sender.", $who);
+		}
 	}
 
 	/**
@@ -246,16 +317,20 @@ class BanController {
 		$who = ucfirst(strtolower($args[1]));
 
 		$charId = $this->chatBot->get_uid($who);
-		if (!$this->isBanned($charId)) {
-			$sendto->reply("<highlight>$who<end> is not banned on this bot.");
+		if (!$charId) {
+			$sendto->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
 		}
-	
+		if (!$this->isBanned($charId)) {
+			$sendto->reply("<highlight>{$who}<end> is not banned on this bot.");
+			return;
+		}
+
 		$this->remove($charId);
-	
+
 		$sendto->reply("You have unbanned <highlight>$who<end> from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendTell("You have been unbanned from this bot by $sender.", $who);
+			$this->chatBot->sendMassTell("You have been unbanned from this bot by $sender.", $who);
 		}
 	}
 
@@ -265,7 +340,11 @@ class BanController {
 	 * @DefaultStatus("1")
 	 */
 	public function checkTempBan(Event $eventObj): void {
-		$numRows = $this->db->exec("DELETE FROM `banlist_<myname>` WHERE `banend` != 0 AND `banend` < ?", time());
+		$numRows = $this->db->exec(
+			"DELETE FROM `banlist_<myname>` ".
+			"WHERE `banend` IS NOT NULL AND `banend` != 0 AND `banend` < ?",
+			time()
+		);
 
 		if ($numRows > 0) {
 			$this->uploadBanlist();
@@ -276,70 +355,105 @@ class BanController {
 	 * This helper method bans player with given arguments.
 	 */
 	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CommandReply $sendto): bool {
-		$charId = $this->chatBot->get_uid($who);
-		if ($charId == null) {
-			$sendto->reply("Character <highlight>$who<end> does not exist.");
-			return false;
+		$toBan = [$who];
+		if ($this->settingManager->getBool('ban_all_alts')) {
+			$altInfo = $this->altsController->getAltInfo($who);
+			$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		}
+		$numSuccess = 0;
+		$numErrors = 0;
+		$msgs = [];
+		foreach ($toBan as $who) {
+			$charId = $this->chatBot->get_uid($who);
+			if (!$charId) {
+				$msgs []= "Character <highlight>$who<end> does not exist.";
+				$numErrors++;
+				continue;
+			}
 
-		if ($this->isBanned($charId)) {
-			$sendto->reply("Character <highlight>$who<end> is already banned.");
-			return false;
-		}
-	
-		if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
-			$sendto->reply("You must have an access level higher than <highlight>$who<end> to perform this action.");
-			return false;
-		}
+			if ($this->isBanned($charId)) {
+				$msgs []= "Character <highlight>$who<end> is already banned.";
+				$numErrors++;
+				continue;
+			}
 
-		if ($length === 0) {
-			return false;
-		}
+			if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
+				$msgs []= "You must have an access level higher than <highlight>$who<end> ".
+					"to perform this action.";
+				$numErrors++;
+				continue;
+			}
 
-		return $this->add($charId, $sender, $length, $reason) > 0;
+			if ($length === 0) {
+				return false;
+			}
+
+			if ($this->add($charId, $sender, $length, $reason)) {
+				$numSuccess++;
+			} else {
+				$numErrors++;
+			}
+		}
+		if (count($msgs)) {
+			$sendto->reply(join("\n", $msgs));
+		}
+		return $numSuccess > 0;
 	}
 
-	public function add(int $charId, string $sender, ?int $length, ?string $reason): int {
-
-		$ban_end = 0;
+	/**
+	 * Actually add $charId to the banlist with optional duration and reason
+	 *
+	 * @param int $charId The UID of the player to ban
+	 * @param string $sender The name of the player banning them
+	 * @param null|int $length length of the ban in s, or null/0 for unlimited
+	 * @param null|string $reason Optional reason  for the ban
+	 * @return bool true on success, false on failure
+	 * @throws SQLException 
+	 */
+	public function add(int $charId, string $sender, ?int $length, ?string $reason): bool {
+		$banEnd = 0;
 		if ($length !== null) {
-			$ban_end = time() + (int)$length;
+			$banEnd = time() + (int)$length;
 		}
 
-		$sql = "INSERT INTO banlist_<myname> (`charid`, `admin`, `time`, `reason`, `banend`) VALUES (?, ?, ?, ?, ?)";
-		$numrows = $this->db->exec($sql, $charId, $sender, time(), $reason, $ban_end);
+		$sql = "INSERT INTO `banlist_<myname>` (`charid`, `admin`, `time`, `reason`, `banend`) VALUES (?, ?, ?, ?, ?)";
+		$numrows = $this->db->exec($sql, $charId, $sender, time(), $reason, $banEnd);
 
 		$this->uploadBanlist();
 
-		return $numrows;
+		return $numrows > 0;
 	}
 
-	public function remove(int $charId): int {
+	/** Remove $charId from the banlist */
+	public function remove(int $charId): bool {
 		$sql = "DELETE FROM `banlist_<myname>` WHERE `charid` = ?";
 		$numrows = $this->db->exec($sql, $charId);
 
 		$this->uploadBanlist();
 
-		return $numrows;
+		return $numrows > 0;
 	}
 
+	/** Sync the banlist from the database */
 	public function uploadBanlist(): void {
 		$this->banlist = [];
 
 		$sql = "SELECT b.*, IFNULL(p.name, b.charid) AS name ".
 			"FROM `banlist_<myname>` b LEFT JOIN players p ON b.charid = p.charid";
+		/** @var BanEntry[] */
 		$data = $this->db->fetchAll(BanEntry::class, $sql);
 		foreach ($data as $row) {
 			$this->banlist[$row->charid] = $row;
 		}
 	}
 
+	/** Check if $charId is banned */
 	public function isBanned(int $charId): bool {
 		return isset($this->banlist[$charId]);
 	}
 
 	/**
-	 * @return BanEntry[]
+	 * @return array<int,BanEntry>
 	 */
 	public function getBanlist(): array {
 		return $this->banlist;

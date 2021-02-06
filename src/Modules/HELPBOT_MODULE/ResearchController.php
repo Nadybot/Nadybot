@@ -27,13 +27,13 @@ class ResearchController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup

@@ -14,6 +14,7 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Exception;
 use Throwable;
 
 /**
@@ -272,7 +273,7 @@ class Nadybot extends AOChat {
 		unset($this->existing_settings);
 		unset($this->existing_helps);
 
-		//Delete old entrys in the DB
+		//Delete old entries in the DB
 		$this->db->exec("DELETE FROM `cmdcfg_<myname>` WHERE `verify` = 0");
 		$this->db->exec("DELETE FROM `eventcfg_<myname>` WHERE `verify` = 0");
 		$this->db->exec("DELETE FROM `settings_<myname>` WHERE `verify` = 0");
@@ -386,7 +387,7 @@ class Nadybot extends AOChat {
 	 * @param boolean $disableRelay Set to true to disable relaying the message into the org/guild channel
 	 * @param string $group Name of the private group to send message into or null for the bot's own
 	 */
-	public function sendPrivate($message, bool $disableRelay=false, string $group=null): void {
+	public function sendPrivate($message, bool $disableRelay=false, string $group=null, bool $addDefaultColor=true): void {
 		// for when $text->makeBlob generates several pages
 		if (is_array($message)) {
 			foreach ($message as $page) {
@@ -403,7 +404,10 @@ class Nadybot extends AOChat {
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
-		$privColor = $this->settingManager->get('default_priv_color');
+		$privColor = "";
+		if ($addDefaultColor) {
+			$privColor = $this->settingManager->get('default_priv_color');
+		}
 
 		$this->send_privgroup($group, $privColor.$message);
 		$event = new AOChatEvent();
@@ -419,7 +423,7 @@ class Nadybot extends AOChat {
 				&& $this->settingManager->getBool("guest_relay")
 				&& $this->settingManager->getBool("guest_relay_commands")
 			) {
-				$this->send_guild("</font>{$guestColorChannel}[Guest]</font> {$senderLink}: {$privColor}$message</font>", "\0");
+				$this->sendGuild("{$guestColorChannel}[Guest]<end> {$senderLink}{$privColor}: {$origMsg}</font>", true, null, false);
 			}
 
 			// relay to bot relay
@@ -448,7 +452,7 @@ class Nadybot extends AOChat {
 	 * @param int $priority The priority of the message or medium if unset
 	 * @return void
 	 */
-	public function sendGuild($message, bool $disableRelay=false, int $priority=null): void {
+	public function sendGuild($message, bool $disableRelay=false, int $priority=null, bool $addDefaultColor=true): void {
 		if ($this->settingManager->get('guild_channel_status') != 1) {
 			return;
 		}
@@ -467,7 +471,10 @@ class Nadybot extends AOChat {
 		$senderLink = $this->text->makeUserlink($this->vars['name']);
 		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
 		$guestColorChannel = $this->settingManager->get('guest_color_channel');
-		$guildColor = $this->settingManager->get("default_guild_color");
+		$guildColor = "";
+		if ($addDefaultColor) {
+			$guildColor = $this->settingManager->get("default_guild_color");
+		}
 
 		$this->send_guild($guildColor.$message, "\0", $priority);
 		$event = new AOChatEvent();
@@ -481,8 +488,9 @@ class Nadybot extends AOChat {
 		if (!$disableRelay
 			&& $this->settingManager->getBool("guest_relay")
 			&& $this->settingManager->getBool("guest_relay_commands")
+			&& count($this->chatlist) > 0
 		) {
-			$this->send_privgroup($this->setting->default_private_channel, "</font>{$guestColorChannel}[{$guildNameForRelay}]</font> {$senderLink}: {$guildColor}$message</font>");
+			$this->sendPrivate("{$guestColorChannel}[{$guildNameForRelay}]<end> {$senderLink}{$guildColor}: {$origMsg}<end>", true, null, false);
 		}
 
 		// relay to bot relay
@@ -506,6 +514,7 @@ class Nadybot extends AOChat {
 	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
 		if ( ($this->vars["use_proxy"]??0) == 1
 			&& $this->settingManager->getBool('force_mass_tells')
+			&& $this->settingManager->getBool('allow_mass_tells')
 		) {
 			$this->sendMassTell($message, $character, $priority, $formatMessage);
 			return;
@@ -542,8 +551,9 @@ class Nadybot extends AOChat {
 	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true, int $worker=null): void {
 		$priority ??= AOC_PRIORITY_HIGH;
 
-		// If we're not using a chat proxy, this doesn't do anything
-		if (($this->vars["use_proxy"]??0) == 0) {
+		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
+		if (($this->vars["use_proxy"]??0) == 0
+			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
 		}
@@ -632,7 +642,7 @@ class Nadybot extends AOChat {
 	}
 
 	/**
-	 * Proccess an incoming message packet that the bot receives
+	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
 		try {
@@ -758,7 +768,7 @@ class Nadybot extends AOChat {
 	/**
 	 * Handle logon/logoff events of friends
 	 */
-	public function processBuddyUpdate(int $userId, int $status): void {
+	public function processBuddyUpdate(int $userId, int $status, string $extra): void {
 		$sender = $this->lookup_user($userId);
 
 		$eventObj = new UserStateEvent();
@@ -766,7 +776,14 @@ class Nadybot extends AOChat {
 
 		$this->logger->log('DEBUG', "AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
 
-		$this->buddylistManager->update($userId, (bool)$status);
+		$worker = 0;
+		try {
+			$payload = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$worker = $payload->id ?? 0;
+		} catch (Throwable $e) {
+		}
+
+		$this->buddylistManager->update($userId, (bool)$status, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
 		if ($sender === "") {
@@ -984,18 +1001,56 @@ class Nadybot extends AOChat {
 	}
 
 	public function processPingReply(string $reply): void {
+		$classMapping = [
+			ProxyCapabilities::CMD_CAPABILITIES => ProxyCapabilities::class,
+			ProxyCapabilities::CMD_PING => PingReply::class,
+		];
 		if ($reply === static::PING_IDENTIFIER) {
 			return;
 		}
 		try {
-			$this->proxyCapabilities = JsonImporter::decode(ProxyCapabilities::class, $reply);
+			$obj = json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
+				throw new Exception();
+			}
+			/** @var ProxyReply $obj */
+			$obj = JsonImporter::convert($classMapping[$obj->type], $obj);
+			$this->processProxyReply($obj);
 		} catch (Throwable $e) {
-			return;
+			// If we are either not a json pong or no proper reply, we are still a pong
+			// Could be no proxy or proxy not supporting the command
+			$this->eventManager->fireEvent(new PongEvent(0));
 		}
 	}
 
+	/** Handle a proxy command reply */
+	public function processProxyReply(ProxyReply $reply): void {
+		switch ($reply->type) {
+			case ProxyCapabilities::CMD_CAPABILITIES:
+				$this->processProxyCapabilities($reply);
+				return;
+			case ProxyCapabilities::CMD_PING:
+				$this->processWorkerPong($reply);
+				return;
+		}
+	}
+
+	/** A worker did a ping for us */
+	public function processWorkerPong(PingReply $reply): void {
+		$this->eventManager->fireEvent(new PongEvent($reply->worker));
+	}
+
+	/** Send a query to the proxy and ask for its supported capabilities */
 	public function queryProxyFeatures(): void {
-		$this->sendPing(json_encode((object)["cmd" => "capabilities"]));
+		$this->sendPing(json_encode((object)["cmd" => ProxyCapabilities::CMD_CAPABILITIES]));
+	}
+
+	/** Proxy send us capabilities information */
+	public function processProxyCapabilities(ProxyCapabilities $reply): void {
+		$this->proxyCapabilities = $reply;
+		if ($reply->rate_limited) {
+			$this->chatqueue->disable();
+		}
 	}
 
 	/**
@@ -1007,6 +1062,21 @@ class Nadybot extends AOChat {
 		}
 		$this->last_ping = time();
 		return $this->sendPacket(new AOChatPacket("out", AOCP_PING, $payload));
+	}
+
+	/**
+	 * Send a ping packet via a worker to keep the connection open
+	 */
+	public function sendPingViaWorker(int $worker, string $payload): bool {
+		return $this->sendPing(
+			json_encode(
+				(object)[
+					"cmd" => ProxyCapabilities::CMD_PING,
+					"worker" => $worker,
+					"payload" => $payload,
+				]
+			)
+		);
 	}
 
 	public function registerEvents(string $class): void {
@@ -1222,5 +1292,4 @@ class Nadybot extends AOChat {
 
 		return $this->id[$id] ?? null;
 	}
-
 }

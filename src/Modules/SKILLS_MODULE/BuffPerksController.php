@@ -31,25 +31,25 @@ class BuffPerksController {
 	 * Set automatically by module loader.
 	 */
 	public $moduleName;
-	
+
 	/**
 	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
 
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
@@ -63,9 +63,9 @@ class BuffPerksController {
 			&& preg_match("/database already up to date/", $msg)) {
 			return;
 		}
-		
+
 		$perkInfo = $this->getPerkInfo();
-		
+
 		$this->db->exec("DELETE FROM perk");
 		$this->db->exec("DELETE FROM perk_level");
 		$this->db->exec("DELETE FROM perk_level_prof");
@@ -75,10 +75,10 @@ class BuffPerksController {
 		$perkLevelId = 1;
 		foreach ($perkInfo as $perk) {
 			$this->db->exec("INSERT INTO perk (id, name) VALUES (?, ?)", $perkId, $perk->name);
-			
+
 			foreach ($perk->levels as $level) {
 				$this->db->exec("INSERT INTO perk_level (id, perk_id, number, min_level) VALUES (?, ?, ?, ?)", $perkLevelId, $perkId, $level->number, $level->min_level);
-				
+
 				foreach ($level->professions as $profession) {
 					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $perkLevelId, $profession);
 				}
@@ -86,7 +86,7 @@ class BuffPerksController {
 				foreach ($level->buffs as $buff => $amount) {
 					$this->db->exec("INSERT INTO perk_level_buffs (perk_level_id, skill, amount) VALUES (?, ?, ?)", $perkLevelId, $buff, $amount);
 				}
-				
+
 				$perkLevelId++;
 			}
 
@@ -95,7 +95,7 @@ class BuffPerksController {
 		$newVersion = max($mtime ?: time(), $dbVersion);
 		$this->settingManager->save("perks_db_version", (string)$newVersion);
 	}
-	
+
 	/**
 	 * @HandlesCommand("perks")
 	 * @Matches("/^perks$/i")
@@ -134,16 +134,16 @@ class BuffPerksController {
 	}
 
 	protected function showPerks(string $profession, int $minLevel, string $search=null, CommandReply $sendto): void {
-		
+
 		$params =  [$profession, $minLevel];
-		
+
 		if ($search !== null) {
 			$tmp = explode(" ", $search);
 			[$skillQuery, $newParams] = $this->util->generateQueryFromParams($tmp, 'plb.skill');
 			$params = [...$params, ...$newParams];
 			$skillQuery = "AND " . $skillQuery;
 		}
-		
+
 		$sql = "SELECT p.name AS perk_name, ".
 				"MAX(pl.number) AS max_perk_level, ".
 				"SUM(plb.amount) AS buff_amount, ".
@@ -164,7 +164,7 @@ class BuffPerksController {
 				"p.name";
 
 		$data = $this->db->query($sql, ...$params);
-		
+
 		if (empty($data)) {
 			$msg = "Could not find any perks for level $minLevel $profession.";
 			$sendto->reply($msg);
@@ -177,14 +177,14 @@ class BuffPerksController {
 				$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}<end>\n";
 				$currentPerk = $row->perk_name;
 			}
-			
+
 			$blob .= "<tab>$row->skill <highlight>$row->buff_amount<end>\n";
 		}
-		
+
 		$msg = $this->text->makeBlob("Buff Perks for $minLevel $profession", $blob);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * @return array<string,Perk>
 	 */
@@ -194,11 +194,11 @@ class BuffPerksController {
 		$perks = [];
 		foreach ($lines as $line) {
 			$line = trim($line);
-			
+
 			if (empty($line)) {
 				continue;
 			}
-			
+
 			[$name, $perkLevel, $minLevel, $profs, $buffs] = explode("|", $line);
 			$perk = $perks[$name];
 			if (empty($perk)) {
@@ -206,13 +206,13 @@ class BuffPerksController {
 				$perks[$name] = $perk;
 				$perk->name = $name;
 			}
-			
+
 			$level = new PerkLevel();
 			$perk->levels[$perkLevel] = $level;
 
 			$level->number = (int)$perkLevel;
 			$level->min_level = (int)$minLevel;
-			
+
 			$professions = explode(",", $profs);
 			foreach ($professions as $prof) {
 				$profession = $this->util->getProfessionName(trim($prof));
@@ -222,7 +222,7 @@ class BuffPerksController {
 					$level->professions []= $profession;
 				}
 			}
-			
+
 			$buffs = explode(",", $buffs);
 			foreach ($buffs as $buff) {
 				$buff = trim($buff);
@@ -234,7 +234,7 @@ class BuffPerksController {
 				$level->buffs[$skill] = (int)$amount;
 			}
 		}
-		
+
 		return $perks;
 	}
 }

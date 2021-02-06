@@ -27,7 +27,7 @@ class AlienArmorController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public ItemsController $itemsController;
 
@@ -54,7 +54,7 @@ class AlienArmorController {
 		$msg = $this->text->makeBlob("Alien Armor List", $list);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * This command handler shows tradeskill process for normal Alien Armor.
 	 *
@@ -290,7 +290,7 @@ class AlienArmorController {
 		$msg = $this->text->makeBlob("Building process for $ql $nameArmorResult", $list);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * Extracts armor type and quality from given $args regexp matches.
 	 * @return array[string,int]

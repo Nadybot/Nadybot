@@ -40,7 +40,7 @@ class LimitsController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
@@ -49,10 +49,10 @@ class LimitsController {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public PlayerHistoryManager $playerHistoryManager;
-	
+
 	/** @Inject */
 	public Util $util;
 
@@ -67,7 +67,7 @@ class LimitsController {
 
 	/** @Inject */
 	public BanController $banController;
-	
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -76,7 +76,7 @@ class LimitsController {
 
 	/** @var array<string,int> */
 	public array $ignoreList = [];
-	
+
 	/**
 	 * @Setup
 	 */
@@ -179,13 +179,31 @@ class LimitsController {
 			"mod"
 		);
 	}
-	
+
+	/**
+	 * Check if this is a command that doesn't fall under any limits
+	 * Reason is that some command should always be allowed to be
+	 * executed, regardless of your access rights or faction/level
+	 *
+	 * @param string $message The command including parameters
+	 * @return bool true if limits are ignored, erlse false
+	 */
+	public function commandIgnoresLimits(string $message): bool {
+		if (strcasecmp($message, "about") === 0) {
+			return true;
+		}
+		if (preg_match("/^alt(decline|validate)\s+([a-z0-9-]+)$/i", $message)) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Check if $sender is allowed to send $message
 	 */
 	public function checkAndExecute(string $sender, string $message, callable $callback, ...$args): void {
 		if (
-			preg_match("/^about$/i", $message)
+			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
 			|| $sender === ucfirst(strtolower($this->settingManager->get("relaybot")))
 			// if access level is at least member, skip checks
@@ -203,7 +221,7 @@ class LimitsController {
 			...$args
 		);
 	}
-	
+
 	public function handleAccessError(string $sender, string $message, string $msg): void {
 		$this->logger->log('Info', "$sender denied access to bot due to: $msg");
 
@@ -219,7 +237,7 @@ class LimitsController {
 			$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
 		}
 	}
-	
+
 	/**
 	 * React to a $sender being denied to send $msg to us
 	 */
@@ -231,7 +249,7 @@ class LimitsController {
 			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
-	
+
 	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, ...$args): void {
 		if ($whois === null) {
 			$errorHandler("Error! Unable to get your character info for limit checks. Please try again later.");
@@ -318,10 +336,10 @@ class LimitsController {
 			$errorHandler("Error! You must be at least <highlight>$timeString<end> old.");
 			return;
 		}
-		
+
 		$successHandler(...$args);
 	}
-		
+
 	/**
 	 * @Event("command(*)")
 	 * @Description("Enforce rate limits")
@@ -371,7 +389,7 @@ class LimitsController {
 		);
 		$numExecuted = count($this->limitBucket[$sender]);
 		$threshold = $this->settingManager->getInt('limits_threshold');
-		
+
 		return $threshold && $numExecuted > $threshold;
 	}
 

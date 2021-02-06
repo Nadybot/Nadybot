@@ -32,13 +32,13 @@ class SpiritsController {
 	 * Set automatically by module loader.
 	 */
 	public string $moduleName;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Text $text;
-	
+
 	/**
 	 * @Setup
 	 */
@@ -126,7 +126,7 @@ class SpiritsController {
 			$title = "Spirits QL $qllorange to $qlhirange";
 			/** @var Spirit[] */
 			$data = $this->db->fetchAll(
-				Spirirt::class,
+				Spirit::class,
 				"SELECT * FROM spiritsdb where ql >= ? AND ql <= ? ORDER BY ql",
 				$qllorange,
 				$qlhirange

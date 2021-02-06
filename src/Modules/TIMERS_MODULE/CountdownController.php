@@ -29,7 +29,7 @@ class CountdownController {
 
 	/** @Inject */
 	public Timer $timer;
-	
+
 	private int $lastCountdown = 0;
 
 	/**

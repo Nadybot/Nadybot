@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
+use Nadybot\Modules\RAID_MODULE\RaidController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
@@ -45,6 +46,11 @@ class OnlineController {
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_PROFESSION = 2;
 
+	protected const RAID_OFF = 0;
+	protected const RAID_IN = 1;
+	protected const RAID_NOT_IN = 2;
+	protected const RAID_COMPACT = 4;
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -71,6 +77,9 @@ class OnlineController {
 
 	/** @Inject */
 	public DiscordGatewayController $discordGatewayController;
+
+	/** @Inject */
+	public RaidController $raidController;
 
 	/** @Inject */
 	public Text $text;
@@ -128,6 +137,16 @@ class OnlineController {
 			"0",
 			"true;false",
 			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_raid",
+			"Show raid participation in online list",
+			"edit",
+			"options",
+			"0",
+			"off;in raid;not in raid;both;both, but compact",
+			"0;1;2;3;7"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -558,6 +577,31 @@ class OnlineController {
 		return "";
 	}
 
+	public function getRaidInfo(string $name, string $fancyColon): array {
+		$mode = $this->settingManager->getInt("online_raid");
+		if ($mode === 0) {
+			return ["", ""];
+		}
+		if (!isset($this->raidController->raid)) {
+			return ["", ""];
+		}
+		$inRaid = isset($this->raidController->raid->raiders[$name])
+			&& $this->raidController->raid->raiders[$name]->left === null;
+
+		if (($mode & static::RAID_IN) && $inRaid) {
+			if ($mode & static::RAID_COMPACT) {
+				return ["[<green>R<end>] ", ""];
+			}
+			return ["", " $fancyColon <green>in raid<end>"];
+		} elseif (($mode & static::RAID_NOT_IN) && !$inRaid) {
+			if ($mode & static::RAID_COMPACT) {
+				return ["[<red>R<end>] ", ""];
+			}
+			return ["", " $fancyColon <red>not in raid<end>"];
+		}
+		return ["", ""];
+	}
+
 	public function getAfkInfo(string $afk, string $fancyColon): string {
 		if (empty($afk)) {
 			return '';
@@ -610,10 +654,11 @@ class OnlineController {
 			}
 
 			$admin = $this->getAdminInfo($player->name, $separator);
+			[$raidPre, $raidPost] = $this->getRaidInfo($player->name, $separator);
 			$afk = $this->getAfkInfo($player->afk, $separator);
 
 			if ($player->profession === null) {
-				$list->blob .= "<tab>? $player->name$admin$afk\n";
+				$list->blob .= "<tab>? {$raidPre}{$player->name}{$admin}{$raidPost}{$afk}\n";
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
 				$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
@@ -621,7 +666,7 @@ class OnlineController {
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
 					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession)."> ";
 				}
-				$list->blob.= "<tab>{$profIcon}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$afk}\n";
+				$list->blob.= "<tab>{$profIcon}{$raidPre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidPost}{$afk}\n";
 			}
 		}
 

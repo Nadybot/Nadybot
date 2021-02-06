@@ -32,13 +32,13 @@ class TrickleController {
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public DB $db;
-	
+
 	/**
 	 * This handler is called on bot startup.
 	 * @Setup
@@ -61,7 +61,7 @@ class TrickleController {
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$ability = $this->util->getAbility($array[$i]);
 			if ($ability === null) {
-				$msg = "Unknwon ability <highlight>{$array[$i]}<end>.";
+				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
 				$sendto->reply($msg);
 				return;
 			}
@@ -72,7 +72,7 @@ class TrickleController {
 		$msg = $this->processAbilities($abilities);
 		$sendto->reply($msg);
 	}
-	
+
 	/**
 	 * View trickle skills
 	 *
@@ -142,7 +142,7 @@ class TrickleController {
 		}
 		return $msg;
 	}
-	
+
 	/**
 	 * @return string[]
 	 */
@@ -161,7 +161,7 @@ class TrickleController {
 		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
 		return (array)$this->text->makeBlob("Trickle Results: $abilitiesHeader", $blob);
 	}
-	
+
 	/**
 	 * @return Trickle[]
 	 */
@@ -181,7 +181,7 @@ class TrickleController {
 
 		return $this->db->fetchAll(Trickle::class, $sql);
 	}
-	
+
 	/**
 	 * @param Trickle[] $results
 	 */

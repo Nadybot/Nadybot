@@ -121,7 +121,7 @@ class BuddylistManager {
 	 * Remove a user to the bot's friendlist for a given purpose
 	 *
 	 * This does not necessarily remove the user from the friendlist, because
-	 * they might be on it for more than 1 reason. The user is oly really removed
+	 * they might be on it for more than 1 reason. The user is only really removed
 	 * when the last reason to be on the list was removed.
 	 *
 	 * @param string $name The name of the player
@@ -164,7 +164,7 @@ class BuddylistManager {
 	/**
 	 * Update the cached information in the friendlist
 	 */
-	public function update(int $userId, bool $status): void {
+	public function update(int $userId, bool $status, int $worker=0): void {
 		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
@@ -173,6 +173,7 @@ class BuddylistManager {
 		$this->buddyList[$userId]->name = (string)$sender;
 		$this->buddyList[$userId]->online = $status;
 		$this->buddyList[$userId]->known = true;
+		$this->buddyList[$userId]->worker = $worker;
 	}
 
 	/**

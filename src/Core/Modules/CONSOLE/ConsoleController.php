@@ -51,6 +51,30 @@ class ConsoleController {
 
 	public bool $useReadline = false;
 
+	/** @Setup */
+	public function setup(): void {
+		$this->settingManager->add(
+			$this->moduleName,
+			"console_color",
+			"Use ANSI colors",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"console_bg_color",
+			"Set background color",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
+	}
+
 	public function getCacheFile(): string {
 		if (isset($_SERVER["XDG_CACHE_HOME"])) {
 			return explode(":", $_SERVER["XDG_CACHE_HOME"])[0] . "/Nadybot/readline.history";

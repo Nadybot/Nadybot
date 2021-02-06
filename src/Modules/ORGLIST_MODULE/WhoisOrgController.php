@@ -36,25 +36,25 @@ class WhoisOrgController {
 
 	/** @Inject */
 	public DB $db;
-	
+
 	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public Text $text;
-	
+
 	/** @Inject */
 	public Util $util;
-	
+
 	/** @Inject */
 	public PlayerManager $playerManager;
-	
+
 	/** @Inject */
 	public GuildManager $guildManager;
 
 	/** @Inject */
 	public OnlineController $onlineController;
-	
+
 	/**
 	 * @HandlesCommand("whoisorg")
 	 * @Matches("/^whoisorg ([a-z0-9-]+) (\d)$/i")
@@ -65,7 +65,7 @@ class WhoisOrgController {
 		if (count($args) === 3) {
 			$dimension = (int)$args[2];
 		}
-		
+
 		if (preg_match("/^\d+$/", $args[1])) {
 			$orgId = (int)$args[1];
 			$this->sendOrgIdInfo($orgId, $sendto, $dimension);

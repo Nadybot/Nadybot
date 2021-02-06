@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use DateTime;
 use Exception;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\EventManager;
 use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
@@ -37,6 +38,9 @@ class WebUiController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
 	public WebserverController $webserverController;
 
 	/** @Inject */
@@ -47,7 +51,7 @@ class WebUiController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-	
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -71,7 +75,7 @@ class WebUiController {
 		}
 		$this->timer->callLater(0, [$this, "updateWebUI"]);
 	}
-	
+
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Automatically upgrade NadyUI")
@@ -94,7 +98,7 @@ class WebUiController {
 		$this->processNadyUIRelease($channel, $sendto, function() {
 		});
 	}
-		
+
 	protected function getGitHubData(HttpResponse $response, ?CommandReply $sendto): ?HttpResponse {
 		$msg = null;
 		if ($response->error) {
@@ -122,6 +126,14 @@ class WebUiController {
 	}
 
 	public function processNadyUIRelease(string $channel, ?CommandReply $sendto, callable $callback): void {
+		if (!extension_loaded("zip")) {
+			$sendto->reply(
+				"In order to install or update NadyUI from within the bot, ".
+				"you must have the PHP Zip extension installed."
+			);
+			$this->eventManager->deactivateIfActivated($this, "updateWebUI");
+			return;
+		}
 		$uri = sprintf(
 			"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
 			$channel
@@ -180,6 +192,7 @@ class WebUiController {
 				$sendto->reply($msg);
 			}
 			$this->logger->log('ERROR', $msg);
+			return;
 		}
 		if ($currentVersion === 0) {
 			$action = "<green>installed<end> with version";
@@ -214,7 +227,7 @@ class WebUiController {
 	}
 
 	/**
-	 * Remove all files from the NadyUI installation (if any) and reset teh version in the DB
+	 * Remove all files from the NadyUI installation (if any) and reset the version in the DB
 	 */
 	public function uninstallNadyUi(bool $updateDB=false): bool {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
@@ -279,7 +292,7 @@ class WebUiController {
 			}
 		}
 	}
-	
+
 	/**
 	 * @HandlesCommand("webui")
 	 * @Matches("/^webui install (.+)$/")

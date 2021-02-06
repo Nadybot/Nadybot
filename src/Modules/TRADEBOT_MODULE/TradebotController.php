@@ -8,7 +8,9 @@ use Nadybot\Core\{
 	StopExecutionException,
 	Nadybot,
 	SettingManager,
+	Text,
 };
+use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -31,6 +33,12 @@ class TradebotController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public CommentController $commentController;
+
+	/** @Inject */
+	public Text $text;
 
 	/** @var array<string,array<string,mixed>> */
 	private const BOT_DATA = [
@@ -79,6 +87,18 @@ class TradebotController {
 			"text",
 			"*",
 			"None;*"
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'tradebot_add_comments',
+			'Add link to comments if found',
+			'edit',
+			'options',
+			'1',
+			'true;false',
+			'1;0',
+			'mod'
 		);
 
 		$this->settingManager->registerChangeListener(
@@ -182,7 +202,7 @@ class TradebotController {
 	}
 
 	/**
-	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errros
+	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors
 	 */
 	public function processIncomingTradebotMessage(string $sender, string $message): void {
 		$message = "Received message from Tradebot <highlight>$sender<end>: $message";
@@ -203,6 +223,9 @@ class TradebotController {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
+		if ($this->settingManager->getBool('tradebot_add_comments')) {
+			$message = $this->addCommentsToMessage($message);
+		}
 
 		if ($this->settingManager->getInt("tradebot_channel_spam") & 2) {
 			$this->chatBot->sendGuild($message, true);
@@ -210,6 +233,21 @@ class TradebotController {
 		if ($this->settingManager->getInt("tradebot_channel_spam") & 1) {
 			$this->chatBot->sendPrivate($message, true);
 		}
+	}
+
+	protected function addCommentsToMessage(string $message): string {
+		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message ,$match)) {
+			return $message;
+		}
+		$numComments = $this->commentController->countComments(null, $match[1]);
+		if ($numComments === 0) {
+			return $message;
+		}
+		$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
+		$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
+			" if you have the necessary access level.";
+		$message .= " [" . $this->text->makeBlob($comText, $blob) . "]";
+		return $message;
 	}
 
 	/**
