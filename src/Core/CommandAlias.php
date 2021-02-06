@@ -111,12 +111,10 @@ class CommandAlias {
 		// count number of parameters and don't split more than that so that the
 		// last parameter will have whatever is left
 
-		// TODO: figure out highest numbered parameter and use that as $numMatches
-		// otherwise this will break if the parameters do not include every number
-		// from 1 to MAX -Tyrence
-		preg_match_all("/\{\\d+(:.*?)?\}/", $cmd, $matches);
-		$numMatches = count(array_unique($matches[0]));
-		if ($numMatches === 0) {
+		preg_match_all("/\{(\\d+)(:.*?)?\}/", $cmd, $matches);
+		$values = array_map("intval", $matches[1]);
+		$numMatches = max([0, ...$values]);
+		if ($numMatches === 0 && !count($values)) {
 			$cmd .= " {0}";
 		}
 
