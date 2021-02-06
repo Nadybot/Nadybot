@@ -114,7 +114,7 @@ class CommandAlias {
 		preg_match_all("/\{(\\d+)(:.*?)?\}/", $cmd, $matches);
 		$values = array_map("intval", $matches[1]);
 		$numMatches = max([0, ...$values]);
-		if ($numMatches === 0 && !count($values)) {
+		if ($numMatches === 0 && !count($values) && $params !== "") {
 			$cmd .= " {0}";
 		}
 
