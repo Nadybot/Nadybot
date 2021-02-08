@@ -9997,7 +9997,8 @@ INSERT INTO aodb VALUES
 (151567,151560,1,200,'Silver Filigree Ring set with a Ember Sphere',286866,1),
 (151568,151566,1,200,'Perfectly Cut Ember Sphere',286918,1),
 (151574,151570,1,200,'Platinum Filigree Ring set with a Perfectly Cut Crystal Sphere',286825,1),
-(151576,151569,1,200,'Gold Filigree Ring set with a Perfectly Cut Crystal Sphere',286977,1),
+(151576,151569,1,200,'Gold Filigree Ring set with a Perfectly Cut Crystal Sphere',286977,1);
+INSERT INTO aodb VALUES
 (151577,151572,1,200,'Silver Filigree Ring set with a Perfectly Cut Crystal Sphere',286862,1),
 (151578,151573,1,200,'Gold Filigree Ring set with a Crystal Sphere',286977,1),
 (151579,151571,1,200,'Platinum Filigree Ring set with a Crystal Sphere',286825,1),
@@ -19996,7 +19997,8 @@ INSERT INTO aodb VALUES
 (225116,225116,210,210,'Dispirited Spirit of Left Wrist Strength',231000,0),
 (225117,225117,230,230,'Sorrowful Spirit of Left Wrist Strength',231000,0),
 (225118,225118,240,240,'Sorry Spirit of Left Wrist Strength',231000,0),
-(225119,225119,280,280,'Upset Spirit of Left Wrist Strength',231000,0),
+(225119,225119,280,280,'Upset Spirit of Left Wrist Strength',231000,0);
+INSERT INTO aodb VALUES
 (225120,225120,300,300,'Wistful Spirit of Left Wrist Strength',231000,0),
 (225121,225121,1,1,'Bitter Right Hand Strength Spirit',231002,0),
 (225122,225122,5,5,'Blue Right Hand Strength Spirit',231002,0),
@@ -29995,7 +29997,8 @@ INSERT INTO aodb VALUES
 (283738,283738,1,1,'Recycled Bio Matter',283759,1),
 (283739,283739,1,1,'Recycled Scraps of Metal',283760,1),
 (283740,283740,1,1,'Recycled Rusty Spikes',283764,1),
-(283741,283741,1,1,'Recycled Toxic Waste',283763,1),
+(283741,283741,1,1,'Recycled Toxic Waste',283763,1);
+INSERT INTO aodb VALUES
 (283742,283742,1,1,'Recycled Flexible Backbone',283762,1),
 (283743,283743,1,1,'Recycled Augmented Muscle Mass',283761,1),
 (283744,283744,1,1,'Quality Augmented Wrist',283765,1),
