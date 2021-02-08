@@ -170,18 +170,21 @@ class ChatRallyController {
 	}
 
 	public function set(string $name, int $playfieldId, string $xCoords, string $yCoords): string {
-		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
-		$blob = "Click here to use rally: $link";
-		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
-		$rally = $this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob);
+		$this->settingManager->save("rally", join(":", array_map("strval", func_get_args())));
 
-		$this->settingManager->save("rally", $rally);
-
-		return $rally;
+		return $this->get();
 	}
 
 	public function get(): string {
-		return $this->settingManager->get("rally");
+		$data = $this->settingManager->get("rally");
+		if (strpos($data, ":") === false) {
+			return "";
+		}
+		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
+		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
+		$blob = "Click here to use rally: $link";
+		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
+		return $this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob);
 	}
 
 	public function clear(): void {
