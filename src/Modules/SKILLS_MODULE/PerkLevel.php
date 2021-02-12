@@ -6,11 +6,27 @@ use Nadybot\Core\DBRow;
 
 class PerkLevel extends DBRow {
 	public int $id;
+
+	/** The internal ID of the perk level in AO */
+	public ?int $aoid = null;
+
+	/** The internal ID of the perk like */
 	public int $perk_id;
-	public int $number;
-	public int $min_level;
-	/** @var string[] */
+
+	/** Which level of $perk_id does this represent? */
+	public int $perk_level;
+
+	/** Required character level to perk this perk level */
+	public int $required_level;
+	/**
+	 * @db:ignore
+	 * @var string[]
+	 */
 	public array $professions = [];
-	/** @var array<string,int> */
+
+	/**
+	 * @db:ignore
+	 * @var array<int,int>
+	 */
 	public array $buffs = [];
 }
