@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
 /**
  * @author Tyrence (RK2)
@@ -32,28 +31,25 @@ class BuffPerksController {
 	 * Set automatically by module loader.
 	 */
 	public $moduleName;
-
+	
 	/**
 	 * @var \Nadybot\Core\Text $text
 	 * @Inject
 	 */
 	public Text $text;
-
+	
 	/** @Inject */
 	public Util $util;
-
+	
 	/** @Inject */
 	public DB $db;
-
-	/** @Inject */
-	public WhatBuffsController $whatBuffsController;
-
+	
 	/** @Inject */
 	public PlayerManager $playerManager;
 
 	/** @Inject */
 	public SettingManager $settingManager;
-
+	
 	/** @Setup */
 	public function setup(): void {
 		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
@@ -65,42 +61,41 @@ class BuffPerksController {
 		}
 		if ( ($mtime === false || $dbVersion >= $mtime)
 			&& preg_match("/database already up to date/", $msg)) {
-			// return;
+			return;
 		}
-
+		
 		$perkInfo = $this->getPerkInfo();
-
+		
 		$this->db->exec("DELETE FROM perk");
 		$this->db->exec("DELETE FROM perk_level");
 		$this->db->exec("DELETE FROM perk_level_prof");
 		$this->db->exec("DELETE FROM perk_level_buffs");
 
+		$perkId = 1;
+		$perkLevelId = 1;
 		foreach ($perkInfo as $perk) {
-			$perk->id = $this->db->insert("perk", $perk);
-
+			$this->db->exec("INSERT INTO perk (id, name) VALUES (?, ?)", $perkId, $perk->name);
+			
 			foreach ($perk->levels as $level) {
-				$level->perk_id = $perk->id;
-				$level->id = $this->db->insert('perk_level', $level);
-
+				$this->db->exec("INSERT INTO perk_level (id, perk_id, number, min_level) VALUES (?, ?, ?, ?)", $perkLevelId, $perkId, $level->number, $level->min_level);
+				
 				foreach ($level->professions as $profession) {
-					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $level->id, $profession);
+					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $perkLevelId, $profession);
 				}
 
-				foreach ($level->buffs as $skillId => $amount) {
-					$this->db->exec(
-						"INSERT INTO `perk_level_buffs` (`perk_level_id`, `skill_id`, `amount`) ".
-						"VALUES (?, ?, ?)",
-						$level->id,
-						(int)$skillId,
-						$amount
-					);
+				foreach ($level->buffs as $buff => $amount) {
+					$this->db->exec("INSERT INTO perk_level_buffs (perk_level_id, skill, amount) VALUES (?, ?, ?)", $perkLevelId, $buff, $amount);
 				}
+				
+				$perkLevelId++;
 			}
+
+			$perkId++;
 		}
 		$newVersion = max($mtime ?: time(), $dbVersion);
 		$this->settingManager->save("perks_db_version", (string)$newVersion);
 	}
-
+	
 	/**
 	 * @HandlesCommand("perks")
 	 * @Matches("/^perks$/i")
@@ -139,46 +134,37 @@ class BuffPerksController {
 	}
 
 	protected function showPerks(string $profession, int $minLevel, string $search=null, CommandReply $sendto): void {
-
+		
 		$params =  [$profession, $minLevel];
-
-		$skillQuery = "";
+		
 		if ($search !== null) {
-			$skills = $this->whatBuffsController->searchForSkill($search);
-			if (count($skills) === 0) {
-				$sendto->reply("No skill <highlight>{$search}<end> found.");
-				return;
-			}
-			if (count($skills) > 1) {
-				$sendto->reply("No clear match for search term <highlight>{$search}<end>.");
-				return;
-			}
-			$params = [...$params, $skills[0]->id];
-			$skillQuery = "AND plb.skill_id=?";
+			$tmp = explode(" ", $search);
+			[$skillQuery, $newParams] = $this->util->generateQueryFromParams($tmp, 'plb.skill');
+			$params = [...$params, ...$newParams];
+			$skillQuery = "AND " . $skillQuery;
 		}
-
-		$sql = "SELECT p.name AS `perk_name`, ".
-				"MAX(pl.perk_level) AS `max_perk_level`, ".
-				"SUM(plb.amount) AS `buff_amount`, ".
-				"s.name AS `skill` ".
+		
+		$sql = "SELECT p.name AS perk_name, ".
+				"MAX(pl.number) AS max_perk_level, ".
+				"SUM(plb.amount) AS buff_amount, ".
+				"plb.skill ".
 			"FROM ".
 				"perk_level_prof plp ".
 				"JOIN perk_level pl ON plp.perk_level_id = pl.id ".
 				"JOIN perk_level_buffs plb ON pl.id = plb.perk_level_id ".
 				"JOIN perk p ON pl.perk_id = p.id ".
-				"JOIN skills s ON plb.skill_id = s.id ".
 			"WHERE ".
 				"plp.profession = ? ".
-				"AND pl.required_level <= ? ".
+				"AND pl.min_level <= ? ".
 				"$skillQuery ".
 			"GROUP BY ".
 				"p.name, ".
-				"plb.skill_id ".
+				"plb.skill ".
 			"ORDER BY ".
 				"p.name";
 
 		$data = $this->db->query($sql, ...$params);
-
+		
 		if (empty($data)) {
 			$msg = "Could not find any perks for level $minLevel $profession.";
 			$sendto->reply($msg);
@@ -191,14 +177,14 @@ class BuffPerksController {
 				$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}<end>\n";
 				$currentPerk = $row->perk_name;
 			}
-
+			
 			$blob .= "<tab>$row->skill <highlight>$row->buff_amount<end>\n";
 		}
-
+		
 		$msg = $this->text->makeBlob("Buff Perks for $minLevel $profession", $blob);
 		$sendto->reply($msg);
 	}
-
+	
 	/**
 	 * @return array<string,Perk>
 	 */
@@ -208,37 +194,25 @@ class BuffPerksController {
 		$perks = [];
 		foreach ($lines as $line) {
 			$line = trim($line);
-
+			
 			if (empty($line)) {
 				continue;
 			}
-
-			$parts = explode("|", $line);
-			$aoid = null;
-			$expansion = "sl";
-			if (count($parts) === 7) {
-				[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
-			} else {
-				[$name, $perkLevel, $requiredLevel, $profs, $buffs] = $parts;
-			}
-			if ($profs === '*') {
-				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
-			}
+			
+			[$name, $perkLevel, $minLevel, $profs, $buffs] = explode("|", $line);
 			$perk = $perks[$name];
 			if (empty($perk)) {
 				$perk = new Perk();
 				$perks[$name] = $perk;
 				$perk->name = $name;
-				$perk->expansion = $expansion;
 			}
-
+			
 			$level = new PerkLevel();
 			$perk->levels[$perkLevel] = $level;
 
-			$level->perk_level = (int)$perkLevel;
-			$level->required_level = (int)$requiredLevel;
-			$level->aoid = isset($aoid) ? (int)$aoid : null;
-
+			$level->number = (int)$perkLevel;
+			$level->min_level = (int)$minLevel;
+			
 			$professions = explode(",", $profs);
 			foreach ($professions as $prof) {
 				$profession = $this->util->getProfessionName(trim($prof));
@@ -248,42 +222,19 @@ class BuffPerksController {
 					$level->professions []= $profession;
 				}
 			}
-
+			
 			$buffs = explode(",", $buffs);
 			foreach ($buffs as $buff) {
 				$buff = trim($buff);
 				$pos = strrpos($buff, " ");
-				if ($pos === false) {
-					continue;
-				}
 
-				$skill = trim(substr($buff, 0, $pos + 1));
-				$amount = trim(substr($buff, $pos + 1));
-				if ($skill === "Add. Dmg.") {
-					$skill = [
-						"Add. Cold Dam.",
-						"Add. Chem Dam.",
-						"Add. Energy Dam.",
-						"Add. Fire Dam.",
-						"Add. Melee Dam.",
-						"Add. Poison Dam.",
-						"Add. Rad. Dam.",
-						"Add. Proj. Dam."
-					];
-				} else {
-					$skill = [$skill];
-				}
-				foreach ($skill as $search) {
-					$skillSearch = $this->whatBuffsController->searchForSkill($search);
-					if (count($skillSearch) !== 1) {
-						echo "Error parsing skill: '{$search}'\n";
-					} else {
-						$level->buffs[$skillSearch[0]->id] = (int)$amount;
-					}
-				}
+				$skill = substr($buff, 0, $pos + 1);
+				$amount = substr($buff, $pos + 1);
+
+				$level->buffs[$skill] = (int)$amount;
 			}
 		}
-
+		
 		return $perks;
 	}
 }

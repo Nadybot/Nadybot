@@ -1,300 +1,93 @@
-Alien Technology Expertise|1|ai|247748|15|*|
-Alien Technology Expertise|2|ai|247749|75|*|
-Alien Technology Expertise|3|ai|256082|150|*|
+Enhance DNA|1|10|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
+Enhance DNA|2|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
+Enhance DNA|3|50|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
+Enhance DNA|4|70|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
+Enhance DNA|5|90|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
+Enhance DNA|6|110|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 4
+Enhance DNA|7|130|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 4
+Enhance DNA|8|150|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 5
+Enhance DNA|9|170|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 5
+Enhance DNA|10|190|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 6, Stamina 6, Intelligence 6, Psychic 6, Sense 6, Agility 6, Body development 7
 
-Ambidextros|1|sl|211135|10|*|Multi melee 10, Multi ranged 10
-Ambidextros|2|sl|211136|30|*|Multi melee 15, Multi ranged 15
-Ambidextros|3|sl|211137|80|*|Multi melee 20, Multi ranged 20
-Ambidextros|4|sl|211138|110|*|Multi melee 30, Multi ranged 30, Add. Dmg. 5
-Ambidextros|5|sl|212177|150|*|Multi melee 45, Multi ranged 45, AAD 8, Add. Dmg. 15
+First Aid|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Treatment 10, First Aid 10
+First Aid|2|70|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Treatment 20, First Aid 20
+First Aid|3|130|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Treatment 30, First Aid 30
+First Aid|4|180|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Treatment 40, First Aid 40
 
-Atrox Primary Genome|1|ai|252492|5|*|STR 2, STA 2
-Atrox Primary Genome|2|ai|252493|15|*|STR 2, STA 2
-Atrox Primary Genome|3|ai|252494|35|*|STR 3, STA 3
-Atrox Primary Genome|4|ai|252495|55|*|STR 3, STA 3
-Atrox Primary Genome|5|ai|252496|55|*|STR 4, STA 4
-Atrox Primary Genome|6|ai|252497|55|*|STR 5, STA 5
-Atrox Primary Genome|7|ai|252498|115|*|STR 6, STA 6
-Atrox Primary Genome|8|ai|252499|115|*|STR 7, STA 7
-Atrox Primary Genome|9|ai|252500|202|*|STR 9, STA 9
-Atrox Primary Genome|10|ai|252501|207|*|STR 13, STA 13
+Freak Strength|1|120|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 5, Stamina 5, Body development 10
+Freak Strength|2|200|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 5, Stamina 5, Body development 14
+Freak Strength|3|208|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Strength 10, Stamina 10, Body development 25
 
-Atrox Secondary Genome|1|ai|252512|5|*|AGI 1, SEN 1, INT 1, PSY 1
-Atrox Secondary Genome|2|ai|252513|5|*|AGI 1, SEN 1, INT 1, PSY 1
-Atrox Secondary Genome|3|ai|252514|5|*|AGI 1, SEN 1, INT 1, PSY 1
-Atrox Secondary Genome|4|ai|252515|5|*|AGI 2, SEN 2, INT 2, PSY 2
-Atrox Secondary Genome|5|ai|252516|5|*|AGI 2, SEN 2, INT 2, PSY 2
-Atrox Secondary Genome|6|ai|252517|5|*|AGI 2, SEN 2, INT 2, PSY 2
-Atrox Secondary Genome|7|ai|252518|5|*|AGI 3, SEN 3, INT 3, PSY 3
-Atrox Secondary Genome|8|ai|252519|5|*|AGI 4, SEN 4, INT 4, PSY 4
-Atrox Secondary Genome|9|ai|252520|5|*|AGI 5, SEN 5, INT 5, PSY 5
-Atrox Secondary Genome|10|ai|252521|5|*|AGI 6, SEN 6, INT 6, PSY 6
+Genius|1|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Intelligence 8, Psychic 8, Nano pool 25
+Genius|2|110|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Intelligence 12, Psychic 12, Nano pool 35
+Genius|3|190|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Intelligence 20, Psychic 20, Nano pool 60
 
-Cartographer|1|sl|211748|20|*|
-Cartographer|2|sl|211749|30|*|
-Cartographer|3|sl|211750|50|*|
-Cartographer|4|sl|211751|80|*|
-Cartographer|5|sl|211752|100|*|
+Kung-Fu Master|1|50|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Martial arts 5
+Kung-Fu Master|2|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Martial arts 6
+Kung-Fu Master|3|150|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Martial arts 8
+Kung-Fu Master|4|200|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Martial arts 11
+Kung-Fu Master|5|203|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Martial arts 20
 
-Champion of Heavy Artillery|1|ai|253108|25|*|Assault Rif 5, Rifle 5, Ranged Ener 5, Heavy Weapons 5, Grenade 5
-Champion of Heavy Artillery|2|ai|253109|25|*|Assault Rif 5, Rifle 5, Ranged Ener 5, Heavy Weapons 5, Grenade 5
-Champion of Heavy Artillery|3|ai|253110|25|*|Assault Rif 6, Rifle 6, Ranged Ener 6, Heavy Weapons 6, Grenade 6
-Champion of Heavy Artillery|4|ai|253111|25|*|Assault Rif 6, Rifle 6, Ranged Ener 6, Heavy Weapons 6, Grenade 6
-Champion of Heavy Artillery|5|ai|253112|70|*|Assault Rif 7, Rifle 7, Ranged Ener 7, Heavy Weapons 7, Grenade 7
-Champion of Heavy Artillery|6|ai|253113|70|*|Assault Rif 8, Rifle 8, Ranged Ener 8, Heavy Weapons 8, Grenade 8
-Champion of Heavy Artillery|7|ai|253114|95|*|Assault Rif 9, Rifle 9, Ranged Ener 9, Heavy Weapons 9, Grenade 9
-Champion of Heavy Artillery|8|ai|253115|95|*|Assault Rif 11, Rifle 11, Ranged Ener 11, Heavy Weapons 11, Grenade 11
-Champion of Heavy Artillery|9|ai|253116|165|*|Assault Rif 15, Rifle 15, Ranged Ener 15, Heavy Weapons 15, Grenade 15
-Champion of Heavy Artillery|10|ai|253117|207|*|Assault Rif 28, Rifle 28, Ranged Ener 28, Heavy Weapons 28, Grenade 28
+Ambidextros|1|10|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Multi melee 10, Multi ranged 10
+Ambidextros|2|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Multi melee 15, Multi ranged 15
+Ambidextros|3|80|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Multi melee 20, Multi ranged 20
+Ambidextros|4|110|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Multi melee 30, Multi ranged 30, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Ambidextros|5|150|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Multi melee 45, Multi ranged 45, Defense modifier 8, Cold damage modifier 15, Chemical damage modifier 15, Energy damage modifier 15, Fire damage modifier 15, Melee damage modifier 15, Poison damage modifier 15, Radiation damage modifier 15, Projectile damage modifier 15
 
-Champion of Heavy Infantry|1|ai|253064|25|*|2h Blunt 5, 2h Edged 5, Melee Ener. 5
-Champion of Heavy Infantry|2|ai|253065|25|*|2h Blunt 5, 2h Edged 5, Melee Ener. 5
-Champion of Heavy Infantry|3|ai|253066|25|*|2h Blunt 6, 2h Edged 6, Melee Ener. 6
-Champion of Heavy Infantry|4|ai|253067|25|*|2h Blunt 6, 2h Edged 6, Melee Ener. 6
-Champion of Heavy Infantry|5|ai|253068|70|*|2h Blunt 7, 2h Edged 7, Melee Ener. 7
-Champion of Heavy Infantry|6|ai|253069|70|*|2h Blunt 8, 2h Edged 8, Melee Ener. 8
-Champion of Heavy Infantry|7|ai|253070|95|*|2h Blunt 9, 2h Edged 9, Melee Ener. 9
-Champion of Heavy Infantry|8|ai|253071|95|*|2h Blunt 11, 2h Edged 11, Melee Ener. 11
-Champion of Heavy Infantry|9|ai|253072|165|*|2h Blunt 15, 2h Edged 15, Melee Ener. 15
-Champion of Heavy Infantry|10|ai|253073|207|*|2h Blunt 28, 2h Edged 28, Melee Ener. 28
+Cartographer|1|20|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Map navigation 20, Adventuring 5
+Cartographer|2|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Map navigation 25, Adventuring 6
+Cartographer|3|50|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Map navigation 30, Adventuring 8
+Cartographer|4|80|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Map navigation 40, Adventuring 15
+Cartographer|5|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Map navigation 85, Adventuring 26
 
-Champion of Light Artillery|1|ai|253093|25|*|Pistol 5, MG / SMG 5, Shotgun 5, Bow 5
-Champion of Light Artillery|2|ai|253094|25|*|Pistol 5, MG / SMG 5, Shotgun 5, Bow 5
-Champion of Light Artillery|3|ai|253095|25|*|Pistol 6, MG / SMG 6, Shotgun 6, Bow 6
-Champion of Light Artillery|4|ai|253096|25|*|Pistol 6, MG / SMG 6, Shotgun 6, Bow 6
-Champion of Light Artillery|5|ai|253097|70|*|Pistol 7, MG / SMG 7, Shotgun 7, Bow 7
-Champion of Light Artillery|6|ai|253098|70|*|Pistol 8, MG / SMG 8, Shotgun 8, Bow 8
-Champion of Light Artillery|7|ai|253099|95|*|Pistol 9, MG / SMG 9, Shotgun 9, Bow 9
-Champion of Light Artillery|8|ai|253100|95|*|Pistol 11, MG / SMG 11, Shotgun 11, Bow 11
-Champion of Light Artillery|9|ai|253101|165|*|Pistol 15, MG / SMG 15, Shotgun 15, Bow 15
-Champion of Light Artillery|10|ai|253102|207|*|Pistol 28, MG / SMG 28, Shotgun 28, Bow 28
+Enhance Health|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 40
+Enhance Health|2|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 80
+Enhance Health|3|80|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 100
+Enhance Health|4|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 150
+Enhance Health|5|140|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 230
+Enhance Health|6|180|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 320
+Enhance Health|7|201|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max health 580
 
-Champion of Light Infantry|1|ai|253079|25|*|Piercing 5, 1h Blunt 5, 1h Edged 5, Martial Arts 5
-Champion of Light Infantry|2|ai|253080|25|*|Piercing 5, 1h Blunt 5, 1h Edged 5, Martial Arts 5
-Champion of Light Infantry|3|ai|253081|25|*|Piercing 6, 1h Blunt 6, 1h Edged 6, Martial Arts 6
-Champion of Light Infantry|4|ai|253082|25|*|Piercing 6, 1h Blunt 6, 1h Edged 6, Martial Arts 6
-Champion of Light Infantry|5|ai|253083|70|*|Piercing 7, 1h Blunt 7, 1h Edged 7, Martial Arts 7
-Champion of Light Infantry|6|ai|253084|70|*|Piercing 8, 1h Blunt 8, 1h Edged 8, Martial Arts 8
-Champion of Light Infantry|7|ai|253085|95|*|Piercing 9, 1h Blunt 9, 1h Edged 9, Martial Arts 9
-Champion of Light Infantry|8|ai|253086|95|*|Piercing 11, 1h Blunt 11, 1h Edged 11, Martial Arts 11
-Champion of Light Infantry|9|ai|253087|165|*|Piercing 15, 1h Blunt 15, 1h Edged 15, Martial Arts 15
-Champion of Light Infantry|10|ai|253088|207|*|Piercing 28, 1h Blunt 28, 1h Edged 28, Martial Arts 28
+Enhance Nano|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 80
+Enhance Nano|2|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 130
+Enhance Nano|3|80|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 210
+Enhance Nano|4|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 290
+Enhance Nano|5|140|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 370
+Enhance Nano|6|180|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 530
+Enhance Nano|7|201|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Max Nano 890
 
-Champion of Nano Combat|1|ai|253123|25|*|MM 5, TS 5, MC 5, BM 5, SI 5, PM 5
-Champion of Nano Combat|2|ai|253124|25|*|MM 5, TS 5, MC 5, BM 5, SI 5, PM 5
-Champion of Nano Combat|3|ai|253125|25|*|MM 6, TS 6, MC 6, BM 6, SI 6, PM 6
-Champion of Nano Combat|4|ai|253126|25|*|MM 6, TS 6, MC 6, BM 6, SI 6, PM 6
-Champion of Nano Combat|5|ai|253127|70|*|MM 7, TS 7, MC 7, BM 7, SI 7, PM 7
-Champion of Nano Combat|6|ai|253128|70|*|MM 8, TS 8, MC 8, BM 8, SI 8, PM 8
-Champion of Nano Combat|7|ai|253129|95|*|MM 9, TS 9, MC 9, BM 9, SI 9, PM 9
-Champion of Nano Combat|8|ai|253130|95|*|MM 11, TS 11, MC 11, BM 11, SI 11, PM 11
-Champion of Nano Combat|9|ai|253131|165|*|MM 15, TS 15, MC 15, BM 15, SI 15, PM 15
-Champion of Nano Combat|10|ai|253132|207|*|MM 28, TS 28, MC 28, BM 28, SI 28, PM 28
+Explorer|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Run Speed 14, XP Modifier 1
+Explorer|2|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Run Speed 18, XP Modifier 1
+Explorer|3|90|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Run Speed 23, XP Modifier 1
+Explorer|4|140|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Run Speed 45, XP Modifier 2
 
-Combat Kowledge|1|ai|253140|25|*|Treatment 3, First Aid 3
-Combat Kowledge|2|ai|253141|25|*|Treatment 3, First Aid 3
-Combat Kowledge|3|ai|253142|25|*|Treatment 3, First Aid 3
-Combat Kowledge|4|ai|253143|25|*|Treatment 4, First Aid 4
-Combat Kowledge|5|ai|253144|70|*|Treatment 5, First Aid 5
-Combat Kowledge|6|ai|253145|70|*|Treatment 9, First Aid 9
-Combat Kowledge|7|ai|253146|125|*|Treatment 13, First Aid 13, SkillLockModifier -3
-Combat Kowledge|8|ai|253147|165|*|Treatment 24, First Aid 24, SkillLockModifier -5
+Motorist|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Vehicle air 22, Vehicle ground 22, Vehicle water 22
+Motorist|2|70|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Vehicle air 38, Vehicle ground 38, Vehicle water 38
+Motorist|3|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Vehicle air 50, Vehicle ground 50, Vehicle water 50
+Motorist|4|140|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Vehicle air 90, Vehicle ground 90, Vehicle water 90
 
-Enhance DNA|1|sl|211793|10|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
-Enhance DNA|2|sl|211794|30|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
-Enhance DNA|3|sl|211795|50|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
-Enhance DNA|4|sl|211796|70|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
-Enhance DNA|5|sl|211797|90|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 3
-Enhance DNA|6|sl|211798|110|*|Strength 4, Stamina 4, Intelligence 4, Psychic 4, Sense 4, Agility 4, Body development 4
-Enhance DNA|7|sl|211799|130|*|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 4
-Enhance DNA|8|sl|211800|150|*|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 5
-Enhance DNA|9|sl|211801|170|*|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 5
-Enhance DNA|10|sl|211802|190|*|Strength 6, Stamina 6, Intelligence 6, Psychic 6, Sense 6, Agility 6, Body development 7
+NCU Extensions|1|40|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 10, NCU memory 10
+NCU Extensions|2|70|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 10, NCU memory 11
+NCU Extensions|3|110|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 10, NCU memory 12
+NCU Extensions|4|150|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 10, NCU memory 12
+NCU Extensions|5|190|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 10, NCU memory 15
+NCU Extensions|6|201|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 14, NCU memory 17
+NCU Extensions|7|204|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 16, NCU memory 18
+NCU Extensions|8|210|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Computer literacy 20, NCU memory 35
 
-Enhance Health|1|sl|211051|30|*|Max health 40
-Enhance Health|2|sl|211052|60|*|Max health 80
-Enhance Health|3|sl|211053|80|*|Max health 100
-Enhance Health|4|sl|211054|100|*|Max health 150
-Enhance Health|5|sl|211055|140|*|Max health 230
-Enhance Health|6|sl|211056|180|*|Max health 320
-Enhance Health|7|sl|212180|201|*|Max health 580
+Training Seminar|1|20|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|XP Modifier 1
+Training Seminar|2|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|XP Modifier 1
+Training Seminar|3|100|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|XP Modifier 2
+Training Seminar|4|150|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|XP Modifier 3
 
-Enhance Nano|1|sl|211059|30|*|Max Nano 80
-Enhance Nano|2|sl|211060|60|*|Max Nano 130
-Enhance Nano|3|sl|211061|80|*|Max Nano 210
-Enhance Nano|4|sl|211062|100|*|Max Nano 290
-Enhance Nano|5|sl|211063|140|*|Max Nano 370
-Enhance Nano|6|sl|211064|180|*|Max Nano 530
-Enhance Nano|7|sl|212183|201|*|Max Nano 890
-
-Explorer|1|sl|211812|10|*|Adventuring 5, Regain XP Percentage 10
-Explorer|2|sl|211813|30|*|Adventuring 10, Regain XP Percentage 20
-Explorer|3|sl|211814|80|*|Adventuring 15, Regain XP Percentage 30
-Explorer|4|sl|211815|140|*|Adventuring 30, Regain XP Percentage 40
-
-First Aid|1|sl|211819|30|*|Treatment 10, First Aid 10
-First Aid|2|sl|211820|70|*|Treatment 20, First Aid 20
-First Aid|3|sl|211821|130|*|Treatment 30, First Aid 30
-First Aid|4|sl|211822|180|*|Treatment 40, First Aid 40
-
-Freak Strength|1|sl|211853|120|*|Strength 5, Stamina 5, Body development 10
-Freak Strength|2|sl|211854|200|*|Strength 5, Stamina 5, Body development 14
-Freak Strength|3|sl|211855|208|*|Strength 10, Stamina 10, Body development 25
-
-Genius|1|sl|211866|60|*|Intelligence 8, Psychic 8, Nano pool 25
-Genius|2|sl|211867|110|*|Intelligence 12, Psychic 12, Nano pool 35
-Genius|3|sl|211868|190|*|Intelligence 20, Psychic 20, Nano pool 60
-
-Kung-Fu Master|1|sl|211901|50|*|Martial arts 5
-Kung-Fu Master|2|sl|211902|100|*|Martial arts 6
-Kung-Fu Master|3|sl|211903|150|*|Martial arts 8
-Kung-Fu Master|4|sl|211904|200|*|Martial arts 11
-Kung-Fu Master|5|sl|211905|203|*|Martial arts 20
-
-Motorist|1|sl|211070|30|*|Vehicle air 22, Vehicle ground 22, Vehicle water 22
-Motorist|2|sl|211067|70|*|Vehicle air 38, Vehicle ground 38, Vehicle water 38
-Motorist|3|sl|211068|100|*|Vehicle air 50, Vehicle ground 50, Vehicle water 50
-Motorist|4|sl|211069|140|*|Vehicle air 90, Vehicle ground 90, Vehicle water 90
-
-Nanobreed Primary Genome|1|ai|252560|5|*|INT 2, PSY 2
-Nanobreed Primary Genome|2|ai|252561|15|*|INT 2, PSY 2
-Nanobreed Primary Genome|3|ai|252562|35|*|INT 3, PSY 3
-Nanobreed Primary Genome|4|ai|252563|55|*|INT 3, PSY 3
-Nanobreed Primary Genome|5|ai|252564|55|*|INT 4, PSY 4
-Nanobreed Primary Genome|6|ai|252565|55|*|INT 5, PSY 5
-Nanobreed Primary Genome|7|ai|252566|115|*|INT 6, PSY 6
-Nanobreed Primary Genome|8|ai|252567|115|*|INT 7, PSY 7
-Nanobreed Primary Genome|9|ai|252568|202|*|INT 9, PSY 9
-Nanobreed Primary Genome|10|ai|252569|207|*|INT 13, PSY 13
-
-Nanobreed Secondary Genome|1|ai|253018|5|*|AGI 1, SEN 1, STR 1, STA 1
-Nanobreed Secondary Genome|2|ai|253019|5|*|AGI 1, SEN 1, STR 1, STA 1
-Nanobreed Secondary Genome|3|ai|253020|5|*|AGI 1, SEN 1, STR 1, STA 1
-Nanobreed Secondary Genome|4|ai|253021|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|5|ai|253022|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|6|ai|253023|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|7|ai|253024|5|*|AGI 3, SEN 3, STR 3, STA 3
-Nanobreed Secondary Genome|8|ai|253025|5|*|AGI 4, SEN 4, STR 4, STA 4
-Nanobreed Secondary Genome|9|ai|253026|5|*|AGI 5, SEN 5, STR 5, STA 5
-Nanobreed Secondary Genome|10|ai|253027|5|*|AGI 6, SEN 6, STR 6, STA 6
-
-Nanomorph|1|ai|252387|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 50
-Nanomorph|2|ai|252388|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 50
-Nanomorph|3|ai|252389|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 60
-Nanomorph|4|ai|252390|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 65
-Nanomorph|5|ai|252391|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 70
-Nanomorph|6|ai|252392|85|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 80
-Nanomorph|7|ai|252393|85|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 90
-Nanomorph|8|ai|252394|85|*|MM 2, TS 2, MC 2, BM 2, SI 2, PM 2, Max Nano 110
-Nanomorph|9|ai|252395|85|*|MM 4, TS 4, MC 4, BM 4, SI 4, PM 4, Max Nano 150
-Nanomorph|10|ai|252396|195|*|MM 6, TS 6, MC 6, BM 6, SI 6, PM 6, Max Nano 275
-
-NCU Extensions|1|sl|211116|40|*|Computer literacy 10, Max NCU 10
-NCU Extensions|2|sl|211117|70|*|Computer literacy 10, Max NCU 11
-NCU Extensions|3|sl|211118|110|*|Computer literacy 10, Max NCU 12
-NCU Extensions|4|sl|211119|150|*|Computer literacy 10, Max NCU 12
-NCU Extensions|5|sl|211120|190|*|Computer literacy 10, Max NCU 15
-NCU Extensions|6|sl|211121|201|*|Computer literacy 14, Max NCU 17
-NCU Extensions|7|sl|211122|204|*|Computer literacy 16, Max NCU 18
-NCU Extensions|8|sl|212187|210|*|Computer literacy 20, Max NCU 35
-
-Notum Repulsor|1|sl|212133|30|*|BM -200, MC -200, MM -200, PM -200, SI -200, TS -200, Nano resist 300
-Notum Repulsor|2|sl|212134|60|*|BM -400, MC -400, MM -400, PM -400, SI -400, TS -400, Nano resist 900
-Notum Repulsor|3|sl|212135|90|*|BM -800, MC -800, MM -800, PM -800, SI -800, TS -800, Nano resist 1200
-Notum Repulsor|4|sl|212136|110|*|BM -1000, MC -1000, MM -1000, PM -1000, SI -1000, TS -1000, Nano resist 1500
-Notum Repulsor|5|sl|212137|130|*|BM -1100, MC -1100, MM -1100, PM -1100, SI -1100, TS -1100, Nano resist 1900
-Notum Repulsor|6|sl|212138|200|*|BM -1200, MC -1200, MM -1200, PM -1200, SI -1200, TS -1200, Nano resist 2200
-Notum Repulsor|7|sl|212139|203|*|BM -1300, MC -1300, MM -1300, PM -1300, SI -1300, TS -1300, Nano resist 4000
-Notum Repulsor|8|sl|212140|207|*|BM -2000, MC -2000, MM -2000, PM -2000, SI -2000, TS -2000, Nano resist 8000
-
-Opifex Primary Genome|1|ai|252527|5|*|AGI 2, SEN 2
-Opifex Primary Genome|2|ai|252528|15|*|AGI 2, SEN 2
-Opifex Primary Genome|3|ai|252529|35|*|AGI 3, SEN 3
-Opifex Primary Genome|4|ai|252530|55|*|AGI 3, SEN 3
-Opifex Primary Genome|5|ai|252531|55|*|AGI 4, SEN 4
-Opifex Primary Genome|6|ai|252532|55|*|AGI 5, SEN 5
-Opifex Primary Genome|7|ai|252533|115|*|AGI 6, SEN 6
-Opifex Primary Genome|8|ai|252534|115|*|AGI 7, SEN 7
-Opifex Primary Genome|9|ai|252535|202|*|AGI 9, SEN 9
-Opifex Primary Genome|10|ai|252536|207|*|AGI 13, SEN 13
-
-Opifex Secondary Genome|1|ai|252542|5|*|INT 1, PSY 1, STR 1, STA 1
-Opifex Secondary Genome|2|ai|252543|5|*|INT 1, PSY 1, STR 1, STA 1
-Opifex Secondary Genome|3|ai|252544|5|*|INT 1, PSY 1, STR 1, STA 1
-Opifex Secondary Genome|4|ai|252545|5|*|INT 2, PSY 2, STR 2, STA 2
-Opifex Secondary Genome|5|ai|252546|5|*|INT 2, PSY 2, STR 2, STA 2
-Opifex Secondary Genome|6|ai|252547|5|*|INT 2, PSY 2, STR 2, STA 2
-Opifex Secondary Genome|7|ai|252548|5|*|INT 3, PSY 3, STR 3, STA 3
-Opifex Secondary Genome|8|ai|252549|5|*|INT 4, PSY 4, STR 4, STA 4
-Opifex Secondary Genome|9|ai|252550|5|*|INT 5, PSY 5, STR 5, STA 5
-Opifex Secondary Genome|10|ai|252551|5|*|INT 6, PSY 6, STR 6, STA 6
-
-Opportunist|1|ai|252479|15|*|Deflect 10, Riposte 10, Dimach 10
-Opportunist|2|ai|252480|25|*|Deflect 10, Riposte 10, Dimach 10
-Opportunist|3|ai|252481|55|*|Deflect 15, Riposte 15, Dimach 15
-Opportunist|4|ai|252482|85|*|Deflect 20, Riposte 20, Dimach 20
-Opportunist|5|ai|252483|105|*|Deflect 25, Riposte 25, Dimach 25
-Opportunist|6|ai|252484|125|*|Deflect 30, Riposte 30, Dimach 30
-
-Solitus Primary Genome|1|ai|253034|5|*|AGI 1, STA 1, STR 1
-Solitus Primary Genome|2|ai|253035|15|*|AGI 2, STA 2, STR 2
-Solitus Primary Genome|3|ai|253036|35|*|AGI 2, STA 2, STR 2
-Solitus Primary Genome|4|ai|253037|55|*|AGI 3, STA 3, STR 3
-Solitus Primary Genome|5|ai|253038|55|*|AGI 3, STA 3, STR 3
-Solitus Primary Genome|6|ai|253039|55|*|AGI 4, STA 4, STR 4
-Solitus Primary Genome|7|ai|253040|115|*|AGI 4, STA 4, STR 4
-Solitus Primary Genome|8|ai|253041|115|*|AGI 5, STA 5, STR 5
-Solitus Primary Genome|9|ai|253042|202|*|AGI 5, STA 5, STR 5
-Solitus Primary Genome|10|ai|253043|207|*|AGI 7, STA 7, STR 7
-
-Solitus Secondary Genome|1|ai|253049|5|*|INT 1, SEN 1, PSY 1
-Solitus Secondary Genome|2|ai|253050|15|*|INT 2, SEN 2, PSY 2
-Solitus Secondary Genome|3|ai|253051|35|*|INT 2, SEN 2, PSY 2
-Solitus Secondary Genome|4|ai|253052|55|*|INT 3, SEN 3, PSY 3
-Solitus Secondary Genome|5|ai|253053|55|*|INT 3, SEN 3, PSY 3
-Solitus Secondary Genome|6|ai|253054|55|*|INT 4, SEN 4, PSY 4
-Solitus Secondary Genome|7|ai|253055|115|*|INT 4, SEN 4, PSY 4
-Solitus Secondary Genome|8|ai|253056|115|*|INT 5, SEN 5, PSY 5
-Solitus Secondary Genome|9|ai|253057|202|*|INT 5, SEN 5, PSY 5
-Solitus Secondary Genome|10|ai|253058|207|*|INT 7, SEN 7, PSY 7
-
-Training Seminar|1|sl|211072|20|*|% Add. Xp 5
-Training Seminar|2|sl|211073|60|*|% Add. Xp 5
-Training Seminar|3|sl|211074|100|*|% Add. Xp 6
-Training Seminar|4|sl|212190|150|*|% Add. Xp 6
-
-Ferocity of Nature|1|sl|211816|150|Adv|Multi melee 5, Multi ranged 5, Add. Dmg. 10, Direct Nano Damage Efficiency 10
-Ferocity of Nature|2|sl|211817|200|Adv|Multi melee 5, Multi ranged 5, Add. Dmg. 15, Direct Nano Damage Efficiency 15
-Ferocity of Nature|3|sl|211818|205|Adv|Multi melee 10, Multi ranged 10, Add. Dmg. 30, Direct Nano Damage Efficiency 30
-
-Lightstalker|1|sl|281534|20|Adv|Agility 1, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 7, AAD 2, Aimed shot 3
-Lightstalker|2|sl|281535|70|Adv|Agility 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 10, AAD 3, Aimed shot 5
-Lightstalker|3|sl|281536|110|Adv|Agility 3, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 12, AAD 4, Aimed shot 8
-Lightstalker|4|sl|281537|150|Adv|Agility 4, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 15, AAD 7, Aimed shot 12
-Lightstalker|5|sl|281538|200|Adv|Agility 6, Dodge-Rng 2, Duck-Exp 2, Evade close 2, Concealment 19, AAD 11, Aimed shot 20
-Lightstalker|6|sl|281539|206|Adv|Agility 9, Dodge-Rng 4, Duck-Exp 4, Evade close 4, Concealment 27, AAD 18, Aimed shot 32
-
-Outdoorsman|1|sl|231354|80|Adv|Run speed 20, Adventuring 10, Multi melee 10, Ranged init 10, 1h Edged 4
-Outdoorsman|2|sl|231355|140|Adv|Run speed 30, Adventuring 15, Multi melee 10, Ranged init 10, 1h Edged 5
-Outdoorsman|3|sl|231356|200|Adv|Run speed 40, Adventuring 25, Multi melee 10, Ranged init 10, 1h Edged 11
-
-Shadowstalker|1|sl|212007|20|Adv|Agility 1, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 7, AAD 2, Sneak attack 3, 1h Edged 1
-Shadowstalker|2|sl|212008|70|Adv|Agility 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 10, AAD 3, Sneak attack 5, 1h Edged 3
-Shadowstalker|3|sl|212009|110|Adv|Agility 3, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 12, AAD 4, Sneak attack 8, 1h Edged 4
-Shadowstalker|4|sl|212010|150|Adv|Agility 4, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 15, AAD 7, Sneak attack 12, 1h Edged 5
-Shadowstalker|5|sl|212011|200|Adv|Agility 6, Dodge-Rng 2, Duck-Exp 2, Evade close 2, Concealment 19, AAD 11, Sneak attack 20, 1h Edged 7
-Shadowstalker|6|sl|212012|206|Adv|Agility 9, Dodge-Rng 4, Duck-Exp 4, Evade close 4, Concealment 27, AAD 18, Sneak attack 32, 1h Edged 10
-
-The Call|1|ai|251244|15|Adv|Max Nano 25, Fast Attack 2, Fling Shot 2, Dodge-Rng 2, Max Health 25, Evade-ClsC 2, Duck-Exp 2
-The Call|2|ai|251245|15|Adv|Max Nano 25, Fast Attack 2, Fling Shot 2, Dodge-Rng 2, Max Health 25, Evade-ClsC 2, Duck-Exp 2
-The Call|3|ai|251246|55|Adv|Max Nano 30, Fast Attack 3, Fling Shot 3, Dodge-Rng 3, Max Health 30, Evade-ClsC 3, Duck-Exp 3
-The Call|4|ai|251247|55|Adv|Max Nano 30, Fast Attack 3, Fling Shot 3, Dodge-Rng 3, Max Health 30, Evade-ClsC 3, Duck-Exp 3
-The Call|5|ai|251248|55|Adv|Max Nano 40, Fast Attack 4, Fling Shot 4, Dodge-Rng 4, Max Health 40, Evade-ClsC 4, Duck-Exp 4
-The Call|6|ai|251249|105|Adv|Max Nano 40, Fast Attack 4, Fling Shot 4, Dodge-Rng 4, Max Health 40, Evade-ClsC 4, Duck-Exp 4
-The Call|7|ai|251250|105|Adv|Max Nano 50, Fast Attack 5, Fling Shot 5, Dodge-Rng 5, Max Health 50, Evade-ClsC 5, Duck-Exp 5
-The Call|8|ai|251251|145|Adv|Max Nano 60, Fast Attack 6, Fling Shot 6, Dodge-Rng 6, Max Health 60, Evade-ClsC 6, Duck-Exp 6
-The Call|9|ai|251252|205|Adv|Max Nano 80, Fast Attack 8, Fling Shot 8, Dodge-Rng 8, Max Health 80, Evade-ClsC 8, Duck-Exp 8
-The Call|10|ai|251253|210|Adv|Max Nano 140, Fast Attack 14, Fling Shot 14, Dodge-Rng 14, Max Health 140, Evade-ClsC 14, Duck-Exp 14
+Notum Repulsor|1|30|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -200, Matter creation -200, Matter metamorphosis -200, Psychological modifications -200, Sensory improvement -200, Time and space -200, Nano resist 300
+Notum Repulsor|2|60|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -400, Matter creation -400, Matter metamorphosis -400, Psychological modifications -400, Sensory improvement -400, Time and space -400, Nano resist 900
+Notum Repulsor|3|90|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -800, Matter creation -800, Matter metamorphosis -800, Psychological modifications -800, Sensory improvement -800, Time and space -800, Nano resist 1200
+Notum Repulsor|4|110|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -1000, Matter creation -1000, Matter metamorphosis -1000, Psychological modifications -1000, Sensory improvement -1000, Time and space -1000, Nano resist 1500
+Notum Repulsor|5|130|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -1100, Matter creation -1100, Matter metamorphosis -1100, Psychological modifications -1100, Sensory improvement -1100, Time and space -1100, Nano resist 1900
+Notum Repulsor|6|200|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -1200, Matter creation -1200, Matter metamorphosis -1200, Psychological modifications -1200, Sensory improvement -1200, Time and space -1200, Nano resist 2200
+Notum Repulsor|7|203|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -1300, Matter creation -1300, Matter metamorphosis -1300, Psychological modifications -1300, Sensory improvement -1300, Time and space -1300, Nano resist 4000
+Notum Repulsor|8|207|Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra|Biological metamorphosis -2000, Matter creation -2000, Matter metamorphosis -2000, Psychological modifications -2000, Sensory improvement -2000, Time and space -2000, Nano resist 8000
 
 Edged Mastery|1|20|Adv, Enf|1h Edged 10, Fast attack 2
 Edged Mastery|2|50|Adv, Enf|1h Edged 10, Fast attack 2
@@ -340,23 +133,23 @@ Notum Source|8|203|MP, NT|Intelligence 2, Psychic 2
 Notum Source|9|207|MP, NT|Intelligence 2, Psychic 2
 Notum Source|10|210|MP, NT|Intelligence 4, Psychic 4
 
-Careful in Battle|1|40|Crat, MA, Shade|AAD 20, Critical decrease 2
-Careful in Battle|2|70|Crat, MA, Shade|AAD 20, Critical decrease 2
-Careful in Battle|3|100|Crat, MA, Shade|AAD 22, Critical decrease 3
-Careful in Battle|4|130|Crat, MA, Shade|AAD 23, Critical decrease 3
-Careful in Battle|5|160|Crat, MA, Shade|AAD 24, Critical decrease 4
-Careful in Battle|6|200|Crat, MA, Shade|AAD 26, Critical decrease 7
-Careful in Battle|7|205|Crat, MA, Shade|AAD 28, Critical decrease 9
-Careful in Battle|8|207|Crat, MA, Shade|AAD 32, Critical decrease 12
-Careful in Battle|9|212|Crat, MA, Shade|AAD 40, Critical decrease 15
-Careful in Battle|10|219|Crat, MA, Shade|AAD 65, Critical decrease 23
+Careful in Battle|1|40|Crat, MA, Shade|Defense modifier 20, Critical decrease 2
+Careful in Battle|2|70|Crat, MA, Shade|Defense modifier 20, Critical decrease 2
+Careful in Battle|3|100|Crat, MA, Shade|Defense modifier 22, Critical decrease 3
+Careful in Battle|4|130|Crat, MA, Shade|Defense modifier 23, Critical decrease 3
+Careful in Battle|5|160|Crat, MA, Shade|Defense modifier 24, Critical decrease 4
+Careful in Battle|6|200|Crat, MA, Shade|Defense modifier 26, Critical decrease 7
+Careful in Battle|7|205|Crat, MA, Shade|Defense modifier 28, Critical decrease 9
+Careful in Battle|8|207|Crat, MA, Shade|Defense modifier 32, Critical decrease 12
+Careful in Battle|9|212|Crat, MA, Shade|Defense modifier 40, Critical decrease 15
+Careful in Battle|10|219|Crat, MA, Shade|Defense modifier 65, Critical decrease 23
 
-Brawler|1|30|Enf, MA|Brawl 15, Add. Dmg. 5
-Brawler|2|70|Enf, MA|Brawl 20, Add. Dmg. 5
-Brawler|3|120|Enf, MA|Brawl 25, Add. Dmg. 6
-Brawler|4|190|Enf, MA|Brawl 30, Add. Dmg. 8
-Brawler|5|201|Enf, MA|Brawl 45, Add. Dmg. 10
-Brawler|6|205|Enf, MA|Brawl 65, Add. Dmg. 16
+Brawler|1|30|Enf, MA|Brawl 15, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Brawler|2|70|Enf, MA|Brawl 20, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Brawler|3|120|Enf, MA|Brawl 25, Cold damage modifier 6, Chemical damage modifier 6, Energy damage modifier 6, Fire damage modifier 6, Melee damage modifier 6, Poison damage modifier 6, Radiation damage modifier 6, Projectile damage modifier 6
+Brawler|4|190|Enf, MA|Brawl 30, Cold damage modifier 8, Chemical damage modifier 8, Energy damage modifier 8, Fire damage modifier 8, Melee damage modifier 8, Poison damage modifier 8, Radiation damage modifier 8, Projectile damage modifier 8
+Brawler|5|201|Enf, MA|Brawl 45, Cold damage modifier 10, Chemical damage modifier 10, Energy damage modifier 10, Fire damage modifier 10, Melee damage modifier 10, Poison damage modifier 10, Radiation damage modifier 10, Projectile damage modifier 10
+Brawler|6|205|Enf, MA|Brawl 65, Cold damage modifier 16, Chemical damage modifier 16, Energy damage modifier 16, Fire damage modifier 16, Melee damage modifier 16, Poison damage modifier 16, Radiation damage modifier 16, Projectile damage modifier 16
 
 Colossal Health|1|10|Enf, Sol|Max health 50
 Colossal Health|2|30|Enf, Sol|Max health 85
@@ -380,27 +173,27 @@ Infantry|8|190|Agent, Sol|Rifle 14, Fling Shot 2, Max Health 53
 Infantry|9|201|Agent, Sol|Rifle 18, Fling Shot 3, Max Health 62
 Infantry|10|204|Agent, Sol|Rifle 25, Fling Shot 5, Max Health 94
 
-Power Up|1|10|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 2
-Power Up|2|40|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 3
-Power Up|3|70|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 12, Add. Dmg. 3
-Power Up|4|100|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 13, Add. Dmg. 3
-Power Up|5|130|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 14, Add. Dmg. 3
-Power Up|6|150|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 16, Add. Dmg. 4
-Power Up|7|180|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 18, Add. Dmg. 4
-Power Up|8|201|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 22, Add. Dmg. 6
-Power Up|9|203|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 30, Add. Dmg. 8
-Power Up|10|205|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 55, Add. Dmg. 14
+Power Up|1|10|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Cold damage modifier 2, Chemical damage modifier 2, Energy damage modifier 2, Fire damage modifier 2, Melee damage modifier 2, Poison damage modifier 2, Radiation damage modifier 2, Projectile damage modifier 2
+Power Up|2|40|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Power Up|3|70|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 12, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Power Up|4|100|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 13, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Power Up|5|130|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 14, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Power Up|6|150|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 16, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Power Up|7|180|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 18, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Power Up|8|201|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 22, Cold damage modifier 6, Chemical damage modifier 6, Energy damage modifier 6, Fire damage modifier 6, Melee damage modifier 6, Poison damage modifier 6, Radiation damage modifier 6, Projectile damage modifier 6
+Power Up|9|203|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 30, Cold damage modifier 8, Chemical damage modifier 8, Energy damage modifier 8, Fire damage modifier 8, Melee damage modifier 8, Poison damage modifier 8, Radiation damage modifier 8, Projectile damage modifier 8
+Power Up|10|205|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 55, Cold damage modifier 14, Chemical damage modifier 14, Energy damage modifier 14, Fire damage modifier 14, Melee damage modifier 14, Poison damage modifier 14, Radiation damage modifier 14, Projectile damage modifier 14
 
-Shotgun Mastery|1|10|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 2
-Shotgun Mastery|2|30|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 3
-Shotgun Mastery|3|60|Engi, Sol, Tra|Shotgun 12, Add. Dmg. 3
-Shotgun Mastery|4|90|Engi, Sol, Tra|Shotgun 13, Add. Dmg. 4
-Shotgun Mastery|5|120|Engi, Sol, Tra|Shotgun 14, Add. Dmg. 4
-Shotgun Mastery|6|140|Engi, Sol, Tra|Shotgun 16, Add. Dmg. 5
-Shotgun Mastery|7|160|Engi, Sol, Tra|Shotgun 18, Add. Dmg. 6
-Shotgun Mastery|8|180|Engi, Sol, Tra|Shotgun 22, Add. Dmg. 9
-Shotgun Mastery|9|200|Engi, Sol, Tra|Shotgun 30, Add. Dmg. 14
-Shotgun Mastery|10|202|Engi, Sol, Tra|Shotgun 55, Add. Dmg. 30
+Shotgun Mastery|1|10|Engi, Sol, Tra|Shotgun 10, Cold damage modifier 2, Chemical damage modifier 2, Energy damage modifier 2, Fire damage modifier 2, Melee damage modifier 2, Poison damage modifier 2, Radiation damage modifier 2, Projectile damage modifier 2
+Shotgun Mastery|2|30|Engi, Sol, Tra|Shotgun 10, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Shotgun Mastery|3|60|Engi, Sol, Tra|Shotgun 12, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Shotgun Mastery|4|90|Engi, Sol, Tra|Shotgun 13, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Shotgun Mastery|5|120|Engi, Sol, Tra|Shotgun 14, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Shotgun Mastery|6|140|Engi, Sol, Tra|Shotgun 16, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Shotgun Mastery|7|160|Engi, Sol, Tra|Shotgun 18, Cold damage modifier 6, Chemical damage modifier 6, Energy damage modifier 6, Fire damage modifier 6, Melee damage modifier 6, Poison damage modifier 6, Radiation damage modifier 6, Projectile damage modifier 6
+Shotgun Mastery|8|180|Engi, Sol, Tra|Shotgun 22, Cold damage modifier 9, Chemical damage modifier 9, Energy damage modifier 9, Fire damage modifier 9, Melee damage modifier 9, Poison damage modifier 9, Radiation damage modifier 9, Projectile damage modifier 9
+Shotgun Mastery|9|200|Engi, Sol, Tra|Shotgun 30, Cold damage modifier 14, Chemical damage modifier 14, Energy damage modifier 14, Fire damage modifier 14, Melee damage modifier 14, Poison damage modifier 14, Radiation damage modifier 14, Projectile damage modifier 14
+Shotgun Mastery|10|202|Engi, Sol, Tra|Shotgun 55, Cold damage modifier 30, Chemical damage modifier 30, Energy damage modifier 30, Fire damage modifier 30, Melee damage modifier 30, Poison damage modifier 30, Radiation damage modifier 30, Projectile damage modifier 30
 
 SMG Mastery|1|20|Fix, Sol|Smg 10, Burst 1
 SMG Mastery|2|40|Fix, Sol|Smg 10, Burst 1
@@ -413,50 +206,50 @@ SMG Mastery|8|190|Fix, Sol|Smg 22, Burst 3
 SMG Mastery|9|201|Fix, Sol|Smg 30, Burst 3
 SMG Mastery|10|203|Fix, Sol|Smg 55, Burst 4
 
-Alchemist|1|20|Doc, Engi, Tra|Chemistry 15, Pharma Tech 15
-Alchemist|2|40|Doc, Engi, Tra|Chemistry 20, Pharma Tech 20
-Alchemist|3|70|Doc, Engi, Tra|Chemistry 25, Pharma Tech 25
-Alchemist|4|100|Doc, Engi, Tra|Chemistry 30, Pharma Tech 30
-Alchemist|5|130|Doc, Engi, Tra|Chemistry 40, Pharma Tech 40
-Alchemist|6|160|Doc, Engi, Tra|Chemistry 70, Pharma Tech 70
+Alchemist|1|20|Doc, Engi, Tra|Chemistry 15, Pharmaceuticals 15
+Alchemist|2|40|Doc, Engi, Tra|Chemistry 20, Pharmaceuticals 20
+Alchemist|3|70|Doc, Engi, Tra|Chemistry 25, Pharmaceuticals 25
+Alchemist|4|100|Doc, Engi, Tra|Chemistry 30, Pharmaceuticals 30
+Alchemist|5|130|Doc, Engi, Tra|Chemistry 40, Pharmaceuticals 40
+Alchemist|6|160|Doc, Engi, Tra|Chemistry 70, Pharmaceuticals 70
 
-Pistol Mastery|1|10|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 2
-Pistol Mastery|2|30|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 3
-Pistol Mastery|3|60|Adv, Crat, Doc, Engi, MP|Pistol 12, Fling shot 1, Add. Dmg. 3
-Pistol Mastery|4|90|Adv, Crat, Doc, Engi, MP|Pistol 13, Fling shot 1, Add. Dmg. 4
-Pistol Mastery|5|120|Adv, Crat, Doc, Engi, MP|Pistol 14, Fling shot 2, Add. Dmg. 4
-Pistol Mastery|6|150|Adv, Crat, Doc, Engi, MP|Pistol 16, Fling shot 2, Add. Dmg. 5
-Pistol Mastery|7|180|Adv, Crat, Doc, Engi, MP|Pistol 18, Fling shot 2, Add. Dmg. 5
-Pistol Mastery|8|201|Adv, Crat, Doc, Engi, MP|Pistol 22, Fling shot 3, Add. Dmg. 7
-Pistol Mastery|9|203|Adv, Crat, Doc, Engi, MP|Pistol 30, Fling shot 3, Add. Dmg. 9
-Pistol Mastery|10|205|Adv, Crat, Doc, Engi, MP|Pistol 55, Fling shot 4, Add. Dmg. 18
+Pistol Mastery|1|10|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Cold damage modifier 2, Chemical damage modifier 2, Energy damage modifier 2, Fire damage modifier 2, Melee damage modifier 2, Poison damage modifier 2, Radiation damage modifier 2, Projectile damage modifier 2
+Pistol Mastery|2|30|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Pistol Mastery|3|60|Adv, Crat, Doc, Engi, MP|Pistol 12, Fling shot 1, Cold damage modifier 3, Chemical damage modifier 3, Energy damage modifier 3, Fire damage modifier 3, Melee damage modifier 3, Poison damage modifier 3, Radiation damage modifier 3, Projectile damage modifier 3
+Pistol Mastery|4|90|Adv, Crat, Doc, Engi, MP|Pistol 13, Fling shot 1, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Pistol Mastery|5|120|Adv, Crat, Doc, Engi, MP|Pistol 14, Fling shot 2, Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4
+Pistol Mastery|6|150|Adv, Crat, Doc, Engi, MP|Pistol 16, Fling shot 2, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Pistol Mastery|7|180|Adv, Crat, Doc, Engi, MP|Pistol 18, Fling shot 2, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Pistol Mastery|8|201|Adv, Crat, Doc, Engi, MP|Pistol 22, Fling shot 3, Cold damage modifier 7, Chemical damage modifier 7, Energy damage modifier 7, Fire damage modifier 7, Melee damage modifier 7, Poison damage modifier 7, Radiation damage modifier 7, Projectile damage modifier 7
+Pistol Mastery|9|203|Adv, Crat, Doc, Engi, MP|Pistol 30, Fling shot 3, Cold damage modifier 9, Chemical damage modifier 9, Energy damage modifier 9, Fire damage modifier 9, Melee damage modifier 9, Poison damage modifier 9, Radiation damage modifier 9, Projectile damage modifier 9
+Pistol Mastery|10|205|Adv, Crat, Doc, Engi, MP|Pistol 55, Fling shot 4, Cold damage modifier 18, Chemical damage modifier 18, Energy damage modifier 18, Fire damage modifier 18, Melee damage modifier 18, Poison damage modifier 18, Radiation damage modifier 18, Projectile damage modifier 18
 
-Tinkerer|1|60|Engi, Tra|Electrical engineering 10, QFT 10, Mechanical engineering 10
-Tinkerer|2|120|Engi, Tra|Electrical engineering 12, QFT 12, Mechanical engineering 12
-Tinkerer|3|180|Engi, Tra|Electrical engineering 16, QFT 16, Mechanical engineering 16
-Tinkerer|4|200|Engi, Tra|Electrical engineering 27, QFT 27, Mechanical engineering 27
+Tinkerer|1|60|Engi, Tra|Electrical engineering 10, Quantum physics 10, Mechanical engineering 10
+Tinkerer|2|120|Engi, Tra|Electrical engineering 12, Quantum physics 12, Mechanical engineering 12
+Tinkerer|3|180|Engi, Tra|Electrical engineering 16, Quantum physics 16, Mechanical engineering 16
+Tinkerer|4|200|Engi, Tra|Electrical engineering 27, Quantum physics 27, Mechanical engineering 27
 
-Nano Doctorate|1|50|Agent, Crat, Doc, MP, NT, Tra|BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
-Nano Doctorate|2|80|Agent, Crat, Doc, MP, NT, Tra|BM 6, MC 6, MM 6, PM 6, SI 6, TS 6
-Nano Doctorate|3|120|Agent, Crat, Doc, MP, NT, Tra|BM 7, MC 7, MM 7, PM 7, SI 7, TS 7
-Nano Doctorate|4|160|Agent, Crat, Doc, MP, NT, Tra|BM 8, MC 8, MM 8, PM 8, SI 8, TS 8
-Nano Doctorate|5|200|Agent, Crat, Doc, MP, NT, Tra|BM 9, MC 9, MM 9, PM 9, SI 9, TS 9
-Nano Doctorate|6|202|Agent, Crat, Doc, MP, NT, Tra|BM 10, MC 10, MM 10, PM 10, SI 10, TS 10
-Nano Doctorate|7|205|Agent, Crat, Doc, MP, NT, Tra|BM 11, MC 11, MM 11, PM 11, SI 11, TS 11
-Nano Doctorate|8|210|Agent, Crat, Doc, MP, NT, Tra|BM 12, MC 12, MM 12, PM 12, SI 12, TS 12
-Nano Doctorate|9|213|Agent, Crat, Doc, MP, NT, Tra|BM 13, MC 13, MM 13, PM 13, SI 13, TS 13
-Nano Doctorate|10|216|Agent, Crat, Doc, MP, NT, Tra|BM 19, MC 19, MM 19, PM 19, SI 19, TS 19
+Nano Doctorate|1|50|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 5, Matter creation 5, Matter metamorphosis 5, Psychological modifications 5, Sensory improvement 5, Time and space 5
+Nano Doctorate|2|80|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 6, Matter creation 6, Matter metamorphosis 6, Psychological modifications 6, Sensory improvement 6, Time and space 6
+Nano Doctorate|3|120|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 7, Matter creation 7, Matter metamorphosis 7, Psychological modifications 7, Sensory improvement 7, Time and space 7
+Nano Doctorate|4|160|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 8, Matter creation 8, Matter metamorphosis 8, Psychological modifications 8, Sensory improvement 8, Time and space 8
+Nano Doctorate|5|200|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 9, Matter creation 9, Matter metamorphosis 9, Psychological modifications 9, Sensory improvement 9, Time and space 9
+Nano Doctorate|6|202|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 10, Matter creation 10, Matter metamorphosis 10, Psychological modifications 10, Sensory improvement 10, Time and space 10
+Nano Doctorate|7|205|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 11, Matter creation 11, Matter metamorphosis 11, Psychological modifications 11, Sensory improvement 11, Time and space 11
+Nano Doctorate|8|210|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 12, Matter creation 12, Matter metamorphosis 12, Psychological modifications 12, Sensory improvement 12, Time and space 12
+Nano Doctorate|9|213|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 13, Matter creation 13, Matter metamorphosis 13, Psychological modifications 13, Sensory improvement 13, Time and space 13
+Nano Doctorate|10|216|Agent, Crat, Doc, MP, NT, Tra|Biological metamorphosis 19, Matter creation 19, Matter metamorphosis 19, Psychological modifications 19, Sensory improvement 19, Time and space 19
 
 Starfall|1|20|Crat, Doc, MP, NT|Max health 5, Max nano 10
 Starfall|2|50|Crat, Doc, MP, NT|Max health 8, Max nano 15
 Starfall|3|90|Crat, Doc, MP, NT|Max health 10, Max nano 20
-Starfall|4|120|Crat, Doc, MP, NT|Max health 13, Max nano 25, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|5|150|Crat, Doc, MP, NT|Max health 14, Max nano 30, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|6|190|Crat, Doc, MP, NT|Max health 17, Max nano 35, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|7|202|Crat, Doc, MP, NT|Max health 18, Max nano 40, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
-Starfall|8|205|Crat, Doc, MP, NT|Max health 20, Max nano 45, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
-Starfall|9|210|Crat, Doc, MP, NT|Max health 22, Max nano 70, BM 3, MC 3, MM 3, PM 3, SI 3, TS 3
-Starfall|10|214|Crat, Doc, MP, NT|Max health 33, Max nano 110, BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
+Starfall|4|120|Crat, Doc, MP, NT|Max health 13, Max nano 25, Biological metamorphosis 1, Matter creation 1, Matter metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Time and space 1
+Starfall|5|150|Crat, Doc, MP, NT|Max health 14, Max nano 30, Biological metamorphosis 1, Matter creation 1, Matter metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Time and space 1
+Starfall|6|190|Crat, Doc, MP, NT|Max health 17, Max nano 35, Biological metamorphosis 1, Matter creation 1, Matter metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Time and space 1
+Starfall|7|202|Crat, Doc, MP, NT|Max health 18, Max nano 40, Biological metamorphosis 2, Matter creation 2, Matter metamorphosis 2, Psychological modifications 2, Sensory improvement 2, Time and space 2
+Starfall|8|205|Crat, Doc, MP, NT|Max health 20, Max nano 45, Biological metamorphosis 2, Matter creation 2, Matter metamorphosis 2, Psychological modifications 2, Sensory improvement 2, Time and space 2
+Starfall|9|210|Crat, Doc, MP, NT|Max health 22, Max nano 70, Biological metamorphosis 3, Matter creation 3, Matter metamorphosis 3, Psychological modifications 3, Sensory improvement 3, Time and space 3
+Starfall|10|214|Crat, Doc, MP, NT|Max health 33, Max nano 110, Biological metamorphosis 5, Matter creation 5, Matter metamorphosis 5, Psychological modifications 5, Sensory improvement 5, Time and space 5
 
 Theoretical Research|1|40|MP, NT|Nano programming 10, Max nano 25
 Theoretical Research|2|70|MP, NT|Nano programming 10, Max nano 40
@@ -469,16 +262,16 @@ Theoretical Research|8|205|MP, NT|Nano programming 22, Max nano 145
 Theoretical Research|9|208|MP, NT|Nano programming 30, Max nano 160
 Theoretical Research|10|209|MP, NT|Nano programming 55, Max nano 260
 
-Disharmony|1|60|MA|Add. Dmg. 7
-Disharmony|2|80|MA|Add. Dmg. 9
-Disharmony|3|110|MA|Add. Dmg. 11
-Disharmony|4|130|MA|Add. Dmg. 13
-Disharmony|5|150|MA|Add. Dmg. 17
-Disharmony|6|170|MA|Add. Dmg. 19
-Disharmony|7|190|MA|Add. Dmg. 24
-Disharmony|8|201|MA|Add. Dmg. 27
-Disharmony|9|205|MA|Add. Dmg. 35
-Disharmony|10|213|MA|Add. Dmg. 58
+Disharmony|1|60|MA|Cold damage modifier 7, Chemical damage modifier 7, Energy damage modifier 7, Fire damage modifier 7, Melee damage modifier 7, Poison damage modifier 7, Radiation damage modifier 7, Projectile damage modifier 7
+Disharmony|2|80|MA|Cold damage modifier 9, Chemical damage modifier 9, Energy damage modifier 9, Fire damage modifier 9, Melee damage modifier 9, Poison damage modifier 9, Radiation damage modifier 9, Projectile damage modifier 9
+Disharmony|3|110|MA|Cold damage modifier 11, Chemical damage modifier 11, Energy damage modifier 11, Fire damage modifier 11, Melee damage modifier 11, Poison damage modifier 11, Radiation damage modifier 11, Projectile damage modifier 11
+Disharmony|4|130|MA|Cold damage modifier 13, Chemical damage modifier 13, Energy damage modifier 13, Fire damage modifier 13, Melee damage modifier 13, Poison damage modifier 13, Radiation damage modifier 13, Projectile damage modifier 13
+Disharmony|5|150|MA|Cold damage modifier 17, Chemical damage modifier 17, Energy damage modifier 17, Fire damage modifier 17, Melee damage modifier 17, Poison damage modifier 17, Radiation damage modifier 17, Projectile damage modifier 17
+Disharmony|6|170|MA|Cold damage modifier 19, Chemical damage modifier 19, Energy damage modifier 19, Fire damage modifier 19, Melee damage modifier 19, Poison damage modifier 19, Radiation damage modifier 19, Projectile damage modifier 19
+Disharmony|7|190|MA|Cold damage modifier 24, Chemical damage modifier 24, Energy damage modifier 24, Fire damage modifier 24, Melee damage modifier 24, Poison damage modifier 24, Radiation damage modifier 24, Projectile damage modifier 24
+Disharmony|8|201|MA|Cold damage modifier 27, Chemical damage modifier 27, Energy damage modifier 27, Fire damage modifier 27, Melee damage modifier 27, Poison damage modifier 27, Radiation damage modifier 27, Projectile damage modifier 27
+Disharmony|9|205|MA|Cold damage modifier 35, Chemical damage modifier 35, Energy damage modifier 35, Fire damage modifier 35, Melee damage modifier 35, Poison damage modifier 35, Radiation damage modifier 35, Projectile damage modifier 35
+Disharmony|10|213|MA|Cold damage modifier 58, Chemical damage modifier 58, Energy damage modifier 58, Fire damage modifier 58, Melee damage modifier 58, Poison damage modifier 58, Radiation damage modifier 58, Projectile damage modifier 58
 
 Spiritual Master|1|10|MA|Martial arts 5, Dimach 10, Riposte 5
 Spiritual Master|2|40|MA|Martial arts 5, Dimach 10, Riposte 5
@@ -491,15 +284,15 @@ Spiritual Master|8|203|MA|Martial arts 17, Dimach 22, Riposte 11
 Spiritual Master|9|205|MA|Martial arts 25, Dimach 30, Riposte 15
 Spiritual Master|10|210|MA|Martial arts 50, Dimach 55, Riposte 28
 
-Thief|1|30|Fix|Sense 3, Break&Entry 25, Trap Disarm. 25
-Thief|2|60|Fix|Sense 5, Break&Entry 40, Trap Disarm. 40
-Thief|3|100|Fix|Sense 8, Break&Entry 55, Trap Disarm. 55
-Thief|4|170|Fix|Sense 14, Break&Entry 80, Trap Disarm. 80
+Thief|1|30|Fix|Sense 3, Breaking and entry 25, Trap disarming 25
+Thief|2|60|Fix|Sense 5, Breaking and entry 40, Trap disarming 40
+Thief|3|100|Fix|Sense 8, Breaking and entry 55, Trap disarming 55
+Thief|4|170|Fix|Sense 14, Breaking and entry 80, Trap disarming 80
 
-Grid NCU Extension|1|50|Fix|Computer literacy 15, Max NCU 10
-Grid NCU Extension|2|120|Fix|Computer literacy 20, Max NCU 13
-Grid NCU Extension|3|190|Fix|Computer literacy 25, Max NCU 17
-Grid NCU Extension|4|201|Fix|Computer literacy 40, Max NCU 30
+Grid NCU Extension|1|50|Fix|Computer literacy 15, NCU memory 10
+Grid NCU Extension|2|120|Fix|Computer literacy 20, NCU memory 13
+Grid NCU Extension|3|190|Fix|Computer literacy 25, NCU memory 17
+Grid NCU Extension|4|201|Fix|Computer literacy 40, NCU memory 30
 
 Hit and Run|1|180|Fix|Full auto 20
 Hit and Run|2|190|Fix|Full auto 25
@@ -508,23 +301,45 @@ Hit and Run|4|204|Fix|Full auto 35
 Hit and Run|5|206|Fix|Full auto 40
 Hit and Run|6|208|Fix|Full auto 50
 
-Assault Force Medic|1|60|Doc|Treatment 2, First Aid 1, Max health 5, BM 1, MM 1
-Assault Force Medic|2|80|Doc|Treatment 2, First Aid 1, Max health 12, BM 1, MM 1
-Assault Force Medic|3|100|Doc|Treatment 3, First Aid 1, Max health 20, BM 2, MM 2
-Assault Force Medic|4|120|Doc|Treatment 3, First Aid 2, Max health 24, BM 2, MM 2
-Assault Force Medic|5|150|Doc|Treatment 4, First Aid 2, Max health 30, BM 3, MM 3
-Assault Force Medic|6|190|Doc|Treatment 4, First Aid 2, Max health 32, BM 4, MM 4
-Assault Force Medic|7|200|Doc|Treatment 5, First Aid 3, Max health 38, BM 5, MM 5
-Assault Force Medic|8|204|Doc|Treatment 5, First Aid 3, Max health 45, BM 6, MM 6
-Assault Force Medic|9|208|Doc|Treatment 6, First Aid 4, Max health 50, BM 7, MM 7
-Assault Force Medic|10|212|Doc|Treatment 6, First Aid 6, Max health 84, BM 12, MM 12
+Lightstalker|1|20|Adv|Agility 1, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 7, Defense modifier 2, Aimed shot 3
+Lightstalker|2|70|Adv|Agility 2, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 10, Defense modifier 3, Aimed shot 5
+Lightstalker|3|110|Adv|Agility 3, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 12, Defense modifier 4, Aimed shot 8
+Lightstalker|4|150|Adv|Agility 4, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 15, Defense modifier 7, Aimed shot 12
+Lightstalker|5|200|Adv|Agility 6, Dodge ranged 2, Duck explosives 2, Evade close 2, Concealment 19, Defense modifier 11, Aimed shot 20
+Lightstalker|6|206|Adv|Agility 9, Dodge ranged 4, Duck explosives 4, Evade close 4, Concealment 27, Defense modifier 18, Aimed shot 32
 
-Nano Surgeon|1|40|Doc|Treatment 5, First Aid 4, BM 3, MM 3
-Nano Surgeon|2|80|Doc|Treatment 6, First Aid 4, BM 4, MM 4
-Nano Surgeon|3|120|Doc|Treatment 7, First Aid 6, BM 6, MM 6
-Nano Surgeon|4|150|Doc|Treatment 10, First Aid 7, BM 7, MM 7
-Nano Surgeon|5|180|Doc|Treatment 12, First Aid 10, BM 9, MM 9
-Nano Surgeon|6|201|Doc|Treatment 14, First Aid 14, BM 13, MM 13
+Shadowstalker|1|20|Adv|Agility 1, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 7, Defense modifier 2, Sneak attack 3
+Shadowstalker|2|70|Adv|Agility 2, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 10, Defense modifier 3, Sneak attack 5
+Shadowstalker|3|110|Adv|Agility 3, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 12, Defense modifier 4, Sneak attack 8
+Shadowstalker|4|150|Adv|Agility 4, Dodge ranged 1, Duck explosives 1, Evade close 1, Concealment 15, Defense modifier 7, Sneak attack 12
+Shadowstalker|5|200|Adv|Agility 6, Dodge ranged 2, Duck explosives 2, Evade close 2, Concealment 19, Defense modifier 11, Sneak attack 20
+Shadowstalker|6|206|Adv|Agility 9, Dodge ranged 4, Duck explosives 4, Evade close 4, Concealment 27, Defense modifier 18, Sneak attack 32
+
+Ferocity of Nature|1|150|Adv|Multi melee 5, Multi ranged 5, Cold damage modifier 10, Chemical damage modifier 10, Energy damage modifier 10, Fire damage modifier 10, Melee damage modifier 10, Poison damage modifier 10, Radiation damage modifier 10, Projectile damage modifier 10
+Ferocity of Nature|1|200|Adv|Multi melee 5, Multi ranged 5, Cold damage modifier 15, Chemical damage modifier 15, Energy damage modifier 15, Fire damage modifier 15, Melee damage modifier 15, Poison damage modifier 15, Radiation damage modifier 15, Projectile damage modifier 15
+Ferocity of Nature|1|205|Adv|Multi melee 10, Multi ranged 10, Cold damage modifier 30, Chemical damage modifier 30, Energy damage modifier 30, Fire damage modifier 30, Melee damage modifier 30, Poison damage modifier 30, Radiation damage modifier 30, Projectile damage modifier 30
+
+Outdoorsman|1|80|Adv|Run speed 20, Adventuring 10, Multi melee 5, Ranged init 10, 1h Edged 4, Swimming 45
+Outdoorsman|2|140|Adv|Run speed 30, Adventuring 15, Multi melee 10, Ranged init 10, 1h Edged 5, Swimming 65
+Outdoorsman|3|200|Adv|Run speed 40, Adventuring 25, Multi melee 10, Ranged init 10, 1h Edged 11, Swimming 90
+
+Assault Force Medic|1|60|Doc|Treatment 2, First Aid 1, Max health 5, Biological metamorphosis 1, Matter metamorphosis 1
+Assault Force Medic|2|80|Doc|Treatment 2, First Aid 1, Max health 12, Biological metamorphosis 1, Matter metamorphosis 1
+Assault Force Medic|3|100|Doc|Treatment 3, First Aid 1, Max health 20, Biological metamorphosis 2, Matter metamorphosis 2
+Assault Force Medic|4|120|Doc|Treatment 3, First Aid 2, Max health 24, Biological metamorphosis 2, Matter metamorphosis 2
+Assault Force Medic|5|150|Doc|Treatment 4, First Aid 2, Max health 30, Biological metamorphosis 3, Matter metamorphosis 3
+Assault Force Medic|6|190|Doc|Treatment 4, First Aid 2, Max health 32, Biological metamorphosis 4, Matter metamorphosis 4
+Assault Force Medic|7|200|Doc|Treatment 5, First Aid 3, Max health 38, Biological metamorphosis 5, Matter metamorphosis 5
+Assault Force Medic|8|204|Doc|Treatment 5, First Aid 3, Max health 45, Biological metamorphosis 6, Matter metamorphosis 6
+Assault Force Medic|9|208|Doc|Treatment 6, First Aid 4, Max health 50, Biological metamorphosis 7, Matter metamorphosis 7
+Assault Force Medic|10|212|Doc|Treatment 6, First Aid 6, Max health 84, Biological metamorphosis 12, Matter metamorphosis 12
+
+Nano Surgeon|1|40|Doc|Treatment 5, First Aid 4, Biological metamorphosis 3, Matter metamorphosis 3
+Nano Surgeon|2|80|Doc|Treatment 6, First Aid 4, Biological metamorphosis 4, Matter metamorphosis 4
+Nano Surgeon|3|120|Doc|Treatment 7, First Aid 6, Biological metamorphosis 6, Matter metamorphosis 6
+Nano Surgeon|4|150|Doc|Treatment 10, First Aid 7, Biological metamorphosis 7, Matter metamorphosis 7
+Nano Surgeon|5|180|Doc|Treatment 12, First Aid 10, Biological metamorphosis 9, Matter metamorphosis 9
+Nano Surgeon|6|201|Doc|Treatment 14, First Aid 14, Biological metamorphosis 13, Matter metamorphosis 13
 
 Specialist Healer|1|70|Doc|First Aid 1, Healing efficiency 2
 Specialist Healer|2|90|Doc|First Aid 1, Healing efficiency 2
@@ -546,16 +361,16 @@ Heavy Ranged|6|180|Sol|Assault rifle 28, Heavy weapons 28
 Heavy Ranged|7|202|Sol|Assault rifle 40, Heavy weapons 40
 Heavy Ranged|8|205|Sol|Assault rifle 60, Heavy weapons 60
 
-Special Forces|1|20|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge-Rng 5, Duck-Exp 1, Evade close 1
-Special Forces|2|50|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge-Rng 5, Duck-Exp 1, Evade close 1
-Special Forces|3|70|Sol|Full auto 12, Burst 10, Fling shot 10, Dodge-Rng 7, Duck-Exp 1, Evade close 1
-Special Forces|4|90|Sol|Full auto 13, Burst 11, Fling shot 11, Dodge-Rng 8, Duck-Exp 2, Evade close 2
-Special Forces|5|110|Sol|Full auto 14, Burst 12, Fling shot 12, Dodge-Rng 9, Duck-Exp 2, Evade close 2
-Special Forces|6|130|Sol|Full auto 16, Burst 14, Fling shot 14, Dodge-Rng 11, Duck-Exp 4, Evade close 4
-Special Forces|7|170|Sol|Full auto 18, Burst 16, Fling shot 16, Dodge-Rng 13, Duck-Exp 4, Evade close 4
-Special Forces|8|201|Sol|Full auto 22, Burst 20, Fling shot 20, Dodge-Rng 19, Duck-Exp 5, Evade close 5
-Special Forces|9|203|Sol|Full auto 30, Burst 28, Fling shot 28, Dodge-Rng 23, Duck-Exp 10, Evade close 10
-Special Forces|10|205|Sol|Full auto 55, Burst 53, Fling shot 53, Dodge-Rng 50, Duck-Exp 20, Evade close 20
+Special Forces|1|20|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge ranged 5, Duck explosives 1, Evade close 1
+Special Forces|2|50|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge ranged 5, Duck explosives 1, Evade close 1
+Special Forces|3|70|Sol|Full auto 12, Burst 10, Fling shot 10, Dodge ranged 7, Duck explosives 1, Evade close 1
+Special Forces|4|90|Sol|Full auto 13, Burst 11, Fling shot 11, Dodge ranged 8, Duck explosives 2, Evade close 2
+Special Forces|5|110|Sol|Full auto 14, Burst 12, Fling shot 12, Dodge ranged 9, Duck explosives 2, Evade close 2
+Special Forces|6|130|Sol|Full auto 16, Burst 14, Fling shot 14, Dodge ranged 11, Duck explosives 4, Evade close 4
+Special Forces|7|170|Sol|Full auto 18, Burst 16, Fling shot 16, Dodge ranged 13, Duck explosives 4, Evade close 4
+Special Forces|8|201|Sol|Full auto 22, Burst 20, Fling shot 20, Dodge ranged 19, Duck explosives 5, Evade close 5
+Special Forces|9|203|Sol|Full auto 30, Burst 28, Fling shot 28, Dodge ranged 23, Duck explosives 10, Evade close 10
+Special Forces|10|205|Sol|Full auto 55, Burst 53, Fling shot 53, Dodge ranged 50, Duck explosives 20, Evade close 20
 
 Demolitions|1|20|Engi|Grenade 10
 Demolitions|2|50|Engi|Grenade 10
@@ -568,49 +383,49 @@ Demolitions|8|203|Engi|Grenade 22
 Demolitions|9|206|Engi|Grenade 30
 Demolitions|10|209|Engi|Grenade 55
 
-Gadgeteer|1|10|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 2, TS 1, MC 1
-Gadgeteer|2|20|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 3, TS 1, MC 1
-Gadgeteer|3|40|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 4, TS 2, MC 2
-Gadgeteer|4|70|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 5, TS 2, MC 2
-Gadgeteer|5|100|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 6, TS 2, MC 2
-Gadgeteer|6|120|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 7, TS 3, MC 3
-Gadgeteer|7|150|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 8, TS 3, MC 3
-Gadgeteer|8|180|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 9, TS 4, MC 4
-Gadgeteer|9|200|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 10, TS 4, MC 4
-Gadgeteer|10|203|Engi|Electrical engineering 14, QFT 14, Mechanical engineering 14, Weapon smithing 16, TS 8, MC 8
+Gadgeteer|1|10|Engi|Electrical engineering 2, Quantum physics 2, Mechanical engineering 2, Weapon smithing 2, Time and space 1, Matter creation 1
+Gadgeteer|2|20|Engi|Electrical engineering 2, Quantum physics 2, Mechanical engineering 2, Weapon smithing 3, Time and space 1, Matter creation 1
+Gadgeteer|3|40|Engi|Electrical engineering 3, Quantum physics 3, Mechanical engineering 3, Weapon smithing 4, Time and space 2, Matter creation 2
+Gadgeteer|4|70|Engi|Electrical engineering 3, Quantum physics 3, Mechanical engineering 3, Weapon smithing 5, Time and space 2, Matter creation 2
+Gadgeteer|5|100|Engi|Electrical engineering 4, Quantum physics 4, Mechanical engineering 4, Weapon smithing 6, Time and space 2, Matter creation 2
+Gadgeteer|6|120|Engi|Electrical engineering 5, Quantum physics 5, Mechanical engineering 5, Weapon smithing 7, Time and space 3, Matter creation 3
+Gadgeteer|7|150|Engi|Electrical engineering 6, Quantum physics 6, Mechanical engineering 6, Weapon smithing 8, Time and space 3, Matter creation 3
+Gadgeteer|8|180|Engi|Electrical engineering 7, Quantum physics 7, Mechanical engineering 7, Weapon smithing 9, Time and space 4, Matter creation 4
+Gadgeteer|9|200|Engi|Electrical engineering 9, Quantum physics 9, Mechanical engineering 9, Weapon smithing 10, Time and space 4, Matter creation 4
+Gadgeteer|10|203|Engi|Electrical engineering 14, Quantum physics 14, Mechanical engineering 14, Weapon smithing 16, Time and space 8, Matter creation 8
 
-Mechanic|1|30|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 6, TS 2, MC 2
-Mechanic|2|50|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 7, TS 3, MC 3
-Mechanic|3|70|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 8, TS 4, MC 4
-Mechanic|4|100|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 9, TS 4, MC 4
-Mechanic|5|130|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 10, TS 5, MC 5
-Mechanic|6|160|Engi|Electrical engineering 8, QFT 8, Mechanical engineering 8, Weapon smithing 11, TS 5, MC 5
-Mechanic|7|201|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 13, TS 6, MC 6
-Mechanic|8|206|Engi|Electrical engineering 10, QFT 10, Mechanical engineering 10, Weapon smithing 16, TS 7, MC 7
-Mechanic|9|212|Engi|Electrical engineering 11, QFT 11, Mechanical engineering 11, Weapon smithing 20, TS 9, MC 9
-Mechanic|10|217|Engi|Electrical engineering 17, QFT 17, Mechanical engineering 17, Weapon smithing 30, TS 15, MC 15
+Mechanic|1|30|Engi|Electrical engineering 3, Quantum physics 3, Mechanical engineering 3, Weapon smithing 6, Time and space 2, Matter creation 2
+Mechanic|2|50|Engi|Electrical engineering 4, Quantum physics 4, Mechanical engineering 4, Weapon smithing 7, Time and space 3, Matter creation 3
+Mechanic|3|70|Engi|Electrical engineering 5, Quantum physics 5, Mechanical engineering 5, Weapon smithing 8, Time and space 4, Matter creation 4
+Mechanic|4|100|Engi|Electrical engineering 6, Quantum physics 6, Mechanical engineering 6, Weapon smithing 9, Time and space 4, Matter creation 4
+Mechanic|5|130|Engi|Electrical engineering 7, Quantum physics 7, Mechanical engineering 7, Weapon smithing 10, Time and space 5, Matter creation 5
+Mechanic|6|160|Engi|Electrical engineering 8, Quantum physics 8, Mechanical engineering 8, Weapon smithing 11, Time and space 5, Matter creation 5
+Mechanic|7|201|Engi|Electrical engineering 9, Quantum physics 9, Mechanical engineering 9, Weapon smithing 13, Time and space 6, Matter creation 6
+Mechanic|8|206|Engi|Electrical engineering 10, Quantum physics 10, Mechanical engineering 10, Weapon smithing 16, Time and space 7, Matter creation 7
+Mechanic|9|212|Engi|Electrical engineering 11, Quantum physics 11, Mechanical engineering 11, Weapon smithing 20, Time and space 9, Matter creation 9
+Mechanic|10|217|Engi|Electrical engineering 17, Quantum physics 17, Mechanical engineering 17, Weapon smithing 30, Time and space 15, Matter creation 15
 
-Assassin|1|10|Agent|Rifle 1, Aimed shot 4, Concealment 1, Dodge-Rng 3, Duck-Exp 2, Evade close 2
-Assassin|2|20|Agent|Rifle 1, Aimed shot 5, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
-Assassin|3|30|Agent|Rifle 1, Aimed shot 6, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
-Assassin|4|40|Agent|Rifle 2, Aimed shot 7, Concealment 3, Dodge-Rng 5, Duck-Exp 4, Evade close 4
-Assassin|5|80|Agent|Rifle 2, Aimed shot 8, Concealment 3, Dodge-Rng 6, Duck-Exp 4, Evade close 4, CriticalIncrease 1
-Assassin|6|120|Agent|Rifle 2, Aimed shot 9, Concealment 4, Dodge-Rng 7, Duck-Exp 5, Evade close 5
-Assassin|7|170|Agent|Rifle 3, Aimed shot 10, Concealment 4, Dodge-Rng 9, Duck-Exp 5, Evade close 5
-Assassin|8|190|Agent|Rifle 3, Aimed shot 12, Concealment 5, Dodge-Rng 11, Duck-Exp 6, Evade close 6
-Assassin|9|201|Agent|Rifle 4, Aimed shot 15, Concealment 7, Dodge-Rng 13, Duck-Exp 7, Evade close 7
-Assassin|10|203|Agent|Rifle 6, Aimed shot 24, Concealment 9, Dodge-Rng 18, Duck-Exp 11, Evade close 11, CriticalIncrease 1
+Assassin|1|10|Agent|Rifle 1, Aimed shot 4, Concealment 1, Dodge ranged 3, Duck explosives 2, Evade close 2
+Assassin|2|20|Agent|Rifle 1, Aimed shot 5, Concealment 2, Dodge ranged 4, Duck explosives 3, Evade close 3
+Assassin|3|30|Agent|Rifle 1, Aimed shot 6, Concealment 2, Dodge ranged 4, Duck explosives 3, Evade close 3
+Assassin|4|40|Agent|Rifle 2, Aimed shot 7, Concealment 3, Dodge ranged 5, Duck explosives 4, Evade close 4
+Assassin|5|80|Agent|Rifle 2, Aimed shot 8, Concealment 3, Dodge ranged 6, Duck explosives 4, Evade close 4, Critical chance 1
+Assassin|6|120|Agent|Rifle 2, Aimed shot 9, Concealment 4, Dodge ranged 7, Duck explosives 5, Evade close 5
+Assassin|7|170|Agent|Rifle 3, Aimed shot 10, Concealment 4, Dodge ranged 9, Duck explosives 5, Evade close 5
+Assassin|8|190|Agent|Rifle 3, Aimed shot 12, Concealment 5, Dodge ranged 11, Duck explosives 6, Evade close 6
+Assassin|9|201|Agent|Rifle 4, Aimed shot 15, Concealment 7, Dodge ranged 13, Duck explosives 7, Evade close 7
+Assassin|10|203|Agent|Rifle 6, Aimed shot 24, Concealment 9, Dodge ranged 18, Duck explosives 11, Evade close 11, Critical chance 1
 
-Black Ops|1|20|Agent|Add. Dmg. 4, Rifle 2, Aimed shot 2, Concealment 2, Fling shot 5
-Black Ops|2|50|Agent|Add. Dmg. 5, Rifle 3, Aimed shot 3, Concealment 3, Fling shot 6
-Black Ops|3|80|Agent|Add. Dmg. 6, Rifle 3, Aimed shot 4, Concealment 3, Fling shot 7
-Black Ops|4|120|Agent|Add. Dmg. 7, Rifle 4, Aimed shot 5, Concealment 4, Fling shot 8
-Black Ops|5|150|Agent|Add. Dmg. 8, Rifle 4, Aimed shot 5, Concealment 5, Fling shot 9
-Black Ops|6|170|Agent|Add. Dmg. 9, Rifle 5, Aimed shot 6, Concealment 6, Fling shot 10
-Black Ops|7|190|Agent|Add. Dmg. 10, Rifle 5, Aimed shot 7, Concealment 7, Fling shot 11
-Black Ops|8|201|Agent|Add. Dmg. 11, Rifle 7, Aimed shot 8, Concealment 8, Fling shot 12
-Black Ops|9|203|Agent|Add. Dmg. 13, Rifle 9, Aimed shot 10, Concealment 9, Fling shot 14
-Black Ops|10|208|Agent|Add. Dmg. 17, Rifle 13, Aimed shot 15, Concealment 13, Fling shot 18, CriticalIncrease 1
+Black Ops|1|20|Agent|Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4, Rifle 2, Aimed shot 2, Concealment 2, Fling shot 5
+Black Ops|2|50|Agent|Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5, Rifle 3, Aimed shot 3, Concealment 3, Fling shot 6
+Black Ops|3|80|Agent|Cold damage modifier 6, Chemical damage modifier 6, Energy damage modifier 6, Fire damage modifier 6, Melee damage modifier 6, Poison damage modifier 6, Radiation damage modifier 6, Projectile damage modifier 6, Rifle 3, Aimed shot 4, Concealment 3, Fling shot 7
+Black Ops|4|120|Agent|Cold damage modifier 7, Chemical damage modifier 7, Energy damage modifier 7, Fire damage modifier 7, Melee damage modifier 7, Poison damage modifier 7, Radiation damage modifier 7, Projectile damage modifier 7, Rifle 4, Aimed shot 5, Concealment 4, Fling shot 8
+Black Ops|5|150|Agent|Cold damage modifier 8, Chemical damage modifier 8, Energy damage modifier 8, Fire damage modifier 8, Melee damage modifier 8, Poison damage modifier 8, Radiation damage modifier 8, Projectile damage modifier 8, Rifle 4, Aimed shot 5, Concealment 5, Fling shot 9
+Black Ops|6|170|Agent|Cold damage modifier 9, Chemical damage modifier 9, Energy damage modifier 9, Fire damage modifier 9, Melee damage modifier 9, Poison damage modifier 9, Radiation damage modifier 9, Projectile damage modifier 9, Rifle 5, Aimed shot 6, Concealment 6, Fling shot 10
+Black Ops|7|190|Agent|Cold damage modifier 10, Chemical damage modifier 10, Energy damage modifier 10, Fire damage modifier 10, Melee damage modifier 10, Poison damage modifier 10, Radiation damage modifier 10, Projectile damage modifier 10, Rifle 5, Aimed shot 7, Concealment 7, Fling shot 11
+Black Ops|8|201|Agent|Cold damage modifier 11, Chemical damage modifier 11, Energy damage modifier 11, Fire damage modifier 11, Melee damage modifier 11, Poison damage modifier 11, Radiation damage modifier 11, Projectile damage modifier 11, Rifle 7, Aimed shot 8, Concealment 8, Fling shot 12
+Black Ops|9|203|Agent|Cold damage modifier 13, Chemical damage modifier 13, Energy damage modifier 13, Fire damage modifier 13, Melee damage modifier 13, Poison damage modifier 13, Radiation damage modifier 13, Projectile damage modifier 13, Rifle 9, Aimed shot 10, Concealment 9, Fling shot 14
+Black Ops|10|208|Agent|Cold damage modifier 17, Chemical damage modifier 17, Energy damage modifier 17, Fire damage modifier 17, Melee damage modifier 17, Poison damage modifier 17, Radiation damage modifier 17, Projectile damage modifier 17, Rifle 13, Aimed shot 15, Concealment 13, Fling shot 18, Critical chance 1
 
 Shadowsneak|1|10|Agent|Sense 1, Aimed shot 1, Concealment 5
 Shadowsneak|2|30|Agent|Sense 1, Aimed shot 1, Concealment 5
@@ -624,11 +439,11 @@ Shadowsneak|9|208|Agent|Sense 10, Aimed shot 1, Concealment 15
 Shadowsneak|10|213|Agent|Sense 20, Aimed shot 1, Concealment 27
 
 Sharpshoooter|1|50|Agent|Aimed shot 2
-Sharpshoooter|2|100|Agent|Aimed shot 3, CriticalIncrease 1
+Sharpshoooter|2|100|Agent|Aimed shot 3, Critical chance 1
 Sharpshoooter|3|160|Agent|Aimed shot 4
-Sharpshoooter|4|201|Agent|Aimed shot 5, CriticalIncrease 1
+Sharpshoooter|4|201|Agent|Aimed shot 5, Critical chance 1
 Sharpshoooter|5|203|Agent|Aimed shot 7
-Sharpshoooter|6|218|Agent|Aimed shot 9, CriticalIncrease 1
+Sharpshoooter|6|218|Agent|Aimed shot 9, Critical chance 1
 
 Form of Troll|1|30|Enf|Max health 80, Heal delta 3
 Form of Troll|2|60|Enf|Max health 150, Heal delta 3
@@ -663,33 +478,33 @@ Bone Crusher|8|200|Enf|2h Blunt 22
 Bone Crusher|9|201|Enf|2h Blunt 30
 Bone Crusher|10|203|Enf|2h Blunt 55
 
-Directorship|1|30|Crat|BM 1, PM 1, SI 1, Psychology 2
-Directorship|2|60|Crat|BM 1, PM 1, SI 1, Psychology 4
-Directorship|3|90|Crat|BM 2, PM 2, SI 2, Psychology 6
-Directorship|4|110|Crat|BM 2, PM 2, SI 2, Psychology 8
-Directorship|5|140|Crat|BM 3, PM 3, SI 3, Psychology 10
-Directorship|6|160|Crat|BM 3, PM 3, SI 3, Psychology 12
-Directorship|7|190|Crat|BM 4, PM 4, SI 4, Psychology 14
-Directorship|8|201|Crat|BM 4, PM 4, SI 4, Psychology 16
-Directorship|9|205|Crat|BM 5, PM 5, SI 5, Psychology 18
-Directorship|10|208|Crat|BM 11, PM 11, SI 11, Psychology 30
+Directorship|1|30|Crat|Biological metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Psychology 2
+Directorship|2|60|Crat|Biological metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Psychology 4
+Directorship|3|90|Crat|Biological metamorphosis 2, Psychological modifications 2, Sensory improvement 2, Psychology 6
+Directorship|4|110|Crat|Biological metamorphosis 2, Psychological modifications 2, Sensory improvement 2, Psychology 8
+Directorship|5|140|Crat|Biological metamorphosis 3, Psychological modifications 3, Sensory improvement 3, Psychology 10
+Directorship|6|160|Crat|Biological metamorphosis 3, Psychological modifications 3, Sensory improvement 3, Psychology 12
+Directorship|7|190|Crat|Biological metamorphosis 4, Psychological modifications 4, Sensory improvement 4, Psychology 14
+Directorship|8|201|Crat|Biological metamorphosis 4, Psychological modifications 4, Sensory improvement 4, Psychology 16
+Directorship|9|205|Crat|Biological metamorphosis 5, Psychological modifications 5, Sensory improvement 5, Psychology 18
+Directorship|10|208|Crat|Biological metamorphosis 11, Psychological modifications 11, Sensory improvement 11, Psychology 30
 
-Insurance Agent|1|80|Crat|BM 1, PM 1, SI 1, Psychology 5
-Insurance Agent|2|140|Crat|BM 2, PM 2, SI 2, Psychology 7
-Insurance Agent|3|190|Crat|BM 3, PM 3, SI 3, Psychology 13
-Insurance Agent|4|203|Crat|BM 4, PM 4, SI 4, Psychology 20
-Insurance Agent|5|209|Crat|BM 8, PM 8, SI 8, Psychology 35
+Insurance Agent|1|80|Crat|Biological metamorphosis 1, Psychological modifications 1, Sensory improvement 1, Psychology 5
+Insurance Agent|2|140|Crat|Biological metamorphosis 2, Psychological modifications 2, Sensory improvement 2, Psychology 7
+Insurance Agent|3|190|Crat|Biological metamorphosis 3, Psychological modifications 3, Sensory improvement 3, Psychology 13
+Insurance Agent|4|203|Crat|Biological metamorphosis 4, Psychological modifications 4, Sensory improvement 4, Psychology 20
+Insurance Agent|5|209|Crat|Biological metamorphosis 8, Psychological modifications 8, Sensory improvement 8, Psychology 35
 
-Bureaucratic Shuffle|1|50|Agent|Max health 10, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|2|70|Agent|Max health 11, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|3|100|Agent|Max health 12, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|4|140|Agent|Max health 13, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Bureaucratic Shuffle|5|160|Agent|Max health 14, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Bureaucratic Shuffle|6|180|Agent|Max health 15, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Bureaucratic Shuffle|7|201|Agent|Max health 16, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Bureaucratic Shuffle|8|202|Agent|Max health 19, Dodge-Rng 6, Duck-Exp 6, Evade close 6
-Bureaucratic Shuffle|9|203|Agent|Max health 30, Dodge-Rng 8, Duck-Exp 8, Evade close 8
-Bureaucratic Shuffle|10|206|Agent|Max health 60, Dodge-Rng 12, Duck-Exp 12, Evade close 12
+Bureaucratic Shuffle|1|50|Agent|Max health 10, Dodge ranged 1, Duck explosives 1, Evade close 1
+Bureaucratic Shuffle|2|70|Agent|Max health 11, Dodge ranged 1, Duck explosives 1, Evade close 1
+Bureaucratic Shuffle|3|100|Agent|Max health 12, Dodge ranged 1, Duck explosives 1, Evade close 1
+Bureaucratic Shuffle|4|140|Agent|Max health 13, Dodge ranged 2, Duck explosives 2, Evade close 2
+Bureaucratic Shuffle|5|160|Agent|Max health 14, Dodge ranged 2, Duck explosives 2, Evade close 2
+Bureaucratic Shuffle|6|180|Agent|Max health 15, Dodge ranged 3, Duck explosives 3, Evade close 3
+Bureaucratic Shuffle|7|201|Agent|Max health 16, Dodge ranged 4, Duck explosives 4, Evade close 4
+Bureaucratic Shuffle|8|202|Agent|Max health 19, Dodge ranged 6, Duck explosives 6, Evade close 6
+Bureaucratic Shuffle|9|203|Agent|Max health 30, Dodge ranged 8, Duck explosives 8, Evade close 8
+Bureaucratic Shuffle|10|206|Agent|Max health 60, Dodge ranged 12, Duck explosives 12, Evade close 12
 
 Piercing Mastery|1|10|Shade|Piercing 10
 Piercing Mastery|2|30|Shade|Piercing 10
@@ -702,79 +517,79 @@ Piercing Mastery|8|201|Shade|Piercing 22
 Piercing Mastery|9|202|Shade|Piercing 30
 Piercing Mastery|10|208|Shade|Piercing 55
 
-Totemic Rites|1|10|Shade|Add. Dmg. 4, Sneak attack 5, Martial arts 1
-Totemic Rites|2|40|Shade|Add. Dmg. 8, Sneak attack 5, Martial arts 2
-Totemic Rites|3|60|Shade|Add. Dmg. 11, Sneak attack 6, Martial arts 2
-Totemic Rites|4|90|Shade|Add. Dmg. 15, Sneak attack 6, Martial arts 3
-Totemic Rites|5|120|Shade|Add. Dmg. 18, Sneak attack 7, Martial arts 3
-Totemic Rites|6|150|Shade|Add. Dmg. 20, Sneak attack 8, Martial arts 4
-Totemic Rites|7|170|Shade|Add. Dmg. 24, Sneak attack 9, Martial arts 5
-Totemic Rites|8|190|Shade|Add. Dmg. 28, Sneak attack 11, Martial arts 5
-Totemic Rites|9|201|Shade|Add. Dmg. 30, Sneak attack 15, Martial arts 6
-Totemic Rites|10|204|Shade|Add. Dmg. 50, Sneak attack 28, Martial arts 9
+Totemic Rites|1|10|Shade|Cold damage modifier 4, Chemical damage modifier 4, Energy damage modifier 4, Fire damage modifier 4, Melee damage modifier 4, Poison damage modifier 4, Radiation damage modifier 4, Projectile damage modifier 4, Sneak attack 5, Martial arts 1
+Totemic Rites|2|40|Shade|Cold damage modifier 8, Chemical damage modifier 8, Energy damage modifier 8, Fire damage modifier 8, Melee damage modifier 8, Poison damage modifier 8, Radiation damage modifier 8, Projectile damage modifier 8, Sneak attack 5, Martial arts 2
+Totemic Rites|3|60|Shade|Cold damage modifier 11, Chemical damage modifier 11, Energy damage modifier 11, Fire damage modifier 11, Melee damage modifier 11, Poison damage modifier 11, Radiation damage modifier 11, Projectile damage modifier 11, Sneak attack 6, Martial arts 2
+Totemic Rites|4|90|Shade|Cold damage modifier 15, Chemical damage modifier 15, Energy damage modifier 15, Fire damage modifier 15, Melee damage modifier 15, Poison damage modifier 15, Radiation damage modifier 15, Projectile damage modifier 15, Sneak attack 6, Martial arts 3
+Totemic Rites|5|120|Shade|Cold damage modifier 18, Chemical damage modifier 18, Energy damage modifier 18, Fire damage modifier 18, Melee damage modifier 18, Poison damage modifier 18, Radiation damage modifier 18, Projectile damage modifier 18, Sneak attack 7, Martial arts 3
+Totemic Rites|6|150|Shade|Cold damage modifier 20, Chemical damage modifier 20, Energy damage modifier 20, Fire damage modifier 20, Melee damage modifier 20, Poison damage modifier 20, Radiation damage modifier 20, Projectile damage modifier 20, Sneak attack 8, Martial arts 4
+Totemic Rites|7|170|Shade|Cold damage modifier 24, Chemical damage modifier 24, Energy damage modifier 24, Fire damage modifier 24, Melee damage modifier 24, Poison damage modifier 24, Radiation damage modifier 24, Projectile damage modifier 24, Sneak attack 9, Martial arts 5
+Totemic Rites|8|190|Shade|Cold damage modifier 28, Chemical damage modifier 28, Energy damage modifier 28, Fire damage modifier 28, Melee damage modifier 28, Poison damage modifier 28, Radiation damage modifier 28, Projectile damage modifier 28, Sneak attack 11, Martial arts 5
+Totemic Rites|9|201|Shade|Cold damage modifier 30, Chemical damage modifier 30, Energy damage modifier 30, Fire damage modifier 30, Melee damage modifier 30, Poison damage modifier 30, Radiation damage modifier 30, Projectile damage modifier 30, Sneak attack 15, Martial arts 6
+Totemic Rites|10|204|Shade|Cold damage modifier 50, Chemical damage modifier 50, Energy damage modifier 50, Fire damage modifier 50, Melee damage modifier 50, Poison damage modifier 50, Radiation damage modifier 50, Projectile damage modifier 50, Sneak attack 28, Martial arts 9
 
-Shade Touch|1|20|Shade|Martial arts 5, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Shade Touch|2|60|Shade|Martial arts 8, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Shade Touch|3|90|Shade|Martial arts 10, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Shade Touch|4|130|Shade|Martial arts 13, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Shade Touch|5|160|Shade|Martial arts 15, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Shade Touch|6|200|Shade|Martial arts 19, Dodge-Rng 6, Duck-Exp 6, Evade close 6
-Shade Touch|7|205|Shade|Martial arts 30, Dodge-Rng 12, Duck-Exp 12, Evade close 12
+Shade Touch|1|20|Shade|Martial arts 5, Dodge ranged 1, Duck explosives 1, Evade close 1
+Shade Touch|2|60|Shade|Martial arts 8, Dodge ranged 2, Duck explosives 2, Evade close 2
+Shade Touch|3|90|Shade|Martial arts 10, Dodge ranged 2, Duck explosives 2, Evade close 2
+Shade Touch|4|130|Shade|Martial arts 13, Dodge ranged 3, Duck explosives 3, Evade close 3
+Shade Touch|5|160|Shade|Martial arts 15, Dodge ranged 4, Duck explosives 4, Evade close 4
+Shade Touch|6|200|Shade|Martial arts 19, Dodge ranged 6, Duck explosives 6, Evade close 6
+Shade Touch|7|205|Shade|Martial arts 30, Dodge ranged 12, Duck explosives 12, Evade close 12
 
-Sublime Rapport|1|10|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Sublime Rapport|2|30|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Sublime Rapport|3|60|Shade|Dimach 12, Deflect 2, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|4|90|Shade|Dimach 13, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|5|120|Shade|Dimach 14, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|6|150|Shade|Dimach 16, Deflect 3, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Sublime Rapport|7|170|Shade|Dimach 18, Deflect 4, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Sublime Rapport|8|190|Shade|Dimach 22, Deflect 5, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Sublime Rapport|9|201|Shade|Dimach 30, Deflect 6, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Sublime Rapport|10|203|Shade|Dimach 55, Deflect 10, Dodge-Rng 8, Duck-Exp 8, Evade close 8
+Sublime Rapport|1|10|Shade|Dimach 10, Parry 2, Dodge ranged 1, Duck explosives 1, Evade close 1
+Sublime Rapport|2|30|Shade|Dimach 10, Parry 2, Dodge ranged 1, Duck explosives 1, Evade close 1
+Sublime Rapport|3|60|Shade|Dimach 12, Parry 2, Dodge ranged 2, Duck explosives 2, Evade close 2
+Sublime Rapport|4|90|Shade|Dimach 13, Parry 3, Dodge ranged 2, Duck explosives 2, Evade close 2
+Sublime Rapport|5|120|Shade|Dimach 14, Parry 3, Dodge ranged 2, Duck explosives 2, Evade close 2
+Sublime Rapport|6|150|Shade|Dimach 16, Parry 3, Dodge ranged 3, Duck explosives 3, Evade close 3
+Sublime Rapport|7|170|Shade|Dimach 18, Parry 4, Dodge ranged 3, Duck explosives 3, Evade close 3
+Sublime Rapport|8|190|Shade|Dimach 22, Parry 5, Dodge ranged 4, Duck explosives 4, Evade close 4
+Sublime Rapport|9|201|Shade|Dimach 30, Parry 6, Dodge ranged 4, Duck explosives 4, Evade close 4
+Sublime Rapport|10|203|Shade|Dimach 55, Parry 10, Dodge ranged 8, Duck explosives 8, Evade close 8
 
-Spirit Phylactery|1|20|Shade|Max health 7, AAD 5, AAO 2, Sneak attack 5
-Spirit Phylactery|2|40|Shade|Max health 8, AAD 6, AAO 3, Sneak attack 5
-Spirit Phylactery|3|60|Shade|Max health 10, AAD 7, AAO 4, Sneak attack 6
-Spirit Phylactery|4|100|Shade|Max health 14, AAD 8, AAO 4, Sneak attack 6
-Spirit Phylactery|5|130|Shade|Max health 19, AAD 9, AAO 5, Sneak attack 7
-Spirit Phylactery|6|150|Shade|Max health 32, AAD 11, AAO 5, Sneak attack 8
-Spirit Phylactery|7|160|Shade|Max health 42, AAD 16, AAO 6, Sneak attack 9
-Spirit Phylactery|8|200|Shade|Max health 52, AAD 21, AAO 7, Sneak attack 11
-Spirit Phylactery|9|202|Shade|Max health 76, AAD 27, AAO 9, Sneak attack 15
-Spirit Phylactery|10|203|Shade|Max health 140, AAD 40, AAO 15, Sneak attack 28
+Spirit Phylactery|1|20|Shade|Max health 7, Defense modifier 5, Offense modifier 2, Sneak attack 5
+Spirit Phylactery|2|40|Shade|Max health 8, Defense modifier 6, Offense modifier 3, Sneak attack 5
+Spirit Phylactery|3|60|Shade|Max health 10, Defense modifier 7, Offense modifier 4, Sneak attack 6
+Spirit Phylactery|4|100|Shade|Max health 14, Defense modifier 8, Offense modifier 4, Sneak attack 6
+Spirit Phylactery|5|130|Shade|Max health 19, Defense modifier 9, Offense modifier 5, Sneak attack 7
+Spirit Phylactery|6|150|Shade|Max health 32, Defense modifier 11, Offense modifier 5, Sneak attack 8
+Spirit Phylactery|7|160|Shade|Max health 42, Defense modifier 16, Offense modifier 6, Sneak attack 9
+Spirit Phylactery|8|200|Shade|Max health 52, Defense modifier 21, Offense modifier 7, Sneak attack 11
+Spirit Phylactery|9|202|Shade|Max health 76, Defense modifier 27, Offense modifier 9, Sneak attack 15
+Spirit Phylactery|10|203|Shade|Max health 140, Defense modifier 40, Offense modifier 15, Sneak attack 28
 
-Notum Siphon|1|30|NT|MC 3
-Notum Siphon|2|60|NT|MC 4
-Notum Siphon|3|90|NT|MC 5
-Notum Siphon|4|130|NT|MC 6
-Notum Siphon|5|170|NT|MC 7
-Notum Siphon|6|200|NT|MC 8
-Notum Siphon|7|203|NT|MC 10
-Notum Siphon|8|209|NT|MC 11
-Notum Siphon|9|214|NT|MC 13
-Notum Siphon|10|218|NT|MC 18
+Notum Siphon|1|30|NT|Matter creation 3
+Notum Siphon|2|60|NT|Matter creation 4
+Notum Siphon|3|90|NT|Matter creation 5
+Notum Siphon|4|130|NT|Matter creation 6
+Notum Siphon|5|170|NT|Matter creation 7
+Notum Siphon|6|200|NT|Matter creation 8
+Notum Siphon|7|203|NT|Matter creation 10
+Notum Siphon|8|209|NT|Matter creation 11
+Notum Siphon|9|214|NT|Matter creation 13
+Notum Siphon|10|218|NT|Matter creation 18
 
 Essence of Notum|1|80|NT|Max Nano 600
 Essence of Notum|2|180|NT|Max Nano 1600
 Essence of Notum|3|203|NT|Max Nano 3800
 
-Enhanced Nano Damage|1|160|NT|Max Nano 150, Direct Nano Damage Efficiency 2
-Enhanced Nano Damage|2|180|NT|Max Nano 225, Direct Nano Damage Efficiency 2
-Enhanced Nano Damage|3|200|NT|Max Nano 270, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|4|203|NT|Max Nano 335, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|5|209|NT|Max Nano 420, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|6|215|NT|Max Nano 600, Direct Nano Damage Efficiency 5
+Enhanced Nano Damage|1|160|NT|Max Nano 150, Nano damage modifier 2
+Enhanced Nano Damage|2|180|NT|Max Nano 225, Nano damage modifier 2
+Enhanced Nano Damage|3|200|NT|Max Nano 270, Nano damage modifier 3
+Enhanced Nano Damage|4|203|NT|Max Nano 335, Nano damage modifier 3
+Enhanced Nano Damage|5|209|NT|Max Nano 420, Nano damage modifier 3
+Enhanced Nano Damage|6|215|NT|Max Nano 600, Nano damage modifier 5
 
-Channel Rage|1|10|MP|TS 3, MC 3, Max health 5, Nano resist 10, AAD 5
-Channel Rage|2|30|MP|TS 4, MC 4, Max health 9, Nano resist 10, AAD 5
-Channel Rage|3|60|MP|TS 5, MC 5, Max health 10, Nano resist 12, AAD 6
-Channel Rage|4|100|MP|TS 6, MC 6, Max health 10, Nano resist 13, AAD 7
-Channel Rage|5|130|MP|TS 7, MC 7, Max health 14, Nano resist 14, AAD 7
-Channel Rage|6|170|MP|TS 8, MC 8, Max health 18, Nano resist 16, AAD 8
-Channel Rage|7|200|MP|TS 9, MC 9, Max health 22, Nano resist 18, AAD 9
-Channel Rage|8|201|MP|TS 10, MC 10, Max health 37, Nano resist 22, AAD 11
-Channel Rage|9|205|MP|TS 13, MC 13, Max health 37, Nano resist 30, AAD 15
-Channel Rage|10|208|MP|TS 20, MC 20, Max health 48, Nano resist 50, AAD 27
+Channel Rage|1|10|MP|Time and space 3, Matter creation 3, Max health 5, Nano resist 10, Defense modifier 5
+Channel Rage|2|30|MP|Time and space 4, Matter creation 4, Max health 9, Nano resist 10, Defense modifier 5
+Channel Rage|3|60|MP|Time and space 5, Matter creation 5, Max health 10, Nano resist 12, Defense modifier 6
+Channel Rage|4|100|MP|Time and space 6, Matter creation 6, Max health 10, Nano resist 13, Defense modifier 7
+Channel Rage|5|130|MP|Time and space 7, Matter creation 7, Max health 14, Nano resist 14, Defense modifier 7
+Channel Rage|6|170|MP|Time and space 8, Matter creation 8, Max health 18, Nano resist 16, Defense modifier 8
+Channel Rage|7|200|MP|Time and space 9, Matter creation 9, Max health 22, Nano resist 18, Defense modifier 9
+Channel Rage|8|201|MP|Time and space 10, Matter creation 10, Max health 37, Nano resist 22, Defense modifier 11
+Channel Rage|9|205|MP|Time and space 13, Matter creation 13, Max health 37, Nano resist 30, Defense modifier 15
+Channel Rage|10|208|MP|Time and space 20, Matter creation 20, Max health 48, Nano resist 50, Defense modifier 27
 
 Soothing Spirits|1|30|MP|Max health 5, Max nano 15
 Soothing Spirits|2|30|MP|Max health 7, Max nano 17
@@ -820,29 +635,24 @@ Blessing|8|190|Keep|Max health 400
 Blessing|9|202|Keep|Max health 500
 Blessing|10|207|Keep|Max health 720
 
-Holy Mark|1|20|Keep|Max health 10, Dodge-Rng 5, Duck-Exp 5, Evade close 10
-Holy Mark|2|20|Keep|Max health 12, Dodge-Rng 5, Duck-Exp 5, Evade close 10
-Holy Mark|3|20|Keep|Max health 14, Dodge-Rng 6, Duck-Exp 6, Evade close 12
-Holy Mark|4|20|Keep|Max health 16, Dodge-Rng 6, Duck-Exp 6, Evade close 13
-Holy Mark|5|20|Keep|Max health 18, Dodge-Rng 7, Duck-Exp 7, Evade close 14
-Holy Mark|6|20|Keep|Max health 23, Dodge-Rng 9, Duck-Exp 9, Evade close 16
-Holy Mark|7|20|Keep|Max health 34, Dodge-Rng 10, Duck-Exp 10, Evade close 18
-Holy Mark|8|20|Keep|Max health 45, Dodge-Rng 11, Duck-Exp 11, Evade close 22
-Holy Mark|9|20|Keep|Max health 57, Dodge-Rng 15, Duck-Exp 15, Evade close 30
-Holy Mark|10|20|Keep|Max health 91, Dodge-Rng 26, Duck-Exp 26, Evade close 55
+Holy Mark|1|20|Keep|Max health 10, Dodge ranged 5, Duck explosives 5, Evade close 10
+Holy Mark|2|20|Keep|Max health 12, Dodge ranged 5, Duck explosives 5, Evade close 10
+Holy Mark|3|20|Keep|Max health 14, Dodge ranged 6, Duck explosives 6, Evade close 12
+Holy Mark|4|20|Keep|Max health 16, Dodge ranged 6, Duck explosives 6, Evade close 13
+Holy Mark|5|20|Keep|Max health 18, Dodge ranged 7, Duck explosives 7, Evade close 14
+Holy Mark|6|20|Keep|Max health 23, Dodge ranged 9, Duck explosives 9, Evade close 16
+Holy Mark|7|20|Keep|Max health 34, Dodge ranged 10, Duck explosives 10, Evade close 18
+Holy Mark|8|20|Keep|Max health 45, Dodge ranged 11, Duck explosives 11, Evade close 22
+Holy Mark|9|20|Keep|Max health 57, Dodge ranged 15, Duck explosives 15, Evade close 30
+Holy Mark|10|20|Keep|Max health 91, Dodge ranged 26, Duck explosives 26, Evade close 55
 
-Reaver|1|20|Keep, Enf|2h Edged 10, Deflect 10, Riposte 10, Fast attack 10, Ranged init -100, Add. Dmg. 5
-Reaver|2|50|Keep, Enf|2h Edged 10, Deflect 10, Riposte 10, Fast attack 10, Ranged init -100, Add. Dmg. 7
-Reaver|3|70|Keep, Enf|2h Edged 11, Deflect 12, Riposte 12, Fast attack 12, Ranged init -150, Add. Dmg. 9
-Reaver|4|100|Keep, Enf|2h Edged 12, Deflect 13, Riposte 13, Fast attack 13, Ranged init -150, Add. Dmg. 11
-Reaver|5|130|Keep, Enf|2h Edged 13, Deflect 14, Riposte 14, Fast attack 14, Ranged init -150, Add. Dmg. 15
-Reaver|6|160|Keep, Enf|2h Edged 15, Deflect 16, Riposte 16, Fast attack 16, Ranged init -200, Add. Dmg. 18
-Reaver|7|180|Keep, Enf|2h Edged 16, Deflect 18, Riposte 18, Fast attack 18, Ranged init -200, Add. Dmg. 22
-Reaver|8|201|Keep, Enf|2h Edged 22, Deflect 22, Riposte 22, Fast attack 22, Ranged init -200, Add. Dmg. 25
-Reaver|9|204|Keep, Enf|2h Edged 28, Deflect 30, Riposte 30, Fast attack 30, Ranged init -500, Add. Dmg. 32
-Reaver|10|209|Keep, Enf|2h Edged 43, Deflect 55, Riposte 55, Fast attack 55, Ranged init -500, Add. Dmg. 43
-
-Unstunnable|1|sl|211080|150|MA|
-Unstunnable|2|sl|211077|170|MA|
-Unstunnable|3|sl|211078|200|MA|
-Unstunnable|4|sl|211079|204|MA|
+Reaver|1|20|Keep, Enf|2h Edged 10, Parry 10, Riposte 10, Fast attack 10, Ranged init -100, Cold damage modifier 5, Chemical damage modifier 5, Energy damage modifier 5, Fire damage modifier 5, Melee damage modifier 5, Poison damage modifier 5, Radiation damage modifier 5, Projectile damage modifier 5
+Reaver|2|50|Keep, Enf|2h Edged 10, Parry 10, Riposte 10, Fast attack 10, Ranged init -100, Cold damage modifier 7, Chemical damage modifier 7, Energy damage modifier 7, Fire damage modifier 7, Melee damage modifier 7, Poison damage modifier 7, Radiation damage modifier 7, Projectile damage modifier 7
+Reaver|3|70|Keep, Enf|2h Edged 11, Parry 12, Riposte 12, Fast attack 12, Ranged init -150, Cold damage modifier 9, Chemical damage modifier 9, Energy damage modifier 9, Fire damage modifier 9, Melee damage modifier 9, Poison damage modifier 9, Radiation damage modifier 9, Projectile damage modifier 9
+Reaver|4|100|Keep, Enf|2h Edged 12, Parry 13, Riposte 13, Fast attack 13, Ranged init -150, Cold damage modifier 11, Chemical damage modifier 11, Energy damage modifier 11, Fire damage modifier 11, Melee damage modifier 11, Poison damage modifier 11, Radiation damage modifier 11, Projectile damage modifier 11
+Reaver|5|130|Keep, Enf|2h Edged 13, Parry 14, Riposte 14, Fast attack 14, Ranged init -150, Cold damage modifier 15, Chemical damage modifier 15, Energy damage modifier 15, Fire damage modifier 15, Melee damage modifier 15, Poison damage modifier 15, Radiation damage modifier 15, Projectile damage modifier 15
+Reaver|6|160|Keep, Enf|2h Edged 15, Parry 16, Riposte 16, Fast attack 16, Ranged init -200, Cold damage modifier 18, Chemical damage modifier 18, Energy damage modifier 18, Fire damage modifier 18, Melee damage modifier 18, Poison damage modifier 18, Radiation damage modifier 18, Projectile damage modifier 18
+Reaver|7|180|Keep, Enf|2h Edged 16, Parry 18, Riposte 18, Fast attack 18, Ranged init -200, Cold damage modifier 22, Chemical damage modifier 22, Energy damage modifier 22, Fire damage modifier 22, Melee damage modifier 22, Poison damage modifier 22, Radiation damage modifier 22, Projectile damage modifier 22
+Reaver|8|201|Keep, Enf|2h Edged 22, Parry 22, Riposte 22, Fast attack 22, Ranged init -200, Cold damage modifier 25, Chemical damage modifier 25, Energy damage modifier 25, Fire damage modifier 25, Melee damage modifier 25, Poison damage modifier 25, Radiation damage modifier 25, Projectile damage modifier 25
+Reaver|9|204|Keep, Enf|2h Edged 28, Parry 30, Riposte 30, Fast attack 30, Ranged init -500, Cold damage modifier 32, Chemical damage modifier 32, Energy damage modifier 32, Fire damage modifier 32, Melee damage modifier 32, Poison damage modifier 32, Radiation damage modifier 32, Projectile damage modifier 32
+Reaver|10|209|Keep, Enf|2h Edged 43, Parry 55, Riposte 55, Fast attack 55, Ranged init -500, Cold damage modifier 43, Chemical damage modifier 43, Energy damage modifier 43, Fire damage modifier 43, Melee damage modifier 43, Poison damage modifier 43, Radiation damage modifier 43, Projectile damage modifier 43
