@@ -24,30 +24,40 @@ class ColorSettingHandler extends SettingHandler {
 		$msg .= "You can change it manually with the command: \n\n";
 		$msg .= "/tell <myname> settings save {$this->row->name} <i>HTML-Color</i>\n\n";
 		$msg .= "Or you can choose one of the following Colors\n\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FF0000'>Save it</a>] <font color='#FF0000'>Example Text</font> (Red)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FF6666'>Save it</a>] <font color='#FF6666'>Example Text</font> (Light Red)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FFCCCC'>Save it</a>] <font color='#FFCCCC'>Example Text</font> (Rose)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FFFFFF'>Save it</a>] <font color='#FFFFFF'>Example Text</font> (White)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #808080'>Save it</a>] <font color='#808080'>Example Text</font> (Grey)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #DDDDDD'>Save it</a>] <font color='#DDDDDD'>Example Text</font> (Light Grey)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #9CC6E7'>Save it</a>] <font color='#9CC6E7'>Example Text</font> (Dark Grey)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #000000'>Save it</a>] <font color='#000000'>Example Text</font> (Black)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FFFF00'>Save it</a>] <font color='#FFFF00'>Example Text</font> (Yellow)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #8CB5FF'>Save it</a>] <font color='#8CB5FF'>Example Text</font> (Blue)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #00BFFF'>Save it</a>] <font color='#00BFFF'>Example Text</font> (Deep Sky Blue)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #005F6A'>Save it</a>] <font color='#005F6A'>Example Text</font> (Petrol)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #00DE42'>Save it</a>] <font color='#00DE42'>Example Text</font> (Green)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #00F700'>Save it</a>] <font color='#00F700'>Example Text</font> (Org Green)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #63AD63'>Save it</a>] <font color='#63AD63'>Example Text</font> (Pale Green)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FCA712'>Save it</a>] <font color='#FCA712'>Example Text</font> (Orange)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FFD700'>Save it</a>] <font color='#FFD700'>Example Text</font> (Gold)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FF1493'>Save it</a>] <font color='#FF1493'>Example Text</font> (Deep Pink)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #EE82EE'>Save it</a>] <font color='#EE82EE'>Example Text</font> (Violet)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #8B7355'>Save it</a>] <font color='#8B7355'>Example Text</font> (Brown)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #00FFFF'>Save it</a>] <font color='#00FFFF'>Example Text</font> (Cyan)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #000080'>Save it</a>] <font color='#000080'>Example Text</font> (Navy Blue)\n";
-		$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} #FF8C00'>Save it</a>] <font color='#FF8C00'>Example Text</font> (Dark Orange)\n";
+		$examples = $this->getExampleColors();
+		foreach ($examples as $color => $name) {
+			$msg .= "[<a href='chatcmd:///tell <myname> settings save {$this->row->name} {$color}'>Save it</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
+		}
 		return $msg;
+	}
+
+	public static function getExampleColors(): array {
+		$examples = [
+			"#FF0000" => "Red",
+			"#FF6666" => "Light Red",
+			"#FFCCCC" => "Rose",
+			"#FFFFFF" => "White",
+			"#808080" => "Grey",
+			"#DDDDDD" => "Light Grey",
+			"#9CC6E7" => "Dark Grey",
+			"#000000" => "Black",
+			"#FFFF00" => "Yellow",
+			"#8CB5FF" => "Blue",
+			"#00BFFF" => "Deep Sky Blue",
+			"#005F6A" => "Petrol",
+			"#00DE42" => "Green",
+			"#00F700" => "Org Green",
+			"#63AD63" => "Pale Green",
+			"#FCA712" => "Orange",
+			"#FFD700" => "Gold",
+			"#FF1493" => "Deep Pink",
+			"#EE82EE" => "Violet",
+			"#8B7355" => "Brown",
+			"#00FFFF" => "Cyan",
+			"#000080" => "Navy Blue",
+			"#FF8C00" => "Dark Orange",
+		];
+		return $examples;
 	}
 
 	/**
