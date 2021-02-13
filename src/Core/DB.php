@@ -695,7 +695,11 @@ class DB {
 		}
 		$sql = "INSERT INTO `{$table}` (" . join(", ", $colNames) . ") ".
 			"VALUES (" . join(", ", array_fill(0, count($colNames), "?")) . ")";
-		return $this->exec($sql, ...$values);
+		$inserted = $this->exec($sql, ...$values);
+		if ($inserted) {
+			return $this->lastInsertId();
+		}
+		return 0;
 	}
 
 	/**

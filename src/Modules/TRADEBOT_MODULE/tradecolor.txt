@@ -1,0 +1,29 @@
+<header2>Colors for tradebots<end>
+There are 2 colors to configure: the color of the tag and the color of
+the main text (text body).
+To be able to define your own colors, you first have to <a href='chatcmd:///tell <myname> settings save tradebot_custom_colors 1'>enable custom colors</a>.
+
+<header2>Defining main text color<end>
+To configure the main text color, <a href='chatcmd:///tell <myname> settings change tradebot_text_color'>change this setting</a>.
+
+<header2>Listing the colors<end>
+In order to list all custom defined colors, use
+<tab><highlight><symbol>tradecolors<end>
+
+<header2>Defining Tag colors<end>
+To configure the tag-colors, based on the channel and the tradebot, use either
+<tab><highlight><symbol>tradecolor set 'tradebot' 'tag' 'color'<end>
+or
+<tab><highlight><symbol>tradecolor pick 'tradebot' 'tag'<end>
+
+The <highlight>'tag'<end> can use the following placeholders:
+<tab><highlight>*<end> (any number of any character)
+<tab><highlight>?<end> (any single character).
+
+Matching is performed case insensitive.
+
+<header2>Examples<end>
+<tab><highlight><symbol>tradecolor set Darknet lootrights #FFFFFF<end>
+<tab><highlight><symbol>tradecolor set Darknet pv? #0000FF<end>
+<tab><highlight><symbol>tradecolor set Darknet * #9900FF<end>
+<tab><highlight><symbol>tradecolor pick Darknet *<end>
