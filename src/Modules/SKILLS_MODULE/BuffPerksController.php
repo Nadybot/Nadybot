@@ -5,8 +5,8 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
-    LoggerWrapper,
-    Text,
+	LoggerWrapper,
+	Text,
 	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	SettingManager,
@@ -143,7 +143,6 @@ class BuffPerksController {
 	}
 
 	protected function showPerks(string $profession, int $minLevel, string $search=null, CommandReply $sendto): void {
-
 		$params =  [$profession, $minLevel];
 
 		$skillQuery = "";
@@ -367,7 +366,6 @@ class BuffPerksController {
 				}
 			}
 		}
-
 		return $perks;
 	}
 }
