@@ -7,4 +7,5 @@ class ItemBuffSearchResult extends AODBEntry {
 	public ?int $low_amount;
 	public ?int $multi_m;
 	public ?int $multi_r;
+	public string $unit;
 }

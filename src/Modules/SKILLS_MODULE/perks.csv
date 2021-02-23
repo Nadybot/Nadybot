@@ -2,11 +2,11 @@ Alien Technology Expertise|1|ai|247748|15|*|
 Alien Technology Expertise|2|ai|247749|75|*|
 Alien Technology Expertise|3|ai|256082|150|*|
 
-Ambidextros|1|sl|211135|10|*|Multi melee 10, Multi ranged 10
-Ambidextros|2|sl|211136|30|*|Multi melee 15, Multi ranged 15
-Ambidextros|3|sl|211137|80|*|Multi melee 20, Multi ranged 20
-Ambidextros|4|sl|211138|110|*|Multi melee 30, Multi ranged 30, Add. Dmg. 5
-Ambidextros|5|sl|212177|150|*|Multi melee 45, Multi ranged 45, AAD 8, Add. Dmg. 15
+Ambidextros|1|sl|211135|10|*|Mult. Melee 10, Multi ranged 10
+Ambidextros|2|sl|211136|30|*|Mult. Melee 15, Multi ranged 15
+Ambidextros|3|sl|211137|80|*|Mult. Melee 20, Multi ranged 20
+Ambidextros|4|sl|211138|110|*|Mult. Melee 30, Multi ranged 30, Add. Dmg. 5
+Ambidextros|5|sl|212177|150|*|Mult. Melee 45, Multi ranged 45, AAD 8, Add. Dmg. 15
 
 Atrox Primary Genome|1|ai|252492|5|*|STR 2, STA 2
 Atrox Primary Genome|2|ai|252493|15|*|STR 2, STA 2
@@ -111,13 +111,13 @@ Enhance DNA|8|sl|211800|150|*|Strength 5, Stamina 5, Intelligence 5, Psychic 5, 
 Enhance DNA|9|sl|211801|170|*|Strength 5, Stamina 5, Intelligence 5, Psychic 5, Sense 5, Agility 5, Body development 5
 Enhance DNA|10|sl|211802|190|*|Strength 6, Stamina 6, Intelligence 6, Psychic 6, Sense 6, Agility 6, Body development 7
 
-Enhance Health|1|sl|211051|30|*|Max health 40
-Enhance Health|2|sl|211052|60|*|Max health 80
-Enhance Health|3|sl|211053|80|*|Max health 100
-Enhance Health|4|sl|211054|100|*|Max health 150
-Enhance Health|5|sl|211055|140|*|Max health 230
-Enhance Health|6|sl|211056|180|*|Max health 320
-Enhance Health|7|sl|212180|201|*|Max health 580
+Enhance Health|1|sl|211051|30|*|Max Health 40
+Enhance Health|2|sl|211052|60|*|Max Health 80
+Enhance Health|3|sl|211053|80|*|Max Health 100
+Enhance Health|4|sl|211054|100|*|Max Health 150
+Enhance Health|5|sl|211055|140|*|Max Health 230
+Enhance Health|6|sl|211056|180|*|Max Health 320
+Enhance Health|7|sl|212180|201|*|Max Health 580
 
 Enhance Nano|1|sl|211059|30|*|Max Nano 80
 Enhance Nano|2|sl|211060|60|*|Max Nano 130
@@ -263,9 +263,9 @@ Training Seminar|2|sl|211073|60|*|% Add. Xp 5
 Training Seminar|3|sl|211074|100|*|% Add. Xp 6
 Training Seminar|4|sl|212190|150|*|% Add. Xp 6
 
-Ferocity of Nature|1|sl|211816|150|Adv|Multi melee 5, Multi ranged 5, Add. Dmg. 10, Direct Nano Damage Efficiency 10
-Ferocity of Nature|2|sl|211817|200|Adv|Multi melee 5, Multi ranged 5, Add. Dmg. 15, Direct Nano Damage Efficiency 15
-Ferocity of Nature|3|sl|211818|205|Adv|Multi melee 10, Multi ranged 10, Add. Dmg. 30, Direct Nano Damage Efficiency 30
+Ferocity of Nature|1|sl|211816|150|Adv|Mult. Melee 5, Multi ranged 5, Add. Dmg. 10, Add. Nano Dam. 10
+Ferocity of Nature|2|sl|211817|200|Adv|Mult. Melee 5, Multi ranged 5, Add. Dmg. 15, Add. Nano Dam. 15
+Ferocity of Nature|3|sl|211818|205|Adv|Mult. Melee 10, Multi ranged 10, Add. Dmg. 30, Add. Nano Dam. 30
 
 Lightstalker|1|sl|281534|20|Adv|Agility 1, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 7, AAD 2, Aimed shot 3
 Lightstalker|2|sl|281535|70|Adv|Agility 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 10, AAD 3, Aimed shot 5
@@ -274,9 +274,9 @@ Lightstalker|4|sl|281537|150|Adv|Agility 4, Dodge-Rng 1, Duck-Exp 1, Evade close
 Lightstalker|5|sl|281538|200|Adv|Agility 6, Dodge-Rng 2, Duck-Exp 2, Evade close 2, Concealment 19, AAD 11, Aimed shot 20
 Lightstalker|6|sl|281539|206|Adv|Agility 9, Dodge-Rng 4, Duck-Exp 4, Evade close 4, Concealment 27, AAD 18, Aimed shot 32
 
-Outdoorsman|1|sl|231354|80|Adv|Run speed 20, Adventuring 10, Multi melee 10, Ranged init 10, 1h Edged 4
-Outdoorsman|2|sl|231355|140|Adv|Run speed 30, Adventuring 15, Multi melee 10, Ranged init 10, 1h Edged 5
-Outdoorsman|3|sl|231356|200|Adv|Run speed 40, Adventuring 25, Multi melee 10, Ranged init 10, 1h Edged 11
+Outdoorsman|1|sl|231354|80|Adv|Run speed 20, Adventuring 10, Mult. Melee 10, Ranged init 10, 1h Edged 4
+Outdoorsman|2|sl|231355|140|Adv|Run speed 30, Adventuring 15, Mult. Melee 10, Ranged init 10, 1h Edged 5
+Outdoorsman|3|sl|231356|200|Adv|Run speed 40, Adventuring 25, Mult. Melee 10, Ranged init 10, 1h Edged 11
 
 Shadowstalker|1|sl|212007|20|Adv|Agility 1, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 7, AAD 2, Sneak attack 3, 1h Edged 1
 Shadowstalker|2|sl|212008|70|Adv|Agility 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 10, AAD 3, Sneak attack 5, 1h Edged 3
@@ -296,553 +296,803 @@ The Call|8|ai|251251|145|Adv|Max Nano 60, Fast Attack 6, Fling Shot 6, Dodge-Rng
 The Call|9|ai|251252|205|Adv|Max Nano 80, Fast Attack 8, Fling Shot 8, Dodge-Rng 8, Max Health 80, Evade-ClsC 8, Duck-Exp 8
 The Call|10|ai|251253|210|Adv|Max Nano 140, Fast Attack 14, Fling Shot 14, Dodge-Rng 14, Max Health 140, Evade-ClsC 14, Duck-Exp 14
 
-Edged Mastery|1|20|Adv, Enf|1h Edged 10, Fast attack 2
-Edged Mastery|2|50|Adv, Enf|1h Edged 10, Fast attack 2
-Edged Mastery|3|70|Adv, Enf|1h Edged 11, Fast attack 3
-Edged Mastery|4|100|Adv, Enf|1h Edged 12, Fast attack 3
-Edged Mastery|5|130|Adv, Enf|1h Edged 13, Fast attack 4
-Edged Mastery|6|160|Adv, Enf|1h Edged 15, Fast attack 4
-Edged Mastery|7|180|Adv, Enf|1h Edged 16, Fast attack 5
-Edged Mastery|8|201|Adv, Enf|1h Edged 22, Fast attack 7
-Edged Mastery|9|204|Adv, Enf|1h Edged 28, Fast attack 8
-Edged Mastery|10|209|Adv, Enf|1h Edged 43, Fast attack 12
+Assassin|1|sl|210842|10|Agent|Rifle 1, Aimed shot 4, Concealment 1, Dodge-Rng 3, Duck-Exp 2, Evade close 2
+Assassin|2|sl|210843|20|Agent|Rifle 1, Aimed shot 5, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
+Assassin|3|sl|210844|30|Agent|Rifle 1, Aimed shot 6, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
+Assassin|4|sl|210845|40|Agent|Rifle 2, Aimed shot 7, Concealment 3, Dodge-Rng 5, Duck-Exp 4, Evade close 4
+Assassin|5|sl|210846|80|Agent|Rifle 2, Aimed shot 8, Concealment 3, Dodge-Rng 6, Duck-Exp 4, Evade close 4, CriticalIncrease 1
+Assassin|6|sl|210847|120|Agent|Rifle 2, Aimed shot 9, Concealment 4, Dodge-Rng 7, Duck-Exp 5, Evade close 5
+Assassin|7|sl|210848|170|Agent|Rifle 3, Aimed shot 10, Concealment 4, Dodge-Rng 9, Duck-Exp 5, Evade close 5
+Assassin|8|sl|210849|190|Agent|Rifle 3, Aimed shot 12, Concealment 5, Dodge-Rng 11, Duck-Exp 6, Evade close 6
+Assassin|9|sl|210850|201|Agent|Rifle 4, Aimed shot 15, Concealment 7, Dodge-Rng 13, Duck-Exp 7, Evade close 7
+Assassin|10|sl|210851|203|Agent|Rifle 6, Aimed shot 24, Concealment 9, Dodge-Rng 18, Duck-Exp 11, Evade close 11, CriticalIncrease 1
 
-Blunt Mastery|1|10|Enf, MP|1h Blunt 10
-Blunt Mastery|2|30|Enf, MP|1h Blunt 10
-Blunt Mastery|3|50|Enf, MP|1h Blunt 12
-Blunt Mastery|4|80|Enf, MP|1h Blunt 13
-Blunt Mastery|5|110|Enf, MP|1h Blunt 14
-Blunt Mastery|6|140|Enf, MP|1h Blunt 16
-Blunt Mastery|7|170|Enf, MP|1h Blunt 18
-Blunt Mastery|8|200|Enf, MP|1h Blunt 22
-Blunt Mastery|9|201|Enf, MP|1h Blunt 30
-Blunt Mastery|10|203|Enf, MP|1h Blunt 55
+Black Ops|1|sl|211692|20|Agent|Add. Dmg. 4, Rifle 2, Aimed shot 2, Concealment 2, Fling shot 5, Add. Nano Dam. 4
+Black Ops|2|sl|211693|50|Agent|Add. Dmg. 5, Rifle 3, Aimed shot 3, Concealment 3, Fling shot 6, Add. Nano Dam. 5
+Black Ops|3|sl|211694|80|Agent|Add. Dmg. 6, Rifle 3, Aimed shot 4, Concealment 3, Fling shot 7, Add. Nano Dam. 6
+Black Ops|4|sl|211695|120|Agent|Add. Dmg. 7, Rifle 4, Aimed shot 5, Concealment 4, Fling shot 8, Add. Nano Dam. 7
+Black Ops|5|sl|211696|150|Agent|Add. Dmg. 8, Rifle 4, Aimed shot 5, Concealment 5, Fling shot 9, Add. Nano Dam. 8
+Black Ops|6|sl|211697|170|Agent|Add. Dmg. 9, Rifle 5, Aimed shot 6, Concealment 6, Fling shot 10, Add. Nano Dam. 9
+Black Ops|7|sl|211698|190|Agent|Add. Dmg. 10, Rifle 5, Aimed shot 7, Concealment 7, Fling shot 11, Add. Nano Dam. 10
+Black Ops|8|sl|211699|201|Agent|Add. Dmg. 11, Rifle 7, Aimed shot 8, Concealment 8, Fling shot 12, Add. Nano Dam. 11
+Black Ops|9|sl|211700|203|Agent|Add. Dmg. 13, Rifle 9, Aimed shot 10, Concealment 9, Fling shot 14, Add. Nano Dam. 13
+Black Ops|10|sl|211701|208|Agent|Add. Dmg. 17, Rifle 13, Aimed shot 15, Concealment 13, Fling shot 18, CriticalIncrease 1, Add. Nano Dam. 17
 
-Mountaineer|1|50|Adv, Agent, Enf, Fix, Keep, Sol|Strength 4, Stamina 4
-Mountaineer|2|110|Adv, Agent, Enf, Fix, Keep, Sol|Strength 6, Stamina 6
-Mountaineer|3|190|Adv, Agent, Enf, Fix, Keep, Sol|Strength 7, Stamina 7
-Mountaineer|4|202|Adv, Agent, Enf, Fix, Keep, Sol|Strength 8, Stamina 8
-Mountaineer|5|207|Adv, Agent, Enf, Fix, Keep, Sol|Strength 10, Stamina 10
+Made|1|ai|251285|15|Agent|Max Nano 20, Aimed Shot 2,Dodge-Rng 2, Evade-ClsC 2, Duck-Exp 2, Sharp Obj 4
+Made|2|ai|251286|15|Agent|Max Nano 20, Aimed Shot 2,Dodge-Rng 2, Evade-ClsC 2, Duck-Exp 2, Sharp Obj 4
+Made|3|ai|251287|55|Agent|Max Nano 30, Aimed Shot 3,Dodge-Rng 3, Evade-ClsC 3, Duck-Exp 3, Sharp Obj 6
+Made|4|ai|251288|55|Agent|Max Nano 30, Aimed Shot 3,Dodge-Rng 3, Evade-ClsC 3, Duck-Exp 3, Sharp Obj 6
+Made|5|ai|251289|55|Agent|Max Nano 40, Aimed Shot 4,Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, Sharp Obj 8
+Made|6|ai|251290|105|Agent|Max Nano 40, Aimed Shot 4,Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, Sharp Obj 8
+Made|7|ai|251291|105|Agent|Max Nano 50, Aimed Shot 5,Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, Sharp Obj 10
+Made|8|ai|251292|145|Agent|Max Nano 60, Aimed Shot 6,Dodge-Rng 6, Evade-ClsC 6, Duck-Exp 6, Sharp Obj 12
+Made|9|ai|251293|205|Agent|Max Nano 80, Aimed Shot 8,Dodge-Rng 8, Evade-ClsC 8, Duck-Exp 8, Sharp Obj 16, % Add. Nano Cost -1
+Made|10|ai|251294|210|Agent|Max Nano 140, Aimed Shot 14,Dodge-Rng 14, Evade-ClsC 14, Duck-Exp 14, Sharp Obj 28, % Add. Nano Cost -1
 
-Acrobat|1|30|Adv, Fix, MA, Shade|Agility 4
-Acrobat|2|60|Adv, Fix, MA, Shade|Agility 6
-Acrobat|3|100|Adv, Fix, MA, Shade|Agility 8
-Acrobat|4|140|Adv, Fix, MA, Shade|Agility 12
+Shadowsneak|1|sl|211997|10|Agent|Sense 1, Aimed shot 1, Concealment 5
+Shadowsneak|2|sl|211998|30|Agent|Sense 1, Aimed shot 1, Concealment 5
+Shadowsneak|3|sl|211999|70|Agent|Sense 2, Aimed shot 1, Concealment 6
+Shadowsneak|4|sl|212000|100|Agent|Sense 2, Aimed shot 1, Concealment 7
+Shadowsneak|5|sl|212001|130|Agent|Sense 3, Aimed shot 1, Concealment 7
+Shadowsneak|6|sl|212002|160|Agent|Sense 4, Aimed shot 1, Concealment 8
+Shadowsneak|7|sl|212003|200|Agent|Sense 5, Aimed shot 1, Concealment 9
+Shadowsneak|8|sl|212004|203|Agent|Sense 7, Aimed shot 1, Concealment 11
+Shadowsneak|9|sl|212005|208|Agent|Sense 10, Aimed shot 1, Concealment 15
+Shadowsneak|10|sl|212006|213|Agent|Sense 20, Aimed shot 1, Concealment 27
 
-Notum Source|1|20|MP, NT|Intelligence 1, Psychic 1
-Notum Source|2|50|MP, NT|Intelligence 1, Psychic 1
-Notum Source|3|80|MP, NT|Intelligence 1, Psychic 1
-Notum Source|4|110|MP, NT|Intelligence 1, Psychic 1
-Notum Source|5|140|MP, NT|Intelligence 1, Psychic 1
-Notum Source|6|180|MP, NT|Intelligence 1, Psychic 1
-Notum Source|7|201|MP, NT|Intelligence 1, Psychic 1
-Notum Source|8|203|MP, NT|Intelligence 2, Psychic 2
-Notum Source|9|207|MP, NT|Intelligence 2, Psychic 2
-Notum Source|10|210|MP, NT|Intelligence 4, Psychic 4
+Sharpshoooter|1|sl|212013|50|Agent|Aimed shot 2
+Sharpshoooter|2|sl|212014|100|Agent|Aimed shot 3, CriticalIncrease 1
+Sharpshoooter|3|sl|212015|160|Agent|Aimed shot 4
+Sharpshoooter|4|sl|212016|201|Agent|Aimed shot 5, CriticalIncrease 1
+Sharpshoooter|5|sl|212017|203|Agent|Aimed shot 7
+Sharpshoooter|6|sl|212018|218|Agent|Aimed shot 9, CriticalIncrease 1
 
-Careful in Battle|1|40|Crat, MA, Shade|AAD 20, Critical decrease 2
-Careful in Battle|2|70|Crat, MA, Shade|AAD 20, Critical decrease 2
-Careful in Battle|3|100|Crat, MA, Shade|AAD 22, Critical decrease 3
-Careful in Battle|4|130|Crat, MA, Shade|AAD 23, Critical decrease 3
-Careful in Battle|5|160|Crat, MA, Shade|AAD 24, Critical decrease 4
-Careful in Battle|6|200|Crat, MA, Shade|AAD 26, Critical decrease 7
-Careful in Battle|7|205|Crat, MA, Shade|AAD 28, Critical decrease 9
-Careful in Battle|8|207|Crat, MA, Shade|AAD 32, Critical decrease 12
-Careful in Battle|9|212|Crat, MA, Shade|AAD 40, Critical decrease 15
-Careful in Battle|10|219|Crat, MA, Shade|AAD 65, Critical decrease 23
+Bureaucratic Shuffle|1|sl|211728|50|Crat|Max Health 10, Dodge-Rng 1, Duck-Exp 1, Evade close 1
+Bureaucratic Shuffle|2|sl|211729|70|Crat|Max Health 11, Dodge-Rng 1, Duck-Exp 1, Evade close 1
+Bureaucratic Shuffle|3|sl|211730|100|Crat|Max Health 12, Dodge-Rng 1, Duck-Exp 1, Evade close 1
+Bureaucratic Shuffle|4|sl|211731|140|Crat|Max Health 13, Dodge-Rng 2, Duck-Exp 2, Evade close 2
+Bureaucratic Shuffle|5|sl|211732|160|Crat|Max Health 14, Dodge-Rng 2, Duck-Exp 2, Evade close 2
+Bureaucratic Shuffle|6|sl|211733|180|Crat|Max Health 15, Dodge-Rng 3, Duck-Exp 3, Evade close 3
+Bureaucratic Shuffle|7|sl|211734|201|Crat|Max Health 16, Dodge-Rng 4, Duck-Exp 4, Evade close 4
+Bureaucratic Shuffle|8|sl|211735|202|Crat|Max Health 19, Dodge-Rng 6, Duck-Exp 6, Evade close 6
+Bureaucratic Shuffle|9|sl|211736|203|Crat|Max Health 30, Dodge-Rng 8, Duck-Exp 8, Evade close 8
+Bureaucratic Shuffle|10|sl|211737|206|Crat|Max Health 60, Dodge-Rng 12, Duck-Exp 12, Evade close 12
 
-Brawler|1|30|Enf, MA|Brawl 15, Add. Dmg. 5
-Brawler|2|70|Enf, MA|Brawl 20, Add. Dmg. 5
-Brawler|3|120|Enf, MA|Brawl 25, Add. Dmg. 6
-Brawler|4|190|Enf, MA|Brawl 30, Add. Dmg. 8
-Brawler|5|201|Enf, MA|Brawl 45, Add. Dmg. 10
-Brawler|6|205|Enf, MA|Brawl 65, Add. Dmg. 16
+Commanding Presence|1|sl|210931|10|Crat|AAO 10, AAD 8
+Commanding Presence|2|sl|210932|50|Crat|AAO 10, AAD 4
+Commanding Presence|3|sl|210933|70|Crat|AAO 14, AAD 8
+Commanding Presence|4|sl|210934|90|Crat|AAO 15, AAD 10
+Commanding Presence|5|sl|210935|120|Crat|AAO 16, AAD 10
+Commanding Presence|6|sl|210936|150|Crat|AAO 15, AAD 10
+Commanding Presence|7|sl|210937|180|Crat|AAO 30, AAD 10
+Commanding Presence|8|sl|210938|200|Crat|AAO 32, AAD 10
+Commanding Presence|9|sl|210939|201|Crat|AAO 28, AAD 15
+Commanding Presence|10|sl|210940|205|Crat|AAO 90, AAD 15
 
-Colossal Health|1|10|Enf, Sol|Max health 50
-Colossal Health|2|30|Enf, Sol|Max health 85
-Colossal Health|3|60|Enf, Sol|Max health 115
-Colossal Health|4|90|Enf, Sol|Max health 150
-Colossal Health|5|130|Enf, Sol|Max health 210
-Colossal Health|6|150|Enf, Sol|Max health 290
-Colossal Health|7|190|Enf, Sol|Max health 370
-Colossal Health|8|201|Enf, Sol|Max health 480
-Colossal Health|9|202|Enf, Sol|Max health 590
-Colossal Health|10|206|Enf, Sol|Max health 840
+Directorship|1|sl|223630|30|Crat|BM 1, PM 1, SI 1, Psychology 2
+Directorship|2|sl|223631|60|Crat|BM 1, PM 1, SI 1, Psychology 4
+Directorship|3|sl|223632|90|Crat|BM 2, PM 2, SI 2, Psychology 6
+Directorship|4|sl|223633|110|Crat|BM 2, PM 2, SI 2, Psychology 8
+Directorship|5|sl|223634|140|Crat|BM 3, PM 3, SI 3, Psychology 10
+Directorship|6|sl|223635|160|Crat|BM 3, PM 3, SI 3, Psychology 12
+Directorship|7|sl|223636|190|Crat|BM 4, PM 4, SI 4, Psychology 14
+Directorship|8|sl|223637|201|Crat|BM 4, PM 4, SI 4, Psychology 16
+Directorship|9|sl|223638|205|Crat|BM 5, PM 5, SI 5, Psychology 18
+Directorship|10|sl|223639|208|Crat|BM 11, PM 11, SI 11, Psychology 30
 
-Infantry|1|10|Agent, Sol|Rifle 6, Fling Shot 1, Max Health 10
-Infantry|2|40|Agent, Sol|Rifle 7, Fling Shot 1, Max Health 19
-Infantry|3|60|Agent, Sol|Rifle 8, Fling Shot 1, Max Health 23
-Infantry|4|90|Agent, Sol|Rifle 9, Fling Shot 1, Max Health 27
-Infantry|5|120|Agent, Sol|Rifle 10, Fling Shot 2, Max Health 32
-Infantry|6|140|Agent, Sol|Rifle 11, Fling Shot 2, Max Health 36
-Infantry|7|160|Agent, Sol|Rifle 12, Fling Shot 2, Max Health 44
-Infantry|8|190|Agent, Sol|Rifle 14, Fling Shot 2, Max Health 53
-Infantry|9|201|Agent, Sol|Rifle 18, Fling Shot 3, Max Health 62
-Infantry|10|204|Agent, Sol|Rifle 25, Fling Shot 5, Max Health 94
+Insurance Agent|1|sl|236593|80|Crat|BM 1, PM 1, SI 1, Psychology 5
+Insurance Agent|2|sl|236594|140|Crat|BM 2, PM 2, SI 2, Psychology 7
+Insurance Agent|3|sl|236595|190|Crat|BM 3, PM 3, SI 3, Psychology 13
+Insurance Agent|4|sl|236596|203|Crat|BM 4, PM 4, SI 4, Psychology 20
+Insurance Agent|5|sl|236597|209|Crat|BM 8, PM 8, SI 8, Psychology 35
 
-Power Up|1|10|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 2
-Power Up|2|40|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 3
-Power Up|3|70|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 12, Add. Dmg. 3
-Power Up|4|100|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 13, Add. Dmg. 3
-Power Up|5|130|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 14, Add. Dmg. 3
-Power Up|6|150|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 16, Add. Dmg. 4
-Power Up|7|180|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 18, Add. Dmg. 4
-Power Up|8|201|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 22, Add. Dmg. 6
-Power Up|9|203|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 30, Add. Dmg. 8
-Power Up|10|205|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 55, Add. Dmg. 14
+Loophole|1|ai|251790|15|Crat|SI 2, PM 2, NanoC. Init. 2
+Loophole|2|ai|251791|15|Crat|SI 2, PM 2, NanoC. Init. 2
+Loophole|3|ai|251792|55|Crat|SI 3, PM 3, NanoC. Init. 3
+Loophole|4|ai|251793|55|Crat|SI 3, PM 3, NanoC. Init. 3
+Loophole|5|ai|251794|55|Crat|SI 4, PM 4, NanoC. Init. 4
+Loophole|6|ai|251795|105|Crat|SI 4, PM 4, NanoC. Init. 4
+Loophole|7|ai|251796|105|Crat|SI 5, PM 5, NanoC. Init. 5, % Add. Nano Cost -1
+Loophole|8|ai|251797|145|Crat|SI 6, PM 6, NanoC. Init. 6, % Add. Nano Cost -1
+Loophole|9|ai|251798|205|Crat|SI 8, PM 8, NanoC. Init. 8, % Add. Nano Cost -1
+Loophole|10|ai|251799|210|Crat|SI 14, PM 14, NanoC. Init. 14, % Add. Nano Cost -1
 
-Shotgun Mastery|1|10|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 2
-Shotgun Mastery|2|30|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 3
-Shotgun Mastery|3|60|Engi, Sol, Tra|Shotgun 12, Add. Dmg. 3
-Shotgun Mastery|4|90|Engi, Sol, Tra|Shotgun 13, Add. Dmg. 4
-Shotgun Mastery|5|120|Engi, Sol, Tra|Shotgun 14, Add. Dmg. 4
-Shotgun Mastery|6|140|Engi, Sol, Tra|Shotgun 16, Add. Dmg. 5
-Shotgun Mastery|7|160|Engi, Sol, Tra|Shotgun 18, Add. Dmg. 6
-Shotgun Mastery|8|180|Engi, Sol, Tra|Shotgun 22, Add. Dmg. 9
-Shotgun Mastery|9|200|Engi, Sol, Tra|Shotgun 30, Add. Dmg. 14
-Shotgun Mastery|10|202|Engi, Sol, Tra|Shotgun 55, Add. Dmg. 30
+Assault Force Medic|1|sl|211682|60|Doc|Treatment 2, First Aid 1, Max Health 5, BM 1, MM 1
+Assault Force Medic|2|sl|211683|80|Doc|Treatment 2, First Aid 1, Max Health 12, BM 1, MM 1
+Assault Force Medic|3|sl|211684|100|Doc|Treatment 3, First Aid 1, Max Health 20, BM 2, MM 2
+Assault Force Medic|4|sl|211685|120|Doc|Treatment 3, First Aid 2, Max Health 24, BM 2, MM 2
+Assault Force Medic|5|sl|211686|150|Doc|Treatment 4, First Aid 2, Max Health 30, BM 3, MM 3
+Assault Force Medic|6|sl|211687|190|Doc|Treatment 4, First Aid 2, Max Health 32, BM 4, MM 4
+Assault Force Medic|7|sl|211688|200|Doc|Treatment 5, First Aid 3, Max Health 38, BM 5, MM 5
+Assault Force Medic|8|sl|211689|204|Doc|Treatment 5, First Aid 3, Max Health 45, BM 6, MM 6
+Assault Force Medic|9|sl|211690|208|Doc|Treatment 6, First Aid 4, Max Health 50, BM 7, MM 7
+Assault Force Medic|10|sl|211691|212|Doc|Treatment 6, First Aid 6, Max Health 84, BM 12, MM 12
 
-SMG Mastery|1|20|Fix, Sol|Smg 10, Burst 1
-SMG Mastery|2|40|Fix, Sol|Smg 10, Burst 1
-SMG Mastery|3|60|Fix, Sol|Smg 12, Burst 1
-SMG Mastery|4|80|Fix, Sol|Smg 13, Burst 1
-SMG Mastery|5|100|Fix, Sol|Smg 14, Burst 2
-SMG Mastery|6|130|Fix, Sol|Smg 16, Burst 2
-SMG Mastery|7|160|Fix, Sol|Smg 18, Burst 2
-SMG Mastery|8|190|Fix, Sol|Smg 22, Burst 3
-SMG Mastery|9|201|Fix, Sol|Smg 30, Burst 3
-SMG Mastery|10|203|Fix, Sol|Smg 55, Burst 4
+Embrace|1|ai|248130|15|Doc|MM2, Max Nano 50
+Embrace|2|ai|248131|15|Doc|MM2, Max Nano 50
+Embrace|3|ai|248132|55|Doc|MM3, Max Nano 60
+Embrace|4|ai|248133|55|Doc|MM3, Max Nano 60
+Embrace|5|ai|248134|55|Doc|MM4, Max Nano 70
+Embrace|6|ai|248135|105|Doc|MM4, Max Nano 80
+Embrace|7|ai|248136|105|Doc|MM5, Max Nano 90, % Add. Nano Cost -1
+Embrace|8|ai|248137|145|Doc|MM6, Max Nano 110, % Add. Nano Cost -1
+Embrace|9|ai|248138|205|Doc|MM8, Max Nano 150, % Add. Nano Cost -1
+Embrace|10|ai|248139|210|Doc|MM13, Max Nano 280, % Add. Nano Cost -1
 
-Alchemist|1|20|Doc, Engi, Tra|Chemistry 15, Pharma Tech 15
-Alchemist|2|40|Doc, Engi, Tra|Chemistry 20, Pharma Tech 20
-Alchemist|3|70|Doc, Engi, Tra|Chemistry 25, Pharma Tech 25
-Alchemist|4|100|Doc, Engi, Tra|Chemistry 30, Pharma Tech 30
-Alchemist|5|130|Doc, Engi, Tra|Chemistry 40, Pharma Tech 40
-Alchemist|6|160|Doc, Engi, Tra|Chemistry 70, Pharma Tech 70
+Nano Surgeon|1|sl|211941|40|Doc|Treatment 5, First Aid 4, BM 3, MM 3
+Nano Surgeon|2|sl|211942|80|Doc|Treatment 6, First Aid 4, BM 4, MM 4
+Nano Surgeon|3|sl|211943|120|Doc|Treatment 7, First Aid 6, BM 6, MM 6
+Nano Surgeon|4|sl|211944|150|Doc|Treatment 10, First Aid 7, BM 7, MM 7
+Nano Surgeon|5|sl|211945|180|Doc|Treatment 12, First Aid 10, BM 9, MM 9
+Nano Surgeon|6|sl|211946|201|Doc|Treatment 20, First Aid 14, BM 13, MM 13
 
-Pistol Mastery|1|10|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 2
-Pistol Mastery|2|30|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 3
-Pistol Mastery|3|60|Adv, Crat, Doc, Engi, MP|Pistol 12, Fling shot 1, Add. Dmg. 3
-Pistol Mastery|4|90|Adv, Crat, Doc, Engi, MP|Pistol 13, Fling shot 1, Add. Dmg. 4
-Pistol Mastery|5|120|Adv, Crat, Doc, Engi, MP|Pistol 14, Fling shot 2, Add. Dmg. 4
-Pistol Mastery|6|150|Adv, Crat, Doc, Engi, MP|Pistol 16, Fling shot 2, Add. Dmg. 5
-Pistol Mastery|7|180|Adv, Crat, Doc, Engi, MP|Pistol 18, Fling shot 2, Add. Dmg. 5
-Pistol Mastery|8|201|Adv, Crat, Doc, Engi, MP|Pistol 22, Fling shot 3, Add. Dmg. 7
-Pistol Mastery|9|203|Adv, Crat, Doc, Engi, MP|Pistol 30, Fling shot 3, Add. Dmg. 9
-Pistol Mastery|10|205|Adv, Crat, Doc, Engi, MP|Pistol 55, Fling shot 4, Add. Dmg. 18
+Specialist Healer|1|sl|212039|70|Doc|First Aid 1, Healing Efficiency 2
+Specialist Healer|2|sl|212040|90|Doc|First Aid 1, Healing Efficiency 2
+Specialist Healer|3|sl|212041|130|Doc|First Aid 1, Healing Efficiency 2
+Specialist Healer|4|sl|212042|150|Doc|First Aid 1, Healing Efficiency 2
+Specialist Healer|5|sl|212043|160|Doc|First Aid 1, Healing Efficiency 2
+Specialist Healer|6|sl|212044|180|Doc|First Aid 2, Healing Efficiency 2
+Specialist Healer|7|sl|212045|200|Doc|First Aid 3, Healing Efficiency 2
+Specialist Healer|8|sl|212046|204|Doc|First Aid 4, Healing Efficiency 2
+Specialist Healer|9|sl|212047|209|Doc|First Aid 6, Healing Efficiency 2
+Specialist Healer|10|sl|212048|211|Doc|First Aid 10, Healing Efficiency 3
 
-Tinkerer|1|60|Engi, Tra|Electrical engineering 10, QFT 10, Mechanical engineering 10
-Tinkerer|2|120|Engi, Tra|Electrical engineering 12, QFT 12, Mechanical engineering 12
-Tinkerer|3|180|Engi, Tra|Electrical engineering 16, QFT 16, Mechanical engineering 16
-Tinkerer|4|200|Engi, Tra|Electrical engineering 27, QFT 27, Mechanical engineering 27
+Bone Crusher|1|sl|225960|10|Enf|2h Blunt 10
+Bone Crusher|2|sl|225961|30|Enf|2h Blunt 10
+Bone Crusher|3|sl|225962|50|Enf|2h Blunt 12
+Bone Crusher|4|sl|225963|80|Enf|2h Blunt 13
+Bone Crusher|5|sl|225964|110|Enf|2h Blunt 14
+Bone Crusher|6|sl|225965|140|Enf|2h Blunt 16
+Bone Crusher|7|sl|225966|170|Enf|2h Blunt 18
+Bone Crusher|8|sl|225967|200|Enf|2h Blunt 22
+Bone Crusher|9|sl|225968|201|Enf|2h Blunt 30
+Bone Crusher|10|sl|225969|203|Enf|2h Blunt 55
 
-Nano Doctorate|1|50|Agent, Crat, Doc, MP, NT, Tra|BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
-Nano Doctorate|2|80|Agent, Crat, Doc, MP, NT, Tra|BM 6, MC 6, MM 6, PM 6, SI 6, TS 6
-Nano Doctorate|3|120|Agent, Crat, Doc, MP, NT, Tra|BM 7, MC 7, MM 7, PM 7, SI 7, TS 7
-Nano Doctorate|4|160|Agent, Crat, Doc, MP, NT, Tra|BM 8, MC 8, MM 8, PM 8, SI 8, TS 8
-Nano Doctorate|5|200|Agent, Crat, Doc, MP, NT, Tra|BM 9, MC 9, MM 9, PM 9, SI 9, TS 9
-Nano Doctorate|6|202|Agent, Crat, Doc, MP, NT, Tra|BM 10, MC 10, MM 10, PM 10, SI 10, TS 10
-Nano Doctorate|7|205|Agent, Crat, Doc, MP, NT, Tra|BM 11, MC 11, MM 11, PM 11, SI 11, TS 11
-Nano Doctorate|8|210|Agent, Crat, Doc, MP, NT, Tra|BM 12, MC 12, MM 12, PM 12, SI 12, TS 12
-Nano Doctorate|9|213|Agent, Crat, Doc, MP, NT, Tra|BM 13, MC 13, MM 13, PM 13, SI 13, TS 13
-Nano Doctorate|10|216|Agent, Crat, Doc, MP, NT, Tra|BM 19, MC 19, MM 19, PM 19, SI 19, TS 19
+Form of Troll|1|sl|211843|30|Enf|Max Health 80, HealDelta 3
+Form of Troll|2|sl|211844|60|Enf|Max Health 150, HealDelta 3
+Form of Troll|3|sl|211845|90|Enf|Max Health 220, HealDelta 3
+Form of Troll|4|sl|211846|110|Enf|Max Health 280, HealDelta 4
+Form of Troll|5|sl|211847|130|Enf|Max Health 350, HealDelta 4
+Form of Troll|6|sl|211848|160|Enf|Max Health 410, HealDelta 5
+Form of Troll|7|sl|211849|200|Enf|Max Health 480, HealDelta 5
+Form of Troll|8|sl|211850|202|Enf|Max Health 585, HealDelta 5
+Form of Troll|9|sl|211851|204|Enf|Max Health 745, HealDelta 6
+Form of Troll|10|sl|211852|215|Enf|Max Health 1100, HealDelta 11
 
-Starfall|1|20|Crat, Doc, MP, NT|Max health 5, Max nano 10
-Starfall|2|50|Crat, Doc, MP, NT|Max health 8, Max nano 15
-Starfall|3|90|Crat, Doc, MP, NT|Max health 10, Max nano 20
-Starfall|4|120|Crat, Doc, MP, NT|Max health 13, Max nano 25, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|5|150|Crat, Doc, MP, NT|Max health 14, Max nano 30, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|6|190|Crat, Doc, MP, NT|Max health 17, Max nano 35, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
-Starfall|7|202|Crat, Doc, MP, NT|Max health 18, Max nano 40, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
-Starfall|8|205|Crat, Doc, MP, NT|Max health 20, Max nano 45, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
-Starfall|9|210|Crat, Doc, MP, NT|Max health 22, Max nano 70, BM 3, MC 3, MM 3, PM 3, SI 3, TS 3
-Starfall|10|214|Crat, Doc, MP, NT|Max health 33, Max nano 110, BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
+Manners of Mongo|1|sl|211906|20|Enf|Max Health 20, Psychology 5
+Manners of Mongo|2|sl|211907|40|Enf|Max Health 25, Psychology 5
+Manners of Mongo|3|sl|211908|70|Enf|Max Health 30, Psychology 6
+Manners of Mongo|4|sl|211909|100|Enf|Max Health 35, Psychology 6
+Manners of Mongo|5|sl|211910|150|Enf|Max Health 40, Psychology 7
+Manners of Mongo|6|sl|211911|201|Enf|Max Health 55, Psychology 8
+Manners of Mongo|7|sl|211912|205|Enf|Max Health 70, Psychology 9
+Manners of Mongo|8|sl|211913|209|Enf|Max Health 90, Psychology 11
+Manners of Mongo|9|sl|211914|214|Enf|Max Health 135, Psychology 15
+Manners of Mongo|10|sl|211915|219|Enf|Max Health 300, Psychology 28
 
-Theoretical Research|1|40|MP, NT|Nano programming 10, Max nano 25
-Theoretical Research|2|70|MP, NT|Nano programming 10, Max nano 40
-Theoretical Research|3|110|MP, NT|Nano programming 12, Max nano 65
-Theoretical Research|4|140|MP, NT|Nano programming 13, Max nano 75
-Theoretical Research|5|180|MP, NT|Nano programming 14, Max nano 90
-Theoretical Research|6|201|MP, NT|Nano programming 16, Max nano 110
-Theoretical Research|7|203|MP, NT|Nano programming 18, Max nano 130
-Theoretical Research|8|205|MP, NT|Nano programming 22, Max nano 145
-Theoretical Research|9|208|MP, NT|Nano programming 30, Max nano 160
-Theoretical Research|10|209|MP, NT|Nano programming 55, Max nano 260
+Mutate|1|ai|251205|15|Enf|Max Health 125, Brawling 2, Melee. Init. 2
+Mutate|2|ai|251206|15|Enf|Max Health 125, Brawling 2, Melee. Init. 2
+Mutate|3|ai|251207|55|Enf|Max Health 150, Brawling 3, Melee. Init. 3
+Mutate|4|ai|251208|55|Enf|Max Health 162, Brawling 3, Melee. Init. 3
+Mutate|5|ai|251209|55|Enf|Max Health 175, Brawling 4, Melee. Init. 4
+Mutate|6|ai|251210|105|Enf|Max Health 200, Brawling 4, Melee. Init. 4
+Mutate|7|ai|251211|105|Enf|Max Health 225, Brawling 5, Melee. Init. 5
+Mutate|8|ai|251212|145|Enf|Max Health 275, Brawling 6, Melee. Init. 6
+Mutate|9|ai|251213|205|Enf|Max Health 375, Brawling 8, Melee. Init. 8
+Mutate|10|ai|251214|210|Enf|Max Health 688, Brawling 15, Melee. Init. 15
 
-Disharmony|1|60|MA|Add. Dmg. 7
-Disharmony|2|80|MA|Add. Dmg. 9
-Disharmony|3|110|MA|Add. Dmg. 11
-Disharmony|4|130|MA|Add. Dmg. 13
-Disharmony|5|150|MA|Add. Dmg. 17
-Disharmony|6|170|MA|Add. Dmg. 19
-Disharmony|7|190|MA|Add. Dmg. 24
-Disharmony|8|201|MA|Add. Dmg. 27
-Disharmony|9|205|MA|Add. Dmg. 35
-Disharmony|10|213|MA|Add. Dmg. 58
+Creative Mind|1|ai|251906|15|Eng|Ranged Init. 5, NanoC. Init. 5, Grenade 2, Duck-Exp 2
+Creative Mind|2|ai|251907|15|Eng|Ranged Init. 5, NanoC. Init. 5, Grenade 2, Duck-Exp 2
+Creative Mind|3|ai|251908|55|Eng|Ranged Init. 6, NanoC. Init. 6, Grenade 3, Duck-Exp 3
+Creative Mind|4|ai|251909|55|Eng|Ranged Init. 6, NanoC. Init. 6, Grenade 3, Duck-Exp 3
+Creative Mind|5|ai|251910|55|Eng|Ranged Init. 7, NanoC. Init. 7, Grenade 4, Duck-Exp 4
+Creative Mind|6|ai|251911|105|Eng|Ranged Init. 8, NanoC. Init. 8, Grenade 4, Duck-Exp 4
+Creative Mind|7|ai|251912|105|Eng|Ranged Init. 9, NanoC. Init. 9, Grenade 5, Duck-Exp 5
+Creative Mind|8|ai|251913|145|Eng|Ranged Init. 11, NanoC. Init. 11, Grenade 6, Duck-Exp 6
+Creative Mind|9|ai|251914|205|Eng|Ranged Init. 15, NanoC. Init. 15, Grenade 8, Duck-Exp 8
+Creative Mind|10|ai|251915|210|Eng|Ranged Init. 28, NanoC. Init. 28, Grenade 14, Duck-Exp 14
 
-Spiritual Master|1|10|MA|Martial arts 5, Dimach 10, Riposte 5
-Spiritual Master|2|40|MA|Martial arts 5, Dimach 10, Riposte 5
-Spiritual Master|3|70|MA|Martial arts 7, Dimach 12, Riposte 6
-Spiritual Master|4|100|MA|Martial arts 8, Dimach 13, Riposte 6
-Spiritual Master|5|130|MA|Martial arts 9, Dimach 14, Riposte 7
-Spiritual Master|6|180|MA|Martial arts 11, Dimach 16, Riposte 8
-Spiritual Master|7|201|MA|Martial arts 13, Dimach 18, Riposte 9
-Spiritual Master|8|203|MA|Martial arts 17, Dimach 22, Riposte 11
-Spiritual Master|9|205|MA|Martial arts 25, Dimach 30, Riposte 15
-Spiritual Master|10|210|MA|Martial arts 50, Dimach 55, Riposte 28
+Demolitions|1|sl|211823|20|Engi|Grenade 10
+Demolitions|2|sl|211824|50|Engi|Grenade 10
+Demolitions|3|sl|211825|90|Engi|Grenade 12
+Demolitions|4|sl|211826|120|Engi|Grenade 13
+Demolitions|5|sl|211827|150|Engi|Grenade 14
+Demolitions|6|sl|211828|190|Engi|Grenade 16
+Demolitions|7|sl|211829|201|Engi|Grenade 18
+Demolitions|8|sl|211830|203|Engi|Grenade 22
+Demolitions|9|sl|211831|206|Engi|Grenade 30
+Demolitions|10|sl|211832|209|Engi|Grenade 55
 
-Thief|1|30|Fix|Sense 3, Break&Entry 25, Trap Disarm. 25
-Thief|2|60|Fix|Sense 5, Break&Entry 40, Trap Disarm. 40
-Thief|3|100|Fix|Sense 8, Break&Entry 55, Trap Disarm. 55
-Thief|4|170|Fix|Sense 14, Break&Entry 80, Trap Disarm. 80
+Gadgeteer|1|sl|211856|10|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 2, TS 1, MC 1
+Gadgeteer|2|sl|211857|20|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 3, TS 1, MC 1
+Gadgeteer|3|sl|211858|40|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 4, TS 2, MC 2
+Gadgeteer|4|sl|211859|70|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 5, TS 2, MC 2
+Gadgeteer|5|sl|211860|100|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 6, TS 2, MC 2
+Gadgeteer|6|sl|211861|120|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 7, TS 3, MC 3
+Gadgeteer|7|sl|211862|150|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 8, TS 3, MC 3
+Gadgeteer|8|sl|211863|180|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 9, TS 4, MC 4
+Gadgeteer|9|sl|211864|200|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 10, TS 4, MC 4
+Gadgeteer|10|sl|211865|203|Engi|Electrical engineering 14, QFT 14, Mechanical engineering 14, Weapon smithing 16, TS 8, MC 8
 
-Grid NCU Extension|1|50|Fix|Computer literacy 15, Max NCU 10
-Grid NCU Extension|2|120|Fix|Computer literacy 20, Max NCU 13
-Grid NCU Extension|3|190|Fix|Computer literacy 25, Max NCU 17
-Grid NCU Extension|4|201|Fix|Computer literacy 40, Max NCU 30
+Mechanic|1|sl|211916|30|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 6, TS 2, MC 2
+Mechanic|2|sl|211917|50|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 7, TS 3, MC 3
+Mechanic|3|sl|211918|70|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 8, TS 4, MC 4
+Mechanic|4|sl|211919|100|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 9, TS 4, MC 4
+Mechanic|5|sl|211920|130|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 10, TS 5, MC 5
+Mechanic|6|sl|211921|160|Engi|Electrical engineering 8, QFT 8, Mechanical engineering 8, Weapon smithing 11, TS 5, MC 5
+Mechanic|7|sl|211922|201|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 13, TS 6, MC 6
+Mechanic|8|sl|211923|206|Engi|Electrical engineering 10, QFT 10, Mechanical engineering 10, Weapon smithing 16, TS 7, MC 7
+Mechanic|9|sl|211924|212|Engi|Electrical engineering 11, QFT 11, Mechanical engineering 11, Weapon smithing 20, TS 9, MC 9
+Mechanic|10|sl|211925|217|Engi|Electrical engineering 17, QFT 17, Mechanical engineering 17, Weapon smithing 30, TS 15, MC 15
 
-Hit and Run|1|180|Fix|Full auto 20
-Hit and Run|2|190|Fix|Full auto 25
-Hit and Run|3|202|Fix|Full auto 30
-Hit and Run|4|204|Fix|Full auto 35
-Hit and Run|5|206|Fix|Full auto 40
-Hit and Run|6|208|Fix|Full auto 50
+Dark Kin|1|ai|248967|15|Fixer|Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, AAO 1, Burst 2
+Dark Kin|2|ai|248968|15|Fixer|Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, AAO 1, Burst 2
+Dark Kin|3|ai|248969|55|Fixer|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, AAO 2, Burst 3
+Dark Kin|4|ai|248970|55|Fixer|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, AAO 2, Burst 3
+Dark Kin|5|ai|248971|55|Fixer|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, AAO 2, Burst 4
+Dark Kin|6|ai|248972|105|Fixer|Dodge-Rng 6, Evade-ClsC 6, Duck-Exp 6, AAO 3, Burst 5
+Dark Kin|7|ai|248973|105|Fixer|Dodge-Rng 7, Evade-ClsC 7, Duck-Exp 7, AAO 3, Burst 6
+Dark Kin|8|ai|248974|145|Fixer|Dodge-Rng 9, Evade-ClsC 9, Duck-Exp 9, AAO 5, Burst 7
+Dark Kin|9|ai|248975|205|Fixer|Dodge-Rng 12, Evade-ClsC 12, Duck-Exp 12, AAO 9, Burst 8
+Dark Kin|10|ai|248976|210|Fixer|Dodge-Rng 22, Evade-ClsC 22, Duck-Exp 22, AAO 15, Burst 15
 
-Assault Force Medic|1|60|Doc|Treatment 2, First Aid 1, Max health 5, BM 1, MM 1
-Assault Force Medic|2|80|Doc|Treatment 2, First Aid 1, Max health 12, BM 1, MM 1
-Assault Force Medic|3|100|Doc|Treatment 3, First Aid 1, Max health 20, BM 2, MM 2
-Assault Force Medic|4|120|Doc|Treatment 3, First Aid 2, Max health 24, BM 2, MM 2
-Assault Force Medic|5|150|Doc|Treatment 4, First Aid 2, Max health 30, BM 3, MM 3
-Assault Force Medic|6|190|Doc|Treatment 4, First Aid 2, Max health 32, BM 4, MM 4
-Assault Force Medic|7|200|Doc|Treatment 5, First Aid 3, Max health 38, BM 5, MM 5
-Assault Force Medic|8|204|Doc|Treatment 5, First Aid 3, Max health 45, BM 6, MM 6
-Assault Force Medic|9|208|Doc|Treatment 6, First Aid 4, Max health 50, BM 7, MM 7
-Assault Force Medic|10|212|Doc|Treatment 6, First Aid 6, Max health 84, BM 12, MM 12
+Grid NCU Extension|1|sl|211869|50|Fix|Computer literacy 15, Max NCU 10
+Grid NCU Extension|2|sl|211870|120|Fix|Computer literacy 20, Max NCU 13
+Grid NCU Extension|3|sl|211871|190|Fix|Computer literacy 25, Max NCU 17
+Grid NCU Extension|4|sl|211872|201|Fix|Computer literacy 40, Max NCU 30
 
-Nano Surgeon|1|40|Doc|Treatment 5, First Aid 4, BM 3, MM 3
-Nano Surgeon|2|80|Doc|Treatment 6, First Aid 4, BM 4, MM 4
-Nano Surgeon|3|120|Doc|Treatment 7, First Aid 6, BM 6, MM 6
-Nano Surgeon|4|150|Doc|Treatment 10, First Aid 7, BM 7, MM 7
-Nano Surgeon|5|180|Doc|Treatment 12, First Aid 10, BM 9, MM 9
-Nano Surgeon|6|201|Doc|Treatment 14, First Aid 14, BM 13, MM 13
+Hit and Run|1|sl|283677|180|Fix|Full auto 20
+Hit and Run|2|sl|283678|190|Fix|Full auto 25
+Hit and Run|3|sl|283679|202|Fix|Full auto 30
+Hit and Run|4|sl|283680|204|Fix|Full auto 35
+Hit and Run|5|sl|283681|206|Fix|Full auto 40
+Hit and Run|6|sl|283682|208|Fix|Full auto 50
 
-Specialist Healer|1|70|Doc|First Aid 1, Healing efficiency 2
-Specialist Healer|2|90|Doc|First Aid 1, Healing efficiency 2
-Specialist Healer|3|130|Doc|First Aid 1, Healing efficiency 2
-Specialist Healer|4|150|Doc|First Aid 1, Healing efficiency 2
-Specialist Healer|5|160|Doc|First Aid 1, Healing efficiency 2
-Specialist Healer|6|180|Doc|First Aid 2, Healing efficiency 2
-Specialist Healer|7|200|Doc|First Aid 3, Healing efficiency 2
-Specialist Healer|8|204|Doc|First Aid 4, Healing efficiency 2
-Specialist Healer|9|209|Doc|First Aid 6, Healing efficiency 2
-Specialist Healer|10|211|Doc|First Aid 10, Healing efficiency 3
+Thief|1|sl|212089|30|Fix|Sense 3, Break&Entry 25, Trap Disarm. 25
+Thief|2|sl|212090|60|Fix|Sense 5, Break&Entry 40, Trap Disarm. 40
+Thief|3|sl|212091|100|Fix|Sense 8, Break&Entry 55, Trap Disarm. 55
+Thief|4|sl|212092|170|Fix|Sense 14, Break&Entry 80, Trap Disarm. 80
 
-Heavy Ranged|1|20|Sol|Assault rifle 10, Heavy weapons 10
-Heavy Ranged|2|30|Sol|Assault rifle 12, Heavy weapons 12
-Heavy Ranged|3|60|Sol|Assault rifle 13, Heavy weapons 13
-Heavy Ranged|4|90|Sol|Assault rifle 15, Heavy weapons 15
-Heavy Ranged|5|140|Sol|Assault rifle 22, Heavy weapons 22
-Heavy Ranged|6|180|Sol|Assault rifle 28, Heavy weapons 28
-Heavy Ranged|7|202|Sol|Assault rifle 40, Heavy weapons 40
-Heavy Ranged|8|205|Sol|Assault rifle 60, Heavy weapons 60
+Worm ICE|1|sl|223610|50|Fix|
+Worm ICE|2|sl|223611|70|Fix|
+Worm ICE|3|sl|223612|90|Fix|
+Worm ICE|4|sl|223613|110|Fix|
+Worm ICE|5|sl|223614|140|Fix|
+Worm ICE|6|sl|223615|160|Fix|
+Worm ICE|7|sl|223616|190|Fix|
+Worm ICE|8|sl|223617|201|Fix|
+Worm ICE|9|sl|223618|209|Fix|
+Worm ICE|10|sl|223619|215|Fix|
 
-Special Forces|1|20|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge-Rng 5, Duck-Exp 1, Evade close 1
-Special Forces|2|50|Sol|Full auto 10, Burst 8, Fling shot 8, Dodge-Rng 5, Duck-Exp 1, Evade close 1
-Special Forces|3|70|Sol|Full auto 12, Burst 10, Fling shot 10, Dodge-Rng 7, Duck-Exp 1, Evade close 1
-Special Forces|4|90|Sol|Full auto 13, Burst 11, Fling shot 11, Dodge-Rng 8, Duck-Exp 2, Evade close 2
-Special Forces|5|110|Sol|Full auto 14, Burst 12, Fling shot 12, Dodge-Rng 9, Duck-Exp 2, Evade close 2
-Special Forces|6|130|Sol|Full auto 16, Burst 14, Fling shot 14, Dodge-Rng 11, Duck-Exp 4, Evade close 4
-Special Forces|7|170|Sol|Full auto 18, Burst 16, Fling shot 16, Dodge-Rng 13, Duck-Exp 4, Evade close 4
-Special Forces|8|201|Sol|Full auto 22, Burst 20, Fling shot 20, Dodge-Rng 19, Duck-Exp 5, Evade close 5
-Special Forces|9|203|Sol|Full auto 30, Burst 28, Fling shot 28, Dodge-Rng 23, Duck-Exp 10, Evade close 10
-Special Forces|10|205|Sol|Full auto 55, Burst 53, Fling shot 53, Dodge-Rng 50, Duck-Exp 20, Evade close 20
+Aura of Revival|1|sl|212161|10|Keeper|
+Aura of Revival|2|sl|212164|30|Keeper|
+Aura of Revival|3|sl|212165|50|Keeper|
+Aura of Revival|4|sl|212166|70|Keeper|
+Aura of Revival|5|sl|212167|90|Keeper|
+Aura of Revival|6|sl|212168|110|Keeper|
+Aura of Revival|7|sl|212169|130|Keeper|
+Aura of Revival|8|sl|212170|150|Keeper|
+Aura of Revival|9|sl|212171|200|Keeper|
+Aura of Revival|10|sl|212172|206|Keeper|
 
-Demolitions|1|20|Engi|Grenade 10
-Demolitions|2|50|Engi|Grenade 10
-Demolitions|3|90|Engi|Grenade 12
-Demolitions|4|120|Engi|Grenade 13
-Demolitions|5|150|Engi|Grenade 14
-Demolitions|6|190|Engi|Grenade 16
-Demolitions|7|201|Engi|Grenade 18
-Demolitions|8|203|Engi|Grenade 22
-Demolitions|9|206|Engi|Grenade 30
-Demolitions|10|209|Engi|Grenade 55
+Blessing|1|sl|211702|10|Keep|Max Health 40
+Blessing|2|sl|211703|30|Keep|Max Health 65
+Blessing|3|sl|211704|50|Keep|Max Health 105
+Blessing|4|sl|211705|80|Keep|Max Health 155
+Blessing|5|sl|211706|110|Keep|Max Health 200
+Blessing|6|sl|211707|150|Keep|Max Health 260
+Blessing|7|sl|211708|170|Keep|Max Health 325
+Blessing|8|sl|211709|190|Keep|Max Health 400
+Blessing|9|sl|211710|202|Keep|Max Health 500
+Blessing|10|sl|211711|207|Keep|Max Health 720
 
-Gadgeteer|1|10|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 2, TS 1, MC 1
-Gadgeteer|2|20|Engi|Electrical engineering 2, QFT 2, Mechanical engineering 2, Weapon smithing 3, TS 1, MC 1
-Gadgeteer|3|40|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 4, TS 2, MC 2
-Gadgeteer|4|70|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 5, TS 2, MC 2
-Gadgeteer|5|100|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 6, TS 2, MC 2
-Gadgeteer|6|120|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 7, TS 3, MC 3
-Gadgeteer|7|150|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 8, TS 3, MC 3
-Gadgeteer|8|180|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 9, TS 4, MC 4
-Gadgeteer|9|200|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 10, TS 4, MC 4
-Gadgeteer|10|203|Engi|Electrical engineering 14, QFT 14, Mechanical engineering 14, Weapon smithing 16, TS 8, MC 8
+Crusade|1|ai|252332|15|Keep|Max Health 75, Fast Attack 2, Melee. Init. 2
+Crusade|2|ai|252333|15|Keep|Max Health 75, Fast Attack 2, Melee. Init. 2
+Crusade|3|ai|252334|55|Keep|Max Health 90, Fast Attack 3, Melee. Init. 3
+Crusade|4|ai|252335|55|Keep|Max Health 97, Fast Attack 3, Melee. Init. 3
+Crusade|5|ai|252336|55|Keep|Max Health 105, Fast Attack 4, Melee. Init. 4
+Crusade|6|ai|252337|105|Keep|Max Health 120, Fast Attack 4, Melee. Init. 4
+Crusade|7|ai|252338|105|Keep|Max Health 135, Fast Attack 5, Melee. Init. 4
+Crusade|8|ai|252339|105|Keep|Max Health 165, Fast Attack 6, Melee. Init. 6
+Crusade|9|ai|252340|205|Keep|Max Health 225, Fast Attack 8, Melee. Init. 8
+Crusade|10|ai|252341|210|Keep|Max Health 413, Fast Attack 14, Melee. Init. 14
 
-Mechanic|1|30|Engi|Electrical engineering 3, QFT 3, Mechanical engineering 3, Weapon smithing 6, TS 2, MC 2
-Mechanic|2|50|Engi|Electrical engineering 4, QFT 4, Mechanical engineering 4, Weapon smithing 7, TS 3, MC 3
-Mechanic|3|70|Engi|Electrical engineering 5, QFT 5, Mechanical engineering 5, Weapon smithing 8, TS 4, MC 4
-Mechanic|4|100|Engi|Electrical engineering 6, QFT 6, Mechanical engineering 6, Weapon smithing 9, TS 4, MC 4
-Mechanic|5|130|Engi|Electrical engineering 7, QFT 7, Mechanical engineering 7, Weapon smithing 10, TS 5, MC 5
-Mechanic|6|160|Engi|Electrical engineering 8, QFT 8, Mechanical engineering 8, Weapon smithing 11, TS 5, MC 5
-Mechanic|7|201|Engi|Electrical engineering 9, QFT 9, Mechanical engineering 9, Weapon smithing 13, TS 6, MC 6
-Mechanic|8|206|Engi|Electrical engineering 10, QFT 10, Mechanical engineering 10, Weapon smithing 16, TS 7, MC 7
-Mechanic|9|212|Engi|Electrical engineering 11, QFT 11, Mechanical engineering 11, Weapon smithing 20, TS 9, MC 9
-Mechanic|10|217|Engi|Electrical engineering 17, QFT 17, Mechanical engineering 17, Weapon smithing 30, TS 15, MC 15
+Cybernetic Samurai|1|sl|212069|10|Keep|Melee Ener. 10, Fast Attack 10, Riposte 10, Deflect 10, Add. Dmg. 5, Add Nano Dam. 5, Sneak Attack 4
+Cybernetic Samurai|2|sl|212070|30|Keep|Melee Ener. 10, Fast Attack 10, Riposte 10, Deflect 10, Add. Dmg. 7, Add Nano Dam. 7, Sneak Attack 4
+Cybernetic Samurai|3|sl|212071|60|Keep|Melee Ener. 11, Fast Attack 12, Riposte 12, Deflect 12, Add. Dmg. 9, Add Nano Dam. 9, Sneak Attack 8
+Cybernetic Samurai|4|sl|212072|100|Keep|Melee Ener. 12, Fast Attack 13, Riposte 13, Deflect 13, Add. Dmg. 11, Add Nano Dam. 11, Sneak Attack 8
+Cybernetic Samurai|5|sl|212073|130|Keep|Melee Ener. 13, Fast Attack 14, Riposte 14, Deflect 14, Add. Dmg. 15, Add Nano Dam. 15, Sneak Attack 10
+Cybernetic Samurai|6|sl|212074|160|Keep|Melee Ener. 15, Fast Attack 16, Riposte 16, Deflect 16, Add. Dmg. 18, Add Nano Dam. 18, Sneak Attack 10
+Cybernetic Samurai|7|sl|212075|200|Keep|Melee Ener. 16, Fast Attack 18, Riposte 18, Deflect 18, Add. Dmg. 22, Add Nano Dam. 22, Sneak Attack 12
+Cybernetic Samurai|8|sl|212076|201|Keep|Melee Ener. 22, Fast Attack 22, Riposte 22, Deflect 22, Add. Dmg. 25, Add Nano Dam. 25, Sneak Attack 16
+Cybernetic Samurai|9|sl|212077|201|Keep|Melee Ener. 28, Fast Attack 30, Riposte 30, Deflect 30, Add. Dmg. 32, Add Nano Dam. 32, Sneak Attack 20
+Cybernetic Samurai|10|sl|212078|206|Keep|Melee Ener. 43, Fast Attack 55, Riposte 55, Deflect 55, Add. Dmg. 43, Add Nano Dam. 43, Sneak Attack 28
 
-Assassin|1|10|Agent|Rifle 1, Aimed shot 4, Concealment 1, Dodge-Rng 3, Duck-Exp 2, Evade close 2
-Assassin|2|20|Agent|Rifle 1, Aimed shot 5, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
-Assassin|3|30|Agent|Rifle 1, Aimed shot 6, Concealment 2, Dodge-Rng 4, Duck-Exp 3, Evade close 3
-Assassin|4|40|Agent|Rifle 2, Aimed shot 7, Concealment 3, Dodge-Rng 5, Duck-Exp 4, Evade close 4
-Assassin|5|80|Agent|Rifle 2, Aimed shot 8, Concealment 3, Dodge-Rng 6, Duck-Exp 4, Evade close 4, CriticalIncrease 1
-Assassin|6|120|Agent|Rifle 2, Aimed shot 9, Concealment 4, Dodge-Rng 7, Duck-Exp 5, Evade close 5
-Assassin|7|170|Agent|Rifle 3, Aimed shot 10, Concealment 4, Dodge-Rng 9, Duck-Exp 5, Evade close 5
-Assassin|8|190|Agent|Rifle 3, Aimed shot 12, Concealment 5, Dodge-Rng 11, Duck-Exp 6, Evade close 6
-Assassin|9|201|Agent|Rifle 4, Aimed shot 15, Concealment 7, Dodge-Rng 13, Duck-Exp 7, Evade close 7
-Assassin|10|203|Agent|Rifle 6, Aimed shot 24, Concealment 9, Dodge-Rng 18, Duck-Exp 11, Evade close 11, CriticalIncrease 1
+Holy Mark|1|sl|211881|20|Keep|Max Health 10, Dodge-Rng 10, Duck-Exp 10, Evade close 10, AC 10
+Holy Mark|2|sl|211882|40|Keep|Max Health 12, Dodge-Rng 10, Duck-Exp 10, Evade close 10, AC 30
+Holy Mark|3|sl|211883|70|Keep|Max Health 14, Dodge-Rng 11, Duck-Exp 11, Evade close 12, AC 40
+Holy Mark|4|sl|211884|90|Keep|Max Health 16, Dodge-Rng 13, Duck-Exp 13, Evade close 13, AC 60
+Holy Mark|5|sl|211885|110|Keep|Max Health 18, Dodge-Rng 13, Duck-Exp 13, Evade close 14, AC 100
+Holy Mark|6|sl|211886|130|Keep|Max Health 23, Dodge-Rng 13, Duck-Exp 13, Evade close 16, AC 140
+Holy Mark|7|sl|211887|150|Keep|Max Health 34, Dodge-Rng 13, Duck-Exp 13, Evade close 18, AC 180
+Holy Mark|8|sl|211888|180|Keep|Max Health 45, Dodge-Rng 17, Duck-Exp 17, Evade close 22, AC 240
+Holy Mark|9|sl|211889|200|Keep|Max Health 57, Dodge-Rng 25, Duck-Exp 25, Evade close 30, AC 400
+Holy Mark|10|sl|211890|202|Keep|Max Health 91, Dodge-Rng 25, Duck-Exp 25, Evade close 55, AC 790
 
-Black Ops|1|20|Agent|Add. Dmg. 4, Rifle 2, Aimed shot 2, Concealment 2, Fling shot 5
-Black Ops|2|50|Agent|Add. Dmg. 5, Rifle 3, Aimed shot 3, Concealment 3, Fling shot 6
-Black Ops|3|80|Agent|Add. Dmg. 6, Rifle 3, Aimed shot 4, Concealment 3, Fling shot 7
-Black Ops|4|120|Agent|Add. Dmg. 7, Rifle 4, Aimed shot 5, Concealment 4, Fling shot 8
-Black Ops|5|150|Agent|Add. Dmg. 8, Rifle 4, Aimed shot 5, Concealment 5, Fling shot 9
-Black Ops|6|170|Agent|Add. Dmg. 9, Rifle 5, Aimed shot 6, Concealment 6, Fling shot 10
-Black Ops|7|190|Agent|Add. Dmg. 10, Rifle 5, Aimed shot 7, Concealment 7, Fling shot 11
-Black Ops|8|201|Agent|Add. Dmg. 11, Rifle 7, Aimed shot 8, Concealment 8, Fling shot 12
-Black Ops|9|203|Agent|Add. Dmg. 13, Rifle 9, Aimed shot 10, Concealment 9, Fling shot 14
-Black Ops|10|208|Agent|Add. Dmg. 17, Rifle 13, Aimed shot 15, Concealment 13, Fling shot 18, CriticalIncrease 1
+Disharmony|1|sl|211783|60|MA|Add. Dmg. 7
+Disharmony|2|sl|211784|80|MA|Add. Dmg. 9
+Disharmony|3|sl|211785|110|MA|Add. Dmg. 11
+Disharmony|4|sl|211786|130|MA|Add. Dmg. 13
+Disharmony|5|sl|211787|150|MA|Add. Dmg. 17
+Disharmony|6|sl|211788|170|MA|Add. Dmg. 19
+Disharmony|7|sl|211789|190|MA|Add. Dmg. 24
+Disharmony|8|sl|211790|201|MA|Add. Dmg. 27
+Disharmony|9|sl|211791|205|MA|Add. Dmg. 35
+Disharmony|10|sl|211792|213|MA|Add. Dmg. 58
 
-Shadowsneak|1|10|Agent|Sense 1, Aimed shot 1, Concealment 5
-Shadowsneak|2|30|Agent|Sense 1, Aimed shot 1, Concealment 5
-Shadowsneak|3|70|Agent|Sense 2, Aimed shot 1, Concealment 6
-Shadowsneak|4|100|Agent|Sense 2, Aimed shot 1, Concealment 7
-Shadowsneak|5|130|Agent|Sense 3, Aimed shot 1, Concealment 7
-Shadowsneak|6|160|Agent|Sense 4, Aimed shot 1, Concealment 8
-Shadowsneak|7|200|Agent|Sense 5, Aimed shot 1, Concealment 9
-Shadowsneak|8|203|Agent|Sense 7, Aimed shot 1, Concealment 11
-Shadowsneak|9|208|Agent|Sense 10, Aimed shot 1, Concealment 15
-Shadowsneak|10|213|Agent|Sense 20, Aimed shot 1, Concealment 27
-
-Sharpshoooter|1|50|Agent|Aimed shot 2
-Sharpshoooter|2|100|Agent|Aimed shot 3, CriticalIncrease 1
-Sharpshoooter|3|160|Agent|Aimed shot 4
-Sharpshoooter|4|201|Agent|Aimed shot 5, CriticalIncrease 1
-Sharpshoooter|5|203|Agent|Aimed shot 7
-Sharpshoooter|6|218|Agent|Aimed shot 9, CriticalIncrease 1
-
-Form of Troll|1|30|Enf|Max health 80, Heal delta 3
-Form of Troll|2|60|Enf|Max health 150, Heal delta 3
-Form of Troll|3|90|Enf|Max health 220, Heal delta 3
-Form of Troll|4|110|Enf|Max health 280, Heal delta 4
-Form of Troll|5|130|Enf|Max health 350, Heal delta 4
-Form of Troll|6|160|Enf|Max health 410, Heal delta 5
-Form of Troll|7|200|Enf|Max health 480, Heal delta 5
-Form of Troll|8|202|Enf|Max health 585, Heal delta 5
-Form of Troll|9|204|Enf|Max health 745, Heal delta 6
-Form of Troll|10|215|Enf|Max health 1100, Heal delta 11
-
-Manners of Mongo|1|20|Enf|Max health 20, Psychology 5
-Manners of Mongo|2|40|Enf|Max health 25, Psychology 5
-Manners of Mongo|3|70|Enf|Max health 30, Psychology 6
-Manners of Mongo|4|100|Enf|Max health 35, Psychology 6
-Manners of Mongo|5|150|Enf|Max health 40, Psychology 7
-Manners of Mongo|6|201|Enf|Max health 55, Psychology 8
-Manners of Mongo|7|205|Enf|Max health 70, Psychology 9
-Manners of Mongo|8|209|Enf|Max health 90, Psychology 11
-Manners of Mongo|9|214|Enf|Max health 135, Psychology 15
-Manners of Mongo|10|219|Enf|Max health 300, Psychology 28
-
-Bone Crusher|1|10|Enf|2h Blunt 10
-Bone Crusher|2|30|Enf|2h Blunt 10
-Bone Crusher|3|50|Enf|2h Blunt 12
-Bone Crusher|4|80|Enf|2h Blunt 13
-Bone Crusher|5|110|Enf|2h Blunt 14
-Bone Crusher|6|140|Enf|2h Blunt 16
-Bone Crusher|7|170|Enf|2h Blunt 18
-Bone Crusher|8|200|Enf|2h Blunt 22
-Bone Crusher|9|201|Enf|2h Blunt 30
-Bone Crusher|10|203|Enf|2h Blunt 55
-
-Directorship|1|30|Crat|BM 1, PM 1, SI 1, Psychology 2
-Directorship|2|60|Crat|BM 1, PM 1, SI 1, Psychology 4
-Directorship|3|90|Crat|BM 2, PM 2, SI 2, Psychology 6
-Directorship|4|110|Crat|BM 2, PM 2, SI 2, Psychology 8
-Directorship|5|140|Crat|BM 3, PM 3, SI 3, Psychology 10
-Directorship|6|160|Crat|BM 3, PM 3, SI 3, Psychology 12
-Directorship|7|190|Crat|BM 4, PM 4, SI 4, Psychology 14
-Directorship|8|201|Crat|BM 4, PM 4, SI 4, Psychology 16
-Directorship|9|205|Crat|BM 5, PM 5, SI 5, Psychology 18
-Directorship|10|208|Crat|BM 11, PM 11, SI 11, Psychology 30
-
-Insurance Agent|1|80|Crat|BM 1, PM 1, SI 1, Psychology 5
-Insurance Agent|2|140|Crat|BM 2, PM 2, SI 2, Psychology 7
-Insurance Agent|3|190|Crat|BM 3, PM 3, SI 3, Psychology 13
-Insurance Agent|4|203|Crat|BM 4, PM 4, SI 4, Psychology 20
-Insurance Agent|5|209|Crat|BM 8, PM 8, SI 8, Psychology 35
-
-Bureaucratic Shuffle|1|50|Agent|Max health 10, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|2|70|Agent|Max health 11, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|3|100|Agent|Max health 12, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Bureaucratic Shuffle|4|140|Agent|Max health 13, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Bureaucratic Shuffle|5|160|Agent|Max health 14, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Bureaucratic Shuffle|6|180|Agent|Max health 15, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Bureaucratic Shuffle|7|201|Agent|Max health 16, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Bureaucratic Shuffle|8|202|Agent|Max health 19, Dodge-Rng 6, Duck-Exp 6, Evade close 6
-Bureaucratic Shuffle|9|203|Agent|Max health 30, Dodge-Rng 8, Duck-Exp 8, Evade close 8
-Bureaucratic Shuffle|10|206|Agent|Max health 60, Dodge-Rng 12, Duck-Exp 12, Evade close 12
-
-Piercing Mastery|1|10|Shade|Piercing 10
-Piercing Mastery|2|30|Shade|Piercing 10
-Piercing Mastery|3|60|Shade|Piercing 12
-Piercing Mastery|4|90|Shade|Piercing 13
-Piercing Mastery|5|130|Shade|Piercing 14
-Piercing Mastery|6|160|Shade|Piercing 16
-Piercing Mastery|7|190|Shade|Piercing 18
-Piercing Mastery|8|201|Shade|Piercing 22
-Piercing Mastery|9|202|Shade|Piercing 30
-Piercing Mastery|10|208|Shade|Piercing 55
-
-Totemic Rites|1|10|Shade|Add. Dmg. 4, Sneak attack 5, Martial arts 1
-Totemic Rites|2|40|Shade|Add. Dmg. 8, Sneak attack 5, Martial arts 2
-Totemic Rites|3|60|Shade|Add. Dmg. 11, Sneak attack 6, Martial arts 2
-Totemic Rites|4|90|Shade|Add. Dmg. 15, Sneak attack 6, Martial arts 3
-Totemic Rites|5|120|Shade|Add. Dmg. 18, Sneak attack 7, Martial arts 3
-Totemic Rites|6|150|Shade|Add. Dmg. 20, Sneak attack 8, Martial arts 4
-Totemic Rites|7|170|Shade|Add. Dmg. 24, Sneak attack 9, Martial arts 5
-Totemic Rites|8|190|Shade|Add. Dmg. 28, Sneak attack 11, Martial arts 5
-Totemic Rites|9|201|Shade|Add. Dmg. 30, Sneak attack 15, Martial arts 6
-Totemic Rites|10|204|Shade|Add. Dmg. 50, Sneak attack 28, Martial arts 9
-
-Shade Touch|1|20|Shade|Martial arts 5, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Shade Touch|2|60|Shade|Martial arts 8, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Shade Touch|3|90|Shade|Martial arts 10, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Shade Touch|4|130|Shade|Martial arts 13, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Shade Touch|5|160|Shade|Martial arts 15, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Shade Touch|6|200|Shade|Martial arts 19, Dodge-Rng 6, Duck-Exp 6, Evade close 6
-Shade Touch|7|205|Shade|Martial arts 30, Dodge-Rng 12, Duck-Exp 12, Evade close 12
-
-Sublime Rapport|1|10|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Sublime Rapport|2|30|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1
-Sublime Rapport|3|60|Shade|Dimach 12, Deflect 2, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|4|90|Shade|Dimach 13, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|5|120|Shade|Dimach 14, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade close 2
-Sublime Rapport|6|150|Shade|Dimach 16, Deflect 3, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Sublime Rapport|7|170|Shade|Dimach 18, Deflect 4, Dodge-Rng 3, Duck-Exp 3, Evade close 3
-Sublime Rapport|8|190|Shade|Dimach 22, Deflect 5, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Sublime Rapport|9|201|Shade|Dimach 30, Deflect 6, Dodge-Rng 4, Duck-Exp 4, Evade close 4
-Sublime Rapport|10|203|Shade|Dimach 55, Deflect 10, Dodge-Rng 8, Duck-Exp 8, Evade close 8
-
-Spirit Phylactery|1|20|Shade|Max health 7, AAD 5, AAO 2, Sneak attack 5
-Spirit Phylactery|2|40|Shade|Max health 8, AAD 6, AAO 3, Sneak attack 5
-Spirit Phylactery|3|60|Shade|Max health 10, AAD 7, AAO 4, Sneak attack 6
-Spirit Phylactery|4|100|Shade|Max health 14, AAD 8, AAO 4, Sneak attack 6
-Spirit Phylactery|5|130|Shade|Max health 19, AAD 9, AAO 5, Sneak attack 7
-Spirit Phylactery|6|150|Shade|Max health 32, AAD 11, AAO 5, Sneak attack 8
-Spirit Phylactery|7|160|Shade|Max health 42, AAD 16, AAO 6, Sneak attack 9
-Spirit Phylactery|8|200|Shade|Max health 52, AAD 21, AAO 7, Sneak attack 11
-Spirit Phylactery|9|202|Shade|Max health 76, AAD 27, AAO 9, Sneak attack 15
-Spirit Phylactery|10|203|Shade|Max health 140, AAD 40, AAO 15, Sneak attack 28
-
-Notum Siphon|1|30|NT|MC 3
-Notum Siphon|2|60|NT|MC 4
-Notum Siphon|3|90|NT|MC 5
-Notum Siphon|4|130|NT|MC 6
-Notum Siphon|5|170|NT|MC 7
-Notum Siphon|6|200|NT|MC 8
-Notum Siphon|7|203|NT|MC 10
-Notum Siphon|8|209|NT|MC 11
-Notum Siphon|9|214|NT|MC 13
-Notum Siphon|10|218|NT|MC 18
-
-Essence of Notum|1|80|NT|Max Nano 600
-Essence of Notum|2|180|NT|Max Nano 1600
-Essence of Notum|3|203|NT|Max Nano 3800
-
-Enhanced Nano Damage|1|160|NT|Max Nano 150, Direct Nano Damage Efficiency 2
-Enhanced Nano Damage|2|180|NT|Max Nano 225, Direct Nano Damage Efficiency 2
-Enhanced Nano Damage|3|200|NT|Max Nano 270, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|4|203|NT|Max Nano 335, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|5|209|NT|Max Nano 420, Direct Nano Damage Efficiency 3
-Enhanced Nano Damage|6|215|NT|Max Nano 600, Direct Nano Damage Efficiency 5
-
-Channel Rage|1|10|MP|TS 3, MC 3, Max health 5, Nano resist 10, AAD 5
-Channel Rage|2|30|MP|TS 4, MC 4, Max health 9, Nano resist 10, AAD 5
-Channel Rage|3|60|MP|TS 5, MC 5, Max health 10, Nano resist 12, AAD 6
-Channel Rage|4|100|MP|TS 6, MC 6, Max health 10, Nano resist 13, AAD 7
-Channel Rage|5|130|MP|TS 7, MC 7, Max health 14, Nano resist 14, AAD 7
-Channel Rage|6|170|MP|TS 8, MC 8, Max health 18, Nano resist 16, AAD 8
-Channel Rage|7|200|MP|TS 9, MC 9, Max health 22, Nano resist 18, AAD 9
-Channel Rage|8|201|MP|TS 10, MC 10, Max health 37, Nano resist 22, AAD 11
-Channel Rage|9|205|MP|TS 13, MC 13, Max health 37, Nano resist 30, AAD 15
-Channel Rage|10|208|MP|TS 20, MC 20, Max health 48, Nano resist 50, AAD 27
-
-Soothing Spirits|1|30|MP|Max health 5, Max nano 15
-Soothing Spirits|2|30|MP|Max health 7, Max nano 17
-Soothing Spirits|3|30|MP|Max health 8, Max nano 18
-Soothing Spirits|4|30|MP|Max health 10, Max nano 20
-Soothing Spirits|5|30|MP|Max health 10, Max nano 20
-Soothing Spirits|6|30|MP|Max health 15, Max nano 20
-Soothing Spirits|7|30|MP|Max health 25, Max nano 35
-Soothing Spirits|8|30|MP|Max health 30, Max nano 45
-Soothing Spirits|9|30|MP|Max health 35, Max nano 45
-Soothing Spirits|10|30|MP|Max health 55, Max nano 65
-
-Accumulator|1|10|Tra|Heal delta 1, Nano delta 1, Max health 15, Max nano 50
-Accumulator|2|20|Tra|Heal delta 1, Nano delta 1, Max health 15, Max nano 50
-Accumulator|3|40|Tra|Heal delta 1, Nano delta 1, Max health 15, Max nano 60
-Accumulator|4|60|Tra|Heal delta 1, Nano delta 1, Max health 15, Max nano 60
-Accumulator|5|90|Tra|Heal delta 1, Nano delta 1, Max health 22, Max nano 70
-Accumulator|6|110|Tra|Heal delta 1, Nano delta 1, Max health 23, Max nano 80
-Accumulator|7|130|Tra|Heal delta 1, Nano delta 1, Max health 30, Max nano 90
-Accumulator|8|160|Tra|Heal delta 1, Nano delta 1, Max health 30, Max nano 110
-Accumulator|9|190|Tra|Heal delta 1, Nano delta 1, Max health 30, Max nano 150
-Accumulator|10|202|Tra|Heal delta 2, Nano delta 2, Max health 45, Max nano 280
-
-Distill Life|1|30|Tra|Heal delta 1, Max health 6
-Distill Life|2|60|Tra|Heal delta 2, Max health 8
-Distill Life|3|90|Tra|Heal delta 2, Max health 10
-Distill Life|4|110|Tra|Heal delta 2, Max health 13
-Distill Life|5|130|Tra|Heal delta 3, Max health 15
-Distill Life|6|150|Tra|Heal delta 3, Max health 18
-Distill Life|7|201|Tra|Heal delta 3, Max health 24
-Distill Life|8|202|Tra|Heal delta 4, Max health 32
-Distill Life|9|205|Tra|Heal delta 4, Max health 38
-Distill Life|10|208|Tra|Heal delta 6, Max health 56
-
-Blessing|1|10|Keep|Max health 40
-Blessing|2|30|Keep|Max health 65
-Blessing|3|50|Keep|Max health 105
-Blessing|4|80|Keep|Max health 155
-Blessing|5|110|Keep|Max health 200
-Blessing|6|150|Keep|Max health 260
-Blessing|7|170|Keep|Max health 325
-Blessing|8|190|Keep|Max health 400
-Blessing|9|202|Keep|Max health 500
-Blessing|10|207|Keep|Max health 720
-
-Holy Mark|1|20|Keep|Max health 10, Dodge-Rng 5, Duck-Exp 5, Evade close 10
-Holy Mark|2|20|Keep|Max health 12, Dodge-Rng 5, Duck-Exp 5, Evade close 10
-Holy Mark|3|20|Keep|Max health 14, Dodge-Rng 6, Duck-Exp 6, Evade close 12
-Holy Mark|4|20|Keep|Max health 16, Dodge-Rng 6, Duck-Exp 6, Evade close 13
-Holy Mark|5|20|Keep|Max health 18, Dodge-Rng 7, Duck-Exp 7, Evade close 14
-Holy Mark|6|20|Keep|Max health 23, Dodge-Rng 9, Duck-Exp 9, Evade close 16
-Holy Mark|7|20|Keep|Max health 34, Dodge-Rng 10, Duck-Exp 10, Evade close 18
-Holy Mark|8|20|Keep|Max health 45, Dodge-Rng 11, Duck-Exp 11, Evade close 22
-Holy Mark|9|20|Keep|Max health 57, Dodge-Rng 15, Duck-Exp 15, Evade close 30
-Holy Mark|10|20|Keep|Max health 91, Dodge-Rng 26, Duck-Exp 26, Evade close 55
-
-Reaver|1|20|Keep, Enf|2h Edged 10, Deflect 10, Riposte 10, Fast attack 10, Ranged init -100, Add. Dmg. 5
-Reaver|2|50|Keep, Enf|2h Edged 10, Deflect 10, Riposte 10, Fast attack 10, Ranged init -100, Add. Dmg. 7
-Reaver|3|70|Keep, Enf|2h Edged 11, Deflect 12, Riposte 12, Fast attack 12, Ranged init -150, Add. Dmg. 9
-Reaver|4|100|Keep, Enf|2h Edged 12, Deflect 13, Riposte 13, Fast attack 13, Ranged init -150, Add. Dmg. 11
-Reaver|5|130|Keep, Enf|2h Edged 13, Deflect 14, Riposte 14, Fast attack 14, Ranged init -150, Add. Dmg. 15
-Reaver|6|160|Keep, Enf|2h Edged 15, Deflect 16, Riposte 16, Fast attack 16, Ranged init -200, Add. Dmg. 18
-Reaver|7|180|Keep, Enf|2h Edged 16, Deflect 18, Riposte 18, Fast attack 18, Ranged init -200, Add. Dmg. 22
-Reaver|8|201|Keep, Enf|2h Edged 22, Deflect 22, Riposte 22, Fast attack 22, Ranged init -200, Add. Dmg. 25
-Reaver|9|204|Keep, Enf|2h Edged 28, Deflect 30, Riposte 30, Fast attack 30, Ranged init -500, Add. Dmg. 32
-Reaver|10|209|Keep, Enf|2h Edged 43, Deflect 55, Riposte 55, Fast attack 55, Ranged init -500, Add. Dmg. 43
+Spiritual Master|1|sl|212059|10|MA|Martial Arts 5, Dimach 10, Riposte 5
+Spiritual Master|2|sl|212060|40|MA|Martial Arts 5, Dimach 10, Riposte 5
+Spiritual Master|3|sl|212061|70|MA|Martial Arts 7, Dimach 12, Riposte 6
+Spiritual Master|4|sl|212062|100|MA|Martial Arts 8, Dimach 13, Riposte 6
+Spiritual Master|5|sl|212063|130|MA|Martial Arts 9, Dimach 14, Riposte 7
+Spiritual Master|6|sl|212064|180|MA|Martial Arts 11, Dimach 16, Riposte 8
+Spiritual Master|7|sl|212065|201|MA|Martial Arts 13, Dimach 18, Riposte 9
+Spiritual Master|8|sl|212066|203|MA|Martial Arts 17, Dimach 22, Riposte 11
+Spiritual Master|9|sl|212067|205|MA|Martial Arts 25, Dimach 30, Riposte 15
+Spiritual Master|10|sl|212068|210|MA|Martial Arts 50, Dimach 55, Riposte 28
 
 Unstunnable|1|sl|211080|150|MA|
 Unstunnable|2|sl|211077|170|MA|
 Unstunnable|3|sl|211078|200|MA|
 Unstunnable|4|sl|211079|204|MA|
+
+Xuyun|1|ai|248731|15|MA|Dodge-Rng 3, Evade-ClsC 3, Duck-Exp 3, Brawling 3, Max Health 50
+Xuyun|2|ai|248732|15|MA|Dodge-Rng 3, Evade-ClsC 3, Duck-Exp 3, Brawling 3, Max Health 50
+Xuyun|3|ai|248733|55|MA|Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, Brawling 4, Max Health 60
+Xuyun|4|ai|248734|55|MA|Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, Brawling 4, Max Health 60
+Xuyun|5|ai|248735|55|MA|Dodge-Rng 4, Evade-ClsC 4, Duck-Exp 4, Brawling 4, Max Health 70
+Xuyun|6|ai|248736|105|MA|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, Brawling 5, Max Health 80
+Xuyun|7|ai|248737|105|MA|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, Brawling 5, Max Health 90
+Xuyun|8|ai|248738|145|MA|Dodge-Rng 6, Evade-ClsC 6, Duck-Exp 6, Brawling 6, Max Health 110
+Xuyun|9|ai|248739|205|MA|Dodge-Rng 9, Evade-ClsC 9, Duck-Exp 9, Brawling 9, Max Health 150
+Xuyun|10|ai|248740|210|MA|Dodge-Rng 17, Evade-ClsC 17, Duck-Exp 17, Brawling 17, Max Health 280
+
+Ancient Knowledge|1|ai|252301|15|MP|Max Nano 75, NanoC. Init. 5
+Ancient Knowledge|2|ai|252302|15|MP|Max Nano 75, NanoC. Init. 5
+Ancient Knowledge|3|ai|252303|55|MP|Max Nano 90, NanoC. Init. 6
+Ancient Knowledge|4|ai|252304|55|MP|Max Nano 90, NanoC. Init. 6
+Ancient Knowledge|5|ai|252305|55|MP|Max Nano 105, NanoC. Init. 7
+Ancient Knowledge|6|ai|252306|105|MP|Max Nano 120, NanoC. Init. 8
+Ancient Knowledge|7|ai|252307|105|MP|Max Nano 135, NanoC. Init. 9
+Ancient Knowledge|8|ai|252308|145|MP|Max Nano 165, NanoC. Init. 11
+Ancient Knowledge|9|ai|252309|205|MP|Max Nano 225, NanoC. Init. 15, Direct Nano Damage Efficiency 1
+Ancient Knowledge|10|ai|252310|210|MP|Max Nano 412, NanoC. Init. 28, Direct Nano Damage Efficiency 2
+
+Channel Rage|1|sl|211753|10|MP|TS 3, MC 3, Max Health 5, Nano resist 10, AAD 5
+Channel Rage|2|sl|211754|30|MP|TS 4, MC 4, Max Health 9, Nano resist 10, AAD 5
+Channel Rage|3|sl|211755|60|MP|TS 5, MC 5, Max Health 10, Nano resist 12, AAD 6
+Channel Rage|4|sl|211756|100|MP|TS 6, MC 6, Max Health 10, Nano resist 13, AAD 7
+Channel Rage|5|sl|211757|130|MP|TS 7, MC 7, Max Health 14, Nano resist 14, AAD 7
+Channel Rage|6|sl|211758|170|MP|TS 8, MC 8, Max Health 18, Nano resist 16, AAD 8
+Channel Rage|7|sl|211759|200|MP|TS 9, MC 9, Max Health 22, Nano resist 18, AAD 9
+Channel Rage|8|sl|211760|201|MP|TS 10, MC 10, Max Health 37, Nano resist 22, AAD 11
+Channel Rage|9|sl|211761|205|MP|TS 13, MC 13, Max Health 37, Nano resist 30, AAD 15
+Channel Rage|10|sl|211762|208|MP|TS 20, MC 20, Max Health 48, Nano resist 50, AAD 27
+
+Soothing Spirits|1|sl|211125|30|MP|Max Health 5, Max Nano 15
+Soothing Spirits|2|sl|211126|60|MP|Max Health 7, Max Nano 17
+Soothing Spirits|3|sl|211127|90|MP|Max Health 8, Max Nano 18
+Soothing Spirits|4|sl|211128|110|MP|Max Health 10, Max Nano 20
+Soothing Spirits|5|sl|211129|130|MP|Max Health 10, Max Nano 20
+Soothing Spirits|6|sl|211130|150|MP|Max Health 15, Max Nano 20
+Soothing Spirits|7|sl|211131|170|MP|Max Health 25, Max Nano 35
+Soothing Spirits|8|sl|211132|190|MP|Max Health 30, Max Nano 45
+Soothing Spirits|9|sl|211133|201|MP|Max Health 35, Max Nano 45
+Soothing Spirits|10|sl|212189|203|MP|Max Health 55, Max Nano 65
+
+Ancient Matrix|1|ai|250663|15|NT|NanoC. Init. 10, MC 2, NanoDelta 1, TS 2
+Ancient Matrix|2|ai|250664|15|NT|NanoC. Init. 10, MC 2, NanoDelta 1, TS 2
+Ancient Matrix|3|ai|250665|55|NT|NanoC. Init. 12, MC 3, NanoDelta 2, Direct Nano Damage Efficiency 1, TS 3
+Ancient Matrix|4|ai|250666|55|NT|NanoC. Init. 13, MC 3, NanoDelta 2, TS 3
+Ancient Matrix|5|ai|250667|55|NT|NanoC. Init. 14, MC 4, NanoDelta 2, TS 4
+Ancient Matrix|6|ai|250668|105|NT|NanoC. Init. 16, MC 4, NanoDelta 2, Direct Nano Damage Efficiency 1, TS 4
+Ancient Matrix|7|ai|250669|105|NT|NanoC. Init. 18, MC 5, NanoDelta 2, TS 5
+Ancient Matrix|8|ai|250670|145|NT|NanoC. Init. 22, MC 6, NanoDelta 2, TS 6
+Ancient Matrix|9|ai|250671|205|NT|NanoC. Init. 30, MC 8, NanoDelta 3, Direct Nano Damage Efficiency 1, TS 8
+Ancient Matrix|10|ai|250672|210|NT|NanoC. Init. 55, MC 15, NanoDelta 3, TS 15
+
+Channeling of Notum|1|sl|211043|40|NT|
+Channeling of Notum|2|sl|211044|90|NT|
+Channeling of Notum|3|sl|211045|170|NT|
+Channeling of Notum|4|sl|211046|201|NT|
+
+Enhanced Nano Damage|1|sl|212117|160|NT|Max Nano 150, Direct Nano Damage Efficiency 2
+Enhanced Nano Damage|2|sl|212118|180|NT|Max Nano 225, Direct Nano Damage Efficiency 2
+Enhanced Nano Damage|3|sl|212119|200|NT|Max Nano 270, Direct Nano Damage Efficiency 3
+Enhanced Nano Damage|4|sl|212120|203|NT|Max Nano 335, Direct Nano Damage Efficiency 3
+Enhanced Nano Damage|5|sl|212121|209|NT|Max Nano 420, Direct Nano Damage Efficiency 3
+Enhanced Nano Damage|6|sl|212122|215|NT|Max Nano 600, Direct Nano Damage Efficiency 5
+
+Essence of Notum|1|sl|211809|80|NT|Max Nano 600
+Essence of Notum|2|sl|211810|180|NT|Max Nano 1600
+Essence of Notum|3|sl|211811|203|NT|Max Nano 3800
+
+Notum Siphon|1|sl|223600|30|NT|MC 3
+Notum Siphon|2|sl|223601|60|NT|MC 4
+Notum Siphon|3|sl|223602|90|NT|MC 5
+Notum Siphon|4|sl|223603|130|NT|MC 6
+Notum Siphon|5|sl|223604|170|NT|MC 7
+Notum Siphon|6|sl|223605|200|NT|MC 8
+Notum Siphon|7|sl|223606|203|NT|MC 10
+Notum Siphon|8|sl|223607|209|NT|MC 11
+Notum Siphon|9|sl|223608|214|NT|MC 13
+Notum Siphon|10|sl|223609|218|NT|MC 18
+
+Piercing Mastery|1|sl|211967|10|Shade|Piercing 10
+Piercing Mastery|2|sl|211968|30|Shade|Piercing 10
+Piercing Mastery|3|sl|211969|60|Shade|Piercing 12
+Piercing Mastery|4|sl|211970|90|Shade|Piercing 13
+Piercing Mastery|5|sl|211971|130|Shade|Piercing 14
+Piercing Mastery|6|sl|211972|160|Shade|Piercing 16
+Piercing Mastery|7|sl|211973|190|Shade|Piercing 18
+Piercing Mastery|8|sl|211974|201|Shade|Piercing 22
+Piercing Mastery|9|sl|211975|202|Shade|Piercing 30
+Piercing Mastery|10|sl|211976|208|Shade|Piercing 55
+
+Shade Touch|1|sl|212144|20|Shade|Martial Arts 5, Dodge-Rng 1, Duck-Exp 1, Evade-ClsC 1
+Shade Touch|2|sl|212145|60|Shade|Martial Arts 8, Dodge-Rng 2, Duck-Exp 2, Evade-ClsC 2
+Shade Touch|3|sl|212146|90|Shade|Martial Arts 10, Dodge-Rng 2, Duck-Exp 2, Evade-ClsC 2
+Shade Touch|4|sl|212147|130|Shade|Martial Arts 13, Dodge-Rng 3, Duck-Exp 3, Evade-ClsC 3
+Shade Touch|5|sl|212148|160|Shade|Martial Arts 15, Dodge-Rng 4, Duck-Exp 4, Evade-ClsC 4
+Shade Touch|6|sl|212149|200|Shade|Martial Arts 19, Dodge-Rng 6, Duck-Exp 6, Evade-ClsC 6
+Shade Touch|7|sl|212150|205|Shade|Martial Arts 30, Dodge-Rng 12, Duck-Exp 12, Evade-ClsC 12
+
+Shadow|1|ai|248115|15|Shade|Concealment 5, Dodge-Rng 5, Duck-Exp 5, Evade-ClsC 5, Sneak Atck 2
+Shadow|2|ai|248116|15|Shade|Concealment 5, Dodge-Rng 5, Duck-Exp 5, Evade-ClsC 5, Sneak Atck 2
+Shadow|3|ai|248117|55|Shade|Concealment 6, Dodge-Rng 6, Duck-Exp 6, Evade-ClsC 6, Sneak Atck 3
+Shadow|4|ai|248118|55|Shade|Concealment 6, Dodge-Rng 6, Duck-Exp 6, Evade-ClsC 6, Sneak Atck 3
+Shadow|5|ai|248119|55|Shade|Concealment 7, Dodge-Rng 7, Duck-Exp 7, Evade-ClsC 7, Sneak Atck 4
+Shadow|6|ai|248120|105|Shade|Concealment 8, Dodge-Rng 8, Duck-Exp 8, Evade-ClsC 8, Sneak Atck 4
+Shadow|7|ai|248121|105|Shade|Concealment 9, Dodge-Rng 9, Duck-Exp 9, Evade-ClsC 9, Sneak Atck 5
+Shadow|8|ai|248122|145|Shade|Concealment 11, Dodge-Rng 11, Duck-Exp 11, Evade-ClsC 11, Sneak Atck 6
+Shadow|9|ai|248123|205|Shade|Concealment 15, Dodge-Rng 15, Duck-Exp 15, Evade-ClsC 15, Sneak Atck 8
+Shadow|10|ai|248124|210|Shade|Concealment 28, Dodge-Rng 28, Duck-Exp 28, Evade-ClsC 28, Sneak Atck 13
+
+Spirit Phylactery|1|sl|212049|20|Shade|Max Health 7, AAD 5, AAO 2, Sneak Atck 5
+Spirit Phylactery|2|sl|212050|40|Shade|Max Health 8, AAD 6, AAO 3, Sneak Atck 5
+Spirit Phylactery|3|sl|212051|60|Shade|Max Health 10, AAD 7, AAO 4, Sneak Atck 6
+Spirit Phylactery|4|sl|212052|100|Shade|Max Health 14, AAD 8, AAO 4, Sneak Atck 6
+Spirit Phylactery|5|sl|212053|130|Shade|Max Health 19, AAD 9, AAO 5, Sneak Atck 7
+Spirit Phylactery|6|sl|212054|150|Shade|Max Health 32, AAD 11, AAO 5, Sneak Atck 8
+Spirit Phylactery|7|sl|212055|160|Shade|Max Health 42, AAD 16, AAO 6, Sneak Atck 9
+Spirit Phylactery|8|sl|212056|200|Shade|Max Health 52, AAD 21, AAO 7, Sneak Atck 11
+Spirit Phylactery|9|sl|212057|202|Shade|Max Health 76, AAD 27, AAO 9, Sneak Atck 15
+Spirit Phylactery|10|sl|212058|203|Shade|Max Health 140, AAD 40, AAO 15, Sneak Atck 28
+
+Sublime Rapport|1|sl|212151|10|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade-ClsC 1
+Sublime Rapport|2|sl|212152|30|Shade|Dimach 10, Deflect 2, Dodge-Rng 1, Duck-Exp 1, Evade-ClsC 1
+Sublime Rapport|3|sl|212153|60|Shade|Dimach 12, Deflect 2, Dodge-Rng 2, Duck-Exp 2, Evade-ClsC 2
+Sublime Rapport|4|sl|212154|90|Shade|Dimach 13, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade-ClsC 2
+Sublime Rapport|5|sl|212155|120|Shade|Dimach 14, Deflect 3, Dodge-Rng 2, Duck-Exp 2, Evade-ClsC 2
+Sublime Rapport|6|sl|212156|150|Shade|Dimach 16, Deflect 3, Dodge-Rng 3, Duck-Exp 3, Evade-ClsC 3
+Sublime Rapport|7|sl|212157|170|Shade|Dimach 18, Deflect 4, Dodge-Rng 3, Duck-Exp 3, Evade-ClsC 3
+Sublime Rapport|8|sl|212158|190|Shade|Dimach 22, Deflect 5, Dodge-Rng 4, Duck-Exp 4, Evade-ClsC 4
+Sublime Rapport|9|sl|212159|201|Shade|Dimach 30, Deflect 6, Dodge-Rng 4, Duck-Exp 4, Evade-ClsC 4
+Sublime Rapport|10|sl|212160|203|Shade|Dimach 55, Deflect 10, Dodge-Rng 8, Duck-Exp 8, Evade-ClsC 8
+
+Totemic Rites|1|sl|212097|10|Shade|Add. Dmg. 4, Add Nano Dam. 4, Sneak Atck 5, Martial Arts 1
+Totemic Rites|2|sl|212098|40|Shade|Add. Dmg. 8, Add Nano Dam. 8, Sneak Atck 5, Martial Arts 2
+Totemic Rites|3|sl|212099|60|Shade|Add. Dmg. 11, Add Nano Dam. 11, Sneak Atck 6, Martial Arts 2
+Totemic Rites|4|sl|212100|90|Shade|Add. Dmg. 15, Add Nano Dam. 15, Sneak Atck 6, Martial Arts 3
+Totemic Rites|5|sl|212101|120|Shade|Add. Dmg. 18, Add Nano Dam. 18, Sneak Atck 7, Martial Arts 3
+Totemic Rites|6|sl|212102|150|Shade|Add. Dmg. 20, Add Nano Dam. 20, Sneak Atck 8, Martial Arts 4
+Totemic Rites|7|sl|212103|170|Shade|Add. Dmg. 24, Add Nano Dam. 24, Sneak Atck 9, Martial Arts 5
+Totemic Rites|8|sl|212104|190|Shade|Add. Dmg. 28, Add Nano Dam. 28, Sneak Atck 11, Martial Arts 5
+Totemic Rites|9|sl|212105|201|Shade|Add. Dmg. 30, Add Nano Dam. 30, Sneak Atck 15, Martial Arts 6
+Totemic Rites|10|sl|212106|204|Shade|Add. Dmg. 50, Add Nano Dam. 50, Sneak Atck 28, Martial Arts 9
+
+Heavy Ranged|1|sl|211873|20|Sol|Assault Rif 10, Heavy Weapons 10
+Heavy Ranged|2|sl|211874|30|Sol|Assault Rif 12, Heavy Weapons 12
+Heavy Ranged|3|sl|211875|60|Sol|Assault Rif 13, Heavy Weapons 13
+Heavy Ranged|4|sl|211876|90|Sol|Assault Rif 15, Heavy Weapons 15
+Heavy Ranged|5|sl|211877|140|Sol|Assault Rif 22, Heavy Weapons 22
+Heavy Ranged|6|sl|211878|180|Sol|Assault Rif 28, Heavy Weapons 28
+Heavy Ranged|7|sl|211879|202|Sol|Assault Rif 40, Heavy Weapons 40
+Heavy Ranged|8|sl|211880|205|Sol|Assault Rif 60, Heavy Weapons 60
+
+Power In Numbers|1|ai|248165|15|Sol|Max Health 100, AAO 2, Full Auto 2
+Power In Numbers|2|ai|248166|15|Sol|Max Health 100, AAO 2, Full Auto 2
+Power In Numbers|3|ai|248167|55|Sol|Max Health 120, AAO 3, Full Auto 3
+Power In Numbers|4|ai|248168|55|Sol|Max Health 120, AAO 3, Full Auto 3
+Power In Numbers|5|ai|248169|55|Sol|Max Health 140, AAO 4, Full Auto 4
+Power In Numbers|6|ai|248170|105|Sol|Max Health 160, AAO 4, Full Auto 4
+Power In Numbers|7|ai|248171|105|Sol|Max Health 180, AAO 5, Full Auto 5
+Power In Numbers|8|ai|248172|145|Sol|Max Health 220, AAO 6, Full Auto 6
+Power In Numbers|9|ai|248173|205|Sol|Max Health 300, AAO 8, Full Auto 8
+Power In Numbers|10|ai|248174|210|Sol|Max Health 560, AAO 14, Full Auto 14
+
+Special Forces|1|sl|212029|20|Sol|Full Auto 10, Burst 8, Fling Shot 8, Dodge-Rng 5, Duck-Exp 1, Evade-ClsC 1
+Special Forces|2|sl|212030|50|Sol|Full Auto 10, Burst 8, Fling Shot 8, Dodge-Rng 5, Duck-Exp 1, Evade-ClsC 1
+Special Forces|3|sl|212031|70|Sol|Full Auto 12, Burst 10, Fling Shot 10, Dodge-Rng 7, Duck-Exp 1, Evade-ClsC 1
+Special Forces|4|sl|212032|90|Sol|Full Auto 13, Burst 11, Fling Shot 11, Dodge-Rng 8, Duck-Exp 2, Evade-ClsC 2
+Special Forces|5|sl|212033|110|Sol|Full Auto 14, Burst 12, Fling Shot 12, Dodge-Rng 9, Duck-Exp 2, Evade-ClsC 2
+Special Forces|6|sl|212034|130|Sol|Full Auto 16, Burst 14, Fling Shot 14, Dodge-Rng 11, Duck-Exp 4, Evade-ClsC 4
+Special Forces|7|sl|212035|170|Sol|Full Auto 18, Burst 16, Fling Shot 16, Dodge-Rng 13, Duck-Exp 4, Evade-ClsC 4
+Special Forces|8|sl|212036|201|Sol|Full Auto 22, Burst 20, Fling Shot 20, Dodge-Rng 19, Duck-Exp 5, Evade-ClsC 5
+Special Forces|9|sl|212037|203|Sol|Full Auto 30, Burst 28, Fling Shot 28, Dodge-Rng 23, Duck-Exp 10, Evade-ClsC 10
+Special Forces|10|sl|212038|205|Sol|Full Auto 55, Burst 53, Fling Shot 53, Dodge-Rng 50, Duck-Exp 20, Evade-ClsC 20
+
+Accumulator|1|sl|210830|10|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 50
+Accumulator|2|sl|210831|20|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 50
+Accumulator|3|sl|210832|40|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 60
+Accumulator|4|sl|210833|60|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 60
+Accumulator|5|sl|210834|90|Tra|HealDelta 1, NanoDelta 1, Max Health 22, Max Nano 70
+Accumulator|6|sl|210835|110|Tra|HealDelta 1, NanoDelta 1, Max Health 23, Max Nano 80
+Accumulator|7|sl|210836|130|Tra|HealDelta 1, NanoDelta 1, Max Health 30, Max Nano 90
+Accumulator|8|sl|210837|160|Tra|HealDelta 1, NanoDelta 1, Max Health 30, Max Nano 110
+Accumulator|9|sl|210838|190|Tra|HealDelta 1, NanoDelta 1, Max Health 30, Max Nano 150
+Accumulator|10|sl|210839|202|Tra|HealDelta 2, NanoDelta 2, Max Health 45, Max Nano 280
+
+Distill Life|1|sl|211773|30|Tra|HealDelta 1, Max Health 6
+Distill Life|2|sl|211774|60|Tra|HealDelta 2, Max Health 8
+Distill Life|3|sl|211775|90|Tra|HealDelta 2, Max Health 10
+Distill Life|4|sl|211776|110|Tra|HealDelta 2, Max Health 13
+Distill Life|5|sl|211777|130|Tra|HealDelta 3, Max Health 15
+Distill Life|6|sl|211778|150|Tra|HealDelta 3, Max Health 18
+Distill Life|7|sl|211779|201|Tra|HealDelta 3, Max Health 24
+Distill Life|8|sl|211780|202|Tra|HealDelta 4, Max Health 32
+Distill Life|9|sl|211781|205|Tra|HealDelta 4, Max Health 38
+Distill Life|10|sl|211782|208|Tra|HealDelta 6, Max Health 56
+
+Volunteer|1|ai|248245|15|Tra|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, Ranged. Init. 5, NanoC. Init. 5
+Volunteer|2|ai|248246|15|Tra|Dodge-Rng 5, Evade-ClsC 5, Duck-Exp 5, Ranged. Init. 5, NanoC. Init. 5
+Volunteer|3|ai|248247|55|Tra|Dodge-Rng 6, Evade-ClsC 6, Duck-Exp 6, Ranged. Init. 6, NanoC. Init. 6
+Volunteer|4|ai|248248|55|Tra|Dodge-Rng 6, Evade-ClsC 6, Duck-Exp 6, Ranged. Init. 6, NanoC. Init. 6
+Volunteer|5|ai|248249|55|Tra|Dodge-Rng 7, Evade-ClsC 7, Duck-Exp 7, Ranged. Init. 7, NanoC. Init. 7
+Volunteer|6|ai|248250|105|Tra|Dodge-Rng 8, Evade-ClsC 8, Duck-Exp 8, Ranged. Init. 8, NanoC. Init. 8
+Volunteer|7|ai|248251|105|Tra|Dodge-Rng 9, Evade-ClsC 9, Duck-Exp 9, Ranged. Init. 9, NanoC. Init. 9
+Volunteer|8|ai|248252|145|Tra|Dodge-Rng 11, Evade-ClsC 11, Duck-Exp 11, Ranged. Init. 11, NanoC. Init. 11
+Volunteer|9|ai|248253|205|Tra|Dodge-Rng 15, Evade-ClsC 15, Duck-Exp 15, Ranged. Init. 15, NanoC. Init. 15
+Volunteer|10|ai|248254|220|Tra|Dodge-Rng 28, Evade-ClsC 28, Duck-Exp 28, Ranged. Init. 28, NanoC. Init. 28
+
+Acrobat|1|sl|211655|30|Adv, Fix, MA, Shade|Agility 4, Duck-Exp 20, Dodge-Rng 20, Evade-ClsC 20, Mult. Melee 4, Multi Ranged 4
+Acrobat|2|sl|211656|60|Adv, Fix, MA, Shade|Agility 6, Duck-Exp 35, Dodge-Rng 35, Evade-ClsC 35, Mult. Melee 6, Multi Ranged 6
+Acrobat|3|sl|211657|100|Adv, Fix, MA, Shade|Agility 8, Duck-Exp 55, Dodge-Rng 55, Evade-ClsC 55, Mult. Melee 8, Multi Ranged 8
+Acrobat|4|sl|211658|140|Adv, Fix, MA, Shade|Agility 12, Duck-Exp 80, Dodge-Rng 80, Evade-ClsC 80, Mult. Melee 12, Multi Ranged 12
+
+Bio Shielding|1|sl|211666|10|Keep, Eng, Enf, Adv|Shield 2, AC 40
+Bio Shielding|2|sl|211667|20|Keep, Eng, Enf, Adv|Shield 2, AC 32
+Bio Shielding|3|sl|211668|40|Keep, Eng, Enf, Adv|Shield 5, AC 68
+Bio Shielding|4|sl|211669|60|Keep, Eng, Enf, Adv|Shield 6, AC 70
+Bio Shielding|5|sl|211670|80|Keep, Eng, Enf, Adv|Shield 6, AC 70
+Bio Shielding|6|sl|211671|100|Keep, Eng, Enf, Adv|Shield 6, AC 70
+Bio Shielding|7|sl|211672|130|Keep, Eng, Enf, Adv|Shield 11, AC 108
+Bio Shielding|8|sl|211673|160|Keep, Eng, Enf, Adv|Shield 11, AC 109
+Bio Shielding|9|sl|211674|190|Keep, Eng, Enf, Adv|Shield 11, AC 110, Reflect 1
+Bio Shielding|10|sl|211675|201|Keep, Eng, Enf, Adv|Shield 20, AC 213, Reflect 2
+
+Counterweight|1|ai|252403|15|Eng, Shade, Enf, Adv|Multi Ranged 10, Mult. Melee 10
+Counterweight|2|ai|252404|25|Eng, Shade, Enf, Adv|Multi Ranged 10, Mult. Melee 10
+Counterweight|3|ai|252405|55|Eng, Shade, Enf, Adv|Multi Ranged 20, Mult. Melee 20
+Counterweight|4|ai|252406|85|Shade, Enf, Adv|Multi Ranged 20, Mult. Melee 20
+Counterweight|5|ai|252407|105|Shade, Enf, Adv|Multi Ranged 20, Mult. Melee 20
+Counterweight|6|ai|252408|125|Shade, Enf, Adv|Multi Ranged 20, Mult. Melee 20
+
+Edged Mastery|1|sl|211660|20|Adv, Enf|1h Edged 10, Fast Attack 2
+Edged Mastery|2|sl|211661|50|Adv, Enf|1h Edged 10, Fast Attack 2
+Edged Mastery|3|sl|211662|70|Adv, Enf|1h Edged 11, Fast Attack 3
+Edged Mastery|4|sl|211663|100|Adv, Enf|1h Edged 12, Fast Attack 3
+Edged Mastery|5|sl|211664|130|Adv, Enf|1h Edged 13, Fast Attack 4
+Edged Mastery|6|sl|211665|160|Adv, Enf|1h Edged 15, Fast Attack 4
+Edged Mastery|7|sl|212173|180|Enf, Adv|1h Edged 16, Fast Attack 5
+Edged Mastery|8|sl|212174|201|Enf, Adv|1h Edged 22, Fast Attack 7
+Edged Mastery|9|sl|212175|204|Enf, Adv|1h Edged 28, Fast Attack 8
+Edged Mastery|10|sl|212176|209|Enf, Adv|1h Edged 43, Fast Attack 12
+
+Mountaineer|2|sl|211926|50|Adv, Agent, Enf, Fix, Keep, Sol|STR 4, STA 4, Adventuring 12, Max Health 15
+Mountaineer|2|sl|211927|110|Adv, Agent, Enf, Fix, Keep, Sol|STR 6, STA 6, Adventuring 13, Max Health 20
+Mountaineer|3|sl|211928|190|Adv, Agent, Enf, Fix, Keep, Sol|STR 7, STA 7, Adventuring 15, Max Health 35
+Mountaineer|4|sl|211929|202|Adv, Agent, Enf, Fix, Keep, Sol|STR 8, STA 8, Adventuring 19, Max Health 50
+Mountaineer|5|sl|211930|207|Adv, Agent, Enf, Fix, Keep, Sol|STR 10, STA 10, Adventuring 31, Max Health 95
+
+Pistol Mastery|1|sl|211977|10|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 2
+Pistol Mastery|2|sl|211978|30|Adv, Crat, Doc, Engi, MP|Pistol 10, Fling shot 1, Add. Dmg. 3
+Pistol Mastery|3|sl|211979|60|Adv, Crat, Doc, Engi, MP|Pistol 12, Fling shot 1, Add. Dmg. 3
+Pistol Mastery|4|sl|211980|90|Adv, Crat, Doc, Engi, MP|Pistol 13, Fling shot 1, Add. Dmg. 4
+Pistol Mastery|5|sl|211981|120|Adv, Crat, Doc, Engi, MP|Pistol 14, Fling shot 2, Add. Dmg. 4
+Pistol Mastery|6|sl|211982|150|Adv, Crat, Doc, Engi, MP|Pistol 16, Fling shot 2, Add. Dmg. 5
+Pistol Mastery|7|sl|211983|180|Adv, Crat, Doc, Engi, MP|Pistol 18, Fling shot 2, Add. Dmg. 5
+Pistol Mastery|8|sl|211984|201|Adv, Crat, Doc, Engi, MP|Pistol 22, Fling shot 3, Add. Dmg. 7
+Pistol Mastery|9|sl|211985|203|Adv, Crat, Doc, Engi, MP|Pistol 30, Fling shot 3, Add. Dmg. 9
+Pistol Mastery|10|sl|211986|205|Adv, Crat, Doc, Engi, MP|Pistol 55, Fling shot 4, Add. Dmg. 18
+
+Spatial Displacement|1|sl|212123|70|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|2|sl|212124|90|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|3|sl|212125|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|4|sl|212126|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|5|sl|212127|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|6|sl|212128|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|7|sl|212129|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|8|sl|212130|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|9|sl|212131|130|Shade, Keep, MA, Fix, Adv|
+Spatial Displacement|10|sl|212132|130|Shade, Keep, MA, Fix, Adv|
+
+Nano Doctorate|1|sl|211931|50|Agent, Crat, Doc, MP, NT, Tra|BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
+Nano Doctorate|2|sl|211932|80|Agent, Crat, Doc, MP, NT, Tra|BM 6, MC 6, MM 6, PM 6, SI 6, TS 6
+Nano Doctorate|3|sl|211933|120|Agent, Crat, Doc, MP, NT, Tra|BM 7, MC 7, MM 7, PM 7, SI 7, TS 7
+Nano Doctorate|4|sl|211934|160|Agent, Crat, Doc, MP, NT, Tra|BM 8, MC 8, MM 8, PM 8, SI 8, TS 8
+Nano Doctorate|5|sl|211935|200|Agent, Crat, Doc, MP, NT, Tra|BM 9, MC 9, MM 9, PM 9, SI 9, TS 9
+Nano Doctorate|6|sl|211936|202|Agent, Crat, Doc, MP, NT, Tra|BM 10, MC 10, MM 10, PM 10, SI 10, TS 10
+Nano Doctorate|7|sl|211937|205|Agent, Crat, Doc, MP, NT, Tra|BM 11, MC 11, MM 11, PM 11, SI 11, TS 11
+Nano Doctorate|8|sl|211938|210|Crat, Doc, MP, NT|BM 12, MC 12, MM 12, PM 12, SI 12, TS 12
+Nano Doctorate|9|sl|211939|213|Crat, Doc, MP, NT|BM 13, MC 13, MM 13, PM 13, SI 13, TS 13
+Nano Doctorate|10|sl|211940|216|Crat, Doc, MP, NT|BM 19, MC 19, MM 19, PM 19, SI 19, TS 19
+
+Power Up|1|sl|211987|10|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 2
+Power Up|2|sl|211987|40|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 10, Add. Dmg. 3
+Power Up|3|sl|211987|70|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 12, Add. Dmg. 3
+Power Up|4|sl|211987|100|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 13, Add. Dmg. 3
+Power Up|5|sl|211987|130|Agent, Doc, Engi, Fix, Sol, Tra|Ranged Energy 14, Add. Dmg. 3
+Power Up|6|sl|211987|150|Doc, Engi, Sol|Ranged Energy 16, Add. Dmg. 4
+Power Up|7|sl|211987|180|Doc, Engi, Sol|Ranged Energy 18, Add. Dmg. 4
+Power Up|8|sl|211987|201|Doc, Engi, Sol|Ranged Energy 22, Add. Dmg. 6
+Power Up|9|sl|211987|203|Sol|Ranged Energy 30, Add. Dmg. 8
+Power Up|10|sl|211987|205|Sol|Ranged Energy 55, Add. Dmg. 14
+
+Ranger|1|ai|252356|25|MP, Agent, MA|Bow 10, Bow Spc Att 5, Aimed Shot 5
+Ranger|2|ai|252357|25|MP, Agent, MA|Bow 10, Bow Spc Att 5, Aimed Shot 5
+Ranger|3|ai|252358|25|MP, Agent, MA|Bow 12, Bow Spc Att 6, Aimed Shot 6
+Ranger|4|ai|252359|25|MP, Agent, MA|Bow 13, Bow Spc Att 7, Aimed Shot 7
+Ranger|5|ai|252360|25|MP, Agent, MA|Bow 14, Bow Spc Att 7, Aimed Shot 7
+Ranger|6|ai|252361|25|MP, Agent, MA|Bow 16, Bow Spc Att 8, Aimed Shot 8
+Ranger|7|ai|254415|85|MP, Agent, MA|Bow 18, Bow Spc Att 9, Aimed Shot 9
+Ranger|8|ai|254416|85|MP, Agent, MA|Bow 22, Bow Spc Att 11, Aimed Shot 11
+Ranger|9|ai|254417|85|MP, Agent, MA|Bow 30, Bow Spc Att 15, Aimed Shot 15
+Ranger|10|ai|254418|195|MP, Agent, MA|Bow 55, Bow Spc Att 28, Aimed Shot 28
+
+Rifle Mastery|1|sl|211891|10|Sold, Agent|Rifle 6, Fling Shot 1, Max Health 10
+Rifle Mastery|2|sl|211892|40|Sold, Agent|Rifle 7, Fling Shot 1, Max Health 19
+Rifle Mastery|3|sl|211893|60|Sold, Agent|Rifle 8, Fling Shot 1, Max Health 23
+Rifle Mastery|4|sl|211894|90|Sold, Agent|Rifle 9, Fling Shot 1, Max Health 27
+Rifle Mastery|5|sl|211895|120|Sold, Agent|Rifle 10, Fling Shot 2, Max Health 32
+Rifle Mastery|6|sl|211896|140|Sold, Agent|Rifle 11, Fling Shot 2, Max Health 36
+Rifle Mastery|7|sl|211897|160|Sold, Agent|Rifle 12, Fling Shot 2, Max Health 44
+Rifle Mastery|8|sl|216627|190|Sold, Agent|Rifle 14, Fling Shot 2, Max Health 53
+Rifle Mastery|9|sl|216628|201|Sold, Agent|Rifle 18, Fling Shot 3, Max Health 62
+Rifle Mastery|10|sl|216629|204|Sold, Agent|Rifle 25, Fling Shot 5, Max Health 94
+
+The Unknown Factor|1|ai|252463|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|2|ai|252464|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|3|ai|252465|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|4|ai|252466|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|5|ai|252467|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|6|ai|252468|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|7|ai|252469|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+The Unknown Factor|8|ai|252470|25|MP, NT, Doc, Agent, Trad, Fix, Eng|Pharma Tech 20, Nano Progra 20, Psychology 20, Chemistry 20
+
+Careful in Battle|1|sl|211738|40|Fix, Crat, MA, Shade|AAD 20, Critical Decrease 2
+Careful in Battle|2|sl|211739|70|Fix, Crat, MA, Shade|AAD 20, Critical Decrease 2
+Careful in Battle|3|sl|211740|100|Fix, Crat, MA, Shade|AAD 22, Critical Decrease 3
+Careful in Battle|4|sl|211741|130|Fix, Crat, MA, Shade|AAD 23, Critical Decrease 3
+Careful in Battle|5|sl|211742|160|Fix, Crat, MA, Shade|AAD 24, Critical Decrease 4
+Careful in Battle|6|sl|211743|200|Fix, Crat, MA, Shade|AAD 26, Critical Decrease 7
+Careful in Battle|7|sl|211744|205|Fix, Crat, MA, Shade|AAD 28, Critical Decrease 9
+Careful in Battle|8|sl|211745|207|Fix, Crat, MA, Shade|AAD 32, Critical Decrease 12
+Careful in Battle|9|sl|211746|212|Fix, Crat, MA, Shade|AAD 40, Critical Decrease 15
+Careful in Battle|10|sl|211747|219|Fix, Crat, MA, Shade|AAD 65, Critical Decrease 23
+
+Starfall|1|sl|212107|20|Crat, Doc, MP, NT|Max Health 5, Max Nano 10
+Starfall|2|sl|212108|50|Crat, Doc, MP, NT|Max Health 8, Max Nano 15
+Starfall|3|sl|212109|90|Crat, Doc, MP, NT|Max Health 10, Max Nano 20
+Starfall|4|sl|212110|120|Crat, Doc, MP, NT|Max Health 13, Max Nano 25, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
+Starfall|5|sl|212111|150|Crat, Doc, MP, NT|Max Health 14, Max Nano 30, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
+Starfall|6|sl|212112|190|Crat, Doc, MP, NT|Max Health 17, Max Nano 35, BM 1, MC 1, MM 1, PM 1, SI 1, TS 1
+Starfall|7|sl|212113|202|Crat, Doc, MP, NT|Max Health 18, Max Nano 40, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
+Starfall|8|sl|212114|205|Crat, Doc, MP, NT|Max Health 20, Max Nano 45, BM 2, MC 2, MM 2, PM 2, SI 2, TS 2
+Starfall|9|sl|212115|210|Crat, Doc, MP, NT|Max Health 22, Max Nano 70, BM 3, MC 3, MM 3, PM 3, SI 3, TS 3
+Starfall|10|sl|212116|214|Crat, Doc, MP, NT|Max Health 33, Max Nano 110, BM 5, MC 5, MM 5, PM 5, SI 5, TS 5
+
+Alchemist|1|sl|211676|20|Doc, Engi, Tra|Chemistry 15, Pharma Tech 15
+Alchemist|2|sl|211676|40|Doc, Engi, Tra|Chemistry 20, Pharma Tech 20
+Alchemist|3|sl|211676|70|Doc, Engi, Tra|Chemistry 25, Pharma Tech 25
+Alchemist|4|sl|211676|100|Doc, Engi, Tra|Chemistry 30, Pharma Tech 30
+Alchemist|5|sl|211676|130|Doc, Engi, Tra|Chemistry 40, Pharma Tech 40
+Alchemist|6|sl|211676|160|Doc, Engi, Tra|Chemistry 70, Pharma Tech 70
+
+Blunt Mastery|1|sl|211712|10|Enf, MP|1h Blunt 10
+Blunt Mastery|2|sl|211713|30|Enf, MP|1h Blunt 10
+Blunt Mastery|3|sl|211714|50|Enf, MP|1h Blunt 12
+Blunt Mastery|4|sl|211715|80|Enf, MP|1h Blunt 13
+Blunt Mastery|5|sl|211716|110|Enf, MP|1h Blunt 14
+Blunt Mastery|6|sl|211717|140|Enf, MP|1h Blunt 16
+Blunt Mastery|7|sl|211718|170|Enf, MP|1h Blunt 18
+Blunt Mastery|8|sl|211719|200|Enf, MP|1h Blunt 22
+Blunt Mastery|9|sl|211720|201|Enf, MP|1h Blunt 30
+Blunt Mastery|10|sl|211721|203|Enf, MP|1h Blunt 55
+
+Brawler|1|sl|211722|30|Enf, MA|Brawl 15, Add. Dmg. 5
+Brawler|2|sl|211724|70|Enf, MA|Brawl 20, Add. Dmg. 5
+Brawler|3|sl|211725|120|Enf, MA|Brawl 25, Add. Dmg. 6
+Brawler|4|sl|211726|190|Enf, MA|Brawl 30, Add. Dmg. 8
+Brawler|5|sl|211727|201|Enf, MA|Brawl 45, Add. Dmg. 10
+Brawler|6|sl|211728|205|Enf, MA|Brawl 65, Add. Dmg. 16
+
+Colossal Health|1|sl|211763|10|Enf, Sol|Max Health 50
+Colossal Health|2|sl|211764|30|Enf, Sol|Max Health 85
+Colossal Health|3|sl|211765|60|Enf, Sol|Max Health 115
+Colossal Health|4|sl|211766|90|Enf, Sol|Max Health 150
+Colossal Health|5|sl|211767|130|Enf, Sol|Max Health 210
+Colossal Health|6|sl|211768|150|Enf, Sol|Max Health 290
+Colossal Health|7|sl|211769|190|Enf, Sol|Max Health 370
+Colossal Health|8|sl|211770|201|Enf, Sol|Max Health 480
+Colossal Health|9|sl|211771|202|Enf, Sol|Max Health 590
+Colossal Health|10|sl|211772|206|Enf, Sol|Max Health 840
+
+Notum Source|1|sl|211947|20|MP, NT|Intelligence 1, Psychic 1, NanoDelta 3, Max Nano 40
+Notum Source|2|sl|211948|50|MP, NT|Intelligence 1, Psychic 1, NanoDelta 3, Max Nano 50
+Notum Source|3|sl|211949|80|MP, NT|Intelligence 1, Psychic 1, NanoDelta 3, Max Nano 60
+Notum Source|4|sl|211950|110|MP, NT|Intelligence 1, Psychic 1, NanoDelta 3, Max Nano 70
+Notum Source|5|sl|211951|140|MP, NT|Intelligence 1, Psychic 1, NanoDelta 4, Max Nano 80
+Notum Source|6|sl|211952|180|MP, NT|Intelligence 1, Psychic 1, NanoDelta 5, Max Nano 95
+Notum Source|7|sl|211953|201|MP, NT|Intelligence 1, Psychic 1, NanoDelta 6, Max Nano 100
+Notum Source|8|sl|211954|203|MP, NT|Intelligence 2, Psychic 2, NanoDelta 10, Max Nano 120
+Notum Source|9|sl|211955|207|MP, NT|Intelligence 2, Psychic 2, NanoDelta 19, Max Nano 150
+Notum Source|10|sl|211956|210|MP, NT|Intelligence 4, Psychic 4, NanoDelta 30, Max Nano 235
+
+Illogical Patterns|1|ai|252448|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|2|ai|252449|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|3|ai|252450|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|4|ai|252451|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|5|ai|252452|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|6|ai|252453|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|7|ai|252454|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+Illogical Patterns|8|ai|252455|25|Trad, Fix, Eng|Mech. Engi, Elec. Engi, QFT 20, Tutoring 20, Weapon Smt 20
+
+Shotgun Mastery|1|sl|216635|10|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 2, Add. Nano Dam. 2
+Shotgun Mastery|2|sl|216636|30|Engi, Sol, Tra|Shotgun 10, Add. Dmg. 3, Add. Nano Dam. 3
+Shotgun Mastery|3|sl|216637|60|Engi, Sol, Tra|Shotgun 12, Add. Dmg. 3, Add. Nano Dam. 3
+Shotgun Mastery|4|sl|216638|90|Engi, Sol, Tra|Shotgun 13, Add. Dmg. 4, Add. Nano Dam. 4
+Shotgun Mastery|5|sl|216639|120|Engi, Sol, Tra|Shotgun 14, Add. Dmg. 4, Add. Nano Dam. 4
+Shotgun Mastery|6|sl|216640|140|Engi, Sol, Tra|Shotgun 16, Add. Dmg. 5, Add. Nano Dam. 5
+Shotgun Mastery|7|sl|216641|160|Engi, Sol, Tra|Shotgun 18, Add. Dmg. 6, Add. Nano Dam. 6
+Shotgun Mastery|8|sl|216642|180|Engi, Sol, Tra|Shotgun 22, Add. Dmg. 9, Add. Nano Dam. 9
+Shotgun Mastery|9|sl|216643|200|Engi, Sol, Tra|Shotgun 30, Add. Dmg. 14, Add. Nano Dam. 14
+Shotgun Mastery|10|sl|216644|202|Engi, Sol, Tra|Shotgun 55, Add. Dmg. 30, Add. Nano Dam. 30
+
+Tinkerer|1|sl|212093|60|Engi, Tra|Electrical engineering 10, QFT 10, Mechanical engineering 10
+Tinkerer|2|sl|212094|120|Engi, Tra|Electrical engineering 12, QFT 12, Mechanical engineering 12
+Tinkerer|3|sl|212095|180|Engi, Tra|Electrical engineering 16, QFT 16, Mechanical engineering 16
+Tinkerer|4|sl|212096|200|Engi, Tra|Electrical engineering 27, QFT 27, Mechanical engineering 27
+
+SMG Mastery|1|sl|212019|20|Fix, Sol|Smg 10, Burst 1
+SMG Mastery|2|sl|212020|40|Fix, Sol|Smg 10, Burst 1
+SMG Mastery|3|sl|212021|60|Fix, Sol|Smg 12, Burst 1
+SMG Mastery|4|sl|212022|80|Fix, Sol|Smg 13, Burst 1
+SMG Mastery|5|sl|212023|100|Fix, Sol|Smg 14, Burst 2
+SMG Mastery|6|sl|212024|130|Fix, Sol|Smg 16, Burst 2
+SMG Mastery|7|sl|212025|160|Fix, Sol|Smg 18, Burst 2
+SMG Mastery|8|sl|212026|190|Fix, Sol|Smg 22, Burst 3
+SMG Mastery|9|sl|212027|201|Fix, Sol|Smg 30, Burst 3
+SMG Mastery|10|sl|212028|203|Fix, Sol|Smg 55, Burst 4
+
+Theoretical Research|1|sl|212079|40|MP, NT|Nano progra 10, Max Nano 25
+Theoretical Research|2|sl|212080|70|MP, NT|Nano progra 10, Max Nano 40
+Theoretical Research|3|sl|212081|110|MP, NT|Nano progra 12, Max Nano 65
+Theoretical Research|4|sl|212082|140|MP, NT|Nano progra 13, Max Nano 75
+Theoretical Research|5|sl|212083|180|MP, NT|Nano progra 14, Max Nano 90
+Theoretical Research|6|sl|212084|201|MP, NT|Nano progra 16, Max Nano 110
+Theoretical Research|7|sl|212085|203|MP, NT|Nano progra 18, Max Nano 130
+Theoretical Research|8|sl|212086|205|MP, NT|Nano progra 22, Max Nano 145
+Theoretical Research|9|sl|212087|208|MP, NT|Nano progra 30, Max Nano 160
+Theoretical Research|10|sl|212088|209|MP, NT|Nano progra 55, Max Nano 260
+
+Reaver|1|sl|225946|20|Keep, Enf|2h Edged 10
+Reaver|2|sl|225947|50|Keep, Enf|2h Edged 10
+Reaver|3|sl|225948|70|Keep, Enf|2h Edged 11
+Reaver|4|sl|225949|100|Keep, Enf|2h Edged 12
+Reaver|5|sl|225950|130|Keep, Enf|2h Edged 13
+Reaver|6|sl|225951|160|Keep, Enf|2h Edged 15
+Reaver|7|sl|225952|180|Keep, Enf|2h Edged 16
+Reaver|8|sl|225953|201|Keep, Enf|2h Edged 22
+Reaver|9|sl|225954|204|Keep, Enf|2h Edged 28
+Reaver|10|sl|225955|209|Keep, Enf|2h Edged 43

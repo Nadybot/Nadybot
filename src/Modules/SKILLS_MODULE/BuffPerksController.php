@@ -5,7 +5,8 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
-	Text,
+    LoggerWrapper,
+    Text,
 	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	SettingManager,
@@ -54,6 +55,9 @@ class BuffPerksController {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	/** @Setup */
 	public function setup(): void {
 		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
@@ -65,7 +69,7 @@ class BuffPerksController {
 		}
 		if ( ($mtime === false || $dbVersion >= $mtime)
 			&& preg_match("/database already up to date/", $msg)) {
-			// return;
+			return;
 		}
 
 		$perkInfo = $this->getPerkInfo();
@@ -158,9 +162,11 @@ class BuffPerksController {
 		}
 
 		$sql = "SELECT p.name AS `perk_name`, ".
-				"MAX(pl.perk_level) AS `max_perk_level`, ".
-				"SUM(plb.amount) AS `buff_amount`, ".
-				"s.name AS `skill` ".
+				"MAX(pl.`perk_level`) AS `max_perk_level`, ".
+				"SUM(plb.`amount`) AS `buff_amount`, ".
+				"p.`expansion` AS `expansion`, ".
+				"s.name AS `skill`, ".
+				"s.unit AS `unit` ".
 			"FROM ".
 				"perk_level_prof plp ".
 				"JOIN perk_level pl ON plp.perk_level_id = pl.id ".
@@ -186,17 +192,107 @@ class BuffPerksController {
 		}
 		$currentPerk = '';
 		$blob = '';
+		$totalBuffSL = 0;
+		$totalBuffUnit = 0;
+		$totalBuffAI = 0;
 		foreach ($data as $row) {
 			if ($row->perk_name !== $currentPerk) {
-				$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}<end>\n";
+				$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}".
+					($row->expansion === "ai" ? " (<green>AI<end>)" : "").
+					"<end>\n";
 				$currentPerk = $row->perk_name;
 			}
 
-			$blob .= "<tab>$row->skill <highlight>$row->buff_amount<end>\n";
+			$blob .= sprintf(
+				"<tab>%s <highlight>%+d%s<end>\n",
+				$row->skill,
+				$row->buff_amount,
+				$row->unit
+			);
+			if ($search !== null) {
+				$totalBuffUnit = $row->unit;
+				if ($row->expansion === "ai") {
+					$totalBuffAI += $row->buff_amount;
+				} else {
+					$totalBuffSL += $row->buff_amount;
+				}
+			}
+		}
+		if ($search !== null) {
+			$blob .= sprintf(
+				"\n<header2>Total Buff<end>\n<tab>%s: <%s>%+d%s<end>",
+				$skills[0]->name,
+				$totalBuffAI > 0 ? "green" : "highlight",
+				$totalBuffAI + $totalBuffSL,
+				$totalBuffUnit
+			);
+			if ($totalBuffAI > 0) {
+				$blob .= sprintf(
+					" (<highlight>%+d%s<end>)",
+					$totalBuffSL,
+					$totalBuffUnit
+				);
+			}
 		}
 
 		$msg = $this->text->makeBlob("Buff Perks for $minLevel $profession", $blob);
 		$sendto->reply($msg);
+	}
+
+	/**
+	 * Expand a skill name into a list of skills, supporting aliases like AC, Reflect, etc.
+	 *
+	 * @return string[]
+	 */
+	protected function expandSkill(string $skill): array {
+		if ($skill === "Add. Dmg.") {
+			return [
+				"Add. Cold Dam.",
+				"Add. Chem Dam.",
+				"Add. Energy Dam.",
+				"Add. Fire Dam.",
+				"Add. Melee Dam.",
+				"Add. Poison Dam.",
+				"Add. Rad. Dam.",
+				"Add. Proj. Dam."
+			];
+		} elseif ($skill === "AC") {
+			return [
+				"Melee/ma AC",
+				"Disease AC",
+				"Fire AC",
+				"Cold AC",
+				"Imp/Proj AC",
+				"Energy AC",
+				"Chemical AC",
+				"Radiation AC"
+			];
+		} elseif ($skill === "Shield") {
+			return [
+				"ShieldProjectileAC",
+				"ShieldMeleeAC",
+				"ShieldEnergyAC",
+				"ShieldChemicalAC",
+				"ShieldRadiationAC",
+				"ShieldColdAC",
+				"ShieldNanoAC",
+				"ShieldFireAC",
+				"ShieldPoisonAC",
+			];
+		} elseif ($skill === "Reflect") {
+			return [
+				"ReflectProjectileAC",
+				"ReflectMeleeAC",
+				"ReflectEnergyAC",
+				"ReflectChemicalAC",
+				"ReflectRadiationAC",
+				"ReflectColdAC",
+				"ReflectNanoAC",
+				"ReflectFireAC",
+				"ReflectPoisonAC",
+			];
+		}
+		return [$skill];
 	}
 
 	/**
@@ -219,7 +315,8 @@ class BuffPerksController {
 			if (count($parts) === 7) {
 				[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
 			} else {
-				[$name, $perkLevel, $requiredLevel, $profs, $buffs] = $parts;
+				$this->logger->log("ERROR", "Illegal perk entry: {$line}");
+				continue;
 			}
 			if ($profs === '*') {
 				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
@@ -259,24 +356,11 @@ class BuffPerksController {
 
 				$skill = trim(substr($buff, 0, $pos + 1));
 				$amount = trim(substr($buff, $pos + 1));
-				if ($skill === "Add. Dmg.") {
-					$skill = [
-						"Add. Cold Dam.",
-						"Add. Chem Dam.",
-						"Add. Energy Dam.",
-						"Add. Fire Dam.",
-						"Add. Melee Dam.",
-						"Add. Poison Dam.",
-						"Add. Rad. Dam.",
-						"Add. Proj. Dam."
-					];
-				} else {
-					$skill = [$skill];
-				}
-				foreach ($skill as $search) {
-					$skillSearch = $this->whatBuffsController->searchForSkill($search);
+				$skills = $this->expandSkill($skill);
+				foreach ($skills as $skill) {
+					$skillSearch = $this->whatBuffsController->searchForSkill($skill);
 					if (count($skillSearch) !== 1) {
-						echo "Error parsing skill: '{$search}'\n";
+						echo "Error parsing skill: '{$skill}'\n";
 					} else {
 						$level->buffs[$skillSearch[0]->id] = (int)$amount;
 					}

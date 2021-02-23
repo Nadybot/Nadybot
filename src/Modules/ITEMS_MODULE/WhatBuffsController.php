@@ -114,7 +114,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk)$/i")
 	 */
 	public function whatbuffs2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = ucfirst(strtolower($args[1]));
@@ -123,7 +123,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	  @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
 	 */
 	public function whatbuffsfroob2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = ucfirst(strtolower($args[1]));
@@ -143,6 +143,17 @@ class WhatBuffsController {
 				"JOIN skills s ON ib.attribute_id = s.id ".
 				"WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
 				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
+				"GROUP BY skill ".
+				"HAVING num > 0 ".
+				"ORDER BY skill ASC";
+			$data = $this->db->query($sql);
+		} elseif ($type === 'Perk') {
+			$sql = "SELECT s.name AS skill, COUNT(DISTINCT p.name) AS num ".
+				"FROM perk p ".
+				"JOIN perk_level pl ON (p.id = pl.perk_id) ".
+				"JOIN perk_level_buffs plb ON (pl.id = plb.perk_level_id) ".
+				"JOIN skills s ON (plb.skill_id = s.id) ".
+				"WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR plb.amount > 0) ".
 				"GROUP BY skill ".
 				"HAVING num > 0 ".
 				"ORDER BY skill ASC";
@@ -173,7 +184,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower) ((?!smt).+)$/i")
+	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk) ((?!smt).+)$/i")
 	 */
 	public function whatbuffs3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$type = $args[1];
@@ -205,7 +216,7 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	 * @Matches("/^whatbuffs (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk)$/i")
 	 */
 	public function whatbuffs4Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$skill = $args[1];
@@ -295,10 +306,20 @@ class WhatBuffsController {
 			"JOIN skills s ON ib.attribute_id = s.id ".
 			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
 			($froobFriendly ? " AND b.froob_friendly IS TRUE " : "").
+
+			"UNION ALL ".
+
+			"SELECT 'Perk' AS item_type ".
+			"FROM perk_level_buffs plb ".
+			"JOIN perk_level pl ON (plb.perk_Level_id = pl.id) ".
+			"JOIN perk p ON (p.id = pl.perk_id) ".
+			"JOIN skills s ON plb.skill_id = s.id ".
+			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR plb.amount > 0) ".
+			"GROUP BY p.name".
 		") AS FOO ".
 		"GROUP BY item_type ".
 		"ORDER BY item_type ASC";
-		$data = $this->db->query($sql, $skillId, $skillId);
+		$data = $this->db->query($sql, $skillId, $skillId, $skillId);
 		if (count($data) === 0) {
 			$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
 			$sendto->reply($msg);
@@ -321,7 +342,7 @@ class WhatBuffsController {
 		$suffix = $froobFriendly ? "Froob" : "";
 		if ($category === 'Nanoprogram') {
 			$sql = "SELECT b.*, ib.amount, a.lowid, a.highid, ".
-					"a.lowql,a.name AS use_name ".
+					"a.lowql,a.name AS use_name, s.unit ".
 				"FROM buffs b ".
 				"JOIN item_buffs ib ON b.id = ib.item_id ".
 				"JOIN skills s ON ib.attribute_id = s.id ".
@@ -338,12 +359,49 @@ class WhatBuffsController {
 					"'Payment Plan' ".
 				") ".
 				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
-				"ORDER BY ABS(ib.amount) DESC, b.name ASC";
+				"ORDER BY ib.amount DESC, b.name ASC";
 			/** @var NanoBuffSearchResult[] */
 			$data = $this->db->fetchAll(NanoBuffSearchResult::class, $sql, $skill->id);
+			if (count($data) && $data[count($data) -1]->amount < 0) {
+				$data = array_reverse($data);
+			}
 			$result = $this->formatBuffs($data);
+		} elseif ($category === 'Perk') {
+			$sql = "SELECT p.name,p.expansion,pl.perk_level AS perk_level, ".
+				"MIN(plb.amount) AS amount, GROUP_CONCAT(plp.profession) AS profs, ".
+				"s.unit AS unit ".
+				"FROM perk p ".
+				"JOIN perk_level pl ON (pl.perk_id=p.id) ".
+				"JOIN perk_level_prof plp ON (plp.perk_level_id=pl.id) ".
+				"JOIN perk_level_buffs plb ON (plb.perk_level_id=pl.id) ".
+				"JOIN skills s ON plb.skill_id = s.id ".
+				"WHERE s.id = ? ".
+				"AND (".
+					"s.name IN ('SkillLockModifier', '% Add. Nano Cost') ".
+					"OR plb.amount > 0 ".
+				") ".
+				"GROUP BY p.name, pl.perk_level ORDER BY p.name ASC, pl.perk_level ASC, plp.profession ASC";
+			/** @var PerkBuffSearchResult[] */
+			$data = $this->db->fetchAll(PerkBuffSearchResult::class, $sql, $skill->id);
+			/** @var array<string,PerkBuffSearchResult> */
+			$result = [];
+			foreach ($data as $perk) {
+				if (!isset($result[$perk->name])) {
+					$result[$perk->name] = $perk;
+				} else {
+					$result[$perk->name]->amount += $perk->amount;
+				}
+			}
+			$data = array_values($result);
+			usort(
+				$data,
+				function(PerkBuffSearchResult $p1, PerkBuffSearchResult $p2): int {
+					return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name, $p2->name);
+				}
+			);
+			$result = $this->formatPerkBuffs($data);
 		} else {
-			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r ".
+			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r, s.unit ".
 				"FROM aodb a ".
 				"JOIN item_types i ON a.highid = i.item_id ".
 				"JOIN item_buffs b ON a.highid = b.item_id ".
@@ -357,6 +415,9 @@ class WhatBuffsController {
 				"ORDER BY ABS(b.amount) DESC, name DESC";
 			/** @var ItemBuffSearchResult[] */
 			$data = $this->db->fetchAll(ItemBuffSearchResult::class, $sql, $category, $skill->id);
+			if (count($data) && $data[count($data) -1]->amount < 0) {
+				$data = array_reverse($data);
+			}
 			$result = $this->formatItems($data, $skill);
 		}
 
@@ -377,7 +438,7 @@ class WhatBuffsController {
 		return $this->db->queryRow(
 			"SELECT 1 FROM item_types WHERE item_type = ? LIMIT 1",
 			ucfirst(strtolower($type))
-		) !== null;
+		) !== null || strtolower($type) === 'perk';
 	}
 
 	/**
@@ -474,7 +535,7 @@ class WhatBuffsController {
 			}
 			$sign = ($item->amount > 0) ? '+' : '-';
 			$prefix = $sign.$this->text->alignNumber(abs($item->amount), $maxDigits, 'highlight');
-			$blob .= $prefix . "  ";
+			$blob .= $prefix . $item->unit . "  ";
 			if ($item->multi_m !== null || $item->multi_r !== null) {
 				$blob .= "2x ";
 			}
@@ -534,6 +595,39 @@ class WhatBuffsController {
 	}
 
 	/**
+	 * @param PerkBuffSearchResult[] $perks
+	 * @return (int|string)[]
+	 */
+	public function formatPerkBuffs(array $perks) {
+		$blob = '';
+		$maxBuff = 0;
+		foreach ($perks as $perk) {
+			$maxBuff = max($maxBuff, abs($perk->amount));
+		}
+		$maxDigits = strlen((string)$maxBuff);
+		foreach ($perks as $perk) {
+			if (substr_count($perk->profs, ",") < 13) {
+				$perk->profs = join(
+					", ",
+					array_map(
+						[$this->util, "getProfessionAbbreviation"],
+						explode(",", $perk->profs)
+					)
+				);
+			} else {
+				$perk->profs = "All";
+			}
+			$sign = ($perk->amount > 0) ? '+' : '-';
+			$color = $perk->expansion === "ai" ? "<green>" : "<highlight>";
+			$prefix = $sign.$this->text->alignNumber(abs($perk->amount), $maxDigits, 'highlight');
+			$blob .= $prefix . "{$perk->unit}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
+		}
+
+		$count = count($perks);
+		return [$count, $blob];
+	}
+
+	/**
 	 * @param NanoBuffSearchResult[] $items
 	 * @return (int|string)[]
 	 */
@@ -550,7 +644,7 @@ class WhatBuffsController {
 				$item->ncu = 0;
 			}
 			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
-			$blob .= $prefix . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
+			$blob .= $prefix . $item->unit . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
 			if (isset($item->low_ncu) && isset($item->low_amount)) {
 				$blob .= "($item->low_ncu NCU (<highlight>$item->low_amount<end>) - $item->ncu NCU (<highlight>$item->amount<end>))";
 			} else {
