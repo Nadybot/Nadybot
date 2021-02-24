@@ -567,9 +567,10 @@ class WhatBuffsController {
 		}
 		$maxDigits = strlen((string)$maxBuff);
 		foreach ($perks as $perk) {
+			$color = $perk->expansion === "ai" ? "<green>" : "<highlight>";
 			if (substr_count($perk->profs, ",") < 13) {
 				$perk->profs = join(
-					", ",
+					"<end>, {$color}",
 					array_map(
 						[$this->util, "getProfessionAbbreviation"],
 						explode(",", $perk->profs)
@@ -579,7 +580,6 @@ class WhatBuffsController {
 				$perk->profs = "All";
 			}
 			$sign = ($perk->amount > 0) ? '+' : '-';
-			$color = $perk->expansion === "ai" ? "<green>" : "<highlight>";
 			$prefix = "<tab>{$sign}" . $this->text->alignNumber(abs($perk->amount), $maxDigits, 'highlight');
 			$blob .= $prefix . "{$perk->unit}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
 		}
