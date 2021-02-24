@@ -95,7 +95,7 @@ class WhatBuffsController {
 	public function showSkillChoice(CommandReply $sendto, bool $froobFriendly): void {
 		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
 		$suffix = $froobFriendly ? "Froob" : "";
-		$blob = '';
+		$blob = "<header2>Choose a skill<end>\n";
 		/** @var Skill[] */
 		$skills = $this->db->fetchAll(
 			Skill::class,
@@ -105,7 +105,7 @@ class WhatBuffsController {
 			"ORDER BY name ASC"
 		);
 		foreach ($skills as $skill) {
-			$blob .= $this->text->makeChatcmd($skill->name, "/tell <myname> {$command} $skill->name") . "\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd($skill->name, "/tell <myname> {$command} $skill->name") . "\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
@@ -114,20 +114,30 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk)$/i")
+	 * @Matches("/^whatbuffs\s+([^ ]+)$/i")
 	 */
-	public function whatbuffs2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = ucfirst(strtolower($args[1]));
-		$this->showSkillsBuffingType($type, false, "whatbuffs", $sendto);
+	public function whatbuffsOneWordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$type = ucfirst(strtolower($this->resolveLocationAlias($args[1])));
+
+		if ($this->verifySlot($type)) {
+			$this->showSkillsBuffingType($type, false, "whatbuffs", $sendto);
+			return;
+		}
+		$this->handleOtherComandline(false, $sendto, $args);
 	}
 
 	/**
 	 * @HandlesCommand("whatbuffsfroob")
-	  @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
+	 * @Matches("/^whatbuffsfroob\s+([^ ]+)$/i")
 	 */
-	public function whatbuffsfroob2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = ucfirst(strtolower($args[1]));
-		$this->showSkillsBuffingType($type, true, "whatbuffsfroob", $sendto);
+	public function whatbuffsFroobOneWordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$type = ucfirst(strtolower($this->resolveLocationAlias($args[1])));
+
+		if ($this->verifySlot($type)) {
+			$this->showSkillsBuffingType($type, true, "whatbuffsfroob", $sendto);
+			return;
+		}
+		$this->handleOtherComandline(true, $sendto, $args);
 	}
 
 	public function showSkillsBuffingType(string $type, bool $froobFriendly, string $command, CommandReply $sendto): void {
@@ -172,77 +182,13 @@ class WhatBuffsController {
 				"ORDER BY skill ASC";
 			$data = $this->db->query($sql, $type);
 		}
-		$blob = '';
+		$blob = "<header2>Choose the skill to buff<end>\n";
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> {$command} $type $row->skill") . " ($row->num)\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> {$command} $type $row->skill") . " ($row->num)\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$suffix = $froobFriendly ? "Froob" : "";
 		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$type} - Choose Skill", $blob);
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk) ((?!smt).+)$/i")
-	 */
-	public function whatbuffs3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = $args[1];
-		$skill = $args[2];
-
-		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill, false);
-		} else {
-			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
-		}
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroobs? (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower) ((?!smt).+)$/i")
-	 */
-	public function whatbuffsfroob3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = $args[1];
-		$skill = $args[2];
-
-		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill, true);
-		} else {
-			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
-		}
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower|perk)$/i")
-	 */
-	public function whatbuffs4Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$skill = $args[1];
-		$type = $args[2];
-
-		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill, false);
-		} else {
-			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
-		}
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroobs? (.+) (arms|back|chest|deck|feet|fingers|hands|head|hud|legs|nanoprogram|neck|shoulders|unknown|util|weapon|wrists|use|contract|tower)$/i")
-	 */
-	public function whatbuffsfroob4Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$skill = $args[1];
-		$type = $args[2];
-
-		if ($this->verifySlot($type)) {
-			$msg = $this->showSearchResults($type, $skill, true);
-		} else {
-			$msg = "Could not find any items of type <highlight>$type<end> for skill <highlight>$skill<end>.";
-		}
 		$sendto->reply($msg);
 	}
 
@@ -263,6 +209,21 @@ class WhatBuffsController {
 	}
 
 	public function handleOtherComandline(bool $froobFriendly, CommandReply $sendto, array $args): void {
+		$tokens = explode(" ", $args[1]);
+		$firstType = ucfirst(strtolower($this->resolveLocationAlias($tokens[0])));
+		$lastType = ucfirst(strtolower($this->resolveLocationAlias($tokens[count($tokens) - 1])));
+
+		if ($this->verifySlot($firstType) && !preg_match("/^smt\.?$/i", $tokens[1]??"")) {
+			array_shift($tokens);
+			$msg = $this->showSearchResults($firstType, join(" ", $tokens), $froobFriendly);
+			$sendto->reply($msg);
+			return;
+		} elseif ($this->verifySlot($lastType)) {
+			array_pop($tokens);
+			$msg = $this->showSearchResults($lastType, join(" ", $tokens), $froobFriendly);
+			$sendto->reply($msg);
+			return;
+		}
 		$skill = $args[1];
 		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
 		$suffix = $froobFriendly ? "Froob" : "";
@@ -277,9 +238,9 @@ class WhatBuffsController {
 			return;
 		}
 		if ($count > 1) {
-			$blob .= "Choose a skill:\n\n";
+			$blob .= "<header2>Choose a skill<end>\n";
 			foreach ($data as $row) {
-				$blob .= $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> {$command} {$row->name}") . "\n";
+				$blob .= "<tab>" . $this->text->makeChatcmd(ucfirst($row->name), "/tell <myname> {$command} {$row->name}") . "\n";
 			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
 			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
@@ -325,9 +286,9 @@ class WhatBuffsController {
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = '';
+		$blob = "<header2>Choose buff type<end>\n";
 		foreach ($data as $row) {
-			$blob .= $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skillName}") . " ($row->num)\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skillName}") . " ($row->num)\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$skillName} - Choose Type", $blob);
@@ -365,7 +326,7 @@ class WhatBuffsController {
 			if (count($data) && $data[count($data) -1]->amount < 0) {
 				$data = array_reverse($data);
 			}
-			$result = $this->formatBuffs($data);
+			$result = $this->formatBuffs($data, $skill);
 		} elseif ($category === 'Perk') {
 			$sql = "SELECT p.name,p.expansion,pl.perk_level AS perk_level, ".
 				"MIN(plb.amount) AS amount, GROUP_CONCAT(plp.profession) AS profs, ".
@@ -399,7 +360,7 @@ class WhatBuffsController {
 					return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name, $p2->name);
 				}
 			);
-			$result = $this->formatPerkBuffs($data);
+			$result = $this->formatPerkBuffs($data, $skill);
 		} else {
 			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r, s.unit ".
 				"FROM aodb a ".
@@ -418,7 +379,7 @@ class WhatBuffsController {
 			if (count($data) && $data[count($data) -1]->amount < 0) {
 				$data = array_reverse($data);
 			}
-			$result = $this->formatItems($data, $skill);
+			$result = $this->formatItems($data, $skill, $category);
 		}
 
 		[$count, $blob] = $result;
@@ -485,8 +446,8 @@ class WhatBuffsController {
 	 * @param ItemBuffSearchResult[] $items The items that matched the search
 	 * @return (int|string)[]
 	 */
-	public function formatItems(array $items, Skill $skill) {
-		$blob = '';
+	public function formatItems(array $items, Skill $skill, string $category) {
+		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
@@ -534,7 +495,7 @@ class WhatBuffsController {
 				continue;
 			}
 			$sign = ($item->amount > 0) ? '+' : '-';
-			$prefix = $sign.$this->text->alignNumber(abs($item->amount), $maxDigits, 'highlight');
+			$prefix = "<tab>" . $sign.$this->text->alignNumber(abs($item->amount), $maxDigits, 'highlight');
 			$blob .= $prefix . $item->unit . "  ";
 			if ($item->multi_m !== null || $item->multi_r !== null) {
 				$blob .= "2x ";
@@ -598,8 +559,8 @@ class WhatBuffsController {
 	 * @param PerkBuffSearchResult[] $perks
 	 * @return (int|string)[]
 	 */
-	public function formatPerkBuffs(array $perks) {
-		$blob = '';
+	public function formatPerkBuffs(array $perks, Skill $skill) {
+		$blob = "<header2>Perks that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($perks as $perk) {
 			$maxBuff = max($maxBuff, abs($perk->amount));
@@ -619,7 +580,7 @@ class WhatBuffsController {
 			}
 			$sign = ($perk->amount > 0) ? '+' : '-';
 			$color = $perk->expansion === "ai" ? "<green>" : "<highlight>";
-			$prefix = $sign.$this->text->alignNumber(abs($perk->amount), $maxDigits, 'highlight');
+			$prefix = "<tab>{$sign}" . $this->text->alignNumber(abs($perk->amount), $maxDigits, 'highlight');
 			$blob .= $prefix . "{$perk->unit}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
 		}
 
@@ -631,8 +592,16 @@ class WhatBuffsController {
 	 * @param NanoBuffSearchResult[] $items
 	 * @return (int|string)[]
 	 */
-	public function formatBuffs(array $items) {
-		$blob = '';
+	public function formatBuffs(array $items, Skill $skill) {
+		$items = array_values(
+			array_filter(
+				$items,
+				function (NanoBuffSearchResult $nano): bool {
+					return !preg_match("/^Composite .+ Expertise \(\d hours\)$/", $nano->name);
+				}
+			)
+		);
+		$blob = "<header2>Nanoprograms that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($items as $item) {
 			$maxBuff = max($maxBuff, abs($item->amount));
@@ -643,7 +612,7 @@ class WhatBuffsController {
 			if ($item->ncu === 999) {
 				$item->ncu = 0;
 			}
-			$prefix = $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
+			$prefix = "<tab>" . $this->text->alignNumber($item->amount, $maxDigits, 'highlight');
 			$blob .= $prefix . $item->unit . "  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
 			if (isset($item->low_ncu) && isset($item->low_amount)) {
 				$blob .= "($item->low_ncu NCU (<highlight>$item->low_amount<end>) - $item->ncu NCU (<highlight>$item->amount<end>))";
@@ -686,5 +655,58 @@ class WhatBuffsController {
 		}
 
 		return $msg;
+	}
+
+	/** Convert a location (arms) to item type (sleeves) */
+	protected function locationToItem(string $location): string {
+		$location = strtolower($location);
+		$map = [
+			"arms" => "sleeves",
+			"back" => "back-items",
+			"deck" => "deck-items",
+			"feet" => "boots",
+			"fingers" => "rings",
+			"hands" => "gloves",
+			"head" => "helmets",
+			"hud" => "HUD-items",
+			"legs" => "pants",
+			"neck" => "neck-items",
+			"wrists" => "wrist items",
+			"use" => "usable items",
+		];
+		if (isset($map[$location])) {
+			return $map[$location];
+		}
+		return rtrim($location, "s") . 's';
+	}
+
+	/** Resolve aliases for locations like arms and sleeves  into proper locations */
+	protected function resolveLocationAlias(string $location): string {
+		$location = strtolower($location);
+		$map = [
+			"arm" => "arms",
+			"sleeve" => "arms",
+			"sleeves" => "arms",
+			"ncu" => "deck",
+			"contracts" => "contract",
+			"belt" => "deck",
+			"boots" => "feet",
+			"foot" => "feet",
+			"ring" => "fingers",
+			"rings" => "fingers",
+			"finger" => "fingers",
+			"gloves" => "hands",
+			"glove" => "hands",
+			"gauntlets" => "hands",
+			"gauntlet" => "hands",
+			"hand" => "hands",
+			"helmets" => "head",
+			"helmet" => "head",
+			"pants" => "legs",
+			"pant" => "legs",
+			"perks" => "perk",
+			"wrist" => "wrists",
+		];
+		return $map[$location] ?? $location;
 	}
 }
