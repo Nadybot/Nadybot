@@ -344,22 +344,7 @@ class WhatBuffsController {
 				"GROUP BY p.name, pl.perk_level ORDER BY p.name ASC, pl.perk_level ASC, plp.profession ASC";
 			/** @var PerkBuffSearchResult[] */
 			$data = $this->db->fetchAll(PerkBuffSearchResult::class, $sql, $skill->id);
-			/** @var array<string,PerkBuffSearchResult> */
-			$result = [];
-			foreach ($data as $perk) {
-				if (!isset($result[$perk->name])) {
-					$result[$perk->name] = $perk;
-				} else {
-					$result[$perk->name]->amount += $perk->amount;
-				}
-			}
-			$data = array_values($result);
-			usort(
-				$data,
-				function(PerkBuffSearchResult $p1, PerkBuffSearchResult $p2): int {
-					return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name, $p2->name);
-				}
-			);
+			$data = $this->generatePerkBufflist($data);
 			$result = $this->formatPerkBuffs($data, $skill);
 		} else {
 			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r, s.unit ".
@@ -390,6 +375,48 @@ class WhatBuffsController {
 			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$count})", $blob);
 		}
 		return $msg;
+	}
+
+	protected function generatePerkBufflist(array $data): array {
+		/** @var array<string,PerkBuffSearchResult> */
+		$result = [];
+		foreach ($data as $perk) {
+			if (!isset($result[$perk->name])) {
+				$result[$perk->name] = $perk;
+			} else {
+				$result[$perk->name]->amount += $perk->amount;
+			}
+			$profs = explode(",", $perk->profs);
+			foreach ($profs as $prof) {
+				$result[$perk->name]->profMax[$prof] += $perk->amount;
+			}
+		}
+		$data = [];
+		// If a perk has different max levels for profs, we create one entry for each of the
+		// buff levels, so 1 perk can appear several ties with different max buffs
+		foreach ($result as $perk => $perkData) {
+			$diffValues = array_unique(array_values($perkData->profMax));
+			foreach ($diffValues as $buffValue) {
+				$profs = [];
+				foreach ($perkData->profMax as $prof => $profBuff) {
+					if ($profBuff === $buffValue) {
+						$profs []= $prof;
+					}
+				}
+				$obj = clone($perkData);
+				$obj->amount = $buffValue;
+				$obj->profs = join(",", $profs);
+				$obj->profMax = [];
+				$data []= $obj;
+			}
+		}
+		usort(
+			$data,
+			function(PerkBuffSearchResult $p1, PerkBuffSearchResult $p2): int {
+				return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name, $p2->name);
+			}
+		);
+		return $data;
 	}
 
 	/**
