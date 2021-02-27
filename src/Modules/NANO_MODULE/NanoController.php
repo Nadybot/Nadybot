@@ -72,6 +72,7 @@ class NanoController {
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'nanos');
+		$this->db->loadSQLFile($this->moduleName, 'nano_lines');
 
 		$this->settingManager->add(
 			$this->moduleName,

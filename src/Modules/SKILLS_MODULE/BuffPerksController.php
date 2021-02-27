@@ -69,7 +69,7 @@ class BuffPerksController {
 		}
 		if ( ($mtime === false || $dbVersion >= $mtime)
 			&& preg_match("/database already up to date/", $msg)) {
-			return;
+			// return;
 		}
 
 		$perkInfo = $this->getPerkInfo();
@@ -78,6 +78,8 @@ class BuffPerksController {
 		$this->db->exec("DELETE FROM perk_level");
 		$this->db->exec("DELETE FROM perk_level_prof");
 		$this->db->exec("DELETE FROM perk_level_buffs");
+		$this->db->exec("DELETE FROM perk_level_actions");
+		$this->db->exec("DELETE FROM perk_level_resistances");
 
 		foreach ($perkInfo as $perk) {
 			$perk->id = $this->db->insert("perk", $perk);
@@ -88,6 +90,23 @@ class BuffPerksController {
 
 				foreach ($level->professions as $profession) {
 					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $level->id, $profession);
+				}
+
+				foreach ($level->resistances as $strain => $amount) {
+					$this->db->exec(
+						"INSERT INTO perk_level_resistances (perk_level_id, strain_id, amount) VALUES (?, ?, ?)",
+						$level->id,
+						(int)$strain,
+						(int)$amount
+					);
+				}
+
+				if ($level->action) {
+					$this->db->exec(
+						"INSERT INTO perk_level_actions (perk_level_id, action_id) VALUES (?, ?)",
+						$level->id,
+						(int)$level->action
+					);
 				}
 
 				foreach ($level->buffs as $skillId => $amount) {
@@ -162,10 +181,12 @@ class BuffPerksController {
 
 		$sql = "SELECT p.name AS `perk_name`, ".
 				"MAX(pl.`perk_level`) AS `max_perk_level`, ".
+				"0 AS `class`, ".
 				"SUM(plb.`amount`) AS `buff_amount`, ".
 				"p.`expansion` AS `expansion`, ".
 				"s.name AS `skill`, ".
-				"s.unit AS `unit` ".
+				"s.unit AS `unit`, ".
+				"(SELECT COUNT(*) FROM `perk_level_prof` plp WHERE plp.perk_level_id=pl.id) AS num_profs ".
 			"FROM ".
 				"perk_level_prof plp ".
 				"JOIN perk_level pl ON plp.perk_level_id = pl.id ".
@@ -189,25 +210,116 @@ class BuffPerksController {
 			$sendto->reply($msg);
 			return;
 		}
+		if ($search === null) {
+			$sql = "SELECT p.name AS `perk_name`, ".
+					"p.`expansion` AS `expansion`, ".
+					"1 AS `class`, ".
+					"nl.`name` AS `skill`, ".
+					"'' AS `unit`, ".
+					"MAX(pl.`perk_level`) AS `max_perk_level`, ".
+					"SUM(plr.`amount`) AS `buff_amount`, ".
+					"plr.`strain_id`, ".
+					"(SELECT COUNT(*) FROM `perk_level_prof` plp WHERE plp.perk_level_id=pl.id) AS `num_profs` ".
+				"FROM ".
+					"`perk_level_prof` plp ".
+					"JOIN `perk_level` pl ON plp.`perk_level_id` = pl.`id` ".
+					"JOIN `perk_level_resistances` plr ON pl.`id` = plr.`perk_level_id` ".
+					"JOIN `perk` p ON pl.`perk_id` = p.`id` ".
+					"JOIN `nano_lines` nl ON plr.`strain_id` = nl.`strain_id` ".
+				"WHERE ".
+					"plp.`profession` = ? ".
+					"AND pl.`required_level` <= ? ".
+				"GROUP BY ".
+					"p.`name`, ".
+					"plr.`strain_id` ".
+				"ORDER BY ".
+					"p.`name`";
+
+			$data2 = $this->db->query($sql, $profession, $minLevel);
+			$data = [...$data, ...$data2];
+
+			$sql = "SELECT p.name AS `perk_name`, ".
+					"p.`expansion` AS `expansion`, ".
+					"2 AS `class`, ".
+					"a.`name` AS `skill`, ".
+					"a.`lowql` AS `buff_amount`, ".
+					"a.`lowid`, ".
+					"a.`highid`, ".
+					"'' AS `unit`, ".
+					"MAX(pl.`perk_level`) AS `max_perk_level`, ".
+					"(SELECT COUNT(*) FROM `perk_level_prof` plp WHERE plp.perk_level_id=pl.id) AS `num_profs` ".
+				"FROM ".
+					"`perk_level_prof` plp ".
+					"JOIN `perk_level` pl ON plp.`perk_level_id` = pl.`id` ".
+					"JOIN `perk_level_actions` pla ON pl.`id` = pla.`perk_level_id` ".
+					"JOIN `perk` p ON pl.`perk_id` = p.`id` ".
+					"JOIN `aodb` a ON pla.`action_id` = a.`lowid` ".
+				"WHERE ".
+					"plp.`profession` = ? ".
+					"AND pl.`required_level` <= ? ".
+				"GROUP BY ".
+					"p.`name`, ".
+					"pla.`action_id` ".
+				"ORDER BY ".
+					"p.`name`";
+
+			$data2 = $this->db->query($sql, $profession, $minLevel);
+			$data = [...$data, ...$data2];
+		}
+		usort(
+			$data,
+			function(object $o1, object $o2): int {
+				$o1->type = $o1->num_profs == 14 ? 2 : ($o1->num_profs == 1 ? 0 : 1);
+				$o2->type = $o2->num_profs == 14 ? 2 : ($o2->num_profs == 1 ? 0 : 1);
+				return $o1->type <=> $o2->type
+					?: strcmp($o1->perk_name, $o2->perk_name)
+					?: $o1->class <=> $o2->class
+					?: (($o1->class == 2)
+						? $o1->max_perk_level <=> $o2->max_perk_level
+						: strcmp($o1->skill, $o2->skill));
+			}
+		);
 		$currentPerk = '';
 		$blob = '';
 		$totalBuffSL = 0;
 		$totalBuffUnit = 0;
 		$totalBuffAI = 0;
+		$lastType = null;
 		foreach ($data as $row) {
+			if ($row->type !== $lastType) {
+				$type = $row->type == 0
+					? "Profession Perks"
+					: ($row->type == 1 ? "Group Perks" : "General Perks");
+				$blob .= "\n<pagebreak><header2>{$type}<end>\n";
+				$lastType = $row->type;
+			}
 			if ($row->perk_name !== $currentPerk) {
-				$blob .= "\n<header2>$row->perk_name {$row->max_perk_level}".
-					($row->expansion === "ai" ? " (<green>AI<end>)" : "").
-					"<end>\n";
+				$color = ($row->expansion === "ai" ? "<green>" : "<font color=#FF6666>");
+				$blob .= "\n<tab>{$color}{$row->perk_name} {$row->max_perk_level}<end>\n";
 				$currentPerk = $row->perk_name;
 			}
 
-			$blob .= sprintf(
-				"<tab>%s <highlight>%+d%s<end>\n",
-				$row->skill,
-				$row->buff_amount,
-				$row->unit
-			);
+			if ($row->class == 0) {
+				$blob .= sprintf(
+					"<tab><tab>%s <highlight>%+d%s<end>\n",
+					$row->skill,
+					$row->buff_amount,
+					$row->unit
+				);
+			} elseif ($row->class == 1) {
+				$blob .= sprintf(
+					"<tab><tab>Resist %s <highlight>%+d%s<end>\n",
+					$row->skill,
+					$row->buff_amount,
+					$row->unit
+				);
+			} else {
+				$blob .= sprintf(
+					"<tab><tab>Add Action at %s: %s\n",
+					$this->text->alignNumber($row->max_perk_level, 2),
+					$this->text->makeItem($row->lowid, $row->highid, $row->buff_amount, $row->skill),
+				);
+			}
 			if ($search !== null) {
 				$totalBuffUnit = $row->unit;
 				if ($row->expansion === "ai") {
@@ -233,6 +345,7 @@ class BuffPerksController {
 				);
 			}
 		}
+		$blob .= "\n<a href='itemref://252496/252496/1'>Atrox Primary Genome 5</a>";
 
 		$msg = $this->text->makeBlob("Buff Perks for $minLevel $profession", $blob);
 		$sendto->reply($msg);
@@ -311,12 +424,13 @@ class BuffPerksController {
 			$parts = explode("|", $line);
 			$aoid = null;
 			$expansion = "sl";
-			if (count($parts) === 7) {
-				[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
-			} else {
+			if (count($parts) < 7) {
 				$this->logger->log("ERROR", "Illegal perk entry: {$line}");
 				continue;
 			}
+			[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
+			$action = $parts[7] ?? null;
+			$resistances = $parts[8] ?? null;
 			if ($profs === '*') {
 				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
 			}
@@ -364,6 +478,17 @@ class BuffPerksController {
 						$level->buffs[$skillSearch[0]->id] = (int)$amount;
 					}
 				}
+			}
+
+			if (strlen($resistances??'')) {
+				$resistances = preg_split("/\s*,\s*/", $resistances);
+				foreach ($resistances as $resistance) {
+					[$strainId, $amount] = preg_split("/\s*:\s*/", $resistance);
+					$level->resistances[$strainId] = (int)$amount;
+				}
+			}
+			if (strlen($action??'')) {
+				$level->action = (int)$action;
 			}
 		}
 		return $perks;
