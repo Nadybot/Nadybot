@@ -75,7 +75,7 @@ class BuffPerksController {
 		}
 		if ( ($mtime === false || $dbVersion >= $mtime)
 			&& preg_match("/database already up to date/", $msg)) {
-			// return;
+			return;
 		}
 
 		$perkInfo = $this->getPerkInfo();
