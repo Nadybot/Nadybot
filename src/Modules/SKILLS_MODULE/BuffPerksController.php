@@ -237,12 +237,26 @@ class BuffPerksController {
 		$skill = null;
 		if ($search !== null) {
 			$skills = $this->whatBuffsController->searchForSkill($search);
-			if (count($skills) === 0) {
+			$count = count($skills);
+			if ($count === 0) {
 				$sendto->reply("No skill <highlight>{$search}<end> found.");
 				return;
 			}
-			if (count($skills) > 1) {
-				$sendto->reply("No clear match for search term <highlight>{$search}<end>.");
+			if ($count > 1) {
+				$blob = "<header2>Choose a skill<end>\n";
+				foreach ($skills as $skill) {
+					$blob .= "<tab>".
+						$this->text->makeChatcmd(
+							$skill->name,
+							"/tell <myname> perks {$level} {$profession} {$skill->name}"
+						).
+						"\n";
+				}
+				$msg = $this->text->makeBlob(
+					"Matches for <highlight>{$search}<end> ({$count})",
+					$blob
+				);
+				$sendto->reply($msg);
 				return;
 			}
 			$skill = $skills[0];
@@ -435,8 +449,6 @@ class BuffPerksController {
 			}
 
 			$parts = explode("|", $line);
-			$aoid = null;
-			$expansion = "sl";
 			if (count($parts) < 7) {
 				$this->logger->log("ERROR", "Illegal perk entry: {$line}");
 				continue;
@@ -462,7 +474,7 @@ class BuffPerksController {
 
 			$level->perk_level = (int)$perkLevel;
 			$level->required_level = (int)$requiredLevel;
-			$level->aoid = isset($aoid) ? (int)$aoid : null;
+			$level->aoid = (int)$aoid;
 
 			$professions = explode(",", $profs);
 			foreach ($professions as $prof) {
@@ -536,7 +548,7 @@ class BuffPerksController {
 			$perkItem = $this->text->makeItem(
 				$level->aoid,
 				$level->aoid,
-				1,
+				$level->perk_level,
 				"details"
 			);
 			$blob .= "\n<pagebreak><header2>{$perk->name} {$level->perk_level} [{$perkItem}]<end>\n";
@@ -549,6 +561,7 @@ class BuffPerksController {
 					join("<end>, <highlight>", $level->professions).
 					"<end>\n";
 			}
+			$blob .= "<tab>Level: <highlight>{$level->required_level}<end>\n";
 			foreach ($level->perk_buffs as $buff) {
 				$blob .= sprintf(
 					"<tab>%s <highlight>%+d%s<end>\n",
