@@ -168,15 +168,15 @@ Nanobreed Primary Genome|9|ai|252568|202|*|INT 9, PSY 9
 Nanobreed Primary Genome|10|ai|252569|207|*|INT 13, PSY 13|252559
 
 Nanobreed Secondary Genome|1|ai|253018|5|*|AGI 1, SEN 1, STR 1, STA 1
-Nanobreed Secondary Genome|2|ai|253019|5|*|AGI 1, SEN 1, STR 1, STA 1
-Nanobreed Secondary Genome|3|ai|253020|5|*|AGI 1, SEN 1, STR 1, STA 1|253014*
-Nanobreed Secondary Genome|4|ai|253021|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|5|ai|253022|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|6|ai|253023|5|*|AGI 2, SEN 2, STR 2, STA 2
-Nanobreed Secondary Genome|7|ai|253024|5|*|AGI 3, SEN 3, STR 3, STA 3
-Nanobreed Secondary Genome|8|ai|253025|5|*|AGI 4, SEN 4, STR 4, STA 4
-Nanobreed Secondary Genome|9|ai|253026|5|*|AGI 5, SEN 5, STR 5, STA 5
-Nanobreed Secondary Genome|10|ai|253027|5|*|AGI 6, SEN 6, STR 6, STA 6|253017
+Nanobreed Secondary Genome|2|ai|253019|15|*|AGI 1, SEN 1, STR 1, STA 1
+Nanobreed Secondary Genome|3|ai|253020|35|*|AGI 1, SEN 1, STR 1, STA 1|253014*
+Nanobreed Secondary Genome|4|ai|253021|55|*|AGI 2, SEN 2, STR 2, STA 2
+Nanobreed Secondary Genome|5|ai|253022|55|*|AGI 2, SEN 2, STR 2, STA 2
+Nanobreed Secondary Genome|6|ai|253023|55|*|AGI 2, SEN 2, STR 2, STA 2
+Nanobreed Secondary Genome|7|ai|253024|115|*|AGI 3, SEN 3, STR 3, STA 3
+Nanobreed Secondary Genome|8|ai|253025|115|*|AGI 4, SEN 4, STR 4, STA 4
+Nanobreed Secondary Genome|9|ai|253026|202|*|AGI 5, SEN 5, STR 5, STA 5
+Nanobreed Secondary Genome|10|ai|253027|207|*|AGI 6, SEN 6, STR 6, STA 6|253017
 
 Nanomorph|1|ai|252387|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 50|252367
 Nanomorph|2|ai|252388|25|*|MM 1, TS 1, MC 1, BM 1, SI 1, PM 1, Max Nano 50
