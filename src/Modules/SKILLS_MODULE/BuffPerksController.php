@@ -144,7 +144,7 @@ class BuffPerksController {
 						$sendto->reply($msg);
 						return;
 					}
-					$this->showPerks($whois->profession, $whois->level, null, $sendto);
+					$this->showPerks($whois->profession, $whois->level, $whois->breed, null, $sendto);
 				},
 				$sender
 			);
@@ -161,11 +161,33 @@ class BuffPerksController {
 			$sendto->reply($msg);
 			return;
 		}
-		$this->showPerks($profession, $level, $args[3] ?? null, $sendto);
+		$this->showPerks($profession, $level, null, $args[3] ?? null, $sendto);
+	}
+
+	/**
+	 * Filter a perk list $perks to only show breed-specific perks for $breed
+	 *
+	 * @param Perk[] $perks
+	 * @param string $breed
+	 * @return Perk[]
+	 */
+	protected function filterBreedPerks(array $perks, string $breed): array {
+		$result = [];
+		foreach ($perks as $perk) {
+			if (
+				preg_match("/(Primary|Secondary) Genome/", $perk->name)
+				&& !preg_match("/^$breed/", $perk->name)
+			) {
+				continue;
+			}
+			$result []= $perk;
+		}
+		return $result;
 	}
 
 	/**
 	 * Filter a perk list $perks to only show those buffing $skill
+	 *
 	 * @param Perk[] $perks
 	 * @param Skill $skill
 	 * @return Perk[]
@@ -211,7 +233,7 @@ class BuffPerksController {
 	 * @param CommandReply $sendto Where to send the output to
 	 * @return void
 	 */
-	protected function showPerks(string $profession, int $level, string $search=null, CommandReply $sendto): void {
+	protected function showPerks(string $profession, int $level, ?string $breed, string $search=null, CommandReply $sendto): void {
 		$skill = null;
 		if ($search !== null) {
 			$skills = $this->whatBuffsController->searchForSkill($search);
@@ -228,6 +250,9 @@ class BuffPerksController {
 		$perks = $this->readPerks($profession, $level);
 		if (isset($skill)) {
 			$perks = $this->filterPerkBuff($perks, $skill);
+		}
+		if (isset($breed)) {
+			$perks = $this->filterBreedPerks($perks, $breed);
 		}
 		/** @var PerkAggregate[] */
 		$perks = array_map([$this, "aggregatePerk"], $perks);
@@ -292,6 +317,14 @@ class BuffPerksController {
 				"/tell <myname> perks show {$perk->name}"
 			);
 			$blob = "<pagebreak><tab>{$color}{$perk->name} {$perk->max_level}<end> [{$detailsLink}]\n";
+			if (isset($perk->description)) {
+				$blob .= "<tab><tab><i>".
+					join(
+						"</i>\n<tab><tab><i>",
+						explode("\n", $perk->description)
+					).
+					"</i>\n";
+			}
 			foreach ($perk->buffs as $buff) {
 				$blob .= sprintf(
 					"<tab><tab>%s <highlight>%+d<end>\n",
@@ -411,6 +444,7 @@ class BuffPerksController {
 			[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
 			$action = $parts[7] ?? null;
 			$resistances = $parts[8] ?? null;
+			$description = $parts[9] ?? null;
 			if ($profs === '*') {
 				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
 			}
@@ -419,6 +453,7 @@ class BuffPerksController {
 				$perk = new Perk();
 				$perks[$name] = $perk;
 				$perk->name = $name;
+				$perk->description = $description ? join("\n", explode("\\n", $description)) : null;
 				$perk->expansion = $expansion;
 			}
 
@@ -557,6 +592,7 @@ class BuffPerksController {
 		$result->expansion = $perk->expansion;
 		$result->name = $perk->name;
 		$result->id = $perk->id;
+		$result->description = $perk->description;
 		$minLevel = min(array_keys($perk->levels));
 		$result->professions = $perk->levels[$minLevel]->professions;
 		$result->max_level = max(array_keys($perk->levels));

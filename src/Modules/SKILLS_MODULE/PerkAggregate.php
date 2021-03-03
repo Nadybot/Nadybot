@@ -9,6 +9,9 @@ class PerkAggregate {
 	/** Name of the perk */
 	public string $name;
 
+	/** An optional description of the perk */
+	public ?string $description;
+
 	/** The expansion needed for this perk */
 	public string $expansion = "sl";
 

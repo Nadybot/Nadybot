@@ -14,6 +14,9 @@ class Perk extends DBRow {
 	/** The expansion needed for this perk */
 	public string $expansion = "sl";
 
+	/** A description what a perk does */
+	public ?string $description = null;
+
 	/**
 	 * @db:ignore
 	 * @var array<int,PerkLevel>

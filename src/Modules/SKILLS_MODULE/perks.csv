@@ -1,4 +1,4 @@
-Alien Technology Expertise|1|ai|247748|15|*|
+Alien Technology Expertise|1|ai|247748|15|*||||When you train this perks, you will learn the basics of Alien Technology and how their equipment works.\nFor each perk trained you will get access to more advanced equipment.\nThis perk line is required to equip certain items.
 Alien Technology Expertise|2|ai|247749|75|*|
 Alien Technology Expertise|3|ai|256082|150|*|
 
@@ -30,7 +30,7 @@ Atrox Secondary Genome|8|ai|252519|115|*|AGI 4, SEN 4, INT 4, PSY 4
 Atrox Secondary Genome|9|ai|252520|202|*|AGI 5, SEN 5, INT 5, PSY 5
 Atrox Secondary Genome|10|ai|252521|207|*|AGI 6, SEN 6, INT 6, PSY 6|252508
 
-Cartographer|1|sl|211748|20|*|227421*
+Cartographer|1|sl|211748|20|*||227421*||The Cartographer perk line will successively enable maps for all the Shadowlands areas
 Cartographer|2|sl|211749|30|*|
 Cartographer|3|sl|211750|50|*|
 Cartographer|4|sl|211751|80|*|
@@ -358,7 +358,7 @@ Bureaucratic Shuffle|8|sl|211735|202|Crat|Max Health 19, Dodge-Rng 6, Duck-Exp 6
 Bureaucratic Shuffle|9|sl|211736|203|Crat|Max Health 30, Dodge-Rng 8, Duck-Exp 8, Evade close 8
 Bureaucratic Shuffle|10|sl|211737|206|Crat|Max Health 60, Dodge-Rng 12, Duck-Exp 12, Evade close 12
 
-Commanding Presence|1|sl|210931|10|Crat|AAO 10, AAD 8
+Commanding Presence|1|sl|210931|10|Crat|AAO 10, AAD 8|||This perk line will offer the Bureaucrat an AAO and AAD pulsing team buff.\nThe more perks the Bureaucrat has in this line, the more powerful it will be.
 Commanding Presence|2|sl|210932|50|Crat|AAO 10, AAD 4
 Commanding Presence|3|sl|210933|70|Crat|AAO 14, AAD 8
 Commanding Presence|4|sl|210934|90|Crat|AAO 15, AAD 10
@@ -564,7 +564,7 @@ Worm ICE|8|sl|223617|201|Fix|||158: 4, 160: 4, 162: 4, 164: 4, 166: 4, 168: 4, 2
 Worm ICE|9|sl|223618|209|Fix|||158: 5, 160: 5, 162: 5, 164: 5, 166: 5, 168: 5, 239: 7
 Worm ICE|10|sl|223619|215|Fix||225473|135: 5, 136: 5, 158: 5, 160: 5, 162: 5, 164: 5, 166: 5, 168: 5, 239: 13
 
-Aura of Revival|1|sl|212161|10|Keeper|
+Aura of Revival|1|sl|212161|10|Keeper||||This perk will give the Keeper a pulsing team heal aura.\nThe more perks the Keeper has in this line, the more powerful the heal gets.
 Aura of Revival|2|sl|212164|30|Keeper|
 Aura of Revival|3|sl|212165|50|Keeper|
 Aura of Revival|4|sl|212166|70|Keeper|
@@ -701,7 +701,7 @@ Ancient Matrix|8|ai|250670|145|NT|NanoC. Init. 22, MC 6, NanoDelta 2, TS 6
 Ancient Matrix|9|ai|250671|205|NT|NanoC. Init. 30, MC 8, NanoDelta 3, Direct Nano Damage Efficiency 1, TS 8
 Ancient Matrix|10|ai|250672|210|NT|NanoC. Init. 55, MC 15, NanoDelta 3, TS 15|250661
 
-Channeling of Notum|1|sl|211043|40|NT|
+Channeling of Notum|1|sl|211043|40|NT||||This perk will allow for faster regeneration of nano points for the team.\nThe more Perks the NT has in this line, the more powerful the regen rate will be.
 Channeling of Notum|2|sl|211044|90|NT|
 Channeling of Notum|3|sl|211045|170|NT|
 Channeling of Notum|4|sl|211046|201|NT|
@@ -717,7 +717,7 @@ Essence of Notum|1|sl|211809|80|NT|Max Nano 600|233837*
 Essence of Notum|2|sl|211810|180|NT|Max Nano 1600
 Essence of Notum|3|sl|211811|203|NT|Max Nano 3800
 
-Notum Siphon|1|sl|223600|30|NT|MC 3
+Notum Siphon|1|sl|223600|30|NT|MC 3|||This perk will also give the NT faster regeneration of nano points.\nThe more perks trained in this line, the faster the regeneration of nano.
 Notum Siphon|2|sl|223601|60|NT|MC 4
 Notum Siphon|3|sl|223602|90|NT|MC 5
 Notum Siphon|4|sl|223603|130|NT|MC 6|227634*
@@ -822,7 +822,7 @@ Special Forces|8|sl|212036|201|Sol|Full Auto 22, Burst 20, Fling Shot 20, Dodge-
 Special Forces|9|sl|212037|203|Sol|Full Auto 30, Burst 28, Fling Shot 28, Dodge-Rng 23, Duck-Exp 10, Evade-ClsC 10
 Special Forces|10|sl|212038|205|Sol|Full Auto 55, Burst 53, Fling Shot 53, Dodge-Rng 50, Duck-Exp 20, Evade-ClsC 20|227338
 
-Accumulator|1|sl|210830|10|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 50
+Accumulator|1|sl|210830|10|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 50|In addition this perk line will proc a lifetap effect when attacking with ranged weapons\nthat will grow stronger for each new perk the character gets in this perk line.
 Accumulator|2|sl|210831|20|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 50
 Accumulator|3|sl|210832|40|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 60
 Accumulator|4|sl|210833|60|Tra|HealDelta 1, NanoDelta 1, Max Health 15, Max Nano 60
