@@ -30,7 +30,8 @@ CREATE TABLE perk_level_buffs (
 DROP TABLE IF EXISTS perk_level_actions;
 CREATE TABLE perk_level_actions (
 	perk_level_id INT NOT NULL,
-	action_id INT NOT NULL
+	action_id INT NOT NULL,
+	scaling BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 DROP TABLE IF EXISTS perk_level_resistances;

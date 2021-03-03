@@ -32,13 +32,22 @@ class PerkLevel extends DBRow {
 
 	/**
 	 * @db:ignore
+	 * @var PerkLevelBuff[]
+	 */
+	public array $perk_buffs = [];
+
+	/**
+	 * @db:ignore
 	 * @var array<int,int>
 	 */
 	public array $resistances = [];
 
 	/**
 	 * @db:ignore
-	 * @var ?int
+	 * @var PerkLevelResistance[]
 	 */
-	public ?int $action = null;
+	public array $perk_resistances = [];
+
+	/** @db:ignore */
+	public ?PerkLevelAction $action = null;
 }

@@ -11,4 +11,5 @@ class AODBEntry extends DBRow {
 	public int $highql;
 	public string $name;
 	public int $icon;
+	public bool $froob_friendly = false;
 }
