@@ -535,7 +535,7 @@ class BuffPerksController {
 			return;
 		}
 		$blob = $this->renderPerk($perk);
-		$msg = $this->text->makeBlob($perk->name . " details", $blob);
+		$msg = $this->text->makeBlob("Details for the perk '$perk->name'", $blob);
 		$sendto->reply($msg);
 	}
 
