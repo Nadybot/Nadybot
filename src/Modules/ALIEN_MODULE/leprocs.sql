@@ -20,7 +20,7 @@ INSERT INTO `leprocs` (`profession`, `name`, `research_name`, `research_lvl`, `p
 ('Adventurer', 'Healing Herbs', 'Keen Eyes', 10, 'Type 2', '5%', 'Self Hit Health 697 .. 1193', '', 'Offensive', 'Heals 697 .. 1193 max health'),
 ('Adventurer', 'Self Preservation', 'Safari Guide', 5, 'Type 1', '10%', 'Self Modify ShieldAC 52, Self Modify AbsorbAC 255', '60s', 'Defensive', 'Self +52 shield AC and +255 Absorb AC, 60 second duration'),
 ('Adventurer', 'Basic Dressing', 'Wilderness Lore', 1, 'Type 2', '5%', 'Self Hit Health 15 .. 25', '', 'Offensive', 'Heals 15 .. 25 max health'),
-('Adventurer', 'Soothing Herbs', 'Wilderness Lore', 2, 'Type 1', '5%', 'Self Hit Health 186 .. 391', '', 'Offensive', 'Heals 186 .. 391 max health'),
+('Adventurer', 'Soothing Herbs', 'Wilderness Lore', 2, 'Type 2', '5%', 'Self Hit Health 186 .. 391', '', 'Offensive', 'Heals 186 .. 391 max health'),
 ('Adventurer', 'Machete Slice', 'Wilderness Survival', 3, 'Type 2', '5%', 'Fight Target Hit Health Fire -137 .. -350', '', 'Offensive', '137 .. 350 fire AC damage'),
 ('Adventurer', 'Restore Vigor', 'Wilderness Survival', 4, 'Type 2', '5%', 'Self Hit Health 356 .. 746', '', 'Offensive', 'Heals 356 .. 746 max health'),
 ('Adventurer', 'Combustion', 'Wilderness Survival', 10, 'Type 2', '5%', 'Fight Target Hit Health Fire -1294 .. -2415', '', 'Offensive', '1294 .. 2415 fire AC damage'),
