@@ -242,7 +242,7 @@ class RaidMemberController {
 	 * @Matches("/^raidmember (?:rem|del|kick) (.+)$/i")
 	 */
 	public function raidKickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->leaveRaid($sender, $args[1]);
+		$reply = $this->leaveRaid($sender, ucfirst(strtolower($args[1]));
 		if ($reply !== null) {
 			$sendto->reply($reply);
 		}
