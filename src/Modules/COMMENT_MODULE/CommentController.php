@@ -446,6 +446,53 @@ class CommentController {
 		return 0;
 	}
 
+		/**
+	 * Command to read comments about a player
+	 *
+	 * @HandlesCommand("comment")
+	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)$/i")
+	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)\s+(\w+)$/i")
+	 */
+	public function searchCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$character = ucfirst(strtolower($args[1]));
+		if (!$this->chatBot->get_uid($character)) {
+			$sendto->reply("No player named <highlight>{$character}<end> found.");
+			return;
+		}
+
+		$category = null;
+		if (count($args) > 2) {
+			$categoryName = $args[2];
+			$category = $this->getCategory($categoryName);
+			if ($category === null) {
+				$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
+				return;
+			}
+			if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
+				$sendto->reply(
+					"You don't have the required access level to read comments of type ".
+					"<highlight>{$categoryName}<end>."
+				);
+				return;
+			}
+		}
+		/** @var Comment[] */
+		$comments = $this->getComments($category, $character);
+		$comments = $this->filterInaccessibleComments($comments, $sender);
+		if (!count($comments)) {
+			$msg = "No comments found for <highlight>{$character}<end>".
+			(isset($category) ? " in category <highlight>{$category->name}<end>." : ".");
+			$sendto->reply($msg);
+			return;
+		}
+		$formatted = $this->formatComments($comments, false, !isset($category));
+		$msg = "Comments about {$character}".
+			(isset($category) ? " in category {$category->name}" : "").
+			" (" . count($comments) . ")";
+		$msg = $this->text->makeBlob($msg, $formatted->blob);
+		$sendto->reply($msg);
+	}
+
 	/**
 	 * Command to read comments about a player
 	 *
