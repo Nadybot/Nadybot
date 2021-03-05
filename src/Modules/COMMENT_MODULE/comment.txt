@@ -15,3 +15,9 @@
 <header2>Delete comment<end>
 <tab>To delete comment #1
 <tab><tab><highlight><symbol>comment delete 1<end>
+
+<header2>Customization<end>
+In order to simulate the old kill-on-sight list (kos), you could do:
+<tab>1. <highlight><symbol>alias add kos comment list kos<end>
+<tab>2. <highlight><symbol>alias add "kos add" comment add {1} kos {2:Kill on sight}<end>
+<tab>3. <highlight><symbol>comment category add kos guild<end>

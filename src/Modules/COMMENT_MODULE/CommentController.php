@@ -78,8 +78,6 @@ class CommentController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
-		$this->commandAlias->register($this->moduleName, "comment add {1} kos {2:Kill on sight}", "kos add");
-		$this->commandAlias->register($this->moduleName, "comment list kos", "kos");
 		$this->commandAlias->register($this->moduleName, "comment", "comments");
 		$sm = $this->settingManager;
 		$sm->add(
@@ -124,15 +122,6 @@ class CommentController {
 		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories"));
 		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 		$this->db->loadSQLFile($this->moduleName, "comments");
-		if (!$this->getCategory("kos")) {
-			$kos = new CommentCategory();
-			$kos->name = "kos";
-			$kos->created_by = $this->chatBot->vars["name"];
-			$kos->user_managed = false;
-			$kos->min_al_read = "guild";
-			$kos->min_al_write = "guild";
-			$this->saveCategory($kos);
-		}
 	}
 
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, $data): void {
