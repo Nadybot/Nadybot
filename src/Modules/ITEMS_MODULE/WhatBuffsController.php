@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	LoggerWrapper,
+	SettingManager,
 	Text,
 	Util,
 };
@@ -50,6 +51,9 @@ class WhatBuffsController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public ItemsController $itemsController;
 
 	/** @Logger */
@@ -62,6 +66,37 @@ class WhatBuffsController {
 		$this->db->loadSQLFile($this->moduleName, "skill_aliases");
 		$this->db->loadSQLFile($this->moduleName, "item_types");
 		$this->db->loadSQLFile($this->moduleName, "buffs");
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'whatbuffs_display',
+			'How to mark if an item can only be equipped left or right',
+			'edit',
+			'options',
+			'2',
+			'Do not mark;L/R;L-Wrist/R-Wrist',
+			'0;1;2',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'whatbuffs_show_unique',
+			'How to mark unique items',
+			'edit',
+			'options',
+			'2',
+			'Do not mark;U;Unique',
+			'0;1;2',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'whatbuffs_show_nodrop',
+			'How to mark nodrop items',
+			'edit',
+			'options',
+			'0',
+			'Do not mark;ND;Nodrop',
+			'0;1;2',
+		);
 	}
 
 	/**
@@ -474,6 +509,8 @@ class WhatBuffsController {
 	 * @return (int|string)[]
 	 */
 	public function formatItems(array $items, Skill $skill, string $category) {
+		$showUniques = $this->settingManager->getInt('whatbuffs_show_unique');
+		$showNodrops = $this->settingManager->getInt('whatbuffs_show_nodrop');
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($items as $item) {
@@ -524,10 +561,7 @@ class WhatBuffsController {
 			$sign = ($item->amount > 0) ? '+' : '-';
 			$prefix = "<tab>" . $sign.$this->text->alignNumber(abs($item->amount), $maxDigits, 'highlight');
 			$blob .= $prefix . $item->unit . "  ";
-			if ($item->multi_m !== null || $item->multi_r !== null) {
-				$blob .= "2x ";
-			}
-			/* $blob .= $this->showItemLink($item->lowid, $item->highid, $item->highql, $item->name); */
+			$blob .= $this->getSlotPrefix($item, $category);
 			$blob .= $this->showItemLink($item, $item->highql);
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ($item->low_amount - $item->amount)";
@@ -541,11 +575,63 @@ class WhatBuffsController {
 					);
 				}
 			}
+			if ($item->flags & Flag::UNIQUE && $showUniques) {
+				$blob .= $showUniques === 1 ? " U" : " Unique";
+			}
+			if ($item->flags & Flag::NODROP && $showNodrops) {
+				$blob .= $showNodrops === 1 ? " ND" : " Nodrop";
+			}
 			$blob .= "\n";
 		}
 
 		$count = count($items);
 		return [$count, $blob];
+	}
+
+	protected function getSlotPrefix(ItemBuffSearchResult $item, string $category): string {
+		$markSetting = $this->settingManager->getInt('whatbuffs_display');
+		$result = "";
+		if ($item->multi_m !== null || $item->multi_r !== null) {
+			$handsMask = Slot::LHAND|Slot::RHAND;
+			if (($item->slot & $handsMask) === $handsMask) {
+				return "2x ";
+			} elseif (($item->slot & $handsMask) === Slot::LHAND) {
+				$result = "L-Hand ";
+			} else {
+				$result = "R-Hand ";
+			}
+		} elseif ($category === "Arms") {
+			if (($item->slot & (Slot::LARM|Slot::RARM)) === Slot::LARM) {
+				$result = "L-Arm ";
+			} elseif (($item->slot & (Slot::LARM|Slot::RARM)) === Slot::RARM) {
+				$result = "R-Arm ";
+			}
+		} elseif ($category === "Wrists") {
+			if (($item->slot & (Slot::LWRIST|Slot::RWRIST)) === Slot::LWRIST) {
+				$result = "L-Wrist ";
+			} elseif (($item->slot & (Slot::LWRIST|Slot::RWRIST)) === Slot::RWRIST) {
+				$result = "R-Wrist ";
+			}
+		} elseif ($category === "Fingers") {
+			if (($item->slot & (Slot::LFINGER|Slot::RFINGER)) === Slot::LFINGER) {
+				$result = "L-Finger ";
+			} elseif (($item->slot & (Slot::LFINGER|Slot::RFINGER)) === Slot::RFINGER) {
+				$result = "R-Finger ";
+			}
+		} elseif ($category === "Shoulders") {
+			if (($item->slot & (Slot::LSHOULDER|Slot::RSHOULDER)) === Slot::LSHOULDER) {
+				$result = "L-Shoulder ";
+			} elseif (($item->slot & (Slot::LSHOULDER|Slot::RSHOULDER)) === Slot::RSHOULDER) {
+				$result = "R-Shoulder ";
+			}
+		}
+		if ($markSetting === 0) {
+			return "";
+		}
+		if ($markSetting === 1 && strlen($result) > 1) {
+			return substr($result, 0, 1) . " ";
+		}
+		return $result;
 	}
 
 	/**
@@ -732,6 +818,8 @@ class WhatBuffsController {
 			"pants" => "legs",
 			"pant" => "legs",
 			"perks" => "perk",
+			"weapons" => "weapon",
+			"shoulder" => "shoulders",
 			"wrist" => "wrists",
 		];
 		return $map[$location] ?? $location;
