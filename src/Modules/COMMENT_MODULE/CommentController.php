@@ -446,7 +446,7 @@ class CommentController {
 		return 0;
 	}
 
-		/**
+	/**
 	 * Command to read comments about a player
 	 *
 	 * @HandlesCommand("comment")
