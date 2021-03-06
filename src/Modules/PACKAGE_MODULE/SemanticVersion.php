@@ -3,14 +3,19 @@
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
 class SemanticVersion {
+	protected string $origVersion;
 	protected string $version;
 
 	public function __construct(string $version) {
-		$this->version = $this->normalizeVersion($version);
+		$this->version = $this->normalizeVersion($this->origVersion = $version);
 	}
 
 	public function __toString(): string {
 		return $this->version;
+	}
+
+	public function getOrigVersion(): string {
+		return $this->origVersion;
 	}
 
 	public function cmp(SemanticVersion $version2): int {

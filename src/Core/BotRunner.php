@@ -8,6 +8,7 @@ use Logger;
 use ErrorException;
 use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\SETUP\Setup;
+use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 
 class BotRunner {
 
@@ -58,10 +59,10 @@ class BotRunner {
 			if (!isset($latestTag)) {
 				return $branch;
 			}
-			if ($latestTag[0]) {
-				return "{$latestTag[1]}@{$branch}";
+			if ($branch !== 'stable') {
+				return "{$latestTag}@{$branch}";
 			}
-			return "{$latestTag[1]}";
+			return "{$latestTag}";
 		} catch (\Throwable $e) {
 			return static::VERSION;
 		} finally {
@@ -70,48 +71,40 @@ class BotRunner {
 	}
 
 	/**
-	 * Read all currently defined tags and their hashes
-	 * and return them in [hash => tag]
-	 *
-	 * @return array<string,string>
-	 */
-	public static function getTagsForHashes(): array {
-		$result = [];
-		$files = glob(dirname(dirname(__DIR__)) . '/.git/refs/tags/*');
-		foreach (array_reverse($files) as $file) {
-			$result[trim(file_get_contents($file))] = basename($file);
-		}
-		return $result;
-	}
-
-
-	/**
 	 * Calculate the latest tag that the checkout was tagged with
 	 * and return how many commits were done since then
 	 * Like [number of commits, tag]
 	 */
-	public static function getLatestTag(): ?array {
+	public static function getLatestTag(): ?string {
 		if (isset(static::$latestTag)) {
 			return static::$latestTag;
 		}
 		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
 
-		$pid = proc_open("git describe --tags --abbrev=1", $descriptors, $pipes);
+		$pid = proc_open("git tag -l", $descriptors, $pipes);
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
 		fclose($pipes[0]);
-		$tagString = trim(stream_get_contents($pipes[1]));
+		$tags = explode("\n", trim(stream_get_contents($pipes[1])));
 		fclose($pipes[1]);
 		fclose($pipes[2]);
 		proc_close($pid);
-		if (isset($tagString) && preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
-			return static::$latestTag = [(int)$matches[2], $matches[1]];
-		}
-		if (isset($tagString) && preg_match("/^(\d+\.\d+(?:-[^\d].+))$/", $tagString, $matches)) {
-			return static::$latestTag = [0, $matches[1]];
-		}
-		return static::$latestTag = null;
+
+		$tags = array_map(
+			function(string $tag): SemanticVersion {
+				return new SemanticVersion($tag);
+			},
+			$tags
+		);
+		usort(
+			$tags,
+			function(SemanticVersion $v1, SemanticVersion $v2): int {
+				return $v1->cmp($v2);
+			}
+		);
+		$tagString = array_pop($tags)->getOrigVersion();
+		return static::$latestTag = $tagString;
 	}
 
 	public function checkRequiredModules(): void {
