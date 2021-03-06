@@ -1,0 +1,5 @@
+To show the best symbiants you can currently equip:
+<tab><highlight><symbol>bestsymbiants<end>
+
+To show the best symbiants, a level 120 Adventurer can equip:
+<tab><highlight><symbol>bestsymbiants 120 advy<end>
