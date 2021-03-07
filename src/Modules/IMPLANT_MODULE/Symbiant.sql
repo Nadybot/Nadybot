@@ -1,14 +1,14 @@
-DROP TABLE IF EXISTS Symbiant;
-CREATE TABLE Symbiant (
-	ID INT NOT NULL PRIMARY KEY,
-	Name VARCHAR(100) NOT NULL,
-	QL INT NOT NULL,
-	SlotID INT NOT NULL,
-	TreatmentReq INT NOT NULL,
-	LevelReq INT NOT NULL,
+DROP TABLE IF EXISTS `Symbiant`;
+CREATE TABLE `Symbiant` (
+	`ID` INT NOT NULL PRIMARY KEY,
+	`Name` VARCHAR(100) NOT NULL,
+	`QL` INT NOT NULL,
+	`SlotID` INT NOT NULL,
+	`TreatmentReq` INT NOT NULL,
+	`LevelReq` INT NOT NULL,
 	`Unit` VARCHAR(20) NOT NULL
 );
-INSERT INTO Symbiant (ID, Name, QL, SlotID, TreatmentReq, LevelReq, `Unit`) VALUES
+INSERT INTO `Symbiant` (`ID`, `Name`, `QL`, `SlotID`, `TreatmentReq`, `LevelReq`, `Unit`) VALUES
 (236309,'Active Brain Symbiant, Control Unit Aban',170,2,1011,125,'Control'),
 (235859,'Active Brain Symbiant, Extermination Unit Aban',170,2,1011,125,'Extermination'),
 (235468,'Active Chest Symbiant, Artillery Unit Aban',170,4,1011,125,'Artillery'),

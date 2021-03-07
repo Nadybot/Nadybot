@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS SymbiantAbilityMatrix;
-CREATE TABLE SymbiantAbilityMatrix (
-	SymbiantID INT NOT NULL,
-	AbilityID INT NOT NULL,
-	Amount INT NOT NULL
+DROP TABLE IF EXISTS `SymbiantAbilityMatrix`;
+CREATE TABLE `SymbiantAbilityMatrix` (
+	`SymbiantID` INT NOT NULL,
+	`AbilityID` INT NOT NULL,
+	`Amount` INT NOT NULL
 );
-INSERT INTO SymbiantAbilityMatrix (SymbiantID, AbilityID, Amount) VALUES
+INSERT INTO `SymbiantAbilityMatrix` (`SymbiantID`, `AbilityID`, `Amount`) VALUES
 (236309,1,383),
 (236309,2,383),
 (236309,3,383),

@@ -1,9 +1,9 @@
-DROP TABLE IF EXISTS Ability;
-CREATE TABLE Ability (
-	AbilityID INT NOT NULL PRIMARY KEY,
-	Name VARCHAR(20) NOT NULL
+DROP TABLE IF EXISTS `Ability`;
+CREATE TABLE `Ability` (
+	`AbilityID` INT NOT NULL PRIMARY KEY,
+	`Name` VARCHAR(20) NOT NULL
 );
-INSERT INTO Ability (AbilityID, Name) VALUES
+INSERT INTO `Ability` (`AbilityID`, `Name`) VALUES
 (1,'Agility'),
 (2,'Intelligence'),
 (3,'Psychic'),
