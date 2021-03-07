@@ -155,7 +155,7 @@ class NotesController {
 				$current = $note->added_by;
 			}
 			$links = [];
-			$links []= $this->text->makeChatcmd('Remove', "/tell <myname> notes rem {$note->id}");
+			$links []= $this->text->makeChatcmd('Delete', "/tell <myname> notes rem {$note->id}");
 			$remindAllLink = $this->text->makeChatcmd('All', "/tell <myname> reminders set all {$note->id}");
 			$remindSelfLink = $this->text->makeChatcmd('Self', "/tell <myname> reminders set self {$note->id}");
 			$remindOffLink = $this->text->makeChatcmd('Off', "/tell <myname> reminders set off {$note->id}");
