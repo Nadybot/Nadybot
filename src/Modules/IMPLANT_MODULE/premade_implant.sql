@@ -1,13 +1,13 @@
-DROP TABLE IF EXISTS premade_implant;
-CREATE TABLE premade_implant (
-	ImplantTypeID INT NOT NULL,
-	ProfessionID INT NOT NULL,
-	AbilityID INT NOT NULL,
-	ShinyClusterID INT NOT NULL,
-	BrightClusterID INT NOT NULL,
-	FadedClusterID INT NOT NULL
+DROP TABLE IF EXISTS `premade_implant`;
+CREATE TABLE `premade_implant` (
+	`ImplantTypeID` INT NOT NULL,
+	`ProfessionID` INT NOT NULL,
+	`AbilityID` INT NOT NULL,
+	`ShinyClusterID` INT NOT NULL,
+	`BrightClusterID` INT NOT NULL,
+	`FadedClusterID` INT NOT NULL
 );
-INSERT INTO premade_implant (`ImplantTypeID`, `ProfessionID`, `AbilityID`, `ShinyClusterID`, `BrightClusterID`, `FadedClusterID`) VALUES
+INSERT INTO `premade_implant` (`ImplantTypeID`, `ProfessionID`, `AbilityID`, `ShinyClusterID`, `BrightClusterID`, `FadedClusterID`) VALUES
 (4,1,5,42,41,72),
 (4,2,3,52,10,72),
 (4,3,3,52,10,72),

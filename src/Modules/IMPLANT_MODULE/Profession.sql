@@ -1,9 +1,9 @@
-DROP TABLE IF EXISTS Profession;
-CREATE TABLE Profession (
-	ID INT NOT NULL PRIMARY KEY,
-	Name VARCHAR(20) NOT NULL
+DROP TABLE IF EXISTS `Profession`;
+CREATE TABLE `Profession` (
+	`ID` INT NOT NULL PRIMARY KEY,
+	`Name` VARCHAR(20) NOT NULL
 );
-INSERT INTO Profession (ID, Name) VALUES
+INSERT INTO `Profession` (`ID`, `Name`) VALUES
 (1,'Adventurer'),
 (2,'Agent'),
 (3,'Bureaucrat'),

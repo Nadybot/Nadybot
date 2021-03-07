@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS SymbiantClusterMatrix;
-CREATE TABLE SymbiantClusterMatrix (
-	SymbiantID INT NOT NULL,
-	ClusterID INT NOT NULL,
-	Amount INT NOT NULL
+DROP TABLE IF EXISTS `SymbiantClusterMatrix`;
+CREATE TABLE `SymbiantClusterMatrix` (
+	`SymbiantID` INT NOT NULL,
+	`ClusterID` INT NOT NULL,
+	`Amount` INT NOT NULL
 );
-INSERT INTO SymbiantClusterMatrix (SymbiantID, ClusterID, Amount) VALUES
+INSERT INTO `SymbiantClusterMatrix` (`SymbiantID`, `ClusterID`, `Amount`) VALUES
 (235664,2,1),
 (235665,2,3),
 (235666,2,26),
