@@ -4,12 +4,15 @@ namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\{
 	AOChatEvent,
+	AccessManager,
 	BuddylistManager,
 	CommandReply,
 	CommandAlias,
+	CommandManager,
 	DB,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	SettingManager,
 	Text,
 	UserStateEvent,
 };
@@ -57,6 +60,15 @@ class NotesController {
 	public AltsController $altsController;
 
 	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
+	public CommandManager $commandManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
 	/** @Setup */
@@ -68,6 +80,17 @@ class NotesController {
 		$this->commandAlias->register($this->moduleName, "notes", "note");
 		$this->commandAlias->register($this->moduleName, "reminders", "reminder");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
+		$this->settingManager->add(
+			$this->moduleName,
+			"reminder_format",
+			"How to display reminder-links in notes",
+			"edit",
+			"options",
+			"2",
+			"off;compact;verbose",
+			'0;1;2',
+			"mod"
+		);
 	}
 
 	/**
@@ -88,7 +111,7 @@ class NotesController {
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = $this->renderNotes($notes);
+		$blob = $this->renderNotes($notes, $sender);
 		$msg = $this->text->makeBlob("Notes for $sender ($count)", $blob);
 		$sendto->reply($msg);
 	}
@@ -111,7 +134,7 @@ class NotesController {
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = $this->renderNotes($notes);
+		$blob = $this->renderNotes($notes, $sender);
 		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob);
 		$sendto->reply($msg);
 	}
@@ -146,38 +169,69 @@ class NotesController {
 	 *
 	 * @param Note[] $notes
 	 */
-	protected function renderNotes(array $notes): string {
+	protected function renderNotes(array $notes, string $sender): string {
 		$blob = '';
 		$current = '';
+		$format = $this->settingManager->getInt('reminder_format');
+		$reminderCommands = $this->commandManager->get('reminders', 'msg');
+		// If the command is not available to the sender, don't render reminder-links
+		if (empty($reminderCommands)
+			|| !$reminderCommands[0]->status
+			|| !$this->accessManager->checkAccess($sender, $reminderCommands[0]->admin)
+		) {
+			$format = 0;
+		}
 		foreach ($notes as $note) {
 			if ($note->added_by !== $current) {
 				$blob .= "\n<header2>{$note->added_by}<end>\n";
 				$current = $note->added_by;
 			}
-			$links = [];
-			$links []= $this->text->makeChatcmd('Delete', "/tell <myname> notes rem {$note->id}");
-			$remindAllLink = $this->text->makeChatcmd('All', "/tell <myname> reminders set all {$note->id}");
-			$remindSelfLink = $this->text->makeChatcmd('Self', "/tell <myname> reminders set self {$note->id}");
-			$remindOffLink = $this->text->makeChatcmd('Off', "/tell <myname> reminders set off {$note->id}");
-			if (($note->reminder & 2) === 0) {
-				$links []= $remindAllLink;
-			}
-			if (($note->reminder & 1) === 0) {
-				$links []= $remindSelfLink;
-			}
-			if ($note->reminder > 0) {
-				$links []= $remindOffLink;
-			}
+			$deleteLink = $this->text->makeChatcmd('Remove', "/tell <myname> notes rem {$note->id}");
 
-			$blob .= "<tab>$note->note";
-			if ($note->reminder === 1) {
-				$blob .= " (<highlight>self<end>)";
-			} elseif ($note->reminder === 2) {
-				$blob .= " (<highlight>all<end>)";
+			$reminderLinks = $this->renderReminderLinks($note, $format);
+			if ($format === 0) {
+				$blob .= "<tab>[{$deleteLink}] {$note->note}\n\n";
+			} elseif ($format === 1) {
+				$blob .= "<tab>[$deleteLink] {$note->note} {$reminderLinks}\n\n";
+			} else {
+				$blob .= "<tab><highlight>{$note->note}<end> [{$deleteLink}] Reminders: {$reminderLinks}\n\n";
 			}
-			$blob .= " [" . join("] [", $links) . "]\n\n";
 		}
 		return $blob;
+	}
+
+	protected function renderReminderLinks(Note $note, int $format): string {
+		if ($format === 0) {
+			return "";
+		}
+		$texts = [
+			1 => ["O", "S", "A"],
+			2 => ["Off", "Self", "All"],
+		];
+		$labels = $texts[$format];
+		$links = [];
+		$remindAllLink = $this->text->makeChatcmd($labels[2], "/tell <myname> reminders set all {$note->id}");
+		$remindSelfLink = $this->text->makeChatcmd($labels[1], "/tell <myname> reminders set self {$note->id}");
+		$remindOffLink = $this->text->makeChatcmd($labels[0], "/tell <myname> reminders set off {$note->id}");
+		if (($note->reminder & 2) === 0) {
+			$links []= $remindAllLink;
+		} else {
+			$links []= "<green>" . $labels[2] . "<end>";
+		}
+		if (($note->reminder & 1) === 0) {
+			$links []= $remindSelfLink;
+		} else {
+			$links []= "<yellow>" . $labels[1] . "<end>";
+		}
+		if ($note->reminder > 0) {
+			$links []= $remindOffLink;
+		} else {
+			$links []= "<red>" . $labels[0] . "<end>";
+		}
+		if ($format === 1) {
+			return "(" . join("|", $links) . ")";
+		}
+		return "[" . join("] [", $links) . "]";
 	}
 
 	/**
