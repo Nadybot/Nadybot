@@ -16,9 +16,11 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+use Nadybot\Core\Modules\PREFERENCES\Preferences;
 
 /**
  * @author Tyrence (RK2)
+ * @author Nadyita (RK5)
  *
  * @Instance
  *
@@ -27,16 +29,27 @@ use Nadybot\Core\{
  *		command     = 'notes',
  *		accessLevel = 'guild',
  *		description = 'Displays, adds, or removes a note from your list',
- *		help        = 'notes.txt'
+ *		help        = 'notes.txt',
+ *		alias       = 'note'
  *	)
  *	@DefineCommand(
  *		command     = 'reminders',
  *		accessLevel = 'guild',
  *		description = 'Displays, adds, or removes a reminder from your list',
+ *		help        = 'notes.txt',
+ *		alias       = 'reminder'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'reminderformat',
+ *		accessLevel = 'guild',
+ *		description = 'Displays or changes the reminder format for oneself',
  *		help        = 'notes.txt'
  *	)
  */
 class NotesController {
+	public const FORMAT_GROUPED = 'grouped';
+	public const FORMAT_INDIVIDUAL = 'individual';
+	public const FORMAT_INDIVIDUAL2 = 'individual2';
 
 	/**
 	 * Name of the module.
@@ -71,14 +84,15 @@ class NotesController {
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
 
+	/** @Inject */
+	public Preferences $preferences;
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "notes");
 		if (!$this->db->columnExists("notes", "reminder")) {
 			$this->db->exec("ALTER TABLE `notes` ADD COLUMN `reminder` INTEGER NOT NULL DEFAULT 0");
 		}
-		$this->commandAlias->register($this->moduleName, "notes", "note");
-		$this->commandAlias->register($this->moduleName, "reminders", "reminder");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
 		$this->settingManager->add(
 			$this->moduleName,
@@ -135,7 +149,8 @@ class NotesController {
 			return;
 		}
 		$blob = $this->renderNotes($notes, $sender);
-		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob);
+		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob).
+			$this->getReminderPrefLink();
 		$sendto->reply($msg);
 	}
 
@@ -374,14 +389,118 @@ class NotesController {
 		if (!count($notes)) {
 			return;
 		}
-		$msgs = array_map(
-			function (Note $note): string {
-				return "For {$note->added_by}: <highlight>$note->note<end>";
-			},
-			$notes
-		);
-		$msg = ":: <red>Reminder" . (count($msgs) > 1 ? "s" : "") . "<end> ::\n".
-			join("\n", $msgs);
+		$reminderFormat = $this->getReminderFormat($sender);
+		$msg = $this->getReminderMessage($reminderFormat, $notes);
 		$this->chatBot->sendMassTell($msg, $sender);
+	}
+
+	public function getReminderFormat(string $sender): string {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->getValidatedMain($sender);
+		$reminderFormat = $this->preferences->get($main, 'reminder_format');
+		if ($reminderFormat === null || $reminderFormat === '') {
+			$reminderFormat = static::FORMAT_GROUPED;
+		}
+		return $reminderFormat;
+	}
+
+	/**
+	 * Render the reminder message for $sender, reminding about the $notes
+	 * @param string $sender Person being reminded
+	 * @param Note[] $notes The notes we are reminded about
+	 * @return string The rendered message
+	 */
+	public function getReminderMessage(string $format, array $notes, bool $addPrefLink=true): string {
+		if ($format === static::FORMAT_GROUPED) {
+			$msgs = array_map(
+				function (Note $note): string {
+					return "For {$note->added_by}: <highlight>$note->note<end>";
+				},
+				$notes
+			);
+			$msg = ":: <red>Reminder" . (count($msgs) > 1 ? "s" : "") . "<end> ::\n".
+				join("\n", $msgs);
+		} else {
+			$msgs = array_map(
+				function (Note $note) use ($format): string {
+					$addedBy = $note->added_by;
+					if ($format === static::FORMAT_INDIVIDUAL2) {
+						$addedBy = "<yellow>{$addedBy}<end>";
+					}
+					return ":: <red>Reminder for {$addedBy}<end> :: <highlight>$note->note<end>";
+				},
+				$notes
+			);
+			$msg = join("\n", $msgs);
+		}
+		if ($addPrefLink) {
+			$msg .= $this->getReminderPrefLink();
+		}
+		return  $msg;
+	}
+
+	protected function getReminderPrefLink(): string {
+		$blob = "<header2>Changing your preference<end>\n".
+			"<tab>To change the reminder format, do a ".
+			$this->text->makeChatcmd(
+				"/tell <myname> reminderformat",
+				"/tell <myname> reminderformat"
+			).
+			".\n";
+		return " :: [" . $this->text->makeBlob("Reminder settings", $blob) . "]";
+	}
+
+	/**
+	 * @HandlesCommand("reminderformat")
+	 * @Matches("/^reminderformat$/i")
+	 */
+	public function reminderformatShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$reminderFormat = $this->getReminderFormat($sender);
+		$exampleNote1 = new Note();
+		$exampleNote1->added_by = $sender;
+		$exampleNote1->note = "Example text about something super important";
+		$exampleNote2 = new Note();
+		$exampleNote2->added_by = "Nadyita";
+		$exampleNote2->note = "Don't forget to buy grenades!";
+		$exampleNotes = [$exampleNote1, $exampleNote2];
+		$formats = [static::FORMAT_GROUPED, static::FORMAT_INDIVIDUAL, static::FORMAT_INDIVIDUAL2];
+		$blob = '';
+		foreach ($formats as $format) {
+			$useThisLinks = $this->text->makeChatcmd(
+				"use this",
+				"/tell <myname> reminderformat {$format}"
+			);
+			$blob .= "<header2>{$format} [{$useThisLinks}]<end>\n";
+			$example = join("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes, false)));
+			$blob .= "<tab>{$example}\n\n";
+		}
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->getValidatedMain($sender);
+		$blob .= "\n<i>Your reminder format preference is account-wide and currently stored on {$main}</i>.";
+
+		$blobLink = $this->text->makeBlob("Details", $blob, "The available reminder formats");
+		$msg = "You reminder format is <highlight>{$reminderFormat}<end> :: [{$blobLink}]";
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("reminderformat")
+	 * @Matches("/^reminderformat\s+(.+)$/i")
+	 */
+	public function reminderformatChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[1] = strtolower($args[1]);
+		if (!in_array($args[1], [static::FORMAT_GROUPED, static::FORMAT_INDIVIDUAL, static::FORMAT_INDIVIDUAL2], true)) {
+			$sendto->reply(
+				sprintf(
+					"Valid options are <highlight>%s<end>, <highlight>%s<end> and <highlight>%s<end>.",
+					static::FORMAT_GROUPED,
+					static::FORMAT_INDIVIDUAL,
+					static::FORMAT_INDIVIDUAL2
+				)
+			);
+			return;
+		}
+		$this->preferences->save($sender, 'reminder_format', $args[1]);
+		$sendto->reply("Your reminder format has been set.");
 	}
 }
