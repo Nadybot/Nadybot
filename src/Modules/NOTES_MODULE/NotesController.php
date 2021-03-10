@@ -149,8 +149,13 @@ class NotesController {
 			return;
 		}
 		$blob = $this->renderNotes($notes, $sender);
-		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob).
-			$this->getReminderPrefLink();
+		$blob .= "\n\nReminders are sent every time you logon or enter the bot's ".
+			"private channel.\n".
+			"To change the format in which the bot sends reminders, ".
+			"you can use the ".
+			$this->text->makeChatcmd("!reminderformat", "/tell <myname> reminderformat").
+			" command.";
+		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -162,7 +167,7 @@ class NotesController {
 			return;
 		}
 		// convert all notes to be assigned to the main
-		$sql = "UPDATE notes SET owner = ? WHERE owner = ?";
+		$sql = "UPDATE `notes` SET `owner` = ? WHERE `owner` = ?";
 		$this->db->exec($sql, $main, $sender);
 	}
 
@@ -207,9 +212,9 @@ class NotesController {
 			if ($format === 0) {
 				$blob .= "<tab>[{$deleteLink}] {$note->note}\n\n";
 			} elseif ($format === 1) {
-				$blob .= "<tab>[$deleteLink] {$note->note} {$reminderLinks}\n\n";
+				$blob .= "<tab>[$deleteLink] {$note->note}<tab>{$reminderLinks}\n\n";
 			} else {
-				$blob .= "<tab><highlight>{$note->note}<end> [{$deleteLink}] Reminders: {$reminderLinks}\n\n";
+				$blob .= "<tab>- <highlight>{$note->note}<end> [{$deleteLink}]<tab>Reminders: {$reminderLinks}\n\n";
 			}
 		}
 		return $blob;
@@ -410,7 +415,7 @@ class NotesController {
 	 * @param Note[] $notes The notes we are reminded about
 	 * @return string The rendered message
 	 */
-	public function getReminderMessage(string $format, array $notes, bool $addPrefLink=true): string {
+	public function getReminderMessage(string $format, array $notes): string {
 		if ($format === static::FORMAT_GROUPED) {
 			$msgs = array_map(
 				function (Note $note): string {
@@ -433,21 +438,7 @@ class NotesController {
 			);
 			$msg = join("\n", $msgs);
 		}
-		if ($addPrefLink) {
-			$msg .= $this->getReminderPrefLink();
-		}
 		return  $msg;
-	}
-
-	protected function getReminderPrefLink(): string {
-		$blob = "<header2>Changing your preference<end>\n".
-			"<tab>To change the reminder format, do a ".
-			$this->text->makeChatcmd(
-				"/tell <myname> reminderformat",
-				"/tell <myname> reminderformat"
-			).
-			".\n";
-		return " :: [" . $this->text->makeBlob("Reminder settings", $blob) . "]";
 	}
 
 	/**
@@ -464,22 +455,28 @@ class NotesController {
 		$exampleNote2->note = "Don't forget to buy grenades!";
 		$exampleNotes = [$exampleNote1, $exampleNote2];
 		$formats = [static::FORMAT_GROUPED, static::FORMAT_INDIVIDUAL, static::FORMAT_INDIVIDUAL2];
-		$blob = '';
+		$blob = "When you logon or enter the bot's private channel, the bot will\n".
+			"remind you of all the reminders you set up.\n\n".
+			"You can choose between one of the following formats that the bot should\n".
+			"use to send these reminders to you:\n\n";
 		foreach ($formats as $format) {
 			$useThisLinks = $this->text->makeChatcmd(
 				"use this",
 				"/tell <myname> reminderformat {$format}"
 			);
-			$blob .= "<header2>{$format} [{$useThisLinks}]<end>\n";
-			$example = join("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes, false)));
+			$blob .= "<header2>".
+				"{$format} [{$useThisLinks}]".
+				(($reminderFormat === $format) ? " (<highlight>active<end>)" : "").
+				"<end>\n";
+			$example = join("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes)));
 			$blob .= "<tab>{$example}\n\n";
 		}
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
-		$blob .= "\n<i>Your reminder format preference is account-wide and currently stored on {$main}</i>.";
+		$blob .= "\n<i>Your reminder format preference is the same for all of your alts</i>.";
 
 		$blobLink = $this->text->makeBlob("Details", $blob, "The available reminder formats");
-		$msg = "You reminder format is <highlight>{$reminderFormat}<end> :: [{$blobLink}]";
+		$msg = "Your reminder format is <highlight>{$reminderFormat}<end> :: [{$blobLink}]";
 		$sendto->reply($msg);
 	}
 
