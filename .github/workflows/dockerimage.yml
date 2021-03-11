@@ -4,7 +4,7 @@ on:
     branches:
       - unstable
       - stable
-      - php8-image
+      - image-fix-version
     tags:
       - '*'
 jobs:
@@ -25,12 +25,14 @@ jobs:
           id: vars
           shell: bash
           run: |
-            TAG=$(git describe --tags --abbrev=0)
-            VERSION="${TAG}"
+            TAG=$(git tags -l | sort -V | tail -n 1)
             BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-            if [ "${TAG}" != "$(git describe --tags --abbrev=1)" ]; then
+            if [ "${BRANCH}" != "stable" ]; then
               VERSION="${TAG}@${BRANCH}"
-              TAG="${BRANCH}"
+            elif [ "${TAG}" != "$(git describe --tags)" ]; then
+              VERSION="${TAG}@${BRANCH}"
+            else
+              VERSION="${TAG}"
             fi
             echo ::set-output name=tag::$(echo ${TAG})
             echo ::set-output name=version::$(echo ${VERSION})
