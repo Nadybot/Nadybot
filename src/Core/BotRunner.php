@@ -15,7 +15,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.0";
+	public const VERSION = "5.0.0";
 
 	/**
 	 * The command line arguments
@@ -28,7 +28,9 @@ class BotRunner {
 
 	public ClassLoader $classLoader;
 
-	protected static $latestTag = null;
+	protected static ?string $latestTag = null;
+
+	protected static ?string $calculatedVersion = null;
 
 	/**
 	 * Create a new instance
@@ -41,19 +43,37 @@ class BotRunner {
 	}
 
 	/**
-	 * Return the version number of the bot.
+	 * Return the (cached) version number of the bot.
 	 * Depending on where you got the source from,
 	 * it's either the latest tag, the branch or a fixed version
 	 */
 	public static function getVersion(): string {
-		if (!@file_exists(dirname(dirname(__DIR__)) . '/.git')) {
+		if (!isset(static::$calculatedVersion)) {
+			static::$calculatedVersion = static::calculateVersion();
+		}
+		return static::$calculatedVersion;
+	}
+
+	/** Get the base directory of the bot */
+	public static function getBasedir(): string {
+		return realpath(dirname(dirname(__DIR__)));
+	}
+
+	/**
+	 * Calculate the version number of the bot.
+	 * Depending on where you got the source from,
+	 * it's either the latest tag, the branch or a fixed version
+	 */
+	public static function calculateVersion(): string {
+		$baseDir = static::getBasedir();
+		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
 		set_error_handler(function($num, $str, $file, $line) {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@file_get_contents(dirname(dirname(__DIR__)) . '/.git/HEAD')), 2)[1];
+			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
@@ -62,12 +82,32 @@ class BotRunner {
 			if ($branch !== 'stable') {
 				return "{$latestTag}@{$branch}";
 			}
-			return "{$latestTag}";
+			$gitDescribe = static::getGitDescribe();
+			if ($gitDescribe === null || $gitDescribe === $latestTag) {
+				return "{$latestTag}";
+			}
+			return "{$latestTag}@stable";
 		} catch (\Throwable $e) {
 			return static::VERSION;
 		} finally {
 			restore_error_handler();
 		}
+	}
+
+	public static function getGitDescribe(): ?string {
+		$baseDir = static::getBasedir();
+		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+
+		$pid = proc_open("git describe --tags", $descriptors, $pipes, $baseDir);
+		if ($pid === false) {
+			return null;
+		}
+		fclose($pipes[0]);
+		$gitDescribe = trim(stream_get_contents($pipes[1]));
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		proc_close($pid);
+		return $gitDescribe;
 	}
 
 	/**
@@ -79,9 +119,10 @@ class BotRunner {
 		if (isset(static::$latestTag)) {
 			return static::$latestTag;
 		}
+		$baseDir = static::getBasedir();
 		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
 
-		$pid = proc_open("git tag -l", $descriptors, $pipes);
+		$pid = proc_open("git tag -l", $descriptors, $pipes, $baseDir);
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
