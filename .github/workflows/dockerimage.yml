@@ -29,8 +29,10 @@ jobs:
             BRANCH="$(git rev-parse --abbrev-ref HEAD)"
             if [ "${BRANCH}" != "stable" ]; then
               VERSION="${TAG}@${BRANCH}"
+              TAG="${BRANCH}"
             elif [ "${TAG}" != "$(git describe --tags)" ]; then
               VERSION="${TAG}@${BRANCH}"
+              TAG="${BRANCH}"
             else
               VERSION="${TAG}"
             fi
