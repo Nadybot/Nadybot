@@ -129,7 +129,6 @@ class BotRunner {
 		) {
 			$requiredModules []= "mbstring";
 		}
-		if ($this->configFile->getVar("amqp_server"));
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
