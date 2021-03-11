@@ -499,7 +499,9 @@ class NotesController {
 			$sendto->reply("Valid options are {$formatString}.");
 			return;
 		}
-		$this->preferences->save($sender, 'reminder_format', $format);
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->getValidatedMain($sender);
+		$this->preferences->save($main, 'reminder_format', $format);
 		$sendto->reply("Your reminder format has been set to <highlight>{$format}<end>.");
 	}
 }
