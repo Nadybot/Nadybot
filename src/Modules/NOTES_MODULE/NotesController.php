@@ -51,6 +51,14 @@ class NotesController {
 	public const FORMAT_INDIVIDUAL = 'individual';
 	public const FORMAT_INDIVIDUAL2 = 'individual2';
 
+	public const DEFAULT_REMINDER_FORMAT = self::FORMAT_INDIVIDUAL;
+
+	public const VALID_FORMATS = [
+		self::FORMAT_GROUPED,
+		self::FORMAT_INDIVIDUAL,
+		self::FORMAT_INDIVIDUAL2,
+	];
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -230,23 +238,23 @@ class NotesController {
 		];
 		$labels = $texts[$format];
 		$links = [];
-		$remindAllLink = $this->text->makeChatcmd($labels[2], "/tell <myname> reminders set all {$note->id}");
+		$remindOffLink  = $this->text->makeChatcmd($labels[0], "/tell <myname> reminders set off {$note->id}");
 		$remindSelfLink = $this->text->makeChatcmd($labels[1], "/tell <myname> reminders set self {$note->id}");
-		$remindOffLink = $this->text->makeChatcmd($labels[0], "/tell <myname> reminders set off {$note->id}");
+		$remindAllLink  = $this->text->makeChatcmd($labels[2], "/tell <myname> reminders set all {$note->id}");
 		if (($note->reminder & 2) === 0) {
 			$links []= $remindAllLink;
 		} else {
-			$links []= "<green>" . $labels[2] . "<end>";
+			$links []= "<green>{$labels[2]}<end>";
 		}
 		if (($note->reminder & 1) === 0) {
 			$links []= $remindSelfLink;
 		} else {
-			$links []= "<yellow>" . $labels[1] . "<end>";
+			$links []= "<yellow>{$labels[1]}<end>";
 		}
 		if ($note->reminder > 0) {
 			$links []= $remindOffLink;
 		} else {
-			$links []= "<red>" . $labels[0] . "<end>";
+			$links []= "<red>{$labels[0]}<end>";
 		}
 		if ($format === 1) {
 			return "(" . join("|", $links) . ")";
@@ -404,7 +412,7 @@ class NotesController {
 		$main = $altInfo->getValidatedMain($sender);
 		$reminderFormat = $this->preferences->get($main, 'reminder_format');
 		if ($reminderFormat === null || $reminderFormat === '') {
-			$reminderFormat = static::FORMAT_GROUPED;
+			$reminderFormat = static::DEFAULT_REMINDER_FORMAT;
 		}
 		return $reminderFormat;
 	}
@@ -432,7 +440,7 @@ class NotesController {
 					if ($format === static::FORMAT_INDIVIDUAL2) {
 						$addedBy = "<yellow>{$addedBy}<end>";
 					}
-					return ":: <red>Reminder for {$addedBy}<end> :: <highlight>$note->note<end>";
+					return ":: <red>Reminder for {$addedBy}<end> :: <highlight>{$note->note}<end>";
 				},
 				$notes
 			);
@@ -454,11 +462,11 @@ class NotesController {
 		$exampleNote2->added_by = "Nadyita";
 		$exampleNote2->note = "Don't forget to buy grenades!";
 		$exampleNotes = [$exampleNote1, $exampleNote2];
-		$formats = [static::FORMAT_GROUPED, static::FORMAT_INDIVIDUAL, static::FORMAT_INDIVIDUAL2];
+		$formats = static::VALID_FORMATS;
 		$blob = "When you logon or enter the bot's private channel, the bot will\n".
-			"remind you of all the reminders you set up.\n\n".
-			"You can choose between one of the following formats that the bot should\n".
-			"use to send these reminders to you:\n\n";
+			"send you a tell with all your reminders.\n\n".
+			"You can choose between one of the following formats what this tell\n".
+			"should look like:\n\n";
 		foreach ($formats as $format) {
 			$useThisLinks = $this->text->makeChatcmd(
 				"use this",
@@ -471,8 +479,6 @@ class NotesController {
 			$example = join("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes)));
 			$blob .= "<tab>{$example}\n\n";
 		}
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
 		$blob .= "\n<i>Your reminder format preference is the same for all of your alts</i>.";
 
 		$blobLink = $this->text->makeBlob("Details", $blob, "The available reminder formats");
@@ -485,19 +491,15 @@ class NotesController {
 	 * @Matches("/^reminderformat\s+(.+)$/i")
 	 */
 	public function reminderformatChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[1] = strtolower($args[1]);
-		if (!in_array($args[1], [static::FORMAT_GROUPED, static::FORMAT_INDIVIDUAL, static::FORMAT_INDIVIDUAL2], true)) {
-			$sendto->reply(
-				sprintf(
-					"Valid options are <highlight>%s<end>, <highlight>%s<end> and <highlight>%s<end>.",
-					static::FORMAT_GROUPED,
-					static::FORMAT_INDIVIDUAL,
-					static::FORMAT_INDIVIDUAL2
-				)
-			);
+		$format = strtolower($args[1]);
+		$formats = static::VALID_FORMATS;
+		if (!in_array($format, $formats, true)) {
+			$formats = $this->text->arraySprintf("<highlight>%s<end>", ...$formats);
+			$formatString = $this->text->enumerate(...$formats);
+			$sendto->reply("Valid options are {$formatString}.");
 			return;
 		}
-		$this->preferences->save($sender, 'reminder_format', $args[1]);
-		$sendto->reply("Your reminder format has been set.");
+		$this->preferences->save($sender, 'reminder_format', $format);
+		$sendto->reply("Your reminder format has been set to <highlight>{$format}<end>.");
 	}
 }

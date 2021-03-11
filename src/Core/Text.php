@@ -290,4 +290,33 @@ class Text {
 		$alignedNumber = preg_replace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
 		return $alignedNumber;
 	}
+
+	/**
+	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
+	 * @param string[] $words The words to enumerate
+	 * @return string The enumerated string
+	 */
+	public function enumerate(string ...$words): string {
+		$last = array_pop($words);
+		if (count($words) === 0) {
+			return $last;
+		}
+		$commas = join(", ", $words);
+		return join(" and ", [$commas, $last]);
+	}
+
+	/**
+	 * Run an sprintf format on an array of strings
+	 * @param string $format The sprintf-style format
+	 * @param string[] $strings The words to change
+	 * @return string[] The formatted array
+	 */
+	public function arraySprintf(string $format, string ...$strings): array {
+		return array_map(
+			function(string $text) use ($format): string {
+				return sprintf($format, $text);
+			},
+			$strings
+		);
+	}
 }
