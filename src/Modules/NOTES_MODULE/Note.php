@@ -10,4 +10,9 @@ class Note extends DBRow {
 	public string $added_by;
 	public string $note;
 	public int $dt;
+	public int $reminder = 0;
+
+	public function __construct() {
+		$this->dt = time();
+	}
 }
