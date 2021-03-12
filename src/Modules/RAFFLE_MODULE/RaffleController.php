@@ -36,6 +36,7 @@ use Nadybot\Core\{
  * @ProvidesEvent("raffle(leave)")
  */
 class RaffleController {
+	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
 	/**
 	 * Name of the module.
@@ -126,7 +127,7 @@ class RaffleController {
 			"Bonus to next roll for a lost raffle",
 			"edit",
 			"options",
-			'5',
+			'0',
 			"0;1;2;5;10",
 			"0;1;2;5;10",
 			'mod',
@@ -224,9 +225,9 @@ class RaffleController {
 		$result = [];
 		$items = $this->raffle->toList();
 		for ($i = 0; $i < count($items); $i++) {
-			$enterLink = $this->text->makeChatcmd("Enter", "/tell <myname> raffle enter " . ($i+1));
+			$joinLink = $this->text->makeChatcmd("Join", "/tell <myname> raffle join " . ($i+1));
 			$leaveLink = $this->text->makeChatcmd("Leave", "/tell <myname> raffle leave " . ($i+1));
-			$result []= ((count($items) > 1) ? "Item " . ($i + 1) . ": " : "") . "[$enterLink] [$leaveLink] - <highlight>{$items[$i]}<end>";
+			$result []= ((count($items) > 1) ? "Item " . ($i + 1) . ": " : "") . "[$joinLink] [$leaveLink] - <highlight>{$items[$i]}<end>";
 		}
 		return $result;
 	}
@@ -250,13 +251,13 @@ class RaffleController {
 	}
 
 	public function announceRaffleStart(): void {
-		$msg = "<highlight>{$this->raffle->raffler}<end> has started a raffle:\n".
+		$msg = "\n<yellow>:::<end> <red>{$this->raffle->raffler} has started a raffle<end> <yellow>:::<end>\n".
 			$this->fancyFrame($this->raffle->toString("<tab>"));
 		$blob = $this->getJoinLeaveBlob();
 		if ($this->raffle->end) {
 			$endTime = $this->util->unixtimeToReadable($this->raffle->end - $this->raffle->start);
 			$msg .= "The raffle will end in <highlight>{$endTime}<end> :: [".
-				$this->text->makeBlob("join", $blob, "Raffle actions") . "]";
+				$this->text->makeBlob("Join", $blob, "Raffle actions") . "]";
 		} else {
 			$msg .= $this->text->makeBlob("Join the raffle", $blob, "Raffle actions");
 		}
@@ -269,8 +270,7 @@ class RaffleController {
 	 */
 	public function raffleCancelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 
@@ -279,7 +279,7 @@ class RaffleController {
 			$sendto->reply($msg);
 			return;
 		}
-		$msg = "The raffle was cancelled by <highlight>{$sender}<end>.";
+		$msg = "The raffle was <red>cancelled<end> by <highlight>{$sender}<end>.";
 		$this->raffle->sendto->reply($msg);
 		$event = new RaffleEvent();
 		$event->raffle = $this->raffle;
@@ -294,8 +294,7 @@ class RaffleController {
 	 */
 	public function raffleEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 
@@ -314,8 +313,7 @@ class RaffleController {
 	 */
 	public function raffleTimerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 
@@ -345,8 +343,7 @@ class RaffleController {
 	 */
 	public function raffleAnnounceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 
@@ -365,16 +362,15 @@ class RaffleController {
 	 * @Matches("/^raffle enter$/i")
 	 * @Matches("/^raffle enter (\d+)$/i")
 	 */
-	public function raffleEnterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raffleJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 		$slot = 0;
 		if (count($args) === 1) {
 			if (count($this->raffle->slots) > 1) {
-				$msg = "There is more than 1 item being raffled. Please say which slot to enter.";
+				$msg = "There is more than 1 item being raffled. Please say which slot to join.";
 				$sendto->reply($msg);
 				return;
 			}
@@ -401,17 +397,16 @@ class RaffleController {
 		$this->eventManager->fireEvent($event);
 
 		if ($this->settingManager->getBool("raffle_announce_participants")) {
-			$msg = "<highlight>$sender<end> entered the raffle";
+			$msg = "<highlight>$sender<end> <green>joined<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
-				$msg .= " for " . $this->raffle->slots[$slot]->toString() . ".";
-			} else {
-				$msg .= ".";
+				$msg .= " for " . $this->raffle->slots[$slot]->toString();
 			}
+			$msg .= ".";
 			$this->raffle->sendto->reply($msg);
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You entered the raffle for <highlight>".
+			"You <green>joined<end> the raffle for <highlight>".
 			$this->raffle->slots[$slot]->toString() . "<end>.",
 			$sender
 		);
@@ -424,8 +419,7 @@ class RaffleController {
 	 */
 	public function raffleLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
-			$msg = "There is no active raffle.";
-			$sendto->reply($msg);
+			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 		$slot = 0;
@@ -473,17 +467,16 @@ class RaffleController {
 		$event->player = $sender;
 		$this->eventManager->fireEvent($event);
 		if ($this->settingManager->getBool("raffle_announce_participants")) {
-			$msg = "<highlight>$sender<end> left the raffle";
+			$msg = "<highlight>$sender<end> <red>left<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
-				$msg .= " for " . $this->raffle->slots[$slot]->toString() . ".";
-			} else {
-				$msg .= ".";
+				$msg .= " for " . $this->raffle->slots[$slot]->toString();
 			}
+			$msg .= ".";
 			$this->raffle->sendto->reply($msg);
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You left the raffle for <highlight>".
+			"You <red>left<end> the raffle for <highlight>".
 			$this->raffle->slots[$slot]->toString() . "<end>.",
 			$sender
 		);
@@ -520,7 +513,7 @@ class RaffleController {
 
 		$msg = "\n";
 		if (isset($extra)) {
-			$msg .= "<yellow>:::<end> <highlight>{$extra}<end> <yellow>:::<end>\n";
+			$msg .= "<yellow>:::<end> <red>{$extra}<end> <yellow>:::<end>\n";
 		}
 		$msg .= $this->fancyFrame($this->raffle->toString("<tab>"));
 		if (isset($this->raffle->end)) {
@@ -529,7 +522,7 @@ class RaffleController {
 		}
 		$msg .= $participantsString . " :: [";
 		$blob = $this->getJoinLeaveBlob();
-		$msg .= $this->text->makeBlob("join", $blob, "Raffle actions") . "]";
+		$msg .= $this->text->makeBlob("Join", $blob, "Raffle actions") . "]";
 		$this->raffle->sendto->reply($msg);
 	}
 
@@ -691,13 +684,12 @@ class RaffleController {
 		foreach ($raffle->slots as $slot) {
 			$blob .= "<header2>" . $slot->toString() . "<end>\n";
 			if (!count($slot->result)) {
-				$blob .= "<tab>No one entered for this item.\n\n";
+				$blob .= "<tab>No one joined for this item.\n\n";
 				continue;
 			}
 			foreach ($slot->result as $player) {
 				$blob .= "<tab>- ".
 					($player->won ? "<green>" : "<red>").
-					// ($player->won ? "[<green>:-)<end>]" : "[<red>:-(<end>]").
 					"{$player->player}<end> (".
 					$player->points.
 					($showBonus ? ":{$player->bonus_points}" : "").
@@ -715,12 +707,12 @@ class RaffleController {
 			$raffle->sendto->reply($msg);
 			return;
 		}
-		$blobMsg = "[" . $this->text->makeBlob("details", $blob, "Raffle result details") . "]";
+		$blobMsg = ":: [" . $this->text->makeBlob("Details", $blob, "Raffle result details") . "]";
 		$winners = $raffle->slots[0]->getWinnerNames();
 		if ($raffle->slots[0]->amount === 1 || count($winners) === 1) {
 			$winner = $winners[0];
 			$msg = "The winner of <highlight>" . $raffle->slots[0]->toString() . "<end>".
-				" is: <highlight>{$winner}<end>. $blobMsg";
+				" is: <highlight>{$winner}<end> $blobMsg";
 		} else {
 			$msg = "The winners of <highlight>" . $raffle->slots[0]->toString() . "<end> are $blobMsg:\n".
 				"<tab>- <highlight>".
