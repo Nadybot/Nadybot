@@ -238,20 +238,26 @@ class NotesController {
 		];
 		$labels = $texts[$format];
 		$links = [];
-		$remindOffLink  = $this->text->makeChatcmd($labels[0], "/tell <myname> reminders set off {$note->id}");
-		$remindSelfLink = $this->text->makeChatcmd($labels[1], "/tell <myname> reminders set self {$note->id}");
-		$remindAllLink  = $this->text->makeChatcmd($labels[2], "/tell <myname> reminders set all {$note->id}");
-		if (($note->reminder & 2) === 0) {
+		$remindOffLink  = $this->text->makeChatcmd(
+			$labels[Note::REMIND_NONE], "/tell <myname> reminders set off {$note->id}"
+		);
+		$remindSelfLink = $this->text->makeChatcmd(
+			$labels[Note::REMIND_SELF], "/tell <myname> reminders set self {$note->id}"
+		);
+		$remindAllLink  = $this->text->makeChatcmd(
+			$labels[Note::REMIND_ALL], "/tell <myname> reminders set all {$note->id}"
+		);
+		if (($note->reminder & Note::REMIND_ALL) === 0) {
 			$links []= $remindAllLink;
 		} else {
 			$links []= "<green>{$labels[2]}<end>";
 		}
-		if (($note->reminder & 1) === 0) {
+		if (($note->reminder & Note::REMIND_SELF) === 0) {
 			$links []= $remindSelfLink;
 		} else {
 			$links []= "<yellow>{$labels[1]}<end>";
 		}
-		if ($note->reminder > 0) {
+		if ($note->reminder !== Note::REMIND_NONE) {
 			$links []= $remindOffLink;
 		} else {
 			$links []= "<red>{$labels[0]}<end>";
@@ -298,9 +304,9 @@ class NotesController {
 		$type = $args[1];
 		$noteText = $args[2];
 
-		$reminder = 2;
+		$reminder = Note::REMIND_ALL;
 		if ($type === "addself") {
-			$reminder = 1;
+			$reminder = Note::REMIND_SELF;
 		}
 		$this->saveNote($noteText, $sender, $reminder);
 		$msg = "Reminder added successfully.";
@@ -340,11 +346,11 @@ class NotesController {
 		$type = $args[1];
 		$id = (int)$args[2];
 
-		$reminder = 2;
+		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
-			$reminder = 1;
+			$reminder = Note::REMIND_SELF;
 		} elseif ($type === "off") {
-			$reminder = 0;
+			$reminder = Note::REMIND_NONE;
 		}
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
@@ -396,7 +402,7 @@ class NotesController {
 		$notes = array_filter(
 			$notes,
 			function (Note $note) use ($sender): bool {
-				return $note->reminder === 2 || $note->added_by === $sender;
+				return $note->reminder === Note::REMIND_ALL || $note->added_by === $sender;
 			}
 		);
 		if (!count($notes)) {
