@@ -46,7 +46,9 @@ class ConsoleCommandReply implements CommandReply {
 		$message = preg_replace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]>(.*?)<\/a>/s", "<link>$2</link>", $message);
 		$message = preg_replace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
 		$message = preg_replace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
+		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?>\n/s", "\n", $message);
 		$message = preg_replace("/\n<img\s+src=['\"]?rdb:\/\/\d+['\"]?>\n/s", "\n", $message);
+		$message = preg_replace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?>/s", "", $message);
 		$message = preg_replace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?>/s", "", $message);
 		$message = preg_replace("/\n\[item:<link><\/link>]\n/s", "\n", $message);
 		$parts = [];

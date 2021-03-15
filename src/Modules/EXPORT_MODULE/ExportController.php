@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ProxyCapabilities,
 };
-
+use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Modules\{
 	COMMENT_MODULE\Comment,
 	COMMENT_MODULE\CommentCategory,
@@ -33,6 +33,8 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Poll,
 	VOTE_MODULE\Vote,
 };
+use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;
+use Nadybot\Modules\RAID_MODULE\RaidRank;
 use stdClass;
 
 /**
@@ -113,7 +115,7 @@ class ExportController {
 		$exports->raidPoints = $this->exportRaidPoints();
 		$exports->raidPointsLog = $this->exportRaidPointsLog();
 		$exports->timers = $this->exportTimers();
-		$exports->trackedUsers = $this->exportTrackedUsers();
+		$exports->trackedCharacters = $this->exportTrackedCharacters();
 		$output = @json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 		if ($output === false) {
 			$sendto->reply("There was an error exporting the data: " . error_get_last()["message"]);
@@ -131,7 +133,10 @@ class ExportController {
 		if (isset($name)) {
 			$char->name = $name;
 		}
-		$char->id = $uid ?? $this->chatBot->get_uid($name);
+		$id = $uid ?? $this->chatBot->get_uid($name);
+		if (isset($id) && is_int($id)) {
+			$char->id = $id;
+		}
 		return $char;
 	}
 
@@ -161,30 +166,52 @@ class ExportController {
 	}
 
 	protected function exportMembers(): array {
-		$needSuperadmin = true;
+		$exported = [];
+		$result = [];
 		/** @var Member[] */
 		$members = $this->db->fetchAll(Member::class, "SELECT * FROM `members_<myname>`");
-		$result = [];
 		foreach ($members as $member) {
-			if ($member->name === $this->chatBot->vars["SuperAdmin"]) {
-				$needSuperadmin = false;
-			}
 			$result []= (object)[
 				"character" =>$this->toChar($member->name),
 				"autoInvite" => (bool)$member->autoinv,
 			];
+			$exported[$member->name] = true;
+		}
+		/** @var RaidRank[] */
+		$members = $this->db->fetchAll(RaidRank::class, "SELECT * FROM `raid_rank_<myname>`");
+		foreach ($members as $member) {
+			if (isset($exported[$member->name])) {
+				continue;
+			}
+			$result []= (object)[
+				"character" =>$this->toChar($member->name),
+			];
+			$exported[$member->name] = true;
 		}
 		$members = $this->db->fetchAll(OrgMember::class, "SELECT * FROM `org_members_<myname>` WHERE `mode` != 'del'");
 		foreach ($members as $member) {
-			if ($member->name === $this->chatBot->vars["SuperAdmin"]) {
-				$needSuperadmin = false;
+			if (isset($exported[$member->name])) {
+				continue;
 			}
 			$result []= (object)[
 				"character" =>$this->toChar($member->name),
 				"autoInvite" => false,
 			];
+			$exported[$member->name] = true;
 		}
-		if ($needSuperadmin) {
+		/** @var Admin[] */
+		$members = $this->db->fetchAll(Admin::class, "SELECT * FROM `admin_<myname>`");
+		foreach ($members as $member) {
+			if (isset($exported[$member->name])) {
+				continue;
+			}
+			$result []= (object)[
+				"character" =>$this->toChar($member->name),
+				"autoInvite" => (bool)$member->autoinv,
+			];
+			$exported[$member->name] = true;
+		}
+		if (!isset($exported[$this->chatBot->vars["SuperAdmin"]])) {
 			$result []= (object)[
 				"character" => $this->toChar($this->chatBot->vars["SuperAdmin"]),
 				"autoInvite" => false,
@@ -195,11 +222,19 @@ class ExportController {
 			$datum->rank ??= $this->accessManager->getSingleAccessLevel($datum->character->name);
 			$logonMessage = $this->preferences->get($datum->character->name, "logon_msg");
 			$logoffMessage = $this->preferences->get($datum->character->name, "logoff_msg");
+			$massMessages = $this->preferences->get($datum->character->name, MassMsgController::PREF_MSGS);
+			$massInvites = $this->preferences->get($datum->character->name, MassMsgController::PREF_INVITES);
 			if (!empty($logonMessage)) {
 				$datum->logonMessage ??= $logonMessage;
 			}
 			if (!empty($logoffMessage)) {
 				$datum->logoffMessage ??= $logoffMessage;
+			}
+			if (!empty($massMessages)) {
+				$datum->receiveMassMessages ??= $massMessages === "on";
+			}
+			if (!empty($massInvites)) {
+				$datum->receiveMassInvites ??= $massInvites === "on";
 			}
 		}
 		return $result;
@@ -306,10 +341,10 @@ class ExportController {
 		$result = [];
 		foreach ($data as $block) {
 			$entry = (object)[
-				"character" => $this->toChar($block->name),
+				"character" => $this->toChar($block->player),
 				"blockedFrom" => $block->blocked_from,
 				"blockedBy" => $this->toChar($block->blocked_by),
-				"blockReason" => $block->reason,
+				"blockedReason" => $block->reason,
 				"blockStart" => $block->time,
 			];
 			if (isset($block->expiration)) {
@@ -428,7 +463,7 @@ class ExportController {
 		return $result;
 	}
 
-	protected function exportTrackedUsers(): array {
+	protected function exportTrackedCharacters(): array {
 		/** @var TrackedUser[] */
 		$users = $this->db->fetchAll(
 			TrackedUser::class,
@@ -467,10 +502,14 @@ class ExportController {
 				"item" => $auction->item,
 				"startedBy" => $this->toChar($auction->auctioneer),
 				"timeEnd" => $auction->end,
-				"winner" => $this->toChar($auction->winner),
-				"cost" => (float)$auction->bid,
 				"reimbursed" => (bool)$auction->reimbursed
 			];
+			if (isset($auction->winner)) {
+				$auctionObj->winner = $this->toChar($auction->winner);
+			}
+			if (isset($auction->cost)) {
+				$auctionObj->cost = (float)$auction->cost;
+			}
 			if (isset($auction->raid_id)) {
 				$auctionObj->raidId = $auction->raid_id;
 			}
@@ -531,7 +570,7 @@ class ExportController {
 		$result = [];
 		foreach ($links as $link) {
 			$data = (object)[
-				"creator" => $this->toChar($link->name),
+				"createdBy" => $this->toChar($link->name),
 				"creationTime" => $link->dt,
 				"url" => $link->website,
 				"description" => $link->comments,

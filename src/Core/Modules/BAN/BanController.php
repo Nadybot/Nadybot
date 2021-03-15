@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	Text,
 	DB,
 	DBSchema\BanEntry,
-    SQLException,
+	SQLException,
 };
 
 /**
@@ -408,7 +408,7 @@ class BanController {
 	 * @param null|int $length length of the ban in s, or null/0 for unlimited
 	 * @param null|string $reason Optional reason  for the ban
 	 * @return bool true on success, false on failure
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	public function add(int $charId, string $sender, ?int $length, ?string $reason): bool {
 		$banEnd = 0;

@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
-	DBSchema\Member,
 	Modules\PREFERENCES\Preferences,
 };
 
@@ -34,6 +33,12 @@ use Nadybot\Core\{
  *     description   = 'Control if you want to receive mass messages',
  *     help          = 'massmsg.txt'
  * )
+ * @DefineCommand(
+ *     command       = 'massinvites',
+ *     accessLevel   = 'member',
+ *     description   = 'Control if you want to receive mass invites',
+ *     help          = 'massmsg.txt'
+ * )
  *
  * @DefineCommand(
  *     command       = 'massinv',
@@ -49,7 +54,8 @@ class MassMsgController {
 	public const IN_ORG  = 'in org';
 	public const SENT    = 'sent';
 
-	public const PREF = 'massmsgs';
+	public const PREF_MSGS = 'massmsgs';
+	public const PREF_INVITES = 'massinvites';
 
 	public string $moduleName;
 
@@ -88,18 +94,25 @@ class MassMsgController {
 
 	protected function getMassMsgOptInOutBlob(): string {
 		$blob = "<header2>Not interested?<end>\n".
-			"If you don't want this bot to send mass messages or invites to you, ".
-			"you can choose to ".
+			"If you don't want this bot to send mass messages or invites to you:\n".
+			"Mass messages [".
 			$this->text->makeChatcmd(
-				"stop receiving them",
-				"/tell <myname> massmsgs off"
-			) . ".";
-		$blob .= "\n\n".
-			"If you accidentally turned them off, you can just ".
-			$this->text->makeChatcmd(
-				"turn them on again",
+				"On",
 				"/tell <myname> massmsgs on"
-			) . ".";
+			) . "] [";
+			$this->text->makeChatcmd(
+				"Off",
+				"/tell <myname> massmsgs off"
+			) . "]\n".
+			"Mass invites: [".
+			$this->text->makeChatcmd(
+				"On",
+				"/tell <myname> massinvites on"
+			) . "] [";
+			$this->text->makeChatcmd(
+				"Turn off",
+				"/tell <myname> massinvites off"
+			) . "]";
 		return $this->text->makeBlob("change preferences", $blob, "Change your mass message preferences");
 	}
 
@@ -116,7 +129,8 @@ class MassMsgController {
 		$result = $this->massCallback(
 			function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
-			}
+			},
+			static::PREF_MSGS
 		);
 		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
@@ -136,7 +150,8 @@ class MassMsgController {
 			function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
 				$this->chatBot->privategroup_invite($name);
-			}
+			},
+			static::PREF_INVITES
 		);
 		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
@@ -200,7 +215,7 @@ class MassMsgController {
 	 * our private channel.
 	 * @return array<string,string> array(name => status)
 	 */
-	protected function massCallback(callable $callback): array {
+	protected function massCallback(callable $callback, string $pref): array {
 		$online = $this->buddylistManager->getOnline();
 		foreach ($online as $name) {
 			if ($name === $this->chatBot->vars["name"]
@@ -215,7 +230,7 @@ class MassMsgController {
 				$result[$name] = static::IN_ORG;
 				continue;
 			}
-			if ($this->preferences->get($name, static::PREF) === 'no') {
+			if ($this->preferences->get($name, $pref) === 'no') {
 				$result[$name] = static::BLOCKED;
 			} else {
 				$callback($name);
@@ -230,8 +245,8 @@ class MassMsgController {
 	 * @Matches("/^massmsgs (off|no|disable)$/i")
 	 */
 	public function massMessagesOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF, 'no');
-		$sendto->reply("You will no longer receive mass messages or mass invites from this bot.");
+		$this->preferences->save($sender, static::PREF_MSGS, 'no');
+		$sendto->reply("You will no longer receive mass messages from this bot.");
 	}
 
 	/**
@@ -239,7 +254,25 @@ class MassMsgController {
 	 * @Matches("/^massmsgs (on|yes|enable)$/i")
 	 */
 	public function massMessagesOffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF, 'yes');
-		$sendto->reply("You will again receive mass messages or mass invites from this bot.");
+		$this->preferences->save($sender, static::PREF_MSGS, 'yes');
+		$sendto->reply("You will again receive mass messages from this bot.");
+	}
+
+	/**
+	 * @HandlesCommand("massinvites")
+	 * @Matches("/^massinvites (off|no|disable)$/i")
+	 */
+	public function massInvitesOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->preferences->save($sender, static::PREF_INVITES, 'no');
+		$sendto->reply("You will no longer receive mass invites from this bot.");
+	}
+
+	/**
+	 * @HandlesCommand("massinvites")
+	 * @Matches("/^massinvites (on|yes|enable)$/i")
+	 */
+	public function massInvitesOffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->preferences->save($sender, static::PREF_INVITES, 'yes');
+		$sendto->reply("You will again receive mass invites from this bot.");
 	}
 }

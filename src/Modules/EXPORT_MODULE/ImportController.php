@@ -6,6 +6,7 @@ use Swaggest\JsonSchema\Schema;
 
 use Nadybot\Core\{
 	AccessManager,
+	AdminManager,
 	CommandReply,
 	DB,
 	LoggerWrapper,
@@ -24,12 +25,15 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidMember,
 	RAID_MODULE\RaidPoints,
 	RAID_MODULE\RaidPointsLog,
+	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
 use Nadybot\Modules\COMMENT_MODULE\Comment;
+use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;
+use Nadybot\Modules\RAID_MODULE\RaidRank;
 use Throwable;
 
 /**
@@ -66,6 +70,9 @@ class ImportController {
 	public Preferences $preferences;
 
 	/** @Inject */
+	public AdminManager $adminManager;
+
+	/** @Inject */
 	public AccessManager $accessManager;
 
 	/** @Inject */
@@ -76,6 +83,9 @@ class ImportController {
 
 	/** @Inject */
 	public CommentController $commentController;
+
+	/** @Inject */
+	public RaidRankController $raidRankController;
 
 	protected function loadAndParseExportFile(string $fileName, CommandReply $sendto): ?object {
 		if (!@file_exists($fileName)) {
@@ -153,7 +163,7 @@ class ImportController {
 
 	protected function getImportMapping(): array {
 		return [
-			// "members"           => [$this, "importMembers"],
+			"members"           => [$this, "importMembers"],
 			"alts"              => [$this, "importAlts"],
 			"auctions"          => [$this, "importAuctions"],
 			"banlist"           => [$this, "importBanlist"],
@@ -171,7 +181,7 @@ class ImportController {
 			"raidPoints"        => [$this, "importRaidPoints"],
 			"raidPointsLog"     => [$this, "importRaidPointsLog"],
 			"timers"            => [$this, "importTimers"],
-			"trackedCharacters" => [$this, "importTrackedUsers"],
+			"trackedCharacters" => [$this, "importTrackedCharacters"],
 		];
 	}
 
@@ -193,6 +203,19 @@ class ImportController {
 		$ranks = [];
 		foreach ($import->members??[] as $member) {
 			$ranks[$member->rank] = true;
+		}
+		foreach ($import->commentCategories??[] as $category) {
+			if (isset($category->minRankToRead)) {
+				$ranks[$category->minRankToRead] = true;
+			}
+			if (isset($category->minRankToWrite)) {
+				$ranks[$category->minRankToWrite] = true;
+			}
+		}
+		foreach ($import->polls??[] as $poll) {
+			if (isset($poll->minRankToVote)) {
+				$ranks[$poll->minRankToVote] = true;
+			}
 		}
 		return array_keys($ranks);
 	}
@@ -384,38 +407,45 @@ class ImportController {
 				if (!isset($id) || !isset($name)) {
 					continue;
 				}
+				$this->chatBot->id[$id] = $name;
+				$this->chatBot->id[$name] = $id;
 				$newRank = $this->getMappedRank($rankMap, $member->rank);
 				if (!isset($newRank)) {
 					throw new Exception("Cannot find rank {$member->rank} in the mapping");
 				}
 				$numImported++;
-				if ($newRank === "member") {
+				if (in_array($newRank, ["member", "mod", "admin", "superadmin"], true)
+					|| preg_match("/^raid_(leader|admin)_[123]$/", $newRank)
+				) {
 					$this->db->exec(
 						"INSERT INTO `members_<myname>`(`name`, `autoinv`) ".
 						"VALUES (?, ?)",
 						$name,
 						$member->autoInvite ?? false
 					);
-				} elseif (in_array($newRank, ["mod", "admin", "superadmin"], true)) {
+				}
+				if (in_array($newRank, ["mod", "admin", "superadmin"], true)) {
+					$adminLevel = ($newRank === "mod") ? 3 : 4;
 					$this->db->exec(
 						"INSERT INTO `admin_<myname>`(`name`, `adminlevel`) ".
 						"VALUES (?, ?)",
 						$name,
-						($newRank === "mod") ? 3 : 4,
+						$adminLevel,
 					);
+					$this->adminManager->admins[$name] = $adminLevel;
 				} elseif (preg_match("/^raid_leader_([123])/", $newRank, $matches)) {
 					$this->db->exec(
 						"INSERT INTO `raid_rank_<myname>`(`name`, `rank`) ".
 						"VALUES (?, ?)",
 						$name,
-						(int)$matches[1]
+						$matches[1] + 3
 					);
 				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
 					$this->db->exec(
 						"INSERT INTO `raid_rank_<myname>`(`name`, `rank`) ".
 						"VALUES (?, ?)",
 						$name,
-						$matches[1] + 3
+						$matches[1] + 6
 					);
 				} elseif (in_array($newRank, ["rl", "all"])) {
 					// Nothing, we just ignore that
@@ -426,7 +456,14 @@ class ImportController {
 				if (isset($member->logoffMessage)) {
 					$this->preferences->save($name, "logoff_msg", $member->logoffMessage);
 				}
+				if (isset($member->receiveMassInvites)) {
+					$this->preferences->save($name, MassMsgController::PREF_INVITES, $member->receiveMassInvites ? "on" : "off");
+				}
+				if (isset($member->receiveMassMessages)) {
+					$this->preferences->save($name, MassMsgController::PREF_MSGS, $member->receiveMassMessages ? "on" : "off");
+				}
 			}
+			$this->raidRankController->uploadRaidRanks();
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
@@ -853,12 +890,12 @@ class ImportController {
 		$this->logger->log("INFO", "All timers imported");
 	}
 
-	public function importTrackedUsers(array $trackedUsers): void {
-		$this->logger->log("INFO", "Importing " . count($trackedUsers) . " raid blocks");
+	public function importTrackedCharacters(array $trackedUsers): void {
+		$this->logger->log("INFO", "Importing " . count($trackedUsers) . " tracked users");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raid blocks");
-			$this->db->exec("DELETE FROM `raid_block_<myname>`");
+			$this->logger->log("INFO", "Deleting all tracked users");
+			$this->db->exec("DELETE FROM `tracked_users_<myname>`");
 			foreach ($trackedUsers as $trackedUser) {
 				$name = $this->characterToName($trackedUser->character??null);
 				if (!isset($name)) {
