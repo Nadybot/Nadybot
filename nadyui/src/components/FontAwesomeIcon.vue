@@ -1,6 +1,6 @@
 <template>
   <img
-    :src="path"
+    :src="require(`../assets/font-awesome-icons/${icon}.svg`).default"
     :height="size"
     :width="size"
     :style="'filter: invert(' + invert + '%);'"
@@ -27,12 +27,6 @@ export default defineComponent({
       type: Number,
       default: 100,
       required: false,
-    },
-  },
-
-  computed: {
-    path(): string {
-      return require(`../assets/font-awesome-icons/${this.icon}.svg`);
     },
   },
 });
