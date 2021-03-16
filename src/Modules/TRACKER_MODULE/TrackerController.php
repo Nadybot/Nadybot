@@ -461,6 +461,7 @@ class TrackerController {
 		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, TRUE as `online` ".
 			"FROM `tracked_users_<myname>` tu ".
 			"JOIN players p ON tu.`name` = p.`name` ".
+			"WHERE p.dimension=<dim> ".
 			"ORDER BY p.name ASC";
 		/** @var OnlinePlayer[] */
 		$data = $this->db->fetchAll(OnlinePlayer::class, $sql);

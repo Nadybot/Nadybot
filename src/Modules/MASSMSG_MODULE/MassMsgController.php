@@ -93,27 +93,17 @@ class MassMsgController {
 	}
 
 	protected function getMassMsgOptInOutBlob(): string {
+		$msgOnLink      = $this->text->makeChatcmd("On",  "/tell <myname> massmsgs on");
+		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
+		$invitesOnLink  = $this->text->makeChatcmd("On",  "/tell <myname> massinvites on");
+		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
 		$blob = "<header2>Not interested?<end>\n".
-			"If you don't want this bot to send mass messages or invites to you:\n".
-			"Mass messages [".
-			$this->text->makeChatcmd(
-				"On",
-				"/tell <myname> massmsgs on"
-			) . "] [";
-			$this->text->makeChatcmd(
-				"Off",
-				"/tell <myname> massmsgs off"
-			) . "]\n".
-			"Mass invites: [".
-			$this->text->makeChatcmd(
-				"On",
-				"/tell <myname> massinvites on"
-			) . "] [";
-			$this->text->makeChatcmd(
-				"Turn off",
-				"/tell <myname> massinvites off"
-			) . "]";
-		return $this->text->makeBlob("change preferences", $blob, "Change your mass message preferences");
+			"<tab>Change your preferences:\n\n".
+			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
+			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
+		$prefLink = $this->text->makeBlob("Preferences", $blob, "Change your mass message preferences");
+
+		return "[{$prefLink}]";
 	}
 
 	/**
