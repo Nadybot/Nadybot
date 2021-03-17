@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Modules\PREFERENCES\Preferences,
+    SQLException,
 };
 
 /**
@@ -116,12 +117,11 @@ class MassMsgController {
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
-		$result = $this->massCallback(
-			function(string $name) use ($message) {
+		$result = $this->massCallback([
+			static::PREF_MSGS => function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
-			},
-			static::PREF_MSGS
-		);
+			}
+		]);
 		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
 	}
@@ -136,13 +136,12 @@ class MassMsgController {
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
-		$result = $this->massCallback(
-			function(string $name) use ($message) {
+		$result = $this->massCallback([
+			static::PREF_MSGS => function(string $name) use ($message) {
 				$this->chatBot->sendMassTell($message, $name);
-				$this->chatBot->privategroup_invite($name);
 			},
-			static::PREF_INVITES
-		);
+			static::PREF_INVITES => [$this->chatBot, "privategroup_invite"],
+		]);
 		$msg = $this->getMassResultPopup($result);
 		$sendto->reply($msg);
 	}
@@ -193,11 +192,14 @@ class MassMsgController {
 			$msg .= " {$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
 			" blocking mass messages";
 		}
+		if (count($result) === 0) {
+			return (array)$msg;
+		}
 		$parts = (array)$this->text->makeBlob("Messaging details", $blob);
 		foreach ($parts as &$part) {
 			$part = "$msg :: $part";
 		}
-		return  $parts;
+		return $parts;
 	}
 
 	/**
@@ -205,8 +207,9 @@ class MassMsgController {
 	 * our private channel.
 	 * @return array<string,string> array(name => status)
 	 */
-	protected function massCallback(callable $callback, string $pref): array {
+	protected function massCallback(array $callback): array {
 		$online = $this->buddylistManager->getOnline();
+		$result = [];
 		foreach ($online as $name) {
 			if ($name === $this->chatBot->vars["name"]
 				|| !$this->accessManager->checkAccess($name, "member")) {
@@ -220,14 +223,58 @@ class MassMsgController {
 				$result[$name] = static::IN_ORG;
 				continue;
 			}
-			if ($this->preferences->get($name, $pref) === 'no') {
-				$result[$name] = static::BLOCKED;
-			} else {
-				$callback($name);
-				$result[$name] = static::SENT;
+			foreach ($callback as $pref => $closure) {
+				if ($this->preferences->get($name, $pref) === 'no') {
+					$result[$name] = static::BLOCKED;
+					continue;
+				}
+				$closure($name);
+				$result[$name] ??= static::SENT;
 			}
 		}
 		return $result;
+	}
+
+	/** Show a character their current mass message and -invite preferences */
+	protected function showMassPreferences(string $character, CommandReply $sendto): void {
+		$msgs = $this->preferences->get($character, static::PREF_MSGS);
+		$invs = $this->preferences->get($character, static::PREF_INVITES);
+		$msgOnLink      = $this->text->makeChatcmd("On",  "/tell <myname> massmsgs on");
+		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
+		$invitesOnLink  = $this->text->makeChatcmd("On",  "/tell <myname> massinvites on");
+		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
+		if ($msgs === "no") {
+			$msgOffLink = "<red>Off<end>";
+		} else {
+			$msgOnLink = "<green>On<end>";
+		}
+		if ($invs === "no") {
+			$invitesOffLink = "<red>Off<end>";
+		} else {
+			$invitesOnLink = "<green>On<end>";
+		}
+		$blob = "<header2>Current preferences<end>\n".
+			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
+			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
+		$prefLink = $this->text->makeBlob("Your current mass message preferences", $blob);
+
+		$sendto->reply($prefLink);
+	}
+
+	/**
+	 * @HandlesCommand("massmsgs")
+	 * @Matches("/^massmsgs$/i")
+	 */
+	public function massMessagesOverviewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showMassPreferences($sender, $sendto);
+	}
+
+	/**
+	 * @HandlesCommand("massinvites")
+	 * @Matches("/^massinvites$/i")
+	 */
+	public function massInvitesOverviewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showMassPreferences($sender, $sendto);
 	}
 
 	/**
