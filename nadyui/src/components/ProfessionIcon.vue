@@ -1,5 +1,5 @@
 <template>
-  <img :src="require(`@/assets/${profession}.svg`)" class="prof-icon" />
+  <img :src="require(`@/assets/${profession}.svg`).default" class="prof-icon" />
 </template>
 
 <style lang="scss">
