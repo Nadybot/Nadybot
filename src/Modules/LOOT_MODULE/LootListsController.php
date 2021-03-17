@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\{
+	AccessManager,
 	CommandAlias,
 	CommandManager,
 	CommandReply,
@@ -167,6 +168,9 @@ class LootListsController {
 	public ChatLeaderController $chatLeaderController;
 
 	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
 	public CommandAlias $commandAlias;
 
 	/** @Inject */
@@ -217,11 +221,11 @@ class LootListsController {
 	 * @Matches("/^alb$/i")
 	 */
 	public function albCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories');
-		$blob .= $this->findRaidLoot('Albtraum', 'Ancients');
-		$blob .= $this->findRaidLoot('Albtraum', 'Samples');
-		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units');
-		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals');
+		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories', $sender);
+		$blob .= $this->findRaidLoot('Albtraum', 'Ancients', $sender);
+		$blob .= $this->findRaidLoot('Albtraum', 'Samples', $sender);
+		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units', $sender);
+		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals', $sender);
 		$msg = $this->text->makeBlob("Albtraum Loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -233,8 +237,8 @@ class LootListsController {
 	 * @Matches("/^db1$/i")
 	 */
 	public function db1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
-		$blob .= $this->findRaidLoot('DustBrigade', 'DB1');
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $sender);
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB1', $sender);
 		$msg = $this->text->makeBlob("DB1 Loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -246,8 +250,8 @@ class LootListsController {
 	 * @Matches("/^db2$/i")
 	 */
 	public function db2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('DustBrigade', 'Armor');
-		$blob .= $this->findRaidLoot('DustBrigade', 'DB2');
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $sender);
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $sender);
 		$msg = $this->text->makeBlob("DB2 Loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -258,10 +262,10 @@ class LootListsController {
 	 */
 	public function apf7Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$raid = "Sector 7";
-		$blob = $this->findRaidLoot($raid, "Misc");
-		$blob .= $this->findRaidLoot($raid, "NCU");
-		$blob .= $this->findRaidLoot($raid, "Weapons");
-		$blob .= $this->findRaidLoot($raid, "Viralbots");
+		$blob = $this->findRaidLoot($raid, "Misc", $sender);
+		$blob .= $this->findRaidLoot($raid, "NCU", $sender);
+		$blob .= $this->findRaidLoot($raid, "Weapons", $sender);
+		$blob .= $this->findRaidLoot($raid, "Viralbots", $sender);
 		$msg = $this->text->makeBlob("$raid Loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -515,10 +519,10 @@ class LootListsController {
 	 * @Matches("/^beast$/i")
 	 */
 	public function beastCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Pande', 'Beast Armor');
-		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons');
-		$blob .= $this->findRaidLoot('Pande', 'Stars');
-		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds');
+		$blob = $this->findRaidLoot('Pande', 'Beast Armor', $sender);
+		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons', $sender);
+		$blob .= $this->findRaidLoot('Pande', 'Stars', $sender);
+		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds', $sender);
 		$msg = $this->text->makeBlob("Beast Loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -530,7 +534,7 @@ class LootListsController {
 	 * @Matches("/^pande (.+)$/i")
 	 */
 	public function pandeSubCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getPandemoniumLoot('Pande', $args[1]);
+		$msg = $this->getPandemoniumLoot('Pande', $args[1], $sender);
 		if (empty($msg)) {
 			$sendto->reply("No loot found for <highlight>{$args[1]}<end>.");
 			return;
@@ -541,9 +545,9 @@ class LootListsController {
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getPandemoniumLoot(string $raid, string $category) {
+	public function getPandemoniumLoot(string $raid, string $category, string $sender) {
 		$category = ucwords(strtolower($category));
-		$blob = $this->findRaidLoot($raid, $category);
+		$blob = $this->findRaidLoot($raid, $category, $sender);
 		if (empty($blob)) {
 			return null;
 		}
@@ -598,9 +602,9 @@ class LootListsController {
 	 * @Matches("/^vortexx$/i")
 	 */
 	public function xanVortexxCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Vortexx', 'General');
-		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants');
-		$blob .= $this->findRaidLoot('Vortexx', 'Spirits');
+		$blob = $this->findRaidLoot('Vortexx', 'General', $sender);
+		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants', $sender);
+		$blob .= $this->findRaidLoot('Vortexx', 'Spirits', $sender);
 		$msg = $this->text->makeBlob("Vortexx loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -612,9 +616,9 @@ class LootListsController {
 	 * @Matches("/^mitaar$/i")
 	 */
 	public function xanMitaarCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Mitaar', 'General');
-		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants');
-		$blob .= $this->findRaidLoot('Mitaar', 'Spirits');
+		$blob = $this->findRaidLoot('Mitaar', 'General', $sender);
+		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants', $sender);
+		$blob .= $this->findRaidLoot('Mitaar', 'Spirits', $sender);
 		$msg = $this->text->makeBlob("Mitaar loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -626,10 +630,10 @@ class LootListsController {
 	 * @Matches("/^12m$/i")
 	 */
 	public function xan12mCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('12Man', 'General');
-		$blob .= $this->findRaidLoot('12Man', 'Symbiants');
-		$blob .= $this->findRaidLoot('12Man', 'Spirits');
-		$blob .= $this->findRaidLoot('12Man', 'Profession Gems');
+		$blob = $this->findRaidLoot('12Man', 'General', $sender);
+		$blob .= $this->findRaidLoot('12Man', 'Symbiants', $sender);
+		$blob .= $this->findRaidLoot('12Man', 'Spirits', $sender);
+		$blob .= $this->findRaidLoot('12Man', 'Profession Gems', $sender);
 		$msg = $this->text->makeBlob("12-Man loot", $blob);
 		$sendto->reply($msg);
 	}
@@ -639,9 +643,9 @@ class LootListsController {
 	 * @Matches("/^poh$/i")
 	 */
 	public function pohCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Pyramid of Home', 'General');
-		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU');
-		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons');
+		$blob = $this->findRaidLoot('Pyramid of Home', 'General', $sender);
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU', $sender);
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons', $sender);
 		$msg = $this->text->makeBlob("Pyramid of Home Loot", $blob);
 
 		$sendto->reply($msg);
@@ -652,12 +656,12 @@ class LootListsController {
 	 * @Matches("/^totw$/i")
 	 */
 	public function totwCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor');
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants');
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc');
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU');
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons');
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings');
+		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor', $sender);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants', $sender);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc', $sender);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU', $sender);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons', $sender);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings', $sender);
 		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
 
 		$sendto->reply($msg);
@@ -668,11 +672,11 @@ class LootListsController {
 	 * @Matches("/^subway$/i")
 	 */
 	public function subwayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob  = $this->findRaidLoot('Subway', 'Armor');
-		$blob .= $this->findRaidLoot('Subway', 'Weapons');
-		$blob .= $this->findRaidLoot('Subway', 'Belt');
-		$blob .= $this->findRaidLoot('Subway', 'Rings');
-		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils');
+		$blob  = $this->findRaidLoot('Subway', 'Armor', $sender);
+		$blob .= $this->findRaidLoot('Subway', 'Weapons', $sender);
+		$blob .= $this->findRaidLoot('Subway', 'Belt', $sender);
+		$blob .= $this->findRaidLoot('Subway', 'Rings', $sender);
+		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils', $sender);
 		$msg = $this->text->makeBlob("Subway Loot", $blob);
 
 		$sendto->reply($msg);
@@ -697,18 +701,18 @@ class LootListsController {
 			"<tab>- Level 200-250: ".
 			$this->text->makeChatcmd("Broken Shores along the river", "/waypoint 1266 1889 665") . "\n".
 			"<tab>- Level <black>00<end>1-300: Notum Mining Area\n";
-		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head'));
+		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $sender));
 		$blob .= "\n<header2>Ganking Uncle Pumpkin-Head<end>\n\n".
 			"They drop the same loot as the GUPHs, but have a higher chance to drop the rare items.\n";
 		$huph = "They are only spawned by ARKs on Halloween events ".
 			"and cannot be found anywhere else.\n";
-		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head'));
-		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance');
+		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $sender));
+		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $sender);
 		$msg = $this->text->makeBlob("Halloween loot", $blob);
 		$sendto->reply($msg);
 	}
 
-	public function findRaidLoot(string $raid, string $category): ?string {
+	public function findRaidLoot(string $raid, string $category, string $sender): ?string {
 		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
 			"FROM raid_loot r ".
 			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
@@ -723,7 +727,15 @@ class LootListsController {
 		if (count($data) === 0) {
 			return null;
 		}
-		$auctionsEnabled = $this->commandManager->isCommandActive('bid (start|end|cancel).*', 'msg');
+		$auctionsEnabled = true;
+		$auctionCommands = $this->commandManager->get('auction', 'msg');
+		// If the command is not available to the sender, don't render reminder-links
+		if (empty($auctionCommands)
+			|| !$auctionCommands[0]->status
+			|| !$this->accessManager->checkAccess($sender, $auctionCommands[0]->admin)
+		) {
+			$auctionsEnabled = false;
+		}
 		$lootEnabled = $this->commandManager->isCommandActive('loot .+', 'msg');
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
@@ -732,14 +744,14 @@ class LootListsController {
 			$actions = [];
 			if ($lootEnabled) {
 				$actions []= $this->text->makeChatcmd(
-					"loot",
+					"Loot",
 					"/tell <myname> loot add $row->id"
 				);
 			}
 			if ($lootEnabled && $auctionsEnabled) {
 				$actions []= $this->text->makeChatcmd(
-					"auction",
-					"/tell <myname> loot auction $row->id"
+					"Auction",
+					"/tell <myname> auction {$row->name}"
 				);
 			}
 			if ($row->lowid) {
