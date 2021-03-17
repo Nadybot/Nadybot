@@ -43,9 +43,9 @@ interface ProxyCapabilities {
   // Modes the proxy supports for sending messages
   readonly send_modes: Array<string>;
   // The mode the proxy will use when sending proxy-default
-  readonly default_mode: string | null;
+  readonly default_mode?: string | null;
   // Unix timestamp when the proxy was started
-  readonly started_at: number | null;
+  readonly started_at?: number | null;
 }
 
 export interface MiscSystemInformation {
@@ -133,8 +133,8 @@ const proxyCapabilitiesDecoderMapping = {
   name: JsonDecoder.nullable(JsonDecoder.string),
   version: JsonDecoder.nullable(JsonDecoder.string),
   send_modes: JsonDecoder.array(JsonDecoder.string, "SendModeArray"),
-  default_mode: JsonDecoder.nullable(JsonDecoder.string),
-  started_at: JsonDecoder.nullable(JsonDecoder.number),
+  default_mode: JsonDecoder.optional(JsonDecoder.string),
+  started_at: JsonDecoder.optional(JsonDecoder.number),
 };
 
 const proxyCapabilitiesDecoder = JsonDecoder.object<ProxyCapabilities>(
