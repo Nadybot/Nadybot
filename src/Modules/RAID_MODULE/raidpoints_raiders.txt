@@ -5,5 +5,5 @@ Checking your points only works in tells to prevent others from seeing
 how many points you have.
 
 
-To list the people with the most raid points (top 25), use
+To get a list of people with the most raid points, use
 <tab><highlight><symbol>points top<end>

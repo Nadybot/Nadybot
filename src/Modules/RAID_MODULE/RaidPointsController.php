@@ -134,6 +134,14 @@ class RaidPointsController {
 			"number",
 			"25"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raid_points_reason_min_length",
+			"Minimum length required for points add/rem",
+			"edit",
+			"number",
+			"10"
+		);
 		$this->db->loadSQLFile($this->moduleName, "raid_points");
 		$this->db->loadSQLFile($this->moduleName, "raid_points_log");
 		if (!$this->db->columnExists("raid_points_log_<myname>", "individual")) {
@@ -529,7 +537,7 @@ class RaidPointsController {
 			$sendto->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($args[3]) < 10) {
+		if (strlen($args[3]) < $this->settingManager->getInt('raid_points_reason_min_length')) {
 			$sendto->reply("Please give a more detailed description.");
 			return;
 		}
@@ -565,7 +573,7 @@ class RaidPointsController {
 			$sendto->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($args[3]) < 10) {
+		if (strlen($args[3]) < $this->settingManager->getInt('raid_points_reason_min_length')) {
 			$sendto->reply("Please give a more detailed description.");
 			return;
 		}
