@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS players(
 	`pvp_rating`    SMALLINT DEFAULT NULL,
 	`pvp_title`     VARCHAR (20) DEFAULT NULL,
 	`source`        VARCHAR (50) NOT NULL DEFAULT '',
-	`last_update`   INT     
+	`last_update`   INT,
+	UNIQUE(`name`, `dimension`)
 );
-CREATE INDEX IF NOT EXISTS players_name ON players(name);
-CREATE INDEX IF NOT EXISTS players_charid ON players(charid);
+CREATE INDEX IF NOT EXISTS `players_name` ON `players`(`name`);
+CREATE INDEX IF NOT EXISTS `players_charid` ON `players`(`charid`);

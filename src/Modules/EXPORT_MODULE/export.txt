@@ -1,0 +1,37 @@
+The purpose of this module is to be able to import and export bot data
+from a generic data interchange format
+
+<header2>Exporting<end>
+Exporting all of the Nadybot data of one bot into a portable format which
+can then be imported into another bot that implements this format:
+
+<tab><highlight><symbol>export 2021-01-31<end>
+
+This generates an export of all your bot data in <highlight>data/export/2021-01-31.json<end>
+
+<header2>Importing<end>
+In order to import data from an old export, you should first think about
+how you want to map access levels between the bots.
+BeBot or Tyrbot use a totally different access level system than Nadybot.
+
+<tab><highlight><symbol>import 2021-01-31 superadmin=admin admin=mod leader=member member=member<end>
+
+Import from <highlight>data/export/2021-01-31.json<end>, mapping the
+accesslevel from superadmin to admin, from admin to mod, and so on.
+
+If you don't specify the access level mapping, you will be asked to do
+so until every single access level is mapped.
+
+Please note that importing a dump will delete most of the already existing
+data of your bot, so:
+<highlight>only do this after you created an export or database backup<end>!
+This cannot be stressed enough.
+
+<i>In detail</i>:
+Everything that is included in the dump, will be deleted before importing.
+So if your dump contains members of the bot, they will all be wiped first.
+If it does include an empty set of members, they will still be wiped.
+Only if the members were not exported at all, they won't be touched.
+
+There is no extra step in-between, so be careful not to delete any
+data you might want to keep.

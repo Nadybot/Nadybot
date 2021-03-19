@@ -209,9 +209,6 @@ class PlayerManager {
 	}
 
 	public function update(Player $char): void {
-		$sql = "DELETE FROM players WHERE `name` = ? AND `dimension` = ?";
-		$this->db->exec($sql, $char->name, $char->dimension);
-
 		$char->guild_id ??= 0;
 
 		if ($char->guild_rank_id === '') {
@@ -219,7 +216,7 @@ class PlayerManager {
 		}
 
 		$sql = "
-			INSERT INTO players (
+			REPLACE INTO players (
 				`charid`,
 				`firstname`,
 				`name`,

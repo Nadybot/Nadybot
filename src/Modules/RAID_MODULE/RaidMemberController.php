@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	EventManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	SettingManager,
 	Text,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -46,6 +47,9 @@ class RaidMemberController {
 	public EventManager $eventManager;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public PlayerManager $playerManager;
 
 	/** @Inject */
@@ -66,6 +70,10 @@ class RaidMemberController {
 	/** @Inject */
 	public Nadybot $chatBot;
 
+	public const ANNOUNCE_OFF = 0;
+	public const ANNOUNCE_PRIV = 1;
+	public const ANNOUNCE_TELL = 2;
+
 	/**
 	 * @Setup
 	 */
@@ -73,6 +81,18 @@ class RaidMemberController {
 		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
 		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
 		$this->db->loadSQLFile($this->moduleName, "raid_member");
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_announce_raidmember_loc',
+			'Where to announce leaders add/rem people to/from the raid',
+			'edit',
+			'options',
+			'3',
+			'Do not announce;Private channel;Tell;Priv+Tell',
+			'0;1;2;3',
+			'mod'
+		);
 	}
 
 	/**
@@ -151,7 +171,16 @@ class RaidMemberController {
 			$raider->joined
 		);
 		if ($force) {
-			$this->chatBot->sendPrivate("<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
+			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
+			if ($announceLoc & static::ANNOUNCE_PRIV) {
+				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
+			}
+			if ($announceLoc & static::ANNOUNCE_TELL) {
+				$this->chatBot->sendMassTell("You were <green>added<end> to the raid by {$sender}.", $player);
+			}
+			if ($announceLoc === static::ANNOUNCE_OFF) {
+				return "<highlight>{$player}<end> was <green>added<end> to the raid.";
+			}
 		} else {
 			$this->chatBot->sendPrivate(
 				"<highlight>{$player}<end> has <green>joined<end> the raid :: ".
@@ -189,7 +218,16 @@ class RaidMemberController {
 			$player
 		);
 		if ($sender !== $player) {
-			$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
+			if ($announceLoc & static::ANNOUNCE_PRIV) {
+				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			}
+			if ($announceLoc & static::ANNOUNCE_TELL) {
+				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+			}
+			if ($announceLoc === static::ANNOUNCE_OFF) {
+				return "<highlight>{$player}<end> was <red>removed<end> to the raid.";
+			}
 		} else {
 			$this->chatBot->sendPrivate("<highlight>{$player}<end> <red>left<end> the raid.");
 		}
@@ -242,7 +280,7 @@ class RaidMemberController {
 	 * @Matches("/^raidmember (?:rem|del|kick) (.+)$/i")
 	 */
 	public function raidKickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->leaveRaid($sender, $args[1]);
+		$reply = $this->leaveRaid($sender, ucfirst(strtolower($args[1])));
 		if ($reply !== null) {
 			$sendto->reply($reply);
 		}

@@ -230,7 +230,7 @@ class AuctionController {
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->fetch(
 			DBAuction::class,
-			"SELECT * FROM `auction_<myname>` WHERE `winner`=? ORDER BY id DESC LIMIT 1",
+			"SELECT * FROM `auction_<myname>` WHERE `winner`=? ORDER BY `id` DESC LIMIT 1",
 			$winner
 		);
 		if ($lastAuction === null) {

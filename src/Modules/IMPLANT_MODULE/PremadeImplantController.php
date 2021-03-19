@@ -131,6 +131,9 @@ class PremadeImplantController {
 	 */
 	public function searchByModifier(string $modifier): array {
 		$skills = $this->whatBuffsController->searchForSkill($modifier);
+		if (!count($skills)) {
+			return [];
+		}
 		$skillIds = array_map(
 			function(Skill $s): int {
 				return $s->id;

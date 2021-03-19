@@ -59,7 +59,7 @@ class WhatLocksController {
 			"ORDER BY s.name ASC";
 		$skills = $this->db->query($sql);
 		$lines = array_map(function(DBRow $row) {
-			return $this->text->alignNumber($row->amount, 3).
+			return $this->text->alignNumber((int)$row->amount, 3).
 				" - ".
 				$this->text->makeChatcmd($row->name, "/tell <myname> whatlocks $row->name");
 		}, $skills);

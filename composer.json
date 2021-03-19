@@ -36,7 +36,8 @@
 		"ext-dom": "*",
 		"apache/log4php": "2.3.0",
 		"php-amqplib/php-amqplib": "2.11.3",
-		"niktux/addendum": "0.4.4"
+		"niktux/addendum": "0.4.4",
+		"swaggest/json-schema": "^0.12.31"
 	},
 	"autoload": {
 		"psr-4": {

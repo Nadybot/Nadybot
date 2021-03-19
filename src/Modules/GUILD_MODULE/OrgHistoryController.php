@@ -57,7 +57,7 @@ class OrgHistoryController {
 			$page = (int)$args[1];
 		}
 
-		$startingRecord = ($page - 1) * $pageSize;
+		$startingRecord = max(0, ($page - 1) * $pageSize);
 
 		$blob = '';
 

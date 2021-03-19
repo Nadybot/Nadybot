@@ -4,9 +4,9 @@ To show the latest news entries:
 To add a news entry:
 <highlight><tab><symbol>news add 'text'<end>
 
-To sticky or unsticky a news post:
-<highlight><tab><symbol>news set sticky 'news id'<end>
-<highlight><tab><symbol>news set unsticky 'news id'<end>
+To pin or unpin a news post:
+<highlight><tab><symbol>news pin 'news id'<end>
+<highlight><tab><symbol>news unpin 'news id'<end>
 
 To remove a news entry:
 <highlight><tab><symbol>news rem 'news id'<end>

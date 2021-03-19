@@ -72,6 +72,7 @@ class NanoController {
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, 'nanos');
+		$this->db->loadSQLFile($this->moduleName, 'nano_lines');
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -399,14 +400,23 @@ class NanoController {
 
 		$sql = "SELECT * ".
 			"FROM nanos ".
-			"WHERE location LIKE ? ".
+			"WHERE location LIKE ? OR location LIKE ? OR location LIKE ?".
 			"ORDER BY nano_name ASC";
 
 		/** @var Nano[] */
-		$nanos = $this->db->fetchAll(Nano::class, $sql, "%{$location}%");
+		$nanos = $this->db->fetchAll(Nano::class, $sql, $location, "%/{$location}", "{$location}/%");
 
 		$count = count($nanos);
-		if ($count == 0) {
+		if ($count === 0) {
+			$sql = "SELECT * ".
+				"FROM nanos ".
+				"WHERE location LIKE ? ".
+				"ORDER BY nano_name ASC";
+			/** @var Nano[] */
+			$nanos = $this->db->fetchAll(Nano::class, $sql, "%{$location}%");
+			$count = count($nanos);
+		}
+		if ($count === 0) {
 			$msg = "No nanos found.";
 			$sendto->reply($msg);
 			return;

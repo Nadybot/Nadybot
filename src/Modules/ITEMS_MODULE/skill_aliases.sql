@@ -65,6 +65,7 @@ INSERT INTO skill_alias (id, name) VALUES
 (91, 'Melee Attacks and Martial Art Armor-Class'),
 (114, 'Machine Guns and Sub Machine Guns'),
 (134, 'Multiple Ranged Weapons'),
+(101, 'Multi Melee'),
 (134, 'MR'),
 (149, 'Nano Execution Init'),
 (132, 'Nano Energy Pool'),

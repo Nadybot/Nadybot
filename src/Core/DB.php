@@ -675,6 +675,26 @@ class DB {
 		)->exists > 0;
 	}
 
+	public function columnUnique(string $table, string $column): bool {
+		if ($this->getType() === static::SQLITE) {
+			$indexes = $this->query("PRAGMA index_list(`{$table}`)");
+			foreach ($indexes as $index) {
+				if (!$index->unique) {
+					continue;
+				}
+				$indexColumns = $this->query("PRAGMA index_info(`{$index->name}`)");
+				foreach ($indexColumns as $indexColumn) {
+					if ($column !== $indexColumn->name) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		$indexes = $this->queryRow("SHOW INDEXES FROM `{$table}` WHERE Column_name=? AND NOT Non_Unique", $column);
+		return isset($indexes);
+	}
+
 	/**
 	 * Insert a DBRow $row into the database table $table
 	 */
@@ -695,7 +715,11 @@ class DB {
 		}
 		$sql = "INSERT INTO `{$table}` (" . join(", ", $colNames) . ") ".
 			"VALUES (" . join(", ", array_fill(0, count($colNames), "?")) . ")";
-		return $this->exec($sql, ...$values);
+		$inserted = $this->exec($sql, ...$values);
+		if ($inserted) {
+			return $this->lastInsertId();
+		}
+		return 0;
 	}
 
 	/**

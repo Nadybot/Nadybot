@@ -3,12 +3,18 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use Nadybot\Core\{
+	BuddylistManager,
+	ColorSettingHandler,
+	CommandAlias,
+	CommandReply,
+	DB,
 	Event,
 	LoggerWrapper,
 	StopExecutionException,
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
@@ -16,6 +22,14 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  *
  * @Instance
+ *
+ * Commands this controller contains:
+ *	@DefineCommand(
+ *		command     = 'tradecolor',
+ *		accessLevel = 'mod',
+ *		description = 'Define colors for tradebot tags',
+ *		help        = 'tradecolor.txt'
+ *	)
  */
 class TradebotController {
 
@@ -26,7 +40,13 @@ class TradebotController {
 	public string $moduleName;
 
 	/** @Inject */
+	public CommandAlias $commandAlias;
+
+	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -40,22 +60,28 @@ class TradebotController {
 	/** @Inject */
 	public Text $text;
 
+	/** @Inject */
+	public DB $db;
+
 	/** @var array<string,array<string,mixed>> */
 	private const BOT_DATA = [
 		'Darknet' => [
-			'join' => ['!register', '!autoinvite on'],
+			'join' => ['!register'],
 			'leave' => ['!autoinvite off', '!unregister'],
 			'match' => '/^\[([a-z]+)\]/i',
+			'ignore' => ['/^Unread News/i'],
 		],
 		'Lightnet' => [
 			'join' => ['register', 'autoinvite on'],
 			'leave' => ['autoinvite off', 'unregister'],
 			'match' => '/^\[([a-z]+)\]/i',
+			'ignore' => [],
 		]
 	];
 
 	/** @Setup */
 	public function setup(): void {
+		$this->commandAlias->register($this->moduleName, "tradecolor", "tradecolors");
 		$this->settingManager->add(
 			$this->moduleName,
 			'tradebot',
@@ -101,10 +127,44 @@ class TradebotController {
 			'mod'
 		);
 
+		$this->settingManager->add(
+			$this->moduleName,
+			'tradebot_custom_colors',
+			'Use custom colors for tradebots',
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
+			'mod'
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'tradebot_text_color',
+			'Custom color for tradebot message body',
+			'edit',
+			'color',
+			"<font color='#89D2E8'>"
+		);
+
 		$this->settingManager->registerChangeListener(
 			'tradebot',
 			[$this, 'changeTradebot']
 		);
+
+		$this->db->loadSQLFile($this->moduleName, "tradebot_colors");
+	}
+
+	/**
+	 * @Event("Connect")
+	 * @Description("Add active tradebots to buddylist")
+	 */
+	public function addTradebotsAsBuddies(): void {
+		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot'));
+		foreach ($activeBots as $botName) {
+			$this->buddylistManager->add($botName, "tradebot");
+		}
 	}
 
 	/**
@@ -149,6 +209,7 @@ class TradebotController {
 					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
 					$this->chatBot->privategroup_leave($botName);
 				}
+				$this->buddylistManager->remove($botName, "tradebot");
 			}
 		}
 		foreach ($botsToSignUp as $botName) {
@@ -157,8 +218,29 @@ class TradebotController {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
 					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
 				}
+				if ($this->buddylistManager->isOnline($botName)) {
+					$this->joinPrivateChannel($botName);
+				}
+				$this->buddylistManager->add($botName, "tradebot");
 			}
 		}
+	}
+
+	/**
+	 * @Event("logOn")
+	 * @Description("Join tradebot private channels")
+	 */
+	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
+		if ($this->isTradebot($eventObj->sender)) {
+			$this->joinPrivateChannel($eventObj->sender);
+		}
+	}
+
+	/** Join the private channel of the tradebot $botName */
+	protected function joinPrivateChannel(string $botName): void {
+		$cmd = "!join";
+		$this->logger->logChat("Out. Msg.", $botName, $cmd);
+		$this->chatBot->send_tell($botName, $cmd, AOC_PRIORITY_MED);
 	}
 
 	/**
@@ -205,6 +287,14 @@ class TradebotController {
 	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors
 	 */
 	public function processIncomingTradebotMessage(string $sender, string $message): void {
+		$baseSender = preg_replace("/\d+$/", "", $sender);
+		$ignorePattern = self::BOT_DATA[$baseSender]['ignore'] ?? [];
+		$strippedMessage = strip_tags($message);
+		foreach ($ignorePattern as $ignore) {
+			if (preg_match($ignore, $strippedMessage)) {
+				return;
+			}
+		}
 		$message = "Received message from Tradebot <highlight>$sender<end>: $message";
 		$this->chatBot->sendGuild($message, true);
 		if ($this->settingManager->getBool("guest_relay")) {
@@ -223,6 +313,9 @@ class TradebotController {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
+		if ($this->settingManager->getBool('tradebot_custom_colors')) {
+			$message = $this->colorizeMessage($sender, $message);
+		}
 		if ($this->settingManager->getBool('tradebot_add_comments')) {
 			$message = $this->addCommentsToMessage($message);
 		}
@@ -235,8 +328,36 @@ class TradebotController {
 		}
 	}
 
+	protected function colorizeMessage(string $tradeBot, string $message): string {
+		if (!preg_match("/^.*?\[(.+?)\](.+)$/s", $message, $matches)) {
+			return $message;
+		}
+		$tag = strip_tags($matches[1]);
+		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
+		$textColor = $this->settingManager->getString('tradebot_text_color');
+		$tagColor = $this->getTagColor($tradeBot, $tag);
+		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
+		return "{$tagColor}[{$tag}]<end> {$textColor}{$text}";
+	}
+
+	protected function getTagColor(string $tradeBot, string $tag): ?TradebotColors {
+		/** @var TradebotColors[] */
+		$colorDefs = $this->db->fetchAll(
+			TradebotColors::class,
+			"SELECT * FROM `tradebot_colors_<myname>` ".
+			"WHERE `tradebot`=? ORDER BY LENGTH(channel) DESC",
+			$tradeBot
+		);
+		foreach ($colorDefs as $colorDef) {
+			if (fnmatch($colorDef->channel, $tag, FNM_CASEFOLD)) {
+				return $colorDef;
+			}
+		}
+		return null;
+	}
+
 	protected function addCommentsToMessage(string $message): string {
-		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message ,$match)) {
+		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message, $match)) {
 			return $message;
 		}
 		$numComments = $this->commentController->countComments(null, $match[1]);
@@ -276,6 +397,124 @@ class TradebotController {
 		if (!$this->isTradebot($sender)) {
 			return;
 		}
+		$this->logger->log('INFO', "Joining {$sender}'s private channel.");
 		$this->chatBot->privategroup_join($sender);
+	}
+
+	/**
+	 * @HandlesCommand("tradecolor")
+	 * @Matches("/^tradecolor$/i")
+	 */
+	public function listTradecolorsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		/** @var TradebotColors[] */
+		$colors = $this->db->fetchAll(
+			TradebotColors::class,
+			"SELECT * FROM `tradebot_colors_<myname>` ORDER BY `tradebot` ASC, `id` ASC"
+		);
+		if (!count($colors)) {
+			$sendto->reply("No colors have been defined yet.");
+			return;
+		}
+		/** @var array<string,TradebotColors[]> */
+		$colorDefs = [];
+		foreach ($colors as $color) {
+			$colorDefs[$color->tradebot] ??= [];
+			$colorDefs[$color->tradebot] []= $color;
+		}
+		$blob = "";
+		foreach ($colorDefs as $tradebot => $colors) {
+			$blob = "<pagebreak><header2>{$tradebot}<end>\n";
+			foreach ($colors as $color) {
+				$blob .= "<tab>[{$color->channel}]: <highlight>#{$color->color}<end><tab>".
+					"<font color='#{$color->color}'>[Example Tag]</font> ".
+					"[" . $this->text->makeChatcmd(
+						"remove",
+						"/tell <myname> tradecolor rem {$color->id}"
+					) . "] ".
+					"[" . $this->text->makeChatcmd(
+						"change",
+						"/tell <myname> tradecolor pick {$tradebot} {$color->channel}"
+					) . "]\n";
+			}
+			$blob .= "\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Tradebot colors (" . count($colors) . ")",
+			$blob
+		);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("tradecolor")
+	 * @Matches("/^tradecolor\s+(?:rem|del|remove|delete|rm)\s+(\d+)$/i")
+	 */
+	public function remTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$id = (int)$args[1];
+		if (!$this->db->exec("DELETE FROM `tradebot_colors_<myname>` WHERE `id`=?", $id)) {
+			$sendto->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
+			return;
+		}
+		$sendto->reply("Tradebot color <highlight>#{$id}<end> deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("tradecolor")
+	 * @Matches("/^tradecolor\s+(?:add|set)\s+([^ ]+)\s+(.+)\s+#?([0-9a-f]{6})$/i")
+	 */
+	public function addTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$tradeBot = ucfirst(strtolower($args[1]));
+		$tag = strtolower($args[2]);
+		$color = strtoupper($args[3]);
+		if (!array_key_exists($tradeBot, self::BOT_DATA)) {
+			$sendto->reply("<highlight>{$tradeBot}<end> is not a supported tradebot.");
+			return;
+		}
+		if (strlen($tag) > 25) {
+			$sendto->reply("Your tag is longer than the supported 25 characters.");
+			return;
+		}
+		$colorDef = new TradebotColors();
+		$colorDef->channel = $tag;
+		$colorDef->tradebot = $tradeBot;
+		$colorDef->color = $color;
+		$oldValue = $this->getTagColor($tradeBot, $tag);
+		if (isset($oldValue) && $oldValue->channel === $colorDef->channel) {
+			$colorDef->id = $oldValue->id;
+			$this->db->update("tradebot_colors_<myname>", "id", $colorDef);
+		} else {
+			$colorDef->id = $this->db->insert("tradebot_colors_<myname>", $colorDef);
+		}
+		$sendto->reply(
+			"Color for <highlight>{$tradeBot} &gt; [{$tag}]<end> set to ".
+			"<font color='#{$color}'>#{$color}</font>."
+		);
+	}
+
+	/**
+	 * @HandlesCommand("tradecolor")
+	 * @Matches("/^tradecolor\s+(?:pick)\s+([^ ]+)\s+(.+)$/i")
+	 */
+	public function pickTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$tradeBot = ucfirst(strtolower($args[1]));
+		$tag = strtolower($args[2]);
+		if (!array_key_exists($tradeBot, self::BOT_DATA)) {
+			$sendto->reply("{$tradeBot} is not a supported tradebot.");
+			return;
+		}
+		if (strlen($tag) > 25) {
+			$sendto->reply("Your tag name is too long.");
+			return;
+		}
+		$colorList = ColorSettingHandler::getExampleColors();
+		$blob = "<header2>Pick a color for {$tradeBot} &gt; [{$tag}]<end>\n";
+		foreach ($colorList as $color => $name) {
+			$blob .= "<tab>[<a href='chatcmd:///tell <myname> tradecolor set {$tradeBot} {$tag} {$color}'>Pick this onet</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Choose from colors (" . count($colorList) . ")",
+			$blob
+		);
+		$sendto->reply($msg);
 	}
 }

@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS ClusterImplantMap;
-CREATE TABLE ClusterImplantMap (
-	ImplantTypeID INT NOT NULL,
-	ClusterID INT NOT NULL,
-	ClusterTypeID INT NOT NULL
+DROP TABLE IF EXISTS `ClusterImplantMap`;
+CREATE TABLE `ClusterImplantMap` (
+	`ImplantTypeID` INT NOT NULL,
+	`ClusterID` INT NOT NULL,
+	`ClusterTypeID` INT NOT NULL
 );
-INSERT INTO ClusterImplantMap (ImplantTypeID, ClusterID, ClusterTypeID) VALUES
+INSERT INTO `ClusterImplantMap` (`ImplantTypeID`, `ClusterID`, `ClusterTypeID`) VALUES
 (1,8,3),
 (1,9,1),
 (1,12,1),

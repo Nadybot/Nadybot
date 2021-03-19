@@ -1,12 +1,12 @@
-DROP TABLE IF EXISTS Cluster;
-CREATE TABLE Cluster (
-	ClusterID INT NOT NULL PRIMARY KEY,
-	EffectTypeID INT NOT NULL,
-	LongName VARCHAR(50) NOT NULL,
-	NPReq INT NOT NULL,
-	SkillID INT
+DROP TABLE IF EXISTS `Cluster`;
+CREATE TABLE `Cluster` (
+	`ClusterID` INT NOT NULL PRIMARY KEY,
+	`EffectTypeID` INT NOT NULL,
+	`LongName` VARCHAR(50) NOT NULL,
+	`NPReq` INT NOT NULL,
+	`SkillID` INT
 );
-INSERT INTO Cluster (ClusterID, EffectTypeID, LongName, NPReq, SkillID) VALUES
+INSERT INTO `Cluster` (`ClusterID`, `EffectTypeID`, `LongName`, `NPReq`, `SkillID`) VALUES
 (0,1,'',0,null),
 (2,1,'1 Handed Blunt Weapons',720,102),
 (3,1,'1 Handed Edged Weapon',760,103),

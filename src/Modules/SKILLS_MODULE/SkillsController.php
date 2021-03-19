@@ -668,7 +668,7 @@ class SkillsController {
 		}
 		if ($highAttributes->fling_shot) {
 			[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
-			$blob .= "<header2>Fligh Shot<end>\n";
+			$blob .= "<header2>Fling Shot<end>\n";
 			$blob .= "<tab>You need <highlight>".$skillCap."<end> Fling Shot skill to cap your recharge at <highlight>".$weaponCap."<end>s.\n\n";
 			$found = true;
 		}

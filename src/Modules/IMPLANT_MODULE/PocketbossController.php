@@ -4,7 +4,6 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
-use Nadybot\Core\SQLException;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
@@ -140,7 +139,10 @@ class PocketbossController {
 		$symbtype = '%';
 		$line = '%';
 
-		$lines = $this->db->query("SELECT DISTINCT line FROM pocketboss");
+		$lines = array_column(
+			$this->db->query("SELECT DISTINCT line FROM pocketboss"),
+			"line"
+		);
 
 		for ($i = 1; $i <= $paramCount; $i++) {
 			switch (strtolower($args[$i])) {
@@ -203,8 +205,8 @@ class PocketbossController {
 				default:
 					// check if it's a line
 					foreach ($lines as $l) {
-						if (strtolower($l->line) == strtolower($args[$i])) {
-							$line = $l->line;
+						if (strtolower($l) === strtolower($args[$i])) {
+							$line = $l;
 							break 2;
 						}
 					}
@@ -220,9 +222,23 @@ class PocketbossController {
 						$symbtype = "Extermination";
 					} elseif (preg_match("/^control/i", $args[$i])) {
 						$symbtype = "Control";
-					} else {
-						return;
 					}
+
+					// check if it's a line, but be less strict this time
+					$matchingLines = array_filter(
+						$lines,
+						function (string $line) use ($args, $i): bool {
+							return strncasecmp($line, $args[$i], strlen($args[$i])) === 0;
+						}
+					);
+					if (count($matchingLines) === 1) {
+						$line = array_shift($matchingLines);
+						break;
+					}
+					$sendto->reply(
+						"I cannot find any symbiant line, location or type '<highlight>{$args[$i]}<end>'."
+					);
+					return;
 			}
 		}
 

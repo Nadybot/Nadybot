@@ -1,13 +1,13 @@
-DROP TABLE IF EXISTS EffectTypeMatrix;
-CREATE TABLE EffectTypeMatrix (
-	ID INT NOT NULL PRIMARY KEY,
-	Name VARCHAR(20) NOT NULL,
-	MinValLow INT NOT NULL,
-	MaxValLow INT NOT NULL,
-	MinValHigh INT NOT NULL,
-	MaxValHigh INT NOT NULL
+DROP TABLE IF EXISTS `EffectTypeMatrix`;
+CREATE TABLE `EffectTypeMatrix` (
+	`ID` INT NOT NULL PRIMARY KEY,
+	`Name` VARCHAR(20) NOT NULL,
+	`MinValLow` INT NOT NULL,
+	`MaxValLow` INT NOT NULL,
+	`MinValHigh` INT NOT NULL,
+	`MaxValHigh` INT NOT NULL
 );
-INSERT INTO EffectTypeMatrix (ID, Name, MinValLow, MaxValLow, MinValHigh, MaxValHigh) VALUES
+INSERT INTO `EffectTypeMatrix` (`ID`, `Name`, `MinValLow`, `MaxValLow`, `MinValHigh`, `MaxValHigh`) VALUES
 (1,'Skill',6,105,106,141),
 (2,'Ability',5,55,55,73),
 (3,'AC',8,505,508,687),

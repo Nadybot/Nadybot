@@ -12,8 +12,17 @@
 !premade rwrist
 !premade comp lit
 !premade error
+!premade brain
 
 !cluster comp lit
 !cluster error
+
+!bestsymbiants
+!bestsymbiants adv 1
+!bestsymbiants adv 100
+!bestsymbiants adv 200
+!bestsymbiants xxx 200
+!bestsymbiants 200
+!bestsymbiants xxx
 
 /text End IMPLANT_MODULE

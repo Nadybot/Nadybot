@@ -1,9 +1,9 @@
-DROP TABLE IF EXISTS SymbiantProfessionMatrix;
-CREATE TABLE SymbiantProfessionMatrix (
-	SymbiantID INT NOT NULL,
-	ProfessionID INT NOT NULL
+DROP TABLE IF EXISTS `SymbiantProfessionMatrix`;
+CREATE TABLE `SymbiantProfessionMatrix` (
+	`SymbiantID` INT NOT NULL,
+	`ProfessionID` INT NOT NULL
 );
-INSERT INTO SymbiantProfessionMatrix (SymbiantID, ProfessionID) VALUES
+INSERT INTO `SymbiantProfessionMatrix` (`SymbiantID`, `ProfessionID`) VALUES
 (236309,14),
 (236309,3),
 (236309,10),

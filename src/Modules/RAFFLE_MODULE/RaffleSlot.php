@@ -34,7 +34,7 @@ class RaffleSlot {
 		if ($this->amount === 1) {
 			return join(", ", $items);
 		}
-		return $this->amount . "x " . join(", ", $items);
+		return "<orange>{$this->amount}×</font> " . join(", ", $items);
 	}
 
 	public function removeParticipant(string $player): bool {

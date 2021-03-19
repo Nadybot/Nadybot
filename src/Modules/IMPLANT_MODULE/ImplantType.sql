@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS ImplantType;
-CREATE TABLE ImplantType (
-	ImplantTypeID INT NOT NULL PRIMARY KEY,
-	Name VARCHAR(20) NOT NULL,
-	ShortName VARCHAR(10) NOT NULL
+DROP TABLE IF EXISTS `ImplantType`;
+CREATE TABLE `ImplantType` (
+	`ImplantTypeID` INT NOT NULL PRIMARY KEY,
+	`Name` VARCHAR(20) NOT NULL,
+	`ShortName` VARCHAR(10) NOT NULL
 );
-INSERT INTO ImplantType (ImplantTypeID, Name, ShortName) VALUES
+INSERT INTO `ImplantType` (`ImplantTypeID`, `Name`, `ShortName`) VALUES
 (1,'Eye','eye'),
 (2,'Head','head'),
 (3,'Ear','ear'),

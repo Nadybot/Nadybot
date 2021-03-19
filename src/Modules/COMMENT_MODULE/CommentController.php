@@ -494,6 +494,41 @@ class CommentController {
 	}
 
 	/**
+	 * Command to read comments about a player
+	 *
+	 * @HandlesCommand("comment")
+	 * @Matches("/^comment\s+list\s+(\w+)$/i")
+	 */
+	public function listCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$categoryName = $args[1];
+		$category = $this->getCategory($categoryName);
+		if ($category === null) {
+			$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
+			return;
+		}
+		if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
+			$sendto->reply(
+				"You don't have the required access level to read comments of type ".
+				"<highlight>{$categoryName}<end>."
+			);
+			return;
+		}
+		$sql = "SELECT * FROM `<table:comments>` WHERE `category`=? ORDER BY `created_at` ASC";
+		/** @var Comment[] */
+		$comments = $this->db->fetchAll(Comment::class, $sql, $categoryName);
+		if (!count($comments)) {
+			$msg = "No comments found in category <highlight>{$categoryName}<end>.";
+			$sendto->reply($msg);
+			return;
+		}
+		$formatted = $this->formatComments($comments, false, false);
+		$msg = "Comments in {$categoryName} ".
+			"(" . count($comments) . ")";
+		$msg = $this->text->makeBlob($msg, $formatted->blob);
+		$sendto->reply($msg);
+	}
+
+	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
 	 */
 	public function filterInaccessibleComments(array $comments, string $sender): array {

@@ -33,7 +33,7 @@ use Nadybot\Core\Modules\ALTS\AltsController;
  *	@DefineCommand(
  *		command     = 'news .+',
  *		accessLevel = 'mod',
- *		description = 'Adds, removes, stickies or unstickies a news entry',
+ *		description = 'Adds, removes, pins or unpins a news entry',
  *		help        = 'news.txt'
  *	)
  */
@@ -240,7 +240,7 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler unstickies a news entry.
+	 * This command handler confirms a news entry.
 	 *
 	 * @HandlesCommand("news confirm .+")
 	 * @Matches("/^news confirm (\d+)$/i")
@@ -314,7 +314,7 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler stickies a news entry.
+	 * This command handler pins a news entry.
 	 *
 	 * @HandlesCommand("news .+")
 	 * @Matches("/^news pin (\d+)$/i")
@@ -325,16 +325,16 @@ class NewsController {
 		$row = $this->getNewsItem($id);
 
 		if ($row->sticky) {
-			$msg = "News ID $id is already stickied.";
+			$msg = "News ID $id is already pinned.";
 		} else {
 			$this->db->exec("UPDATE `news` SET `sticky` = 1 WHERE `id` = ?", $id);
-			$msg = "News ID $id successfully stickied.";
+			$msg = "News ID $id successfully pinned.";
 		}
 		$sendto->reply($msg);
 	}
 
 	/**
-	 * This command handler unstickies a news entry.
+	 * This command handler unpins a news entry.
 	 *
 	 * @HandlesCommand("news .+")
 	 * @Matches("/^news unpin (\d+)$/i")
@@ -345,10 +345,10 @@ class NewsController {
 		$row = $this->getNewsItem($id);
 
 		if (!$row->sticky) {
-			$msg = "News ID $id is not stickied.";
+			$msg = "News ID $id is not pinned.";
 		} else {
 			$this->db->exec("UPDATE `news` SET `sticky` = 0 WHERE `id` = ?", $id);
-			$msg = "News ID $id successfully unstickied.";
+			$msg = "News ID $id successfully unpinned.";
 		}
 		$sendto->reply($msg);
 	}

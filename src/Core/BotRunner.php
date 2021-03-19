@@ -8,13 +8,14 @@ use Logger;
 use ErrorException;
 use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\SETUP\Setup;
+use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 
 class BotRunner {
 
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.0";
+	public const VERSION = "5.0.0";
 
 	/**
 	 * The command line arguments
@@ -27,7 +28,9 @@ class BotRunner {
 
 	public ClassLoader $classLoader;
 
-	protected static $latestTag = null;
+	protected static ?string $latestTag = null;
+
+	protected static ?string $calculatedVersion = null;
 
 	/**
 	 * Create a new instance
@@ -40,28 +43,50 @@ class BotRunner {
 	}
 
 	/**
-	 * Return the version number of the bot.
+	 * Return the (cached) version number of the bot.
 	 * Depending on where you got the source from,
 	 * it's either the latest tag, the branch or a fixed version
 	 */
 	public static function getVersion(): string {
-		if (!@file_exists(dirname(dirname(__DIR__)) . '/.git')) {
+		if (!isset(static::$calculatedVersion)) {
+			static::$calculatedVersion = static::calculateVersion();
+		}
+		return static::$calculatedVersion;
+	}
+
+	/** Get the base directory of the bot */
+	public static function getBasedir(): string {
+		return realpath(dirname(dirname(__DIR__)));
+	}
+
+	/**
+	 * Calculate the version number of the bot.
+	 * Depending on where you got the source from,
+	 * it's either the latest tag, the branch or a fixed version
+	 */
+	public static function calculateVersion(): string {
+		$baseDir = static::getBasedir();
+		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
 		set_error_handler(function($num, $str, $file, $line) {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@file_get_contents(dirname(dirname(__DIR__)) . '/.git/HEAD')), 2)[1];
+			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
 			}
-			if ($latestTag[0]) {
-				return "{$latestTag[1]}@{$branch}";
+			if ($branch !== 'stable') {
+				return "{$latestTag}@{$branch}";
 			}
-			return "{$latestTag[1]}";
+			$gitDescribe = static::getGitDescribe();
+			if ($gitDescribe === null || $gitDescribe === $latestTag) {
+				return "{$latestTag}";
+			}
+			return "{$latestTag}@stable";
 		} catch (\Throwable $e) {
 			return static::VERSION;
 		} finally {
@@ -69,49 +94,58 @@ class BotRunner {
 		}
 	}
 
-	/**
-	 * Read all currently defined tags and their hashes
-	 * and return them in [hash => tag]
-	 *
-	 * @return array<string,string>
-	 */
-	public static function getTagsForHashes(): array {
-		$result = [];
-		$files = glob(dirname(dirname(__DIR__)) . '/.git/refs/tags/*');
-		foreach (array_reverse($files) as $file) {
-			$result[trim(file_get_contents($file))] = basename($file);
-		}
-		return $result;
-	}
+	public static function getGitDescribe(): ?string {
+		$baseDir = static::getBasedir();
+		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
 
+		$pid = proc_open("git describe --tags", $descriptors, $pipes, $baseDir);
+		if ($pid === false) {
+			return null;
+		}
+		fclose($pipes[0]);
+		$gitDescribe = trim(stream_get_contents($pipes[1]));
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		proc_close($pid);
+		return $gitDescribe;
+	}
 
 	/**
 	 * Calculate the latest tag that the checkout was tagged with
 	 * and return how many commits were done since then
 	 * Like [number of commits, tag]
 	 */
-	public static function getLatestTag(): ?array {
+	public static function getLatestTag(): ?string {
 		if (isset(static::$latestTag)) {
 			return static::$latestTag;
 		}
+		$baseDir = static::getBasedir();
 		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
 
-		$pid = proc_open("git describe --tags --abbrev=1", $descriptors, $pipes);
+		$pid = proc_open("git tag -l", $descriptors, $pipes, $baseDir);
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
 		fclose($pipes[0]);
-		$tagString = trim(stream_get_contents($pipes[1]));
+		$tags = explode("\n", trim(stream_get_contents($pipes[1])));
 		fclose($pipes[1]);
 		fclose($pipes[2]);
 		proc_close($pid);
-		if (isset($tagString) && preg_match("/^(.+?)-(\d+)-([a-z0-9]+)$/", $tagString, $matches)) {
-			return static::$latestTag = [(int)$matches[2], $matches[1]];
-		}
-		if (isset($tagString) && preg_match("/^(\d+\.\d+(?:-[^\d].+))$/", $tagString, $matches)) {
-			return static::$latestTag = [0, $matches[1]];
-		}
-		return static::$latestTag = null;
+
+		$tags = array_map(
+			function(string $tag): SemanticVersion {
+				return new SemanticVersion($tag);
+			},
+			$tags
+		);
+		usort(
+			$tags,
+			function(SemanticVersion $v1, SemanticVersion $v2): int {
+				return $v1->cmp($v2);
+			}
+		);
+		$tagString = array_pop($tags)->getOrigVersion();
+		return static::$latestTag = $tagString;
 	}
 
 	public function checkRequiredModules(): void {
@@ -136,7 +170,6 @@ class BotRunner {
 		) {
 			$requiredModules []= "mbstring";
 		}
-		if ($this->configFile->getVar("amqp_server"));
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
