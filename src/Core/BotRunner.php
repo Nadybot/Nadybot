@@ -227,6 +227,7 @@ class BotRunner {
 		global $vars;
 		$vars = $this->getConfigVars();
 		$this->checkRequiredModules();
+		$this->createMissingDirs();
 
 		echo $this->getInitialInfoMessage();
 
@@ -277,6 +278,21 @@ class BotRunner {
 
 		// pass control to Nadybot class
 		$chatBot->run();
+	}
+
+	protected function createMissingDirs(): void {
+		$dirVars = ["cachefolder", "htmlfolder", "datafolder"];
+		foreach ($dirVars as $var) {
+			$dir = $this->getConfigFile()->getVar($var);
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+		foreach ($this->getConfigFile()->getVar("module_load_paths") as $dir) {
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
 	}
 
 	/**
