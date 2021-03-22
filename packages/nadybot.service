@@ -1,0 +1,19 @@
+[Unit]
+Description=Nadybot Anarchy Online chatbot
+After=network.target
+
+[Service]
+Type=simple
+User=nadybot
+Group=nadybot
+WorkingDirectory=/opt/nadybot
+ExecStart=/usr/bin/env php \
+	/opt/nadybot/main.php \
+	/etc/nadybot/config.php
+Restart=always
+RestartPreventExitStatus=10
+RestartSec=5
+SyslogIdentifier=nadybot
+
+[Install]
+WantedBy=multi-user.target

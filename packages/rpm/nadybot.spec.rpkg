@@ -26,7 +26,7 @@ VCS:        {{{ git_dir_vcs }}}
 
 # git_dir_pack macro places the repository content (the source files) into a tarball
 # and returns its filename. The tarball will be used to build the rpm.
-Source:     {{{ git_dir_pack path=../.. source_name=Nadybot dir_name=Nadybot }}}
+Source:     {{{ git_dir_pack path="$(git rev-parse --show-toplevel)" source_name=Nadybot dir_name=Nadybot }}}
 
 BuildRequires: php-cli >= 7.4
 BuildRequires: php-json
@@ -51,6 +51,7 @@ Requires: php-mysqlnd
 Requires: php-bcmath
 Requires: php-mbstring
 Requires: php-xml
+Requires: php-pecl-zip
 
 %global debug_package %{nil}
 
@@ -82,47 +83,6 @@ sed -i'' -e 's|\$vars\[.cachefolder.\].*|$vars["cachefolder"] = "%{_sharedstated
 sed -i'' -e 's|\$vars\[.htmlfolder.\].*|$vars["htmlfolder"] = "%{_sharedstatedir}/nadybot/html/" . $vars["name"] . "/";|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.datafolder.\].*|$vars["datafolder"] = "%{_sharedstatedir}/nadybot/data/" . $vars["name"] . "/";|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.logsfolder.\].*|$vars["logsfolder"] = "/var/log/nadybot";|g' conf/config.template.php
-cat <<- EOF > nadybot.service
-	[Unit]
-	Description=Nadybot Anarchy Online chatbot
-	After=network.target
-	
-	[Service]
-	Type=simple
-	User=nadybot
-	Group=nadybot
-	WorkingDirectory=/opt/nadybot
-	ExecStart=/usr/bin/env php \\
-		/opt/nadybot/main.php \\
-		%{_sysconfdir}/nadybot/config.php
-	Restart=always
-	RestartPreventExitStatus=10
-	RestartSec=5
-	
-	[Install]
-	WantedBy=multi-user.target
-EOF
-
-cat <<- EOF > nadybot@.service
-	[Unit]
-	Description=Nadybot Anarchy Online chatbot
-	After=network.target
-	
-	[Service]
-	Type=simple
-	User=nadybot
-	Group=nadybot
-	WorkingDirectory=/opt/nadybot
-	ExecStart=/usr/bin/env php \\
-		/opt/nadybot/main.php \\
-		"%{_sysconfdir}/nadybot/%i.php"
-	Restart=always
-	RestartPreventExitStatus=10
-	RestartSec=5
-	
-	[Install]
-	WantedBy=multi-user.target
-EOF
 
 # This will invoke `make` command in the directory with the extracted sources.
 %build
@@ -149,8 +109,8 @@ install -m 644 main.php %{buildroot}/opt/nadybot/main.php
 install -m 644 data/text.mdb %{buildroot}/opt/nadybot/data/text.mdb
 install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/config.php
 install -m 644 conf/log4php.xml %{buildroot}/opt/nadybot/conf/log4php.xml
-install -D -m 644 nadybot.service %{buildroot}%{_unitdir}/nadybot.service
-install -D -m 644 nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
+install -D -m 644 packages/nadybot.service %{buildroot}%{_unitdir}/nadybot.service
+install -D -m 644 packages/nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
 
 # This lists all the files that are included in the rpm package and that
 # are going to be installed into target system where the rpm is installed.
