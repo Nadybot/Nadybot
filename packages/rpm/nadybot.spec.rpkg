@@ -26,7 +26,7 @@ VCS:        {{{ git_dir_vcs }}}
 
 # git_dir_pack macro places the repository content (the source files) into a tarball
 # and returns its filename. The tarball will be used to build the rpm.
-Source:     {{{ git_dir_pack source_name=Nadybot dir_name=Nadybot }}}
+Source:     {{{ git_dir_pack path=../.. source_name=Nadybot dir_name=Nadybot }}}
 
 BuildRequires: php-cli >= 7.4
 BuildRequires: php-json
@@ -56,13 +56,13 @@ Requires: php-xml
 
 # More detailed description of the package
 %description
-This is a package for the Anarchy Online bot "Nadybot"
+This is a chat bot for the MMORPG Anarchy Online by Funcom
 
 %pre
 getent group nadybot >/dev/null || groupadd -r nadybot
 getent passwd nadybot >/dev/null || \
-    useradd -r -g nadybot -d /opt/nadybot -s /sbin/nologin \
-    -c "Unprivileged user to run nadybot" nadybot
+	useradd -r -g nadybot -d /opt/nadybot -s /sbin/nologin \
+	-c "Unprivileged user to run nadybot" nadybot
 exit 0
 
 # The following four sections already describe the rpm build process itself.
@@ -73,7 +73,6 @@ curl -o composer-stable.phar https://getcomposer.org/composer-stable.phar
 php composer-stable.phar install --no-dev
 php composer-stable.phar dumpautoload --no-dev --optimize
 rm -f composer-stable.phar
-sed -i'' -e 's|value="./logs/nadybot_%s.log"|value="/var/log/nadybot/nadybot_%s.log"|g' conf/log4php.xml
 sed -i'' -e 's|\$vars\[.enable_console_client.\].*|$vars["enable_console_client"] = 0;|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.default_module_status.\].*|$vars["default_module_status"] = 1;|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.DB Name.\].*|$vars["DB Name"] = $vars["name"] . ".db";|g' conf/config.template.php
@@ -82,7 +81,7 @@ sed -i'' -e 's|.\./extras.|"%{_sharedstatedir}/nadybot/extras/" . $vars["name"]|
 sed -i'' -e 's|\$vars\[.cachefolder.\].*|$vars["cachefolder"] = "%{_sharedstatedir}/nadybot/cache/";|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.htmlfolder.\].*|$vars["htmlfolder"] = "%{_sharedstatedir}/nadybot/html/" . $vars["name"] . "/";|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.datafolder.\].*|$vars["datafolder"] = "%{_sharedstatedir}/nadybot/data/" . $vars["name"] . "/";|g' conf/config.template.php
-cat conf/config.template.php
+sed -i'' -e 's|\$vars\[.logsfolder.\].*|$vars["logsfolder"] = "/var/log/nadybot";|g' conf/config.template.php
 cat <<- EOF > nadybot.service
 	[Unit]
 	Description=Nadybot Anarchy Online chatbot
@@ -94,8 +93,29 @@ cat <<- EOF > nadybot.service
 	Group=nadybot
 	WorkingDirectory=/opt/nadybot
 	ExecStart=/usr/bin/env php \\
-	    /opt/nadybot/main.php \\
-	    %{_sysconfdir}/nadybot/config.php
+		/opt/nadybot/main.php \\
+		%{_sysconfdir}/nadybot/config.php
+	Restart=always
+	RestartPreventExitStatus=10
+	RestartSec=5
+	
+	[Install]
+	WantedBy=multi-user.target
+EOF
+
+cat <<- EOF > nadybot@.service
+	[Unit]
+	Description=Nadybot Anarchy Online chatbot
+	After=network.target
+	
+	[Service]
+	Type=simple
+	User=nadybot
+	Group=nadybot
+	WorkingDirectory=/opt/nadybot
+	ExecStart=/usr/bin/env php \\
+		/opt/nadybot/main.php \\
+		"%{_sysconfdir}/nadybot/%i.php"
 	Restart=always
 	RestartPreventExitStatus=10
 	RestartSec=5
@@ -130,6 +150,7 @@ install -m 644 data/text.mdb %{buildroot}/opt/nadybot/data/text.mdb
 install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/config.php
 install -m 644 conf/log4php.xml %{buildroot}/opt/nadybot/conf/log4php.xml
 install -D -m 644 nadybot.service %{buildroot}%{_unitdir}/nadybot.service
+install -D -m 644 nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
 
 # This lists all the files that are included in the rpm package and that
 # are going to be installed into target system where the rpm is installed.
@@ -146,6 +167,7 @@ install -D -m 644 nadybot.service %{buildroot}%{_unitdir}/nadybot.service
 %dir %{_sharedstatedir}/nadybot/extras
 %dir %{_sharedstatedir}/nadybot/html
 %attr(644,root,root) %{_unitdir}/nadybot.service
+%attr(644,root,root) %{_unitdir}/nadybot@.service
 
 %changelog
 # Skipping this for now
@@ -163,12 +185,12 @@ install -D -m 644 nadybot.service %{buildroot}%{_unitdir}/nadybot.service
 %systemd_preun nadybot.service
 %endif
 if [ "$1" -eq 0 ]; then
-  rm -rf "%{_sharedstatedir}"/nadybot/cache/*
-  rm -rf "%{_sharedstatedir}"/nadybot/db/*
-  rm -rf "%{_sharedstatedir}"/nadybot/data/*
-  rm -rf "%{_sharedstatedir}"/nadybot/extras/*
-  rm -rf "%{_sharedstatedir}"/nadybot/html/*
-  rm -rf /var/log/nadybot/*
+	rm -rf "%{_sharedstatedir}"/nadybot/cache/*
+	rm -rf "%{_sharedstatedir}"/nadybot/db/*
+	rm -rf "%{_sharedstatedir}"/nadybot/data/*
+	rm -rf "%{_sharedstatedir}"/nadybot/extras/*
+	rm -rf "%{_sharedstatedir}"/nadybot/html/*
+	rm -rf /var/log/nadybot/*
 fi
 exit 0
 

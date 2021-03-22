@@ -35,6 +35,9 @@ $vars['htmlfolder'] = "./html/";
 // Folder for storing data files
 $vars['datafolder'] = "./data/";
 
+// Folder for storing log files
+$vars['logsfolder'] = "./logs/";
+
 // Default status for new modules? 1 for enabled, 0 for disabled.
 $vars['default_module_status'] = 0;
 
