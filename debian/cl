@@ -1,0 +1,16 @@
+#!/bin/bash
+function die() {
+  echo "$@"
+  exit
+}
+
+RELEASES=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/Nadybot/Nadybot/releases)
+IDS=$(jq -r '.[].id' <<<"${RELEASES}" 2>/dev/null) || die "Unable to get releases"
+for ID in ${IDS}; do
+  JSON=$(jq ".[] | select(.id == $ID)" <<<"${RELEASES}")
+  echo "nadybot ($(jq -r .name <<<"${JSON}" | sed -e 's/-/./g; s/\.\([^0-9]\)/~\1/g')-1) bionic; urgency=medium"
+  echo
+  echo "$(jq -r .body <<<"${JSON}" | sed -e 's/^/  /g' | dos2unix)"
+  echo
+  echo " -- Nadyita <nadyita@hodorraid.org>  $(env LC_ALL=en_US.UTF-8 date -d "$(jq -r .published_at <<<"${JSON}")" +"%a, %d %b %Y %H:%M:%S %z")"
+done

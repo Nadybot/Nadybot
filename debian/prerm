@@ -1,0 +1,7 @@
+rm -rf /var/lib/nadybot/cache/*
+rm -rf /var/lib/nadybot/db/*
+rm -rf /var/lib/nadybot/data/*
+rm -rf /var/lib/nadybot/extras/*
+rm -rf /var/lib/nadybot/html/*
+rm -rf /var/log/nadybot/*
+#DEBHELPER#

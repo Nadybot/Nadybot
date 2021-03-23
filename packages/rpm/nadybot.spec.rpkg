@@ -52,6 +52,7 @@ Requires: php-bcmath
 Requires: php-mbstring
 Requires: php-xml
 Requires: php-pecl-zip
+Requires: dialog
 
 %global debug_package %{nil}
 
@@ -111,6 +112,7 @@ install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/confi
 install -m 644 conf/log4php.xml %{buildroot}/opt/nadybot/conf/log4php.xml
 install -D -m 644 packages/nadybot.service %{buildroot}%{_unitdir}/nadybot.service
 install -D -m 644 packages/nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
+install -D -m 755 packages/nadybot %{buildroot}%{_bindir}/nadybot
 
 # This lists all the files that are included in the rpm package and that
 # are going to be installed into target system where the rpm is installed.
@@ -128,6 +130,7 @@ install -D -m 644 packages/nadybot@.service %{buildroot}%{_unitdir}/nadybot@.ser
 %dir %{_sharedstatedir}/nadybot/html
 %attr(644,root,root) %{_unitdir}/nadybot.service
 %attr(644,root,root) %{_unitdir}/nadybot@.service
+%attr(755,root,root) %{_bindir}/nadybot
 
 %changelog
 # Skipping this for now
