@@ -22,10 +22,7 @@ body {
 </style>
 
 <script lang="ts">
-import "bootstrap/dist/css/bootstrap.min.css";
-import "@/styles/switch-sizing.scss";
-import "@/styles/callout.scss";
-import "@/styles/dark.scss";
+import "@/styles/app.scss";
 
 export default {
   name: "nadyui",
