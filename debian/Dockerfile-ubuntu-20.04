@@ -1,0 +1,26 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -ex \
+	&& sed -i -- 's/# deb-src/deb-src/g' /etc/apt/sources.list \
+	&& apt-get update \
+	&& apt-get install -yq --no-install-recommends \
+		build-essential \
+		cdbs \
+		devscripts \
+		equivs \
+		fakeroot \
+		curl \
+		php7.4-cli \
+		php7.4-sqlite3 \
+		php7.4-curl \
+		php7.4-mysql \
+		php7.4-mbstring \
+		php7.4-bcmath \
+		php7.4-xml \
+		php7.4-zip \
+	&& apt-get clean \
+	&& rm -rf /tmp/* /var/tmp/*
+RUN touch /.dockerenv
+COPY build-package.sh /build-package.sh

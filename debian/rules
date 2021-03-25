@@ -1,0 +1,44 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with systemd
+
+override_dh_auto_install:
+	cp conf/config.template.php conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.enable_console_client.\].*|\$$vars["enable_console_client"] = 0;|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.default_module_status.\].*|\$$vars["default_module_status"] = 1;|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.DB Name.\].*|\$$vars["DB Name"] = \$$vars["name"] . ".db";|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.DB Host.\].*|\$$vars["DB Host"] = "/var/lib/nadybot/db/";|g' conf/config.template.php.tmp
+	sed -i'' -e 's|.\./extras.|"/var/lib/nadybot/extras/" . \$$vars["name"]|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.cachefolder.\].*|\$$vars["cachefolder"] = "/var/lib/nadybot/cache/";|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.htmlfolder.\].*|\$$vars["htmlfolder"] = "/var/lib/nadybot/html/" . \$$vars["name"] . "/";|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.datafolder.\].*|\$$vars["datafolder"] = "/var/lib/nadybot/data/" . \$$vars["name"] . "/";|g' conf/config.template.php.tmp
+	sed -i'' -e 's|\$$vars\[.logsfolder.\].*|\$$vars["logsfolder"] = "/var/log/nadybot";|g' conf/config.template.php.tmp
+	mkdir -p debian/nadybot/etc/nadybot
+	mkdir -p debian/nadybot/var/lib/nadybot
+	mkdir -p debian/nadybot/var/lib/nadybot/db
+	mkdir -p debian/nadybot/var/lib/nadybot/cache
+	mkdir -p debian/nadybot/var/lib/nadybot/extras
+	mkdir -p debian/nadybot/var/lib/nadybot/html
+	mkdir -p debian/nadybot/var/lib/nadybot/data
+	mkdir -p debian/nadybot/opt/nadybot
+	mkdir -p debian/nadybot/opt/nadybot/data
+	mkdir -p debian/nadybot/opt/nadybot/conf
+	mkdir -p debian/nadybot/var/log/nadybot
+	find src -type d -exec install -d debian/nadybot/opt/nadybot/\{\} \;
+	find src -type f -exec install -m 644 \{\} debian/nadybot/opt/nadybot/\{\} \;
+	find vendor -type d -exec install -d debian/nadybot/opt/nadybot/\{\} \;
+	find vendor -type f -exec install -m 644 \{\} debian/nadybot/opt/nadybot/\{\} \;
+	install -m 644 main.php debian/nadybot/opt/nadybot/main.php
+	install -m 644 data/text.mdb debian/nadybot/opt/nadybot/data/text.mdb
+	install -m 644 conf/config.template.php.tmp debian/nadybot/etc/nadybot/config.php
+	rm conf/config.template.php.tmp
+	install -m 644 conf/log4php.xml debian/nadybot/opt/nadybot/conf/log4php.xml
+	install -D -m 755 packages/nadybot debian/nadybot/usr/bin/nadybot
+	dh_auto_install
+
+override_dh_systemd_start:
+	dh_systemd_start --no-start
+
+override_dh_systemd_enable:
+	dh_systemd_enable --no-enable

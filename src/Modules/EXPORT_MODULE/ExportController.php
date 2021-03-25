@@ -79,12 +79,13 @@ class ExportController {
 	 * @Matches("/^export (.+)$/i")
 	 */
 	public function exportCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$fileName = "data/export/" . basename($args[1]);
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$fileName = "{$dataPath}/export/" . basename($args[1]);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
-		if (!@file_exists("data/export")) {
-			@mkdir("data/export", 0700);
+		if (!@file_exists("{$dataPath}/export")) {
+			@mkdir("{$dataPath}/export", 0700);
 		}
 		if (($this->chatBot->vars["use_proxy"] ?? 0) == 1) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {

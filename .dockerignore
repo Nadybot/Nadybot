@@ -1,5 +1,7 @@
 .*
 Dockerfile
+nadybot.spec.rpkg
+rpkg.macros
 README.md
 chatbot.sh
 mainloop.php

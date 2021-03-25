@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	LoggerWrapper,
+	Nadybot,
 	SettingManager,
 	Text,
 	Util,
@@ -57,6 +58,9 @@ class ProfileController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
 	public LoggerWrapper $logger;
 
 	private string $path;
@@ -66,7 +70,8 @@ class ProfileController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->path = getcwd() . "/data/profiles/";
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$this->path = "{$dataPath}/profiles/";
 
 		// make sure that the profile folder exists
 		if (!@is_dir($this->path)) {

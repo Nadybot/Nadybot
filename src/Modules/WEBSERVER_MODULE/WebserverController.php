@@ -422,14 +422,15 @@ class WebserverController {
 	}
 
 	protected function serveStaticFile(Request $request): Response {
-		$realFile = realpath("./html/{$request->path}");
-		$realBaseDir = realpath("./html/");
+		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
+		$realFile = realpath("{$path}/{$request->path}");
+		$realBaseDir = realpath("{$path}/");
 		if (
 			$realFile === false
 			|| (
 				$realFile !== $realBaseDir
 				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0)
-		 ) {
+		) {
 			return new Response(Response::NOT_FOUND);
 		}
 		if (is_dir($realFile)) {

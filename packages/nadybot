@@ -1,0 +1,105 @@
+#!/bin/bash
+
+function escapeString() {
+	STRING="$1"
+	sed -e 's/\\/\\\\/g; s/"/\"/g; s/\$/\\\$/g' <<<"${STRING}"
+}
+
+CONFIG_FILE=/etc/nadybot/config.php
+if [ ! -f "${CONFIG_FILE}" ]; then
+	echo "No configuration file found"
+	exit 1
+fi
+LOGIN=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['login']);")
+PASSWORD=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['password']);")
+CHARNAME=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['name']);")
+GUILD=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['my_guild']);")
+DIMENSION=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['dimension']);")
+SUPERADMIN=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['SuperAdmin']);")
+DEFAULT_STATUS=$(php <<<"$(cat "${CONFIG_FILE}");echo(\$vars['default_module_status']);")
+
+MOD_ON="on"
+MOD_OFF="off"
+if [ "${DEFAULT_STATUS:-1}" -eq 0 ]; then
+	MOD_ON="off"
+	MOD_OFF="on"
+fi
+OUTPUT=$(dialog \
+	--separate-widget "|" \
+	--output-separator "|" \
+	--backtitle "Nadybot configtool" \
+	--title "Setup Nadybot" \
+	--form "\nEnter your account information here.\n\nIf your bot is not a member of any org, leave the \"Orgname\" empty." 17 60 5 \
+		"Username:"   1 1 "${LOGIN}"      1 14 20 30 \
+		"Password:"   2 1 "${PASSWORD}"   2 14 20 30 \
+		"Character:"  3 1 "${CHARNAME}"   3 14 20 30 \
+		"Orgname:"    4 1 "${GUILD}"      4 14 20 30 \
+		"Superadmin:" 5 1 "${SUPERADMIN}" 5 14 20 30 \
+		\
+	--backtitle "Nadybot configtool" \
+	--title "Setup Nadybot" \
+	--radiolist "\nWhich Dimension is this bot for?" 11 60 3 \
+		4 "Testing dimension" $(if [ "${DIMENSION}" -eq 4 ]; then echo on; else echo off; fi) \
+		5 "Rubi-Ka" $(if [ "${DIMENSION:-5}" -eq 5 ]; then echo on; else echo off; fi) \
+		6 "Rubi-Ka 2019" $(if [ "${DIMENSION}" -eq 6 ]; then echo on; else echo off; fi) \
+	--backtitle "Nadybot configtool" \
+	--title "Setup Nadybot" \
+	--radiolist "\nDo you want to enable all modules or none?" 10 60 2 \
+		0 "None" ${MOD_OFF} \
+		1 "All" ${MOD_ON} \
+	--output-fd 1 \
+)
+
+if [ "$?" -ne 0 ]; then
+	clear
+	exit 1
+fi
+
+clear
+
+IFS='|' read -r LOGIN PASSWORD CHARNAME GUILD SUPERADMIN X DIMENSION DEFAULT_STATUS <<<"${OUTPUT}"
+
+CHARNAME_RE="^[A-Z][a-z0-9-]{3,11}$"
+
+LOGIN=$(escapeString "${LOGIN}")
+PASSWORD=$(escapeString "${PASSWORD}")
+GUILD=$(escapeString "${GUILD}")
+
+if [[ ! "${CHARNAME}" =~ $CHARNAME_RE ]]; then
+	echo "Your character name \"${CHARNAME}\" is invalid. Make sure it starts with a capital letter and is between 4 and 12 characters long."
+	exit 1
+fi
+if [[ ! "${SUPERADMIN}" =~ $CHARNAME_RE ]]; then
+	echo "Your superadmin name \"${SUPERADMIN}\" is invalid. Make sure it starts with a capital letter and is between 4 and 12 characters long."
+	exit 1
+fi
+
+if sudo sed -i'' -e \
+	"s/^\\s*\\\$vars\\[.login.\\].*/\$vars['login']      = \"${LOGIN}\";/; \
+	 s/^\\s*\\\$vars\\[.password.\\].*/\$vars['password']   = \"${PASSWORD}\";/; \
+	 s/^\\s*\\\$vars\\[.name.\\].*/\$vars['name']       = \"${CHARNAME}\";/; \
+	 s/^\\s*\\\$vars\\[.my_guild.\\].*/\$vars['my_guild']   = \"${GUILD}\";/; \
+	 s/^\\s*\\\$vars\\[.SuperAdmin.\\].*/\$vars['SuperAdmin'] = \"${SUPERADMIN}\";/; \
+	 s/^\\s*\\\$vars\\[.default_module_status.\\].*/\$vars[\"default_module_status\"] = ${DEFAULT_STATUS:-1};/; \
+	 s/^\\s*\\\$vars\\[.dimension.\\].*/\$vars['dimension']  = ${DIMENSION:-5};/; \
+	 " "${CONFIG_FILE}";
+then
+	dialog \
+	--backtitle "Nadybot configtool" \
+	--keep-window \
+	--title "Success" --msgbox "\nThe Nadybot configuration was updated" 7 45
+	clear
+else
+	dialog \
+	--backtitle "Nadybot configtool" \
+	--title "Error" --msgbox "\nThere was an error updating your Nadybot configuration" 8 45
+	clear
+	exit 1
+fi
+
+
+if systemctl --quiet is-active nadybot; then
+	echo -e "\nType\n\n  sudo systemctl restart nadybot\n\nto apply the changes."
+else
+	echo -e "\nType\n\n  sudo systemctl enable --now nadybot\n\nto start the bot."
+fi

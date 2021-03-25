@@ -1,0 +1,3 @@
+function nadybot_version() {
+    git for-each-ref --sort=creatordate --format '%(refname)' refs/tags | tail -n 1 | cut -c 11-
+}

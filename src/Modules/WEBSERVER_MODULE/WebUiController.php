@@ -233,11 +233,12 @@ class WebUiController {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
 			$this->settingManager->save("nadyui_version", "0");
 		}
-		return (realpath("./html/css") ? $this->recursiveRemoveDirectory(realpath("./html/css")) : true)
-			&& (realpath("./html/img") ? $this->recursiveRemoveDirectory(realpath("./html/img")) : true)
-			&& (realpath("./html/js")  ? $this->recursiveRemoveDirectory(realpath("./html/js")) : true)
-			&& (realpath("./html/index.html") ? unlink(realpath("./html/index.html")) : true)
-			&& (realpath("./html/favicon.ico") ? unlink(realpath("./html/favicon.ico")) : true);
+		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
+		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
+			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
+			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
+			&& (realpath("{$path}/index.html") ? unlink(realpath("{$path}/index.html")) : true)
+			&& (realpath("{$path}/favicon.ico") ? unlink(realpath("{$path}/favicon.ico")) : true);
 	}
 
 	/**
@@ -276,7 +277,8 @@ class WebUiController {
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			if ($extractor->extractTo(realpath("./html")) === false) {
+			$path = realpath($this->chatBot->vars["htmlfolder"] ?? "./html");
+			if ($path === false || $extractor->extractTo($path) === false) {
 				throw new Exception("Error extracting {$archiveName}.");
 			}
 		} catch (Throwable $e) {

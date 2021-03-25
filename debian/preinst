@@ -1,0 +1,4 @@
+getent group nadybot >/dev/null || groupadd -r nadybot
+getent passwd nadybot >/dev/null || \
+	useradd -r -g nadybot -d /opt/nadybot -s /sbin/nologin \
+	-c "Unprivileged user to run nadybot" nadybot
