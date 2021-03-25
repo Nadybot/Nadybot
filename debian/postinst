@@ -1,0 +1,8 @@
+#!/bin/sh
+chown -R nadybot:nadybot /var/lib/nadybot
+chown -R nadybot:nadybot /var/log/nadybot
+chmod 0755 /usr/bin/nadybot
+
+#DEBHELPER#
+
+exit 0

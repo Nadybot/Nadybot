@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	DBSchema\Player,
 	SettingManager,
+	Timer,
 };
 
 use Nadybot\Modules\{
@@ -18,6 +19,7 @@ use Nadybot\Modules\{
 	ITEMS_MODULE\Skill,
 	ITEMS_MODULE\WhatBuffsController,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -61,12 +63,23 @@ class BuffPerksController {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public Timer $timer;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @Setup */
 	public function setup(): void {
 		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
+		$this->timer->callLater(0, [$this, "initPerksDatabase"], $msg);
+	}
+
+	public function initPerksDatabase(string $msg): void {
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(0, [$this, "initPerksDatabase"], $msg);
+			return;
+		}
 		$path = __DIR__ . "/perks.csv";
 		$mtime = @filemtime($path);
 		$dbVersion = 0;
@@ -80,51 +93,58 @@ class BuffPerksController {
 
 		$perkInfo = $this->getPerkInfo();
 
-		$this->db->exec("DELETE FROM perk");
-		$this->db->exec("DELETE FROM perk_level");
-		$this->db->exec("DELETE FROM perk_level_prof");
-		$this->db->exec("DELETE FROM perk_level_buffs");
-		$this->db->exec("DELETE FROM perk_level_actions");
-		$this->db->exec("DELETE FROM perk_level_resistances");
+		$this->db->beginTransaction();
+		try {
+			$this->db->exec("DELETE FROM perk");
+			$this->db->exec("DELETE FROM perk_level");
+			$this->db->exec("DELETE FROM perk_level_prof");
+			$this->db->exec("DELETE FROM perk_level_buffs");
+			$this->db->exec("DELETE FROM perk_level_actions");
+			$this->db->exec("DELETE FROM perk_level_resistances");
 
-		foreach ($perkInfo as $perk) {
-			$perk->id = $this->db->insert("perk", $perk);
+			foreach ($perkInfo as $perk) {
+				$perk->id = $this->db->insert("perk", $perk);
 
-			foreach ($perk->levels as $level) {
-				$level->perk_id = $perk->id;
-				$level->id = $this->db->insert('perk_level', $level);
+				foreach ($perk->levels as $level) {
+					$level->perk_id = $perk->id;
+					$level->id = $this->db->insert('perk_level', $level);
 
-				foreach ($level->professions as $profession) {
-					$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $level->id, $profession);
-				}
+					foreach ($level->professions as $profession) {
+						$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $level->id, $profession);
+					}
 
-				foreach ($level->resistances as $strain => $amount) {
-					$this->db->exec(
-						"INSERT INTO perk_level_resistances (perk_level_id, strain_id, amount) VALUES (?, ?, ?)",
-						$level->id,
-						(int)$strain,
-						(int)$amount
-					);
-				}
+					foreach ($level->resistances as $strain => $amount) {
+						$this->db->exec(
+							"INSERT INTO perk_level_resistances (perk_level_id, strain_id, amount) VALUES (?, ?, ?)",
+							$level->id,
+							(int)$strain,
+							(int)$amount
+						);
+					}
 
-				if ($level->action) {
-					$level->action->perk_level_id = $level->id;
-					$this->db->insert("perk_level_actions", $level->action);
-				}
+					if ($level->action) {
+						$level->action->perk_level_id = $level->id;
+						$this->db->insert("perk_level_actions", $level->action);
+					}
 
-				foreach ($level->buffs as $skillId => $amount) {
-					$this->db->exec(
-						"INSERT INTO `perk_level_buffs` (`perk_level_id`, `skill_id`, `amount`) ".
-						"VALUES (?, ?, ?)",
-						$level->id,
-						(int)$skillId,
-						$amount
-					);
+					foreach ($level->buffs as $skillId => $amount) {
+						$this->db->exec(
+							"INSERT INTO `perk_level_buffs` (`perk_level_id`, `skill_id`, `amount`) ".
+							"VALUES (?, ?, ?)",
+							$level->id,
+							(int)$skillId,
+							$amount
+						);
+					}
 				}
 			}
+			$newVersion = max($mtime ?: time(), $dbVersion);
+			$this->settingManager->save("perks_db_version", (string)$newVersion);
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw $e;
 		}
-		$newVersion = max($mtime ?: time(), $dbVersion);
-		$this->settingManager->save("perks_db_version", (string)$newVersion);
+		$this->db->commit();
 	}
 
 	/**

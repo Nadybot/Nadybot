@@ -1,0 +1,28 @@
+Source: nadybot
+Priority: optional
+Maintainer: Nadyita <nadyita@hodorraid.org>
+Build-Depends:
+ debhelper (>= 9),
+ dh-systemd (>=1.5),
+ sed
+Standards-Version: 3.9.5
+Section: misc
+Homepage: https://github.com/Nadybot/Nadybot
+Vcs-Git: git://github.com/Nadybot/Nadybot.git
+Vcs-Browser: https://github.com/Nadybot/Nadybot
+
+Package: nadybot
+Architecture: all
+Depends:
+ php7.4-cli,
+ php7.4-json,
+ php7.4-pdo,
+ php7.4-mysqlnd,
+ php7.4-bcmath,
+ php7.4-mbstring,
+ php7.4-xml,
+ php7.4-curl,
+ php7.4-sqlite3,
+ php7.4-zip,
+ dialog
+Description: This is a chat bot for the MMORPG Anarchy Online by Funcom

@@ -227,6 +227,7 @@ class BotRunner {
 		global $vars;
 		$vars = $this->getConfigVars();
 		$this->checkRequiredModules();
+		$this->createMissingDirs();
 
 		echo $this->getInitialInfoMessage();
 
@@ -235,7 +236,8 @@ class BotRunner {
 		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
 			die("Invalid timezone: \"{$vars['timezone']}\"\n");
 		}
-		$logFolderName = $vars['name'] . '.' . $vars['dimension'];
+		$logFolderName = rtrim($vars["logsfolder"] ?? "./logs/", "/");
+		$logFolderName = "{$logFolderName}/{$vars['name']}.{$vars['dimension']}";
 
 		$this->setErrorHandling($logFolderName);
 
@@ -277,6 +279,21 @@ class BotRunner {
 
 		// pass control to Nadybot class
 		$chatBot->run();
+	}
+
+	protected function createMissingDirs(): void {
+		$dirVars = ["cachefolder", "htmlfolder", "datafolder"];
+		foreach ($dirVars as $var) {
+			$dir = $this->getConfigFile()->getVar($var);
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+		foreach ($this->getConfigFile()->getVar("module_load_paths") as $dir) {
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
 	}
 
 	/**
@@ -339,7 +356,7 @@ class BotRunner {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 		ini_set("log_errors", "1");
 		ini_set('display_errors', "1");
-		ini_set("error_log", "./logs/${logFolderName}/php_errors.log");
+		ini_set("error_log", "${logFolderName}/php_errors.log");
 	}
 
 	/**
@@ -389,7 +406,7 @@ class BotRunner {
 		$configurator = new LoggerConfiguratorDefault();
 		$config = $configurator->parse('conf/log4php.xml');
 		$file = $config['appenders']['defaultFileAppender']['params']['file'];
-		$file = str_replace("./logs/", "./logs/" . $logFolderName . "/", $file);
+		$file = str_replace("./logs/", "{$logFolderName}/", $file);
 		$config['appenders']['defaultFileAppender']['params']['file'] = $file;
 		Logger::configure($config);
 	}

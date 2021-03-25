@@ -1,0 +1,199 @@
+nadybot (5.0.0-1+ubuntu1) bionic; urgency=medium
+
+  # Features:
+  - Add possibility to set default values for alias parameters
+  - Allow customization of the colors of tradebot channels
+  - Completely rework the !perk command
+    - Add the AI perks
+    - Add actions given
+    - Add grouping
+  - Allow `!whatbuffs` to mark one-slotted items, nodrops and uniques
+  - Support listing of all comments of a type
+  - Symbiant revamp and fuzzy finding symbiant types with `!symb` command
+  - Introduce reminders for `!notes`
+  - Mark "Self Illumination" and "The Rihwen" as tradeskillable nanos
+  - Ensure we don't have duplicate entries in players table
+  - Integrate an exporter/importer for backups and bot transfers
+  - Add configuration for raid add/raid kick messages
+  - Configurable min length for points manipulation (`!points add`/`!point rem` reason)
+
+  # Bugfixes:
+  - `!raid kick` is now case-insensitive regarding the name to be kicked
+  - Fix searching for non-existing skill in premade imps
+  - Fix `!orghistory 0`
+  - Fix DB format for waypoints in !rally, they didn't work after restarts
+  - Fix for MySQL 5.5 and 5.6
+  - Fix Auction links for !loot command
+  - Fix `!raid refund` help to properly show how it's used
+  - Fixed "Soothing Herbs" proc classification
+  - Reclassify some nanos to different locations
+  - Fix Windows installer
+
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 20 Mar 2021 00:10:57 +0100
+nadybot (5.0.0~RC.5-1) bionic; urgency=medium
+
+  # Features
+  * Allow disabling mass tells in the bot (#69)
+  * Support rate-limited proxy for when we send mass tells via more than 1 worker
+  * Added guide for inferno key pocket bosses
+  * Merge WBF_MODULE into standard modules (#73) You can now use `!wbf` like `!whatbuffs` but will only see items usable by froobs
+  * Introduce the `!icc` command to query current or upcoming arbiter events
+  * Support the new NadyUI web chat (#78)
+  * Add new raffle features (#83)
+    * Raffle admin menu
+    * Allow turning off raffle timeout in config options
+    * Support raffle re-announcements
+  * Allow mapping org ranks to bot access levels (#84)
+  * Add new `!package` command for dynamic installation and update of optional modules from https://pkg.aobots.org (#98)
+  * Colorize item matches if only a certain QL(range) matches the search term (#101)
+  * Generic `COMMENT_MODULE` (#102)
+    * Replaces the `REPUTATION_MODULE`.
+    * Comments can be configured to be shareable
+    * Comments can be bulk queried for everyone in the raid with `!raid comments`
+  * Have !online list show who's in the raid if configured. Multiple formats available.
+  * Add a setting to always ban all alts of a player (#108)
+  * Console enhancements:
+    * Support nano-links in the console
+    * Support colors in the console
+
+
+  # Bugfixes
+  * Fix the dynadb and display (#71)
+  * Fix alignment of `!updateorg` timer to always be at 10 mins after last update
+  * Fix bots relaying their own Discord messages
+  * Fix nanos:
+    * Fixed and added multiple locations. A lot of inf sanctuary nanos were also buyable in Pandemonium garden.
+    * Make overview better to read
+    * Reclassified Vehicle nanos
+    * Added legacy Adventurer nanos and Playful Cub (Other)
+  * Fix crash in Discord output when more than 10 parts were sent
+  * Support SQLite < 3.23.0 (#86)
+  * Fix all known Php8 issues (#109) and always build a php8 docker image for testing purpose (#112)
+  * Support db reconnects (#110) Bot can now start without DB and will detect if the DB was restarted
+  * Adhere to Discord rate-limits when sending messages via PMs or channels (#113)
+
+  # Other
+  * Always allow alts confirm/decline (#68)
+  * Add "Inert Reaper of Time" to bossloot
+  * Only show the loot searched for in `!bossloot` and not everything the bosses drop
+  * Added Go LFT link to raid information window (#74)
+  * Support worker pong and command negotiation (#75)
+  * Move Nucleus Basalis ring into ring category
+  * Allow searching for tower sites without space after zone (`!lc PW8` instead of `!lc PW 8`)
+  * Reduce and check the required PHP extensions on startup (#111)  No more OpenSSL module
+
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 06 Feb 2021 09:38:30 +0100
+nadybot (5.0~RC4-1) bionic; urgency=medium
+
+  ## Fixes
+  * Fix crash in `!bio` command
+  * Fix for dynamic settings not showing values
+  * Final fix for column exist in MySQL
+
+  ## Features
+  * Support new AOChatProxy and [its mass tell features](https://github.com/Nadybot/Nadybot/wiki/AOChatProxy)
+  * Allow to configure which tradebot channels to relay
+  * Add subway and totw loot to boss command
+  * Add documentation to modules to show in NadyUI and the `!config <module>`
+
+  ## Internal
+  * Convert Buddylist-entries to objects
+  * Track if orglist is ready, so you get proper "please wait" messages
+  * Use a different algorithm to send out mass messages and invites
+  * Allow elegant overwriting of base instances
+
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 27 Dec 2020 21:46:08 +0100
+nadybot (5.0~RC3-1) bionic; urgency=medium
+
+  * Bugfix release to avoid looped conversion of alts table
+
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 20 Dec 2020 18:23:38 +0100
+nadybot (5.0~RC2-1) bionic; urgency=medium
+
+  ## Fixes
+  * Do not send alt validation request from multiple bots
+  * Prevent a rare hanging scenario when reading past the MDB EOF
+  * Fix Discord for some 32bit systems when the bot was member in a lot of servers
+  * Never exit due to PHP 7.4 type errors
+  * Lots of crash scenarios fixed
+
+  ## Enhancements
+  * Allow `!alts main <name>` again and allow confirmation of alt and/or main
+  * Speed up orglist by roughly 30% by not sending uid lookup packets twice
+  * Try to align guild roster updates with the Funcom export time, so we're always updating 10 mins after them
+  * Handle custom emojis in Discord, delete unsupported chars from Discord names and properly support `’`
+  * Add `!assist <name>` for a quick alternative to `!caller add <name>`
+  * Add more buttons to callers
+  * Use cache for ao-universe guides
+  * Introduce the ability to execute commands via the API, fully supported by NadyUI which now has a command line
+
+  ## Other
+  * Remove SSL-support from the webserver as it's untested
+  * Switch default neutral color to old one
+  * Remove old and outdated guides and spice up the remaining ones
+
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 19 Dec 2020 22:33:11 +0100
+nadybot (5.0~RC1-1) bionic; urgency=medium
+
+  ## Features:
+  * Move last bits of sync HTTP calls to callbacks. This should finally fix all outstanding Windows bugs and speed up `!orglist <org>` by large.
+  * Move more tells to spam messages to allow load-balancing them
+  * Tower attacks warn about fake names now
+  * Pre-made imps are now (hopefully) displayed better and also fixed 2 wrong ones. 1HE shiny head would be too odd…
+  * Allow searching via skill aliases in the pre-made imps now, so `!premade mc` really works
+  * Any emoji that's send on discord will now be converted to `:<emoji name>:` if it cannot be displayed in AO
+  * Add new command `!reward <add|rem|change>` to manage pre-defined rewards which can then be used with `!raid reward`, so you can use `!raid reward beast` if you defined it before. This will now also allow to log reasons for why a raid reward was given with `!raid reward <amount> <reason>`.
+  * The console now also allows the use of the symbol prefix, so you can easily copy & paste commands
+  * Introduce the ability to set a separate prefix for Discord and allow to turn off messages when a command is unknown.
+  * Disable the console on Windows as it doesn't work without blocking everything :o(
+  * Enable the WebUI per default now, only listening on localhost
+
+  ## Bugfixes:
+  * Fixed more 32bit issues
+  * Fix links in discord headers not working
+  * Fix a MySQL crash when a fake attacker charmed a pet with a too long name
+  * Fix a rare Discord crash when someone joins an unknown voice channel
+  * Fixed a crash when GSP's provider had erroneous JSON
+  * Fix min-level requirement check for commands in tells
+  * Fix tower attacks not recording defending org
+  * Break too long messages into chunks for Discord, so messages aren't dropped any more
+
+
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 06 Dec 2020 13:40:34 +0100
+nadybot (5.0~beta4-1) bionic; urgency=medium
+
+  Fix index creation for older MySQL versions
+
+ -- Nadyita <nadyita@hodorraid.org>  Fri, 27 Nov 2020 21:39:38 +0100
+nadybot (5.0~beta3-1) bionic; urgency=medium
+
+  * Support Windows and include an installer for PHP
+  * Support 32bit
+  * Support older MySQL alongside MariaDB
+  * Switch from MyISAM to aria as default if available
+  * Support PHP8
+  * `!bossloot <name>` will now just log an error instead of crashing when an item cannot be found
+  * Add rate-limit functionality to the `LIMITS` module so you can auto-kick/ban/ignore players that are sending commands at a too high rate
+  * Serialize outgoing Discord messages, so the order is always guaranteed to be correct. This slows sending messages a bit down as we're not sending multiple messages in parallel anymore, but at least they arrive in the correct order.
+  * Support Discord mentions
+  * Allow the use of `!extauth request` outside of Discord DMs
+  * Fix SQL error in `!config cmd disable/enable` command
+  * Fix the `LEVEL_MODULE` ranges
+  * Switch even more HTTP lookups to async, so they don't slow down the bot, greatly increasing responsiveness when the `ORGLIST_MODULE` is enabled
+  * Reduced bot startup by adding some long overdue indexes to some core tables and not always adding all recipes yet again
+  * Add a `!track online` command alongside a more customizable tracker output
+  * Move the StdIn console into its own core module and fall back to buffered stdin for platforms wirthout readline
+
+ -- Nadyita <nadyita@hodorraid.org>  Fri, 27 Nov 2020 17:35:39 +0100
+nadybot (5.0~beta2-1) bionic; urgency=medium
+
+  * Prevent unauthorized access to Discord token
+  * Support Windows
+  * Allow to turn off afk and brb without prefix
+
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 15 Nov 2020 17:41:47 +0100
+nadybot (5.0 beta-1) bionic; urgency=medium
+
+  First beta release
+
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 14 Nov 2020 17:02:01 +0100

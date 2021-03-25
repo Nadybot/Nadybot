@@ -121,7 +121,8 @@ class ImportController {
 	 * @Matches("/^import (.+?)((?: \w+=\w+)*)$/i")
 	 */
 	public function importCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$fileName = "data/export/" . basename($args[1]);
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$fileName = "{$dataPath}/export/" . basename($args[1]);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
