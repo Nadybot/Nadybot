@@ -163,6 +163,10 @@ exit 0
 %endif
 
 %changelog
+* Thu Mar 25 2021 Nadyita <nadyita@hodorraid.org> 5.0.1-1
+- Support configuration of base paths
+- Support packaging as RPM and DEB
+
 * Sat Mar 20 2021 Nadyita <nadyita@hodorraid.org> 5.0.0-1
 - Add possibility to set default values for alias parameters
 - Allow customization of the colors of tradebot channels
