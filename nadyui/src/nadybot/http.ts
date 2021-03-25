@@ -43,19 +43,19 @@ export async function getOnlineMembers(): Promise<OnlinePlayers> {
     throw new Error("cannot fetch online members");
   }
   const json = await response.json();
-  return await onlinePlayersDecoder.decodePromise(json);
+  return await onlinePlayersDecoder.decodeToPromise(json);
 }
 
 export async function getSystemInformation(): Promise<SystemInformation> {
   const response = await fetch("/api/sysinfo");
   const json = await response.json();
-  return await systemInformationDecoder.decodePromise(json);
+  return await systemInformationDecoder.decodeToPromise(json);
 }
 
 export async function getModules(): Promise<Array<ConfigModule>> {
   const response = await fetch("/api/module");
   const json = await response.json();
-  return await configModuleArrayDecoder.decodePromise(json);
+  return await configModuleArrayDecoder.decodeToPromise(json);
 }
 
 export async function getModuleSettings(
@@ -63,7 +63,7 @@ export async function getModuleSettings(
 ): Promise<Array<ModuleSetting>> {
   const response = await fetch(`/api/module/${moduleName}/settings`);
   const json = await response.json();
-  return await moduleSettingArrayDecoder.decodePromise(json);
+  return await moduleSettingArrayDecoder.decodeToPromise(json);
 }
 
 export async function getModuleEvents(
@@ -71,7 +71,7 @@ export async function getModuleEvents(
 ): Promise<Array<ModuleEventConfig>> {
   const response = await fetch(`/api/module/${moduleName}/events`);
   const json = await response.json();
-  return await moduleEventConfigArrayDecoder.decodePromise(json);
+  return await moduleEventConfigArrayDecoder.decodeToPromise(json);
 }
 
 export async function getModuleCommands(
@@ -79,13 +79,13 @@ export async function getModuleCommands(
 ): Promise<Array<ModuleCommand>> {
   const response = await fetch(`/api/module/${moduleName}/commands`);
   const json = await response.json();
-  return await moduleCommandArrayDecoder.decodePromise(json);
+  return await moduleCommandArrayDecoder.decodeToPromise(json);
 }
 
 export async function getAccessLevels(): Promise<Array<ModuleAccessLevel>> {
   const response = await fetch("/api/access_levels");
   const json = await response.json();
-  return await moduleAccessLevelArrayDecoder.decodePromise(json);
+  return await moduleAccessLevelArrayDecoder.decodeToPromise(json);
 }
 
 export async function toggleModule(
