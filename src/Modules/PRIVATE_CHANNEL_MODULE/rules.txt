@@ -1,0 +1,5 @@
+To get the rules for this bot, just type
+<tab><highlight><symbol>rules<end>
+
+To set up rules for this bot, put a file into
+<tab><highlight>data/rules.txt<end>
