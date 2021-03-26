@@ -1,17 +1,41 @@
+<header2>Basic commands<end>
+
 To show your own alts:
 <highlight><tab><symbol>alts<end>
 
 To show alts from other users:
-<highlight><tab><symbol>alts <i>name</i><end>
+<highlight><tab><symbol>alts 'name'<end>
 
 To add characters as your alts:
-<highlight><tab><symbol>alts add <i>alt1</i> <i>alt2</i> <i>alt3</i> ...<end>
+<highlight><tab><symbol>alts add 'alt1' 'alt2' 'alt3' ...<end>
 
 To add yourself as an alt of a character:
-<highlight><tab><symbol>alts main <i>name</i><end>
+<highlight><tab><symbol>alts main 'name'<end>
 
 To choose one of your alts to be your new main (you must run this from the character you want to be your new main):
 <highlight><tab><symbol>alts setmain<end>
 
 To remove alts from your list:
-<highlight><tab><symbol>alts rem <i>alt</i><end>
+<highlight><tab><symbol>alts rem 'alt'<end>
+
+<header2>Validation after 'alts main'<end>
+
+Alts added to someone's altlist via <highlight><symbol>alts main<end> are unvalidated.
+
+Unvalidated alts do not <a href='chatcmd:///tell <myname> settings change alts_inherit_admin'>inherit</a> the main character's access level.
+
+In order to confirm an unvalidated alt and share access level with them,
+you need to run
+<tab><highlight><symbol>altvalidate 'name of the alt'<end> on your main.
+
+<header2>Validation after 'alts add'<end>
+
+If <a href='chatcmd:///tell <myname> settings change alts_require_confirmation'>alts require confirmation</a> is on (default is on), then the
+main character who ran <highlight><symbol>alts add<end> is unvalidated.
+
+In order to confirm an unvalidated main and share access level with them,
+you need to run
+<tab><highlight><symbol>altvalidate 'name of the main'<end> on your alt.
+
+But don't worry, once you logon with the alt, you should automatically receive
+a request from the bot to confirm or decline your main.

@@ -33,13 +33,13 @@ use Nadybot\Core\{
  *		command       = 'altvalidate',
  *		accessLevel   = 'all',
  *		description   = 'Validate alts for admin privileges',
- *		help          = 'altvalidate.txt'
+ *		help          = 'alts.txt'
  *	)
  *	@DefineCommand(
  *		command       = 'altdecline',
  *		accessLevel   = 'all',
  *		description   = 'Declines being the alt of someone else',
- *		help          = 'altvalidate.txt'
+ *		help          = 'alts.txt'
  *	)
  * @ProvidesEvent("alt(add)")
  * @ProvidesEvent("alt(del)")
