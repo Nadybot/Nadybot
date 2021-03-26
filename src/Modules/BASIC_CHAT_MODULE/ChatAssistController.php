@@ -57,19 +57,45 @@ class ChatAssistController {
 	 */
 	protected array $callers = [];
 
+	/** Return the total amount of callers */
+	public function countCallers(): int {
+		$count = array_sum(
+			array_map(
+				function(CallerList $list): int {
+					return $list->count();
+				},
+				$this->callers
+			)
+		);
+		return $count;
+	}
+
+	/** Remove empty caller lists */
+	public function cleanupEmptyLists(): void {
+		// Remove all empty caller lists
+		$this->callers = array_filter(
+			$this->callers,
+			function (CallerList $list): bool {
+				return $list->count() > 0;
+			}
+		);
+	}
+
 	public function getAssistMessage(): string {
 		$blob = "";
 		foreach ($this->callers as $name => $callerList) {
+			$clearLink = $this->text->makeChatcmd("Clear", "/tell <myname> callers clear {$callerList->name}");
 			if (strlen($name)) {
-				$blob .= "<header2>{$callerList->name}<end>\n";
+				$blob .= "<header2>{$callerList->name} [{$clearLink}]<end>\n";
 			} else {
-				$blob .= "<header2>Callers<end>\n";
+				$blob .= "<header2>Callers [{$clearLink}]<end>\n";
 			}
 			for ($i = 0; $i < count($callerList->callers); $i++) {
-				$caller = $callerList->callers[$i];
+				$caller = $callerList->callers[$i]->name;
 				$blob .= "<tab>" . ($i + 1) . ". <highlight>" . $caller . "<end>".
 					" [" . $this->text->makeChatcmd("Macro", "/macro {$caller} /assist {$caller}") . "]".
 					" [" . $this->text->makeChatcmd("Assist", "/assist {$caller}") . "]".
+					" [" . $this->text->makeChatcmd("Remove", "/tell <myname> callers rem {$name}.{$caller}") . "]".
 					"\n";
 			}
 			$blob .= "\n<tab>Macro: <highlight>/macro ";
@@ -78,11 +104,11 @@ class ChatAssistController {
 			} else {
 				$blob .= $this->chatBot->vars["name"];
 			}
-			$blob .= " /assist " . join(" \\n /assist ", $callerList->callers);
+			$blob .= " /assist " . join(" \\n /assist ", $callerList->getNames());
 			$blob .= "<end>\n<tab>Once: ".
 				$this->text->makeChatcmd(
 					"Assist",
-					"/assist " . join(" \\n /assist ", $callerList->callers)
+					"/assist " . join(" \\n /assist ", $callerList->getNames())
 				);
 			$blob .= "\n\n\n";
 		}
@@ -100,6 +126,102 @@ class ChatAssistController {
 			return;
 		}
 		$sendto->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
+	}
+
+	/**
+	 * @HandlesCommand("assist .+")
+	 * @Matches("/^assist rem (.+)$/i")
+	 */
+	public function assistRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
+			$sendto->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+		$toRemove = $args[1];
+		$parts = explode(".", $args[1], 2);
+		$group = null;
+		if (count($parts) === 2) {
+			$toRemove = ucfirst(strtolower($parts[1]));
+			$group = strtolower($parts[0]);
+		} else {
+			$toRemove = ucfirst(strtolower($toRemove));
+		}
+		$removed = false;
+		foreach ($this->callers as $name => $list) {
+			if (isset($group) && $group !== $name) {
+				continue;
+			}
+			for ($i = 0; $i < count($list->callers); $i++) {
+				$caller = $list->callers[$i];
+				if ($caller->name === $toRemove) {
+					$removed = true;
+					unset($list->callers[$i]);
+				}
+			}
+			$list->callers = array_values($list->callers);
+		}
+		if (!$removed) {
+			$msg = "<highlight>{$toRemove}<end> is not in the list of callers.";
+			$sendto->reply($msg);
+			return;
+		}
+		$this->cleanupEmptyLists();
+		$msg = "Removed <highlight>{$toRemove}<end> from the list of callers.";
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("assist .+")
+	 * @Matches("/^assist clear (.*)$/i")
+	 */
+	public function assistClearListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
+			$sendto->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+
+		$countBefore = $this->countCallers();
+		$groupKey = strtolower($args[1]);
+		if ($args[1] === '' || isset($this->callers[$groupKey])) {
+			$name = $this->callers[$groupKey]->name;
+			unset($this->callers[$groupKey]);
+			if ($args[1] === '') {
+				$msg = "Global callers have been cleared";
+			} else {
+				$msg = "Callers for <highlight>{$name}<end> have been cleared";
+			}
+		} elseif ($args[1] === "mine") {
+			foreach ($this->callers as $list) {
+				$list->removeCallersAddedBy($sender, false, false);
+			}
+			$msg = "All your callers have been cleared";
+		} elseif ($args[1] === "notmine") {
+			foreach ($this->callers as $list) {
+				$list->removeCallersAddedBy($sender, false, true);
+			}
+			$msg = "All callers not added by you have been cleared.";
+		} else {
+			$removed = [];
+			foreach ($this->callers as $list) {
+				array_push($removed, ...$list->removeCallersAddedBy($args[1], true, false));
+			}
+			$addedBy = array_unique(array_column($removed, "addedBy"));
+			if (!count($addedBy)) {
+				$sendto->reply("No callers found that were added by <highlight>{$args[1]}<end>.");
+				return;
+			}
+			$addedBy = $this->text->arraySprintf("<highlight>%s<end>", ...$addedBy);
+			$search = $this->text->enumerate(...$addedBy);
+			$msg = "All callers added by {$search} have been cleared";
+		}
+		$countAfter = $this->countCallers();
+		$msg .= " (" . ($countBefore - $countAfter) . "/{$countBefore})";
+		$sendto->reply($msg);
+		$this->cleanupEmptyLists();
+
+		$event = new AssistEvent();
+		$event->type = "assist(clear)";
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
@@ -155,9 +277,15 @@ class ChatAssistController {
 		}
 
 		// reverse array so that the first character will be the primary assist, and so on
-		$callers = array_reverse($callers);
+		$callers = array_map(
+			function(string $name) use ($sender): Caller {
+				return new Caller($name, $sender);
+			},
+			array_reverse($callers)
+		);
 		$groupKey = strtolower($groupName);
 		$this->callers[$groupKey] = new CallerList();
+		$this->callers[$groupKey]->creator = $sender;
 		$this->callers[$groupKey]->name = $groupName;
 		$this->callers[$groupKey]->callers = $callers;
 
@@ -207,18 +335,19 @@ class ChatAssistController {
 		}
 		if (!isset($this->callers[$groupKey])) {
 			$this->callers[$groupKey] = new CallerList();
+			$this->callers[$groupKey]->creator = $sender;
 			$this->callers[$groupKey]->name = $groupName;
-			$this->callers[$groupKey]->callers = [$name];
+			$this->callers[$groupKey]->callers = [new Caller($name, $sender)];
 			$msg = "Added <highlight>{$name}<end> to the new list of callers";
 			if (strlen($groupName)) {
 				$msg .= " \"<highlight>{$groupName}<end>\"";
 			}
 		} else {
-			if (in_array($name, $this->callers[$groupKey]->callers)) {
+			if ($this->callers[$groupKey]->isInList($name)) {
 				$sendto->reply("<highlight>{$name}<end> is already in the list of callers.");
 				return;
 			}
-			array_unshift($this->callers[$groupKey]->callers, $name);
+			array_unshift($this->callers[$groupKey]->callers, new Caller($name, $sender));
 			$msg = "Added <highlight>{$name}<end> to the list of callers";
 			if (strlen($groupName)) {
 				$msg .= " \"<highlight>{$groupName}<end>\"";
