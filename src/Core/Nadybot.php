@@ -825,6 +825,12 @@ class Nadybot extends AOChat {
 		if (preg_match("/^<font color='#([0-9a-f]+)'>(.+)$/si", $message, $arr)) {
 			$message = $arr[2];
 		}
+		// When we send comands via text->makeChatcmd(), the ' gets escaped
+		// and we need to unescape it. But let's be sure by checking that
+		// we haven't been passed some actual HTML
+		if (strpos($message, '<') === false) {
+			$message = str_replace('&#39;', "'", $message);
+		}
 
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
