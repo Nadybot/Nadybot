@@ -6,7 +6,9 @@ use Nadybot\Core\{
 	CommandReply,
 	EventManager,
 	Nadybot,
+	SettingManager,
 	Text,
+	Util,
 };
 
 /**
@@ -46,7 +48,13 @@ class ChatAssistController {
 	public Text $text;
 
 	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
+
+	/** @Inject */
+	public SettingManager $settingManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -56,6 +64,47 @@ class ChatAssistController {
 	 * @var array<string,CallerList>
 	 */
 	protected array $callers = [];
+
+	/**
+	 * Backups of last callers
+	 * @var CallerBackup[]
+	 */
+	protected array $lastCallers = [];
+
+	/** @Setup */
+	public function setup(): void {
+		$this->settingManager->add(
+			$this->moduleName,
+			"callers_undo_steps",
+			"Max stored undo steps",
+			"edit",
+			"number",
+			"5"
+		);
+	}
+
+	/** Store a caller backup */
+	protected function storeBackup(CallerBackup $backup): void {
+		$this->lastCallers []= $backup;
+		$this->lastCallers = array_slice(
+			$this->lastCallers,
+			-1 * $this->settingManager->getInt('callers_undo_steps')
+		);
+	}
+
+	/**
+	 * Save the last callers configuration
+	 * @return array<string,CallerList>
+	 */
+	public function backupCallers(string $sender, string $command): CallerBackup {
+		$lastCallers = [];
+		foreach ($this->callers as $name => $callerList) {
+			$lastCallers[$name]= clone($callerList);
+		}
+		$commands = explode(" ", $command, 2);
+		$commands[0] = "callers";
+		return new CallerBackup($sender, join(" ", $commands), $lastCallers);
+	}
 
 	/** Return the total amount of callers */
 	public function countCallers(): int {
@@ -147,6 +196,7 @@ class ChatAssistController {
 			$toRemove = ucfirst(strtolower($toRemove));
 		}
 		$removed = false;
+		$backup = $this->backupCallers($sender, $args[0]);
 		foreach ($this->callers as $name => $list) {
 			if (isset($group) && $group !== $name) {
 				continue;
@@ -165,6 +215,7 @@ class ChatAssistController {
 			$sendto->reply($msg);
 			return;
 		}
+		$this->storeBackup($backup);
 		$this->cleanupEmptyLists();
 		$msg = "Removed <highlight>{$toRemove}<end> from the list of callers.";
 		$sendto->reply($msg);
@@ -180,6 +231,7 @@ class ChatAssistController {
 			return;
 		}
 
+		$backup = $this->backupCallers($sender, $args[0]);
 		$countBefore = $this->countCallers();
 		$groupKey = strtolower($args[1]);
 		if ($args[1] === '' || isset($this->callers[$groupKey])) {
@@ -218,6 +270,7 @@ class ChatAssistController {
 		$msg .= " (" . ($countBefore - $countAfter) . "/{$countBefore})";
 		$sendto->reply($msg);
 		$this->cleanupEmptyLists();
+		$this->storeBackup($backup);
 
 		$event = new AssistEvent();
 		$event->type = "assist(clear)";
@@ -234,6 +287,9 @@ class ChatAssistController {
 			return;
 		}
 
+		if (count($this->callers)) {
+			$this->storeBackup($this->backupCallers($sender, $args[0]));
+		}
 		$this->callers = [];
 		$sendto->reply("Callers have been cleared.");
 		$event = new AssistEvent();
@@ -283,11 +339,13 @@ class ChatAssistController {
 			},
 			array_reverse($callers)
 		);
+		$backup = $this->backupCallers($sender, $args[0]);
 		$groupKey = strtolower($groupName);
 		$this->callers[$groupKey] = new CallerList();
 		$this->callers[$groupKey]->creator = $sender;
 		$this->callers[$groupKey]->name = $groupName;
 		$this->callers[$groupKey]->callers = $callers;
+		$this->storeBackup($backup);
 
 		if ($groupName === "") {
 			$msg = "Callers set, here is the ".
@@ -333,6 +391,7 @@ class ChatAssistController {
 			$sendto->reply("Character <highlight>$name<end> is not in this bot.");
 			return;
 		}
+		$backup = $this->backupCallers($sender, $args[0]);
 		if (!isset($this->callers[$groupKey])) {
 			$this->callers[$groupKey] = new CallerList();
 			$this->callers[$groupKey]->creator = $sender;
@@ -353,12 +412,72 @@ class ChatAssistController {
 				$msg .= " \"<highlight>{$groupName}<end>\"";
 			}
 		}
+		$this->storeBackup($backup);
 
 		$blob = $this->getAssistMessage();
 		$msg .= ". " . $this->text->makeBlob("List of callers", $blob);
 		$sendto->reply($msg);
 		$event->lists = array_values($this->callers);
 		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * @HandlesCommand("assist .+")
+	 * @Matches("/^assist undo$/i")
+	 * @Matches("/^assist undo (\d+)$/i")
+	 */
+	public function assistUndoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
+			$sendto->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+		if (empty($this->lastCallers)) {
+			$sendto->reply("No last caller configuration found.");
+			return;
+		}
+		$undo = (int)($args[1] ?? 1);
+		$this->callers = array_splice($this->lastCallers, -1 * $undo)[0]->callers;
+		$msg = "Callers configuration restored. ";
+		if (count($this->callers) > 0) {
+			$msg .= $this->text->makeBlob("List of callers", $this->getAssistMessage());
+		} else {
+			$msg .= "No callers set.";
+		}
+		$sendto->reply($msg);
+		$event = new AssistEvent();
+		$event->type = "assist(set)";
+		$event->lists = array_values($this->callers);
+		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * @HandlesCommand("assist .+")
+	 * @Matches("/^assist history$/i")
+	 */
+	public function assistHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
+			$sendto->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+		if (empty($this->lastCallers)) {
+			$sendto->reply("No last caller configuration found.");
+			return;
+		}
+		$undo = $count = count($this->lastCallers);
+		$blob = "<header2>Last changes to callers<end>\n";
+		foreach ($this->lastCallers as $backup) {
+			$undoLink = $this->text->makeChatcmd(
+				"Undo before this",
+				"/tell <myname> callers undo {$undo}"
+			);
+			$undo--;
+			$blob .= "<tab>".
+				$this->util->date($backup->time->getTimestamp()).
+				"<tab><highlight><symbol>{$backup->command}<end> ({$backup->changer})".
+				" [{$undoLink}]\n";
+		}
+		$msg = $this->text->makeBlob("Caller history ({$count})", $blob);
+		$sendto->reply($msg);
 	}
 
 	/**
