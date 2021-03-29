@@ -169,13 +169,14 @@ class AlienMiscController {
 	 * This command handler shows list of ofab armors available to a given profession.
 	 *
 	 * @HandlesCommand("ofabarmor")
-	 * @Matches("/^ofabarmor (.+) (\d+)$/i")
-	 * @Matches("/^ofabarmor (.+)$/i")
+	 * @Matches("/^ofabarmor (?<prof>.+) (?<ql>\d+)$/i")
+	 * @Matches("/^ofabarmor (?<ql>\d+) (?<prof>.+)$/i")
+	 * @Matches("/^ofabarmor (?<prof>.+)$/i")
 	 */
 	public function ofabarmorInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$ql = isset($args[2])? intval($args[2]): 300;
+		$ql = intval($args['ql'] ?? 300);
 
-		$profession = $this->util->getProfessionName($args[1]);
+		$profession = $this->util->getProfessionName($args['prof']);
 
 		if ($profession === '') {
 			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, or trader";
