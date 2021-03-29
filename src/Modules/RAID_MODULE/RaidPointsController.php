@@ -723,6 +723,7 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+)$/i")
 	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+) (.+)$/i")
 	 */
 	public function rewardChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -733,7 +734,7 @@ class RaidPointsController {
 		}
 		$reward->name = $args[1];
 		$reward->points = (int)$args[2];
-		$reward->reason = $args[3];
+		$reward->reason = $args[3] ?? $reward->reason;
 		if (strlen($reward->name) > 20) {
 			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
 			return;
