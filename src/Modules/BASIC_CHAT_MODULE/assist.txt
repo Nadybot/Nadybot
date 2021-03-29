@@ -33,3 +33,12 @@ To clear the assist list from all callers not added by yourself:
 
 To clear the assist list from all callers added by Leri:
 <highlight><tab><symbol>assist clear leri<end>
+
+To undo the last change to the list of callers:
+<highlight><tab><symbol>assist undo<end>
+
+To undo the last 3 changes to the list of callers:
+<highlight><tab><symbol>assist undo 3<end>
+
+To see the most recent changes to the list of callers:
+<highlight><tab><symbol>assist history<end>

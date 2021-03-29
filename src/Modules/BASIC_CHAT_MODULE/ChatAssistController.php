@@ -467,14 +467,14 @@ class ChatAssistController {
 		$blob = "<header2>Last changes to callers<end>\n";
 		foreach ($this->lastCallers as $backup) {
 			$undoLink = $this->text->makeChatcmd(
-				"Undo before this",
+				"Undo to here",
 				"/tell <myname> callers undo {$undo}"
 			);
 			$undo--;
-			$blob .= "<tab>".
+			$blob .= "<tab>[{$undoLink}]\n".
+				"<tab>".
 				$this->util->date($backup->time->getTimestamp()).
-				"<tab><highlight><symbol>{$backup->command}<end> ({$backup->changer})".
-				" [{$undoLink}]\n";
+				"<tab><highlight><symbol>{$backup->command}<end> ({$backup->changer})\n";
 		}
 		$msg = $this->text->makeBlob("Caller history ({$count})", $blob);
 		$sendto->reply($msg);
