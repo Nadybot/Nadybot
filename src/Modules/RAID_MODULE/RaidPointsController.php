@@ -652,12 +652,12 @@ class RaidPointsController {
 		}
 		$blob = "";
 		foreach ($rewards as $reward) {
+			$remCmd = $this->text->makeChatcmd("Remove", "/tell <myname> reward rem {$reward->id}");
+			$giveCmd = $this->text->makeChatcmd("Give", "/tell <myname> raid reward {$reward->name}");
 			$blob .= "<header2>{$reward->name}<end>\n".
-				"<tab>Points: <highlight>{$reward->points}<end>\n".
+				"<tab>Points: <highlight>{$reward->points}<end> [{$giveCmd}]\n".
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
-				"<tab>ID: <highlight>{$reward->id}<end> [".
-				$this->text->makeChatcmd("remove", "/tell <myname> reward rem {$reward->id}").
-				"]\n\n";
+				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
 		$msg = $this->text->makeBlob("Raid rewards (" . count($rewards). ")", $blob);
 		$sendto->reply($msg);
