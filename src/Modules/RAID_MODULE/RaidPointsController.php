@@ -652,12 +652,12 @@ class RaidPointsController {
 		}
 		$blob = "";
 		foreach ($rewards as $reward) {
+			$remCmd = $this->text->makeChatcmd("Remove", "/tell <myname> reward rem {$reward->id}");
+			$giveCmd = $this->text->makeChatcmd("Give", "/tell <myname> raid reward {$reward->name}");
 			$blob .= "<header2>{$reward->name}<end>\n".
-				"<tab>Points: <highlight>{$reward->points}<end>\n".
+				"<tab>Points: <highlight>{$reward->points}<end> [{$giveCmd}]\n".
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
-				"<tab>ID: <highlight>{$reward->id}<end> [".
-				$this->text->makeChatcmd("remove", "/tell <myname> reward rem {$reward->id}").
-				"]\n\n";
+				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
 		$msg = $this->text->makeBlob("Raid rewards (" . count($rewards). ")", $blob);
 		$sendto->reply($msg);
@@ -723,6 +723,7 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+)$/i")
 	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+) (.+)$/i")
 	 */
 	public function rewardChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -733,7 +734,7 @@ class RaidPointsController {
 		}
 		$reward->name = $args[1];
 		$reward->points = (int)$args[2];
-		$reward->reason = $args[3];
+		$reward->reason = $args[3] ?? $reward->reason;
 		if (strlen($reward->name) > 20) {
 			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
 			return;
