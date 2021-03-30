@@ -95,7 +95,7 @@ class RaidRankController {
 		$this->settingManager->add(
 			$this->moduleName,
 			'raid_rank_promotion_distance',
-			'Number of raid ranks below your own you can promote to',
+			'Number of raid ranks below your own you can manage',
 			'edit',
 			'number',
 			'1'
