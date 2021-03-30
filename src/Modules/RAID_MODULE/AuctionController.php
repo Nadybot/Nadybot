@@ -156,6 +156,14 @@ class AuctionController {
 			'number',
 			'10',
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'auction_refund_min_tax',
+			'Refund minimum tax in points',
+			'edit',
+			'number',
+			'0',
+		);
 		$this->db->loadSQLFile($this->moduleName, "auction");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
@@ -243,11 +251,21 @@ class AuctionController {
 			);
 			return;
 		}
+		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax');
 		$penalty = $this->settingManager->getInt('auction_refund_tax');
+		$percentualPenalty = (int)ceil($lastAuction->cost * $penalty / 100);
 		$giveBack = max(
-			(int)floor($lastAuction->cost * ((100 - $penalty) / 100)),
+			$lastAuction->cost - max($minPenalty, $percentualPenalty, 0),
 			0
 		);
+		if ($minPenalty > 0 && $lastAuction->cost < $minPenalty) {
+			$sendto->reply(
+				"The minimum penalty for a refund is {$minPenalty} points. ".
+				"The auction was for {$lastAuction->cost} points, so 0 points ".
+				"would be given back."
+			);
+			return;
+		}
 		if ($giveBack === 0) {
 			$sendto->reply(
 				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? "s" : "").
@@ -265,11 +283,19 @@ class AuctionController {
 			$raid
 		);
 		$this->db->exec("UPDATE `auction_<myname>` SET `reimbursed`=TRUE WHERE `id`=?", $lastAuction->id);
-		$this->chatBot->sendPrivate(
-			"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-			(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
-			$lastAuction->item . "."
-		);
+		if ($minPenalty > $percentualPenalty) {
+			$this->chatBot->sendPrivate(
+				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} penalty) for ".
+				$lastAuction->item . "."
+			);
+		} else {
+			$this->chatBot->sendPrivate(
+				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
+				$lastAuction->item . "."
+			);
+		}
 	}
 
 	/**
