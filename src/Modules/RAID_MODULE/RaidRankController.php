@@ -94,6 +94,14 @@ class RaidRankController {
 
 		$this->settingManager->add(
 			$this->moduleName,
+			'raid_rank_promotion_distance',
+			'Number of raid ranks below your own you can promote to',
+			'edit',
+			'number',
+			'1'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			'name_raid_leader_1',
 			'Name of the raid leader rank 1',
 			'edit',
@@ -224,7 +232,38 @@ class RaidRankController {
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
 	}
 
-	public function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName): bool {
+	/** Check if $sender can change $who's raid rank (to $newRank or in general) */
+	public function canChangeRaidRank(string $sender, string $who, ?string $newRank=null, CommandReply $sendto): bool {
+		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
+			return false;
+		}
+		$reqDistance = $this->settingManager->getInt('raid_rank_promotion_distance');
+		$accessLevels = $this->accessManager->getAccessLevels();
+		$senderAccessLevel = $this->accessManager->getAccessLevel(
+			$this->accessManager->getAccessLevelForCharacter($sender)
+		);
+		$oldAccessLevel = $this->accessManager->getAccessLevel(
+			$this->accessManager->getAccessLevelForCharacter($who)
+		);
+		$newAccessLevel = $oldAccessLevel;
+		if (isset($newRank)) {
+			$newAccessLevel = $this->accessManager->getAccessLevel($newRank);
+		}
+		$numSenderAccessLevel = $accessLevels[$senderAccessLevel];
+		$numOldAccessLevel = $accessLevels[$oldAccessLevel];
+		$numSettableAL = $numSenderAccessLevel + $reqDistance;
+		$numNewAccessLevel = $accessLevels[$newAccessLevel];
+		if ($numNewAccessLevel < $numSettableAL || $numOldAccessLevel < $numSettableAL) {
+			$reverseALs = array_flip($accessLevels);
+			$nameSettableAL = $this->accessManager->getDisplayName($reverseALs[$numSettableAL]);
+			$sendto->reply("You can only change raid ranks up to and including {$nameSettableAL}.");
+			return false;
+		}
+		return true;
+	}
+
+	public function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): bool {
 		if ($this->chatBot->get_uid($who) == null) {
 			$sendto->reply("Character <highlight>$who<end> does not exist.");
 			return false;
@@ -239,8 +278,7 @@ class RaidRankController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
-			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
+		if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
 			return false;
 		}
 
@@ -271,8 +309,7 @@ class RaidRankController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
-			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
+		if (!$this->canChangeRaidRank($sender, $who, null, $sendto)) {
 			return false;
 		}
 
@@ -306,7 +343,7 @@ class RaidRankController {
 		}
 		$rankName = $this->settingManager->getString("name_raid_admin_$rank");
 
-		$this->add($who, $sender, $sendto, $rank+6, $rankName);
+		$this->add($who, $sender, $sendto, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
 	/**
@@ -337,7 +374,7 @@ class RaidRankController {
 		}
 		$rankName = $this->settingManager->getString("name_raid_leader_$rank");
 
-		$this->add($who, $sender, $sendto, $rank+3, $rankName);
+		$this->add($who, $sender, $sendto, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
 	/**
