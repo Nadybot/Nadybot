@@ -5,13 +5,40 @@ To create an assist macro for a single player:
 <highlight><tab><symbol>assist 'player'<end>
 
 To create an assist macro for a multiple players:
-<highlight><tab><symbol>assist add 'player1' 'player2' 'player3' ...<end>
+<highlight><tab><symbol>assist set 'player1' 'player2' 'player3' ...<end>
 
 To add a new player to the assist list:
 <highlight><tab><symbol>assist add 'player'<end>
 
-To clear the assist macro:
+To add a new player to the assist list 'FOO':
+<highlight><tab><symbol>assist add FOO 'player'<end>
+
+To remove a player from all assist lists:
+<highlight><tab><symbol>assist rem 'player'<end>
+
+To remove a player from the assist lists FOO:
+<highlight><tab><symbol>assist rem 'FOO.player'<end>
+
+To clear all assist lists:
 <highlight><tab><symbol>assist clear<end>
 
-To add a caller to a caller-list named 'NORTH':
-<highlight><tab><symbol>assist add NORTH 'player1'<end>
+To clear the assist list 'FOO':
+<highlight><tab><symbol>assist clear FOO<end>
+
+To clear the assist list from all callers added by yourself:
+<highlight><tab><symbol>assist clear mine<end>
+
+To clear the assist list from all callers not added by yourself:
+<highlight><tab><symbol>assist clear notmine<end>
+
+To clear the assist list from all callers added by Leri:
+<highlight><tab><symbol>assist clear leri<end>
+
+To undo the last change to the list of callers:
+<highlight><tab><symbol>assist undo<end>
+
+To undo the last 3 changes to the list of callers:
+<highlight><tab><symbol>assist undo 3<end>
+
+To see the most recent changes to the list of callers:
+<highlight><tab><symbol>assist history<end>
