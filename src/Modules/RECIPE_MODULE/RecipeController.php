@@ -157,7 +157,7 @@ class RecipeController {
 			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
 				|| (isset($recipes[$args[1]])
 					&& filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
-			 ) {
+			) {
 				continue;
 			}
 			// if file has the correct extension, load recipe into database

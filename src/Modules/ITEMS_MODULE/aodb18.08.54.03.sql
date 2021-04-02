@@ -13214,6 +13214,7 @@ INSERT INTO aodb VALUES
 (168555,168555,110,110,'Uncut Monarch Gem of the Searing Desert',136596,1,1,33),
 (168556,168556,130,130,'Uncut Emperor Gem of the Searing Desert',25794,1,1,33),
 (168559,168559,80,80,'Bracelet of Arul Saba (Searing Desert - 1/1 - Left)',151026,0,4096,33),
+(168560,168560,110,110,'Bracelet of Arul Saba (Searing Desert - 1/2 - Left)',151026,0,4096,33),
 (168561,168561,130,130,'Bracelet of Arul Saba (Searing Desert - 1/3 - Left)',151026,0,4096,33),
 (168562,168562,165,165,'Bracelet of Arul Saba (Searing Desert - 1/4 - Left)',151026,0,4096,33),
 (168563,168563,200,200,'Bracelet of Arul Saba (Searing Desert - 1/5 - Left)',151026,0,4096,33),
