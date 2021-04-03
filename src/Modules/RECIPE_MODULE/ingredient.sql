@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS `ingredient`;
 CREATE TABLE `ingredient` (
-	`id` INT NOT NULL PRIMARY KEY,
+	`id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`aoid` INT,
 	`where` TEXT

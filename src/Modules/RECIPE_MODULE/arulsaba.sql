@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS `arulsaba`;
 CREATE TABLE `arulsaba` (
 	`name` VARCHAR(20) NOT NULL PRIMARY KEY,
 	`lesser_prefix` VARCHAR(10) NOT NULL,
-	`regular_prefix` VARCHAR(10) NOT NULL,
+	`regular_prefix` VARCHAR(20) NOT NULL,
 	`buffs` VARCHAR(20) NOT NULL
 );
 
