@@ -37,6 +37,9 @@ class ConsoleCommandReply implements CommandReply {
 		$message = preg_replace_callback(
 			"/<black>(.*?)<end>/",
 			function(array $matches): string {
+				if (function_exists('mb_strlen')) {
+					return str_repeat(" ", mb_strlen($matches[1]));
+				}
 				return str_repeat(" ", strlen($matches[1]));
 			},
 			$message

@@ -1,0 +1,8 @@
+To get a list of all Arul Saba bracelets:
+<tab><highlight><symbol>arulsaba<end>
+
+To see the different types of fire damage Arul Saba bracelets:
+<tab><highlight><symbol>arulsaba desert<end>
+
+To see the recipe for the fire damage Arul Saba bracelet with 5 gems (left):
+<tab><highlight><symbol>arulsaba desert 5 left<end>
