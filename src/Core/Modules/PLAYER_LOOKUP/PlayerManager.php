@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use DateTime;
+use DateTimeZone;
 use Nadybot\Core\{
 	DB,
 	Http,
@@ -102,7 +104,8 @@ class PlayerManager {
 					$callback($player);
 				}
 			);
-		} elseif ($player->last_update < (time() - 86400)) {
+		} elseif ($player->last_update < (time() - 87000)) {
+			// We cache for 24h plus 10 minutes grace for Funcom
 			$lookup(
 				$name,
 				$dimension,
@@ -177,7 +180,7 @@ class PlayerManager {
 		if (!isset($response->body) || $response->body === "null") {
 			return null;
 		}
-		[$char, $org] = json_decode($response->body);
+		[$char, $org, $lastUpdated] = json_decode($response->body);
 
 		$obj = new Player();
 
@@ -204,6 +207,8 @@ class PlayerManager {
 
 		//$obj->charid        = $char->CHAR_INSTANCE;
 		$obj->dimension      = $char->CHAR_DIMENSION;
+		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
+		$obj->last_update = $luDateTime->getTimestamp();
 
 		return $obj;
 	}
@@ -287,7 +292,7 @@ class PlayerManager {
 			$char->pvp_rating,
 			$char->pvp_title,
 			$char->source,
-			time()
+			$char->last_update ?? time()
 		);
 	}
 
