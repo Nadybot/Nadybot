@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `auction_<myname>` (
 	`id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`raid_id` INT,
-	`item` VARCHAR(255) NOT NULL,
+	`item` TEXT NOT NULL,
 	`auctioneer` VARCHAR(20) NOT NULL,
 	`cost` INT,
 	`winner` VARCHAR(20),
