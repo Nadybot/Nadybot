@@ -410,7 +410,7 @@ class AuctionController {
 		)->avg;
 		$avgCostLastTen = (float)$this->db->queryRow(
 			"SELECT AVG(`cost`) AS avg FROM ".
-			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10)",
+			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10) AS last_auctions",
 			...$quickSearch
 		)->avg;
 		$text = "<header2>Most expensive result<end>\n".
