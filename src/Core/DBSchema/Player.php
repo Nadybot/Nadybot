@@ -126,4 +126,24 @@ class Player extends DBRow {
 	 * Unix timestamp of the last update of these data
 	 */
 	public ?int $last_update;
+
+	public function getPronoun(): string {
+		if (strtolower($this->gender??"") === "female") {
+			return "she";
+		}
+		if (strtolower($this->gender??"") === "male") {
+			return "he";
+		}
+		return "they";
+	}
+
+	public function getIsAre(): string {
+		if (strtolower($this->gender??"") === "female") {
+			return "is";
+		}
+		if (strtolower($this->gender??"") === "male") {
+			return "is";
+		}
+		return "are";
+	}
 }
