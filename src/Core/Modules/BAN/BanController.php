@@ -106,7 +106,9 @@ class BanController {
 	 */
 	public function setup(): void {
 		$this->db->loadSQLFile($this->moduleName, "banlist");
-		$this->uploadBanlist();
+		if ($this->db->tableExists("players")) {
+			$this->uploadBanlist();
+		}
 	}
 
 	/**
