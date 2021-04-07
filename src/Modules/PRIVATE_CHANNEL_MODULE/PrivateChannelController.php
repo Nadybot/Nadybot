@@ -250,6 +250,16 @@ class PrivateChannelController {
 			"all",
 			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"priv_suppress_alt_list",
+			"Do not show the altlist on join, just the name of the main",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -816,8 +826,9 @@ class PrivateChannelController {
 	 */
 	public function joinPrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
+		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list');
 
-		$this->getLogonMessageAsync($sender, false, function(string $msg): void {
+		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
 			if ($this->settingManager->getBool("guest_relay")) {
 				$this->chatBot->sendGuild($msg, true);
 			}

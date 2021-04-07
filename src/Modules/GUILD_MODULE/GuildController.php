@@ -155,6 +155,16 @@ class GuildController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"org_suppress_alt_list",
+			"Do not show the altlist on logon, just the name of the main",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 
 		$this->chatBot->guildmembers = [];
 		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id ".
@@ -657,7 +667,8 @@ class GuildController {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
 			return;
 		}
-		$this->getLogonMessageAsync($sender, false, function(string $msg): void {
+		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list');
+		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
 			$this->chatBot->sendGuild($msg, true);
 
 			//private channel part
