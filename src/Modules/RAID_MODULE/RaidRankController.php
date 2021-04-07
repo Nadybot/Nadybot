@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	Nadybot,
 	SettingManager,
+	Text,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
 
@@ -29,6 +30,14 @@ use Nadybot\Core\Modules\ALTS\AltsController;
  *     description   = 'Promote/demote someone to/from raid leader',
  *     help          = 'raidranks.txt'
  * )
+ *	@DefineCommand(
+ *		command       = 'leaderlist',
+ *		accessLevel   = 'all',
+ *		description   = 'Shows the list of raid leaders and admins',
+ *		help          = 'leaderlist.txt',
+ *		alias         = 'leaders',
+ *		defaultStatus = '1'
+ *	)
  */
 class RaidRankController {
 	public string $moduleName;
@@ -56,6 +65,9 @@ class RaidRankController {
 
 	/** @Inject */
 	public DB $db;
+
+	/** @Inject */
+	public Text $text;
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
@@ -386,5 +398,80 @@ class RaidRankController {
 		$rank = 'a raid leader';
 
 		$this->remove($who, $sender, $sendto, [4, 5, 6], $rank);
+	}
+
+	/**
+	 * @HandlesCommand("leaderlist")
+	 * @Matches("/^leaderlist$/i")
+	 * @Matches("/^leaderlist (all)$/i")
+	 */
+	public function leaderlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (count($args) > 1) {
+			$showOfflineAlts = true;
+		} else {
+			$showOfflineAlts = false;
+		}
+
+		$blob = "";
+		$admins = [];
+		foreach ($this->ranks as $who => $data) {
+			if ($data->rank >= 7) {
+				if ($who !== "") {
+					$admins []= "<tab>$who".
+						$this->getOnlineStatus($who) . "\n".
+						$this->getAltLeaderInfo($who, $showOfflineAlts);
+				}
+			}
+		}
+		if (count($admins)) {
+			$blob .= "<header2>Raid admins<end>\n".
+				join("", $admins) . "\n";
+		}
+
+		$leaders = [];
+		foreach ($this->ranks as $who => $data) {
+			if ($data->rank >= 4 && $data->rank < 7) {
+				if ($who !== "") {
+					$leaders []= "<tab>$who".
+						$this->getOnlineStatus($who) . "\n".
+						$this->getAltLeaderInfo($who, $showOfflineAlts);
+				}
+			}
+		}
+		if (count($leaders)) {
+			$blob .= "<header2>Raid leaders<end>\n".
+				join("", $leaders) . "\n";
+		}
+
+		$link = $this->text->makeBlob('Raid leaders/admins', $blob);
+		$sendto->reply($link);
+	}
+
+	/**
+	 * Get the string of the online status
+	 * @param string $who Playername
+	 * @return string " (<green>online<end>)" and so on
+	 */
+	private function getOnlineStatus(string $who): string {
+		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
+			return " (<green>Online and in chat<end>)";
+		} elseif ($this->buddylistManager->isOnline($who)) {
+			return " (<green>Online<end>)";
+		} else {
+			return " (<red>Offline<end>)";
+		}
+	}
+
+	private function getAltLeaderInfo(string $who, bool $showOfflineAlts): string {
+		$blob = '';
+		$altInfo = $this->altsController->getAltInfo($who);
+		if ($altInfo->main === $who) {
+			foreach ($altInfo->getAllValidatedAlts() as $alt) {
+				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
+					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
+				}
+			}
+		}
+		return $blob;
 	}
 }
