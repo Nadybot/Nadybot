@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	AOChatEvent,
 	BuddylistManager,
 	CommandAlias,
 	CommandReply,
@@ -239,6 +240,15 @@ class PrivateChannelController {
 			'text',
 			'',
 			'none'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"only_allow_faction",
+			"Faction allowed on the bot - autoban everything else",
+			"edit",
+			"options",
+			"all",
+			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
@@ -829,6 +839,65 @@ class PrivateChannelController {
 			},
 			$sender
 		);
+	}
+
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Autoban players of unwanted factions when they join the bot")
+	 */
+	public function autobanOnJoin(AOChatEvent $eventObj): void {
+		$reqFaction = $this->settingManager->getString('only_allow_faction');
+		if ($reqFaction === 'all') {
+			return;
+		}
+		$this->playerManager->getByNameAsync(
+			[$this,"autobanUnwantedFactions"],
+			$eventObj->sender
+		);
+	}
+
+	/**
+	 * Automatically ban players if they are not of the wanted faction
+	 */
+	public function autobanUnwantedFactions(?Player $whois): void {
+		if (!isset($whois)) {
+			return;
+		}
+		$reqFaction = $this->settingManager->getString('only_allow_faction');
+		if ($reqFaction === 'all') {
+			return;
+		}
+		// check faction limit
+		if (
+			in_array($reqFaction, ["Omni", "Clan", "Neutral"])
+			&& $reqFaction === $whois->faction
+		) {
+			return;
+		}
+		if (in_array($reqFaction, ["not Omni", "not Clan", "not Neutral"])) {
+			$tmp = explode(" ", $reqFaction);
+			if ($tmp[1] !== $whois->faction) {
+				return;
+			}
+		}
+		// Ban
+		$faction = strtolower($whois->faction);
+		$this->banController->add(
+			$whois->charid,
+			$this->chatBot->vars['name'],
+			null,
+			sprintf(
+				"Autoban, because %s %s %s",
+				$whois->getPronoun(),
+				$whois->getIsAre(),
+				$faction
+			)
+		);
+		$this->chatBot->sendPrivate(
+			"<highlight>{$whois->name}<end> has been auto-banned. ".
+			"Reason: <{$faction}>{$faction}<end>."
+		);
+		$this->chatBot->privategroup_kick($whois->name);
 	}
 
 	public function getLogoffMessage(string $player): ?string {
