@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SQLException,
 	Text,
+	Timer,
 };
 
 /**
@@ -105,6 +106,9 @@ class RaidPointsController {
 
 	/** @Inject */
 	public Text $text;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -607,6 +611,10 @@ class RaidPointsController {
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
 		);
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
+			return;
+		}
 		$this->db->beginTransaction();
 		try {
 			if ($mainPoints === null) {
@@ -745,5 +753,35 @@ class RaidPointsController {
 		}
 		$this->db->update("raid_reward_<myname>", "id", $reward);
 		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move raid points to new main")
+	 */
+	public function moveRaidPoints(AltEvent $event): void {
+		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		if (!$sharePoints) {
+			return;
+		}
+		/** @var RaidPoints|null */
+		$oldPoints = $this->db->fetch(
+			RaidPoints::class,
+			"SELECT * FROM `raid_points_<myname>` WHERE `username`=?",
+			$event->alt
+		);
+		if (!isset($oldPoints)) {
+			return;
+		}
+		$this->db->exec(
+			"REPLACE INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
+			$event->main,
+			$oldPoints->points
+		);
+		$this->db->exec(
+			"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
+			$event->alt
+		);
+		$this->logger->log('INFO', "Moved {$oldPoints->points} raid points from {$oldPoints->username} to {$event->main}.");
 	}
 }

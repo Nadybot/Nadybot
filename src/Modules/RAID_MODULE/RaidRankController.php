@@ -9,10 +9,12 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
+	LoggerWrapper,
 	Nadybot,
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\Modules\ALTS\AltsController;
 
 /**
@@ -68,6 +70,9 @@ class RaidRankController {
 
 	/** @Inject */
 	public Text $text;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
@@ -473,5 +478,19 @@ class RaidRankController {
 			}
 		}
 		return $blob;
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move raid rank to new main")
+	 */
+	public function moveRaidRanks(AltEvent $event): void {
+		$oldRank = $this->ranks[$event->alt] ?? null;
+		if ($oldRank === null) {
+			return;
+		}
+		$this->removeFromLists($event->alt);
+		$this->addToLists($event->main, $oldRank->rank);
+		$this->logger->log('INFO', "Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
 	}
 }

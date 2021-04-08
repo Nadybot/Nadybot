@@ -45,6 +45,7 @@ use Nadybot\Core\{
  * @ProvidesEvent("alt(del)")
  * @ProvidesEvent("alt(validate)")
  * @ProvidesEvent("alt(decline)")
+ * @ProvidesEvent("alt(newmain)")
  */
 class AltsController {
 
@@ -413,12 +414,12 @@ class AltsController {
 			$this->db->exec("DELETE FROM `alts` WHERE `main` = ?", $altInfo->main);
 
 			// add current main to new main as an alt
-			$this->addAlt($sender, $altInfo->main, true, true);
+			$this->addAlt($sender, $altInfo->main, true, true, false);
 
 			// add current alts to new main
 			foreach ($altInfo->alts as $alt => $validated) {
 				if ($alt !== $sender) {
-					$this->addAlt($sender, $alt, $validated->validated_by_main, $validated->validated_by_alt);
+					$this->addAlt($sender, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
 				}
 			}
 			$this->db->commit();
@@ -429,6 +430,11 @@ class AltsController {
 		}
 
 		// @todo Send a warning if the new main's accesslevel is not the highest
+		$event = new AltEvent();
+		$event->main = $sender;
+		$event->alt = $altInfo->main;
+		$event->type = 'alt(newmain)';
+		$this->eventManager->fireEvent($event);
 		$msg = "Your main is now <highlight>{$sender}<end>.";
 		$sendto->reply($msg);
 	}
@@ -716,13 +722,13 @@ class AltsController {
 	/**
 	 * This method adds given $alt as $main's alt character.
 	 */
-	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt): int {
+	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt, bool $sendEvent=true): int {
 		$main = ucfirst(strtolower($main));
 		$alt = ucfirst(strtolower($alt));
 
 		$sql = "INSERT INTO `alts` (`alt`, `main`, `validated_by_main`, `validated_by_alt`, `added_via`) VALUES (?, ?, ?, ?, '<Myname>')";
 		$added = $this->db->exec($sql, $alt, $main, $validatedByMain, $validatedByAlt);
-		if ($added > 0) {
+		if ($added > 0 && $sendEvent) {
 			$event = new AltEvent();
 			$event->main = $main;
 			$event->alt = $alt;
