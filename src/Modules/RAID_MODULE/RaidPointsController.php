@@ -643,7 +643,7 @@ class RaidPointsController {
 		$this->logger->log(
 			'INFO',
 			'Raid points merged successfully to a new total of '.
-			($mainPoints??0 + $altsPoints)
+			(($mainPoints??0) + $altsPoints)
 		);
 	}
 
