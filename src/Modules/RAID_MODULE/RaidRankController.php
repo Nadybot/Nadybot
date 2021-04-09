@@ -227,7 +227,9 @@ class RaidRankController {
 			$this->db->exec("INSERT INTO raid_rank_<myname> (`rank`, `name`) VALUES (?, ?)", $rank, $who);
 		}
 
+		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
+		$this->ranks[$who]->name = $who;
 		$this->buddylistManager->add($who, 'raidrank');
 
 		return $action;
@@ -405,6 +407,17 @@ class RaidRankController {
 		$this->remove($who, $sender, $sendto, [4, 5, 6], $rank);
 	}
 
+	protected function renderLeaders(bool $showOfflineAlts, string ...$names): string {
+		sort($names);
+		$output = [];
+		foreach ($names as $who) {
+			$output []= "<tab>$who".
+				$this->getOnlineStatus($who) . "\n".
+				$this->getAltLeaderInfo($who, $showOfflineAlts);
+		}
+		return join("", $output) . "\n";
+	}
+
 	/**
 	 * @HandlesCommand("leaderlist")
 	 * @Matches("/^leaderlist$/i")
@@ -418,34 +431,27 @@ class RaidRankController {
 		}
 
 		$blob = "";
-		$admins = [];
-		foreach ($this->ranks as $who => $data) {
-			if ($data->rank >= 7) {
-				if ($who !== "") {
-					$admins []= "<tab>$who".
-						$this->getOnlineStatus($who) . "\n".
-						$this->getAltLeaderInfo($who, $showOfflineAlts);
-				}
+		$admins = array_filter(
+			$this->ranks,
+			function (RaidRank $rank): bool {
+				return $rank->rank >= 7 && $rank->name !== "";
 			}
-		}
+		);
+		$leaders = array_filter(
+			$this->ranks,
+			function (RaidRank $rank): bool {
+				return $rank->rank < 7 && $rank->rank >= 4 && $rank->name !== "";
+			}
+		);
+
 		if (count($admins)) {
 			$blob .= "<header2>Raid admins<end>\n".
-				join("", $admins) . "\n";
+				$this->renderLeaders($showOfflineAlts, ...array_keys($admins));
 		}
 
-		$leaders = [];
-		foreach ($this->ranks as $who => $data) {
-			if ($data->rank >= 4 && $data->rank < 7) {
-				if ($who !== "") {
-					$leaders []= "<tab>$who".
-						$this->getOnlineStatus($who) . "\n".
-						$this->getAltLeaderInfo($who, $showOfflineAlts);
-				}
-			}
-		}
 		if (count($leaders)) {
 			$blob .= "<header2>Raid leaders<end>\n".
-				join("", $leaders) . "\n";
+				$this->renderLeaders($showOfflineAlts, ...array_keys($leaders));
 		}
 
 		$link = $this->text->makeBlob('Raid leaders/admins', $blob);
@@ -471,7 +477,9 @@ class RaidRankController {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main === $who) {
-			foreach ($altInfo->getAllValidatedAlts() as $alt) {
+			$alts = $altInfo->getAllValidatedAlts();
+			sort($alts);
+			foreach ($alts as $alt) {
 				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
 					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
 				}
