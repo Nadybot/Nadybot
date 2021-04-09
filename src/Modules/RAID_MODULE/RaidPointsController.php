@@ -270,7 +270,7 @@ class RaidPointsController {
 	 */
 	protected function giveRaidPoints(string $player, int $delta): bool {
 		$updated = $this->db->exec(
-			"UPDATE raid_points_<myname> SET points=points+? WHERE username=?",
+			"UPDATE `raid_points_<myname>` SET `points`=`points`+? WHERE `username`=?",
 			$delta,
 			$player
 		);
@@ -278,7 +278,7 @@ class RaidPointsController {
 			return true;
 		}
 		$inserted = $this->db->exec(
-			"INSERT INTO raid_points_<myname> (`username`, `points`) ".
+			"INSERT INTO `raid_points_<myname>` (`username`, `points`) ".
 			"VALUES(?, ?)",
 			$player,
 			$delta
@@ -412,8 +412,8 @@ class RaidPointsController {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->fetchAll(
 			RaidPoints::class,
-			"SELECT * FROM raid_points_<myname> ".
-			"ORDER BY points DESC LIMIT ?",
+			"SELECT * FROM `raid_points_<myname>` ".
+			"ORDER BY `points` DESC LIMIT ?",
 			$this->settingManager->getInt('raid_top_amount')
 		);
 		if (count($topRaiders) === 0) {
@@ -604,6 +604,10 @@ class RaidPointsController {
 		if ($altsPoints === null) {
 			return;
 		}
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
+			return;
+		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
 		$this->logger->log(
 			'INFO',
@@ -611,27 +615,23 @@ class RaidPointsController {
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
 		);
-		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
-			return;
-		}
 		$this->db->beginTransaction();
 		try {
 			if ($mainPoints === null) {
 				$this->db->exec(
-					"INSERT INTO raid_points_<myname> (`username`, `points`) VALUES (?, ?)",
+					"INSERT INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
 					$event->main,
 					$altsPoints
 				);
 			} else {
 				$this->db->exec(
-					"UPDATE raid_points_<myname> SET `points`=? WHERE `username`=?",
+					"UPDATE `raid_points_<myname>` SET `points`=? WHERE `username`=?",
 					$altsPoints + $mainPoints,
 					$event->main
 				);
 			}
 			$this->db->exec(
-				"DELETE FROM raid_points_<myname> WHERE `username`=?",
+				"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
 				$event->alt
 			);
 		} catch (SQLException $e) {
@@ -674,7 +674,7 @@ class RaidPointsController {
 	public function getRaidReward(string $name): ?RaidReward {
 		return $this->db->fetch(
 			RaidReward::class,
-			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE  ?",
+			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE ?",
 			$name
 		);
 	}
@@ -721,7 +721,7 @@ class RaidPointsController {
 		} else {
 			$id = (int)$args[1];
 		}
-		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE id=?", $id);
+		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE `id`=?", $id);
 		if ($deleted) {
 			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
 		} else {
@@ -764,24 +764,19 @@ class RaidPointsController {
 		if (!$sharePoints) {
 			return;
 		}
-		/** @var RaidPoints|null */
-		$oldPoints = $this->db->fetch(
-			RaidPoints::class,
-			"SELECT * FROM `raid_points_<myname>` WHERE `username`=?",
-			$event->alt
-		);
-		if (!isset($oldPoints)) {
+		$oldPoints = $this->getThisAltsRaidPoints($event->alt);
+		if ($oldPoints === null) {
 			return;
 		}
 		$this->db->exec(
 			"REPLACE INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
 			$event->main,
-			$oldPoints->points
+			$oldPoints,
 		);
 		$this->db->exec(
 			"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
 			$event->alt
 		);
-		$this->logger->log('INFO', "Moved {$oldPoints->points} raid points from {$oldPoints->username} to {$event->main}.");
+		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
 }
