@@ -10,12 +10,15 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
+	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	SettingManager,
 	Text,
 	UserStateEvent,
 };
+use Nadybot\Core\Annotations\Logger;
+use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 
 /**
@@ -94,6 +97,9 @@ class NotesController {
 
 	/** @Inject */
 	public Preferences $preferences;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @Setup */
 	public function setup(): void {
@@ -421,6 +427,20 @@ class NotesController {
 			$reminderFormat = static::DEFAULT_REMINDER_FORMAT;
 		}
 		return $reminderFormat;
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move reminder format to new main")
+	 */
+	public function moveReminderFormat(AltEvent $event): void {
+		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
+		if ($reminderFormat === null || $reminderFormat === '') {
+			return;
+		}
+		$this->preferences->delete($event->alt, 'reminder_format');
+		$this->preferences->save($event->main, 'reminder_format', $reminderFormat);
+		$this->logger->log('INFO', "Moved reminder format from {$event->alt} to {$event->main}.");
 	}
 
 	/**

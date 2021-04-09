@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SQLException,
 	Text,
+	Timer,
 };
 
 /**
@@ -105,6 +106,9 @@ class RaidPointsController {
 
 	/** @Inject */
 	public Text $text;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -266,7 +270,7 @@ class RaidPointsController {
 	 */
 	protected function giveRaidPoints(string $player, int $delta): bool {
 		$updated = $this->db->exec(
-			"UPDATE raid_points_<myname> SET points=points+? WHERE username=?",
+			"UPDATE `raid_points_<myname>` SET `points`=`points`+? WHERE `username`=?",
 			$delta,
 			$player
 		);
@@ -274,7 +278,7 @@ class RaidPointsController {
 			return true;
 		}
 		$inserted = $this->db->exec(
-			"INSERT INTO raid_points_<myname> (`username`, `points`) ".
+			"INSERT INTO `raid_points_<myname>` (`username`, `points`) ".
 			"VALUES(?, ?)",
 			$player,
 			$delta
@@ -408,8 +412,8 @@ class RaidPointsController {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->fetchAll(
 			RaidPoints::class,
-			"SELECT * FROM raid_points_<myname> ".
-			"ORDER BY points DESC LIMIT ?",
+			"SELECT * FROM `raid_points_<myname>` ".
+			"ORDER BY `points` DESC LIMIT ?",
 			$this->settingManager->getInt('raid_top_amount')
 		);
 		if (count($topRaiders) === 0) {
@@ -600,6 +604,10 @@ class RaidPointsController {
 		if ($altsPoints === null) {
 			return;
 		}
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
+			return;
+		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
 		$this->logger->log(
 			'INFO',
@@ -611,19 +619,19 @@ class RaidPointsController {
 		try {
 			if ($mainPoints === null) {
 				$this->db->exec(
-					"INSERT INTO raid_points_<myname> (`username`, `points`) VALUES (?, ?)",
+					"INSERT INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
 					$event->main,
 					$altsPoints
 				);
 			} else {
 				$this->db->exec(
-					"UPDATE raid_points_<myname> SET `points`=? WHERE `username`=?",
+					"UPDATE `raid_points_<myname>` SET `points`=? WHERE `username`=?",
 					$altsPoints + $mainPoints,
 					$event->main
 				);
 			}
 			$this->db->exec(
-				"DELETE FROM raid_points_<myname> WHERE `username`=?",
+				"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
 				$event->alt
 			);
 		} catch (SQLException $e) {
@@ -635,7 +643,7 @@ class RaidPointsController {
 		$this->logger->log(
 			'INFO',
 			'Raid points merged successfully to a new total of '.
-			($mainPoints??0 + $altsPoints)
+			(($mainPoints??0) + $altsPoints)
 		);
 	}
 
@@ -666,7 +674,7 @@ class RaidPointsController {
 	public function getRaidReward(string $name): ?RaidReward {
 		return $this->db->fetch(
 			RaidReward::class,
-			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE  ?",
+			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE ?",
 			$name
 		);
 	}
@@ -713,7 +721,7 @@ class RaidPointsController {
 		} else {
 			$id = (int)$args[1];
 		}
-		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE id=?", $id);
+		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE `id`=?", $id);
 		if ($deleted) {
 			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
 		} else {
@@ -745,5 +753,30 @@ class RaidPointsController {
 		}
 		$this->db->update("raid_reward_<myname>", "id", $reward);
 		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move raid points to new main")
+	 */
+	public function moveRaidPoints(AltEvent $event): void {
+		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		if (!$sharePoints) {
+			return;
+		}
+		$oldPoints = $this->getThisAltsRaidPoints($event->alt);
+		if ($oldPoints === null) {
+			return;
+		}
+		$this->db->exec(
+			"REPLACE INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
+			$event->main,
+			$oldPoints,
+		);
+		$this->db->exec(
+			"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
+			$event->alt
+		);
+		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
 }

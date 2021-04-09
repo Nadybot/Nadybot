@@ -10,12 +10,14 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	LoggerWrapper,
 	Nadybot,
 	SettingManager,
 	Text,
 	Modules\ALTS\AltsController,
 };
 use Nadybot\Core\DBSchema\Admin;
+use Nadybot\Core\Modules\ALTS\AltEvent;
 
 /**
  * @Instance
@@ -77,6 +79,9 @@ class AdminController {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * @Setup
@@ -279,5 +284,19 @@ class AdminController {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move admin rank to new main")
+	 */
+	public function moveAdminrank(AltEvent $event): void {
+		$oldRank = $this->adminManager->admins[$event->alt]??null;
+		if (!isset($oldRank)) {
+			return;
+		}
+		$this->adminManager->removeFromLists($event->alt);
+		$this->adminManager->addToLists($event->main, $oldRank["level"]);
+		$this->logger->log('INFO', "Moved {$event->alt}'s admin rank to {$event->main}.");
 	}
 }
