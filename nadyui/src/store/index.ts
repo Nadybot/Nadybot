@@ -59,11 +59,12 @@ export default createStore({
         state.users = users;
         state.users_failed = false;
         console.log(
-          `Successfully loaded online members: ${
-            users.org.length + users.private_channel.length
+          `Successfully loaded online members: ${users.org.length + users.private_channel.length
           }`
         );
-      } catch {
+      } catch (_e) {
+        let e: Error = _e;
+        console.log(`Fetching users failed: ${e.message}`);
         state.users_failed = true;
       }
     },
