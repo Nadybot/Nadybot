@@ -245,7 +245,7 @@ class RaidPointsController {
 			"INSERT INTO raid_points_log_<myname> ".
 			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `raid_id`) ".
 			"VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-			$pointsChar,
+			ucfirst(strtolower($player)),
 			$delta,
 			time(),
 			$changedBy,
