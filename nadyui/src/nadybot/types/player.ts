@@ -68,11 +68,11 @@ export interface PlayerBase {
   // AI level of this player or null if unknown
   readonly ai_level: number;
   // The id of the org this player is in or null if none or unknown
-  readonly org_id: number;
+  readonly org_id: number | null;
   // The name of the org this player is in or null if none/unknown
-  readonly org: string;
+  readonly org: string | null;
   // The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown
-  readonly org_rank: string;
+  readonly org_rank: string | null;
   // The numeric rank of the player in their org or null if not in an org/unknown
   readonly org_rank_id: number | null;
   // In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
