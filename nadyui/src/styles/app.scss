@@ -19,6 +19,8 @@
 @import "~bootstrap/scss/buttons";
 @import "~bootstrap/scss/list-group";
 @import "~bootstrap/scss/transitions";
+@import "~bootstrap/scss/close";
+@import "~bootstrap/scss/badge";
 
 @import "~bootstrap/scss/utilities";
 
@@ -42,6 +44,7 @@ $utilities: map-get-multiple(
         "width",
         "overflow",
         "rounded",
+        "background-color",
     )
 );
 
