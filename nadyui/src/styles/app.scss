@@ -11,6 +11,7 @@
 // Individual dependencies
 @import "~bootstrap/scss/containers";
 @import "~bootstrap/scss/card";
+@import "~bootstrap/scss/alert";
 @import "~bootstrap/scss/tables";
 @import "~bootstrap/scss/grid";
 @import "~bootstrap/scss/forms";
@@ -18,6 +19,7 @@
 @import "~bootstrap/scss/buttons";
 @import "~bootstrap/scss/list-group";
 @import "~bootstrap/scss/transitions";
+
 @import "~bootstrap/scss/utilities";
 
 $utilities: map-get-multiple(
