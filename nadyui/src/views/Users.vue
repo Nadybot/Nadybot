@@ -51,10 +51,13 @@
             <span
               class="badge badge-faction"
               :class="user.faction.toLowerCase()"
+              v-if="user.org"
               >{{ user.org }}</span
             >
           </td>
-          <td>{{ user.org_rank }}</td>
+          <td>
+            <span v-if="user.org">{{ user.org_rank }}</span>
+          </td>
         </tr>
       </tbody>
     </template>
