@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RAFFLE_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	CommandAlias,
 	CommandReply,
 	DB,
 	DBRow,
@@ -25,6 +26,12 @@ use Nadybot\Core\{
  * Commands this class contains:
  *	@DefineCommand(
  *		command     = 'raffle',
+ *		accessLevel = 'all',
+ *		description = 'Join or leave raffles',
+ *		help        = 'raffle.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'raffleadmin',
  *		accessLevel = 'all',
  *		description = 'Raffle off items to players',
  *		help        = 'raffle.txt'
@@ -55,6 +62,9 @@ class RaffleController {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -145,6 +155,11 @@ class RaffleController {
 			'mod',
 			"raffle.txt"
 		);
+		$this->commandAlias->register($this->moduleName, "raffleadmin start", "raffle start");
+		$this->commandAlias->register($this->moduleName, "raffleadmin end", "raffle end");
+		$this->commandAlias->register($this->moduleName, "raffleadmin cancel", "raffle cancel");
+		$this->commandAlias->register($this->moduleName, "raffleadmin timer", "raffle timer");
+		$this->commandAlias->register($this->moduleName, "raffleadmin announce", "raffle announce");
 	}
 
 	protected function fancyFrame(string $text): string {
@@ -174,8 +189,8 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle start (.+)$/i")
+	 * @HandlesCommand("raffleadmin")
+	 * @Matches("/^raffleadmin start (.+)$/i")
 	 */
 	public function raffleStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$raffleString = $args[1];
@@ -265,8 +280,8 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle cancel$/i")
+	 * @HandlesCommand("raffleadmin")
+	 * @Matches("/^raffleadmin cancel$/i")
 	 */
 	public function raffleCancelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
@@ -289,8 +304,8 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle end$/i")
+	 * @HandlesCommand("raffleadmin")
+	 * @Matches("/^raffleadmin end$/i")
 	 */
 	public function raffleEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
@@ -308,8 +323,8 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle timer (.+)$/i")
+	 * @HandlesCommand("raffleadmin")
+	 * @Matches("/^raffleadmin timer (.+)$/i")
 	 */
 	public function raffleTimerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
@@ -337,9 +352,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
-	 * @Matches("/^raffle announce$/i")
-	 * @Matches("/^raffle announce (.+)$/i")
+	 * @HandlesCommand("raffleadmin")
+	 * @Matches("/^raffleadmin announce$/i")
+	 * @Matches("/^raffleadmin announce (.+)$/i")
 	 */
 	public function raffleAnnounceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($this->raffle)) {
