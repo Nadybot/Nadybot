@@ -4,7 +4,7 @@
 <a href=skillid://276>Offense (AddAll-Off)</a>
 <a href=skillid://277>Defense (AddAll-Def)</a>
 <a href=skillid://51>Agg/Def-Slider</a>
-<a href=skillid://4>Attack Speed</a>
+<a href=skillid://3>Attack Speed</a>
 
 <header2>Critical Strike<end>
 <a href=skillid://379>Crit increase</a>
@@ -81,6 +81,7 @@
 
 <header2>Misc<end>
 <a href=skillid://319>XP Bonus</a>
+<a href=skillid://236>Insurance Percentage</a>
 <a href=skillid://382>SkillLockModifier</a>
 <a href=skillid://380>Weapon Range Increase</a>
 <a href=skillid://517>Special Attack Blockers</a>
@@ -91,5 +92,8 @@
 <a href=skillid://679>Solo Deaths</a>
 <a href=skillid://681>Team Deaths</a>
 <a href=skillid://410>Number of fighting opponents</a>
+<a href=skillid://592>SK &amp; XP pool</a>
+<a href=skillid://47>Fatness (0=thin, 1=normal, 2=fat)</a>
+
 
 Compiled by Tyrence (RK2)
