@@ -98,6 +98,8 @@ use Nadybot\Modules\{
  *	)
  *	@ProvidesEvent("online(priv)")
  *	@ProvidesEvent("offline(priv)")
+ *	@ProvidesEvent("member(add)")
+ *	@ProvidesEvent("member(rem)")
  */
 class PrivateChannelController {
 
@@ -285,7 +287,7 @@ class PrivateChannelController {
 		/** @var Member[] */
 		$members = $this->db->fetchAll(
 			Member::class,
-			"SELECT * FROM members_<myname> ORDER BY `name`"
+			"SELECT * FROM `members_<myname>` ORDER BY `name`"
 		);
 		$count = count($members);
 		if ($count === 0) {
@@ -394,20 +396,23 @@ class PrivateChannelController {
 			$this->buddylistManager->add($sender, 'member');
 		} else {
 			$onOrOff = 0;
-			$this->buddylistManager->remove($sender, 'member');
 		}
 
 		/** @var ?Member */
 		$data = $this->db->fetch(
 			Member::class,
-			"SELECT * FROM members_<myname> WHERE `name` = ?",
+			"SELECT * FROM `members_<myname>` WHERE `name` = ?",
 			$sender
 		);
 		if ($data === null) {
-			$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
+			$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
 			$msg = "You have been added as a member of this bot. ".
 				"Use <highlight><symbol>autoinvite<end> to control ".
 				"your auto invite preference.";
+			$event = new MemberEvent();
+			$event->type = "member(add)";
+			$event->sender = $sender;
+			$this->eventManager->fireEvent($event);
 		} else {
 			$this->db->exec("UPDATE members_<myname> SET autoinv = ? WHERE name = ?", $onOrOff, $sender);
 			$msg = "Your auto invite preference has been updated.";
@@ -429,7 +434,7 @@ class PrivateChannelController {
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$data = $this->db->query("SELECT * FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv'");
+		$data = $this->db->query("SELECT * FROM `online` o LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') WHERE `added_by` = '<myname>' AND `channel_type` = 'priv'");
 		$numonline = count($data);
 		foreach ($data as $row) {
 			if ($row->level > 1 && $row->level <= 14) {
@@ -480,10 +485,10 @@ class PrivateChannelController {
 		$online["Shade"] = 0;
 
 		$data = $this->db->query(
-			"SELECT count(*) AS count, profession ".
-			"FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+			"SELECT count(*) AS count, `profession` ".
+			"FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
 			"GROUP BY `profession`"
 		);
 		$numonline = count($data);
@@ -516,7 +521,7 @@ class PrivateChannelController {
 	 * @Matches("/^count orgs?$/i")
 	 */
 	public function countOrganizationCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT COUNT(*) AS num_online FROM online WHERE added_by = '<myname>' AND channel_type = 'priv'";
+		$sql = "SELECT COUNT(*) AS num_online FROM `online` WHERE `added_by` = '<myname>' AND channel_type = 'priv'";
 		$data = $this->db->queryRow($sql);
 		$numOnline = $data->num_online;
 
@@ -525,10 +530,10 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		$sql = "SELECT `guild`, count(*) AS cnt, AVG(level) AS avg_level ".
-			"FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+		$sql = "SELECT `guild`, count(*) AS cnt, AVG(`level`) AS avg_level ".
+			"FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
 			"GROUP BY `guild` ".
 			"ORDER BY `cnt` DESC, `avg_level` DESC";
 		$data = $this->db->query($sql);
@@ -564,9 +569,9 @@ class PrivateChannelController {
 			return;
 		}
 		$data = $this->db->query(
-			"SELECT * FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' AND `profession` = ? ".
+			"SELECT * FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' AND `profession` = ? ".
 			"ORDER BY `level`",
 			$prof
 		);
@@ -631,6 +636,10 @@ class PrivateChannelController {
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
+		$event = new MemberEvent();
+		$event->type = "member(add)";
+		$event->sender = $sender;
+		$this->eventManager->fireEvent($event);
 		$sendto->reply($msg);
 	}
 
@@ -994,16 +1003,24 @@ class PrivateChannelController {
 			return "<highlight>$name<end> is already a member of this bot.";
 		}
 		$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
+		$event = new MemberEvent();
+		$event->type = "member(add)";
+		$event->sender = $name;
+		$this->eventManager->fireEvent($event);
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
 
 	public function removeUser(string $name): string {
 		$name = ucfirst(strtolower($name));
 
-		if (!$this->db->exec("DELETE FROM members_<myname> WHERE `name` = ?", $name)) {
+		if (!$this->db->exec("DELETE FROM `members_<myname>` WHERE `name` = ?", $name)) {
 			return "<highlight>$name<end> is not a member of this bot.";
 		}
 		$this->buddylistManager->remove($name, 'member');
+		$event = new MemberEvent();
+		$event->type = "member(rem)";
+		$event->sender = $name;
+		$this->eventManager->fireEvent($event);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
 	}
 }
