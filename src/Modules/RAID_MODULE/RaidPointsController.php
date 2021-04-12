@@ -197,6 +197,7 @@ class RaidPointsController {
 			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
 		}
 		$raid->raiders[$player]->points++;
+		$raid->raiders[$player]->pointsRewarded++;
 		$updated = $this->db->exec(
 			"UPDATE raid_points_log_<myname> SET delta=delta+1 ".
 			"WHERE raid_id=? AND username=? AND ticker IS TRUE",
@@ -240,6 +241,11 @@ class RaidPointsController {
 		}
 		if (isset($raid) && isset($raid->raiders[$player])) {
 			$raid->raiders[$player]->points += $delta;
+			if ($individual) {
+				$raid->raiders[$player]->pointsIndividual += $delta;
+			} else {
+				$raid->raiders[$player]->pointsRewarded += $delta;
+			}
 		}
 		$inserted = $this->db->exec(
 			"INSERT INTO raid_points_log_<myname> ".

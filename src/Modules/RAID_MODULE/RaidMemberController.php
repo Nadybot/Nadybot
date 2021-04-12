@@ -326,7 +326,15 @@ class RaidMemberController {
 		$inactive = 0;
 		foreach ($raid->raiders as $player => $raider) {
 			$line  = "<highlight>{$raider->player}<end>";
-			$line .= " [Points: {$raider->points}] ";
+			if ($raider->pointsIndividual !== 0) {
+				$line .= sprintf(
+					" [Points: %d / %+d] ",
+					$raider->pointsRewarded,
+					$raider->pointsIndividual
+				);
+			} else {
+				$line .= " [Points: {$raider->pointsRewarded}] ";
+			}
 			if (isset($raider->left)) {
 				$line .= "<red>left<end>";
 				$inactive++;
