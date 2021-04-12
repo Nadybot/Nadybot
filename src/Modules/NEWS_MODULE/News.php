@@ -9,6 +9,6 @@ class News extends DBRow {
 	public int $time;
 	public string $name;
 	public string $news;
-	public bool $sticky;
-	public bool $deleted;
+	public bool $sticky = false;
+	public bool $deleted = false;
 }
