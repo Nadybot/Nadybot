@@ -9,7 +9,7 @@ class RaffleItem {
 	public string $item;
 
 	public function fromString(string $text): void {
-		if (preg_match("/^(?<count>\d+)x?\s*[^\d]|\btop\s*(?<count>\d+)\b/J", $text, $matches)) {
+		if (preg_match("/^(?<count>\d+)x?\s*[^\d]/", $text, $matches)) {
 			$this->amount = (int)$matches['count'];
 			$text = preg_replace("/^(\d+)x?\s*/", "", $text);
 		}

@@ -12,8 +12,8 @@ class RaffleSlot {
 	public array $result = [];
 
 	public function fromString(string $text): void {
-		if (preg_match("/^(\d+)x?\s*[^\d]/", $text, $matches)) {
-			$this->amount = (int)$matches[1];
+		if (preg_match("/^(?<count>\d+)x?\s*[^\d]|\btop\s*(?<count>\d+)\b/J", $text, $matches)) {
+			$this->amount = (int)$matches['count'];
 			$text = preg_replace("/^(\d+)x?\s*/", "", $text);
 		}
 		$items = preg_split("/\s*\+\s*/", $text);
