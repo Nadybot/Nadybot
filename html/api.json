@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.0-RC4@api-endpoint-for-messages"
+		"version": "5.0.1@news-api"
 	},
 	"servers": [
 		{
@@ -294,7 +294,7 @@
 				"properties": {
 					"type": {
 						"type": "string",
-						"description": "Type of tjhe reply from the proxy"
+						"description": "Type of the reply from the proxy"
 					}
 				}
 			},
@@ -486,6 +486,29 @@
 					}
 				}
 			},
+			"News": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer"
+					},
+					"time": {
+						"type": "integer"
+					},
+					"name": {
+						"type": "string"
+					},
+					"news": {
+						"type": "string"
+					},
+					"sticky": {
+						"type": "boolean"
+					},
+					"deleted": {
+						"type": "boolean"
+					}
+				}
+			},
 			"Player": {
 				"type": "object",
 				"properties": {
@@ -508,7 +531,7 @@
 					"level": {
 						"type": "integer",
 						"nullable": true,
-						"description": "What level (1-220) is the characer or null if unknown"
+						"description": "What level (1-220) is the character or null if unknown"
 					},
 					"breed": {
 						"type": "string",
@@ -1398,6 +1421,122 @@
 				}
 			}
 		},
+		"/news": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of all news",
+				"responses": {
+					"200": {
+						"description": "A list of news items",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/News"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new news item",
+				"responses": {
+					"204": {
+						"description": "The news item was created successfully"
+					}
+				},
+				"requestBody": {
+					"description": "The item to create",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/News"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/news/{id}": {
+			"parameters": [
+				{
+					"name": "id",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "integer"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single news item by id",
+				"responses": {
+					"200": {
+						"description": "The requested news item",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/News"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Given news id not found"
+					}
+				}
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify an existing news item",
+				"responses": {
+					"200": {
+						"description": "The news item it is now",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/News"
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"description": "The new data for the item",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/News"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/online": {
 			"parameters": [],
 			"get": {
@@ -1486,7 +1625,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/String"
+								"type": "string"
 							}
 						}
 					}
@@ -1513,7 +1652,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/String"
+								"type": "string"
 							}
 						}
 					}
