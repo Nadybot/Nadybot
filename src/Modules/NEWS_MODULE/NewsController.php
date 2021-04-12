@@ -12,7 +12,16 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\Annotations\ApiResult;
 use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	JsonImporter,
+	Request,
+	Response,
+};
+use Throwable;
 
 /**
  * @Instance
@@ -359,5 +368,96 @@ class NewsController {
 			"SELECT * FROM `news` WHERE `deleted` = 0 AND `id` = ?",
 			$id
 		);
+	}
+
+	/**
+	 * Get a list of all news
+	 * @Api("/news")
+	 * @GET
+	 * @AccessLevelFrom("news")
+	 * @ApiResult(code=200, class='News[]', desc='A list of news items')
+	 */
+	public function apiNewsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$sql = "SELECT * FROM `news` WHERE `deleted`=0";
+		/** @var News[] */
+		$result = $this->db->fetchAll(News::class, $sql);
+		return new ApiResponse($result);
+	}
+
+	/**
+	 * Get a single news item by id
+	 * @Api("/news/%d")
+	 * @GET
+	 * @AccessLevelFrom("news")
+	 * @ApiResult(code=200, class='News', desc='The requested news item')
+	 * @ApiResult(code=404, desc='Given news id not found')
+	 */
+	public function apiNewsIdEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
+		$result = $this->getNewsItem($id);
+		if (!isset($result)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($result);
+	}
+
+	/**
+	 * Create a new news item
+	 * @Api("/news")
+	 * @POST
+	 * @AccessLevelFrom("news .+")
+	 * @RequestBody(class='News', desc='The item to create', required=true)
+	 * @ApiResult(code=204, desc='The news item was created successfully')
+	 */
+	public function apiNewsCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$news = $request->decodedBody;
+		try {
+			/** @var News */
+			$decoded = JsonImporter::convert(News::class, $news);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		unset($decoded->id);
+		$decoded->time ??= time();
+		$decoded->name = $request->authenticatedAs;
+		if (!isset($decoded->news)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		if ($this->db->insert("news", $decoded)) {
+			return new Response(Response::NO_CONTENT);
+		}
+		return new Response(Response::INTERNAL_SERVER_ERROR);
+	}
+
+	/**
+	 * Modify an existing news item
+	 * @Api("/news/%d")
+	 * @PATCH
+	 * @AccessLevelFrom("news .+")
+	 * @RequestBody(class='News', desc='The new data for the item', required=true)
+	 * @ApiResult(code=200, class='News', desc='The news item it is now')
+	 */
+	public function apiNewsModifyEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
+		$result = $this->getNewsItem($id);
+		if (!isset($result)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$news = $request->decodedBody;
+		try {
+			/** @var News */
+			$decoded = JsonImporter::convert(News::class, $news);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$decoded->id = $id;
+		$decoded->name = $request->authenticatedAs;
+		foreach ($decoded as $attr => $value) {
+			if (isset($value)) {
+				$result->{$attr} = $value;
+			}
+		}
+		if (!$this->db->update("news", "id", $decoded)) {
+			return new Response(Response::INTERNAL_SERVER_ERROR);
+		}
+		return new ApiResponse($this->getNewsItem($id));
 	}
 }
