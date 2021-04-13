@@ -29,6 +29,7 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Throwable;
 
 /**
  * @Instance
@@ -295,7 +296,11 @@ class ApiController {
 			return;
 		}
 		/** @var Response */
-		$response = $handler->exec($request, $server);
+		try {
+			$response = $handler->exec($request, $server);
+		} catch (Throwable $e) {
+			$response = null;
+		}
 		if (!isset($response) || !($response) instanceof Response) {
 			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
 			return;
