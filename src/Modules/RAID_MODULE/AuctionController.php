@@ -447,7 +447,7 @@ class AuctionController {
 
 	public function bid(string $sender, int $offer, CommandReply $sendto): void {
 		if ($offer <= $this->auction->bid) {
-			$sendto->reply("The have to bid more than the current offer.");
+			$sendto->reply("You have to bid more than the current offer of {$this->auction->bid}.");
 			return;
 		}
 		if ($sender === $this->auction->top_bidder) {
