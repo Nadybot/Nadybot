@@ -224,6 +224,11 @@ class WebUiController {
 			"INFO",
 			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
 		);
+		$this->logger->log(
+			"INFO",
+			">>> Use the " . $this->settingManager->getString('symbol').
+				"webauth command to create a new password after this expired"
+		);
 	}
 
 	/**
