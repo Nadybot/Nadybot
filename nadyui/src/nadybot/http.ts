@@ -12,12 +12,25 @@ import {
   ModuleAccessLevel,
   moduleAccessLevelArrayDecoder,
 } from "./types/settings";
+import { newsDecoder, NewsItem } from "./types/news";
 
 // any is safe since we can JSON.stringify it
 // eslint-disable-next-line
 async function putJson(url: string, json: any): Promise<Response> {
   return await fetch(url, {
     method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(json),
+  });
+}
+
+// any is safe since we can JSON.stringify it
+// eslint-disable-next-line
+async function patchJson(url: string, json: any): Promise<Response> {
+  return await fetch(url, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
@@ -145,4 +158,30 @@ export async function sendMessage(
   text: string
 ): Promise<void> {
   await postJson(`/api/chat/${channel}`, text);
+}
+
+export async function getNews(): Promise<Array<NewsItem>> {
+  const response = await fetch(`/api/news`);
+  const json = await response.json();
+  return await newsDecoder.decodeToPromise(json);
+}
+
+export async function setSticky(newsId: number): Promise<void> {
+  await patchJson(`/api/news/${newsId}`, { sticky: true });
+}
+
+export async function setNotSticky(newsId: number): Promise<void> {
+  await patchJson(`/api/news/${newsId}`, { sticky: false });
+}
+
+export async function deleteNews(newsId: number): Promise<void> {
+  await patchJson(`/api/news/${newsId}`, { deleted: true });
+}
+
+export async function editNews(newsId: number, news: string): Promise<void> {
+  await patchJson(`/api/news/${newsId}`, { news: news });
+}
+
+export async function createNews(news: string): Promise<void> {
+  await postJson(`/api/news`, { news: news });
 }
