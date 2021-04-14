@@ -15,6 +15,8 @@ class RaffleSlot {
 		if (preg_match("/^(?<count>\d+)x?\s*[^\d]|\btop\s*(?<count>\d+)\b/J", $text, $matches)) {
 			$this->amount = (int)$matches['count'];
 			$text = preg_replace("/^(\d+)x?\s*/", "", $text);
+		} elseif (preg_match("/loot\s*order/i", $text)) {
+			$this->amount = 0;
 		}
 		$items = preg_split("/\s*\+\s*/", $text);
 		foreach ($items as $item) {
@@ -31,7 +33,7 @@ class RaffleSlot {
 			},
 			$this->items
 		);
-		if ($this->amount === 1) {
+		if ($this->amount <= 1) {
 			return join(", ", $items);
 		}
 		return "<orange>{$this->amount}×</font> " . join(", ", $items);

@@ -597,7 +597,8 @@ class RaffleController {
 				return $b->points <=> $a->points;
 			}
 		);
-		for ($i = 0; $i < min($slot->amount, count($result)); $i++) {
+		$numWinners = min($slot->amount ?: count($result), count($result));
+		for ($i = 0; $i < $numWinners; $i++) {
 			$result[$i]->won = true;
 		}
 		return $result;

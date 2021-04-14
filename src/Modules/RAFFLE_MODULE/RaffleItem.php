@@ -38,7 +38,7 @@ class RaffleItem {
 				}
 			}
 		}
-		if ($this->amount === 1) {
+		if ($this->amount <= 1) {
 			return $item;
 		}
 		return $this->amount . "x " . $item;
