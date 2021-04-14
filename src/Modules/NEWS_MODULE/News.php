@@ -4,11 +4,7 @@ namespace Nadybot\Modules\NEWS_MODULE;
 
 use Nadybot\Core\DBRow;
 
-class News extends DBRow {
+class News extends NewNews {
+	/** The internal ID of this news entry */
 	public int $id;
-	public int $time;
-	public string $name;
-	public string $news;
-	public bool $sticky;
-	public bool $deleted;
 }

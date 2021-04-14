@@ -39,7 +39,7 @@ class WebchatApiController {
 	 * @Api("/chat/org")
 	 * @POST
 	 * @AccessLevel("guild")
-	 * @RequestBody(class='String', desc='The text to send', required=true)
+	 * @RequestBody(class='string', desc='The text to send', required=true)
 	 * @ApiResult(code=204, desc='Message sent')
 	 * @ApiResult(code=404, desc='Not an org bot')
 	 */
@@ -76,7 +76,7 @@ class WebchatApiController {
 	 * @Api("/chat/priv")
 	 * @POST
 	 * @AccessLevel("member")
-	 * @RequestBody(class='String', desc='The text to send', required=true)
+	 * @RequestBody(class='string', desc='The text to send', required=true)
 	 * @ApiResult(code=204, desc='Message sent')
 	 */
 	public function sendPrivMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
