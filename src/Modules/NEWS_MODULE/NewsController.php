@@ -405,20 +405,22 @@ class NewsController {
 	 * @Api("/news")
 	 * @POST
 	 * @AccessLevelFrom("news .+")
-	 * @RequestBody(class='News', desc='The item to create', required=true)
+	 * @RequestBody(class='NewNews', desc='The item to create', required=true)
 	 * @ApiResult(code=204, desc='The news item was created successfully')
 	 */
 	public function apiNewsCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$news = $request->decodedBody;
 		try {
-			/** @var News */
-			$decoded = JsonImporter::convert(News::class, $news);
+			/** @var NewNews */
+			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		unset($decoded->id);
 		$decoded->time ??= time();
 		$decoded->name = $request->authenticatedAs;
+		$decoded->sticky ??= false;
+		$decoded->deleted ??= false;
 		if (!isset($decoded->news)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -433,7 +435,7 @@ class NewsController {
 	 * @Api("/news/%d")
 	 * @PATCH
 	 * @AccessLevelFrom("news .+")
-	 * @RequestBody(class='News', desc='The new data for the item', required=true)
+	 * @RequestBody(class='NewNews', desc='The new data for the item', required=true)
 	 * @ApiResult(code=200, class='News', desc='The news item it is now')
 	 */
 	public function apiNewsModifyEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
@@ -443,8 +445,8 @@ class NewsController {
 		}
 		$news = $request->decodedBody;
 		try {
-			/** @var News */
-			$decoded = JsonImporter::convert(News::class, $news);
+			/** @var NewNews */
+			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}

@@ -486,28 +486,46 @@
 					}
 				}
 			},
-			"News": {
+			"NewNews": {
 				"type": "object",
 				"properties": {
-					"id": {
-						"type": "integer"
-					},
 					"time": {
-						"type": "integer"
+						"type": "integer",
+						"description": "Unix timestamp when this was created"
 					},
 					"name": {
-						"type": "string"
+						"type": "string",
+						"description": "Name of the character who created the entry"
 					},
 					"news": {
-						"type": "string"
+						"type": "string",
+						"description": "Text of these news"
 					},
 					"sticky": {
-						"type": "boolean"
+						"type": "boolean",
+						"description": "Set to true if this is pinned above all unpinned news"
 					},
 					"deleted": {
-						"type": "boolean"
+						"type": "boolean",
+						"description": "Set to true if this is actually deleted"
 					}
 				}
+			},
+			"News": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/NewNews"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "integer",
+								"description": "The internal ID of this news entry"
+							}
+						}
+					}
+				]
 			},
 			"Player": {
 				"type": "object",
@@ -1464,7 +1482,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/News"
+								"$ref": "#/components/schemas/NewNews"
 							}
 						}
 					}
@@ -1530,7 +1548,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/News"
+								"$ref": "#/components/schemas/NewNews"
 							}
 						}
 					}
