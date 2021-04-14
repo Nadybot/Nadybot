@@ -171,7 +171,7 @@ class AuctionController {
 			'edit',
 			'options',
 			'2',
-			'Simple;Yellow border;Yellow border with header;Pink border;Rainbow border',
+			'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
 			'1;2;3;4;5'
 		);
 		$this->settingManager->add(
@@ -181,7 +181,7 @@ class AuctionController {
 			'edit',
 			'options',
 			'1',
-			'Simple;Yellow border;Yellow border with header;Pink border;Rainbow border;Gratulations',
+			'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
 			'1;2;3;4;5;6'
 		);
 		$this->db->loadSQLFile($this->moduleName, "auction");
@@ -636,7 +636,7 @@ class AuctionController {
 			case 3:
 				return [
 					"<yellow>{$shortDash}[ AUCTION ]{$shortDash}<end>\n",
-					"<yellow>{$longDash}<end>",
+					"",
 				];
 			case 2:
 				return [
@@ -657,8 +657,8 @@ class AuctionController {
 		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
 			"<highlight>{$item}<end>!\n".
-			"You have <highlight>{$secondsLeft} seconds<end> to place bids :: {$bidInfo}\n".
-			$bottom;
+			"You have <highlight>{$secondsLeft} seconds<end> to place bids :: {$bidInfo}".
+			(strlen($bottom) ? "\n{$bottom}" : "");
 		return $msg;
 	}
 
@@ -679,14 +679,14 @@ class AuctionController {
 			$this->chatBot->sendPrivate("Auction is over. No one placed any bids. Do not loot it.");
 			return;
 		}
-		$pointsAre = "point" . (($event->auction->bid > 1) ? "s are" : " is");
+		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
 		$layout = $this->settingManager->getInt('auction_winner_announcement');
 		$msg = sprintf(
 			$this->getAuctionWinnerLayout($layout),
 			$event->auction->top_bidder,
 			$event->auction->item->toString(),
 			$event->auction->bid,
-			$pointsAre
+			$points
 		);
 		$this->chatBot->sendPrivate($msg);
 	}
@@ -709,34 +709,29 @@ class AuctionController {
 	}
 
 	public function getAuctionWinnerLayout(int $type): string {
-		$line1 = "<highlight>%s<end> has won the auction for <highlight>%s<end>.\n";
-		$line2 = "<highlight>%d<end> %s being deduced from their account.";
+		$line1 = "<highlight>%s<end> won <highlight>%s<end> for <highlight>%d<end> %s.";
 		switch ($type) {
 			case 6:
 				return "\n".
-					$this->rainbow("CONGRATULATIONS!") . "  ".
-					$line1.
-					$this->rainbow("CONGRATULATIONS!") . "  ".
-					$line2;
+					$this->rainbow("CONGRATULATIONS!") . "  {$line1}";
 			case 5:
 				return "\n".
 					$this->rainbow(str_repeat("-", 65), 5) . "\n".
-					$line1.$line2 . "\n".
+					$line1 . "\n".
 					$this->rainbow(str_repeat("-", 65), 5);
 			case 4:
 				return "\n<font color=#FF1493>" . str_repeat("-", 65) . "</font>\n".
-					$line1.$line2 . "\n".
+					$line1 . "\n".
 					"<font color=#FF1493>" . str_repeat("-", 65) . "</font>";
 			case 3:
 				return "\n<yellow>" . str_repeat("-", 25) . "[ AUCTION ]" . str_repeat("-", 25) . "<end>\n".
-					$line1.$line2 . "\n".
-					"<yellow>" . str_repeat("-", 65) . "<end>";
+					$line1;
 			case 2:
 				return "\n<yellow>" . str_repeat("-", 65) . "<end>\n".
-					$line1.$line2 . "\n".
+					$line1 . "\n".
 					"<yellow>" . str_repeat("-", 65) . "<end>";
 			default:
-				return $line1.$line2;
+				return $line1;
 		}
 		return "Someone won something. And some admin misconfigured something.";
 	}
