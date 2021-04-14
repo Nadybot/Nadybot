@@ -347,7 +347,7 @@ class OnlineController {
 				$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'priv'";
 				$this->db->exec($sql, $time, $name);
 			} else {
-				$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild> Guest', 'priv', '<myname>', ?)";
+				$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild> Guests', 'priv', '<myname>', ?)";
 				$this->db->exec($sql, $name, $time);
 			}
 		}
