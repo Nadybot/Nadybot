@@ -55,6 +55,11 @@ export default {
           path: "/chat",
           icon: "comment",
         },
+        {
+          name: "News",
+          path: "/news",
+          icon: "newspaper",
+        },
       ],
     };
   },
