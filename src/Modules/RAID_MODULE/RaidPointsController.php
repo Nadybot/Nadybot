@@ -46,6 +46,13 @@ use Nadybot\Core\{
  * )
  *
  * @DefineCommand(
+ *     command       = 'points log all',
+ *     accessLevel   = 'all',
+ *     description   = 'Check how many raid points you gained when on all alts',
+ *     help          = 'raidpoints_raiders.txt'
+ * )
+ *
+ * @DefineCommand(
  *     command       = 'points .+',
  *     accessLevel   = 'raid_admin_1',
  *     description   = 'Check the raid points of another raider',
@@ -441,28 +448,76 @@ class RaidPointsController {
 	 * @Matches("/^points log$/i")
 	 */
 	public function pointsLogCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showraidPoints($channel, $sender, $sendto, false, ...$this->getRaidpointLogsForChar($sender));
+	}
+
+	/**
+	 * @HandlesCommand("points log all")
+	 * @Matches("/^points log all$/i")
+	 */
+	public function pointsLogAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showraidPoints($channel, $sender, $sendto, true, ...$this->getRaidpointLogsForAccount($sender));
+	}
+
+	public function showraidPoints(string $channel, string $sender, CommandReply $sendto, bool $showUsername, RaidPointsLog ...$pointLogs): void {
 		if ($channel !== 'msg') {
 			$sendto->reply("<red>The <symbol>points log command only works in tells<end>.");
 			return;
 		}
-		/** @var RaidPointsLog[] */
-		$pointLogs = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` ".
-			"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
-			$sender
-		);
 		if (count($pointLogs) === 0) {
 			$sendto->reply("You have never received any raid points at <myname>.");
 			return;
 		}
-		[$header, $blob] = $this->getPointsLogBlob($pointLogs);
+		[$header, $blob] = $this->getPointsLogBlob($pointLogs, $showUsername);
+		if ($showUsername === false) {
+			$blob .= "\n\n<i>Only showing the points of {$sender}. To include all the alts ".
+				"in the list, use ".
+				$this->text->makeChatcmd("/tell <myname> points log all", "/tell <myname> points log all").
+				".</i>";
+		}
 		$msg = $this->text->makeBlob("Your raid points log", $blob, null, $header);
 		$sendto->reply($msg);
 	}
 
 	/**
+	 * Get all the raidpoint log entries for main and confirmed alts of $sender
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForAccount(string $sender): array {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->main;
+		return $this->db->fetchAll(
+			RaidPointsLog::class,
+			"SELECT rpl.* FROM `raid_points_log_<myname>` rpl ".
+			"LEFT JOIN `alts` a ON (a.`alt`=rpl.`username`) ".
+			"WHERE (a.`main`=? AND a.`validated_by_main` IS TRUE AND a.`validated_by_alt` IS TRUE) ".
+			"OR rpl.`username`=? ".
+			"ORDER BY `time` DESC LIMIT 50",
+			$main,
+			$main
+		);
+	}
+
+	/**
+	 * Get all the raidpoint log entries for a single character $sender, not
+	 * including alts
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForChar(string $sender): array {
+		return $this->db->fetchAll(
+			RaidPointsLog::class,
+			"SELECT * FROM `raid_points_log_<myname>` " .
+				"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
+			$sender
+		);
+	}
+
+	/**
 	 * @HandlesCommand("points .+")
+	 * @Matches("/^points (.+) log (all)$/i")
+	 * @Matches("/^points log (.+) (all)$/i")
 	 * @Matches("/^points (.+) log$/i")
 	 * @Matches("/^points log (.+)$/i")
 	 */
@@ -473,17 +528,22 @@ class RaidPointsController {
 		}
 		$args[1] = ucfirst(strtolower($args[1]));
 		/** @var RaidPointsLog[] */
-		$pointLogs = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` ".
-			"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
-			$args[1]
-		);
+		if (count($args) === 3) {
+			$pointLogs = $this->getRaidpointLogsForAccount($args[1]);
+		} else {
+			$pointLogs = $this->getRaidpointLogsForChar($args[1]);
+		}
 		if (count($pointLogs) === 0) {
 			$sendto->reply("{$args[1]} has never received any raid points at <myname>.");
 			return;
 		}
-		[$header, $blob] = $this->getPointsLogBlob($pointLogs);
+		[$header, $blob] = $this->getPointsLogBlob($pointLogs, count($args) === 3);
+		if (count($args) < 3) {
+			$blob .= "\n\n<i>Only showing the points of {$args[1]}. To include all the alts ".
+				"in the list, use ".
+				$this->text->makeChatcmd("/tell <myname> {$message} all", "/tell <myname> {$message} all").
+				".</i>";
+		}
 		$msg = $this->text->makeBlob("{$args[1]}'s raid points log", $blob, null, $header);
 		$sendto->reply($msg);
 	}
@@ -493,7 +553,7 @@ class RaidPointsController {
 	 * @param RaidPointsLog[] $pointLogs
 	 * @return string[] Header and The popup text
 	 */
-	public function getPointsLogBlob(array $pointLogs): array {
+	public function getPointsLogBlob(array $pointLogs, bool $showUsername=false): array {
 		$header =  "<header2><u>When                       |   Delta   |  Why                              </u><end>\n";
 		$rows = [];
 		foreach ($pointLogs as $log) {
@@ -506,6 +566,9 @@ class RaidPointsController {
 				(($log->delta > 0) ? '+' : '-').
 				$this->text->alignNumber(abs($log->delta), 4, $log->delta > 0 ? 'green' : 'red').
 				"  |  {$log->reason} ({$log->changed_by})";
+			if ($showUsername) {
+				$row .= " on {$log->username}";
+			}
 			$rows []= $row;
 		}
 		return [$header, join("\n", $rows)];

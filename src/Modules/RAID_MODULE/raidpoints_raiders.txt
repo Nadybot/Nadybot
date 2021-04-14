@@ -1,6 +1,12 @@
 To check your current raid points at <myname>, use
 <tab><highlight>/tell <myname> points<end>
 
+To see a list of the most recent points you got at <myname>, use
+<tab><highlight>/tell <myname> points log<end>
+
+To see a list of the most recent points you got at <myname> on any of your alts, use
+<tab><highlight>/tell <myname> points log all<end>
+
 Checking your points only works in tells to prevent others from seeing
 how many points you have.
 
