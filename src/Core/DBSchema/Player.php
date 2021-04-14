@@ -146,4 +146,64 @@ class Player extends DBRow {
 		}
 		return "are";
 	}
+
+	/**
+	 * Render a text with pronoun/attribute substitution
+	 *
+	 * Parses text like "%They% %are% currently level %level%/%ai_level%."
+	 * The first letter is always lower-cased, unless you give it with the first letter
+	 * in uppercase. So "%Faction%" is "Clan" and "%faction%" is "clan"
+	 *
+	 * @param string $text The text to parse
+	 * @return string The rendered text
+	 */
+	public function text(string $text): string {
+		$pronouns = [
+			'male' => [
+				'they' => 'he',
+				'them' => 'him',
+				'their' => 'his',
+				'theirs' => 'his',
+				'themselves' => 'himself',
+				'have' => 'has',
+				'are' => 'is',
+			],
+			'female' => [
+				'they' => 'she',
+				'them' => 'her',
+				'their' => 'her',
+				'theirs' => 'hers',
+				'themselves' => 'herself',
+				'have' => 'has',
+				'are' => 'is',
+			],
+		];
+		$gender = strtolower($this->gender??"");
+		$text = preg_replace_callback(
+			"/%([a-z:_A-Z]+)%/",
+			function (array $matches) use($pronouns, $gender): string {
+				$pronoun = $matches[1];
+				$choices = explode(":", $pronoun);
+				if (count($choices) === 2) {
+					return $choices[($gender === "neuter") ? 0 : 1];
+				}
+				$lc = strtolower($pronoun);
+				if (!isset($pronouns[$gender][$lc])) {
+					if (property_exists($this, $lc)) {
+						$result = lcfirst((string)($this->{$lc} ?? ""));
+					} else {
+						return $pronoun;
+					}
+				} else {
+					$result = $pronouns[$gender][$lc];
+				}
+				if (ord(substr($pronoun, 0, 1)) < 97) {
+					return ucfirst($result);
+				}
+				return $result;
+			},
+			$text
+		);
+		return $text;
+	}
 }
