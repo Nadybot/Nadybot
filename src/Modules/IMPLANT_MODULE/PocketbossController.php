@@ -214,14 +214,19 @@ class PocketbossController {
 					// check if it's a type
 					if (preg_match("/^art/i", $args[$i])) {
 						$symbtype = "Artillery";
+						break;
 					} elseif (preg_match("/^sup/i", $args[$i])) {
 						$symbtype = "Support";
+						break;
 					} elseif (preg_match("/^inf/i", $args[$i])) {
 						$symbtype = "Infantry";
+						break;
 					} elseif (preg_match("/^ext/i", $args[$i])) {
 						$symbtype = "Extermination";
+						break;
 					} elseif (preg_match("/^control/i", $args[$i])) {
 						$symbtype = "Control";
+						break;
 					}
 
 					// check if it's a line, but be less strict this time
@@ -247,7 +252,11 @@ class PocketbossController {
 			Pocketboss::class,
 			"SELECT * FROM pocketboss ".
 			"WHERE `slot` LIKE ? AND `type` LIKE ? AND `line` LIKE ? ".
-			"ORDER BY `ql` DESC, `type` ASC",
+			"ORDER BY ".
+			"`ql` DESC, ".
+			"`line`='Alpha' DESC, ".
+			"`line`='Beta' DESC, ".
+			"`type` ASC",
 			$slot,
 			$symbtype,
 			$line
