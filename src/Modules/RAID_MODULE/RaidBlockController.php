@@ -32,6 +32,7 @@ use Nadybot\Core\Modules\ALTS\AltsController;
  * )
  */
 class RaidBlockController {
+	public const DB_TABLE = "raid_block_<myname>";
 	public const POINTS_GAIN = "points";
 	public const JOIN_RAIDS = "join";
 	public const AUCTION_BIDS = "bid";
@@ -60,7 +61,7 @@ class RaidBlockController {
 
 	/** @Setup */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "raid_block");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Block");
 		$this->loadBlocks();
 	}
 
@@ -68,17 +69,14 @@ class RaidBlockController {
 	 * Load all blocks from the database into memory
 	 */
 	public function loadBlocks(): void {
-		/** @var RaidBlock[] */
-		$blocks = $this->db->fetchAll(
-			RaidBlock::class,
-			"SELECT * FROM `raid_block_<myname>` WHERE `expiration` IS NULL OR `expiration` > ?",
-			time()
-		);
-		$this->blocks = [];
-		foreach ($blocks as $block) {
-			$this->blocks[$block->player] ??= [];
-			$this->blocks[$block->player][$block->blocked_from] = $block;
-		}
+		$this->db->table(self::DB_TABLE)
+			->whereNull("expiration")
+			->orWhere("expiration", ">", time())
+			->asObj(RaidBlock::class)
+			->each(function(RaidBlock $block) {
+				$this->blocks[$block->player] ??= [];
+				$this->blocks[$block->player][$block->blocked_from] = $block;
+			});
 	}
 
 	/**
@@ -154,7 +152,7 @@ class RaidBlockController {
 		$block->time = time();
 		$this->blocks[$player] ??= [];
 		$this->blocks[$player][$args[1]] = $block;
-		$this->db->insert("raid_block_<myname>", $block);
+		$this->db->insert(self::DB_TABLE, $block, null);
 		$msg = "<highlight>{$player}<end> is now blocked from <highlight>".
 			$this->blockToString($args[1]) . "<end> ";
 		if ($duration > 0) {
@@ -236,18 +234,17 @@ class RaidBlockController {
 			);
 			return;
 		}
-		$args = [time(), $player];
-		$sql = "UPDATE `raid_block_<myname>` SET `expiration`=? WHERE `player`=?";
+		$query = $this->db->table(self::DB_TABLE)
+			->where("player", $player);
 		if (isset($block)) {
-			$args []= $block;
-			$sql .= " AND `blocked_from`=?";
+			$query->where("blocked_from", $block);
 			$this->blocks[$player][$block]->expiration = time();
 		} else {
 			foreach ($this->blocks[$player] as $name => $block) {
 				$block->expiration = time();
 			}
 		}
-		$this->db->exec($sql, ...$args);
+		$query->update(["expiration" => time()]);
 		$sendto->reply("Raidblock removed from <highlight>{$player}<end>.");
 	}
 }

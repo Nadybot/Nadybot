@@ -88,13 +88,13 @@ class Raffle {
 	}
 
 	public function getWinnerNames(): array {
-		return array_merge(
-			...array_map(
-				function(RaffleSlot $slot) {
-					return $slot->getWinnerNames();
-				},
-				$this->slots
-			)
+		/** @var string[][] */
+		$winners = array_map(
+			function (RaffleSlot $slot): array {
+				return $slot->getWinnerNames();
+			},
+			$this->slots
 		);
+		return array_merge(...$winners);
 	}
 }

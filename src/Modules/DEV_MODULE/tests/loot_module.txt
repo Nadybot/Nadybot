@@ -128,4 +128,7 @@
 /delay %1
 !12m
 /delay %1
+!loot clear
+!loot add 17
+!loot add a7
 /text End RAID_MODULE

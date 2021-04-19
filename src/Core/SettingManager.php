@@ -8,6 +8,7 @@ use Nadybot\Core\DBSchema\Setting;
  * @Instance
  */
 class SettingManager {
+	public const DB_TABLE = "settings_<myname>";
 	/** @Inject */
 	public DB $db;
 
@@ -100,15 +101,36 @@ class SettingManager {
 			$setting->verify      = 1;
 			$setting->value       = (string)$value;
 			if (array_key_exists($name, $this->chatBot->existing_settings ?? []) || $this->exists($name)) {
-				$sql = "UPDATE settings_<myname> SET `module` = ?, `type` = ?, `mode` = ?, `options` = ?, `intoptions` = ?, `description` = ?, `admin` = ?, `verify` = 1, `help` = ? WHERE `name` = ?";
-				$this->db->exec($sql, $module, $type, $mode, $options, $intoptions, $description, $accessLevel, $help, $name);
+				$this->db->table(self::DB_TABLE)
+					->where("name", $name)
+					->update([
+						"module" => $module,
+						"type" => $type,
+						"mode" => $mode,
+						"options" => $options,
+						"intoptions" => $intoptions,
+						"description" => $description,
+						"admin" => $accessLevel,
+						"verify" => 1,
+						"help" => $help,
+					]);
 				$setting->value = $this->settings[$name]->value;
 			} else {
-				$sql = "INSERT INTO settings_<myname> ".
-					"(`name`, `module`, `type`, `mode`, `value`, `options`, `intoptions`, `description`, `source`, `admin`, `verify`, `help`) ".
-					"VALUES ".
-					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-				$this->db->exec($sql, $name, $module, $type, $mode, $value, $options, $intoptions, $description, 'db', $accessLevel, '1', $help);
+				$this->db->table(self::DB_TABLE)
+					->insert([
+						"name" => $name,
+						"module" => $module,
+						"type" => $type,
+						"mode" => $mode,
+						"value" => $value,
+						"options" => $options,
+						"intoptions" => $intoptions,
+						"description" => $description,
+						"source" => "db",
+						"admin" => $accessLevel,
+						"verify" => 1,
+						"help" => $help,
+					]);
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
@@ -204,7 +226,12 @@ class SettingManager {
 			}
 		}
 		$this->settings[$name]->value = $value;
-		$this->db->exec("UPDATE settings_<myname> SET `verify` = 1, `value` = ? WHERE `name` = ?", $value, $name);
+		$this->db->table(self::DB_TABLE)
+			->where("name", $name)
+			->update([
+				"verify" => 1,
+				"value" => $value
+			]);
 		return true;
 	}
 
@@ -216,7 +243,7 @@ class SettingManager {
 
 		//Upload Settings from the db that are set by modules
 		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>`");
+		$data = $this->db->table(self::DB_TABLE)->asObj(Setting::class)->toArray();
 		foreach ($data as $row) {
 			$this->settings[$row->name] = new SettingValue($row);
 		}

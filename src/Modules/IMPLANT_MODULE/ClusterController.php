@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -44,10 +45,11 @@ class ClusterController {
 	 * @Matches("/^cluster$/i")
 	 */
 	public function clusterListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT * FROM Cluster ORDER BY LongName ASC";
-		/** @var Cluster[] */
-		$data = $this->db->fetchAll(Cluster::class, $sql);
-		$count = count($data);
+		/** @var Collection<Cluster> */
+		$data = $this->db->table("Cluster")
+			->orderBy("LongName")
+			->asObj(Cluster::class);
+		$count = $data->count();
 
 		$blob = "<header2>Clusters<end>\n";
 		foreach ($data as $cluster) {
@@ -57,7 +59,7 @@ class ClusterController {
 			$blob .= "<tab>".
 				$this->text->makeChatcmd(
 					$cluster->LongName,
-					"/tell <myname> cluster $cluster->LongName"
+					"/tell <myname> cluster {$cluster->LongName}"
 				).
 				"\n";
 		}
@@ -71,31 +73,29 @@ class ClusterController {
 	 */
 	public function clusterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = trim($args[1]);
+		$query = $this->db->table("Cluster");
+		$this->db->addWhereFromParams($query, explode(' ', $search), 'LongName');
 
-		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'LongName');
-
-		$sql = "SELECT * FROM Cluster WHERE $query";
-		/** @var Cluster[] */
-		$data = $this->db->fetchAll(Cluster::class, $sql, ...$params);
-		$count = count($data);
+		/** @var Collection<Cluster> */
+		$data = $query->asObj(Cluster::class);
+		$count = $data->count();
 
 		if ($count === 0) {
-			$msg = "No skills found that match <highlight>$search<end>.";
+			$msg = "No skills found that match <highlight>{$search}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
 		$blob = "Click 'Add' to add cluster to $implantDesignerLink.\n\n";
 		foreach ($data as $cluster) {
-			$sql = "SELECT i.ShortName as Slot, c2.Name AS ClusterType ".
-				"FROM ClusterImplantMap c1 ".
-				"JOIN ClusterType c2 ON c1.ClusterTypeID = c2.ClusterTypeID ".
-				"JOIN ImplantType i ON c1.ImplantTypeID = i.ImplantTypeID ".
-				"WHERE c1.ClusterID = ? ".
-				"ORDER BY c2.ClusterTypeID DESC";
-			$results = $this->db->query($sql, $cluster->ClusterID);
-
-			$blob .= "<pagebreak><header2>$cluster->LongName<end>:\n";
+			$results = $this->db->table("ClusterImplantMap AS c1")
+				->join("ClusterType AS c2", "c1.ClusterTypeID", "c2.ClusterTypeID")
+				->join("ImplantType AS i", "c1.ImplantTypeID", "i.ImplantTypeID")
+				->where("c1.ClusterID", $cluster->ClusterID)
+				->orderByDesc("c2.ClusterTypeID")
+				->select("i.ShortName as Slot", "c2.Name AS ClusterType")
+				->asObj()->toArray();
+			$blob .= "<pagebreak><header2>{$cluster->LongName}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = $this->text->makeChatcmd(

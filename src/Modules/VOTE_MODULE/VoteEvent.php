@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use Nadybot\Core\Event;
-
 class VoteEvent extends PollEvent {
 	public string $player;
 	public string $vote;

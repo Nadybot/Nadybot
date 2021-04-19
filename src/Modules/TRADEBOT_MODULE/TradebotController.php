@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BuddylistManager,
 	ColorSettingHandler,
@@ -32,6 +33,8 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
  *	)
  */
 class TradebotController {
+
+	public const DB_TABLE = "tradebot_colors_<myname>";
 
 	/**
 	 * Name of the module.
@@ -153,7 +156,7 @@ class TradebotController {
 			[$this, 'changeTradebot']
 		);
 
-		$this->db->loadSQLFile($this->moduleName, "tradebot_colors");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	/**
@@ -341,13 +344,11 @@ class TradebotController {
 	}
 
 	protected function getTagColor(string $tradeBot, string $tag): ?TradebotColors {
-		/** @var TradebotColors[] */
-		$colorDefs = $this->db->fetchAll(
-			TradebotColors::class,
-			"SELECT * FROM `tradebot_colors_<myname>` ".
-			"WHERE `tradebot`=? ORDER BY LENGTH(channel) DESC",
-			$tradeBot
-		);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("tradebot", $tradeBot);
+		/** @var Collection<TradebotColors> */
+		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "channel"))
+			->asObj(TradebotColors::class);
 		foreach ($colorDefs as $colorDef) {
 			if (fnmatch($colorDef->channel, $tag, FNM_CASEFOLD)) {
 				return $colorDef;
@@ -406,21 +407,17 @@ class TradebotController {
 	 * @Matches("/^tradecolor$/i")
 	 */
 	public function listTradecolorsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var TradebotColors[] */
-		$colors = $this->db->fetchAll(
-			TradebotColors::class,
-			"SELECT * FROM `tradebot_colors_<myname>` ORDER BY `tradebot` ASC, `id` ASC"
-		);
-		if (!count($colors)) {
+		/** @var Collection<TradebotColors> */
+		$colors = $this->db->table(self::DB_TABLE)
+			->orderBy("tradebot")
+			->orderBy("id")
+			->asObj(TradebotColors::class);
+		if ($colors->isEmpty()) {
 			$sendto->reply("No colors have been defined yet.");
 			return;
 		}
 		/** @var array<string,TradebotColors[]> */
-		$colorDefs = [];
-		foreach ($colors as $color) {
-			$colorDefs[$color->tradebot] ??= [];
-			$colorDefs[$color->tradebot] []= $color;
-		}
+		$colorDefs = $colors->groupBy("tradebot")->toArray();
 		$blob = "";
 		foreach ($colorDefs as $tradebot => $colors) {
 			$blob = "<pagebreak><header2>{$tradebot}<end>\n";
@@ -451,7 +448,7 @@ class TradebotController {
 	 */
 	public function remTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
-		if (!$this->db->exec("DELETE FROM `tradebot_colors_<myname>` WHERE `id`=?", $id)) {
+		if (!$this->db->table(self::DB_TABLE)->delete($id)) {
 			$sendto->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
 			return;
 		}
@@ -481,9 +478,9 @@ class TradebotController {
 		$oldValue = $this->getTagColor($tradeBot, $tag);
 		if (isset($oldValue) && $oldValue->channel === $colorDef->channel) {
 			$colorDef->id = $oldValue->id;
-			$this->db->update("tradebot_colors_<myname>", "id", $colorDef);
+			$this->db->update(self::DB_TABLE, "id", $colorDef);
 		} else {
-			$colorDef->id = $this->db->insert("tradebot_colors_<myname>", $colorDef);
+			$colorDef->id = $this->db->insert(self::DB_TABLE, $colorDef);
 		}
 		$sendto->reply(
 			"Color for <highlight>{$tradeBot} &gt; [{$tag}]<end> set to ".

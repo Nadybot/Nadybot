@@ -39,8 +39,7 @@ class HttpRequestController {
 			$sendto->reply("<highlight>{$args[1]}<end> is not a valid URL.");
 			return;
 		}
-		$client = $this->http->get($parts["scheme"] . "://" . $parts["host"] . ($parts["path"]??""))
-			->withHeader('User-Agent', 'Nadybot');
+		$client = $this->http->get($parts["scheme"] . "://" . $parts["host"] . ($parts["path"]??""));
 		if (isset($params["query"])) {
 			$params = [];
 			$groups = explode("&", $parts["query"]);

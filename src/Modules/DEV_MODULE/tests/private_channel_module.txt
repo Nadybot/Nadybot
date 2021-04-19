@@ -33,9 +33,26 @@
 !count advy
 !count adventurer
 !count error
+!testjoin Pigtail
+!count levels
+!count all
+!count profs
+!count org
+!count orgs
+!count 0
+!count 1
+!count adv
+!count advy
+!count adventurer
+!count error
 !kickall
+!settings save add_member_on_join 1
 !join
+!mod add Regolus
+!runas Regolus join
+!mod rem Regolus
 !leave
+!testleave Pigtail
 !kickall later
 !kickall now
 

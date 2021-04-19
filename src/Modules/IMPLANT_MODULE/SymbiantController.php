@@ -73,16 +73,19 @@ class SymbiantController {
 	}
 
 	public function showBestSymbiants(string $prof, int $level, CommandReply $sendto): void {
-		$sql = "SELECT s.*, it.`ShortName` as `SlotName`, it.`Name` as `SlotLongName` FROM `Symbiant` s ".
-			"JOIN `SymbiantProfessionMatrix` spm ON (spm.`SymbiantID` = s.`id`) ".
-			"JOIN `Profession` p ON (p.`ID` = spm.`ProfessionID`) ".
-			"JOIN `ImplantType` it ON (it.`ImplantTypeID` = s.`SlotID`) ".
-			"WHERE p.`Name` = ? ".
-			"AND s.`LevelReq` <= ? ".
-			"AND s.`Name` NOT LIKE 'Prototype%' ".
-			"ORDER BY s.`Name` LIKE '%Alpha' DESC, s.`Name` LIKE '%Beta' DESC, s.`QL` DESC";
+		$query = $this->db->table("Symbiant AS s")
+			->join("SymbiantProfessionMatrix AS spm", "spm.SymbiantID", "s.ID")
+			->join("Profession AS p", "p.ID", "spm.ProfessionID")
+			->join("ImplantType AS it", "it.ImplantTypeID", "s.SlotID")
+			->where("p.Name", $prof)
+			->where("s.LevelReq", "<=", $level)
+			->where("s.Name", "NOT LIKE", "Prototype%")
+			->select("s.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName");
+		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", '%Alpha');
+		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", '%Beta');
+		$query->orderByDesc("s.QL");
 		/** @var Symbiant[] */
-		$symbiants = $this->db->fetchAll(Symbiant::class, $sql, $prof, $level);
+		$symbiants = $query->asObj(Symbiant::class)->toArray();
 		/** @var array<string,SymbiantConfig> */
 		$configs = [];
 		foreach ($symbiants as $symbiant) {
@@ -104,9 +107,10 @@ class SymbiantController {
 	 * @param array<string,SymbiantConfig> $configs
 	 */
 	protected function configsToBlob(array $configs): string {
-		$sql = "SELECT * FROM `ImplantType`";
 		/** @var ImplantType[] */
-		$types = $this->db->fetchAll(ImplantType::class, $sql);
+		$types = $this->db->table("ImplantType")
+			->asObj(ImplantType::class)
+			->toArray();
 		$typeMap = array_column($types, "Name", "ShortName");
 		$blob = '';
 		$slots = get_class_vars(SymbiantConfig::class);

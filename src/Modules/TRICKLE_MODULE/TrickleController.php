@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -44,7 +45,8 @@ class TrickleController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'trickle');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/trickle.csv");
 	}
 
 	/**
@@ -107,13 +109,11 @@ class TrickleController {
 	public function trickleSkillCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 
-		/** @var Trickle[] */
-		$data = $this->db->fetchAll(
-			Trickle::class,
-			"SELECT * FROM trickle WHERE name LIKE ?",
-			"%" . str_replace(" ", "%", $search) . "%"
-		);
-		$count = count($data);
+		/** @var Collection<Trickle> */
+		$data = $this->db->table("trickle")
+			->whereIlike("name", "%" . str_replace(" ", "%", $search) . "%")
+			->asObj(Trickle::class);
+		$count = $data->count();
 		if ($count === 0) {
 			$msg = "Could not find any skills for search '$search'";
 		} elseif ($count === 1) {
@@ -166,20 +166,19 @@ class TrickleController {
 	 * @return Trickle[]
 	 */
 	public function getTrickleResults(AbilityConfig $abilities): array {
-		$sql = "SELECT *, ".
-				"( amountAgi * {$abilities->agi} ".
-				"+ amountInt * {$abilities->int} ".
-				"+ amountPsy * {$abilities->psy} ".
-				"+ amountSta * {$abilities->sta} ".
-				"+ amountStr * {$abilities->str} ".
-				"+ amountSen * {$abilities->sen}) AS amount ".
-			"FROM trickle ".
-			"GROUP BY groupName, name, amountAgi, amountInt, amountPsy, ".
-				"amountSta, amountStr, amountSen ".
-			"HAVING amount > 0 ".
-			"ORDER BY id";
-
-		return $this->db->fetchAll(Trickle::class, $sql);
+		return $this->db->table("trickle")
+			->orderBy("id")
+			->select("*")
+			->asObj(Trickle::class)
+			->filter(function (Trickle $row) use ($abilities) {
+				$row->amount = $row->amountAgi * $abilities->agi
+					+ $row->amountInt * $abilities->int
+					+ $row->amountPsy * $abilities->psy
+					+ $row->amountSen * $abilities->sen
+					+ $row->amountSta * $abilities->sta
+					+ $row->amountStr * $abilities->str;
+				return $row->amount > 0;
+			})->toArray();
 	}
 
 	/**

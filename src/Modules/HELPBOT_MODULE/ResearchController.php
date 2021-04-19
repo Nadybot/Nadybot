@@ -39,7 +39,8 @@ class ResearchController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'research');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Research");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');
 	}
 
 	/**
@@ -48,9 +49,11 @@ class ResearchController {
 	 */
 	public function researchSingleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$level = (int)$args[1];
-		$sql = "SELECT * FROM research WHERE level = ?";
 		/** @var ?Research */
-		$row = $this->db->fetch(Research::class, $sql, $level);
+		$row = $this->db->table("research")
+			->where("level", $level)
+			->asObj(Research::class)
+			->first();
 
 		$levelcap = $row->levelcap;
 		$sk = $row->sk;
@@ -76,11 +79,12 @@ class ResearchController {
 	public function researchDoubleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$loLevel = min((int)$args[1], (int)$args[2]);
 		$hiLevel = max((int)$args[1], (int)$args[2]);
-		$sql =
-			"SELECT SUM(sk) AS totalsk, MAX(levelcap) AS levelcap ".
-			"FROM research ".
-			"WHERE level > ? AND level <= ?";
-		$row = $this->db->queryRow($sql, $loLevel, $hiLevel);
+		$query = $this->db->table("research")
+			->where("level", ">", $loLevel)
+			->where("level", "<=", $hiLevel);
+		$query->select($query->colFunc("SUM", "sk", "totalsk"));
+		$query->addSelect($query->colFunc("MAX", "levelcap", "levelcap"));
+		$row = $query->asObj()->first();
 		if ($row->levelcap === null) {
 			$msg = "That doesn't make any sense.";
 			$sendto->reply($msg);

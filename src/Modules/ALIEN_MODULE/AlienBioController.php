@@ -65,7 +65,9 @@ class AlienBioController {
 	 */
 	public function setup() {
 		// load database tables from .sql-files
-		$this->db->loadSQLFile($this->moduleName, 'alienweapons');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Weapons');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweapons.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweaponspecials.csv');
 	}
 
 	/**
@@ -233,11 +235,7 @@ class AlienBioController {
 		if ($args[2]) {
 			$ql = (int)$args[2];
 		}
-		if ($ql < 1) {
-			$ql = 1;
-		} elseif ($ql > 300) {
-			$ql = 300;
-		}
+		$ql = min(300, max(1, $ql));
 
 		$msg = "Unknown Bio-Material";
 		if (in_array($bio, self::LE_ARMOR_TYPES)) {
@@ -279,7 +277,10 @@ class AlienBioController {
 		$item = $this->itemsController->getItem($name, $ql);
 
 		/** @var OfabArmorType[] $data */
-		$data = $this->db->fetchAll(OfabArmorType::class, "SELECT * FROM ofabarmortype WHERE type = ?", $type);
+		$data = $this->db->table("ofabarmortype")
+			->where("type", $type)
+			->asObj(OfabArmorType::class)
+			->toArray();
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab armor for:<end>\n";
@@ -299,7 +300,9 @@ class AlienBioController {
 		$item = $this->itemsController->getItem($name, $ql);
 
 		/** @var OfabWeapon[] $data */
-		$data = $this->db->fetchAll(OfabWeapon::class, "SELECT * FROM ofabweapons WHERE type = ?", $type);
+		$data = $this->db->table("ofabweapons")
+			->where("type", $type)
+			->asObj(OfabWeapon::class)->toArray();
 
 		$blob = $item . "\n\n";
 		$blob .= "<highlight>Upgrades Ofab weapons:<end>\n";
@@ -327,7 +330,11 @@ class AlienBioController {
 
 		$requiredEEandCL = (int)floor($ql * 4.5);
 
-		$row = $this->db->queryRow("SELECT specials FROM alienweaponspecials WHERE type = ?", $type);
+		$row = $this->db->table("alienweaponspecials")
+			->where("type", $type)
+			->select("specials")
+			->limit(1)
+			->asObj()->first();
 		$specials = $row->specials;
 
 		$blob = $item . "\n\n";
@@ -336,7 +343,10 @@ class AlienBioController {
 		$blob .= "<highlight>Adds {$specials} to:<end>\n";
 
 		/** @var AlienWeapon[] $data */
-		$data = $this->db->fetchAll(AlienWeapon::class, "SELECT * FROM alienweapons WHERE type = ?", $type);
+		$data = $this->db->table("alienweapons")
+			->where("type", $type)
+			->asObj(AlienWeapon::class)
+			->toArray();
 		foreach ($data as $row) {
 			$blob .= $this->itemsController->getItem($row->name, $maxAIType) . "\n";
 		}

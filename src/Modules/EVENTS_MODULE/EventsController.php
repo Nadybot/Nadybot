@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\EVENTS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -11,8 +12,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 };
-use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Legendadv (RK2)
@@ -70,6 +71,9 @@ class EventsController {
 	public SettingManager $settingManager;
 
 	/** @Inject */
+	public PlayerManager $playerManager;
+
+	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
@@ -80,7 +84,7 @@ class EventsController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "events");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -105,14 +109,20 @@ class EventsController {
 		$sendto->reply($msg);
 	}
 
+	public function getEvent(int $id): ?EventModel {
+		return $this->db->table("events")
+			->where("id", $id)
+			->asObj(EventModel::class)
+			->first();
+	}
+
 	/**
 	 * @HandlesCommand("events")
 	 * @Matches("/^events join (\d+)$/i")
 	 */
 	public function eventsJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = $args[1];
-		/** @var ?EventModel */
-		$row = $this->db->fetch(EventModel::class, "SELECT * FROM events WHERE `id` = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>$id<end>.";
 			$sendto->reply($msg);
@@ -131,11 +141,9 @@ class EventsController {
 			return;
 		}
 		$attendees []= $sender;
-		$this->db->exec(
-			"UPDATE events SET `event_attendees` = ? WHERE `id` = ?",
-			join(",", $attendees),
-			$id
-		);
+		$this->db->table("events")
+			->where("id", $id)
+			->update(["event_attendees" => join(",", $attendees)]);
 		$msg = "You have been added to the event.";
 		$sendto->reply($msg);
 	}
@@ -146,8 +154,7 @@ class EventsController {
 	 */
 	public function eventsLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = $args[1];
-		/** @var ?EventModel */
-		$row = $this->db->fetch(EventModel::class, "SELECT * FROM events WHERE `id` = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>$id<end>.";
 			$sendto->reply($msg);
@@ -165,11 +172,9 @@ class EventsController {
 			return;
 		}
 		$attendees = array_diff($attendees, [$sender]);
-		$this->db->exec(
-			"UPDATE events SET `event_attendees` = ? WHERE `id` = ?",
-			join(",", $attendees),
-			$id
-		);
+		$this->db->table("events")
+			->where("id", $id)
+			->update(["event_attendees" => join(",", $attendees)]);
 		$msg = "You have been removed from the event.";
 		$sendto->reply($msg);
 	}
@@ -180,8 +185,7 @@ class EventsController {
 	 */
 	public function eventsListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = $args[1];
-		/** @var ?EventModel */
-		$row = $this->db->fetch(EventModel::class, "SELECT * FROM events WHERE `id` = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>$id<end>.";
 			$sendto->reply($msg);
@@ -200,8 +204,7 @@ class EventsController {
 		$numAttendees = count($eventlist);
 		sort($eventlist);
 		foreach ($eventlist as $key => $name) {
-			/** @var ?Player */
-			$row = $this->db->fetch(Player::class, "SELECT * FROM players WHERE name = ? AND dimension = '<dim>'", $name);
+			$row = $this->playerManager->findInDb($name, $this->db->getDim());
 			$info = '';
 			if ($row !== null) {
 				$info = ", <white>Lvl {$row->level} {$row->profession}<end>";
@@ -217,7 +220,7 @@ class EventsController {
 				}
 			}
 
-			$link .= "<tab>{$name}{$info} {$alt}\n";
+			$link .= "<tab>- {$name}{$info} {$alt}\n";
 		}
 		$msg = $this->text->makeBlob("Players Attending Event $id ($numAttendees)", $link);
 
@@ -230,9 +233,14 @@ class EventsController {
 	 */
 	public function eventsAddCommand($message, $channel, $sender, $sendto, $args) {
 		$eventName = $args[1];
-		$this->db->exec("INSERT INTO events (`time_submitted`, `submitter_name`, `event_name`, `event_date`) VALUES (?, ?, ?, null)", time(), $sender, $eventName);
-		$event_id = $this->db->lastInsertId();
-		$msg = "Event: '$eventName' was added [Event ID $event_id].";
+		$eventId = $this->db->table("events")
+			->insertGetId([
+				"time_submitted" => time(),
+				"submitter_name" => $sender,
+				"event_name" => $eventName,
+				"event_date" => null,
+			]);
+		$msg = "Event: '$eventName' was added [Event ID $eventId].";
 		$sendto->reply($msg);
 	}
 
@@ -242,13 +250,12 @@ class EventsController {
 	 */
 	public function eventsRemoveCommand($message, $channel, $sender, $sendto, $args) {
 		$id = $args[1];
-		/** @var ?EventModel */
-		$row = $this->db->fetch(EventModel::class, "SELECT * FROM events WHERE id = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
 		} else {
-			$this->db->exec("DELETE FROM events WHERE `id` = ?", $id);
-			$msg = "Event with id $id has been deleted.";
+			$this->db->table("events")->where("id", $id)->delete();
+			$msg = "Event with id {$id} has been deleted.";
 		}
 		$sendto->reply($msg);
 	}
@@ -260,11 +267,13 @@ class EventsController {
 	public function eventsSetDescCommand($message, $channel, $sender, $sendto, $args) {
 		$id = $args[1];
 		$desc = $args[2];
-		$row = $this->db->queryRow("SELECT * FROM events WHERE id = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
 		} else {
-			$this->db->exec("UPDATE events SET `event_desc` = ? WHERE `id` = ?", $desc, $id);
+			$this->db->table("events")
+				->where("id", $id)
+				->update(["event_desc" => $desc]);
 			$msg = "Description for event with id $id has been updated.";
 		}
 		$sendto->reply($msg);
@@ -276,24 +285,27 @@ class EventsController {
 	 */
 	public function eventsSetDateCommand($message, $channel, $sender, $sendto, $args) {
 		$id = (int)$args[1];
-		/** @var ?EventModel */
-		$row = $this->db->fetch(EventModel::class, "SELECT * FROM events WHERE id = ?", $id);
+		$row = $this->getEvent((int)$id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
 		} else {
 			// yyyy-dd-mm hh:mm:ss
 			$eventDate = mktime((int)$args[5], (int)$args[6], 0, (int)$args[3], (int)$args[4], (int)$args[2]);
-			$this->db->exec("UPDATE events SET `event_date` = ? WHERE `id` = ?", $eventDate, $id);
+			$this->db->table("events")
+				->where("id", $id)
+				->update(["event_date" => $eventDate]);
 			$msg = "Date/Time for event with id $id has been updated.";
 		}
 		$sendto->reply($msg);
 	}
 
 	public function getEvents(): ?string {
-		$sql = "SELECT * FROM events ORDER BY `event_date` DESC LIMIT ?";
-		/** @var EventModel[] */
-		$data = $this->db->fetchAll(EventModel::class, $sql, $this->settingManager->getInt('num_events_shown'));
-		if (count($data) === 0) {
+		/** @var Collection<EventModel> */
+		$data = $this->db->table("events")
+			->orderByDesc("event_date")
+			->limit($this->settingManager->getInt('num_events_shown'))
+			->asObj(EventModel::class);
+		if ($data->count() === 0) {
 			return null;
 		}
 		$upcoming_title = "<header2>Upcoming Events<end>\n\n";
@@ -375,7 +387,8 @@ class EventsController {
 
 	public function hasRecentEvents(): bool {
 		$sevenDays = time() - (86400 * 7);
-		$row = $this->db->queryRow("SELECT * FROM events WHERE `event_date` > ? LIMIT 1", $sevenDays);
-		return $row !== null;
+		return $this->db->table("events")
+			->where("event_date", ">", $sevenDays)
+			->exists();
 	}
 }

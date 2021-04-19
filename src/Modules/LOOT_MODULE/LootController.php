@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	CommandManager,
 	DB,
+	DBRow,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -199,6 +202,25 @@ class LootController {
 		}
 	}
 
+	protected function getLootEntryID(int $id): ?DBRow {
+		$query2 = $this->db->table("raid_loot AS r")
+					->join("aodb AS a", "r.aoid", "a.highid")
+					->whereNotNull("r.aoid")
+					->where("r.id", $id);
+		$query2->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
+		$query = $this->db->table("raid_loot AS r")
+			->leftJoin("aodb AS a", function (JoinClause $join) {
+				$join->on("r.name", "a.name")
+					->on("r.ql", ">=", "a.lowql")
+					->on("r.ql", "<=", "a.highql");
+			})
+			->whereNull("r.aoid")
+			->where("r.id", $id)
+			->union($query2);
+		$query->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
+		return $query->asObj()->first();
+	}
+
 	/**
 	 * Add an item from the raid_loot to the loot roll
 	 *
@@ -213,16 +235,7 @@ class LootController {
 
 		$id = (int)$args[1];
 
-		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE r.aoid IS NULL AND id = ? ".
-			"UNION ".
-			"SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"JOIN aodb a ON (r.aoid = a.highid) ".
-			"WHERE r.aoid IS NOT NULL AND id = ?";
-		$row = $this->db->queryRow($sql, $id, $id);
+		$row = $this->getLootEntryID($id);
 
 		if ($row === null) {
 			$msg = "Could not find item with id <highlight>$id<end> to add.";
@@ -271,16 +284,7 @@ class LootController {
 	public function lootAuctionByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
 
-		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE r.aoid IS NULL AND id = ? ".
-			"UNION ".
-			"SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"JOIN aodb a ON (r.aoid = a.highid) ".
-			"WHERE r.aoid IS NOT NULL AND id = ?";
-		$row = $this->db->queryRow($sql, $id, $id);
+		$row = $this->getLootEntryID($id);
 
 		if ($row === null) {
 			$msg = "Could not find item with id <highlight>$id<end> to add.";
@@ -350,11 +354,10 @@ class LootController {
 		}
 
 		/** @var ?AODBEntry */
-		$row = $this->db->fetch(
-			AODBEntry::class,
-			"SELECT * FROM aodb WHERE `name` LIKE ?",
-			$itemName
-		);
+		$row = $this->db->table("aodb")
+			->whereIlike("name", $itemName)
+			->asObj(AODBEntry::class)
+			->first();
 		if ($row !== null) {
 			$itemName = $row->name;
 
@@ -708,13 +711,17 @@ class LootController {
 		$this->loot = [];
 		$count = 1;
 
-		$sql = "SELECT * FROM raid_loot r ".
-			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE raid = ? AND category = ?";
-		/** @var AODBEntry[] */
-		$data = $this->db->fetchAll(AODBEntry::class, $sql, $raid, $category);
+		/** @var Collection<AODBEntry> */
+		$data = $this->db->table("raid_loot AS r")
+			->leftJoin("aodb AS a", function (JoinClause $join) {
+				$join->on("r.name", "a.name")
+					->on("r.ql", ">=", "a.lowql")
+					->on("r.ql", "<=", "a.highql");
+			})
+			->where(["raid" => $raid, "category" => $category])
+			->asObj(AODBEntry::class);
 
-		if (count($data) === 0) {
+		if ($data->count() === 0) {
 			return false;
 		}
 

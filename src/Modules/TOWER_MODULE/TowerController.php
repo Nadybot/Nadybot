@@ -2,6 +2,9 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use Closure;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
 	CommandReply,
@@ -13,6 +16,7 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	QueryBuilder,
 	SettingManager,
 	Text,
 	Util,
@@ -89,6 +93,9 @@ use Nadybot\Modules\{
  *  @ProvidesEvent("tower(win)")
  */
 class TowerController {
+
+	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
+	public const DB_TOWER_VICTORY = "tower_victory_<myname>";
 
 	/**
 	 * Name of the module.
@@ -219,12 +226,8 @@ class TowerController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'tower_attack');
-		$this->db->loadSQLFile($this->moduleName, 'scout_info');
-		$this->db->loadSQLFile($this->moduleName, 'tower_site');
-		if ($this->db->getType() === $this->db::MYSQL) {
-			$this->db->exec("ALTER TABLE `tower_attack_<myname>` CHANGE COLUMN `att_player` `att_player` VARCHAR(50)");
-		}
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -256,7 +259,7 @@ class TowerController {
 	 */
 	public function attacksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$page = $args[1] ?? 1;
-		$this->attacksCommandHandler((int)$page, [''], '', $sendto);
+		$this->attacksCommandHandler((int)$page, null, '', $sendto);
 	}
 
 	/**
@@ -283,11 +286,10 @@ class TowerController {
 		}
 
 		$cmd = "$args[1] $args[2] ";
-		$search = [
-			"WHERE a.`playfield_id` = ? AND a.`site_number` = ?",
-			$towerInfo->playfield_id,
-			$towerInfo->site_number
-		];
+		$search = function (QueryBuilder $query) use ($towerInfo) {
+			$query->where("a.playfield_id", $towerInfo->playfield_id)
+				->where("a.site_number", $towerInfo->site_number);
+		};
 		$page = $args[3] ?? 1;
 		$this->attacksCommandHandler((int)$page, $search, $cmd, $sendto);
 	}
@@ -302,11 +304,10 @@ class TowerController {
 	 */
 	public function attacksOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = "org $args[1] ";
-		$search = [
-			"WHERE a.`att_guild_name` LIKE ? OR a.`def_guild_name` LIKE ?",
-			$args[1],
-			$args[1]
-		];
+		$search = function (QueryBuilder $query) use ($args) {
+			$query->whereIlike("a.att_guild_name", $args[1])
+				->orWhereIlike("a.def_guild_name", $args[1]);
+		};
 		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
@@ -320,7 +321,9 @@ class TowerController {
 	 */
 	public function attacksPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = "player $args[1] ";
-		$search = ["WHERE a.`att_player` LIKE ?", $args[1]];
+		$search = function (QueryBuilder $query) use ($args) {
+			$query->whereIlike("a.att_player", $args[1]);
+		};
 		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
@@ -331,11 +334,12 @@ class TowerController {
 	 * @Matches("/^lc$/i")
 	 */
 	public function lcCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT * FROM playfields WHERE `id` IN ".
-			"(SELECT DISTINCT `playfield_id` FROM tower_site) ".
-			"ORDER BY `short_name`";
-		/** @var Playfield[] */
-		$playfields = $this->db->fetchAll(Playfield::class, $sql);
+		/** @var Collectionn<Playfield> */
+		$playfields = $this->db->table("tower_site AS t")
+			->join("playfields AS p", "p.id", "t.playfield_id")
+			->orderBy("p.short_name")
+			->select("p.*")->distinct()
+			->asObj(Playfield::class);
 
 		$blob = "<header2>Playfields with notum fields<end>\n";
 		foreach ($playfields as $pf) {
@@ -361,13 +365,12 @@ class TowerController {
 			return;
 		}
 
-		$sql = "SELECT * FROM tower_site t ".
-			"JOIN playfields p ON (t.playfield_id = p.id) ".
-			"WHERE t.playfield_id = ?";
-
-		/** @var SiteInfo[] */
-		$data = $this->db->fetchAll(SiteInfo::class, $sql, $playfield->id);
-		if (!count($data)) {
+		/** @var Collection<SiteInfo> */
+		$data = $this->db->table("tower_site AS t")
+			->join("playfields AS p", "t.playfield_id", "p.id")
+			->where("t.playfield_id", $playfield->id)
+			->asObj(SiteInfo::class);
+		if ($data->isEmpty()) {
 			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
 			$sendto->reply($msg);
 			return;
@@ -398,12 +401,12 @@ class TowerController {
 		}
 
 		$siteNumber = (int)$args[2];
-		$sql = "SELECT * FROM tower_site t ".
-			"JOIN playfields p ON (t.playfield_id = p.id) ".
-			"WHERE t.playfield_id = ? AND t.site_number = ?";
-
 		/** @var ?SiteInfo */
-		$site = $this->db->fetch(SiteInfo::class, $sql, $playfield->id, $siteNumber);
+		$site = $this->db->table("tower_site AS t")
+			->join("playfields AS p", "p.id", "t.playfield_id")
+			->where("t.playfield_id", $playfield->id)
+			->where("t.site_number", $siteNumber)
+			->asObj(SiteInfo::class)->first();
 		if ($site === null) {
 			$msg = "Invalid site number.";
 			$sendto->reply($msg);
@@ -412,20 +415,17 @@ class TowerController {
 		$blob = $this->formatSiteInfo($site) . "\n\n";
 
 		// show last attacks and victories
-		$sql = "SELECT a.*, v.*, COALESCE(v.time, a.time) dt ".
-			"FROM tower_attack_<myname> a ".
-			"LEFT JOIN tower_victory_<myname> v ON v.attack_id = a.id ".
-			"WHERE a.playfield_id = ? AND a.site_number = ? ".
-			"ORDER BY dt DESC ".
-			"LIMIT 10";
-		/** @var TowerAttackAndVictory[] */
-		$attacks = $this->db->fetchAll(
-			TowerAttackAndVictory::class,
-			$sql,
-			$playfield->id,
-			$siteNumber
-		);
-		if (count($attacks)) {
+		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
+			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
+			->where("a.playfield_id", $playfield->id)
+			->where("a.site_number", $siteNumber)
+			->orderByDesc("dt")
+			->limit(10)
+			->select("a.*", "v.*");
+		$query->select($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"));
+		/** @var Collection<TowerAttackAndVictory> */
+		$attacks = $query->asObj(TowerAttackAndVictory::class);
+		if ($attacks->isNotEmpty()) {
 			$blob .= "<header2>Recent Attacks<end>\n";
 		}
 		foreach ($attacks as $attack) {
@@ -453,22 +453,24 @@ class TowerController {
 	 * @Matches("/^opentimes$/i")
 	 */
 	public function openTimesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT guild_name, SUM(ct_ql) AS total_ql ".
-			"FROM scout_info ".
-			"GROUP BY guild_name ".
-			"ORDER BY guild_name ASC";
-		$data = $this->db->query($sql);
+		$query = $this->db->table("scout_info")
+			->groupBy("guild_name")
+			->orderBy("guild_name");
+		$data = $query->select("guild_name", $query->colFunc("SUM", "ct_ql", "total_ql"))
+			->asObj();
 		$contractQls = [];
 		foreach ($data as $row) {
 			$contractQls[$row->guild_name] = (int)$row->total_ql;
 		}
 
-		$sql = "SELECT * ".
-			"FROM tower_site t ".
-			"JOIN scout_info s ON (t.playfield_id = s.playfield_id AND s.site_number = t.site_number) ".
-			"JOIN playfields p ON (t.playfield_id = p.id) ".
-			"ORDER BY guild_name ASC, ct_ql DESC";
-		$data = $this->db->query($sql);
+		$data = $this->db->table("tower_site AS t")
+			->join("scout_info AS s", function (JoinClause $join) {
+				$join->on("t.playfield_id", "s.playfield_id")
+					->on("s.site_number", "t.site_number");
+			})->join("playfields AS p", "t.playfield_id", "p.id")
+			->orderBy("guild_name")
+			->orderByDesc("ct_ql")
+			->asObj();
 
 		if (count($data) > 0) {
 			$blob = '';
@@ -709,27 +711,27 @@ class TowerController {
 
 		$blob = '';
 
-		$sql = "SELECT att_faction, COUNT(att_faction) AS num ".
-			"FROM tower_attack_<myname> ".
-			"WHERE `time` >= ? ".
-			"GROUP BY att_faction ".
-			"ORDER BY num DESC";
-
-		$data = $this->db->query($sql, time() - $time);
+		$query = $this->db->table(self::DB_TOWER_ATTACK)
+			->where("time", ">=", time() - $time)
+			->groupBy("att_faction")
+			->orderBy("att_faction");
+		$data = $query->orderBy($query->colFunc("COUNT", "att_faction"))
+			->select("att_faction", $query->colFunc("COUNT", "att_faction", "num"))
+			->asObj();
 		foreach ($data as $row) {
 			$blob .= "<{$row->att_faction}>{$row->att_faction}<end> have attacked <highlight>{$row->num}<end> times.\n";
 		}
-		if (count($data) > 0) {
+		if ($data->isNotEmpty()) {
 			$blob .= "\n";
 		}
 
-		$sql = "SELECT lose_faction, COUNT(lose_faction) AS num ".
-			"FROM tower_victory_<myname> ".
-			"WHERE `time` >= ? ".
-			"GROUP BY lose_faction ".
-			"ORDER BY num DESC";
-
-		$data = $this->db->query($sql, time() - $time);
+		$query = $this->db->table(self::DB_TOWER_VICTORY)
+			->where("time", ">=", time() - $time)
+			->groupBy("lose_faction")
+			->orderByDesc("num")
+			->select("lose_faction");
+		$data = $query->addSelect($query->colFunc("COUNT", "lose_faction", "num"))
+			->asObj();
 		foreach ($data as $row) {
 			$blob .= "<{$row->lose_faction}>{$row->lose_faction}<end> have lost <highlight>{$row->num}<end> tower sites.\n";
 		}
@@ -751,7 +753,7 @@ class TowerController {
 	 */
 	public function victoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$page = (int)($args[1] ?? 1);
-		$this->victoryCommandHandler($page, [""], "", $sendto);
+		$this->victoryCommandHandler($page, null, "", $sendto);
 	}
 
 	/**
@@ -777,11 +779,10 @@ class TowerController {
 		}
 
 		$cmd = "$args[1] $args[2] ";
-		$search = [
-			"WHERE a.`playfield_id` = ? AND a.`site_number` = ?",
-			$towerInfo->playfield_id,
-			$towerInfo->site_number
-		];
+		$search = function (QueryBuilder $query) use ($towerInfo) {
+			$query->where("a.playfield_id", $towerInfo->playfield_id)
+				->where("a.site_number", $towerInfo->site_number);
+		};
 		$this->victoryCommandHandler((int)($args[3] ?? 1), $search, $cmd, $sendto);
 	}
 
@@ -794,11 +795,10 @@ class TowerController {
 	 */
 	public function victoryOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = "org $args[1] ";
-		$search = [
-			"WHERE v.`win_guild_name` LIKE ? OR v.`lose_guild_name` LIKE ?",
-			$args[1],
-			$args[1]
-		];
+		$search = function (QueryBuilder $query) use ($args) {
+			$query->whereIlike("v.win_guild_name", $args[1])
+				->orWhereIlike("v.lose_guild_name", $args[1]);
+		};
 		$this->victoryCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
@@ -811,10 +811,9 @@ class TowerController {
 	 */
 	public function victoryPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$cmd = "player $args[1] ";
-		$search = [
-			"WHERE a.`att_player` LIKE ?",
-			$args[1]
-		];
+		$search = function (QueryBuilder $query) use ($args) {
+			$query->whereIlike("a.att_player", $args[1]);
+		};
 		$this->victoryCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
 	}
 
@@ -1222,7 +1221,7 @@ class TowerController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	protected function attacksCommandHandler(?int $pageLabel=null, array $where, string $cmd, CommandReply $sendto): void {
+	protected function attacksCommandHandler(?int $pageLabel=null, ?Closure $where, string $cmd, CommandReply $sendto): void {
 		if ($pageLabel === null) {
 			$pageLabel = 1;
 		} elseif ($pageLabel < 1) {
@@ -1234,65 +1233,68 @@ class TowerController {
 		$pageSize = $this->settingManager->getInt('tower_page_size');
 		$startRow = ($pageLabel - 1) * $pageSize;
 
-		$search = array_shift($where);
-		$where = [...$where, $startRow, $pageSize];
-		$sql = "SELECT * ".
-			"FROM tower_attack_<myname> a ".
-			"LEFT JOIN playfields p ON (a.playfield_id = p.id) ".
-			"LEFT JOIN tower_site s ON (a.playfield_id = s.playfield_id AND a.site_number = s.site_number) ".
-			"$search ".
-			"ORDER BY a.`time` DESC ".
-			"LIMIT ?, ?";
-
-		$data = $this->db->query($sql, ...$where);
-		if (count($data) === 0) {
-			$msg = "No tower attacks found.";
-		} else {
-			$links = [];
-			if ($pageLabel > 1) {
-				$links['Previous Page'] = '/tell <myname> attacks ' . ($pageLabel - 1);
-			}
-			$links['Next Page'] = "/tell <myname> attacks {$cmd}" . ($pageLabel + 1);
-
-			$blob = "The last $pageSize Tower Attacks (page $pageLabel)\n\n";
-			$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
-
-			foreach ($data as $row) {
-				$timeString = $this->util->unixtimeToReadable(time() - $row->time);
-				$blob .= "Time: " . $this->util->date($row->time) . " (<highlight>$timeString<end> ago)\n";
-				if ($row->att_faction == '') {
-					$att_faction = "unknown";
-				} else {
-					$att_faction = strtolower($row->att_faction);
-				}
-
-				if ($row->def_faction == '') {
-					$def_faction = "unknown";
-				} else {
-					$def_faction = strtolower($row->def_faction);
-				}
-
-				if ($row->att_profession == 'Unknown') {
-					$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_faction})\n";
-				} elseif ($row->att_guild_name == '') {
-					$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) ({$row->att_faction})\n";
-				} else {
-					$blob .= "Attacker: {$row->att_player} ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end> ({$row->att_faction})\n";
-				}
-
-				$base = $this->text->makeChatcmd("{$row->short_name} {$row->site_number}", "/tell <myname> lc {$row->short_name} {$row->site_number}");
-				$base .= " ({$row->min_ql}-{$row->max_ql})";
-
-				$blob .= "Defender: <{$def_faction}>{$row->def_guild_name}<end> ({$row->def_faction})\n";
-				$blob .= "Site: $base\n\n";
-			}
-			$msg = $this->text->makeBlob("Tower Attacks", $blob);
+		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
+			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
+			->leftJoin("tower_site AS s", function (JoinClause $join) {
+				$join->on("a.playfield_id", "s.playfield_id")
+					->on("a.site_number", "s.site_number");
+			});
+		if (isset($where)) {
+			$query->where($where);
 		}
+		$data = $query->orderByDesc("a.time")
+			->limit($pageSize)
+			->offset($startRow)
+			->asObj();
+		if ($data->isEmpty()) {
+			$msg = "No tower attacks found.";
+			$sendto->reply($msg);
+			return;
+		}
+		$links = [];
+		if ($pageLabel > 1) {
+			$links['Previous Page'] = '/tell <myname> attacks ' . ($pageLabel - 1);
+		}
+		$links['Next Page'] = "/tell <myname> attacks {$cmd}" . ($pageLabel + 1);
+
+		$blob = "The last $pageSize Tower Attacks (page $pageLabel)\n\n";
+		$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
+
+		foreach ($data as $row) {
+			$timeString = $this->util->unixtimeToReadable(time() - $row->time);
+			$blob .= "Time: " . $this->util->date($row->time) . " (<highlight>$timeString<end> ago)\n";
+			if ($row->att_faction == '') {
+				$att_faction = "unknown";
+			} else {
+				$att_faction = strtolower($row->att_faction);
+			}
+
+			if ($row->def_faction == '') {
+				$def_faction = "unknown";
+			} else {
+				$def_faction = strtolower($row->def_faction);
+			}
+
+			if ($row->att_profession == 'Unknown') {
+				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_faction})\n";
+			} elseif ($row->att_guild_name == '') {
+				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) ({$row->att_faction})\n";
+			} else {
+				$blob .= "Attacker: {$row->att_player} ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end> ({$row->att_faction})\n";
+			}
+
+			$base = $this->text->makeChatcmd("{$row->short_name} {$row->site_number}", "/tell <myname> lc {$row->short_name} {$row->site_number}");
+			$base .= " ({$row->min_ql}-{$row->max_ql})";
+
+			$blob .= "Defender: <{$def_faction}>{$row->def_guild_name}<end> ({$row->def_faction})\n";
+			$blob .= "Site: $base\n\n";
+		}
+		$msg = $this->text->makeBlob("Tower Attacks", $blob);
 
 		$sendto->reply($msg);
 	}
 
-	protected function victoryCommandHandler(int $pageLabel, array $search, string $cmd, CommandReply $sendto): void {
+	protected function victoryCommandHandler(int $pageLabel, ?Closure $search, string $cmd, CommandReply $sendto): void {
 		if ($pageLabel < 1) {
 			$msg = "You must choose a page number greater than 0";
 			$sendto->reply($msg);
@@ -1302,19 +1304,23 @@ class TowerController {
 		$pageSize = $this->settingManager->getInt('tower_page_size');
 		$startRow = ($pageLabel - 1) * $pageSize;
 
-		$where = array_shift($search);
+		$query = $this->db->table(self::DB_TOWER_VICTORY, "v")
+			->leftJoin(self::DB_TOWER_ATTACK . " AS a", "a.id", "v.attack_id")
+			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
+			->leftJoin("tower_site AS s", function (JoinClause $join) {
+				$join->on("a.playfield_id", "s.playfield_id")
+					->on("a.site_number", "s.site_number");
+			})
+			->orderByDesc("victory_time")
+			->limit($pageSize)
+			->offset($startRow)
+			->select("*", "v.time AS victory_time", "a.time AS attack_time");
+		if ($search) {
+			$query->where($search);
+		}
 
-		$sql = "SELECT *, v.time AS victory_time, a.time AS attack_time ".
-			"FROM tower_victory_<myname> v ".
-			"LEFT JOIN tower_attack_<myname> a ON (v.attack_id = a.id) ".
-			"LEFT JOIN playfields p ON (a.playfield_id = p.id) ".
-			"LEFT JOIN tower_site s ON (a.playfield_id = s.playfield_id AND a.site_number = s.site_number) ".
-			"{$where} ".
-			"ORDER BY `victory_time` DESC ".
-			"LIMIT ?, ?";
-		$search = [...$search, $startRow, $pageSize];
 		/** @var TowerVictory[] */
-		$data = $this->db->fetchAll(TowerVictory::class, $sql, ...$search);
+		$data = $query->asObj(TowerVictory::class)->toArray();
 		if (count($data) == 0) {
 			$msg = "No Tower results found.";
 		} else {
@@ -1355,55 +1361,49 @@ class TowerController {
 	}
 
 	public function getTowerInfo(int $playfieldID, int $siteNumber): ?TowerSite {
-		$sql = "SELECT * ".
-			"FROM tower_site t ".
-			"WHERE `playfield_id` = ?  AND `site_number` = ? ".
-			"LIMIT 1";
-
-		return $this->db->fetch(TowerSite::class, $sql, $playfieldID, $siteNumber);
+		return $this->db->table("tower_site AS t")
+			->where("playfield_id", $playfieldID)
+			->where("site_number", $siteNumber)
+			->limit(1)
+			->asObj(TowerSite::class)
+			->first();
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
-		$sql = "SELECT *, ".
-				"((x_distance * x_distance) + (y_distance * y_distance)) radius ".
-			"FROM ".
-				"( ".
-					"SELECT *, ".
-						"(x_coord - {$xCoords}) AS x_distance, ".
-						"(y_coord - {$yCoords}) AS y_distance ".
-					"FROM tower_site ".
-					"WHERE playfield_id = ? ".
-				") t ".
-			"ORDER BY radius ASC ".
-			"LIMIT 1";
+		$inner = $this->db->table("tower_site")
+			->where("playfield_id", $playfieldID)
+			->select("*");
+		$xDist = $inner->grammar->wrap("x_distance");
+		$yDist = $inner->grammar->wrap("y_distance");
+		$xCoord = $inner->grammar->wrap("x_coord");
+		$yCoord = $inner->grammar->wrap("y_coord");
+		$inner->selectRaw("({$xCoord} - ?) AS {$xDist}", [$xCoords]);
+		$inner->selectRaw("({$yCoord} - ?) AS {$yDist}", [$yCoords]);
+		$query = $this->db->fromSub($inner, "t")
+			->orderBy("radius")
+			->limit(1)
+			->select("*");
+		$query->selectRaw(
+			"(({$xDist} * {$xDist}) + ({$yDist}  * {$yDist})) AS ".
+			$query->grammar->wrap("radius")
+		);
 
-		return $this->db->fetch(TowerSite::class, $sql, $playfieldID);
+		return $query->asObj(TowerSite::class)->first();
 	}
 
 	protected function getLastAttack(string $attackFaction, string $attackOrgName, string $defendFaction, string $defendOrgName, int $playfieldID): ?TowerAttack {
 		$time = time() - (7 * 3600);
 
-		$sql = "SELECT * ".
-			"FROM tower_attack_<myname> ".
-			"WHERE `att_guild_name` = ? ".
-				"AND `att_faction` = ? ".
-				"AND `def_guild_name` = ? ".
-				"AND `def_faction` = ? ".
-				"AND `playfield_id` = ? ".
-				"AND `time` >= ? ".
-			"ORDER BY `time` DESC ".
-			"LIMIT 1";
-
-		return $this->db->fetch(
-			TowerAttack::class,
-			$sql,
-			$attackOrgName,
-			$attackFaction,
-			$defendOrgName,
-			$defendFaction,
-			$playfieldID,
-			$time
-		);
+		return $this->db->table(self::DB_TOWER_ATTACK)
+			->where("att_guild_name", $attackOrgName)
+			->where("att_faction", $attackFaction)
+			->where("def_guild_name", $defendOrgName)
+			->where("def_faction", $attackFaction)
+			->where("playfield_id", $playfieldID)
+			->where("time", ">=", $time)
+			->limit(1)
+			->asObj(TowerAttack::class)
+			->first();
 	}
 
 	protected function recordAttack(Player $whois, Attack $attack, TowerSite $closestSite): int {
@@ -1412,121 +1412,96 @@ class TowerController {
 		$event->defender = (object)["org" => $attack->defGuild, "faction" => $attack->defSide];
 		$event->site = $closestSite;
 		$event->type = "tower(attack)";
-		$sql = "INSERT INTO `tower_attack_<myname>` ( ".
-				"`time`, `att_guild_name`, `att_faction`, `att_player`, ".
-				"`att_level`, `att_ai_level`, `att_profession`, `def_guild_name`, ".
-				"`def_faction`, `playfield_id`, `site_number`, `x_coords`, ".
-				"`y_coords` ".
-			") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-		$result = $this->db->exec(
-			$sql,
-			time(),
-			$whois->guild ?? null,
-			$whois->faction ?? null,
-			$whois->name ?? null,
-			$whois->level ?? null,
-			$whois->ai_level ?? null,
-			$whois->profession ?? null,
-			$attack->defGuild,
-			$attack->defSide,
-			$closestSite->playfield_id,
-			$closestSite->site_number,
-			$attack->xCoords,
-			$attack->yCoords
-		);
+		$result = $this->db->table(self::DB_TOWER_ATTACK)
+			->insert([
+				"time" => time(),
+				"att_guild_name" => $whois->guild ?? null,
+				"att_faction" => $whois->faction ?? null,
+				"att_player" => $whois->name ?? null,
+				"att_level" => $whois->level ?? null,
+				"att_ai_level" => $whois->ai_level ?? null,
+				"att_profession" => $whois->profession ?? null,
+				"def_guild_name" => $attack->defGuild,
+				"def_faction" => $attack->defSide,
+				"playfield_id" => $closestSite->playfield_id,
+				"site_number" => $closestSite->site_number,
+				"x_coords" => $attack->xCoords,
+				"y_coords" => $attack->yCoords,
+			]) ? 1 : 0;
 		$this->eventManager->fireEvent($event);
 		return $result;
 	}
 
 	protected function getLastVictory(int $playfieldID, int $siteNumber): ?TowerAttackAndVictory {
-		$sql = "SELECT * ".
-			"FROM tower_victory_<myname> v ".
-				"JOIN tower_attack_<myname> a ON (v.attack_id = a.id) ".
-			"WHERE a.`playfield_id` = ?  AND a.`site_number` >= ? ".
-			"ORDER BY v.`time` DESC ".
-			"LIMIT 1";
-
-		return $this->db->fetch(TowerAttackAndVictory::class, $sql, $playfieldID, $siteNumber);
+		return $this->db->table(self::DB_TOWER_VICTORY, "v")
+			->join(self::DB_TOWER_ATTACK . " AS a", "a.id", "v.attack_id")
+			->where("a.playfield_id", $playfieldID)
+			->where("a.site_number", "=", $siteNumber)
+			->orderByDesc("v.time")
+			->limit(1)
+			->asObj(TowerAttackAndVictory::class)
+			->first();
 	}
 
 	protected function recordVictory(TowerAttack $attack): int {
-		$sql = "INSERT INTO tower_victory_<myname> ( ".
-				"`time`, ".
-				"`win_guild_name`, ".
-				"`win_faction`, ".
-				"`lose_guild_name`, ".
-				"`lose_faction`, ".
-				"`attack_id` ".
-			") VALUES ( ?, ?, ?, ?, ?, ?)";
-
-		return $this->db->exec(
-			$sql,
-			time(),
-			$attack->att_guild_name ?? null,
-			$attack->att_faction ?? null,
-			$attack->def_guild_name ?? null,
-			$attack->def_faction ?? null,
-			$attack->id ?? null
-		);
+		return $this->db->table(self::DB_TOWER_VICTORY)
+			->insertGetId([
+				"time" => time(),
+				"win_guild_name" => $attack->att_guild_name,
+				"win_faction" => $attack->att_faction,
+				"lose_guild_name" => $attack->def_guild_name,
+				"lose_faction" => $attack->def_faction,
+				"attack_id" => $attack->id,
+			]);
 	}
 
 	protected function addScoutSite(int $playfieldID, int $siteNumber, int $closingTime, int $ctQL, string $faction, string $orgName, string $scoutedBy): int {
-		$this->db->exec(
-			"DELETE FROM scout_info WHERE `playfield_id` = ? AND `site_number` = ?",
-			$playfieldID,
-			$siteNumber
-		);
-
-		$sql = "INSERT INTO scout_info ( ".
-				"`playfield_id`, `site_number`, `scouted_on`, `scouted_by`, ".
-				"`ct_ql`, `guild_name`, `faction`, `close_time` ".
-			") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)";
-
-		$numrows = $this->db->exec(
-			$sql,
-			$playfieldID,
-			$siteNumber,
-			time(),
-			$scoutedBy,
-			$ctQL,
-			$orgName,
-			$faction,
-			$closingTime
-		);
-
-		return $numrows;
+		$result = $this->db->table("scout_info")
+			->upsert(
+				[
+					"playfield_id" => $playfieldID,
+					"site_number" => $siteNumber,
+					"scouted_on" => time(),
+					"scouted_by" => $scoutedBy,
+					"ct_ql" => $ctQL,
+					"guild_name" => $orgName,
+					"faction" => $faction,
+					"close_time" => $closingTime,
+				],
+				["playfield_id", "site_number"]
+			);
+		return $result;
 	}
 
 	protected function remScoutSite(int $playfield_id, int $site_number): int {
-		$sql = "DELETE FROM scout_info WHERE `playfield_id` = ? AND `site_number` = ?";
-
-		return $this->db->exec($sql, $playfield_id, $site_number);
+		return $this->db->table("scout_info")
+			->where("playfield_id", $playfield_id)
+			->where("site_number", $site_number)
+			->delete();
 	}
 
 	protected function checkGuildName(string $guildName): bool {
-		$sql = "SELECT * FROM tower_attack_<myname> WHERE `att_guild_name` LIKE ? OR `def_guild_name` LIKE ? LIMIT 1";
-
-		$data = $this->db->fetchAll(TowerAttack::class, $sql, $guildName, $guildName);
-		if (count($data) === 0) {
-			return false;
-		}
-		return true;
+		return $this->db->table(self::DB_TOWER_ATTACK)
+			->whereIlike("att_guild_name", $guildName)
+			->orWhereIlike("def_guild_name", $guildName)
+			->exists();
 	}
 
 	/**
 	 * @return OrgInPenalty[]
 	 */
 	protected function getSitesInPenalty(int $time): array {
-		$sql = "SELECT att_guild_name, att_faction, ".
-				"MAX(IFNULL(t2.time, t1.time)) AS penalty_time ".
-			"FROM tower_attack_<myname> t1 ".
-			"LEFT JOIN tower_victory_<myname> t2 ON t1.id = t2.attack_id ".
-			"WHERE att_guild_name != '' ".
-				"AND COALESCE(t2.time, t1.time) > ? ".
-			"GROUP BY att_guild_name, att_faction ".
-			"ORDER BY att_faction ASC, penalty_time DESC";
-		return $this->db->fetchAll(OrgInPenalty::class, $sql, $time);
+		$query = $this->db->table(self::DB_TOWER_ATTACK, "t1")
+			->leftJoin(self::DB_TOWER_VICTORY . " AS t2", "t1.id", "t2.attack_id")
+			->where("att_guild_name", "!=", "");
+		$penTime = $query->colFunc("COALESCE", ["t1.time", "t2.time"]);
+		$query->where($query->colFunc("COALESCE", ["t2.time", "t1.time"]), ">", $time)
+			->groupBy("att_guild_name", "att_faction")
+			->orderBy("att_guild_name")
+			->select("att_guild_name", "att_faction")
+			->addSelect($query->rawFunc("MAX", $penTime, "penalty_time"))
+			->orderByDesc($query->rawFunc("MAX", $penTime));
+		return $query->asObj(OrgInPenalty::class)->toArray();
 	}
 
 	protected function getGasLevel(int $closeTime): GasInfo {

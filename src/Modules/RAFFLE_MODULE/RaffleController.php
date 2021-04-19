@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
-	DBRow,
 	Event,
 	EventManager,
 	Modules\ALTS\AltsController,
@@ -44,6 +43,7 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
  * @ProvidesEvent("raffle(leave)")
  */
 class RaffleController {
+	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
 	/**
@@ -86,7 +86,7 @@ class RaffleController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "raffle_bonus");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
 			$this->moduleName,
 			"defaultraffletime",
@@ -570,10 +570,10 @@ class RaffleController {
 		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
 			$player = $this->altsController->getAltInfo($player)->main;
 		}
-		$data = $this->db->queryRow(
-			"SELECT bonus FROM raffle_bonus_<myname> WHERE name=?",
-			$player
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $player)
+			->select("bonus")
+			->asObj()->first();
 		return $data ? $data->bonus : 0;
 	}
 
@@ -671,41 +671,31 @@ class RaffleController {
 			$winners = $this->getMainCharacters(...$winners);
 			$losers = $this->getMainCharacters(...$losers);
 		}
-		$inWinners = join(",", array_fill(0, count($winners), '?'));
-		$inLosers =  join(",", array_fill(0, count($losers), '?'));
 		$losersUpdate = [];
 		if (count($losers)) {
-			$losersUpdate = array_map(
-				function(DBRow $row): string {
-					return $row->name;
-				},
-				$this->db->query(
-					"SELECT name FROM raffle_bonus_<myname> WHERE name IN ($inLosers)",
-					...$losers
-				)
-			);
+			$losersUpdate = $this->db->table(self::DB_TABLE)
+					->whereIn("name", $losers)
+					->select("name")
+					->asObj()->pluck("name")->toArray();
 		}
 		$losersInsert = array_diff($losers, $losersUpdate);
-		$inLosers =  join(",", array_fill(0, count($losersUpdate), '?'));
 		if (count($losersUpdate)) {
-			$this->db->exec(
-				"UPDATE raffle_bonus_<myname> SET bonus=bonus+? WHERE name IN ($inLosers)",
-				$bonusPerLoss,
-				...$losersUpdate
-			);
+			$this->db->table(self::DB_TABLE)
+				->whereIn("name", $losersUpdate)
+				->increment("bonus", $bonusPerLoss);
 		}
 		if (count($losersInsert)) {
-			$this->db->query(
-				"INSERT INTO raffle_bonus_<myname> (name, bonus) VALUES".
-				join(",", array_fill(0, count($losersInsert), "(?, $bonusPerLoss)")),
-				...$losersInsert
-			);
+			$this->db->table(self::DB_TABLE)
+				->insert(
+					array_map(function(string $loser) use ($bonusPerLoss): array {
+						return ["name" => $loser, "bonus" => $bonusPerLoss];
+					}, $losersInsert)
+				);
 		}
 		if (count($winners)) {
-			$this->db->exec(
-				"UPDATE raffle_bonus_<myname> SET bonus=0 WHERE name IN ($inWinners)",
-				...$winners
-			);
+			$this->db->table(self::DB_TABLE)
+				->whereIn("name", $winners)
+				->update(["bonus" => 0]);
 		}
 	}
 

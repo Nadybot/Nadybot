@@ -1,0 +1,10 @@
+#BANK_MODULE
+/text Start BANK_MODULE
+
+!bank browse
+!bank browse dummy
+!bank browse dummy 1
+!bank browse dummy a
+!bank search something
+!bank search ammunition
+!bank update

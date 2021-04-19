@@ -7,6 +7,6 @@ use Nadybot\Core\DBRow;
 class Vote extends DBRow {
 	public int $poll_id;
 	public string $author;
-	public string $answer;
-	public int $time;
+	public ?string $answer;
+	public ?int $time;
 }

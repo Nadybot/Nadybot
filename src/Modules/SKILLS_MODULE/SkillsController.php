@@ -119,7 +119,8 @@ class SkillsController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "weapon_attributes");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Weapons");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/weapon_attributes.csv");
 
 		$this->commandAlias->register($this->moduleName, "weapon", "specials");
 		$this->commandAlias->register($this->moduleName, "weapon", "inits");
@@ -609,12 +610,22 @@ class SkillsController {
 
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
-		$sql = "SELECT *, 1 AS order_col FROM aodb WHERE highid = ? AND lowql <= ? AND highql >= ? 
-				UNION
-				SELECT *, 2 AS order_col FROM aodb WHERE lowid = ? AND lowql <= ? AND highql >= ?
-				ORDER BY order_col ASC";
+		$queryOne = $this->db->table("aodb")
+			->where("highid", $highid)
+			->where("lowql", "<=", $ql)
+			->where("highql", ">=", $ql)
+			->select("*");
+		$queryOne->selectRaw("1" . $queryOne->as("order_col"));
+		$queryTwo = $this->db->table("aodb")
+			->where("lowid", $highid)
+			->where("lowql", "<=", $ql)
+			->where("highql", ">=", $ql)
+			->select("*");
+		$queryTwo->selectRaw("2" . $queryTwo->as("order_col"));
+
 		/** @var ?AODBEntry */
-		$row = $this->db->fetch(AODBEntry::class, $sql, $highid, $ql, $ql, $highid, $ql, $ql);
+		$row = $queryOne->union($queryTwo)->orderBy("order_col")
+			->asObj(AODBEntry::class)->first();
 
 		if ($row === null) {
 			$msg = "Item does not exist in the items database.";
@@ -623,9 +634,15 @@ class SkillsController {
 		}
 
 		/** @var ?WeaponAttribute */
-		$lowAttributes = $this->db->fetch(WeaponAttribute::class, "SELECT * FROM weapon_attributes WHERE id = ?", $row->lowid);
+		$lowAttributes = $this->db->table("weapon_attributes")
+			->where("id", $row->lowid)
+			->asObj(WeaponAttribute::class)
+			->first();
 		/** @var ?WeaponAttribute */
-		$highAttributes = $this->db->fetch(WeaponAttribute::class, "SELECT * FROM weapon_attributes WHERE id = ?", $row->highid);
+		$highAttributes = $this->db->table("weapon_attributes")
+			->where("id", $row->highid)
+			->asObj(WeaponAttribute::class)
+			->first();
 
 		if ($lowAttributes === null || $highAttributes === null) {
 			$msg = "Could not find any weapon info for this item.";
@@ -731,12 +748,11 @@ class SkillsController {
 					if (isset($kept[$item->lowid])) {
 						return false;
 					}
-					if ($this->db->fetch(
-						WeaponAttribute::class,
-						"SELECT * FROM `weapon_attributes` WHERE `id`=? OR `id`=?",
-						$item->lowid,
-						$item->highid
-					) === null) {
+					if (!$this->db->table("weapon_attributes")
+							->where("id", $item->lowid)
+							->orWhere("id", $item->highid)
+							->exists()
+					) {
 						return false;
 					}
 					$kept[$item->lowid] = true;

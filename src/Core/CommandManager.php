@@ -20,6 +20,7 @@ use Nadybot\Core\Modules\USAGE\UsageController;
  * @ProvidesEvent("command(error)")
  */
 class CommandManager {
+	public const DB_TABLE = "cmdcfg_<myname>";
 
 	/** @Inject */
 	public DB $db;
@@ -118,16 +119,24 @@ class CommandManager {
 
 		for ($i = 0; $i < count($channel); $i++) {
 			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
-			$row = $this->db->fetch(CmdCfg::class, "SELECT 1 FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ?", $command, $channel[$i]);
-
 			try {
-				if ($row !== null) {
-					$sql = "UPDATE `cmdcfg_<myname>` SET `module` = ?, `verify` = ?, `file` = ?, `description` = ?, `help` = ? WHERE `cmd` = ? AND `type` = ?";
-					$this->db->exec($sql, $module, '1', $filename, $description, $help, $command, $channel[$i]);
-				} else {
-					$sql = "INSERT INTO `cmdcfg_<myname>` (`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-					$this->db->exec($sql, $module, $channel[$i], $filename, $command, $accessLevel[$i], $description, '1', 'cmd', $status, $help);
-				}
+				$this->db->table(self::DB_TABLE)
+					->upsert(
+						[
+							"module" => $module,
+							"verify" => 1,
+							"file" => $filename,
+							"description" => $description,
+							"help" => $help,
+							"cmd" => $command,
+							"cmdevent" => "cmd",
+							"type" => $channel[$i],
+							"admin" => $accessLevel[$i],
+							"status" => $status,
+						],
+						["cmd", "type"],
+						["module", "verify", "file", "description", "help"]
+					);
 			} catch (SQLException $e) {
 				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command': " . $e->getMessage());
 			}
@@ -196,55 +205,37 @@ class CommandManager {
 	 * @return int
 	 */
 	public function updateStatus(?string $channel, ?string $cmd, ?string $module, int $status, ?string $admin): int {
-		$sqlArgs = [];
-		if ($module === '' || $module === null) {
-			$module_sql = '';
-		} else {
-			$module_sql = "AND `module` = ?";
-			$sqlArgs []= $module;
+		$query = $this->db->table(self::DB_TABLE)
+			->where("cmdevent", "end");
+		if ($module !== '' && $module !== null) {
+			$query->where("module", $module);
+		}
+		if ($cmd !== '' && $cmd !== null) {
+			$query->where("cmd", $cmd);
+		}
+		if ($channel !== 'all' && $channel !== '' && $channel !== null) {
+			$query->where("type", $channel);
 		}
 
-		if ($cmd === '' || $cmd === null) {
-			$cmd_sql = '';
-		} else {
-			$cmd_sql = "AND `cmd` = ?";
-			$sqlArgs []= $cmd;
-		}
-
-		if ($channel === 'all' || $channel === '' || $channel === null) {
-			$type_sql = '';
-		} else {
-			$type_sql = "AND `type` = ?";
-			$sqlArgs []= $channel;
-		}
-
-		$data = $this->db->fetchAll(
-			CmdCfg::class,
-			"SELECT * FROM cmdcfg_<myname> ".
-			"WHERE `cmdevent` = 'cmd' ".
-			"$module_sql $cmd_sql $type_sql",
-			...$sqlArgs
-		);
+		/** @var CmdCfg[] */
+		$data = $query->asObj(CmdCfg::class)->toArray();
 		if (count($data) === 0) {
 			return 0;
 		}
 
-		if ($admin == '' || $admin == null) {
-			$adminSql = '';
-		} else {
-			$adminSql = ", admin = ?";
-			$sqlArgs = [$admin, ...$sqlArgs];
+		if ($admin !== '' && $admin !== null) {
+			$query->where("admin", $admin);
 		}
 
 		foreach ($data as $row) {
-			if ($status == 1) {
+			if ($status === 1) {
 				$this->activate($row->type, $row->file, $row->cmd, $admin);
-			} elseif ($status == 0) {
+			} elseif ($status === 0) {
 				$this->deactivate($row->type, $row->file, $row->cmd);
 			}
 		}
 
-		return $this->db->exec("UPDATE cmdcfg_<myname> SET status = ? $adminSql WHERE `cmdevent` = 'cmd' $module_sql $cmd_sql $type_sql", ...[$status, ...$sqlArgs]);
+		return $query->update(["status" => $status]);
 	}
 
 	/**
@@ -253,8 +244,11 @@ class CommandManager {
 	public function loadCommands(): void {
 		$this->logger->log('DEBUG', "Loading enabled commands");
 
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname> WHERE `status` = '1' AND `cmdevent` = 'cmd'");
+		/** @var CmdCfg[] */
+		$data = $this->db->table(self::DB_TABLE)
+			->where("status", 1)
+			->where("cmdevent", "cmd")
+			->asObj(CmdCfg::class)->toArray();
 		foreach ($data as $row) {
 			$this->activate($row->type, $row->file, $row->cmd, $row->admin);
 		}
@@ -266,15 +260,14 @@ class CommandManager {
 	 * @return CmdCfg[]
 	 */
 	public function get(string $command, ?string $channel=null): array {
-		$args = [strtolower($command)];
+		$query = $this->db->table(self::DB_TABLE)
+			->where("cmd", strtolower($command));
 
 		if ($channel !== null) {
-			$type_sql = " AND type = ?";
-			$args []= $channel;
+			$query->where("type", $channel);
 		}
 
-		$sql = "SELECT * FROM cmdcfg_<myname> WHERE `cmd` = ?{$type_sql}";
-		return $this->db->fetchAll(CmdCfg::class, $sql, ...$args);
+		return $query->asObj(CmdCfg::class)->toArray();
 	}
 
 	/**
@@ -351,7 +344,13 @@ class CommandManager {
 			$sendto->reply("There was an SQL error executing your command.");
 			$event->type = "command(error)";
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", "Error executing '$message': " . $e->getMessage(), $e);
+			$this->logger->log(
+				"ERROR",
+				"Error executing '$message': " . $e->getMessage() . " in ".
+				"file " . ($e->getFile() ?? "Unknown") . "#".
+				($e->getLine() ?? "Unknown"),
+				$e
+			);
 			$sendto->reply("There was an error executing your command: " . $e->getMessage());
 			$event->type = "command(error)";
 		}

@@ -14,6 +14,7 @@
 !premade error
 !premade brain
 
+!cluster
 !cluster comp lit
 !cluster error
 
@@ -24,5 +25,13 @@
 !bestsymbiants xxx 200
 !bestsymbiants 200
 !bestsymbiants xxx
+
+!implantdesigner clear
+!implantdesigner head
+!implantdesigner head shiny Treatment
+!implantdesigner eye symb Active Ocular Symbiant, Artillery Unit Aban
+!implantdesigner eye require
+!implantdesigner head require
+!implantdesigner head require Agility
 
 /text End IMPLANT_MODULE

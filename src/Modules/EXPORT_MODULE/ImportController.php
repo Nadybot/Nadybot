@@ -14,26 +14,34 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	SettingManager,
-	SQLException,
 };
 use Nadybot\Modules\{
-	NOTES_MODULE\Note,
+	CITY_MODULE\CloakController,
+	COMMENT_MODULE\Comment,
 	COMMENT_MODULE\CommentCategory,
 	COMMENT_MODULE\CommentController,
+	GUILD_MODULE\GuildController,
+	MASSMSG_MODULE\MassMsgController,
+	NOTES_MODULE\Note,
+	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
+	RAFFLE_MODULE\RaffleController,
+	RAID_MODULE\AuctionController,
 	RAID_MODULE\Raid,
+	RAID_MODULE\RaidBlockController,
+	RAID_MODULE\RaidController,
 	RAID_MODULE\RaidLog,
 	RAID_MODULE\RaidMember,
+	RAID_MODULE\RaidMemberController,
 	RAID_MODULE\RaidPoints,
-	RAID_MODULE\RaidPointsLog,
+	RAID_MODULE\RaidPointsController,
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
+	TIMERS_MODULE\TimerController,
+	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
-use Nadybot\Modules\COMMENT_MODULE\Comment;
-use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;
-use Nadybot\Modules\RAID_MODULE\RaidRank;
 use Throwable;
 
 /**
@@ -238,7 +246,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all alts");
-			$this->db->exec("DELETE FROM `alts`");
+			$this->db->table("alts")->truncate();
 			foreach ($alts as $altData) {
 				$mainName = $this->characterToName($altData->main);
 				if (!isset($mainName)) {
@@ -248,7 +256,7 @@ class ImportController {
 					$numImported += $this->importAlt($mainName, $alt);
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -263,14 +271,14 @@ class ImportController {
 		if (!isset($altName)) {
 			return 0;
 		}
-		$this->db->exec(
-			"INSERT INTO `alts`(`alt`, `main`, `validated_by_main`, `validated_by_alt`, `added_via`) " .
-			"VALUES (?, ?, ?, ?, '<Myname>')",
-			$altName,
-			$mainName,
-			$alt->validatedByMain ?? true,
-			$alt->validatedByAlt ?? true
-		);
+		$this->db->table("alts")
+			->insert([
+				"alt" => $altName,
+				"main" => $mainName,
+				"validated_by_main" => $alt->validatedByMain ?? true,
+				"validated_by_alt" => $alt->validatedByAlt ?? true,
+				"added_via" => $this->db->getMyname(),
+			]);
 		return 1;
 	}
 
@@ -279,21 +287,20 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all auctions");
-			$this->db->exec("DELETE FROM `auction_<myname>`");
+			$this->db->table(AuctionController::DB_TABLE)->truncate();
 			foreach ($auctions as $auction) {
-				$this->db->exec(
-					"INSERT INTO `auction_<myname>`(`raid_id`, `item`, `auctioneer`, `cost`, `winner`, `end`, `reimbursed`) ".
-					"VALUES (?, ?, ?, ?, ?, ?, ?)",
-					$auction->raidId ?? null,
-					$auction->item,
-					$this->characterToName($auction->startedBy??null) ?? $this->chatBot->vars["name"],
-					($auction->cost ?? null) ? (int)round($auction->cost, 0) : null,
-					$this->characterToName($auction->winner??null),
-					$auction->timeEnd ?? time(),
-					$auction->reimbursed ?? false
-				);
+				$this->db->table(AuctionController::DB_TABLE)
+					->insert([
+						"raid_id" => $auction->raidId ?? null,
+						"item" => $auction->item,
+						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->vars["name"],
+						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost, 0) : null,
+						"winner" => $this->characterToName($auction->winner??null),
+						"end" => $auction->timeEnd ?? time(),
+						"reimbursed" => $auction->reimbursed ?? false,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -309,24 +316,23 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all bans");
-			$this->db->exec("DELETE FROM `banlist_<myname>`");
+			$this->db->table(BanController::DB_TABLE)->truncate();
 			foreach ($banlist as $ban) {
 				$id = $ban->character->id ?? $this->chatBot->get_uid($ban->character->name);
 				if (!isset($id)) {
 					continue;
 				}
-				$this->db->exec(
-					"INSERT INTO `banlist_<myname>`(`charid`, `admin`, `time`, `reason`, `banend`) ".
-					"VALUES (?, ?, ?, ?, ?)",
-					$id,
-					$this->characterToName($ban->bannedBy??null) ?? $this->chatBot->vars["name"],
-					$ban->banStart ?? time(),
-					$ban->banReason ?? "None given",
-					$ban->banEnd ?? 0,
-				);
+				$this->db->table(BanController::DB_TABLE)
+				->insert([
+					"charid" => $id,
+					"admin" => $this->characterToName($ban->bannedBy ?? null) ?? $this->chatBot->vars["name"],
+					"time" => $ban->banStart ?? time(),
+					"reason" => $ban->banReason ?? "None given",
+					"banend" => $ban->banEnd ?? 0,
+				]);
 				$numImported++;
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -342,17 +348,16 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all cloak actions");
-			$this->db->exec("DELETE FROM `org_city_<myname>`");
+			$this->db->table(CloakController::DB_TABLE)->truncate();
 			foreach ($cloakActions as $action) {
-				$this->db->exec(
-					"INSERT INTO `org_city_<myname>`(`time`, `action`, `player`) ".
-					"VALUES (?, ?, ?)",
-					$action->time ?? null,
-					$action->cloakOn ? "on" : "off",
-					$this->characterToName($action->character??null) ?? $this->chatBot->vars["name"],
-				);
+				$this->db->table(CloakController::DB_TABLE)
+					->insert([
+						"time" => $action->time ?? null,
+						"action" => $action->cloakOn ? "on" : "off",
+						"player" => $this->characterToName($action->character??null) ?? $this->chatBot->vars["name"],
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -367,18 +372,17 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all links");
-			$this->db->exec("DELETE FROM `links`");
+			$this->db->table("links")->truncate();
 			foreach ($links as $link) {
-				$this->db->exec(
-					"INSERT INTO `links`(`name`, `website`, `comments`, `dt`) ".
-					"VALUES (?, ?, ?, ?)",
-					$this->characterToName($link->createdBy??null) ?? $this->chatBot->vars["name"],
-					$link->url,
-					$link->description ?? "",
-					$link->creationTime ?? null,
-				);
+				$this->db->table("links")
+					->insert([
+						"name" => $this->characterToName($link->createdBy??null) ?? $this->chatBot->vars["name"],
+						"website" => $link->url,
+						"comments" => $link->description ?? "",
+						"dt" => $link->creationTime ?? null,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -398,10 +402,10 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all members");
-			$this->db->exec("DELETE FROM `members_<myname>`");
-			$this->db->exec("DELETE FROM `org_members_<myname>`");
-			$this->db->exec("DELETE FROM `admin_<myname>`");
-			$this->db->exec("DELETE FROM `raid_rank_<myname>`");
+			$this->db->table(PrivateChannelController::DB_TABLE)->truncate();
+			$this->db->table(GuildController::DB_TABLE)->truncate();
+			$this->db->table(AdminManager::DB_TABLE)->truncate();
+			$this->db->table(RaidRankController::DB_TABLE)->truncate();
 			foreach ($members as $member) {
 				$id = $member->character->id ?? $this->chatBot->get_uid($member->character->name);
 				$name = $this->characterToName($member->character);
@@ -418,36 +422,32 @@ class ImportController {
 				if (in_array($newRank, ["member", "mod", "admin", "superadmin"], true)
 					|| preg_match("/^raid_(leader|admin)_[123]$/", $newRank)
 				) {
-					$this->db->exec(
-						"INSERT INTO `members_<myname>`(`name`, `autoinv`) ".
-						"VALUES (?, ?)",
-						$name,
-						$member->autoInvite ?? false
-					);
+					$this->db->table(PrivateChannelController::DB_TABLE)
+						->insert([
+							"name" => $name,
+							"autoinv" => $member->autoInvite ?? false,
+						]);
 				}
 				if (in_array($newRank, ["mod", "admin", "superadmin"], true)) {
 					$adminLevel = ($newRank === "mod") ? 3 : 4;
-					$this->db->exec(
-						"INSERT INTO `admin_<myname>`(`name`, `adminlevel`) ".
-						"VALUES (?, ?)",
-						$name,
-						$adminLevel,
-					);
-					$this->adminManager->admins[$name] = $adminLevel;
+					$this->db->table(AdminManager::DB_TABLE)
+						->insert([
+							"name" => $name,
+							"adminlevel" => $adminLevel,
+						]);
+					$this->adminManager->admins[$name] = ["level" => $adminLevel];
 				} elseif (preg_match("/^raid_leader_([123])/", $newRank, $matches)) {
-					$this->db->exec(
-						"INSERT INTO `raid_rank_<myname>`(`name`, `rank`) ".
-						"VALUES (?, ?)",
-						$name,
-						$matches[1] + 3
-					);
+					$this->db->table(RaidRankController::DB_TABLE)
+						->insert([
+							"name" => $name,
+							"rank" => $matches[1] + 3
+						]);
 				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
-					$this->db->exec(
-						"INSERT INTO `raid_rank_<myname>`(`name`, `rank`) ".
-						"VALUES (?, ?)",
-						$name,
-						$matches[1] + 6
-					);
+					$this->db->table(RaidRankController::DB_TABLE)
+						->insert([
+							"name" => $name,
+							"rank" => $matches[1] + 6
+						]);
 				} elseif (in_array($newRank, ["rl", "all"])) {
 					// Nothing, we just ignore that
 				}
@@ -465,7 +465,7 @@ class ImportController {
 				}
 			}
 			$this->raidRankController->uploadRaidRanks();
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -480,34 +480,31 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all news");
-			$this->db->exec("DELETE FROM `news_confirmed`");
-			$this->db->exec("DELETE FROM `news`");
+			$this->db->table("news_confirmed")->truncate();
+			$this->db->table("news")->truncate();
 			foreach ($news as $item) {
-				$this->db->exec(
-					"insert into `news`(`time`, `name`, `news`, `sticky`, `deleted`) ".
-					"values (?, ?, ?, ?, ?)",
-					$item->addedTime ?? time(),
-					$this->characterToName($item->author??null) ?? $this->chatbot->vars["name"],
-					$item->news,
-					$item->pinned ?? false,
-					$item->deleted ?? false
-				);
-				$newsId = $this->db->lastInsertId();
+				$newsId = $this->db->table("news")
+				->insertGetId([
+					"time" => $item->addedTime ?? time(),
+					"name" => $this->characterToName($item->author ?? null) ?? $this->chatbot->vars["name"],
+					"news" => $item->news,
+					"sticky" => $item->pinned ?? false,
+					"deleted" => $item->deleted ?? false,
+				]);
 				foreach ($item->confirmedBy??[] as $confirmation) {
 					$name = $this->characterToName($confirmation->character??null);
 					if (!isset($name)) {
 						continue;
 					}
-					$this->db->exec(
-						"INSERT INTO `news_confirmed`(`id`, `player`, `time`) ".
-						"VALUES (?, ?, ?)",
-						$newsId,
-						$name,
-						$confirmation->confirmationTime ?? time(),
-					);
+					$this->db->table("news_confirmed")
+						->insert([
+							"id" => $newsId,
+							"player" => $name,
+							"time" => $confirmation->confirmationTime ?? time(),
+						]);
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -522,7 +519,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all notes");
-			$this->db->exec("DELETE FROM `notes`");
+			$this->db->table("notes")->truncate();
 			foreach ($notes as $note) {
 				$owner = $this->characterToName($note->owner??null);
 				if (!isset($owner)) {
@@ -534,17 +531,16 @@ class ImportController {
 					: (($reminder === "author")
 						? Note::REMIND_SELF
 						: Note::REMIND_NONE);
-				$this->db->exec(
-					"INSERT INTO `notes`(`owner`, `added_by`, `note`, `dt`, `reminder`) ".
-					"VALUES (?, ?, ?, ?, ?)",
-					$owner,
-					$this->characterToName($note->author??null) ?? $owner,
-					$note->text,
-					$note->creationTime ?? null,
-					$reminderInt
-				);
+				$this->db->table("notes")
+				->insert([
+					"owner" => $owner,
+					"added_by" => $this->characterToName($note->author ?? null) ?? $owner,
+					"note" => $note->text,
+					"dt" => $note->creationTime ?? null,
+					"reminder" => $reminderInt,
+				]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -559,41 +555,38 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all polls");
-			$this->db->exec("DELETE FROM `votes_<myname>`");
-			$this->db->exec("DELETE FROM `polls_<myname>`");
+			$this->db->table(VoteController::DB_VOTES)->truncate();
+			$this->db->table(VoteController::DB_POLLS)->truncate();
 			foreach ($polls as $poll) {
-				$this->db->exec(
-					"INSERT INTO `polls_<myname>`(`author`, `question`, `possible_answers`, `started`, `duration`, `status`) ".
-					"VALUES (?, ?, ?, ?, ?, ?)",
-					$this->characterToName($poll->author??null) ?? $this->chatbot->vars["name"],
-					$poll->question,
-					json_encode(
-						array_map(
-							function(object $answer): string {
-								return $answer->answer;
-							},
-							$poll->answers??[]
+				$pollId = $this->db->table(VoteController::DB_POLLS)
+					->insertGetId([
+						"author" => $this->characterToName($poll->author??null) ?? $this->chatbot->vars["name"],
+						"question" => $poll->question,
+						"possible_answers" => json_encode(
+							array_map(
+								function(object $answer): string {
+									return $answer->answer;
+								},
+								$poll->answers??[]
+							),
 						),
-					),
-					$poll->startTime ?? time(),
-					($poll->endTime ?? time()) - ($poll->startTime ?? time()),
-					VoteController::STATUS_STARTED
-				);
-				$pollId = $this->db->lastInsertId();
+						"started" => $poll->startTime ?? time(),
+						"duration" => ($poll->endTime ?? time()) - ($poll->startTime ?? time()),
+						"status" => VoteController::STATUS_STARTED
+					]);
 				foreach ($poll->answers??[] as $answer) {
 					foreach ($answer->votes??[] as $vote) {
-						$this->db->exec(
-							"INSERT INTO `votes_<myname>`(`poll_id`, `author`, `answer`, `time`) ".
-							"VALUES (?, ?, ?, ?)",
-							$pollId,
-							$this->characterToName($vote->character??null) ?? "Unknown",
-							$answer->answer,
-							$vote->voteTime ?? time()
-						);
+						$this->db->table(VoteController::DB_VOTES)
+							->insert([
+								"poll_id" => $pollId,
+								"author" => $this->characterToName($vote->character??null) ?? "Unknown",
+								"answer" => $answer->answer,
+								"time" => $vote->voteTime ?? time(),
+							]);
 					}
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -608,17 +601,16 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all quotes");
-			$this->db->exec("DELETE FROM `quote`");
+			$this->db->table("quote")->truncate();
 			foreach ($quotes as $quote) {
-				$this->db->exec(
-					"INSERT INTO `quote`(`poster`, `dt`, `msg`) ".
-					"VALUES (?, ?, ?)",
-					$this->characterToName($quote->contributor??null) ?? $this->chatBot->vars["name"],
-					$quote->time??time(),
-					$quote->quote
-				);
+				$this->db->table("quote")
+					->insert([
+						"poster" => $this->characterToName($quote->contributor??null) ?? $this->chatBot->vars["name"],
+						"dt" => $quote->time??time(),
+						"msg" => $quote->quote,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -633,20 +625,19 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all raffle bonuses");
-			$this->db->exec("DELETE FROM `raffle_bonus_<myname>`");
+			$this->db->table(RaffleController::DB_TABLE)->truncate();
 			foreach ($bonuses as $bonus) {
 				$name = $this->characterToName($bonus->character??null);
 				if (!isset($name)) {
 					continue;
 				}
-				$this->db->exec(
-					"INSERT INTO `raffle_bonus_<myname>`(`name`, `bonus`) ".
-					"VALUES (?, ?, ?)",
-					$name,
-					$bonus->raffleBonus
-				);
+				$this->db->table(RaffleController::DB_TABLE)
+					->insert([
+						"name" => $name,
+						"bonus" => $bonus->raffleBonus,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -661,24 +652,23 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all raid blocks");
-			$this->db->exec("DELETE FROM `raid_block_<myname>`");
+			$this->db->table(RaidBlockController::DB_TABLE)->truncate();
 			foreach ($blocks as $block) {
 				$name = $this->characterToName($block->character??null);
 				if (!isset($name)) {
 					continue;
 				}
-				$this->db->exec(
-					"INSERT INTO `raid_block_<myname>`(`player`, `blocked_from`, `blocked_by`, `reason`, `time`, `expiration`) ".
-					"VALUES (?, ?, ?, ?, ? ,?)",
-					$name,
-					$block->blockedFrom,
-					$this->characterToName($block->blockedBy??null) ?? $this->chatBot->vars["name"],
-					$block->blockedReason ?? "No reason given",
-					$block->blockStart ?? time(),
-					$block->blockEnd ?? null
-				);
+				$this->db->table(RaidBlockController::DB_TABLE)
+					->insert([
+						"player" => $name,
+						"blocked_from" => $block->blockedFrom,
+						"blocked_by" => $this->characterToName($block->blockedBy??null) ?? $this->chatBot->vars["name"],
+						"reason" => $block->blockedReason ?? "No reason given",
+						"time" => $block->blockStart ?? time(),
+						"expiration" => $block->blockEnd ?? null,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -693,15 +683,12 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all raids");
-			$this->db->exec("DELETE FROM `raid_<myname>`");
-			$this->db->exec("DELETE FROM `raid_log_<myname>`");
-			$this->db->exec("DELETE FROM `raid_member_<myname>`");
+			$this->db->table(RaidController::DB_TABLE)->truncate();
+			$this->db->table(RaidController::DB_TABLE_LOG)->truncate();
+			$this->db->table(RaidMemberController::DB_TABLE)->truncate();
 			foreach ($raids as $raid) {
 				$entry = new Raid();
 				$historyEntry = new RaidLog();
-				if (isset($raid->raidId)) {
-					$entry->raid_id = $raid->raidId;
-				}
 				$history = $raid->history ?? [];
 				usort(
 					$history,
@@ -718,8 +705,8 @@ class ImportController {
 				$entry->started_by = $this->chatBot->vars["name"];
 				$entry->stopped = $lastEntry ? $lastEntry->time : $entry->started;
 				$entry->stopped_by = $this->chatBot->vars["name"];
-				$this->db->insert("raid_<myname>", $entry);
-				$historyEntry->raid_id = $raidId = $entry->raid_id ?? $this->db->lastInsertId();
+				$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, "raid_id");
+				$historyEntry->raid_id = $raidId;
 				foreach ($raid->raiders??[] as $raider) {
 					$name = $this->characterToName($raider->character);
 					if (!isset($name)) {
@@ -730,7 +717,7 @@ class ImportController {
 					$raiderEntry->player = $name;
 					$raiderEntry->joined = $raider->joinTime ?? time();
 					$raiderEntry->left = $raider->leaveTime ?? time();
-					$this->db->insert("raid_member_<myname>", $raiderEntry);
+					$this->db->insert(RaidMemberController::DB_TABLE, $raiderEntry, null);
 				}
 				$historyEntry->time = time();
 				foreach ($history as $state) {
@@ -747,13 +734,13 @@ class ImportController {
 					if (isset($state->raidSecondsPerPoint)) {
 						$historyEntry->seconds_per_point = $state->raidSecondsPerPoint;
 					}
-					$this->db->insert("raid_log_<myname>", $historyEntry);
+					$this->db->insert(RaidController::DB_TABLE_LOG, $historyEntry, null);
 				}
 				if (!count($history)) {
-					$this->db->insert("raid_log_<myname>", $historyEntry);
+					$this->db->insert(RaidController::DB_TABLE_LOG, $historyEntry, null);
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -768,7 +755,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all raid points");
-			$this->db->exec("DELETE FROM `raid_points_<myname>`");
+			$this->db->table(RaidPointsController::DB_TABLE)->truncate();
 			foreach ($points as $point) {
 				$name = $this->characterToName($point->character??null);
 				if (!isset($name)) {
@@ -777,9 +764,9 @@ class ImportController {
 				$entry = new RaidPoints();
 				$entry->username = $name;
 				$entry->points = $point->raidPoints;
-				$this->db->insert("raid_points_<myname>", $entry);
+				$this->db->insert(RaidPointsController::DB_TABLE, $entry, null);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -794,24 +781,25 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all raid point logs");
-			$this->db->exec("DELETE FROM `raid_points_log_<myname>`");
+			$this->db->table(RaidPointsController::DB_TABLE_LOG)->truncate();
 			foreach ($points as $point) {
 				$name = $this->characterToName($point->character??null);
 				if (!isset($name) || $point->raidPoints === 0) {
 					continue;
 				}
-				$entry = new RaidPointsLog();
-				$entry->username = $name;
-				$entry->delta = $point->raidPoints;
-				$entry->time = $point->time ?? time();
-				$entry->changed_by = $this->characterToName($point->givenBy ??null) ?? $this->chatBot->vars["name"];
-				$entry->individual = $point->givenIndividually ?? true;
-				$entry->raid_id = $point->raidId ?? null;
-				$entry->reason = $point->reason ?? "Raid participation";
-				$entry->ticker = $point->givenByTick ?? false;
-				$this->db->insert("raid_points_log_<myname>", $entry);
+				$this->db->table(RaidPointsController::DB_TABLE_LOG)
+					->insert([
+						"username" => $name,
+						"delta" => $point->raidPoints,
+						"time" => $point->time ?? time(),
+						"changed_by" => $this->characterToName($point->givenBy ??null) ?? $this->chatBot->vars["name"],
+						"individual" => $point->givenIndividually ?? true,
+						"raid_id" => $point->raidId ?? null,
+						"reason" => $point->reason ?? "Raid participation",
+						"ticker" => $point->givenByTick ?? false,
+					]);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -843,7 +831,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all timers");
-			$this->db->exec("DELETE FROM `timers_<myname>`");
+			$this->db->table(TimerController::DB_TABLE)->truncate();
 			$timerNum = 1;
 			foreach ($timers as $timer) {
 				$entry = new Timer();
@@ -866,22 +854,20 @@ class ImportController {
 					$alertEntry->time = $entry->endtime;
 					$entry->alerts []= $alertEntry;
 				}
-				$sql = "INSERT INTO `timers_<myname>` (`name`, `owner`, `mode`, `endtime`, `settime`, `callback`, `data`, `alerts`) ".
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-				$this->db->exec(
-					$sql,
-					$entry->name,
-					$entry->owner,
-					$entry->mode,
-					$entry->endtime,
-					$timer->startTime ?? time(),
-					$entry->callback,
-					$entry->data,
-					json_encode($entry->alerts)
-				);
+				$this->db->table(TimerController::DB_TABLE)
+					->insert([
+						"name" => $entry->name,
+						"owner" => $entry->owner,
+						"mode" => $entry->mode,
+						"endtime" => $entry->endtime,
+						"settime" => $timer->startTime ?? time(),
+						"callback" => $entry->callback,
+						"data" => $entry->data,
+						"alerts" => json_encode($entry->alerts)
+					]);
 				$timerNum++;
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -896,7 +882,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all tracked users");
-			$this->db->exec("DELETE FROM `tracked_users_<myname>`");
+			$this->db->table(TrackerController::DB_TABLE)->truncate();
 			foreach ($trackedUsers as $trackedUser) {
 				$name = $this->characterToName($trackedUser->character??null);
 				if (!isset($name)) {
@@ -906,25 +892,23 @@ class ImportController {
 				if (!isset($id) || $id === false) {
 					continue;
 				}
-				$this->db->exec(
-					"INSERT INTO `tracked_users_<myname>`(`uid`, `name`, `added_by`, `added_dt`) ".
-					"VALUES (?, ?, ?, ?)",
-					$id,
-					$name,
-					$this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->vars["name"],
-					$trackedUser->addedTime ?? time()
-				);
+				$this->db->table(TrackerController::DB_TABLE)
+					->insert([
+						"uid" => $id,
+						"name" => $name,
+						"added_by" => $this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->vars["name"],
+						"added_dt" => $trackedUser->addedTime ?? time(),
+					]);
 				foreach ($trackedUser->events??[] as $event) {
-					$this->db->exec(
-						"INSERT INTO `tracking_<myname>`(`uid`, `dt`, `event`) ".
-						"VALUES (?, ?, ?)",
-						$id,
-						$event->time,
-						$event->event,
-					);
+					$this->db->table(TrackerController::DB_TRACKING)
+						->insert([
+							"uid" => $id,
+							"dt" => $event->time,
+							"event" => $event->event,
+						]);
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -939,7 +923,9 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all user-managed comment categories");
-			$this->db->exec("DELETE FROM `<table:comment_categories>` WHERE user_managed IS TRUE");
+			$this->db->table("<table:comment_categories>")
+				->where("user_managed", true)
+				->delete();
 			foreach ($categories as $category) {
 				$oldEntry = $this->commentController->getCategory($category->name);
 				$entry = new CommentCategory();
@@ -952,10 +938,10 @@ class ImportController {
 				if (isset($oldEntry)) {
 					$this->db->update("<table:comment_categories>", "name", $entry);
 				} else {
-					$this->db->insert("<table:comment_categories>", $entry);
+					$this->db->insert("<table:comment_categories>", $entry, null);
 				}
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();
@@ -970,7 +956,7 @@ class ImportController {
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all comments");
-			$this->db->exec("DELETE FROM `<table:comments>`");
+			$this->db->table("<table:comments>")->truncate();
 			foreach ($comments as $comment) {
 				$name = $this->characterToName($comment->targetCharacter);
 				if (!isset($name)) {
@@ -990,11 +976,11 @@ class ImportController {
 					$cat->min_al_read = "mod";
 					$cat->min_al_write = "admin";
 					$cat->user_managed = true;
-					$this->db->insert("<table:comment_categories>", $cat);
+					$this->db->insert("<table:comment_categories>", $cat, null);
 				}
 				$this->db->insert("<table:comments>", $entry);
 			}
-		} catch (SQLException $e) {
+		} catch (Throwable $e) {
 			$this->logger->log("ERROR", $e->getMessage());
 			$this->logger->log("INFO", "Rolling back changes");
 			$this->db->rollback();

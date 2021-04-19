@@ -52,7 +52,8 @@ class PlayfieldController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'playfields');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Playfields");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
 
 		$this->commandAlias->register($this->moduleName, "playfields", "playfield");
 	}
@@ -62,14 +63,12 @@ class PlayfieldController {
 	 * @Matches("/^playfields$/i")
 	 */
 	public function playfieldListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = '';
-
-		$sql = "SELECT * FROM playfields ORDER BY long_name";
-		/** @var Playfield[] */
-		$data = $this->db->fetchAll(Playfield::class, $sql);
-		foreach ($data as $row) {
-			$blob .= "[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
-		}
+		$blob = $this->db->table("playfields")
+			->orderBy("long_name")
+			->asObj(Playfield::class)
+			->reduce(function(string $blob, Playfield $row): string {
+				return"{$blob}[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
+			}, "");
 
 		$msg = $this->text->makeBlob("Playfields", $blob);
 		$sendto->reply($msg);
@@ -81,16 +80,12 @@ class PlayfieldController {
 	 */
 	public function playfieldShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower(trim($args[1]));
-
-		[$longQuery, $longParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'long_name');
-		[$shortQuery, $shortParams] = $this->util->generateQueryFromParams(explode(' ', $search), 'short_name');
+		$query = $this->db->table("playfields");
+		$this->db->addWhereFromParams($query, explode(' ', $search), 'long_name');
+		$this->db->addWhereFromParams($query, explode(' ', $search), 'short_name', "or");
 
 		/** @var Playfield[] */
-		$data = $this->db->fetchAll(
-			Playfield::class,
-			"SELECT * FROM playfields WHERE ($longQuery) OR ($shortQuery)",
-			...[...$longParams, ...$shortParams],
-		);
+		$data = $query->asObj(Playfield::class)->toArray();
 
 		$count = count($data);
 
@@ -193,18 +188,18 @@ class PlayfieldController {
 	}
 
 	public function getPlayfieldByName(string $playfieldName): ?Playfield {
-		$sql = "SELECT * FROM playfields WHERE `long_name` LIKE ? OR `short_name` LIKE ? LIMIT 1";
-
-		/** @var ?Playfield */
-		$pf = $this->db->fetch(Playfield::class, $sql, $playfieldName, $playfieldName);
-		return $pf;
+		return $this->db->table("playfields")
+			->whereIlike("long_name", $playfieldName)
+			->orWhereIlike("short_name", $playfieldName)
+			->limit(1)
+			->asObj(Playfield::class)
+			->first();
 	}
 
 	public function getPlayfieldById(int $playfieldId): ?Playfield {
-		$sql = "SELECT * FROM playfields WHERE `id` = ?";
-
-		/** @var ?Playfield */
-		$pf = $this->db->fetch(Playfield::class, $sql, $playfieldId);
-		return $pf;
+		return $this->db->table("playfields")
+			->where("id", $playfieldId)
+			->asObj(Playfield::class)
+			->first();
 	}
 }

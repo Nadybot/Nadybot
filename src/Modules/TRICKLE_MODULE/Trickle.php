@@ -15,5 +15,5 @@ class Trickle extends DBRow {
 	public float $amountSta;
 	public float $amountStr;
 	public float $amountSen;
-	public ?int $amount;
+	public ?float $amount;
 }

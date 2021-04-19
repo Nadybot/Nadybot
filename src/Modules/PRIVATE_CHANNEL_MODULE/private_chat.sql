@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS members_<myname> (
-	name VARCHAR(25) NOT NULL PRIMARY KEY,
-	autoinv INT DEFAULT 0
-);

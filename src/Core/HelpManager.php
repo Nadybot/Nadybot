@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Exception;
-
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\DBSchema\HelpTopic;
 
@@ -11,6 +9,7 @@ use Nadybot\Core\DBSchema\HelpTopic;
  * @Instance
  */
 class HelpManager {
+	public const DB_TABLE = "hlpcfg_<myname>";
 
 	/** @Inject */
 	public DB $db;
@@ -47,11 +46,23 @@ class HelpManager {
 		}
 
 		if (isset($this->chatBot->existing_helps[$command])) {
-			$sql = "UPDATE hlpcfg_<myname> SET `verify` = 1, `file` = ?, `module` = ?, `description` = ? WHERE `name` = ?";
-			$this->db->exec($sql, $actual_filename, $module, $description, $command);
+			$this->db->table(self::DB_TABLE)->where("name", $command)
+				->update([
+					"verify" => 1,
+					"file" => $actual_filename,
+					"module" => $module,
+					"description" => $description,
+				]);
 		} else {
-			$sql = "INSERT INTO hlpcfg_<myname> (`name`, `module`, `file`, `description`, `admin`, `verify`) VALUES (?, ?, ?, ?, ?, ?)";
-			$this->db->exec($sql, $command, $module, $actual_filename, $description, $admin, '1');
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"name" => $command,
+					"admin" => $admin,
+					"verify" => 1,
+					"file" => $actual_filename,
+					"module" => $module,
+					"description" => $description,
+				]);
 		}
 	}
 
@@ -60,37 +71,39 @@ class HelpManager {
 	 */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
-
-		$sql = "SELECT `module`, `file`, `name`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
-			"(SELECT `module`, `admin`, `cmd` AS `name`, `help` AS `file` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND `cmd` = ?  AND `status` = 1 AND `help` != '' ".
-				"UNION ".
-			"SELECT `module`, `admin`, `name`, `help` AS `file` FROM `settings_<myname>` WHERE `name` = ? AND `help` != '' ".
-				"UNION ".
-			"SELECT `module`, `admin`, `name`, `file` FROM `hlpcfg_<myname>` WHERE `name` = ? AND `file` != '') t ".
-			"GROUP BY `module`, `file`";
+		$cmdHelp = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd")
+			->where("status", 1)
+			->where("cmd", $helpcmd)
+			->where("help", "!=", '')
+			->select("module", "admin", "cmd AS name", "help AS file");
+		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $helpcmd)
+			->where("help", "!=", '')
+			->select("module", "admin", "name", "help AS file");
+		$hlpHelp = $this->db->table(self::DB_TABLE)
+			->where("name", $helpcmd)
+			->where("file", "!=", '')
+			->select("module", "admin", "name", "file");
+		$outerQuery = $this->db->fromSub(
+			$cmdHelp->union($settingsHelp)->union($hlpHelp),
+			"foo"
+		)->select("foo.module", "foo.file", "foo.name", "foo.admin AS admin_list");
 		/** @var HelpTopic[] $data */
-		$data = $this->db->fetchAll(HelpTopic::class, $sql, $helpcmd, $helpcmd, $helpcmd);
-
-		if (count($data) === 0) {
-			$helpcmd = strtoupper($helpcmd);
-			$sql = "SELECT `module`, `file`, `name`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
-					"(SELECT `module`, `admin`, `cmd` AS name, `help` AS file FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND `module` = ? AND `status` = 1 AND `help` != '' ".
-						"UNION ".
-					"SELECT `module`, `admin`, `name`, `help` AS file FROM `settings_<myname>` WHERE `module` = ? AND `help` != '' ".
-						"UNION ".
-					"SELECT `module`, `admin`, `name`, `file` FROM `hlpcfg_<myname>` WHERE `module` = ? AND `file` != '') t ".
-					"GROUP BY `module`, `file`";
-			/** @var HelpTopic[] $data */
-			$data = $this->db->fetchAll(HelpTopic::class, $sql, $helpcmd, $helpcmd, $helpcmd);
-		}
+		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
 
 		$output = '';
+		$shown = [];
 		foreach ($data as $row) {
+			if (isset($shown[$row->file])) {
+				continue;
+			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$output .= trim(file_get_contents($row->file)) . "\n\n";
+				$shown[$row->file] = true;
 			}
 		}
 
@@ -101,7 +114,9 @@ class HelpManager {
 		$helpTopic = strtolower($helpTopic);
 		$admin = strtolower($admin);
 
-		$this->db->exec("UPDATE hlpcfg_<myname> SET `admin` = ? WHERE `name` = ?", $admin, $helpTopic);
+		$this->db->table(self::DB_TABLE)
+			->where("name", $helpTopic)
+			->update(["admin" => $admin]);
 	}
 
 	public function checkForHelpFile(string $module, string $file): string {
@@ -117,34 +132,50 @@ class HelpManager {
 	 *
 	 * @param string $char Name of the char
 	 * @return HelpTopic[] Help topics
-	 * @throws \Exception
 	 */
 	public function getAllHelpTopics($char): array {
-		$sql = "SELECT `module`, `file`, `name`, `description`, `sort`, GROUP_CONCAT(`admin`) AS admin_list FROM ".
-			"( ".
-			"SELECT `module`, `admin`, `help` AS file, `name`, `description`, 3 AS sort FROM `settings_<myname>` WHERE `help` != '' ".
-				"UNION ".
-			"SELECT `module`, `admin`, `help` AS file, `cmd` AS name, `description`, 2 AS sort FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' AND status = 1 AND help != '' ".
-				"UNION ".
-			"SELECT `module`, `admin`, `file`, `name`, `description`, 1 AS sort FROM `hlpcfg_<myname>` ".
-			") t ".
-			"GROUP BY `module`, `file`, `name`, `description`, `sort` ".
-			"ORDER BY `module`, `name`, `sort` DESC, `description`";
+		$cmdHelp = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd")
+			->where("status", 1)
+			->where("help", "!=", '')
+			->select("module", "admin", "cmd AS name", "help AS file", "description");
+		$cmdHelp->selectRaw("2" . $cmdHelp->as("sort"));
+		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
+			->where("help", "!=", '')
+			->select("module", "admin", "name", "help AS file", "description");
+		$settingsHelp->selectRaw("3" . $settingsHelp->as("sort"));
+		$hlpHelp = $this->db->table(self::DB_TABLE)
+			->select("module", "admin", "name", "file", "description");
+		$hlpHelp->selectRaw("1" . $settingsHelp->as("sort"));
+		$outerQuery = $this->db->fromSub(
+			$cmdHelp->union($settingsHelp)->union($hlpHelp),
+			"foo"
+		)->select("foo.module", "foo.file", "foo.name", "foo.description", "foo.admin AS admin_list", "foo.sort")
+		->orderBy("module")
+		->orderBy("name")
+		->orderByDesc("sort")
+		->orderBy("description");
 		/** @var HelpTopic[] $data */
-		$data = $this->db->fetchAll(HelpTopic::class, $sql);
+		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
 		if ($char !== null) {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
 		}
 
 		$topics = [];
+		$added = [];
 		foreach ($data as $row) {
+			$key = ($row->module??"").($row->name??"").($row->description??"");
+			if (isset($added[$key])) {
+				continue;
+			}
 			if ($char === null || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$obj = new HelpTopic();
 				$obj->module = $row->module;
 				$obj->name = $row->name;
 				$obj->description = $row->description;
 				$topics []= $obj;
+				$added[$key] = true;
 			}
 		}
 

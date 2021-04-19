@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Closure;
+use DateTime;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -11,6 +12,12 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
+use Nadybot\Core\CSV\Reader;
+use Nadybot\Core\DBSchema\Migration;
+use Throwable;
 
 /**
  * @Instance
@@ -36,6 +43,11 @@ class DB {
 	private PDO $sql;
 
 	/**
+	 * The low-level Capsule manager object
+	 */
+	private Capsule $capsule;
+
+	/**
 	 * The name of the bot
 	 */
 	private string $botname;
@@ -52,7 +64,6 @@ class DB {
 
 	private string $guild;
 	private string $lastQuery;
-	private bool $inTransaction = false;
 	private array $meta = [];
 	private array $metaTypes = [];
 
@@ -68,9 +79,30 @@ class DB {
 
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
+	public const POSTGRESQL = 'postgresql';
 
 	public function __construct() {
 		$this->logger = new LoggerWrapper('SQL');
+	}
+
+	/** Get the lowercased name of the bot */
+	public function getBotname(): string {
+		return $this->botname;
+	}
+
+	/** Get the correct name of the bot */
+	public function getMyname(): string {
+		return ucfirst($this->botname);
+	}
+
+	/** Get the correct guild name of the bot */
+	public function getMyguild(): string {
+		return ucfirst($this->guild);
+	}
+
+	/** Get the dimension id of the bot */
+	public function getDim(): int {
+		return $this->dim;
 	}
 
 	/**
@@ -90,12 +122,23 @@ class DB {
 		$this->botname = strtolower($vars["name"]);
 		$this->dim = $vars["dimension"];
 		$this->guild = str_replace("'", "''", $vars["my_guild"]);
+		$this->capsule = new Capsule();
 
 		if ($this->type === self::MYSQL) {
 			do {
 				try {
-					$this->sql = new PDO("mysql:dbname=$dbName;host=$host", $user, $pass);
-				} catch (PDOException $e) {
+					$this->capsule->addConnection([
+						'driver' => 'mysql',
+						'host' => $host,
+						'database' => $dbName,
+						'username' => $user,
+						'password' => $pass,
+						'charset' => 'utf8',
+						'collation' => 'utf8_unicode_ci',
+						'prefix' => ''
+					]);
+					$this->sql = $this->capsule->getConnection()->getPdo();
+				} catch (Throwable $e) {
 					if (!$errorShown) {
 						$this->logger->log(
 							"ERROR",
@@ -114,16 +157,14 @@ class DB {
 			if ($errorShown) {
 				$this->logger->log("INFO", "Database connection re-established");
 			}
-			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$this->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
-			$this->exec("SET time_zone = '+00:00'");
-
+			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
+			$this->sql->exec("SET time_zone = '+00:00'");
 			$mysqlVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 
 			// MariaDB 10.0.12 made aria storage stable which is read-optimized
 			if (preg_match("/MariaDB-\d+:([0-9.]+)/", $mysqlVersion, $matches)) {
 				if (version_compare($matches[1], "10.0.12") >= 0) {
-					$this->exec("SET default_storage_engine = aria");
+					$this->sql->exec("SET default_storage_engine = aria");
 				}
 			}
 			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
@@ -133,9 +174,16 @@ class DB {
 			} else {
 				$dbName = "$host/$dbName";
 			}
+			if (!@file_exists($dbName)) {
+				touch($dbName);
+			}
+			$this->capsule->addConnection([
+				'driver' => 'sqlite',
+				'database' => $dbName,
+				'prefix' => ''
+			]);
+			$this->sql = $this->capsule->getConnection()->getPdo();
 
-			$this->sql = new PDO("sqlite:".$dbName);
-			$this->sql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
 			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
@@ -150,9 +198,44 @@ class DB {
 				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
 				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
 			}
+		} elseif ($this->type === self::POSTGRESQL) {
+			do {
+				try {
+					$this->capsule->addConnection([
+						'driver' => 'pgsql',
+						'host' => $host,
+						'database' => $dbName,
+						'username' => $user,
+						'password' => $pass,
+						'charset' => 'utf8',
+						'collation' => 'utf8_unicode_ci',
+						'prefix' => ''
+					]);
+					$this->sql = $this->capsule->getConnection()->getPdo();
+				} catch (Throwable $e) {
+					if (!$errorShown) {
+						$this->logger->log(
+							"ERROR",
+							"Cannot connect to the PostgreSQL db at {$host}: ".
+							trim($e->errorInfo[2])
+						);
+						$this->logger->log(
+							"INFO",
+							"Will keep retrying until the db is back up again"
+						);
+						$errorShown = true;
+					}
+					sleep(1);
+				}
+			} while (!isset($this->sql));
+			if ($errorShown) {
+				$this->logger->log("INFO", "Database connection re-established");
+			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
 		}
+		$this->capsule->setAsGlobal();
+		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
 	}
 
 	/**
@@ -164,6 +247,7 @@ class DB {
 
 	/**
 	 * Execute an SQL statement and return the first row as object or null if no results
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function queryRow(string $sql): ?DBRow {
 		$result = $this->query(...func_get_args());
@@ -206,31 +290,6 @@ class DB {
 					}
 				};
 			}
-			continue;
-			if (in_array($colMeta['native_type'], ["integer", "TINY", "LONG", "SHORT"])) {
-				$colName = $colMeta['name'];
-				$refProp = new ReflectionProperty($row, $colName);
-				$refProp->setAccessible(true);
-				if (
-					$colMeta['native_type'] === 'TINY'
-					|| (isset($colMeta['sqlite:decl_type'])
-						&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
-				) {
-					$this->meta[$metaKey] []= function(object $row) use ($refProp) {
-						$stringValue = $refProp->getValue($row);
-						if ($stringValue !== null) {
-							$refProp->setValue($row, (bool)$stringValue);
-						}
-					};
-				} else {
-					$this->meta[$metaKey] []= function(object $row) use ($refProp) {
-						$stringValue = $refProp->getValue($row);
-						if ($stringValue !== null) {
-							$refProp->setValue($row, (int)$stringValue);
-						}
-					};
-				}
-			}
 		}
 		return $this->meta[$metaKey];
 	}
@@ -238,6 +297,7 @@ class DB {
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects
 	 *
+	 * @deprecated Will be removed in Nadybot 6.0
 	 * @return \Nadybot\Core\DBRow[] All returned rows
 	 */
 	public function query(string $sql): array {
@@ -245,6 +305,7 @@ class DB {
 
 		$args = $this->getParameters(func_get_args());
 
+		$sql = $this->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
 		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
 		$result = [];
@@ -260,10 +321,12 @@ class DB {
 
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects of the given class
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function fetchAll(string $className, string $sql, ...$args): array {
 		$sql = $this->formatSql($sql);
 
+		$sql = $this->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
 		return $ps->fetchAll(
 			PDO::FETCH_FUNC,
@@ -275,6 +338,7 @@ class DB {
 
 	/**
 	 * Execute an SQL statement and return the first row as an objects of the given class
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function fetch(string $className, string $sql, ...$args) {
 		return $this->fetchAll(...func_get_args())[0] ?? null;
@@ -293,14 +357,15 @@ class DB {
 	}
 
 	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
-		if (!in_array($colMeta['native_type'], ["integer", "TINY", "LONG", "NEWDECIMAL"])
-			&& !in_array($colMeta["sqlite:decl_type"] ?? null, ["INT, BOOLEAN, TINYINT(1)"])) {
+		$type = strtolower($colMeta["native_type"]);
+		$declType = strtolower($colMeta["sqlite:decl_type"] ?? "");
+		if (!in_array($type, ["integer", "tiny", "long", "newdecimal"])
+			&& !in_array($declType, ["int", "boolean", "tinyint(1)"])) {
 			return null;
 		}
 		if (
-			$colMeta['native_type'] === 'TINY'
-			|| (isset($colMeta['sqlite:decl_type'])
-				&& in_array($colMeta['sqlite:decl_type'], ['BOOLEAN', 'TINYINT(1)']))
+			$type === 'tiny'
+			|| (in_array($declType, ['boolean', 'tinyint(1)']))
 		) {
 			return "bool";
 		} else {
@@ -334,16 +399,27 @@ class DB {
 				}
 				continue;
 			}
-			$type = $this->guessVarTypeFromReflection($refClass, $colName)
-				?? $this->guessVarTypeFromColMeta($colMeta, $colName);
-			if ($type === "bool") {
-				$row->{$colName} = (bool)$values[$col];
-			} elseif ($type === "int") {
-				$row->{$colName} = (int)$values[$col];
-			} elseif ($type === "float") {
-				$row->{$colName} = (float)$values[$col];
-			} else {
-				$row->{$colName} = $values[$col];
+			try {
+				$type = $this->guessVarTypeFromReflection($refClass, $colName)
+					?? $this->guessVarTypeFromColMeta($colMeta, $colName);
+				if ($type === "bool") {
+					$row->{$colName} = (bool)$values[$col];
+				} elseif ($type === "int") {
+					$row->{$colName} = (int)$values[$col];
+				} elseif ($type === "float") {
+					$row->{$colName} = (float)$values[$col];
+				} elseif ($type === DateTime::class) {
+					$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+				} else {
+					$row->{$colName} = $values[$col];
+				}
+			} catch (Throwable $e) {
+				$this->logger->log(
+					'ERROR',
+					$e->getMessage() . ' in file ' . $e->getFile() . ':' . $e->getLine(),
+					$e
+				);
+				throw $e;
 			}
 		}
 		return $row;
@@ -366,6 +442,7 @@ class DB {
 
 	/**
 	 * Execute a query and return the number of affected rows
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function exec(string $sql): int {
 		$sql = $this->formatSql($sql);
@@ -385,6 +462,7 @@ class DB {
 				"AND index_name=?";
 			$tableName = preg_replace("/^`(.+?)`$/", "$1", $match[2]);
 			$indexName = preg_replace("/^`(.+?)`$/", "$1", $match[1]);
+			$indexQuery = $this->applySQLCompatFixes($indexQuery);
 			$ps = $this->executeQuery($indexQuery, [$tableName, $indexName]);
 			$indexResult = $ps->fetch(PDO::FETCH_ASSOC);
 			if ($indexResult !== null && (int)$indexResult["indexthere"] > 0) {
@@ -392,6 +470,7 @@ class DB {
 			}
 			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
 			try {
+				$sql = $this->applySQLCompatFixes($sql);
 				$ps = $this->executeQuery($sql, $args);
 				return $ps->rowCount();
 			} catch (SQLException $e) {
@@ -404,6 +483,7 @@ class DB {
 			}
 		}
 
+		$sql = $this->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
 
 		return $ps->rowCount();
@@ -426,7 +506,7 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
-		$sql = $this->applySQLCompatFixes($sql);
+		// $sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
 		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
 
@@ -468,7 +548,6 @@ class DB {
 	 */
 	public function beginTransaction(): void {
 		$this->logger->log('DEBUG', "Starting transaction");
-		$this->inTransaction = true;
 		$this->sql->beginTransaction();
 	}
 
@@ -477,8 +556,7 @@ class DB {
 	 */
 	public function commit(): void {
 		$this->logger->log('DEBUG', "Committing transaction");
-		$this->inTransaction = false;
-		$this->sql->Commit();
+		$this->sql->commit();
 	}
 
 	/**
@@ -486,7 +564,6 @@ class DB {
 	 */
 	public function rollback(): void {
 		$this->logger->log('DEBUG', "Rolling back transaction");
-		$this->inTransaction = false;
 		$this->sql->rollback();
 	}
 
@@ -494,11 +571,12 @@ class DB {
 	 * Check if we're currently in a transaction
 	 */
 	public function inTransaction(): bool {
-		return $this->inTransaction;
+		return $this->sql->inTransaction();
 	}
 
 	/**
 	 * Returns the ID of the last inserted row or sequence value
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function lastInsertId(): int {
 		return (int)$this->sql->lastInsertId();
@@ -535,6 +613,7 @@ class DB {
 	 *
 	 * Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
 	 * If there is an sql file with name $name.sql it would load that one every time
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
 	public function loadSQLFile(string $module, string $name, bool $forceUpdate=false): string {
 		$name = strtolower($name);
@@ -641,40 +720,22 @@ class DB {
 
 	/**
 	 * Check if a table exists in the database
+	 * @deprecated Will be removed in Nadybot 6.0
 	 */
-	public function tableExists(string $tableName): bool {
-		if ($this->getType() === static::SQLITE) {
-			return $this->queryRow(
-				"SELECT COUNT(*) AS `exists` ".
-				"FROM `sqlite_master` WHERE `type`=? AND `name`=?",
-				"table",
-				$this->formatSql($tableName)
-			)->exists > 0;
-		}
-		return $this->queryRow(
-			"SELECT COUNT(*) AS `exists` FROM information_schema.TABLES ".
-			"WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
-			$this->formatSql($tableName)
-		)->exists > 0;
+	public function tableExists(string $table): bool {
+		$table = $this->formatSql($table);
+		return $this->schema()->hasTable($table);
 	}
 
+	/** @deprecated */
 	public function columnExists(string $table, string $column): bool {
-		if ($this->getType() === static::SQLITE) {
-			return $this->queryRow(
-				"SELECT COUNT(*) AS `exists` FROM pragma_table_info(?) WHERE name=?",
-				$this->formatSql($table),
-				$column
-			)->exists > 0;
-		}
-		return $this->queryRow(
-			"SELECT COUNT(*) AS `exists` FROM information_schema.columns ".
-			"WHERE TABLE_NAME = ? AND COLUMN_NAME = ? AND TABLE_SCHEMA = ?",
-			$this->formatSql($table),
-			$column,
-			$this->dbName ?? null
-		)->exists > 0;
+		return $this->schema()->hasColumn($table, $column);
 	}
 
+	/**
+	 * Check if column $column in table $table is part of a unique constraint
+	 * @deprecated will be removed in 6.0
+	 */
 	public function columnUnique(string $table, string $column): bool {
 		if ($this->getType() === static::SQLITE) {
 			$indexes = $this->query("PRAGMA index_list(`{$table}`)");
@@ -698,55 +759,293 @@ class DB {
 	/**
 	 * Insert a DBRow $row into the database table $table
 	 */
-	public function insert(string $table, DBRow $row): int {
-		$values = [];
+	public function insert(string $table, DBRow $row, ?string $sequence=""): int {
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
-		$colNames = [];
+		$data = [];
 		foreach ($props as $prop) {
 			$comment = $prop->getDocComment();
 			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
 				continue;
 			}
 			if ($prop->isInitialized($row)) {
-				$colNames []= "`{$prop->name}`";
-				$values []= $prop->getValue($row);
+				$data[$prop->name] = $prop->getValue($row);
 			}
 		}
-		$sql = "INSERT INTO `{$table}` (" . join(", ", $colNames) . ") ".
-			"VALUES (" . join(", ", array_fill(0, count($colNames), "?")) . ")";
-		$inserted = $this->exec($sql, ...$values);
-		if ($inserted) {
-			return $this->lastInsertId();
+		$table = $this->formatSql($table);
+		if ($sequence === null) {
+			return $this->table($table)->insert($data) ? 1 : 0;
 		}
-		return 0;
+		if ($sequence === '') {
+			$sequence = null;
+		}
+		return $this->table($table)->insertGetId($data, $sequence);
 	}
 
 	/**
 	 * Update a DBRow $row in the database table $table, using property $key in the where
 	 */
 	public function update(string $table, string $key, DBRow $row): int {
-		$values = [];
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
-		$colNames = [];
+		$updates = [];
 		foreach ($props as $prop) {
 			$comment = $prop->getDocComment();
 			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
 				continue;
 			}
 			if ($prop->isInitialized($row) && $prop->name !== $key) {
-				$colNames []= "`{$prop->name}`=?";
-				$values []= $prop->getValue($row);
+				$updates[$prop->name] = $prop->getValue($row);
 			}
 		}
-		$sql = "UPDATE `{$table}` SET " . join(", ", $colNames) . " ".
-			"WHERE `{$key}`=?";
-		return $this->exec($sql, ...[...$values, $row->{$key}]);
+		return $this->table($table)->update($updates);
 	}
 
 	/** Register a table name for a key */
 	public function registerTableName(string $key, string $table): void {
 		$this->tableNames[$key] = $table;
+	}
+
+	/**
+	 * Get a schema builder instance.
+	 */
+	public function schema(?string $connection=null): SchemaBuilder {
+		$schema = $this->capsule->schema($connection);
+		$builder = new SchemaBuilder($schema);
+		$builder->nadyDB = $this;
+		return $builder;
+	}
+
+	/**
+	 * Get a fluent query builder instance.
+	 *
+	 * @param \Closure|\Illuminate\Database\Query\Builder|string $table
+	 * @param string|null $as
+	 * @param string|null $connection
+	 */
+	public function table($table, ?string $as=null, ?string $connection=null): QueryBuilder {
+		if (is_string($table)) {
+			$table = $this->formatSql($table);
+		}
+		$builder = $this->capsule->table($table, $as, $connection);
+		$myBuilder = new QueryBuilder($builder->getConnection(), $builder->getGrammar(), $builder->getProcessor());
+		foreach ($builder as $attr => $value) {
+			$myBuilder->{$attr} = $value;
+		}
+		$myBuilder->nadyDB = $this;
+		return $myBuilder;
+	}
+
+	/**
+	 * Makes "from" fetch from a subquery.
+	 *
+	 * @param  \Closure|\Illuminate\Database\Query\Builder|string  $query
+	 * @param  string  $as
+	 * @return $this
+	 */
+	public function fromSub($query, string $as): QueryBuilder {
+		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
+		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
+		foreach ($query as $attr => $value) {
+			$builder->{$attr} = $value;
+		}
+		$builder->nadyDB = $this;
+		return $builder;
+	}
+
+	public function createMigrationTables(): void {
+		$infoShown = false;
+		foreach (["migrations", "migrations_<myname>"] as $table) {
+			if ($this->schema()->hasTable($table)) {
+				continue;
+			}
+			$this->schema()->create($table, function(Blueprint $table) {
+				$table->id();
+				$table->string('module');
+				$table->string('migration');
+				$table->integer('applied_at');
+			});
+			if ($infoShown) {
+				continue;
+			}
+			if ($this->schema()->hasTable(AdminManager::DB_TABLE)) {
+				$log = 'Your database is migrating to a new schema.';
+			} else {
+				$log = 'Your database is being initialized.';
+			}
+			$this->logger->log(
+				'INFO',
+				$log . ' ' . 'This can take a while; please be patient.'
+			);
+			$infoShown = true;
+		}
+	}
+
+	/**
+	 * Get a list of all DB migrations that were already applied in $module
+	 * @return Collection<Migration>
+	 */
+	protected function getAppliedMigrations(string $module): Collection {
+		$ownQuery = $this->table('migrations_<myname>')->select()
+			->where('module', $module)
+			->orderBy('migration');
+		$sharedQuery = $this->table('migrations')->select()
+				->where('module', $module)
+				->orderBy('migration');
+		return $ownQuery->union($sharedQuery)->asObj(Migration::class);
+	}
+
+	/** Load and apply all migrations for $module from directory $dir and return if any were applied */
+	public function loadMigrations(string $module, string $dir): bool {
+		$this->createMigrationTables();
+		$files = glob("{$dir}/*.php");
+		$applied = $this->getAppliedMigrations($module);
+		$numApplied = 0;
+		foreach ($files as $file) {
+			$baseName = basename($file, '.php');
+			if ($applied->contains("migration", $baseName)) {
+				continue;
+			}
+			$this->applyMigration($module, $file);
+			$numApplied++;
+		}
+		return $numApplied > 0;
+	}
+
+	protected function applyMigration(string $module, string $file): void {
+		$baseName = basename($file, '.php');
+		$old = get_declared_classes();
+		try {
+			require_once $file;
+		} catch (Throwable $e) {
+			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage());
+			return;
+		}
+		$new = array_diff(get_declared_classes(), $old);
+		$table = $this->formatSql(
+			preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
+		);
+		foreach ($new as $class) {
+			if (!is_subclass_of($class, SchemaMigration::class)) {
+				continue;
+			}
+			$obj = new $class();
+			Registry::injectDependencies($obj);
+			try {
+				$this->logger->log('DEBUG', "Running migration {$class}");
+				$obj->migrate($this->logger, $this);
+			} catch (Throwable $e) {
+				$this->logger->log(
+					'ERROR',
+					"Error executing {$class}::migrate(): ".
+						$e->getMessage()
+				);
+				continue;
+			}
+			$this->table($table)->insert([
+				'module' => $module,
+				'migration' => $baseName,
+				'applied_at' => time(),
+			]);
+		}
+	}
+
+	/**
+	 * Load a CSV file $file into table $table
+	 * @param string $module The module to which this file belongs
+	 * @param string $file The full path to the CSV file
+	 * @param string $table Name of the table to insert the data into
+	 * @return bool trueif inserted, false if already up-to-date
+	 * @throws Exception
+	 */
+	public function loadCSVFile(string $module, string $file, string $table=null, ...$where): bool {
+		$fileBase = basename($file, '.csv');
+		if ($table === null) {
+			$table = $fileBase;
+		}
+		$table = $this->formatSql($table);
+		if (!@file_exists($file)) {
+			throw new Exception("The CSV-file {$file} was not found.");
+		}
+		try {
+			$version = filemtime($file) ?: 0;
+			$comment = trim(fgets(fopen($file, 'r')));
+			if (preg_match("/^#\s*Version:\s*(.+)$/i", $comment, $matches)) {
+				$version = $matches[1];
+			}
+		} catch (Throwable $e) {
+			// Ignore this one
+		}
+		$settingName = strtolower("{$fileBase}_db_version");
+		$currentVersion = false;
+		if ($this->settingManager->exists($settingName)) {
+			$currentVersion = $this->settingManager->get($settingName);
+		}
+		if ($currentVersion === false) {
+			$currentVersion = 0;
+		}
+		// make sure setting is verified so it doesn't get deleted
+		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', "0");
+
+		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
+			$msg = "'{$table}' database already up to date! version: '$currentVersion'";
+			$this->logger->log('DEBUG', $msg);
+			return false;
+		}
+		$this->logger->log('DEBUG', "Inserting {$file}");
+		$csv = new Reader($file);
+		$items = [];
+		foreach ($csv->items() as $item) {
+			$items []= $item;
+		}
+		if (count($where)) {
+			$this->table($table)->where(...$where)->delete();
+		} else {
+			$this->table($table)->delete();
+		}
+		while (count($items) > 0) {
+			try {
+				$toInsert = array_splice($items, 0, 1000);
+				$this->table($table)->insert($toInsert);
+			} catch (PDOException $e) {
+				$this->logger->log('ERROR', $e->getMessage());
+				throw $e;
+			}
+		}
+		$this->settingManager->save($settingName, (string)$version);
+
+		if ($version !== 0) {
+			$msg = "Updated '{$table}' database from '{$currentVersion}' to '{$version}'";
+			$this->logger->log('DEBUG', $msg);
+		} else {
+			$msg = "Updated '{$table}' database";
+			$this->logger->log('DEBUG', $msg);
+		}
+		return true;
+	}
+
+	/**
+	 * Generate an SQL query from a column and a list of criteria
+	 *
+	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
+	 * @param string $column The table column to test against
+	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
+	 */
+	public function addWhereFromParams(QueryBuilder $query, array $params, string $column, string $boolean='and'): void {
+		$closure = function (QueryBuilder $query) use ($params, $column) {
+			foreach ($params as $key => $value) {
+				if ($value[0] == "-" && strlen($value) > 1) {
+					$value = substr($value, 1);
+					$op = "not like";
+				} else {
+					$op = "like";
+				}
+				$query->whereRaw(
+					$query->colFunc("LOWER", $column) . " {$op} ?",
+					"%" . strtolower($value) . "%"
+				);
+			}
+		};
+		$query->where($closure, null, null, $boolean);
 	}
 }

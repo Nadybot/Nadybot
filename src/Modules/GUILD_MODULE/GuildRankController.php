@@ -36,6 +36,8 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
  */
 class GuildRankController {
 
+	public const DB_TABLE = "org_rank_mapping_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -70,7 +72,7 @@ class GuildRankController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "org_rank_mapping");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -89,21 +91,20 @@ class GuildRankController {
 	 * @return OrgRankMapping[]
 	 */
 	public function getMappings(): array {
-		/** @var OrgRankMapping[] */
-		$ranks = $this->db->fetchAll(
-			OrgRankMapping::class,
-			"SELECT * FROM `org_rank_mapping_<myname>` ORDER BY `min_rank` ASC"
-		);
-		return $ranks;
+		return $this->db->table(self::DB_TABLE)
+			->orderBy("min_rank")
+			->asObj(OrgRankMapping::class)
+			->toArray();
 	}
 
 	public function getEffectiveAccessLevel(int $rank): string {
-		/** @var OrgRankMapping */
-		$rank = $this->db->fetch(
-			OrgRankMapping::class,
-			"SELECT * FROM `org_rank_mapping_<myname>` WHERE `min_rank` >= ? ORDER BY `min_rank` ASC",
-			$rank
-		);
+		/** @var ?OrgRankMapping */
+		$rank = $this->db->table(self::DB_TABLE)
+			->where("min_rank", ">=", $rank)
+			->orderBy("min_rank")
+			->limit(1)
+			->asObj(OrgRankMapping::class)
+			->first();
 		return $rank ? $rank->access_level : "guild";
 	}
 
@@ -219,27 +220,25 @@ class GuildRankController {
 		$rankMapping->access_level = $accessLevel;
 		$rankMapping->min_rank = $rank;
 		/** @var ?OrgRankMapping */
-		$alEntry = $this->db->fetch(
-			OrgRankMapping::class,
-			"SELECT * FROM `org_rank_mapping_<myname>` WHERE `access_level` = ?",
-			$rankMapping->access_level
-		);
+		$alEntry = $this->db->table(self::DB_TABLE)
+			->where("access_level", $rankMapping->access_level)
+			->asObj(OrgRankMapping::class)
+			->first();
 		/** @var ?OrgRankMapping */
-		$rankEntry = $this->db->fetch(
-			OrgRankMapping::class,
-			"SELECT * FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?",
-			$rankMapping->min_rank
-		);
+		$rankEntry = $this->db->table(self::DB_TABLE)
+			->where("min_rank", $rankMapping->min_rank)
+			->asObj(OrgRankMapping::class)
+			->first();
 		if (isset($alEntry) && isset($rankEntry)) {
 			$sendto->reply("You have already assigned rank mapping for both {$alName} and {$rankName}.");
 			return;
 		}
 		if (isset($alEntry)) {
-			$this->db->update("org_rank_mapping_<myname>", "access_level", $rankMapping);
+			$this->db->update(self::DB_TABLE, "access_level", $rankMapping);
 		} elseif (isset($rankEntry)) {
-			$this->db->update("org_rank_mapping_<myname>", "min_rank", $rankMapping);
+			$this->db->update(self::DB_TABLE, "min_rank", $rankMapping);
 		} else {
-			$this->db->insert("org_rank_mapping_<myname>", $rankMapping);
+			$this->db->insert(self::DB_TABLE, $rankMapping, null);
 		}
 		$sendto->reply("Every <highlight>{$rankName}<end> or higher will now be mapped to <highlight>{$alName}<end>.");
 	}
@@ -275,11 +274,10 @@ class GuildRankController {
 			return;
 		}
 		/** @var ?OrgRankMapping */
-		$oldEntry = $this->db->fetch(
-			OrgRankMapping::class,
-			"SELECT * FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?",
-			$rank
-		);
+		$oldEntry = $this->db->table(self::DB_TABLE)
+			->where("min_rank", $rank)
+			->asObj(OrgRankMapping::class)
+			->first();
 		if (!isset($oldEntry)) {
 			$sendto->reply("You haven't defined any access level for <highlight>{$ranks[$rank]}<end>.");
 			return;
@@ -290,7 +288,9 @@ class GuildRankController {
 			$sendto->reply("You can only manage access levels below your own.");
 			return;
 		}
-		$this->db->exec("DELETE FROM `org_rank_mapping_<myname>` WHERE `min_rank` = ?", $rank);
+		$this->db->table(self::DB_TABLE)
+			->where("min_rank", $rank)
+			->delete();
 		$sendto->reply(
 			"The access level mapping <highlight>{$ranks[$rank]}<end> to ".
 			"<highlight>" . $this->accessManager->getDisplayName($oldEntry->access_level) . "<end> ".

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BROADCAST_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -28,6 +29,8 @@ use Nadybot\Core\Modules\LIMITS\RateIgnoreController;
  *	)
  */
 class BroadcastController {
+
+	public const DB_TABLE = "broadcast_<myname>";
 
 	/**
 	 * Name of the module.
@@ -61,7 +64,7 @@ class BroadcastController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, 'broadcast');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->loadBroadcastListIntoMemory();
 
@@ -89,12 +92,10 @@ class BroadcastController {
 
 	private function loadBroadcastListIntoMemory(): void {
 		//Upload broadcast bots to memory
-		/** @var Broadcast[] */
-		$data = $this->db->fetchAll(Broadcast::class, "SELECT * FROM broadcast_<myname>");
-		$this->broadcastList = [];
-		foreach ($data as $row) {
-			$this->broadcastList[$row->name] = $row;
-		}
+		$this->broadcastList = $this->db->table(self::DB_TABLE)
+			->asObj(Broadcast::class)
+			->keyBy("name")
+			->toArray();
 	}
 
 	/**
@@ -104,10 +105,11 @@ class BroadcastController {
 	public function broadcastListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = '';
 
-		$sql = "SELECT * FROM broadcast_<myname> ORDER BY dt DESC";
-		/** @var Broadcast[] */
-		$data = $this->db->fetchAll(Broadcast::class, $sql);
-		if (count($data) === 0) {
+		/** @var Collection<Broadcast> */
+		$data = $this->db->table(self::DB_TABLE)
+			->orderBy("dt")
+			->asObj(Broadcast::class);
+		if ($data->count() === 0) {
 			$msg = "No bots are on the broadcast list.";
 			$sendto->reply($msg);
 			return;
@@ -140,12 +142,12 @@ class BroadcastController {
 			return;
 		}
 
-		$this->db->exec(
-			"INSERT INTO broadcast_<myname> (`name`, `added_by`, `dt`) VALUES (?, ?, ?)",
-			$name,
-			$sender,
-			time()
-		);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"name" => $name,
+				"added_by" => $sender,
+				"dt" => time(),
+			]);
 		$msg = "Broadcast bot <highlight>{$name}<end> added successfully.";
 
 		// reload broadcast bot list
@@ -168,7 +170,7 @@ class BroadcastController {
 			return;
 		}
 
-		$this->db->exec("DELETE FROM broadcast_<myname> WHERE name = ?", $name);
+		$this->db->table(self::DB_TABLE)->where("name", $name)->delete();
 		$msg = "Broadcast bot <highlight>{$name}<end> removed successfully.";
 
 		// reload broadcast bot list

@@ -66,7 +66,7 @@ class FindOrgController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "organizations");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	/**
@@ -110,13 +110,12 @@ class FindOrgController {
 	 * @throws SQLException
 	 */
 	public function lookupOrg(string $search, int $limit=50): array {
+		$query = $this->db->table("organizations")
+			->limit($limit);
 		$tmp = explode(" ", $search);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
-		$params []= $limit;
+		$this->db->addWhereFromParams($query, $tmp, "name");
 
-		$sql = "SELECT * FROM organizations WHERE $query LIMIT ?";
-
-		$orgs = $this->db->fetchAll(Organization::class, $sql, ...$params);
+		$orgs = $query->asObj(Organization::class)->toArray();
 
 		return $orgs;
 	}
@@ -157,16 +156,7 @@ class FindOrgController {
 		try {
 			preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
 			$this->logger->log("DEBUG", "Updating orgs starting with $search");
-			$this->db->beginTransaction();
-			if ($search === 'others') {
-				if ($this->db->getType() === $this->db::MYSQL) {
-					$this->db->exec("DELETE FROM organizations WHERE name NOT REGEXP '^[a-zA-Z0-9]'");
-				} else {
-					$this->db->exec("DELETE FROM organizations WHERE name NOT GLOB '[a-zA-Z0-9]*'");
-				}
-			} else {
-				$this->db->exec("DELETE FROM organizations WHERE name LIKE ?", "{$search}%");
-			}
+			$inserts = [];
 			foreach ($arr as $match) {
 				$obj = new Organization();
 				//$obj->server = $match[1]; unused
@@ -174,10 +164,12 @@ class FindOrgController {
 				$obj->name = trim($match[3]);
 				$obj->num_members = (int)$match[4];
 				$obj->faction = $match[6];
+				$inserts []= get_object_vars($obj);
 				//$obj->governingForm = $match[7]; unused
-
-				$this->db->exec("INSERT INTO organizations (id, name, faction, num_members) VALUES (?, ?, ?, ?)", $obj->id, $obj->name, $obj->faction, $obj->num_members);
 			}
+			$this->db->beginTransaction();
+			$this->db->table("organizations")
+				->insert($inserts);
 			$this->db->commit();
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
@@ -211,6 +203,7 @@ class FindOrgController {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
 
 		$this->ready = false;
+		$this->db->table("organizations")->truncate();
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http

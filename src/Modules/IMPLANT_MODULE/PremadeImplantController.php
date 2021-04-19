@@ -5,6 +5,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
+	QueryBuilder,
 	Text,
 	Util,
 };
@@ -50,7 +51,8 @@ class PremadeImplantController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "premade_implant");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Premade");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/premade_implant.csv");
 	}
 
 	/**
@@ -82,48 +84,51 @@ class PremadeImplantController {
 		$sendto->reply($msg);
 	}
 
+	protected function getBaseQuery(): QueryBuilder {
+		$query = $this->db->table("premade_implant AS p")
+			->join("ImplantType AS i", "p.ImplantTypeID", "i.ImplantTypeID")
+			->join("Profession AS p2", "p.ProfessionID", "p2.ID")
+			->join("Ability AS a", "p.AbilityID", "a.AbilityID")
+			->join("Cluster AS c1", "p.ShinyClusterID", "c1.ClusterID")
+			->join("Cluster AS c2", "p.BrightClusterID", "c2.ClusterID")
+			->join("Cluster AS c3", "p.FadedClusterID", "c3.ClusterID")
+			->orderBy("slot")
+			->select("i.Name AS slot", "p2.Name AS profession", "a.Name as ability");
+		$query->selectRaw(
+			"CASE WHEN " . $query->grammar->wrap("c1.ClusterID") . " = 0 ".
+			"THEN ? ".
+			"ELSE " .$query->grammar->wrap("c1.LongName"). " ".
+			"END AS " . $query->grammar->wrap("shiny")
+		)->addBinding('N/A', 'select');
+		$query->selectRaw(
+			"CASE WHEN " . $query->grammar->wrap("c2.ClusterID") . " = 0 ".
+			"THEN ? ".
+			"ELSE " .$query->grammar->wrap("c2.LongName"). " ".
+			"END AS " . $query->grammar->wrap("bright")
+		)->addBinding('N/A', 'select');
+		$query->selectRaw(
+			"CASE WHEN " . $query->grammar->wrap("c3.ClusterID") . " = 0 ".
+			"THEN ? ".
+			"ELSE " .$query->grammar->wrap("c3.LongName"). " ".
+			"END AS " . $query->grammar->wrap("faded")
+		)->addBinding('N/A', 'select');
+		return $query;
+	}
+
 	/**
 	 * @return PremadeSearchResult[]
 	 */
 	public function searchByProfession(string $profession): array {
-		$sql = "SELECT i.Name AS slot, ".
-				"p2.Name AS profession, ".
-				"a.Name AS ability, ".
-				"CASE WHEN c1.ClusterID = 0 THEN 'N/A' ELSE c1.LongName END AS shiny, ".
-				"CASE WHEN c2.ClusterID = 0 THEN 'N/A' ELSE c2.LongName END AS bright, ".
-				"CASE WHEN c3.ClusterID = 0 THEN 'N/A' ELSE c3.LongName END AS faded ".
-			"FROM premade_implant p ".
-			"JOIN ImplantType i ON p.ImplantTypeID = i.ImplantTypeID ".
-			"JOIN Profession p2 ON p.ProfessionID = p2.ID ".
-			"JOIN Ability a ON p.AbilityID = a.AbilityID ".
-			"JOIN Cluster c1 ON p.ShinyClusterID = c1.ClusterID ".
-			"JOIN Cluster c2 ON p.BrightClusterID = c2.ClusterID ".
-			"JOIN Cluster c3 ON p.FadedClusterID = c3.ClusterID ".
-			"WHERE p2.Name = ? ".
-			"ORDER BY slot";
-		return $this->db->fetchAll(PremadeSearchResult::class, $sql, $profession);
+		$query = $this->getBaseQuery()->where("p2.Name", $profession);
+		return $query->asObj(PremadeSearchResult::class)->toArray();
 	}
 
 	/**
 	 * @return PremadeSearchResult[]
 	 */
 	public function searchBySlot(string $slot): array {
-		$sql = "SELECT i.Name AS slot, ".
-				"p2.Name AS profession, ".
-				"a.Name AS ability, ".
-				"CASE WHEN c1.ClusterID = 0 THEN 'N/A' ELSE c1.LongName END AS shiny, ".
-				"CASE WHEN c2.ClusterID = 0 THEN 'N/A' ELSE c2.LongName END AS bright, ".
-				"CASE WHEN c3.ClusterID = 0 THEN 'N/A' ELSE c3.LongName END AS faded ".
-			"FROM premade_implant p ".
-			"JOIN ImplantType i ON p.ImplantTypeID = i.ImplantTypeID ".
-			"JOIN Profession p2 ON p.ProfessionID = p2.ID ".
-			"JOIN Ability a ON p.AbilityID = a.AbilityID ".
-			"JOIN Cluster c1 ON p.ShinyClusterID = c1.ClusterID ".
-			"JOIN Cluster c2 ON p.BrightClusterID = c2.ClusterID ".
-			"JOIN Cluster c3 ON p.FadedClusterID = c3.ClusterID ".
-			"WHERE i.ShortName = ? ".
-			"ORDER BY shiny, bright, faded";
-		return $this->db->fetchAll(PremadeSearchResult::class, $sql, $slot);
+		$query = $this->getBaseQuery()->where("i.ShortName", $slot);
+		return $query->asObj(PremadeSearchResult::class)->toArray();
 	}
 
 	/**
@@ -140,26 +145,12 @@ class PremadeImplantController {
 			},
 			$skills
 		);
-		$placeHolder = join(",", array_fill(0, count($skillIds), "?"));
+		$query = $this->getBaseQuery()
+			->whereIn("c1.SkillID", $skillIds)
+			->orWhereIn("c2.SkillID", $skillIds)
+			->orWhereIn("c3.SkillID", $skillIds);
 
-		$sql = "SELECT i.Name AS slot, ".
-				"p2.Name AS profession, ".
-				"a.Name AS ability, ".
-				"CASE WHEN c1.ClusterID = 0 THEN '-' ELSE c1.LongName END AS shiny, ".
-				"CASE WHEN c2.ClusterID = 0 THEN '-' ELSE c2.LongName END AS bright, ".
-				"CASE WHEN c3.ClusterID = 0 THEN '-' ELSE c3.LongName END AS faded ".
-			"FROM premade_implant p ".
-			"JOIN ImplantType i ON p.ImplantTypeID = i.ImplantTypeID ".
-			"JOIN Profession p2 ON p.ProfessionID = p2.ID ".
-			"JOIN Ability a ON p.AbilityID = a.AbilityID ".
-			"JOIN Cluster c1 ON p.ShinyClusterID = c1.ClusterID ".
-			"JOIN Cluster c2 ON p.BrightClusterID = c2.ClusterID ".
-			"JOIN Cluster c3 ON p.FadedClusterID = c3.ClusterID ".
-			"WHERE c1.SkillID IN ($placeHolder) ".
-			"OR c2.SkillID IN ($placeHolder) ".
-			"OR c3.SkillID IN ($placeHolder)";
-
-		return $this->db->fetchAll(PremadeSearchResult::class, $sql, ...[...$skillIds, ...$skillIds, ...$skillIds]);
+		return $query->asObj(PremadeSearchResult::class)->toArray();
 	}
 
 	/**

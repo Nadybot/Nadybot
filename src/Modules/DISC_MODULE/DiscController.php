@@ -49,7 +49,8 @@ class DiscController {
 	 */
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadSQLFile($this->moduleName, 'discs');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/discs.csv');
 	}
 
 	/**
@@ -58,18 +59,19 @@ class DiscController {
 	 * @return Disc[] An array of database entries that matched
 	 */
 	public function getDiscsByName(string $discName): array {
-		[$where, $params] = $this->util->generateQueryFromParams(explode(' ', $discName), 'disc_name');
-		$sql = "SELECT * FROM discs WHERE $where";
-		/** @var Disc[] */
-		return $this->db->fetchAll(Disc::class, $sql, ...$params);
+		$query = $this->db->table("discs");
+		$this->db->addWhereFromParams($query, explode(' ', $discName), 'disc_name');
+		return $query->asObj(Disc::class)->toArray();
 	}
 
 	/**
 	 * Get the instruction disc from its id and return the result or null
 	 */
 	public function getDiscById(int $discId): ?Disc {
-		$sql = "SELECT * FROM discs WHERE disc_id = ?";
-		return $this->db->fetch(Disc::class, $sql, $discId);
+		return $this->db->table("discs")
+			->where("disc_id", $discId)
+			->asObj(Disc::class)
+			->first();
 	}
 
 	/**
@@ -135,13 +137,11 @@ class DiscController {
 	 * Get additional information about the nano of a disc
 	 */
 	public function getNanoDetails(Disc $disc): ?DBRow {
-		$sql = "SELECT ".
-					"location, ".
-					"professions, ".
-					"strain AS nanoline_name ".
-				"FROM nanos n ".
-				"WHERE crystal_id = ?";
-		return $this->db->queryRow($sql, $disc->crystal_id);
+		return $this->db->table("nanos")
+			->where("crystal_id", $disc->crystal_id)
+			->select("location", "professions", "strain AS nanoline_name")
+			->asObj()
+			->first();
 	}
 
 	/**

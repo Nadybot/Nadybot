@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Event;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\EventCfg;
 
@@ -11,6 +10,7 @@ use Nadybot\Core\DBSchema\EventCfg;
  * @Instance
  */
 class EventManager {
+	public const DB_TABLE = "eventcfg_<myname>";
 
 	/** @Inject */
 	public DB $db;
@@ -71,8 +71,15 @@ class EventManager {
 
 		try {
 			if (isset($this->chatBot->existing_events[$type][$filename])) {
-				$sql = "UPDATE eventcfg_<myname> SET `verify` = 1, `description` = ?, `help` = ? WHERE `type` = ? AND `file` = ? AND `module` = ?";
-				$this->db->exec($sql, $description, $help, $type, $filename, $module);
+				$this->db->table(self::DB_TABLE)
+					->where("type", $type)
+					->where("file", $filename)
+					->where("module", $module)
+					->update([
+						"verify" => 1,
+						"description" => $description,
+						"help" => $help,
+					]);
 				return;
 			}
 			if ($defaultStatus === null) {
@@ -84,8 +91,16 @@ class EventManager {
 			} else {
 				$status = $defaultStatus;
 			}
-			$sql = "INSERT INTO eventcfg_<myname> (`module`, `type`, `file`, `verify`, `description`, `status`, `help`) VALUES (?, ?, ?, ?, ?, ?, ?)";
-			$this->db->exec($sql, $module, $type, $filename, '1', $description, $status, $help);
+				$this->db->table(self::DB_TABLE)
+					->insert([
+						"module" => $module,
+						"type" => $type,
+						"file" => $filename,
+						"verify" => 1,
+						"description" => $description,
+						"status" => $status,
+						"help" => $help,
+					]);
 		} catch (SQLException $e) {
 			$this->logger->log('ERROR', "Error registering method $filename for event type $type: " . $e->getMessage());
 		}
@@ -268,15 +283,16 @@ class EventManager {
 	public function loadEvents(): void {
 		$this->logger->log('DEBUG', "Loading enabled events");
 
-		/** @var EventCfg[] $data */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `status` = '1'");
-		foreach ($data as $row) {
-			if (isset($this->dontActivateEvents[$row->type][$row->file])) {
-				unset($this->dontActivateEvents[$row->type][$row->file]);
-			} else {
-				$this->activate($row->type, $row->file);
-			}
-		}
+		$this->db->table(self::DB_TABLE)
+			->where("status", 1)
+			->asObj(EventCfg::class)
+			->each(function(EventCfg $row) {
+				if (isset($this->dontActivateEvents[$row->type][$row->file])) {
+					unset($this->dontActivateEvents[$row->type][$row->file]);
+				} else {
+					$this->activate($row->type, $row->file);
+				}
+			});
 		$this->eventsReady = true;
 		$this->dontActivateEvents = [];
 	}
@@ -382,7 +398,13 @@ class EventManager {
 		} catch (StopExecutionException $e) {
 			throw $e;
 		} catch (Exception $e) {
-			$this->logger->log('ERROR', "Error calling event handler '$handler': " . $e->getMessage(), $e);
+			$this->logger->log(
+				'ERROR',
+				"Error calling event handler '$handler': " . $e->getMessage() . " in ".
+				"file " . ($e->getFile() ?? "Unknown") . "#".
+				($e->getLine() ?? "Unknown"),
+				$e
+			);
 		}
 	}
 

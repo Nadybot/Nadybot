@@ -82,7 +82,7 @@ class WhoisController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "name_history");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -110,23 +110,13 @@ class WhoisController {
 		}
 		$this->db->beginTransaction();
 		foreach ($this->nameHistoryCache as $entry) {
-			if ($this->db->getType() == DB::SQLITE) {
-				$this->db->exec(
-					"INSERT OR IGNORE INTO name_history (name, charid, dimension, dt) ".
-					"VALUES (?, ?, <dim>, ?)",
-					$entry->name,
-					$entry->charid,
-					time()
-				);
-			} else {
-				$this->db->exec(
-					"INSERT IGNORE INTO name_history (name, charid, dimension, dt) ".
-					"VALUES (?, ?, <dim>, ?)",
-					$entry->name,
-					$entry->charid,
-					time()
-				);
-			}
+			$this->db->table("name_history")
+				->insertOrIgnore([
+					"name" => $entry->name,
+					"charid" => $entry->charid,
+					"dimension" => $this->db->getDim(),
+					"dt" => time(),
+				]);
 		}
 		$this->db->commit();
 
@@ -159,13 +149,12 @@ class WhoisController {
 	public function lookupIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$charID = (int)$args[1];
 		/** @var NameHistory[] */
-		$players = $this->db->fetchAll(
-			NameHistory::class,
-			"SELECT * FROM name_history ".
-			"WHERE charid = ? AND dimension = <dim> ".
-			"ORDER BY dt DESC",
-			$charID
-		);
+		$players = $this->db->table("name_history")
+			->where("charid", $charID)
+			->where("dimension", $this->db->getDim())
+			->orderByDesc("dt")
+			->asObj(NameHistory::class)
+			->toArray();
 		$count = count($players);
 
 		$blob = "<header2>Known names for {$charID}<end>\n";
@@ -190,15 +179,13 @@ class WhoisController {
 	public function lookupNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 
-		$players = $this->db->query("SELECT * FROM name_history WHERE name LIKE ? AND dimension = <dim> ORDER BY dt DESC", $name);
 		/** @var NameHistory[] */
-		$players = $this->db->fetchAll(
-			NameHistory::class,
-			"SELECT * FROM name_history ".
-			"WHERE name = ? AND dimension = <dim> ".
-			"ORDER BY dt DESC",
-			$name
-		);
+		$players = $this->db->table("name_history")
+			->where("name", $name)
+			->where("dimension", $this->db->getDim())
+			->orderByDesc("dt")
+			->asObj(NameHistory::class)
+			->toArray();
 		$count = count($players);
 
 		$blob = "<header2>Known IDs of {$name}<end>\n";
@@ -217,11 +204,13 @@ class WhoisController {
 	}
 
 	public function getNameHistory(int $charID, int $dimension): string {
-		$sql = "SELECT * FROM name_history ".
-			"WHERE charid = ? ".
-			"AND dimension = ? ".
-			"ORDER BY dt DESC";
-		$data = $this->db->fetchAll(NameHistory::class, $sql, $charID, $dimension);
+		/** @var NameHistory[] */
+		$data = $this->db->table("name_history")
+			->where("charid", $charID)
+			->where("dimension", $dimension)
+			->orderByDesc("dt")
+			->asObj(NameHistory::class)
+			->toArray();
 
 		$blob = "<header2>Name History<end>\n";
 		if (count($data) > 0) {

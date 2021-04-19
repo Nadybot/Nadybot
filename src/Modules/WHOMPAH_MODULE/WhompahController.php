@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandAlias;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
@@ -42,7 +43,9 @@ class WhompahController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'whompah_cities');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
 
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompahs');
 		$this->commandAlias->register($this->moduleName, 'whompah', 'whompa');
@@ -54,9 +57,8 @@ class WhompahController {
 	 * @Matches("/^whompah$/i")
 	 */
 	public function whompahListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT * FROM `whompah_cities` ORDER BY city_name ASC";
-		/** @var WhompahCity[] */
-		$data = $this->db->fetchAll(WhompahCity::class, $sql);
+		/** @var Collection<WhompahCity> */
+		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
 
 		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
 		foreach ($data as $row) {
@@ -124,11 +126,13 @@ class WhompahController {
 			return;
 		}
 
-		$sql = "SELECT w2.* FROM whompah_cities_rel w1 ".
-			"JOIN whompah_cities w2 ON w1.city2_id = w2.id ".
-			"WHERE w1.city1_id = ? ORDER BY w2.city_name ASC";
 		/** @var WhompahCity[] */
-		$cities = $this->db->fetchAll(WhompahCity::class, $sql, $city->id);
+		$cities = $this->db->table("whompah_cities_rel AS w1")
+			->join("whompah_cities AS w2", "w1.city2_id", "w2.id")
+			->where("w1.city1_id", $city->id)
+			->orderBy("w2.city_name")
+			->select("w2.*")
+			->asObj(WhompahCity::class)->toArray();
 
 		$msg = "From <highlight>{$city->city_name}<end> you can get to\n- " .
 			implode("\n- ", $this->getColoredNamelist($cities));
@@ -180,10 +184,12 @@ class WhompahController {
 	}
 
 	public function findCity(string $search): ?WhompahCity {
-		$sql = "SELECT * FROM whompah_cities ".
-			"WHERE city_name LIKE ? OR short_name LIKE ?";
-		return $this->db->fetch(WhompahCity::class, $sql, $search, $search)
-			?: $this->db->fetch(WhompahCity::class, $sql, "%{$search}%", "%{$search}%");
+		$q1 = $this->db->table("whompah_cities")->whereIlike("city_name", $search)
+			->orWhereIlike("short_name", $search);
+		$q2 = $this->db->table("whompah_cities")->whereIlike("city_name", "%{$search}%")
+			->orWhereIlike("short_name", "%{$search}%");
+		return $q1->asObj(WhompahCity::class)->first()
+			?: $q2->asObj(WhompahCity::class)->first();
 	}
 
 	/**
@@ -191,20 +197,14 @@ class WhompahController {
 	 */
 	public function buildWhompahNetwork(): array {
 		/** @var array<int,WhompahCity> */
-		$whompahs = [];
+		$whompahs = $this->db->table("whompah_cities")->asObj(WhompahCity::class)
+			->keyBy("id")->toArray();
 
-		$sql = "SELECT * FROM `whompah_cities`";
-		/** @var WhompahCity[] */
-		$cities = $this->db->fetchAll(WhompahCity::class, $sql);
-		foreach ($cities as $city) {
-			$whompahs[$city->id] = $city;
-		}
-
-		$sql = "SELECT city1_id, city2_id FROM whompah_cities_rel";
-		$cities = $this->db->query($sql);
-		foreach ($cities as $city) {
-			$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
-		}
+		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
+			->each(function($city) use ($whompahs) {
+				$whompahs[$city->city1_id]->connections ??= [];
+				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
+			});
 
 		return $whompahs;
 	}

@@ -46,6 +46,9 @@ use Nadybot\Core\{
  */
 class VoteController {
 
+	public const DB_POLLS = "polls_<myname>";
+	public const DB_VOTES = "votes_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -100,7 +103,7 @@ class VoteController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'vote');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -115,95 +118,26 @@ class VoteController {
 			"votesettings.txt"
 		);
 		$this->commandAlias->register($this->moduleName, "poll", "polls");
-
-		if ($this->db->tableExists("vote_<myname>")) {
-			$this->convertDBfromV1toV2();
-		} else {
-			$this->cacheVotes();
-		}
-	}
-
-	public function cacheVotes(): void {
-		/** @var Poll[] */
-		$topics = $this->db->fetchAll(
-			Poll::class,
-			"SELECT * FROM polls_<myname> WHERE `status` != ?",
-			self::STATUS_ENDED
-		);
-		foreach ($topics as $topic) {
-			$topic->answers = json_decode($topic->possible_answers, false);
-			$this->polls[$topic->id] = $topic;
-		}
-	}
-
-	public function convertDBfromV1toV2(): void {
-		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, __FUNCTION__]);
-			return;
-		}
-		$this->logger->log("INFO", "Converting old vote format into poll format");
-		$oldPolls = $this->db->query("SELECT * FROM vote_<myname> WHERE duration IS NOT NULL");
-		foreach ($oldPolls as $oldPoll) {
-			$this->db->beginTransaction();
-			if (!$this->db->exec(
-				"INSERT INTO polls_<myname> ".
-				"(author, question, possible_answers, started, duration, status) ".
-				"VALUES (?,?,?,?,?,?)",
-				$oldPoll->author,
-				$oldPoll->question,
-				json_encode(explode(self::DELIMITER, $oldPoll->answer)),
-				(int)$oldPoll->started,
-				(int)$oldPoll->duration,
-				(int)$oldPoll->status
-			)) {
-				$this->logger->log("ERROR", "Cannot convert old polls into new format.");
-				$this->db->rollback();
-				return;
-			}
-			$id = $this->db->lastInsertId();
-			$oldVotes = $this->db->query(
-				"SELECT * FROM vote_<myname> WHERE question = ? AND duration IS NULL",
-				$oldPoll->question
-			);
-			foreach ($oldVotes as $oldVote) {
-				if (!$this->db->exec(
-					"INSERT INTO votes_<myname> ".
-					"(`poll_id`, `author`, `answer`) VALUES (?, ?, ?)",
-					$id,
-					$oldVote->author,
-					$oldVote->answer
-				)) {
-					$this->logger->log("ERROR", "Cannot convert old votes into new format.");
-					$this->db->rollback();
-					return;
-				}
-			}
-			$this->db->exec(
-				"DELETE FROM vote_<myname> WHERE question = ?",
-				$oldPoll->question
-			);
-			$this->db->commit();
-			$this->logger->log("INFO", "Poll \"{$oldPoll->question}\" converted to new poll system");
-		}
-		$this->db->exec("DROP TABLE vote_<myname>");
-		$this->logger->log("INFO", "Conversion completed");
 		$this->cacheVotes();
 	}
 
+	public function cacheVotes(): void {
+		$this->db->table(self::DB_POLLS)
+			->where("status", "!=", self::STATUS_ENDED)
+			->asObj(Poll::class)
+			->each(function (Poll $topic) {
+				$topic->answers = json_decode($topic->possible_answers, false);
+				$this->polls[$topic->id] = $topic;
+			});
+	}
+
 	public function getPoll(int $id, string $creator=null): ?Poll {
-		$where = "";
-		$sqlArgs = [];
+		$query = $this->db->table(self::DB_POLLS)->where("id", $id);
 		if ($creator !== null) {
-			$where = " AND owner = ?";
-			$sqlArgs []= $creator;
+			$query->where("owner", $creator);
 		}
 		/** @var ?Poll */
-		$topic = $this->db->fetch(
-			Poll::class,
-			"SELECT * FROM polls_<myname> WHERE id = ?{$where}",
-			$id,
-			...$sqlArgs
-		);
+		$topic = $query->asObj(Poll::class)->first();
 		if ($topic === null) {
 			return null;
 		}
@@ -228,20 +162,15 @@ class VoteController {
 
 			if ($timeleft <= 0) {
 				$title = "Finished Vote: $poll->question";
-				$this->db->exec(
-					"UPDATE polls_<myname> SET `status` = ? WHERE `id` = ?",
-					self::STATUS_ENDED,
-					$poll->id
-				);
+				$this->db->table(self::DB_POLLS)
+					->where("id", $poll->id)
+					->update(["status" => self::STATUS_ENDED]);
 				$event = new PollEvent();
 				$event->poll = clone($poll);
 				unset($event->poll->possible_answers);
-				/** @var ?Vote */
-				$event->votes = $this->db->fetchAll(
-					Vote::class,
-					"SELECT * FROM votes_<myname> WHERE `poll_id` = ?",
-					$poll->id,
-				);
+				$event->votes = $this->db->table(self::DB_VOTES)
+					->where("poll_id", $poll->id)
+					->asObj(Vote::class)->toArray();
 				$event->type = "poll(end)";
 				$this->eventManager->fireEvent($event);
 				unset($this->polls[$id]);
@@ -298,10 +227,9 @@ class VoteController {
 	 */
 	public function pollCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var Poll[] */
-		$topics = $this->db->fetchAll(
-			Poll::class,
-			"SELECT * FROM polls_<myname> ORDER BY `started`"
-		);
+		$topics = $this->db->table(self::DB_POLLS)
+			->orderBy("started")
+			->asObj(Poll::class)->toArray();
 		$running = "";
 		$over = "";
 		$blob = "";
@@ -353,8 +281,8 @@ class VoteController {
 			$sendto->reply($msg);
 			return;
 		}
-		$this->db->exec("DELETE FROM votes_<myname> WHERE `poll_id` = ?", $topic->id);
-		$this->db->exec("DELETE FROM polls_<myname> WHERE `id` = ?", $topic->id);
+		$this->db->table(self::DB_VOTES)->where("poll_id", $topic->id)->delete();
+		$this->db->table(self::DB_POLLS)->delete($topic->id);
 		$event = new PollEvent();
 		$event->poll = clone($topic);
 		unset($event->poll->possible_answers);
@@ -379,11 +307,10 @@ class VoteController {
 			return;
 		}
 		$topic = $this->polls[$id];
-		$deleted = $this->db->exec(
-			"DELETE FROM votes_<myname> WHERE `poll_id` = ? AND `author` = ?",
-			$id,
-			$sender
-		);
+		$deleted = $this->db->table(self::DB_VOTES)
+			->where("poll_id", $id)
+			->where("author", $sender)
+			->delete();
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
 			$event = new VoteEvent();
@@ -417,11 +344,9 @@ class VoteController {
 
 		if ($timeleft > 60) {
 			$topic->duration = (time() - $topic->started) + 61;
-			$this->db->exec(
-				"UPDATE polls_<myname> SET `duration` = ? WHERE `id` = ?",
-				$topic->duration,
-				$topic->id
-			);
+			$this->db->table(self::DB_POLLS)
+				->where("id", $topic->id)
+				->update(["duration" => $topic->duration]);
 			$this->polls[$id]->duration = $topic->duration;
 			$msg = "Vote duration reduced to 60 seconds.";
 		} elseif ($timeleft <= 0) {
@@ -447,12 +372,11 @@ class VoteController {
 		$blob = $this->getPollBlob($topic, $sender);
 
 		/** @var ?Vote */
-		$vote = $this->db->fetch(
-			Vote::class,
-			"SELECT * FROM votes_<myname> WHERE `poll_id` = ? AND `author` = ?",
-			$topic->id,
-			$sender,
-		);
+		$vote = $this->db->table(self::DB_VOTES)
+			->where("poll_id", $topic->id)
+			->where("author", "sender")
+			->asObj(Vote::class)
+			->first();
 		$timeleft = $topic->getTimeLeft();
 		if (isset($vote) && $vote->answer && $timeleft > 0) {
 			$privmsg = "You voted: <highlight>{$vote->answer}<end>.";
@@ -490,40 +414,35 @@ class VoteController {
 			return;
 		}
 		/** @var ?Vote */
-		$oldVote = $this->db->fetch(
-			Vote::class,
-			"SELECT * FROM votes_<myname> WHERE `poll_id` = ? AND `author` = ?",
-			$topic->id,
-			$sender
-		);
+		$oldVote = $this->db->table(self::DB_VOTES)
+			->where("poll_id", $topic->id)
+			->where("author", $sender)
+			->asObj(Vote::class)
+			->first();
 		$event = new VoteEvent();
 		$event->poll = clone($topic);
 		unset($event->poll->possible_answers);
 		$event->player = $sender;
 		$event->vote = $answer;
 		if ($oldVote) {
-			$this->db->exec(
-				"UPDATE votes_<myname> ".
-				"SET `answer` = ?, `time` = ? WHERE `author` = ? AND `poll_id` = ?",
-				$answer,
-				time(),
-				$sender,
-				$topic->id
-			);
+			$this->db->table(self::DB_VOTES)
+				->where("author", $sender)
+				->where("poll_id", $topic->id)
+				->update([
+					"answer" => $answer,
+					"time" => time(),
+				]);
 			$msg = "You have changed your vote to ".
 				"<highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event->type = "vote(change)";
 			$event->oldVote = $oldVote->answer;
 		} else {
-			$this->db->exec(
-				"INSERT INTO votes_<myname> ".
-				"(`author`, `answer`, `time`, `poll_id`) ".
-				"VALUES (?, ?, ?, ?)",
-				$sender,
-				$answer,
-				time(),
-				$topic->id
-			);
+			$this->db->table(self::DB_VOTES)->insert([
+				"author" => $sender,
+				"answer" => $answer,
+				"time" => time(),
+				"poll_id" => $topic->id
+			]);
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event->type = "vote(cast)";
 		}
@@ -559,18 +478,7 @@ class VoteController {
 		$topic->possible_answers = json_encode($answers);
 		$topic->status = self::STATUS_CREATED;
 
-		$this->db->exec(
-			"INSERT INTO polls_<myname> ".
-			"(`question`, `author`, `possible_answers`, `started`, `duration`, `status`) ".
-			"VALUES (?, ?, ?, ?, ?, ?)",
-			$topic->question,
-			$topic->author,
-			$topic->possible_answers,
-			$topic->started,
-			$topic->duration,
-			$topic->status
-		);
-		$topic->id = $this->db->lastInsertId();
+		$topic->id = $this->db->insert(self::DB_POLLS, $topic);
 		$this->polls[$topic->id] = $topic;
 		$msg = "Voting topic <highlight>{$topic->id}<end> has been created.";
 
@@ -584,11 +492,10 @@ class VoteController {
 
 	public function getPollBlob(Poll $topic, ?string $sender=null) {
 		/** @var Vote[] */
-		$votes = $this->db->fetchAll(
-			Vote::class,
-			"SELECT * FROM votes_<myname> WHERE `poll_id` = ?",
-			$topic->id
-		);
+		$votes = $this->db->table(self::DB_VOTES)
+			->where("poll_id", $topic->id)
+			->asObj(Vote::class)
+			->toArray();
 
 		$results = [];
 		foreach ($topic->answers as $answer) {

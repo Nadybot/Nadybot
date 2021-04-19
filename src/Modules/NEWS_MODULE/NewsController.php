@@ -8,11 +8,9 @@ use Nadybot\Core\{
 	Event,
 	Nadybot,
 	SettingManager,
-	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\Annotations\ApiResult;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
@@ -71,7 +69,7 @@ class NewsController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'news');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -111,19 +109,21 @@ class NewsController {
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
 			$player = $this->altsController->getAltInfo($player)->main;
 		}
-		$sql = "SELECT n.*, ".
-			"(SELECT COUNT(*)>0 FROM news_confirmed c WHERE c.id=n.id AND c.player=?) AS confirmed ".
-			"FROM `news` n ".
-			"WHERE deleted = 0 ".
-			"ORDER BY `sticky` DESC, `time` DESC ".
-			"LIMIT ?";
+		$query = $this->db->table("news AS n")
+			->where("deleted", 0)
+			->orderByDesc("sticky")
+			->orderByDesc("time")
+			->limit($this->settingManager->getInt('num_news_shown'))
+			->select("n.*")
+			->selectSub(
+				$this->db->table("news_confirmed AS c")
+					->whereColumn("c.id", "n.id")
+					->where("c.player", $player)
+					->selectRaw("COUNT(*) > 0"),
+				"confirmed"
+			);
 		/** @var INews[] */
-		$newsItems = $this->db->fetchAll(
-			INews::class,
-			$sql,
-			$player,
-			$this->settingManager->getInt('num_news_shown')
-		);
+		$newsItems = $query->asObj(INews::class)->toArray();
 		return $newsItems;
 	}
 
@@ -179,9 +179,13 @@ class NewsController {
 			$sticky = $item->sticky;
 		}
 
-		$sql = "SELECT * FROM `news` WHERE deleted = 0 ORDER BY `time` DESC LIMIT 1";
 		/** @var ?News */
-		$item = $this->db->fetch(News::class, $sql);
+		$item = $this->db->table("news")
+			->where("deleted", 0)
+			->orderByDesc("time")
+			->limit(1)
+			->asObj(News::class)
+			->first();
 		$layout = $this->settingManager->getInt('news_announcement_layout');
 		if ($layout === 1) {
 			$msg = $this->text->makeBlob(
@@ -267,18 +271,22 @@ class NewsController {
 			$sender = $this->altsController->getAltInfo($sender)->main;
 		}
 
-		try {
-			$this->db->exec(
-				"INSERT INTO news_confirmed(id, player, time) ".
-				"VALUES (?, ?, ?)",
-				$row->id,
-				$sender,
-				time()
-			);
-			$msg = "News confirmed, it won't be shown to you again.";
-		} catch (SQLException $e) {
-			$msg = "You've already confirmed this news.";
+		if ($this->db->table("news_confirmed")
+			->where("id", $row->id)
+			->where("player", $sender)
+			->exists()
+		) {
+			$msg = "You've already confirmed these news.";
+			$sendto->reply($msg);
+			return;
 		}
+		$this->db->table("news_confirmed")
+			->insert([
+				"id" => $row->id,
+				"player" => $sender,
+				"time" => time(),
+			]);
+		$msg = "News confirmed, it won't be shown to you again.";
 		$sendto->reply($msg);
 	}
 
@@ -290,13 +298,14 @@ class NewsController {
 	 */
 	public function newsAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$news = $args[1];
-		$this->db->exec(
-			"INSERT INTO `news` (`time`, `name`, `news`, `sticky`, `deleted`) ".
-			"VALUES (?, ?, ?, 0, 0)",
-			time(),
-			$sender,
-			$news
-		);
+		$this->db->table("news")
+			->insert([
+				"time" => time(),
+				"name" => $sender,
+				"news" => $news,
+				"sticky" => 0,
+				"deleted" => 0,
+			]);
 		$msg = "News has been added successfully.";
 
 		$sendto->reply($msg);
@@ -315,7 +324,9 @@ class NewsController {
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
 		} else {
-			$this->db->exec("UPDATE `news` SET deleted = 1 WHERE `id` = ?", $id);
+			$this->db->table("news")
+				->where("id", $id)
+				->update(["deleted" => 1]);
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
 		}
 
@@ -333,10 +344,14 @@ class NewsController {
 
 		$row = $this->getNewsItem($id);
 
-		if ($row->sticky) {
+		if (!isset($row)) {
+			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
+		} elseif ($row->sticky) {
 			$msg = "News ID $id is already pinned.";
 		} else {
-			$this->db->exec("UPDATE `news` SET `sticky` = 1 WHERE `id` = ?", $id);
+			$this->db->table("news")
+				->where("id", $id)
+				->update(["sticky" => 1]);
 			$msg = "News ID $id successfully pinned.";
 		}
 		$sendto->reply($msg);
@@ -353,21 +368,25 @@ class NewsController {
 
 		$row = $this->getNewsItem($id);
 
-		if (!$row->sticky) {
+		if (!isset($row)) {
+			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
+		} elseif (!$row->sticky) {
 			$msg = "News ID $id is not pinned.";
 		} else {
-			$this->db->exec("UPDATE `news` SET `sticky` = 0 WHERE `id` = ?", $id);
+			$this->db->table("news")
+				->where("id", $id)
+				->update(["sticky" => 0]);
 			$msg = "News ID $id successfully unpinned.";
 		}
 		$sendto->reply($msg);
 	}
 
 	public function getNewsItem(int $id): ?News {
-		return $this->db->fetch(
-			News::class,
-			"SELECT * FROM `news` WHERE `deleted` = 0 AND `id` = ?",
-			$id
-		);
+		return $this->db->table("news")
+			->where("deleted", 0)
+			->where("id", $id)
+			->asObj(News::class)
+			->first();
 	}
 
 	/**
@@ -378,9 +397,11 @@ class NewsController {
 	 * @ApiResult(code=200, class='News[]', desc='A list of news items')
 	 */
 	public function apiNewsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$sql = "SELECT * FROM `news` WHERE `deleted`=0";
 		/** @var News[] */
-		$result = $this->db->fetchAll(News::class, $sql);
+		$result = $this->db->table("news")
+			->where("deleted", 0)
+			->asObj(News::class)
+			->toArray();
 		return new ApiResponse($result);
 	}
 

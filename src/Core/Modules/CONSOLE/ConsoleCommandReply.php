@@ -250,6 +250,7 @@ class ConsoleCommandReply implements CommandReply {
 			"<highlight>" => "\e[1m",
 			"<link>" => "\e[4m",
 			"</link>" => "\e[24m",
+			"</font>" => "",
 			"<black>" => "",
 			"<white>" => "",
 			"<yellow>" => "",

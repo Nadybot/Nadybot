@@ -139,7 +139,6 @@ class WebUiController {
 			$channel
 		);
 		$this->http->get($uri)
-			->withHeader("User-Agent", "Nadybot")
 			->withCallback([$this, "processArtifact"], $sendto, $callback);
 	}
 
@@ -153,7 +152,6 @@ class WebUiController {
 		}
 		if ((int)$response->headers["status-code"] === 302) {
 			$this->http->get($response->headers["location"])
-				->withHeader("User-Agent", "Nadybot")
 				->withCallback([$this, "processArtifact"], $sendto, $callback);
 			return;
 		}

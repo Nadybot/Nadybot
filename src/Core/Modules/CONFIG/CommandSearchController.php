@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CommandManager,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -56,11 +57,13 @@ class CommandSearchController {
 			$access = true;
 		}
 
-		$sqlquery = "SELECT DISTINCT `module`, `cmd`, `help`, `description`, `admin` FROM `cmdcfg_<myname>` WHERE `cmd` = ?";
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmd", $arr[1])
+			->select("module", "cmd", "help", "description", "admin")->distinct();
 		if (!$access) {
-			$sqlquery .= " AND `status` = 1";
+			$query->where("status", 1);
 		}
-		$results = $this->db->fetchAll(CommandSearchResult::class, $sqlquery, $arr[1]);
+		$results = $query->asObj(CommandSearchResult::class)->toArray();
 		$results = $this->filterResultsByAccessLevel($sender, $results);
 
 		$exactMatch = !empty($results);
@@ -97,12 +100,13 @@ class CommandSearchController {
 	}
 
 	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false) {
-		$sqlquery = "SELECT DISTINCT `module`, `cmd`, `help`, `description`, `admin` FROM `cmdcfg_<myname>`";
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->select("module", "cmd", "help", "description", "admin")->distinct();
 		if (!$includeDisabled) {
-			$sqlquery .= " WHERE `status` = 1";
+			$query->where("status", 1);
 		}
 		/** @var CommandSearchResult[] $data */
-		$data = $this->db->fetchAll(CommandSearchResult::class, $sqlquery);
+		$data = $query->asObj(CommandSearchResult::class)->toArray();
 
 		foreach ($data as $row) {
 			$keywords = [$row->cmd];
