@@ -40,9 +40,9 @@ class ArbiterController {
 
 	/** @var array<string,int[]> */
 	protected static array $dates = [
-		self::AI  => [1606608000, 1607299200],
-		self::BS  => [1607817600, 1608508800],
-		self::DIO => [1609027200, 1609718400],
+		self::AI  => [1618704000, 1619395200],
+		self::BS  => [1619913600, 1620604800],
+		self::DIO => [1621123200, 1621814400],
 	];
 
 	/** @Setup */
