@@ -144,7 +144,7 @@ class TowerController {
 	 * @Intoptions("0;1;2")
 	 * @AccessLevel("mod")
 	 */
-	public $defaultTowerAttackSpam = 1;
+	public $defaultTowerAttackSpam = 2;
 
 	/**
 	 * @Setting("tower_page_size")
@@ -953,6 +953,7 @@ class TowerController {
 			$whois->faction = $attack->attSide;
 		} else {
 			$whois->factionGuess = true;
+			$whois->originalGuild = $whois->guild;
 		}
 		$whois->guild = $attack->attGuild ?? null;
 
@@ -997,14 +998,14 @@ class TowerController {
 			}
 			$link .= "<end>\n";
 
-			if (isset($whois->breed)) {
+			if (isset($whois->breed) && strlen($whois->breed)) {
 				$link .= "Breed: <highlight>$whois->breed<end>\n";
 			}
-			if (isset($whois->gender)) {
+			if (isset($whois->gender) && strlen($whois->gender)) {
 				$link .= "Gender: <highlight>$whois->gender<end>\n";
 			}
 
-			if (isset($whois->profession)) {
+			if (isset($whois->profession) && strlen($whois->profession)) {
 				$link .= "Profession: <highlight>$whois->profession<end>\n";
 			}
 			if (isset($whois->level)) {
@@ -1039,17 +1040,17 @@ class TowerController {
 		// Starting tower message to org/private chat
 		$msg = $this->settingManager->getString('tower_spam_color').
 			"[TOWERS]<end> ";
+		$likelyFake = isset($whois->factionGuess) && isset($whois->originalGuild) && strlen($whois->originalGuild);
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
-		} elseif (isset($whois->factionGuess)) {
-			$msg .= "{$attack->attPlayer} (<" . strtolower($whois->faction) . ">{$whois->faction}<end> <highlight>{$whois->profession}<end> or fake name)";
 		} else {
 			$msg .= "<".strtolower($whois->faction).">{$attack->attPlayer}<end>";
 		}
 		$msg .= " attacked $targetOrg";
 
+		$s = $this->settingManager->getInt("tower_attack_spam");
 		// tower_attack_spam >= 2 (normal) includes attacker stats
-		if ($this->settingManager->getInt("tower_attack_spam") && $whois->type !== 'npc' && !isset($whois->factionGuess)) {
+		if ($s >= 2 && $whois->type !== 'npc' && !$likelyFake) {
 			$msg .= " - ".preg_replace(
 				"/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
 				'',
@@ -1059,11 +1060,11 @@ class TowerController {
 					$this->playerManager->getInfo($whois, false)
 				)
 			);
+		} elseif ($s >= 2 && $whois->type !== 'npc') {
+			$msg .= " (<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end> <" . strtolower($whois->faction) . ">{$whois->faction}<end> <highlight>{$whois->profession}<end> or fake name)";
 		}
 
 		$msg .= " [$more]";
-
-		$s = $this->settingManager->getInt("tower_attack_spam");
 
 		if ($s === 0) {
 			return;

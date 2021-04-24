@@ -11,6 +11,9 @@
 <tab>To start a raffle for 6 Libra Activation codes:
 <tab><highlight><tab><symbol>raffle start 6xLibra activation codes<end>
 
+<tab>To start a raffle for an unlimited number of hugs:
+<tab><highlight><tab><symbol>raffle start 0x Hugs<end>
+
 <tab>To start a raffle with a custom timer of 30s:
 <tab><highlight><tab><symbol>raffle start 30s 'item'<end>
 

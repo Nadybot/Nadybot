@@ -248,8 +248,8 @@ class AOChat {
 		$this->iteration();
 
 		$a = [$this->socket];
-		$b = null;
-		$c = null;
+		$b = [];
+		$c = [];
 		if (!socket_select($a, $b, $c, $time)) {
 			return null;
 		}
@@ -588,10 +588,11 @@ class AOChat {
 	 */
 	public function send_group($group, string $msg, $blob="\0", int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === false) {
+			$this->logger->log('WARN', "Trying to send into unknown group \"{$group}\".");
 			return false;
 		}
 		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push(AOC_PRIORITY_MED, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$gid, $msg, "\0"]));
+		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$gid, $msg, "\0"]));
 		$this->iteration();
 		return true;
 	}

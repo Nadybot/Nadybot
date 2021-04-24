@@ -11,8 +11,8 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Modules\PREFERENCES\Preferences,
-    SQLException,
 };
+use Nadybot\Core\Modules\BAN\BanController;
 
 /**
  * This class contains all functions necessary for mass messaging
@@ -76,6 +76,9 @@ class MassMsgController {
 	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
+	public BanController $banController;
+
+	/** @Inject */
 	public Preferences $preferences;
 
 	/** @Inject */
@@ -94,9 +97,9 @@ class MassMsgController {
 	}
 
 	protected function getMassMsgOptInOutBlob(): string {
-		$msgOnLink      = $this->text->makeChatcmd("On",  "/tell <myname> massmsgs on");
+		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
 		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
-		$invitesOnLink  = $this->text->makeChatcmd("On",  "/tell <myname> massinvites on");
+		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
 		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
 		$blob = "<header2>Not interested?<end>\n".
 			"<tab>Change your preferences:\n\n".
@@ -211,6 +214,10 @@ class MassMsgController {
 		$online = $this->buddylistManager->getOnline();
 		$result = [];
 		foreach ($online as $name) {
+			$uid = $this->chatBot->get_uid($name);
+			if ($uid === false || $this->banController->isBanned($uid)) {
+				continue;
+			}
 			if ($name === $this->chatBot->vars["name"]
 				|| !$this->accessManager->checkAccess($name, "member")) {
 				continue;
@@ -239,9 +246,9 @@ class MassMsgController {
 	protected function showMassPreferences(string $character, CommandReply $sendto): void {
 		$msgs = $this->preferences->get($character, static::PREF_MSGS);
 		$invs = $this->preferences->get($character, static::PREF_INVITES);
-		$msgOnLink      = $this->text->makeChatcmd("On",  "/tell <myname> massmsgs on");
+		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
 		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
-		$invitesOnLink  = $this->text->makeChatcmd("On",  "/tell <myname> massinvites on");
+		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
 		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
 		if ($msgs === "no") {
 			$msgOffLink = "<red>Off<end>";

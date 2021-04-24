@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SQLException,
 	Text,
+	Timer,
 };
 
 /**
@@ -41,6 +42,13 @@ use Nadybot\Core\{
  *     command       = 'points log',
  *     accessLevel   = 'all',
  *     description   = 'Check how many raid points you gained when',
+ *     help          = 'raidpoints_raiders.txt'
+ * )
+ *
+ * @DefineCommand(
+ *     command       = 'points log all',
+ *     accessLevel   = 'all',
+ *     description   = 'Check how many raid points you gained when on all alts',
  *     help          = 'raidpoints_raiders.txt'
  * )
  *
@@ -105,6 +113,9 @@ class RaidPointsController {
 
 	/** @Inject */
 	public Text $text;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -193,6 +204,7 @@ class RaidPointsController {
 			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
 		}
 		$raid->raiders[$player]->points++;
+		$raid->raiders[$player]->pointsRewarded++;
 		$updated = $this->db->exec(
 			"UPDATE raid_points_log_<myname> SET delta=delta+1 ".
 			"WHERE raid_id=? AND username=? AND ticker IS TRUE",
@@ -236,12 +248,17 @@ class RaidPointsController {
 		}
 		if (isset($raid) && isset($raid->raiders[$player])) {
 			$raid->raiders[$player]->points += $delta;
+			if ($individual) {
+				$raid->raiders[$player]->pointsIndividual += $delta;
+			} else {
+				$raid->raiders[$player]->pointsRewarded += $delta;
+			}
 		}
 		$inserted = $this->db->exec(
 			"INSERT INTO raid_points_log_<myname> ".
 			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `raid_id`) ".
 			"VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-			$pointsChar,
+			ucfirst(strtolower($player)),
 			$delta,
 			time(),
 			$changedBy,
@@ -266,7 +283,7 @@ class RaidPointsController {
 	 */
 	protected function giveRaidPoints(string $player, int $delta): bool {
 		$updated = $this->db->exec(
-			"UPDATE raid_points_<myname> SET points=points+? WHERE username=?",
+			"UPDATE `raid_points_<myname>` SET `points`=`points`+? WHERE `username`=?",
 			$delta,
 			$player
 		);
@@ -274,7 +291,7 @@ class RaidPointsController {
 			return true;
 		}
 		$inserted = $this->db->exec(
-			"INSERT INTO raid_points_<myname> (`username`, `points`) ".
+			"INSERT INTO `raid_points_<myname>` (`username`, `points`) ".
 			"VALUES(?, ?)",
 			$player,
 			$delta
@@ -408,8 +425,8 @@ class RaidPointsController {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->fetchAll(
 			RaidPoints::class,
-			"SELECT * FROM raid_points_<myname> ".
-			"ORDER BY points DESC LIMIT ?",
+			"SELECT * FROM `raid_points_<myname>` ".
+			"ORDER BY `points` DESC LIMIT ?",
 			$this->settingManager->getInt('raid_top_amount')
 		);
 		if (count($topRaiders) === 0) {
@@ -431,28 +448,76 @@ class RaidPointsController {
 	 * @Matches("/^points log$/i")
 	 */
 	public function pointsLogCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showraidPoints($channel, $sender, $sendto, false, ...$this->getRaidpointLogsForChar($sender));
+	}
+
+	/**
+	 * @HandlesCommand("points log all")
+	 * @Matches("/^points log all$/i")
+	 */
+	public function pointsLogAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->showraidPoints($channel, $sender, $sendto, true, ...$this->getRaidpointLogsForAccount($sender));
+	}
+
+	public function showraidPoints(string $channel, string $sender, CommandReply $sendto, bool $showUsername, RaidPointsLog ...$pointLogs): void {
 		if ($channel !== 'msg') {
 			$sendto->reply("<red>The <symbol>points log command only works in tells<end>.");
 			return;
 		}
-		/** @var RaidPointsLog[] */
-		$pointLogs = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` ".
-			"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
-			$sender
-		);
 		if (count($pointLogs) === 0) {
 			$sendto->reply("You have never received any raid points at <myname>.");
 			return;
 		}
-		[$header, $blob] = $this->getPointsLogBlob($pointLogs);
+		[$header, $blob] = $this->getPointsLogBlob($pointLogs, $showUsername);
+		if ($showUsername === false) {
+			$blob .= "\n\n<i>Only showing the points of {$sender}. To include all the alts ".
+				"in the list, use ".
+				$this->text->makeChatcmd("/tell <myname> points log all", "/tell <myname> points log all").
+				".</i>";
+		}
 		$msg = $this->text->makeBlob("Your raid points log", $blob, null, $header);
 		$sendto->reply($msg);
 	}
 
 	/**
+	 * Get all the raidpoint log entries for main and confirmed alts of $sender
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForAccount(string $sender): array {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->main;
+		return $this->db->fetchAll(
+			RaidPointsLog::class,
+			"SELECT rpl.* FROM `raid_points_log_<myname>` rpl ".
+			"LEFT JOIN `alts` a ON (a.`alt`=rpl.`username`) ".
+			"WHERE (a.`main`=? AND a.`validated_by_main` IS TRUE AND a.`validated_by_alt` IS TRUE) ".
+			"OR rpl.`username`=? ".
+			"ORDER BY `time` DESC LIMIT 50",
+			$main,
+			$main
+		);
+	}
+
+	/**
+	 * Get all the raidpoint log entries for a single character $sender, not
+	 * including alts
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForChar(string $sender): array {
+		return $this->db->fetchAll(
+			RaidPointsLog::class,
+			"SELECT * FROM `raid_points_log_<myname>` " .
+				"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
+			$sender
+		);
+	}
+
+	/**
 	 * @HandlesCommand("points .+")
+	 * @Matches("/^points (.+) log (all)$/i")
+	 * @Matches("/^points log (.+) (all)$/i")
 	 * @Matches("/^points (.+) log$/i")
 	 * @Matches("/^points log (.+)$/i")
 	 */
@@ -463,17 +528,22 @@ class RaidPointsController {
 		}
 		$args[1] = ucfirst(strtolower($args[1]));
 		/** @var RaidPointsLog[] */
-		$pointLogs = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` ".
-			"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
-			$args[1]
-		);
+		if (count($args) === 3) {
+			$pointLogs = $this->getRaidpointLogsForAccount($args[1]);
+		} else {
+			$pointLogs = $this->getRaidpointLogsForChar($args[1]);
+		}
 		if (count($pointLogs) === 0) {
 			$sendto->reply("{$args[1]} has never received any raid points at <myname>.");
 			return;
 		}
-		[$header, $blob] = $this->getPointsLogBlob($pointLogs);
+		[$header, $blob] = $this->getPointsLogBlob($pointLogs, count($args) === 3);
+		if (count($args) < 3) {
+			$blob .= "\n\n<i>Only showing the points of {$args[1]}. To include all the alts ".
+				"in the list, use ".
+				$this->text->makeChatcmd("/tell <myname> {$message} all", "/tell <myname> {$message} all").
+				".</i>";
+		}
 		$msg = $this->text->makeBlob("{$args[1]}'s raid points log", $blob, null, $header);
 		$sendto->reply($msg);
 	}
@@ -483,7 +553,7 @@ class RaidPointsController {
 	 * @param RaidPointsLog[] $pointLogs
 	 * @return string[] Header and The popup text
 	 */
-	public function getPointsLogBlob(array $pointLogs): array {
+	public function getPointsLogBlob(array $pointLogs, bool $showUsername=false): array {
 		$header =  "<header2><u>When                       |   Delta   |  Why                              </u><end>\n";
 		$rows = [];
 		foreach ($pointLogs as $log) {
@@ -496,6 +566,9 @@ class RaidPointsController {
 				(($log->delta > 0) ? '+' : '-').
 				$this->text->alignNumber(abs($log->delta), 4, $log->delta > 0 ? 'green' : 'red').
 				"  |  {$log->reason} ({$log->changed_by})";
+			if ($showUsername) {
+				$row .= " on {$log->username}";
+			}
 			$rows []= $row;
 		}
 		return [$header, join("\n", $rows)];
@@ -600,6 +673,10 @@ class RaidPointsController {
 		if ($altsPoints === null) {
 			return;
 		}
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
+			return;
+		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
 		$this->logger->log(
 			'INFO',
@@ -611,19 +688,19 @@ class RaidPointsController {
 		try {
 			if ($mainPoints === null) {
 				$this->db->exec(
-					"INSERT INTO raid_points_<myname> (`username`, `points`) VALUES (?, ?)",
+					"INSERT INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
 					$event->main,
 					$altsPoints
 				);
 			} else {
 				$this->db->exec(
-					"UPDATE raid_points_<myname> SET `points`=? WHERE `username`=?",
+					"UPDATE `raid_points_<myname>` SET `points`=? WHERE `username`=?",
 					$altsPoints + $mainPoints,
 					$event->main
 				);
 			}
 			$this->db->exec(
-				"DELETE FROM raid_points_<myname> WHERE `username`=?",
+				"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
 				$event->alt
 			);
 		} catch (SQLException $e) {
@@ -635,7 +712,7 @@ class RaidPointsController {
 		$this->logger->log(
 			'INFO',
 			'Raid points merged successfully to a new total of '.
-			($mainPoints??0 + $altsPoints)
+			(($mainPoints??0) + $altsPoints)
 		);
 	}
 
@@ -652,12 +729,12 @@ class RaidPointsController {
 		}
 		$blob = "";
 		foreach ($rewards as $reward) {
+			$remCmd = $this->text->makeChatcmd("Remove", "/tell <myname> reward rem {$reward->id}");
+			$giveCmd = $this->text->makeChatcmd("Give", "/tell <myname> raid reward {$reward->name}");
 			$blob .= "<header2>{$reward->name}<end>\n".
-				"<tab>Points: <highlight>{$reward->points}<end>\n".
+				"<tab>Points: <highlight>{$reward->points}<end> [{$giveCmd}]\n".
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
-				"<tab>ID: <highlight>{$reward->id}<end> [".
-				$this->text->makeChatcmd("remove", "/tell <myname> reward rem {$reward->id}").
-				"]\n\n";
+				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
 		$msg = $this->text->makeBlob("Raid rewards (" . count($rewards). ")", $blob);
 		$sendto->reply($msg);
@@ -666,7 +743,7 @@ class RaidPointsController {
 	public function getRaidReward(string $name): ?RaidReward {
 		return $this->db->fetch(
 			RaidReward::class,
-			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE  ?",
+			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE ?",
 			$name
 		);
 	}
@@ -713,7 +790,7 @@ class RaidPointsController {
 		} else {
 			$id = (int)$args[1];
 		}
-		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE id=?", $id);
+		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE `id`=?", $id);
 		if ($deleted) {
 			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
 		} else {
@@ -723,6 +800,7 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("reward .+")
+	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+)$/i")
 	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+) (.+)$/i")
 	 */
 	public function rewardChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -733,7 +811,7 @@ class RaidPointsController {
 		}
 		$reward->name = $args[1];
 		$reward->points = (int)$args[2];
-		$reward->reason = $args[3];
+		$reward->reason = $args[3] ?? $reward->reason;
 		if (strlen($reward->name) > 20) {
 			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
 			return;
@@ -744,5 +822,30 @@ class RaidPointsController {
 		}
 		$this->db->update("raid_reward_<myname>", "id", $reward);
 		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
+	}
+
+	/**
+	 * @Event("alt(newmain)")
+	 * @Description("Move raid points to new main")
+	 */
+	public function moveRaidPoints(AltEvent $event): void {
+		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		if (!$sharePoints) {
+			return;
+		}
+		$oldPoints = $this->getThisAltsRaidPoints($event->alt);
+		if ($oldPoints === null) {
+			return;
+		}
+		$this->db->exec(
+			"REPLACE INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
+			$event->main,
+			$oldPoints,
+		);
+		$this->db->exec(
+			"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
+			$event->alt
+		);
+		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
 }

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `raid_points_log_<myname>` (
 	`time`       INT NOT NULL,
 	`changed_by` VARCHAR(20) NOT NULL,
 	`individual` BOOLEAN NOT NULL DEFAULT TRUE,
-	`reason`     VARCHAR(255) DEFAULT 'unknown',
+	`reason`     TEXT NOT NULL,
 	`ticker`     BOOLEAN NOT NULL DEFAULT FALSE,
 	`raid_id`    INT
 );

@@ -1,3 +1,46 @@
+nadybot (5.0.2-1+ubuntu1) bionic; urgency=medium
+  - New !rules command
+  - parameter order for !ofabarmor doesn't matter anymore
+  - Rewards can be edited without changing the reason
+  - Callers reworked, now supporting history and other fancy stuff
+  - Minimum refund tax can now be defined
+  - Introduce raid rank promotion/demotion distance
+  - Sync player data update with PORK
+  - New command: !arulsaba
+  - Allow to set the autoinvite default setting for new members
+  - Allow automatic banning of players from or not from a specific faction
+  - Add an option whether to show the full altlist on joining/logging in
+  - New command: !leaderlist/!leaders
+  - !alts setmain will now move the rights and raid points to the new main
+  - New rights for starting/ending raffles
+  - Allow configuration of !cd command and where it should cd in tells
+  - Allow customization of auction layout
+  - !points log all to see the raid points of this char and all their alts
+
+  - Package now works with CentOS/RHEL
+  - Timers with apostrophe can now be deleted
+  - Allow arbitrary length auctgion items
+  - Never invite banned players
+  - Fixed Race condition for duplicate data in the players table
+  - Multiline parameters are accepted again for commands
+  - Raid points are no longer attributes to the main, but to the alt now
+  - No massinvites/-messages for banned characters anymore
+  - Turning off the autoinvites does not remove you from the buddylist anymore
+  - Allow endlessly long raid point reasons
+  - Fix the !symb command when searching for artillery, infantry, etc.
+  - Chased the new arbiter times in !icc command
+
+  - Reword alts help page
+  - Don't say "private channel", unless we are an org bot
+  - If PORK shows an attacker without org as well, don't presume it's a pet with fake name
+  - Update dependencies to get rid of a security issue
+  - Try to detect the amount in raffles better and introduce unlimited raffle slots with 0x
+  - When changing a setting, display its new display value
+  - !raid listnow separates between common and individual gains/losses
+  - The news now have an API and are handled in NadyUI
+  - The Docker image has the option CONFIG_ENABLE_PACKAGE_MODULE to allow the package module
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 24 Apr 2021 21:13:00 +0200
+
 nadybot (5.0.1-1+ubuntu1) bionic; urgency=medium
   - Support configuration of base paths
   - Support packaging as RPM and DEB

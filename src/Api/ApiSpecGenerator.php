@@ -368,6 +368,9 @@ class ApiSpecGenerator {
 		}
 		foreach ($method->getAllAnnotations() as $anno) {
 			if ($anno instanceof ApiResult) {
+				if (!isset($anno->code)) {
+					throw new Exception("{$method->class}::{$method->name}() has invalid @ApiResult annotation");
+				}
 				$doc->responses[$anno->code] = $anno;
 			} elseif ($anno instanceof RequestBody) {
 				$doc->requestBody = $anno;

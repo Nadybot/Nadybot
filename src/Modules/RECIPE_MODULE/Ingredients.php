@@ -1,0 +1,48 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Modules\RECIPE_MODULE;
+
+use ArrayIterator;
+use IteratorIterator;
+
+class Ingredients extends IteratorIterator {
+	public function __construct(Ingredient ...$ingredients) {
+		parent::__construct(new ArrayIterator($ingredients));
+	}
+
+	public function current(): Ingredient {
+		return parent::current();
+	}
+
+	public function add(Ingredient $ingredient): void {
+		/** @var ArrayIterator */
+		$inner = $this->getInnerIterator();
+		$inner->append($ingredient);
+	}
+
+	public function count(): int {
+		/** @var ArrayIterator */
+		$inner = $this->getInnerIterator();
+		return $inner->count();
+	}
+
+	public function last(): ?Ingredient {
+		/** @var ArrayIterator */
+		$inner = $this->getInnerIterator();
+		return $inner->offsetGet($this->count()-1);
+	}
+
+	/**
+	 * Get the highest amount required of any ingredient
+	 * @return int
+	 */
+	public function getMaxAmount(): int {
+		return array_reduce(
+			iterator_to_array($this->getInnerIterator()),
+			function (int $max, Ingredient $ing): int {
+				return max($max, $ing->amount);
+			},
+			1
+		);
+	}
+}

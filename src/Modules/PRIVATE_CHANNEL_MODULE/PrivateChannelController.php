@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	AOChatEvent,
 	BuddylistManager,
 	CommandAlias,
 	CommandReply,
@@ -18,9 +19,11 @@ use Nadybot\Core\{
 	DBSchema\Member,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	UserStateEvent,
 };
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\ALTS\AltInfo;
+use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -95,6 +98,8 @@ use Nadybot\Modules\{
  *	)
  *	@ProvidesEvent("online(priv)")
  *	@ProvidesEvent("offline(priv)")
+ *	@ProvidesEvent("member(add)")
+ *	@ProvidesEvent("member(rem)")
  */
 class PrivateChannelController {
 
@@ -133,6 +138,9 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public BanController $banController;
 
 	/** @Inject */
 	public OnlineController $onlineController;
@@ -209,6 +217,16 @@ class PrivateChannelController {
 		);
 		$this->settingManager->add(
 			$this->moduleName,
+			"autoinvite_default",
+			"Enable autoinvite for new members by default",
+			"edit",
+			"options",
+			"1",
+			"true;false",
+			"1;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"guest_relay_ignore",
 			'Names of people not to relay into the private channel',
 			'edit',
@@ -224,6 +242,25 @@ class PrivateChannelController {
 			'text',
 			'',
 			'none'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"only_allow_faction",
+			"Faction allowed on the bot - autoban everything else",
+			"edit",
+			"options",
+			"all",
+			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"priv_suppress_alt_list",
+			"Do not show the altlist on join, just the name of the main",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
@@ -250,7 +287,7 @@ class PrivateChannelController {
 		/** @var Member[] */
 		$members = $this->db->fetchAll(
 			Member::class,
-			"SELECT * FROM members_<myname> ORDER BY `name`"
+			"SELECT * FROM `members_<myname>` ORDER BY `name`"
 		);
 		$count = count($members);
 		if ($count === 0) {
@@ -359,20 +396,23 @@ class PrivateChannelController {
 			$this->buddylistManager->add($sender, 'member');
 		} else {
 			$onOrOff = 0;
-			$this->buddylistManager->remove($sender, 'member');
 		}
 
 		/** @var ?Member */
 		$data = $this->db->fetch(
 			Member::class,
-			"SELECT * FROM members_<myname> WHERE `name` = ?",
+			"SELECT * FROM `members_<myname>` WHERE `name` = ?",
 			$sender
 		);
 		if ($data === null) {
-			$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
+			$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
 			$msg = "You have been added as a member of this bot. ".
 				"Use <highlight><symbol>autoinvite<end> to control ".
 				"your auto invite preference.";
+			$event = new MemberEvent();
+			$event->type = "member(add)";
+			$event->sender = $sender;
+			$this->eventManager->fireEvent($event);
 		} else {
 			$this->db->exec("UPDATE members_<myname> SET autoinv = ? WHERE name = ?", $onOrOff, $sender);
 			$msg = "Your auto invite preference has been updated.";
@@ -394,7 +434,7 @@ class PrivateChannelController {
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$data = $this->db->query("SELECT * FROM online o LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') WHERE added_by = '<myname>' AND channel_type = 'priv'");
+		$data = $this->db->query("SELECT * FROM `online` o LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') WHERE `added_by` = '<myname>' AND `channel_type` = 'priv'");
 		$numonline = count($data);
 		foreach ($data as $row) {
 			if ($row->level > 1 && $row->level <= 14) {
@@ -445,10 +485,10 @@ class PrivateChannelController {
 		$online["Shade"] = 0;
 
 		$data = $this->db->query(
-			"SELECT count(*) AS count, profession ".
-			"FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+			"SELECT count(*) AS count, `profession` ".
+			"FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
 			"GROUP BY `profession`"
 		);
 		$numonline = count($data);
@@ -481,7 +521,7 @@ class PrivateChannelController {
 	 * @Matches("/^count orgs?$/i")
 	 */
 	public function countOrganizationCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT COUNT(*) AS num_online FROM online WHERE added_by = '<myname>' AND channel_type = 'priv'";
+		$sql = "SELECT COUNT(*) AS num_online FROM `online` WHERE `added_by` = '<myname>' AND channel_type = 'priv'";
 		$data = $this->db->queryRow($sql);
 		$numOnline = $data->num_online;
 
@@ -490,10 +530,10 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		$sql = "SELECT `guild`, count(*) AS cnt, AVG(level) AS avg_level ".
-			"FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' ".
+		$sql = "SELECT `guild`, count(*) AS cnt, AVG(`level`) AS avg_level ".
+			"FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
 			"GROUP BY `guild` ".
 			"ORDER BY `cnt` DESC, `avg_level` DESC";
 		$data = $this->db->query($sql);
@@ -529,9 +569,9 @@ class PrivateChannelController {
 			return;
 		}
 		$data = $this->db->query(
-			"SELECT * FROM online o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>') ".
-			"WHERE added_by = '<myname>' AND channel_type = 'priv' AND `profession` = ? ".
+			"SELECT * FROM `online` o ".
+			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
+			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' AND `profession` = ? ".
 			"ORDER BY `level`",
 			$prof
 		);
@@ -587,14 +627,19 @@ class PrivateChannelController {
 			return;
 		}
 		/** @var ?Member */
-		$row = $this->db->fetch(Member::class, "SELECT * FROM members_<myname> WHERE `name` = ?", $sender);
+		$row = $this->db->fetch(Member::class, "SELECT * FROM `members_<myname>` WHERE `name` = ?", $sender);
 		if ($row !== null) {
 			return;
 		}
-		$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $sender, '1');
+		$autoInvite = $this->settingManager->getBool('autoinvite_default');
+		$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $sender, $autoInvite);
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
+		$event = new MemberEvent();
+		$event->type = "member(add)";
+		$event->sender = $sender;
+		$this->eventManager->fireEvent($event);
 		$sendto->reply($msg);
 	}
 
@@ -712,19 +757,27 @@ class PrivateChannelController {
 	 * @Event("logOn")
 	 * @Description("Auto-invite members on logon")
 	 */
-	public function logonAutoinviteEvent(Event $eventObj): void {
+	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		/** @var Member[] */
 		$data = $this->db->fetchAll(
 			Member::class,
-			"SELECT * FROM members_<myname> WHERE name = ? AND autoinv = ?",
+			"SELECT * FROM `members_<myname>` WHERE `name` = ? AND `autoinv` = ?",
 			$sender,
 			1
 		);
 		if (!count($data)) {
 			return;
 		}
-		$msg = "You have been auto invited to the <highlight><myname><end> channel. ".
+		$uid = $this->chatBot->get_uid($eventObj->sender);
+		if ($uid === false || $this->banController->isBanned($uid)) {
+			return;
+		}
+		$channelName = "the <highlight><myname><end> channel";
+		if ($this->settingManager->getBool('guild_channel_status') === false) {
+			$channelName = "<highlight><myname><end>";
+		}
+		$msg = "You have been auto invited to {$channelName}. ".
 			"Use <highlight><symbol>autoinvite<end> to control ".
 			"your auto invite preference.";
 		$this->chatBot->privategroup_invite($sender);
@@ -732,10 +785,14 @@ class PrivateChannelController {
 	}
 
 	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {
+		$privChannelName = "the private channel";
+		if ($this->settingManager->getBool('guild_channel_status') === false) {
+			$privChannelName = "<myname>";
+		}
 		if ($whois !== null) {
-			$msg = $this->playerManager->getInfo($whois) . " has joined the private channel.";
+			$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
 		} else {
-			$msg = "$player has joined the private channel.";
+			$msg = "{$player} has joined {$privChannelName}.";
 		}
 		if ($suppressAltList) {
 			if ($altInfo->main !== $player) {
@@ -778,8 +835,9 @@ class PrivateChannelController {
 	 */
 	public function joinPrivateChannelMessageEvent(Event $eventObj) {
 		$sender = $eventObj->sender;
+		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list');
 
-		$this->getLogonMessageAsync($sender, false, function(string $msg): void {
+		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
 			if ($this->settingManager->getBool("guest_relay")) {
 				$this->chatBot->sendGuild($msg, true);
 			}
@@ -801,6 +859,65 @@ class PrivateChannelController {
 			},
 			$sender
 		);
+	}
+
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Autoban players of unwanted factions when they join the bot")
+	 */
+	public function autobanOnJoin(AOChatEvent $eventObj): void {
+		$reqFaction = $this->settingManager->getString('only_allow_faction');
+		if ($reqFaction === 'all') {
+			return;
+		}
+		$this->playerManager->getByNameAsync(
+			[$this,"autobanUnwantedFactions"],
+			$eventObj->sender
+		);
+	}
+
+	/**
+	 * Automatically ban players if they are not of the wanted faction
+	 */
+	public function autobanUnwantedFactions(?Player $whois): void {
+		if (!isset($whois)) {
+			return;
+		}
+		$reqFaction = $this->settingManager->getString('only_allow_faction');
+		if ($reqFaction === 'all') {
+			return;
+		}
+		// check faction limit
+		if (
+			in_array($reqFaction, ["Omni", "Clan", "Neutral"])
+			&& $reqFaction === $whois->faction
+		) {
+			return;
+		}
+		if (in_array($reqFaction, ["not Omni", "not Clan", "not Neutral"])) {
+			$tmp = explode(" ", $reqFaction);
+			if ($tmp[1] !== $whois->faction) {
+				return;
+			}
+		}
+		// Ban
+		$faction = strtolower($whois->faction);
+		$this->banController->add(
+			$whois->charid,
+			$this->chatBot->vars['name'],
+			null,
+			sprintf(
+				"Autoban, because %s %s %s",
+				$whois->getPronoun(),
+				$whois->getIsAre(),
+				$faction
+			)
+		);
+		$this->chatBot->sendPrivate(
+			"<highlight>{$whois->name}<end> has been auto-banned. ".
+			"Reason: <{$faction}>{$faction}<end>."
+		);
+		$this->chatBot->privategroup_kick($whois->name);
 	}
 
 	public function getLogoffMessage(string $player): ?string {
@@ -870,7 +987,8 @@ class PrivateChannelController {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	public function addUser(string $name, $autoInvite=true): string {
+	public function addUser(string $name): string {
+		$autoInvite = $this->settingManager->getBool('autoinvite_default');
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
 		if ($this->chatBot->vars["name"] == $name) {
@@ -880,21 +998,29 @@ class PrivateChannelController {
 		}
 		// always add in case they were removed from the buddy list for some reason
 		$this->buddylistManager->add($name, 'member');
-		$data = $this->db->query("SELECT * FROM members_<myname> WHERE `name` = ?", $name);
+		$data = $this->db->query("SELECT * FROM `members_<myname>` WHERE `name` = ?", $name);
 		if (count($data) !== 0) {
 			return "<highlight>$name<end> is already a member of this bot.";
 		}
-		$this->db->exec("INSERT INTO members_<myname> (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
+		$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
+		$event = new MemberEvent();
+		$event->type = "member(add)";
+		$event->sender = $name;
+		$this->eventManager->fireEvent($event);
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
 
 	public function removeUser(string $name): string {
 		$name = ucfirst(strtolower($name));
 
-		if (!$this->db->exec("DELETE FROM members_<myname> WHERE `name` = ?", $name)) {
+		if (!$this->db->exec("DELETE FROM `members_<myname>` WHERE `name` = ?", $name)) {
 			return "<highlight>$name<end> is not a member of this bot.";
 		}
 		$this->buddylistManager->remove($name, 'member');
+		$event = new MemberEvent();
+		$event->type = "member(rem)";
+		$event->sender = $name;
+		$this->eventManager->fireEvent($event);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
 	}
 }

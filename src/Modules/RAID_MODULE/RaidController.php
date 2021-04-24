@@ -507,6 +507,7 @@ class RaidController {
 
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
+		ksort($players);
 		foreach ($players as $name => $player) {
 			if ($player instanceof Player) {
 				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
@@ -516,7 +517,8 @@ class RaidController {
 				$blob .= "<tab>{$name}\n";
 			}
 		}
-		$msgs = (array)$this->text->makeBlob(count($players) . " players", $blob, "Players not in the raid");
+		$s = (count($players) === 1) ? "" : "s";
+		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, "Players not in the raid");
 		foreach ($msgs as &$msg) {
 			$msg = "Sent not in raid warning to $msg.";
 		}

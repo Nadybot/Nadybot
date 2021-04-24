@@ -156,7 +156,14 @@ class SettingsController {
 		try {
 			$newValueToSave = $settingHandler->save($newValue);
 			if ($this->settingManager->save($name, $newValueToSave)) {
-				$msg = "Setting <highlight>$name<end> has been saved with new value <highlight>".htmlspecialchars($newValue)."<end>.";
+				$settingHandler->getData()->value = $newValueToSave;
+				$dispValue = $settingHandler->displayValue($sender);
+				$savedValue = "<highlight>" . htmlspecialchars($newValue) . "<end>";
+				if ($savedValue !== $dispValue) {
+					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue} (<highlight>".htmlspecialchars($newValue)."<end>).";
+				} else {
+					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue}.";
+				}
 			} else {
 				$msg = "Error! Setting <highlight>$name<end> could not be saved.";
 			}

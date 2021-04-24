@@ -27,6 +27,18 @@ class RaidMember extends DBRow {
 	 */
 	public int $points = 0;
 
+	/**
+	 * How many points have they received from rewards in this raid
+	 * @db:ignore
+	 */
+	public int $pointsRewarded = 0;
+
+	/**
+	 * How many points have they gained/lost individually in this raid
+	 * @db:ignore
+	 */
+	public int $pointsIndividual = 0;
+
 	public function __construct() {
 		$this->joined = time();
 	}

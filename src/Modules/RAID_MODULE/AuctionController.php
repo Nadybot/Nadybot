@@ -156,6 +156,34 @@ class AuctionController {
 			'number',
 			'10',
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'auction_refund_min_tax',
+			'Refund minimum tax in points',
+			'edit',
+			'number',
+			'0',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'auction_announcement_layout',
+			'Layout of the auction announcement',
+			'edit',
+			'options',
+			'2',
+			'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
+			'1;2;3;4;5'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'auction_winner_announcement',
+			'Layout of the winner announcement',
+			'edit',
+			'options',
+			'1',
+			'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
+			'1;2;3;4;5;6'
+		);
 		$this->db->loadSQLFile($this->moduleName, "auction");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
@@ -243,11 +271,21 @@ class AuctionController {
 			);
 			return;
 		}
+		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax');
 		$penalty = $this->settingManager->getInt('auction_refund_tax');
+		$percentualPenalty = (int)ceil($lastAuction->cost * $penalty / 100);
 		$giveBack = max(
-			(int)floor($lastAuction->cost * ((100 - $penalty) / 100)),
+			$lastAuction->cost - max($minPenalty, $percentualPenalty, 0),
 			0
 		);
+		if ($minPenalty > 0 && $lastAuction->cost < $minPenalty) {
+			$sendto->reply(
+				"The minimum penalty for a refund is {$minPenalty} points. ".
+				"The auction was for {$lastAuction->cost} points, so 0 points ".
+				"would be given back."
+			);
+			return;
+		}
 		if ($giveBack === 0) {
 			$sendto->reply(
 				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? "s" : "").
@@ -265,11 +303,19 @@ class AuctionController {
 			$raid
 		);
 		$this->db->exec("UPDATE `auction_<myname>` SET `reimbursed`=TRUE WHERE `id`=?", $lastAuction->id);
-		$this->chatBot->sendPrivate(
-			"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-			(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
-			$lastAuction->item . "."
-		);
+		if ($minPenalty > $percentualPenalty) {
+			$this->chatBot->sendPrivate(
+				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} penalty) for ".
+				$lastAuction->item . "."
+			);
+		} else {
+			$this->chatBot->sendPrivate(
+				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
+				$lastAuction->item . "."
+			);
+		}
 	}
 
 	/**
@@ -384,7 +430,7 @@ class AuctionController {
 		)->avg;
 		$avgCostLastTen = (float)$this->db->queryRow(
 			"SELECT AVG(`cost`) AS avg FROM ".
-			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10)",
+			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10) AS last_auctions",
 			...$quickSearch
 		)->avg;
 		$text = "<header2>Most expensive result<end>\n".
@@ -419,9 +465,16 @@ class AuctionController {
 		);
 	}
 
+	/**
+	 * Have $sender place a bid of $offer in the current auction
+	 * @param string $sender Nme of the character placing the bid
+	 * @param int $offer Height of the bid
+	 * @param CommandReply $sendto Where to send messages about success/failure
+	 * @return void
+	 */
 	public function bid(string $sender, int $offer, CommandReply $sendto): void {
 		if ($offer <= $this->auction->bid) {
-			$sendto->reply("The have to bid more than the current offer.");
+			$sendto->reply("You have to bid more than the current offer of {$this->auction->bid}.");
 			return;
 		}
 		if ($sender === $this->auction->top_bidder) {
@@ -508,25 +561,26 @@ class AuctionController {
 			$this->timer->abortEvent($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
+		$auction = $this->auction;
+		$this->auction = null;
 		$event = new AuctionEvent();
 		$event->type = "auction(end)";
-		$event->auction = $this->auction;
+		$event->auction = $auction;
 		if (isset($sender)) {
 			$event->sender = $sender;
 		}
-		$this->recordAuctionInDB($this->auction);
-		if (isset($this->auction->bid) && $this->auction->bid > 0) {
+		$this->recordAuctionInDB($auction);
+		if (isset($auction->bid) && $auction->bid > 0) {
 			$this->raidPointsController->modifyRaidPoints(
-				$this->auction->top_bidder,
-				$this->auction->bid * -1,
+				$auction->top_bidder,
+				$auction->bid * -1,
 				true,
-				$this->auction->item->toString(),
+				$auction->item->toString(),
 				$sender ?? $this->chatBot->vars["name"],
 				$this->raidController->raid ?? null
 			);
 		}
 		$this->eventManager->fireEvent($event);
-		$this->auction = null;
 	}
 
 	/**
@@ -549,7 +603,7 @@ class AuctionController {
 		return "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
 			"<tab><highlight>/tell " . $this->chatBot->vars["name"] . " bid &lt;points&gt;<end>\n".
-			"<i>(Replace &lt;points&gt; with the number of points you would like to bid</i>\n\n".
+			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
 			"The auction ends after " . $this->settingManager->getInt('auction_duration').
 			"s, or " . $this->settingManager->getInt('auction_min_time_after_bid') . "s after ".
 			"the last bid was placed.\n\n".
@@ -564,14 +618,47 @@ class AuctionController {
 			"Slowly increasing your bid might cost you points!";
 	}
 
+	public function getAnnouncementBorders(): array {
+		$layout = $this->settingManager->getInt('auction_announcement_layout');
+		$shortDash = str_repeat("-", 25);
+		$longDash = str_repeat("-", 65);
+		switch ($layout) {
+			case 5:
+				return [
+					$this->rainbow($longDash, 5) . "\n",
+					$this->rainbow($longDash, 5),
+				];
+			case 4:
+				return [
+					"<font color=#FF1493>{$longDash}</font>\n",
+					"<font color=#FF1493>{$longDash}</font>",
+				];
+			case 3:
+				return [
+					"<yellow>{$shortDash}[ AUCTION ]{$shortDash}<end>\n",
+					"",
+				];
+			case 2:
+				return [
+					"<yellow>{$longDash}<end>\n",
+					"<yellow>{$longDash}<end>",
+				];
+			default:
+				return ["", ""];
+		}
+		return ["", ""];
+	}
+
 	public function getAuctionAnnouncement(Auction $auction): string {
-		$msg = "\n<yellow>" . str_repeat("-", 40) . "<end>\n".
+		[$top, $bottom] = $this->getAnnouncementBorders();
+		$item = $auction->item->toString();
+		$bidInfo = $this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid");
+		$secondsLeft = ($auction->end - time());
+		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
-			"<highlight>" . $auction->item->toString() . "<end>!\n".
-			"You have <highlight>" . ($auction->end - time()) . " seconds<end> ".
-			"to place bids :: ".
-			$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid") . "\n".
-			"<yellow>" . str_repeat("-", 40) . "<end>";
+			"<highlight>{$item}<end>!\n".
+			"You have <highlight>{$secondsLeft} seconds<end> to place bids :: {$bidInfo}".
+			(strlen($bottom) ? "\n{$bottom}" : "");
 		return $msg;
 	}
 
@@ -592,16 +679,61 @@ class AuctionController {
 			$this->chatBot->sendPrivate("Auction is over. No one placed any bids. Do not loot it.");
 			return;
 		}
-		$msg = "<highlight>{$event->auction->top_bidder}<end> has won the auction for ".
-			"<highlight>" . $event->auction->item->toString() . "<end>. ".
-			"<highlight>{$event->auction->bid}<end> point";
-		if ($event->auction->bid > 1) {
-			$msg .= "s are";
-		} else {
-			$msg .= " is";
-		}
-		$msg .= " being deduced from their account.";
+		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
+		$layout = $this->settingManager->getInt('auction_winner_announcement');
+		$msg = sprintf(
+			$this->getAuctionWinnerLayout($layout),
+			$event->auction->top_bidder,
+			$event->auction->item->toString(),
+			$event->auction->bid,
+			$points
+		);
 		$this->chatBot->sendPrivate($msg);
+	}
+
+	protected function rainbow(string $text, int $length=1): string {
+		$colors = [
+			"FF0000",
+			"FFa500",
+			"FFFF00",
+			"00BB00",
+			"6666FF",
+			"EE82EE",
+		];
+		$chars = str_split($text, $length);
+		$result = "";
+		for ($i = 0; $i < count($chars); $i++) {
+			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
+		}
+		return $result;
+	}
+
+	public function getAuctionWinnerLayout(int $type): string {
+		$line1 = "<highlight>%s<end> won <highlight>%s<end> for <highlight>%d<end> %s.";
+		switch ($type) {
+			case 6:
+				return "\n".
+					$this->rainbow("CONGRATULATIONS!") . "  {$line1}";
+			case 5:
+				return "\n".
+					$this->rainbow(str_repeat("-", 65), 5) . "\n".
+					$line1 . "\n".
+					$this->rainbow(str_repeat("-", 65), 5);
+			case 4:
+				return "\n<font color=#FF1493>" . str_repeat("-", 65) . "</font>\n".
+					$line1 . "\n".
+					"<font color=#FF1493>" . str_repeat("-", 65) . "</font>";
+			case 3:
+				return "\n<yellow>" . str_repeat("-", 25) . "[ AUCTION ]" . str_repeat("-", 25) . "<end>\n".
+					$line1;
+			case 2:
+				return "\n<yellow>" . str_repeat("-", 65) . "<end>\n".
+					$line1 . "\n".
+					"<yellow>" . str_repeat("-", 65) . "<end>";
+			default:
+				return $line1;
+		}
+		return "Someone won something. And some admin misconfigured something.";
 	}
 
 	/**

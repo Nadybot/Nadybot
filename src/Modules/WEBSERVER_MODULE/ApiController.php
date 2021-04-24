@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Registry,
 	SettingManager,
+	SubcommandManager,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
@@ -28,6 +29,7 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Throwable;
 
 /**
  * @Instance
@@ -44,6 +46,9 @@ class ApiController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public SubcommandManager $subcommandManager;
 
 	/** @Inject */
 	public AccessManager $accessManager;
@@ -183,9 +188,12 @@ class ApiController {
 
 	protected function getCommandHandler(ApiHandler $handler): ?CommandHandler {
 		// Check if a subcommands for this exists
-		if (isset($this->subcommandManager->subcommands[$handler->accessLevelFrom])) {
-			foreach ($this->subcommandManager->subcommands[$handler->accessLevelFrom] as $row) {
-				return new CommandHandler($row->file, $row->admin);
+		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
+		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
+			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
+				if ($row->type === "msg" && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
+					return new CommandHandler($row->file, $row->admin);
+				}
 			}
 		}
 		return $this->commandManager->commands["msg"][$handler->accessLevelFrom] ?? null;
@@ -288,7 +296,11 @@ class ApiController {
 			return;
 		}
 		/** @var Response */
-		$response = $handler->exec($request, $server);
+		try {
+			$response = $handler->exec($request, $server);
+		} catch (Throwable $e) {
+			$response = null;
+		}
 		if (!isset($response) || !($response) instanceof Response) {
 			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
 			return;
