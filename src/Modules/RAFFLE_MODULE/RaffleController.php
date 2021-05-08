@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RAID_MODULE\RaidController;
 
 /**
  * @author Nadyita (RK5)
@@ -62,6 +63,9 @@ class RaffleController {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Inject */
+	public RaidController $raidController;
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
@@ -154,6 +158,17 @@ class RaffleController {
 			"1;0",
 			'mod',
 			"raffle.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raffle_allow_only_raiders",
+			"If a raid is running, only raiders may join the raffle",
+			"edit",
+			"options",
+			'0',
+			"true;false",
+			"1;0",
+			'mod'
 		);
 		$this->commandAlias->register($this->moduleName, "raffleadmin start", "raffle start");
 		$this->commandAlias->register($this->moduleName, "raffleadmin end", "raffle end");
@@ -382,6 +397,16 @@ class RaffleController {
 			$sendto->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
+		$allowOnlyRaiders = $this->settingManager->getBool('raffle_allow_only_raiders');
+		$raid = $this->raidController->raid;
+		if ($allowOnlyRaiders && isset($raid)) {
+			if (!isset($raid->raiders[$sender]) || isset($raid->raiders[$sender]->left)) {
+				$msg = "You must be in the raid to join the raffle.";
+				$sendto->reply($msg);
+				return;
+			}
+		}
+
 		$slot = 0;
 		if (count($args) === 1) {
 			if (count($this->raffle->slots) > 1) {
