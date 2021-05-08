@@ -204,7 +204,7 @@ class DiscordGatewayController {
 			return;
 		}
 		$this->client = $this->websocket->createClient()
-			->withURI("wss://gateway.discord.gg/?v=8&encoding=json")
+			->withURI("wss://gateway.discord.gg/?v=9&encoding=json")
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])

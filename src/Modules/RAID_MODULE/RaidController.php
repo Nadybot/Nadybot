@@ -700,7 +700,8 @@ class RaidController {
 					continue;
 				}
 				$duals[$name] ??= [];
-				$duals[$name][$alt] = isset($this->raid->raiders[$alt]);
+				$duals[$name][$alt] = isset($this->raid->raiders[$alt])
+					&& !isset($this->raid->raiders[$alt]->left);
 			}
 		}
 		if (!count($duals)) {

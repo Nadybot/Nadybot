@@ -38,7 +38,7 @@ class DiscordAPIClient {
 	protected $guildMemberCache = [];
 	protected $userCache = [];
 
-	public const DISCORD_API = "https://discord.com/api/v8";
+	public const DISCORD_API = "https://discord.com/api/v9";
 
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->settingManager->getString('discord_bot_token');

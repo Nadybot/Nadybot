@@ -211,7 +211,7 @@ class HelpbotController {
 			$sendto->reply("Cannot compute.");
 			return;
 		}
-		preg_match_all("{(\d*\.?\d+|[+%()/-^]|\*+)}", $args[1], $matches);
+		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $args[1], $matches);
 		$expression = join(" ", $matches[1]);
 		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
 		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);
