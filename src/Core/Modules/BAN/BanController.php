@@ -392,6 +392,7 @@ class BanController {
 			}
 
 			if ($this->add($charId, $sender, $length, $reason)) {
+				$this->chatBot->privategroup_kick($who);
 				$numSuccess++;
 			} else {
 				$numErrors++;
