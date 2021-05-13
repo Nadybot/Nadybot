@@ -166,6 +166,22 @@ class AuctionController {
 		);
 		$this->settingManager->add(
 			$this->moduleName,
+			'auction_refund_max_tax',
+			'Refund maximum tax in points',
+			'edit',
+			'number',
+			'0',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'auction_refund_max_time',
+			'Refund maximum age of auction',
+			'edit',
+			'time',
+			'1h',
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			'auction_announcement_layout',
 			'Layout of the auction announcement',
 			'edit',
@@ -262,27 +278,48 @@ class AuctionController {
 			$winner
 		);
 		if ($lastAuction === null) {
-			$sendto->reply("<highlight>{$winner}<end> haven't won any auction that they could be reimbursed for.");
+			$sendto->reply(
+				"<highlight>{$winner}<end> haven't won any auction ".
+				"that they could be reimbursed for."
+			);
+			return;
+		}
+		$maxAge = $this->settingManager->getInt('auction_refund_max_time');
+		if (time() - $lastAuction->end > $maxAge) {
+			$sendto->reply(
+				"<highlight>{$lastAuction->item}<end> was auctioned longer than ".
+				$this->util->unixtimeToReadable($maxAge) . " ".
+				"ago and can no longer be reimbursed."
+			);
 			return;
 		}
 		if ($lastAuction->reimbursed) {
 			$sendto->reply(
-				"<highlight>{$lastAuction->winner}<end> was already reimbursed for {$lastAuction->item}."
+				"<highlight>{$lastAuction->winner}<end> was already ".
+				"reimbursed for {$lastAuction->item}."
 			);
 			return;
 		}
 		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax');
+		$maxPenalty = $this->settingManager->getInt('auction_refund_max_tax');
 		$penalty = $this->settingManager->getInt('auction_refund_tax');
 		$percentualPenalty = (int)ceil($lastAuction->cost * $penalty / 100);
-		$giveBack = max(
-			$lastAuction->cost - max($minPenalty, $percentualPenalty, 0),
-			0
-		);
-		if ($minPenalty > 0 && $lastAuction->cost < $minPenalty) {
+		if ($maxPenalty > 0) {
+			$giveBack = max(
+				$lastAuction->cost - min($maxPenalty, max($minPenalty, $percentualPenalty, 0)),
+				0
+			);
+		} else {
+			$giveBack = max(
+				$lastAuction->cost - max($minPenalty, $percentualPenalty, 0),
+				0
+			);
+		}
+		if ($minPenalty > 0 && $lastAuction->cost <= $minPenalty) {
 			$sendto->reply(
 				"The minimum penalty for a refund is {$minPenalty} points. ".
-				"The auction was for {$lastAuction->cost} points, so 0 points ".
-				"would be given back."
+				"So if the cost of {$lastAuction->item} is {$lastAuction->cost} points, ".
+				"0 points would be given back."
 			);
 			return;
 		}
@@ -306,7 +343,13 @@ class AuctionController {
 		if ($minPenalty > $percentualPenalty) {
 			$this->chatBot->sendPrivate(
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} penalty) for ".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} points min penalty) for ".
+				$lastAuction->item . "."
+			);
+		} elseif ($maxPenalty > 0 && $maxPenalty < $percentualPenalty) {
+			$this->chatBot->sendPrivate(
+				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
+				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$maxPenalty} points max penalty) for ".
 				$lastAuction->item . "."
 			);
 		} else {
@@ -589,13 +632,14 @@ class AuctionController {
 	protected function recordAuctionInDB(Auction $auction): bool {
 		return $this->db->exec(
 			"INSERT INTO auction_<myname> ".
-			"(`item`, `auctioneer`, `cost`, `winner`, `end`) ".
-			"VALUES (?, ?, ?, ?, ?)",
+			"(`item`, `auctioneer`, `cost`, `winner`, `end`, `reimbursed`) ".
+			"VALUES (?, ?, ?, ?, ?, ?)",
 			$auction->item->toString(),
 			$auction->auctioneer,
 			$auction->bid,
 			$auction->top_bidder,
-			$auction->end
+			$auction->end,
+			false
 		) !== 0;
 	}
 
