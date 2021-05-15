@@ -995,22 +995,27 @@ class DB {
 		$this->logger->log('DEBUG', "Inserting {$file}");
 		$csv = new Reader($file);
 		$items = [];
-		foreach ($csv->items() as $item) {
-			$items []= $item;
-		}
-		if (count($where)) {
-			$this->table($table)->where(...$where)->delete();
-		} else {
-			$this->table($table)->delete();
-		}
-		while (count($items) > 0) {
-			try {
-				$toInsert = array_splice($items, 0, 1000);
-				$this->table($table)->insert($toInsert);
-			} catch (PDOException $e) {
-				$this->logger->log('ERROR', $e->getMessage());
-				throw $e;
+		$itemCount = 0;
+		try {
+			if (count($where)) {
+				$this->table($table)->where(...$where)->delete();
+			} else {
+				$this->table($table)->delete();
 			}
+			foreach ($csv->items() as $item) {
+				$itemCount++;
+				$items []= $item;
+				if (count($items) > 1000) {
+					$this->table($table)->insert($items);
+					$items = [];
+				}
+			}
+			if (count($items) > 0) {
+				$this->table($table)->insert($items);
+			}
+		} catch (PDOException $e) {
+			$this->logger->log('ERROR', $e->getMessage());
+			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);
 
