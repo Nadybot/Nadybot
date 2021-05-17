@@ -177,20 +177,22 @@ const channelInfoDecoderMapping = {
   id: JsonDecoder.number,
 };
 
-const basicSystemInformationDecoder = JsonDecoder.objectStrict<BasicSystemInformation>(
-  basicSystemInformationDecoderMapping,
-  "BasicSystemInformation"
-);
+const basicSystemInformationDecoder =
+  JsonDecoder.objectStrict<BasicSystemInformation>(
+    basicSystemInformationDecoderMapping,
+    "BasicSystemInformation"
+  );
 
 const memoryInformationDecoder = JsonDecoder.objectStrict<MemoryInformation>(
   memoryInformationDecoderMapping,
   "MemoryInformation"
 );
 
-const miscSystemInformationDecoder = JsonDecoder.objectStrict<MiscSystemInformation>(
-  miscSystemInformationDecoderMapping,
-  "MiscSystemInformation"
-);
+const miscSystemInformationDecoder =
+  JsonDecoder.objectStrict<MiscSystemInformation>(
+    miscSystemInformationDecoderMapping,
+    "MiscSystemInformation"
+  );
 
 const configStatisticsDecoder = JsonDecoder.objectStrict<ConfigStatistics>(
   configStatisticsDecoderMapping,
@@ -216,7 +218,8 @@ const systemInformationDecoderMapping = {
   channels: JsonDecoder.array(channelInfoDecoder, "channels"),
 };
 
-export const systemInformationDecoder = JsonDecoder.objectStrict<SystemInformation>(
-  systemInformationDecoderMapping,
-  "SystemInformation"
-);
+export const systemInformationDecoder =
+  JsonDecoder.objectStrict<SystemInformation>(
+    systemInformationDecoderMapping,
+    "SystemInformation"
+  );

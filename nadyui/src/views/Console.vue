@@ -89,15 +89,17 @@ export default defineComponent({
         this.historyIdx < this.console_history.length
       ) {
         // Go back in history
-        this.inputText = this.console_history[
-          this.console_history.length - this.historyIdx - 1
-        ];
+        this.inputText =
+          this.console_history[
+            this.console_history.length - this.historyIdx - 1
+          ];
         this.historyIdx++;
       } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
         // Go forward in history
-        this.inputText = this.console_history[
-          this.console_history.length - this.historyIdx + 1
-        ];
+        this.inputText =
+          this.console_history[
+            this.console_history.length - this.historyIdx + 1
+          ];
         this.historyIdx--;
       }
     },
