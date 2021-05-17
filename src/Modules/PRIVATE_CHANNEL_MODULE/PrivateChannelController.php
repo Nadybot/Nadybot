@@ -369,7 +369,8 @@ class PrivateChannelController {
 
 	/**
 	 * @HandlesCommand("kick")
-	 * @Matches("/^kick (.+)$/i")
+	 * @Matches("/^kick ([^ ]+)$/i")
+	 * @Matches("/^kick ([^ ]+) (?<reason>.+)$/i")
 	 */
 	public function kickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -380,13 +381,21 @@ class PrivateChannelController {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
 			if ($this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
-				$msg = "<highlight>$name<end> has been kicked from the private channel.";
+				$msg = "<highlight>$name<end> has been kicked from the private channel";
+				if (isset($args["reason"])) {
+					$msg .= ": <highlight>{$args['reason']}<end>";
+				} else {
+					$msg .= ".";
+				}
+				$this->chatBot->sendPrivate($msg);
 				$this->chatBot->privategroup_kick($name);
 			} else {
 				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
 			}
 		}
-		$sendto->reply($msg);
+		if ($channel !== "priv") {
+			$sendto->reply($msg);
+		}
 	}
 
 	/**
@@ -562,7 +571,7 @@ class PrivateChannelController {
 				$guild = $row->guild;
 			}
 			$percent = $this->text->alignNumber(
-				(int)round($row->cnt / $numOnline, 2) * 100,
+				(int)round($row->cnt * 100 / $numOnline, 0),
 				3
 			);
 			$avg_level = round($row->avg_level, 1);
