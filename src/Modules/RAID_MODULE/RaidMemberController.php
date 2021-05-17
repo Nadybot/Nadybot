@@ -214,7 +214,9 @@ class RaidMemberController {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
 			}
 			if ($announceLoc & static::ANNOUNCE_TELL) {
-				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+				if (isset($sender)) {
+					$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+				}
 			}
 			if ($announceLoc === static::ANNOUNCE_OFF) {
 				return "<highlight>{$player}<end> was <red>removed<end> to the raid.";
