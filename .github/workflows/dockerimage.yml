@@ -55,7 +55,7 @@ jobs:
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}-php8" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}-php8" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}-php7" \
-              -f Dockerfile:php8 .
+              -f Dockerfile-php8 .
         - name: Push the tagged PHP7 Docker image
           shell: bash
           run: |
