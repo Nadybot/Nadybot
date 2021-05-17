@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -103,9 +104,9 @@ class NewsController {
 	}
 
 	/**
-	 * @return INews[]
+	 * @return Collection<INews>
 	 */
-	public function getNewsItems(string $player): array {
+	public function getNewsItems(string $player): Collection {
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
 			$player = $this->altsController->getAltInfo($player)->main;
 		}
@@ -122,9 +123,7 @@ class NewsController {
 					->selectRaw("COUNT(*) > 0"),
 				"confirmed"
 			);
-		/** @var INews[] */
-		$newsItems = $query->asObj(INews::class)->toArray();
-		return $newsItems;
+		return $query->asObj(INews::class);
 	}
 
 	/**
@@ -133,15 +132,9 @@ class NewsController {
 	public function getNews(string $player, bool $onlyUnread=true) {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
-			$news = array_filter(
-				$news,
-				function(INews $item): bool {
-					return $item->confirmed === false;
-				}
-			);
+			$news = $news->where("confirmed", false);
 		}
-		/** @var INews[] $news */
-		if (count($news) === 0) {
+		if ($news->count() === 0) {
 			return null;
 		}
 		$latestNews = null;
@@ -231,13 +224,8 @@ class NewsController {
 	public function hasRecentNews(string $player): bool {
 		$thirtyDays = time() - (86400 * 30);
 		$news = $this->getNewsItems($player);
-		$recentNews = array_filter(
-			$news,
-			function(INews $item) use ($thirtyDays): bool {
-				return $item->confirmed === false && $item->time > $thirtyDays;
-			}
-		);
-		return count($recentNews) > 0;
+		return $news->where("confirmed", false)
+			->contains("time", ">", $thirtyDays);
 	}
 
 	/**
