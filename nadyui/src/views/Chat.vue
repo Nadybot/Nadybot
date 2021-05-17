@@ -119,15 +119,13 @@ export default defineComponent({
         this.historyIdx < this.chat_history.length
       ) {
         // Go back in history
-        this.inputText = this.chat_history[
-          this.chat_history.length - this.historyIdx - 1
-        ];
+        this.inputText =
+          this.chat_history[this.chat_history.length - this.historyIdx - 1];
         this.historyIdx++;
       } else if (e.key == "ArrowDown" && this.historyIdx > 0) {
         // Go forward in history
-        this.inputText = this.chat_history[
-          this.chat_history.length - this.historyIdx + 1
-        ];
+        this.inputText =
+          this.chat_history[this.chat_history.length - this.historyIdx + 1];
         this.historyIdx--;
       }
     },
