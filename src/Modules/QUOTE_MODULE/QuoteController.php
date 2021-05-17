@@ -220,6 +220,7 @@ class QuoteController {
 		if ($id === null) {
 			$row = $this->db->table("quote")
 				->inRandomOrder()
+				->limit(1)
 				->asObj(Quote::class)->first();
 		} else {
 			$row = $this->db->table("quote")
