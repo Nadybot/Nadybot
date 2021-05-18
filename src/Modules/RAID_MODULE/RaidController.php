@@ -635,7 +635,7 @@ class RaidController {
 			->whereNull("l.username")
 			->groupBy("rm.player")
 			->select("rm.player AS username");
-		$noPoints->selectRaw("0 as " . $noPoints->grammar->wrap("delta"));
+		$noPoints->selectRaw("0" . $noPoints->as("delta"));
 
 		/** @var Collection<RaidPointsLog> */
 		$raiders = $this->db->fromSub($query->union($noPoints), "points")
@@ -676,13 +676,29 @@ class RaidController {
 			$sendto->reply("The raid <highlight>{$args[1]}<end> doesn't exist.");
 			return;
 		}
-		/** @var RaidPointsLog[] */
+		/** @var Collection<RaidPointsLog> */
 		$logs = $this->db->table(RaidPointsController::DB_TABLE_LOG)
 			->where("raid_id", (int)$args[1])
 			->where("username", $args[2])
-			->asObj(RaidPointsLog::class)
-			->toArray();
-		if (!count($logs)) {
+			->asObj(RaidPointsLog::class);
+		$joined = $this->db->table(RaidMemberController::DB_TABLE)
+			->where("raid_id", (int)$args[1])
+			->where("player", $args[2])
+			->whereNotNull("joined")
+			->select("joined AS time");
+		$joined->selectRaw("1" . $joined->as("status"));
+		$left = $this->db->table(RaidMemberController::DB_TABLE)
+			->where("raid_id", (int)$args[1])
+			->where("player", $args[2])
+			->whereNotNull("left")
+			->select("left AS time");
+		$left->selectRaw("0" . $left->as("status"));
+		$events = $joined->union($left)->orderBy("time")->asObj();
+		$allLogs = $logs->concat($events)
+			->sort(function($a, $b) {
+				return $a->time <=> $b->time;
+			});
+		if ($allLogs->isEmpty()) {
 			$sendto->reply("<highlight>{$args[2]}<end> didn't get any points in this raid.");
 			return;
 		}
@@ -693,14 +709,25 @@ class RaidController {
 			$blob .= " ({$main})";
 		}
 		$blob .= "<end>\n";
-		foreach ($logs as $log) {
-			$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
-				$this->text->alignNumber(abs($log->delta), 5, $log->delta > 0 ? 'green' : 'red').
-				" - ".
-				($log->individual ? "<highlight>" : "").
-				$log->reason.
-				($log->individual ? "<end>" : "").
-				" (by {$log->changed_by})\n";
+		$blob .= "<tab>" . $this->util->date($raid->started) . "<tab>".
+			"Raid started by {$raid->started_by}\n";
+		foreach ($allLogs as $log) {
+			if ($log instanceof RaidPointsLog) {
+				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
+					$this->text->alignNumber(abs($log->delta), 5, $log->delta > 0 ? 'green' : 'red').
+					" - ".
+					($log->individual ? "<highlight>" : "").
+					$log->reason.
+					($log->individual ? "<end>" : "").
+					" (by {$log->changed_by})\n";
+			} else {
+				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
+					($log->status ? "Raid joined" : "Raid left") . "\n";
+			}
+		}
+		if (isset($raid->stopped)) {
+			$blob .= "<tab>" . $this->util->date($raid->stopped) . "<tab>".
+				"Raid stopped by {$raid->stopped_by}\n";
 		}
 		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$args[2]}", $blob);
 		$sendto->reply($msg);
