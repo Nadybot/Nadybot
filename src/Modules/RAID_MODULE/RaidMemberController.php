@@ -160,7 +160,7 @@ class RaidMemberController {
 			->insert([
 				"raid_id" => $raid->raid_id,
 				"player" => $player,
-				"joined" => $raider->joined,
+				"joined" => time(),
 			]);
 		if ($force) {
 			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
