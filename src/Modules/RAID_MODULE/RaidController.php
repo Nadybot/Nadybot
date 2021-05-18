@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use DateTime;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
@@ -621,12 +623,26 @@ class RaidController {
 			->where("raid_id", (int)$args[1])
 			->where("individual", false)
 			->groupBy("username")
-			->orderBy("username")
 			->select("username");
-		/** @var RaidPointsLog[] */
-		$raiders = $query->addSelect($query->colFunc("SUM", "delta", "delta"))
-			->asObj(RaidPointsLog::class)
-			->toArray();
+		$query->addSelect($query->colFunc("SUM", "delta", "delta"));
+
+		$noPoints = $this->db->table(RaidMemberController::DB_TABLE, "rm")
+			->leftJoin(RaidPointsController::DB_TABLE_LOG . " as l", function (JoinClause $join) {
+				$join->on("rm.raid_id", "l.raid_id")
+					->on("rm.player", "l.username");
+			})
+			->where("rm.raid_id", (int)$args[1])
+			->whereNull("l.username")
+			->groupBy("rm.player")
+			->select("rm.player AS username");
+		$noPoints->selectRaw("0 as " . $noPoints->grammar->wrap("delta"));
+
+		var_dump($this->db->fromSub($query->union($noPoints), "points")
+			->orderBy("username")->toSql());
+		/** @var Collection<RaidPointsLog> */
+		$raiders = $this->db->fromSub($query->union($noPoints), "points")
+			->orderBy("username")
+			->asObj(RaidPointsLog::class);
 
 		$blob = $this->getRaidSummary($raid);
 		$blob .= "\n<header2>Raiders and points<end>\n";
