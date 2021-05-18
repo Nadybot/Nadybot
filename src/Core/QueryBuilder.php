@@ -64,4 +64,12 @@ class QueryBuilder extends Builder {
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
 		return $this->where($this->colFunc("LOWER", $column), "like", strtolower($value), $boolean);
 	}
+
+	public function join($table, $first, $operator=null, $second=null, $type='inner', $where=false): self {
+		return parent::join($this->nadyDB->formatSql($table), $first, $operator, $second, $type);
+	}
+
+	public function crossJoin($table, $first=null, $operator=null, $second=null): self {
+		return parent::crossJoin($this->nadyDB->formatSql($table), $first, $operator, $second);
+	}
 }
