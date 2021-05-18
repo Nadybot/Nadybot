@@ -637,8 +637,6 @@ class RaidController {
 			->select("rm.player AS username");
 		$noPoints->selectRaw("0 as " . $noPoints->grammar->wrap("delta"));
 
-		var_dump($this->db->fromSub($query->union($noPoints), "points")
-			->orderBy("username")->toSql());
 		/** @var Collection<RaidPointsLog> */
 		$raiders = $this->db->fromSub($query->union($noPoints), "points")
 			->orderBy("username")
