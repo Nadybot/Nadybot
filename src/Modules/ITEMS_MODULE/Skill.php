@@ -7,4 +7,5 @@ use Nadybot\Core\DBRow;
 class Skill extends DBRow {
 	public int $id;
 	public string $name;
+	public string $unit;
 }
