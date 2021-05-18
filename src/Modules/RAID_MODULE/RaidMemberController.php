@@ -103,6 +103,7 @@ class RaidMemberController {
 	public function resumeRaid(Raid $raid): void {
 		$this->db->table(self::DB_TABLE)
 			->where("raid_id", $raid->raid_id)
+			->whereNull("left")
 			->update(["left" => time()]);
 		$raid->raiders = $this->db->table(self::DB_TABLE)
 			->where("raid_id", $raid->raid_id)
