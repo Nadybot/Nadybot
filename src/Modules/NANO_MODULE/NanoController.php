@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NANO_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -71,8 +72,9 @@ class NanoController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'nanos');
-		$this->db->loadSQLFile($this->moduleName, 'nano_lines');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nano_lines.csv");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -105,23 +107,18 @@ class NanoController {
 		$search = $args[1];
 
 		$search = htmlspecialchars_decode($search);
+		$query = $this->db->table("nanos")
+			->orderBy("strain")
+			->orderBy("sub_strain")
+			->orderBy("sort_order")
+			->limit($this->settingManager->getInt("maxnano"));
 		$tmp = explode(" ", $search);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'nano_name');
-		array_push($params, $this->settingManager->getInt("maxnano"));
+		$this->db->addWhereFromParams($query, $tmp, "nano_name");
 
-		$sql = "SELECT * ".
-			"FROM nanos ".
-			"WHERE $query ".
-			"ORDER BY ".
-				"strain ASC, ".
-				"sub_strain ASC, ".
-				"sort_order ASC ".
-			"LIMIT ?";
+		/** @var Collection<Nano> */
+		$data = $query->asObj(Nano::class);
 
-		/** @var Nano[] */
-		$data = $this->db->fetchAll(Nano::class, $sql, ...$params);
-
-		$count = count($data);
+		$count = $data->count();
 		if ($count === 0) {
 			$msg = "No nanos found.";
 			$sendto->reply($msg);
@@ -187,16 +184,14 @@ class NanoController {
 	 * @return void
 	 */
 	public function listNanolineProfs(CommandReply $sendto, bool $froobOnly): void {
-		$froobWhere = "";
+		$query = $this->db->table("nanos")
+			->where("professions", "not like", "%:%")
+			->orderBy("professions")
+			->select("professions")->distinct();
 		if ($froobOnly) {
-			$froobWhere = " AND professions NOT IN ('Keeper', 'Shade') ";
+			$query->whereNotIn("professions", ["Keeper", "Shade"]);
 		}
-		$sql = "SELECT DISTINCT professions ".
-			"FROM nanos ".
-			"WHERE professions NOT LIKE '%:%' ".
-				$froobWhere.
-			"ORDER BY professions ASC";
-		$data = $this->db->query($sql);
+		$data = $query->asObj();
 
 		$blob = "<header2>Choose a profession<end>\n";
 		$command = $froobOnly ? "nanolinesfroob" : "nanolines";
@@ -247,12 +242,12 @@ class NanoController {
 	 * Show all nanos of a nanoline grouped by sub-strain
 	 */
 	private function nanolinesShow(string $nanoline, ?string $prof, bool $froobOnly, CommandReply $sendto): void {
-		$profWhere = "";
-		$froobWhere = "";
-		$sqlArgs = [];
+		$query = $this->db->table("nanos")
+			->whereIlike("strain", $nanoline)
+			->orderBy("sub_strain")
+			->orderBy("sort_order");
 		if ($prof !== null) {
-			$profWhere = "AND professions LIKE ? ";
-			$sqlArgs []= "%$prof%";
+			$query->whereIlike("professions", "%{$prof}%");
 		}
 		if ($froobOnly) {
 			if ($prof !== null && in_array($prof, ["Keeper", "Shade"])) {
@@ -260,19 +255,11 @@ class NanoController {
 				$sendto->reply($msg);
 				return;
 			}
-			$froobWhere = "AND froob_friendly IS TRUE ";
+			$query->where("froob_friendly", true);
 		}
-		$sql = "SELECT *  ".
-			"FROM nanos ".
-			"WHERE strain LIKE ? ".
-			$profWhere.
-			$froobWhere.
-			"ORDER BY ".
-				"sub_strain ASC, ".
-				"sort_order ASC";
-		/** @var Nano[] */
-		$data = $this->db->fetchAll(Nano::class, $sql, $nanoline, ...$sqlArgs);
-		if (!count($data)) {
+		/** @var Collection<Nano> */
+		$data = $query->asObj(Nano::class);
+		if ($data->isEmpty()) {
 			$msg = "No nanoline named <highlight>$nanoline<end> found.";
 			if ($prof !== null) {
 				$msg = "No nanoline named <highlight>$nanoline<end> found for <highlight>$prof<end>.";
@@ -312,24 +299,20 @@ class NanoController {
 	 * @return void
 	 */
 	private function nanolinesList(string $profession, bool $froobOnly, CommandReply $sendto): void {
-		$froobWhere = "";
+		$query = $this->db->table("nanos")
+			->whereIlike("professions", "%{$profession}%")
+			->orderBy("school")
+			->orderBy("strain")
+			->select("school", "strain")->distinct();
 		if ($froobOnly) {
-			$froobWhere = "AND froob_friendly IS TRUE ";
 			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
 				$msg = "<highlight>$profession<end> is not playable as froob.";
 				$sendto->reply($msg);
 				return;
 			}
+			$query->where("froob_friendly", true);
 		}
-		$sql = "SELECT distinct school,strain,froob_friendly ".
-			"FROM nanos ".
-			"WHERE professions LIKE ? ".
-			$froobWhere.
-			"GROUP BY school,strain ".
-			"ORDER BY ".
-				"school ASC, ".
-				"strain ASC";
-		$data = $this->db->query($sql, "%${profession}%");
+		$data = $query->asObj()->toArray();
 
 		$shortProf = $profession;
 		if ($profession !== 'General') {
@@ -338,7 +321,7 @@ class NanoController {
 		$blob = '';
 		$lastSchool = null;
 		$command = "nanolines";
-		if ($froobWhere) {
+		if ($froobOnly) {
 			$command = "nanolinesfroob";
 		}
 		foreach ($data as $row) {
@@ -364,12 +347,12 @@ class NanoController {
 	 * @Matches("/^nanoloc$/i")
 	 */
 	public function nanolocListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$data = $this->db->query(
-			"SELECT location, count(location) AS count ".
-			"FROM nanos ".
-			"GROUP BY location ".
-			"ORDER BY location ASC"
-		);
+		$query = $this->db->table("nanos")
+			->groupBy("location")
+			->orderBy("location")
+			->select("location");
+		$query->addSelect($query->colFunc("COUNT", "location", "count"));
+		$data = $query->asObj();
 		$nanoCount = [];
 		foreach ($data as $row) {
 			$locations = preg_split("/\s*\/\s*/", $row->location);
@@ -398,29 +381,27 @@ class NanoController {
 	public function nanolocViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$location = $args[1];
 
-		$sql = "SELECT * ".
-			"FROM nanos ".
-			"WHERE location LIKE ? OR location LIKE ? OR location LIKE ?".
-			"ORDER BY nano_name ASC";
+		$nanos = $this->db->table("nanos")
+			->whereIlike("location", $location)
+			->orWhereIlike("location", "%/{$location}")
+			->orWhereIlike("location", "{$location}/%")
+			->orderBy("nano_name")
+			->asObj(Nano::class);
 
-		/** @var Nano[] */
-		$nanos = $this->db->fetchAll(Nano::class, $sql, $location, "%/{$location}", "{$location}/%");
-
-		$count = count($nanos);
+		$count = $nanos->count();
 		if ($count === 0) {
-			$sql = "SELECT * ".
-				"FROM nanos ".
-				"WHERE location LIKE ? ".
-				"ORDER BY nano_name ASC";
-			/** @var Nano[] */
-			$nanos = $this->db->fetchAll(Nano::class, $sql, "%{$location}%");
-			$count = count($nanos);
+			$nanos = $this->db->table("nanos")
+				->whereIlike("location", "%{$location}%")
+				->orderBy("nano_name")
+				->asObj(Nano::class);
+			$count = $nanos->count();
 		}
 		if ($count === 0) {
 			$msg = "No nanos found.";
 			$sendto->reply($msg);
 			return;
 		}
+		/** @var Collection<Nano> $nanos */
 		$blob = '';
 		foreach ($nanos as $nano) {
 			$nanoLink = $this->makeNanoLink($nano);

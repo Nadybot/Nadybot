@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -31,6 +32,8 @@ use Nadybot\Core\{
  *	@ProvidesEvent("cloak(lower)")
  */
 class CloakController {
+
+	public const DB_TABLE = "org_city_<myname>";
 
 	/**
 	 * Name of the module.
@@ -63,7 +66,7 @@ class CloakController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'org_city');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -91,20 +94,19 @@ class CloakController {
 	 * @Matches("/^cloak$/i")
 	 */
 	public function cloakCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var OrgCity[] */
-		$data = $this->db->fetchAll(
-			OrgCity::class,
-			"SELECT * FROM org_city_<myname> ".
-			"WHERE `action` = 'on' OR `action` = 'off' ".
-			"ORDER BY `time` DESC LIMIT 20"
-		);
-		if (count($data) === 0) {
+		/** @var Collection<OrgCity> */
+		$data = $this->db->table(self::DB_TABLE)
+			->whereIn("action", ["on", "off"])
+			->orderByDesc("time")
+			->limit(20)
+			->asObj(OrgCity::class);
+		if ($data->count() === 0) {
 			$msg = "Unknown status on cloak!";
 			$sendto->reply($msg);
 			return;
 		}
 		/** @var OrgCity $row */
-		$row = array_shift($data);
+		$row = $data->shift();
 		$timeSinceChange = time() - $row->time;
 		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
 
@@ -137,23 +139,17 @@ class CloakController {
 	 */
 	public function cloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var ?OrgCity */
-		$row = $this->db->fetch(
-			OrgCity::class,
-			"SELECT * FROM org_city_<myname> ".
-			"WHERE `action` = 'on' OR `action` = 'off' ".
-			"ORDER BY `time` DESC LIMIT 1"
-		);
+		$row = $this->getLastOrgEntry(true);
 
 		if ($row !== null && $row->action === "on") {
 			$msg = "The cloaking device is already <green>enabled<end>.";
 		} else {
-			$this->db->exec(
-				"INSERT INTO org_city_<myname> (`time`, `action`, `player`) ".
-				"VALUES (?, ?, ?)",
-				time(),
-				'on',
-				"{$sender}*"
-			);
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"time" => time(),
+					"action" => "on",
+					"player" => "{$sender}*",
+				]);
 			$msg = "The cloaking device has been manually enabled in the bot (you must still enable the cloak if it's disabled).";
 		}
 
@@ -174,17 +170,26 @@ class CloakController {
 		) {
 			return;
 		}
-		$this->db->exec(
-			"INSERT INTO org_city_<myname> (`time`, `action`, `player`) ".
-			"VALUES (?, ?, ?)",
-			time(),
-			$arr[2],
-			$arr[1]
-		);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"time" => time(),
+				"action" => $arr[2],
+				"player" => $arr[1],
+			]);
 		$event = new CloakEvent();
 		$event->type = $arr[2] === 'on' ? "cloak(raise)" : "cloak(lower)";
 		$event->player = $arr[1];
 		$this->eventManager->fireEvent($event);
+	}
+
+	public function getLastOrgEntry($cloakOnly=false): ?OrgCity {
+		$query = $this->db->table(self::DB_TABLE)
+			->orderByDesc("time")
+			->limit(1);
+		if ($cloakOnly) {
+			$query->whereIn("action", ["on", "off"]);
+		}
+		return $query->asObj(OrgCity::class)->first();
 	}
 
 	/**
@@ -192,11 +197,7 @@ class CloakController {
 	 * @Description("Checks timer to see if cloak can be raised or lowered")
 	 */
 	public function checkTimerEvent(Event $eventObj): void {
-		/** @var ?OrgCity */
-		$row = $this->db->fetch(
-			OrgCity::class,
-			"SELECT * FROM org_city_<myname> ORDER BY `time` DESC LIMIT 1"
-		);
+		$row = $this->getLastOrgEntry();
 		if ($row === null) {
 			return;
 		}
@@ -221,14 +222,7 @@ class CloakController {
 	 * @Description("Reminds the player who lowered cloak to raise it")
 	 */
 	public function cloakReminderEvent(Event $eventObj): void {
-		// valid states for action are: 'on', 'off'
-		/** @var ?OrgCity */
-		$row = $this->db->fetch(
-			OrgCity::class,
-			"SELECT * FROM org_city_<myname> ".
-			"WHERE `action` = 'on' OR `action` = 'off' ".
-			"ORDER BY `time` DESC LIMIT 1"
-		);
+		$row = $this->getLastOrgEntry(true);
 		if ($row === null || $row->action === "on") {
 			return;
 		}
@@ -268,13 +262,7 @@ class CloakController {
 		) {
 			return;
 		}
-		/** @var ?OrgCity */
-		$row = $this->db->fetch(
-			OrgCity::class,
-			"SELECT * FROM org_city_<myname> ".
-			"WHERE `action` = 'on' OR `action` = 'off' ".
-			"ORDER BY `time` DESC LIMIT 0, 20"
-		);
+		$row = $this->getLastOrgEntry(true);
 
 		if ($row === null) {
 			return;

@@ -4,37 +4,53 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	AdminManager,
 	BuddylistManager,
 	CommandReply,
 	DB,
 	DBSchema\Alt,
+	DBSchema\Admin,
 	DBSchema\Member,
+	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ProxyCapabilities,
 };
-use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Modules\{
+	CITY_MODULE\CloakController,
+	CITY_MODULE\OrgCity,
 	COMMENT_MODULE\Comment,
 	COMMENT_MODULE\CommentCategory,
+	GUILD_MODULE\GuildController,
 	GUILD_MODULE\OrgMember,
+	MASSMSG_MODULE\MassMsgController,
 	NEWS_MODULE\News,
 	NOTES_MODULE\Link,
 	NOTES_MODULE\Note,
+	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
 	QUOTE_MODULE\Quote,
+	RAFFLE_MODULE\RaffleController,
+	RAID_MODULE\AuctionController,
+	RAID_MODULE\DBAuction,
 	RAID_MODULE\RaidBlock,
+	RAID_MODULE\RaidBlockController,
+	RAID_MODULE\RaidController,
 	RAID_MODULE\RaidLog,
 	RAID_MODULE\RaidMember,
+	RAID_MODULE\RaidMemberController,
 	RAID_MODULE\RaidPoints,
+	RAID_MODULE\RaidPointsController,
 	RAID_MODULE\RaidPointsLog,
-	TIMERS_MODULE\Timer,
+	RAID_MODULE\RaidRank,
+	RAID_MODULE\RaidRankController,
+	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackedUser,
+	TRACKER_MODULE\TrackerController,
 	TRACKER_MODULE\Tracking,
 	VOTE_MODULE\Poll,
 	VOTE_MODULE\Vote,
+	VOTE_MODULE\VoteController,
 };
-use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;
-use Nadybot\Modules\RAID_MODULE\RaidRank;
 use stdClass;
 
 /**
@@ -64,6 +80,9 @@ class ExportController {
 
 	/** @Inject */
 	public DB $db;
+
+	/** @Inject */
+	public TimerController $timerController;
 
 	/** @Inject */
 	public AccessManager $accessManager;
@@ -143,7 +162,7 @@ class ExportController {
 
 	protected function exportAlts(): array {
 		/** @var Alt[] */
-		$alts = $this->db->fetchAll(Alt::class, "SELECT * FROM `alts`");
+		$alts = $this->db->table("alts")->asObj(Alt::class)->toArray();
 		$data = [];
 		foreach ($alts as $alt) {
 			if ($alt->main === $alt->alt) {
@@ -170,7 +189,9 @@ class ExportController {
 		$exported = [];
 		$result = [];
 		/** @var Member[] */
-		$members = $this->db->fetchAll(Member::class, "SELECT * FROM `members_<myname>`");
+		$members = $this->db->table(PrivateChannelController::DB_TABLE)
+			->asObj(Member::class)
+			->toArray();
 		foreach ($members as $member) {
 			$result []= (object)[
 				"character" =>$this->toChar($member->name),
@@ -179,7 +200,9 @@ class ExportController {
 			$exported[$member->name] = true;
 		}
 		/** @var RaidRank[] */
-		$members = $this->db->fetchAll(RaidRank::class, "SELECT * FROM `raid_rank_<myname>`");
+		$members = $this->db->table(RaidRankController::DB_TABLE)
+			->asObj(RaidRank::class)
+			->toArray();
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
@@ -189,7 +212,10 @@ class ExportController {
 			];
 			$exported[$member->name] = true;
 		}
-		$members = $this->db->fetchAll(OrgMember::class, "SELECT * FROM `org_members_<myname>` WHERE `mode` != 'del'");
+		$members = $this->db->table(GuildController::DB_TABLE)
+			->where("mode", "!=", "del")
+			->asObj(OrgMember::class)
+			->toArray();
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
@@ -201,14 +227,16 @@ class ExportController {
 			$exported[$member->name] = true;
 		}
 		/** @var Admin[] */
-		$members = $this->db->fetchAll(Admin::class, "SELECT * FROM `admin_<myname>`");
+		$members = $this->db->table(AdminManager::DB_TABLE)
+			->asObj(Admin::class)
+			->toArray();
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
 			}
 			$result []= (object)[
 				"character" =>$this->toChar($member->name),
-				"autoInvite" => (bool)$member->autoinv,
+				"autoInvite" => false,
 			];
 			$exported[$member->name] = true;
 		}
@@ -243,7 +271,10 @@ class ExportController {
 
 	protected function exportQuotes(): array {
 		/** @var Quote[] */
-		$quotes = $this->db->fetchAll(Quote::class, "SELECT * FROM `quote` ORDER BY `id` ASC");
+		$quotes = $this->db->table("quote")
+			->orderBy("id")
+			->asObj(Quote::class)
+			->toArray();
 		$result = [];
 		foreach ($quotes as $quote) {
 			$result []= (object)[
@@ -256,7 +287,8 @@ class ExportController {
 	}
 
 	protected function exportBanlist(): array {
-		$banList = $this->db->query("SELECT * FROM `banlist_<myname>`");
+		$banList = $this->db->table(BanController::DB_TABLE)
+			->asObj()->toArray();
 		$result = [];
 		foreach ($banList as $banEntry) {
 			$ban = (object)[
@@ -274,7 +306,10 @@ class ExportController {
 	}
 
 	protected function exportCloak(): array {
-		$cloakList = $this->db->query("SELECT * FROM `org_city_<myname>`");
+		/** @var OrgCity[] */
+		$cloakList = $this->db->table(CloakController::DB_TABLE)
+			->asObj(OrgCity::class)
+			->toArray();
 		$result = [];
 		foreach ($cloakList as $cloakEntry) {
 			$result []= (object)[
@@ -289,7 +324,9 @@ class ExportController {
 
 	protected function exportPolls(): array {
 		/** @var Poll[] */
-		$polls = $this->db->fetchAll(Poll::class, "SELECT * FROM `polls_<myname>`");
+		$polls = $this->db->table(VoteController::DB_POLLS)
+			->asObj(Poll::class)
+			->toArray();
 		$result = [];
 		foreach ($polls as $poll) {
 			$export = (object)[
@@ -307,16 +344,22 @@ class ExportController {
 				];
 			}
 			/** @var Vote[] */
-			$votes = $this->db->fetchAll(Vote::class, "SELECT * FROM `votes_<myname>` WHERE `poll_id`=?", $poll->id);
+			$votes = $this->db->table(VoteController::DB_VOTES)
+				->where("poll_id", $poll->id)
+				->asObj(Vote::class)
+				->toArray();
 			foreach ($votes as $vote) {
 				$answers[$vote->answer] ??= (object)[
 					"answer" => $vote->answer,
 					"votes" => [],
 				];
-				$answers[$vote->answer]->votes []= (object)[
-					"character" =>$this->toChar($vote->author),
-					"voteTime" => $vote->time,
+				$answer = (object)[
+					"character" => $this->toChar($vote->author),
 				];
+				if (isset($vote->time)) {
+					$answer->voteTime = $vote->time;
+				}
+				$answers[$vote->answer]->votes []= $answer;
 			}
 			$export->answers = array_values($answers);
 			$result []= $export;
@@ -325,7 +368,10 @@ class ExportController {
 	}
 
 	protected function exportRaffleBonus(): array {
-		$data = $this->db->query("SELECT * FROM `raffle_bonus_<myname>` ORDER BY `name` ASC");
+		$data = $this->db->table(RaffleController::DB_TABLE)
+			->orderBy("name")
+			->asObj()
+			->toArray();
 		$result = [];
 		foreach ($data as $bonus) {
 			$result []= (object)[
@@ -338,7 +384,10 @@ class ExportController {
 
 	protected function exportRaidBlocks(): array {
 		/** @var RaidBlock[] */
-		$data = $this->db->fetchAll(RaidBlock::class, "SELECT * FROM `raid_block_<myname>` ORDER BY `player` ASC");
+		$data = $this->db->table(RaidBlockController::DB_TABLE)
+			->orderBy("player")
+			->asObj(RaidBlock::class)
+			->toArray();
 		$result = [];
 		foreach ($data as $block) {
 			$entry = (object)[
@@ -362,7 +411,10 @@ class ExportController {
 
 	protected function exportRaidLogs(): array {
 		/** @var RaidLog[] */
-		$data = $this->db->fetchAll(RaidLog::class, "SELECT * FROM `raid_log_<myname>` ORDER BY `raid_id` ASC");
+		$data = $this->db->table(RaidController::DB_TABLE_LOG)
+			->orderBy("raid_id")
+			->asObj(RaidLog::class)
+			->toArray();
 		$raids = [];
 		foreach ($data as $raid) {
 			$raids[$raid->raid_id] ??= (object)[
@@ -386,20 +438,28 @@ class ExportController {
 			];
 		}
 		/** @var RaidMember[] */
-		$data = $this->db->fetchAll(RaidMember::class, "SELECT * FROM `raid_member_<myname>`");
+		$data = $this->db->table(RaidMemberController::DB_TABLE)
+			->asObj(RaidMember::class)
+			->toArray();
 		foreach ($data as $raidMember) {
-			$raids[$raidMember->raid_id]->raiders []= (object)[
+			$raider = (object)[
 				"character" => $this->toChar($raidMember->player),
 				"joinTime" => $raidMember->joined,
-				"leaveTime" => $raidMember->left,
 			];
+			if (isset($raidMember->left)) {
+				$raider->leaveTime = $raidMember->left;
+			}
+			$raids[$raidMember->raid_id]->raiders []= $raider;
 		}
 		return array_values($raids);
 	}
 
 	protected function exportRaidPoints(): array {
 		/** @var RaidPoints[] */
-		$data = $this->db->fetchAll(RaidPoints::class, "SELECT * FROM `raid_points_<myname>` ORDER BY `username` ASC");
+		$data = $this->db->table(RaidPointsController::DB_TABLE)
+			->orderBy("username")
+			->asObj(RaidPoints::class)
+			->toArray();
 		$result = [];
 		foreach ($data as $datum) {
 			$result []= (object)[
@@ -412,7 +472,11 @@ class ExportController {
 
 	protected function exportRaidPointsLog(): array {
 		/** @var RaidPointsLog[] */
-		$data = $this->db->fetchAll(RaidPointsLog::class, "SELECT * FROM `raid_points_log_<myname>` ORDER BY `time` ASC, `username` ASC");
+		$data = $this->db->table(RaidPointsController::DB_TABLE_LOG)
+			->orderBy("time")
+			->orderBy("username")
+			->asObj(RaidPointsLog::class)
+			->toArray();
 		$result = [];
 		foreach ($data as $datum) {
 			$raidLog = (object)[
@@ -433,13 +497,7 @@ class ExportController {
 	}
 
 	protected function exportTimers(): array {
-		/** @var Timer[] */
-		$timers = $this->db->query(
-			"SELECT * FROM `timers_<myname>` ".
-			"WHERE `callback` LIKE 'timercontroller.%' ".
-			"ORDER BY `settime` ASC"
-		);
-		$result = [];
+		$timers = $this->timerController->getAllTimers();
 		foreach ($timers as $timer) {
 			$data = (object)[
 				"startTime" => $timer->settime,
@@ -452,8 +510,7 @@ class ExportController {
 			if (!empty($timer->data)) {
 				$data->repeatInterval = (int)$timer->data;
 			}
-			$alerts = json_decode($timer->alerts);
-			foreach ($alerts as $alert) {
+			foreach ($timer->alerts as $alert) {
 				$data->alerts []= (object)[
 					"time" => $alert->time,
 					"message" => $alert->message,
@@ -466,10 +523,10 @@ class ExportController {
 
 	protected function exportTrackedCharacters(): array {
 		/** @var TrackedUser[] */
-		$users = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM `tracked_users_<myname>` ORDER BY `added_dt` ASC"
-		);
+		$users = $this->db->table(TrackerController::DB_TABLE)
+			->orderBy("added_dt")
+			->asObj(TrackedUser::class)
+			->toArray();
 		$result = [];
 		foreach ($users as $user) {
 			$result[$user->uid] = (object)[
@@ -480,11 +537,14 @@ class ExportController {
 			];
 		}
 		/** @var Tracking[] */
-		$events = $this->db->fetchAll(
-			Tracking::class,
-			"SELECT * FROM `tracking_<myname>` ORDER BY `dt` ASC"
-		);
+		$events = $this->db->table(TrackerController::DB_TRACKING)
+			->orderBy("dt")
+			->asObj(Tracking::class)
+			->toArray();
 		foreach ($events as $event) {
+			if (!isset($result[$event->uid])) {
+				continue;
+			}
 			$result[$event->uid]->events []= (object)[
 				"time" => $event->dt,
 				"event" => $event->event,
@@ -494,9 +554,11 @@ class ExportController {
 	}
 
 	protected function exportAuctions(): array {
-		$auctions = $this->db->query(
-			"SELECT * FROM `auction_<myname>` ORDER BY `id` ASC"
-		);
+		/** @var DBAuction[] */
+		$auctions = $this->db->table(AuctionController::DB_TABLE)
+			->orderBy("id")
+			->asObj(DBAuction::class)
+			->toArray();
 		$result = [];
 		foreach ($auctions as $auction) {
 			$auctionObj = (object)[
@@ -521,7 +583,9 @@ class ExportController {
 
 	protected function exportNews(): array {
 		/** @var News[] */
-		$news = $this->db->fetchAll(News::class, "SELECT * FROM `news`");
+		$news = $this->db->table("news")
+			->asObj(News::class)
+			->toArray();
 		$result = [];
 		foreach ($news as $topic) {
 			$data = (object)[
@@ -532,7 +596,10 @@ class ExportController {
 				"deleted" => $topic->deleted,
 				"confirmedBy" => [],
 			];
-			$confirmations = $this->db->query("SELECT * FROM `news_confirmed` WHERE `id`=?", $topic->id);
+			$confirmations = $this->db->table("news_confirmed")
+				->where("id", $topic->id)
+				->asObj()
+				->toArray();
 			foreach ($confirmations as $confirmation) {
 				$data->confirmedBy []= (object)[
 					"character" => $this->toChar($confirmation->player),
@@ -546,7 +613,9 @@ class ExportController {
 
 	protected function exportNotes(): array {
 		/** @var Note[] */
-		$notes = $this->db->fetchAll(Note::class, "SELECT * FROM `notes`");
+		$notes = $this->db->table("notes")
+			->asObj(Note::class)
+			->toArray();
 		$result = [];
 		foreach ($notes as $note) {
 			$data = (object)[
@@ -567,7 +636,9 @@ class ExportController {
 
 	protected function exportLinks(): array {
 		/** @var Link[] */
-		$links = $this->db->fetchAll(Link::class, "SELECT * FROM `links`");
+		$links = $this->db->table("links")
+			->asObj(Link::class)
+			->toArray();
 		$result = [];
 		foreach ($links as $link) {
 			$data = (object)[
@@ -583,7 +654,9 @@ class ExportController {
 
 	protected function exportCommentCategories(): array {
 		/** @var CommentCategory[] */
-		$categories = $this->db->fetchAll(CommentCategory::class, "SELECT * FROM `<table:comment_categories>`");
+		$categories = $this->db->table("<table:comment_categories>")
+			->asObj(CommentCategory::class)
+			->toArray();
 		$result = [];
 		foreach ($categories as $category) {
 			$data = (object)[
@@ -601,7 +674,9 @@ class ExportController {
 
 	protected function exportComments(): array {
 		/** @var Comment[] */
-		$comments = $this->db->fetchAll(Comment::class, "SELECT * FROM `<table:comments>`");
+		$comments = $this->db->table("<table:comments>")
+			->asObj(Comment::class)
+			->toArray();
 		$result = [];
 		foreach ($comments as $comment) {
 			$data = (object)[

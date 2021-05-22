@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
@@ -103,6 +105,8 @@ use Nadybot\Modules\{
  */
 class PrivateChannelController {
 
+	public const DB_TABLE = "members_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -159,7 +163,7 @@ class PrivateChannelController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "private_chat");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -284,12 +288,11 @@ class PrivateChannelController {
 	 * @Matches("/^members$/i")
 	 */
 	public function membersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var Member[] */
-		$members = $this->db->fetchAll(
-			Member::class,
-			"SELECT * FROM `members_<myname>` ORDER BY `name`"
-		);
-		$count = count($members);
+		/** @var Collection<Member> */
+		$members = $this->db->table(self::DB_TABLE)
+			->orderBy("name")
+			->asObj(Member::class);
+		$count = $members->count();
 		if ($count === 0) {
 			$sendto->reply("This bot has no members.");
 			return;
@@ -366,7 +369,8 @@ class PrivateChannelController {
 
 	/**
 	 * @HandlesCommand("kick")
-	 * @Matches("/^kick (.+)$/i")
+	 * @Matches("/^kick ([^ ]+)$/i")
+	 * @Matches("/^kick ([^ ]+) (?<reason>.+)$/i")
 	 */
 	public function kickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
@@ -377,13 +381,21 @@ class PrivateChannelController {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
 			if ($this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
-				$msg = "<highlight>$name<end> has been kicked from the private channel.";
+				$msg = "<highlight>$name<end> has been kicked from the private channel";
+				if (isset($args["reason"])) {
+					$msg .= ": <highlight>{$args['reason']}<end>";
+				} else {
+					$msg .= ".";
+				}
+				$this->chatBot->sendPrivate($msg);
 				$this->chatBot->privategroup_kick($name);
 			} else {
 				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
 			}
 		}
-		$sendto->reply($msg);
+		if ($channel !== "priv") {
+			$sendto->reply($msg);
+		}
 	}
 
 	/**
@@ -398,14 +410,12 @@ class PrivateChannelController {
 			$onOrOff = 0;
 		}
 
-		/** @var ?Member */
-		$data = $this->db->fetch(
-			Member::class,
-			"SELECT * FROM `members_<myname>` WHERE `name` = ?",
-			$sender
-		);
-		if ($data === null) {
-			$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $sender, $onOrOff);
+		if (!$this->db->table(self::DB_TABLE)->where("name", $sender)->exists()) {
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"name" => $sender,
+					"autoinv" => $onOrOff,
+				]);
 			$msg = "You have been added as a member of this bot. ".
 				"Use <highlight><symbol>autoinvite<end> to control ".
 				"your auto invite preference.";
@@ -414,7 +424,9 @@ class PrivateChannelController {
 			$event->sender = $sender;
 			$this->eventManager->fireEvent($event);
 		} else {
-			$this->db->exec("UPDATE members_<myname> SET autoinv = ? WHERE name = ?", $onOrOff, $sender);
+			$this->db->table(self::DB_TABLE)
+				->where("name", $sender)
+				->update(["autoinv" => $onOrOff]);
 			$msg = "Your auto invite preference has been updated.";
 		}
 
@@ -434,7 +446,13 @@ class PrivateChannelController {
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$data = $this->db->query("SELECT * FROM `online` o LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') WHERE `added_by` = '<myname>' AND `channel_type` = 'priv'");
+		$data = $this->db->table("online AS o")
+			->leftJoin("players AS p", function (JoinClause $join) {
+				$join->on("o.name", "p.name")
+					->where("p.dimension", $this->db->getDim());
+			})->where("added_by", $this->db->getBotname())
+			->where("channel_type", "priv")
+			->asObj()->toArray();
 		$numonline = count($data);
 		foreach ($data as $row) {
 			if ($row->level > 1 && $row->level <= 14) {
@@ -484,13 +502,15 @@ class PrivateChannelController {
 		$online["Trader"] = 0;
 		$online["Shade"] = 0;
 
-		$data = $this->db->query(
-			"SELECT count(*) AS count, `profession` ".
-			"FROM `online` o ".
-			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
-			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
-			"GROUP BY `profession`"
-		);
+		$query = $this->db->table("online AS o")
+			->leftJoin("players AS p", function (JoinClause $join) {
+				$join->on("o.name", "p.name")
+					->where("p.dimension", $this->db->getDim());
+			})->where("added_by", $this->db->getBotname())
+			->where("channel_type", "priv")
+			->groupBy("profession");
+		$query->select($query->rawFunc("COUNT", "*", "count"), "profession");
+		$data = $query->asObj()->toArray();
 		$numonline = count($data);
 		$msg = "<highlight>$numonline<end> in total: ";
 
@@ -521,23 +541,28 @@ class PrivateChannelController {
 	 * @Matches("/^count orgs?$/i")
 	 */
 	public function countOrganizationCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT COUNT(*) AS num_online FROM `online` WHERE `added_by` = '<myname>' AND channel_type = 'priv'";
-		$data = $this->db->queryRow($sql);
-		$numOnline = $data->num_online;
+		$numOnline = $this->db->table("online")
+			->where("added_by", $this->db->getBotname())
+			->where("channel_type", "priv")->count();
 
 		if ($numOnline === 0) {
 			$msg = "No characters in channel.";
 			$sendto->reply($msg);
 			return;
 		}
-		$sql = "SELECT `guild`, count(*) AS cnt, AVG(`level`) AS avg_level ".
-			"FROM `online` o ".
-			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
-			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' ".
-			"GROUP BY `guild` ".
-			"ORDER BY `cnt` DESC, `avg_level` DESC";
-		$data = $this->db->query($sql);
-		$numOrgs = count($data);
+		$query = $this->db->table("online AS o")
+			->leftJoin("players AS p", function (JoinClause $join) {
+				$join->on("o.name", 'p.name')
+					->where("p.dimension", $this->db->getDim());
+			})->where("added_by", $this->db->getBotname())
+			->where("channel_type", "priv")
+			->groupBy("guild");
+		$query->orderByRaw($query->rawFunc('COUNT', '*') . ' desc')
+			->orderByRaw($query->colFunc('AVG', 'level') . ' desc')
+			->select("guild", $query->rawFunc("COUNT", "*", "cnt"))
+			->addSelect($query->colFunc("AVG", "level", "avg_level"));
+		$data = $query->asObj();
+		$numOrgs = $data->count();
 
 		$blob = '';
 		foreach ($data as $row) {
@@ -546,7 +571,7 @@ class PrivateChannelController {
 				$guild = $row->guild;
 			}
 			$percent = $this->text->alignNumber(
-				(int)round($row->cnt / $numOnline, 2) * 100,
+				(int)round($row->cnt * 100 / $numOnline, 0),
 				3
 			);
 			$avg_level = round($row->avg_level, 1);
@@ -568,14 +593,15 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		$data = $this->db->query(
-			"SELECT * FROM `online` o ".
-			"LEFT JOIN `players` p ON (o.`name` = p.`name` AND p.`dimension` = '<dim>') ".
-			"WHERE `added_by` = '<myname>' AND `channel_type` = 'priv' AND `profession` = ? ".
-			"ORDER BY `level`",
-			$prof
-		);
-		$numonline = count($data);
+		$data = $this->db->table("online AS o")
+			->leftJoin("players AS p", function (JoinClause $join) {
+				$join->on("o.name", 'p.name')
+					->where("p.dimension", $this->db->getDim());
+			})->where("added_by", $this->db->getBotname())
+			->where("channel_type", "priv")
+			->where("profession", $prof)
+			->asObj();
+		$numonline = $data->count();
 		if ($numonline === 0) {
 			$msg = "<highlight>$numonline<end> {$prof}s.";
 			$sendto->reply($msg);
@@ -626,13 +652,15 @@ class PrivateChannelController {
 		if (!$this->settingManager->getBool('add_member_on_join')) {
 			return;
 		}
-		/** @var ?Member */
-		$row = $this->db->fetch(Member::class, "SELECT * FROM `members_<myname>` WHERE `name` = ?", $sender);
-		if ($row !== null) {
+		if ($this->db->table(self::DB_TABLE)->where("name", $sender)->exists()) {
 			return;
 		}
 		$autoInvite = $this->settingManager->getBool('autoinvite_default');
-		$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $sender, $autoInvite);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"name" => $sender,
+				"autoinv" => $autoInvite,
+			]);
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
@@ -656,12 +684,11 @@ class PrivateChannelController {
 	 * @Description("Adds all members as buddies")
 	 */
 	public function connectEvent(Event $eventObj): void {
-		$sql = "SELECT * FROM members_<myname>";
-		/** @var Member[] */
-		$members = $this->db->fetchAll(Member::class, $sql);
-		foreach ($members as $member) {
-			$this->buddylistManager->add($member->name, 'member');
-		}
+		$this->db->table(self::DB_TABLE)
+			->asObj(Member::class)
+			->each(function (Member $member) {
+				$this->buddylistManager->add($member->name, 'member');
+			});
 	}
 
 	/**
@@ -760,12 +787,11 @@ class PrivateChannelController {
 	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		/** @var Member[] */
-		$data = $this->db->fetchAll(
-			Member::class,
-			"SELECT * FROM `members_<myname>` WHERE `name` = ? AND `autoinv` = ?",
-			$sender,
-			1
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $sender)
+			->where("autoinv", 1)
+			->asObj(Member::class)
+			->toArray();
 		if (!count($data)) {
 			return;
 		}
@@ -998,11 +1024,14 @@ class PrivateChannelController {
 		}
 		// always add in case they were removed from the buddy list for some reason
 		$this->buddylistManager->add($name, 'member');
-		$data = $this->db->query("SELECT * FROM `members_<myname>` WHERE `name` = ?", $name);
-		if (count($data) !== 0) {
+		if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
 			return "<highlight>$name<end> is already a member of this bot.";
 		}
-		$this->db->exec("INSERT INTO `members_<myname>` (`name`, `autoinv`) VALUES (?, ?)", $name, $autoInvite);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"name" => $name,
+				"autoinv" => $autoInvite,
+			]);
 		$event = new MemberEvent();
 		$event->type = "member(add)";
 		$event->sender = $name;
@@ -1013,7 +1042,7 @@ class PrivateChannelController {
 	public function removeUser(string $name): string {
 		$name = ucfirst(strtolower($name));
 
-		if (!$this->db->exec("DELETE FROM `members_<myname>` WHERE `name` = ?", $name)) {
+		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
 			return "<highlight>$name<end> is not a member of this bot.";
 		}
 		$this->buddylistManager->remove($name, 'member');

@@ -38,6 +38,7 @@ RUN apk --no-cache add composer && \
     cd /nadybot && \
     composer install --no-dev --no-suggest && \
     rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
+    rm -f "$(composer config vendor-dir)/niktux/addendum/composer.phar" && \
     composer dumpautoload --no-dev --optimize && \
     composer clear-cache && \
     chown -R nadybot:nadybot vendor && \

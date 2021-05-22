@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
+	DBRow,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -75,9 +77,13 @@ class AlienMiscController {
 	 */
 	public function setup() {
 		// load database tables from .sql-files
-		$this->db->loadSQLFile($this->moduleName, 'leprocs');
-		$this->db->loadSQLFile($this->moduleName, 'ofabarmor');
-		$this->db->loadSQLFile($this->moduleName, 'ofabweapons');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Misc');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/leprocs.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmor.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmortype.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmorcost.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabweapons.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabweaponscost.csv');
 	}
 
 	/**
@@ -87,13 +93,19 @@ class AlienMiscController {
 	 * @Matches("/^leprocs$/i")
 	 */
 	public function leprocsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$data = $this->db->query("SELECT DISTINCT profession FROM leprocs ORDER BY profession ASC");
-
 		$blob = "<header2>Choose a profession<end>\n";
-		foreach ($data as $row) {
-			$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
-			$blob .= "<tab>$professionLink\n";
-		}
+		$blob = $this->db->table("leprocs")
+			->orderBy("profession")
+			->select("profession")
+			->distinct()
+			->asObj()
+			->reduce(
+				function (string $blob, DBRow $row) {
+					$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
+					return "{$blob}<tab>$professionLink\n";
+				},
+				$blob
+			);
 
 		$msg = $this->text->makeBlob("LE Procs (Choose profession)", $blob);
 		$sendto->reply($msg);
@@ -113,29 +125,35 @@ class AlienMiscController {
 			return;
 		}
 
-		/** @var LEProc[] */
-		$data = $this->db->fetchAll(LEProc::class, "SELECT * FROM leprocs WHERE profession LIKE ? ORDER BY proc_type ASC, research_lvl DESC", $profession);
-		if (count($data) === 0) {
+		/** @var Collection<LEProc> */
+		$data = $this->db->table("leprocs")
+			->whereIlike("profession", $profession)
+			->orderBy("proc_type")
+			->orderByDesc("research_lvl")
+			->asObj(LEProc::class);
+		if ($data->count() === 0) {
 			$msg = "No procs found for profession <highlight>$profession<end>.";
-		} else {
-			$blob = '';
-			$type = '';
-			foreach ($data as $row) {
-				if ($type !== $row->proc_type) {
-					$type = $row->proc_type;
-					$blob .= "\n<img src=rdb://" . ($type === 'Type 1' ? 84789 : 84310) . "><header2>$type<end>\n";
-				}
-
-				$proc_trigger = "<green>$row->proc_trigger<end>";
-				$blob .= "<tab>".
-					$this->text->alignNumber($row->research_lvl, 2).
-					" - $row->name <orange>$row->modifiers<end> $row->duration $proc_trigger\n";
-			}
-			$blob .= "\n\n<i>Offensive procs have a 5% chance of firing every time you attack".
-				"\nDefensive procs have a 10% chance of firing every time something attacks you.</i>";
-
-			$msg = $this->text->makeBlob("$profession LE Procs", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$blob = '';
+		$type = '';
+		foreach ($data as $row) {
+			if ($type !== $row->proc_type) {
+				$type = $row->proc_type;
+				$blob .= "\n<img src=rdb://" . ($type === 'Type 1' ? 84789 : 84310) . "><header2>$type<end>\n";
+			}
+
+			$proc_trigger = "<green>$row->proc_trigger<end>";
+			$blob .= "<tab>".
+				$this->text->alignNumber($row->research_lvl, 2).
+				" - $row->name <orange>$row->modifiers<end> $row->duration $proc_trigger\n";
+		}
+		$blob .= "\n".
+			"\n<i>Offensive procs have a 5% chance of firing every time you attack</i>".
+			"\n<i>Defensive procs have a 10% chance of firing every time something attacks you.</i>";
+
+		$msg = $this->text->makeBlob("$profession LE Procs", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -147,19 +165,25 @@ class AlienMiscController {
 	 */
 	public function ofabarmorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var DBRow[] */
-		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabarmorcost ORDER BY ql ASC");
-		/** @var OfabArmorType[] */
-		$armorTypes = $this->db->fetchAll(OfabArmorType::class, "SELECT * FROM ofabarmortype ORDER BY profession ASC");
-
-		$blob = '';
-		foreach ($armorTypes as $row) {
-			$blob .= "<pagebreak>{$row->profession} - Type {$row->type}\n";
-			foreach ($qls as $row2) {
-				$ql_link = $this->text->makeChatcmd((string)$row2->ql, "/tell <myname> ofabarmor {$row->profession} {$row2->ql}");
-				$blob .= "[{$ql_link}] ";
-			}
-			$blob .= "\n\n";
-		}
+		$qls = $this->db->table("ofabarmorcost")
+			->orderBy("ql")
+			->select("ql")
+			->distinct()
+			->asObj()->pluck("ql")->toArray();
+		$blob = $this->db->table("ofabarmortype")
+			->orderBy("profession")
+			->asObj(OfabArmorType::class)
+			->reduce(
+				function (string $blob, OfabArmorType $row) use ($qls): string {
+					$blob .= "<pagebreak>{$row->profession} - Type {$row->type}\n";
+					foreach ($qls as $ql) {
+						$ql_link = $this->text->makeChatcmd((string)$ql, "/tell <myname> ofabarmor {$row->profession} {$ql}");
+						$blob .= "[{$ql_link}] ";
+					}
+					return $blob . "\n\n";
+				},
+				""
+			);
 
 		$msg = $this->text->makeBlob("Ofab Armor Bio-Material Types", $blob);
 		$sendto->reply($msg);
@@ -184,19 +208,19 @@ class AlienMiscController {
 			return;
 		}
 
-		/** @var OfabArmorType|null */
-		$typelist = $this->db->fetch(OfabArmorType::class, "SELECT * FROM ofabarmortype WHERE profession = ?", $profession);
-		$type = $typelist->type;
+		$type = $this->db->table("ofabarmortype")
+			->where("profession", $profession)
+			->asObj()
+			->first()->type;
 
-		$data = $this->db->query(
-			"SELECT * FROM ofabarmor o1 ".
-			"LEFT JOIN ofabarmorcost o2 ON o1.slot = o2.slot ".
-			"WHERE o1.profession = ? AND o2.ql = ? ".
-			"ORDER BY upgrade ASC, name ASC",
-			$profession,
-			$ql
-		);
-		if (count($data) === 0) {
+		$data = $this->db->table("ofabarmor AS o1")
+			->leftJoin("ofabarmorcost AS o2", "o1.slot", "o2.slot")
+			->where("o1.profession", $profession)
+			->where("o2.ql", $ql)
+			->orderBy("upgrade")
+			->orderBy("name")
+			->asObj();
+		if ($data->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession} in QL {$ql}.";
 			$sendto->reply($msg);
 			return;
@@ -207,8 +231,11 @@ class AlienMiscController {
 		$typeQl = round(.8 * $ql);
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
-		/** @var DBRow[] */
-		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabarmorcost ORDER BY ql ASC");
+		/** @var Collection<DBRow> */
+		$qls = $this->db->table("ofabarmorcost")
+			->orderBy("ql")
+			->select("ql")->distinct()
+			->asObj();
 		foreach ($qls as $row2) {
 			if ($row2->ql === $ql) {
 				$blob .= "<yellow>[<end>{$row2->ql}<yellow>]<end> ";
@@ -256,22 +283,27 @@ class AlienMiscController {
 	 */
 	public function ofabweaponsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var DBRow[] */
-		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabweaponscost ORDER BY ql ASC");
-		/** @var OfabWeapon[] */
-		$weapons = $this->db->fetchAll(
-			OfabWeapon::class,
-			"SELECT * FROM ofabweapons ORDER BY name ASC"
-		);
-
-		$blob = '';
-		foreach ($weapons as $weapon) {
-			$blob .= "<pagebreak>{$weapon->name} - Type {$weapon->type}\n";
-			foreach ($qls as $row2) {
-				$ql_link = $this->text->makeChatcmd((string)$row2->ql, "/tell <myname> ofabweapons {$weapon->name} {$row2->ql}");
-				$blob .= "[{$ql_link}] ";
-			}
-			$blob .= "\n\n";
-		}
+		$qls = $this->db->table("ofabweaponscost")
+			->orderBy("ql")
+			->select("ql")->distinct()
+			->asObj()->pluck("ql");
+		$blob = $this->db->table("ofabweapons")
+			->orderBy("name")
+			->asObj(OfabWeapon::class)
+			->reduce(
+				function (string $blob, OfabWeapon $weapon) use ($qls): string {
+					$blob .= "<pagebreak>{$weapon->name} - Type {$weapon->type}\n";
+					foreach ($qls as $ql) {
+						$ql_link = $this->text->makeChatcmd(
+							(string)$ql,
+							"/tell <myname> ofabweapons {$weapon->name} {$ql}"
+						);
+						$blob .= "[{$ql_link}] ";
+					}
+					return"{$blob}\n\n";
+				},
+				""
+			);
 
 		$msg = $this->text->makeBlob("Ofab Weapons", $blob);
 		$sendto->reply($msg);
@@ -286,47 +318,53 @@ class AlienMiscController {
 	 */
 	public function ofabweaponsInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$weapon = ucfirst($args[1]);
-		$ql = isset($args[2])? intval($args[2]): 300;
+		$searchQL = isset($args[2])? intval($args[2]): 300;
 
 		/** @var DBRow|null */
-		$row = $this->db->queryRow(
-			"SELECT `type`, `vp` FROM ofabweapons w, ofabweaponscost c ".
-			"WHERE w.name = ? AND c.ql = ?",
-			$weapon,
-			$ql
-		);
+		$row = $this->db->table("ofabweapons AS w")
+			->crossJoin("ofabweaponscost AS c")
+			->where("w.name", $weapon)
+			->where("c.ql", $searchQL)
+			->asObj()->first();
 		if ($row === null) {
-			$msg = "Could not find any OFAB weapon <highlight>$weapon<end> in QL <highlight>{$ql}<end>.";
+			$msg = "Could not find any OFAB weapon <highlight>$weapon<end> in QL <highlight>{$searchQL}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
 
 		$blob = '';
-		$typeQl = round(.8 * $ql);
+		$typeQl = round(.8 * $searchQL);
 		$typeLink = $this->text->makeChatcmd("Kyr'Ozch Bio-Material - Type {$row->type}", "/tell <myname> bioinfo {$row->type} {$typeQl}");
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
-		/** @var DBRow[] */
-		$qls = $this->db->query("SELECT DISTINCT ql FROM ofabweaponscost ORDER BY ql ASC");
-		foreach ($qls as $row2) {
-			if ($row2->ql == $ql) {
-				$blob .= "<yellow>[<end>{$row2->ql}<yellow>]<end> ";
-			} else {
-				$ql_link = $this->text->makeChatcmd((string)$row2->ql, "/tell <myname> ofabweapons {$weapon} {$row2->ql}");
-				$blob .= "[{$ql_link}] ";
-			}
-		}
+		$blob = $this->db->table("ofabweaponscost")
+			->orderBy("ql")
+			->select("ql")->distinct()
+			->asObj()->pluck("ql")
+			->reduce(
+				function(string $blob, int $ql) use ($searchQL, $weapon): string {
+					if ($ql === $searchQL) {
+						return "{$blob}<yellow>[<end>{$ql}<yellow>]<end> ";
+					}
+					$ql_link = $this->text->makeChatcmd(
+						(string)$ql,
+						"/tell <myname> ofabweapons {$weapon} {$ql}"
+					);
+					return "{$blob}[{$ql_link}] ";
+				},
+				$blob
+			);
 		$blob .= "\n\n<header2>Upgrades<end>\n";
 
 		for ($i = 1; $i <= 6; $i++) {
-			$blob .= "<tab>" . $this->itemsController->getItem("Ofab {$weapon} Mk {$i}", $ql);
+			$blob .= "<tab>" . $this->itemsController->getItem("Ofab {$weapon} Mk {$i}", $searchQL);
 			if ($i === 1) {
 				$blob .= "  (<highlight>{$row->vp}<end> VP)";
 			}
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob("Ofab $weapon (QL $ql)", $blob);
+		$msg = $this->text->makeBlob("Ofab $weapon (QL $searchQL)", $blob);
 		$sendto->reply($msg);
 	}
 

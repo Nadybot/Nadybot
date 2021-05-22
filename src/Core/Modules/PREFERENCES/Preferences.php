@@ -14,6 +14,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
  * @Instance
  */
 class Preferences {
+	public const DB_TABLE = "preferences_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -27,25 +29,29 @@ class Preferences {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'preferences');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	public function save(string $sender, string $name, string $value): void {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);
 
-		if ($this->get($sender, $name) === null) {
-			$this->db->exec("INSERT INTO preferences_<myname> (sender, name, value) VALUES (?, ?, ?)", $sender, $name, $value);
-		} else {
-			$this->db->exec("UPDATE preferences_<myname> SET value = ? WHERE sender = ? AND name = ?", $value, $sender, $name);
-		}
+		$this->db->table(self::DB_TABLE)
+			->updateOrInsert(
+				["sender" => $sender, "name" => $name],
+				["sender" => $sender, "name" => $name, "value" => $value],
+			);
 	}
 
 	public function get(string $sender, string $name): ?string {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);
-
-		$row = $this->db->queryRow("SELECT * FROM preferences_<myname> WHERE sender = ? AND name = ?", $sender, $name);
+		$row = $this->db->table(self::DB_TABLE)
+			->where("sender", $sender)
+			->where("name", $name)
+			->select("value")
+			->asObj()
+			->first();
 		if ($row === null) {
 			return null;
 		}
@@ -55,9 +61,10 @@ class Preferences {
 	public function delete(string $sender, string $name): bool {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);
-
-		$deleted = $this->db->exec("DELETE FROM preferences_<myname> WHERE sender = ? AND name = ?", $sender, $name);
-		return $deleted !== 0;
+		return $this->db->table(self::DB_TABLE)
+			->where("sender", $sender)
+			->where("name", $name)
+			->delete() !== 0;
 	}
 
 	/**

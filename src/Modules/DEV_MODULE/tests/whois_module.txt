@@ -18,4 +18,7 @@
 !lookup 893395803
 !lookup 11
 
+!findplayer Nadyita
+!findplayer Nadyitaerror
+
 /text End WHOIS_MODULE

@@ -6,11 +6,13 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CommandReply,
 	DB,
+	DBRow,
 	DBSchema\Alt,
 	Event,
 	EventManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	QueryBuilder,
 	SettingManager,
 	SQLException,
 	Text,
@@ -84,8 +86,7 @@ class AltsController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, 'alts');
-		$this->upgradeDBSchema();
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -133,46 +134,21 @@ class AltsController {
 		);
 	}
 
-	protected function upgradeDBSchema(): void {
-		if (!$this->db->columnExists("alts", "validated")) {
-			return;
-		}
-		if ($this->db->getType() === $this->db::MYSQL) {
-			$this->db->exec("ALTER TABLE `alts` CHANGE `validated` `validated_by_alt` BOOLEAN DEFAULT FALSE");
-			$this->db->exec("ALTER TABLE `alts` ADD COLUMN `validated_by_main` BOOLEAN DEFAULT FALSE");
-			$this->db->exec("ALTER TABLE `alts` ADD COLUMN `added_via` VARCHAR(15)");
-			$this->db->exec("UPDATE `alts` SET `validated_by_main`=true, added_via='<Myname>'");
-		} else {
-			$this->db->exec("ALTER TABLE `alts` RENAME TO `temp.alts_<myname>`");
-			$this->db->exec(file_get_contents(__DIR__ . '/alts.sql'));
-			$this->db->exec(
-				"INSERT INTO `alts` ".
-				"(`alt`, `main`, `validated_by_alt`, `validated_by_main`, `added_via`) ".
-				"SELECT `alt`, `main`, `validated`=1, true, '<Myname>' FROM `temp.alts_<myname>`"
-			);
-			$this->db->exec("DROP TABLE `temp.alts_<myname>`");
-		}
-	}
-
 	/**
 	 * @Event("connect")
 	 * @Description("Add unvalidated alts/mains to friendlist")
 	 */
 	public function addNonValidatedAsBuddies(): void {
-		$alts = $this->db->query(
-			"SELECT `alt` FROM `alts` ".
-			"WHERE `validated_by_alt` IS FALSE AND `added_via`='<Myname>'"
-		);
-		foreach ($alts as $alt) {
-			$this->buddylistManager->add($alt->alt, static::ALT_VALIDATE);
-		}
-		$mains = $this->db->query(
-			"SELECT DISTINCT(`main`) FROM `alts` ".
-			"WHERE `validated_by_main` IS FALSE AND `added_via`='<Myname>'"
-		);
-		foreach ($mains as $main) {
-			$this->buddylistManager->add($main->main, static::MAIN_VALIDATE);
-		}
+		$myName = ucfirst(strtolower($this->chatBot->vars["name"]));
+		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
+			->asObj(Alt::class)->each(function(Alt $alt) {
+				$this->buddylistManager->add($alt->alt, static::ALT_VALIDATE);
+			});
+		$this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
+			->select("main")->distinct()
+			->asObj()->each(function(DBRow $main) {
+				$this->buddylistManager->add($main->main, static::MAIN_VALIDATE);
+			});
 	}
 
 	/**
@@ -411,7 +387,7 @@ class AltsController {
 		$this->db->beginTransaction();
 		try {
 			// remove all the old alt information
-			$this->db->exec("DELETE FROM `alts` WHERE `main` = ?", $altInfo->main);
+			$this->db->table("alts")->where("main", $altInfo->main)->delete();
 
 			// add current main to new main as an alt
 			$this->addAlt($sender, $altInfo->main, true, true, false);
@@ -490,12 +466,10 @@ class AltsController {
 			return;
 		}
 
-		$this->db->exec(
-			"UPDATE `alts` SET `validated_by_main` = true ".
-			"WHERE `alt` = ? AND `main` = ?",
-			$toValidate,
-			$altInfo->main
-		);
+		$this->db->table("alts")
+			->where("alt", $toValidate)
+			->where("main", $altInfo->main)
+			->update(["validated_by_main" => true]);
 
 		$this->fireAltValidatedEvent($altInfo->main, $toValidate);
 
@@ -513,12 +487,10 @@ class AltsController {
 			return;
 		}
 
-		$this->db->exec(
-			"UPDATE `alts` SET `validated_by_alt` = true ".
-			"WHERE `alt` = ? AND `main` = ?",
-			$sender,
-			$altInfo->main
-		);
+		$this->db->table("alts")
+			->where("alt", $sender)
+			->where("main", $altInfo->main)
+			->update(["validated_by_alt" => true]);
 
 		$this->fireAltValidatedEvent($altInfo->main, $sender);
 
@@ -562,11 +534,10 @@ class AltsController {
 			$sendto->reply("<highlight>{$toDecline}<end> is already a validated alt of yours.");
 		}
 
-		$this->db->exec(
-			"DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?",
-			$toDecline,
-			$altInfo->main
-		);
+		$this->db->table("alts")
+			->where("alt", $toDecline)
+			->where("main", $altInfo->main)
+			->delete();
 
 		$this->fireAltDeclinedEvent($altInfo->main, $toDecline);
 
@@ -584,11 +555,10 @@ class AltsController {
 			return;
 		}
 
-		$this->db->exec(
-			"DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?",
-			$sender,
-			$altInfo->main,
-		);
+		$this->db->table("alts")
+			->where("alt", $sender)
+			->where("main", $altInfo->main)
+			->delete();
 
 		$this->fireAltDeclinedEvent($altInfo->main, $sender);
 
@@ -606,10 +576,8 @@ class AltsController {
 	}
 
 	protected function removeMainFromBuddyListIfPossible(string $main): void {
-		$hasUnvalidatedAlts = $this->db->queryRow(
-			"SELECT * FROM `alts` WHERE `main` = ? AND `validated_by_main` IS FALSE",
-			$main
-		);
+		$hasUnvalidatedAlts = $this->db->table("alts")
+			->where("main", $main)->where("validated_by_main", false)->exists();
 		if ($hasUnvalidatedAlts) {
 			return;
 		}
@@ -693,28 +661,28 @@ class AltsController {
 		$player = ucfirst(strtolower($player));
 
 		$ai = new AltInfo();
-
-		$validatedWhere = "AND `validated_by_main` IS TRUE AND `validated_by_alt` IS TRUE";
-		if ($includePending) {
-			$validatedWhere = "";
-		}
-		$sql = "SELECT * FROM `alts` ".
-			"WHERE (".
-				"(`main` = ?) ".
-				"OR ".
-				"(`main` = (SELECT `main` FROM `alts` WHERE `alt` = ? $validatedWhere))".
-			") $validatedWhere";
-		/** @var Alt[] */
-		$data = $this->db->fetchAll(Alt::class, $sql, $player, $player);
-
 		$ai->main = $player;
-		foreach ($data as $row) {
+		$query = $this->db->table("alts")
+			->where(function(QueryBuilder $query) use ($includePending, $player) {
+				$query->where("main", $player)
+					->orWhere("main", function(QueryBuilder $subQuery) use ($player, $includePending) {
+						$subQuery->from("alts")->where("alt", $player)->select("main");
+						if (!$includePending) {
+							$subQuery->where("validated_by_main", true)
+								->where("validated_by_alt", true);
+						}
+					});
+			});
+		if (!$includePending) {
+			$query->where("validated_by_main", true)->where("validated_by_alt", true);
+		}
+		$query->asObj(Alt::class)->each(function(Alt $row) use ($ai) {
 			$ai->main = $row->main;
 			$ai->alts[$row->alt] = new AltValidationStatus();
 			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt;
 			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main;
 			$ai->alts[$row->alt]->added_via = $row->added_via;
-		}
+		});
 
 		return $ai;
 	}
@@ -726,9 +694,15 @@ class AltsController {
 		$main = ucfirst(strtolower($main));
 		$alt = ucfirst(strtolower($alt));
 
-		$sql = "INSERT INTO `alts` (`alt`, `main`, `validated_by_main`, `validated_by_alt`, `added_via`) VALUES (?, ?, ?, ?, '<Myname>')";
-		$added = $this->db->exec($sql, $alt, $main, $validatedByMain, $validatedByAlt);
-		if ($added > 0 && $sendEvent) {
+		$added = $this->db->table("alts")
+			->insert([
+				"alt" => $alt,
+				"main" => $main,
+				"validated_by_main" => $validatedByMain,
+				"validated_by_alt" => $validatedByAlt,
+				"added_via" => $this->db->getMyname(),
+			]);
+		if ($added && $sendEvent) {
 			$event = new AltEvent();
 			$event->main = $main;
 			$event->alt = $alt;
@@ -736,15 +710,17 @@ class AltsController {
 			$event->type = 'alt(add)';
 			$this->eventManager->fireEvent($event);
 		}
-		return $added;
+		return $added ? 1 : 0;
 	}
 
 	/**
 	 * This method removes given a $alt from being $main's alt character.
 	 */
 	public function remAlt(string $main, string $alt): int {
-		$sql = "DELETE FROM `alts` WHERE `alt` = ? AND `main` = ?";
-		$deleted = $this->db->exec($sql, $alt, $main);
+		$deleted = $this->db->table("alts")
+			->where("alt", $alt)
+			->where("main", $main)
+			->delete();
 		if ($deleted > 0) {
 			$event = new AltEvent();
 			$event->main = $main;

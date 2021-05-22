@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
@@ -45,7 +46,7 @@ class LinksController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "links");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Links");
 		$this->settingManager->add(
 			$this->moduleName,
 			'showfullurls',
@@ -63,10 +64,11 @@ class LinksController {
 	 * @Matches("/^links$/i")
 	 */
 	public function linksListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT * FROM links ORDER BY name ASC";
-		/** @var Link[] */
-		$links = $this->db->fetchAll(Link::class, $sql);
-		if (count($links) === 0) {
+		/** @var Collection<Link> */
+		$links = $this->db->table("links")
+			->orderBy("name")
+			->asObj(Link::class);
+		if ($links->count() === 0) {
 			$msg = "No links found.";
 			$sendto->reply($msg);
 			return;
@@ -100,14 +102,13 @@ class LinksController {
 			return;
 		}
 
-		$this->db->exec(
-			"INSERT INTO links (`name`, `website`, `comments`, `dt`) ".
-			"VALUES (?, ?, ?, ?)",
-			$sender,
-			$website,
-			$comments,
-			time()
-		);
+		$this->db->table("links")
+			->insert([
+				"name" => $sender,
+				"website" => $website,
+				"comments" => $comments,
+				"dt" => time(),
+			]);
 		$msg = "Link added successfully.";
 		$sendto->reply($msg);
 	}
@@ -120,11 +121,14 @@ class LinksController {
 		$id = (int)$args[1];
 
 		/** @var ?Link */
-		$obj = $this->db->fetch(Link::class, "SELECT * FROM links WHERE id = ?", $id);
+		$obj = $this->db->table("links")
+			->where("id", $id)
+			->asObj(Link::class)
+			->first();
 		if ($obj === null) {
 			$msg = "Link with ID <highlight>$id<end> could not be found.";
 		} elseif ($obj->name == $sender || $this->accessManager->compareCharacterAccessLevels($sender, $obj->name) > 0) {
-			$this->db->exec("DELETE FROM links WHERE id = ?", $id);
+			$this->db->table("links")->delete($id);
 			$msg = "Link with ID <highlight>$id<end> deleted successfully.";
 		} else {
 			$msg = "You do not have permission to delete links added by <highlight>{$obj->name}<end>";

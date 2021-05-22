@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -55,7 +56,7 @@ class BankController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, 'bank');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -81,11 +82,13 @@ class BankController {
 	 * @Matches("/^bank browse$/i")
 	 */
 	public function bankBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var DBRow[] */
-		$data = $this->db->query("SELECT DISTINCT player FROM bank ORDER BY player ASC");
+		$characters = $this->db->table("bank")
+			->orderBy("player")
+			->select("player")->distinct()
+			->asObj()->pluck("player");
 		$blob = "<header2>Available characters<end>\n";
-		foreach ($data as $row) {
-			$characterLink = $this->text->makeChatcmd($row->player, "/tell <myname> bank browse {$row->player}");
+		foreach ($characters as $character) {
+			$characterLink = $this->text->makeChatcmd($character, "/tell <myname> bank browse {$character}");
 			$blob .= "<tab>$characterLink\n";
 		}
 
@@ -100,13 +103,12 @@ class BankController {
 	public function bankBrowsePlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 
-		$data = $this->db->query(
-			"SELECT DISTINCT container_id, container, player FROM bank ".
-			"WHERE player = ? ".
-			"ORDER BY container ASC",
-			$name
-		);
-		if (count($data) === 0) {
+		$data = $this->db->table("bank")
+			->where("player", $name)
+			->orderBy("container")
+			->select("container_id", "container", "player")
+			->asObj();
+		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$sendto->reply($msg);
 			return;
@@ -130,13 +132,15 @@ class BankController {
 		$containerId = $args[2];
 		$limit = $this->settingManager->getInt('max_bank_items');
 
-		$sql = "SELECT * FROM bank ".
-			"WHERE player = ? AND container_id = ? ".
-			"ORDER BY name ASC, ql ASC LIMIT ?";
-		/** @var Bank[] */
-		$data = $this->db->fetchAll(Bank::class, $sql, $name, $containerId, $limit);
+		$data = $this->db->table("bank")
+			->where("player", $name)
+			->where("container_id", $containerId)
+			->orderBy("name")
+			->orderBy("ql")
+			->limit($limit)
+			->asObj(Bank::class);
 
-		if (count($data) === 0) {
+		if ($data->count() === 0) {
 			$msg = "Could not find container with id <highlight>{$containerId}</highlight> on bank character <highlight>{$name}<end>.";
 			$sendto->reply($msg);
 			return;
@@ -159,19 +163,17 @@ class BankController {
 		$search = htmlspecialchars_decode($args[1]);
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->getInt('max_bank_items');
+		$query = $this->db->table("bank")
+			->orderBy("name")
+			->orderBy("ql")
+			->limit($limit);
+		$this->db->addWhereFromParams($query, $words, 'name');
 
-		[$whereStatement, $sqlParams] = $this->util->generateQueryFromParams($words, 'name');
-		$sqlParams []= $limit;
-
-		/** @var Bank[] */
-		$foundItems = $this->db->fetchAll(
-			Bank::class,
-			"SELECT * FROM bank WHERE {$whereStatement} ORDER BY name ASC, ql ASC LIMIT ?",
-			...$sqlParams
-		);
+		/** @var Collection<Bank> */
+		$foundItems = $query->asObj(Bank::class);
 
 		$blob = '';
-		if (count($foundItems) === 0) {
+		if ($foundItems->count() === 0) {
 			$msg = "Could not find any search results for <highlight>{$args[1]}<end>.";
 			$sendto->reply($msg);
 			return;
@@ -202,7 +204,7 @@ class BankController {
 		array_shift($lines);
 
 		$this->db->beginTransaction();
-		$this->db->exec("DELETE FROM bank");
+		$this->db->table("bank")->truncate();
 
 		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
@@ -215,8 +217,17 @@ class BankController {
 				$container = $location;
 			}
 
-			$sql = "INSERT INTO bank (name, lowid, highid, ql, player, container, container_id, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-			$this->db->exec($sql, $name, $lowId, $highId, $ql, $player, $container, $containerId, $location);
+			$this->db->table("bank")
+				->insert([
+					"name" => $name,
+					"lowid" => $lowId,
+					"highid" => $highId,
+					"ql" => $ql,
+					"player" => $player,
+					"container" => $container,
+					"container_id" => $containerId,
+					"location" => $location,
+				]);
 		}
 		$this->db->commit();
 

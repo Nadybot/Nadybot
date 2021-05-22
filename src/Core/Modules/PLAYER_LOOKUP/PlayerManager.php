@@ -129,8 +129,12 @@ class PlayerManager {
 	}
 
 	public function findInDb(string $name, int $dimension): ?Player {
-		$sql = "SELECT * FROM players WHERE name LIKE ? AND dimension = ? LIMIT 1";
-		return $this->db->fetch(Player::class, $sql, $name, $dimension);
+		return $this->db->table("players")
+			->whereIlike("name", $name)
+			->where("dimension", $dimension)
+			->limit(1)
+			->asObj(Player::class)
+			->first();
 	}
 
 	public function lookup(string $name, int $dimension): ?Player {
@@ -214,86 +218,37 @@ class PlayerManager {
 	}
 
 	public function update(Player $char): void {
-		$char->guild_id ??= 0;
-
 		if ($char->guild_rank_id === '') {
 			$char->guild_rank_id = -1;
 		}
-
-		$sql = "
-			REPLACE INTO players (
-				`charid`,
-				`firstname`,
-				`name`,
-				`lastname`,
-				`level`,
-				`breed`,
-				`gender`,
-				`faction`,
-				`profession`,
-				`prof_title`,
-				`ai_rank`,
-				`ai_level`,
-				`guild_id`,
-				`guild`,
-				`guild_rank`,
-				`guild_rank_id`,
-				`dimension`,
-				`head_id`,
-				`pvp_rating`,
-				`pvp_title`,
-				`source`,
-				`last_update`
-			) VALUES (
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?,
-				?
-			)";
-
-		$this->db->exec(
-			$sql,
-			$char->charid,
-			$char->firstname,
-			$char->name,
-			$char->lastname,
-			$char->level,
-			$char->breed,
-			$char->gender,
-			$char->faction,
-			$char->profession,
-			$char->prof_title,
-			$char->ai_rank,
-			$char->ai_level,
-			$char->guild_id,
-			$char->guild,
-			$char->guild_rank,
-			$char->guild_rank_id,
-			$char->dimension,
-			$char->head_id,
-			$char->pvp_rating,
-			$char->pvp_title,
-			$char->source,
-			$char->last_update ?? time()
-		);
+		$this->db->table("players")
+			->upsert(
+				[
+					"charid" =>        $char->charid,
+					"firstname" =>     $char->firstname,
+					"name" =>          $char->name,
+					"lastname" =>      $char->lastname,
+					"level" =>         $char->level,
+					"breed" =>         $char->breed,
+					"gender" =>        $char->gender,
+					"faction" =>       $char->faction,
+					"profession" =>    $char->profession,
+					"prof_title" =>    $char->prof_title,
+					"ai_rank" =>       $char->ai_rank,
+					"ai_level" =>      $char->ai_level,
+					"guild_id" =>      $char->guild_id ?? 0,
+					"guild" =>         $char->guild,
+					"guild_rank" =>    $char->guild_rank,
+					"guild_rank_id" => $char->guild_rank_id,
+					"dimension" =>     $char->dimension,
+					"head_id" =>       $char->head_id,
+					"pvp_rating" =>    $char->pvp_rating,
+					"pvp_title" =>     $char->pvp_title,
+					"source" =>        $char->source,
+					"last_update" =>   $char->last_update ?? time(),
+				],
+				["name", "dimension"]
+			);
 	}
 
 	public function getInfo(Player $whois, bool $showFirstAndLastName=true): string {
@@ -331,16 +286,14 @@ class PlayerManager {
 	 * @throws SQLException On error
 	 */
 	public function searchForPlayers(string $search, ?int $dimension=null): array {
+		$query = $this->db->table("players")->orderBy("name")->limit(100);
 		$searchTerms = explode(' ', $search);
-		[$query, $params] = $this->util->generateQueryFromParams($searchTerms, 'name');
+		$this->db->addWhereFromParams($query, $searchTerms, "name");
 
-		if ($dimension === null) {
-			$sql = "SELECT * FROM players WHERE $query ORDER BY name ASC LIMIT 100";
-			return $this->db->fetchAll(Player::class, $sql, $params);
+		if ($dimension !== null) {
+			$query->where("dimension", $dimension);
 		}
-		$sql = "SELECT * FROM players WHERE $query AND dimension = ? ORDER BY name ASC LIMIT 100";
-		$params []= $dimension;
 
-		return $this->db->fetchAll(Player::class, $sql, ...$params);
+		return $query->asObj(Player::class)->toArray();
 	}
 }

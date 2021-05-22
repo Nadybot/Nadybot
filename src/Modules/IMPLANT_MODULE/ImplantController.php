@@ -47,8 +47,8 @@ class ImplantController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "implant_requirements");
-		$this->db->loadSQLFile($this->moduleName, "premade_implant");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
 	}
 
 	/**
@@ -205,10 +205,11 @@ class ImplantController {
 
 	// implant functions
 	public function getRequirements(int $ql): ImplantRequirements {
-		$sql = "SELECT * FROM implant_requirements WHERE ql = ?";
-
 		/** @var ?ImplantRequirements */
-		$row = $this->db->fetch(ImplantRequirements::class, $sql, $ql);
+		$row = $this->db->table("implant_requirements")
+			->where("ql", $ql)
+			->asObj(ImplantRequirements::class)
+			->first();
 
 		$this->addClusterInfo($row);
 
@@ -216,10 +217,13 @@ class ImplantController {
 	}
 
 	public function findMaxImplantQlByReqs(int $ability, int $treatment): ?ImplantRequirements {
-		$sql = "SELECT * FROM implant_requirements WHERE ability <= ? AND treatment <= ? ORDER BY ql DESC LIMIT 1";
-
 		/** @var ?ImplantRequirements */
-		$row = $this->db->fetch(ImplantRequirements::class, $sql, $ability, $treatment);
+		$row = $this->db->table("implant_requirements")
+			->where("ability", "<=", $ability)
+			->where("treatment", "<=", $treatment)
+			->orderByDesc("ql")
+			->limit(1)
+			->asObj(ImplantRequirements::class)->first();
 
 		$this->addClusterInfo($row);
 
@@ -308,8 +312,11 @@ class ImplantController {
 	public function setHighestAndLowestQls(ImplantRequirements $obj, string $var): void {
 		$varValue = $obj->$var;
 
-		$sql = "SELECT MAX(ql) as max, MIN(ql) as min FROM implant_requirements WHERE $var = ?";
-		$row = $this->db->queryRow($sql, $varValue);
+		$query = $this->db->table("implant_requirements")
+			->where($var, $varValue);
+		$query->select($query->colFunc("MAX", "ql", "max"))
+			->addSelect($query->colFunc("MIN", "ql", "min"));
+		$row = $query->asObj()->first();
 
 		// camel case var name
 		$tempNameVar = ucfirst($var);

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
@@ -57,10 +58,13 @@ class OrgMembersController {
 			$sendto->reply($msg);
 			return;
 		}
-		$sql = "SELECT * FROM players WHERE guild_id = ? AND dimension = '<dim>' ORDER BY name ASC";
-		/** @var Player[] */
-		$players = $this->db->fetchAll(Player::class, $sql, $guildId);
-		$numrows = count($players);
+		/** @var Collection<Player> */
+		$players = $this->db->table("players")
+			->where("guild_id", $guildId)
+			->where("dimension", $this->db->getDim())
+			->orderBy("name")
+			->asObj(Player::class);
+		$numrows = $players->count();
 
 		$blob = '';
 

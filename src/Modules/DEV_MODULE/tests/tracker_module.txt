@@ -1,20 +1,16 @@
 #tracker_module
 /text Start TRACKER_MODULE
-/delay %1
 !track
-/delay %1
 !track rem error
-/delay %1
 !track add error
-/delay %1
+!testlogon error
+!testlogoff error
 !track error
-/delay %1
 !track add nadyita
-/delay %1
 !track nadyita
-/delay %1
+!testlogon nadyita
+!track online
 !track
-/delay %1
 !track rem nadyita
-/delay %1
+!testlogoff nadyita
 /text End TRACKER_MODULE

@@ -74,9 +74,16 @@ class RandomController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'roll');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Roll");
 
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
+	}
+
+	public function canRoll(string $sender, int $timeBetweenRolls): bool {
+		return $this->db->table("roll")
+			->where("name", $sender)
+			->where("time", ">=", time() - $timeBetweenRolls)
+			->exists() === false;
 	}
 
 	/**
@@ -116,9 +123,7 @@ class RandomController {
 			return;
 		}
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		/** @var ?Roll */
-		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
-		if ($row !== null) {
+		if (!$this->canRoll($sender, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$sendto->reply($msg);
 			return;
@@ -143,8 +148,7 @@ class RandomController {
 		$amount = (int)$args[1];
 		$names = $args[2];
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
-		if ($row !== null) {
+		if (!$this->canRoll($sender, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$sendto->reply($msg);
 			return;
@@ -177,8 +181,7 @@ class RandomController {
 	public function rollNamesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$names = $args[1];
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `name` = ? AND `time` >= ? LIMIT 1", $sender, time() - $timeBetweenRolls);
-		if ($row !== null) {
+		if (!$this->canRoll($sender, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$sendto->reply($msg);
 			return;
@@ -220,7 +223,10 @@ class RandomController {
 	public function verifyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
 		/** @var ?Roll */
-		$row = $this->db->fetch(Roll::class, "SELECT * FROM roll WHERE `id` = ?", $id);
+		$row = $this->db->table("roll")
+			->where("id", $id)
+			->asObj(Roll::class)
+			->first();
 		if ($row === null) {
 			$msg = "Roll number <highlight>$id<end> does not exist.";
 		} else {
@@ -246,14 +252,14 @@ class RandomController {
 	public function roll(string $sender, array $options, int $amount=1): array {
 		mt_srand();
 		$result = (array)array_rand(array_flip($options), $amount);
-		$this->db->exec(
-			"INSERT INTO roll (`time`, `name`, `options`, `result`) ".
-			"VALUES (?, ?, ?, ?)",
-			time(),
-			$sender,
-			implode("|", $options),
-			implode("|", $result)
-		);
-		return [$this->db->lastInsertId(), implode("|", $result)];
+		$result = implode("|", $result);
+		$id = $this->db->table("roll")
+			->insertGetId([
+				"time" => time(),
+				"name" => $sender,
+				"options" => implode("|", $options),
+				"result" => $result,
+			]);
+		return [$id, $result];
 	}
 }

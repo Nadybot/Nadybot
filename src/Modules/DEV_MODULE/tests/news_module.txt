@@ -7,6 +7,8 @@
 !news unpin 1
 !news pin 1
 !news pin 1
+!news unpin 1
+!news unpin 1
 !news confirm 1
 !news confirm 1
 !news rem 1

@@ -181,7 +181,7 @@ class Player extends DBRow {
 		$gender = strtolower($this->gender??"");
 		$text = preg_replace_callback(
 			"/%([a-z:_A-Z]+)%/",
-			function (array $matches) use($pronouns, $gender): string {
+			function (array $matches) use ($pronouns, $gender): string {
 				$pronoun = $matches[1];
 				$choices = explode(":", $pronoun);
 				if (count($choices) === 2) {

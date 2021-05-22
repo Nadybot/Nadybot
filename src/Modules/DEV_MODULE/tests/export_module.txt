@@ -1,0 +1,87 @@
+# Alts module
+!settings save discord_relay 0
+!settings save alts_require_confirmation 0
+!admin add Nady
+!member add Nadyka
+!raidleader add Regolus 2
+!raidadmin add Mastertimer 1
+!runas Nady alts add Nadyita
+!settings save alts_require_confirmation 1
+!runas Nady alts add Nadyuschka
+!runas Nadyka alts main Nady
+
+#Auctions
+!raid start testing
+!testlogon Nadyita
+!runas Nadyita raid join
+!raid reward 100
+!bid start A pile of crap
+!runas Nadyita bid 1
+!bid end
+
+!bid start A pile of crap no one wants
+!bid end
+!points add Nady 111 Testing how this is being exported
+
+!raidleader add Nadyaki 2
+
+!quote add This is an example quote
+!ban Nukeat5 1d reason Too much damage for a lowbie
+!ban Mastertimer reason Might be a bot, but isn't!
+
+!testcloaklower
+!testcloakraise
+
+!poll create 1h test|option1|option2|option3
+!vote 1 error|option4
+
+!settings save raffle_bonus_per_loss 5
+!raffle start Some giveaway
+!runas Nady raffle join
+!runas Nadyita raffle join
+!raffle end
+
+!raidblock bid Nukeat5 1w Unit testing
+!raidblock points Masertimer 1w Unit testing
+
+!raid stop
+
+!timers 30s Testing123
+
+!track add Spacequest
+!track add Mastertimer
+!testlogon Mastertimer
+!testlogoff Mastertimer
+
+!news add This is news 1
+!news add This is news 2
+!news add This is news 3
+!news add This is news 4
+!news add This is news 5
+!news pin 2
+!news pin 3
+!news pin 4
+!news pin 5
+!news pin 6
+!news pin 7
+!news pin 8
+!runas Nady news confirm 2
+!runas Nady news confirm 3
+!runas Nady news confirm 4
+!runas Nady news confirm 5
+
+!note add Write a note
+!reminder add Write a reminder for all
+!reminder addself Write a reminder for myself
+
+!links add http://anarchy-online.com Cool game
+
+!comment categories add woohoo member
+!comment add Mastertimer Woohoo I do not like his face!
+
+!export unit-testing
+!import unit-testing member=member raid_leader_2=raid_leader_2 raid_admin_1=raid_admin_1 guild=guild superadmin=superadmin admin=admin
+
+member rem Nadyka
+!admin rem Nady
+!settings discord_relay 3

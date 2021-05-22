@@ -50,21 +50,20 @@ class ImplantDesignerController {
 	public function setup() {
 		$this->design = new stdClass;
 
-		$this->db->loadSQLFile($this->moduleName, "implant_design");
-
-		$this->db->loadSQLFile($this->moduleName, "Ability");
-		$this->db->loadSQLFile($this->moduleName, "Cluster");
-		$this->db->loadSQLFile($this->moduleName, "ClusterImplantMap");
-		$this->db->loadSQLFile($this->moduleName, "ClusterType");
-		$this->db->loadSQLFile($this->moduleName, "EffectTypeMatrix");
-		$this->db->loadSQLFile($this->moduleName, "EffectValue");
-		$this->db->loadSQLFile($this->moduleName, "ImplantMatrix");
-		$this->db->loadSQLFile($this->moduleName, "ImplantType");
-		$this->db->loadSQLFile($this->moduleName, "Profession");
-		$this->db->loadSQLFile($this->moduleName, "Symbiant");
-		$this->db->loadSQLFile($this->moduleName, "SymbiantAbilityMatrix");
-		$this->db->loadSQLFile($this->moduleName, "SymbiantClusterMatrix");
-		$this->db->loadSQLFile($this->moduleName, "SymbiantProfessionMatrix");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Designer");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Ability.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Cluster.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ClusterImplantMap.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ClusterType.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/EffectTypeMatrix.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/EffectValue.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ImplantMatrix.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ImplantType.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Profession.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Symbiant.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/SymbiantAbilityMatrix.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/SymbiantClusterMatrix.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/SymbiantProfessionMatrix.csv");
 	}
 
 	/**
@@ -101,33 +100,33 @@ class ImplantDesignerController {
 	private function getImplantSummary(object $slotObj): string {
 		if ($slotObj->symb !== null) {
 			$msg = " " . $slotObj->symb->name . "\n";
-		} else {
-			$ql = empty($slotObj->ql) ? 300 : $slotObj->ql;
-			$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
-			$msg = " QL" . $ql;
-			if ($implant !== null) {
-				$msg .= " - Treatment: {$implant->Treatment} {$implant->AbilityName}: {$implant->Ability}";
-			}
-			$msg .= "\n";
+			return $msg;
+		}
+		$ql = empty($slotObj->ql) ? 300 : $slotObj->ql;
+		$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
+		$msg = " QL" . $ql;
+		if ($implant !== null) {
+			$msg .= " - Treatment: {$implant->Treatment} {$implant->AbilityName}: {$implant->Ability}";
+		}
+		$msg .= "\n";
 
-			foreach ($this->grades as $grade) {
-				if (empty($slotObj->$grade)) {
-					$msg .= "<tab><highlight>-Empty-<end>\n";
-				} else {
-					$effectTypeIdName = ucfirst(strtolower($grade)) . 'EffectTypeID';
-					$effectId = $implant->$effectTypeIdName;
-					$msg .= "<tab><highlight>{$slotObj->$grade}<end> (" . $this->getClusterModAmount($ql, $grade, $effectId) . ")\n";
-				}
+		foreach ($this->grades as $grade) {
+			if (empty($slotObj->$grade)) {
+				$msg .= "<tab><highlight>-Empty-<end>\n";
+			} else {
+				$effectTypeIdName = ucfirst(strtolower($grade)) . 'EffectTypeID';
+				$effectId = $implant->$effectTypeIdName;
+				$msg .= "<tab><highlight>{$slotObj->$grade}<end> (" . $this->getClusterModAmount($ql, $grade, $effectId) . ")\n";
 			}
 		}
 		return $msg;
 	}
 
 	private function getClusterModAmount(int $ql, string $grade, int $effectId): int {
-		$sql = "SELECT ID, Name, MinValLow, MaxValLow, MinValHigh, MaxValHigh ".
-			"FROM EffectTypeMatrix ".
-			"WHERE ID = ?";
-		$row = $this->db->queryRow($sql, $effectId);
+		$row = $this->db->table("EffectTypeMatrix")
+			->where("ID", $effectId)
+			->select("ID", "Name", "MinValLow", "MaxValLow", "MinValHigh", "MaxValHigh")
+			->asObj()->first();
 
 		if ($ql < 201) {
 			$minVal = $row->MinValLow;
@@ -264,12 +263,11 @@ class ImplantDesignerController {
 		$slotObj = &$design->$slot;
 
 		if ($type == 'symb') {
-			$sql = "SELECT s.ID, s.Name, s.TreatmentReq, s.LevelReq ".
-				"FROM Symbiant s ".
-				"JOIN ImplantType i	ON s.SlotID = i.ImplantTypeID ".
-				"WHERE i.ShortName = ?  AND s.Name = ?";
-
-			$symbRow = $this->db->queryRow($sql, $slot, $item);
+			$symbRow = $this->db->table("Symbiant AS s")
+				->join("ImplantType AS i", "s.SlotID", "i.ImplantTypeID")
+				->where("i.ShortName", $slot)
+				->where("s.Name", $item)
+				->asObj()->first();
 
 			if ($symbRow === null) {
 				$msg = "Could not find symbiant <highlight>$item<end>.";
@@ -286,18 +284,18 @@ class ImplantDesignerController {
 				$symb->Level = $symbRow->LevelReq;
 
 				// add requirements
-				$sql = "SELECT a.Name, s.Amount ".
-					"FROM SymbiantAbilityMatrix s ".
-					"JOIN Ability a ON s.AbilityID = a.AbilityID ".
-					"WHERE SymbiantID = ?";
-				$symb->reqs = $this->db->query($sql, $symbRow->ID);
+				$symb->reqs = $this->db->table("SymbiantAbilityMatrix AS s")
+					->join("Ability AS a", "s.AbilityID", "a.AbilityID")
+					->where("SymbiantID", $symbRow->ID)
+					->select("a.Name", "s.Amount")
+					->asObj()->toArray();
 
 				// add mods
-				$sql = "SELECT c.LongName AS Name, s.Amount ".
-					"FROM SymbiantClusterMatrix s ".
-					"JOIN Cluster c ON s.ClusterID = c.ClusterID ".
-					"WHERE SymbiantID = ?";
-				$symb->mods = $this->db->query($sql, $symbRow->ID);
+				$symb->mods = $this->db->table("SymbiantClusterMatrix AS s")
+					->join("Cluster AS c", "s.ClusterID", "c.ClusterID")
+					->where("SymbiantID", $symbRow->ID)
+					->select("c.LongName AS Name", "s.Amount")
+					->asObj()->toArray();
 
 				$slotObj->symb = $symb;
 				$msg = "<highlight>$slot(symb)<end> has been set to <highlight>$symb->name<end>.";
@@ -397,7 +395,8 @@ class ImplantDesignerController {
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Which ability do you want to require for $slot?\n\n";
-			$data = $this->db->query("SELECT Name FROM Ability");
+			$data = $this->db->table("Ability")->select("Name")
+				->asObj()->toArray();
 			foreach ($data as $row) {
 				$blob .= $this->text->makeChatcmd($row->Name, "/tell <myname> implantdesigner $slot require $row->Name") . "\n";
 			}
@@ -433,33 +432,34 @@ class ImplantDesignerController {
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Combinations for <highlight>$slot<end> that will require $ability:\n";
-			$params = [$ability];
-			$sql =
-				"SELECT i.AbilityQL1, i.AbilityQL200, i.AbilityQL201, i.AbilityQL300, ".
-					"i.TreatQL1, i.TreatQL200, i.TreatQL201, i.TreatQL300, ".
-					"c1.LongName as ShinyEffect, c2.LongName as BrightEffect, c3.LongName as FadedEffect ".
-				"FROM ImplantMatrix i ".
-				"JOIN Cluster c1 ON i.ShiningID = c1.ClusterID ".
-				"JOIN Cluster c2 ON i.BrightID = c2.ClusterID ".
-				"JOIN Cluster c3 ON i.FadedID = c3.ClusterID ".
-				"JOIN Ability a ON i.AbilityID = a.AbilityID ".
-				"WHERE a.Name = ?";
+			$query = $this->db
+				->table("ImplantMatrix AS i")
+				->join("Cluster AS c1", "i.ShiningID", "c1.ClusterID")
+				->join("Cluster AS c2", "i.BrightID", "c2.ClusterID")
+				->join("Cluster AS c3", "i.FadedID", "c3.ClusterID")
+				->join("Ability AS a", "i.AbilityID", "a.AbilityID")
+				->where("a.Name", $ability)
+				->select("i.AbilityQL1", "i.AbilityQL200", "i.AbilityQL201")
+				->addSelect("i.AbilityQL300", "i.TreatQL1", "i.TreatQL200")
+				->addSelect("i.TreatQL201", "i.TreatQL300")
+				->addSelect("c1.LongName as ShinyEffect")
+				->addSelect("c2.LongName as BrightEffect")
+				->addSelect("c3.LongName as FadedEffect")
+				->orderBy("c1.LongName")
+				->orderBy("c2.LongName")
+				->orderBy("c3.LongName");
 
 			if (!empty($slotObj->shiny)) {
-				$sql .= " AND c1.LongName = ?";
-				$params []= $slotObj->shiny;
+				$query->where("c1.LongName", $slotObj->shiny);
 			}
 			if (!empty($slotObj->bright)) {
-				$sql .= " AND c2.LongName = ?";
-				$params []= $slotObj->bright;
+				$query->where("c2.LongName", $slotObj->bright);
 			}
 			if (!empty($slotObj->faded)) {
-				$sql .= " AND c3.LongName = ?";
-				$params []= $slotObj->faded;
+				$query->where("c3.LongName", $slotObj->faded);
 			}
-			$sql .= " ORDER BY c1.LongName, c2.LongName, c3.LongName";
 
-			$data = $this->db->query($sql, ...$params);
+			$data = $query->asObj()->toArray();
 			$primary = null;
 			foreach ($data as $row) {
 				$results = [];
@@ -623,27 +623,25 @@ class ImplantDesignerController {
 	}
 
 	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?object {
-		$shiny = empty($shiny) ? '' : $shiny;
-		$bright = empty($bright) ? '' : $bright;
-		$faded = empty($faded) ? '' : $faded;
+		$row = $this->db->table("ImplantMatrix AS i")
+			->join("Cluster AS c1", "i.ShiningID", "c1.ClusterID")
+			->join("Cluster AS c2", "i.BrightID", "c2.ClusterID")
+			->join("Cluster AS c3", "i.FadedID", "c3.ClusterID")
+			->join("Ability AS a", "i.AbilityID", "a.AbilityID")
+			->where("c1.LongName", $shiny ?? "")
+			->where("c2.LongName", $bright ?? "")
+			->where("c3.LongName", $faded ?? "")
+			->select("i.AbilityQL1", "i.AbilityQL200")
+			->addSelect("i.AbilityQL201", "i.AbilityQL300", "i.TreatQL1")
+			->addSelect("i.TreatQL200", "i.TreatQL201", "i.TreatQL300")
+			->addSelect("c1.EffectTypeID as ShinyEffectTypeID")
+			->addSelect("c2.EffectTypeID as BrightEffectTypeID")
+			->addSelect("c3.EffectTypeID as FadedEffectTypeID")
+			->addSelect("a.Name AS AbilityName")
+			->limit(1)
+			->asObj()
+			->first();
 
-		$sql =
-			"SELECT i.AbilityQL1, i.AbilityQL200, i.AbilityQL201, i.AbilityQL300, ".
-				"i.TreatQL1, i.TreatQL200, i.TreatQL201, i.TreatQL300, ".
-				"c1.EffectTypeID as ShinyEffectTypeID, ".
-				"c2.EffectTypeID as BrightEffectTypeID, ".
-				"c3.EffectTypeID as FadedEffectTypeID, ".
-				"a.Name AS AbilityName ".
-			"FROM ImplantMatrix i ".
-				"JOIN Cluster c1 ON i.ShiningID = c1.ClusterID ".
-				"JOIN Cluster c2 ON i.BrightID = c2.ClusterID ".
-				"JOIN Cluster c3 ON i.FadedID = c3.ClusterID ".
-				"JOIN Ability a ON i.AbilityID = a.AbilityID ".
-			"WHERE c1.LongName = ? ".
-				"AND c2.LongName = ? ".
-				"AND c3.LongName = ?";
-
-		$row = $this->db->queryRow($sql, $shiny, $bright, $faded);
 		if ($row === null) {
 			return null;
 		}
@@ -674,20 +672,24 @@ class ImplantDesignerController {
 	}
 
 	public function getClustersForSlot(string $implantType, string $clusterType): array {
-		$sql = "SELECT LongName AS skill ".
-			"FROM Cluster c1 ".
-				"JOIN ClusterImplantMap c2 ON c1.ClusterID = c2.ClusterID ".
-				"JOIN ClusterType c3 ON c2.ClusterTypeID = c3.ClusterTypeID ".
-				"JOIN ImplantType i ON c2.ImplantTypeID = i.ImplantTypeID ".
-			"WHERE i.ShortName = ? ".
-				"AND c3.Name = ?";
-
-		return $this->db->query($sql, strtolower($implantType), strtolower($clusterType));
+		return $this->db
+			->table("Cluster AS c1")
+			->join("ClusterImplantMap AS c2", "c1.ClusterID", "c2.ClusterID")
+			->join("ClusterType AS c3", "c2.ClusterTypeID", "c3.ClusterTypeID")
+			->join("ImplantType AS i", "c2.ImplantTypeID", "i.ImplantTypeID")
+			->where("i.ShortName", strtolower($implantType))
+			->where("c3.Name", strtolower($clusterType))
+			->select("LongName AS skill")
+			->asObj()
+			->toArray();
 	}
 
 	public function getDesign(string $sender, string $name): stdClass {
-		$sql = "SELECT * FROM implant_design WHERE owner = ? AND name = ?";
-		$row = $this->db->queryRow($sql, $sender, $name);
+		$row = $this->db->table("implant_design")
+			->where("owner", $sender)
+			->where("name", $name)
+			->asObj()
+			->first();
 		if ($row === null) {
 			return new stdClass();
 		}
@@ -696,11 +698,16 @@ class ImplantDesignerController {
 
 	public function saveDesign(string $sender, string $name, object $design): void {
 		$json = json_encode($design);
-		$sql = "UPDATE implant_design SET design = ?, dt = ? WHERE owner = ? AND name = ?";
-		$numRows = $this->db->exec($sql, $json, time(), $sender, $name);
-		if ($numRows == 0) {
-			$sql = "INSERT INTO implant_design (name, owner, dt, design) VALUES (?, ?, ?, ?)";
-			$this->db->exec($sql, $name, $sender, time(), $json);
-		}
+		$this->db->table("implant_design")
+			->updateOrInsert(
+				[
+					"owner" => $sender,
+					"name" => $name,
+				],
+				[
+					"design" => $json,
+					"dt" => time(),
+				],
+			);
 	}
 }

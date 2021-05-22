@@ -41,7 +41,8 @@ class WhatLocksController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "what_locks");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");
 	}
 
 	/**
@@ -51,18 +52,17 @@ class WhatLocksController {
 	 * @Matches("/^whatlocks$/i")
 	 */
 	public function whatLocksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT s.name,COUNT(*) AS amount ".
-			"FROM what_locks wl ".
-			"JOIN skills s ON wl.skill_id=s.id ".
-			"JOIN aodb a ON (wl.item_id=a.lowid) ".
-			"GROUP BY s.name ".
-			"ORDER BY s.name ASC";
-		$skills = $this->db->query($sql);
-		$lines = array_map(function(DBRow $row) {
-			return $this->text->alignNumber((int)$row->amount, 3).
-				" - ".
-				$this->text->makeChatcmd($row->name, "/tell <myname> whatlocks $row->name");
-		}, $skills);
+		$query = $this->db->table("what_locks AS wl")
+			->join("skills AS s", "wl.skill_id", "s.id")
+			->join("aodb AS a", "wl.item_id", "a.lowid")
+			->groupBy("s.name")
+			->orderBy("s.name");
+		$lines = $query->select("s.name", $query->rawFunc("COUNT", "*", "amount"))
+			->asObj()->map(function(DBRow $row) {
+				return $this->text->alignNumber((int)$row->amount, 3).
+					" - ".
+					$this->text->makeChatcmd($row->name, "/tell <myname> whatlocks $row->name");
+			})->toArray();
 		$blob = "<header2>Choose a skill to see which items lock it<end>\n<tab>".
 			join("\n<pagebreak><tab>", $lines);
 		$pages = $this->text->makeBlob(
@@ -88,24 +88,21 @@ class WhatLocksController {
 	public function searchForSkill(string $skill): array {
 		// check for exact match first, in order to disambiguate
 		// between Bow and Bow special attack
+		$query = $this->db->table("skills");
 		/** @var Skill[] */
-		$results = $this->db->fetchAll(
-			Skill::class,
-			"SELECT DISTINCT id, name FROM skills WHERE LOWER(name)=?",
-			strtolower($skill)
-		);
+		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skill))
+			->select("id", "name")->distinct()
+			->asObj(Skill::class)->toArray();
 		if (count($results) === 1) {
 			return $results;
 		}
 
-		$tmp = explode(" ", $skill);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
+		$query = $this->db->table("skills")->select("id", "name")->distinct();
 
-		return $this->db->fetchAll(
-			Skill::class,
-			"SELECT DISTINCT id, name FROM skills WHERE $query",
-			...$params
-		);
+		$tmp = explode(" ", $skill);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		return $query->asObj(Skill::class)->toArray();
 	}
 
 	/**
@@ -142,13 +139,14 @@ class WhatLocksController {
 			$sendto->reply($msg);
 			return;
 		}
-		$sql = "SELECT w.*, a.* ".
-			"FROM what_locks w ".
-			"JOIN aodb a ON (w.item_id=a.lowid) ".
-			"WHERE w.skill_id = ? ".
-			"ORDER BY w.duration ASC";
 		/** @var WhatLocks[] */
-		$items = $this->db->fetchAll(WhatLocks::class, $sql, $skills[0]->id);
+		$items = $this->db->table("what_locks AS w")
+			->join("aodb AS a", "w.item_id", "a.lowid")
+			->where("w.skill_id", $skills[0]->id)
+			->orderBy("w.duration")
+			->select("w.*", "a.*")
+			->asObj(WhatLocks::class)
+			->toArray();
 		if (count($items) === 0) {
 			$msg = "There is currently no item in the game locking ".
 				"<highlight>{$skills[0]->name}<end>.";

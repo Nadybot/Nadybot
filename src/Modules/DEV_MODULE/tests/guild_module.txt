@@ -5,6 +5,15 @@
 !lastseen abc
 !lastseen Nadyita
 !testorgjoin Nadyita
+!testorgkick Nadyita
+!testlogon Nadyita
+!testorgjoin Nadyita
+!testlogoff Nadyita
+!testlogon Nadyita
+!testorgleave Nadyita
+!notify add Nadyita
+!notify rem Nadyita
+!testlogoff Nadyita
 !logon
 !logon foo bar baz
 !logon
@@ -15,10 +24,11 @@
 !logoff clear
 !recentseen
 !recentseen 1
+!recentseen 1d
 !recentseen nadyita
 !notify add Nadyitaerrordoesnotexist
-!notify add Nadyita 
-!notify off Nadyita 
+!notify add Nadyita
+!notify off Nadyita
 !updateorg
 !inactivemem
 !inactivemem 1d
@@ -28,5 +38,12 @@
 !orghistory 100
 !orghistory Nadyita
 !orghistory Nadyitadoesnotexist
+
+!ranks
+!maprank
+!maprank 1 to admin
+!maprank 1 to memberxx
+!maprank
+!maprank rem 1
 
 /text End GUILD_MODULE

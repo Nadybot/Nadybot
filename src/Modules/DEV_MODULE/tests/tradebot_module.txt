@@ -1,0 +1,12 @@
+#tradebot_module
+/text Start TRADEBOT_MODULE
+!settings save tradebot Darknet
+!tradecolor
+!tradecolor set Darknet * #FFFF00
+!tradecolor
+!testtradebotmsg
+!tradecolor rem 1
+!tradecolor rem 2
+!tradecolor rem a
+!tradecolor rem 9999
+!settings save tradebot none

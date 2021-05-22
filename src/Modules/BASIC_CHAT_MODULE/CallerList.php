@@ -28,7 +28,6 @@ class CallerList {
 	/** Get the amount of callers on this list */
 	public function count(): int {
 		return count($this->callers);
-	
 	}
 
 	/**

@@ -59,7 +59,8 @@ class HelpbotController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'dyna');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Dyna");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/dynadb.csv');
 	}
 
 	/**
@@ -71,14 +72,13 @@ class HelpbotController {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
 		/** @var DynaDB[] */
-		$data = $this->db->fetchAll(
-			DynaDB::class,
-			"SELECT * FROM dynadb d ".
-			"JOIN playfields p ON d.playfield_id = p.id ".
-			"WHERE maxQl >= ? AND minQl <= ? ORDER BY p.`long_name` ASC, `minQl` ASC",
-			$range1,
-			$range2
-		);
+		$data = $this->db->table("dynadb AS d")
+			->join("playfields AS p", "d.playfield_id", "p.id")
+			->where("maxQl", ">=", $range1)
+			->where("minQl", "<=", $range2)
+			->orderBy("p.long_name")
+			->orderBy("minQl")
+			->asObj(DynaDB::class)->toArray();
 		$count = count($data);
 		if (!$count) {
 			$sendto->reply(
@@ -102,16 +102,12 @@ class HelpbotController {
 	 */
 	public function dynaNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = str_replace(" ", "%", $args[1]);
-		$data = $this->db->query(
-			"SELECT * ".
-			"FROM `dynadb` d ".
-			"JOIN `playfields` p ON d.`playfield_id` = p.`id` ".
-			"WHERE `long_name` LIKE ? OR `short_name` LIKE ? OR `mob` LIKE ? ".
-			"ORDER BY p.`long_name` ASC, `minQl` ASC",
-			"%{$search}%",
-			"%{$search}%",
-			"%{$search}%"
-		);
+		$data = $this->db->table("dynadb AS d")
+			->join("playfields AS p", "d.playfield_id", "p.id")
+			->whereIlike("long_name", "%{$search}%")
+			->orWhereIlike("short_name", "%{$search}%")
+			->orWhereIlike("mob", "%{$search}%")
+			->asObj()->toArray();
 		$count = count($data);
 
 		if (!$count) {

@@ -37,6 +37,7 @@ use ZipArchive;
  *	)
  */
 class PackageController {
+	public const DB_TABLE = "package_files_<myname>";
 	public const EXTRA = 2;
 	public const BUILT_INT = 1;
 	public const UNINST = 0;
@@ -71,7 +72,7 @@ class PackageController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "package_files");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->scanForUnregisteredExtraModules();
 		$this->commandAlias->register($this->moduleName, "package", "packages");
 		$this->commandAlias->register($this->moduleName, "package", "modules");
@@ -116,12 +117,10 @@ class PackageController {
 	 * Scan for and add all files of $module into the database
 	 */
 	protected function scanExtraModule(string $targetDir, string $module): void {
-		$res = $this->db->queryRow(
-			"SELECT COUNT(*) AS `num` FROM `package_files_<myname>` ".
-			"WHERE `module`=?",
-			$module
-		);
-		if ($res->num > 0) {
+		$exists = $this->db->table(self::DB_TABLE)
+			->where("module", $module)
+			->exists();
+		if ($exists) {
 			return;
 		}
 
@@ -143,13 +142,12 @@ class PackageController {
 			if (substr($relPath, 0, 2) === "..") {
 				continue;
 			}
-			$this->db->exec(
-				"INSERT INTO `package_files_<myname>`(`module`, `version`, `file`) VALUES".
-				"(?, ?, ?)",
-				$module,
-				$version ?? "",
-				$relPath
-			);
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"module" => $module,
+					"version" => $version ?? "",
+					"file" => $relPath
+				]);
 		}
 	}
 
@@ -264,11 +262,10 @@ class PackageController {
 			$installLink = "";
 			$installedVersion = null;
 			if ($package->state === static::EXTRA) {
-				$res = $this->db->queryRow(
-					"SELECT MAX(`version`) AS `cur` FROM `package_files_<myname>` ".
-					"WHERE `module`=?",
-					$package->name
-				);
+				$query = $this->db->table(self::DB_TABLE)
+					->where("module", $package->name);
+				$query->selectRaw($query->colFunc("MAX", "version", "cur"));
+				$res = $query->asObj()->first();
 				$installedVersion = $res->cur;
 			}
 			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
@@ -341,11 +338,10 @@ class PackageController {
 			return;
 		}
 		if ($packages[0]->state === static::EXTRA) {
-			$res = $this->db->queryRow(
-				"SELECT MAX(`version`) AS `cur` FROM `package_files_<myname>` ".
-				"WHERE `module`=?",
-				$packages[0]->name
-			);
+			$query = $this->db->table(self::DB_TABLE)
+				->where("module", $packages[0]->name);
+			$query->selectRaw($query->colFunc("MAX", "version", "cur"));
+			$res = $query->asObj()->first();
 			$installedVersion = $res->cur;
 		}
 		$blob = trim($this->renderHTML($packages[0]->description));
@@ -803,10 +799,9 @@ class PackageController {
 		}
 		$this->removePackageInstallation($cmd, $targetDir);
 
-		$this->db->exec(
-			"DELETE FROM `package_files_<myname>` WHERE module=?",
-			$cmd->package
-		);
+		$this->db->table(self::DB_TABLE)
+			->where("module", $cmd->package)
+			->delete();
 		if (!$this->installAndRegisterZip($zip, $cmd, $targetDir)) {
 			return;
 		}
@@ -832,13 +827,11 @@ class PackageController {
 	 * the module directory itself
 	 */
 	public function removePackageInstallation(PackageAction $cmd, string $targetDir): bool {
+		$query = $this->db->table(self::DB_TABLE)
+			->where("module", $cmd->package);
+		$query->orderByColFunc("LENGTH", "file", "desc");
 		/** @var PackageFile[] */
-		$oldFiles = $this->db->fetchAll(
-			PackageFile::class,
-			"SELECT * FROM `package_files_<myname>` ".
-			"WHERE `module`=? ORDER BY LENGTH(`file`) DESC",
-			$cmd->package
-		);
+		$oldFiles = $query->asObj(PackageFile::class)->toArray();
 		foreach ($oldFiles as $oldFile) {
 			$fullFilename = "{$targetDir}/{$oldFile->file}";
 			if (!@file_exists($fullFilename)) {
@@ -888,13 +881,12 @@ class PackageController {
 				}
 			}
 			$this->logger->log("INFO", "unzip -> {$targetFile}");
-			$this->db->exec(
-				"INSERT INTO `package_files_<myname>`(`module`, `version`, `file`) VALUES".
-				"(?, ?, ?)",
-				$cmd->package,
-				$cmd->version,
-				"{$cmd->package}/" . substr($zip->getNameIndex($i), strlen($subDir))
-			);
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"module" => $cmd->package,
+					"version" => $cmd->version,
+					"file" => "{$cmd->package}/" . substr($zip->getNameIndex($i), strlen($subDir)),
+				]);
 		}
 		return true;
 	}

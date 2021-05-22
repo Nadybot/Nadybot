@@ -103,10 +103,7 @@ class NotesController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "notes");
-		if (!$this->db->columnExists("notes", "reminder")) {
-			$this->db->exec("ALTER TABLE `notes` ADD COLUMN `reminder` INTEGER NOT NULL DEFAULT 0");
-		}
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Notes");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
 		$this->settingManager->add(
 			$this->moduleName,
@@ -181,8 +178,9 @@ class NotesController {
 			return;
 		}
 		// convert all notes to be assigned to the main
-		$sql = "UPDATE `notes` SET `owner` = ? WHERE `owner` = ?";
-		$this->db->exec($sql, $main, $sender);
+		$this->db->table("notes")
+			->where("owner", $sender)
+			->update(["owner" => $main]);
 	}
 
 	/**
@@ -191,11 +189,12 @@ class NotesController {
 	 * @return Note[]
 	 */
 	protected function readNotes(string $main, bool $remindersOnly=false): array {
-		$sql = "SELECT * FROM `notes` WHERE `owner` = ? AND `reminder` > ? ".
-			"ORDER BY `added_by` ASC, `dt` DESC";
-		/** @var Note[] */
-		$notes = $this->db->fetchAll(Note::class, $sql, $main, $remindersOnly ? 0 : -1);
-		return $notes;
+		return $this->db->table("notes")
+			->where("owner", $main)
+			->where("reminder", ">", $remindersOnly ? 0 : -1)
+			->orderBy("added_by")
+			->orderByDesc("dt")
+			->asObj(Note::class)->toArray();
 	}
 
 	/**
@@ -245,13 +244,16 @@ class NotesController {
 		$labels = $texts[$format];
 		$links = [];
 		$remindOffLink  = $this->text->makeChatcmd(
-			$labels[Note::REMIND_NONE], "/tell <myname> reminders set off {$note->id}"
+			$labels[Note::REMIND_NONE],
+			"/tell <myname> reminders set off {$note->id}"
 		);
 		$remindSelfLink = $this->text->makeChatcmd(
-			$labels[Note::REMIND_SELF], "/tell <myname> reminders set self {$note->id}"
+			$labels[Note::REMIND_SELF],
+			"/tell <myname> reminders set self {$note->id}"
 		);
 		$remindAllLink  = $this->text->makeChatcmd(
-			$labels[Note::REMIND_ALL], "/tell <myname> reminders set all {$note->id}"
+			$labels[Note::REMIND_ALL],
+			"/tell <myname> reminders set all {$note->id}"
 		);
 		if (($note->reminder & Note::REMIND_ALL) === 0) {
 			$links []= $remindAllLink;
@@ -330,11 +332,10 @@ class NotesController {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
 
-		$numRows = $this->db->exec(
-			"DELETE FROM notes WHERE id = ? AND owner = ?",
-			$id,
-			$main
-		);
+		$numRows = $this->db->table("notes")
+			->where("id", $id)
+			->where("owner", $main)
+			->delete();
 		if ($numRows === 0) {
 			$msg = "Note could not be found or note does not belong to you.";
 		} else {
@@ -360,12 +361,10 @@ class NotesController {
 		}
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
-		$updated = $this->db->exec(
-			"UPDATE `notes` SET `reminder` = ? WHERE `id` = ? AND `owner` = ?",
-			$reminder,
-			$id,
-			$main
-		);
+		$updated = $this->db->table("notes")
+			->where("id", $id)
+			->where("owner", $main)
+			->update(["reminder" => $reminder]);
 		if (!$updated) {
 			$sendto->reply("No note or reminder #{$id} found for you.");
 			return;

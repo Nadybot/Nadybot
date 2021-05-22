@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS fun (
-	type VARCHAR(20) NOT NULL,
-	content TEXT NOT NULL
-);

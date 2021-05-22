@@ -3,11 +3,11 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\DBSchema\Member;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
@@ -200,9 +200,10 @@ class AccessManager {
 			return $this->highestRank("guild", $orgRank);
 		}
 
-		$sql = "SELECT name FROM `members_<myname>` WHERE `name` = ?";
-		$row = $this->db->fetch(Member::class, $sql, $sender);
-		if ($row !== null) {
+		if ($this->db->table(PrivateChannelController::DB_TABLE)
+			->where("name", $sender)
+			->exists()
+		) {
 			return "member";
 		}
 		return "all";

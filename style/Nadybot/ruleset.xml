@@ -82,6 +82,7 @@
     <rule ref="Nadybot.PHP.LowerCaseKeyword"/>
     <rule ref="Generic.PHP.LowerCaseConstant"/>
     <rule ref="Generic.PHP.LowerCaseType"/>
+    <rule ref="Nadybot.PHP.UnusedUseStatement"/>
 
     <!-- Short form of type keywords MUST be used i.e. bool instead of boolean, int instead of integer etc. -->
     <!-- checked by PSR12.Keywords.ShortFormTypeKeywords -->

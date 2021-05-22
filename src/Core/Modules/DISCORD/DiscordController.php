@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Exception;
 use Nadybot\Core\{
 	Http,
 	LoggerWrapper,

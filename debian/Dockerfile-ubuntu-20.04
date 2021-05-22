@@ -20,7 +20,10 @@ RUN set -ex \
 		php7.4-bcmath \
 		php7.4-xml \
 		php7.4-zip \
+		unzip \
+		dh-systemd \
 	&& apt-get clean \
 	&& rm -rf /tmp/* /var/tmp/*
-RUN touch /.dockerenv
+RUN touch /.dockerenv && mkdir /build && chmod 0777 /build
 COPY build-package.sh /build-package.sh
+ENTRYPOINT ["/build-package.sh"]

@@ -162,6 +162,7 @@ class HttpRequest {
 	private function getHeaders(): array {
 		$headers = [];
 		$headers['Host'] = $this->streamHost;
+		$headers['User-Agent'] = 'Nadybot ' . BotRunner::getVersion();
 		if ($this->method == 'post') {
 			if ($this->postData) {
 				$headers['Content-Length'] = strlen($this->postData);

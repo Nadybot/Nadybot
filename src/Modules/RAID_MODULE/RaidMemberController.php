@@ -38,6 +38,8 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
  * @ProvidesEvent("raid(leave)")
  */
 class RaidMemberController {
+	public const DB_TABLE = "raid_member_<myname>";
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -80,7 +82,7 @@ class RaidMemberController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
 		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
-		$this->db->loadSQLFile($this->moduleName, "raid_member");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Member");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -99,22 +101,14 @@ class RaidMemberController {
 	 * Resume an old raid after a bot restart
 	 */
 	public function resumeRaid(Raid $raid): void {
-		$this->db->exec(
-			"UPDATE `raid_member_<myname>` ".
-			"SET `left`=? ".
-			"WHERE `raid_id`=?",
-			time(),
-			$raid->raid_id
-		);
-		/** @var RaidMember[] */
-		$raiders = $this->db->fetchAll(
-			RaidMember::class,
-			"SELECT * FROM `raid_member_<myname>` WHERE `raid_id`=?",
-			$raid->raid_id
-		);
-		foreach ($raiders as $raider) {
-			$raid->raiders[$raider->player] = $raider;
-		}
+		$this->db->table(self::DB_TABLE)
+			->where("raid_id", $raid->raid_id)
+			->whereNull("left")
+			->update(["left" => time()]);
+		$raid->raiders = $this->db->table(self::DB_TABLE)
+			->where("raid_id", $raid->raid_id)
+			->asObj(RaidMember::class)
+			->keyBy("player")->toArray();
 	}
 
 	/**
@@ -163,13 +157,12 @@ class RaidMemberController {
 			$raid->raiders[$player]->joined = time();
 			$raid->raiders[$player]->left = null;
 		}
-		$this->db->exec(
-			"INSERT INTO `raid_member_<myname>` (`raid_id`, `player`, `joined`) ".
-			"VALUES (?, ?, ?)",
-			$raid->raid_id,
-			$player,
-			$raider->joined
-		);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"raid_id" => $raid->raid_id,
+				"player" => $player,
+				"joined" => time(),
+			]);
 		if ($force) {
 			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
@@ -211,19 +204,20 @@ class RaidMemberController {
 			return "You are currently not in the raid.";
 		}
 		$raid->raiders[$player]->left = time();
-		$this->db->exec(
-			"UPDATE `raid_member_<myname>` SET `left`=? WHERE `raid_id`=? AND `player`=? AND `left` IS NULL",
-			$raid->raiders[$player]->left,
-			$raid->raid_id,
-			$player
-		);
+		$this->db->table(self::DB_TABLE)
+			->where("raid_id", $raid->raid_id)
+			->where("player", $player)
+			->whereNull("left")
+			->update(["left" => $raid->raiders[$player]->left]);
 		if ($sender !== $player) {
 			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
 			}
 			if ($announceLoc & static::ANNOUNCE_TELL) {
-				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+				if (isset($sender)) {
+					$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+				}
 			}
 			if ($announceLoc === static::ANNOUNCE_OFF) {
 				return "<highlight>{$player}<end> was <red>removed<end> to the raid.";

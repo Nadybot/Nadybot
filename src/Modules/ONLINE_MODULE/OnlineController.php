@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
@@ -12,6 +14,7 @@ use Nadybot\Core\{
 	EventManager,
 	LoggerWrapper,
 	Nadybot,
+	QueryBuilder,
 	SettingManager,
 	StopExecutionException,
 	Text,
@@ -95,7 +98,10 @@ class OnlineController {
 
 	/** @Setup */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "online");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->table("online")
+			->where("added_by", $this->db->getBotname())
+			->delete();
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -183,6 +189,13 @@ class OnlineController {
 		$this->commandAlias->register($this->moduleName, "online", "sm");
 	}
 
+	public function buildOnlineQuery(string $sender, string $channelType): QueryBuilder {
+		return $this->db->table("online")
+			->where("name", $sender)
+			->where("channel_type", $channelType)
+			->where("added_by", $this->db->getBotname());
+	}
+
 	/**
 	 * @HandlesCommand("online")
 	 * @Matches("/^online$/i")
@@ -204,18 +217,28 @@ class OnlineController {
 			return;
 		}
 
-		$sql = "SELECT DISTINCT p.*, o.afk, COALESCE(a.main, o.name) AS pmain, ".
-				"(CASE WHEN o2.name IS NULL THEN 0 ELSE 1 END) AS online ".
-			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
-			"LEFT JOIN alts a2 ON a2.main = COALESCE(a.main, o.name) ".
-			"LEFT JOIN players p ON a2.alt = p.name OR COALESCE(a.main, o.name) = p.name ".
-			"LEFT JOIN online o2 ON p.name = o2.name ".
-			"WHERE p.profession = ? ".
-			"ORDER BY COALESCE(a.main, o.name) ASC";
-		/** @var OnlinePlayer[] */
-		$players = $this->db->fetchAll(OnlinePlayer::class, $sql, $profession);
-		$count = count($players);
+		$query = $this->db->table("online AS o");
+		$query->leftJoin("alts AS a", function (JoinClause $join) {
+			$join->on("o.name", "a.alt")
+				->where("a.validated_by_main", true)
+				->where("a.validated_by_alt", true);
+		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
+		->leftJoin("players AS p", function (JoinClause $join) use ($query) {
+			$join->on("a2.alt", "p.name")
+				->orWhere($query->colFunc("COALESCE", ["a.main", "o.name"]), "p.name");
+		})
+		->leftJoin("online AS o2", "p.name", "o2.name")
+		->where("p.profession", $profession)
+		->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]))
+		->select("p.*", "o.afk")
+		->addSelect($query->colFunc("COALESCE", ["a.main", "p.name"], "pmain"))
+		->selectRaw(
+			"(CASE WHEN " . $query->grammar->wrap("o2.name") . " IS NULL ".
+			"THEN 0 ELSE 1 END) AS " . $query->grammar->wrap("online")
+		);
+		/** @var Collection<OnlinePlayer> */
+		$players = $query->asObj(OnlinePlayer::class);
+		$count = $players->count();
 		$mainCount = 0;
 		$currentMain = "";
 		$blob = "";
@@ -310,7 +333,9 @@ class OnlineController {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
-		$data = $this->db->query("SELECT name, channel_type FROM `online`");
+		$data = $this->db->table("online")
+			->select("name", "channel_type")
+			->asObj();
 
 		$guildArray = [];
 		$privArray = [];
@@ -333,27 +358,43 @@ class OnlineController {
 		foreach ($this->chatBot->guildmembers as $name => $rank) {
 			if ($this->buddylistManager->isOnline($name)) {
 				if (in_array($name, $guildArray)) {
-					$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'guild'";
-					$this->db->exec($sql, $time, $name);
+					$this->buildOnlineQuery($name, "guild")
+						->update(["dt" => $time]);
 				} else {
-					$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)";
-					$this->db->exec($sql, $name, $time);
+					$this->db->table("online")
+						->insert([
+							"name" => $name,
+							"channel" => $this->db->getMyguild(),
+							"channel_type" => "guild",
+							"added_by" => $this->db->getBotname(),
+							"dt" => $time
+						]);
 				}
 			}
 		}
 
 		foreach ($this->chatBot->chatlist as $name => $value) {
 			if (in_array($name, $privArray)) {
-				$sql = "UPDATE `online` SET `dt` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = 'priv'";
-				$this->db->exec($sql, $time, $name);
+					$this->buildOnlineQuery($name, "priv")
+						->update(["dt" => $time]);
 			} else {
-				$sql = "INSERT INTO `online` (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild> Guests', 'priv', '<myname>', ?)";
-				$this->db->exec($sql, $name, $time);
+					$this->db->table("online")
+						->insert([
+							"name" => $name,
+							"channel" => $this->db->getMyguild() . " Guests",
+							"channel_type" => "priv",
+							"added_by" => $this->db->getBotname(),
+							"dt" => $time
+						]);
 			}
 		}
 
-		$sql = "DELETE FROM `online` WHERE (`dt` < ? AND added_by = '<myname>') OR (`dt` < ?)";
-		$this->db->exec($sql, $time, ($time - $this->settingManager->get('online_expire')));
+		$this->db->table("online")
+			->where(function(QueryBuilder $query) use ($time) {
+				$query->where("dt", "<", $time)
+					->where("added_by", $this->db->getBotname());
+			})->orWhere("dt", "<", $time - $this->settingManager->get('online_expire'))
+			->delete();
 	}
 
 	/**
@@ -405,7 +446,9 @@ class OnlineController {
 		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
 			return;
 		}
-		$row = $this->db->queryRow("SELECT afk FROM online WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
+		$row = $this->buildOnlineQuery($sender, $type)
+			->select("afk")
+			->asObj()->first();
 
 		if ($row === null || $row->afk === '') {
 			return;
@@ -413,7 +456,8 @@ class OnlineController {
 		$time = explode('|', $row->afk)[0];
 		$timeString = $this->util->unixtimeToReadable(time() - $time);
 		// $sender is back
-		$this->db->exec("UPDATE online SET `afk` = '' WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $sender, $type);
+		$this->buildOnlineQuery($sender, $type)
+			->update(["afk" => ""]);
 		$msg = "<highlight>{$sender}<end> is back after $timeString.";
 
 		if ('priv' == $type) {
@@ -431,15 +475,15 @@ class OnlineController {
 			$symbolModifier = "?";
 		}
 		if (preg_match("/^\Q$symbol\E${symbolModifier}afk$/i", $message)) {
-			$reason = time();
-			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
+			$reason = (string)time();
+			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
 			$msg = "<highlight>$sender<end> is now AFK.";
 		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}brb(.*)$/i", $message, $arr)) {
 			$reason = time() . '|brb ' . trim($arr[1]);
-			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
+			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
 		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}afk[, ]+(.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
-			$this->db->exec("UPDATE online SET `afk` = ? WHERE `name` = ? AND added_by = '<myname>' AND channel_type = ?", $reason, $sender, $type);
+			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
 			$msg = "<highlight>$sender<end> is now AFK.";
 		}
 
@@ -459,28 +503,36 @@ class OnlineController {
 	}
 
 	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
-		$sql = "SELECT name FROM `online` ".
-			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
-		$data = $this->db->query($sql, $sender, $channelType);
+		$data = $this->buildOnlineQuery($sender, $channelType)
+			->select("name")
+			->asObj()->toArray();
+
 		if (count($data) === 0) {
-			$sql = "INSERT INTO `online` ".
-				"(`name`, `channel`,  `channel_type`, `added_by`, `dt`) ".
-				"VALUES (?, ?, ?, '<myname>', ?)";
-			$this->db->exec($sql, $sender, $channel, $channelType, time());
+			$this->db->table("online")
+				->insert([
+					"name" => $sender,
+					"channel" => $channelType,
+					"channel_type" => $channelType,
+					"added_by" => $this->db->getBotname(),
+					"dt" => time()
+				]);
 		}
-		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
-			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
-			"LEFT JOIN players p ON o.name = p.name ".
-			"WHERE o.channel_type=? AND o.name=?";
-		$op = $this->db->fetch(OnlinePlayer::class, $sql, $channelType, $sender);
+		$query = $this->db->table("online AS o")
+			->leftJoin("alts AS a", function (JoinClause $join) {
+				$join->on("o.name", "a.alt")
+					->where("a.validated_by_main", true)
+					->where("a.validated_by_alt", true);
+			})->leftJoin("players AS p", "o.name", "p.name")
+			->where("o.channel_type", $channelType)
+			->where("o.name", $sender)
+			->select("p.*", "o.name", "o.afk");
+		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
+		$op = $query->asObj(OnlinePlayer::class)->first();
 		return $op;
 	}
 
 	public function removePlayerFromOnlineList(string $sender, string $channelType): void {
-		$sql = "DELETE FROM `online` ".
-			"WHERE `name` = ? AND `channel_type` = ? AND added_by = '<myname>'";
-		$this->db->exec($sql, $sender, $channelType);
+		$this->buildOnlineQuery($sender, $channelType)->delete();
 	}
 
 	/**
@@ -677,20 +729,27 @@ class OnlineController {
 	 * @return OnlinePlayer[]
 	 */
 	public function getPlayers(string $channelType): array {
+		$query = $this->db->table("online AS o")
+			->leftJoin("alts AS a", function (JoinClause $join) {
+				$join->on("o.name", "a.alt")
+					->where("a.validated_by_main", true)
+					->where("a.validated_by_alt", true);
+			})->leftJoin("players AS p", "o.name", "p.name")
+			->where("o.channel_type", $channelType)
+			->select("p.*", "o.name", "o.afk");
+		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
 		$groupBy = $this->settingManager->getInt('online_group_by');
-		$sql = "SELECT p.*, o.name, o.afk, COALESCE(a.main, o.name) AS pmain ".
-			"FROM online o ".
-			"LEFT JOIN alts a ON (o.name = a.alt AND a.validated_by_main IS TRUE AND a.validated_by_alt IS TRUE) ".
-			"LEFT JOIN players p ON o.name = p.name ".
-			"WHERE o.channel_type = ? ";
 		if ($groupBy === static::GROUP_BY_MAIN) {
-			$sql .= "ORDER BY COALESCE(a.main, o.name) ASC";
+			$query->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]));
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
-			$sql .= "ORDER BY COALESCE(p.profession, 'Unknown') ASC, o.name ASC";
+			$query->orderByRaw(
+				"COALESCE(" . $query->grammar->wrap("p.profession") . ", ?) asc",
+				['Unknown']
+			)->orderBy("o.name");
 		} else {
-			$sql .= "ORDER BY o.name ASC";
+			$query->orderByRaw("o.name");
 		}
-		return $this->db->fetchAll(OnlinePLayer::class, $sql, $channelType);
+		return $query->asObj(OnlinePlayer::class)->toArray();
 	}
 
 	public function getProfessionId(string $profession): ?int {

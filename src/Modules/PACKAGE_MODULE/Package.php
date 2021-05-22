@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use stdClass;
-
 class Package {
 	/** Name of the package */
 	public string $name;

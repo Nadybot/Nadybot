@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
-use Nadybot\Core\DBRow;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
@@ -57,8 +58,9 @@ class BosslootController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "boss_namedb");
-		$this->db->loadSQLFile($this->moduleName, "boss_lootdb");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Boss");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_namedb.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
 	}
 
 	/**
@@ -70,15 +72,12 @@ class BosslootController {
 	public function bossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower($args[1]);
 
-		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'bossname');
+		$query = $this->db->table("boss_namedb");
+		$this->db->addWhereFromParams($query, explode(' ', $search), 'bossname');
 
-		/** @var BossNamedb[] */
-		$bosses = $this->db->fetchAll(
-			BossNamedb::class,
-			"SELECT bossid, bossname FROM boss_namedb b WHERE $query",
-			...$params
-		);
-		$count = count($bosses);
+		/** @var Collection<BossNamedb> */
+		$bosses = $query->asObj(BossNamedb::class);
+		$count = $bosses->count();
 
 		if ($count === 0) {
 			$output = "There were no matches for your search.";
@@ -99,19 +98,16 @@ class BosslootController {
 		$row = $bosses[0];
 		$blob = "";
 
-		$sql = "SELECT * FROM whereis w ".
-			"LEFT JOIN playfields p ON w.playfield_id = p.id ".
-			"WHERE name=?";
-		/** @var WhereisResult[] */
-		$npcs = $this->db->fetchAll(
-			WhereisResult::class,
-			$sql,
-			$row->bossname
-		);
-		$locations = [];
-		foreach ($npcs as $npc) {
-			$locations []= $this->text->makeChatcmd($npc->answer, "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}");
-		}
+		$locations = $this->db->table("whereis AS w")
+			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
+			->where("name", $row->bossname)
+			->asObj(WhereisResult::class)
+			->map(function(WhereisResult $npc): string {
+				return $this->text->makeChatcmd(
+					$npc->answer,
+					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
+				);
+			})->toArray();
 		if (count($locations)) {
 			$blob .= "<header2>Location<end>\n";
 			$blob .= "<tab>" . join("\n<tab>", $locations) . "\n\n";
@@ -119,14 +115,17 @@ class BosslootController {
 
 		$blob .= "<header2>Loot<end>\n";
 
-		/** @var BossLootdb[] */
-		$data = $this->db->fetchAll(
-			BossLootdb::class,
-			"SELECT * FROM boss_lootdb b ".
-			"LEFT JOIN aodb a ON (b.aoid=a.lowid OR (b.aoid IS NULL AND b.itemname = a.name)) ".
-			"WHERE b.bossid = ?",
-			$row->bossid
-		);
+		/** @var Collection<BossLootdb> */
+		$data = $this->db->table("boss_lootdb AS b")
+			->leftJoin("aodb AS a", function (JoinClause $join) {
+				$join->on("b.aoid", "a.lowid")
+					->orOn(function (JoinClause $join) {
+						$join->whereNull("b.aoid")
+							->whereColumn("b.itemname", "a.name");
+					});
+			})
+			->where("b.bossid", $row->bossid)
+			->asObj(BossLootdb::class);
 		foreach ($data as $row2) {
 			if (!isset($row2->icon)) {
 				$this->logger->log('ERROR', "Missing item in AODB: {$row2->itemname}.");
@@ -150,18 +149,14 @@ class BosslootController {
 
 		$blob = "Bosses that drop items matching '$search':\n\n";
 
-		[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'b1.itemname');
+		$query = $this->db->table("boss_lootdb AS b1")
+			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
+			->select("b2.bossid", "b2.bossname")->distinct();
+		$this->db->addWhereFromParams($query, explode(' ', $search), 'b1.itemname');
 
-		/** @var BossNamedb[] */
-		$loot = $this->db->fetchAll(
-			BossNamedb::class,
-			"SELECT DISTINCT b2.bossid, b2.bossname ".
-			"FROM boss_lootdb b1 JOIN boss_namedb b2 ON b2.bossid = b1.bossid ".
-			// "LEFT JOIN whereis w ON w.name = b2.bossname ".
-			"WHERE $query",
-			...$params
-		);
-		$count = count($loot);
+		/** @var Collection<BossNamedb> */
+		$loot = $query->asObj(BossNamedb::class);
+		$count = $loot->count();
 
 		$output = "There were no matches for your search.";
 		if ($count !== 0) {
@@ -174,37 +169,28 @@ class BosslootController {
 	}
 
 	public function getBossLootOutput(BossNamedb $row, ?string $search=null): string {
-		$query = "";
-		$params = [];
+		$query = $this->db->table("boss_lootdb AS b")
+			->leftJoin("aodb AS a", "b.itemname", "a.name")
+			->where("b.bossid", $row->bossid);
 		if (isset($search)) {
-			[$query, $params] = $this->util->generateQueryFromParams(explode(' ', $search), 'b.itemname');
-			$query = " AND {$query}";
+			$this->db->addWhereFromParams($query, explode(' ', $search), 'b.itemname');
 		}
-		/** @var BossLootdb[] */
-		$data = $this->db->fetchAll(
-			BossLootdb::class,
-			"SELECT * FROM boss_lootdb b ".
-			"LEFT JOIN aodb a ON (b.itemname = a.name) ".
-			"WHERE b.bossid = ?{$query}",
-			...[$row->bossid, ...$params]
-		);
+		/** @var Collection<BossLootdb> */
+		$data = $query->asObj(BossLootdb::class);
 
 		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss $row->bossname") . "]<end>\n";
-		$sql = "SELECT * FROM whereis w ".
-			"LEFT JOIN playfields p ON w.playfield_id = p.id ".
-			"WHERE name=?";
-		/** @var WhereisResult[] */
-		$npcs = $this->db->fetchAll(
-			WhereisResult::class,
-			$sql,
-			$row->bossname
-		);
-		$locations = [];
-		foreach ($npcs as $npc) {
-			$locations []= $this->text->makeChatcmd($npc->answer, "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}");
-		}
-		if (count($locations)) {
-			$blob .= "<tab>Location: " . join(", ", $locations) . "\n";
+		$locations = $this->db->table("whereis AS w")
+			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
+			->where("name", $row->bossname)
+			->asObj(WhereisResult::class)
+			->map(function (WhereisResult $npc): string {
+				return $this->text->makeChatcmd(
+					$npc->answer,
+					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
+				);
+			});
+		if ($locations->count()) {
+			$blob .= "<tab>Location: " . $locations->join(", ") . "\n";
 		}
 		$blob .= "<tab>Loot: ";
 		$lootItems = [];

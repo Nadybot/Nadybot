@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandManager,
 	Event,
@@ -33,6 +34,8 @@ use Nadybot\Core\{
  */
 class SilenceController {
 
+	public const DB_TABLE = "silence_cmd_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -57,7 +60,7 @@ class SilenceController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "silence_cmd");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	/**
@@ -65,19 +68,20 @@ class SilenceController {
 	 * @Matches("/^silence$/i")
 	 */
 	public function silenceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT * FROM silence_cmd_<myname> ORDER BY cmd, channel";
-		/** @var SilenceCmd[] */
-		$data = $this->db->fetchAll(SilenceCmd::class, $sql);
-		if (count($data) === 0) {
+		/** @var Collection<SilenceCmd> */
+		$data = $this->db->table(self::DB_TABLE)
+			->orderBy("cmd")
+			->orderBy("channel")
+			->asObj(SilenceCmd::class);
+		if ($data->count() === 0) {
 			$msg = "No commands have been silenced.";
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = '';
-		foreach ($data as $row) {
+		$blob = $data->reduce(function(string $blob, SilenceCmd $row) {
 			$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence $row->cmd $row->channel");
-			$blob .= "<highlight>$row->cmd<end> ($row->channel) - $unsilenceLink\n";
-		}
+			return "{$blob}<highlight>$row->cmd<end> ($row->channel) - $unsilenceLink\n";
+		}, '');
 		$msg = $this->text->makeBlob("Silenced Commands", $blob);
 		$sendto->reply($msg);
 	}
@@ -114,6 +118,11 @@ class SilenceController {
 	public function unsilenceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$command = strtolower($args[1]);
 		$channel = strtolower($args[2]);
+		if ($channel === "org") {
+			$channel = "guild";
+		} elseif ($channel === "tell") {
+			$channel = "msg";
+		}
 
 		$data = $this->commandManager->get($command, $channel);
 		if (count($data) === 0) {
@@ -133,21 +142,26 @@ class SilenceController {
 
 	public function addSilencedCommand(CmdCfg $row) {
 		$this->commandManager->activate($row->type, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
-		$sql = "INSERT INTO silence_cmd_<myname> (cmd, channel) VALUES (?, ?)";
-		$this->db->exec($sql, $row->cmd, $row->type);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"cmd" => $row->cmd,
+				"channel" => $row->type,
+			]);
 	}
 
 	public function isSilencedCommand(CmdCfg $row): bool {
-		$sql = "SELECT * FROM silence_cmd_<myname> WHERE cmd = ? AND channel = ?";
-		/** @var ?SilenceCmd */
-		$row = $this->db->fetch(SilenceCmd::class, $sql, $row->cmd, $row->type);
-		return $row !== null;
+		return $this->db->table(self::DB_TABLE)
+			->where("cmd", $row->cmd)
+			->where("channel", $row->type)
+			->exists();
 	}
 
 	public function removeSilencedCommand(CmdCfg $row) {
 		$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
-		$sql = "DELETE FROM silence_cmd_<myname> WHERE cmd = ? AND channel = ?";
-		$this->db->exec($sql, $row->cmd, $row->type);
+		$this->db->table(self::DB_TABLE)
+			->where("cmd", $row->cmd)
+			->where("channel", $row->type)
+			->delete();
 	}
 
 	/**
@@ -155,11 +169,10 @@ class SilenceController {
 	 * @Description("Overwrite command handlers for silenced commands")
 	 */
 	public function overwriteCommandHandlersEvent(Event $eventObj): void {
-		$sql = "SELECT * FROM silence_cmd_<myname>";
-		/** @var SilenceCmd[] */
-		$data = $this->db->fetchAll(SilenceCmd::class, $sql);
-		foreach ($data as $row) {
-			$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
-		}
+		$this->db->table(self::DB_TABLE)
+			->asObj(SilenceCmd::class)
+			->each(function (SilenceCmd $row) {
+				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+			});
 	}
 }

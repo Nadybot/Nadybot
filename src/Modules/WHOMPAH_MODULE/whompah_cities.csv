@@ -1,0 +1,31 @@
+id,city_name,zone,faction,short_name
+1,ICC,Andromeda,Neutral,icc
+2,Camelot,Avalon,Clan,camelot
+3,Bliss,"The Longest Road",Clan,bliss
+4,"Broken Shores - North","Broken Shores",Clan,bsn
+5,"Old Athen",Athen,Clan,oa
+6,Tir,"Tir County",Clan,tir
+7,"Varmint Woods","Varmint Woods",Clan,vw
+8,"Wailing Wastes","Wailing Wastes",Clan,ww
+9,Wine,"Belial Forest",Clan,wine
+10,"Newland City",Newland,Neutral,nlc
+11,"Newland Desert","Newland Desert",Neutral,nld
+12,Borealis,Borealis,Neutral,bor
+13,Hope,Mort,Neutral,hope
+14,"Stret West Bank","Stret West Bank",Neutral,swb
+15,"Omni Trade","Omni Trade",Omni,trade
+16,"Omni Entertainment","Omni Entertainment",Omni,ent
+17,"Galway Castle","Galway County",Omni,gc
+18,20K,"Pleasant Meadows",Omni,20k
+19,"4 Holes","4 Holes",Clan,4ho
+20,"Broken Shores - South","Broken Shores",Omni,bss
+21,"Outpost 10-3","Southern Artery Valley",Omni,sav
+22,2HO,"Stret East Bank",Omni,2ho
+23,Rome,"Rome Red",Omni,rr
+24,"The Longest Road","The Longest Road",Omni,tlr
+25,"Mutant Domain","Mutant Domain",Omni,md
+26,"Perpetual Wasteland","Perpetual Wasteland",Neutral,pw
+27,"Southern Fouls Hills","Southern Fouls Hills",Omni,sfh
+28,"Central Artery Valley","Central Artery Valley",Clan,cav
+29,"The Reck North","The Reck",Omni,trn
+30,"The Reck South","The Reck",Clan,trs

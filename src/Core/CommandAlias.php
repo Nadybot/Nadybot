@@ -8,6 +8,7 @@ use Nadybot\Core\DBSchema\CmdAlias;
  * @Instance
  */
 class CommandAlias {
+	public const DB_TABLE = "cmd_alias_<myname>";
 
 	/** @Inject */
 	public DB $db;
@@ -29,11 +30,12 @@ class CommandAlias {
 	public function load(): void {
 		$this->logger->log('DEBUG', "Loading enabled command aliases");
 
-		/** @var CmdAlias[] */
-		$data = $this->db->fetchAll(CmdAlias::class, "SELECT `cmd`, `alias` FROM `cmd_alias_<myname>` WHERE `status` = 1");
-		foreach ($data as $row) {
-			$this->activate($row->cmd, $row->alias);
-		}
+		$this->db->table(self::DB_TABLE)
+			->where("status", 1)
+			->asObj(CmdAlias::class)
+			->each(function (CmdAlias $row) {
+				$this->activate($row->cmd, $row->alias);
+			});
 	}
 
 	/**
@@ -50,12 +52,18 @@ class CommandAlias {
 		if ($row !== null) {
 			// do not update an alias that a user created
 			if (!empty($row->module)) {
-				$sql = "UPDATE `cmd_alias_<myname>` SET `module` = ?, `cmd` = ? WHERE `alias` = ?";
-				$this->db->exec($sql, $module, $command, $alias);
+				$this->db->table(self::DB_TABLE)
+					->where("alias", $alias)
+					->update(["module" => $module, "cmd" => $command]);
 			}
 		} else {
-			$sql = "INSERT INTO `cmd_alias_<myname>` (`module`, `cmd`, `alias`, `status`) VALUES (?, ?, ?, ?)";
-			$this->db->exec($sql, $module, $command, $alias, $status);
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"module" => $module,
+					"cmd" => $command,
+					"alias" => $alias,
+					"status" => $status
+				]);
 		}
 	}
 
@@ -152,9 +160,12 @@ class CommandAlias {
 	 */
 	public function add(object $row): int {
 		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
-
-		$sql = "INSERT INTO `cmd_alias_<myname>` (`module`, `cmd`, `alias`, `status`) VALUES (?, ?, ?, ?)";
-		return $this->db->exec($sql, $row->module, $row->cmd, $row->alias, $row->status);
+		return $this->db->table(self::DB_TABLE)->insert([
+			"module" => $row->module,
+			"cmd" => $row->cmd,
+			"alias" => $row->alias,
+			"status" => $row->status,
+		]) ? 1 : 0;
 	}
 
 	/**
@@ -162,9 +173,13 @@ class CommandAlias {
 	 */
 	public function update(object $row): int {
 		$this->logger->log('DEBUG', "Updating alias :($row->alias)");
-
-		$sql = "UPDATE `cmd_alias_<myname>` SET `module` = ?, `cmd` = ?, `status` = ? WHERE `alias` = ?";
-		return $this->db->exec($sql, $row->module, $row->cmd, $row->status, $row->alias);
+		return $this->db->table(self::DB_TABLE)
+			->where("alias", $row->alias)
+			->update([
+				"module" => $row->module,
+				"cmd" => $row->cmd,
+				"status" => $row->status
+			]);
 	}
 
 	/**
@@ -173,8 +188,7 @@ class CommandAlias {
 	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
-		$sql = "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `alias` = ?";
-		return $this->db->fetch(CmdAlias::class, $sql, $alias);
+		return $this->db->table(self::DB_TABLE)->where("alias", $alias)->asObj(CmdAlias::class)->first();
 	}
 
 	/**
@@ -198,8 +212,10 @@ class CommandAlias {
 	 * @return CmdAlias[]
 	 */
 	public function findAliasesByCommand(string $command): array {
-		$sql = "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `cmd` LIKE ?";
-		return $this->db->fetchAll(CmdAlias::class, $sql, $command);
+		return $this->db->table(self::DB_TABLE)
+			->whereIlike("cmd", $command)
+			->asObj(CmdAlias::class)
+			->toArray();
 	}
 
 	/**
@@ -208,6 +224,10 @@ class CommandAlias {
 	 * @return CmdAlias[]
 	 */
 	public function getEnabledAliases(): array {
-		return $this->db->fetchAll(CmdAlias::class, "SELECT `cmd`, `alias`, `module`, `status` FROM `cmd_alias_<myname>` WHERE `status` = 1 ORDER BY `alias` ASC");
+		return $this->db->table(self::DB_TABLE)
+			->where("status", 1)
+			->orderBy("alias")
+			->asObj(CmdAlias::class)
+			->toArray();
 	}
 }

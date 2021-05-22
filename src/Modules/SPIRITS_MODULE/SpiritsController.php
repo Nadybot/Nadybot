@@ -43,7 +43,8 @@ class SpiritsController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'spirits');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/spiritsdb.csv');
 	}
 
 	/**
@@ -57,12 +58,12 @@ class SpiritsController {
 			$name = ucwords(strtolower($name));
 			$title = "Spirits Database for $name";
 			/** @var Spirit[] */
-			$data = $this->db->fetchAll(
-				Spirit::class,
-				"SELECT * FROM spiritsdb WHERE name LIKE ? OR spot LIKE ? ORDER BY level",
-				'%'.$name.'%',
-				'%'.$name.'%'
-			);
+			$data = $this->db->table("spiritsdb")
+				->whereIlike("name", "%{$name}%")
+				->orWhereIlike("spot", "%{$name}%")
+				->orderBy("level")
+				->asObj(Spirit::class)
+				->toArray();
 			if (count($data) === 0) {
 				$spirits .= "There were no matches found for <highlight>$name<end>.\n".
 					"Try putting a comma between search values.\n\n";
@@ -91,12 +92,12 @@ class SpiritsController {
 			$slot = ucwords(strtolower($slot));
 			$slot = trim($slot);
 			/** @var Spirit[] */
-			$data = $this->db->fetchAll(
-				Spirit::class,
-				"SELECT * FROM spiritsdb WHERE name LIKE ? AND spot = ? ORDER BY level",
-				'%'.$name.'%',
-				$slot
-			);
+			$data = $this->db->table("spiritsdb")
+				->whereIlike("name", "%{$name}%")
+				->where("spot", $slot)
+				->orderBy("level")
+				->asObj(Spirit::class)
+				->toArray();
 			$spirits .= $this->formatSpiritOutput($data);
 			// If searched by ql
 		} elseif (preg_match("/^spirits ([0-9]+)$/i", $message, $arr)) {
@@ -108,11 +109,10 @@ class SpiritsController {
 			}
 			$title = "Spirits QL $ql";
 			/** @var Spirit[] */
-			$data = $this->db->fetchAll(
-				Spirit::class,
-				"SELECT * FROM spiritsdb where ql = ? ORDER BY ql",
-				$ql
-			);
+			$data = $this->db->table("spiritsdb")
+				->where("ql", $ql)
+				->asObj(Spirit::class)
+				->toArray();
 			$spirits .= $this->formatSpiritOutput($data);
 			// If searched by ql range
 		} elseif (preg_match("/^spirits ([0-9]+)-([0-9]+)$/i", $message, $arr)) {
@@ -125,12 +125,12 @@ class SpiritsController {
 			}
 			$title = "Spirits QL $qllorange to $qlhirange";
 			/** @var Spirit[] */
-			$data = $this->db->fetchAll(
-				Spirit::class,
-				"SELECT * FROM spiritsdb where ql >= ? AND ql <= ? ORDER BY ql",
-				$qllorange,
-				$qlhirange
-			);
+			$data = $this->db->table("spiritsdb")
+				->where("ql", ">=", $qllorange)
+				->where("ql", "<=", $qlhirange)
+				->orderBy("ql")
+				->asObj(Spirit::class)
+				->toArray();
 			$spirits .= $this->formatSpiritOutput($data);
 			// If searched by ql and slot
 		} elseif (preg_match("/^spirits ([0-9]+) (.+)$/i", $message, $arr)) {
@@ -146,12 +146,11 @@ class SpiritsController {
 				$spirits .= $this->getValidSlotTypes();
 			} else {
 				/** @var Spirit[] */
-				$data = $this->db->fetchAll(
-					Spirit::class,
-					"SELECT * FROM spiritsdb where spot = ? AND ql = ? ORDER BY ql",
-					$slot,
-					$ql
-				);
+				$data = $this->db->table("spiritsdb")
+					->where("spot", $slot)
+					->where("ql", $ql)
+					->asObj(Spirit::class)
+					->toArray();
 				$spirits .= $this->formatSpiritOutput($data);
 			}
 			// If searched by ql range and slot
@@ -169,13 +168,13 @@ class SpiritsController {
 				$spirits .= $this->getValidSlotTypes();
 			} else {
 				/** @var Spirit[] */
-				$data = $this->db->fetchAll(
-					Spirit::class,
-					"SELECT * FROM spiritsdb where spot = ? AND ql >= ? AND ql <= ? ORDER BY ql",
-					$slot,
-					$qllorange,
-					$qlhirange
-				);
+				$data = $this->db->table("spiritsdb")
+					->where("spot", $slot)
+					->where("ql", ">=", $qllorange)
+					->where("ql", "<=", $qlhirange)
+					->orderBy("ql")
+					->asObj(Spirit::class)
+					->toArray();
 				$spirits .= $this->formatSpiritOutput($data);
 			}
 		}
@@ -197,15 +196,14 @@ class SpiritsController {
 		$msg = '';
 		foreach ($spirits as $spirit) {
 			/** @var ?AODBEntry */
-			$dbSpirit = $this->db->fetch(
-				AODBEntry::class,
-				"SELECT * FROM aodb WHERE lowid = ? ".
-				"UNION ".
-				"SELECT * FROM aodb WHERE highid = ? ".
-				"LIMIT 1 ",
-				$spirit->id,
-				$spirit->id
-			);
+			$dbSpirit = $this->db->table("aodb")
+				->where("lowid", $spirit->id)
+				->union(
+					$this->db->table("aodb")
+						->where("highid", $spirit->id)
+				)->limit(1)
+				->asObj(AODBEntry::class)
+				->first();
 			if ($dbSpirit) {
 				$msg .= $this->text->makeImage($dbSpirit->icon) . ' ';
 				$msg .= $this->text->makeItem($dbSpirit->lowid, $dbSpirit->highid, $dbSpirit->highql, $dbSpirit->name) . "\n";

@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BuddylistManager,
 	CommandReply,
 	DB,
+	DBRow,
 	Event,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
@@ -67,6 +70,8 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
  */
 class GuildController {
 
+	public const DB_TABLE = "org_members_<myname>";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -110,8 +115,7 @@ class GuildController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "org_members");
-		$this->db->loadSQLFile($this->moduleName, "org_rank_mapping");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -165,16 +169,35 @@ class GuildController {
 			"true;false",
 			"1;0"
 		);
+		$this->loadGuildMembers();
+	}
 
+	protected function loadGuildMembers(): void {
 		$this->chatBot->guildmembers = [];
-		$sql = "SELECT o.name, IFNULL(p.guild_rank_id, 6) AS guild_rank_id ".
-			"FROM org_members_<myname> o ".
-			"LEFT JOIN players p ON (o.name = p.name AND p.dimension = '<dim>' AND p.guild = '<myguild>') ".
-			"WHERE mode != 'del'";
-		$data = $this->db->query($sql);
-		foreach ($data as $row) {
+		$query = $this->db->table(self::DB_TABLE . " AS o")
+			->leftJoin("players AS p", function(JoinClause $join) {
+				$join->whereColumn("o.name", "p.name")
+					->where("p.dimension", $this->db->getDim())
+					->where("p.guild", $this->db->getMyguild());
+			})->where("mode", "!=", "del")
+			->select("o.name")
+			->orderBy("o.name");
+		$query->selectRaw(
+			"COALESCE(" . $query->grammar->wrap("p.guild_rank_id") . ", 6)".
+			$query->as("guild_rank_id")
+		);
+		$query->asObj()->each(function(DBRow $row) {
 			$this->chatBot->guildmembers[$row->name] = $row->guild_rank_id;
-		}
+		});
+	}
+
+	/** Remove someone from the online list that we added for "guild" */
+	protected function delMemberFromOnline(string $member): int {
+		return $this->db->table("online")
+			->where("name", $member)
+			->where("channel_type", "guild")
+			->where("added_by", $this->db->getBotname())
+			->delete();
 	}
 
 	/**
@@ -266,16 +289,12 @@ class GuildController {
 		}
 
 		$alts = $altInfo->getAllAlts();
-		$nameSearch = implode(",", array_fill(0, count($alts), "?"));
-		/** @var OrgMember[] */
-		$data = $this->db->fetchAll(
-			OrgMember::class,
-			"SELECT * FROM org_members_<myname> ".
-			"WHERE `name` IN ($nameSearch) ".
-			"AND `mode` != 'del' ".
-			"ORDER BY logged_off DESC",
-			...$alts
-		);
+		/** @var Collection<OrgMember> */
+		$data = $this->db->table(self::DB_TABLE)
+			->whereIn("name", $alts)
+			->where("mode", "!=", "del")
+			->orderByDesc("logged_off")
+			->asObj(OrgMember::class);
 
 		foreach ($data as $row) {
 			if (in_array($row->name, $onlineAlts)) {
@@ -289,7 +308,7 @@ class GuildController {
 		}
 
 		$msg = "Character <highlight>$name<end> is not a member of the org.";
-		if (count($data) !== 0) {
+		if ($data->count() !== 0) {
 			$msg = $this->text->makeBlob("Last Seen Info for $altInfo->main", $blob);
 		}
 
@@ -316,16 +335,17 @@ class GuildController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$data = $this->db->query(
-			"SELECT CASE WHEN a.main IS NULL THEN o.name ELSE a.main END AS main, o.logged_off, o.name ".
-			"FROM org_members_<myname> o ".
-			"LEFT JOIN alts a ON o.name = a.alt ".
-			"WHERE `mode` != 'del' AND `logged_off` > ? ".
-			"ORDER BY 1, o.logged_off desc, o.name",
-			$time
-		);
+		$query = $this->db->table(self::DB_TABLE . " AS o")
+			->leftJoin("alts AS a", "o.name", "a.alt")
+			->where("mode", "!=", "del")
+			->where("logged_off", ">", $time)
+			->orderByDesc("o.logged_off")
+			->orderBy("o.name");
+		$query->selectRaw($query->colFunc("COALESCE", ["a.main", "o.name"], "main"));
+		$query->addSelect("o.logged_off", "o.name");
+		$data = $query->asObj();
 
-		if (count($data) === 0) {
+		if ($data->count() === 0) {
 			$sendto->reply("No members recorded.");
 			return;
 		}
@@ -374,21 +394,28 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->queryRow("SELECT mode FROM org_members_<myname> WHERE `name` = ?", $name);
+		$row = $this->db->table(self::DB_TABLE)
+			->where("name", $name)
+			->select("mode")
+			->asObj()->first();
 
 		if ($row !== null && $row->mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
 			$sendto->reply($msg);
 			return;
 		}
-		if ($row === null) {
-			$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'add')", $name);
-		} else {
-			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
-		}
+		$this->db->table(self::DB_TABLE)
+			->upsert(["name" => $name, "mode" => "add"], "name");
 
 		if ($this->buddylistManager->isOnline($name)) {
-			$this->db->exec("INSERT INTO online (`name`, `channel`, `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
+			$this->db->table("online")
+				->insert([
+					"name" => $name,
+					"channel" => $this->db->getMyguild(),
+					"channel_type" => "guild",
+					"added_by" => $this->db->getBotname(),
+					"dt" => time(),
+				]);
 		}
 		$this->buddylistManager->add($name, 'org');
 		$this->chatBot->guildmembers[$name] = 6;
@@ -411,15 +438,20 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->queryRow("SELECT mode FROM org_members_<myname> WHERE `name` = ?", $name);
+		$row = $this->db->table(self::DB_TABLE)
+			->where("name", $name)
+			->select("mode")
+			->asObj()->first();
 
 		if ($row === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
 		} elseif ($row->mode == "del") {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
-			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
-			$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $name);
+			$this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->update(["mode" => "del"]);
+			$this->delMemberFromOnline($name);
 			$this->buddylistManager->remove($name, 'org');
 			unset($this->chatBot->guildmembers[$name]);
 			$msg = "Removed <highlight>{$name}<end> from the Notify list.";
@@ -467,9 +499,9 @@ class GuildController {
 		}
 
 		// Save the current org_members table in a var
-		/** @var OrgMember[] */
-		$data = $this->db->fetchAll(OrgMember::class, "SELECT * FROM org_members_<myname>");
-		if (count($data) === 0 && (count($org->members) > 0)) {
+		/** @var Collection<OrgMember> */
+		$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+		if ($data->count() === 0 && (count($org->members) > 0)) {
 			$restart = true;
 		} else {
 			$restart = false;
@@ -503,7 +535,9 @@ class GuildController {
 
 					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
 					if ($dbEntries[$member->name]["mode"] == "add") {
-						$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'org' WHERE `name` = ?", $member->name);
+						$this->db->table(self::DB_TABLE)
+							->where("name", $member->name)
+							->update(["mode" => "org"]);
 					}
 				}
 			//Else insert his/her data
@@ -512,7 +546,11 @@ class GuildController {
 				$this->buddylistManager->add($member->name, 'org');
 				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
 
-				$this->db->exec("INSERT INTO org_members_<myname> (`name`, `mode`) VALUES (?, 'org')", $member->name);
+				$this->db->table(self::DB_TABLE)
+					->insert([
+						"name" => $member->name,
+						"mode" => "org",
+					]);
 			}
 			unset($dbEntries[$member->name]);
 		}
@@ -522,8 +560,10 @@ class GuildController {
 		// remove buddies who are no longer org members
 		foreach ($dbEntries as $buddy) {
 			if ($buddy['mode'] !== 'add') {
-				$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $buddy['name']);
-				$this->db->exec("DELETE FROM org_members_<myname> WHERE `name` = ?", $buddy['name']);
+				$this->delMemberFromOnline($buddy["name"]);
+				$this->db->table(self::DB_TABLE)
+					->where("name", $buddy["name"])
+					->delete();
 				$this->buddylistManager->remove($buddy['name'], 'org');
 				unset($this->chatBot->guildmembers[$buddy['name']]);
 			}
@@ -532,6 +572,8 @@ class GuildController {
 		$this->logger->log('INFO', "Finished Roster update");
 
 		if ($restart === true) {
+			$this->loadGuildMembers();
+			/*
 			$this->chatBot->sendGuild("Guild roster has been loaded for the first time. Restarting...");
 
 			$this->logger->log('INFO', "The bot is restarting");
@@ -546,6 +588,7 @@ class GuildController {
 				exit(0);
 			}
 			return;
+			*/
 		}
 		if (isset($callback)) {
 			$callback(...$args);
@@ -569,38 +612,43 @@ class GuildController {
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
 
-			if ($this->buddylistManager->isOnline("")) {
-				$this->db->exec("INSERT INTO online (`name`, `channel`,  `channel_type`, `added_by`, `dt`) VALUES (?, '<myguild>', 'guild', '<myname>', ?)", $name, time());
+			if (
+				$this->buddylistManager->isOnline($name)
+				&& $this->db->table("online")
+					->where("name", $name)
+					->where("channel_type", "guild")
+					->where("added_by", $this->db->getBotname())
+					->doesntExist()
+			) {
+				$this->db->table("online")
+					->insert([
+						"name" => $name,
+						"channel" => $this->db->getMyguild(),
+						"channel_type" => "guild",
+						"added_by" => $this->db->getBotname(),
+						"dt" => time()
+					]);
 			}
-
-			/** @var ?OrgMember */
-			$row = $this->db->fetch(OrgMember::class, "SELECT * FROM org_members_<myname> WHERE `name` = ?", $name);
-			if ($row !== null) {
-				$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'add' WHERE `name` = ?", $name);
-				$this->buddylistManager->add($name, 'org');
-				$this->chatBot->guildmembers[$name] = 6;
-			} else {
-				$this->db->exec("INSERT INTO org_members_<myname> (`mode`, `name`) VALUES ('add', ?)", $name);
-				$this->buddylistManager->add($name, 'org');
-				$this->chatBot->guildmembers[$name] = 6;
-			}
+			$this->db->table(self::DB_TABLE)
+				->upsert(["mode" => "add", "name" => $name], "name");
+			$this->buddylistManager->add($name, 'org');
+			$this->chatBot->guildmembers[$name] = 6;
 
 			// update character info
 			$this->playerManager->getByNameAsync(function() {
 			}, $name);
-		} elseif (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr) || preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
-			$name = ucfirst(strtolower($arr[2]));
+		} elseif (
+			preg_match("/^(.+) kicked (?<char>.+) from your organization.$/", $message, $arr)
+			|| preg_match("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message, $arr)
+			|| preg_match("/^(?<char>.+) just left your organization.$/", $message, $arr)
+			|| preg_match("/^(?<char>.+) kicked from organization \\(alignment changed\\).$/", $message, $arr)
+		) {
+			$name = ucfirst(strtolower($arr["char"]));
 
-			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
-			$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $name);
-
-			unset($this->chatBot->guildmembers[$name]);
-			$this->buddylistManager->remove($name, 'org');
-		} elseif (preg_match("/^(.+) just left your organization.$/", $message, $arr) || preg_match("/^(.+) kicked from organization \\(alignment changed\\).$/", $message, $arr)) {
-			$name = ucfirst(strtolower($arr[1]));
-
-			$this->db->exec("UPDATE org_members_<myname> SET `mode` = 'del' WHERE `name` = ?", $name);
-			$this->db->exec("DELETE FROM online WHERE `name` = ? AND `channel_type` = 'guild' AND added_by = '<myname>'", $name);
+			$this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->update(["mode" => "del"]);
+			$this->delMemberFromOnline($name);
 
 			unset($this->chatBot->guildmembers[$name]);
 			$this->buddylistManager->remove($name, 'org');
@@ -725,7 +773,9 @@ class GuildController {
 	public function orgMemberLogoffRecordEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			$this->db->exec("UPDATE org_members_<myname> SET `logged_off` = ? WHERE `name` = ?", time(), $sender);
+			$this->db->table(self::DB_TABLE)
+				->where("name", $sender)
+				->update(["logged_off" => time()]);
 		}
 	}
 
@@ -755,8 +805,8 @@ class GuildController {
 
 	public function getOrgChannelIdByOrgId(int $orgId): ?string {
 		foreach ($this->chatBot->grp as $gid => $status) {
-			$string = unpack("N", substr($gid, 1));
-			if (ord(substr($gid, 0, 1)) === 3 && $string[1] == $orgId) {
+			$string = unpack("N", substr((string)$gid, 1));
+			if (ord(substr((string)$gid, 0, 1)) === 3 && $string[1] == $orgId) {
 				return $gid;
 			}
 		}

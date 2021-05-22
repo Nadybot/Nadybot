@@ -62,7 +62,6 @@ class WeatherController {
 		$this->http
 			->get($apiEndpoint)
 			->withTimeout(10)
-			->withHeader('User-Agent', 'Nadybot')
 			->withHeader('accept-language', 'en')
 			->withCallback($callback, $sendto);
 	}
@@ -113,7 +112,6 @@ class WeatherController {
 		$this->http
 			->get($apiEndpoint)
 			->withTimeout(10)
-			->withHeader('User-Agent', 'Nadybot')
 			->withHeader('accept-language', 'en')
 			->withCallback([$this, "processWeatherResult"], $nom, $sendto);
 	}

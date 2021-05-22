@@ -1,0 +1,6 @@
+#city_module
+/text Start CITY_MODULE
+!cloak
+!cloak on
+!testcloaklower
+!testcloakraise

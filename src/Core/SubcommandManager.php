@@ -46,6 +46,7 @@ class SubcommandManager {
 			$this->logger->log('ERROR', "Invalid args for $module:subcommand($command)");
 			return;
 		}
+		/** @var string[] $channel */
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
@@ -67,14 +68,32 @@ class SubcommandManager {
 			$this->logger->log('DEBUG', "Adding Subcommand to list:($command) File:($filename) Admin:($admin) Channel:({$channel[$i]})");
 
 			if ($this->chatBot->existing_subcmds[$channel[$i]][$command] == true) {
-				$sql = "UPDATE cmdcfg_<myname> SET `module` = ?, `verify` = ?, `file` = ?, `description` = ?, `dependson` = ?, `help` = ? WHERE `cmd` = ? AND `type` = ?";
-				$this->db->exec($sql, $module, '1', $filename, $description, $parent_command, $help, $command, $channel[$i]);
+				$this->db->table(CommandManager::DB_TABLE)
+					->where("cmd", $command)
+					->where("type", $channel[$i])
+					->update([
+						"module" => $module,
+						"verify" => 1,
+						"file" => $filename,
+						"description" => $description,
+						"dependson" => $parent_command,
+						"help" => $help,
+					]);
 			} else {
-				$sql = "INSERT INTO cmdcfg_<myname> ".
-					"(`module`, `type`, `file`, `cmd`, `admin`, `description`, `verify`, `cmdevent`, `dependson`, `status`, `help`) ".
-					"VALUES ".
-					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-				$this->db->exec($sql, $module, $channel[$i], $filename, $command, $admin[$i], $description, '1', 'subcmd', $parent_command, $status, $help);
+				$this->db->table(CommandManager::DB_TABLE)
+					->insert([
+						"module" => $module,
+						"type" => $channel[$i],
+						"cmd" => $command,
+						"cmdevent" => "subcmd",
+						"admin" => $admin[$i],
+						"verify" => 1,
+						"status" => $status,
+						"file" => $filename,
+						"description" => $description,
+						"dependson" => $parent_command,
+						"help" => $help,
+					]);
 			}
 		}
 	}
@@ -88,15 +107,19 @@ class SubcommandManager {
 
 		$this->subcommands = [];
 
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(
-			CmdCfg::class,
-			"SELECT * FROM `cmdcfg_<myname>` ".
-			"WHERE `status` = '1' AND `cmdevent` = 'subcmd' ".
-			"ORDER BY LENGTH(`cmd`) DESC, `cmd` LIKE '%.%' ASC"
-		);
-		foreach ($data as $row) {
-			$this->subcommands[$row->dependson] []= $row;
-		}
+		$this->db->table(CommandManager::DB_TABLE)
+			->where("status", 1)
+			->where("cmdevent", "subcmd")
+			->asObj(CmdCfg::class)
+			->sort(function (CmdCfg $row1, CmdCfg $row2): int {
+				$len1 = strlen($row1->cmd);
+				$len2 = strlen($row2->cmd);
+				$has1 = (strpos($row1->cmd, '.') === false) ? 0 : 1;
+				$has2 = (strpos($row2->cmd, '.') === false) ? 0 : 1;
+				return ($len2 <=> $len1) ?: ($has1 <=> $has2);
+			})
+			->each(function(CmdCfg $row) {
+				$this->subcommands[$row->dependson] []= $row;
+			});
 	}
 }

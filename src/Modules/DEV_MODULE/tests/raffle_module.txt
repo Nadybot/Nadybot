@@ -13,12 +13,17 @@
 !raffle cancel
 /delay %1
 !raffle start 10 test1
+!raffle cancel
+!raffle start test1
 /delay %1
 !raffle join
 /delay %1
 !raffle leave
 /delay %1
 !raffle join
+!settings save raffle_bonus_per_loss 5
+!runas Nady raffle join
+!runas Nadyita raffle join
 /delay %1
 !raffle result
 /delay %1
@@ -26,6 +31,15 @@
 /delay %1
 !raffle result
 /delay %1
+!settings save raffle_bonus_per_loss 0
+!raffle start A+B+C
+!raffle end
+!raffle start A+B+C,E+D+F
+!raffle end
+!raffle start 2xA+B+C,E+D+F
+!raffle end
+!raffle start 2x2xA+B+C,2xE+D+F
+!raffle end
 /text End RAFFLE_MODULE
 
 /quote_module.txt %1

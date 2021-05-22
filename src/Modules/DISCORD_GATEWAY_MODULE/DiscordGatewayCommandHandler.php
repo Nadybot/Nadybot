@@ -29,6 +29,7 @@ use Nadybot\Core\Modules\DISCORD\DiscordUser;
  *	)
  */
 class DiscordGatewayCommandHandler {
+	public const DB_TABLE = "discord_mapping_<myname>";
 
 	public string $moduleName;
 
@@ -90,16 +91,16 @@ class DiscordGatewayCommandHandler {
 			"!",
 			"!;#;*;@;$;+;-",
 		);
-		$this->db->loadSQLFile($this->moduleName, "discord_mapping");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	public function getNameForDiscordId(string $discordId): ?string {
 		/** @var ?DiscordMapping */
-		$data = $this->db->fetch(
-			DiscordMapping::class,
-			"SELECT * FROM `discord_mapping_<myname>` WHERE `discord_id`=? AND `confirmed` IS NOT NULL",
-			$discordId
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("discord_id", $discordId)
+			->whereNotNull("confirmed")
+			->asObj(DiscordMapping::class)
+			->first();
 		return $data ? $data->name : null;
 	}
 
@@ -113,35 +114,33 @@ class DiscordGatewayCommandHandler {
 		}
 		$uid = strtoupper($args[1]);
 		/** @var ?DiscordMapping */
-		$data = $this->db->fetch(
-			DiscordMapping::class,
-			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `confirmed` IS NOT NULL",
-			$args[1]
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $args[1])
+			->whereNotNull("confirmed")
+			->asObj(DiscordMapping::class)
+			->first();
 		if ($data !== null) {
 			$msg = "You have already linked your account with <highlight>{$data->discord_id}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
-		$data = $this->db->fetch(
-			DiscordMapping::class,
-			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `token`=?",
-			$sender,
-			$uid
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $sender)
+			->where("token", $uid)
+			->asObj(DiscordMapping::class)
+			->first();
 		if ($data === null) {
 			$msg = "There is currently no request to link with this token.";
 			$sendto->reply($msg);
 			return;
 		}
-		$this->db->exec(
-			"UPDATE `discord_mapping_<myname>` ".
-			"SET `confirmed`=?, `token`=null ".
-			"WHERE `token`=? AND `name`=?",
-			time(),
-			$uid,
-			$sender
-		);
+		$this->db->table(self::DB_TABLE)
+			->where("name", $sender)
+			->where("token", $uid)
+			->update([
+				"confirmed" => time(),
+				"token" => null
+			]);
 		$msg = "You have linked your accounts successfully.";
 		$sendto->reply($msg);
 	}
@@ -155,12 +154,10 @@ class DiscordGatewayCommandHandler {
 			return;
 		}
 		$uid = strtoupper($args[1]);
-		$this->db->exec(
-			"DELETE FROM `discord_mapping_<myname>` ".
-			"WHERE `token`=? AND `name`=?",
-			$uid,
-			$sender
-		);
+		$this->db->table(self::DB_TABLE)
+			->where("token", $uid)
+			->where("name", $sender)
+			->delete();
 		$msg = "The request has been rejected.";
 		$sendto->reply($msg);
 	}
@@ -185,35 +182,32 @@ class DiscordGatewayCommandHandler {
 			return;
 		}
 		/** @var ?DiscordMapping */
-		$data = $this->db->fetch(
-			DiscordMapping::class,
-			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `confirmed` IS NOT NULL",
-			$args[1]
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $args[1])
+			->whereNotNull("confirmed")
+			->asObj(DiscordMapping::class)
+			->first();
 		if ($data !== null) {
 			$msg = "<highlight>$name<end> is already linked with a different Discord user.";
 			$sendto->reply($msg);
 			return;
 		}
 		/** @var ?DiscordMapping */
-		$data = $this->db->fetch(
-			DiscordMapping::class,
-			"SELECT * FROM `discord_mapping_<myname>` WHERE `name`=? AND `discord_id`=?",
-			$args[1],
-			$discordUserId
-		);
+		$data = $this->db->table(self::DB_TABLE)
+			->where("name", $args[1])
+			->where("discord_id", $discordUserId)
+			->asObj(DiscordMapping::class)
+			->first();
 		// Never tried to link before
 		if ($data === null) {
 			$uid = strtoupper(bin2hex(random_bytes(16)));
-			$this->db->exec(
-				"INSERT INTO `discord_mapping_<myname>` ".
-				"(`name`, `discord_id`, `token`, `created`) ".
-				"VALUES(?, ?, ?, ?)",
-				$name,
-				$discordUserId,
-				$uid,
-				time()
-			);
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"name" => $name,
+					"discord_id" => $discordUserId,
+					"token" => $uid,
+					"created" => time(),
+				]);
 		} else {
 			$uid = $data->token;
 		}
