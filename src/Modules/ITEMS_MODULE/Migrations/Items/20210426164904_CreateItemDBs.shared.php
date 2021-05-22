@@ -24,7 +24,7 @@ class CreateItemDBs implements SchemaMigration {
 
 		$db->schema()->dropIfExists("item_groups");
 		$db->schema()->create("item_groups", function(Blueprint $table) {
-			$table->id();
+			$table->integer("id")->primary();
 			$table->integer("group_id")->index();
 			$table->integer("item_id")->index();
 		});

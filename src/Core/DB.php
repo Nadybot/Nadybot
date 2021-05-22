@@ -80,6 +80,7 @@ class DB {
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
+	public const MSSQL = 'mssql';
 
 	public function __construct() {
 		$this->logger = new LoggerWrapper('SQL');
@@ -217,6 +218,39 @@ class DB {
 						$this->logger->log(
 							"ERROR",
 							"Cannot connect to the PostgreSQL db at {$host}: ".
+							trim($e->errorInfo[2])
+						);
+						$this->logger->log(
+							"INFO",
+							"Will keep retrying until the db is back up again"
+						);
+						$errorShown = true;
+					}
+					sleep(1);
+				}
+			} while (!isset($this->sql));
+			if ($errorShown) {
+				$this->logger->log("INFO", "Database connection re-established");
+			}
+		} elseif ($this->type === self::MSSQL) {
+			do {
+				try {
+					$this->capsule->addConnection([
+						'driver' => 'sqlsrv',
+						'host' => $host,
+						'database' => $dbName,
+						'username' => $user,
+						'password' => $pass,
+						'charset' => 'utf8',
+						'collation' => 'utf8_unicode_ci',
+						'prefix' => ''
+					]);
+					$this->sql = $this->capsule->getConnection()->getPdo();
+				} catch (Throwable $e) {
+					if (!$errorShown) {
+						$this->logger->log(
+							"ERROR",
+							"Cannot connect to the MSSQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
 						$this->logger->log(
@@ -777,7 +811,7 @@ class DB {
 			return $this->table($table)->insert($data) ? 1 : 0;
 		}
 		if ($sequence === '') {
-			$sequence = null;
+			return $this->table($table)->insert($data);
 		}
 		return $this->table($table)->insertGetId($data, $sequence);
 	}
@@ -887,12 +921,11 @@ class DB {
 	 */
 	protected function getAppliedMigrations(string $module): Collection {
 		$ownQuery = $this->table('migrations_<myname>')->select()
-			->where('module', $module)
-			->orderBy('migration');
+			->where('module', $module);
 		$sharedQuery = $this->table('migrations')->select()
-				->where('module', $module)
-				->orderBy('migration');
-		return $ownQuery->union($sharedQuery)->asObj(Migration::class);
+				->where('module', $module);
+		return $ownQuery->union($sharedQuery)
+			->orderBy('migration')->asObj(Migration::class);
 	}
 
 	/** Load and apply all migrations for $module from directory $dir and return if any were applied */
@@ -1005,7 +1038,7 @@ class DB {
 			foreach ($csv->items() as $item) {
 				$itemCount++;
 				$items []= $item;
-				if (count($items) > 1000) {
+				if (count($items) > 900) {
 					$this->table($table)->insert($items);
 					$items = [];
 				}

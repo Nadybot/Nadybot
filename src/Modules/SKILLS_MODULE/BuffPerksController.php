@@ -142,9 +142,15 @@ class BuffPerksController {
 					}
 				}
 			}
-			$this->db->table("perk_level_prof")->insert($profInserts);
-			$this->db->table("perk_level_resistances")->insert($resInserts);
-			$this->db->table("perk_level_buffs")->insert($buffInserts);
+			foreach (array_chunk($profInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_prof")->insert($inserts);
+			}
+			foreach (array_chunk($resInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_resistances")->insert($inserts);
+			}
+			foreach (array_chunk($buffInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_buffs")->insert($inserts);
+			}
 			$newVersion = max($mtime ?: time(), $dbVersion);
 			$this->settingManager->save("perks_db_version", (string)$newVersion);
 		} catch (Throwable $e) {

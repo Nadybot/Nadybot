@@ -12,7 +12,7 @@ class CreateIngredientTable implements SchemaMigration {
 		$table = "ingredient";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->id();
+			$table->integer("id")->primary();
 			$table->string("name", 50);
 			$table->integer("aoid")->nullable()->index();
 			$table->text("where")->nullable();

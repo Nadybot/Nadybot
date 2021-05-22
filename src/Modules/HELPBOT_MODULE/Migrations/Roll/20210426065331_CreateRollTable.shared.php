@@ -13,6 +13,7 @@ class CreateRollTable implements SchemaMigration {
 		if ($db->schema()->hasTable("roll")) {
 			$db->schema()->table($table, function(Blueprint $table) {
 				$table->id("id")->change();
+				$table->text("options")->change();
 			});
 			return;
 		}
@@ -20,7 +21,7 @@ class CreateRollTable implements SchemaMigration {
 			$table->id();
 			$table->integer("time")->nullable();
 			$table->string("name", 255)->nullable();
-			$table->string("options", 5000)->nullable();
+			$table->text("options")->nullable();
 			$table->string("result", 255)->nullable();
 		});
 	}

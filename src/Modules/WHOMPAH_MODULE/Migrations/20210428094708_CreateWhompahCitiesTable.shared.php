@@ -12,7 +12,7 @@ class CreateWhompahCitiesTable implements SchemaMigration {
 		$table = "whompah_cities";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->id();
+			$table->integer("id")->primary();
 			$table->string("city_name", 50);
 			$table->string("zone", 50);
 			$table->string("faction", 10);

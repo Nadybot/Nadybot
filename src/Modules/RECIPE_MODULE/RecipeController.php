@@ -168,7 +168,7 @@ class RecipeController {
 			if (isset($recipes[$args[1]])) {
 				$this->db->update("recipes", "id", $recipe);
 			} else {
-				$this->db->insert("recipes", $recipe);
+				$this->db->insert("recipes", $recipe, null);
 			}
 		}
 		$this->db->commit();

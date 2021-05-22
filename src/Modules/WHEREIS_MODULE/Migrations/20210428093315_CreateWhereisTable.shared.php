@@ -12,7 +12,7 @@ class CreateWhereisTable implements SchemaMigration {
 		$table = "whereis";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-				$table->id();
+				$table->integer("id")->primary();
 				$table->string("name", 255)->nullable();
 				$table->text("answer")->nullable();
 				$table->text("keywords")->nullable();

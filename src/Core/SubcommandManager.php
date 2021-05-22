@@ -107,13 +107,17 @@ class SubcommandManager {
 
 		$this->subcommands = [];
 
-		/** @var CmdCfg[] $data */
-		$query = $this->db->table(CommandManager::DB_TABLE)
+		$this->db->table(CommandManager::DB_TABLE)
 			->where("status", 1)
-			->where("cmdevent", "subcmd");
-		$query->orderByRaw($query->colFunc("LENGTH", "cmd") . " DESC")
-			->orderByRaw($query->grammar->wrap("cmd") . " LIKE " . $query->grammar->quoteString("%.%") . " ASC")
+			->where("cmdevent", "subcmd")
 			->asObj(CmdCfg::class)
+			->sort(function (CmdCfg $row1, CmdCfg $row2): int {
+				$len1 = strlen($row1->cmd);
+				$len2 = strlen($row2->cmd);
+				$has1 = (strpos($row1->cmd, '.') === false) ? 0 : 1;
+				$has2 = (strpos($row2->cmd, '.') === false) ? 0 : 1;
+				return ($len2 <=> $len1) ?: ($has1 <=> $has2);
+			})
 			->each(function(CmdCfg $row) {
 				$this->subcommands[$row->dependson] []= $row;
 			});

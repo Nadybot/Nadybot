@@ -13,7 +13,8 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-	SettingManager,
+    Registry,
+    SettingManager,
 };
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,
@@ -827,11 +828,12 @@ class ImportController {
 	}
 
 	public function importTimers(array $timers): void {
+		$table = Registry::getInstance("timercontroller")::DB_TABLE;
 		$this->logger->log("INFO", "Importing " . count($timers) . " timers");
 		$this->db->beginTransaction();
 		try {
 			$this->logger->log("INFO", "Deleting all timers");
-			$this->db->table(TimerController::DB_TABLE)->truncate();
+			$this->db->table($table)->truncate();
 			$timerNum = 1;
 			foreach ($timers as $timer) {
 				$entry = new Timer();
@@ -854,7 +856,7 @@ class ImportController {
 					$alertEntry->time = $entry->endtime;
 					$entry->alerts []= $alertEntry;
 				}
-				$this->db->table(TimerController::DB_TABLE)
+				$this->db->table($table)
 					->insert([
 						"name" => $entry->name,
 						"owner" => $entry->owner,

@@ -12,7 +12,7 @@ class CreateRaidLootTable implements SchemaMigration {
 		$table = "raid_loot";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->id();
+			$table->integer("id")->primary();
 			$table->string("raid", 30)->index();
 			$table->string("category", 50)->index();
 			$table->integer("ql");
