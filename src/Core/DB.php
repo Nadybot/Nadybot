@@ -810,9 +810,6 @@ class DB {
 		if ($sequence === null) {
 			return $this->table($table)->insert($data) ? 1 : 0;
 		}
-		if ($sequence === '') {
-			return $this->table($table)->insert($data);
-		}
 		return $this->table($table)->insertGetId($data, $sequence);
 	}
 
