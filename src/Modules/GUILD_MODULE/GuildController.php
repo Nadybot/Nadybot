@@ -176,7 +176,7 @@ class GuildController {
 		$this->chatBot->guildmembers = [];
 		$query = $this->db->table(self::DB_TABLE . " AS o")
 			->leftJoin("players AS p", function(JoinClause $join) {
-				$join->whereColumn("o.name", "p.name")
+				$join->on("o.name", "p.name")
 					->where("p.dimension", $this->db->getDim())
 					->where("p.guild", $this->db->getMyguild());
 			})->where("mode", "!=", "del")

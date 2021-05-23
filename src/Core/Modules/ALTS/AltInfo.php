@@ -168,7 +168,7 @@ class AltInfo {
 
 		$query = $db->table("alts AS a")
 			->leftJoin("players AS p", function(JoinClause $table) use ($db) {
-				$table->where("a.alt", "p.name");
+				$table->on("a.alt", "p.name");
 				$table->where("p.dimension", $db->getDim());
 			})
 			->where("a.main", $this->main)
