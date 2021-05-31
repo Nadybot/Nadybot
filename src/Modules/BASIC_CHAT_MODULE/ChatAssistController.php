@@ -7,7 +7,8 @@ use Nadybot\Core\{
 	EventManager,
 	Nadybot,
 	SettingManager,
-	Text,
+    StopExecutionException,
+    Text,
 	Util,
 };
 
@@ -102,7 +103,9 @@ class ChatAssistController {
 			$lastCallers[$name]= clone($callerList);
 		}
 		$commands = explode(" ", $command, 2);
-		$commands[0] = "callers";
+		if (strtolower($commands[0]) === 'assist') {
+			$commands[0] = "callers";
+		}
 		return new CallerBackup($sender, join(" ", $commands), $lastCallers);
 	}
 
@@ -286,12 +289,21 @@ class ChatAssistController {
 			$sendto->reply("You must be Raid Leader to use this command.");
 			return;
 		}
+		$this->clearCallers($sender, $args[0]);
+		$sendto->reply("Callers have been cleared.");
+	}
 
+	/**
+	 * Clear the list of callers
+	 *
+	 * @param string $sender The person who clears the callers
+	 * @param string $command The command to log in the caller history
+	 */
+	public function clearCallers(string $sender, string $command): void {
 		if (count($this->callers)) {
-			$this->storeBackup($this->backupCallers($sender, $args[0]));
+			$this->storeBackup($this->backupCallers($sender, $command));
 		}
 		$this->callers = [];
-		$sendto->reply("Callers have been cleared.");
 		$event = new AssistEvent();
 		$event->type = "assist(clear)";
 		$this->eventManager->fireEvent($event);

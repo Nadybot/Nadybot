@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -109,6 +110,9 @@ class RaidController {
 	/** @Inject */
 	public OnlineController $onlineController;
 
+	/** @Inject */
+	public ChatAssistController $chatAssistController;
+
 	/**
 	 * The currently running raid or null if none running
 	 */
@@ -170,6 +174,17 @@ class RaidController {
 			'edit',
 			'options',
 			'1',
+			'true;false',
+			'1;0',
+			'raid_admin_2'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_stop_clears_callers',
+			'Stopping the raid clears the callers',
+			'edit',
+			'options',
+			'0',
 			'true;false',
 			'1;0',
 			'raid_admin_2'
@@ -938,6 +953,9 @@ class RaidController {
 				"stopped_by" => $raid->stopped_by,
 			]);
 		$this->raid = null;
+		if ($this->settingManager->getBool('raid_stop_clears_callers')) {
+			$this->chatAssistController->clearCallers($sender, "raid stop");
+		}
 		$event = new RaidEvent($raid);
 		$event->type = "raid(stop)";
 		$event->player = ucfirst(strtolower($sender));
