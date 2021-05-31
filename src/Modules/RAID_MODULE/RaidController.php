@@ -286,10 +286,10 @@ class RaidController {
 		$handler = $this->commandManager->getActiveCommandHandler("raid", "priv", "raid start test");
 		$canAdminRaid = $this->accessManager->checkAccess($sender, $handler->admin);
 		if ($canAdminRaid) {
-			$sendto->reply(
-				$this->text->makeBlob("Raid Control", $this->getControlInterface())
+			$this->chatBot->sendTell(
+				$this->text->makeBlob("Raid Control", $this->getControlInterface()),
+				$sender
 			);
-			return;
 		}
 		$msg = $this->text->makeBlob("click to join", $this->getRaidJoinLink(), "Raid information");
 		$sendto->reply($this->raid->getAnnounceMessage($msg));
