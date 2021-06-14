@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:edge
 
 # Mount the current folder to /build
 

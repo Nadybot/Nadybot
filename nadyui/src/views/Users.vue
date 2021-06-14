@@ -89,10 +89,6 @@
 .table th {
   user-select: none;
 }
-
-.hoverable:hover {
-  cursor: pointer;
-}
 </style>
 
 <script lang="ts">

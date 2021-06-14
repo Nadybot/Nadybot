@@ -162,6 +162,9 @@ export async function sendMessage(
 
 export async function getNews(): Promise<Array<NewsItem>> {
   const response = await fetch(`/api/news`);
+  if (response.status == 403) {
+    throw new Error("cannot fetch news");
+  }
   const json = await response.json();
   return await newsDecoder.decodeToPromise(json);
 }

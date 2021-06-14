@@ -1,4 +1,19 @@
 <template>
+  <div
+    v-if="showAlert"
+    class="alert alert-danger alert-dismissible"
+    role="alert"
+  >
+    Fetching news failed, NEWS_MODULE might be disabled.
+    <a class="alert-link hoverable" @click="enableNewsModule()">Enable now</a>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      @click="showAlert = false"
+    ></button>
+  </div>
+
   <h2 class="mb-3">News</h2>
 
   <div class="card mb-2">
@@ -124,6 +139,7 @@ import {
   setNotSticky,
   setSticky,
   createNews,
+  toggleModule,
 } from "@/nadybot/http";
 import { NewsItem } from "@/nadybot/types/news";
 
@@ -131,6 +147,7 @@ interface InfoData {
   news: Array<NewsItem>;
   editing: number | null;
   new_text: string;
+  showAlert: boolean;
 }
 
 export default defineComponent({
@@ -141,6 +158,7 @@ export default defineComponent({
       news: [],
       editing: null,
       new_text: "",
+      showAlert: false,
     };
   },
 
@@ -204,11 +222,22 @@ export default defineComponent({
         this.editing = null;
       }
     },
+
+    async enableNewsModule(): Promise<void> {
+      await toggleModule("NEWS_MODULE", true);
+      this.news = await getNews();
+      this.reorder();
+      this.showAlert = false;
+    },
   },
 
   async created(): Promise<void> {
-    this.news = await getNews();
-    this.reorder();
+    try {
+      this.news = await getNews();
+      this.reorder();
+    } catch (_e) {
+      this.showAlert = true;
+    }
   },
 });
 </script>
