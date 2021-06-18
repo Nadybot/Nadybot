@@ -917,12 +917,25 @@ class DB {
 	 * @return Collection<Migration>
 	 */
 	protected function getAppliedMigrations(string $module): Collection {
-		$ownQuery = $this->table('migrations_<myname>')->select()
+		$ownQuery = $this->table('migrations_<myname>')
 			->where('module', $module);
-		$sharedQuery = $this->table('migrations')->select()
+		$sharedQuery = $this->table('migrations')
 				->where('module', $module);
 		return $ownQuery->union($sharedQuery)
 			->orderBy('migration')->asObj(Migration::class);
+	}
+
+	/** Check if a specific migration has already been applied */
+	public function hasAppliedMigration(string $module, string $migration): bool {
+		return $this->table('migrations_<myname>')
+				->where('module', $module)
+				->where('migration', $migration)
+				->exists()
+			||
+			$this->table('migrations')
+				->where('module', $module)
+				->where('migration', $migration)
+				->exists();
 	}
 
 	/** Load and apply all migrations for $module from directory $dir and return if any were applied */
@@ -997,14 +1010,31 @@ class DB {
 		if (!@file_exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
-		try {
-			$version = filemtime($file) ?: 0;
-			$comment = trim(fgets(fopen($file, 'r')));
-			if (preg_match("/^#\s*Version:\s*(.+)$/i", $comment, $matches)) {
-				$version = $matches[1];
+		$version = filemtime($file) ?: 0;
+		$handle = fopen($file, 'r');
+		while ($handle !== false && !feof($handle)) {
+			$line = fgets($handle);
+			if ($line === false || substr($line, 0, 1) !== "#") {
+				break;
 			}
-		} catch (Throwable $e) {
-			// Ignore this one
+			$line = trim($line);
+			if (!preg_match("/^#\s*(.+?):\s*(.+)$/i", $line, $matches)) {
+				continue;
+			}
+			$value = $matches[2];
+			switch (strtolower($matches[1])) {
+				case "version":
+					$version = $value;
+					break;
+				case "requires":
+					if (!$this->hasAppliedMigration($module, $value)) {
+						throw new Exception("The CSV-file {$file} is incompatible with your database schema version");
+					}
+					break;
+			}
+		}
+		if ($handle !== false) {
+			fclose($handle);
 		}
 		$settingName = strtolower("{$fileBase}_db_version");
 		$currentVersion = false;

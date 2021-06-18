@@ -21,7 +21,7 @@ class Reader {
 		}
 		if (!feof($file)) {
 			$headers = fgetcsv($file, 8192);
-			if (count($headers) === 1 && $headers[0][0] === "#") {
+			while (count($headers) === 1 && $headers[0][0] === "#") {
 				$headers = fgetcsv($file, 8192);
 			}
 		}

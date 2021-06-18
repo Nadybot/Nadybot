@@ -1,4 +1,5 @@
 # Version: 18.08.54.03
+# Requires: 20210426164904_CreateItemDBs.shared
 lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 21601,21601,1,1,"Ammo: Flamethrower Ammunition",32168,1,0,-2143288317
 21605,21605,1,1,"Ammo: Bullets",26690,1,0,-2143288319
