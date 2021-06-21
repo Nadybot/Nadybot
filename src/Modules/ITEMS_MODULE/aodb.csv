@@ -1,4 +1,4 @@
-# Version: 18.08.54.03
+# Version: 18.08.58.00
 # Requires: 20210426164904_CreateItemDBs.shared
 lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 21601,21601,1,1,"Ammo: Flamethrower Ammunition",32168,1,0,-2143288317
@@ -33523,7 +33523,7 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 304820,304820,1,1,"Modified Santa Bag",284680,1,8,67108897
 304821,304821,1,1,"Hardened Santa Hat",206000,1,4,-1006632927
 304822,304822,1,1,"Skroog's List",275964,1,6,-1946157023
-304835,304835,250,250,"NPC Pet Creation Item",11699,1,0,205520899
+304835,305924,1,250,"NPC Pet Creation Item",11699,0,0,205520899
 304854,304854,14,14,"Nano Cube (Blackhole Suns)",233132,1,0,71303681
 304894,304894,1,1,"Nano Cube (Itch of the Tentacle)",233132,1,0,71303681
 304895,304895,1,1,"Nano Cube (Defensive Growths)",233132,1,0,71303681
@@ -33812,3 +33812,34 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 306026,306026,1,1,"Mark of the Bloodless",96116,0,640,-1006632959
 306027,306027,250,250,"Nano Cube (Robot Recall)",42449,0,0,-2143288829
 306044,306044,1,1,"Smelly Gas Wearitem",37931,0,65533,65537
+306080,306081,1,200,"Preserved Colonist Helmet",306114,0,4,-1006632959
+306082,306083,1,200,"Preserved Colonist Shoulderpad",306116,0,80,67108865
+306084,306085,1,200,"Preserved Colonist Sleeve",306110,0,640,-2080374783
+306086,306087,1,200,"Preserved Colonist Body Armor",306117,0,32,-1006632959
+306088,306089,1,200,"Preserved Colonist Gloves",306113,0,256,-1006632959
+306090,306091,1,200,"Preserved Colonist Legwear",306115,0,2048,-1006632959
+306092,306093,1,200,"Preserved Colonist Boots",306112,0,16384,-1006632959
+306094,306095,1,200,"Preserved Colonist Life Support System",306111,0,8,-1006632959
+306119,306119,1,1,"Vacuum Packed Preserved Colonist Armor",306118,0,8,-2080374783
+306150,306150,1,1,"Blazing Jester Mask",306120,1,4,-1006632927
+306151,306151,1,1,"Fallen King's Crown",306122,0,4,-1006632927
+306152,306152,1,1,"Infernal Horns",306123,0,4,-1006632927
+306153,306153,1,1,"T.O.T.E.M. Drone",306158,0,80,-1006632927
+306154,306154,1,1,"Guise of the Thief",306124,0,40,-2080374751
+306155,306155,1,1,"Guardian Blade",306121,0,64,71303201
+306162,306163,1,1,"NanoCube (Boot)",233132,0,0,71303681
+306172,306172,250,250,"The Bull's Ring of Restoration",84059,0,32768,-1946157055
+306173,306173,250,250,"The Bull's Ring of Literacy",84063,0,8192,-1946157055
+306174,306174,300,300,"Bone of a Champion",295745,0,256,201326625
+306175,306175,150,150,"Overtuned Freedom Arms 3927 Chapman",113997,0,320,201326593
+306176,306176,250,250,Muleta,218276,0,16,-1946157023
+306177,306177,1,1,"Digummy SharpShuut's Sleeves",276388,0,640,-1006632959
+306178,306178,1,1,"Digummy SharpShuut's Jacket",276372,0,32,-1006632959
+306179,306179,1,1,"Digummy SharpShuut's Legwear",276380,0,2048,-1006632959
+306180,306180,1,1,"Digummy SharpShuut's Finger Warmers",276385,0,256,-1006632959
+306181,306181,1,1,"Digummy SharpShuut's Footsies",276402,0,16384,-1006632959
+306182,306182,1,1,"Digummy SharpShuut's Helmet",276394,0,4,-1006632959
+306183,306183,1,1,"Signal Beacon: Fuchsia Fog",149941,1,5120,67108897
+306184,306184,1,1,"Signal Beacon: Pale Flames",149941,1,5120,67108897
+306185,306185,1,1,"Signal Beacon: Energy Shielding",149941,1,5120,67108897
+306201,306201,250,250,"Mausser Particle Railgun",31807,0,256,201326593

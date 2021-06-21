@@ -1,4 +1,4 @@
-# Version: 18.08.54.02
+# Version: 18.08.58.00
 id,attack_time,recharge_time,full_auto,burst,fling_shot,fast_attack,aimed_shot,brawl,sneak_attack,multi_m,multi_r
 42033,1,180000,,,0,0,0,0,0,,
 42034,1,180000,,,0,0,0,0,0,,
@@ -10866,3 +10866,7 @@ id,attack_time,recharge_time,full_auto,burst,fling_shot,fast_attack,aimed_shot,b
 305999,2,2,,,0,0,0,0,0,,
 306004,140,140,0,0,1,0,0,0,0,,
 306005,120,130,,0,1,0,0,0,0,,
+306155,150,100,,,0,0,0,0,0,,
+306174,130,130,,,0,0,0,1,0,1600,
+306175,115,200,,,1,0,0,0,0,,900
+306201,100,120,,1900,0,0,1,0,0,,900
