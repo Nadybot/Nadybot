@@ -90,15 +90,15 @@ class FunController {
 	 */
 	public function setup() {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv", "fun", "type", "beer");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/brain.csv", "fun", "type", "brain");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/chuck.csv", "fun", "type", "chuck");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/cybor.csv", "fun", "type", "cybor");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/dwight.csv", "fun", "type", "dwight");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/fc.csv", "fun", "type", "fc");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/homer.csv", "fun", "type", "homer");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pirates.csv", "fun", "type", "pirates");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/compliment.csv", "fun", "type", "compliment");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/brain.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/chuck.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/cybor.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/dwight.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/fc.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/homer.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pirates.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/compliment.csv");
 	}
 
 	public function getFunItem(string $type, string $sender, int $number=null): string {

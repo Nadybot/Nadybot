@@ -829,7 +829,9 @@ class DB {
 				$updates[$prop->name] = $prop->getValue($row);
 			}
 		}
-		return $this->table($table)->update($updates);
+		return $this->table($table)
+			->where($key, $updates[$key])
+			->update($updates);
 	}
 
 	/** Register a table name for a key */
@@ -1001,12 +1003,9 @@ class DB {
 	 * @return bool trueif inserted, false if already up-to-date
 	 * @throws Exception
 	 */
-	public function loadCSVFile(string $module, string $file, string $table=null, ...$where): bool {
-		$fileBase = basename($file, '.csv');
-		if ($table === null) {
-			$table = $fileBase;
-		}
-		$table = $this->formatSql($table);
+	public function loadCSVFile(string $module, string $file): bool {
+		$fileBase = pathinfo($file, PATHINFO_FILENAME);
+		$table = $fileBase;
 		if (!@file_exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
@@ -1023,8 +1022,14 @@ class DB {
 			}
 			$value = $matches[2];
 			switch (strtolower($matches[1])) {
+				case "replaces":
+					$where = preg_split("/\s*=\s*/", $value);
+					break;
 				case "version":
 					$version = $value;
+					break;
+				case "table":
+					$table = $value;
 					break;
 				case "requires":
 					if (!$this->hasAppliedMigration($module, $value)) {
@@ -1057,7 +1062,7 @@ class DB {
 		$items = [];
 		$itemCount = 0;
 		try {
-			if (count($where)) {
+			if (isset($where) && count($where)) {
 				$this->table($table)->where(...$where)->delete();
 			} else {
 				$this->table($table)->delete();
