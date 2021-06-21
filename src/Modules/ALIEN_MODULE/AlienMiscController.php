@@ -141,7 +141,7 @@ class AlienMiscController {
 		foreach ($data as $row) {
 			if ($type !== $row->proc_type) {
 				$type = $row->proc_type;
-				$blob .= "\n<img src=rdb://" . ($type === 'Type 1' ? 84789 : 84310) . "><header2>$type<end>\n";
+				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84789 : 84310) . "><header2>Type $type<end>\n";
 			}
 
 			$proc_trigger = "<green>$row->proc_trigger<end>";
