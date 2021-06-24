@@ -541,8 +541,8 @@ class BanController {
 
 	/** Call either the notbanned ort banned callback for $charId */
 	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
-		$notBanned ??= function() {};
-		$banned ??= function() {};
+		$notBanned ??= fn() => null;
+		$banned ??= fn() => null;
 		if (isset($this->banlist[$charId])) {
 			$banned($charId, ...$args);
 			return;
@@ -606,8 +606,9 @@ class BanController {
 	}
 
 	public function renderBannedOrg(BannedOrg $ban): string {
+		$unbanLink = $this->text->makeChatcmd("remove", "/tell <myname> orgban rem {$ban->org_id}");
 		$blob = "<header2>" . ($ban->org_name ?? $ban->org_id) . "<end>\n".
-			"<tab>Banned by: <highlight>{$ban->banned_by}<end>\n".
+			"<tab>Banned by: <highlight>{$ban->banned_by}<end> [{$unbanLink}]\n".
 			"<tab>Ban starts: <highlight>" . $this->util->date($ban->start) . "<end>\n";
 		if (isset($ban->end)) {
 			$blob .= "<tab>Ban ends: <highlight>" . $this->util->date($ban->end) . "<end>\n";

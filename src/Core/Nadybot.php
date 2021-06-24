@@ -645,7 +645,7 @@ class Nadybot extends AOChat {
 			$eventObj->type = "joinpriv";
 
 			$this->logger->logChat("Priv Group", -1, "$sender joined the channel.");
-			
+
 			$this->banController->handleBan(
 				$userId,
 				function (int $userId, string $sender) use ($eventObj): void {
@@ -862,7 +862,6 @@ class Nadybot extends AOChat {
 			$sender,
 			$channel,
 		);
-
 	}
 
 	/**
@@ -928,7 +927,7 @@ class Nadybot extends AOChat {
 			null,
 			$eventObj,
 			$message,
-			$senderId,
+			$sender,
 			$channel,
 			$orgId
 		);
