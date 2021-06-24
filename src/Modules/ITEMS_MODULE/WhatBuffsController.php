@@ -2,12 +2,16 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandManager,
 	CommandReply,
 	DB,
+	DBRow,
 	Http,
 	LoggerWrapper,
+	QueryBuilder,
 	SettingManager,
 	Text,
 	Util,
@@ -61,11 +65,12 @@ class WhatBuffsController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "item_buffs");
-		$this->db->loadSQLFile($this->moduleName, "skills");
-		$this->db->loadSQLFile($this->moduleName, "skill_aliases");
-		$this->db->loadSQLFile($this->moduleName, "item_types");
-		$this->db->loadSQLFile($this->moduleName, "buffs");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Buff");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_buffs.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skills.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skill_alias.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_types.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/buffs.csv");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -100,18 +105,6 @@ class WhatBuffsController {
 	}
 
 	/**
-	 * Get a WHERE statement (without the actual "where") which parts of aodb to ignore
-	 *
-	 * @return string
-	 */
-	public function getItemsToExclude(): string {
-		$excludes = [
-			"a.name != 'Brad Test Nano'",
-		];
-		return implode(" AND ", $excludes);
-	}
-
-	/**
 	 * @HandlesCommand("whatbuffs")
 	 * @Matches("/^whatbuffs$/i")
 	 */
@@ -131,14 +124,13 @@ class WhatBuffsController {
 		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
 		$suffix = $froobFriendly ? "Froob" : "";
 		$blob = "<header2>Choose a skill<end>\n";
-		/** @var Skill[] */
-		$skills = $this->db->fetchAll(
-			Skill::class,
-			"SELECT DISTINCT s.name ".
-			"FROM skills s ".
-			"JOIN item_buffs b ON (b.attribute_id=s.id) ".
-			"ORDER BY name ASC"
-		);
+		/** @var Collection<Skill> */
+		$skills = $this->db->table('skills')
+			->join('item_buffs', 'item_buffs.attribute_id', '=', 'skills.id')
+			->orderBy('skills.name')
+			->select('skills.name')
+			->distinct()
+			->asObj(Skill::class);
 		foreach ($skills as $skill) {
 			$blob .= "<tab>" . $this->text->makeChatcmd($skill->name, "/tell <myname> {$command} $skill->name") . "\n";
 		}
@@ -182,40 +174,62 @@ class WhatBuffsController {
 			return;
 		}
 		if ($type === 'Nanoprogram') {
-			$sql = "SELECT s.name AS skill, COUNT(1) AS num ".
-				"FROM buffs b ".
-				"JOIN item_buffs ib ON b.id = ib.item_id ".
-				"JOIN skills s ON ib.attribute_id = s.id ".
-				"WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
-				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
-				"GROUP BY skill ".
-				"HAVING num > 0 ".
-				"ORDER BY skill ASC";
-			$data = $this->db->query($sql);
+			$query = $this->db->table('buffs');
+			$query
+				->join('item_buffs', 'item_buffs.item_id', '=', 'buffs.id')
+				->join('skills', 'item_buffs.attribute_id', '=', 'skills.id')
+				->where(function(QueryBuilder $query) {
+					$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere('item_buffs.amount', '>', 0);
+				})
+				->groupBy('skills.name')
+				->havingRaw($query->rawFunc('COUNT', 1) . " > 0")
+				->orderBy('skills.name')
+				->select([
+					"skills.name AS skill",
+					$query->rawFunc('COUNT', 1, 'num')
+				]);
+			if ($froobFriendly) {
+				$query->where('buffs.froob_friendly', '=', true);
+			}
+			$data = $query->asObj();
 		} elseif ($type === 'Perk') {
-			$sql = "SELECT s.name AS skill, COUNT(DISTINCT p.name) AS num ".
-				"FROM perk p ".
-				"JOIN perk_level pl ON (p.id = pl.perk_id) ".
-				"JOIN perk_level_buffs plb ON (pl.id = plb.perk_level_id) ".
-				"JOIN skills s ON (plb.skill_id = s.id) ".
-				"WHERE (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR plb.amount > 0) ".
-				"GROUP BY skill ".
-				"HAVING num > 0 ".
-				"ORDER BY skill ASC";
-			$data = $this->db->query($sql);
+			$query = $this->db->table('perk');
+			$query
+				->join("perk_level", "perk_level.perk_id", "=", "perk.id")
+				->join("perk_level_buffs", "perk_level_buffs.perk_level_id", "=", "perk_level.id")
+				->join('skills', 'perk_level_buffs.skill_id', '=', 'skills.id')
+				->where(function(QueryBuilder $query) {
+					$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere('perk_level_buffs.amount', '>', 0);
+				})
+				->groupBy('skills.name')
+				->havingRaw($query->rawFunc('COUNT', 1) . " > 0")
+				->orderBy('skills.name')
+				->select([
+					"skills.name AS skill",
+					$query->rawFunc('COUNT', 1, 'num')
+				]);
+			$data = $query->asObj();
 		} else {
-			$sql = "SELECT s.name AS skill, COUNT(1) AS num ".
-				"FROM aodb a ".
-				"JOIN item_types i ON a.highid = i.item_id ".
-				"JOIN item_buffs b ON a.highid = b.item_id ".
-				"JOIN skills s ON b.attribute_id = s.id ".
-				"WHERE i.item_type = ? ".
-				"AND ".$this->getItemsToExclude()." ".
-				($froobFriendly ? "AND a.froob_friendly IS TRUE " : "").
-				"GROUP BY skill ".
-				"HAVING num > 0 ".
-				"ORDER BY skill ASC";
-			$data = $this->db->query($sql, $type);
+			$query = $this->db->table('aodb');
+			$query
+				->join('item_types', 'item_types.item_id', '=', 'aodb.highid')
+				->join('item_buffs', 'item_buffs.item_id', '=', 'aodb.highid')
+				->join('skills', 'item_buffs.attribute_id', '=', 'skills.id')
+				->where('item_types.item_type', '=', $type)
+				->whereNotIn('aodb.name', ['Brad Test Nano'])
+				->groupBy('skills.name')
+				->havingRaw($query->rawFunc('COUNT', 1) . " > 0")
+				->orderBy('skills.name')
+				->select([
+					"skills.name AS skill",
+					$query->rawFunc('COUNT', 1, 'num')
+				]);
+			if ($froobFriendly) {
+				$query->where('buffs.froob_friendly', '=', true);
+			}
+			$data = $query->asObj();
 		}
 		$blob = "<header2>Choose the skill to buff<end>\n";
 		foreach ($data as $row) {
@@ -284,38 +298,62 @@ class WhatBuffsController {
 		}
 		$skillId = $data[0]->id;
 		$skillName = $data[0]->name;
-		$sql = "SELECT item_type, COUNT(*) AS num FROM (".
-			"SELECT it.item_type ".
-			"FROM aodb a ".
-			"JOIN item_types it ON a.highid = it.item_id ".
-			"JOIN item_buffs ib ON a.highid = ib.item_id ".
-			"JOIN skills s ON ib.attribute_id = s.id ".
-			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
-			($froobFriendly ? " AND a.froob_friendly IS TRUE " : "").
-			"GROUP BY a.name,it.item_type,a.lowql,a.highql,ib.amount ".
-
-			"UNION ALL ".
-
-			"SELECT 'Nanoprogram' AS item_type ".
-			"FROM buffs b ".
-			"JOIN item_buffs ib ON ib.item_id = b.id ".
-			"JOIN skills s ON ib.attribute_id = s.id ".
-			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR ib.amount > 0) ".
-			($froobFriendly ? " AND b.froob_friendly IS TRUE " : "").
-
-			"UNION ALL ".
-
-			"SELECT 'Perk' AS item_type ".
-			"FROM perk_level_buffs plb ".
-			"JOIN perk_level pl ON (plb.perk_Level_id = pl.id) ".
-			"JOIN perk p ON (p.id = pl.perk_id) ".
-			"JOIN skills s ON plb.skill_id = s.id ".
-			"WHERE s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR plb.amount > 0) ".
-			"GROUP BY p.name".
-		") AS FOO ".
-		"GROUP BY item_type ".
-		"ORDER BY item_type ASC";
-		$data = $this->db->query($sql, $skillId, $skillId, $skillId);
+		$itemQuery = $this->db->table('aodb');
+		$itemQuery
+			->join('item_types', 'item_types.item_id', '=', 'aodb.highid')
+			->join('item_buffs', 'item_buffs.item_id', '=', 'aodb.highid')
+			->join('skills', 'skills.id', '=', 'item_buffs.attribute_id')
+			->where('skills.id', '=', $skillId)
+			->where(function(QueryBuilder $query) {
+				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
+					->orWhere('item_buffs.amount', '>', 0);
+			})
+			->groupBy('aodb.name', 'item_types.item_type', 'aodb.lowql', 'aodb.highql', 'item_buffs.amount')
+			->select('item_types.item_type');
+		$nanoQuery = $this->db->table('buffs');
+		$nanoQuery
+			->join('item_buffs', 'item_buffs.item_id', '=', 'buffs.id')
+			->join('skills', 'skills.id', '=', 'item_buffs.attribute_id')
+			->where('skills.id', '=', $skillId)
+			->where(function(QueryBuilder $query) {
+				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
+					->orWhere('item_buffs.amount', '>', 0);
+			})
+			->select(
+				$nanoQuery->raw(
+					$nanoQuery->grammar->quoteString('Nanoprogram').
+					' AS ' . $nanoQuery->grammar->wrap('item_type')
+				)
+			);
+		$perkQuery = $this->db->table('perk_level_buffs');
+		$perkQuery
+			->join('perk_level', 'perk_level.id', '=', 'perk_level_buffs.perk_level_id')
+			->join('perk', 'perk.id', '=', 'perk_level.perk_id')
+			->join('skills', 'skills.id', '=', 'perk_level_buffs.skill_id')
+			->where(function(QueryBuilder $query) {
+				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
+					->orWhere('perk_level_buffs.amount', '>', 0);
+			})
+			->groupBy('perk.name')
+			->select(
+				$perkQuery->raw(
+					$perkQuery->grammar->quoteString('Perk').
+					' AS ' . $perkQuery->grammar->wrap('item_type')
+				)
+			);
+		if ($froobFriendly) {
+			$itemQuery->where('aodb.froob_friendly', '=', true);
+			$nanoQuery->where('buffs.froob_friendly', '=', true);
+		}
+		$innerQuery = $itemQuery
+			->unionAll($nanoQuery)
+			->unionAll($perkQuery);
+		$query = $this->db->fromSub($innerQuery, "foo");
+		$query
+			->groupBy('foo.item_type')
+			->orderBy('foo.item_type')
+			->select(['foo.item_type', $query->rawFunc('COUNT', '*', 'num')]);
+		$data = $query->asObj();
 		if (count($data) === 0) {
 			$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
 			$sendto->reply($msg);
@@ -337,69 +375,98 @@ class WhatBuffsController {
 	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly) {
 		$suffix = $froobFriendly ? "Froob" : "";
 		if ($category === 'Nanoprogram') {
-			$sql = "SELECT b.*, ib.amount, a.lowid, a.highid, ".
-					"a.lowql,a.name AS use_name, s.unit ".
-				"FROM buffs b ".
-				"JOIN item_buffs ib ON b.id = ib.item_id ".
-				"JOIN skills s ON ib.attribute_id = s.id ".
-				"LEFT JOIN aodb a ON (a.lowid=b.use_id) ".
-				"WHERE s.id = ? ".
-				"AND (".
-					"s.name IN ('SkillLockModifier', '% Add. Nano Cost') ".
-					"OR ib.amount > 0 ".
-				") ".
-				"AND b.name NOT IN (".
-					"'Ineptitude Transfer', ".
-					"'Accumulated Interest', ".
-					"'Unforgiven Debts', ".
-					"'Payment Plan' ".
-				") ".
-				($froobFriendly ? "AND b.froob_friendly IS TRUE " : "").
-				"ORDER BY ib.amount DESC, b.name ASC";
-			/** @var NanoBuffSearchResult[] */
-			$data = $this->db->fetchAll(NanoBuffSearchResult::class, $sql, $skill->id);
-			if (count($data) && $data[count($data) -1]->amount < 0) {
-				$data = array_reverse($data);
+			$query = $this->db->table('buffs AS b');
+			$query
+				->join("item_buffs AS ib", "ib.item_id", "b.id")
+				->join("skills AS s", "s.id", "ib.attribute_id")
+				->leftJoin("aodb AS a", "a.lowid", "b.use_id")
+				->where("s.id", $skill->id)
+				->where(function(QueryBuilder $query) {
+					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere("ib.amount", ">", 0);
+				})->whereNotIn("b.name", [
+					'Ineptitude Transfer',
+					'Accumulated Interest',
+					'Unforgiven Debts',
+					'Payment Plan'
+				])->orderByDesc("ib.amount")
+				->orderBy("b.name")
+				->select([
+					"b.*", "ib.amount", "a.lowid", "a.highid",
+					"a.lowql", "a.name AS use_name", "s.unit"
+				]);
+			if ($froobFriendly) {
+				$query->where("b.froob_friendly", true);
 			}
-			$result = $this->formatBuffs($data, $skill);
+			/** @var Collection<NanoBuffSearchResult> */
+			$data = $query->asObj(NanoBuffSearchResult::class);
+			if ($data->isNotEmpty() && $data->last()->amount < 0) {
+				$data = $data->reverse();
+			}
+			$result = $this->formatBuffs($data->toArray(), $skill);
 		} elseif ($category === 'Perk') {
-			$sql = "SELECT p.name,p.expansion,pl.perk_level AS perk_level, ".
-				"MIN(plb.amount) AS amount, GROUP_CONCAT(plp.profession) AS profs, ".
-				"s.unit AS unit ".
-				"FROM perk p ".
-				"JOIN perk_level pl ON (pl.perk_id=p.id) ".
-				"JOIN perk_level_prof plp ON (plp.perk_level_id=pl.id) ".
-				"JOIN perk_level_buffs plb ON (plb.perk_level_id=pl.id) ".
-				"JOIN skills s ON plb.skill_id = s.id ".
-				"WHERE s.id = ? ".
-				"AND (".
-					"s.name IN ('SkillLockModifier', '% Add. Nano Cost') ".
-					"OR plb.amount > 0 ".
-				") ".
-				"GROUP BY p.name, pl.perk_level ORDER BY p.name ASC, pl.perk_level ASC, plp.profession ASC";
-			/** @var PerkBuffSearchResult[] */
-			$data = $this->db->fetchAll(PerkBuffSearchResult::class, $sql, $skill->id);
-			$data = $this->generatePerkBufflist($data);
+			$query = $this->db->table('perk AS p');
+			/** @var Collection<PerkBuffSearchResult> */
+			$data = $query
+				->join('perk_level AS pl', 'pl.perk_id', 'p.id')
+				->join('perk_level_prof AS plp', 'plp.perk_level_id', 'pl.id')
+				->join('perk_level_buffs AS plb', 'plb.perk_level_id', 'pl.id')
+				->join('skills AS s', 's.id', 'plb.skill_id')
+				->where('s.id', $skill->id)
+				->where(function(QueryBuilder $query) {
+					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere("plb.amount", ">", 0);
+				})->groupBy("p.name", "p.expansion", "pl.perk_level", "s.unit", "pl.id")
+				->orderBy("p.name")
+				->orderBy("pl.perk_level")
+				->select("p.name", "p.expansion", "pl.perk_level", "pl.id", "s.unit")
+				->addSelect($query->colFunc("MIN", "plb.amount", "amount"))
+				->asObj(PerkBuffSearchResult::class)
+				->each(function(PerkBuffSearchResult $result) {
+					$result->profs = $this->db->table("perk_level_prof")
+						->where("perk_level_id", $result->id)
+						->select("profession")
+						->orderBy("profession")
+						->asObj()
+						->pluck("profession")
+						->join(",");
+				});
+			$data = $this->generatePerkBufflist($data->toArray());
 			$result = $this->formatPerkBuffs($data, $skill);
 		} else {
-			$sql = "SELECT a.*, b.amount,b2.amount AS low_amount, wa.multi_m, wa.multi_r, s.unit ".
-				"FROM aodb a ".
-				"JOIN item_types i ON a.highid = i.item_id ".
-				"JOIN item_buffs b ON a.highid = b.item_id ".
-				"LEFT JOIN item_buffs b2 ON a.lowid = b2.item_id ".
-				"LEFT JOIN weapon_attributes wa ON a.highid = wa.id ".
-				"JOIN skills s ON b.attribute_id = s.id AND b2.attribute_id = s.id ".
-				"WHERE i.item_type = ? AND s.id = ? AND (s.name IN ('SkillLockModifier', '% Add. Nano Cost') OR b.amount > 0) ".
-				"AND ".$this->getItemsToExclude()." ".
-				($froobFriendly ? "AND a.froob_friendly IS TRUE " : "").
-				"GROUP BY a.name,a.lowql,a.highql,b.amount,b2.amount,wa.multi_m,wa.multi_r ".
-				"ORDER BY ABS(b.amount) DESC, name DESC";
-			/** @var ItemBuffSearchResult[] */
-			$data = $this->db->fetchAll(ItemBuffSearchResult::class, $sql, $category, $skill->id);
-			if (count($data) && $data[count($data) -1]->amount < 0) {
-				$data = array_reverse($data);
+			$query = $this->db->table("aodb AS a");
+			$query
+				->join("item_types AS i", "i.item_id", "a.highid")
+				->join("item_buffs AS b", "b.item_id", "a.highid")
+				->leftJoin("item_buffs AS b2", "b2.item_id", "a.lowid")
+				->leftJoin("weapon_attributes AS wa", "wa.id", "a.highid")
+				->join("skills AS s", function(JoinClause $join) {
+					$join->on("b.attribute_id", "s.id")
+						->on("b2.attribute_id", "s.id");
+				})->where("i.item_type", $category)
+				->where("s.id", $skill->id)
+				->where(function(QueryBuilder $query) {
+					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere("b.amount", ">", 0);
+				})->groupBy([
+					"a.name", "a.lowql", "a.highql", "b.amount", "b2.amount",
+					"wa.multi_m", "wa.multi_r", "a.lowid", "a.highid", "a.icon",
+					"a.froob_friendly", "a.slot", "a.flags", "s.unit"
+				])->orderByDesc($query->colFunc("ABS", "b.amount"))
+				->orderByDesc("name")
+				->select([
+					"a.*", "b.amount", "b2.amount AS low_amount",
+					"wa.multi_m", "wa.multi_r", "s.unit"
+				]);
+			if ($froobFriendly) {
+				$query->where("a.froob_friendly", true);
 			}
-			$result = $this->formatItems($data, $skill, $category);
+			/** @var Collection<ItemBuffSearchResult> */
+			$data = $query->asObj(ItemBuffSearchResult::class);
+			if ($data->isNotEmpty() && $data->last()->amount < 0) {
+				$data = $data->reverse();
+			}
+			$result = $this->formatItems($data->toArray(), $skill, $category);
 		}
 
 		[$count, $blob] = $result;
@@ -428,7 +495,7 @@ class WhatBuffsController {
 		}
 		$data = [];
 		// If a perk has different max levels for profs, we create one entry for each of the
-		// buff levels, so 1 perk can appear several ties with different max buffs
+		// buff levels, so 1 perk can appear several times with different max buffs
 		foreach ($result as $perk => $perkData) {
 			$diffValues = array_unique(array_values($perkData->profMax));
 			foreach ($diffValues as $buffValue) {
@@ -458,10 +525,9 @@ class WhatBuffsController {
 	 * Check if a slot (fingers, chest) exists
 	 */
 	public function verifySlot(string $type): bool {
-		return $this->db->queryRow(
-			"SELECT 1 FROM item_types WHERE item_type = ? LIMIT 1",
-			ucfirst(strtolower($type))
-		) !== null || strtolower($type) === 'perk';
+		return $this->db->table('item_types')
+			->where('item_type', $type)
+			->exists() || strtolower($type) === 'perk';
 	}
 
 	/**
@@ -472,34 +538,42 @@ class WhatBuffsController {
 	public function searchForSkill(string $skill): array {
 		// check for exact match first, in order to disambiguate
 		// between Bow and Bow special attack
-		/** @var Skill[] */
-		$results = $this->db->fetchAll(
-			Skill::class,
-			"SELECT DISTINCT id, name FROM skills WHERE name LIKE ? ".
-			" UNION ".
-			"SELECT DISTINCT a.id, s.name FROM skill_alias a JOIN skills s USING(id) WHERE a.name LIKE ?",
-			$skill,
-			$skill
-		);
-		if (count($results) === 1) {
-			return $results;
+		/** @var Collection<Skill> */
+		$results = $this->db->table('skills')
+			->whereIlike('name', $skill)
+			->select(['id', 'name'])
+			->distinct()
+			->union(
+				$this->db->table('skill_alias')
+					->join('skills', 'skills.id', 'skill_alias.id')
+					->whereIlike('skill_alias.name', $skill)
+					->select(['skill_alias.id', 'skills.name'])
+					->distinct()
+			)->asObj(Skill::class);
+		if ($results->count() === 1) {
+			return $results->toArray();
 		}
 
-		$tmp = explode(" ", $skill);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
+		$skillsQuery = $this->db->table('skills')->select(['id', 'name'])->distinct();
+		$aliasQuery = $this->db->table('skill_alias')->select(['id', 'name'])->distinct();
 
-		return $this->db->fetchAll(
-			Skill::class,
-			"SELECT id, name FROM ( ".
-				"SELECT DISTINCT id, name FROM skills WHERE $query ".
-				"UNION ".
-				"SELECT DISTINCT id, name FROM skill_alias WHERE $query ".
-			") AS foo GROUP BY id ORDER BY name ASC",
-			...[...$params, ...$params]
-		);
+		$tmp = explode(" ", $skill);
+		$this->db->addWhereFromParams($skillsQuery, $tmp, 'name');
+		$this->db->addWhereFromParams($aliasQuery, $tmp, 'name');
+
+		return $this->db
+			->fromSub(
+				$skillsQuery->union($aliasQuery),
+				"foo"
+			)
+			->groupBy("id", "name")
+			->orderBy("name")
+			->select(["id", "name"])
+			->asObj(Skill::class)
+			->toArray();
 	}
 
-	public function showItemLink(\Nadybot\Core\DBRow $item, $ql) {
+	public function showItemLink(DBRow $item, $ql) {
 		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 

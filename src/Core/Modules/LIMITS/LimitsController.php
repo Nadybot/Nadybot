@@ -21,7 +21,6 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
-use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 
 /**
  * @author Tyrence (RK2)

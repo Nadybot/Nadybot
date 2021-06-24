@@ -54,7 +54,8 @@ class LevelController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'levels');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/levels.csv");
 
 		$this->commandAlias->register($this->moduleName, "level", "pvp");
 		$this->commandAlias->register($this->moduleName, "level", "lvl");
@@ -142,13 +143,11 @@ class LevelController {
 			$sendto->reply($msg);
 			return;
 		}
-		/** @var Level[] */
-		$data = $this->db->fetchAll(
-			Level::class,
-			"SELECT * FROM levels WHERE level >= ? AND level < ?",
-			$minLevel,
-			$maxLevel
-		);
+		/** @var Collection<Level> */
+		$data = $this->db->table("levels")
+			->where("level", ">=", $minLevel)
+			->where("level", "<", $maxLevel)
+			->asObj(Level::class);
 		$xp = 0;
 		$sk = 0;
 		foreach ($data as $row) {
@@ -176,15 +175,19 @@ class LevelController {
 	}
 
 	public function getLevelInfo(int $level): ?Level {
-		$sql = "SELECT * FROM levels WHERE level = ?";
-		return $this->db->fetch(Level::class, $sql, $level);
+		return $this->db->table("levels")
+			->where("level", $level)
+			->asObj(Level::class)
+			->first();
 	}
 
 	/**
 	 * @return Level[]
 	 */
 	public function findAllLevels(): array {
-		$sql = "SELECT * FROM levels ORDER BY level";
-		return $this->db->fetchAll(Level::class, $sql);
+		return $this->db->table("levels")
+			->orderBy("level")
+			->asObj(Level::class)
+			->toArray();
 	}
 }

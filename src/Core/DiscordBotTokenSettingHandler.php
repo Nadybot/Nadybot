@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use Exception;
-use JsonException;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 

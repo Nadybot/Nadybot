@@ -43,6 +43,7 @@ use Nadybot\Core\{
  *	)
  */
 class BanController {
+	public const DB_TABLE = "banlist_<myname>";
 
 	/**
 	 * Name of the module.
@@ -105,8 +106,8 @@ class BanController {
 	 * This handler is called on bot startup.
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "banlist");
-		if ($this->db->tableExists("players")) {
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}
 	}
@@ -343,11 +344,11 @@ class BanController {
 	 * @DefaultStatus("1")
 	 */
 	public function checkTempBan(Event $eventObj): void {
-		$numRows = $this->db->exec(
-			"DELETE FROM `banlist_<myname>` ".
-			"WHERE `banend` IS NOT NULL AND `banend` != 0 AND `banend` < ?",
-			time()
-		);
+		$numRows = $this->db->table(self::DB_TABLE)
+			->whereNotNull("banend")
+			->where("banend", "!=", 0)
+			->where("banend", "<", time())
+			->delete();
 
 		if ($numRows > 0) {
 			$this->uploadBanlist();
@@ -420,35 +421,43 @@ class BanController {
 			$banEnd = time() + (int)$length;
 		}
 
-		$sql = "INSERT INTO `banlist_<myname>` (`charid`, `admin`, `time`, `reason`, `banend`) VALUES (?, ?, ?, ?, ?)";
-		$numrows = $this->db->exec($sql, $charId, $sender, time(), $reason, $banEnd);
+		$inserted = $this->db->table(self::DB_TABLE)
+			->insert([
+				"charid" => $charId,
+				"admin" => $sender,
+				"time" => time(),
+				"reason" => $reason,
+				"banend" => $banEnd,
+			]);
 
 		$this->uploadBanlist();
 
-		return $numrows > 0;
+		return $inserted;
 	}
 
 	/** Remove $charId from the banlist */
 	public function remove(int $charId): bool {
-		$sql = "DELETE FROM `banlist_<myname>` WHERE `charid` = ?";
-		$numrows = $this->db->exec($sql, $charId);
+		$deleted = $this->db->table(self::DB_TABLE)
+			->where("charid", $charId)
+			->delete();
 
 		$this->uploadBanlist();
 
-		return $numrows > 0;
+		return $deleted >= 1;
 	}
 
 	/** Sync the banlist from the database */
 	public function uploadBanlist(): void {
 		$this->banlist = [];
 
-		$sql = "SELECT b.*, IFNULL(p.name, b.charid) AS name ".
-			"FROM `banlist_<myname>` b LEFT JOIN players p ON b.charid = p.charid";
-		/** @var BanEntry[] */
-		$data = $this->db->fetchAll(BanEntry::class, $sql);
-		foreach ($data as $row) {
-			$this->banlist[$row->charid] = $row;
-		}
+		$query = $this->db->table(self::DB_TABLE, "b")
+			->leftJoin("players AS p", "b.charid", "p.charid");
+		$query
+			->select("b.*", "p.name")
+			->asObj(BanEntry::class)->each(function(BanEntry $row) {
+				$row->name ??= (string)$row->charid;
+				$this->banlist[$row->charid] = $row;
+			});
 	}
 
 	/** Check if $charId is banned */

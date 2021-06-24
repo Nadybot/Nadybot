@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CommandManager,
 	DB,
 	CommandReply,
 	Text,
@@ -42,42 +43,50 @@ class CommandlistController {
 	 * @Matches("/^cmdlist (.+)$/i")
 	 */
 	public function cmdlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$params = [];
+		$query = $this->db->table(CommandManager::DB_TABLE, "c")
+			->whereIn("c.cmdevent", ["cmd", "subcmd"])
+			->groupBy("c.cmd", "c.cmdevent", "c.description", "c.module", "file", "admin", "dependson")
+			->orderBy("cmd");
 		if (count($args) > 1) {
 			try {
-				$params []= $this->accessManager->getAccessLevel($args[1]);
+				$query->whereIlike("c.admin", $this->accessManager->getAccessLevel($args[1]));
 			} catch (Exception $e) {
 				$sendto->reply($e->getMessage());
 				return;
 			}
-			$cmdSearchSql = "AND c.admin LIKE ?";
 		}
-
-		$sql = "SELECT ".
-				"`cmd`, ".
-				"`cmdevent`, ".
-				"`description`, ".
-				"`module`, ".
-				"`file`, ".
-				"`admin`, ".
-				"`dependson`, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t1 WHERE t1.cmd = c.cmd AND t1.type = 'guild') guild_avail, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t2 WHERE t2.cmd = c.cmd AND t2.type = 'guild' AND t2.status = 1) guild_status, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t3 WHERE t3.cmd = c.cmd AND t3.type ='priv') priv_avail, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t4 WHERE t4.cmd = c.cmd AND t4.type = 'priv' AND t4.status = 1) priv_status, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t5 WHERE t5.cmd = c.cmd AND t5.type ='msg') msg_avail, ".
-				"(SELECT count(*) FROM `cmdcfg_<myname>` t6 WHERE t6.cmd = c.cmd AND t6.type = 'msg' AND t6.status = 1) msg_status ".
-			"FROM ".
-				"`cmdcfg_<myname>` c ".
-			"WHERE ".
-				"(c.cmdevent = 'cmd' OR c.cmdevent = 'subcmd') ".
-				"$cmdSearchSql ".
-			"GROUP BY ".
-				"c.cmd, c.description, c.module ".
-			"ORDER BY ".
-				"`cmd` ASC";
+		$subs = [];
+		$i = 1;
+		foreach (["guild", "priv", "msg"] as $type) {
+			$subs []= $this->db->table(CommandManager::DB_TABLE, "t{$i}")
+				->whereColumn("t{$i}.cmd", "=", "c.cmd")
+				->where("t{$i}.type", $type)
+				->select($query->rawFunc("COUNT", "*"));
+			$i++;
+			$subs []= $this->db->table(CommandManager::DB_TABLE, "t{$i}")
+				->whereColumn("t{$i}.cmd", "=", "c.cmd")
+				->where("t{$i}.type", $type)
+				->where("t{$i}.status", 1)
+				->select($query->rawFunc("COUNT", "*"));
+		}
+		$query
+			->select([
+				"cmd",
+				"cmdevent",
+				"description",
+				"module",
+				"file",
+				"admin",
+				"dependson",
+			])
+			->selectSub($subs[0], "guild_avail")
+			->selectSub($subs[1], "guild_status")
+			->selectSub($subs[2], "priv_avail")
+			->selectSub($subs[3], "priv_status")
+			->selectSub($subs[4], "msg_avail")
+			->selectSub($subs[5], "msg_status");
 		/** @var CommandListEntry[] $data */
-		$data = $this->db->fetchAll(CommandListEntry::class, $sql, ...$params);
+		$data = $query->asObj(CommandListEntry::class)->toArray();
 		$count = count($data);
 
 		if ($count === 0) {

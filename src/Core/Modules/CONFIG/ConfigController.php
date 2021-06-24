@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
+	QueryBuilder,
 	Registry,
 	SettingHandler,
 	SettingManager,
@@ -153,20 +154,22 @@ class ConfigController {
 	 */
 	public function toggleChannelOfAllModulesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$status = ($args[1] == "enable" ? 1 : 0);
-		$sqlArgs = [];
+		$updQuery = $this->db->table(CommandManager::DB_TABLE)
+			->whereIn("cmdevent", ["cmd", "subcmd"]);
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd");
 		$confirmString = "all";
 		if ($args[2] == "all") {
-			$typeSql = "`type` = 'guild' OR `type` = 'priv' OR `type` = 'msg'";
+			$query->whereIn("type", ["guild", "priv", "msg"]);
+			$updQuery->whereIn("type", ["guild", "priv", "msg"]);
 		} else {
-			 $typeSql = "`type` = ?";
-			 $sqlArgs[] = $args[2];
-			 $confirmString = "all " . $args[2];
+			$query->where("type", $args[2]);
+			$updQuery->where("type", $args[2]);
+			$confirmString = "all " . $args[2];
 		}
 
-		$sql = "SELECT `type`, `file`, `cmd`, `admin` ".
-			"FROM `cmdcfg_<myname>` ".
-			"WHERE `cmdevent` = 'cmd' AND ($typeSql)";
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+		$data = $query->asObj(CmdCfg::class)->toArray();
+
 		foreach ($data as $row) {
 			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
 				continue;
@@ -178,9 +181,7 @@ class ConfigController {
 			}
 		}
 
-		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE (`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') AND ($typeSql)";
-		$sqlArgs = [$status, ...$sqlArgs];
-		$this->db->exec($sql, ...$sqlArgs);
+		$updQuery->update(["status" => $status]);
 
 		$msg = "Successfully <highlight>" . ($status === 1 ? "enabled" : "disabled") . "<end> $confirmString commands.";
 		$sendto->reply($msg);
@@ -284,16 +285,15 @@ class ConfigController {
 	 */
 	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $type, bool $enable): bool {
 		$cmdEvent = $subCmd ? "subcmd" : "cmd";
-		$sqlArgs = [];
-		$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = ?";
-		$sqlArgs = [$cmd, $cmdEvent];
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmd", $cmd)
+			->where("cmdevent", $cmdEvent);
 		if ($type !== "all") {
-			$sqlArgs []= $type;
-			$sql .= " AND `type` = ?";
+			$query->where("type", $type);
 		}
 
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+		$data = $query->asObj(CmdCfg::class)->toArray();
 
 		if (!$this->checkCommandAccessLevels($data, $sender)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this command.");
@@ -306,16 +306,7 @@ class ConfigController {
 		foreach ($data as $row) {
 			$this->toggleCmdCfg($row, $enable);
 		}
-
-		$sqlArgs = [(int)$enable, $cmd, $cmdEvent];
-
-		$sql = "UPDATE `cmdcfg_<myname>` SET `status` = ? ".
-				"WHERE `cmd` = ? AND `cmdevent` = ?";
-		if ($type !== "all") {
-			$sqlArgs []= $type;
-			$sql .= " AND `type` = ?";
-		}
-		$this->db->exec($sql, ...$sqlArgs);
+		$query->update(["status" => (int)$enable]);
 
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
@@ -329,11 +320,14 @@ class ConfigController {
 		if ($file === "") {
 			return false;
 		}
-		$sql = "SELECT *, 'event' AS cmdevent FROM `eventcfg_<myname>` ".
-			"WHERE `file` = ? AND `type` = ? AND `type` != 'setup'";
-
+		$query = $this->db->table(EventManager::DB_TABLE)
+			->where("file", $file)
+			->where("type", $eventType)
+			->where("type", "!=", "setup")
+			->select("*");
+		$query->selectRaw($query->grammar->quoteString("event") . $query->as("cmdevent"));
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, $file, $eventType);
+		$data = $query->asObj(CmdCfg::class)->toArray();
 
 		if (count($data) === 0) {
 			return false;
@@ -343,13 +337,7 @@ class ConfigController {
 			$this->toggleCmdCfg($row, $enable);
 		}
 
-		$this->db->exec(
-			"UPDATE `eventcfg_<myname>` SET `status` = ? ".
-			"WHERE `type` = ? AND `file` = ? AND `type` != 'setup'",
-			(int)$enable,
-			$eventType,
-			$file
-		);
+		$query->update(["status" => (int)$enable]);
 
 		return true;
 	}
@@ -362,21 +350,24 @@ class ConfigController {
 	 * @return bool True for success, False if the module doesn't exist
 	 */
 	public function toggleModule(string $module, string $channel, bool $enable): bool {
-		$sqlArgs = [];
-		if ($channel === "all") {
-			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? ".
-						"UNION ".
-					"SELECT `status`, `type`, `file`, '' AS cmd, '' AS admin, 'event' AS cmdevent FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
-			$sqlArgs = [$module, $module];
-		} else {
-			$sql = "SELECT `status`, `type`, `file`, `cmd`, `admin`, `cmdevent` FROM `cmdcfg_<myname>` WHERE `module` = ? AND `type` = ? ".
-						"UNION ".
-					"SELECT `status`, `type`, `file`, '' AS `cmd`, '' AS `admin`, 'event' AS `cmdevent` FROM `eventcfg_<myname>` WHERE `module` = ? AND `type` != 'setup'";
-			$sqlArgs = [$module, $channel, $module];
+		$cmdQuery = $this->db->table(CommandManager::DB_TABLE)
+			->where("module", $module)
+			->select("status", "type", "file", "cmd", "admin", "cmdevent");
+		$eventQuery = $this->db->table(EventManager::DB_TABLE)
+			->where("module", $module)
+			->where("type", "!=", "setup")
+			->select("status", "type", "file");
+		$eventQuery->selectRaw($eventQuery->grammar->quoteString('') . $eventQuery->as("cmd"));
+		$eventQuery->selectRaw($eventQuery->grammar->quoteString('') . $eventQuery->as("admin"));
+		$eventQuery->selectRaw($eventQuery->grammar->quoteString('event') . $eventQuery->as("cmdevent"));
+		if ($channel !== "all") {
+			$cmdQuery->where("type", $channel);
+			$eventQuery->where("type", $channel);
 		}
 
+		$query = clone $cmdQuery;
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+		$data = $query->union(clone $eventQuery)->asObj(CmdCfg::class)->toArray();
 
 		if (count($data) === 0) {
 			return false;
@@ -386,13 +377,8 @@ class ConfigController {
 			$this->toggleCmdCfg($row, $enable);
 		}
 
-		if ($channel === "all") {
-			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ?", (int)$enable, $module);
-			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
-		} else {
-			$this->db->exec("UPDATE `cmdcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` = ?", (int)$enable, $module, $channel);
-			$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = ? WHERE `module` = ? AND `type` != 'setup'", (int)$enable, $module);
-		}
+		$cmdQuery->update(["status" => (int)$enable]);
+		$eventQuery->update(["status" => (int)$enable]);
 
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
@@ -469,15 +455,14 @@ class ConfigController {
 	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		$sqlArgs = [$command];
-		if ($channel === "all") {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `cmdevent` = 'cmd'";
-		} else {
-			$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ? AND `cmdevent` = 'cmd'";
-			$sqlArgs []= $channel;
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmd", $command)
+			->where("cmdevent", "cmd");
+		if ($channel !== "all") {
+			$query->where("type", $channel);
 		}
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, ...$sqlArgs);
+		$data = $query->asObj(CmdCfg::class)->toArray();
 
 		if (count($data) === 0) {
 			return 0;
@@ -492,9 +477,12 @@ class ConfigController {
 
 	public function changeSubcommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-		$sql = "SELECT * FROM `cmdcfg_<myname>` WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?";
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("type", $channel)
+			->where("cmdevent", "subcmd")
+			->where("cmd", $command);
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, $channel, $command);
+		$data = $query->asObj(CmdCfg::class)->toArray();
 		if (count($data) === 0) {
 			return 0;
 		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
@@ -502,7 +490,7 @@ class ConfigController {
 		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 			return -1;
 		}
-		$this->db->exec("UPDATE cmdcfg_<myname> SET `admin` = ? WHERE `type` = ? AND `cmdevent` = 'subcmd' AND `cmd` = ?", $accessLevel, $channel, $command);
+		$query->update(["admin" => $accessLevel]);
 		$this->subcommandManager->loadSubcommands();
 		return 1;
 	}
@@ -538,10 +526,9 @@ class ConfigController {
 			$cmd = $aliasCmd;
 		}
 
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ?", $cmd);
-		if (count($data) === 0) {
-			$msg = "Could not find command <highlight>$cmd<end>.";
+		$query = $this->db->table(CommandManager::DB_TABLE)->where("cmd", $cmd);
+		if (!$query->exists()) {
+			$msg = "Could not find command <highlight>{$cmd}<end>.";
 			$sendto->reply($msg);
 			return;
 		}
@@ -722,7 +709,11 @@ class ConfigController {
 		}
 
 		/** @var EventCfg[] */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>` WHERE `type` != 'setup' AND `module` = ?", $module);
+		$data = $this->db->table(EventManager::DB_TABLE)
+			->where("type", "!=", "setup")
+			->where("module", $module)
+			->asObj(EventCfg::class)
+			->toArray();
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Events<end>\n";
@@ -766,7 +757,11 @@ class ConfigController {
 	private function getCommandInfo(string $cmd, string $type): string {
 		$msg = "";
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmd` = ? AND `type` = ?", $cmd, $type);
+		$data = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmd", $cmd)
+			->where("type", $type)
+			->asObj(CmdCfg::class)
+			->toArray();
 		if (count($data) == 0) {
 			$msg .= "<red>Unused<end>\n";
 		} elseif (count($data) > 1) {
@@ -789,11 +784,10 @@ class ConfigController {
 		$msg .= $this->text->makeChatcmd("Disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "\n";
 
 		$msg .= "Set access level: ";
-		$showRaidAL = $this->db->queryRow(
-			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
-			'RAID_MODULE',
-			1
-		) !== null;
+		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
+			->where("module", "RAID_MODULE")
+			->where("status", 1)
+			->exists();
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel === 'none') {
 				continue;
@@ -814,12 +808,16 @@ class ConfigController {
 	private function getSubCommandInfo($cmd, $type) {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE dependson = ? AND `type` = ? AND `cmdevent` = 'subcmd'", $cmd, $type);
-		$showRaidAL = $this->db->queryRow(
-			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
-			'RAID_MODULE',
-			1
-		) !== null;
+		$data = $this->db->table(CommandManager::DB_TABLE)
+			->where("dependson", $cmd)
+			->where("type", $type)
+			->where("cmdevent", "subcmd")
+			->asObj(CmdCfg::class)
+			->toArray();
+		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
+			->where("module", "RAID_MODULE")
+			->where("status", 1)
+			->exists();
 		foreach ($data as $row) {
 			$subcmd_list .= "<pagebreak><header2>$row->cmd<end> ($type)\n";
 			if ($row->description != "") {
@@ -860,26 +858,44 @@ class ConfigController {
 	 * @return ConfigModule[]
 	 */
 	public function getModules(): array {
-		$sql = "SELECT ".
-				"`module`, ".
-				"SUM(CASE WHEN `status` = 0 THEN 1 ELSE 0 END) AS count_cmd_disabled, ".
-				"SUM(CASE WHEN `status` = 1 THEN 1 ELSE 0 END) AS count_cmd_enabled, ".
-				"SUM(CASE WHEN `status` = 2 THEN 1 ELSE 0 END) AS count_events_disabled, ".
-				"SUM(CASE WHEN `status` = 3 THEN 1 ELSE 0 END) AS count_events_enabled, ".
-				"SUM(CASE WHEN `status` = 4 THEN 1 ELSE 0 END) AS count_settings ".
-			"FROM (".
-				"SELECT `module`, `status` FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'cmd' ".
-					"UNION ALL ".
-				"SELECT `module`, `status`+2 FROM `eventcfg_<myname>` ".
-					"UNION ALL ".
-				"SELECT `module`, 4 FROM `settings_<myname>` ".
-			") t ".
-			"GROUP BY ".
-				"`module` ".
-			"ORDER BY ".
-				"`module` ASC";
+		$cmdQuery = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd")
+			->select("module", "status");
+		$eventQuery = $this->db->table(EventManager::DB_TABLE)
+			->select("module");
+		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2");
+		$settingsQuery = $this->db->table(SettingManager::DB_TABLE)
+			->select("module");
+		$settingsQuery->selectRaw("4");
 
-		$data = $this->db->query($sql);
+		$outerQuery = $this->db->fromSub(
+			$cmdQuery->unionAll($eventQuery)->unionAll($settingsQuery),
+			"t"
+		)->groupBy("t.module")
+		->orderBy("module")
+		->select("t.module");
+		$stat = $outerQuery->grammar->wrap("status");
+		$outerQuery->selectRaw(
+			"SUM(CASE WHEN {$stat} = 0 then 1 ELSE 0 END)".
+			$outerQuery->as("count_cmd_disabled")
+		);
+		$outerQuery->selectRaw(
+			"SUM(CASE WHEN {$stat} = 1 then 1 ELSE 0 END)".
+			$outerQuery->as("count_cmd_enabled")
+		);
+		$outerQuery->selectRaw(
+			"SUM(CASE WHEN {$stat} = 2 then 1 ELSE 0 END)".
+			$outerQuery->as("count_events_disabled")
+		);
+		$outerQuery->selectRaw(
+			"SUM(CASE WHEN {$stat} = 3 then 1 ELSE 0 END)".
+			$outerQuery->as("count_events_enabled")
+		);
+		$outerQuery->selectRaw(
+			"SUM(CASE WHEN {$stat} = 4 then 1 ELSE 0 END)".
+			$outerQuery->as("count_settings")
+		);
+		$data = $outerQuery->asObj()->toArray();
 		$result = [];
 		foreach ($data as $row) {
 			$config = new ConfigModule();
@@ -900,12 +916,10 @@ class ConfigController {
 	 * @return ModuleAccessLevel[]
 	 */
 	public function getValidAccessLevels(): array {
-		/** @var CmdCfg[] $data */
-		$showRaidAL = $this->db->queryRow(
-			"SELECT * FROM `cmdcfg_<myname>` WHERE `module`=? AND `status`=?",
-			'RAID_MODULE',
-			1
-		) !== null;
+		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
+			->where("module", "RAID_MODULE")
+			->where("status", 1)
+			->exists();
 		$result = [];
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel == 'none') {
@@ -930,66 +944,55 @@ class ConfigController {
 	public function getModuleSettings(string $module): array {
 		$module = strtoupper($module);
 
-		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>` WHERE `module` = ? ORDER BY `mode`, `description`", $module);
-		$data = array_map(
-			function(Setting $setting): SettingHandler {
+		return $this->db->table(SettingManager::DB_TABLE)
+			->where("module", $module)
+			->orderBy("mode")
+			->orderBy("description")
+			->asObj(Setting::class)
+			->map(function (Setting $setting) {
 				return $this->settingManager->getSettingHandler($setting);
-			},
-			$data
-		);
-		return $data;
+			})->toArray();
+	}
+
+	protected function getRegisteredCommandsQuery(): QueryBuilder {
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->whereIn("cmdevent", ["cmd", "subcmd"])
+			->groupBy("module", "cmdevent", "file", "cmd", "description", "verify", "status", "dependson", "help")
+			->select("module", "cmdevent", "file", "cmd", "description", "verify", "status", "dependson", "help");
+		$type = $query->grammar->wrap("type");
+		$status = $query->grammar->wrap("status");
+		$admin = $query->grammar->wrap("admin");
+		foreach (["guild", "priv", "msg"] as $channel) {
+			$qChannel = $query->grammar->quoteString($channel);
+			$query->selectRaw(
+				"SUM(CASE WHEN {$type} = {$qChannel} THEN 1 ELSE 0 END)".
+				$query->as("{$channel}_avail")
+			);
+			$query->selectRaw(
+				"SUM(CASE WHEN {$type} = {$qChannel} AND {$status} = 1 THEN 1 ELSE 0 END)".
+				$query->as("{$channel}_status")
+			);
+			$query->selectRaw(
+				"MAX(CASE WHEN {$type} = {$qChannel} THEN {$admin} ELSE null END)".
+				$query->as("{$channel}_al")
+			);
+		}
+		return $query;
 	}
 
 	/**
 	 * @return CmdCfg[]
 	 */
 	public function getAllRegisteredCommands(string $module): array {
-		$sql = "SELECT ".
-				"*, ".
-				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
-				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
-				"MAX(CASE WHEN type = 'guild' THEN admin ELSE NULL END) guild_al, ".
-				"SUM(CASE WHEN type = 'priv' THEN 1 ELSE 0 END) priv_avail, ".
-				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
-				"MAX(CASE WHEN type = 'priv' THEN admin ELSE null END) priv_al, ".
-				"SUM(CASE WHEN type = 'msg' THEN 1 ELSE 0 END) msg_avail, ".
-				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status, ".
-				"MAX(CASE WHEN type = 'msg' THEN admin ELSE null END) msg_al ".
-			"FROM ".
-				"cmdcfg_<myname> c ".
-			"WHERE ".
-				"(`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') ".
-				"AND `module` = ? ".
-			"GROUP BY ".
-				"cmd";
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, $sql, $module);
-		return $data;
+		$query = $this->getRegisteredCommandsQuery();
+		$query->where("module", $module);
+		return $query->asObj(CmdCfg::class)->toArray();
 	}
 
 	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {
-		$sql = "SELECT ".
-				"*, ".
-				"SUM(CASE WHEN type = 'guild' THEN 1 ELSE 0 END) guild_avail, ".
-				"SUM(CASE WHEN type = 'guild' AND status = 1 THEN 1 ELSE 0 END) guild_status, ".
-				"MAX(CASE WHEN type = 'guild' THEN admin ELSE NULL END) guild_al, ".
-				"SUM(CASE WHEN type = 'priv' THEN 1 ELSE 0 END) priv_avail, ".
-				"SUM(CASE WHEN type = 'priv' AND status = 1 THEN 1 ELSE 0 END) priv_status, ".
-				"MAX(CASE WHEN type = 'priv' THEN admin ELSE null END) priv_al, ".
-				"SUM(CASE WHEN type = 'msg' THEN 1 ELSE 0 END) msg_avail, ".
-				"SUM(CASE WHEN type = 'msg' AND status = 1 THEN 1 ELSE 0 END) msg_status, ".
-				"MAX(CASE WHEN type = 'msg' THEN admin ELSE null END) msg_al ".
-			"FROM ".
-				"cmdcfg_<myname> c ".
-			"WHERE ".
-				"(`cmdevent` = 'cmd' OR `cmdevent` = 'subcmd') ".
-				"AND `module` = ? ".
-				"AND `cmd` = ? ".
-			"GROUP BY ".
-				"cmd";
-		/** @var ?CmdCfg $data */
-		$data = $this->db->fetch(CmdCfg::class, $sql, $module, $command);
-		return $data;
+		$query = $this->getRegisteredCommandsQuery();
+		$query->where("module", $module);
+		$query->where("cmd", $command);
+		return $query->asObj(CmdCfg::class)->first();
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Illuminate\Database\Query\JoinClause;
 use Nadybot\Core\{
 	AccessManager,
 	CommandAlias,
@@ -178,7 +179,8 @@ class LootListsController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'raid_loot');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/raid_loot.csv");
 		$this->settingManager->add(
 			$this->moduleName,
 			'show_raid_loot_pics',
@@ -713,18 +715,26 @@ class LootListsController {
 	}
 
 	public function findRaidLoot(string $raid, string $category, string $sender): ?string {
-		$sql = "SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"LEFT JOIN aodb a ON (r.name = a.name AND r.ql >= a.lowql AND r.ql <= a.highql) ".
-			"WHERE r.aoid IS NULL AND raid LIKE ? AND category LIKE ? ".
-			"UNION ".
-			"SELECT *, COALESCE(a.name, r.name) AS name ".
-			"FROM raid_loot r ".
-			"JOIN aodb a ON (r.aoid = a.highid) ".
-			"WHERE r.aoid IS NOT NULL AND raid LIKE ? AND category LIKE ?";
-		$data = $this->db->query($sql, $raid, $category, $raid, $category);
+		$query2 = $this->db->table("raid_loot AS r")
+					->join("aodb AS a", "r.aoid", "a.highid")
+					->whereNotNull("r.aoid")
+					->whereIlike("r.raid", $raid)
+					->whereIlike("r.category", $category);
+		$query2->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
+		$query = $this->db->table("raid_loot AS r")
+			->leftJoin("aodb AS a", function (JoinClause $join) {
+				$join->on("r.name", "a.name")
+					->on("r.ql", ">=", "a.lowql")
+					->on("r.ql", "<=", "a.highql");
+			})
+			->whereNull("r.aoid")
+			->whereIlike("r.raid", $raid)
+			->whereIlike("r.category", $category)
+			->union($query2);
+		$query->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
+		$data = $query->asObj();
 
-		if (count($data) === 0) {
+		if ($data->count() === 0) {
 			return null;
 		}
 		$auctionsEnabled = true;

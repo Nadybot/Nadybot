@@ -1,0 +1,11 @@
+name,lesser_prefix,regular_prefix,buffs
+Plasma,Fiery,Burning,"Poison Damage"
+Sky,Scarlet,Rainbow-hued,"Radiation Damage"
+Tundra,Icy,Frozen,"Cold Damage"
+Desert,Empty,Searing,"Fire Damage"
+Killer,Insidious,Silent,"Poison Damage"
+Landscape,Craggy,Jagged,"Projectile Damage"
+Glory,Decayed,Corroded,"Chemical Damage"
+Brawler,Novice,Bruised,"Melee Damage"
+Juggernaut,Frail,Eternal,"Max Health"
+Moebius,Broken,Infinite,"Max Nano and Health"

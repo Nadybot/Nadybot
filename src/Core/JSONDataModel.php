@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use ReflectionClass;
 use ReflectionProperty;
 use DateTime;
+use ReflectionNamedType;
 
 class JSONDataModel {
 	public function fromJSON(object $data): void {
@@ -19,7 +20,9 @@ class JSONDataModel {
 				$refProp->setValue($this, $data->{$propName});
 				continue;
 			}
-			$typeName = $type->getName();
+			if ($type instanceof ReflectionNamedType) {
+				$typeName = $type->getName();
+			}
 			if ($typeName === "array") {
 				if (($docComment = $refProp->getDocComment()) === false) {
 					$docComment = "";

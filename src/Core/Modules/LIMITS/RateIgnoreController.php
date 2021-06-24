@@ -48,15 +48,7 @@ class RateIgnoreController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, 'rateignorelist');
-		if (!$this->db->tableExists("whitelist")) {
-			return;
-		}
-		$this->db->exec(
-			"INSERT INTO rateignorelist (name, added_by, added_dt) ".
-				"SELECT w.name, w.added_by, w.added_dt FROM whitelist w"
-		);
-		$this->db->exec("DROP TABLE IF EXISTS whitelist");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	/**
@@ -114,13 +106,13 @@ class RateIgnoreController {
 		if ($this->check($user) === true) {
 			return "Error! <highlight>$user<end> already added to the rate limit ignore list.";
 		}
-		$this->db->exec(
-			"INSERT INTO rateignorelist (name, added_by, added_dt) VALUES (?, ?, ?)",
-			$user,
-			$sender,
-			time()
-		);
-		return "<highlight>$user<end> has been added to the rate limit ignore list.";
+		$this->db->table("rateignorelist")
+			->insert([
+				"name" => $user,
+				"added_by" => $sender,
+				"added_dt" => time()
+			]);
+		return "<highlight>{$user}<end> has been added to the rate limit ignore list.";
 	}
 
 	/**
@@ -140,19 +132,14 @@ class RateIgnoreController {
 		if ($this->check($user) === false) {
 			return "Error! <highlight>$user<end> is not on the rate limit ignore list.";
 		}
-		$this->db->exec("DELETE FROM rateignorelist WHERE name = ?", $user);
-		return "<highlight>$user<end> has been removed from the rate limit ignore list.";
+		$this->db->table("rateignorelist")->where("name", $user)->delete();
+		return "<highlight>{$user}<end> has been removed from the rate limit ignore list.";
 	}
 
 	public function check(string $user): bool {
-		$user = ucfirst(strtolower($user));
-
-		$row = $this->db->fetch(
-			RateIgnoreList::class,
-			"SELECT * FROM rateignorelist WHERE name = ? LIMIT 1",
-			$user
-		);
-		return $row !== null;
+		return $this->db->table("rateignorelist")
+			->where("name", ucfirst(strtolower($user)))
+			->exists();
 	}
 
 	/**
@@ -162,7 +149,9 @@ class RateIgnoreController {
 	 * @throws SQLException
 	 */
 	public function all(): array {
-		$sql = "SELECT * FROM rateignorelist ORDER BY name ASC";
-		return $this->db->fetchAll(RateIgnoreList::class, $sql);
+		return $this->db->table("rateignorelist")
+			->orderBy("name")
+			->asObj(RateIgnoreList::class)
+			->toArray();
 	}
 }

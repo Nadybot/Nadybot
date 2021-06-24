@@ -1,0 +1,14 @@
+type,specials
+1,"Fling shot"
+2,"Aimed Shot"
+4,Burst
+3,"Fling Shot and Aimed Shot"
+5,"Fling Shot and Burst"
+12,"Burst and Full Auto"
+13,"Burst, Fling Shot and Full Auto"
+48,"Brawl and Dimach"
+76,"Brawl and Fast Attack"
+112,"Brawl, Dimach and Fast Attack"
+240,"Brawl, Dimach, Fast Attack and Sneak Attack"
+880,"Dimach, Fast Attack, Parry and Riposte"
+992,"Dimach, Fast Attack, Sneak Attack, Parry and Riposte"

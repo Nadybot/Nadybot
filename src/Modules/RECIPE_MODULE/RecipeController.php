@@ -131,7 +131,7 @@ class RecipeController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "recipes");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Recipes");
 	}
 
 	/**
@@ -148,11 +148,8 @@ class RecipeController {
 		}
 		/** @var array<string,Recipe> */
 		$recipes = [];
-		/** @var Recipe[] */
-		$allRecipes = $this->db->fetchAll(Recipe::class, "SELECT * FROM `recipes`");
-		foreach ($allRecipes as $recipe) {
-			$recipes[$recipe->id] = $recipe;
-		}
+		$recipes = $this->db->table("recipes")->asObj(Recipe::class)->keyBy("id")->toArray();
+		$this->db->beginTransaction();
 		while (($fileName = readdir($handle)) !== false) {
 			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
 				|| (isset($recipes[$args[1]])
@@ -169,27 +166,12 @@ class RecipeController {
 				continue;
 			}
 			if (isset($recipes[$args[1]])) {
-				$this->db->exec(
-					"UPDATE `recipes` SET `name`=?, `author`=?, `recipe`=?, `date`=? ".
-					"WHERE `id`=?",
-					$recipe->name,
-					$recipe->author,
-					$recipe->recipe,
-					$recipe->date,
-					$recipe->id,
-				);
+				$this->db->update("recipes", "id", $recipe);
 			} else {
-				$this->db->exec(
-					"INSERT INTO `recipes` (`id`, `name`, `author`, `recipe`, `date`) ".
-					"VALUES (?, ?, ?, ?, ?)",
-					$recipe->id,
-					$recipe->name,
-					$recipe->author,
-					$recipe->recipe,
-					$recipe->date
-				);
+				$this->db->insert("recipes", $recipe, null);
 			}
 		}
+		$this->db->commit();
 		closedir($handle);
 	}
 
@@ -201,7 +183,7 @@ class RecipeController {
 		$id = (int)$args[1];
 
 		/** @var ?Recipe */
-		$row = $this->db->fetch(Recipe::class, "SELECT * FROM recipes WHERE id = ?", $id);
+		$row = $this->db->table("recipes")->where("id", $id)->asObj(Recipe::class)->first();
 
 		if ($row === null) {
 			$msg = "Could not find recipe with id <highlight>$id<end>.";
@@ -216,28 +198,19 @@ class RecipeController {
 	 * @Matches("/^recipe (.+)$/i")
 	 */
 	public function recipeSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (preg_match('|<a href="itemref://(\d+)/(\d+)/(\d+)">([^<]+)</a>|', $args[1], $matches)) {
-			$lowId = (int)$matches[1];
+		$query = $this->db->table("recipes")
+			->orderBy("name");
+		if (preg_match("|<a href=[\"']?itemref://(\d+)/(\d+)/(\d+)[\"']?>([^<]+)</a>|", $args[1], $matches)) {
 			$search = $matches[4];
 
-			/** @var Recipe[] */
-			$data = $this->db->fetchAll(
-				Recipe::class,
-				"SELECT * FROM recipes WHERE recipe LIKE ? OR recipe LIKE ? ORDER BY name ASC",
-				"%{$search}%",
-				"%{$lowId}%"
-			);
+			$query->whereIlike("recipe", "%{$matches[1]}%")
+				->orWhereIlike("recipe", "%{$search}%");
 		} else {
 			$search = $args[1];
-
-			[$query, $queryParams] = $this->util->generateQueryFromParams(explode(" ", $search), "recipe");
-			/** @var Recipe[] */
-			$data = $this->db->fetchAll(
-				Recipe::class,
-				"SELECT * FROM recipes WHERE $query ORDER BY name ASC",
-				...$queryParams
-			);
+			$this->db->addWhereFromParams($query, explode(" ", $search), "recipe");
 		}
+		/** @var Recipe[] */
+		$data = $query->asObj(Recipe::class)->toArray();
 
 		$count = count($data);
 

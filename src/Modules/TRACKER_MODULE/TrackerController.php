@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BuddylistManager,
 	CommandReply,
@@ -38,6 +39,9 @@ use Nadybot\Modules\{
  *	@ProvidesEvent("tracker(logoff)")
  */
 class TrackerController {
+	public const DB_TABLE = "tracked_users_<myname>";
+	public const DB_TRACKING = "tracking_<myname>";
+
 	/** No grouping, just sorting */
 	public const GROUP_NONE = 0;
 	/** Group by title level */
@@ -85,8 +89,7 @@ class TrackerController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'tracked_users');
-		$this->db->loadSQLFile($this->moduleName, 'tracking');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -171,12 +174,11 @@ class TrackerController {
 	 * @Description("Adds all players on the track list to the buddy list")
 	 */
 	public function trackedUsersConnectEvent(Event $eventObj): void {
-		$sql = "SELECT name FROM tracked_users_<myname>";
-		/** @var TrackedUser[] */
-		$data = $this->db->fetchAll(TrackedUser::class, $sql);
-		foreach ($data as $row) {
-			$this->buddylistManager->add($row->name, 'tracking');
-		}
+		$this->db->table(self::DB_TABLE)
+			->asObj(TrackedUser::class)
+			->each(function(TrackedUser $row) {
+				$this->buddylistManager->add($row->name, 'tracking');
+			});
 	}
 
 	/**
@@ -188,22 +190,15 @@ class TrackerController {
 			return;
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
-		/** @var TrackedUser[] */
-		$data = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM `tracked_users_<myname>` WHERE `uid` = ?",
-			$uid
-		);
-		if (count($data) === 0) {
+		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->doesntExist()) {
 			return;
 		}
-		$this->db->exec(
-			"INSERT INTO `tracking_<myname>` (`uid`, `dt`, `event`) ".
-			"VALUES (?, ?, ?)",
-			$uid,
-			time(),
-			'logon'
-		);
+		$this->db->table(self::DB_TRACKING)
+			->insert([
+				"uid" => $uid,
+				"dt" => time(),
+				"event" => "logon",
+			]);
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
 				$msg = $this->getLogonMessage($player, $eventObj->sender);
@@ -283,21 +278,15 @@ class TrackerController {
 			return;
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
-		$data = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM tracked_users_<myname> WHERE uid = ?",
-			$uid
-		);
-		if (count($data) === 0) {
+		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->doesntExist()) {
 			return;
 		}
-		$this->db->exec(
-			"INSERT INTO tracking_<myname> (uid, dt, event) ".
-			"VALUES (?, ?, ?)",
-			$uid,
-			time(),
-			'logoff'
-		);
+		$this->db->table(self::DB_TRACKING)
+			->insert([
+				"uid" => $uid,
+				"dt" => time(),
+				"event" => "logoff",
+			]);
 
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
@@ -340,12 +329,11 @@ class TrackerController {
 	 * @Matches("/^track$/i")
 	 */
 	public function trackListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var TrackedUser[] */
-		$users = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM tracked_users_<myname> ORDER BY `name`"
-		);
-		$numrows = count($users);
+		/** @var Collection<TrackedUser> */
+		$users = $this->db->table(self::DB_TABLE)
+			->orderBy("name")
+			->asObj(TrackedUser::class);
+		$numrows = $users->count();
 		if ($numrows === 0) {
 			$msg = "No characters are on the track list.";
 			$sendto->reply($msg);
@@ -354,12 +342,12 @@ class TrackerController {
 		$blob = "<header2>Tracked players<end>\n";
 		foreach ($users as $user) {
 			/** @var ?Tracking */
-			$lastState = $this->db->fetch(
-				Tracking::class,
-				"SELECT * FROM tracking_<myname> ".
-				"WHERE `uid` = ? ORDER BY `dt` DESC LIMIT 1",
-				$user->uid
-			);
+			$lastState = $this->db->table(self::DB_TRACKING)
+				->where("uid", $user->uid)
+				->orderByDesc("dt")
+				->limit(1)
+				->asObj(Tracking::class)
+				->first();
 			$lastAction = '';
 			if ($lastState !== null) {
 				$lastAction = " " . $this->util->date($lastState->dt);
@@ -397,17 +385,12 @@ class TrackerController {
 			$sendto->reply($msg);
 			return;
 		}
-		$data = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM tracked_users_<myname> WHERE `uid` = ?",
-			$uid
-		);
-		if (count($data) === 0) {
+		$deleted = $this->db->table(self::DB_TABLE)->where("uid", $uid)->delete();
+		if (!$deleted) {
 			$msg = "Character <highlight>$name<end> is not on the track list.";
 			$sendto->reply($msg);
 			return;
 		}
-		$this->db->exec("DELETE FROM tracked_users_<myname> WHERE `uid` = ?", $uid);
 		$msg = "Character <highlight>$name<end> has been removed from the track list.";
 		$this->buddylistManager->remove($name, 'tracking');
 
@@ -427,26 +410,18 @@ class TrackerController {
 			$sendto->reply($msg);
 			return;
 		}
-		/** @var TrackedUser[] */
-		$data = $this->db->fetchAll(
-			TrackedUser::class,
-			"SELECT * FROM tracked_users_<myname> WHERE `uid` = ?",
-			$uid
-		);
-		if (count($data) != 0) {
+		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->exists()) {
 			$msg = "Character <highlight>$name<end> is already on the track list.";
 			$sendto->reply($msg);
 			return;
 		}
-		$this->db->exec(
-			"INSERT INTO tracked_users_<myname> ".
-			"(`name`, `uid`, `added_by`, `added_dt`) ".
-			"VALUES (?, ?, ?, ?)",
-			$name,
-			$uid,
-			$sender,
-			time()
-		);
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"name" => $name,
+				"uid" => $uid,
+				"added_by" => $sender,
+				"added_dt" => time(),
+			]);
 		$msg = "Character <highlight>$name<end> has been added to the track list.";
 		$this->buddylistManager->add($name, 'tracking');
 
@@ -458,19 +433,19 @@ class TrackerController {
 	 * @Matches("/^track online$/i")
 	 */
 	public function trackOnlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = "SELECT p.*, p.`name` AS `pmain`, '' AS `afk`, TRUE as `online` ".
-			"FROM `tracked_users_<myname>` tu ".
-			"JOIN players p ON tu.`name` = p.`name` ".
-			"WHERE p.dimension=<dim> ".
-			"ORDER BY p.name ASC";
 		/** @var OnlinePlayer[] */
-		$data = $this->db->fetchAll(OnlinePlayer::class, $sql);
-		$data = array_filter(
-			$data,
-			function (OnlinePlayer $player): bool {
+		$data = $this->db->table(self::DB_TABLE, "tu")
+			->join("players AS p", "tu.name", "p.name")
+			->where("p.dimension", $this->db->getDim())
+			->orderBy("p.name")
+			->select("p.*", "p.name AS pmain")
+			->asObj(OnlinePlayer::class)
+			->each(function (OnlinePlayer $player) {
+				$player->afk = "";
+				$player->online = true;
+			})->filter(function(OnlinePlayer $player) {
 				return $this->buddylistManager->isOnline($player->name) === true;
-			}
-		);
+			})->toArray();
 		if (!count($data)) {
 			$sendto->reply("No tracked players are currently online.");
 			return;
@@ -583,12 +558,13 @@ class TrackerController {
 			$sendto->reply($msg);
 			return;
 		}
-		$events = $this->db->fetchAll(
-			Tracking::class,
-			"SELECT `event`, `dt` FROM tracking_<myname> ".
-			"WHERE `uid` = $uid ORDER BY `dt` DESC"
-		);
-		if (count($events) === 0) {
+		/** @var Collection<Tracking> */
+		$events = $this->db->table(self::DB_TRACKING)
+			->where("uid", $uid)
+			->orderByDesc("dt")
+			->select("event", "dt")
+			->asObj(Tracking::class);
+		if ($events->isEmpty()) {
 			$msg = "Character <highlight>$name<end> has never logged on or is not being tracked.";
 			$sendto->reply($msg);
 			return;

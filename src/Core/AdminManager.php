@@ -9,6 +9,7 @@ use Nadybot\Core\DBSchema\Admin;
  * Manage the bot admins
  */
 class AdminManager {
+	public const DB_TABLE = "admin_<myname>";
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -29,23 +30,21 @@ class AdminManager {
 	 * Load the bot admins from database into $admins
 	 */
 	public function uploadAdmins(): void {
-		$this->db->exec("CREATE TABLE IF NOT EXISTS `admin_<myname>` (`name` VARCHAR(25) NOT NULL PRIMARY KEY, `adminlevel` INT)");
-
 		$this->chatBot->vars["SuperAdmin"] = ucfirst(strtolower($this->chatBot->vars["SuperAdmin"]));
 
-		/** @var Admin[] $data */
-		$data = $this->db->fetchAll(Admin::class, "SELECT * FROM `admin_<myname>` WHERE `name` = ?", $this->chatBot->vars["SuperAdmin"]);
-		if (count($data) === 0) {
-			$this->db->exec("INSERT INTO `admin_<myname>` (`adminlevel`, `name`) VALUES (?, ?)", '4', $this->chatBot->vars["SuperAdmin"]);
-		} else {
-			$this->db->exec("UPDATE `admin_<myname>` SET `adminlevel` = ? WHERE `name` = ?", '4', $this->chatBot->vars["SuperAdmin"]);
-		}
+		$this->db->table(self::DB_TABLE)->upsert(
+			[
+				"adminlevel" => 4,
+				"name" => $this->chatBot->vars["SuperAdmin"],
+			],
+			"name"
+		);
 
-		/** @var Admin[] $data */
-		$data = $this->db->fetchAll(Admin::class, "SELECT * FROM `admin_<myname>`");
-		foreach ($data as $row) {
-			$this->admins[$row->name]["level"] = $row->adminlevel;
-		}
+		$this->db->table(self::DB_TABLE)
+			->asObj(Admin::class)
+			->each(function(Admin $row) {
+				$this->admins[$row->name] = ["level" => $row->adminlevel];
+			});
 	}
 
 	/**
@@ -53,7 +52,7 @@ class AdminManager {
 	 */
 	public function removeFromLists(string $who): void {
 		unset($this->admins[$who]);
-		$this->db->exec("DELETE FROM `admin_<myname>` WHERE `name` = ?", $who);
+		$this->db->table(self::DB_TABLE)->where("name", $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
 	}
 
@@ -65,12 +64,15 @@ class AdminManager {
 	public function addToLists(string $who, int $intlevel): string {
 		$action = 'promoted';
 		if (isset($this->admins[$who])) {
-			$this->db->exec("UPDATE `admin_<myname>` SET `adminlevel` = ? WHERE `name` = ?", $intlevel, $who);
+			$this->db->table(self::DB_TABLE)
+				->where("name", $who)
+				->update(["adminlevel" => $intlevel]);
 			if ($this->admins[$who]["level"] > $intlevel) {
 				$action = "demoted";
 			}
 		} else {
-			$this->db->exec("INSERT INTO `admin_<myname>` (`adminlevel`, `name`) VALUES (?, ?)", $intlevel, $who);
+			$this->db->table(self::DB_TABLE)
+				->insert(["adminlevel" => $intlevel, "name" => $who]);
 		}
 
 		$this->admins[$who]["level"] = $intlevel;

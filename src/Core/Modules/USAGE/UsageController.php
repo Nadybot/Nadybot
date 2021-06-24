@@ -31,6 +31,7 @@ use stdClass;
  *	)
  */
 class UsageController {
+	public const DB_TABLE = "usage_<myname>";
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -62,7 +63,7 @@ class UsageController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, 'usage');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -114,8 +115,13 @@ class UsageController {
 
 		$player = ucfirst(strtolower($args[1]));
 
-		$sql = "SELECT command, COUNT(command) AS count FROM usage_<myname> WHERE sender = ? AND dt > ? GROUP BY command ORDER BY count DESC";
-		$data = $this->db->query($sql, $player, $time);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("sender", $player)
+			->where("dt", ">", $time)
+			->groupBy("command");
+		$query->orderByRaw($query->colFunc("COUNT", "command"))
+			->selectRaw($query->colFunc("COUNT", "command", "count"));
+		$data = $query->asObj()->first();
 		$count = count($data);
 
 		if ($count > 0) {
@@ -153,8 +159,13 @@ class UsageController {
 
 		$cmd = strtolower($args[1]);
 
-		$sql = "SELECT sender, COUNT(sender) AS count FROM usage_<myname> WHERE command = ? AND dt > ? GROUP BY sender ORDER BY count DESC";
-		$data = $this->db->query($sql, $cmd, $time);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("command", $cmd)
+			->where("dt", ">", $time)
+			->groupBy("sender");
+		$query->orderByColFunc("COUNT", "sender", "desc")
+			->select("sender", $query->colFunc("COUNT", "command", "count"));
+		$data = $query->asObj()->toArray();
 		$count = count($data);
 
 		if ($count > 0) {
@@ -167,6 +178,20 @@ class UsageController {
 		} else {
 			$msg = "No usage statistics found for <highlight>$cmd<end>.";
 		}
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("usage")
+	 * @Matches("/^usage info$/i")
+	 */
+	public function usageInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$info = $this->getUsageInfo(time() - 7*24*3600, time());
+		$blob = json_encode(
+			$info,
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES
+		);
+		$msg = $this->text->makeBlob("Collected usage info", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -192,8 +217,13 @@ class UsageController {
 		$limit = 25;
 
 		// channel usage
-		$sql = "SELECT type, COUNT(type) cnt FROM usage_<myname> WHERE dt > ? GROUP BY type ORDER BY type";
-		$data = $this->db->query($sql, $time);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("dt", ">", $time)
+			->groupBy("type")
+			->orderBy("type")
+			->select("type");
+		$query->selectRaw($query->colFunc("COUNT", "type", "cnt"));
+		$data = $query->asObj()->toArray();
 
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
@@ -208,8 +238,14 @@ class UsageController {
 		$blob .= "\n";
 
 		// most used commands
-		$sql = "SELECT command, COUNT(command) AS count FROM usage_<myname> WHERE dt > ? GROUP BY command ORDER BY count DESC LIMIT ?";
-		$data = $this->db->query($sql, $time, $limit);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("dt", ">", $time)
+			->groupBy("command")
+			->orderByColFunc("COUNT", "command", "desc")
+			->limit($limit)
+			->select("command");
+		$query->selectRaw($query->colFunc("COUNT", "command", "count"));
+		$data = $query->asObj()->toArray();
 
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
 		foreach ($data as $row) {
@@ -219,8 +255,14 @@ class UsageController {
 		}
 
 		// users who have used the most commands
-		$sql = "SELECT sender, COUNT(sender) AS count FROM usage_<myname> WHERE dt > ? GROUP BY sender ORDER BY count DESC LIMIT ?";
-		$data = $this->db->query($sql, $time, $limit);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("dt", ">", $time)
+			->groupBy("sender")
+			->orderByColFunc("COUNT", "sender", "desc")
+			->limit($limit)
+			->select("sender");
+		$query->selectRaw($query->colFunc("COUNT", "sender", "count"));
+		$data = $query->asObj()->toArray();
 
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
 		foreach ($data as $row) {
@@ -243,8 +285,13 @@ class UsageController {
 			return;
 		}
 
-		$sql = "INSERT INTO usage_<myname> (type, command, sender, dt) VALUES (?, ?, ?, ?)";
-		$this->db->exec($sql, $type, $cmd, $sender, time());
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"type" => $type,
+				"command" => $cmd,
+				"sender" => $sender,
+				"dt" => time(),
+			]);
 	}
 
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
@@ -256,15 +303,16 @@ class UsageController {
 			$this->settingManager->save('botid', $botid);
 		}
 
-		$sql = "SELECT command, COUNT(*) AS count FROM usage_<myname> WHERE dt >= ? AND dt < ? GROUP BY command";
-		$commands = array_reduce(
-			$this->db->query($sql, $lastSubmittedStats, $now),
-			function($carry, $entry) {
-				$carry->{$entry->command} = $entry->count;
-				return $carry;
-			},
-			new stdClass()
-		);
+		$query = $this->db->table(self::DB_TABLE)
+			->where("dt", ">=", $lastSubmittedStats)
+			->where("dt", "<", time())
+			->groupBy("command")
+			->select("command");
+		$query->selectRaw($query->rawFunc("COUNT", "*", "count"));
+		$commands = $query->asObj()->reduce(function($carry, $entry) {
+			$carry->{$entry->command} = $entry->count;
+			return $carry;
+		}, new stdClass());
 
 		$settings = new SettingsUsageStats();
 		$settings->dimension               = (int)$this->chatBot->vars['dimension'];

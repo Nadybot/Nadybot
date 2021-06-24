@@ -2,13 +2,10 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Exception;
-use JsonException;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Http,
-	HttpResponse,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -39,12 +36,6 @@ use Nadybot\Core\{
  *		description = 'Searches for an itemid by name',
  *		help        = 'items.txt'
  *	)
- *	@DefineCommand(
- *		command     = 'updateitems',
- *		accessLevel = 'guild',
- *		description = 'Downloads the latest version of the items db',
- *		help        = 'updateitems.txt'
- *	)
  */
 class ItemsController {
 
@@ -73,9 +64,10 @@ class ItemsController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "aodb");
-		$this->db->loadSQLFile($this->moduleName, "item_groups");
-		$this->db->loadSQLFile($this->moduleName, "item_group_names");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Items");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -128,8 +120,15 @@ class ItemsController {
 	}
 
 	public function findById(int $id): ?AODBEntry {
-		$sql = "SELECT * FROM aodb WHERE lowid = ? UNION SELECT * FROM aodb WHERE highid = ? LIMIT 1";
-		return $this->db->fetch(AODBEntry::class, $sql, $id, $id);
+		return $this->db->table("aodb")
+			->where("lowid", $id)
+			->union(
+				$this->db->table("aodb")
+					->where("highid", $id)
+			)
+			->limit(1)
+			->asObj(AODBEntry::class)
+			->first();
 	}
 
 	/**
@@ -139,20 +138,16 @@ class ItemsController {
 	public function idCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 
+		$query = $this->db->table("aodb AS a")
+			->leftJoin("item_groups AS g", "g.item_id", "a.lowid")
+			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
+			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
+			->orderBy("a.lowql")
+			->limit($this->settingManager->getInt('maxitems'));
 		$tmp = explode(" ", $search);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'a.name');
-		$params []= $this->settingManager->getInt('maxitems');
+		$this->db->addWhereFromParams($query, $tmp, "a.name");
 		/** @var AODBEntry[] */
-		$items = $this->db->fetchAll(
-			AODBEntry::class,
-			"SELECT a.* FROM aodb a ".
-			"LEFT JOIN item_groups g ON (g.item_id=a.lowid) ".
-			"LEFT JOIN item_group_names gn ON (g.group_id=gn.group_id) ".
-			"WHERE $query ".
-			"ORDER BY COALESCE(gn.name, a.name) ASC, a.lowql ASC ".
-			"LIMIT ?",
-			...$params
-		);
+		$items = $query->asObj(AODBEntry::class)->toArray();
 		if (!count($items)) {
 			$sendto->reply("No items found matching <highlight>{$search}<end>.");
 			return;
@@ -172,141 +167,6 @@ class ItemsController {
 		}
 		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
 		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("updateitems")
-	 * @Matches("/^updateitems$/i")
-	 */
-	public function updateItemsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply("Starting update");
-		$this->downloadNewestItemsdb(function(string $msg) use ($sendto): void {
-			$sendto->reply($msg);
-		});
-	}
-
-	/**
-	 * @Event("timer(7days)")
-	 * @Description("Check to make sure items db is the latest version available")
-	 */
-	public function checkForUpdate(): void {
-		// Do not run directly after the bot starts, so we don't flood GitHub
-		// when the bot errors
-		if ($this->chatBot->getUptime() < 60) {
-			return;
-		}
-		$this->downloadNewestItemsdb(function(string $msg): void {
-			if (preg_match("/^The items database has been updated/", $msg)) {
-				$this->chatBot->sendGuild($msg);
-			}
-		});
-	}
-
-	public function downloadNewestItemsdb(?callable $callback=null): void {
-		$this->logger->log('DEBUG', "Starting items db update");
-		// get list of files in ITEMS_MODULE
-		$this->http
-			->get("https://api.github.com/repos/Nadybot/Nadybot/contents/src/Modules/ITEMS_MODULE")
-			->withHeader("Accept", "application/vnd.github.v3+json")
-			->withHeader('User-Agent', 'Nadybot')
-			->withCallback(function (HttpResponse $response) use ($callback): void {
-				$this->handleGithubFilelist($response, $callback);
-			});
-	}
-
-	protected function handleGithubFilelist(?HttpResponse $response, ?callable $callback=null): void {
-		$databases = ['aodb', 'buffs', 'item_buffs', 'item_types', 'item_groups', 'item_group_names'];
-		if ($response->error || $response->body === null) {
-			$this->logger->log("ERROR", "Invalid reply received from GitHub when requesting items filelist");
-			if (isset($callback)) {
-				$callback("Invalid reply received from GitHub while getting filelist");
-			}
-			return;
-		}
-		try {
-			$files = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
-		} catch (JsonException $e) {
-			$this->logger->log("ERROR", "Invalid JSON received from GitHub when requesting items filelist: {$response->body}");
-			if (isset($callback)) {
-				$callback("Invalid JSON received from GitHub while getting filelist");
-			}
-			return;
-		}
-		$updateStatus = [];
-		foreach ($databases as $currentDB) {
-			try {
-				// find the latest items db version on the server
-				$latestVersion = null;
-				foreach ($files as $file) {
-					if (preg_match("/^${currentDB}(.*)\\.sql$/i", $file->name, $arr)) {
-						if ($latestVersion === null) {
-							$latestVersion = $arr[1];
-						} elseif ($this->util->compareVersionNumbers($arr[1], $latestVersion)) {
-							$latestVersion = $arr[1];
-						}
-					}
-				}
-			} catch (Exception $e) {
-				$msg = "Error updating items db: " . $e->getMessage();
-				$this->logger->log('ERROR', $msg);
-				if (isset($callback)) {
-					$callback($msg);
-				}
-				return;
-			}
-
-			$msg = [];
-			if ($latestVersion !== null) {
-				$currentVersion = $this->settingManager->get("${currentDB}_db_version");
-
-				// if server version is greater than current version, download and load server version
-				if ($currentVersion === false || $this->util->compareVersionNumbers($latestVersion, $currentVersion) > 0) {
-					// download server version and save to ITEMS_MODULE directory
-					$this->http
-						->get("https://raw.githubusercontent.com/Nadybot/Nadybot/stable/src/Modules/ITEMS_MODULE/${currentDB}{$latestVersion}.sql")
-						->withHeader('User-Agent', 'Nadybot')
-						->withCallback(function(?HttpResponse $fileResponse) use ($currentDB, $latestVersion, $currentVersion, $callback, &$updateStatus, $databases): void {
-							if ($fileResponse === null) {
-								if (isset($callback)) {
-									$callback("Error downloading ${currentDB}{$latestVersion}.");
-									return;
-								}
-							}
-							$contents = $fileResponse->body;
-
-							$fh = fopen(__DIR__ . "/${currentDB}{$latestVersion}.sql", 'w');
-							fwrite($fh, $contents);
-							fclose($fh);
-
-							// load the sql file into the db
-							$this->db->loadSQLFile("ITEMS_MODULE", $currentDB);
-
-							$this->logger->log('INFO', "Items db $currentDB updated from '$currentVersion' to '$latestVersion'");
-
-							$updateStatus[$currentDB] = "The items database <highlight>$currentDB<end> has been updated from <red>$currentVersion<end> to <green>$latestVersion<end>";
-							if (count($updateStatus) === count($databases)) {
-								$callback(join("\n", array_values($updateStatus)));
-							}
-						});
-				} else {
-					$this->logger->log('DEBUG', "Items db $currentDB already up to date '$currentVersion'");
-					$updateStatus[$currentDB] = "The items database <highlight>$currentDB<end> is already up to date at version <green>$currentVersion<end>";
-					if (count($updateStatus) === count($databases)) {
-						$callback(join("\n", array_values($updateStatus)));
-					}
-				}
-			} else {
-				$this->logger->log('ERROR', "Could not find latest items db $currentDB on server");
-				$updateStatus[$currentDB] = "There was a problem finding the latest version of $currentDB on the server";
-				if (count($updateStatus) === count($databases)) {
-					$callback(join("\n", array_values($updateStatus)));
-				}
-			}
-		}
-
-		$this->logger->log('DEBUG', "Finished items db update");
-
-		return;
 	}
 
 	/**
@@ -345,41 +205,38 @@ class ItemsController {
 	 * @return ItemSearchResult
 	 */
 	public function findItemsFromLocal(string $search, ?int $ql): array {
+		$innerQuery = $this->db->table("aodb AS a")
+			->leftJoin("item_groups AS g", "g.item_id", "a.lowid");
 		$tmp = explode(" ", $search);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
+		$this->db->addWhereFromParams($innerQuery, $tmp, "name");
 
 		if ($ql !== null) {
-			$query .= " AND aodb.lowql <= ? AND aodb.highql >= ?";
-			$params []= $ql;
-			$params []= $ql;
+			$innerQuery->where("a.lowql", "<=", $ql)
+				->where("a.highql", ">=", $ql);
 		}
-		$sql = "SELECT ".
-				"COALESCE(a2.name,a1.name,foo.name) AS name, ".
-				"n.name AS group_name, ".
-				"foo.icon, ".
-				"g.group_id, ".
-				"COALESCE(a1.lowid,a2.lowid,foo.lowid) AS lowid, ".
-				"COALESCE(a1.highid,a2.highid,foo.highid) AS highid, ".
-				"COALESCE(a1.lowql,a2.highql,foo.highql,foo.lowql) AS ql, ".
-				"COALESCE(a1.lowql,a2.lowql,foo.lowql) AS lowql, ".
-				"COALESCE(a1.highql,a2.highql,foo.highql) AS highql ".
-			"FROM (".
-				"SELECT aodb.*, g.group_id ".
-				"FROM aodb ".
-				"LEFT JOIN item_groups g ON (g.item_id=aodb.lowid) ".
-				"WHERE $query ".
-				"GROUP BY COALESCE(g.group_id,aodb.lowid) ".
-				"ORDER BY ".
-					"aodb.name ASC, ".
-					"aodb.highql DESC ".
-				"LIMIT ".$this->settingManager->getInt('maxitems').
-			") AS foo ".
-			"LEFT JOIN item_groups g ON(foo.group_id=g.group_id) ".
-			"LEFT JOIN item_group_names n ON(foo.group_id=n.group_id) ".
-			"LEFT JOIN aodb a1 ON(g.item_id=a1.lowid) ".
-			"LEFT JOIN aodb a2 ON(g.item_id=a2.highid) ".
-			"ORDER BY g.id ASC";
-		$data = $this->db->fetchAll(ItemSearchResult::class, $sql, ...$params);
+		$innerQuery->groupByRaw($innerQuery->colFunc("COALESCE", ["g.group_id", "a.lowid"]))
+			->groupBy("a.lowid", "a.highid", "a.lowql", "a.highql", "a.name")
+			->groupBy("a.icon", "a.froob_friendly", "a.slot", "a.flags", "g.group_id")
+			->orderBy("a.name")
+			->orderByDesc("a.highql")
+			->limit($this->settingManager->getInt('maxitems'))
+			->select("a.*", "g.group_id");
+		$query = $this->db->fromSub($innerQuery, "foo")
+			->leftJoin("item_groups AS g", "foo.group_id", "g.group_id")
+			->leftJoin("item_group_names AS n", "foo.group_id", "n.group_id")
+			->leftJoin("aodb AS a1", "g.item_id", "a1.lowid")
+			->leftJoin("aodb AS a2", "g.item_id", "a2.highid")
+			->orderBy("g.id");
+		$query->selectRaw($query->colFunc("COALESCE", ["a2.name", "a1.name", "foo.name"], "name"))
+			->addSelect("n.name AS group_name")
+			->addSelect("foo.icon")
+			->addSelect("g.group_id")
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid"))
+			->selectRaw($query->colFunc("COALESCE", ["a1.highid", "a2.highid", "foo.highid"], "highid"))
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql"))
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.lowql", "foo.lowql"], "lowql"))
+			->selectRaw($query->colFunc("COALESCE", ["a1.highql", "a2.highql", "foo.highql"], "highql"));
+		$data = $query->asObj(ItemSearchResult::class)->toArray();
 		// $data = $this->orderSearchResults($data, $search);
 
 		return $data;
@@ -624,20 +481,14 @@ class ItemsController {
 	}
 
 	public function findByName(string $name, ?int $ql=null): ?AODBEntry {
-		if ($ql === null) {
-			return $this->db->fetch(
-				AODBEntry::class,
-				"SELECT * FROM aodb WHERE name = ? ORDER BY highql DESC, highid DESC",
-				$name
-			);
+		$query = $this->db->table("aodb")
+			->where("name", $name)
+			->orderByDesc("highql")
+			->orderByDesc("highid");
+		if ($ql !== null) {
+			$query->where("lowql", "<=", $ql)->where("highql", ">=", $ql);
 		}
-		return $this->db->fetch(
-			AODBEntry::class,
-			"SELECT * FROM aodb WHERE name = ? AND lowql <= ? AND highql >= ? ORDER BY highid DESC",
-			$name,
-			$ql,
-			$ql
-		);
+		return $query->asObj(AODBEntry::class)->first();
 	}
 
 	public function getItem(string $name, ?int $ql=null): ?string {

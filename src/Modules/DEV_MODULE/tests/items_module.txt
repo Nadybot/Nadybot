@@ -26,5 +26,12 @@
 !whatbuffs foo bar
 !whatbuffs legs bar
 !whatbuffs foo sta
+!whatbuffs perks sta
+!whatbuffs nanoprogram
+!whatbuffs perks
+!whatbuffs nanoprogram sta
+
+!id chirop
+!id crispy chirop
 
 /text End ITEMS_MODULE

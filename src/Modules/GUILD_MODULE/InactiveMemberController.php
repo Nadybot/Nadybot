@@ -55,13 +55,12 @@ class InactiveMemberController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$data = $this->db->query(
-			"SELECT * FROM org_members_<myname> o ".
-			"LEFT JOIN alts a ON o.name = a.alt ".
-			"WHERE `mode` != 'del' AND `logged_off` < ? ".
-			"ORDER BY o.name",
-			$time
-		);
+		$data = $this->db->table(GuildController::DB_TABLE, "o")
+			->leftJoin("alts AS a", "o.name", "a.alt")
+			->where("mode", "!=", "del")
+			->where("logged_off", "<", $time)
+			->orderBy("o.name")
+			->asObj()->toArray();
 
 		if (count($data) === 0) {
 			$sendto->reply("There are no members in the org roster.");
@@ -76,13 +75,11 @@ class InactiveMemberController {
 		foreach ($data as $row) {
 			$logged = 0;
 			$main = $row->main;
-			if ($row->main != "") {
-				$data1 = $this->db->query(
-					"SELECT * FROM alts a ".
-					"JOIN org_members_<myname> o ON a.alt = o.name ".
-					"WHERE `main` = ?",
-					$row->main
-				);
+			if ($row->main !== null) {
+				$data1 = $this->db->table("alts AS a")
+					->join(GuildController::DB_TABLE . " AS o", "a.alt", "o.name")
+					->where("a.main", $row->main)
+					->asObj();
 				foreach ($data1 as $row1) {
 					if ($row1->logged_off > $time) {
 						continue 2;
@@ -101,7 +98,17 @@ class InactiveMemberController {
 			$lasttoon = $row->name;
 			$lastseen = ($row->logged_off == 0) ? "never" : $this->util->date($logged);
 
-			$player = "<pagebreak>" . $row->name . "; Main: $main; [{$alts}]\nLast seen on [$lasttoon] on " . $lastseen . "\n\n";
+			$player = "<pagebreak>" . $row->name;
+			if (isset($main)) {
+				$player .= "; Main: $main";
+			}
+			$player .= " [{$alts}]\n";
+			if ($lastseen !== "never") {
+				$player .= "Last seen on [$lasttoon] on {$lastseen}\n";
+			} else {
+				$player .= "Never seen\n";
+			}
+			$player .= "\n";
 			if ($highlight === true) {
 				$blob .= "<highlight>$player<end>";
 				$highlight = false;

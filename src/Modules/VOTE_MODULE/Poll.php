@@ -9,6 +9,7 @@ class Poll extends DBRow {
 	public string $author;
 	public string $question;
 	public string $possible_answers;
+	/** @db:ignore */
 	public array $answers = [];
 	public int $started;
 	public int $duration;

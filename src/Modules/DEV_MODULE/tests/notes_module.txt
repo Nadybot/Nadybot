@@ -15,4 +15,16 @@
 !links rem 1
 !links
 
+!reminder add Do good stuff
+!reminder addself Be respectful
+!reminder set self 1
+!reminder set off 1
+!reminders
+!settings save alts_require_confirmation 0
+!member add Regolus
+!alts add Regolus
+!runas regolus reminders
+!member rem reglus
+!reminder rem 1
+
 /text End NOTES_MODULE

@@ -4,6 +4,7 @@ namespace Nadybot\Patcher;
 
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
+use Exception;
 
 /**
  * This class is used as a callback-provider when installing or updating

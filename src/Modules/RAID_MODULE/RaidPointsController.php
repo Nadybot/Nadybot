@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use DateTime;
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
@@ -12,11 +13,12 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\ALTS\AltEvent,
 	Nadybot,
+	QueryBuilder,
 	SettingManager,
-	SQLException,
 	Text,
 	Timer,
 };
+use Throwable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
@@ -88,6 +90,10 @@ use Nadybot\Core\{
  * )
  */
 class RaidPointsController {
+	public const DB_TABLE = "raid_points_<myname>";
+	public const DB_TABLE_LOG = "raid_points_log_<myname>";
+	public const DB_TABLE_REWARD = "raid_reward_<myname>";
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -153,14 +159,7 @@ class RaidPointsController {
 			"number",
 			"10"
 		);
-		$this->db->loadSQLFile($this->moduleName, "raid_points");
-		$this->db->loadSQLFile($this->moduleName, "raid_points_log");
-		if (!$this->db->columnExists("raid_points_log_<myname>", "individual")) {
-			$this->db->exec("ALTER TABLE `raid_points_log_<myname>` ADD COLUMN `individual` BOOLEAN NOT NULL DEFAULT TRUE");
-			$this->db->exec("UPDATE `raid_points_log_<myname>` SET `individual`=(`ticker` IS FALSE AND `reason` NOT IN ('reward', 'penalty'))");
-		}
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `raid_points_log_<myname>_individual_idx` ON `raid_points_log_<myname>`(`individual`)");
-		$this->db->loadSQLFile($this->moduleName, "raid_reward");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Points");
 		$this->commandAlias->register($this->moduleName, "reward", "rewards");
 		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
 		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");
@@ -205,28 +204,27 @@ class RaidPointsController {
 		}
 		$raid->raiders[$player]->points++;
 		$raid->raiders[$player]->pointsRewarded++;
-		$updated = $this->db->exec(
-			"UPDATE raid_points_log_<myname> SET delta=delta+1 ".
-			"WHERE raid_id=? AND username=? AND ticker IS TRUE",
-			$raid->raid_id,
-			$pointsChar,
-		);
+		$updated = $this->db->table(self::DB_TABLE_LOG)
+			->where("raid_id", $raid->raid_id)
+			->where("username", $pointsChar)
+			->where("ticker", true)
+			->increment("delta", 1);
 		if ($updated > 0) {
+			$this->giveRaidPoints($pointsChar, 1);
 			return $pointsChar;
 		}
-		$inserted = $this->db->exec(
-			"INSERT INTO raid_points_log_<myname> ".
-			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `individual`, `raid_id`) ".
-			"VALUES(?, ?, ?, '<Myname>', ?, ?, ?, ?)",
-			$pointsChar,
-			1,
-			time(),
-			false,
-			'raid participation',
-			true,
-			false,
-			$raid->raid_id
-		);
+		$this->db->table(self::DB_TABLE_LOG)
+			->insert([
+				"username" => $pointsChar,
+				"delta" => 1,
+				"time" => time(),
+				"changed_by" => $this->db->getMyname(),
+				"individual" => false,
+				"reason" => "raid participation",
+				"ticker" => true,
+				"individual" => false,
+				"raid_id" => $raid->raid_id,
+			]);
 		$this->giveRaidPoints($pointsChar, 1);
 		return $pointsChar;
 	}
@@ -254,19 +252,17 @@ class RaidPointsController {
 				$raid->raiders[$player]->pointsRewarded += $delta;
 			}
 		}
-		$inserted = $this->db->exec(
-			"INSERT INTO raid_points_log_<myname> ".
-			"(`username`, `delta`, `time`, `changed_by`, `individual`, `reason`, `ticker`, `raid_id`) ".
-			"VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-			ucfirst(strtolower($player)),
-			$delta,
-			time(),
-			$changedBy,
-			$individual,
-			$reason,
-			false,
-			$raid->raid_id ?? null
-		);
+		$inserted = $this->db->table(self::DB_TABLE_LOG)
+			->insert([
+				"username" =>   ucfirst(strtolower($player)),
+				"delta" =>      $delta,
+				"time" =>       time(),
+				"changed_by" => $changedBy,
+				"individual" => $individual,
+				"reason" =>     $reason,
+				"ticker" =>     false,
+				"raid_id" =>    $raid->raid_id ?? null,
+			]);
 		if ($inserted === 0) {
 			$this->logger->log('ERROR', "Error logging the change of {$delta} points for {$pointsChar}.");
 			throw new Exception("Error recording the points delta of {$delta} for {$pointsChar}.");
@@ -282,20 +278,17 @@ class RaidPointsController {
 	 * Low level function to modify a player's points, returning success or not
 	 */
 	protected function giveRaidPoints(string $player, int $delta): bool {
-		$updated = $this->db->exec(
-			"UPDATE `raid_points_<myname>` SET `points`=`points`+? WHERE `username`=?",
-			$delta,
-			$player
-		);
+		$updated = $this->db->table(self::DB_TABLE)
+			->where("username", $player)
+			->increment("points", $delta);
 		if ($updated) {
 			return true;
 		}
-		$inserted = $this->db->exec(
-			"INSERT INTO `raid_points_<myname>` (`username`, `points`) ".
-			"VALUES(?, ?)",
-			$player,
-			$delta
-		);
+		$inserted = $this->db->table(self::DB_TABLE)
+			->insert([
+				"username" => $player,
+				"points" => $delta
+			]);
 		return $inserted > 0;
 	}
 
@@ -339,7 +332,9 @@ class RaidPointsController {
 	 * Get this character's raid points, not taking into consideration any alts
 	 */
 	public function getThisAltsRaidPoints(string $player): ?int {
-		$row = $this->db->queryRow("SELECT * FROM `raid_points_<myname>` WHERE `username`=?", $player);
+		$row = $this->db->table(self::DB_TABLE)
+			->where("username", $player)
+			->asObj()->first();
 		if ($row === null) {
 			return null;
 		}
@@ -423,12 +418,11 @@ class RaidPointsController {
 	 */
 	public function pointsTopCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var RaidPoints[] */
-		$topRaiders = $this->db->fetchAll(
-			RaidPoints::class,
-			"SELECT * FROM `raid_points_<myname>` ".
-			"ORDER BY `points` DESC LIMIT ?",
-			$this->settingManager->getInt('raid_top_amount')
-		);
+		$topRaiders = $this->db->table(self::DB_TABLE)
+			->orderByDesc("points")
+			->limit($this->settingManager->getInt('raid_top_amount'))
+			->asObj(RaidPoints::class)
+			->toArray();
 		if (count($topRaiders) === 0) {
 			$sendto->reply("No raiders have received any points yet.");
 			return;
@@ -487,16 +481,18 @@ class RaidPointsController {
 	protected function getRaidpointLogsForAccount(string $sender): array {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->main;
-		return $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT rpl.* FROM `raid_points_log_<myname>` rpl ".
-			"LEFT JOIN `alts` a ON (a.`alt`=rpl.`username`) ".
-			"WHERE (a.`main`=? AND a.`validated_by_main` IS TRUE AND a.`validated_by_alt` IS TRUE) ".
-			"OR rpl.`username`=? ".
-			"ORDER BY `time` DESC LIMIT 50",
-			$main,
-			$main
-		);
+		return $this->db->table(self::DB_TABLE_LOG, "rpl")
+			->leftJoin("alts AS a", "a.alt", "rpl.username")
+			->where(function (QueryBuilder $where) use ($main) {
+				$where->where("a.main", $main)
+					->where("a.validated_by_main", true)
+					->where("a.validated_by_alt", true);
+			})
+			->orWhere("rpl.username", $main)
+			->orderByDesc("time")
+			->limit(50)
+			->asObj(RaidPointsLog::class)
+			->toArray();
 	}
 
 	/**
@@ -506,12 +502,12 @@ class RaidPointsController {
 	 * @return RaidPointsLog[]
 	 */
 	protected function getRaidpointLogsForChar(string $sender): array {
-		return $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` " .
-				"WHERE `username`=? ORDER BY `time` DESC LIMIT 50",
-			$sender
-		);
+		return $this->db->table(self::DB_TABLE_LOG)
+			->where("username", $sender)
+			->orderByDesc("time")
+			->limit(50)
+			->asObj(RaidPointsLog::class)
+			->toArray();
 	}
 
 	/**
@@ -686,33 +682,30 @@ class RaidPointsController {
 		);
 		$this->db->beginTransaction();
 		try {
-			if ($mainPoints === null) {
-				$this->db->exec(
-					"INSERT INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
-					$event->main,
-					$altsPoints
+			$newPoints = $altsPoints + ($mainPoints??0);
+			$this->db->table(self::DB_TABLE)
+				->upsert(
+					[
+						"username" => $event->main,
+						"points" => $newPoints,
+					],
+					["username"]
 				);
-			} else {
-				$this->db->exec(
-					"UPDATE `raid_points_<myname>` SET `points`=? WHERE `username`=?",
-					$altsPoints + $mainPoints,
-					$event->main
-				);
-			}
-			$this->db->exec(
-				"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
-				$event->alt
-			);
-		} catch (SQLException $e) {
+			$this->db->table(self::DB_TABLE)
+				->where("username", $event->alt)
+				->delete();
+		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->log('ERROR', 'There was an error combining these points');
+			$this->logger->log(
+				'ERROR',
+				'There was an error combining these points: ' . $e->getMessage()
+			);
 			return;
 		}
 		$this->db->commit();
 		$this->logger->log(
 			'INFO',
-			'Raid points merged successfully to a new total of '.
-			(($mainPoints??0) + $altsPoints)
+			'Raid points merged successfully to a new total of ' . $newPoints
 		);
 	}
 
@@ -721,9 +714,11 @@ class RaidPointsController {
 	 * @Matches("/^reward$/i")
 	 */
 	public function rewardListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var RaidReward[] */
-		$rewards = $this->db->fetchAll(RaidReward::class, "SELECT * FROM `raid_reward_<myname>` ORDER BY `name` ASC");
-		if (empty($rewards)) {
+		/** @var Collection<RaidReward> */
+		$rewards = $this->db->table(self::DB_TABLE_REWARD)
+			->orderBy("name")
+			->asObj(RaidReward::class);
+		if ($rewards->isEmpty()) {
 			$sendto->reply("There are currently no raid rewards defined.");
 			return;
 		}
@@ -741,11 +736,9 @@ class RaidPointsController {
 	}
 
 	public function getRaidReward(string $name): ?RaidReward {
-		return $this->db->fetch(
-			RaidReward::class,
-			"SELECT * FROM `raid_reward_<myname>` WHERE `name` LIKE ?",
-			$name
-		);
+		return $this->db->table(self::DB_TABLE_REWARD)
+			->whereIlike("name", $name)
+			->asObj(RaidReward::class)->first();
 	}
 
 	/**
@@ -769,7 +762,7 @@ class RaidPointsController {
 			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
 			return;
 		}
-		$this->db->insert("raid_reward_<myname>", $reward);
+		$this->db->insert(self::DB_TABLE_REWARD, $reward);
 		$sendto->reply("New reward <highlight>{$reward->name}<end> created.");
 	}
 
@@ -790,7 +783,7 @@ class RaidPointsController {
 		} else {
 			$id = (int)$args[1];
 		}
-		$deleted = $this->db->exec("DELETE FROM `raid_reward_<myname>` WHERE `id`=?", $id);
+		$deleted = $this->db->table(self::DB_TABLE_REWARD)->delete($id);
 		if ($deleted) {
 			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
 		} else {
@@ -820,7 +813,7 @@ class RaidPointsController {
 			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
 			return;
 		}
-		$this->db->update("raid_reward_<myname>", "id", $reward);
+		$this->db->update(self::DB_TABLE_REWARD, "id", $reward);
 		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 
@@ -837,15 +830,14 @@ class RaidPointsController {
 		if ($oldPoints === null) {
 			return;
 		}
-		$this->db->exec(
-			"REPLACE INTO `raid_points_<myname>` (`username`, `points`) VALUES (?, ?)",
-			$event->main,
-			$oldPoints,
-		);
-		$this->db->exec(
-			"DELETE FROM `raid_points_<myname>` WHERE `username`=?",
-			$event->alt
-		);
+		$this->db->table(self::DB_TABLE)
+			->upsert(
+				["username" => $event->main, "points" => $oldPoints],
+				["username"]
+			);
+		$this->db->table(self::DB_TABLE)
+			->where("username", $event->alt)
+			->delete();
 		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
 }

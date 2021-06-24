@@ -362,8 +362,9 @@ class SystemController {
 
 		$info->stats = $stats = new SystemStats();
 
-		$sql = "SELECT count(*) AS count FROM players";
-		$row = $this->db->queryRow($sql);
+		$query = $this->db->table("players");
+		$row = $query->selectRaw($query->rawFunc("COUNT", "*", "count"))
+			->asObj()->first();
 		$stats->charinfo_cache_size = (int)$row->count;
 
 		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
@@ -374,7 +375,7 @@ class SystemController {
 
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$channel = new ChannelInfo();
-			$channel->id = unpack("N", substr($gid, 1))[1];
+			$channel->id = unpack("N", substr((string)$gid, 1))[1];
 			$channel->name = $this->chatBot->gid[$gid];
 			$info->channels []= $channel;
 		}
@@ -523,8 +524,10 @@ class SystemController {
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->log('DEBUG', "Pinging database");
-		$sql = "SELECT * FROM settings_<myname> LIMIT 1";
-		$this->db->fetch(Setting::class, $sql);
+		$this->db->table(SettingManager::DB_TABLE)
+			->limit(1)
+			->asObj(Setting::class)
+			->first();
 	}
 
 	/**

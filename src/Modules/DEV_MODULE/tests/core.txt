@@ -1,0 +1,85 @@
+#core
+/text Start Core
+!config
+!config mod
+!config RAID_MODULE
+!config mod SYSTEM disable all
+!config mod SYSTEM disable msg
+!config mod SYSTEM enable priv
+!config mod SYSTEM enable all
+!help
+!help about
+!help config
+!help defaultraffletime
+!help max_blob_size
+!alias list
+!alias add xxx do secret stuff
+!alias add xxx do other secret stuff
+!alias rem xxx
+!cmdlist
+!cmdlist superadmin
+!cmdsearch raf
+!config cmd disable guild
+!config cmd enable guild
+!config cmd raid disable all
+!config cmd raid enable all
+!config subcmd raid .+ disable guild
+!config subcmd raid .+ enable guild
+!config event joinpriv privatechannelcontroller.joinPrivateChannelRecordEvent enable all
+!config cmd raid
+!config cmd raid admin msg member
+!config cmd raid admin all member
+!config cmd raid admin msg all
+!config cmd raid admin all all
+!config subcmd news .+ admin msg mod
+!config subcmd news .+ admin all mod
+
+!eventlist to
+!eventlist towers
+!eventlist rfwefwefji
+
+!settings
+!settings change add_on_loot
+!settings save add_on_loot 1
+
+!alts Nady
+!alts add Nukeat5
+!alts
+!admin add Rikoltanto
+!runas Rikoltanto alts add Regolus
+!runas Regolus altvalidate Rikoltanto
+!member add Babylos
+!runas Babylos alts main Rikoltanto
+!runas Rikoltanto altvalidate Babylos
+!runas Rikoltanto alts rem Regolus
+!runas Rikoltanto alts rem Babylos
+!admin rem Rikoltanto
+!member rem Babylos
+!alts rem Nukeat5
+
+!rateignore
+
+!usage
+!usage 1d
+!usage info
+!usage player Nady
+!usage player Nady 1d
+!usage cmd usage
+!usage cmd usage 1d
+
+!profile
+!profile save debug_xxx
+!profile view debug_xxx
+!profile load debug_xxx
+!profile rem debug_xxx
+
+!system
+!checkaccess
+!checkaccess nady
+!checkaccess nadydoesnotexist
+
+!mod add nady
+!admin add nady
+!mod add nady
+
+!orgmembers 1

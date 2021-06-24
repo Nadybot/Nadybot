@@ -1,4 +1,4 @@
 [codespell]
-skip = .vscode,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt
+skip = .vscode,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv
 ignore-words-list = ot,ether,vektor,keep-alives,ist
 ignore-regex = ([\'"]/.+|\WND\W|\W!nd\W)

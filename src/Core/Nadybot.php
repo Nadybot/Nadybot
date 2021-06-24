@@ -141,115 +141,33 @@ class Nadybot extends AOChat {
 
 		$this->logger->log('DEBUG', 'Initializing bot');
 
-		// Create core tables if they don't already exist
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS cmdcfg_<myname> (".
-			"`module` VARCHAR(50), ".
-			"`cmdevent` VARCHAR(6), ".
-			"`type` VARCHAR(18), ".
-			"`file` TEXT, ".
-			"`cmd` VARCHAR(50), ".
-			"`admin` VARCHAR(30), ".
-			"`description` VARCHAR(75) DEFAULT 'none', ".
-			"`verify` INT DEFAULT '0', ".
-			"`status` INT DEFAULT '0', ".
-			"`dependson` VARCHAR(25) DEFAULT 'none', ".
-			"`help` VARCHAR(255)".
-			")"
-		);
-		if ($this->db->getType() === $this->db::MYSQL) {
-			$this->db->exec("ALTER TABLE cmdcfg_<myname> MODIFY COLUMN `admin` VARCHAR(30)");
-		}
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_verify_idx` ON `cmdcfg_<myname>`(`verify`)");
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_cmd_idx` ON `cmdcfg_<myname>`(`cmd`)");
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmdcfg_<myname>_type_idx` ON `cmdcfg_<myname>`(`type`)");
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS `eventcfg_<myname>` (".
-			"`module` VARCHAR(50), ".
-			"`type` VARCHAR(50), ".
-			"`file` VARCHAR(100), ".
-			"`description` VARCHAR(75) DEFAULT 'none', ".
-			"`verify` INT DEFAULT '0', ".
-			"`status` INT DEFAULT '0', ".
-			"`help` VARCHAR(255)".
-			")"
-		);
-		if ($this->db->getType() === $this->db::MYSQL) {
-			$this->db->exec("ALTER TABLE `eventcfg_<myname>` CHANGE `type` `type` VARCHAR(50)");
-			$this->db->exec("ALTER TABLE `eventcfg_<myname>` CHANGE `file` `file` VARCHAR(100)");
-		}
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_type_idx` ON `eventcfg_<myname>`(`type`)");
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_file_idx` ON `eventcfg_<myname>`(`file`)");
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `eventcfg_<myname>_module_idx` ON `eventcfg_<myname>`(`module`)");
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS settings_<myname> (".
-			"`name` VARCHAR(50) NOT NULL, ".
-			"`module` VARCHAR(50), ".
-			"`type` VARCHAR(30), ".
-			"`mode` VARCHAR(10), ".
-			"`value` VARCHAR(255) DEFAULT '0', ".
-			"`options` VARCHAR(255) DEFAULT '0', ".
-			"`intoptions` VARCHAR(50) DEFAULT '0', ".
-			"`description` VARCHAR(75), ".
-			"`source` VARCHAR(5), ".
-			"`admin` VARCHAR(25), ".
-			"`verify` INT DEFAULT '0', ".
-			"`help` VARCHAR(255)".
-			")"
-		);
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `settings_<myname>_name_idx` ON `settings_<myname>`(`name`)");
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS hlpcfg_<myname> (".
-			"`name` VARCHAR(25) NOT NULL, ".
-			"`module` VARCHAR(50), ".
-			"`file` VARCHAR(255), ".
-			"`description` VARCHAR(75), ".
-			"`admin` VARCHAR(10), ".
-			"`verify` INT DEFAULT '0'".
-			")"
-		);
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `hlpcfg_<myname>_name_idx` ON `hlpcfg_<myname>`(`name`)");
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS cmd_alias_<myname> (".
-			"`cmd` VARCHAR(255) NOT NULL, ".
-			"`module` VARCHAR(50), ".
-			"`alias` VARCHAR(25) NOT NULL, ".
-			"`status` INT DEFAULT '0'".
-			")"
-		);
-		$this->db->exec("CREATE INDEX IF NOT EXISTS `cmd_alias_<myname>_alias_idx` ON `cmd_alias_<myname>`(`alias`)");
-
 		// Prepare command/event settings table
-		$this->db->exec("UPDATE `cmdcfg_<myname>` SET `verify` = 0");
-		$this->db->exec("UPDATE `eventcfg_<myname>` SET `verify` = 0");
-		$this->db->exec("UPDATE `settings_<myname>` SET `verify` = 0");
-		$this->db->exec("UPDATE `hlpcfg_<myname>` SET `verify` = 0");
-		$this->db->exec("UPDATE `eventcfg_<myname>` SET `status` = 1 WHERE `type` = 'setup'");
+		$this->db->table(CommandManager::DB_TABLE)->update(["verify" => 0]);
+		$this->db->table(EventManager::DB_TABLE)->update(["verify" => 0]);
+		$this->db->table(SettingManager::DB_TABLE)->update(["verify" => 0]);
+		$this->db->table(HelpManager::DB_TABLE)->update(["verify" => 0]);
+		$this->db->table(EventManager::DB_TABLE)->where("type", "setup")->update(["verify" => 1]);
 
 		// To reduce queries load core items into memory
-		/** @var CmdCfg[] $data */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM `cmdcfg_<myname>` WHERE `cmdevent` = 'subcmd'");
-		foreach ($data as $row) {
-			$this->existing_subcmds[$row->type][$row->cmd] = true;
-		}
+		$this->db->table(CommandManager::DB_TABLE)->where("cmdevent", "subcmd")->asObj(CmdCfg::class)
+			->each(function(CmdCfg $row) {
+				$this->existing_subcmds[$row->type][$row->cmd] = true;
+			});
 
-		/** @var EventCfg[] $data */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM `eventcfg_<myname>`");
-		foreach ($data as $row) {
-			$this->existing_events[$row->type][$row->file] = true;
-		}
+		$this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)
+			->each(function(EventCfg $row) {
+				$this->existing_events[$row->type][$row->file] = true;
+			});
 
-		/** @var HlpCfg[] $data */
-		$data = $this->db->fetchAll(HlpCfg::class, "SELECT * FROM `hlpcfg_<myname>`");
-		foreach ($data as $row) {
-			$this->existing_helps[$row->name] = true;
-		}
+		$this->db->table(HelpManager::DB_TABLE)->asObj(HlpCfg::class)
+			->each(function(HlpCfg $row) {
+				$this->existing_helps[$row->name] = true;
+			});
 
-		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, "SELECT * FROM `settings_<myname>`");
-		foreach ($data as $row) {
-			$this->existing_settings[$row->name] = true;
-		}
+		$this->db->table(SettingManager::DB_TABLE)->asObj(Setting::class)
+			->each(function(Setting $row) {
+				$this->existing_settings[$row->name] = true;
+			});
 
 		$this->db->beginTransaction();
 		$allClasses = get_declared_classes();
@@ -274,10 +192,10 @@ class Nadybot extends AOChat {
 		unset($this->existing_helps);
 
 		//Delete old entries in the DB
-		$this->db->exec("DELETE FROM `cmdcfg_<myname>` WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM `eventcfg_<myname>` WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM `settings_<myname>` WHERE `verify` = 0");
-		$this->db->exec("DELETE FROM `hlpcfg_<myname>` WHERE `verify` = 0");
+		$this->db->table(CommandManager::DB_TABLE)->where("verify", 0)->delete();
+		$this->db->table(EventManager::DB_TABLE)->where("verify", 0)->delete();
+		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)->delete();
+		$this->db->table(HelpManager::DB_TABLE)->where("verify", 0)->delete();
 
 		$this->commandManager->loadCommands();
 		$this->subcommandManager->loadSubcommands();

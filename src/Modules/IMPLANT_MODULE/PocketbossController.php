@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
@@ -50,7 +51,8 @@ class PocketbossController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "pocketboss");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Pocketboss");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");
 	}
 
 	/**
@@ -81,11 +83,11 @@ class PocketbossController {
 
 	public function singlePbBlob(string $name): string {
 		/** @var Pocketboss[] */
-		$data = $this->db->fetchAll(
-			Pocketboss::class,
-			"SELECT * FROM pocketboss WHERE pb = ? ORDER BY ql",
-			$name
-		);
+		$data = $this->db->table("pocketboss")
+			->where("pb", $name)
+			->orderBy("ql")
+			->asObj(Pocketboss::class)
+			->toArray();
 		$symbs = '';
 		foreach ($data as $symb) {
 			if (in_array($symb->line, ["Alpha", "Beta"])) {
@@ -107,23 +109,26 @@ class PocketbossController {
 	 * @return Pocketboss[]
 	 */
 	public function pbSearchResults(string $search): array {
-		$row = $this->db->fetch(
-			Pocketboss::class,
-			"SELECT * FROM pocketboss WHERE pb LIKE ? GROUP BY `pb` ORDER BY `pb`",
-			$search
-		);
+		$row = $this->db->table("pocketboss")
+			->whereIlike("pb", $search)
+			->orderBy("pb")
+			->limit(1)
+			->asObj(Pocketboss::class)
+			->first();
 		if ($row !== null) {
 			return [$row];
 		}
 
+		$query = $this->db->table("pocketboss")
+			->orderBy("pb");
 		$tmp = explode(" ", $search);
-		[$query, $params] = $this->util->generateQueryFromParams($tmp, '`pb`');
+		$this->db->addWhereFromParams($query, $tmp, "pb");
 
-		return $this->db->fetchAll(
-			Pocketboss::class,
-			"SELECT * FROM pocketboss WHERE $query GROUP BY `pb` ORDER BY `pb`",
-			...$params
-		);
+		$pb =$query->asObj(Pocketboss::class);
+		return $pb->groupBy("pb")
+			->map(fn(Collection $col) => $col->first())
+			->values()
+			->toArray();
 	}
 
 	/**
@@ -139,10 +144,8 @@ class PocketbossController {
 		$symbtype = '%';
 		$line = '%';
 
-		$lines = array_column(
-			$this->db->query("SELECT DISTINCT line FROM pocketboss"),
-			"line"
-		);
+		$lines = $this->db->table("pocketboss")->select("line")->distinct()
+			->asObj()->pluck("line")->toArray();
 
 		for ($i = 1; $i <= $paramCount; $i++) {
 			switch (strtolower($args[$i])) {
@@ -247,20 +250,18 @@ class PocketbossController {
 			}
 		}
 
+		$query = $this->db->table("pocketboss")
+			->whereIlike("slot", $slot)
+			->whereIlike("type", $symbtype)
+			->whereIlike("line", $line)
+			->orderByDesc("ql");
+		$query->orderByRaw($query->grammar->wrap("line") . " = ? desc")
+			->addBinding("Alpha")
+			->orderByRaw($query->grammar->wrap("line") . " = ? desc")
+			->addBinding("Beta")
+			->orderBy("type");
 		/** @var Pocketboss[] */
-		$data = $this->db->fetchAll(
-			Pocketboss::class,
-			"SELECT * FROM pocketboss ".
-			"WHERE `slot` LIKE ? AND `type` LIKE ? AND `line` LIKE ? ".
-			"ORDER BY ".
-			"`ql` DESC, ".
-			"`line`='Alpha' DESC, ".
-			"`line`='Beta' DESC, ".
-			"`type` ASC",
-			$slot,
-			$symbtype,
-			$line
-		);
+		$data = $query->asObj(Pocketboss::class)->toArray();
 		$numrows = count($data);
 		if ($numrows === 0) {
 			$msg = "Could not find any symbiants that matched your search criteria.";

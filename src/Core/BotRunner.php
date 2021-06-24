@@ -6,7 +6,6 @@ use Closure;
 use LoggerConfiguratorDefault;
 use Logger;
 use ErrorException;
-use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\SETUP\Setup;
 use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 
@@ -138,6 +137,7 @@ class BotRunner {
 			},
 			$tags
 		);
+		/** @var SemanticVersion[] $tags*/
 		usort(
 			$tags,
 			function(SemanticVersion $v1, SemanticVersion $v2): int {
@@ -249,7 +249,7 @@ class BotRunner {
 		$this->setWindowTitle();
 
 		$version = self::getVersion();
-		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()."...");
+		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()." and {$vars['DB Type']}...");
 
 		$this->classLoader = new ClassLoader($vars['module_load_paths']);
 		Registry::injectDependencies($this->classLoader);
@@ -447,6 +447,9 @@ class BotRunner {
 	 * Runs upgrade.php, which is needed if the SQL schema has changed between releases.
 	 */
 	private function runUpgradeScripts(): void {
+		/** @var DB */
+		$db = Registry::getInstance('db');
+		$db->loadMigrations("Core", __DIR__ . "/Migrations");
 		if (file_exists('upgrade.php')) {
 			include 'upgrade.php';
 		}

@@ -71,13 +71,14 @@ class BuffPerksController {
 
 	/** @Setup */
 	public function setup(): void {
-		$msg = $this->db->loadSQLFile($this->moduleName, "perks");
-		$this->timer->callLater(0, [$this, "initPerksDatabase"], $msg);
+		$applied = $this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Perks");
+		$this->settingManager->add($this->moduleName, "perks_db_version", "perks_db_version", 'noedit', 'text', "0");
+		$this->timer->callLater(0, [$this, "initPerksDatabase"], $applied);
 	}
 
-	public function initPerksDatabase(string $msg): void {
+	public function initPerksDatabase(bool $applied): void {
 		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "initPerksDatabase"], $msg);
+			$this->timer->callLater(0, [$this, "initPerksDatabase"], $applied);
 			return;
 		}
 		$path = __DIR__ . "/perks.csv";
@@ -86,22 +87,25 @@ class BuffPerksController {
 		if ($this->settingManager->exists("perks_db_version")) {
 			$dbVersion = (int)$this->settingManager->get("perks_db_version");
 		}
-		if ( ($mtime === false || $dbVersion >= $mtime)
-			&& preg_match("/database already up to date/", $msg)) {
+		if (($mtime === false || $dbVersion >= $mtime) && !$applied) {
 			return;
 		}
+		$this->logger->log("INFO", "(Re)building perk database...");
 
 		$perkInfo = $this->getPerkInfo();
 
 		$this->db->beginTransaction();
 		try {
-			$this->db->exec("DELETE FROM perk");
-			$this->db->exec("DELETE FROM perk_level");
-			$this->db->exec("DELETE FROM perk_level_prof");
-			$this->db->exec("DELETE FROM perk_level_buffs");
-			$this->db->exec("DELETE FROM perk_level_actions");
-			$this->db->exec("DELETE FROM perk_level_resistances");
+			$this->db->table("perk")->truncate();
+			$this->db->table("perk_level")->truncate();
+			$this->db->table("perk_level_prof")->truncate();
+			$this->db->table("perk_level_buffs")->truncate();
+			$this->db->table("perk_level_actions")->truncate();
+			$this->db->table("perk_level_resistances")->truncate();
 
+			$profInserts = [];
+			$resInserts = [];
+			$buffInserts = [];
 			foreach ($perkInfo as $perk) {
 				$perk->id = $this->db->insert("perk", $perk);
 
@@ -110,16 +114,18 @@ class BuffPerksController {
 					$level->id = $this->db->insert('perk_level', $level);
 
 					foreach ($level->professions as $profession) {
-						$this->db->exec("INSERT INTO perk_level_prof (perk_level_id, profession) VALUES (?, ?)", $level->id, $profession);
+						$profInserts []= [
+							"perk_level_id" => $level->id,
+							"profession" => $profession,
+						];
 					}
 
 					foreach ($level->resistances as $strain => $amount) {
-						$this->db->exec(
-							"INSERT INTO perk_level_resistances (perk_level_id, strain_id, amount) VALUES (?, ?, ?)",
-							$level->id,
-							(int)$strain,
-							(int)$amount
-						);
+						$resInserts []= [
+							"perk_level_id" => $level->id,
+							"strain_id" => (int)$strain,
+							"amount" => (int)$amount,
+						];
 					}
 
 					if ($level->action) {
@@ -128,15 +134,22 @@ class BuffPerksController {
 					}
 
 					foreach ($level->buffs as $skillId => $amount) {
-						$this->db->exec(
-							"INSERT INTO `perk_level_buffs` (`perk_level_id`, `skill_id`, `amount`) ".
-							"VALUES (?, ?, ?)",
-							$level->id,
-							(int)$skillId,
-							$amount
-						);
+						$buffInserts []= [
+							"perk_level_id" => $level->id,
+							"skill_id" => (int)$skillId,
+							"amount" => (int)$amount,
+						];
 					}
 				}
+			}
+			foreach (array_chunk($profInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_prof")->insert($inserts);
+			}
+			foreach (array_chunk($resInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_resistances")->insert($inserts);
+			}
+			foreach (array_chunk($buffInserts, 800, false) as $inserts) {
+				$this->db->table("perk_level_buffs")->insert($inserts);
 			}
 			$newVersion = max($mtime ?: time(), $dbVersion);
 			$this->settingManager->save("perks_db_version", (string)$newVersion);
@@ -461,6 +474,7 @@ class BuffPerksController {
 		$path = __DIR__ . "/perks.csv";
 		$lines = explode("\n", file_get_contents($path));
 		$perks = [];
+		$skillCache = [];
 		foreach ($lines as $line) {
 			$line = trim($line);
 
@@ -518,7 +532,9 @@ class BuffPerksController {
 				$amount = trim(substr($buff, $pos + 1));
 				$skills = $this->expandSkill($skill);
 				foreach ($skills as $skill) {
-					$skillSearch = $this->whatBuffsController->searchForSkill($skill);
+					$skillSearch = $skillCache[$skill]
+						?? $this->whatBuffsController->searchForSkill($skill);
+					$skillCache[$skill] = $skillSearch;
 					if (count($skillSearch) !== 1) {
 						echo "Error parsing skill: '{$skill}'\n";
 					} else {
@@ -676,74 +692,66 @@ class BuffPerksController {
 	 * @return null|Perk The perk information
 	 */
 	public function readPerk(string $name): ?Perk {
-		$sql = "SELECT * FROM `perk` WHERE `name` LIKE ?";
 		/** @var ?Perk */
-		$perk = $this->db->fetch(Perk::class, $sql, $name);
+		$perk = $this->db->table("perk")
+			->whereIlike("name", $name)
+			->asObj(Perk::class)
+			->first();
 		if (!isset($perk)) {
 			return null;
 		}
-		$sql = "SELECT pl.*, GROUP_CONCAT(plp.`profession`) AS `profs` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_prof` plp ON (pl.id = plp.`perk_level_id`) ".
-			"WHERE pl.`perk_id` = ? ".
-			"GROUP BY pl.id ".
-			"ORDER BY pl.`perk_level` ASC";
-		/** @var PerkLevel[] */
-		$perkLevels = $this->db->fetchAll(PerkLevel::class, $sql, $perk->id);
-		foreach ($perkLevels as $perkLevel) {
-			$perkLevel->professions = array_map(
-				[$this->util, "getProfessionAbbreviation"],
-				explode(",", $perkLevel->profs)
-			);
-			unset($perkLevel->profs);
-			$perk->levels[$perkLevel->perk_level] = $perkLevel;
-		}
-		$sql = "SELECT pl.`perk_level`, pla.*, a.*".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_actions` pla ON (pl.id = pla.`perk_level_id`) ".
-			"JOIN `aodb` a ON (a.`lowid` = pla.`action_id`) ".
-			"WHERE pl.`perk_id` = ? ".
-			"ORDER BY pl.`perk_level` ASC";
-		/** @var PerkLevelAction[] */
-		$perkLevelActions = $this->db->fetchAll(PerkLevelAction::class, $sql, $perk->id);
-		foreach ($perkLevelActions as $perkLevelAction) {
-			$item = new AODBEntry();
-			foreach (get_class_vars(AODBEntry::class) as $key => $value) {
-				$item->{$key} = $perkLevelAction->{$key};
-				unset($perkLevelAction->{$key});
-			}
-			$perkLevelAction->aodb = $item;
-			$perk->levels[$perkLevelAction->perk_level]->action = $perkLevelAction;
-		}
-		$sql = "SELECT ".
-				"pl.`perk_level`, plb.`skill_id`, ".
-				"s.`name` AS `skill_name`, plb.`amount`, s.`unit` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_buffs` plb ON (pl.`id` = plb.`perk_level_id`) ".
-			"JOIN `skills` s ON (s.`id` = plb.`skill_id`) ".
-			"WHERE ".
-				"pl.`perk_id` = ? ".
-			"ORDER BY ".
-				"pl.`perk_level` ASC, ".
-				"s.`name` ASC";
-		$buffs = $this->db->fetchAll(PerkLevelBuff::class, $sql, $perk->id);
-		foreach ($buffs as $buff) {
-			$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
-		}
-		$sql = "SELECT ".
-				"pl.`perk_level`, plr.*, nl.`name` AS `nanoline` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_resistances` plr ON (pl.`id` = plr.`perk_level_id`) ".
-			"JOIN `nano_lines` nl ON (nl.`strain_id` = plr.`strain_id`) ".
-			"WHERE ".
-				"pl.`perk_id` = ? ".
-			"ORDER BY ".
-				"pl.`perk_level` ASC, ".
-				"nl.`name` ASC";
-		$resistances = $this->db->fetchAll(PerkLevelResistance::class, $sql, $perk->id);
-		foreach ($resistances as $res) {
-			$perk->levels[$res->perk_level]->perk_resistances []= $res;
-		}
+		$this->db->table("perk_level")
+			->where("perk_id", $perk->id)
+			->orderBy("perk_level")
+			->asObj(PerkLevel::class)
+			->each(function (PerkLevel $row) use ($perk) {
+				$row->professions = $this->db->table("perk_level_prof")
+					->where("perk_level_id", $row->id)
+					->select("profession")
+					->asObj()
+					->pluck("profession")
+					->map([$this->util, "getProfessionAbbreviation"])
+					->toArray();
+				$perk->levels[$row->perk_level] = $row;
+			});
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_actions AS pla", "pl.id", "pla.perk_level_id")
+			->join("aodb AS a", "a.lowid", "pla.action_id")
+			->where("pl.perk_id", $perk->id)
+			->orderBy("pl.perk_level")
+			->select("pl.perk_level", "pla.*", "a.*")
+			->asObj(PerkLevelAction::class)
+			->each(function (PerkLevelAction $perkLevelAction) use ($perk) {
+				$item = new AODBEntry();
+				foreach (get_class_vars(AODBEntry::class) as $key => $value) {
+					$item->{$key} = $perkLevelAction->{$key};
+					unset($perkLevelAction->{$key});
+				}
+				$perkLevelAction->aodb = $item;
+				$perk->levels[$perkLevelAction->perk_level]->action = $perkLevelAction;
+			});
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_buffs AS plb", "pl.id", "plb.perk_level_id")
+			->join("skills AS s", "s.id", "plb.skill_id")
+			->where("pl.perk_id", $perk->id)
+			->orderBy("pl.perk_level")
+			->orderBy("s.name")
+			->select("pl.perk_level", "plb.skill_id", "s.name AS skill_name", "plb.amount", "s.unit")
+			->asObj(PerkLevelBuff::class)
+			->each(function (PerkLevelBuff $buff) use ($perk) {
+				$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
+			});
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_resistances AS plr", "pl.id", "plr.perk_level_id")
+			->join("nano_lines AS nl", "nl.strain_id", "plr.strain_id")
+			->where("pl.perk_id", $perk->id)
+			->orderBy("pl.perk_level")
+			->orderBy("nl.name")
+			->select("pl.perk_level", "plr.*", "nl.name AS nanoline")
+			->asObj(PerkLevelResistance::class)
+			->each(function (PerkLevelResistance $res) use ($perk) {
+				$perk->levels[$res->perk_level]->perk_resistances []= $res;
+			});
 		return $perk;
 	}
 
@@ -756,90 +764,78 @@ class BuffPerksController {
 	 */
 	public function readPerks(string $profession, int $level=220): array {
 		/** @var array<int,Perk> */
-		$perks = [];
-		$sql = "SELECT p.* ".
-			"FROM `perk` p ".
-			"JOIN `perk_level` pl ON (pl.`perk_id` = p.`id`) ".
-			"JOIN `perk_level_prof` plp ON (pl.`id` = plp.`perk_level_id`) ".
-			"WHERE pl.`required_level` <= ? ".
-			"AND plp.`profession` = ? ".
-			"GROUP BY p.`id` ".
-			"ORDER BY p.`name` ASC";
-		/** @var Perk[] */
-		$perksData = $this->db->fetchAll(Perk::class, $sql, $level, $profession);
-		foreach ($perksData as $perkData) {
-			$perks[$perkData->id] = $perkData;
-		}
-		$sql = "SELECT pl.*, ".
-			"(SELECT GROUP_CONCAT(plp2.`profession`) FROM `perk_level_prof` plp2 WHERE plp2.`perk_level_id`=pl.`id`) AS `profs` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_prof` plp ON (pl.`id` = plp.`perk_level_id`) ".
-			"WHERE pl.`required_level` <= ? ".
-			"AND plp.`profession` = ? ".
-			"GROUP BY pl.`id` ".
-			"ORDER BY pl.`perk_level` ASC";
-		/** @var PerkLevel[] */
-		$perkLevels = $this->db->fetchAll(PerkLevel::class, $sql, $level, $profession);
-		foreach ($perkLevels as $perkLevel) {
-			$perkLevel->professions = array_map(
-				[$this->util, "getProfessionAbbreviation"],
-				explode(",", $perkLevel->profs)
-			);
-			unset($perkLevel->profs);
-			$perks[$perkLevel->perk_id]->levels[$perkLevel->perk_level] = $perkLevel;
-		}
-		$sql = "SELECT pl.`perk_id`, pl.`perk_level`, pla.*, a.*".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_prof` plp ON (pl.id = plp.`perk_level_id`) ".
-			"JOIN `perk_level_actions` pla ON (pl.id = pla.`perk_level_id`) ".
-			"JOIN `aodb` a ON (a.`lowid` = pla.`action_id`) ".
-			"WHERE pl.`required_level` <= ? ".
-			"AND plp.`profession` = ? ".
-			"ORDER BY pl.`perk_level` ASC";
-		/** @var PerkLevelAction[] */
-		$perkLevelActions = $this->db->fetchAll(PerkLevelAction::class, $sql, $level, $profession);
-		foreach ($perkLevelActions as $perkLevelAction) {
-			$item = new AODBEntry();
-			foreach (get_class_vars(AODBEntry::class) as $key => $value) {
-				$item->{$key} = $perkLevelAction->{$key};
-				unset($perkLevelAction->{$key});
-			}
-			$perkLevelAction->aodb = $item;
-			$perks[$perkLevelAction->perk_id]->levels[$perkLevelAction->perk_level]->action = $perkLevelAction;
-		}
-		$sql = "SELECT ".
-				"pl.`perk_id`, pl.`perk_level`, plb.`skill_id`, ".
-				"s.`name` AS `skill_name`, plb.`amount`, s.`unit` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_prof` plp ON (pl.`id` = plp.`perk_level_id`) ".
-			"JOIN `perk_level_buffs` plb ON (pl.`id` = plb.`perk_level_id`) ".
-			"JOIN `skills` s ON (s.`id` = plb.`skill_id`) ".
-			"WHERE ".
-				"pl.`required_level` <= ? ".
-				"AND plp.`profession` = ? ".
-			"ORDER BY ".
-				"pl.`perk_level` ASC, ".
-				"s.`name` ASC";
-		$buffs = $this->db->fetchAll(PerkLevelBuff::class, $sql, $level, $profession);
-		foreach ($buffs as $buff) {
-			$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
-		}
-		$sql = "SELECT ".
-				"pl.`perk_id`, pl.`perk_level`, plr.*, nl.`name` AS `nanoline` ".
-			"FROM `perk_level` pl ".
-			"JOIN `perk_level_prof` plp ON (pl.`id` = plp.`perk_level_id`) ".
-			"JOIN `perk_level_resistances` plr ON (pl.`id` = plr.`perk_level_id`) ".
-			"JOIN `nano_lines` nl ON (nl.`strain_id` = plr.`strain_id`) ".
-			"WHERE ".
-				"pl.`required_level` <= ? ".
-				"AND plp.`profession` = ? ".
-			"ORDER BY ".
-				"pl.`perk_level` ASC, ".
-				"nl.`name` ASC";
-		$resistances = $this->db->fetchAll(PerkLevelResistance::class, $sql, $level, $profession);
-		foreach ($resistances as $res) {
-			$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
-		}
+		$perks = $this->db->table("perk AS p")
+			->join("perk_level AS pl", "pl.perk_id", "p.id")
+			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
+			->where("pl.required_level", "<=", $level)
+			->where("plp.profession", $profession)
+			->groupBy("p.id", "p.name", "p.expansion", "p.description")
+			->select("p.*")
+			->asObj(Perk::class)
+			->keyBy("id")
+			->toArray();
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
+			->where("pl.required_level", "<=", $level)
+			->where("plp.profession", $profession)
+			->orderBy("pl.perk_level")
+			->select("pl.*", "plp.profession")
+			->asObj(PerkLevel::class)
+			->reduce(function (array $perks, PerkLevel $perkLevel) {
+				/** @var array<int,Perk> $perks */
+				$prof = $this->util->getProfessionAbbreviation($perkLevel->profession);
+				unset($perkLevel->profession);
+				if (!isset($perks[$perkLevel->perk_id]->levels[$perkLevel->perk_level])) {
+					$perks[$perkLevel->perk_id]->levels[$perkLevel->perk_level] = $perkLevel;
+				}
+				$perks[$perkLevel->perk_id]->levels[$perkLevel->perk_level]->professions []= $prof;
+				return $perks;
+			}, $perks);
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
+			->join("perk_level_actions AS pla", "pl.id", "pla.perk_level_id")
+			->join("aodb AS a", "a.lowid", "pla.action_id")
+			->where("pl.required_level", "<=", $level)
+			->where("plp.profession", $profession)
+			->orderBy("pl.perk_level")
+			->select("pl.perk_id", "pl.perk_level", "pla.*", "a.*")
+			->asObj(PerkLevelAction::class)
+			->each(function(PerkLevelAction $action) use ($perks) {
+				$item = new AODBEntry();
+				foreach (get_class_vars(AODBEntry::class) as $key => $value) {
+					$item->{$key} = $action->{$key};
+					unset($action->{$key});
+				}
+				$action->aodb = $item;
+				$perks[$action->perk_id]->levels[$action->perk_level]->action = $action;
+			});
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
+			->join("perk_level_buffs AS plb", "pl.id", "plb.perk_level_id")
+			->join("skills AS s", "s.id", "plb.skill_id")
+			->where("pl.required_level", "<=", $level)
+			->where("plp.profession", $profession)
+			->orderBy("pl.perk_level")
+			->orderBy("s.name")
+			->select("pl.perk_id", "pl.perk_level", "plb.skill_id")
+			->addSelect("s.name AS skill_name", "plb.amount", "s.unit")
+			->asObj(PerkLevelBuff::class)
+			->each(function (PerkLevelBuff $buff) use ($perks) {
+				$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
+			});
+		$this->db->table("perk_level AS pl")
+			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
+			->join("perk_level_resistances AS plr", "pl.id", "plr.perk_level_id")
+			->join("nano_lines AS nl", "nl.strain_id", "plr.strain_id")
+			->where("pl.required_level", "<=", $level)
+			->where("plp.profession", $profession)
+			->orderBy("pl.perk_level")
+			->orderBy("nl.name")
+			->select("pl.perk_id", "pl.perk_level", "plr.*", "nl.name AS nanoline")
+			->asObj(PerkLevelResistance::class)
+			->each(function (PerkLevelResistance $res) use ($perks) {
+				$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
+			});
 		return array_values($perks);
 	}
 }

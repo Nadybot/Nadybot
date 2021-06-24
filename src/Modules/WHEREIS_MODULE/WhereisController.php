@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
@@ -43,7 +44,8 @@ class WhereisController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'whereis');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
 	}
 
 	/**
@@ -53,19 +55,13 @@ class WhereisController {
 	public function whereisCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = strtolower($args[1]);
 		$words = explode(' ', $search);
-		[$query1, $params1] = $this->util->generateQueryFromParams($words, 'name');
-		[$query2, $params2] = $this->util->generateQueryFromParams($words, 'keywords');
-
-		$sql = "SELECT * FROM whereis w ".
-			"LEFT JOIN playfields p ON w.playfield_id = p.id ".
-			"WHERE ($query1) OR ($query2)";
-			/** @var WhereisResult[] */
-		$npcs = $this->db->fetchAll(
-			WhereisResult::class,
-			$sql,
-			...[...$params1, ...$params2]
-		);
-		$count = count($npcs);
+		$query = $this->db->table("whereis AS w")
+			->leftJoin("playfields AS p", "w.playfield_id", "p.id");
+		$this->db->addWhereFromParams($query, $words, "name");
+		$this->db->addWhereFromParams($query, $words, "keywords", "or");
+		/** @var Collection<WhereisResult> */
+		$npcs = $query->asObj(WhereisResult::class);
+		$count = $npcs->count();
 
 		if ($count === 0) {
 			$msg = "There were no matches for your search.";

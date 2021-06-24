@@ -29,15 +29,15 @@
 /delay %1
 !events list 1
 /delay %1
-!events setddate 1 2020-01-01
+!events setdate 1 2020-01-01
 /delay %1
 !events list 1
 /delay %1
-!events setddate 1 2020-01-01 22:22
+!events setdate 1 2020-01-01 22:22
 /delay %1
 !events list 1
 /delay %1
-!events setddate 1 2020-01-01 22:22:22
+!events setdate 1 2020-01-01 22:22:22
 /delay %1
 !events list 1
 /delay %1

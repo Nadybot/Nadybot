@@ -1,0 +1,26 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
+
+use Illuminate\Database\Schema\Blueprint;
+use Nadybot\Core\DB;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\SchemaMigration;
+use Nadybot\Modules\RAID_MODULE\RaidController;
+
+class CreateRaidLogTable implements SchemaMigration {
+	public function migrate(LoggerWrapper $logger, DB $db): void {
+		$table = RaidController::DB_TABLE_LOG;
+		if ($db->schema()->hasTable($table)) {
+			return;
+		}
+		$db->schema()->create($table, function(Blueprint $table) {
+			$table->integer("raid_id")->index();
+			$table->string("description", 255)->nullable();
+			$table->integer("seconds_per_point");
+			$table->integer("announce_interval");
+			$table->boolean("locked");
+			$table->integer("time")->index();
+		});
+	}
+}

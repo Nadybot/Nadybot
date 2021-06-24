@@ -2,9 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Registry;
 use Logger;
-use Exception;
 use Throwable;
 
 /**
@@ -34,7 +32,7 @@ class LoggerWrapper {
 	 *
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
 	 * @param mixed $message The message to log
-	 * @param Exception $throwable Optional throwable information to include in the logging event
+	 * @param Throwable $throwable Optional throwable information to include in the logging event
 	 * @return void
 	 */
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {

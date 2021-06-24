@@ -1,0 +1,85 @@
+#raid_module
+/text Start RAID_MODULE
+!reward add zod 25 Zodiac
+!reward
+!reward rem 1
+!reward add beast 80 The Beast
+!raid start test
+!raid lock
+!raid unlock
+!raid leave
+!raid join
+!member add Nady
+!testjoin Nady
+!runas Nady raid join
+!raid stop
+!raid start test2
+!runas Nady raid join
+!raid reward 100
+!raid reward beast
+!raid punish 100
+!raid punish 80
+!bid start piece of junk
+!bid 1
+!bid cancel
+!bid start piece of junk
+!runas Nady bid 1
+!bid end
+!settings save auction_refund_tax 0
+!bid reimburse Nady
+!raid stop
+!bh
+!bh junk
+!bh ewfjwelfi
+!raid notin
+!raid check
+!raid start another test raid
+!raid desc Changing things
+!runas Nady raid join
+!raid spp 1
+!testsleep 2
+!whois Nady
+!raid notin
+!raid check
+!raid stop
+!points add Nady 100 Nice girl
+!points rem Nady 100 Just testing
+!points top
+!points log
+!points log all
+!points log Nady
+!points log Nady all
+!raid comments
+!raid comments add Nady testing
+!raid comments
+!testleave Nady
+
+!raid start Yet another test
+!testjoin Nady
+!runas Nady raid join
+!raid kick Nady
+!runas Nady raid join
+!runas Nady raid leave
+!runas Nady raid join
+!testleave Nady
+
+!raidblock bid Nukeat5 1w Unit testing
+!raidblock points Masertimer 1w Unit testing
+!raidblock rem Masertimer
+
+!raid history
+!raid history 1
+!raid history 1 xxx
+
+!member add Nanyta
+!member add Nady
+!raidleader add Nady 3
+!points add Nanyta 5 Just for the lulz
+!runas Nady alts add Nanyta
+!runas Nanyta altvalidate Nady
+!runas Nanyta alts setmain
+!runas Nady alts setmain
+!member rem Nanyta
+!raidleader rem Nady
+!member del Nady
+/text End RAID_MODULE

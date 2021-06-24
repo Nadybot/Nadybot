@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\LoggerWrapper;
-
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
 *
@@ -139,7 +137,7 @@ class AOChat {
 	/**
 	 * The socket with which we are connected to the chat server
 	 *
-	 * @var resource $socket
+	 * @var \Socket|resource $socket
 	 */
 	public $socket;
 
@@ -567,7 +565,7 @@ class AOChat {
 	public function send_guild(string $msg, $blob="\0", int $priority=null): bool {
 		$guild_gid = false;
 		foreach ($this->grp as $gid => $status) {
-			if (ord(substr($gid, 0, 1)) == 3) {
+			if (ord(substr((string)$gid, 0, 1)) == 3) {
 				$guild_gid = $gid;
 				break;
 			}

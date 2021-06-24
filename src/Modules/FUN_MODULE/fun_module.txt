@@ -17,6 +17,9 @@ To show a random cybor message:
 To show a random Homer quote:
 <highlight><tab><symbol>homer<end>
 
+To show a random compliment:
+<highlight><tab><symbol>compliment<end>
+
 To show a random Dwight quote: (Developed by Sicarius of Legion of Amra, an Age of Conan Guild on the Hyrkania server)
 <highlight><tab><symbol>dwight<end>
 

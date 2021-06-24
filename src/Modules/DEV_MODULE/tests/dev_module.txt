@@ -1,0 +1,7 @@
+#dev_module
+/text Start DEV_MODULE
+!silence
+!unsilence
+!silence raid tell
+!unsilence raid all
+!unsilence raid tell

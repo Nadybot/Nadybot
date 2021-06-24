@@ -169,7 +169,7 @@ class WebsocketClient extends WebsocketBase {
 
 		$headers = [
 			'Host'                  => $urlParts["host"] . ":" . $port,
-			'User-Agent'            => 'Nadybot',
+			'User-Agent'            => 'Nadybot ' . BotRunner::getVersion(),
 			'Connection'            => 'Upgrade',
 			'Upgrade'               => 'websocket',
 			'Sec-WebSocket-Key'     => $key,

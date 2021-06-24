@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	Text,
 	DB,
 	CommandReply,
+	EventManager,
 };
 use Nadybot\Core\DBSchema\EventCfg;
 
@@ -38,26 +39,15 @@ class EventlistController {
 	 * @Matches("/^eventlist (.+)$/i")
 	 */
 	public function eventlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$params = [];
+		$query = $this->db->table(EventManager::DB_TABLE)
+			->select("type", "description", "module", "file", "status")
+			->orderBy("type")
+			->orderBy("module");
 		if (count($args) > 1) {
-			$params []= "%" . $args[1] . "%";
-			$cmdSearchSql = "WHERE type LIKE ?";
+			$query->whereIlike("type", "%{$args[1]}%");
 		}
-
-		$sql = "SELECT ".
-				"type, ".
-				"description, ".
-				"module, ".
-				"file, ".
-				"status ".
-			"FROM ".
-				"eventcfg_<myname> ".
-			"$cmdSearchSql ".
-			"ORDER BY ".
-				"type ASC, ".
-				"module ASC";
 		/** @var EventCfg[] $data */
-		$data = $this->db->fetchAll(EventCfg::class, $sql, ...$params);
+		$data = $query->asObj(EventCfg::class)->toArray();
 		$count = count($data);
 
 		if ($count === 0) {

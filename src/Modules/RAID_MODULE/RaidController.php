@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use DateTime;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
@@ -19,6 +21,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -57,6 +60,9 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
  * @ProvidesEvent("raid(unlock)")
  */
 class RaidController {
+	public const DB_TABLE = "raid_<myname>";
+	public const DB_TABLE_LOG = "raid_log_<myname>";
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -103,6 +109,9 @@ class RaidController {
 
 	/** @Inject */
 	public OnlineController $onlineController;
+
+	/** @Inject */
+	public ChatAssistController $chatAssistController;
 
 	/**
 	 * The currently running raid or null if none running
@@ -169,8 +178,18 @@ class RaidController {
 			'1;0',
 			'raid_admin_2'
 		);
-		$this->db->loadSQLFile($this->moduleName, "raid");
-		$this->db->loadSQLFile($this->moduleName, "raid_log");
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_stop_clears_callers',
+			'Stopping the raid clears the callers',
+			'edit',
+			'options',
+			'0',
+			'true;false',
+			'1;0',
+			'raid_admin_2'
+		);
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Raid");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
 	}
 
@@ -282,10 +301,10 @@ class RaidController {
 		$handler = $this->commandManager->getActiveCommandHandler("raid", "priv", "raid start test");
 		$canAdminRaid = $this->accessManager->checkAccess($sender, $handler->admin);
 		if ($canAdminRaid) {
-			$sendto->reply(
-				$this->text->makeBlob("Raid Control", $this->getControlInterface())
+			$this->chatBot->sendTell(
+				$this->text->makeBlob("Raid Control", $this->getControlInterface()),
+				$sender
 			);
-			return;
 		}
 		$msg = $this->text->makeBlob("click to join", $this->getRaidJoinLink(), "Raid information");
 		$sendto->reply($this->raid->getAnnounceMessage($msg));
@@ -296,20 +315,21 @@ class RaidController {
 	 */
 	public function resumeRaid(): void {
 		/** @var ?Raid */
-		$lastRaid = $this->db->fetch(
-			Raid::class,
-			"SELECT * FROM `raid_<myname>` ORDER BY `raid_id` DESC LIMIT 1"
-		);
+		$lastRaid = $this->db->table(self::DB_TABLE)
+			->orderByDesc("raid_id")
+			->limit(1)
+			->asObj(Raid::class)
+			->first();
 		if ($lastRaid === null || $lastRaid->stopped) {
 			return;
 		}
 		/** @var ?RaidLog */
-		$lastRaidLog = $this->db->fetch(
-			RaidLog::class,
-			"SELECT * FROM `raid_log_<myname>` WHERE `raid_id`=? ".
-			"ORDER BY `time` DESC LIMIT 1",
-			$lastRaid->raid_id
-		);
+		$lastRaidLog = $this->db->table(self::DB_TABLE_LOG)
+			->where("raid_id", $lastRaid->raid_id)
+			->orderByDesc("time")
+			->limit(1)
+			->asObj(RaidLog::class)
+			->first();
 		if ($lastRaidLog) {
 			foreach ($lastRaidLog as $key => $value) {
 				if (property_exists($lastRaid, $key)) {
@@ -476,6 +496,10 @@ class RaidController {
 	 * @Matches("/^raid check$/i")
 	 */
 	public function raidCheckCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
 		$this->raidMemberController->sendRaidCheckBlob($this->raid, $sendto);
 	}
 
@@ -484,6 +508,10 @@ class RaidController {
 	 * @Matches("/^raid list$/i")
 	 */
 	public function raidListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
 		$sendto->reply($this->raidMemberController->getRaidListBlob($this->raid));
 	}
 
@@ -492,6 +520,10 @@ class RaidController {
 	 * @Matches("/^raid notin$/i")
 	 */
 	public function raidNotinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->raid)) {
+			$sendto->reply(static::ERR_NO_RAID);
+			return;
+		}
 		$notInRaid = $this->raidMemberController->sendNotInRaidWarning($this->raid);
 		if (!count($notInRaid)) {
 			$sendto->reply("Everyone is in the raid.");
@@ -530,17 +562,27 @@ class RaidController {
 	 * @Matches("/^raid history$/i")
 	 */
 	public function raidHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$raids = $this->db->query(
-			"SELECT r.raid_id, r.started, r.stopped, ".
-			"COUNT(DISTINCT(`username`)) AS raiders, ".
-			"SUM(`delta`) AS points ".
-			"FROM `raid_<myname>` r ".
-			"JOIN `raid_points_log_<myname>` p ON (r.raid_id=p.raid_id) ".
-			"WHERE p.`individual` IS FALSE OR p.`ticker` IS TRUE ".
-			"GROUP BY r.`raid_id` ".
-			"ORDER BY r.`raid_id` DESC LIMIT ?",
-			50
-		);
+		$query = $this->db->table(self::DB_TABLE, "r")
+			->join(RaidPointsController::DB_TABLE_LOG . ' AS p', "r.raid_id", "p.raid_id")
+			->where("p.individual", false)
+			->orWhere("p.ticker", true)
+			->groupBy("r.raid_id", "r.started", "r.stopped")
+			->orderByDesc("r.raid_id")
+			->limit(50)
+			->select("r.raid_id", "r.started", "r.stopped");
+		$raids = $query->addSelect(
+			$query->rawFunc(
+				"COUNT",
+				$query->colFunc("DISTINCT", "username"),
+				"raiders"
+			),
+			$query->colFunc("SUM", "delta", "points")
+		)->asObj();
+		if ($raids->isEmpty()) {
+			$msg = "No raids have ever been run on <myname>.";
+			$sendto->reply($msg);
+			return;
+		}
 		$blob = "";
 		foreach ($raids as $raid) {
 			$time = DateTime::createFromFormat("U", (string)$raid->started)->format("Y-m-d H:i:s");
@@ -585,24 +627,36 @@ class RaidController {
 	 */
 	public function raidHistoryDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var ?Raid */
-		$raid = $this->db->fetch(
-			Raid::class,
-			"SELECT * FROM `raid_<myname>` WHERE `raid_id`=?",
-			(int)$args[1]
-		);
+		$raid = $this->db->table(self::DB_TABLE)
+			->where("raid_id", (int)$args[1])
+			->asObj(Raid::class)->first();
 		if ($raid === null) {
 			$sendto->reply("The raid <highlight>{$args[1]}<end> doesn't exist.");
 			return;
 		}
-		/** @var RaidPointsLog[] */
-		$raiders = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT `username`, SUM(`delta`) AS `delta` FROM `raid_points_log_<myname>` ".
-			"WHERE `raid_id`=? ".
-			"AND `individual` IS FALSE ".
-			"GROUP BY `username` ORDER BY `username` ASC",
-			(int)$args[1]
-		);
+		$query = $this->db->table(RaidPointsController::DB_TABLE_LOG)
+			->where("raid_id", (int)$args[1])
+			->where("individual", false)
+			->groupBy("username")
+			->select("username");
+		$query->addSelect($query->colFunc("SUM", "delta", "delta"));
+
+		$noPoints = $this->db->table(RaidMemberController::DB_TABLE, "rm")
+			->leftJoin(RaidPointsController::DB_TABLE_LOG . " as l", function (JoinClause $join) {
+				$join->on("rm.raid_id", "l.raid_id")
+					->on("rm.player", "l.username");
+			})
+			->where("rm.raid_id", (int)$args[1])
+			->whereNull("l.username")
+			->groupBy("rm.player")
+			->select("rm.player AS username");
+		$noPoints->selectRaw("0" . $noPoints->as("delta"));
+
+		/** @var Collection<RaidPointsLog> */
+		$raiders = $this->db->fromSub($query->union($noPoints), "points")
+			->orderBy("username")
+			->asObj(RaidPointsLog::class);
+
 		$blob = $this->getRaidSummary($raid);
 		$blob .= "\n<header2>Raiders and points<end>\n";
 		foreach ($raiders as $raider) {
@@ -629,24 +683,37 @@ class RaidController {
 	public function raidHistoryDetailRaiderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args[2] = ucfirst(strtolower($args[2]));
 		/** @var ?Raid */
-		$raid = $this->db->fetch(
-			Raid::class,
-			"SELECT * FROM `raid_<myname>` WHERE `raid_id`=?",
-			(int)$args[1]
-		);
+		$raid = $this->db->table(self::DB_TABLE)
+			->where('raid_id', (int)$args[1])
+			->asObj(Raid::class)
+			->first();
 		if ($raid === null) {
 			$sendto->reply("The raid <highlight>{$args[1]}<end> doesn't exist.");
 			return;
 		}
-		/** @var RaidPointsLog[] */
-		$logs = $this->db->fetchAll(
-			RaidPointsLog::class,
-			"SELECT * FROM `raid_points_log_<myname>` ".
-			"WHERE `raid_id`=? AND `username`=?",
-			(int)$args[1],
-			$args[2]
-		);
-		if (!count($logs)) {
+		/** @var Collection<RaidPointsLog> */
+		$logs = $this->db->table(RaidPointsController::DB_TABLE_LOG)
+			->where("raid_id", (int)$args[1])
+			->where("username", $args[2])
+			->asObj(RaidPointsLog::class);
+		$joined = $this->db->table(RaidMemberController::DB_TABLE)
+			->where("raid_id", (int)$args[1])
+			->where("player", $args[2])
+			->whereNotNull("joined")
+			->select("joined AS time");
+		$joined->selectRaw("1" . $joined->as("status"));
+		$left = $this->db->table(RaidMemberController::DB_TABLE)
+			->where("raid_id", (int)$args[1])
+			->where("player", $args[2])
+			->whereNotNull("left")
+			->select("left AS time");
+		$left->selectRaw("0" . $left->as("status"));
+		$events = $joined->union($left)->orderBy("time")->asObj();
+		$allLogs = $logs->concat($events)
+			->sort(function($a, $b) {
+				return $a->time <=> $b->time;
+			});
+		if ($allLogs->isEmpty()) {
 			$sendto->reply("<highlight>{$args[2]}<end> didn't get any points in this raid.");
 			return;
 		}
@@ -657,14 +724,25 @@ class RaidController {
 			$blob .= " ({$main})";
 		}
 		$blob .= "<end>\n";
-		foreach ($logs as $log) {
-			$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
-				$this->text->alignNumber(abs($log->delta), 5, $log->delta > 0 ? 'green' : 'red').
-				" - ".
-				($log->individual ? "<highlight>" : "").
-				$log->reason.
-				($log->individual ? "<end>" : "").
-				" (by {$log->changed_by})\n";
+		$blob .= "<tab>" . $this->util->date($raid->started) . "<tab>".
+			"Raid started by {$raid->started_by}\n";
+		foreach ($allLogs as $log) {
+			if ($log instanceof RaidPointsLog) {
+				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
+					$this->text->alignNumber(abs($log->delta), 5, $log->delta > 0 ? 'green' : 'red').
+					" - ".
+					($log->individual ? "<highlight>" : "").
+					$log->reason.
+					($log->individual ? "<end>" : "").
+					" (by {$log->changed_by})\n";
+			} else {
+				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
+					($log->status ? "Raid joined" : "Raid left") . "\n";
+			}
+		}
+		if (isset($raid->stopped)) {
+			$blob .= "<tab>" . $this->util->date($raid->stopped) . "<tab>".
+				"Raid stopped by {$raid->stopped_by}\n";
 		}
 		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$args[2]}", $blob);
 		$sendto->reply($msg);
@@ -747,16 +825,15 @@ class RaidController {
 	 * Log to the database whenever something of the raid changes
 	 */
 	public function logRaidChanges(Raid $raid): void {
-		$this->db->exec(
-			"INSERT INTO `raid_log_<myname>` (`raid_id`, `description`, `seconds_per_point`, `locked`, `time`, `announce_interval`) ".
-			"VALUES (?, ?, ?, ?, ?, ?)",
-			$raid->raid_id,
-			$raid->description,
-			$raid->seconds_per_point,
-			$raid->locked,
-			time(),
-			$raid->announce_interval
-		);
+		$this->db->table(self::DB_TABLE_LOG)
+			->insert([
+				"raid_id" => $raid->raid_id,
+				"description" => $raid->description,
+				"seconds_per_point" => $raid->seconds_per_point,
+				"locked" => $raid->locked,
+				"time" => time(),
+				"announce_interval" => $raid->announce_interval,
+			]);
 	}
 
 	/**
@@ -843,17 +920,14 @@ class RaidController {
 			$this->raid = $raid;
 			return;
 		}
-		$this->db->exec(
-			"INSERT INTO `raid_<myname>` ".
-			"(`description`, `seconds_per_point`, `started`, `started_by`, `announce_interval`) ".
-			"VALUES (?, ?, ?, ?, ?)",
-			$raid->description,
-			$raid->seconds_per_point,
-			$raid->started,
-			$raid->started_by,
-			$raid->announce_interval
-		);
-		$raid->raid_id = $this->db->lastInsertId();
+		$raid->raid_id = $this->db->table(self::DB_TABLE)
+			->insertGetId([
+				"description" => $raid->description,
+				"seconds_per_point" => $raid->seconds_per_point,
+				"started" => $raid->started,
+				"started_by" => $raid->started_by,
+				"announce_interval" => $raid->announce_interval,
+			], "raid_id");
 		$this->raid = $raid;
 		$event = new RaidEvent($raid);
 		$event->type = "raid(start)";
@@ -872,13 +946,16 @@ class RaidController {
 		$raid = $this->raid;
 		$raid->stopped = time();
 		$raid->stopped_by = $sender;
-		$this->db->exec(
-			"UPDATE `raid_<myname>` SET `stopped`=?, `stopped_by`=? WHERE `raid_id`=? AND `stopped` IS NULL",
-			$raid->stopped,
-			$raid->stopped_by,
-			$raid->raid_id
-		);
+		$this->db->table(self::DB_TABLE)
+			->where("raid_id", $raid->raid_id)
+			->update([
+				"stopped" => $raid->stopped,
+				"stopped_by" => $raid->stopped_by,
+			]);
 		$this->raid = null;
+		if ($this->settingManager->getBool('raid_stop_clears_callers')) {
+			$this->chatAssistController->clearCallers($sender, "raid stop");
+		}
 		$event = new RaidEvent($raid);
 		$event->type = "raid(stop)";
 		$event->player = ucfirst(strtolower($sender));

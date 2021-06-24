@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -63,6 +64,12 @@ use Nadybot\Core\{
  *		description = 'Shows a random Pirates of the Caribbean quote',
  *		help        = 'fun_module.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'compliment',
+ *		accessLevel = 'all',
+ *		description = 'Shows a random compliment',
+ *		help        = 'fun_module.txt'
+ *	)
  */
 class FunController {
 
@@ -82,23 +89,26 @@ class FunController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "fun");
-		$this->db->loadSQLFile($this->moduleName, "beer");
-		$this->db->loadSQLFile($this->moduleName, "brain");
-		$this->db->loadSQLFile($this->moduleName, "chuck");
-		$this->db->loadSQLFile($this->moduleName, "cybor");
-		$this->db->loadSQLFile($this->moduleName, "dwight");
-		$this->db->loadSQLFile($this->moduleName, "fc");
-		$this->db->loadSQLFile($this->moduleName, "homer");
-		$this->db->loadSQLFile($this->moduleName, "pirates");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/brain.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/chuck.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/cybor.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/dwight.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/fc.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/homer.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pirates.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/compliment.csv");
 	}
 
 	public function getFunItem(string $type, string $sender, int $number=null): string {
-		/** @var Fun[] */
-		$data = $this->db->fetchAll(Fun::class, "SELECT * FROM fun WHERE type = ?", $type);
+		/** @var Collection<Fun> */
+		$data = $this->db->table("fun")
+			->where("type", $type)
+			->asObj(Fun::class);
 		if ($number === null) {
 			/** @var Fun */
-			$row = $this->util->randomArrayValue($data);
+			$row = $data->random();
 		} else {
 			$row = $data[$number];
 		}
@@ -217,6 +227,16 @@ class FunController {
 	 */
 	public function piratesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->getFunItem('pirates', $sender, isset($args[1]) ? (int)$args[1] : null);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("compliment")
+	 * @Matches("/^compliment$/i")
+	 * @Matches("/^compliment (\d+)$/i")
+	 */
+	public function complimentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getFunItem('compliment', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
 }

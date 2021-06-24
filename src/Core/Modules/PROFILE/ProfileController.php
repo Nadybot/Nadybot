@@ -3,9 +3,11 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Nadybot\Core\{
+	CommandAlias,
 	CommandManager,
 	CommandReply,
 	DB,
+	EventManager,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -157,7 +159,7 @@ class ProfileController {
 		}
 		$contents .= "\n# Events\n";
 		/** @var EventCfg[] */
-		$data = $this->db->fetchAll(EventCfg::class, "SELECT * FROM eventcfg_<myname>");
+		$data = $this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)->toArray();
 		foreach ($data as $row) {
 			$status = "disable";
 			if ($row->status === 1) {
@@ -167,7 +169,9 @@ class ProfileController {
 		}
 		$contents .= "\n# Commands\n";
 		/** @var CmdCfg[] */
-		$data = $this->db->fetchAll(CmdCfg::class, "SELECT * FROM cmdcfg_<myname>");
+		$data = $this->db->table(CommandManager::DB_TABLE)
+			->asObj(CmdCfg::class)
+			->toArray();
 		foreach ($data as $row) {
 			$status = "disable";
 			if ($row->status === 1) {
@@ -177,7 +181,10 @@ class ProfileController {
 		}
 		$contents .= "\n# Aliases\n";
 		/** @var CmdAlias[] */
-		$data = $this->db->fetchAll(CmdAlias::class, "SELECT * FROM cmd_alias_<myname> WHERE `status` = '1' ORDER BY alias ASC");
+		$data = $this->db->table(CommandAlias::DB_TABLE)
+			->where("status", 1)
+			->orderBy("alias")
+			->asObj(CmdAlias::class)->toArray();
 		foreach ($data as $row) {
 			$contents .= "!alias rem {$row->alias}\n";
 			$contents .= "!alias add {$row->alias} {$row->cmd}\n";
@@ -250,30 +257,33 @@ class ProfileController {
 						continue;
 					}
 				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var CmdCfg $data */
-					$data = $this->db->fetch(
-						CmdCfg::class,
-						"SELECT * FROM cmdcfg_<myname> WHERE `cmdevent` = ? AND `cmd` = ? AND `type` = ?",
-						$parts[1],
-						$parts[2],
-						$parts[4]
-					);
+					/** @var CmdCfg|null $data */
+					$data = $this->db->table(CommandManager::DB_TABLE)
+						->where("cmdevent", $parts[1])
+						->where("cmd", $parts[2])
+						->where("type", $parts[4])
+						->asObj(CmdCfg::class)
+						->first();
 					if (isset($data)
 						&& (
 								($data->status === 1 && $parts[3] === 'enable')
 							||	($data->status === 0 && $parts[3] === 'disable')
 						)
-					 ) {
+					) {
 						$numSkipped++;
 						continue;
 					}
 				} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
 					/** @var EventCfg $data */
-					$data = $this->db->fetch(EventCfg::class, "SELECT * FROM eventcfg_<myname> WHERE `type` = ? AND `file` = ? ", $parts[1], $parts[2]);
+					$data = $this->db->table(EventManager::DB_TABLE)
+						->where("type", $parts[1])
+						->where("file", $parts[2])
+						->asObj(EventCfg::class)
+						->first();
 					if (
 							($data->status === 1 && $parts[3] === 'enable')
 						||	($data->status === 0 && $parts[3] === 'disable')
-					 ) {
+					) {
 						$numSkipped++;
 						continue;
 					}
@@ -281,11 +291,11 @@ class ProfileController {
 					$alias = explode(" ", $line, 3)[2];
 					if (preg_match("/^!alias add \Q$alias\E (.+)$/", $lines[$profileRow+1], $parts)) {
 						/** @var CmdAlias $data */
-						$data = $this->db->fetch(
-							CmdAlias::class,
-							"SELECT * FROM cmd_alias_<myname> WHERE `status` = '1' AND `alias` = ?",
-							$alias,
-						);
+						$data = $this->db->table(CommandAlias::DB_TABLE)
+							->where("status", 1)
+							->where("alias", $alias)
+							->asObj(CmdAlias::class)
+							->first();
 						if ($data !== null) {
 							if ($data->cmd === $parts[1]) {
 								$profileRow++;

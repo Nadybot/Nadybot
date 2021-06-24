@@ -173,6 +173,26 @@ exit 0
 %endif
 
 %changelog
+* Thu Jun 24 2021 Nadyita <nadyita@hodorraid.org> 5.1.0-1
+- Moved to Illuminate database abstraction layer,
+  adding support for PostgreSQL and partly MSSQL
+- Updated items to 18.08.58 patch
+- Support upper and lower limit for raid point reimbursement
+- Add an option to limit raffles to raid members
+- raid history now supports showing when people joined and left the raid,
+  regardless of whether they got points or not.
+
+- Minus is showing in !calc again
+- People who left no longer show in !raid dual
+- Online count by org displays percentages correctly again
+
+- Stopping a raid can now automatically clear the callers
+- !raid will now give the control panel in a tell
+- Automatically kick banned people from the bot
+- Use Discord's API v9
+- Add all missing totw loot
+- The old database interface is now deprecated and will be removed in 5.2
+
 * Sat Apr 24 2021 Nadyita <nadyita@hodorraid.org> 5.0.2-1
 - New !rules command
 - parameter order for !ofabarmor doesn't matter anymore

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	CommandReply,
@@ -43,6 +44,8 @@ use Nadybot\Core\{
  * @ProvidesEvent("timer(del)")
  */
 class TimerController {
+
+	public const DB_TABLE = "timers_<myname>";
 
 	/**
 	 * Name of the module.
@@ -87,32 +90,20 @@ class TimerController {
 	 * @Setup
 	 */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, 'timers');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->timers = [];
-		/** @var Timer[] */
-		$data = $this->db->fetchAll(
-			Timer::class,
-			"SELECT name, owner, mode, endtime, settime, callback, data, alerts AS alerts_raw FROM timers_<myname>"
-		);
-		foreach ($data as $row) {
-			$alertsData = json_decode($row->alerts_raw);
-			foreach ($alertsData as $alertData) {
-				$alert = new Alert();
-				foreach ($alertData as $key => $value) {
-					$alert->{$key} = $value;
-				}
-				$row->alerts []= $alert;
-			}
-
+		/** @var Collection<Timer> */
+		$data = $this->readAllTimers();
+		$data->each(function (Timer $timer) {
 			// remove alerts that have already passed
 			// leave 1 alert so that owner can be notified of timer finishing
-			while (count($row->alerts) > 1 && $row->alerts[0]->time <= time()) {
-				array_shift($row->alerts);
+			while (count($timer->alerts) > 1 && $timer->alerts[0]->time <= time()) {
+				array_shift($timer->alerts);
 			}
 
-			$this->timers[strtolower($row->name)] = $row;
-		}
+			$this->timers[strtolower($timer->name)] = $timer;
+		});
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -140,6 +131,26 @@ class TimerController {
 			'timer_alert_times',
 			[$this, 'changeTimerAlertTimes']
 		);
+	}
+
+	/** @return Collection<Timer> */
+	public function readAllTimers(): Collection {
+		/** @var Collection<Timer> */
+		$data = $this->db->table(static::DB_TABLE)
+			->select("id", "name", "owner", "mode", "endtime", "settime")
+			->addSelect("callback", "data", "alerts AS alerts_raw")
+			->asObj(Timer::class);
+		foreach ($data as $row) {
+			$alertsData = json_decode($row->alerts_raw);
+			foreach ($alertsData as $alertData) {
+				$alert = new Alert();
+				foreach ($alertData as $key => $value) {
+					$alert->{$key} = $value;
+				}
+				$row->alerts []= $alert;
+			}
+		}
+		return $data;
 	}
 
 	public function changeTimerAlertTimes(string $settingName, string $oldValue, $newValue, $data): void {
@@ -296,29 +307,33 @@ class TimerController {
 	 * @Matches("/^timers view (.+)$/i")
 	 */
 	public function timersViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = strtolower($args[1]);
-		$timer = $this->get($name);
+		$id = $args[1];
+		$timer = $this->get($id);
 		if ($timer === null) {
-			$msg = "Could not find timer named <highlight>$name<end>.";
+			if (preg_match("/^\d+$/", $id)) {
+				$msg = "Could not find timer <highlight>#{$id}<end>.";
+			} else {
+				$msg = "Could not find a timer named <highlight>{$id}<end>.";
+			}
 			$sendto->reply($msg);
 			return;
 		}
 		$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
 		$name = $timer->name;
 
-		$msg = "Timer <highlight>$name<end> has <highlight>$time_left<end> left.";
+		$msg = "Timer <highlight>{$name}<end> has <highlight>{$time_left}<end> left.";
 		$sendto->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("timers")
-	 * @Matches("/^timers (rem|del) (.+)$/i")
+	 * @Matches("/^timers (rem|del) (\d+)$/i")
 	 */
 	public function timersRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = strtolower($args[2]);
-		$timer = $this->get($name);
+		$id = (int)strtolower($args[2]);
+		$timer = $this->get($id);
 		if ($timer === null) {
-			$msg = "Could not find a timer named <highlight>$name<end>.";
+			$msg = "Could not find timer <highlight>#{$id}<end>.";
 		} elseif ($timer->owner !== $sender && !$this->accessManager->checkAccess($sender, "mod")) {
 			$msg = "You must own this timer or have moderator access in order to remove it.";
 		} else {
@@ -326,7 +341,7 @@ class TimerController {
 			$event->timer = $timer;
 			$event->type = "timer(del)";
 			$this->eventManager->fireEvent($event);
-			$this->remove($name);
+			$this->remove($id);
 			$msg = "Removed timer <highlight>$timer->name<end>.";
 		}
 		$sendto->reply($msg);
@@ -403,7 +418,7 @@ class TimerController {
 			$name = $timer->name;
 			$owner = $timer->owner;
 
-			$remove_link = $this->text->makeChatcmd("Remove", "/tell <myname> timers rem $name");
+			$remove_link = $this->text->makeChatcmd("Remove", "/tell <myname> timers rem {$timer->id}");
 
 			$repeatingInfo = '';
 			if ($timer->callback === 'timercontroller.repeatingTimerCallback') {
@@ -499,7 +514,7 @@ class TimerController {
 	/**
 	 * @param Alert[] $alerts
 	 */
-	public function add(string $name, string $owner, string $mode, array $alerts, string $callback, string $data=null): void {
+	public function add(string $name, string $owner, string $mode, array $alerts, string $callback, string $data=null): int {
 		usort($alerts, function(Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
@@ -521,17 +536,51 @@ class TimerController {
 
 		$this->timers[strtolower($name)] = $timer;
 
-		$sql = "INSERT INTO timers_<myname> (`name`, `owner`, `mode`, `endtime`, `settime`, `callback`, `data`, alerts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-		$this->db->exec($sql, $name, $owner, $mode, $timer->endtime, $timer->settime, $callback, $data, json_encode($alerts));
+		$timer->id = $this->db->table(static::DB_TABLE)
+			->insertGetId([
+				"name" => $name,
+				"owner" => $owner,
+				"mode" => $mode,
+				"endtime" => $timer->endtime,
+				"settime" => $timer->settime,
+				"callback" => $callback,
+				"data" => $data,
+				"alerts" => json_encode($alerts),
+			]);
+		return $timer->id;
 	}
 
-	public function remove(string $name): void {
-		$this->db->exec("DELETE FROM timers_<myname> WHERE `name` LIKE ?", $name);
-		unset($this->timers[strtolower($name)]);
+	public function remove($name): void {
+		if (is_string($name)) {
+			$this->db->table(static::DB_TABLE)
+				->whereIlike("name", $name)
+				->delete();
+			unset($this->timers[strtolower($name)]);
+		} elseif (is_int($name)) {
+			$this->db->table(static::DB_TABLE)->delete($name);
+			foreach ($this->timers as $tName => $timer) {
+				if ($timer->id === $name) {
+					unset($this->timers[$tName]);
+					return;
+				}
+			}
+		}
 	}
 
 	public function get($name): ?Timer {
-		return $this->timers[strtolower($name)] ?? null;
+		$timer = $this->timers[strtolower((string)$name)] ?? null;
+		if (isset($timer)) {
+			return $timer;
+		}
+		if (!preg_match("/^\d+$/", (string)$name)) {
+			return null;
+		}
+		foreach ($this->timers as $tName => $timer) {
+			if ($timer->id === (int)$name) {
+				return $timer;
+			}
+		}
+		return null;
 	}
 
 	/**

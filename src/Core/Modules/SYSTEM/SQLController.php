@@ -18,12 +18,6 @@ use Nadybot\Core\{
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command       = 'loadsql',
- *		accessLevel   = 'admin',
- *		description   = 'Manually reload an SQL file',
- *		help          = 'loadsql.txt'
- *	)
- *	@DefineCommand(
  *		command       = 'querysql',
  *		accessLevel   = 'superadmin',
  *		description   = 'Run an SQL query and see the results'
@@ -93,21 +87,6 @@ class SQLController {
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("loadsql")
-	 * @Matches("/^loadsql ([^ ]+) (.+)$/i")
-	 */
-	public function loadsqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$module = strtoupper($args[1]);
-		$name = strtolower($args[2]);
-
-		$this->db->beginTransaction();
-		$msg = $this->db->loadSQLFile($module, $name, true);
-		$this->db->commit();
-
 		$sendto->reply($msg);
 	}
 }

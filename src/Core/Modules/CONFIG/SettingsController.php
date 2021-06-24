@@ -71,9 +71,11 @@ class SettingsController {
 	 */
 	public function settingsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
-		$sql = "SELECT * FROM `settings_<myname>` ORDER BY `module`";
 		/** @var Setting[] $data */
-		$data = $this->db->fetchAll(Setting::class, $sql);
+		$data = $this->db->table(SettingManager::DB_TABLE)
+			->orderBy("module")
+			->asObj(Setting::class)
+			->toArray();
 		$currentModule = '';
 		foreach ($data as $row) {
 			if ($row->module !== $currentModule) {
@@ -104,9 +106,11 @@ class SettingsController {
 	 */
 	public function changeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$settingName = strtolower($args[1]);
-		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ?";
 		/** @var Setting $row */
-		$row = $this->db->fetch(Setting::class, $sql, $settingName);
+		$row = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $settingName)
+			->asObj(Setting::class)
+			->first();
 		if ($row === null) {
 			$msg = "Could not find setting <highlight>{$settingName}<end>.";
 			$sendto->reply($msg);
@@ -139,9 +143,11 @@ class SettingsController {
 	public function saveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = strtolower($args[1]);
 		$newValue = $args[2];
-		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ?";
 		/** @var ?Setting */
-		$setting = $this->db->fetch(Setting::class, $sql, $name);
+		$setting = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";
 			$sendto->reply($msg);

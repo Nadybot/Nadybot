@@ -1,5 +1,5 @@
 Name: Metallic Mantis Armor
-Author: 
+Author:
 </font><font color=#FFFF00>------------------------------
 </font><font color=#FF0000>Ingredients</font><font color=#009B00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
@@ -57,4 +57,4 @@ Metallic Mantis Armor
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-Excellent armor but up to QL130 approximatively.
+Excellent armor but up to QL130 approximately.

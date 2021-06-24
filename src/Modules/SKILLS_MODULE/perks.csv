@@ -274,9 +274,9 @@ Lightstalker|4|sl|281537|150|Adv|Agility 4, Dodge-Rng 1, Duck-Exp 1, Evade close
 Lightstalker|5|sl|281538|200|Adv|Agility 6, Dodge-Rng 2, Duck-Exp 2, Evade close 2, Concealment 19, AAD 11, Aimed shot 20
 Lightstalker|6|sl|281539|206|Adv|Agility 9, Dodge-Rng 4, Duck-Exp 4, Evade close 4, Concealment 27, AAD 18, Aimed shot 32|281528
 
-Outdoorsman|1|sl|231354|80|Adv|Run speed 20, Adventuring 10, Mult. Melee 10, Ranged init 10, 1h Edged 4||145: 1, 146: 1
-Outdoorsman|2|sl|231355|140|Adv|Run speed 30, Adventuring 15, Mult. Melee 10, Ranged init 10, 1h Edged 5||145: 2, 146: 2
-Outdoorsman|3|sl|231356|200|Adv|Run speed 40, Adventuring 25, Mult. Melee 10, Ranged init 10, 1h Edged 11|227326|145:3, 146: 3
+Outdoorsman|1|sl|231354|80|Adv|Run speed 20, Adventuring 10, Mult. Melee 10, Ranged Init. 10, 1h Edged 4||145: 1, 146: 1
+Outdoorsman|2|sl|231355|140|Adv|Run speed 30, Adventuring 15, Mult. Melee 10, Ranged Init. 10, 1h Edged 5||145: 2, 146: 2
+Outdoorsman|3|sl|231356|200|Adv|Run speed 40, Adventuring 25, Mult. Melee 10, Ranged Init. 10, 1h Edged 11|227326|145:3, 146: 3
 
 Shadowstalker|1|sl|212007|20|Adv|Agility 1, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 7, AAD 2, Sneak attack 3, 1h Edged 1
 Shadowstalker|2|sl|212008|70|Adv|Agility 2, Dodge-Rng 1, Duck-Exp 1, Evade close 1, Concealment 10, AAD 3, Sneak attack 5, 1h Edged 3|226213

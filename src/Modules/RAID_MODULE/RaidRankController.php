@@ -42,6 +42,8 @@ use Nadybot\Core\Modules\ALTS\AltsController;
  *	)
  */
 class RaidRankController {
+	public const DB_TABLE = "raid_rank_<myname>";
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -176,11 +178,11 @@ class RaidRankController {
 	 * @DefaultStatus("1")
 	 */
 	public function checkRaidRanksEvent(): void {
-		/** @var RaidRank[] $data */
-		$data = $this->db->fetchAll(RaidRank::class, "SELECT * FROM raid_rank_<myname>");
-		foreach ($data as $row) {
-			$this->buddylistManager->add($row->name, 'raidrank');
-		}
+		$this->db->table(self::DB_TABLE)
+			->asObj(RaidRank::class)
+			->each(function (RaidRank $row) {
+				$this->buddylistManager->add($row->name, 'raidrank');
+			});
 	}
 
 	/**
@@ -188,18 +190,12 @@ class RaidRankController {
 	 * @Setup
 	 */
 	public function uploadRaidRanks(): void {
-		$this->db->exec(
-			"CREATE TABLE IF NOT EXISTS raid_rank_<myname> (".
-				"`name` VARCHAR(25) NOT NULL PRIMARY KEY, ".
-				"`rank` INT NOT NULL".
-			")"
-		);
-
-		/** @var RaidRank[] $data */
-		$data = $this->db->fetchAll(RaidRank::class, "SELECT * FROM raid_rank_<myname>");
-		foreach ($data as $row) {
-			$this->ranks[$row->name] = $row;
-		}
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Ranks");
+		$this->db->table(self::DB_TABLE)
+			->asObj(RaidRank::class)
+			->each(function (RaidRank $row) {
+				$this->ranks[$row->name] = $row;
+			});
 	}
 
 	/**
@@ -207,7 +203,9 @@ class RaidRankController {
 	 */
 	public function removeFromLists(string $who): void {
 		unset($this->ranks[$who]);
-		$this->db->exec("DELETE FROM raid_rank_<myname> WHERE `name` = ?", $who);
+		$this->db->table(self::DB_TABLE)
+			->where("name", $who)
+			->delete();
 		$this->buddylistManager->remove($who, 'raidrank');
 	}
 
@@ -218,14 +216,14 @@ class RaidRankController {
 	 */
 	public function addToLists(string $who, int $rank): string {
 		$action = 'promoted';
-		if (isset($this->ranks[$who])) {
-			$this->db->exec("UPDATE raid_rank_<myname> SET `rank` = ? WHERE `name` = ?", $rank, $who);
-			if ($this->ranks[$who]->rank > $rank) {
-				$action = "demoted";
-			}
-		} else {
-			$this->db->exec("INSERT INTO raid_rank_<myname> (`rank`, `name`) VALUES (?, ?)", $rank, $who);
+		if (isset($this->ranks[$who]) && $this->ranks[$who]->rank > $rank) {
+			$action = "demoted";
 		}
+		$this->db->table(self::DB_TABLE)
+			->upsert(
+				["rank" => $rank, "name" => $who],
+				["name"]
+			);
 
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;

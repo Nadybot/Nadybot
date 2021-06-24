@@ -51,6 +51,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
  * @ProvidesEvent("auction(bid)")
  */
 class AuctionController {
+	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	public string $moduleName;
@@ -200,7 +201,7 @@ class AuctionController {
 			'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
 			'1;2;3;4;5;6'
 		);
-		$this->db->loadSQLFile($this->moduleName, "auction");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Auctions");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
 		$this->commandAlias->register($this->moduleName, "auction end", "bid end");
@@ -272,11 +273,11 @@ class AuctionController {
 	public function bidReimburseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$winner = ucfirst(strtolower($args[1]));
 		/** @var ?DBAuction */
-		$lastAuction = $this->db->fetch(
-			DBAuction::class,
-			"SELECT * FROM `auction_<myname>` WHERE `winner`=? ORDER BY `id` DESC LIMIT 1",
-			$winner
-		);
+		$lastAuction = $this->db->table(self::DB_TABLE)
+			->where("winner", $winner)
+			->orderByDesc("id")
+			->limit(1)
+			->asObj(DBAuction::class)->first();
 		if ($lastAuction === null) {
 			$sendto->reply(
 				"<highlight>{$winner}<end> haven't won any auction ".
@@ -339,7 +340,9 @@ class AuctionController {
 			$sender,
 			$raid
 		);
-		$this->db->exec("UPDATE `auction_<myname>` SET `reimbursed`=TRUE WHERE `id`=?", $lastAuction->id);
+		$this->db->table(self::DB_TABLE)
+			->where("id", $lastAuction->id)
+			->update(["reimbursed" => true]);
 		if ($minPenalty > $percentualPenalty) {
 			$this->chatBot->sendPrivate(
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
@@ -411,10 +414,11 @@ class AuctionController {
 	 */
 	public function bidHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		/** @var DBAuction[] */
-		$items = $this->db->fetchAll(
-			DBAuction::class,
-			"SELECT * FROM `auction_<myname>` ORDER BY `id` DESC LIMIT 40"
-		);
+		$items = $this->db->table(self::DB_TABLE)
+			->orderByDesc("id")
+			->limit(40)
+			->asObj(DBAuction::class)
+			->toArray();
 		if (!count($items)) {
 			$sendto->reply("No auctions have ever been started on this bot.");
 			return;
@@ -443,39 +447,36 @@ class AuctionController {
 			"ape" => ["%Action Probability Estimator%"],
 		];
 		$quickSearch = $shortcuts[strtolower($args[1])] ?? [];
+		$query = $this->db->table(self::DB_TABLE);
 		if (count($quickSearch)) {
-			$whereCriteria = "item LIKE " . join(" OR item LIKE ", array_fill(0, count($quickSearch), '?'));
+			foreach ($quickSearch as $search) {
+				$query->orWhereIlike("item", $search);
+			}
 		} else {
-			[$whereCriteria, $quickSearch] = $this->util->generateQueryFromParams(
+			$this->db->addWhereFromParams(
+				$query,
 				preg_split('/\s+/', $args[1]),
 				'item'
 			);
 		}
 		/** @var DBAuction[] */
-		$items = $this->db->fetchAll(
-			DBAuction::class,
-			"SELECT * FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `end` DESC LIMIT 40",
-			...$quickSearch
-		);
+		$items = (clone $query)
+			->orderByDesc("end")
+			->limit(40)
+			->asObj(DBAuction::class)->toArray();
 		if (!count($items)) {
 			$sendto->reply("Nothing matched <highlight>{$args[1]}<end>.");
 			return;
 		}
 		/** @var DBAuction */
-		$mostExpensiveItem = $this->db->fetch(
-			DBAuction::class,
-			"SELECT * FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `cost` DESC LIMIT 1",
-			...$quickSearch
-		);
-		$avgCost = (float)$this->db->queryRow(
-			"SELECT AVG(`cost`) AS avg FROM `auction_<myname>` WHERE $whereCriteria",
-			...$quickSearch
-		)->avg;
-		$avgCostLastTen = (float)$this->db->queryRow(
-			"SELECT AVG(`cost`) AS avg FROM ".
-			"(SELECT `cost` FROM `auction_<myname>` WHERE $whereCriteria ORDER BY `id` DESC LIMIT 10) AS last_auctions",
-			...$quickSearch
-		)->avg;
+		$mostExpensiveItem = (clone $query)
+			->orderByDesc("cost")
+			->limit(1)
+			->asObj(DBAuction::class)->first();
+		$avgCost = (int)(clone $query)->avg("cost");
+		$queryLastTen = (clone $query)->orderByDesc("id")->limit(10);
+		$avgCostLastTen = (int)$this->db->fromSub($queryLastTen, "last_auctions")
+			->avg("cost");
 		$text = "<header2>Most expensive result<end>\n".
 			"<tab>On " . DateTime::createFromFormat("U", (string)$mostExpensiveItem->end)->format("Y-m-d").
 			", <highlight>{$mostExpensiveItem->winner}<end> paid ".
@@ -630,17 +631,15 @@ class AuctionController {
 	 * Record a finished auction into the database so that it can be searched later on
 	 */
 	protected function recordAuctionInDB(Auction $auction): bool {
-		return $this->db->exec(
-			"INSERT INTO auction_<myname> ".
-			"(`item`, `auctioneer`, `cost`, `winner`, `end`, `reimbursed`) ".
-			"VALUES (?, ?, ?, ?, ?, ?)",
-			$auction->item->toString(),
-			$auction->auctioneer,
-			$auction->bid,
-			$auction->top_bidder,
-			$auction->end,
-			false
-		) !== 0;
+		return $this->db->table(self::DB_TABLE)
+			->insert([
+				"item" => $auction->item->toString(),
+				"auctioneer" => $auction->auctioneer,
+				"cost" => $auction->bid,
+				"winner" => $auction->top_bidder,
+				"end" => $auction->end,
+				"reimbursed" => false,
+			]);
 	}
 
 	public function getBiddingInfo(): string {

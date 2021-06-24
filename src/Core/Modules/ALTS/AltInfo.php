@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Illuminate\Database\Query\JoinClause;
 use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Nadybot;
@@ -165,16 +166,21 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		$sql = "SELECT `alt`, `main`, `validated_by_main`, `validated_by_alt`, p.* ".
-			"FROM `alts` a ".
-			"LEFT JOIN players p ON (a.alt = p.name AND p.dimension = '<dim>') ".
-			"WHERE `main` LIKE ? ";
+		$query = $db->table("alts AS a")
+			->leftJoin("players AS p", function(JoinClause $table) use ($db) {
+				$table->on("a.alt", "p.name");
+				$table->where("p.dimension", $db->getDim());
+			})
+			->where("a.main", $this->main)
+			->select("a.alt", "a.main", "a.validated_by_main", "a.validated_by_alt", "p.*");
 		if ($settingManager->get('alts_sort') === 'level') {
-			$sql .= "ORDER BY level DESC, ai_level DESC, profession ASC, name ASC";
+			$query->orderByDesc("p.level");
+			$query->orderByDesc("p.ai_level");
+			$query->orderBy("p.name");
 		} elseif ($settingManager->get('alts_sort') === 'name') {
-			$sql .= "ORDER BY name ASC";
+			$query->orderBy("p.name");
 		}
-		$data = $db->fetchAll(Alt::class, $sql, $this->main);
+		$data = $query->asObj(Alt::class)->toArray();
 		$count = count($data) + 1;
 		foreach ($data as $row) {
 			$online = $buddylistManager->isOnline($row->alt);

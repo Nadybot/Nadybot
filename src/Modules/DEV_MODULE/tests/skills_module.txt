@@ -66,4 +66,11 @@
 /delay %1
 !weapon <a href="itemref://280727/280727/300">Sloth of the Xan</a>
 /delay %1
+!perks
+!perks enf 220
+!perks enf 220 str
+!perks enf 220 strfew
+!perks enf 330 strfew
+!perks fgh 330 strfew
+!perks show Acrobat
 /text End SKILLS_MODULE

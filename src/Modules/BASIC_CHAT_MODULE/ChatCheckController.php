@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -35,14 +36,14 @@ class ChatCheckController {
 	 * @Matches("/^check$/i")
 	 */
 	public function checkAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
-		/** @var DBRow[] */
-		$data = $this->db->query(
-			"SELECT name FROM online ".
-			"WHERE added_by = '<myname>' AND channel_type = ?",
-			self::CHANNEL_TYPE
-		);
+		/** @var Collection<DBRow> */
+		$data = $this->db->table("online")
+			->where("added_by", $this->db->getBotname())
+			->where("channel_type", self::CHANNEL_TYPE)
+			->select("name")
+			->asObj();
 		$content = "";
-		if (count($data) === 0) {
+		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";
 			$sendto->reply($msg);
 			return;

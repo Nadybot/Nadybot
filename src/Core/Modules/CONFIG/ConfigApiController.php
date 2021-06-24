@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\EventCfg,
 	DBSchema\Setting,
+	EventManager,
 	InsufficientAccessException,
 	SettingManager,
 };
@@ -100,9 +101,10 @@ class ConfigApiController {
 	 * @ApiResult(code=422, desc='Invalid value given')
 	 */
 	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
-		$sql = "SELECT * FROM `settings_<myname>` WHERE `name` = ? AND `module` = ?";
-		/** @var Setting */
-		$oldSetting = $this->db->fetch(Setting::class, $sql, $setting, $module);
+		/** @var Setting|null */
+		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $setting)->where("module", $module)
+			->asObj(Setting::class)->first();
 		if ($oldSetting === null) {
 			return new Response(Response::NOT_FOUND);
 		}
@@ -331,18 +333,14 @@ class ConfigApiController {
 	 * @ApiResult(code=200, class='ModuleEventConfig[]', desc='A list of all events and their status for this module')
 	 */
 	public function apiConfigEventsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
-		/** @var EventCfg[] */
-		$events = $this->db->fetchAll(
-			EventCfg::class,
-			"SELECT * FROM `eventcfg_<myname>` ".
-			"WHERE `type` != 'setup' AND `module` = ?",
-			$module
-		);
-		$result = [];
-		foreach ($events as $event) {
-			$result []= new ModuleEventConfig($event);
-		}
-		return new ApiResponse($result);
+		$events = $this->db->table(EventManager::DB_TABLE)
+			->where("type", "!=", "setup")
+			->where("module", $module)
+			->asObj(EventCfg::class)
+			->map(function (EventCfg $event) {
+				return new ModuleEventConfig($event);
+			});
+		return new ApiResponse($events->toArray());
 	}
 
 	/**

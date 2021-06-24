@@ -188,11 +188,10 @@ class AdminController {
 	 * @DefaultStatus("1")
 	 */
 	public function checkAdminsEvent(Event $eventObj): void {
-		/** @var Admin[] $data */
-		$data = $this->db->fetchAll(Admin::class, "SELECT * FROM `admin_<myname>`");
-		foreach ($data as $row) {
-			$this->buddylistManager->add($row->name, 'admin');
-		}
+		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
+			->each(function (Admin $row) {
+				$this->buddylistManager->add($row->name, 'admin');
+			});
 	}
 
 	/**

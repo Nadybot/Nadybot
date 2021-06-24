@@ -8,7 +8,6 @@ use DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
-	AOChatPacket,
 	CacheManager,
 	CacheResult,
 	DB,
@@ -193,8 +192,13 @@ class GuildManager {
 		if ($cacheResult->usedCache === false) {
 			$this->db->beginTransaction();
 
-			$sql = "UPDATE players SET guild_id = 0, guild = '' WHERE guild_id = ? AND dimension = ?";
-			$this->db->exec($sql, $guild->guild_id, $dimension);
+			$this->db->table("players")
+				->where("guild_id", $guild->guild_id)
+				->where("dimension", $dimension)
+				->update([
+					"guild_id" => 0,
+					"guild" => ""
+				]);
 
 			foreach ($guild->members as $member) {
 				$this->playerManager->update($member);

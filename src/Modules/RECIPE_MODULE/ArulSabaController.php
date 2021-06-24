@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\SettingManager;
@@ -53,9 +54,10 @@ class ArulSabaController {
 
 	/** @Setup */
 	public function setup(): void {
-		$this->db->loadSQLFile($this->moduleName, "arulsaba");
-
-		$this->db->loadSQLFile($this->moduleName, "ingredient");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/ArulSaba");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba_buffs.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ingredient.csv");
 		$this->settingManager->add(
 			$this->moduleName,
 			'arulsaba_show_images',
@@ -74,13 +76,17 @@ class ArulSabaController {
 	 */
 	public function arulSabaListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$blob = "<header2>Choose the type of bracer<end>\n";
-		/** @var ArulSaba[] */
-		$types = $this->db->fetchAll(ArulSaba::class, "SELECT * FROM `arulsaba`");
-		foreach ($types as $type) {
-			$chooseLink = $this->text->makeChatcmd("Choose QL", "/tell <myname> arulsaba {$type->name}");
-			$blob .= "<tab>[{$chooseLink}] {$type->lesser_prefix}/{$type->regular_prefix} ".
-				"{$type->name}: <highlight>{$type->buffs}<end>\n";
-		}
+		$blob = $this->db->table("arulsaba")
+			->asObj(ArulSaba::class)
+			->reduce(function (string $blob, ArulSaba $type): string {
+				$chooseLink = $this->text->makeChatcmd(
+					"Choose QL",
+					"/tell <myname> arulsaba {$type->name}"
+				);
+				return "{$blob}<tab>[{$chooseLink}] ".
+					"{$type->lesser_prefix}/{$type->regular_prefix} ".
+					"{$type->name}: <highlight>{$type->buffs}<end>\n";
+			}, $blob);
 		$msg = $this->text->makeBlob("Arul Saba - Choose type", $blob);
 		$sendto->reply($msg);
 	}
@@ -90,25 +96,23 @@ class ArulSabaController {
 	 * @Matches("/^arulsaba ([^ ]+)$/i")
 	 */
 	public function arulSabaChooseQLCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var ArulSabaBuffs[] */
-		$aruls = $this->db->fetchAll(
-			ArulSabaBuffs::class,
-			"SELECT * FROM `arulsaba_buffs` WHERE `name`=? ORDER BY min_level ASC",
-			ucfirst(strtolower($args[1]))
-		);
-		if (count($aruls) === 0) {
+		/** @var Collection<ArulSabaBuffs> */
+		$aruls = $this->db->table("arulsaba_buffs")
+			->where("name", ucfirst(strtolower($args[1])))
+			->orderBy("min_level")
+			->asObj(ArulSabaBuffs::class);
+		if ($aruls->isEmpty()) {
 			$sendto->reply("No Bracelet of Arul Saba ({$args[1]}) found.");
 			return;
 		}
 		$blob = '';
 		$gems = 0;
 		foreach ($aruls as $arul) {
-			$buffs = $this->db->query(
-				"SELECT s.`name`,ib.`amount`,s.`unit` FROM `item_buffs` ib ".
-				"JOIN `skills` s ON (ib.`attribute_id`=s.`id`) ".
-				"WHERE ib.`item_id`=?",
-				$arul->left_aoid
-			);
+			$buffs = $this->db->table("item_buffs AS ib")
+				->join("skills AS s", "ib.attribute_id", "s.id")
+				->where("ib.item_id", $arul->left_aoid)
+				->select("s.name", "ib.amount", "s.unit")
+				->asObj();
 			$item = $this->itemsController->findById($arul->left_aoid);
 			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
 			$blob .= "<header2>{$shortName}<end>\n".
@@ -147,29 +151,24 @@ class ArulSabaController {
 
 	public function readIngredientByAoid(int $aoid, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): ?Ingredient {
 		/** @var Ingredient|null */
-		$ing = $this->db->fetch(
-			Ingredient::class,
-			"SELECT * FROM `ingredient` WHERE `aoid`=?",
-			$aoid
-		);
+		$ing = $this->db->table("ingredient")
+			->where("aoid", $aoid)
+			->asObj(Ingredient::class)
+			->first();
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
 	public function readIngredientByName(string $name, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): ?Ingredient {
 		/** @var Ingredient|null */
-		$ing = $this->db->fetch(
-			Ingredient::class,
-			"SELECT * FROM `ingredient` WHERE `name`=?",
-			$name
-		);
+		$ing = $this->db->table("ingredient")
+			->where("name", $name)
+			->asObj(Ingredient::class)
+			->first();
 		if (!isset($ing)) {
+			$query = $this->db->table("ingredient");
 			$tmp = explode(" ", $name);
-			[$query, $params] = $this->util->generateQueryFromParams($tmp, 'name');
-			$ing = $this->db->fetch(
-				Ingredient::class,
-				"SELECT * FROM `ingredient` WHERE {$query}",
-				...$params
-			);
+			$this->db->addWhereFromParams($query, $tmp, "name");
+			$ing = $query->asObj(Ingredient::class)->first();
 		}
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
@@ -260,11 +259,10 @@ class ArulSabaController {
 		];
 
 		/** @var ArulSaba|null */
-		$arul = $this->db->fetch(
-			ArulSaba::class,
-			"SELECT * FROM `arulsaba` WHERE `name`=?",
-			$type
-		);
+		$arul = $this->db->table("arulsaba")
+			->where("name", $type)
+			->asObj(ArulSaba::class)
+			->first();
 		if (!isset($arul)) {
 			$sendto->reply("No Bracelet of Arul Saba ({$type}) found.");
 			return;
@@ -447,7 +445,10 @@ class ArulSabaController {
 	}
 
 	protected function readSkill(int $id): ?Skill {
-		return $this->db->fetch(Skill::class, "SELECT * FROM `skills` WHERE `id`=?", $id);
+		return $this->db->table("skills")
+			->where("id", $id)
+			->asObj(Skill::class)
+			->first();
 	}
 
 	/** Render the given ingredients to a blob */

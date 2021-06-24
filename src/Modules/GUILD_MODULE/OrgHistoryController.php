@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\Event;
@@ -23,6 +24,8 @@ use Nadybot\Core\Util;
  */
 class OrgHistoryController {
 
+	public const DB_TABLE = "org_history";
+
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -42,7 +45,7 @@ class OrgHistoryController {
 	 * @Setup
 	 */
 	public function setup() {
-		$this->db->loadSQLFile($this->moduleName, "org_history");
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/History");
 	}
 
 	/**
@@ -61,14 +64,13 @@ class OrgHistoryController {
 
 		$blob = '';
 
-		/** @var OrgHistory[] */
-		$data = $this->db->fetchAll(
-			OrgHistory::class,
-			"SELECT * FROM `org_history` ORDER BY time DESC LIMIT ?, ?",
-			$startingRecord,
-			$pageSize
-		);
-		if (count($data) === 0) {
+		/** @var Collection<OrgHistory> */
+		$data = $this->db->table(self::DB_TABLE)
+			->orderByDesc("time")
+			->limit($pageSize)
+			->offset($startingRecord)
+			->asObj(OrgHistory::class);
+		if ($data->count() === 0) {
 			$msg = "No org history has been recorded.";
 			$sendto->reply($msg);
 			return;
@@ -91,25 +93,23 @@ class OrgHistoryController {
 
 		$blob = '';
 
-		/** @var OrgHistory[] */
-		$data = $this->db->fetchAll(
-			OrgHistory::class,
-			"SELECT * FROM `org_history` WHERE actee LIKE ? ORDER BY time DESC",
-			$player
-		);
-		$count = count($data);
+		/** @var Collection<OrgHistory> */
+		$data = $this->db->table(self::DB_TABLE)
+			->whereIlike("actee", $player)
+			->orderByDesc("time")
+			->asObj(OrgHistory::class);
+		$count = $data->count();
 		$blob .= "\n<header2>Actions on $player ($count)<end>\n";
 		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
 		}
 
-		/** @var OrgHistory[] */
-		$data = $this->db->fetchAll(
-			OrgHistory::class,
-			"SELECT * FROM `org_history` WHERE actor LIKE ? ORDER BY time DESC",
-			$player
-		);
-		$count = count($data);
+		/** @var Collection<OrgHistory> */
+		$data = $this->db->table(self::DB_TABLE)
+			->whereIlike("action", $player)
+			->orderByDesc("time")
+			->asObj(OrgHistory::class);
+		$count = $data->count();
 		$blob .= "\n<header2>Actions by $player ($count)<end>\n";
 		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
@@ -133,38 +133,20 @@ class OrgHistoryController {
 	 */
 	public function captureOrgMessagesEvent(Event $eventObj): void {
 		$message = $eventObj->message;
-		if (preg_match("/^(.+) just left your organization.$/", $message, $arr)) {
-			$actor = $arr[1];
-			$actee = "";
-			$action = "left";
-			$time = time();
-
-			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
-			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} elseif (preg_match("/^(.+) kicked (.+) from your organization.$/", $message, $arr)) {
-			$actor = $arr[1];
-			$actee = $arr[2];
-			$action = "kicked";
-			$time = time();
-
-			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
-			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} elseif (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
-			$actor = $arr[1];
-			$actee = $arr[2];
-			$action = "invited";
-			$time = time();
-
-			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
-			$this->db->exec($sql, $actor, $actee, $action, $time);
-		} elseif (preg_match("/^(.+) removed inactive character (.+) from your organization.$/", $message, $arr)) {
-			$actor = $arr[1];
-			$actee = $arr[2];
-			$action = "removed";
-			$time = time();
-
-			$sql = "INSERT INTO `org_history` (actor, actee, action, organization, time) VALUES (?, ?, ?, '<myguild>', ?) ";
-			$this->db->exec($sql, $actor, $actee, $action, $time);
+		if (
+			preg_match("/^(?<actor>.+) just (?<action>left) your organization.$/", $message, $arr)
+			|| preg_match("/^(?<actor>.+) (?<action>kicked) (?<actee>.+) from your organization.$/", $message, $arr)
+			|| preg_match("/^(?<actor>.+) (?<action>invited) (?<actee>.+) to your organization.$/", $message, $arr)
+			|| preg_match("/^(?<actor>.+) (?<action>removed) inactive character (?<actee>.+) from your organization.$/", $message, $arr)
+		) {
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"actor" => $arr["actor"] ?? "",
+					"actee" => $arr["actee"] ?? "",
+					"action" => $arr["action"] ?? "",
+					"organization" => $this->db->getMyguild(),
+					"time" => time(),
+				]);
 		}
 	}
 }
