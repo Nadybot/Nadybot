@@ -645,17 +645,21 @@ class Nadybot extends AOChat {
 			$eventObj->type = "joinpriv";
 
 			$this->logger->logChat("Priv Group", -1, "$sender joined the channel.");
+			
+			$this->banController->handleBan(
+				$userId,
+				function (int $userId, string $sender) use ($eventObj): void {
+					// Add sender to the chatlist
+					$this->chatlist[$sender] = true;
 
-			// Remove sender if they are banned
-			if ($this->banController->isBanned($userId)) {
-				$this->privategroup_kick($sender);
-				return;
-			}
-
-			// Add sender to the chatlist
-			$this->chatlist[$sender] = true;
-
-			$this->eventManager->fireEvent($eventObj);
+					$this->eventManager->fireEvent($eventObj);
+				},
+				// Remove sender if they are banned
+				function (int $userId, string $sender): void {
+					$this->privategroup_kick($sender);
+				},
+				$sender
+			);
 		}
 	}
 
@@ -785,25 +789,31 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		if ($this->banController->isBanned($senderId)) {
-			return;
-		}
+		$this->banController->handleBan(
+			$senderId,
+			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
+				$this->eventManager->fireEvent($eventObj);
 
-		$this->eventManager->fireEvent($eventObj);
+				// remove the symbol if there is one
+				if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+					$message = substr($message, 1);
+				}
 
-		// remove the symbol if there is one
-		if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-			$message = substr($message, 1);
-		}
-
-		// check tell limits
-		$this->limitsController->checkAndExecute(
-			$sender,
+				// check tell limits
+				$this->limitsController->checkAndExecute(
+					$sender,
+					$message,
+					function() use ($sender, $type, $message, $eventObj): void {
+						$sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+						$this->commandManager->process($type, $message, $sender, $sendto);
+					}
+				);
+			},
+			null,
+			$eventObj,
 			$message,
-			function() use ($sender, $type, $message, $eventObj): void {
-				$sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
-				$this->commandManager->process($type, $message, $sender, $sendto);
-			}
+			$sender,
+			$type
 		);
 	}
 
@@ -822,27 +832,37 @@ class Nadybot extends AOChat {
 		$this->logger->log('DEBUG', "AOCP_PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 		$this->logger->logChat($channel, $sender, $message);
 
-		if ($sender == $this->vars["name"] || $this->banController->isBanned($senderId)) {
+		if ($sender == $this->vars["name"]) {
 			return;
 		}
+		$this->banController->handleBan(
+			$senderId,
+			function (int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $channel): void {
+				if ($this->isDefaultPrivateChannel($channel)) {
+					$type = "priv";
+					$eventObj->type = $type;
 
-		if ($this->isDefaultPrivateChannel($channel)) {
-			$type = "priv";
-			$eventObj->type = $type;
+					$this->eventManager->fireEvent($eventObj);
 
-			$this->eventManager->fireEvent($eventObj);
+					if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+						$message = substr($message, 1);
+						$sendto = new PrivateChannelCommandReply($this, $channel);
+						$this->commandManager->process($type, $message, $sender, $sendto);
+					}
+				} else {  // ext priv group message
+					$type = "extpriv";
+					$eventObj->type = $type;
 
-			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$message = substr($message, 1);
-				$sendto = new PrivateChannelCommandReply($this, $channel);
-				$this->commandManager->process($type, $message, $sender, $sendto);
-			}
-		} else {  // ext priv group message
-			$type = "extpriv";
-			$eventObj->type = $type;
+					$this->eventManager->fireEvent($eventObj);
+				}
+			},
+			null,
+			$eventObj,
+			$message,
+			$sender,
+			$channel,
+		);
 
-			$this->eventManager->fireEvent($eventObj);
-		}
 	}
 
 	/**
@@ -877,33 +897,41 @@ class Nadybot extends AOChat {
 			if ($sender == $this->vars["name"]) {
 				return;
 			}
-			if ($this->banController->isBanned($senderId)) {
-				return;
-			}
 		}
 
-		if ($channel == "All Towers" || $channel == "Tower Battle Outcome") {
-			$eventObj->type = "towers";
+		$this->banController->handleBan(
+			$senderId,
+			function (int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $channel, ?int $orgId): void {
+				if ($channel == "All Towers" || $channel == "Tower Battle Outcome") {
+					$eventObj->type = "towers";
 
-			$this->eventManager->fireEvent($eventObj);
-		} elseif ($channel == "Org Msg") {
-			$eventObj->type = "orgmsg";
+					$this->eventManager->fireEvent($eventObj);
+				} elseif ($channel == "Org Msg") {
+					$eventObj->type = "orgmsg";
 
-			$this->eventManager->fireEvent($eventObj);
-		} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
-			$type = "guild";
-			$sendto = 'guild';
+					$this->eventManager->fireEvent($eventObj);
+				} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
+					$type = "guild";
+					$sendto = 'guild';
 
-			$eventObj->type = $type;
+					$eventObj->type = $type;
 
-			$this->eventManager->fireEvent($eventObj);
+					$this->eventManager->fireEvent($eventObj);
 
-			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$message = substr($message, 1);
-				$sendto = new GuildChannelCommandReply($this);
-				$this->commandManager->process($type, $message, $sender, $sendto);
-			}
-		}
+					if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+						$message = substr($message, 1);
+						$sendto = new GuildChannelCommandReply($this);
+						$this->commandManager->process($type, $message, $sender, $sendto);
+					}
+				}
+			},
+			null,
+			$eventObj,
+			$message,
+			$senderId,
+			$channel,
+			$orgId
+		);
 	}
 
 	/**
