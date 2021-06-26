@@ -5,8 +5,8 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 4,"A Face In The Sand",Aegean,,585,1400,2750
 5,"A Spoiled Brat","in a park in Omni-Ent",,705,946,350
 6,"Abandoned Hope","The Reck","abandoned hope",750,2009,182
-7,"Abmouth Supremus","in the lower levels of the Subway Dungeon at the very end. He spawns two infectors when attacked.",,0,0,0
-8,"Abmouth Supremus (raid)","in the lower levels of the Subway Dungeon at the very end.",,0,0,0
+7,"Abmouth Supremus","in the lower levels of the Subway Dungeon at the very end. He spawns two infectors when attacked.","abby",0,0,0
+8,"Abmouth Supremus (raid)","in the lower levels of the Subway Dungeon at the very end.","abby",0,0,0
 9,"Ace Camp","Eastern Fouls Plain",Primus,620,720,1380
 10,"Acidic Prisoner","Milky Way, near 6R","acidic prisoner",625,1433,1753
 11,Aegean,"in the northeast part of the world. No grid access point and no whompa. East of Aegean is Varmint Woods, to the west is Athen Shire, southeast is Upper Stret East Bank, southwest Wartorn Valley and Stret West Bank, no zone available to the north.","Aegean Aegan Aegean Aegeon Aegon Agean Ageon",585,0,0
@@ -678,8 +678,8 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 677,Jealousy,"Steps of Madness in Omni Forest",,716,800,2844
 678,"Betrayer of Memory","Steps of Madness in Omni Forest",,716,800,2844
 679,"Mind Shard","Steps of Madness in Omni Forest",,716,800,2844
-680,"Abmouth Indomitus","Coast of Peace",,556,3150,1550
-681,Atma,"Stret East Bank",,650,1900,3000
-682,"Cerubin The Reborn",Avalon,,505,2100,280
-683,"T.A.M.","The Longest Road",,795,1130,1530
-684,"Zaal The Immortal","Southern Artery Valley",,610,1730,1200
+680,"Abmouth Indomitus","Coast of Peace","abby",556,3150,1550
+681,Atma,"Stret East Bank, north of 7M",,650,1900,3000
+682,"Cerubin The Reborn","Avalon, ESE of 8L",,505,2100,280
+683,"T.A.M.","The Longest Road, NE of 6R","tam",795,1130,1530
+684,"Zaal The Immortal","Southern Artery Valley, right next to 7M",,610,1730,1200
