@@ -1,0 +1,18 @@
+To show a list of the currently banned orgs:
+<highlight><tab><symbol>orgbans<end>
+
+To permanently ban a whole org from the bot. Reason must be given:
+<highlight><tab><symbol>orgban add <i>orgid</i> reason <i>reason</i><end>
+
+To remove an org from the banlist:
+<highlight><tab><symbol>orbgan rem <i>orgid</i><end>
+
+To temporarily ban a whole org from the bot:
+<highlight><tab><symbol>orgban add <i>orgid</i> <i>time</i> <i>reason</i><end>
+
+<tab><header2>For example:<end>
+<highlight><tab><symbol>orgban add 725003 2w1d reason A bunch of oddballs<end>
+<tab>(bans the org <i>Troet</i> for 2 weeks and 1 day from the bot)
+
+Use <a href='chatcmd:///tell <myname> help findorg'><symbol>findorg</a> to find an org's ID.
+See <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a> for info on the format of the <i>time</i> parameter.

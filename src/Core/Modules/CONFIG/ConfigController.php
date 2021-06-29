@@ -957,8 +957,9 @@ class ConfigController {
 	protected function getRegisteredCommandsQuery(): QueryBuilder {
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->whereIn("cmdevent", ["cmd", "subcmd"])
-			->groupBy("module", "cmdevent", "file", "cmd", "description", "verify", "status", "dependson", "help")
-			->select("module", "cmdevent", "file", "cmd", "description", "verify", "status", "dependson", "help");
+			->groupBy("module", "cmdevent", "file", "cmd", "description", "verify", "dependson", "help")
+			->select("module", "cmdevent", "file", "cmd", "description", "verify", "dependson", "help");
+		$query->addSelect($query->colFunc("MAX", "status", "status"));
 		$type = $query->grammar->wrap("type");
 		$status = $query->grammar->wrap("status");
 		$admin = $query->grammar->wrap("admin");

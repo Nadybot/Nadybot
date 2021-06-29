@@ -1,3 +1,18 @@
+nadybot (5.1.1-1+ubuntu1) bionic; urgency=medium
+  Features:
+  - Allow banning whole orgs with `!orgban`
+  - Add an option to automatically add players attacking
+    towers to the tracking list
+  - Add an option to prevent people from inviting banned players
+
+  Bugfixes:
+  - Changing access level for commands didn't work
+  - Some (sub)commands would show up twice in the cmdlist and module config
+
+  Other:
+  - Added location hints for world bosses
+ -- Nadyita <nadyita@hodorraid.org>  Tue, 29 Apr 2021 16:05:00 +0200
+
 nadybot (5.1.0-1+ubuntu1) bionic; urgency=medium
   Features:
   - Moved to Illuminate database abstraction layer,

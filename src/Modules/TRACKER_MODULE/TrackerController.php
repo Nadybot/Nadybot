@@ -4,6 +4,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AdminManager,
 	BuddylistManager,
 	CommandReply,
 	DB,
@@ -21,6 +22,8 @@ use Nadybot\Core\{
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlinePlayer,
+	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
+	TOWER_MODULE\TowerAttackEvent,
 };
 
 /**
@@ -48,6 +51,13 @@ class TrackerController {
 	public const GROUP_TL = 1;
 	/** Group by profession */
 	public const GROUP_PROF = 2;
+
+	public const ATT_NONE = 0;
+	public const ATT_OWN_ORG = 1;
+	public const ATT_MEMBER_ORG = 2;
+	public const ATT_CLAN = 4;
+	public const ATT_OMNI = 8;
+	public const ATT_NEUTRAL = 16;
 
 	/**
 	 * Name of the module.
@@ -167,6 +177,16 @@ class TrackerController {
 			"do not group;title level;profession",
 			"0;1;2"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tracker_add_attackers",
+			"Automatically track tower field attackers",
+			"edit",
+			"options",
+			"0",
+			"Off;Attacking my own org's tower fields;Attacking tower fields of bot members;Attacking Clan fields;Attacking Omni fields;Attacking Neutral fields;Attacking Non-Clan fields;Attacking Non-Omni fields;Attacking Non-Neutral fields;All",
+			"0;1;2;4;8;16;24;20;12;28"
+		);
 	}
 
 	/**
@@ -179,6 +199,54 @@ class TrackerController {
 			->each(function(TrackedUser $row) {
 				$this->buddylistManager->add($row->name, 'tracking');
 			});
+	}
+
+	/**
+	 * @Event("tower(attack)")
+	 * @Description("Automatically track tower field attackers")
+	 */
+	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
+		$attacker = $eventObj->attacker;
+		$defGuild = $eventObj->defender->org ?? null;
+		$defFaction = $eventObj->defender->faction ?? null;
+		$trackWho = $this->settingManager->getInt('tracker_add_attackers');
+		if ($trackWho === self::ATT_NONE) {
+			return;
+		}
+		if ($trackWho === self::ATT_OWN_ORG ) {
+			$attackingMyOrg = isset($defGuild) && $defGuild === $this->chatBot->vars["my_guild"];
+			if (!$attackingMyOrg) {
+				return;
+			}
+		}
+		if ($trackWho === self::ATT_MEMBER_ORG) {
+			if (!isset($defGuild)) {
+				return;
+			}
+			$isOurGuild = $this->db->table(PrivateChannelController::DB_TABLE, "m")
+				->join("players AS p", "m.name", "p.name")
+				->where("p.guild", $defGuild)
+				->exists() ||
+			$this->db->table(AdminManager::DB_TABLE, "a")
+				->join("players AS p", "a.name", "p.name")
+				->where("p.guild", $defGuild)
+				->exists();
+			if (!$isOurGuild) {
+				return;
+			}
+		}
+		if ($trackWho >= self::ATT_CLAN) {
+			if ($defFaction === "Clan" && ($trackWho & self::ATT_CLAN) === 0) {
+				return;
+			}
+			if ($defFaction === "Omni" && ($trackWho & self::ATT_OMNI) === 0) {
+				return;
+			}
+			if ($defFaction === "Neutral" && ($trackWho & self::ATT_NEUTRAL) === 0) {
+				return;
+			}
+		}
+		$this->trackUid($attacker->charid, $attacker->name);
 	}
 
 	/**
@@ -410,22 +478,29 @@ class TrackerController {
 			$sendto->reply($msg);
 			return;
 		}
-		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->exists()) {
+		if (!$this->trackUid($uid, $name)) {
 			$msg = "Character <highlight>$name<end> is already on the track list.";
 			$sendto->reply($msg);
 			return;
+		}
+		$msg = "Character <highlight>$name<end> has been added to the track list.";
+
+		$sendto->reply($msg);
+	}
+
+	protected function trackUid(int $uid, string $name, ?string $sender=null): bool {
+		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->exists()) {
+			return false;
 		}
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"name" => $name,
 				"uid" => $uid,
-				"added_by" => $sender,
+				"added_by" => $sender ?? $this->chatBot->vars["name"],
 				"added_dt" => time(),
 			]);
-		$msg = "Character <highlight>$name<end> has been added to the track list.";
 		$this->buddylistManager->add($name, 'tracking');
-
-		$sendto->reply($msg);
+		return true;
 	}
 
 	/**

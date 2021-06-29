@@ -6,7 +6,10 @@ use Nadybot\Core\{
 	Event,
 	AccessManager,
 	CommandReply,
+	DBSchema\Player,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Util,
 	Nadybot,
 	SettingManager,
@@ -15,6 +18,7 @@ use Nadybot\Core\{
 	DBSchema\BanEntry,
 	SQLException,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @Instance
@@ -41,9 +45,17 @@ use Nadybot\Core\{
  *		help          = 'ban.txt',
  *		defaultStatus = '1'
  *	)
+ *	@DefineCommand(
+ *		command     = 'orgban',
+ *		alias       = 'orgbans',
+ *		accessLevel = 'mod',
+ *		description = "Ban or unban a whole org",
+ *		help        = 'orgban.txt'
+ *	)
  */
 class BanController {
 	public const DB_TABLE = "banlist_<myname>";
+	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
 
 	/**
 	 * Name of the module.
@@ -56,6 +68,12 @@ class BanController {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Inject */
+	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public GuildManager $guildManager;
 
 	/** @Inject */
 	public Util $util;
@@ -78,6 +96,13 @@ class BanController {
 	 * @var array<int,BanEntry>
 	 */
 	private $banlist = [];
+
+	/**
+	 * List of all banned orgs, indexed by guild_id
+	 *
+	 * @var array<int,BannedOrg>
+	 */
+	private $orgbanlist = [];
 
 	/**
 	 * @Setting("notify_banned_player")
@@ -110,6 +135,7 @@ class BanController {
 		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}
+		$this->uploadOrgBanlist();
 	}
 
 	/**
@@ -119,6 +145,7 @@ class BanController {
 	 */
 	public function initializeBanList(Event $eventObj): void {
 		$this->uploadBanlist();
+		$this->uploadOrgBanlist();
 	}
 
 	/**
@@ -353,6 +380,20 @@ class BanController {
 		if ($numRows > 0) {
 			$this->uploadBanlist();
 		}
+
+		$numRows = $this->db->table(self::DB_TABLE_BANNED_ORGS)
+			->whereNotNull("end")
+			->where("end", "<", time())
+			->delete();
+
+		if ($numRows > 0) {
+			$this->orgbanlist = array_filter(
+				$this->orgbanlist,
+				function (BannedOrg $ban): bool {
+					return !isset($ban->end) || $ban->end >= time();
+				}
+			);
+		}
 	}
 
 	/**
@@ -460,9 +501,80 @@ class BanController {
 			});
 	}
 
+	/** Sync the org-banlist from the database */
+	public function uploadOrgBanlist(): void {
+		$this->db->table(self::DB_TABLE_BANNED_ORGS)
+			->asObj(BannedOrg::class)
+			->each(function (BannedOrg $ban): void {
+				$this->addOrgToBanlist($ban);
+			});
+	}
+
+	protected function addOrgToBanlist(BannedOrg $ban, ?CommandReply $sendto=null): void {
+		$this->orgbanlist[$ban->org_id] = $ban;
+		if (!$this->chatBot->ready) {
+			return;
+		}
+		$this->guildManager->getByIdAsync(
+			$ban->org_id,
+			null,
+			false,
+			function (?Guild $guild, BannedOrg $ban, ?CommandReply $sendto): void {
+				$ban->org_name = (string)$ban->org_id;
+				if (isset($guild)) {
+					$ban->org_name = $guild->orgname;
+				}
+				$this->orgbanlist[$ban->org_id] = $ban;
+				if (isset($sendto)) {
+					$sendto->reply("Added <highlight>{$ban->org_name}<end> to the banlist.");
+				}
+			},
+			$ban,
+			$sendto
+		);
+	}
+
 	/** Check if $charId is banned */
 	public function isBanned(int $charId): bool {
 		return isset($this->banlist[$charId]);
+	}
+
+	/** Call either the notbanned ort banned callback for $charId */
+	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
+		$notBanned ??= fn() => null;
+		$banned ??= fn() => null;
+		if (isset($this->banlist[$charId])) {
+			$banned($charId, ...$args);
+			return;
+		}
+		if (empty($this->orgbanlist)) {
+			$notBanned($charId, ...$args);
+			return;
+		}
+		if (!isset($this->chatBot->id[$charId])) {
+			$banned($charId, ...$args);
+			return;
+		}
+		$player = $this->chatBot->id[$charId];
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($charId, $notBanned, $banned, $args): void {
+				if (!isset($whois) || !isset($whois->guild_id)) {
+					$notBanned($charId, ...$args);
+					return;
+				}
+
+				if (isset($this->orgbanlist[$whois->guild_id])) {
+					$banned($charId, ...$args);
+					return;
+				}
+				$notBanned($charId, ...$args);
+			},
+			$player,
+		);
+	}
+
+	public function orgIsBanned(int $orgId): bool {
+		return isset($this->orgbanlist[$orgId]);
 	}
 
 	/**
@@ -470,5 +582,124 @@ class BanController {
 	 */
 	public function getBanlist(): array {
 		return $this->banlist;
+	}
+
+	/**
+	 * @HandlesCommand("orgban")
+	 * @Matches("/^orgban$/i")
+	 */
+	public function orgbanListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$blocks = [];
+		foreach ($this->orgbanlist as $orgIf => $ban) {
+			$blocks []= $this->renderBannedOrg($ban);
+		}
+		$count = count($blocks);
+		if ($count === 0) {
+			$sendto->reply("No orgs are banned at the moment");
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Banned orgs ({$count})",
+			join("\n", $blocks)
+		);
+		$sendto->reply($msg);
+	}
+
+	public function renderBannedOrg(BannedOrg $ban): string {
+		$unbanLink = $this->text->makeChatcmd("remove", "/tell <myname> orgban rem {$ban->org_id}");
+		$blob = "<header2>" . ($ban->org_name ?? $ban->org_id) . "<end>\n".
+			"<tab>Banned by: <highlight>{$ban->banned_by}<end> [{$unbanLink}]\n".
+			"<tab>Ban starts: <highlight>" . $this->util->date($ban->start) . "<end>\n";
+		if (isset($ban->end)) {
+			$blob .= "<tab>Ban ends: <highlight>" . $this->util->date($ban->end) . "<end>\n";
+		}
+		$blob .= "<tab>Reason: <highlight>{$ban->reason}<end>";
+		return $blob;
+	}
+
+	/**
+	 * @HandlesCommand("orgban")
+	 * @Matches("/^orgban add (?<orgid>\d+) (?<duration>(?:\d+[a-z])+) (?:for|reason|because) (?<reason>.+)$/i")
+	 * @Matches("/^orgban add (?<orgid>\d+) (?:for|reason|because) (?<reason>.+)$/i")
+	 */
+	public function orgbanAddByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->banOrg((int)$args["orgid"], $args["duration"]??null, $sender, $args["reason"], $sendto);
+	}
+
+	/**
+	 * @param Organization[] $orgs
+	 * @param string|null $duration
+	 * @param string $reason
+	 */
+	public function formatOrgsToBan(array $orgs, ?string $duration, string $reason): string {
+		$blob = '';
+		$banCmd = "/tell <myname> orgban add %d reason {$reason}";
+		if (isset($banCmd)) {
+			$banCmd = "/tell <myname> orgban add %d {$duration} reason {$reason}";
+		}
+		foreach ($orgs as $org) {
+			$addLink = $this->text->makeChatcmd('ban', sprintf($banCmd, $org->id));
+			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [$addLink]\n\n";
+		}
+		return $blob;
+	}
+
+	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason, CommandReply $sendto): bool {
+		if ($this->orgIsBanned($orgId)) {
+			$sendto->reply(
+				"<highlight>" . $this->orgbanlist[$orgId]->org_name.
+				"<end> is already banned."
+			);
+			return false;
+		}
+		$endDate = null;
+		if (isset($duration)) {
+			$durationInSecs = $this->util->parseTime($duration);
+			if ($durationInSecs === 0) {
+				$sendto->reply("<highlight>{$duration}<end> is not a valid duration.");
+				return false;
+			}
+			$endDate = time() + $durationInSecs;
+		}
+		$ban = new BannedOrg();
+		$ban->org_id = $orgId;
+		$ban->banned_by = $bannedBy;
+		$ban->start = time();
+		$ban->end = $endDate;
+		$ban->reason = $reason;
+		$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
+		$this->addOrgToBanlist($ban, $sendto);
+		return true;
+	}
+
+	/**
+	 * @HandlesCommand("orgban")
+	 * @Matches("/^orgban rem (?<orgid>\d+)$/i")
+	 */
+	public function orgbanRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$orgId = (int)$args["orgid"];
+		if (!$this->orgIsBanned($orgId)) {
+			$this->guildManager->getByIdAsync(
+				$orgId,
+				null,
+				false,
+				function (?Guild $guild, int $orgId, CommandReply $sendto): void {
+					if (!isset($guild)) {
+						$sendto->reply("<highlight>{$orgId}<end> is not a valid org id.");
+						return;
+					}
+					$sendto->reply("<highlight>{$guild->orgname}<end> is currently not banned.");
+				},
+				$orgId,
+				$sendto
+			);
+			return;
+		}
+		$ban = $this->orgbanlist[$orgId];
+		$this->db->table(self::DB_TABLE_BANNED_ORGS)
+			->where("org_id", $orgId)
+			->delete();
+		$sendto->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
+		unset($this->orgbanlist[$orgId]);
 	}
 }

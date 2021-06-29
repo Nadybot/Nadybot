@@ -266,6 +266,16 @@ class PrivateChannelController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"invite_banned_chars",
+			"Should the bot allow inviting banned characters?",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -359,12 +369,26 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		$msg = "Invited <highlight>$name<end> to this channel.";
-		$this->chatBot->privategroup_invite($name);
-		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
-		$this->chatBot->sendMassTell($msg2, $name);
+		$invitation = function() use ($name, $sendto, $sender): void {
+			$msg = "Invited <highlight>$name<end> to this channel.";
+			$this->chatBot->privategroup_invite($name);
+			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
+			$this->chatBot->sendMassTell($msg2, $name);
 
-		$sendto->reply($msg);
+			$sendto->reply($msg);
+		};
+		if ($this->settingManager->getBool('invite_banned_chars')) {
+			$invitation();
+			return;
+		}
+		$this->banController->handleBan(
+			$uid,
+			$invitation,
+			function() use ($name, $sendto): void {
+				$msg = "<highlight>{$name}<end> is banned from <highlight><myname><end>.";
+				$sendto->reply($msg);
+			}
+		);
 	}
 
 	/**
@@ -796,18 +820,25 @@ class PrivateChannelController {
 			return;
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false || $this->banController->isBanned($uid)) {
+		if ($uid === false) {
 			return;
 		}
-		$channelName = "the <highlight><myname><end> channel";
-		if ($this->settingManager->getBool('guild_channel_status') === false) {
-			$channelName = "<highlight><myname><end>";
-		}
-		$msg = "You have been auto invited to {$channelName}. ".
-			"Use <highlight><symbol>autoinvite<end> to control ".
-			"your auto invite preference.";
-		$this->chatBot->privategroup_invite($sender);
-		$this->chatBot->sendMassTell($msg, $sender);
+		$this->banController->handleBan(
+			$uid,
+			function (int $uid, string $sender): void {
+				$channelName = "the <highlight><myname><end> channel";
+				if ($this->settingManager->getBool('guild_channel_status') === false) {
+					$channelName = "<highlight><myname><end>";
+				}
+				$msg = "You have been auto invited to {$channelName}. ".
+					"Use <highlight><symbol>autoinvite<end> to control ".
+					"your auto invite preference.";
+				$this->chatBot->privategroup_invite($sender);
+				$this->chatBot->sendMassTell($msg, $sender);
+			},
+			null,
+			$sender
+		);
 	}
 
 	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {

@@ -206,7 +206,7 @@ class CommandManager {
 	 */
 	public function updateStatus(?string $channel, ?string $cmd, ?string $module, int $status, ?string $admin): int {
 		$query = $this->db->table(self::DB_TABLE)
-			->where("cmdevent", "end");
+			->where("cmdevent", "cmd");
 		if ($module !== '' && $module !== null) {
 			$query->where("module", $module);
 		}
@@ -223,8 +223,9 @@ class CommandManager {
 			return 0;
 		}
 
+		$update = ["status" => $status];
 		if ($admin !== '' && $admin !== null) {
-			$query->where("admin", $admin);
+			$update["admin"] = $admin;
 		}
 
 		foreach ($data as $row) {
@@ -235,7 +236,7 @@ class CommandManager {
 			}
 		}
 
-		return $query->update(["status" => $status]);
+		return $query->update($update);
 	}
 
 	/**
