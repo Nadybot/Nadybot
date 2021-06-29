@@ -266,6 +266,16 @@ class PrivateChannelController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"invite_banned_chars",
+			"Should the bot allow inviting banned characters?",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -359,12 +369,26 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		$msg = "Invited <highlight>$name<end> to this channel.";
-		$this->chatBot->privategroup_invite($name);
-		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
-		$this->chatBot->sendMassTell($msg2, $name);
+		$invitation = function() use ($name, $sendto, $sender): void {
+			$msg = "Invited <highlight>$name<end> to this channel.";
+			$this->chatBot->privategroup_invite($name);
+			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
+			$this->chatBot->sendMassTell($msg2, $name);
 
-		$sendto->reply($msg);
+			$sendto->reply($msg);
+		};
+		if ($this->settingManager->getBool('invite_banned_chars')) {
+			$invitation();
+			return;
+		}
+		$this->banController->handleBan(
+			$uid,
+			$invitation,
+			function() use ($name, $sendto): void {
+				$msg = "<highlight>{$name}<end> is banned from <highlight><myname><end>.";
+				$sendto->reply($msg);
+			}
+		);
 	}
 
 	/**
