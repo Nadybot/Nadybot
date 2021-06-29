@@ -14,7 +14,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.0.2";
+	public const VERSION = "5.1.1";
 
 	/**
 	 * The command line arguments
