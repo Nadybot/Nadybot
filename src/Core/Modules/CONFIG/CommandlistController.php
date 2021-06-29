@@ -45,7 +45,7 @@ class CommandlistController {
 	public function cmdlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$query = $this->db->table(CommandManager::DB_TABLE, "c")
 			->whereIn("c.cmdevent", ["cmd", "subcmd"])
-			->groupBy("c.cmd", "c.cmdevent", "c.description", "c.module", "file", "admin", "dependson")
+			->groupBy("c.cmd", "c.cmdevent", "c.description", "c.module", "file", "dependson")
 			->orderBy("cmd");
 		if (count($args) > 1) {
 			try {
@@ -76,7 +76,6 @@ class CommandlistController {
 				"description",
 				"module",
 				"file",
-				"admin",
 				"dependson",
 			])
 			->selectSub($subs[0], "guild_avail")
