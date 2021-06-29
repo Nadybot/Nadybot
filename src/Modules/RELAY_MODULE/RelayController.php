@@ -2,21 +2,29 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use JsonException;
 use Nadybot\Core\{
 	AMQP,
 	AMQPExchange,
-	CommandAlias,
+    AOChatEvent,
+    CommandAlias,
 	CommandReply,
 	DB,
 	Event,
-	LoggerWrapper,
+    EventManager,
+    LoggerWrapper,
 	Nadybot,
 	SettingManager,
 	Text,
 	Util,
+	Websocket,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
+	Timer,
+	WebsocketCallback,
+	WebsocketClient,
+	WebsocketError,
 };
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
@@ -41,6 +49,8 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
  *	)
  */
 class RelayController {
+	const TYPE_AMQP = 3;
+	const TYPE_TYRWS = 4;
 
 	/**
 	 * Name of the module.
@@ -81,8 +91,19 @@ class RelayController {
 	/** @Inject */
 	public AMQP $amqp;
 
+	/** @Inject */
+	public Websocket $websocket;
+
+	/** @Inject */
+	public EventManager $eventManager;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
+
+	public WebsocketClient $tyrClient;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Setup */
 	public function setup(): void {
@@ -93,8 +114,8 @@ class RelayController {
 			"edit",
 			"options",
 			"1",
-			"tell;private channel;amqp",
-			'1;2;3'
+			"tell;private channel;amqp;Tyrbot Websocket",
+			'1;2;3;4'
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -118,7 +139,7 @@ class RelayController {
 		$this->settingManager->add(
 			$this->moduleName,
 			'relaybot',
-			"Bot or AMQP exchange for Guildrelay",
+			"Bot/AMQP exchange/Websocket URL for Guildrelay",
 			"edit",
 			"text",
 			"Off",
@@ -317,13 +338,17 @@ class RelayController {
 			"tellrelay"
 		);
 		$relayBot = $this->settingManager->getString('relaybot');
-		if ($this->settingManager->getInt('relaytype') === 3 && $relayBot !== 'Off') {
+		$relayType = $this->settingManager->getInt('relaytype');
+		if ($relayType === self::TYPE_AMQP && $relayBot !== 'Off') {
 			foreach (explode(",", $relayBot) as $exchange) {
 				$exchObject = new AMQPExchange();
 				$exchObject->name = $exchange;
 				$exchObject->type = AMQPExchangeType::FANOUT;
 				$this->amqp->connectExchange($exchObject);
 			}
+		}
+		if ($relayType === self::TYPE_TYRWS && $relayBot !== 'Off') {
+			$this->connectTyrWs();
 		}
 		$this->settingManager->registerChangeListener(
 			'relaybot',
@@ -333,29 +358,60 @@ class RelayController {
 			'relaytype',
 			[$this, 'relayTypeChanges']
 		);
+		$this->timer->callLater(10, function() {
+			$this->logger->log("INFO", "Relaying...");
+			$event = new AOChatEvent();
+			$event->sender = "Pigtail";
+			$event->message = "Hey there";
+			$event->type = "guild";
+			$this->eventManager->fireEvent($event);
+		});
+	}
+
+	public function connectTyrWs(): void {
+		$relayBot = $this->settingManager->getString('relaybot');
+		$this->logger->log('INFO', "Connecting to Tyrbot relay {$relayBot}.");
+		$this->tyrClient = $this->websocket->createClient()
+			->withURI($relayBot)
+			->withTimeout(30)
+			->on(WebsocketClient::ON_CLOSE, [$this, "processTyrRelayClose"])
+			->on(WebsocketClient::ON_TEXT, [$this, "processTyrRelayMessage"])
+			->on(WebsocketClient::ON_ERROR, [$this, "processTyrRelayError"]);
 	}
 
 	/**
-	 * When the relaytype changes from/to AMQP relay, (un)subscribe to the exchanges
+	 * When the relaytype changes, switch properly
 	 */
 	public function relayTypeChanges(string $setting, string $oldValue, string $newValue, $extraData): void {
 		$relayBot = $this->settingManager->getString('relaybot');
-		if (($oldValue !== "3" && $newValue !== "3") || $relayBot === 'Off') {
+		if ($relayBot === 'Off') {
 			return;
 		}
 
-		$exchanges = array_values(array_diff(explode(",", $relayBot), ["Off"]));
-		if ($oldValue === "3") {
-			foreach ($exchanges as $unsub) {
-				$this->amqp->disconnectExchange($unsub);
+		$amqp = (string)self::TYPE_AMQP;
+		if ($oldValue === $amqp || $newValue === $amqp) {
+			$exchanges = array_values(array_diff(explode(",", $relayBot), ["Off"]));
+			if ($oldValue === $amqp) {
+				foreach ($exchanges as $unsub) {
+					$this->amqp->disconnectExchange($unsub);
+				}
+				return;
 			}
-			return;
+			foreach ($exchanges as $sub) {
+				$exchObject = new AMQPExchange();
+				$exchObject->name = $sub;
+				$exchObject->type = AMQPExchangeType::FANOUT;
+				$this->amqp->connectExchange($exchObject);
+			}
 		}
-		foreach ($exchanges as $sub) {
-			$exchObject = new AMQPExchange();
-			$exchObject->name = $sub;
-			$exchObject->type = AMQPExchangeType::FANOUT;
-			$this->amqp->connectExchange($exchObject);
+
+		$tyrws = (string)self::TYPE_TYRWS;
+		if ($oldValue === $tyrws || $newValue === $tyrws) {
+			if ($oldValue === $tyrws) {
+				$this->tyrClient->close();
+				return;
+			}
+			$this->connectTyrWs();
 		}
 	}
 
@@ -691,6 +747,28 @@ class RelayController {
 		} else {
 			return;
 		}
+		if ($this->settingManager->getInt('relaytype') === self::TYPE_TYRWS) {
+			$tyrSender = ["name" => (string)$sender];
+			if ($this->util->isValidSender($sender)) {
+				$tyrSender["id"] = $this->chatBot->get_uid($sender);
+				if (!is_int($tyrSender["id"])) {
+					unset($tyrSender["id"]);
+				}
+			}
+			$channel = ($type === "guild")
+				? $this->chatBot->vars["my_guild"]
+				: ((strlen($this->chatBot->vars["my_guild"]??""))
+					? $this->chatBot->vars["my_guild"] . " Guest"
+					: $this->chatBot->vars["name"]);
+			$tyrMsg = (object)[
+				"type" => "message",
+				"sender" => (object)$tyrSender,
+				"channel" => $channel,
+				"message" => $message,
+			];
+			$this->tyrClient->send(json_encode($tyrMsg));
+			return;
+		}
 
 		if (!$this->util->isValidSender($sender)) {
 			$sender_link = '<relay_bot_color>';
@@ -894,5 +972,41 @@ class RelayController {
 		} else {
 			return $this->chatBot->vars["my_guild"];
 		}
+	}
+
+	public function processTyrRelayMessage(WebsocketCallback $event): void {
+		try {
+			$data = json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
+		} catch (JsonException $e) {
+			$this->logger->log("ERROR", "Invalid JSON data received from Websocket");
+			$this->tyrClient->close(4002);
+			return;
+		}
+		if (!isset($data->type)) {
+			return;
+		}
+		if ($data->type === "message") {
+			$senderLink = $this->text->makeUserlink($data->sender->name);
+			$message = "gcr <v2><relay_guild_tag_color>[{$data->channel}]</end> ".
+				$senderLink . ": <relay_bot_color>{$data->message}</end>";
+			$this->processIncomingRelayMessage(
+				$data->sender->name,
+				$message
+			);
+		}
+		var_dump($data);
+	}
+
+	public function processTyrRelayError(WebsocketCallback $event): void {
+		$this->logger->log("ERROR", "[$event->code] $event->data");
+		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
+			$this->timer->callLater(30, [$this->tyrClient, 'connect']);
+		}
+	}
+
+	public function processTyrRelayClose(WebsocketCallback $event): void {
+		$this->logger->log("INFO", "Reconnecting to Tyr Websocket relay in 10s.");
+		$this->mustReconnect = false;
+		$this->timer->callLater(10, [$this->tyrClient, 'connect']);
 	}
 }
