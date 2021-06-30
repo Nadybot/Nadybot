@@ -1,24 +1,24 @@
 #!/bin/bash
 
-cd "$(dirname "$(realpath "$0")")"
+set -euo pipefail
+cd "$(dirname "$(realpath "$0")")" || exit
 
 case $# in
 0)
-	true
-	while [ $? -ne 10 ]; do
+	set +e
+	while : ; do
 		php -f main.php ./conf/config.php
+		[ $? -eq 10 ] && break
 	done
+	set -e
 ;;
 1)
-	param=`echo $1 | tr '[:upper:]' '[:lower:]'`
-	if [ "$param" = "--list" ]
-	then
-		list=(`ls ./conf/ | grep -oP ".*(?=\\.php)"`)
-		for i in ${!list[*]}
-		do
-			if [ "${list[$i]}" != "config.template" ]
-			then
-				echo "      ${list[$i]}"
+	param=$(tr '[:upper:]' '[:lower:]' <<<"$1")
+	if [ "$param" = "--list" ]; then
+		for i in ./conf/*.php; do
+			i=$(basename "$i" .php)
+			if [ "$i" != "config.template" ]; then
+				echo "      $i"
 			fi
 		done
 	else
@@ -26,10 +26,12 @@ case $# in
 		then
 			echo "Error! '$1' is not allowed!"
 		else
-			true
-			while [ $? -ne 10 ]; do
+			set +e
+			while : ; do
 				php -f main.php "./conf/$param.php"
+				[ $? -eq 10 ] && break
 			done
+			set -e
 		fi
 	fi
 ;;
