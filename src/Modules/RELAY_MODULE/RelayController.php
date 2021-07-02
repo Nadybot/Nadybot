@@ -6,13 +6,13 @@ use JsonException;
 use Nadybot\Core\{
 	AMQP,
 	AMQPExchange,
-    AOChatEvent,
-    CommandAlias,
+	AOChatEvent,
+	CommandAlias,
 	CommandReply,
 	DB,
 	Event,
-    EventManager,
-    LoggerWrapper,
+	EventManager,
+	LoggerWrapper,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -27,6 +27,10 @@ use Nadybot\Core\{
 	WebsocketError,
 };
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Relaying\Character;
+use Nadybot\Core\Relaying\RoutableEvent;
+use Nadybot\Core\Relaying\RoutableMessage;
+use Nadybot\Core\Relaying\Source;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 
@@ -47,10 +51,11 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
  *		accessLevel = 'all',
  *		description = 'Relays incoming bebot messages to guildchat'
  *	)
+ *  @ProvidesEvent("routable(message)")
  */
 class RelayController {
-	const TYPE_AMQP = 3;
-	const TYPE_TYRWS = 4;
+	public const TYPE_AMQP = 3;
+	public const TYPE_TYRWS = 4;
 
 	/**
 	 * Name of the module.
@@ -363,7 +368,7 @@ class RelayController {
 			$event = new AOChatEvent();
 			$event->sender = "Pigtail";
 			$event->message = "Hey there";
-			$event->type = "guild";
+			$event->type = "priv";
 			$this->eventManager->fireEvent($event);
 		});
 	}
@@ -677,7 +682,11 @@ class RelayController {
 	 * @Event("guild")
 	 * @Description("Sends org chat to relay")
 	 */
-	public function orgChatToRelayEvent(Event $eventObj): void {
+	public function orgChatToRelayEvent(AOChatEvent $eventObj): void {
+		$relayMsg = new RoutableMessage($eventObj->message);
+		$char = new Character($eventObj->sender, $this->chatBot->get_uid($eventObj->sender));
+		$relayMsg->setCharacter($char);
+		$this->eventManager->fireEvent($relayMsg);
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -685,8 +694,69 @@ class RelayController {
 	 * @Event("priv")
 	 * @Description("Sends private channel chat to relay")
 	 */
-	public function privChatToRelayEvent(Event $eventObj): void {
+	public function privChatToRelayEvent(AOChatEvent $eventObj): void {
+		$relayMsg = new RoutableMessage($eventObj->message);
+		$char = new Character($eventObj->sender, $this->chatBot->get_uid($eventObj->sender));
+		$relayMsg->setCharacter($char);
+		if (strlen($this->chatBot->vars["my_guild"])) {
+			$source = new Source(Source::PRIV, "Guest");
+			$relayMsg->prependPath($source);
+		}
+		$this->eventManager->fireEvent($relayMsg);
 		$this->processOutgoingRelayMessage($eventObj->sender, $eventObj->message, $eventObj->type);
+	}
+
+	/**
+	 * @Event("sendpriv")
+	 * @Description("Sends bot's private channel chat to relay")
+	 */
+	public function privBotChatToRelayEvent(AOChatEvent $eventObj, bool $disableRelay): void {
+		if ($disableRelay) {
+			return;
+		}
+		$relayMsg = new RoutableMessage($eventObj->message);
+		$char = new Character($eventObj->sender, $this->chatBot->get_uid($eventObj->sender));
+		$relayMsg->setCharacter($char);
+		if (strlen($this->chatBot->vars["my_guild"])) {
+			$source = new Source(Source::PRIV, $this->chatBot->vars["name"], "Guest");
+			$relayMsg->prependPath($source);
+		}
+		$this->eventManager->fireEvent($relayMsg);
+	}
+
+	/**
+	 * @Event("sendguild")
+	 * @Description("Sends bot's org channel chat to relay")
+	 */
+	public function guildBotChatToRelayEvent(AOChatEvent $eventObj, bool $disableRelay): void {
+		if ($disableRelay) {
+			return;
+		}
+		$relayMsg = new RoutableMessage($eventObj->message);
+		$char = new Character($eventObj->sender, $this->chatBot->get_uid($eventObj->sender));
+		$relayMsg->setCharacter($char);
+		$this->eventManager->fireEvent($relayMsg);
+	}
+
+	public function addMainHop(RoutableEvent $event): RoutableEvent {
+		$result = clone $event;
+		if (strlen($this->chatBot->vars["my_guild"])) {
+			$source = new Source(Source::ORG, $this->chatBot->vars["my_guild"], $this->getGuildAbbreviation());
+		} else {
+			$source = new Source(Source::PRIV, $this->chatBot->vars["name"]);
+		}
+		$result->prependPath($source);
+		return $result;
+	}
+
+	/**
+	 * @Event("routable(*)")
+	 * @Description("Route events and messages between relays")
+	 */
+	public function routableHub(RoutableEvent $eventObj): void {
+		$event = $this->addMainHop($eventObj);
+		$proto = new \Nadybot\Modules\RELAY_MODULE\Protocol\GrcV2Protocol();
+		var_dump($proto->parse($proto->render($event)));
 	}
 
 	/**
@@ -987,14 +1057,13 @@ class RelayController {
 		}
 		if ($data->type === "message") {
 			$senderLink = $this->text->makeUserlink($data->sender->name);
-			$message = "gcr <v2><relay_guild_tag_color>[{$data->channel}]</end> ".
+			$message = "grc <v2><relay_guild_tag_color>[{$data->channel}]</end> ".
 				$senderLink . ": <relay_bot_color>{$data->message}</end>";
 			$this->processIncomingRelayMessage(
 				$data->sender->name,
 				$message
 			);
 		}
-		var_dump($data);
 	}
 
 	public function processTyrRelayError(WebsocketCallback $event): void {
