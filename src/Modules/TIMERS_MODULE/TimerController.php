@@ -222,6 +222,7 @@ class TimerController {
 		}
 		$endTime = (int)$timer->data + $alert->time;
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$this->remove($timer->id);
 		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data);
 	}
 
@@ -532,9 +533,6 @@ class TimerController {
 		$event = new TimerEvent();
 		$event->timer = $timer;
 		$event->type = "timer(start)";
-		$this->eventManager->fireEvent($event);
-
-		$this->timers[strtolower($name)] = $timer;
 
 		$timer->id = $this->db->table(static::DB_TABLE)
 			->insertGetId([
@@ -547,6 +545,12 @@ class TimerController {
 				"data" => $data,
 				"alerts" => json_encode($alerts),
 			]);
+
+		if (!isset($timer->id)) {
+			throw new Exception("Unable to save the timer.");
+		}
+		$this->timers[strtolower($name)] = $timer;
+		$this->eventManager->fireEvent($event);
 		return $timer->id;
 	}
 
