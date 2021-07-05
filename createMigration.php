@@ -15,13 +15,13 @@ class CreateMigration {
 		$className = basename($migration, ".shared");
 		$namespace = "Unknown";
 		if (preg_match("/Core\/Modules\/(.+)$/", $path, $matches)) {
-			$namespace = "Nadybot\\Core\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "/");
+			$namespace = "Nadybot\\Core\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
 		} elseif (preg_match("/Core\/Migrations/", $path)) {
 			$namespace = "Nadybot\\Core\\Migrations";
 		} elseif (preg_match("/src\/Modules\/(.+)$/", $path, $matches)) {
-			$namespace = "Nadybot\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "/");
+			$namespace = "Nadybot\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
 		} elseif (preg_match("/extras\/(.+)$/", $path, $matches)) {
-			$namespace = "Nadybot\\User\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "/");
+			$namespace = "Nadybot\\User\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
 		}
 		$fileName = sprintf(
 			"%s/%d_%s.php",

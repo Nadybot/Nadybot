@@ -96,6 +96,10 @@ class TowerController {
 
 	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
 	public const DB_TOWER_VICTORY = "tower_victory_<myname>";
+	public const FIXED_TIMES = [
+		1 => [4, 22, 3],
+		2 => [20, 14, 19],
+	];
 
 	/**
 	 * Name of the module.
