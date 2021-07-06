@@ -1,0 +1,10 @@
+See which sites are currently hot:
+<tab><highlight><symbol>hot<end>
+
+See which sites of a specific faction are currently hot:
+<tab><highlight><symbol>hot clan<end>
+<tab><highlight><symbol>hot omni<end>
+
+See which sites in a specific playfield are currently hot:
+<tab><highlight><symbol>hot pw<end>
+<tab><highlight><symbol>hot pw omni<end>
