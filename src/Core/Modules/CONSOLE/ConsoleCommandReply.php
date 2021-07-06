@@ -223,19 +223,19 @@ class ConsoleCommandReply implements CommandReply {
 		$message = preg_replace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?>/s", "", $message);
 		$message = preg_replace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?>/s", "", $message);
 		$message = preg_replace("/\n\[item:<link><\/link>]\n/s", "\n", $message);
+		$message = str_replace("\n", "\n ", $this->handleColors($message, true));
 		$parts = [];
 		$message = html_entity_decode(
 			preg_replace_callback(
 				"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/s",
 				function (array $matches) use (&$parts): string {
-					$parts[] = $this->handleColors(html_entity_decode($matches[2], ENT_QUOTES), true);
+					$parts[] = html_entity_decode($this->handleColors($matches[2], true), ENT_QUOTES);
 					return $this->handleColors("<link>{$matches[3]}</link>", false);
 				},
 				$message
 			),
 			ENT_QUOTES
 		);
-		$message = str_replace("\n", "\n ", $this->handleColors($message, true));
 		if (count($parts)) {
 			$message .= "\n\n" . join("\n" . str_repeat("-", 75) . "\n", $parts);
 		}
