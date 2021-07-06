@@ -159,6 +159,7 @@ class TowerController {
 	/** @var AttackListener[] */
 	protected array $attackListeners = [];
 
+	/** @var array<string,array<int,?string>> */
 	protected array $lcOwningFactions = [];
 
 	/**
