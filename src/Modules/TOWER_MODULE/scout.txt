@@ -1,18 +1,17 @@
 To scout a tower site:
-<highlight><tab><symbol>scout 'playfield' 'site number' 'closing time' 'ct ql' 'faction' 'guild name'<end>
 <highlight><tab><symbol>scout 'playfield' 'site number' 'paste ct blob info'<end>
 
 For instance:
-<highlight><tab><symbol>scout PW 4 12:34:56 190 clan Dark Ninjas<end>
--OR-
 <highlight><tab><symbol>scout PW 4 Control Tower - Clan Level: 190 Danger level: Killing it poses no danger. Might attack you on sight. Alignment: clan  Organization: Dark Ninjas Created at UTC: 2014-05-19 12:34:56<end>
 
 Note that the closing time is the "Created at" time, but only the time part, not the date part.
-
-Note that you can use <highlight><symbol>forcescout<end> to bypass some of the integrity checks if they are enabled but this should only be used if you understand the implications.
 
 To remove a scouted tower site:
 <highlight><tab><symbol>remscout 'playfield' 'site number'<end>
 
 To show info on the list of scouted bases:
 <highlight><tab><symbol>opentimes<end>
+
+To show a list of sites that need scouting:
+<highlight><tab><symbol>needsscout<end>
+<highlight><tab><symbol>needsscout pw<end>
