@@ -458,6 +458,8 @@ class TestController {
 	 * @Matches("/^testtowervictory (Clan|Neutral|Omni) (.+) (Clan|Neutral|Omni) ([^ ]+) (.+)$/i")
 	 */
 	public function testTowerVictoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args[1] = ucfirst(strtolower($args[1]));
+		$args[3] = ucfirst(strtolower($args[3]));
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = (string)0xFFFFFFFF;
 		$eventObj->channel = "Tower Battle Outcome";

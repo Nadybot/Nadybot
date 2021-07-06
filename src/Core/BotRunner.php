@@ -443,16 +443,11 @@ class BotRunner {
 		unset($vars["DB password"]);
 	}
 
-	/**
-	 * Runs upgrade.php, which is needed if the SQL schema has changed between releases.
-	 */
+	/** Run migration scripts to keep the SQL schema up-to-date */
 	private function runUpgradeScripts(): void {
 		/** @var DB */
 		$db = Registry::getInstance('db');
 		$db->loadMigrations("Core", __DIR__ . "/Migrations");
-		if (file_exists('upgrade.php')) {
-			include 'upgrade.php';
-		}
 	}
 
 	/**
