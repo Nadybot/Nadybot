@@ -158,7 +158,7 @@ class DiscordController {
 		}
 		$msg = new DiscordMessageOut($text);
 		if (count($embeds)) {
-			$msg->embed = $embeds[0];
+			$msg->embeds = $embeds;
 		}
 		return $msg;
 	}
@@ -226,8 +226,8 @@ class DiscordController {
 		}
 		$embed->description = $fix($fields[0]);
 		// $embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
-		if (strlen($embed->description) > 2048) {
-			$embed->description = substr($embed->description, 0, 2047) . "…";
+		if (strlen($embed->description) > 4096) {
+			$embed->description = substr($embed->description, 0, 4095) . "…";
 		}
 		return $embed;
 	}

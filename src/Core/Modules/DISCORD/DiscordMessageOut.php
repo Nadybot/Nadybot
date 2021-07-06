@@ -7,7 +7,7 @@ class DiscordMessageOut {
 	public $nonce = null;
 	public bool $tts = false;
 	public ?string $file = null;
-	public ?object $embed = null;
+	public array $embeds = [];
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;
 
