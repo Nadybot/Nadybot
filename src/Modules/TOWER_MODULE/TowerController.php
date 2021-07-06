@@ -516,7 +516,7 @@ class TowerController {
 					$currentGuildName = $row->guild_name;
 				}
 				$gasInfo = $this->getGasLevel((int)$row->close_time);
-				$gasChangeString = "{$gasInfo->color} {$gasInfo->gas_level} - ".
+				$gasChangeString = "{$gasInfo->color}{$gasInfo->gas_level}<end> - ".
 					"{$gasInfo->next_state} in <highlight>".
 					$this->util->unixtimeToReadable($gasInfo->gas_change).
 					"<end>";
