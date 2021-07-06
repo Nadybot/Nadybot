@@ -81,6 +81,7 @@ use Throwable;
  *	)
  *	@DefineCommand(
  *		command     = 'needsscout',
+ *		alias       = 'needscout',
  *		accessLevel = 'guild',
  *		description = 'Check which tower sites need scouting',
  *		help        = 'scout.txt'
@@ -838,8 +839,7 @@ class TowerController {
 
 	/**
 	 * @HandlesCommand("scout")
-	 * @Matches("/^scout ([0-9a-z]+[a-z])\s*(\d+)\s+(\d{1,2}:\d{2}:\d{2}) (\d+) ([a-z]+) (.*)$/i")
-	 * @Matches("/^scout ([0-9a-z]+[a-z])\s*(\d+)\s+(.*)$/i")
+	 * @Matches("/^scout ([0-9a-z]+[a-z])\s*(\d+)\s+(.*)$/is")
 	 */
 	public function scoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->scoutInputHandler($sender, $sendto, $args);
