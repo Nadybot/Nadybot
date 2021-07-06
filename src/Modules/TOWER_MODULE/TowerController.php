@@ -1398,7 +1398,7 @@ class TowerController {
 			->where("att_guild_name", $attackOrgName)
 			->where("att_faction", $attackFaction)
 			->where("def_guild_name", $defendOrgName)
-			->where("def_faction", $attackFaction)
+			->where("def_faction", $defendFaction)
 			->where("playfield_id", $playfieldID)
 			->where("time", ">=", $time)
 			->limit(1)
