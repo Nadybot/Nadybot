@@ -1352,17 +1352,40 @@ class TowerController {
 		}
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
-
-		if ($lastAttack !== null) {
-			$towerInfo = $this->getTowerInfo($playfield->id, $lastAttack->site_number);
+		// If we have the full scout information and the org has only 1 field
+		// in that playfield, we can use that
+		if ($lastAttack === null) {
+			$data = $this->db->table("tower_site", "t")
+				->leftJoin("scout_info AS s", function (JoinClause $join) {
+					$join->on("t.playfield_id", "s.playfield_id")
+						->on("s.site_number", "t.site_number");
+				})
+				->where("t.playfield_id", $playfield->id)
+				->orderBy("t.site_number")
+				->select("t.*", "s.guild_name", "s.faction")
+				->asObj();
+			// All bases scouted
+			if ($data->whereNull("guild_name")->count() === 0) {
+				$orgFields = $data->where("guild_name", $loserOrgName)
+					->where("faction", $loserFaction);
+				// And the losing org has only 1 field there
+				if ($orgFields->count() === 1) {
+					$siteNumber = (int)$orgFields->first()->site_number;
+				}
+			}
+		} else {
+			$siteNumber = $lastAttack->site_number;
+		}
+		if (isset($siteNumber)) {
+			$towerInfo = $this->getTowerInfo($playfield->id, $siteNumber);
 			$event->site = $towerInfo;
-			$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$lastAttack->x_coords} {$lastAttack->y_coords} {$playfield->id}");
+			$waypointLink = $this->text->makeChatcmd("Get a waypoint", "/waypoint {$towerInfo->x_coord} {$towerInfo->y_coord} {$playfield->id}");
 			$timerLocation = $this->text->makeBlob(
-				"{$playfield->short_name} {$lastAttack->site_number}",
+				"{$playfield->short_name} {$siteNumber}",
 				"Name: <highlight>{$towerInfo->site_name}<end><br>".
 				"QL: <highlight>{$towerInfo->min_ql}<end> - <highlight>{$towerInfo->max_ql}<end><br>".
 				"Action: $waypointLink",
-				"Information about {$playfield->short_name} {$lastAttack->site_number}"
+				"Information about {$playfield->short_name} {$siteNumber}"
 			);
 			$msg .= " in " . $timerLocation;
 		} else {
@@ -1370,7 +1393,7 @@ class TowerController {
 		}
 
 		if ($this->settingManager->getInt('tower_plant_timer') !== 0) {
-			if ($lastAttack === null) {
+			if (!isset($siteNumber)) {
 				$timerLocation = "unknown field in " . $playfield->short_name;
 			}
 
@@ -1388,9 +1411,18 @@ class TowerController {
 			$this->discordController->sendDiscord($msg);
 		}
 
-		if ($lastAttack !== null) {
-			$this->remScoutSite($lastAttack->playfield_id, $lastAttack->site_number);
+		if (isset($towerInfo)) {
+			$this->remScoutSite($towerInfo->playfield_id, $towerInfo->site_number);
 		} else {
+			// Since we couldn't identify the site number, mark all
+			// sites of that org in that PF as unknown again
+			$this->db->table("scout_info")
+				->where("playfield_id", $playfield->id)
+				->where("guild_name", $loserOrgName)
+				->where("faction", $loserFaction)
+				->delete();
+		}
+		if (!isset($lastAttack)) {
 			$lastAttack = new TowerAttack();
 			$lastAttack->att_guild_name = $winnerOrgName;
 			$lastAttack->def_guild_name = $loserOrgName;
@@ -1398,6 +1430,9 @@ class TowerController {
 			$lastAttack->def_faction = $loserFaction;
 			$lastAttack->playfield_id = $playfield->id;
 			$lastAttack->id = -1;
+			if (isset($siteNumber)) {
+				$lastAttack->site_number = $siteNumber;
+			}
 		}
 
 		$this->recordVictory($lastAttack);
