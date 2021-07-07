@@ -5,7 +5,9 @@ LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Nadybot" \
       org.opencontainers.image.source="https://github.com/Nadybot/Nadybot"
 
-ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "-g", "--"]
+
+CMD ["/nadybot/docker-entrypoint.sh"]
 
 RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
     php8-cli \
@@ -27,6 +29,7 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php8-zip \
     php8-opcache \
     php8-fileinfo \
+	tini \
     && \
     ln -s /usr/bin/php8 /usr/bin/php && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
