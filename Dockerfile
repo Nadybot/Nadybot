@@ -5,7 +5,10 @@ LABEL maintainer="nadyita@hodorraid.org" \
       description="self-sustaining docker image to run latest Nadybot" \
       org.opencontainers.image.source="https://github.com/Nadybot/Nadybot"
 
-ENTRYPOINT ["/nadybot/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "-g", "--"]
+
+CMD ["/nadybot/docker-entrypoint.sh"]
+
 
 RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
     php7-cli \
@@ -29,6 +32,7 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php7-pcntl \
     php7-zip \
     php7-fileinfo \
+	tini \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
 
@@ -47,7 +51,6 @@ RUN apk --no-cache add composer && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi
-
 
 USER nadybot
 

@@ -1,5 +1,5 @@
 #!/bin/ash
-# shellcheck shell=ash
+# shellcheck shell=dash
 
 errorMessage() {
 	echo "$*"
@@ -63,8 +63,12 @@ if [ -n "$CONFIG_JIT_BUFFER_SIZE" ]; then
 	PARAMS="-dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
 fi
 
-while : ; do
+EXITCODE=255
+while [ "$EXITCODE" -eq 255 ]; do
+	trap "" TERM
 	# shellcheck disable=SC2086
 	"$PHP" $PARAMS -f main.php -- /tmp/config.php "$@"
-	[ $? -eq 10 ] && break
+	EXITCODE=$?
+	trap - TERM
 done
+exit $EXITCODE
