@@ -176,7 +176,14 @@ class DB {
 				$dbName = "$host/$dbName";
 			}
 			if (!@file_exists($dbName)) {
-				touch($dbName);
+				if (!touch($dbName)) {
+					$this->logger->log(
+						'ERROR',
+						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
+						"exists and is writable by the current user."
+					);
+					exit(10);
+				}
 			}
 			$this->capsule->addConnection([
 				'driver' => 'sqlite',
