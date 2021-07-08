@@ -96,4 +96,23 @@ class QueryBuilder extends Builder {
 		$instance->nadyDB = $this->nadyDB;
 		return $instance;
 	}
+
+	/**
+	 * Insert more than 1 entry into the database
+	 *
+	 * Depending on the DB system, there is a limit of maximum
+	 * rows or placeholders that we can insert.
+	 */
+	public function chunkInsert(array $values): bool {
+		if (!isset($values[0])) {
+			return $this->insert($values);
+		}
+		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
+		$result = true;
+		while (count($values)) {
+			$chunk = array_splice($values, 0, $chunkSize);
+			$result = $result && $this->insert($chunk);
+		}
+		return $result;
+	}
 }

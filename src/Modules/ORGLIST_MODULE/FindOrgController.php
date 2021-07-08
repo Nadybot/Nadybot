@@ -169,7 +169,7 @@ class FindOrgController {
 			}
 			$this->db->beginTransaction();
 			$this->db->table("organizations")
-				->insert($inserts);
+				->chunkInsert($inserts);
 			$this->db->commit();
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
