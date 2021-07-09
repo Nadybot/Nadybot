@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\ALTS\AltsController,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -55,6 +56,9 @@ class RaidMemberController {
 	public PlayerManager $playerManager;
 
 	/** @Inject */
+	public AltsController $altsController;
+
+	/** @Inject */
 	public RaidController $raidController;
 
 	/** @Inject */
@@ -94,6 +98,18 @@ class RaidMemberController {
 			'Do not announce;Private channel;Tell;Priv+Tell',
 			'0;1;2;3',
 			'mod'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_allow_multi_joining',
+			'Allow people to join the raids on more than one character',
+			'edit',
+			'options',
+			'1',
+			'true;false',
+			'1;0',
+			'mod',
+			'multijoin.txt'
 		);
 	}
 
@@ -136,6 +152,18 @@ class RaidMemberController {
 		if ($isBlocked && $sender === $player && !$force) {
 			$msg = "You are currently blocked from joining raids.";
 			return $msg;
+		}
+		if (!$this->settingManager->getBool('raid_allow_multi_joining')) {
+			$alts = $this->altsController->getAltInfo($player)->getAllValidated($player);
+			foreach ($alts as $alt) {
+				if (isset($raid->raiders[$alt])
+					&& $raid->raiders[$alt]->left === null) {
+					if ($sender !== $player) {
+						return "{$player} is already in the raid with {$alt}.";
+					}
+					return "You are already in the raid with {$alt}.";
+				}
+			}
 		}
 		if ($raid->locked && $sender === $player && !$force) {
 			$msg = "The raid is currently <red>locked<end>.";
@@ -288,8 +316,20 @@ class RaidMemberController {
 	public function sendNotInRaidWarning(Raid $raid): array {
 		/** @var string[] */
 		$notInRaid = [];
+		$allowMultilog = $this->settingManager->getBool('raid_allow_multi_joining');
 		foreach ($this->chatBot->chatlist as $player => $online) {
-			if (!isset($raid->raiders[$player]) || $raid->raiders[$player]->left !== null) {
+			$alts = [$player];
+			if (!$allowMultilog) {
+				$alts = $this->altsController->getAltInfo($player)->getAllValidated($player);
+			}
+			$inRaid = false;
+			foreach ($alts as $alt) {
+				if (isset($raid->raiders[$alt]) && $raid->raiders[$alt]->left === null) {
+					$inRaid = true;
+					break;
+				}
+			}
+			if (!$inRaid) {
 				$notInRaid []= $player;
 			}
 		}

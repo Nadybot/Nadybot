@@ -75,6 +75,8 @@ class DB {
 
 	protected array $tableNames = [];
 
+	public int $maxPlaceholders = 9000;
+
 	private Closure $reconnect;
 
 	public const MYSQL = 'mysql';
@@ -176,7 +178,14 @@ class DB {
 				$dbName = "$host/$dbName";
 			}
 			if (!@file_exists($dbName)) {
-				touch($dbName);
+				if (!touch($dbName)) {
+					$this->logger->log(
+						'ERROR',
+						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
+						"exists and is writable by the current user."
+					);
+					exit(10);
+				}
 			}
 			$this->capsule->addConnection([
 				'driver' => 'sqlite',
@@ -184,6 +193,9 @@ class DB {
 				'prefix' => ''
 			]);
 			$this->sql = $this->capsule->getConnection()->getPdo();
+			if (BotRunner::isWindows()) {
+				$this->maxPlaceholders = 999;
+			}
 
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
@@ -1070,13 +1082,13 @@ class DB {
 			foreach ($csv->items() as $item) {
 				$itemCount++;
 				$items []= $item;
-				if (count($items) > 900) {
-					$this->table($table)->insert($items);
+				if ((count($items)+1) * count($item) > $this->maxPlaceholders) {
+					$this->table($table)->chunkInsert($items);
 					$items = [];
 				}
 			}
 			if (count($items) > 0) {
-				$this->table($table)->insert($items);
+				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
 			$this->logger->log('ERROR', $e->getMessage());

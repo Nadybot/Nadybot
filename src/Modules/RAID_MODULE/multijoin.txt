@@ -1,0 +1,8 @@
+Players can get points only once for each reward,
+no matter with how many characters they are in the
+raid.
+
+Setting this option to true only means that they cannot
+bid and (if configured) join raffles on any alt that's
+not in the raid, plus the alts not in the raid won't be
+considered for <highlight><symbol>raid notin<end>.
