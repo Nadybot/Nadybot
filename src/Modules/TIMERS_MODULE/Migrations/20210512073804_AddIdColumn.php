@@ -28,6 +28,6 @@ class AddIdColumn implements SchemaMigration {
 			$table->string("data", 255)->nullable();
 			$table->text("alerts");
 		});
-		$db->table($table)->insert($data);
+		$db->table($table)->chunkInsert($data);
 	}
 }
