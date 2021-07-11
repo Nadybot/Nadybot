@@ -1,3 +1,23 @@
+nadybot (5.1.2-1+ubuntu1) bionic; urgency=medium
+  Features:
+  - Add setting to prevent joining the raid multiple times with alts
+  - Tower module overhaul:
+    * Now supports static and legacy timing
+    * New command !needsscout to list fields without information
+    * New command !hot to list all sites currently hot
+    * Remove old sanity check from the !scout command - they didn't apply anymore
+
+  Bugfixes:
+  - Fix Windows running on SQLite
+  - HTML-escaped colors will now display properly in the console
+  - Repeating timers work again
+
+  Other:
+  - The docker images will now handle !restart commands internally
+  - Better error messages if the bot cannot create the SQLite database
+  - Support multiple embeds for Discord
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 11 Jul 2021 05:05:00 +0200
+
 nadybot (5.1.1-1+ubuntu1) bionic; urgency=medium
   Features:
   - Allow banning whole orgs with `!orgban`

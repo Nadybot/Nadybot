@@ -173,6 +173,22 @@ exit 0
 %endif
 
 %changelog
+* Tue Jul 11 2021 Nadyita <nadyita@hodorraid.org> 5.1.2-1
+- Add setting to prevent joining the raid multiple times with alts
+- Tower module overhaul:
+  - Now supports static and legacy timing
+  - New command !needsscout to list fields without information
+  - New command !hot to list all sites currently hot
+  - Remove old sanity check from the !scout command - they didn't apply anymore
+
+- Fix Windows running on SQLite
+- HTML-escaped colors will now display properly in the console
+- Repeating timers work again
+
+- The docker images will now handle !restart commands internally
+- Better error messages if the bot cannot create the SQLite database
+- Support multiple embeds for Discord
+
 * Tue Jun 29 2021 Nadyita <nadyita@hodorraid.org> 5.1.1-1
 - Allow banning whole orgs with `!orgban`
 - Add an option to automatically add players attacking
