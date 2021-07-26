@@ -9,7 +9,9 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
+	Registry,
 	SettingManager,
 	Timer,
 	Websocket,
@@ -23,7 +25,10 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordMessageIn,
 	DiscordUser,
 };
-
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
 	Guild,
@@ -93,6 +98,9 @@ class DiscordGatewayController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -313,7 +321,7 @@ class DiscordGatewayController {
 		$newEvent = new DiscordGatewayEvent();
 		$newEvent->payload = $payload;
 		$newEvent->type = strtolower("discord({$payload->t})");
-		$this->logger->log("DEBUG", "New event: discord({$payload->t})");
+		$this->logger->log("INFO", "New event: discord({$payload->t})");
 		$this->eventManager->fireEvent($newEvent);
 	}
 
@@ -434,6 +442,67 @@ class DiscordGatewayController {
 		$event->discord_message = $message;
 		$event->channel = $message->channel_id;
 		$this->eventManager->fireEvent($event);
+
+		$this->resolveDiscordMentions(
+			$message->guild_id??null,
+			$message->content,
+			function(string $text) use ($message, $channelName, $name): void {
+				$aoMessage = DiscordRelayController::formatMessage($text);
+				$rMessage = new RoutableMessage($aoMessage);
+				if ($message->guild_id) {
+					$source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
+					$rMessage->appendPath($source);
+					$source = new Source(Source::DISCORD_PRIV, $channelName);
+					$rMessage->prependPath($source);
+				} else {
+					$source = new Source(Source::DISCORD_MSG, $name);
+					$rMessage->prependPath($source);
+				}
+				$senderDisplayName = trim(preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name));
+				$rMessage->setCharacter(new Character($senderDisplayName));
+				$this->messageHub->handle($rMessage);
+			}
+		);
+	}
+
+	/**
+	 * Recursively resolve all mentions in $message and then call $callback
+	 */
+	public function resolveDiscordMentions(?string $guildId, string $message, callable $callback): void {
+		if (!preg_match("/<@!?(\d+)>/", $message, $matches)) {
+			$callback($message);
+			return;
+		}
+		$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
+		if (isset($niceName)) {
+			$message = preg_replace("/<@!?" . $matches[1] . ">/", "@{$niceName}", $message);
+			$this->resolveDiscordMentions($guildId, $message, $callback);
+			return;
+		}
+		if (isset($guildId)) {
+			$this->discordAPIClient->getGuildMember(
+				$guildId,
+				$matches[1],
+				function(GuildMember $member, string $guildId, string $message, callable $callback) {
+					$message = preg_replace("/<@!?" . $member->user->id . ">/", "@" . $member->getName(), $message);
+					$this->resolveDiscordMentions($guildId, $message, $callback);
+				},
+				$guildId,
+				$message,
+				$callback
+			);
+			return;
+		}
+		$this->discordAPIClient->getUser(
+			$matches[1],
+			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
+				$message = preg_replace("/<@!?" . $user->id . ">/", "@{$user->username}", $message);
+				$this->resolveDiscordMentions($guildId, $message, $callback);
+			},
+			$guildId,
+			$message,
+			$callback
+		);
 	}
 
 	/**
@@ -455,6 +524,16 @@ class DiscordGatewayController {
 				},
 				$voiceState
 			);
+		}
+		foreach ($guild->channels as $channel) {
+			if ($channel->type !== $channel::GUILD_TEXT) {
+				continue;
+			}
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
 		}
 	}
 
@@ -479,6 +558,14 @@ class DiscordGatewayController {
 		$channels = &$this->guilds[$channel->guild_id]->channels;
 		if ($event->payload->t === "CHANNEL_CREATE") {
 			$channels []= $channel;
+			if ($channel->type !== $channel::GUILD_TEXT) {
+				return;
+			}
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
 			return;
 		}
 		if ($event->payload->t === "CHANNEL_DELETE") {

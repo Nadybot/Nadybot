@@ -15,6 +15,13 @@ use Nadybot\Core\DBSchema\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
+use Nadybot\Core\Channels\OrgChannel;
+use Nadybot\Core\Channels\PrivateChannel;
+use Nadybot\Core\Channels\PublicChannel;
+use Nadybot\Core\Channels\PrivateMessage;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Throwable;
 
 /**
@@ -72,6 +79,9 @@ class Nadybot extends AOChat {
 
 	/** @Inject */
 	public SettingObject $setting;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Logger("Core") */
 	public LoggerWrapper $logger;
@@ -235,6 +245,17 @@ class Nadybot extends AOChat {
 
 		$this->buddyListSize += 1000;
 		$this->logger->log('INFO', "All Systems ready!");
+		$pc = new PrivateChannel($this->vars["name"]);
+		Registry::injectDependencies($pc);
+		$this->messageHub
+			->registerMessageReceiver($pc)
+			->registerMessageEmitter($pc);
+
+		$pm = new PrivateMessage();
+		Registry::injectDependencies($pm);
+		$this->messageHub
+			->registerMessageReceiver($pm)
+			->registerMessageEmitter($pm);
 	}
 
 	/**
@@ -319,9 +340,6 @@ class Nadybot extends AOChat {
 		}
 
 		$message = $this->text->formatMessage($origMsg = $message);
-		$senderLink = $this->text->makeUserlink($this->vars['name']);
-		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
-		$guestColorChannel = $this->settingManager->get('guest_color_channel');
 		$privColor = "";
 		if ($addDefaultColor) {
 			$privColor = $this->settingManager->get('default_priv_color');
@@ -334,31 +352,11 @@ class Nadybot extends AOChat {
 		$event->message = $origMsg;
 		$event->sender = $this->vars["name"];
 		$this->eventManager->fireEvent($event, $disableRelay);
-		if ($this->isDefaultPrivateChannel($group)) {
-			// relay to guild channel
-			if (!$disableRelay
-				&& $this->settingManager->getBool('guild_channel_status')
-				&& $this->settingManager->getBool("guest_relay")
-				&& $this->settingManager->getBool("guest_relay_commands")
-			) {
-				$this->sendGuild("{$guestColorChannel}[Guest]<end> {$senderLink}{$privColor}: {$origMsg}</font>", true, null, false);
-			}
-
-			// relay to bot relay
-			if (!$disableRelay && $this->settingManager->getString("relaybot") !== "Off" && $this->settingManager->getBool("bot_relay_commands")) {
-				if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
-					$this->relayController->sendMessageToRelay(
-						"grc <v2><relay_guild_tag_color>[{$guildNameForRelay}]</end> ".
-						"<relay_guest_tag_color>[Guest]</end> ".
-						"{$senderLink}: <relay_bot_color>$message</end>"
-					);
-				} else {
-					$this->relayController->sendMessageToRelay(
-						"grc <v2><relay_raidbot_tag_color>[<myname>]</end> ".
-						"{$senderLink}: <relay_bot_color>$message</end>"
-					);
-				}
-			}
+		if (!$disableRelay) {
+			$rMessage = new RoutableMessage($origMsg);
+			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name));
+			$this->messageHub->handle($rMessage);
 		}
 	}
 
@@ -386,9 +384,6 @@ class Nadybot extends AOChat {
 		$priority ??= AOC_PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMsg = $message);
-		$senderLink = $this->text->makeUserlink($this->vars['name']);
-		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
-		$guestColorChannel = $this->settingManager->get('guest_color_channel');
 		$guildColor = "";
 		if ($addDefaultColor) {
 			$guildColor = $this->settingManager->get("default_guild_color");
@@ -402,22 +397,13 @@ class Nadybot extends AOChat {
 		$event->sender = $this->vars["name"];
 		$this->eventManager->fireEvent($event, $disableRelay);
 
-		// relay to private channel
-		if (!$disableRelay
-			&& $this->settingManager->getBool("guest_relay")
-			&& $this->settingManager->getBool("guest_relay_commands")
-			&& count($this->chatlist) > 0
-		) {
-			$this->sendPrivate("{$guestColorChannel}[{$guildNameForRelay}]<end> {$senderLink}{$guildColor}: {$origMsg}<end>", true, null, false);
+		if ($disableRelay) {
+			return;
 		}
-
-		// relay to bot relay
-		if (!$disableRelay
-			&& $this->settingManager->get("relaybot") !== "Off"
-			&& $this->settingManager->getBool("bot_relay_commands")
-		) {
-			$this->relayController->sendMessageToRelay("grc <v2><relay_guild_tag_color>[{$guildNameForRelay}]</end> {$senderLink}: <relay_bot_color>$message</end>");
-		}
+		$rMessage = new RoutableMessage($origMsg);
+		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+		$rMessage->prependPath(new Source(Source::ORG, $this->vars["my_guild"]));
+		$this->messageHub->handle($rMessage);
 	}
 
 	/**
@@ -449,6 +435,7 @@ class Nadybot extends AOChat {
 			$priority = AOC_PRIORITY_MED;
 		}
 
+		$rMessage = new RoutableMessage($message);
 		if ($formatMessage) {
 			$message = $this->text->formatMessage($message);
 			$tellColor = $this->settingManager->get("default_tell_color");
@@ -461,6 +448,9 @@ class Nadybot extends AOChat {
 		$event->channel = $character;
 		$event->message = $message;
 		$this->eventManager->fireEvent($event);
+		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+		$rMessage->prependPath(new Source(Source::TELL, $this->char->name));
+		$this->messageHub->handle($rMessage);
 	}
 
 	/**
@@ -530,8 +520,13 @@ class Nadybot extends AOChat {
 			$priority = AOC_PRIORITY_MED;
 		}
 
-		$message = $this->text->formatMessage($message);
+		$message = $this->text->formatMessage($origMessage = $message);
 		$guildColor = $this->settingManager->get("default_guild_color");
+
+		$rMessage = new RoutableMessage($origMessage);
+		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+		$rMessage->prependPath(new Source(Source::PUB, $channel));
+		$this->messageHub->handle($rMessage);
 
 		$this->send_group($channel, $guildColor.$message, "\0", $priority);
 	}
@@ -835,29 +830,30 @@ class Nadybot extends AOChat {
 		if ($sender == $this->vars["name"]) {
 			return;
 		}
+		if ($this->isDefaultPrivateChannel($channel)) {
+			$type = "priv";
+		} else {  // ext priv group message
+			$type = "extpriv";
+		}
+		$eventObj->type = $type;
+		$this->eventManager->fireEvent($eventObj);
+		$rMessage = new RoutableMessage($message);
+		$rMessage->setCharacter(new Character($sender, $senderId));
+		$rMessage->prependPath(new Source(Source::PRIV, $channel));
+		$this->messageHub->handle($rMessage);
+		if ($message[0] !== $this->settingManager->get("symbol") || strlen($message) <= 1) {
+			return;
+		}
+
 		$this->banController->handleBan(
 			$senderId,
-			function (int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $channel): void {
-				if ($this->isDefaultPrivateChannel($channel)) {
-					$type = "priv";
-					$eventObj->type = $type;
-
-					$this->eventManager->fireEvent($eventObj);
-
-					if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-						$message = substr($message, 1);
-						$sendto = new PrivateChannelCommandReply($this, $channel);
-						$this->commandManager->process($type, $message, $sender, $sendto);
-					}
-				} else {  // ext priv group message
-					$type = "extpriv";
-					$eventObj->type = $type;
-
-					$this->eventManager->fireEvent($eventObj);
-				}
+			function (int $senderId, string $type, string $message, string $sender, string $channel): void {
+				$message = substr($message, 1);
+				$sendto = new PrivateChannelCommandReply($this, $channel);
+				$this->commandManager->process($type, $message, $sender, $sendto);
 			},
 			null,
-			$eventObj,
+			$type,
 			$message,
 			$sender,
 			$channel,
@@ -878,11 +874,26 @@ class Nadybot extends AOChat {
 
 		$this->logger->log('DEBUG', "AOCP_GROUP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 
+		$orgId = $this->getOrgId($channelId);
+
+		// Route public messages not from the bot itself
+		if ($sender !== $this->vars["name"]) {
+			if (!$orgId || $this->settingManager->getBool('guild_channel_status')) {
+				$rMessage = new RoutableMessage($message);
+				if ($this->util->isValidSender($sender)) {
+					$rMessage->setCharacter(new Character($sender, $senderId));
+				}
+				if ($orgId) {
+					$rMessage->prependPath(new Source(Source::ORG, $channel));
+				} else {
+					$rMessage->prependPath(new Source(Source::PUB, $channel));
+				}
+				$this->messageHub->handle($rMessage);
+			}
+		}
 		if (in_array($channel, $this->channelsToIgnore)) {
 			return;
 		}
-
-		$orgId = $this->getOrgId($channelId);
 
 		// don't log tower messages with rest of chat messages
 		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$orgId || $this->settingManager->getBool('guild_channel_status'))) {
@@ -898,39 +909,35 @@ class Nadybot extends AOChat {
 			}
 		}
 
-		$this->banController->handleBan(
-			$senderId,
-			function (int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $channel, ?int $orgId): void {
-				if ($channel == "All Towers" || $channel == "Tower Battle Outcome") {
-					$eventObj->type = "towers";
+		if ($channel == "All Towers" || $channel == "Tower Battle Outcome") {
+			$eventObj->type = "towers";
 
-					$this->eventManager->fireEvent($eventObj);
-				} elseif ($channel == "Org Msg") {
-					$eventObj->type = "orgmsg";
+			$this->eventManager->fireEvent($eventObj);
+		} elseif ($channel == "Org Msg") {
+			$eventObj->type = "orgmsg";
 
-					$this->eventManager->fireEvent($eventObj);
-				} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
-					$type = "guild";
-					$sendto = 'guild';
+			$this->eventManager->fireEvent($eventObj);
+		} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
+			$type = "guild";
 
-					$eventObj->type = $type;
+			$eventObj->type = $type;
 
-					$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->fireEvent($eventObj);
 
-					if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+				$this->banController->handleBan(
+					$senderId,
+					function (int $senderId, string $message, string $sender): void {
 						$message = substr($message, 1);
 						$sendto = new GuildChannelCommandReply($this);
-						$this->commandManager->process($type, $message, $sender, $sendto);
-					}
-				}
-			},
-			null,
-			$eventObj,
-			$message,
-			$sender,
-			$channel,
-			$orgId
-		);
+						$this->commandManager->process("guild", $message, $sender, $sendto);
+					},
+					null,
+					$message,
+					$sender,
+				);
+			}
+		}
 	}
 
 	/**
@@ -1242,5 +1249,40 @@ class Nadybot extends AOChat {
 		}
 
 		return $this->id[$id] ?? null;
+	}
+	public function privategroup_join($group): bool {
+		$result = parent::privategroup_join($group);
+		if (!$result) {
+			return false;
+		}
+		$pc = new PrivateChannel($group);
+		Registry::injectDependencies($pc);
+		$this->messageHub
+			->registerMessageEmitter($pc)
+			->registerMessageReceiver($pc);
+		return $result;
+	}
+
+	public function getPacket(): ?AOChatPacket {
+		$result = parent::getPacket();
+		if (!isset($result) || $result->type !== AOCP_GROUP_ANNOUNCE) {
+			return $result;
+		}
+		$data = unpack("Ctype/Nid", (string)$result->args[0]);
+		if ($data["type"] !== 3) { // guild channel
+			$pc = new PublicChannel($result->args[1]);
+			Registry::injectDependencies($pc);
+			$this->messageHub->registerMessageEmitter($pc);
+			if (in_array($data["type"], [135])) {
+				$this->messageHub->registerMessageReceiver($pc);
+			}
+		} else {
+			$oc = new OrgChannel();
+			Registry::injectDependencies($oc);
+			$this->messageHub
+				->registerMessageEmitter($oc)
+				->registerMessageReceiver($oc);
+		}
+		return $result;
 	}
 }

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Relaying;
+namespace Nadybot\Core\Routing;
 
 class RoutableMessage extends RoutableEvent {
 	public function __construct(string $message) {

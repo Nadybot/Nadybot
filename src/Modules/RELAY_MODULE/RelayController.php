@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Addendum\ReflectionAnnotatedClass;
 use JsonException;
 use Nadybot\Core\{
 	AMQP,
@@ -27,10 +28,10 @@ use Nadybot\Core\{
 	WebsocketError,
 };
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Relaying\Character;
-use Nadybot\Core\Relaying\RoutableEvent;
-use Nadybot\Core\Relaying\RoutableMessage;
-use Nadybot\Core\Relaying\Source;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 
@@ -56,6 +57,8 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
 class RelayController {
 	public const TYPE_AMQP = 3;
 	public const TYPE_TYRWS = 4;
+
+	protected array $encryptions = [];
 
 	/**
 	 * Name of the module.
@@ -369,8 +372,26 @@ class RelayController {
 			$event->sender = "Pigtail";
 			$event->message = "Hey there";
 			$event->type = "priv";
-			$this->eventManager->fireEvent($event);
+			// $this->eventManager->fireEvent($event);
 		});
+		$this->loadEncyptions();
+	}
+
+	public function loadEncyptions(): void {
+		$files = glob(__DIR__ . "/Encryption/*.php");
+		foreach ($files as $file) {
+			$className = basename($file, ".php");
+			$entry = ["name" => $className, "params" => []];
+			$reflection = new ReflectionAnnotatedClass(__NAMESPACE__ . "\\Encryption\\{$className}");
+			if (!$reflection->hasAnnotation('Param')) {
+				continue;
+			}
+			foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
+				$entry["params"][] = $paramAnnotation;
+			}
+			$this->encryptions []= $entry;
+		}
+		// var_dump($this->encryptions);
 	}
 
 	public function connectTyrWs(): void {
@@ -755,8 +776,8 @@ class RelayController {
 	 */
 	public function routableHub(RoutableEvent $eventObj): void {
 		$event = $this->addMainHop($eventObj);
-		$proto = new \Nadybot\Modules\RELAY_MODULE\Protocol\GrcV2Protocol();
-		var_dump($proto->parse($proto->render($event)));
+		$proto = new \Nadybot\Modules\RELAY_MODULE\RelayProtocol\GrcV2Protocol();
+		// var_dump($proto->parse($proto->render($event)));
 	}
 
 	/**

@@ -7,10 +7,10 @@ use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
-	AOChatEvent,
 	Event,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	PacketEvent,
 	Registry,
 	SettingManager,
@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	WebsocketCallback,
 	WebsocketServer,
 };
-
+use Nadybot\Core\Channels\WebChannel;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	HttpProtocolWrapper,
@@ -53,6 +53,9 @@ class WebsocketController {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -71,6 +74,34 @@ class WebsocketController {
 			'true;false',
 			'1;0'
 		);
+		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
+		if ($this->settingManager->getBool("websocket")) {
+			$this->registerWebChat();
+		}
+	}
+
+	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, $extraData): void {
+		if ($newValue === "1") {
+			$this->registerWebChat();
+		} else {
+			$this->unregisterWebChat();
+		}
+	}
+
+	protected function registerWebChat(): void {
+		$wc = new WebChannel();
+		Registry::injectDependencies($wc);
+		$this->messageHub
+			->registerMessageEmitter($wc)
+			->registerMessageReceiver($wc);
+	}
+
+	protected function unregisterWebChat(): void {
+		$wc = new WebChannel();
+		Registry::injectDependencies($wc);
+		$this->messageHub
+			->unregisterMessageEmitter($wc->getChannelName())
+			->unregisterMessageReceiver($wc->getChannelName());
 	}
 
 	/**
@@ -221,20 +252,6 @@ class WebsocketController {
 	}
 
 	/**
-	 * @Event("sendguild")
-	 * @Event("guild")
-	 * @Event("sendpriv")
-	 * @Event("priv")
-	 * @Description("Convert messages to webchat format")
-	 */
-	public function convertChatEvents(AOChatEvent $event): void {
-		$xmlMessage = clone($event);
-		$xmlMessage->message = $this->webChatConverter->convertMessage($xmlMessage->message);
-		$xmlMessage->type = "chat(" . str_replace("send", "", $xmlMessage->type) . ")";
-		$this->eventManager->fireEvent($xmlMessage);
-	}
-
-	/**
 	 * @Event("*")
 	 * @Description("Distribute events to Websocket clients")
 	 * @DefaultStatus("1")
@@ -261,7 +278,7 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->log('Debug', "Sending {$class} to Websocket client");
+					$this->logger->log('INFO', "Sending {$class} to Websocket client");
 				}
 			}
 		}

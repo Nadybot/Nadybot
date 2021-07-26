@@ -11,12 +11,15 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	LoggerWrapper,
+	MessageHub,
 	StopExecutionException,
 	Nadybot,
 	SettingManager,
 	Text,
 	UserStateEvent,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
@@ -53,6 +56,9 @@ class TradebotController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -97,17 +103,17 @@ class TradebotController {
 			"mod",
 			"tradebot.txt"
 		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"tradebot_channel_spam",
-			"Show Tradebot messages in",
-			"edit",
-			"options",
-			"3",
-			"Off;Priv;Org;Priv+Org",
-			"0;1;2;3",
-			"mod"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	"tradebot_channel_spam",
+		// 	"Show Tradebot messages in",
+		// 	"edit",
+		// 	"options",
+		// 	"3",
+		// 	"Off;Priv;Org;Priv+Org",
+		// 	"0;1;2;3",
+		// 	"mod"
+		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			"tradebot_channels",
@@ -322,13 +328,11 @@ class TradebotController {
 		if ($this->settingManager->getBool('tradebot_add_comments')) {
 			$message = $this->addCommentsToMessage($message);
 		}
-
-		if ($this->settingManager->getInt("tradebot_channel_spam") & 2) {
-			$this->chatBot->sendGuild($message, true);
-		}
-		if ($this->settingManager->getInt("tradebot_channel_spam") & 1) {
-			$this->chatBot->sendPrivate($message, true);
-		}
+		$rMessage = new RoutableMessage($message);
+		$source = new Source(Source::TRADEBOT, $sender);
+		$rMessage->prependPath($source);
+		// $rMessage->setCharacter(new Character($sender));
+		$this->messageHub->handle($rMessage);
 	}
 
 	protected function colorizeMessage(string $tradeBot, string $message): string {
@@ -399,7 +403,11 @@ class TradebotController {
 			return;
 		}
 		$this->logger->log('INFO', "Joining {$sender}'s private channel.");
-		$this->chatBot->privategroup_join($sender);
+		if ($this->chatBot->privategroup_join($sender)) {
+			$this->messageHub->registerMessageEmitter(
+				new TradebotChannel($sender)
+			);
+		}
 	}
 
 	/**

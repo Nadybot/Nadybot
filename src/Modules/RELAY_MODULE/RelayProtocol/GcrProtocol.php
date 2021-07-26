@@ -1,26 +1,31 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\RELAY_MODULE\Protocol;
+namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Event;
 use Nadybot\Core\Registry;
-use Nadybot\Core\Relaying\Character;
-use Nadybot\Core\Relaying\RoutableEvent;
-use Nadybot\Core\Relaying\RoutableMessage;
-use Nadybot\Core\Relaying\Source;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Util;
 
-class GcrProtocol implements ProtocolInterface {
-	public function render(RoutableEvent $event): array {
+class GcrProtocol implements RelayProtocolInterface {
+	public function send(RoutableEvent $event): array {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->renderMessage($event);
 		}
-		if ($event->getType() === RoutableEvent::TYPE_USER_STATE) {
-			return $this->renderUserState($event);
+		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
+			/** @var Event $llEvent */
+			$llEvent = $event->getData();
+			if (in_array($llEvent->type, ["logon", "logoff"])) {
+				return $this->renderUserState($event);
+			}
 		}
 		return [];
 	}
 
-	public function renderMessage(RoutableMessage $event): array {
+	public function renderMessage(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
 		foreach ($path as $hop) {
@@ -36,7 +41,7 @@ class GcrProtocol implements ProtocolInterface {
 		return ["gcr " . join(" ", $hops) . " {$senderLink} " . $event->getData()];
 	}
 
-	public function renderUserState(RoutableMessage $event): array {
+	public function renderUserState(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
 		foreach ($path as $hop) {
@@ -48,13 +53,13 @@ class GcrProtocol implements ProtocolInterface {
 		if (!isset($character) || !$util->isValidSender($character->name)) {
 			return null;
 		}
-		$type = $event->getData() ? "on" : "off";
+		$type = ($event->getData()->type === "logon") ? "on" : "off";
 		$joinMsg = "gcr " . join(" ", $hops).
 			" ##logon_log{$type}_spam##{$character->name} logged {$type}##end##";
 		return [$joinMsg];
 	}
 
-	public function parse(string $data): ?RoutableEvent {
+	public function receive(string $data): ?RoutableEvent {
 		if (!preg_match("/^.?grc (.+)/", $data, $matches)) {
 			return null;
 		}

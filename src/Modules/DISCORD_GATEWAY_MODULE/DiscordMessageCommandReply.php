@@ -3,10 +3,15 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
+use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
 use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordMessageCommandReply implements CommandReply {
@@ -17,7 +22,10 @@ class DiscordMessageCommandReply implements CommandReply {
 	public DiscordController $discordController;
 
 	/** @Inject */
-	public DiscordRelayController $discordRelayController;
+	public DiscordGatewayController $discordGatewayController;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -38,15 +46,43 @@ class DiscordMessageCommandReply implements CommandReply {
 		}
 		$fakeGM = new GuildMember();
 		$fakeGM->nick = $this->chatBot->vars["name"];
+		if (!$this->isDirectMsg) {
+			$this->discordGatewayController->lookupChannel(
+				$this->channelId,
+				function (DiscordChannel $channel, array $msg): void {
+					foreach ($msg as $msgPack) {
+						$this->routeToHub($channel, $msgPack);
+					}
+				},
+				$msg
+			);
+		}
 		foreach ($msg as $msgPack) {
-			if (!$this->isDirectMsg) {
-				$this->discordRelayController->relayDiscordMessage($fakeGM, $msgPack, false);
-			}
 			$messageObj = $this->discordController->formatMessage($msgPack);
 			if (isset($this->message)) {
 				$messageObj->message_reference = (object)["message_id" => $this->message->id];
 			}
 			$this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON());
 		}
+	}
+
+	protected function routeToHub(DiscordChannel $channel, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->setCharacter(
+			new Character($this->chatBot->char->name, $this->chatBot->char->id)
+		);
+		$guilds = $this->discordGatewayController->getGuilds();
+		$guild = $guilds[$channel->guild_id] ?? null;
+		if (isset($guild)) {
+			$rMessage->prependPath(new Source(
+				Source::DISCORD_GUILD,
+				$guild->name
+			));
+		}
+		$rMessage->prependPath(new Source(
+			Source::DISCORD_PRIV,
+			$channel->name
+		));
+		$this->messageHub->handle($rMessage);
 	}
 }

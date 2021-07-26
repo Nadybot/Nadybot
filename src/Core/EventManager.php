@@ -30,6 +30,9 @@ class EventManager {
 	/** @var array<string,string[]> */
 	public array $events = [];
 
+	/** @var array<string,callable[]> */
+	public array $dynamicEvents = [];
+
 	/** @var array<array<string,mixed>> */
 	private array $cronevents = [];
 
@@ -142,6 +145,32 @@ class EventManager {
 				}
 			} else {
 				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). The type is not a recognized event type!");
+			}
+		}
+	}
+
+	/**
+	 * Subscribe to an event
+	 */
+	public function subscribe(string $type, callable $callback): void {
+		$type = strtolower($type);
+
+		if ($type == "setup") {
+			return;
+		}
+		if ($this->isValidEventType($type)) {
+			if (!isset($this->dynamicEvents[$type])) {
+				$this->dynamicEvents[$type] = [];
+			}
+			if (!in_array($callback, $this->dynamicEvents[$type])) {
+				$this->dynamicEvents[$type] []= $callback;
+			}
+		} else {
+			$time = $this->getTimerEventTime($type);
+			if ($time > 0) {
+				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+			} else {
+				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
 			}
 		}
 	}
@@ -377,6 +406,14 @@ class EventManager {
 			}
 			foreach ($handlers as $filename) {
 				$this->callEventHandler($eventObj, $filename, $args);
+			}
+		}
+		foreach ($this->dynamicEvents as $type => $handlers) {
+			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($handlers as $callback) {
+				$callback($eventObj, ...$args);
 			}
 		}
 	}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "916002d67a3c76a8f5bf01d91d1d5b8d",
+    "content-hash": "70a0db0fa48fe32d3bb93239fe71251d",
     "packages": [
         {
             "name": "apache/log4php",
@@ -894,6 +894,59 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2021-05-10T13:42:57+00:00"
+        },
+        {
+            "name": "kelvinmo/fernet-php",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kelvinmo/fernet-php.git",
+                "reference": "4d33ec969789b9973ba4666ce39f549f72fa6476"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kelvinmo/fernet-php/zipball/4d33ec969789b9973ba4666ce39f549f72fa6476",
+                "reference": "4d33ec969789b9973ba4666ce39f549f72fa6476",
+                "shasum": ""
+            },
+            "require": {
+                "ext-hash": "*",
+                "php": "^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.0"
+            },
+            "suggest": {
+                "ext-mcrypt": "This package requires either the mcrypt or openssl extension.",
+                "ext-openssl": "This package requires either the mcrypt or openssl extension."
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Kelvin Mo",
+                    "email": "kmo@users.sourceforge.net"
+                }
+            ],
+            "description": "An implementation of the Fernet token specification in PHP.",
+            "homepage": "https://github.com/kelvinmo/fernet-php",
+            "keywords": [
+                "fernet",
+                "token"
+            ],
+            "support": {
+                "issues": "https://github.com/kelvinmo/fernet-php/issues",
+                "source": "https://github.com/kelvinmo/fernet-php/tree/v1.0.0"
+            },
+            "time": "2020-09-19T11:47:53+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -3355,5 +3408,5 @@
         "ext-dom": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }

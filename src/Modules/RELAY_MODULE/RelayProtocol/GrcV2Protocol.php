@@ -1,20 +1,20 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\RELAY_MODULE\Protocol;
+namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Registry;
-use Nadybot\Core\Relaying\Character;
-use Nadybot\Core\Relaying\RoutableEvent;
-use Nadybot\Core\Relaying\RoutableMessage;
-use Nadybot\Core\Relaying\Source;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
-class GrcV2Protocol implements ProtocolInterface {
+class GrcV2Protocol implements RelayProtocolInterface {
 
-	public function render(RoutableEvent $event): ?string {
+	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			return null;
+			return [];
 		}
 		$path = $event->getPath();
 		$msgColor = "";
@@ -48,11 +48,11 @@ class GrcV2Protocol implements ProtocolInterface {
 		} else {
 			$msgColor = "<relay_bot_color>";
 		}
-		return "grc <v2>" . join(" ", $hops) . " {$senderLink}: {$msgColor}".
-			$event->getData() . "</end>";
+		return ["grc <v2>" . join(" ", $hops) . " {$senderLink}: {$msgColor}".
+			$event->getData() . "</end>"];
 	}
 
-	public function parse(string $data): ?RoutableEvent {
+	public function receive(string $data): ?RoutableEvent {
 		if (!preg_match("/^.?grc <v2>(.+)/", $data, $matches)) {
 			return null;
 		}

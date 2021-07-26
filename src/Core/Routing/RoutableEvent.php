@@ -1,16 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Relaying;
+namespace Nadybot\Core\Routing;
 
 use Nadybot\Core\Event;
 
 class RoutableEvent extends Event {
-	public const TYPE_MESSAGE = "routable(message)";
-	public const TYPE_USER_STATE = "routable(user_state)";
+	public const TYPE_MESSAGE = "message";
+	public const TYPE_EVENT = "event";
 
-	protected ?Character $char = null;
-	protected array $path = [];
-	protected $data = null;
+	public ?Character $char = null;
+	public array $path = [];
+	public $data = null;
 
 	public function getType(): string {
 		return $this->type;

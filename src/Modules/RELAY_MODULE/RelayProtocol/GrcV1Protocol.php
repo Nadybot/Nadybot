@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\RELAY_MODULE\Protocol;
+namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Registry;
-use Nadybot\Core\Relaying\Character;
-use Nadybot\Core\Relaying\RoutableEvent;
-use Nadybot\Core\Relaying\RoutableMessage;
-use Nadybot\Core\Relaying\Source;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
-class GrcV1Protocol implements ProtocolInterface {
-	public function render(RoutableEvent $event): array {
+class GrcV1Protocol implements RelayProtocolInterface {
+	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
 		}
@@ -32,7 +32,7 @@ class GrcV1Protocol implements ProtocolInterface {
 		return ["grc " . join(" ", $hops) . " {$senderLink}: " . $event->getData()];
 	}
 
-	public function parse(string $data): ?RoutableEvent {
+	public function receive(string $data): ?RoutableEvent {
 		if (!preg_match("/^.?grc (.+)/", $data, $matches)) {
 			return null;
 		}
