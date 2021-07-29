@@ -39,6 +39,9 @@ class WebchatApiController {
 	public MessageHub $messageHub;
 
 	/** @Inject */
+	public WebChatConverter $webChatConverter;
+
+	/** @Inject */
 	public Text $text;
 
 	/**
@@ -89,9 +92,9 @@ class WebchatApiController {
 			return new Response(Response::NOT_FOUND);
 		}
 		$event = new AOChatEvent();
-		$event->type = "web";
+		$event->type = "chat(web)";
 		$event->channel = $this->chatBot->vars["my_guild"];
-		$event->message = $message;
+		$event->message = $this->webChatConverter->convertMessage($message);
 		$event->sender = $request->authenticatedAs;
 		$this->eventManager->fireEvent($event);
 

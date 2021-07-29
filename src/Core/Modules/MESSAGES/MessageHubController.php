@@ -2,10 +2,13 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
+use Nadybot\Core\DBSchema\RouteModifier;
+use Nadybot\Core\DBSchema\RouteModifierArgument;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageEmitter;
 use Nadybot\Core\MessageHub;
@@ -14,6 +17,7 @@ use Nadybot\Core\Nadybot;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Throwable;
 
 /**
  * @author Nadyita (RK5)
@@ -62,17 +66,35 @@ class MessageHubController {
 	 * @Description("Load routing from database")
 	 */
 	public function loadRouting() {
+		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
+			->orderBy("id")
+			->asObj(RouteModifierArgument::class)
+			->groupBy("route_modifier_id");
+		$modifiers = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER)
+			->orderBy("id")
+			->asObj(RouteModifier::class)
+			->each(function (RouteModifier $mod) use ($arguments): void {
+				$mod->arguments = $arguments->get($mod->id, new Collection())->toArray();
+			})
+			->groupBy("route_id");
 		$this->db->table($this->messageHub::DB_TABLE_ROUTES)
 			->orderBy("id")
 			->asObj(Route::class)
-			->each(function(Route $route): void {
-				$route = new MessageRoute($route);
-				$this->messageHub->addRoute($route);
+			->each(function(Route $route) use ($modifiers): void {
+				$route->modifiers = $modifiers->get($route->id, new Collection())->toArray();
+				try {
+					$msgRoute = $this->messageHub->createMessageRoute($route);
+					$this->messageHub->addRoute($msgRoute);
+				} catch (Exception $e) {
+					$this->logger->log('ERROR', $e->getMessage(), $e);
+				}
 			});
 	}
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>[^ ]+) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
 	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -92,12 +114,56 @@ class MessageHubController {
 				return;
 			}
 		}
-		$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-		$route = new MessageRoute($route);
-		$this->messageHub->addRoute($route);
+		if (isset($args["modifiers"])) {
+			$parser = new ModifierExpressionParser();
+			try {
+				$modifiers = $parser->parse($args["modifiers"]);
+			} catch (ModifierParserException $e) {
+				$sendto->reply($e->getMessage());
+				return;
+			}
+		}
+		$this->db->beginTransaction();
+		try {
+			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
+			foreach ($modifiers as $modifier) {
+				$modifier->route_id = $route->id;
+				$modifier->id = $this->db->insert(
+					$this->messageHub::DB_TABLE_ROUTE_MODIFIER,
+					$modifier
+				);
+				foreach ($modifier->arguments as $argument) {
+					$argument->route_modifier_id = $modifier->id;
+					$argument->id = $this->db->insert(
+						$this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT,
+						$argument
+					);
+				}
+				$route->modifiers []= $modifier;
+			}
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$sendto->reply("Error saving the route: " . $e->getMessage());
+			return;
+		}
+		$modifiers = [];
+		foreach ($route->modifiers as $modifier) {
+			$modifiers []= $modifier->toString();
+		}
+		try {
+			$msgRoute = $this->messageHub->createMessageRoute($route);
+		} catch (Exception $e) {
+			$this->db->rollback();
+			$sendto->reply($e->getMessage());
+			return;
+		}
+		$this->db->commit();
+		$this->messageHub->addRoute($msgRoute);
 		$sendto->reply(
 			"Route added from <highlight>{$args["from"]}<end> ".
-			"to <highlight>{$args["to"]}<end>."
+			"to <highlight>{$args["to"]}<end>".
+			(count($modifiers) ? " using " : "").
+			join(" ", $modifiers)  . "."
 		);
 	}
 
@@ -135,16 +201,89 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Matches("/^route list modifiers?$/i")
+	 */
+	public function routeListModifiersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$mods = $this->messageHub->modifiers;
+		$count = count($mods);
+		if (!$count) {
+			$sendto->reply("No message modifiers available.");
+			return;
+		}
+		$blobs = [];
+		foreach ($mods as $mod) {
+			$description = $mod->description ?? "Someone forgot to add a description";
+			$entry = "<header2>{$mod->name}<end>\n".
+				"<tab><i>".
+				join("\n<tab>", explode("\n", trim($description))).
+				"</i>\n".
+				"<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> route list modifier {$mod->name}") . "]";
+			$blobs []= $entry;
+		}
+		$blob = join("\n\n", $blobs);
+		$msg = $this->text->makeBlob("Message modifiers ({$count})", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route list modifier (.+)$/i")
+	 */
+	public function routeListModifierCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$mod = $this->messageHub->modifiers[$args[1]];
+		if (!isset($mod)) {
+			$sendto->reply("No message modifier <highlight>{$args[1]}<end> found.");
+			return;
+		}
+		$description = $mod->description ?? "Someone forgot to add a description";
+		$blob = "<header2>Description<end>\n".
+			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
+			"\n\n".
+			"<header2>Parameters<end>\n";
+		foreach ($mod->params as $param) {
+			$blob .= "<tab><highlight>{$param->type} {$param->name}<end>";
+			if (!$param->required) {
+				$blob .= " (optional)";
+			}
+			$blob .= "\n<tab><i>".
+				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
+				"</i>\n\n";
+		}
+		$msg = $this->text->makeBlob("{$mod->name}", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
 	 * @Matches("/^route del (\d+)$/i")
 	 */
 	public function routeDel(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
-		$table = $this->messageHub::DB_TABLE_ROUTES;
-		if (!$this->db->table($table)->where("id", $id)->exists()) {
+		$route = $this->getRoute($id);
+		if (!isset($route)) {
 			$sendto->reply("No route <highlight>#{$id}<end> found.");
 			return;
 		}
-		$this->db->table($table)->delete($id);
+		/** @var int[] List of modifier-ids for the route */
+		$modifiers = array_column($route->modifiers, "id");
+		$this->db->beginTransaction();
+		try {
+			if (count($modifiers)) {
+				$this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
+					->whereIn("route_modifier_id", $modifiers)
+					->delete();
+				$this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER)
+					->where("route_id", $id)
+					->delete();
+			}
+			$this->db->table($this->messageHub::DB_TABLE_ROUTES)
+				->delete($id);
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$sendto->reply("Error deleting the route: " . $e->getMessage());
+			return;
+		}
+		$this->db->commit();
 		$deleted = $this->messageHub->deleteRouteID($id);
 		if (isset($deleted)) {
 			$sendto->reply(
@@ -168,7 +307,8 @@ class MessageHubController {
 		}
 		$list = [];
 		foreach ($routes as $route) {
-			$list []= $this->renderRoute($route);
+			$delLink = $this->text->makeChatcmd("delete", "/tell <myname> route del " . $route->getID());
+			$list []="[{$delLink}] " . $this->renderRoute($route);
 		}
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= join("\n<tab>", $list);
@@ -176,12 +316,42 @@ class MessageHubController {
 		$sendto->reply($msg);
 	}
 
+	public function getRoute(int $id): ?Route {
+		/** @var Route|null */
+		$route = $this->db->table($this->messageHub::DB_TABLE_ROUTES)
+			->where("id", $id)
+			->limit(1)
+			->asObj(Route::class)
+			->first();
+		if (!isset($route)) {
+			return null;
+		}
+		$route->modifiers = $this->db->table(
+				$this->messageHub::DB_TABLE_ROUTE_MODIFIER
+			)
+			->where("route_id", $id)
+			->orderBy("id")
+			->asObj(RouteModifier::class)
+			->toArray();
+		foreach ($route->modifiers as $modifier) {
+			$modifier->arguments = $this->db->table(
+					$this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT
+				)
+				->where("route_modifier_id", $modifier->id)
+				->orderBy("id")
+				->asObj(RouteModifierArgument::class)
+				->toArray();
+		}
+		return $route;
+	}
+
 	/** Render the route $route into a single line of text */
 	public function renderRoute(MessageRoute $route): string {
 		$from = $route->getSource();
 		$to = $route->getDest();
 		$direction = $route->getTwoWay() ? "<->" : "->";
-		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end>";
+		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
+			join(" ", $route->renderModifiers());
 	}
 
 	/** Get the type (the part before the bracket) of an emitter */

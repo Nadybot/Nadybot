@@ -2,14 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Addendum\ReflectionAnnotatedClass;
+use Exception;
+use Illuminate\Support\Collection;
+use Nadybot\Core\Annotations\Param;
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
+use ReflectionMethod;
+use Throwable;
 
 /**
  * @Instance
  */
 class MessageHub {
-	public const DB_TABLE_ROUTES = "routes_<myname>";
+	public const DB_TABLE_ROUTES = "route_<myname>";
+	public const DB_TABLE_ROUTE_MODIFIER = "route_modifier_<myname>";
+	public const DB_TABLE_ROUTE_MODIFIER_ARGUMENT = "route_modifier_argument_<myname>";
 
 	/** @var array<string,MessageReceiver> */
 	protected array $receivers = [];
@@ -20,6 +29,9 @@ class MessageHub {
 	/** @var array<string,array<string,MessageRoute>> */
 	protected array $routes = [];
 
+	/** @var array<string,EventModifierSpec> */
+	public array $modifiers = [];
+
 	/** @Inject */
 	public Text $text;
 
@@ -28,6 +40,159 @@ class MessageHub {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
+
+	/** @Setup */
+	public function setup(): void {
+		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
+		foreach ($modifierFiles as $file) {
+			require_once $file;
+			$className = basename($file, '.php');
+			$fullClass = __NAMESPACE__ . "\\EventModifier\\{$className}";
+			$this->addEventModifiersFromClass($fullClass);
+		}
+	}
+
+	protected function addEventModifiersFromClass(string $class): void {
+		$reflection = new ReflectionAnnotatedClass($class);
+		if (!$reflection->hasAnnotation('EventModifier')) {
+			return;
+		}
+		$name = $reflection->getAnnotation('EventModifier')->value;
+		$descriptionAnno = $reflection->getAnnotation('Description');
+		if (isset($descriptionAnno)) {
+			$description = $descriptionAnno->value;
+		}
+		/** @var FunctionParameter[] */
+		$params = [];
+		$i = 1;
+		foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
+			/** @var Param $paramAnnotation */
+			$param = new FunctionParameter();
+			if (!isset($paramAnnotation->name)) {
+				throw new Exception("Missing \"name\" for {$class} @Param #{$i}.");
+			}
+			$param->name = $paramAnnotation->name;
+			$param->description = $paramAnnotation->description??null;
+			$param->required = $paramAnnotation->required ?: false;
+			switch ($paramAnnotation->type) {
+				case $param::TYPE_BOOL:
+				case $param::TYPE_STRING:
+				case $param::TYPE_INT:
+					$param->type = $paramAnnotation->type;
+					break;
+				default:
+					throw new Exception("Unknown parameter type {$paramAnnotation->type} in {$class}");
+			}
+			$params []= $param;
+			$i++;
+		}
+		$mod = new EventModifierSpec($name, $class);
+		$mod->setParameters(...$params);
+		$mod->setDescription($description??null);
+		$this->registerEventModifier($mod);
+	}
+
+	/**
+	 * Register an event modifier for public use
+	 * @param string $name Name of the modifier
+	 * @param FunctionParameter[] $params Name and position of the constructor arguments
+	 */
+	public function registerEventModifier(EventModifierSpec $spec): void {
+		$name = strtolower($spec->name);
+		if (isset($this->modifiers[$name])) {
+			$printArgs = [];
+			foreach ($this->modifiers[$name]->params as $param) {
+				if (!$param->required) {
+					$printArgs []= "[{$param->type} {$param->name}]";
+				} else {
+					$printArgs []= "{$param->type} {$param->name}";
+				}
+			}
+			throw new Exception(
+				"There is already an EventModifier {$name}(".
+				join(", ", $printArgs).
+				")"
+			);
+		}
+		$this->modifiers[$name] = $spec;
+	}
+
+	/**
+	 * Get a fully configured event modifier or null if not possible
+	 * @param string $name Name of the modifier
+	 * @param array<string,string> $params The parameters of the modifier
+	 */
+	public function getEventModifier(string $name, array $params): ?EventModifier {
+		$name = strtolower($name);
+		$spec = $this->modifiers[$name] ?? null;
+		if (!isset($spec)) {
+			return null;
+		}
+		$arguments = [];
+		$paramPos = 0;
+		foreach ($spec->params as $parameter) {
+			$value = $params[$parameter->name] ?? null;
+			if (isset($value)) {
+				switch ($parameter->type) {
+					case $parameter::TYPE_BOOL:
+						if (!in_array($value, ["true", "false"])) {
+							throw new Exception(
+								"Argument <highlight>{$parameter->name}<end> to ".
+								"<highlight>{$name}<end> must be 'true' or 'false', ".
+								"<highlight>'{$value}'<end> given."
+							);
+						}
+						$arguments []= $value === "true";
+						unset($params[$parameter->name]);
+						break;
+					case $parameter::TYPE_INT:
+						if (!preg_match("/^[+-]?\d+/", $value)) {
+							throw new Exception(
+								"Argument <highlight>{$parameter->name}<end> to ".
+								"<highlight>{$name}<end> must be a number, ".
+								"<highlight>'{$value}'<end> given."
+							);
+						}
+						$arguments []= (int)$value;
+						unset($params[$parameter->name]);
+						break;
+					default:
+						$arguments []= (string)$value;
+						unset($params[$parameter->name]);
+				}
+			} elseif ($parameter->required) {
+				throw new Exception(
+					"Missing required argument <highlight>{$parameter->name}<end> ".
+					"to <highlight>{$name}<end>."
+				);
+			} else {
+				$ref = new ReflectionMethod($spec->class, "__construct");
+				$conParams = $ref->getParameters();
+				if (!isset($conParams[$paramPos])) {
+					continue;
+				}
+				if ($conParams[$paramPos]->isOptional()) {
+					$arguments []= $conParams[$paramPos]->getDefaultValue();
+				}
+			}
+			$paramPos++;
+		}
+		if (!empty($params)) {
+			throw new Exception(
+				"Unknown parameter" . (count($params) > 1 ? "s" : "").
+				" <highlight>".
+				(new Collection(array_keys($params)))
+					->join("<end>, <highlight>", "<end> and <highlight>").
+				"<end> to <highlight>{$name}<end>."
+			);
+		}
+		$class = $spec->class;
+		try {
+			return new $class(...$arguments);
+		} catch (Throwable $e) {
+			throw new Exception("There was an error setting up the {$name} modifier: " . $e->getMessage());
+		}
+	}
 
 	/**
 	 * Register an object for handling messages for a channel
@@ -249,5 +414,26 @@ class MessageHub {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Convert a dDB-representation of a route to the real deal
+	 * @param Route $route The DB representation
+	 * @return MessageRoute The actual message route
+	 * @throws Exception whenever this is impossible
+	 */
+	public function createMessageRoute(Route $route): MessageRoute {
+		$msgRoute = new MessageRoute($route);
+		foreach ($route->modifiers as $modifier) {
+			$modObj = $this->getEventModifier(
+				$modifier->modifier,
+				$modifier->getKVArguments()
+			);
+			if (!isset($modObj)) {
+				throw new Exception("There is no modifier <highlight>{$modifier->modifier}<end>.");
+			}
+			$msgRoute->addModifier($modObj);
+		}
+		return $msgRoute;
 	}
 }

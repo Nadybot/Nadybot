@@ -50,4 +50,16 @@ class MessageRoute {
 		}
 		return $modifiedEvent;
 	}
+	
+	/**
+	 * Render the modifiers so we can display them
+	 * @return string[]
+	 */
+	public function renderModifiers(): array {
+		$result = [];
+		foreach ($this->route->modifiers as $modifier) {
+			$result []= $modifier->toString();
+		}
+		return $result;
+	}
 }

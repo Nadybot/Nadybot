@@ -5,11 +5,13 @@ namespace Nadybot\Core\EventModifier;
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 
-class RequirePrefix implements EventModifier {
-	protected string $prefix = "-";
-
-	public function __construct(string $prefix) {
-		$this->prefix = $prefix;
+/**
+ * @EventModifier("remove-popups")
+ * @Description("This modifier will remove all popups and only
+ *	leave the link name.")
+ */
+class RemovePopups implements EventModifier {
+	public function __construct() {
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
@@ -18,11 +20,15 @@ class RequirePrefix implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
-		if (strncmp($message, $this->prefix, strlen($this->prefix)) !== 0) {
-			return null;
-		}
+		$message = preg_replace_callback(
+			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			function (array $matches) use (&$parts): string {
+				return $matches[3];
+			},
+			$message
+		);
 		$modifiedEvent = clone $event;
-		$modifiedEvent->setData(ltrim(substr($message, strlen($this->prefix))));
+		$modifiedEvent->setData($message);
 		return $modifiedEvent;
 	}
 }
