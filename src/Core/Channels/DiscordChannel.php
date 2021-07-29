@@ -35,7 +35,9 @@ class DiscordChannel implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
-		$discordMsg = $this->discordController->formatMessage($event->getData());
+		$message = $this->messageHub->renderPath($event).
+			$event->getData();
+		$discordMsg = $this->discordController->formatMessage($message);
 
 		//Relay the message to the discord channel
 		$this->discordAPIClient->queueToChannel($this->id, $discordMsg->toJSON());

@@ -33,9 +33,10 @@ class WebChannel implements MessageReceiver {
 			return false;
 		}
 		$webEvent = new AOChatEvent();
+		$webEvent->path = $event->getPath();
 		$webEvent->channel = "web";
 		$webEvent->sender = $event->getCharacter()->name;
-		$webEvent->message = $this->webChatConverter->formatMsg($event->getData());
+		$webEvent->message = $this->webChatConverter->convertMessage($event->getData());
 		$webEvent->type = "chat(web)";
 
 		$this->eventManager->fireEvent($webEvent);

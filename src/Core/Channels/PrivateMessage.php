@@ -24,7 +24,9 @@ class PrivateMessage implements MessageReceiver {
 			return false;
 		}
 		if ($this->buddyListManager->isOnline($destination)) {
-			$this->chatBot->sendTell($event->getData(), $destination);
+			$message = $this->messageHub->renderPath($event).
+				$event->getData();
+			$this->chatBot->sendTell($message, $destination);
 		}
 		return true;
 	}

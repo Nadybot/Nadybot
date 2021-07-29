@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -11,15 +12,20 @@ class OrgChannel implements MessageReceiver {
 	/** @Inject */
 	public Nadybot $chatBot;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	public function getChannelName(): string {
 		return Source::ORG;
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		if ($event->getType() === $event::TYPE_MESSAGE) {
-			$this->chatBot->sendGuild($event->getData(), true);
-			return true;
+		if ($event->getType() !== $event::TYPE_MESSAGE) {
+			return false;
 		}
-		// TODO: process online events
+		$message = $this->messageHub->renderPath($event).
+			$event->getData();
+		$this->chatBot->sendGuild($message, true);
+		return true;
 	}
 }

@@ -301,7 +301,7 @@ class MessageHub {
 					continue;
 				}
 				$this->logger->log('INFO', "Event routed to {$destName}");
-				$modifiedEvent->setData($this->renderPath($modifiedEvent).$modifiedEvent->getData());
+				// $modifiedEvent->setData($this->renderPath($modifiedEvent).$modifiedEvent->getData());
 				$destination = $route->getDest();
 				if (preg_match("/\((.+)\)$/", $destination, $matches)) {
 					$destination = $matches[1];

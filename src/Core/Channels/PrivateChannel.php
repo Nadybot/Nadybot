@@ -25,7 +25,9 @@ class PrivateChannel implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
-		$this->chatBot->sendPrivate($event->getData(), true, $this->channel);
+		$message = $this->messageHub->renderPath($event).
+			$event->getData();
+		$this->chatBot->sendPrivate($message, true, $this->channel);
 		return true;
 	}
 }
