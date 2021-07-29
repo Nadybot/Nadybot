@@ -55,45 +55,11 @@ class WebchatApiController {
 	public function sendWebMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$message = $request->decodedBody;
 		$event = new AOChatEvent();
-		$event->type = "web";
-		$event->channel = "web";
-		$event->message = $message;
-		$event->sender = $request->authenticatedAs;
-		$this->eventManager->fireEvent($event);
-
-		$rMessage = new RoutableMessage($message);
-		$rMessage->setCharacter(
-			new Character($request->authenticatedAs)
-		);
-		$rMessage->prependPath(new Source(Source::WEB, "Web"));
-		$this->messageHub->handle($rMessage);
-
-		if ($message[0] === $this->settingManager->get("symbol") && strlen($message) > 1) {
-			$message = substr($message, 1);
-			$sendto = new WebsocketCommandReply("web");
-			Registry::injectDependencies($sendto);
-			$this->commandManager->process("priv", $message, $request->authenticatedAs, $sendto);
-		}
-		return new Response(Response::NO_CONTENT);
-	}
-
-	/**
-	 * Send a message to the org chat
-	 * @Api("/chat/org")
-	 * @POST
-	 * @AccessLevel("guild")
-	 * @RequestBody(class='string', desc='The text to send', required=true)
-	 * @ApiResult(code=204, desc='Message sent')
-	 * @ApiResult(code=404, desc='Not an org bot')
-	 */
-	public function sendOrgMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$message = $request->decodedBody;
-		if (!$this->guildController->isGuildBot()) {
-			return new Response(Response::NOT_FOUND);
-		}
-		$event = new AOChatEvent();
 		$event->type = "chat(web)";
-		$event->channel = $this->chatBot->vars["my_guild"];
+		$event->channel = "web";
+		$event->path = [
+			new Source(Source::WEB, "web")
+		];
 		$event->message = $this->webChatConverter->convertMessage($message);
 		$event->sender = $request->authenticatedAs;
 		$this->eventManager->fireEvent($event);
@@ -107,40 +73,7 @@ class WebchatApiController {
 
 		if ($message[0] === $this->settingManager->get("symbol") && strlen($message) > 1) {
 			$message = substr($message, 1);
-			$sendto = new WebsocketCommandReply("guild");
-			Registry::injectDependencies($sendto);
-			$this->commandManager->process("guild", $message, $request->authenticatedAs, $sendto);
-		}
-		return new Response(Response::NO_CONTENT);
-	}
-
-	/**
-	 * Send a message to the priv chat
-	 * @Api("/chat/priv")
-	 * @POST
-	 * @AccessLevel("member")
-	 * @RequestBody(class='string', desc='The text to send', required=true)
-	 * @ApiResult(code=204, desc='Message sent')
-	 */
-	public function sendPrivMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$message = $request->decodedBody;
-		$event = new AOChatEvent();
-		$event->type = "web";
-		$event->channel = $this->chatBot->vars["name"];
-		$event->message = $message;
-		$event->sender = $request->authenticatedAs;
-		$this->eventManager->fireEvent($event);
-
-		$rMessage = new RoutableMessage($message);
-		$rMessage->setCharacter(
-			new Character($request->authenticatedAs)
-		);
-		$rMessage->prependPath(new Source(Source::WEB, "Web"));
-		$this->messageHub->handle($rMessage);
-
-		if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-			$message = substr($message, 1);
-			$sendto = new WebsocketCommandReply("priv");
+			$sendto = new WebsocketCommandReply("web");
 			Registry::injectDependencies($sendto);
 			$this->commandManager->process("priv", $message, $request->authenticatedAs, $sendto);
 		}
