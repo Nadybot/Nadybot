@@ -153,11 +153,8 @@ export async function executeCommand(
   await postJson(`/api/execute/${uuid}`, command);
 }
 
-export async function sendMessage(
-  channel: "priv" | "org",
-  text: string
-): Promise<void> {
-  await postJson(`/api/chat/${channel}`, text);
+export async function sendMessage(text: string): Promise<void> {
+  await postJson(`/api/chat/web`, text);
 }
 
 export async function getNews(): Promise<Array<NewsItem>> {

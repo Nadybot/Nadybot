@@ -6,14 +6,21 @@ export interface MessageIncoming {
   from_user: boolean;
 }
 
+export interface ChatMessagePath {
+  name: string;
+  label: string | null;
+  type: string;
+}
+
 export interface ChatMessageIncoming {
   channel: string;
+  path: Array<ChatMessagePath>,
   message: string;
   sender: string;
 }
 
 export interface ChatMessage {
-  channel: string;
+  path: Array<ChatMessagePath>,
   message: XMLDocument;
   sender: string;
 }

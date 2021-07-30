@@ -163,7 +163,7 @@ export default createStore({
       }
       const new_message: ChatMessage = {
         message: xml,
-        channel: msg.channel,
+        path: msg.path,
         sender: msg.sender,
       };
       context.state.chat_messages.push(new_message);

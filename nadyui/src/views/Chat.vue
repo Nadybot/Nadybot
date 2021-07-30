@@ -1,15 +1,10 @@
 <template>
   <ul class="list-group" id="chat-list">
     <template v-for="msg in chat_messages" :key="msg">
-      <li
-        class="list-group-item org-text"
-        v-if="
-          systemInformation &&
-          (!systemInformation.basic.org ||
-            systemInformation.basic.bot_name != msg.channel)
-        "
-      >
-        [{{ msg.channel }}]&nbsp;{{ msg.sender }}:&nbsp;<message
+      <li class="list-group-item org-text">
+        [{{ msg.path.map((p) => p.label || p.name).join(" | ") }}]&nbsp;{{
+          msg.sender
+        }}:&nbsp;<message
           :content="msg.message"
           @run-command="runCommand($event)"
         ></message>
@@ -17,21 +12,15 @@
     </template>
   </ul>
 
-  <div class="input-group input-fixed-bottom">
-    <select class="form-select" id="chat-channel" v-model="inputChannel">
-      <option value="org">Org</option>
-      <option value="priv" selected>Priv</option>
-    </select>
-    <input
-      type="text"
-      class="form-control"
-      id="chat-input-field"
-      placeholder="Enter a message"
-      aria-label="Enter a message"
-      @keyup="maybeSend"
-      v-model="inputText"
-    />
-  </div>
+  <input
+    type="text"
+    class="form-control input-fixed-bottom"
+    id="chat-input-field"
+    placeholder="Enter a message"
+    aria-label="Enter a message"
+    @keyup="maybeSend"
+    v-model="inputText"
+  />
 </template>
 
 <style lang="scss">
@@ -63,7 +52,6 @@ import { requestPermission } from "@/utils/notify";
 
 interface ChatData {
   inputText: string;
-  inputChannel: "org" | "priv";
   historyIdx: number;
   systemInformation: SystemInformation | null;
 }
@@ -74,7 +62,6 @@ export default defineComponent({
   data(): ChatData {
     return {
       inputText: "",
-      inputChannel: "priv",
       historyIdx: 0,
       systemInformation: null,
     };
@@ -111,7 +98,7 @@ export default defineComponent({
     },
     maybeSend: async function (e: KeyboardEvent): Promise<void> {
       if (e.key == "Enter") {
-        await this.sendChatMessage(this.inputChannel, this.inputText);
+        await this.sendChatMessage(this.inputText);
         this.scrollOutputDown();
         this.inputText = "";
       } else if (
@@ -146,16 +133,13 @@ export default defineComponent({
       if (!text.startsWith("!")) {
         text = `!${text}`;
       }
-      await this.sendChatMessage(this.inputChannel, text);
+      await this.sendChatMessage(text);
     },
-    sendChatMessage: async function (
-      channel: "priv" | "org",
-      text: string
-    ): Promise<void> {
+    sendChatMessage: async function (text: string): Promise<void> {
       this.addChatHistoryEntry(text);
       this.historyIdx = 0;
       const formatted = replaceItemRefs(text);
-      await sendMessage(channel, formatted);
+      await sendMessage(formatted);
     },
     ...mapMutations(["addChatHistoryEntry"]),
   },
