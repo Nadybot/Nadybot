@@ -6,8 +6,15 @@ use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\TransportProtocol\TransportProtocolInterface;
 
+/**
+ * @RelayTransport("private_channel")
+ * @Description("This is the Anarchy Online private channel protocol.
+ * 	You can use this to relay messages internally inside Anarchy Online.
+ * 	Be aware though, that the delay is based on the size of the message
+ * 	being sent.")
+ * @Param(name='channel', description='The private channel to join', type='string', required=true)
+ */
 class PrivateChannel implements TransportInterface {
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -18,6 +25,8 @@ class PrivateChannel implements TransportInterface {
 	protected Relay $relay;
 
 	protected string $channel;
+
+	protected $initCallback;
 
 	public function __construct(string $channel) {
 		$this->channel = $channel;
@@ -39,11 +48,16 @@ class PrivateChannel implements TransportInterface {
 			return;
 		}
 		$this->chatBot->privategroup_join($event->sender);
+		if (isset($this->initCallback)) {
+			$callback = $this->initCallback;
+			unset($this->initCallback);
+			$callback();
+		}
 	}
 
-	public function init(): bool {
+	public function init(?object $previous, callable $callback): void {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
-		return true;
+		$this->initCallback = $callback;
 	}
 }

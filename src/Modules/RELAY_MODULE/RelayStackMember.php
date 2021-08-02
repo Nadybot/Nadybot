@@ -16,7 +16,7 @@ interface RelayStackMember {
 	public function receive(string $packet): ?string;
 
 	/**
-	 * Initialize the protocol and return if success or not
+	 * Initialize the protocol and call the $callback when done
 	 */
-	public function init(): bool;
+	public function init(object $previous, callable $callback): void;
 }

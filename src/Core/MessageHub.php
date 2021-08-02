@@ -29,7 +29,7 @@ class MessageHub {
 	/** @var array<string,array<string,MessageRoute>> */
 	protected array $routes = [];
 
-	/** @var array<string,EventModifierSpec> */
+	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
 
 	/** @Inject */
@@ -37,6 +37,9 @@ class MessageHub {
 
 	/** @Inject */
 	public BuddylistManager $buddyListManager;
+
+	/** @Inject */
+	public Util $util;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -48,48 +51,11 @@ class MessageHub {
 			require_once $file;
 			$className = basename($file, '.php');
 			$fullClass = __NAMESPACE__ . "\\EventModifier\\{$className}";
-			$this->addEventModifiersFromClass($fullClass);
-		}
-	}
-
-	protected function addEventModifiersFromClass(string $class): void {
-		$reflection = new ReflectionAnnotatedClass($class);
-		if (!$reflection->hasAnnotation('EventModifier')) {
-			return;
-		}
-		$name = $reflection->getAnnotation('EventModifier')->value;
-		$descriptionAnno = $reflection->getAnnotation('Description');
-		if (isset($descriptionAnno)) {
-			$description = $descriptionAnno->value;
-		}
-		/** @var FunctionParameter[] */
-		$params = [];
-		$i = 1;
-		foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
-			/** @var Param $paramAnnotation */
-			$param = new FunctionParameter();
-			if (!isset($paramAnnotation->name)) {
-				throw new Exception("Missing \"name\" for {$class} @Param #{$i}.");
+			$spec = $this->util->getClassSpecFromClass($fullClass, 'EventModifier');
+			if (isset($spec)) {
+				$this->registerEventModifier($spec);
 			}
-			$param->name = $paramAnnotation->name;
-			$param->description = $paramAnnotation->description??null;
-			$param->required = $paramAnnotation->required ?: false;
-			switch ($paramAnnotation->type) {
-				case $param::TYPE_BOOL:
-				case $param::TYPE_STRING:
-				case $param::TYPE_INT:
-					$param->type = $paramAnnotation->type;
-					break;
-				default:
-					throw new Exception("Unknown parameter type {$paramAnnotation->type} in {$class}");
-			}
-			$params []= $param;
-			$i++;
 		}
-		$mod = new EventModifierSpec($name, $class);
-		$mod->setParameters(...$params);
-		$mod->setDescription($description??null);
-		$this->registerEventModifier($mod);
 	}
 
 	/**
@@ -97,7 +63,7 @@ class MessageHub {
 	 * @param string $name Name of the modifier
 	 * @param FunctionParameter[] $params Name and position of the constructor arguments
 	 */
-	public function registerEventModifier(EventModifierSpec $spec): void {
+	public function registerEventModifier(ClassSpec $spec): void {
 		$name = strtolower($spec->name);
 		if (isset($this->modifiers[$name])) {
 			$printArgs = [];
@@ -200,7 +166,7 @@ class MessageHub {
 	public function registerMessageReceiver(MessageReceiver $messageReceiver): self {
 		$channel = $messageReceiver->getChannelName();
 		$this->receivers[strtolower($channel)] = $messageReceiver;
-		$this->logger->log('INFO', "Registered new event receiver for {$channel}");
+		$this->logger->log('DEBUG', "Registered new event receiver for {$channel}");
 		return $this;
 	}
 
@@ -210,7 +176,7 @@ class MessageHub {
 	public function registerMessageEmitter(MessageEmitter $messageEmitter): self {
 		$channel = $messageEmitter->getChannelName();
 		$this->emitters[strtolower($channel)] = $messageEmitter;
-		$this->logger->log('INFO', "Registered new event emitter for {$channel}");
+		$this->logger->log('DEBUG', "Registered new event emitter for {$channel}");
 		return $this;
 	}
 

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-class EventModifierSpec {
+class ClassSpec {
 	public string $name;
 
 	public string $class;

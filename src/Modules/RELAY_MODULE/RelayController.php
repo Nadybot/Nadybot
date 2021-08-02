@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
 use JsonException;
 use Nadybot\Core\{
 	AMQP,
 	AMQPExchange,
 	AOChatEvent,
+	ClassSpec,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -52,13 +52,25 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
  *		accessLevel = 'all',
  *		description = 'Relays incoming bebot messages to guildchat'
  *	)
+ *  @DefineCommand(
+ *		command     = 'relay',
+ *		accessLevel = 'mod',
+ *		description = 'Setup and modify relays between bots'
+ *	)
  *  @ProvidesEvent("routable(message)")
  */
 class RelayController {
 	public const TYPE_AMQP = 3;
 	public const TYPE_TYRWS = 4;
 
-	protected array $encryptions = [];
+	/** @var array<string,ClassSpec> */
+	protected array $relayProtocols = [];
+
+	/** @var array<string,ClassSpec> */
+	protected array $transports = [];
+
+	/** @var array<string,ClassSpec> */
+	protected array $stackElements = [];
 
 	/**
 	 * Name of the module.
@@ -374,24 +386,51 @@ class RelayController {
 			$event->type = "priv";
 			// $this->eventManager->fireEvent($event);
 		});
-		$this->loadEncyptions();
+		$this->loadStackComponents();
 	}
 
-	public function loadEncyptions(): void {
-		$files = glob(__DIR__ . "/Encryption/*.php");
-		foreach ($files as $file) {
-			$className = basename($file, ".php");
-			$entry = ["name" => $className, "params" => []];
-			$reflection = new ReflectionAnnotatedClass(__NAMESPACE__ . "\\Encryption\\{$className}");
-			if (!$reflection->hasAnnotation('Param')) {
-				continue;
+	public function loadStackComponents(): void {
+		$types = [
+			"RelayProtocol" => [
+				"RelayProtocol",
+				[$this, "registerRelayProtocol"],
+			],
+			"Layer" => [
+				"RelayStackMember",
+				[$this, "registerStackElement"],
+			],
+			"Transport" => [
+				"RelayTransport",
+				[$this, "registerTransport"],
+			]
+		];
+		foreach ($types as $dir => $data) {
+			$files = glob(__DIR__ . "/{$dir}/*.php");
+			foreach ($files as $file) {
+				require_once $file;
+				$className = basename($file, ".php");
+				$fullClass = __NAMESPACE__ . "\\{$dir}\\{$className}";
+				$spec = $this->util->getClassSpecFromClass($fullClass, $data[0]);
+				if (isset($spec)) {
+					$data[1]($spec);
+				}
 			}
-			foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
-				$entry["params"][] = $paramAnnotation;
-			}
-			$this->encryptions []= $entry;
 		}
-		// var_dump($this->encryptions);
+	}
+
+	public function registerRelayProtocol(ClassSpec $proto): bool {
+		$this->relayProtocols[strtolower($proto->name)] = $proto;
+		return true;
+	}
+
+	public function registerTransport(ClassSpec $proto): bool {
+		$this->transports[strtolower($proto->name)] = $proto;
+		return true;
+	}
+
+	public function registerStackElement(ClassSpec $proto): bool {
+		$this->stackElements[strtolower($proto->name)] = $proto;
+		return true;
 	}
 
 	public function connectTyrWs(): void {
@@ -1098,5 +1137,142 @@ class RelayController {
 		$this->logger->log("INFO", "Reconnecting to Tyr Websocket relay in 10s.");
 		$this->mustReconnect = false;
 		$this->timer->callLater(10, [$this->tyrClient, 'connect']);
+	}
+
+	/**
+	 * @param array<string,ClassSpec> $specs
+	 * @return string[]
+	 */
+	protected function renderClassSpecOverview(array $specs, string $name, string $subCommand): array {
+		$count = count($specs);
+		if (!$count) {
+			return ["No {$name}s available."];
+		}
+		$blobs = [];
+		foreach ($specs as $spec) {
+			$description = $spec->description ?? "Someone forgot to add a description";
+			$entry = "<header2>{$spec->name}<end>\n".
+				"<tab><i>".
+				join("\n<tab>", explode("\n", trim($description))).
+				"</i>";
+			if (count($spec->params)) {
+				$entry .= "\n<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> relay list {$subCommand} {$spec->name}") . "]";
+			}
+			$blobs []= $entry;
+		}
+		$blob = join("\n\n", $blobs);
+		return (array)$this->text->makeBlob("Available {$name}s ({$count})", $blob);
+	}
+
+	/**
+	 * @param array<string,ClassSpec> $specs
+	 * @return string[]
+	 */
+	protected function renderClassSpecDetails(array $specs, string $key, string $name): array {
+		$spec = $specs[$key] ?? null;
+		if (!isset($spec)) {
+			return ["No {$name} <highlight>{$key}<end> found."];
+		}
+		$description = $spec->description ?? "Someone forgot to add a description";
+		$blob = "<header2>Description<end>\n".
+			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
+			"\n\n".
+			"<header2>Parameters<end>\n";
+		foreach ($spec->params as $param) {
+			$blob .= "<tab><highlight>{$param->type} {$param->name}<end>";
+			if (!$param->required) {
+				$blob .= " (optional)";
+			}
+			$blob .= "\n<tab><i>".
+				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
+				"</i>\n\n";
+		}
+		return (array)$this->text->makeBlob("{$spec->name}", $blob);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list protocols?$/i")
+	 */
+	public function relayListProtocolsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecOverview(
+				$this->relayProtocols,
+				"relay protocol",
+				"protocol"
+			)
+		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list protocol (.+)$/i")
+	 */
+	public function relayListProtocolDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecDetails(
+				$this->relayProtocols,
+				$args[1],
+				"relay protocol",
+				"protocol"
+			)
+		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list transports?$/i")
+	 */
+	public function relayListTransportsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecOverview(
+				$this->transports,
+				"relay transport",
+				"transport"
+			)
+		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list transport (.+)$/i")
+	 */
+	public function relayListTransportDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecDetails(
+				$this->transports,
+				$args[1],
+				"relay transport",
+				"transport"
+			)
+		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list layers?$/i")
+	 */
+	public function relayListStacksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecOverview(
+				$this->stackElements,
+				"relay layer",
+				"layer"
+			)
+		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay list layer (.+)$/i")
+	 */
+	public function relayListStackDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$sendto->reply(
+			$this->renderClassSpecDetails(
+				$this->stackElements,
+				$args[1],
+				"relay layer"
+			)
+		);
 	}
 }

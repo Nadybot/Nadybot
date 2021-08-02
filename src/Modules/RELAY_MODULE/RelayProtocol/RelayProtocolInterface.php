@@ -21,4 +21,6 @@ interface RelayProtocolInterface {
 	 * @return null|RoutableEvent The parsed event or null if not parsable
 	 */
 	public function receive(string $message): ?RoutableEvent;
+
+	public function init(?object $previous, callable $callback): void;
 }

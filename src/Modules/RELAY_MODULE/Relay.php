@@ -9,8 +9,9 @@ use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 class Relay {
 	public const RELAY_INCOMING = 1;
 	public const RELAY_OUTGOING = 2;
+
 	/** @Inject */
-	public MessageHub $eventHub;
+	public MessageHub $messageHub;
 
 	protected string $name;
 	/** @var RelayStackMember[] */
@@ -36,8 +37,19 @@ class Relay {
 		$this->stack = $stack;
 	}
 
-	public function init(callable $callback): void {
-
+	public function init(callable $callback, int $index=0): void {
+		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
+		$element = $elements[$index] ?? null;
+		if (!isset($element)) {
+			$callback();
+			return;
+		}
+		$element[$index]->init(
+			$elements[$index-1]??null,
+			function() use ($callback, $index): void {
+				$this->init($callback, $index+1);
+			}
+		);
 	}
 
 	public function getEventConfig(string $event): int {

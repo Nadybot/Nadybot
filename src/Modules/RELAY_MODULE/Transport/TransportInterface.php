@@ -9,7 +9,7 @@ interface TransportInterface {
 	public function send(string $data): bool;
 
 	/**
-	 * Initialize the protocol and return if success or not
+	 * Initialize the protocol and call the $callback when done
 	 */
-	public function init(): bool;
+	public function init(?object $previous, callable $callback): void;
 }

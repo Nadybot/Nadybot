@@ -1,23 +1,29 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\RELAY_MODULE\TransportProtocol;
+namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\RelayStackMember;
-use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 
+/**
+ * @RelayStackMember("highway")
+ * @Description("This is the highway protocol, spoken by the highway websocket-server")
+ * @Param(name='room', description='The room to join', type='string', required=true)
+ */
 class Highway implements RelayStackMember {
 	protected string $room;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	protected $initCallback = null;
+
 	public function __construct(string $room) {
 		$this->room = $room;
 	}
 
-	public function init(): bool {
+	public function init(object $previous, callable $callback): void {
 		$json = (object)[
 			"type" => "command",
 			"cmd" => "subscribe",
@@ -31,9 +37,10 @@ class Highway implements RelayStackMember {
 				"Unable to encode subscribe-command into highway protocol: ".
 					$e->getMessage()
 			);
-			return false;
+			return;
 		}
-		return $this->transport->send($encoded);
+		$this->initCallback = $callback;
+		$previous->send($encoded);
 	}
 
 	public function send(array $packets): array {
@@ -71,6 +78,12 @@ class Highway implements RelayStackMember {
 		}
 		if (!isset($json->type)) {
 			$this->logger->log('ERROR', 'Received highway message without type');
+			return null;
+		}
+		if ($json->type === "success" && isset($this->initCallback)) {
+			$callback = $this->initCallback;
+			unset($this->initCallback);
+			$callback();
 			return null;
 		}
 		if ($json->type !== "message") {

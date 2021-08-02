@@ -10,6 +10,11 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
+/**
+ * @RelayProtocol("grc")
+ * @Description("This is the old BudaBot protocol.
+ * 	It only supports relaying messages - no sharing of online lists.")
+ */
 class GrcV1Protocol implements RelayProtocolInterface {
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
@@ -55,5 +60,9 @@ class GrcV1Protocol implements RelayProtocolInterface {
 		}
 		$msg->setData($data);
 		return $msg;
+	}
+
+	public function init(?object $previous, callable $callback): void {
+		$callback();
 	}
 }

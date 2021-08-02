@@ -10,8 +10,14 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
+/**
+ * @RelayProtocol("grcv2")
+ * @Description("This is the old Nadybot protocol.
+ * 	It enhances the old grc protocol by adding descriptions
+ * in front of the tags and messages, so the client-side
+ * can decide how to colorize them.")
+ */
 class GrcV2Protocol implements RelayProtocolInterface {
-
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
@@ -74,5 +80,9 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		$data = preg_replace("/^<relay_[a-z]+_color>(.*)<\/end>$/", '$1', $data);
 		$msg->setData($data);
 		return $msg;
+	}
+
+	public function init(?object $previous, callable $callback): void {
+		$callback();
 	}
 }

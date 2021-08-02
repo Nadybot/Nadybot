@@ -2,6 +2,9 @@
 
 namespace Nadybot\Core;
 
+use Addendum\ReflectionAnnotatedClass;
+use Exception;
+
 /**
  * @Instance
  */
@@ -602,5 +605,51 @@ class Util {
 			return 6;
 		}
 		return 7;
+	}
+
+	public function getClassSpecFromClass(string $class, string $annotation): ?ClassSpec {
+		$reflection = new ReflectionAnnotatedClass($class);
+		if (!$reflection->hasAnnotation($annotation)) {
+			return null;
+		}
+		$name = $reflection->getAnnotation($annotation)->value;
+		$descriptionAnno = $reflection->getAnnotation('Description');
+		if (isset($descriptionAnno)) {
+			$description = $descriptionAnno->value;
+		}
+		/** @var FunctionParameter[] */
+		$params = [];
+		$i = 1;
+		foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
+			/** @var Param $paramAnnotation */
+			$param = new FunctionParameter();
+			if (!isset($paramAnnotation->name)) {
+				throw new Exception("Missing \"name\" for {$class} @Param #{$i}.");
+			}
+			$param->name = $paramAnnotation->name;
+			$param->description = $paramAnnotation->description??null;
+			$param->required = $paramAnnotation->required ?: false;
+			switch ($paramAnnotation->type) {
+				case $param::TYPE_BOOL:
+				case $param::TYPE_STRING:
+				case $param::TYPE_INT:
+					$param->type = $paramAnnotation->type;
+					break;
+				case "integer":
+					$param->type = $param::TYPE_INT;
+					break;
+				case "boolean":
+					$param->type = $param::TYPE_BOOL;
+					break;
+				default:
+					throw new Exception("Unknown parameter type {$paramAnnotation->type} in {$class}");
+			}
+			$params []= $param;
+			$i++;
+		}
+		$spec = new ClassSpec($name, $class);
+		$spec->setParameters(...$params);
+		$spec->setDescription($description??null);
+		return $spec;
 	}
 }

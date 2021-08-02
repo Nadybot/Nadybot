@@ -10,6 +10,11 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Util;
 
+/**
+ * @RelayProtocol("gcr")
+ * @Description("This is the protocol that BeBot used to speak.
+ * 	It supports a lot of stuff, including sharing online lists.")
+ */
 class GcrProtocol implements RelayProtocolInterface {
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
@@ -82,5 +87,9 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$msg->setData($data);
 		return $msg;
+	}
+
+	public function init(?object $previous, callable $callback): void {
+		$callback();
 	}
 }
