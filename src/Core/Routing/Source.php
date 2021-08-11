@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Routing;
 
 class Source {
+	public const RELAY = "relay";
 	public const ORG = "aoorg";
 	public const PUB = "aopub";
 	public const PRIV = "aopriv";
@@ -40,6 +41,8 @@ class Source {
 			case static::TELL:
 				return "@" . ($this->label ?? $this->name);
 			case static::TRADEBOT:
+				return null;
+			case static::RELAY:
 				return null;
 			default:
 				return $this->label ?? $this->name;

@@ -3,25 +3,60 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\MessageHub;
+use Nadybot\Core\MessageReceiver;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\SettingManager;
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
 use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 
-class Relay {
-	public const RELAY_INCOMING = 1;
-	public const RELAY_OUTGOING = 2;
-
+class Relay implements MessageReceiver {
 	/** @Inject */
 	public MessageHub $messageHub;
 
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
 	protected string $name;
-	/** @var RelayStackMember[] */
+	/** @var RelayLayerInterface[] */
 	protected array $stack = [];
 	protected array $events = [];
 	protected TransportInterface $transport;
 	protected RelayProtocolInterface $relayProtocol;
 
+	protected bool $initialized = false;
+	protected int $initStep = 0;
+
 	public function __construct(string $name) {
 		$this->name = $name;
+	}
+
+	public function getName(): string {
+		return $this->name;
+	}
+
+	public function getStatus(): string {
+		if ($this->initialized) {
+			return "<green>ready<end>";
+		}
+		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
+		$element = $elements[$this->initStep] ?? null;
+		if (!isset($element)) {
+			return "<red>unknown<end>";
+		}
+		$class = get_class($element);
+		if (($pos = strrpos($class, '\\')) !== false) {
+			$class = substr($class, $pos + 1);
+		}
+		return "<yellow>initializing {$class}<end>";
+	}
+
+	public function getChannelName(): string {
+		return Source::RELAY . "({$this->name})";
 	}
 
 	/**
@@ -30,21 +65,58 @@ class Relay {
 	public function setStack(
 		 TransportInterface $transport,
 		 RelayProtocolInterface $relayProtocol,
-		 RelayStackMember ...$stack
+		 RelayLayerInterface ...$stack
 	) {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
 	}
 
-	public function init(callable $callback, int $index=0): void {
+	public function deinit(?callable $callback=null, int $index=0): void {
+		if ($index === 0) {
+			$this->messageHub
+				->unregisterMessageEmitter($this->getChannelName())
+				->unregisterMessageReceiver($this->getChannelName());
+		}
+		/** @var RelayStackMemberInterface[] */
+		$layers = [
+			$this->relayProtocol,
+			...array_reverse($this->stack),
+			$this->transport
+		];
+		$layer = $layers[$index] ?? null;
+		if (!isset($layer)) {
+			if (isset($callback)) {
+				$callback($this);
+			}
+			return;
+		}
+		$layer->deinit(
+			$layers[$index+1]??null,
+			function() use ($callback, $index): void {
+				$this->deinit($callback, $index+1);
+			}
+		);
+	}
+
+	public function init(?callable $callback=null, int $index=0): void {
+		$this->initialized = false;
+		$this->initStep = $index;
+		/** @var RelayStackMemberInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
-			$callback();
+			$this->initialized = true;
+			$this->messageHub
+				->registerMessageEmitter($this)
+				->registerMessageReceiver($this);
+			if (isset($callback)) {
+				$callback();
+			}
 			return;
 		}
-		$element[$index]->init(
+		$element->setRelay($this);
+		$element->init(
 			$elements[$index-1]??null,
 			function() use ($callback, $index): void {
 				$this->init($callback, $index+1);
@@ -59,7 +131,7 @@ class Relay {
 	/**
 	 * Handle data received from the transport layer
 	 */
-	public function receive(string $data): void {
+	public function receiveFromTransport(string $data): void {
 		foreach ($this->stack as $stackMember) {
 			$data = $stackMember->receive($data);
 			if (!isset($data)) {
@@ -70,10 +142,49 @@ class Relay {
 		if (!isset($event)) {
 			return;
 		}
+		$event->prependPath(new Source(
+			Source::RELAY,
+			$this->name
+		));
 		if ($event->getType() === $event::TYPE_MESSAGE) {
-			$this->eventHub->handle($event);
+			$this->messageHub->handle($event);
 			return;
 		}
 		// Handle event
+	}
+
+	/**
+	 * Make sure either the org chat or priv channel is the first element
+	 * when we send data, so it can always be traced to us
+	 */
+	protected function prependMainHop(RoutableEvent $event): void {
+		$isOrgBot = strlen($this->chatBot->vars["my_guild"]??"") > 0;
+		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
+			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
+			$event->prependPath(new Source(
+				Source::ORG,
+				$this->chatBot->vars["my_guild"],
+				($abbr === "none") ? null : $abbr
+			));
+		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
+			$event->prependPath(new Source(
+				Source::PRIV,
+				$this->chatBot->char->name
+			));
+		}
+	}
+
+	public function receive(RoutableEvent $event, string $destination): bool {
+		$this->prependMainHop($event);
+		$data = $this->relayProtocol->send($event);
+		for ($i = count($this->stack); $i--;) {
+			$data = $this->stack[$i]->send($data);
+		}
+		foreach ($data as $packet) {
+			if (!$this->transport->send($packet)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

@@ -1,0 +1,131 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Modules\RELAY_MODULE\Transport;
+
+use Exception;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\Timer;
+use Nadybot\Core\Websocket as CoreWebsocket;
+use Nadybot\Core\WebsocketCallback;
+use Nadybot\Core\WebsocketClient;
+use Nadybot\Core\WebsocketError;
+use Nadybot\Modules\RELAY_MODULE\Relay;
+
+/**
+ * @RelayTransport("websocket")
+ * @Description("You can use websockets as a relay transport.
+ * 	Websockets provide near-realtime communication, but since they
+ * 	are not part of Anarchy Online, if they are down, you might have
+ * 	a hard time debugging this.
+ * 	Websockets require a transport protocol in order to work properly
+ * 	and if they are public, you might also want to add an encryption
+ * 	layer on top of that.")
+ * @Param(name='server', description='The URI of the websocket to connect to', type='string', required=true)
+ */
+class Websocket implements TransportInterface {
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public CoreWebsocket $websocket;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public Timer $timer;
+
+	protected Relay $relay;
+
+	protected string $uri;
+
+	protected $initCallback;
+
+	protected WebsocketClient $client;
+
+	public function __construct(string $uri) {
+		$this->uri = $uri;
+		$urlParts = parse_url($this->uri);
+		if ($urlParts === false
+			|| empty($urlParts)
+			|| empty($urlParts['scheme'])
+			|| empty($urlParts['host'])
+		) {
+			throw new Exception("Invalid URI <highlight>{$uri}<end>.");
+		}
+		if (!in_array($urlParts['scheme'], ['ws', 'wss'])) {
+			throw new Exception("<highlight>{$urlParts['scheme']}<end> is not a valid schema. Valid are ws and wss.");
+		}
+	}
+
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
+	}
+
+	public function send(string $data): bool {
+		$this->client->send($data);
+		return true;
+	}
+
+	public function processMessage(WebsocketCallback $event): void {
+		$this->relay->receiveFromTransport($event->data);
+	}
+
+	public function processError(WebsocketCallback $event): void {
+		$this->logger->log("ERROR", "[{$this->uri}] [Code $event->code] $event->data");
+		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
+			if (isset($this->initCallback)) {
+				$this->timer->callLater(30, [$this->client, 'connect']);
+			} else {
+				unset($this->client);
+				$this->relay->init();
+			}
+		}
+	}
+
+	public function processClose(WebsocketCallback $event): void {
+		$this->logger->log("INFO", "Reconnecting to Websocket {$this->uri} in 10s.");
+		if (isset($this->initCallback)) {
+			$this->timer->callLater(30, [$this->client, 'connect']);
+		} else {
+			unset($this->client);
+			$this->relay->init();
+		}
+	}
+
+	public function processConnect(WebsocketCallback $event): void {
+		$this->logger->log("INFO", "Connected to Websocket {$this->uri}.");
+		if (!isset($this->initCallback)) {
+			return;
+		}
+		$callback = $this->initCallback;
+		unset($this->initCallback);
+		$callback();
+	}
+
+	public function init(?object $previous, callable $callback): void {
+		$this->initCallback = $callback;
+		$this->client = $this->websocket->createClient()
+			->withURI($this->uri)
+			->withTimeout(30)
+			->on(WebsocketClient::ON_CONNECT, [$this, "processConnect"])
+			->on(WebsocketClient::ON_CLOSE, [$this, "processClose"])
+			->on(WebsocketClient::ON_TEXT, [$this, "processMessage"])
+			->on(WebsocketClient::ON_ERROR, [$this, "processError"]);
+	}
+
+	public function deinit(?object $previous, callable $callback): void {
+		if (!isset($this->client) || !$this->client->isConnected()) {
+			$callback();
+			return;
+		}
+		$closeFunc = function (WebsocketCallback $event) use ($callback): void {
+			unset($this->client);
+			$callback();
+		};
+		$this->client->on(WebsocketClient::ON_CLOSE, $closeFunc);
+		$this->client->on(WebsocketClient::ON_ERROR, $closeFunc);
+		$this->client->close();
+	}
+}

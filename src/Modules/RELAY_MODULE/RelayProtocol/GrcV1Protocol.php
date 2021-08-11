@@ -9,6 +9,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Modules\RELAY_MODULE\Relay;
 
 /**
  * @RelayProtocol("grc")
@@ -16,6 +17,8 @@ use Nadybot\Core\Util;
  * 	It only supports relaying messages - no sharing of online lists.")
  */
 class GrcV1Protocol implements RelayProtocolInterface {
+	protected Relay $relay;
+
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
@@ -64,5 +67,13 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	public function init(?object $previous, callable $callback): void {
 		$callback();
+	}
+
+	public function deinit(?object $previous, callable $callback): void {
+		$callback();
+	}
+
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
 	}
 }

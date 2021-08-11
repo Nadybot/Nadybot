@@ -4,15 +4,18 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use JsonException;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Modules\RELAY_MODULE\RelayStackMember;
+use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
 
 /**
  * @RelayStackMember("highway")
  * @Description("This is the highway protocol, spoken by the highway websocket-server")
  * @Param(name='room', description='The room to join', type='string', required=true)
  */
-class Highway implements RelayStackMember {
+class Highway implements RelayLayerInterface {
 	protected string $room;
+
+	protected Relay $relay;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -23,6 +26,10 @@ class Highway implements RelayStackMember {
 		$this->room = $room;
 	}
 
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
+	}
+
 	public function init(object $previous, callable $callback): void {
 		$json = (object)[
 			"type" => "command",
@@ -30,11 +37,32 @@ class Highway implements RelayStackMember {
 			"room" => $this->room,
 		];
 		try {
-			$encoded = json_encode($json, JSON_THROW_ON_ERROR);
+			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
 				"Unable to encode subscribe-command into highway protocol: ".
+					$e->getMessage()
+			);
+			return;
+		}
+		$this->initCallback = $callback;
+		$previous->send($encoded);
+	}
+
+	public function deinit(?object $previous, callable $callback): void {
+		// $callback();
+		$json = (object)[
+			"type" => "command",
+			"cmd" => "unsubscribe",
+			"room" => $this->room,
+		];
+		try {
+			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+		} catch (JsonException $e) {
+			$this->logger->log(
+				'ERROR',
+				"Unable to encode unsubscribe-command into highway protocol: ".
 					$e->getMessage()
 			);
 			return;
@@ -52,7 +80,7 @@ class Highway implements RelayStackMember {
 				"body" => $packet,
 			];
 			try {
-				$encoded []= json_encode($json, JSON_THROW_ON_ERROR);
+				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->logger->log(
 					'ERROR',

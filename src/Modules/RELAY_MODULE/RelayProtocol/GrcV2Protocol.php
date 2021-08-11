@@ -9,6 +9,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Modules\RELAY_MODULE\Relay;
 
 /**
  * @RelayProtocol("grcv2")
@@ -18,6 +19,8 @@ use Nadybot\Core\Util;
  * can decide how to colorize them.")
  */
 class GrcV2Protocol implements RelayProtocolInterface {
+	protected Relay $relay;
+
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
@@ -82,7 +85,15 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		return $msg;
 	}
 
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
+	}
+
 	public function init(?object $previous, callable $callback): void {
+		$callback();
+	}
+
+	public function deinit(?object $previous, callable $callback): void {
 		$callback();
 	}
 }

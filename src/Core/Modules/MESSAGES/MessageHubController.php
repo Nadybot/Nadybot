@@ -255,7 +255,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route del (\d+)$/i")
+	 * @Matches("/^route (?:del|rem) (\d+)$/i")
 	 */
 	public function routeDel(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$id = (int)$args[1];
@@ -327,20 +327,20 @@ class MessageHubController {
 			return null;
 		}
 		$route->modifiers = $this->db->table(
-				$this->messageHub::DB_TABLE_ROUTE_MODIFIER
-			)
-			->where("route_id", $id)
-			->orderBy("id")
-			->asObj(RouteModifier::class)
-			->toArray();
+			$this->messageHub::DB_TABLE_ROUTE_MODIFIER
+		)
+		->where("route_id", $id)
+		->orderBy("id")
+		->asObj(RouteModifier::class)
+		->toArray();
 		foreach ($route->modifiers as $modifier) {
 			$modifier->arguments = $this->db->table(
-					$this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT
-				)
-				->where("route_modifier_id", $modifier->id)
-				->orderBy("id")
-				->asObj(RouteModifierArgument::class)
-				->toArray();
+				$this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT
+			)
+			->where("route_modifier_id", $modifier->id)
+			->orderBy("id")
+			->asObj(RouteModifierArgument::class)
+			->toArray();
 		}
 		return $route;
 	}

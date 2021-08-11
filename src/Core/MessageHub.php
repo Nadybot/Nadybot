@@ -2,10 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Annotations\Param;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;

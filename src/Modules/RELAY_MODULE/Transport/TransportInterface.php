@@ -2,14 +2,11 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-interface TransportInterface {
+use Nadybot\Modules\RELAY_MODULE\RelayStackMemberInterface;
+
+interface TransportInterface extends RelayStackMemberInterface {
 	/**
 	 * Send data over the transport
 	 */
 	public function send(string $data): bool;
-
-	/**
-	 * Initialize the protocol and call the $callback when done
-	 */
-	public function init(?object $previous, callable $callback): void;
 }

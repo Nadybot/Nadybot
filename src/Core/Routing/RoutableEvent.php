@@ -9,6 +9,7 @@ class RoutableEvent extends Event {
 	public const TYPE_EVENT = "event";
 
 	public ?Character $char = null;
+	/** @var Source[] */
 	public array $path = [];
 	public $data = null;
 

@@ -2,17 +2,21 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Exception;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Registry;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 
 /**
- * @RelayTransport("private_channel")
- * @Description("This is the Anarchy Online private channel protocol.
+ * @RelayTransport("private-channel")
+ * @Description("This is the Anarchy Online private channel transport.
  * 	You can use this to relay messages internally inside Anarchy Online.
  * 	Be aware though, that the delay is based on the size of the message
- * 	being sent.")
+ * 	being sent.
+ * 	The bot must be invited into the private channel before it can
+ * 	relay anything.")
  * @Param(name='channel', description='The private channel to join', type='string', required=true)
  */
 class PrivateChannel implements TransportInterface {
@@ -29,18 +33,31 @@ class PrivateChannel implements TransportInterface {
 	protected $initCallback;
 
 	public function __construct(string $channel) {
-		$this->channel = $channel;
+		$this->channel = ucfirst(strtolower($channel));
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance("chatBot");
+		if ($chatBot->get_uid($this->channel) === false) {
+			throw new Exception("Unknown user <highlight>{$this->channel}<end>.");
+		}
+	}
+
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
 	}
 
 	public function send(string $data): bool {
 		return $this->chatBot->send_privgroup($this->channel, $data);
 	}
 
+	public function deinit(?object $previous, callable $callback): void {
+		$callback();
+	}
+
 	public function receiveMessage(AOChatEvent $event): void {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->relay->receive($event->message);
+		$this->relay->receiveFromTransport($event->message);
 	}
 
 	public function receiveInvite(AOChatEvent $event): void {
@@ -48,6 +65,12 @@ class PrivateChannel implements TransportInterface {
 			return;
 		}
 		$this->chatBot->privategroup_join($event->sender);
+	}
+
+	public function joinedPrivateChannel(AOChatEvent $event): void {
+		if (strtolower($event->channel) !== strtolower($this->channel)) {
+			return;
+		}
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			unset($this->initCallback);
@@ -58,6 +81,13 @@ class PrivateChannel implements TransportInterface {
 	public function init(?object $previous, callable $callback): void {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
-		$this->initCallback = $callback;
+		if (!isset($this->chatBot->privateChats[$this->channel])) {
+			// In case we have a race condition and received the invite before
+			$this->initCallback = $callback;
+			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
+			$this->chatBot->privategroup_join($this->channel);
+		} else {
+			$callback();
+		}
 	}
 }

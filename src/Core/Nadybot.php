@@ -97,6 +97,12 @@ class Nadybot extends AOChat {
 	public array $chatlist = [];
 
 	/**
+	 * Names of private channels we're in
+	 * @var array<string,bool>
+	 **/
+	public array $privateChats = [];
+
+	/**
 	 * The rank for each member of this bot's guild/org
 	 * [(string)name => (int)rank]
 	 * @var array<string,int> $guildmembers
@@ -355,7 +361,11 @@ class Nadybot extends AOChat {
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
 			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
-			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name));
+			$label = null;
+			if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+				$label = "Guest";
+			}
+			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name, $label));
 			$this->messageHub->handle($rMessage);
 		}
 	}
@@ -558,6 +568,14 @@ class Nadybot extends AOChat {
 	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
+		/*
+		$const = get_defined_constants(true)["user"];
+		foreach ($const as $name => $value) {
+			if ($value === $packet->type && substr($name, 0, 5) === "AOCP_") {
+				$this->logger->log("DEBUG", "Received: {$name}");
+			}
+		}
+		*/
 		try {
 			$this->process_all_packets($packet);
 
@@ -574,6 +592,10 @@ class Nadybot extends AOChat {
 					break;
 				case AOCP_PRIVGRP_CLIPART: // 56, Incoming player left private chat
 					$this->processPrivateChannelLeave(...$packet->args);
+					break;
+				case AOCP_PRIVGRP_KICK: // 51, we were kicked from private channel
+				case AOCP_PRIVGRP_PART: // 53, we left a private channel
+					$this->processPrivateChannelKick(...$packet->args);
 					break;
 				case AOCP_BUDDY_ADD: // 40, Incoming buddy logon or off
 					$this->processBuddyUpdate(...$packet->args);
@@ -655,13 +677,23 @@ class Nadybot extends AOChat {
 				},
 				$sender
 			);
+		} elseif ($this->char->id === $userId) {
+			$eventObj->type = "extjoinpriv";
+
+			$this->logger->log("INFO", "Joined the private channel {$channel}.");
+			$this->privateChats[$channel] = true;
+			$pc = new PrivateChannel($channel);
+			$this->messageHub
+				->registerMessageEmitter($pc)
+				->registerMessageReceiver($pc);
+			$this->eventManager->fireEvent($eventObj);
 		}
 	}
 
 	/**
 	 * Handle a player leaving a private group
 	 */
-	public function processPrivateChannelLeave(int $channelId, int $userId) {
+	public function processPrivateChannelLeave(int $channelId, int $userId): void {
 		$eventObj = new AOChatEvent();
 		$channel = $this->lookup_user($channelId);
 		$sender = $this->lookup_user($userId);
@@ -679,7 +711,32 @@ class Nadybot extends AOChat {
 			unset($this->chatlist[$sender]);
 
 			$this->eventManager->fireEvent($eventObj);
+		} elseif ($this->char->id === $userId) {
+			unset($this->privateChats[$channel]);
 		}
+	}
+
+	/**
+	 * Handle bot being kicked from private channel / leaving by itself
+	 */
+	public function processPrivateChannelKick(int $channelId): void {
+		$channel = $this->lookup_user($channelId);
+
+		$this->logger->log('DEBUG', "AOCP_PRIVGRP_KICK => channel: '$channel'");
+		$this->logger->log("INFO", "Left the private channel {$channel}.");
+
+		$eventObj = new AOChatEvent();
+		$sender = $this->char->name;
+		$eventObj->channel = $channel;
+		$eventObj->sender = $sender;
+		$eventObj->type = "extleavepriv";
+
+		unset($this->privateChats[$channel]);
+			$this->messageHub
+				->unregisterMessageEmitter(Source::PRIV . "({$channel})")
+				->unregisterMessageReceiver(Source::PRIV . "({$channel})");
+
+		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
@@ -839,7 +896,11 @@ class Nadybot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character($sender, $senderId));
-		$rMessage->prependPath(new Source(Source::PRIV, $channel));
+		$label = null;
+		if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+			$label = "Guest";
+		}
+		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
 		$this->messageHub->handle($rMessage);
 		if ($message[0] !== $this->settingManager->get("symbol") || strlen($message) <= 1) {
 			return;
@@ -1249,18 +1310,6 @@ class Nadybot extends AOChat {
 		}
 
 		return $this->id[$id] ?? null;
-	}
-	public function privategroup_join($group): bool {
-		$result = parent::privategroup_join($group);
-		if (!$result) {
-			return false;
-		}
-		$pc = new PrivateChannel($group);
-		Registry::injectDependencies($pc);
-		$this->messageHub
-			->registerMessageEmitter($pc)
-			->registerMessageReceiver($pc);
-		return $result;
 	}
 
 	public function getPacket(): ?AOChatPacket {

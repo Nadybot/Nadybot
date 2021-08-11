@@ -10,4 +10,10 @@ class RelayConfig extends DBRow {
 
 	/** The name of this relay */
 	public string $name;
+
+	/**
+	 * @db:ignore
+	 * @var RelayLayer[]
+	 */
+	public array $layers = [];
 }

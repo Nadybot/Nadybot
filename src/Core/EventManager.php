@@ -38,10 +38,10 @@ class EventManager {
 
 	/** @var string[] */
 	private array $eventTypes = [
-		'msg','priv','extpriv','guild','joinpriv','leavepriv',
-		'sendmsg','sendpriv','sendguild',
-		'orgmsg','extjoinprivrequest','logon','logoff','towers',
-		'connect','setup','amqp','pong'
+		'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
+		'extjoinpriv', 'extleavepriv', 'sendmsg', 'sendpriv', 'sendguild',
+		'orgmsg', 'extjoinprivrequest', 'logon', 'logoff', 'towers',
+		'connect', 'setup', 'amqp', 'pong'
 	];
 
 	private int $lastCronTime = 0;

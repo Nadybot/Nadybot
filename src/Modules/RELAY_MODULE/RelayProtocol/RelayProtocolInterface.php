@@ -3,8 +3,9 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Modules\RELAY_MODULE\RelayStackMemberInterface;
 
-interface RelayProtocolInterface {
+interface RelayProtocolInterface extends RelayStackMemberInterface {
 	/**
 	 * Render a routable event into a string that we use to send as
 	 * data over the transport layers
@@ -21,6 +22,4 @@ interface RelayProtocolInterface {
 	 * @return null|RoutableEvent The parsed event or null if not parsable
 	 */
 	public function receive(string $message): ?RoutableEvent;
-
-	public function init(?object $previous, callable $callback): void;
 }

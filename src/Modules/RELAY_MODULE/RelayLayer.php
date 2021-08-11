@@ -27,7 +27,7 @@ class RelayLayer extends DBRow {
 			},
 			$this->arguments
 		);
-		return $this->modifier . "(".
+		return $this->layer . "(".
 			join(", ", $arguments).
 			")";
 	}
