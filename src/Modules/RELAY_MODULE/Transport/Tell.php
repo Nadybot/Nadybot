@@ -45,8 +45,14 @@ class Tell implements TransportInterface {
 		$this->relay = $relay;
 	}
 
-	public function send(string $data): bool {
-		return $this->chatBot->send_tell($this->bot, $data);
+	public function send(array $data): array {
+		$leftOver = [];
+		foreach ($data as $chunk) {
+			if (!$this->chatBot->send_tell($this->bot, $chunk)) {
+				$leftOver []= $chunk;
+			}
+		}
+		return $leftOver;
 	}
 
 	public function receiveMessage(AOChatEvent $event): void {
@@ -57,12 +63,14 @@ class Tell implements TransportInterface {
 		throw new StopExecutionException();
 	}
 
-	public function init(?object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$this->eventManager->subscribe("msg", [$this, "receiveMessage"]);
 		$callback();
+		return [];
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
+	public function deinit(callable $callback): array {
 		$callback();
+		return [];
 	}
 }

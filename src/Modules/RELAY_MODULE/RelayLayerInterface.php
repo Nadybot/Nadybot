@@ -2,14 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-interface RelayLayerInterface extends RelayStackMemberInterface {
-	/**
-	 * Send one or more packets to the transport
-	 * @param string[] $data
-	 * @return string[]
-	 */
-	public function send(array $data): array;
-
+interface RelayLayerInterface extends RelayStackArraySenderInterface {
 	/**
 	 * Receive a packet and process it
 	 */

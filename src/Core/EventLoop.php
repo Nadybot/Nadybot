@@ -16,13 +16,13 @@ class EventLoop {
 	public SocketManager $socketManager;
 
 	/** @Inject */
-	public AMQP $amqp;
-
-	/** @Inject */
 	public Timer $timer;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
+
+	/** @var array<int,callable> */
+	protected static array $callbacks = [];
 
 	public function execSingleLoop(): void {
 		try {
@@ -32,7 +32,11 @@ class EventLoop {
 				$socketActivity = $this->socketManager->checkMonitoredSockets();
 				$this->eventManager->executeConnectEvents();
 				$this->timer->executeTimerEvents();
-				$this->amqp->processMessages();
+				foreach (static::$callbacks as $i => $callback) {
+					if (isset($callback) && is_callable($callback)) {
+						$callback();
+					}
+				}
 				$this->eventManager->crons();
 
 				if (!$socketActivity) {
@@ -44,5 +48,24 @@ class EventLoop {
 		} catch (Throwable $e) {
 			$this->logger->log('ERROR', $e->getMessage() . PHP_EOL . $e->getTraceAsString(), $e);
 		}
+	}
+
+	public static function add(callable $callback): int {
+		$i = 0;
+		while ($i < count(static::$callbacks)) {
+			if (!array_key_exists($i, static::$callbacks)) {
+				break;
+			}
+		}
+		static::$callbacks[$i] = $callback;
+		return $i;
+	}
+
+	public static function rem(int $i): bool {
+		if (!array_key_exists($i, static::$callbacks)) {
+			return false;
+		}
+		unset(static::$callbacks[$i]);
+		return true;
 	}
 }

@@ -845,7 +845,7 @@ class DB {
 			}
 		}
 		return $this->table($table)
-			->where($key, $updates[$key])
+			->where($key, $row->{$key})
 			->update($updates);
 	}
 

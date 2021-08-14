@@ -167,50 +167,6 @@ class PrivateChannelController {
 
 		$this->settingManager->add(
 			$this->moduleName,
-			"guest_color_channel",
-			"Color for Private Channel relay(ChannelName)",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_color_guild",
-			"Private Channel relay color in guild channel",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_color_guest",
-			"Private Channel relay color in private channel",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_relay",
-			"Relay the Private Channel with the Guild Channel",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_relay_commands",
-			"Relay commands and results from/to Private Channel",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
 			"add_member_on_join",
 			"Automatically add player as member when they join",
 			"edit",
@@ -228,24 +184,6 @@ class PrivateChannelController {
 			"1",
 			"true;false",
 			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_relay_ignore",
-			'Names of people not to relay into the private channel',
-			'edit',
-			'text',
-			'',
-			'none'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"guest_relay_filter",
-			'RegEx filter for relaying into Private Channel',
-			'edit',
-			'text',
-			'',
-			'none'
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -713,95 +651,6 @@ class PrivateChannelController {
 			->each(function (Member $member) {
 				$this->buddylistManager->add($member->name, 'member');
 			});
-	}
-
-	/**
-	 * Check if a message by a sender should not be relayed due to filters
-	 */
-	public function isFilteredMessage(string $sender, string $message): bool {
-		$toIgnore = array_diff(
-			explode(";", strtolower($this->settingManager->getString('guest_relay_ignore'))),
-			[""]
-		);
-		if (in_array(strtolower($sender), $toIgnore)) {
-			return true;
-		}
-		if (strlen($regexpFilter = $this->settingManager->getString('guest_relay_filter'))) {
-			$escapedFilter = str_replace("/", "\\/", $regexpFilter);
-			if (@preg_match("/$escapedFilter/", $message)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * @Event("guild")
-	 * @Description("Private channel relay from guild channel")
-	 */
-	public function relayPrivateChannelEvent(Event $eventObj): void {
-		$sender = $eventObj->sender;
-		$message = $eventObj->message;
-
-		// Check if the private channel relay is enabled
-		if (!$this->settingManager->getBool("guest_relay")) {
-			return;
-		}
-
-		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
-		if ($message[0] === $this->settingManager->get("symbol")
-			&& !$this->settingManager->getBool("guest_relay_commands")) {
-			return;
-		}
-
-		if ($this->isFilteredMessage($sender, $message)) {
-			return;
-		}
-
-		$guestColorChannel = $this->settingManager->get("guest_color_channel");
-		$guestColorGuest = $this->settingManager->get("guest_color_guest");
-
-		if (count($this->chatBot->chatlist) === 0) {
-			return;
-		}
-		//Relay the message to the private channel if there is at least 1 char in private channel
-		$guildNameForRelay = $this->relayController->getGuildAbbreviation();
-		if (!$this->util->isValidSender($sender)) {
-			// for relaying city alien raid messages where $sender == -1
-			$msg = "<end>{$guestColorChannel}[$guildNameForRelay]<end> {$guestColorGuest}{$message}<end>";
-		} else {
-			$msg = "<end>{$guestColorChannel}[$guildNameForRelay]<end> ".$this->text->makeUserlink($sender).": {$guestColorGuest}{$message}<end>";
-		}
-		$this->chatBot->sendPrivate($msg, true);
-	}
-
-	/**
-	 * @Event("priv")
-	 * @Description("Guild channel relay from priv channel")
-	 */
-	public function relayGuildChannelEvent(Event $eventObj): void {
-		$sender = $eventObj->sender;
-		$message = $eventObj->message;
-
-		// Check if the private channel relay is enabled
-		if (!$this->settingManager->getBool("guest_relay")) {
-			return;
-		}
-
-		// Check that it's not a command or if it is a command, check that guest_relay_commands is not disabled
-		if ($message[0] == $this->settingManager->get("symbol")
-			&& !$this->settingManager->getBool("guest_relay_commands")) {
-			return;
-		}
-
-		$guestColorChannel = $this->settingManager->get("guest_color_channel");
-		$guestColorGuild = $this->settingManager->get("guest_color_guild");
-
-		//Relay the message to the guild channel
-		$msg = "<end>{$guestColorChannel}[Guest]<end> ".
-			$this->text->makeUserlink($sender).
-			": {$guestColorGuild}{$message}<end>";
-		$this->chatBot->sendGuild($msg, true);
 	}
 
 	/**

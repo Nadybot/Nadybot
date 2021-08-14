@@ -45,12 +45,19 @@ class PrivateChannel implements TransportInterface {
 		$this->relay = $relay;
 	}
 
-	public function send(string $data): bool {
-		return $this->chatBot->send_privgroup($this->channel, $data);
+	public function send(array $data): array {
+		$leftOver = [];
+		foreach ($data as $chunk) {
+			if (!$this->chatBot->send_privgroup($this->channel, $chunk)) {
+				$leftOver []= $chunk;
+			}
+		}
+		return $leftOver;
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
+	public function deinit(callable $callback): array {
 		$callback();
+		return [];
 	}
 
 	public function receiveMessage(AOChatEvent $event): void {
@@ -78,7 +85,7 @@ class PrivateChannel implements TransportInterface {
 		}
 	}
 
-	public function init(?object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
@@ -89,5 +96,6 @@ class PrivateChannel implements TransportInterface {
 		} else {
 			$callback();
 		}
+		return [];
 	}
 }

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\ColorSettingHandler;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
@@ -17,6 +18,7 @@ use Nadybot\Core\Nadybot;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Core\DBSchema\RouteHopColor;
 use Throwable;
 
 /**
@@ -314,6 +316,169 @@ class MessageHubController {
 		$blob .= join("\n<tab>", $list);
 		$msg = $this->text->makeBlob("Message Routes (" . count($routes) . ")", $blob);
 		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route color$/i")
+	 */
+	public function routeListColorConfigCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$query = $this->db->table($this->messageHub::DB_TABLE_COLORS);
+		/** @var Collection<RouteHopColor> */
+		$colors = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->asObj(RouteHopColor::class);
+		if ($colors->isEmpty()) {
+			$sendto->reply("No colors have been defined yet.");
+			return;
+		}
+		$blob = "<header2>Color definitions<end>\n";
+		$blobs = [];
+		foreach ($colors as $color) {
+			$textColorStart = $tagColorStart = '';
+			$textColorEnd = $tagColorEnd = '';
+			$textLinks = $tagLinks = "";
+			if (isset($color->tag_color)) {
+				$tagColorStart = "<font color=#{$color->tag_color}>";
+				$tagColorEnd = "</font>";
+				$tagLinks =
+				" [" . $this->text->makeChatcmd(
+					"rem tag",
+					"/tell <myname> route color tag rem {$color->hop}"
+				) . "] ".
+				"[" . $this->text->makeChatcmd(
+					"pick tag",
+					"/tell <myname> route color tag pick {$color->hop}"
+				) . "]";
+			}
+			if (isset($color->text_color)) {
+				$textColorStart = "<font color=#{$color->text_color}>";
+				$textColorEnd = "</font>";
+				$textLinks =
+				" [" . $this->text->makeChatcmd(
+					"rem text",
+					"/tell <myname> route color text rem {$color->hop}"
+				) . "] ".
+				"[" . $this->text->makeChatcmd(
+					"pick text",
+					"/tell <myname> route color text pick {$color->hop}"
+				) . "]";
+			}
+			$blobs []= "<tab>{$tagColorStart}[{$color->hop}]{$tagColorEnd}: ".
+				"{$textColorStart}This is an example text.{$textColorEnd}".
+				$tagLinks . $textLinks;
+		}
+		$msg = $this->text->makeBlob(
+			"Routing colors (" . count($colors) . ")",
+			$blob . join("\n", $blobs)
+		);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route color tag (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
+	 */
+	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$color = $this->getHopColor($args['tag']);
+		if (!isset($color) || !isset($color->tag_color)) {
+			$sendto->reply("No tag color for <highlight>[{$args['tag']}]<end> defined.");
+			return;
+		}
+		if (isset($color->text_color)) {
+			$color->tag_color = null;
+			$this->db->update($this->messageHub::DB_TABLE_COLORS, "id", $color);
+			$sendto->reply("Tag color definition for <highlight>[{$args['tag']}] deleted.");
+			return;
+		}
+		$this->db->table($this->messageHub::DB_TABLE_COLORS)
+			->delete($color->id);
+		$sendto->reply("Color definition for <highlight>[{$args['tag']}] deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route color text (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
+	 */
+	public function routeTextColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$color = $this->getHopColor($args['tag']);
+		if (!isset($color) || !isset($color->text_color)) {
+			$sendto->reply("No text color for <highlight>[{$args['tag']}]<end> defined.");
+			return;
+		}
+		if (isset($color->tag_color)) {
+			$color->text_color = null;
+			$this->db->update($this->messageHub::DB_TABLE_COLORS, "id", $color);
+			$sendto->reply("Text color definition for <highlight>[{$args['tag']}] deleted.");
+			return;
+		}
+		$this->db->table($this->messageHub::DB_TABLE_COLORS)
+			->delete($color->id);
+		$sendto->reply("Color definition for <highlight>[{$args['tag']}] deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route color (?<type>tag|text) set (?<tag>[^ ]+) #?(?<color>[0-9a-f]{6})$/i")
+	 */
+	public function routeSetColorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$tag = strtolower($args['tag']);
+		$type = strtolower($args['type']);
+		$color = strtoupper($args['color']);
+		if (strlen($tag) > 25) {
+			$sendto->reply("Your tag is longer than the supported 25 characters.");
+			return;
+		}
+		$colorDef = $this->getHopColor($tag);
+		if (!isset($colorDef)) {
+			$colorDef = new RouteHopColor();
+			$colorDef->hop = $tag;
+		}
+		if ($type === "text") {
+			$colorDef->text_color = $color;
+		} else {
+			$colorDef->tag_color = $color;
+		}
+		$table = $this->messageHub::DB_TABLE_COLORS;
+		if (isset($colorDef->id)) {
+			$this->db->update($table, "id", $colorDef);
+		} else {
+			$colorDef->id = $this->db->insert($table, $colorDef);
+		}
+		$sendto->reply(
+			ucfirst(strtolower($type)) . " color for ".
+			"<highlight>[{$tag}]<end> set to ".
+			"<font color='#{$color}'>#{$color}</font>."
+		);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+)$/i")
+	 */
+	public function routeColorPickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$tag = strtolower($args['tag']);
+		$type = strtolower($args['type']);
+		if (strlen($tag) > 25) {
+			$sendto->reply("Your tag name is too long.");
+			return;
+		}
+		$colorList = ColorSettingHandler::getExampleColors();
+		$blob = "<header2>Pick a {$type} color for [{$tag}]<end>\n";
+		foreach ($colorList as $color => $name) {
+			$blob .= "<tab>[<a href='chatcmd:///tell <myname> route color {$type} set {$tag} {$color}'>Pick this one</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Choose from colors (" . count($colorList) . ")",
+			$blob
+		);
+		$sendto->reply($msg);
+	}
+
+	public function getHopColor(string $hop): ?RouteHopColor {
+		return $this->db->table($this->messageHub::DB_TABLE_COLORS)
+			->where("hop", $hop)
+			->asObj(RouteHopColor::class)
+			->first();
 	}
 
 	public function getRoute(int $id): ?Route {

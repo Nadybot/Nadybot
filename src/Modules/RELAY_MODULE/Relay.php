@@ -52,6 +52,10 @@ class Relay implements MessageReceiver {
 		if (($pos = strrpos($class, '\\')) !== false) {
 			$class = substr($class, $pos + 1);
 		}
+		if ($element instanceof StatusProvider) {
+			$status = $element->getStatus();
+			return "<yellow>{$status}<end>";
+		}
 		return "<yellow>initializing {$class}<end>";
 	}
 
@@ -78,7 +82,7 @@ class Relay implements MessageReceiver {
 				->unregisterMessageEmitter($this->getChannelName())
 				->unregisterMessageReceiver($this->getChannelName());
 		}
-		/** @var RelayStackMemberInterface[] */
+		/** @var RelayStackArraySenderInterface[] */
 		$layers = [
 			$this->relayProtocol,
 			...array_reverse($this->stack),
@@ -91,18 +95,22 @@ class Relay implements MessageReceiver {
 			}
 			return;
 		}
-		$layer->deinit(
-			$layers[$index+1]??null,
+		$data = $layer->deinit(
 			function() use ($callback, $index): void {
 				$this->deinit($callback, $index+1);
 			}
 		);
+		if (count($data)) {
+			for ($pos = $index+1; $pos < count($layers); $pos++) {
+				$data = $layers[$pos]->send($data);
+			}
+		}
 	}
 
 	public function init(?callable $callback=null, int $index=0): void {
 		$this->initialized = false;
 		$this->initStep = $index;
-		/** @var RelayStackMemberInterface[] */
+		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
@@ -116,12 +124,16 @@ class Relay implements MessageReceiver {
 			return;
 		}
 		$element->setRelay($this);
-		$element->init(
-			$elements[$index-1]??null,
+		$data = $element->init(
 			function() use ($callback, $index): void {
 				$this->init($callback, $index+1);
 			}
 		);
+		if (count($data)) {
+			for ($pos = $index-1; $pos >= 0; $pos--) {
+				$data = $elements[$pos]->send($data);
+			}
+		}
 	}
 
 	public function getEventConfig(string $event): int {
@@ -180,11 +192,6 @@ class Relay implements MessageReceiver {
 		for ($i = count($this->stack); $i--;) {
 			$data = $this->stack[$i]->send($data);
 		}
-		foreach ($data as $packet) {
-			if (!$this->transport->send($packet)) {
-				return false;
-			}
-		}
-		return true;
+		return empty($this->transport->send($data));
 	}
 }

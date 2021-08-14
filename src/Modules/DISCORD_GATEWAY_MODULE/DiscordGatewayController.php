@@ -4,7 +4,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use JsonException;
 use Nadybot\Core\{
-	AMQP,
 	CommandManager,
 	Event,
 	EventManager,
@@ -74,9 +73,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
  */
 class DiscordGatewayController {
 	public string $moduleName;
-
-	/** @Inject */
-	public AMQP $amqp;
 
 	/** @Inject */
 	public SettingManager $settingManager;

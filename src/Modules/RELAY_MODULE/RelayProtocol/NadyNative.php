@@ -61,12 +61,14 @@ class NadyNative implements RelayProtocolInterface {
 		return $event;
 	}
 
-	public function init(?object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$callback();
+		return [];
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
+	public function deinit(callable $callback): array {
 		$callback();
+		return [];
 	}
 
 	public function setRelay(Relay $relay): void {

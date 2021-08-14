@@ -1,0 +1,112 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
+
+use Nadybot\Core\DB;
+use Nadybot\Core\DBSchema\Route;
+use Nadybot\Core\DBSchema\RouteModifier;
+use Nadybot\Core\DBSchema\RouteModifierArgument;
+use Nadybot\Core\DBSchema\Setting;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\MessageHub;
+use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\SettingManager;
+
+class MoveSettingsToRoutes implements SchemaMigration {
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", "guest_relay")
+			->asObj(Setting::class)
+			->first();
+	}
+
+	public function migrate(LoggerWrapper $logger, DB $db): void {
+		$guestRelay = $this->getSetting($db, "guest_relay");
+		if (isset($guestRelay) && $guestRelay->value !== "1") {
+			return;
+		}
+		$relayCommands = $this->getSetting($db, "guest_relay_commands");
+		$ignoreSenders = $this->getSetting($db, "guest_relay_ignore");
+		$relayFilter = $this->getSetting($db, "guest_relay_filter");
+
+		$unfiltered = (!isset($ignoreSenders) || !strlen($ignoreSenders->value??""))
+			&& (!isset($relayFilter) || !strlen($relayFilter->value??""));
+
+		$route = new Route();
+		$route->source = Source::PRIV . "({$this->chatBot->vars['name']})";
+		$route->destination = Source::ORG;
+		$route->two_way = $unfiltered;
+		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+		$this->addCommandFilter($db, $relayCommands, $route->id);
+		if ($unfiltered) {
+			return;
+		}
+		$route = new Route();
+		$route->source = Source::ORG;
+		$route->destination = Source::PRIV . "({$this->chatBot->vars['name']})";
+		$route->two_way = false;
+		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+		$this->addCommandFilter($db, $relayCommands, $route->id);
+
+		if (isset($ignoreSenders) && strlen($relayCommands->value??"") > 0) {
+			$toIgnore = explode(",", $ignoreSenders->value);
+			$this->ignoreSenders($db, $route->id, ...$toIgnore);
+		}
+
+		if (isset($relayFilter) && strlen($relayFilter->value??"") > 0) {
+			$this->addRegExpFilter($db, $route->id, $relayFilter->value);
+		}
+	}
+
+	protected function addCommandFilter(DB $db, ?Setting $relayCommands, int $routeId): void {
+		if (!isset($relayCommands) || $relayCommands->value === "1") {
+			return;
+		}
+		$mod = new RouteModifier();
+		$mod->modifier = "if-not-command";
+		$mod->route_id = $routeId;
+		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+	}
+
+	protected function ignoreSenders(DB $db, int $routeId, string ...$senders): void {
+		foreach ($senders as $sender) {
+			$mod = new RouteModifier();
+			$mod->modifier = "if-not-by";
+			$mod->route_id = $routeId;
+			$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+
+			$arg = new RouteModifierArgument();
+			$arg->name = "sender";
+			$arg->value = $sender;
+			$arg->route_modifier_id = $mod->id;
+
+			$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
+		}
+	}
+
+	protected function addRegExpFilter(DB $db, int $routeId, string $filter): void {
+		$mod = new RouteModifier();
+		$mod->modifier = "if-matches";
+		$mod->route_id = $routeId;
+		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+
+		$arg = new RouteModifierArgument();
+		$arg->name = "text";
+		$arg->value = $filter;
+		$arg->route_modifier_id = $mod->id;
+
+		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
+
+		$arg = new RouteModifierArgument();
+		$arg->name = "regexp";
+		$arg->value = "true";
+		$arg->route_modifier_id = $mod->id;
+
+		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
+	}
+}

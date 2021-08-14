@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Event;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -12,34 +13,45 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 
 /**
- * @RelayProtocol("grc")
- * @Description("This is the old BudaBot protocol.
- * 	It only supports relaying messages - no sharing of online lists.")
+ * @RelayProtocol("agcr")
+ * @Description("This is the protocol that is used by the alliance of Rimor.
+ * 	It supports sharing online lists.")
  */
-class GrcV1Protocol implements RelayProtocolInterface {
+class AgcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
 
 	/** @Inject */
 	public Util $util;
 
 	/** @Inject */
-	public Text $text;
-
-	/** @Inject */
 	public MessageHub $messageHub;
 
+	/** @Inject */
+	public Text $text;
+
 	public function send(RoutableEvent $event): array {
-		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			return [];
+		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+			return $this->renderMessage($event);
 		}
+		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
+			/** @var Event $llEvent */
+			$llEvent = $event->getData();
+			if (in_array($llEvent->type, ["logon", "logoff"])) {
+				// return $this->renderUserState($event);
+			}
+		}
+		return [];
+	}
+
+	public function renderMessage(RoutableEvent $event): array {
 		return [
-			"grc " . $this->messageHub->renderPath($event, false).
+			"!agcr " . $this->messageHub->renderPath($event, false).
 			$this->text->formatMessage($event->getData())
 		];
 	}
 
 	public function receive(string $data): ?RoutableEvent {
-		if (!preg_match("/^.?grc (.+)/", $data, $matches)) {
+		if (!preg_match("/^!agcr\s+(.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];

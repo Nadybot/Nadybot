@@ -63,9 +63,11 @@ class Websocket implements TransportInterface {
 		$this->relay = $relay;
 	}
 
-	public function send(string $data): bool {
-		$this->client->send($data);
-		return true;
+	public function send(array $data): array {
+		foreach ($data as $chunk) {
+			$this->client->send($chunk);
+		}
+		return [];
 	}
 
 	public function processMessage(WebsocketCallback $event): void {
@@ -104,7 +106,7 @@ class Websocket implements TransportInterface {
 		$callback();
 	}
 
-	public function init(?object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$this->initCallback = $callback;
 		$this->client = $this->websocket->createClient()
 			->withURI($this->uri)
@@ -113,12 +115,13 @@ class Websocket implements TransportInterface {
 			->on(WebsocketClient::ON_CLOSE, [$this, "processClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processMessage"])
 			->on(WebsocketClient::ON_ERROR, [$this, "processError"]);
+		return [];
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
+	public function deinit(callable $callback): array {
 		if (!isset($this->client) || !$this->client->isConnected()) {
 			$callback();
-			return;
+			return [];
 		}
 		$closeFunc = function (WebsocketCallback $event) use ($callback): void {
 			unset($this->client);
@@ -127,5 +130,6 @@ class Websocket implements TransportInterface {
 		$this->client->on(WebsocketClient::ON_CLOSE, $closeFunc);
 		$this->client->on(WebsocketClient::ON_ERROR, $closeFunc);
 		$this->client->close();
+		return [];
 	}
 }

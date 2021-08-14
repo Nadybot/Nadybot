@@ -412,7 +412,12 @@ class Nadybot extends AOChat {
 		}
 		$rMessage = new RoutableMessage($origMsg);
 		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
-		$rMessage->prependPath(new Source(Source::ORG, $this->vars["my_guild"]));
+		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
+		$rMessage->prependPath(new Source(
+			Source::ORG,
+			$this->vars["my_guild"],
+			($abbr === 'none') ? null : $abbr
+		));
 		$this->messageHub->handle($rMessage);
 	}
 
@@ -945,7 +950,12 @@ class Nadybot extends AOChat {
 					$rMessage->setCharacter(new Character($sender, $senderId));
 				}
 				if ($orgId) {
-					$rMessage->prependPath(new Source(Source::ORG, $channel));
+					$abbr = $this->settingManager->getString('relay_guild_abbreviation');
+					$rMessage->prependPath(new Source(
+						Source::ORG,
+						$channel,
+						($abbr === 'none') ? null : $abbr
+					));
 				} else {
 					$rMessage->prependPath(new Source(Source::PUB, $channel));
 				}

@@ -23,11 +23,13 @@ class PrivateMessage implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
-		if ($this->buddyListManager->isOnline($destination)) {
-			$message = $this->messageHub->renderPath($event).
-				$event->getData();
-			$this->chatBot->sendTell($message, $destination);
+		if (!$this->buddyListManager->isOnline($destination)) {
+			return true;
 		}
+		$msgColor = $this->messageHub->getTextColor($event);
+		$message = $this->messageHub->renderPath($event).
+			$msgColor.$event->getData();
+		$this->chatBot->sendTell($message, $destination, null, strlen($msgColor) === 0);
 		return true;
 	}
 }

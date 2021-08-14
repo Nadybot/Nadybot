@@ -30,7 +30,7 @@ class Highway implements RelayLayerInterface {
 		$this->relay = $relay;
 	}
 
-	public function init(object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$json = (object)[
 			"type" => "command",
 			"cmd" => "subscribe",
@@ -44,14 +44,13 @@ class Highway implements RelayLayerInterface {
 				"Unable to encode subscribe-command into highway protocol: ".
 					$e->getMessage()
 			);
-			return;
+			return [];
 		}
 		$this->initCallback = $callback;
-		$previous->send($encoded);
+		return [$encoded];
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
-		// $callback();
+	public function deinit(callable $callback): array {
 		$json = (object)[
 			"type" => "command",
 			"cmd" => "unsubscribe",
@@ -65,10 +64,10 @@ class Highway implements RelayLayerInterface {
 				"Unable to encode unsubscribe-command into highway protocol: ".
 					$e->getMessage()
 			);
-			return;
+			return [];
 		}
 		$this->initCallback = $callback;
-		$previous->send($encoded);
+		return [$encoded];
 	}
 
 	public function send(array $packets): array {

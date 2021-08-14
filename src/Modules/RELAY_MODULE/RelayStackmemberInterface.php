@@ -5,13 +5,15 @@ namespace Nadybot\Modules\RELAY_MODULE;
 interface RelayStackMemberInterface {
 	/**
 	 * Initialize the layer and call the $callback when done
+	 * @return string[] The data to bubble down the stack during init
 	 */
-	public function init(object $previous, callable $callback): void;
+	public function init(callable $callback): array;
 
 	/**
 	 * Bring down the layer and call the $callback when done
+	 * @return string[] The data to bubble down the stack during deinit
 	 */
-	public function deinit(object $previous, callable $callback): void;
+	public function deinit(callable $callback): array;
 
 	/**
 	 * Set the relay for this layer

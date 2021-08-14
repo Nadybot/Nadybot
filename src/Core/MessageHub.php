@@ -4,9 +4,11 @@ namespace Nadybot\Core;
 
 use Exception;
 use Illuminate\Support\Collection;
+use JsonException;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Core\DBSchema\RouteHopColor;
 use ReflectionMethod;
 use Throwable;
 
@@ -15,6 +17,8 @@ use Throwable;
  */
 class MessageHub {
 	public const DB_TABLE_ROUTES = "route_<myname>";
+	public const DB_TABLE_COLORS = "route_hop_color_<myname>";
+	public const DB_TABLE_TEXT_COLORS = "route_text_color_<myname>";
 	public const DB_TABLE_ROUTE_MODIFIER = "route_modifier_<myname>";
 	public const DB_TABLE_ROUTE_MODIFIER_ARGUMENT = "route_modifier_argument_<myname>";
 
@@ -38,6 +42,9 @@ class MessageHub {
 
 	/** @Inject */
 	public Util $util;
+
+	/** @Inject */
+	public DB $db;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -243,9 +250,15 @@ class MessageHub {
 			return;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
-		$this->logger->log('INFO', "Trying to route {$type}");
-		// var_dump($event);
-		// $this->logger->log('INFO', json_encode($event));
+		try {
+			$this->logger->log(
+				'DEBUG',
+				"Trying to route {$type} - ".
+				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
+			);
+		} catch (JsonException $e) {
+			// Ignore
+		}
 		foreach ($this->routes as $source => $dest) {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
@@ -265,7 +278,6 @@ class MessageHub {
 					continue;
 				}
 				$this->logger->log('INFO', "Event routed to {$destName}");
-				// $modifiedEvent->setData($this->renderPath($modifiedEvent).$modifiedEvent->getData());
 				$destination = $route->getDest();
 				if (preg_match("/\((.+)\)$/", $destination, $matches)) {
 					$destination = $matches[1];
@@ -276,11 +288,11 @@ class MessageHub {
 	}
 
 	/** Get the text to prepend to a message to denote its source path */
-	public function renderPath(RoutableEvent $event): string {
+	public function renderPath(RoutableEvent $event, bool $withColor=true): string {
 		$hops = [];
 		$lastHop = null;
 		foreach ($event->getPath() as $hop) {
-			$renderedHop = $this->renderSource($hop, $lastHop);
+			$renderedHop = $this->renderSource($hop, $lastHop, $withColor);
 			if (isset($renderedHop)) {
 				$hops []= $renderedHop;
 			}
@@ -298,12 +310,19 @@ class MessageHub {
 		return $hopText.$charLink;
 	}
 
-	public function renderSource(Source $source, ?Source $lastHop): ?string {
+	public function renderSource(Source $source, ?Source $lastHop, bool $withColor): ?string {
 		$name = $source->render($lastHop);
 		if (!isset($name)) {
 			return null;
 		}
-		return "[{$name}]";
+		if (!$withColor) {
+			return "[{$name}]";
+		}
+		$color = $this->getHopColor($source->type, $source->name);
+		if (!isset($color)) {
+			return "[{$name}]";
+		}
+		return "<font color=#{$color->tag_color}>[{$name}]<end>";
 	}
 
 	public function getCharacter(string $dest): ?string {
@@ -381,7 +400,7 @@ class MessageHub {
 	}
 
 	/**
-	 * Convert a dDB-representation of a route to the real deal
+	 * Convert a DB-representation of a route to the real deal
 	 * @param Route $route The DB representation
 	 * @return MessageRoute The actual message route
 	 * @throws Exception whenever this is impossible
@@ -399,5 +418,46 @@ class MessageHub {
 			$msgRoute->addModifier($modObj);
 		}
 		return $msgRoute;
+	}
+
+	public function getHopColor(string $type, ?string $name=null): ?RouteHopColor {
+		$query = $this->db->table(static::DB_TABLE_COLORS);
+		/** @var Collection<RouteHopColor> */
+		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->asObj(RouteHopColor::class);
+		if (isset($name)) {
+			$fullDefs = $colorDefs->filter(function (RouteHopColor $color): bool {
+				return strpos($color->hop, "(") !== false;
+			});
+			foreach ($fullDefs as $colorDef) {
+				if (fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)) {
+					return $colorDef;
+				}
+			}
+		}
+		foreach ($colorDefs as $colorDef) {
+			if (fnmatch($colorDef->hop, $type, FNM_CASEFOLD)) {
+				return $colorDef;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get a font tag for the text of a routable message
+	 */
+	public function getTextColor(RoutableEvent $event): string {
+		if (!count($event->path)) {
+			return "";
+		}
+		$hop = $event->path[count($event->path)-1] ?? null;
+		if (!isset($hop)) {
+			return "";
+		}
+		$color = $this->getHopColor($hop->type, $hop->name);
+		if (!isset($color) || !isset($color->text_color)) {
+			return "";
+		}
+		return "<font color=#{$color->text_color}>";
 	}
 }

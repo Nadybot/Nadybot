@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\Registry;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\RoutableMessage;
@@ -21,6 +20,12 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected Relay $relay;
 
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public Text $text;
+
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
@@ -28,8 +33,12 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		$path = $event->getPath();
 		$msgColor = "";
 		$hops = [];
+		$lastHop = null;
 		foreach ($path as $hop) {
-			$tag = $hop->label ?: $hop->name;
+			$tag = $hop->render($lastHop);
+			if (!isset($tag)) {
+				continue;
+			}
 			if ($hop->type === Source::ORG) {
 				$hops []= "<relay_guild_tag_color>[{$tag}]</end>";
 				$msgColor = "<relay_guild_color>";
@@ -46,26 +55,23 @@ class GrcV2Protocol implements RelayProtocolInterface {
 				$msgColor = "<relay_guest_color>";
 			}
 		}
-		/** @var Util */
-		$util = Registry::getInstance("util");
 		$senderLink = "";
 		$character = $event->getCharacter();
-		if (isset($character) && $util->isValidSender($character->name)) {
-			/** @var Text */
-			$text = Registry::getInstance("text");
-			$senderLink = $text->makeUserlink($character->name);
+		if (isset($character) && $this->util->isValidSender($character->name)) {
+			$senderLink = $this->text->makeUserlink($character->name);
 		} else {
 			$msgColor = "<relay_bot_color>";
 		}
-		return ["grc <v2>" . join(" ", $hops) . " {$senderLink}: {$msgColor}".
-			$event->getData() . "</end>"];
+		return [
+			"grc <v2>" . join(" ", $hops) . " {$senderLink}: {$msgColor}".
+			$this->text->formatMessage($event->getData()) . "</end>"
+		];
 	}
 
 	public function receive(string $data): ?RoutableEvent {
 		if (!preg_match("/^.?grc <v2>(.+)/", $data, $matches)) {
 			return null;
 		}
-		var_dump("Parsing $data");
 		$data = $matches[1];
 		$msg = new RoutableMessage($data);
 		while (preg_match("/^<relay_(.+?)_tag_color>\[(.+?)\]<\/end>\s*(.*)/", $data, $matches)) {
@@ -80,7 +86,8 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		$data = preg_replace("/^<relay_[a-z]+_color>(.*)<\/end>$/", '$1', $data);
+		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/", '$1', $data);
+		$data = preg_replace("/<\/end>$/", "", $data);
 		$msg->setData($data);
 		return $msg;
 	}
@@ -89,11 +96,13 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		$this->relay = $relay;
 	}
 
-	public function init(?object $previous, callable $callback): void {
+	public function init(callable $callback): array {
 		$callback();
+		return [];
 	}
 
-	public function deinit(?object $previous, callable $callback): void {
+	public function deinit(callable $callback): array {
 		$callback();
+		return [];
 	}
 }

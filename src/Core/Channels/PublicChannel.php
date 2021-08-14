@@ -25,8 +25,9 @@ class PublicChannel implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
+		$msgColor = $this->messageHub->getTextColor($event);
 		$message = $this->messageHub->renderPath($event).
-			$event->getData();
+			$msgColor.$event->getData();
 		$this->chatBot->sendPublic($message, $this->channel);
 		return true;
 	}
