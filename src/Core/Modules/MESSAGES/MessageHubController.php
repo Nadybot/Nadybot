@@ -19,6 +19,7 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Core\DBSchema\RouteHopColor;
+use Nadybot\Core\Routing\Source;
 use Throwable;
 
 /**
@@ -100,6 +101,12 @@ class MessageHubController {
 	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($args["to"] === Source::PRIV) {
+			$args["to"] = Source::PRIV . "({$this->chatBot->char->name})";
+		}
+		if ($args["from"] === Source::PRIV) {
+			$args["from"] = Source::PRIV . "({$this->chatBot->char->name})";
+		}
 		$receiver = $this->messageHub->getReceiver($args["to"]);
 		if (!isset($receiver)) {
 			$sendto->reply("Unknown target <highlight>{$args["to"]}<end>.");

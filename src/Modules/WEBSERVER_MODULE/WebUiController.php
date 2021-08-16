@@ -4,7 +4,9 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use DateTime;
 use Exception;
+use Nadybot\Core\BotRunner;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\DB;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Http;
@@ -47,6 +49,9 @@ class WebUiController {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
 	public Timer $timer;
 
 	/** @Logger */
@@ -54,6 +59,20 @@ class WebUiController {
 
 	/** @Setup */
 	public function setup(): void {
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$uiBranches = ["off", "stable", "unstable"];
+		$baseDir = BotRunner::getBasedir();
+		if (@file_exists("{$baseDir}/.git")) {
+			try {
+				$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
+				$branch = explode("/", $ref, 3)[2];
+				if (!in_array($branch, $uiBranches)) {
+					$uiBranches []= $branch;
+				}
+			} catch (Throwable $e) {
+				// No use to try git
+			}
+		}
 		$this->settingManager->add(
 			$this->moduleName,
 			"nadyui_channel",
@@ -61,7 +80,7 @@ class WebUiController {
 			"edit",
 			"options",
 			"stable",
-			"off;stable;unstable"
+			join(";", $uiBranches)
 		);
 		$this->settingManager->registerChangeListener(
 			"nadyui_channel",
