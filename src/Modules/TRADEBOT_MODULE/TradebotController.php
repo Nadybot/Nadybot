@@ -103,17 +103,6 @@ class TradebotController {
 			"mod",
 			"tradebot.txt"
 		);
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"tradebot_channel_spam",
-		// 	"Show Tradebot messages in",
-		// 	"edit",
-		// 	"options",
-		// 	"3",
-		// 	"Off;Priv;Org;Priv+Org",
-		// 	"0;1;2;3",
-		// 	"mod"
-		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			"tradebot_channels",
@@ -231,6 +220,18 @@ class TradebotController {
 					$this->joinPrivateChannel($botName);
 				}
 				$this->buddylistManager->add($botName, "tradebot");
+			}
+		}
+		if ($this->messageHub->hasRouteFor(Source::TRADEBOT)) {
+			return;
+		}
+		if (count($botsToSignUp)) {
+			$msg = "Please make sure to use <highlight><symbol>route add<end> to ".
+				"setup message routing between the tradebot and your org/private channel.";
+			if (strlen($this->chatBot->vars["my_guild"]??"")) {
+				$this->chatBot->sendGuild($msg, true);
+			} else {
+				$this->chatBot->sendPrivate($msg, true);
 			}
 		}
 	}

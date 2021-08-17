@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
 use Illuminate\Support\Collection;
+use JsonException;
 use Nadybot\Core\ColorSettingHandler;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
@@ -20,6 +21,7 @@ use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\Routing\Source;
+use ReflectionClass;
 use Throwable;
 
 /**
@@ -244,16 +246,38 @@ class MessageHubController {
 			$sendto->reply("No message modifier <highlight>{$args[1]}<end> found.");
 			return;
 		}
+		try {
+			$refClass = new ReflectionClass($mod->class);
+			$refConstr = $refClass->getMethod("__construct");
+			$refParams = $refConstr->getParameters();
+		} catch (Throwable $e) {
+			$sendto->reply("The modifier <highlight>{$args[1]}<end> cannot be initialized.");
+			return;
+		}
 		$description = $mod->description ?? "Someone forgot to add a description";
 		$blob = "<header2>Description<end>\n".
 			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
 			"\n\n".
 			"<header2>Parameters<end>\n";
+		$parNum = 0;
 		foreach ($mod->params as $param) {
-			$blob .= "<tab><highlight>{$param->type} {$param->name}<end>";
+			$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
 			if (!$param->required) {
-				$blob .= " (optional)";
+				if ($refParams[$parNum]->isDefaultValueAvailable()) {
+					try {
+						$blob .= " (optional, default=".
+							json_encode(
+								$refParams[$parNum]->getDefaultValue(),
+								JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
+							) . ")";
+					} catch (JsonException $e) {
+						$blob .= " (optional)";
+					}
+				} else {
+					$blob .= " (optional)";
+				}
 			}
+			$parNum++;
 			$blob .= "\n<tab><i>".
 				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
 				"</i>\n\n";

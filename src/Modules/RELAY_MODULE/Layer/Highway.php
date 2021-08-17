@@ -6,16 +6,19 @@ use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
  * @RelayStackMember("highway")
  * @Description("This is the highway protocol, spoken by the highway websocket-server")
  * @Param(name='room', description='The room to join', type='string', required=true)
  */
-class Highway implements RelayLayerInterface {
+class Highway implements RelayLayerInterface, StatusProvider {
 	protected string $room;
 
 	protected Relay $relay;
+
+	protected ?string $status;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -30,6 +33,10 @@ class Highway implements RelayLayerInterface {
 		$this->relay = $relay;
 	}
 
+	public function getStatus(): string {
+		return $this->status ?? "unknown";
+	}
+
 	public function init(callable $callback): array {
 		$json = (object)[
 			"type" => "command",
@@ -39,14 +46,13 @@ class Highway implements RelayLayerInterface {
 		try {
 			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
-				"Unable to encode subscribe-command into highway protocol: ".
-					$e->getMessage()
-			);
+			$this->status = "Unable to encode subscribe-command into ".
+				"highway protocol: " . $e->getMessage();
+			$this->logger->log('ERROR', $this->status);
 			return [];
 		}
 		$this->initCallback = $callback;
+		$this->status = "Joining room {$this->room}";
 		return [$encoded];
 	}
 
@@ -59,11 +65,9 @@ class Highway implements RelayLayerInterface {
 		try {
 			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
-				"Unable to encode unsubscribe-command into highway protocol: ".
-					$e->getMessage()
-			);
+			$this->status = "Unable to encode unsubscribe-command into ".
+				"highway protocol: " . $e->getMessage();
+			$this->logger->log('ERROR', $this->status);
 			return [];
 		}
 		$this->initCallback = $callback;
@@ -96,18 +100,18 @@ class Highway implements RelayLayerInterface {
 		try {
 			$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
-				"Unable to decode highway message: ".
-					$e->getMessage()
-			);
+			$this->status = "Unable to decode highway message: ".
+					$e->getMessage();
+			$this->logger->log('ERROR', $this->status);
 			return null;
 		}
 		if (!isset($json->type)) {
-			$this->logger->log('ERROR', 'Received highway message without type');
+			$this->status = 'Received highway message without type';
+			$this->logger->log('ERROR', $this->status);
 			return null;
 		}
 		if ($json->type === "success" && isset($this->initCallback)) {
+			$this->status = "ready";
 			$callback = $this->initCallback;
 			unset($this->initCallback);
 			$callback();
@@ -117,7 +121,8 @@ class Highway implements RelayLayerInterface {
 			return null;
 		}
 		if (!isset($json->body)) {
-			$this->logger->log('ERROR', 'Received highway message without body');
+			$this->status = 'Received highway message without body';
+			$this->logger->log('ERROR', $this->status);
 			return null;
 		}
 		return $json->body;

@@ -228,6 +228,22 @@ class MessageHub {
 	}
 
 	/**
+	 * Check if there is a route defined for a MessageSender
+	 */
+	public function hasRouteFor(string $sender): bool {
+		$sender = strtolower($sender);
+		foreach ($this->routes as $source => $dest) {
+			if (!strpos($source, '(')) {
+				$source .= '(*)';
+			}
+			if (fnmatch(strtolower($source), $sender)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Get a list of all message emitters
 	 * @return array<string,MessageEmitter>
 	 */

@@ -3,6 +3,5 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 interface StatusProvider {
-	public function isReady(): bool;
 	public function getStatus(): string;
 }

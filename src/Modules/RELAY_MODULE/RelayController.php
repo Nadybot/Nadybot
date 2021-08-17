@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Exception;
 use Illuminate\Support\Collection;
+use JsonException;
 use Nadybot\Core\{
 	ClassSpec,
 	CommandAlias,
@@ -25,6 +26,7 @@ use Nadybot\Core\{
 	WebsocketClient,
 };
 use Nadybot\Modules\GUILD_MODULE\GuildController;
+use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
 
@@ -44,9 +46,6 @@ use Throwable;
  *  @ProvidesEvent("routable(message)")
  */
 class RelayController {
-	public const TYPE_AMQP = 3;
-	public const TYPE_TYRWS = 4;
-
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
@@ -116,57 +115,57 @@ class RelayController {
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-		$this->settingManager->add(
-			$this->moduleName,
-			'relaytype',
-			"Type of relay",
-			"edit",
-			"options",
-			"1",
-			"tell;private channel;amqp;Tyrbot Websocket",
-			'1;2;3;4'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relaysymbol',
-			"Symbol for external relay",
-			"edit",
-			"options",
-			"@",
-			"!;#;*;@;$;+;-"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_symbol_method',
-			"When to relay messages",
-			"edit",
-			"options",
-			"0",
-			"Always relay;Relay when symbol;Relay unless symbol",
-			'0;1;2'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relaybot',
-			"Bot/AMQP exchange/Websocket URL for Guildrelay",
-			"edit",
-			"text",
-			"Off",
-			"Off",
-			'',
-			"mod",
-			"relaybot.txt"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'bot_relay_commands',
-			"Relay commands and results over the bot relay",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relaytype',
+		// 	"Type of relay",
+		// 	"edit",
+		// 	"options",
+		// 	"1",
+		// 	"tell;private channel;amqp",
+		// 	'1;2;3'
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relaysymbol',
+		// 	"Symbol for external relay",
+		// 	"edit",
+		// 	"options",
+		// 	"@",
+		// 	"!;#;*;@;$;+;-"
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relay_symbol_method',
+		// 	"When to relay messages",
+		// 	"edit",
+		// 	"options",
+		// 	"0",
+		// 	"Always relay;Relay when symbol;Relay unless symbol",
+		// 	'0;1;2'
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relaybot',
+		// 	"Bot/AMQP exchange",
+		// 	"edit",
+		// 	"text",
+		// 	"Off",
+		// 	"Off",
+		// 	'',
+		// 	"mod",
+		// 	"relaybot.txt"
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'bot_relay_commands',
+		// 	"Relay commands and results over the bot relay",
+		// 	"edit",
+		// 	"options",
+		// 	"1",
+		// 	"true;false",
+		// 	"1;0"
+		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			'relay_color_guild',
@@ -192,42 +191,42 @@ class RelayController {
 			'none',
 			'none'
 		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_ignore',
-			'Semicolon-separated list of people not to relay away',
-			'edit',
-			'text',
-			'',
-			'none'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_filter_out',
-			'RegExp filtering outgoing messages',
-			'edit',
-			'text',
-			'',
-			'none'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_filter_in',
-			'RegExp filtering messages to org chat',
-			'edit',
-			'text',
-			'',
-			'none'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_filter_in_priv',
-			'RegExp filtering messages to priv chat',
-			'edit',
-			'text',
-			'',
-			'none'
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relay_ignore',
+		// 	'Semicolon-separated list of people not to relay away',
+		// 	'edit',
+		// 	'text',
+		// 	'',
+		// 	'none'
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relay_filter_out',
+		// 	'RegExp filtering outgoing messages',
+		// 	'edit',
+		// 	'text',
+		// 	'',
+		// 	'none'
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relay_filter_in',
+		// 	'RegExp filtering messages to org chat',
+		// 	'edit',
+		// 	'text',
+		// 	'',
+		// 	'none'
+		// );
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'relay_filter_in_priv',
+		// 	'RegExp filtering messages to priv chat',
+		// 	'edit',
+		// 	'text',
+		// 	'',
+		// 	'none'
+		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			'relay_bot_color_org',
@@ -454,16 +453,37 @@ class RelayController {
 		if (!isset($spec)) {
 			return ["No {$name} <highlight>{$key}<end> found."];
 		}
+		try {
+			$refClass = new ReflectionClass($spec->class);
+			$refConstr = $refClass->getMethod("__construct");
+			$refParams = $refConstr->getParameters();
+		} catch (Throwable $e) {
+			return ["<highlight>{$spec->name}<end> cannot be initialized."];
+		}
 		$description = $spec->description ?? "Someone forgot to add a description";
 		$blob = "<header2>Description<end>\n".
 			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
 			"\n\n".
 			"<header2>Parameters<end>\n";
+		$parNum = 0;
 		foreach ($spec->params as $param) {
-			$blob .= "<tab><highlight>{$param->type} {$param->name}<end>";
+			$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
 			if (!$param->required) {
-				$blob .= " (optional)";
+				if ($refParams[$parNum]->isDefaultValueAvailable()) {
+					try {
+						$blob .= " (optional, default=".
+							json_encode(
+								$refParams[$parNum]->getDefaultValue(),
+								JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
+							) . ")";
+					} catch (JsonException $e) {
+						$blob .= " (optional)";
+					}
+				} else {
+					$blob .= " (optional)";
+				}
 			}
+			$parNum++;
 			$blob .= "\n<tab><i>".
 				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
 				"</i>\n\n";

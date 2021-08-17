@@ -68,7 +68,7 @@ use Throwable;
  * )
  * @Param(
  * 	name='queue',
- * 	description='The name of the queue we will useinternally. Set this if you have multiple relays to the same AMQP server.',
+ * 	description='The name of the queue we will use internally. Set this if you have multiple relays to the same AMQP server.',
  * 	type='string',
  * 	required=false
  * )
@@ -145,10 +145,6 @@ class AMQP implements TransportInterface, StatusProvider {
 		$this->vhost = $vhost;
 		$this->queueName = $queueName;
 		$this->reconnectInterval = $reconnectInterval;
-	}
-
-	public function isReady(): bool {
-		return isset($this->connection) && $this->connection->isConnected();
 	}
 
 	public function getStatus(): string {

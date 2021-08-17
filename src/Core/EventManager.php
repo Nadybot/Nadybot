@@ -176,6 +176,37 @@ class EventManager {
 	}
 
 	/**
+	 * Unsubscribe from an event
+	 */
+	public function unsubscribe(string $type, callable $callback): void {
+		$type = strtolower($type);
+
+		if ($type == "setup") {
+			return;
+		}
+		if ($this->isValidEventType($type)) {
+			if (!isset($this->dynamicEvents[$type])) {
+				return;
+			}
+			$this->dynamicEvents[$type] = array_values(
+				array_filter(
+					$this->dynamicEvents[$type],
+					function($c) use ($callback): bool {
+						return $c !== $callback;
+					}
+				)
+			);
+		} else {
+			$time = $this->getTimerEventTime($type);
+			if ($time > 0) {
+				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+			} else {
+				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
+			}
+		}
+	}
+
+	/**
 	 * Change the time when a cron event gets called next time
 	 */
 	public function setCronNextEvent(int $key, int $nextEvent): bool {

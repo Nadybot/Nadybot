@@ -8,6 +8,7 @@ use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
  * @RelayTransport("private-channel")
@@ -19,7 +20,7 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
  * 	relay anything.")
  * @Param(name='channel', description='The private channel to join', type='string', required=true)
  */
-class PrivateChannel implements TransportInterface {
+class PrivateChannel implements TransportInterface, StatusProvider {
 	/** @Inject */
 	public Nadybot $chatBot;
 
@@ -27,6 +28,8 @@ class PrivateChannel implements TransportInterface {
 	public EventManager $eventManager;
 
 	protected Relay $relay;
+
+	protected ?string $status;
 
 	protected string $channel;
 
@@ -45,6 +48,10 @@ class PrivateChannel implements TransportInterface {
 		$this->relay = $relay;
 	}
 
+	public function getStatus(): string {
+		return $this->status ?? "unknown";
+	}
+
 	public function send(array $data): array {
 		$leftOver = [];
 		foreach ($data as $chunk) {
@@ -56,6 +63,9 @@ class PrivateChannel implements TransportInterface {
 	}
 
 	public function deinit(callable $callback): array {
+		$this->eventManager->unsubscribe("extpriv", [$this, "receiveMessage"]);
+		$this->eventManager->unsubscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
+		$this->eventManager->unsubscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
 		$callback();
 		return [];
 	}
@@ -78,6 +88,7 @@ class PrivateChannel implements TransportInterface {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
+		$this->status = "ready";
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			unset($this->initCallback);
@@ -89,6 +100,7 @@ class PrivateChannel implements TransportInterface {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
+			$this->status = "Waiting for invite to {$this->channel}";
 			// In case we have a race condition and received the invite before
 			$this->initCallback = $callback;
 			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
