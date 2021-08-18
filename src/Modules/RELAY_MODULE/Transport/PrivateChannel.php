@@ -7,6 +7,7 @@ use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
+use Nadybot\Core\StopExecutionException;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
@@ -75,6 +76,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 			return;
 		}
 		$this->relay->receiveFromTransport($event->message);
+		throw new StopExecutionException();
 	}
 
 	public function receiveInvite(AOChatEvent $event): void {

@@ -20,7 +20,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", "guest_relay")
+			->where("name", $name)
 			->asObj(Setting::class)
 			->first();
 	}
@@ -53,7 +53,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 
-		if (isset($ignoreSenders) && strlen($relayCommands->value??"") > 0) {
+		if (isset($ignoreSenders) && strlen($ignoreSenders->value??"") > 0) {
 			$toIgnore = explode(",", $ignoreSenders->value);
 			$this->ignoreSenders($db, $route->id, ...$toIgnore);
 		}

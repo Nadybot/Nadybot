@@ -9,5 +9,5 @@ class Source extends DataTransferObject {
 	public ?string $label;
 	public ?string $channel;
 	public string $type;
-	public string $server;
+	public int $server;
 }

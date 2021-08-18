@@ -117,6 +117,11 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			$callback();
 			return null;
 		}
+		if ($json->type === "error") {
+			$this->logger->log("ERROR", $json->message);
+			$this->status = $json->message;
+			return null;
+		}
 		if ($json->type !== "message") {
 			return null;
 		}

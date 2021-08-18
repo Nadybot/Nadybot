@@ -718,11 +718,6 @@ class GuildController {
 		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list');
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
 			$this->chatBot->sendGuild($msg, true);
-
-			//private channel part
-			if ($this->settingManager->getBool("guest_relay")) {
-				$this->chatBot->sendPrivate($msg, true);
-			}
 		});
 	}
 
@@ -759,11 +754,6 @@ class GuildController {
 		}
 
 		$this->chatBot->sendGuild($msg, true);
-
-		//private channel part
-		if ($this->settingManager->getBool("guest_relay")) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
 	}
 
 	/**

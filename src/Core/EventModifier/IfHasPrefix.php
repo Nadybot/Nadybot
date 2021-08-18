@@ -63,8 +63,8 @@ class IfHasPrefix implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
-		$hasPrefix = (strncmp($message, $this->prefix, strlen($this->prefix)) !== 0);
-		if ($hasPrefix !== $this->inverse) {
+		$hasPrefix = (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
+		if ($hasPrefix === $this->inverse) {
 			return null;
 		}
 		if (!$hasPrefix || !$this->trim) {

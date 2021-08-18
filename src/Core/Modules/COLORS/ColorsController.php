@@ -50,6 +50,15 @@ class ColorsController {
 	public string $defaultDefaultTellColor = "<font color='#89D2E8'>";
 
 	/**
+	 * @Setting("default_routed_sys_color")
+	 * @Description("default routed system color")
+	 * @Visibility("edit")
+	 * @Type("color")
+	 * @AccessLevel("mod")
+	 */
+	public string $defaultDefaultRoutedSysColor = "<font color='#89D2E8'>";
+
+	/**
 	 * @Setting("default_highlight_color")
 	 * @Description("default highlight color")
 	 * @Visibility("edit")

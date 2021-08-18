@@ -17,6 +17,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	Message,
 	OnlineListRequest,
 };
+use Throwable;
 
 /**
  * @RelayProtocol("tyrbot")
@@ -51,7 +52,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"source" => [
 				"name" => $r->path[0]->name,
 				"type" => $this->nadyTypeToTyr($r->path[0]->type),
-				"server" => (string)$this->chatBot->vars["dimension"]
+				"server" => (int)$this->chatBot->vars["dimension"]
 			]
 		];
 		if (isset($r->path[0]->label)) {
@@ -75,10 +76,12 @@ class Tyrbot implements RelayProtocolInterface {
 			if (isset($event->char->id)) {
 				$packet['user']['id'] = $event->char->id;
 			}
+		} else {
+			$packet['user'] = null;
 		}
 		$packet['source'] = [
 			"name" => $event->path[0]->name,
-			"server" => (string)$this->chatBot->vars["dimension"],
+			"server" => (int)$this->chatBot->vars["dimension"],
 		];
 		if (isset($event->path[0]->label)) {
 			$packet['source']['label'] = $event->path[0]->label;
@@ -98,6 +101,7 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	public function receive(string $serialized): ?RoutableEvent {
+		$this->logger->log('DEBUG', "[Tyrbot] {$serialized}");
 		try {
 			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
@@ -105,8 +109,15 @@ class Tyrbot implements RelayProtocolInterface {
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
-				'Invalid data received via Tyrbot protocol: '.$data
+				"Invalid data received via Tyrbot protocol: {$serialized}"
 			);
+			return null;
+		} catch (Throwable $e) {
+			$this->logger->log(
+				'ERROR',
+				"Invalid Tyrbot-package received: {$serialized}"
+			);
+			$this->logger->log('ERROR', $e->getMessage());
 			return null;
 		}
 
@@ -123,6 +134,7 @@ class Tyrbot implements RelayProtocolInterface {
 
 	protected function receiveMessage(Message $packet): RoutableEvent {
 		$event = new RoutableEvent();
+		$event->type = $event::TYPE_MESSAGE;
 		if (isset($packet->user)) {
 			$event->setCharacter(new Character(
 				$packet->user->name,
@@ -146,8 +158,22 @@ class Tyrbot implements RelayProtocolInterface {
 				$packet->source->label ?? null
 			));
 		}
-		$event->setData($packet->message);
+		$event->setData($this->convertFromTyrColors($packet->message));
 		return $event;
+	}
+
+	protected function convertFromTyrColors(string $text): string {
+		return preg_replace_callback(
+			"/<\/(.*?)>/s",
+			function (array $matches): string {
+				$keep = ["font", "a", "img", "u", "i"];
+				if (in_array($matches[1], $keep)) {
+					return $matches[0];
+				}
+				return "<end>";
+			},
+			$text
+		);
 	}
 
 	protected function nadyTypeToTyr(string $type): string {

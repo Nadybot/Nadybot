@@ -306,10 +306,6 @@ class TradebotController {
 			}
 		}
 		$message = "Received message from Tradebot <highlight>$sender<end>: $message";
-		$this->chatBot->sendGuild($message, true);
-		if ($this->settingManager->getBool("guest_relay")) {
-			$this->chatBot->sendPrivate($message, true);
-		}
 	}
 
 	/**

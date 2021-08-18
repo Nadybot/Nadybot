@@ -744,9 +744,6 @@ class PrivateChannelController {
 		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list');
 
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
-			if ($this->settingManager->getBool("guest_relay")) {
-				$this->chatBot->sendGuild($msg, true);
-			}
 			$this->chatBot->sendPrivate($msg, true);
 		});
 		$this->playerManager->getByNameAsync(
@@ -850,9 +847,6 @@ class PrivateChannelController {
 			return;
 		}
 
-		if ($this->settingManager->getBool("guest_relay")) {
-			$this->chatBot->sendGuild($msg, true);
-		}
 		$event = new OfflineEvent();
 		$event->type = "offline(priv)";
 		$event->player = $sender;

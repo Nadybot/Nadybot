@@ -204,7 +204,6 @@ class LimitsController {
 		if (
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
-			|| $sender === ucfirst(strtolower($this->settingManager->get("relaybot")))
 			// if access level is at least member, skip checks
 			|| $this->accessManager->checkAccess($sender, 'member')
 		) {

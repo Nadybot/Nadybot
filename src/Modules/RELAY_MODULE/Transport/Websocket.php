@@ -23,6 +23,7 @@ use Nadybot\Modules\RELAY_MODULE\StatusProvider;
  * 	and if they are public, you might also want to add an encryption
  * 	layer on top of that.")
  * @Param(name='server', description='The URI of the websocket to connect to', type='string', required=true)
+ * @Param(name='authorization', description='If set, authorize against the Websocket server with a password', type='string', required=false)
  */
 class Websocket implements TransportInterface, StatusProvider {
 	/** @Inject */
@@ -42,12 +43,13 @@ class Websocket implements TransportInterface, StatusProvider {
 	protected ?string $status;
 
 	protected string $uri;
+	protected ?string $authorization;
 
 	protected $initCallback;
 
 	protected WebsocketClient $client;
 
-	public function __construct(string $uri) {
+	public function __construct(string $uri, ?string $authorization=null) {
 		$this->uri = $uri;
 		$urlParts = parse_url($this->uri);
 		if ($urlParts === false
@@ -60,6 +62,7 @@ class Websocket implements TransportInterface, StatusProvider {
 		if (!in_array($urlParts['scheme'], ['ws', 'wss'])) {
 			throw new Exception("<highlight>{$urlParts['scheme']}<end> is not a valid schema. Valid are ws and wss.");
 		}
+		$this->authorization = $authorization;
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -118,8 +121,11 @@ class Websocket implements TransportInterface, StatusProvider {
 	public function init(callable $callback): array {
 		$this->initCallback = $callback;
 		$this->client = $this->websocket->createClient()
-			->withURI($this->uri)
-			->withTimeout(30)
+			->withURI($this->uri);
+		if (isset($this->authorization)) {
+			$this->client->withHeader("Authorization", $this->authorization);
+		}
+		$this->client->withTimeout(30)
 			->on(WebsocketClient::ON_CONNECT, [$this, "processConnect"])
 			->on(WebsocketClient::ON_CLOSE, [$this, "processClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processMessage"])

@@ -98,9 +98,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>[^ ]+) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|<->) (?<to>.+)$/i")
+	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if ($args["to"] === Source::PRIV) {
@@ -117,7 +117,7 @@ class MessageHubController {
 		$route = new Route();
 		$route->source = $args["from"];
 		$route->destination = $args["to"];
-		if ($args["direction"] === "<->") {
+		if ($args["direction"] === "<->" || $args["direction"] === "&lt;-&gt;") {
 			$route->two_way = true;
 			$receiver = $this->messageHub->getReceiver($args["from"]);
 			if (!isset($receiver)) {
@@ -339,6 +339,9 @@ class MessageHubController {
 			return;
 		}
 		$list = [];
+		usort($routes, function(MessageRoute $route1, MessageRoute $route2): int {
+			return strcmp($route1->getSource(), $route2->getSource());
+		});
 		foreach ($routes as $route) {
 			$delLink = $this->text->makeChatcmd("delete", "/tell <myname> route del " . $route->getID());
 			$list []="[{$delLink}] " . $this->renderRoute($route);
@@ -545,7 +548,7 @@ class MessageHubController {
 	public function renderRoute(MessageRoute $route): string {
 		$from = $route->getSource();
 		$to = $route->getDest();
-		$direction = $route->getTwoWay() ? "<->" : "->";
+		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
 		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
 			join(" ", $route->renderModifiers());
 	}

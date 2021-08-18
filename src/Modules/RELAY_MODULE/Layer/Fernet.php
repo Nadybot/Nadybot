@@ -35,10 +35,12 @@ class Fernet implements RelayLayerInterface {
 	}
 
 	public function init(callable $callback): array {
+		$callback();
 		return [];
 	}
 
 	public function deinit(callable $callback): array {
+		$callback();
 		return [];
 	}
 

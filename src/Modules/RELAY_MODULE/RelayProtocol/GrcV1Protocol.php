@@ -39,23 +39,27 @@ class GrcV1Protocol implements RelayProtocolInterface {
 	}
 
 	public function receive(string $data): ?RoutableEvent {
-		if (!preg_match("/^.?grc (.+)/", $data, $matches)) {
+		if (!preg_match("/^.?grc (.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
 		$msg = new RoutableMessage($data);
-		if (preg_match("/^\[(.+?)\]\s*(.*)/", $data, $matches)) {
-			$msg->appendPath(new Source(Source::ORG, $matches[1]));
+		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
+			if (strlen($matches[1])) {
+				$msg->appendPath(new Source(Source::ORG, $matches[1]));
+			}
 			$data = $matches[2];
 		}
-		if (preg_match("/^\[(.+?)\]\s*(.*)/", $data, $matches)) {
-			$msg->appendPath(new Source(Source::PRIV, $matches[1]));
+		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
+			if (strlen($matches[1])) {
+				$msg->appendPath(new Source(Source::PRIV, $matches[1]));
+			}
 			$data = $matches[2];
 		}
-		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/", $data, $matches)) {
+		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/^([^ ]+):?\s*(.*)/", $data, $matches)) {
+		} elseif (preg_match("/^([^ ]+):?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}

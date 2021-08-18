@@ -41,7 +41,13 @@ class MessageHub {
 	public BuddylistManager $buddyListManager;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public Util $util;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	/** @Inject */
 	public DB $db;
@@ -334,7 +340,7 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($source->type, $source->name);
+		$color = $this->getHopColor($source->type, $source->name, "tag_color");
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
@@ -436,7 +442,7 @@ class MessageHub {
 		return $msgRoute;
 	}
 
-	public function getHopColor(string $type, ?string $name=null): ?RouteHopColor {
+	public function getHopColor(string $type, string $name, string $color): ?RouteHopColor {
 		$query = $this->db->table(static::DB_TABLE_COLORS);
 		/** @var Collection<RouteHopColor> */
 		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
@@ -446,13 +452,17 @@ class MessageHub {
 				return strpos($color->hop, "(") !== false;
 			});
 			foreach ($fullDefs as $colorDef) {
-				if (fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)) {
+				if (fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)
+					&&  isset($colorDef->{$color})
+				) {
 					return $colorDef;
 				}
 			}
 		}
 		foreach ($colorDefs as $colorDef) {
-			if (fnmatch($colorDef->hop, $type, FNM_CASEFOLD)) {
+			if (fnmatch($colorDef->hop, $type, FNM_CASEFOLD)
+				&& isset($colorDef->{$color})
+			) {
 				return $colorDef;
 			}
 		}
@@ -463,6 +473,10 @@ class MessageHub {
 	 * Get a font tag for the text of a routable message
 	 */
 	public function getTextColor(RoutableEvent $event): string {
+		if (empty($event->char) || $event->char->id === $this->chatBot->char->id) {
+			$sysColor = $this->settingManager->getString("default_routed_sys_color");
+			return $sysColor;
+		}
 		if (!count($event->path)) {
 			return "";
 		}
@@ -470,7 +484,7 @@ class MessageHub {
 		if (!isset($hop)) {
 			return "";
 		}
-		$color = $this->getHopColor($hop->type, $hop->name);
+		$color = $this->getHopColor($hop->type, $hop->name, "text_color");
 		if (!isset($color) || !isset($color->text_color)) {
 			return "";
 		}

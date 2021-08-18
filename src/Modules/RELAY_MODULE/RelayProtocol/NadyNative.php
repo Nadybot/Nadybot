@@ -55,9 +55,11 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$event->data = $data->data??null;
 		$event->type = $data->type??RoutableEvent::TYPE_MESSAGE;
-		$event->setCharacter(
-			new Character($data->char->name, $data->char->id??null)
-		);
+		if (isset($data->char)) {
+			$event->setCharacter(
+				new Character($data->char->name, $data->char->id??null)
+			);
+		}
 		return $event;
 	}
 

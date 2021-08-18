@@ -50,7 +50,7 @@ class MessageRoute {
 		}
 		return $modifiedEvent;
 	}
-	
+
 	/**
 	 * Render the modifiers so we can display them
 	 * @return string[]

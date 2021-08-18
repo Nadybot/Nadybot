@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
@@ -15,6 +16,9 @@ class DiscordChannel implements MessageReceiver {
 
 	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public DiscordController $discordController;

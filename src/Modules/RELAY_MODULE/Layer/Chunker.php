@@ -9,6 +9,7 @@ use Nadybot\Core\TimerEvent;
 use Nadybot\Modules\RELAY_MODULE\Layer\Chunker\Chunk;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Throwable;
 
 /**
  * @RelayStackMember("chunker")
@@ -101,17 +102,20 @@ class Chunker implements RelayLayerInterface {
 		try {
 			$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
 			$chunk = new Chunk($json);
-		} catch (JsonException $e) {
+		} catch (Throwable $e) {
 			// Chunking is optional
 			return $data;
 		}
 		if ($chunk->count === 1) {
+			$this->logger->log("INFO", "Single-chunk chunk received.");
 			return $chunk->data;
 		}
 		if (!isset($this->timerEvent)) {
+			$this->logger->log("INFO", "Setup new cleanup call");
 			$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
 		}
 		if (!isset($this->queue[$chunk->id])) {
+			$this->logger->log("INFO", "New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
 			$chunk->sent = time();
 			$this->queue[$chunk->id] = [
 				$chunk->part => $chunk
@@ -120,18 +124,22 @@ class Chunker implements RelayLayerInterface {
 		}
 		$this->queue[$chunk->id][$chunk->part] = $chunk;
 		if (count($this->queue[$chunk->id]) !== $chunk->count) {
+			$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
 			// Not yet complete;
 			return null;
 		}
+		$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
 		$data = "";
 		for ($i = 1; $i <= $chunk->count; $i++) {
 			$block  = $this->queue[$chunk->id][$i]->data ?? null;
 			if (!isset($block)) {
 				unset($this->queue[$chunk->id]);
+				$this->logger->log("ERROR", "Invalid data received.");
 				return null;
 			}
 			$data .= $block;
 		}
+		$this->logger->log("INFO", "Removed chunks from memory.");
 		unset($this->queue[$chunk->id]);
 		return $data;
 	}
@@ -144,11 +152,15 @@ class Chunker implements RelayLayerInterface {
 			if (!count($parts)
 				|| time() - $this->queue[$id][$parts[0]]->sent > $this->timeout
 			) {
+				$this->logger->log("INFO", "Removing stale chunk {$id}");
 				unset($this->queue[$id]);
 			}
 		}
 		if (count($this->queue)) {
+			$this->logger->log("INFO", "Calling cleanup in 10");
 			$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+		} else {
+			$this->logger->log("INFO", "No more unfinished chunks.");
 		}
 	}
 }

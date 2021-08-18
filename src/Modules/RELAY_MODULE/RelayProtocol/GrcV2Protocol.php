@@ -69,26 +69,31 @@ class GrcV2Protocol implements RelayProtocolInterface {
 	}
 
 	public function receive(string $data): ?RoutableEvent {
-		if (!preg_match("/^.?grc <v2>(.+)/", $data, $matches)) {
+		if (!preg_match("/^.?grc <v2>(.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
 		$msg = new RoutableMessage($data);
-		while (preg_match("/^<relay_(.+?)_tag_color>\[(.+?)\]<\/end>\s*(.*)/", $data, $matches)) {
-			$type = ($matches[1] === "guild") ? Source::ORG : Source::PRIV;
-			$msg->appendPath(new Source($type, $matches[2]));
+		while (preg_match("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data, $matches)) {
+			if (strlen($matches[2])) {
+				$type = ($matches[1] === "guild") ? Source::ORG : Source::PRIV;
+				$msg->appendPath(new Source($type, $matches[2]));
+			}
 			$data = $matches[3];
 		}
-		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/", $data, $matches)) {
+		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/([^ ]+):?\s*(.*)/", $data, $matches)) {
+		} elseif (preg_match("/([^ ]+):\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/", '$1', $data);
-		$data = preg_replace("/<\/end>$/", "", $data);
-		$msg->setData($data);
+		if (preg_match("/^<relay_bot_color>/s", $data)) {
+			$msg->char = null;
+		}
+		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
+		$data = preg_replace("/<\/end>$/s", "", $data);
+		$msg->setData(ltrim($data));
 		return $msg;
 	}
 

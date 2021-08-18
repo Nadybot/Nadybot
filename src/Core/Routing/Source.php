@@ -35,7 +35,7 @@ class Source {
 			case static::DISCORD_GUILD:
 				return null;
 			case static::DISCORD_PRIV:
-				return "Discord: " . ($this->label ?? $this->name);
+				return "#" . ($this->label ?? $this->name);
 			case static::DISCORD_MSG:
 				return ($this->label ?? $this->name) . "@Discord";
 			case static::TELL:

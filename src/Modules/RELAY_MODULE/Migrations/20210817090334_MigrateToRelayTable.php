@@ -69,6 +69,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		$relay->name = $relayBot->value;
 		$relay->id = $db->insert($this->relayController::DB_TABLE, $relay);
 		$transport = new RelayLayer();
+		$transport->relay_id = $relay->id;
 		$transportArgs = [];
 		switch ((int)$relayType->value) {
 			case 1:
@@ -114,7 +115,9 @@ class MigrateToRelayTable implements SchemaMigration {
 		$route->source = Source::RELAY . "({$relay->name})";
 		$route->destination = Source::ORG;
 		$routeInOrg = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-		[$route->source, $route->destination] = [$route->destination, $route->source];
+		$route = new Route();
+		$route->source = Source::ORG;
+		$route->destination = Source::RELAY . "({$relay->name})";
 		$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 
 		if (isset($guestRelay) && (int)$guestRelay->value) {
@@ -122,7 +125,9 @@ class MigrateToRelayTable implements SchemaMigration {
 			$route->source = Source::RELAY . "({$relay->name})";
 			$route->destination = Source::PRIV . "({$this->chatBot->vars['name']})";
 			$routeInPriv = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-			[$route->source, $route->destination] = [$route->destination, $route->source];
+			$route = new Route();
+			$route->source = Source::PRIV . "({$this->chatBot->vars['name']})";
+			$route->destination = Source::RELAY . "({$relay->name})";
 			$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 		}
 		$relayWhen = $this->getSetting($db, "relay_symbol_method");
@@ -130,7 +135,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		if (isset($relayWhen) && $relayWhen->value !== "0") {
 			foreach ($routesOut as $routeId) {
 				$symId = $this->addMod($db, $routeId, "if-has-prefix");
-				$args = ["value" => $relaySymbol ? $relaySymbol->value : "@"];
+				$args = ["prefix" => $relaySymbol ? $relaySymbol->value : "@"];
 				if ($relayWhen->value === "2") {
 					$args["inverse"] = "true";
 				}
@@ -141,7 +146,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		$relayIgnore = $this->getSetting($db, "relay_ignore");
 		if (isset($relayIgnore) && strlen($relayIgnore->value)) {
 			foreach ($routesOut as $routeId) {
-				foreach (explode(",", $relayIgnore->value) as $ignore) {
+				foreach (explode(";", $relayIgnore->value) as $ignore) {
 					$modId = $this->addMod($db, $routeId, "if-not-by");
 					$this->addArgs($db, $modId, ["sender" => $ignore]);
 				}
