@@ -22,12 +22,19 @@ class PublicChannel implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
+		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			return false;
+			if (!is_string($event->data->message??null)) {
+				return false;
+			}
+			$msg = $event->data->message;
+			$renderPath =$event->data->renderPath;
+		} else {
+			$msg = $event->getData();
 		}
 		$msgColor = $this->messageHub->getTextColor($event);
-		$message = $this->messageHub->renderPath($event).
-			$msgColor.$event->getData();
+		$message = ($renderPath ? $this->messageHub->renderPath($event) : "").
+			$msgColor.$msg;
 		$this->chatBot->sendPublic($message, $this->channel);
 		return true;
 	}

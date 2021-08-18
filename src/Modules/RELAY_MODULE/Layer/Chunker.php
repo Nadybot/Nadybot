@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Timer;
 use Nadybot\Core\TimerEvent;

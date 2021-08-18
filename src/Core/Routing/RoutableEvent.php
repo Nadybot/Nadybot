@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Routing;
 
 use Nadybot\Core\Event;
+use Nadybot\Core\Routing\Events\Base;
 
 class RoutableEvent extends Event {
 	public const TYPE_MESSAGE = "message";
@@ -11,6 +12,7 @@ class RoutableEvent extends Event {
 	public ?Character $char = null;
 	/** @var Source[] */
 	public array $path = [];
+	/** @var string|Base|null */
 	public $data = null;
 
 	public function getType(): string {

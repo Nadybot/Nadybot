@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DBRow,
 	Event,
 	LoggerWrapper,
+	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -22,6 +23,10 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\Events\Online;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -95,6 +100,9 @@ class GuildController {
 
 	/** @Inject */
 	public GuildManager $guildManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Text $text;
@@ -595,6 +603,19 @@ class GuildController {
 		}
 	}
 
+	public function dispatchRoutableEvent(object $event): void {
+		$re = new RoutableEvent();
+		$re->type = RoutableEvent::TYPE_EVENT;
+		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
+		$re->prependPath(new Source(
+			Source::ORG,
+			$this->chatBot->vars["my_guild"],
+			($abbr === "none") ? null : $abbr
+		));
+		$re->setData($event);
+		$this->messageHub->handle($re);
+	}
+
 	/**
 	 * @Event("timer(24hrs)")
 	 * @Description("Download guild roster xml and update guild members")
@@ -716,7 +737,12 @@ class GuildController {
 			return;
 		}
 		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list');
-		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
+		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
+			$e = new Online();
+			$e->char = new Character($sender, $this->chatBot->get_uid($sender));
+			$e->online = true;
+			$e->message = $msg;
+			$this->dispatchRoutableEvent($e);
 			$this->chatBot->sendGuild($msg, true);
 		});
 	}
@@ -749,6 +775,11 @@ class GuildController {
 		}
 
 		$msg = $this->getLogoffMessage($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $this->chatBot->get_uid($sender));
+		$e->online = false;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
 		if ($msg === null) {
 			return;
 		}

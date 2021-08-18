@@ -196,7 +196,7 @@ class MessageHub {
 	 */
 	public function unregisterMessageReceiver(string $channel): self {
 		unset($this->receivers[strtolower($channel)]);
-		$this->logger->log('INFO', "Removed event receiver for {$channel}");
+		$this->logger->log('DEBUG', "Removed event receiver for {$channel}");
 		return $this;
 	}
 
@@ -205,7 +205,7 @@ class MessageHub {
 	 */
 	public function unregisterMessageEmitter(string $channel): self {
 		unset($this->emitters[strtolower($channel)]);
-		$this->logger->log('INFO', "Removed event emitter for {$channel}");
+		$this->logger->log('DEBUG', "Removed event emitter for {$channel}");
 		return $this;
 	}
 
@@ -261,14 +261,10 @@ class MessageHub {
 	 * Submit an event to be routed according to the configured connections
 	 */
 	public function handle(RoutableEvent $event): void {
-		$this->logger->log('INFO', "Received event to route");
+		$this->logger->log('DEBUG', "Received event to route");
 		$path = $event->getPath();
 		if (empty($path)) {
-			$this->logger->log('INFO', "Discarding event without path");
-			return;
-		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			$this->logger->log('INFO', "Discarding non-message event");
+			$this->logger->log('DEBUG', "Discarding event without path");
 			return;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
@@ -291,15 +287,15 @@ class MessageHub {
 			foreach ($dest as $destName => $route) {
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
-					$this->logger->log('INFO', "No receiver registered for {$destName}");
+					$this->logger->log('DEBUG', "No receiver registered for {$destName}");
 					continue;
 				}
 				$modifiedEvent = $route->modifyEvent($event);
 				if (!isset($modifiedEvent)) {
-					$this->logger->log('INFO', "Event filtered away for {$destName}");
+					$this->logger->log('DEBUG', "Event filtered away for {$destName}");
 					continue;
 				}
-				$this->logger->log('INFO', "Event routed to {$destName}");
+				$this->logger->log('DEBUG', "Event routed to {$destName}");
 				$destination = $route->getDest();
 				if (preg_match("/\((.+)\)$/", $destination, $matches)) {
 					$destination = $matches[1];

@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 	DBSchema\Member,
+	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	UserStateEvent,
@@ -26,6 +27,10 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\Modules\BAN\BanController;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\Events\Online;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -130,6 +135,9 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Text $text;
@@ -735,6 +743,18 @@ class PrivateChannelController {
 		);
 	}
 
+	public function dispatchRoutableEvent(object $event): void {
+		$re = new RoutableEvent();
+		$label = null;
+		if (isset($this->chatBot->vars["my_guild"]) && strlen($this->chatBot->vars["my_guild"])) {
+			$label = "Guest";
+		}
+		$re->type = RoutableEvent::TYPE_EVENT;
+		$re->prependPath(new Source(Source::PRIV, $this->chatBot->char->name, $label));
+		$re->setData($event);
+		$this->messageHub->handle($re);
+	}
+
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Displays a message when a character joins the private channel")
@@ -743,7 +763,12 @@ class PrivateChannelController {
 		$sender = $eventObj->sender;
 		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list');
 
-		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg): void {
+		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
+			$e = new Online();
+			$e->char = new Character($sender, $this->chatBot->get_uid($sender));
+			$e->online = true;
+			$e->message = $msg;
+			$this->dispatchRoutableEvent($e);
 			$this->chatBot->sendPrivate($msg, true);
 		});
 		$this->playerManager->getByNameAsync(
@@ -843,6 +868,15 @@ class PrivateChannelController {
 	public function leavePrivateChannelMessageEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		$msg = $this->getLogoffMessage($sender);
+
+		$e = new Online();
+		$e->char = new Character($sender, $this->chatBot->get_uid($sender));
+		$e->online = false;
+		if (isset($msg)) {
+			$e->message = $msg;
+		}
+		$this->dispatchRoutableEvent($e);
+
 		if ($msg === null) {
 			return;
 		}

@@ -317,7 +317,7 @@ class DiscordGatewayController {
 		$newEvent = new DiscordGatewayEvent();
 		$newEvent->payload = $payload;
 		$newEvent->type = strtolower("discord({$payload->t})");
-		$this->logger->log("INFO", "New event: discord({$payload->t})");
+		$this->logger->log("DEBUG", "New event: discord({$payload->t})");
 		$this->eventManager->fireEvent($newEvent);
 	}
 
@@ -424,7 +424,7 @@ class DiscordGatewayController {
 			$name = $message->member->nick ?? $name;
 		}
 		$channel = $this->getChannel($message->channel_id);
-		$channelName = $channel ? ($channel->name??"DM") : $event->channel;
+		$channelName = $channel ? ($channel->name??"DM") : "thread";
 		if ($message->guild_id) {
 			$this->logger->logChat("Discord:{$channelName}", $name, $message->content);
 		} else {
@@ -446,10 +446,10 @@ class DiscordGatewayController {
 				$aoMessage = DiscordRelayController::formatMessage($text);
 				$rMessage = new RoutableMessage($aoMessage);
 				if ($message->guild_id) {
-					$source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
+					// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
+					// $rMessage->appendPath($source);
+					$source = new Source(Source::DISCORD_PRIV, $channelName, null, (int)$message->guild_id);
 					$rMessage->appendPath($source);
-					$source = new Source(Source::DISCORD_PRIV, $channelName);
-					$rMessage->prependPath($source);
 				} else {
 					$source = new Source(Source::DISCORD_MSG, $name);
 					$rMessage->prependPath($source);

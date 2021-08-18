@@ -73,15 +73,11 @@ class DiscordMessageCommandReply implements CommandReply {
 		);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[$channel->guild_id] ?? null;
-		if (isset($guild)) {
-			$rMessage->prependPath(new Source(
-				Source::DISCORD_GUILD,
-				$guild->name
-			));
-		}
 		$rMessage->prependPath(new Source(
 			Source::DISCORD_PRIV,
-			$channel->name
+			$channel->name,
+			null,
+			isset($guild) ? (int)$guild->id : null
 		));
 		$this->messageHub->handle($rMessage);
 	}

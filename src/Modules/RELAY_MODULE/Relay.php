@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
+use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
 use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 
@@ -21,12 +24,18 @@ class Relay implements MessageReceiver {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public PlayerManager $playerManager;
+
 	protected string $name;
 	/** @var RelayLayerInterface[] */
 	protected array $stack = [];
 	protected array $events = [];
 	protected TransportInterface $transport;
 	protected RelayProtocolInterface $relayProtocol;
+
+	/** @var array<string,array<string,OnlinePlayer>> */
+	protected $onlineChars = [];
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
@@ -37,6 +46,48 @@ class Relay implements MessageReceiver {
 
 	public function getName(): string {
 		return $this->name;
+	}
+
+	/** @return array<string,array<string,OnlinePlayer>> */
+	public function getOnlineList(): array {
+		return $this->onlineChars;
+	}
+
+	public function clearOnline(string $where): void {
+		unset($this->onlineChars[$where]);
+	}
+
+	public function setOnline(string $where, string $character, ?int $uid, ?int $dimension) {
+		$character = ucfirst(strtolower($character));
+		$this->onlineChars[$where] ??= [];
+		$player = new OnlinePlayer();
+		$player->name = $character;
+		$player->pmain = $character;
+		$player->online = true;
+		$player->afk = "";
+		if (isset($uid)) {
+			$player->charid = $uid;
+		}
+		$this->onlineChars[$where][$character] = $player;
+		$this->playerManager->getByNameCallback(
+			function(?Player $player) use ($where, $character, $uid): void {
+				if (!isset($player)) {
+					return;
+				}
+				foreach ($player as $key => $value) {
+					$this->onlineChars[$where][$character]->{$key} = $value;
+				}
+			},
+			false,
+			$character,
+			$dimension
+		);
+	}
+
+	public function setOffline(string $where, string $character, ?int $uid, ?int $dimension) {
+		$character = ucfirst(strtolower($character));
+		$this->onlineChars[$where] ??= [];
+		unset($this->onlineChars[$where][$character]);
 	}
 
 	public function getStatus(): string {
@@ -109,6 +160,7 @@ class Relay implements MessageReceiver {
 
 	public function init(?callable $callback=null, int $index=0): void {
 		$this->initialized = false;
+		$this->onlineChars = [];
 		$this->initStep = $index;
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
@@ -193,5 +245,20 @@ class Relay implements MessageReceiver {
 			$data = $this->stack[$i]->send($data);
 		}
 		return empty($this->transport->send($data));
+	}
+
+	public function receiveFromMember(RelayStackMemberInterface $member, array $data): void {
+		$i = count($this->stack);
+		if ($member !== $this->relayProtocol) {
+			for ($i = count($this->stack); $i--;) {
+				if ($this->stack[$i] === $member) {
+					break;
+				}
+			}
+		}
+		for ($j = $i; $j--;) {
+			$data = $this->stack[$j]->send($data);
+		}
+		$this->transport->send($data);
 	}
 }

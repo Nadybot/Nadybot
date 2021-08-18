@@ -36,11 +36,18 @@ class DiscordChannel implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
+		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			return false;
+			if (!is_string($event->data->message??null)) {
+				return false;
+			}
+			$msg = $event->data->message;
+			$renderPath =$event->data->renderPath;
+		} else {
+			$msg = $event->getData();
 		}
-		$message = $this->messageHub->renderPath($event).
-			$event->getData();
+		$message = ($renderPath ? $this->messageHub->renderPath($event) : "").
+			$msg;
 		$discordMsg = $this->discordController->formatMessage($message);
 
 		//Relay the message to the discord channel

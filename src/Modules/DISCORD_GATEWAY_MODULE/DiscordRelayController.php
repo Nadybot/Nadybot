@@ -125,14 +125,14 @@ class DiscordRelayController {
 		// 	"true;false",
 		// 	"1;0"
 		// );
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_channel",
-			"Discord channel to relay into",
-			"edit",
-			"discord_channel",
-			"off"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	"discord_relay_channel",
+		// 	"Discord channel to relay into",
+		// 	"edit",
+		// 	"discord_channel",
+		// 	"off"
+		// );
 		// $this->settingManager->add(
 		// 	$this->moduleName,
 		// 	"discord_color_sender_guild",
@@ -173,14 +173,14 @@ class DiscordRelayController {
 		// 	"color",
 		// 	"<font color=#C3C3C3>"
 		// );
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_mention_rank",
-			"Minimum ranks allowed to use @here and @everyone",
-			"edit",
-			"rank",
-			"mod"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	"discord_relay_mention_rank",
+		// 	"Minimum ranks allowed to use @here and @everyone",
+		// 	"edit",
+		// 	"rank",
+		// 	"mod"
+		// );
 	}
 
 	/**
@@ -435,102 +435,5 @@ class DiscordRelayController {
 			);
 		}
 		return $text;
-	}
-
-	public function relayPrivOnlineEvent(string $msg): void {
-		if ($this->settingManager->getBool('discord_prefix_relay')) {
-			if (strlen($this->chatBot->vars["my_guild"])) {
-				$msg = "[Guest] {$msg}";
-			} elseif ($this->settingManager->getBool('discord_prefix_relay')) {
-				$msg = "[<myname>] {$msg}";
-			}
-		}
-		$discordMsg = $this->discordController->formatMessage($msg);
-		$discordMsg->allowed_mentions = (object)[
-			"parse" => ["users"]
-		];
-
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
-	}
-
-	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends a message to Discord when someone joins the private channel")
-	 */
-	public function relayJoinPrivMessagesEvent(Event $eventObj): void {
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		if ($relayChannel === "off" || empty($relayChannel)) {
-			return;
-		}
-		$sender = $eventObj->sender;
-		$msg = $this->privateChannelController->getLogonMessageAsync($sender, true, [$this, "relayPrivOnlineEvent"]);
-	}
-
-	/**
-	 * @Event("leavePriv")
-	 * @Description("Sends a message to Discordthe relay when someone leaves the private channel")
-	 */
-	public function relayLeavePrivMessagesEvent(Event $eventObj): void {
-		$sender = $eventObj->sender;
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		if ($relayChannel === "off" || empty($relayChannel)) {
-			return;
-		}
-		$msg = $this->privateChannelController->getLogoffMessage($sender);
-		if ($msg === null) {
-			return;
-		}
-		$this->relayPrivOnlineEvent($msg);
-	}
-
-	public function relayOrgOnlineEvent(string $msg): void {
-		if ($this->settingManager->getBool('discord_prefix_relay')) {
-			$guildNameForRelay = $this->relayController->getGuildAbbreviation();
-			$msg = "[{$guildNameForRelay}] {$msg}";
-		}
-		$discordMsg = $this->discordController->formatMessage($msg);
-		$discordMsg->allowed_mentions = (object)[
-			"parse" => ["users"]
-		];
-
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		$this->discordAPIClient->queueToChannel($relayChannel, $discordMsg->toJSON());
-	}
-
-	/**
-	 * @Event("logOn")
-	 * @Description("Sends Org logon messages to Discord")
-	 */
-	public function relayLogonMessagesEvent(Event $eventObj): void {
-		$sender = $eventObj->sender;
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		if ($relayChannel === "off"
-			|| empty($relayChannel)
-			|| !isset($this->chatBot->guildmembers[$sender])
-			|| !$this->chatBot->isReady()) {
-			return;
-		}
-		$this->guildController->getLogonMessageAsync($sender, true, [$this, "relayOrgOnlineEvent"]);
-	}
-
-	/**
-	 * @Event("logOff")
-	 * @Description("Sends Logoff messages over the relay")
-	 */
-	public function relayLogoffMessagesEvent(Event $eventObj): void {
-		$sender = $eventObj->sender;
-		$relayChannel = $this->settingManager->getString("discord_relay_channel");
-		if ($relayChannel === "off"
-			|| empty($relayChannel)
-			|| !isset($this->chatBot->guildmembers[$sender])
-			|| !$this->chatBot->isReady()) {
-			return;
-		}
-		$msg = $this->guildController->getLogoffMessage($sender);
-		if ($msg === null) {
-			return;
-		}
-		$this->relayOrgOnlineEvent($msg);
 	}
 }

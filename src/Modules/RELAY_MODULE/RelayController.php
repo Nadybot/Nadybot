@@ -60,7 +60,7 @@ class RelayController {
 	protected array $stackElements = [];
 
 	/** @var array<string,Relay> */
-	protected array $relays = [];
+	public array $relays = [];
 
 	/**
 	 * Name of the module.
@@ -115,57 +115,6 @@ class RelayController {
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relaytype',
-		// 	"Type of relay",
-		// 	"edit",
-		// 	"options",
-		// 	"1",
-		// 	"tell;private channel;amqp",
-		// 	'1;2;3'
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relaysymbol',
-		// 	"Symbol for external relay",
-		// 	"edit",
-		// 	"options",
-		// 	"@",
-		// 	"!;#;*;@;$;+;-"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relay_symbol_method',
-		// 	"When to relay messages",
-		// 	"edit",
-		// 	"options",
-		// 	"0",
-		// 	"Always relay;Relay when symbol;Relay unless symbol",
-		// 	'0;1;2'
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relaybot',
-		// 	"Bot/AMQP exchange",
-		// 	"edit",
-		// 	"text",
-		// 	"Off",
-		// 	"Off",
-		// 	'',
-		// 	"mod",
-		// 	"relaybot.txt"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'bot_relay_commands',
-		// 	"Relay commands and results over the bot relay",
-		// 	"edit",
-		// 	"options",
-		// 	"1",
-		// 	"true;false",
-		// 	"1;0"
-		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			'relay_color_guild',
@@ -191,42 +140,6 @@ class RelayController {
 			'none',
 			'none'
 		);
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relay_ignore',
-		// 	'Semicolon-separated list of people not to relay away',
-		// 	'edit',
-		// 	'text',
-		// 	'',
-		// 	'none'
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relay_filter_out',
-		// 	'RegExp filtering outgoing messages',
-		// 	'edit',
-		// 	'text',
-		// 	'',
-		// 	'none'
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relay_filter_in',
-		// 	'RegExp filtering messages to org chat',
-		// 	'edit',
-		// 	'text',
-		// 	'',
-		// 	'none'
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'relay_filter_in_priv',
-		// 	'RegExp filtering messages to priv chat',
-		// 	'edit',
-		// 	'text',
-		// 	'',
-		// 	'none'
-		// );
 		$this->settingManager->add(
 			$this->moduleName,
 			'relay_bot_color_org',
@@ -637,6 +550,31 @@ class RelayController {
 		$relay->init(function() use ($relay) {
 			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
 		});
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay describe (?<id>\d+)$/is")
+	 * @Matches("/^relay describe (?<name>.+)$/is")
+	 */
+	public function relayDescribeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$relay = isset($args['id'])
+			? $this->getRelay((int)$args['id'])
+			: $this->getRelayByName($args['name']);
+		/** @var ?RelayConfig $relay */
+		if (!isset($relay)) {
+			$sendto->reply(
+				"Relay <highlight>".
+				(isset($args['id']) ? "#{$args['id']}" : $args['name']).
+				"<end> not found."
+			);
+			return;
+		}
+		$msg = "<symbol>relay add {$relay->name}";
+		foreach ($relay->layers as $layer) {
+			$msg .= " " . $layer->toString();
+		}
+		$sendto->reply($msg);
 	}
 
 	/**

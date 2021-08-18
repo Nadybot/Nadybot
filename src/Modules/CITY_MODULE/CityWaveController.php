@@ -8,12 +8,16 @@ use Nadybot\Core\{
 	CommandReply,
 	Event,
 	EventManager,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	SettingObject,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\TIMERS_MODULE\{
+	Alert,
 	TimerController,
 	Timer,
 };
@@ -53,6 +57,9 @@ class CityWaveController {
 	public TimerController $timerController;
 
 	/** @Inject */
+	public MessageHub $messageHub;
+
+	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
@@ -85,21 +92,31 @@ class CityWaveController {
 			'mod',
 			'city_wave_times.txt'
 		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'city_wave_announce',
-			'Where to show city waves events',
-			'edit',
-			'text',
-			'org',
-			'org;priv;org,priv;none',
-			'',
-			'mod'
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	'city_wave_announce',
+		// 	'Where to show city waves events',
+		// 	'edit',
+		// 	'text',
+		// 	'org',
+		// 	'org;priv;org,priv;none',
+		// 	'',
+		// 	'mod'
+		// );
 		$this->settingManager->registerChangeListener(
 			'city_wave_times',
 			[$this, 'changeWaveTimes']
 		);
+		$this->messageHub->registerMessageEmitter(new CityWaveChannel());
+	}
+
+	public function sendWaveMessage(string $message): void {
+		$e = new RoutableMessage($message);
+		$e->prependPath(new Source(
+			Source::SYSTEM,
+			"city-wave"
+		));
+		$this->messageHub->handle($e);
 	}
 
 	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, $data): void {
@@ -178,23 +195,8 @@ class CityWaveController {
 		return $timer->alerts[0]->wave;
 	}
 
-	public function announce(string $msg, ?string $announceWhere=null): void {
-		if ($announceWhere === null) {
-			$announceWhere = $this->settingManager->getString('city_wave_announce');
-		}
-		$channels = explode(",", $announceWhere);
-		foreach ($channels as $channel) {
-			if ($channel === "org") {
-				$this->chatBot->sendGuild($msg, true);
-			}
-			if ($channel === "priv") {
-				$this->chatBot->sendPrivate($msg, true);
-			}
-		}
-	}
-
 	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
-		$this->announce($alert->message, $timer->mode);
+		$this->sendWaveMessage($alert->message);
 		$event = new CityWaveEvent();
 		$event->type = "cityraid(wave)";
 		$event->wave = $alert->wave;
@@ -210,9 +212,9 @@ class CityWaveController {
 		$this->eventManager->fireEvent($event);
 
 		if ($name === null) {
-			$this->announce("Wave counter started.");
+			$this->sendWaveMessage("Wave counter started.");
 		} else {
-			$this->announce("Wave counter started by $name.");
+			$this->sendWaveMessage("Wave counter started by $name.");
 		}
 		$lastTime = time();
 		$wave = 1;
@@ -234,13 +236,16 @@ class CityWaveController {
 			$wave++;
 		}
 		$this->timerController->remove(self::TIMER_NAME);
-		$announceWhere = $this->settingManager->getString('city_wave_announce');
 		$this->timerController->add(
 			self::TIMER_NAME,
-			$this->chatBot->vars['name'],
-			$announceWhere,
+			$this->chatBot->char->name,
+			"none",
 			$alerts,
-			'timercontroller.timerCallback'
+			'citywavecontroller.timerCallback'
 		);
+	}
+
+	public function timerCallback(Timer $timer, Alert $alert): void {
+		$this->sendWaveMessage($alert->message);
 	}
 }

@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Routing;
 
+use Nadybot\Core\Registry;
+
 class Source {
 	public const RELAY = "relay";
 	public const ORG = "aoorg";
@@ -14,15 +16,22 @@ class Source {
 	public const DISCORD_MSG = "discordmsg";
 	public const TRADEBOT = "tradebot";
 	public const IRC = "irc";
+	public const SYSTEM = "system";
 
 	public string $name = "";
 	public ?string $label = null;
 	public string $type = self::ORG;
+	public int $server = 5;
 
-	public function __construct(string $type, string $name, ?string $label=null) {
+	public function __construct(string $type, string $name, ?string $label=null, ?int $dimension=null) {
 		$this->type = $type;
 		$this->name = $name;
 		$this->label = $label;
+		if (!isset($dimension)) {
+			$this->server = (int)Registry::getInstance("chatBot")->vars["dimension"];
+		} else {
+			$this->server = $dimension;
+		}
 	}
 
 	public function render(?Source $lastHop): ?string {
@@ -43,6 +52,8 @@ class Source {
 			case static::TRADEBOT:
 				return null;
 			case static::RELAY:
+				return null;
+			case static::SYSTEM:
 				return null;
 			default:
 				return $this->label ?? $this->name;
