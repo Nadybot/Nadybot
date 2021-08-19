@@ -8,10 +8,10 @@ use Nadybot\Core\{
 	CommandReply,
 	Event,
 	EventManager,
+	MessageEmitter,
 	MessageHub,
 	Nadybot,
 	SettingManager,
-	SettingObject,
 	Util,
 };
 use Nadybot\Core\Routing\RoutableMessage;
@@ -39,7 +39,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
  *	@ProvidesEvent("cityraid(wave)")
  *	@ProvidesEvent("cityraid(end)")
  */
-class CityWaveController {
+class CityWaveController implements MessageEmitter {
 
 	/**
 	 * Name of the module.
@@ -66,9 +66,6 @@ class CityWaveController {
 	public EventManager $eventManager;
 
 	/** @Inject */
-	public SettingObject $setting;
-
-	/** @Inject */
 	public Util $util;
 
 	public const TIMER_NAME = "City Raid";
@@ -92,22 +89,15 @@ class CityWaveController {
 			'mod',
 			'city_wave_times.txt'
 		);
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'city_wave_announce',
-		// 	'Where to show city waves events',
-		// 	'edit',
-		// 	'text',
-		// 	'org',
-		// 	'org;priv;org,priv;none',
-		// 	'',
-		// 	'mod'
-		// );
 		$this->settingManager->registerChangeListener(
 			'city_wave_times',
 			[$this, 'changeWaveTimes']
 		);
-		$this->messageHub->registerMessageEmitter(new CityWaveChannel());
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(city-wave)";
 	}
 
 	public function sendWaveMessage(string $message): void {
@@ -219,7 +209,7 @@ class CityWaveController {
 		$lastTime = time();
 		$wave = 1;
 		$alerts = [];
-		$alertTimes = explode(' ', $this->setting->city_wave_times);
+		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times"));
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;

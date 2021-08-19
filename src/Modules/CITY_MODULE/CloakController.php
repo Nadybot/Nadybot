@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -34,7 +35,7 @@ use Nadybot\Core\Routing\Source;
  *	@ProvidesEvent("cloak(raise)")
  *	@ProvidesEvent("cloak(lower)")
  */
-class CloakController {
+class CloakController implements MessageEmitter {
 
 	public const DB_TABLE = "org_city_<myname>";
 
@@ -94,7 +95,11 @@ class CloakController {
 			"2m;5m;10m;15m;20m"
 		);
 
-		$this->messageHub->registerMessageEmitter(new CloakChannel());
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(cloak)";
 	}
 
 	/**
