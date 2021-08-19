@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Timer;
 use Nadybot\Core\TimerEvent;
+use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Layer\Chunker\Chunk;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
@@ -30,6 +31,9 @@ class Chunker implements RelayLayerInterface {
 
 	/** @Inject */
 	public Timer $timer;
+
+	/** @Inject */
+	public Util $util;
 
 	protected TimerEvent $timerEvent;
 
@@ -63,25 +67,13 @@ class Chunker implements RelayLayerInterface {
 		return $encoded;
 	}
 
-	public function createUUID(): string {
-		$data = random_bytes(16);
-
-		// Set version to 0100
-		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-		// Set bits 6-7 to 10
-		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-
-		// Output the 36 character UUID.
-		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-	}
-
 	protected function chunkPacket(string $packet): array {
 		if (strlen($packet) < $this->chunkSize) {
 			return [$packet];
 		}
 		$chunks = str_split($packet, $this->chunkSize);
 		$result = [];
-		$uuid = $this->createUUID();
+		$uuid = $this->util->createUUID();
 		$part = 1;
 		$created = time();
 		foreach ($chunks as $chunk) {
