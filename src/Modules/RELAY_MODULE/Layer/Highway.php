@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Exception;
 use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
@@ -10,8 +11,18 @@ use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
  * @RelayStackMember("highway")
- * @Description("This is the highway protocol, spoken by the highway websocket-server")
- * @Param(name='room', description='The room to join', type='string', required=true)
+ * @Description("This is the highway protocol, spoken by the highway websocket-server.
+ * 	It will broadcast incoming messages to all clients in the same room.
+ * 	Room names can be picked freely as long as they are at least 32 characters
+ * 	long. They should be as random as possible to prevent unauthorized
+ *	access to messages.
+ *	For further security, using an encryption layer is recommended.")
+ * @Param(
+ * 	name='room',
+ * 	description='The room to join. Must be at least 32 characters long.',
+ * 	type='string',
+ * 	required=true
+ * )
  */
 class Highway implements RelayLayerInterface, StatusProvider {
 	protected string $room;
@@ -26,6 +37,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	protected $initCallback = null;
 
 	public function __construct(string $room) {
+		if (strlen($room) < 32) {
+			throw new Exception("<highlight>room<end> must be at least 32 characters long.");
+		}
 		$this->room = $room;
 	}
 

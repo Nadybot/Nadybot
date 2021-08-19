@@ -92,7 +92,7 @@ class QuickRelayController {
 				"highway(room=\"{$room}\") ".
 				"fernet-encryption(password=\"{$password}\", salt=\"{$salt}\") ".
 				"nadynative()<end>\n\n".
-			$this->getRouteInformation("nady").
+			$this->getRouteInformation("nady", true).
 			$this->getDisclaimer("nady");
 		$msg = "Instructions to setup the relay \"nady\"";
 		$msg = $this->text->makeBlob($msg, $blob);
@@ -148,16 +148,24 @@ class QuickRelayController {
 			"</i>";
 	}
 
-	public function getRouteInformation(string $name): string {
+	public function getRouteInformation(string $name, bool $sharedOnline=false): string {
 		$cmd1 = "route add relay({$name}) <-> " . Source::ORG;
 		$cmd2 = "route add relay({$name}) <-> " . Source::PRIV;
 		$cmd3 = "route add relay({$name}) <-> " . Source::ORG . ' if-has-prefix(prefix="-")';
 		$cmd4 = "route add relay({$name}) <-> " . Source::PRIV . ' if-has-prefix(prefix="-")';
-		return "To relay all messages between your chats and the relay, run this on all Nadybots:\n".
+		$blob = "To relay all messages between your chats and the relay, run this on all Nadybots:\n".
 			"<tab><highlight><symbol>" . htmlentities($cmd1) . "<end>\n".
 			"<tab><highlight><symbol>" . htmlentities($cmd2) . "<end>\n\n".
 			"Or, to only relay messages when they start with \"-\", run this on all Nadybots:\n".
 			"<tab><highlight><symbol>" . htmlentities($cmd3) . "<end>\n".
 			"<tab><highlight><symbol>" . htmlentities($cmd4) . "<end>";
+		if (!$sharedOnline) {
+			return $blob;
+		}
+		$blob .= "\n\nBy default, this will route online/offline/join/leave messages to\n".
+			"and from the relay. If you only want to share online lists between the bots,\n".
+			"but don't want to display these messages, add\n".
+			"<tab><highlight>remove-online-messages()<end> to the end of all route commands.";
+		return$blob;
 	}
 }

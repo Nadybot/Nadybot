@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -76,6 +77,12 @@ class RelayController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public QuickRelayController $quickRelayController;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Text $text;
@@ -345,9 +352,8 @@ class RelayController {
 		foreach ($specs as $spec) {
 			$description = $spec->description ?? "Someone forgot to add a description";
 			$entry = "<header2>{$spec->name}<end>\n".
-				"<tab><i>".
-				join("\n<tab>", explode("\n", trim($description))).
-				"</i>";
+				"<tab>".
+				join("\n<tab>", explode("\n", trim($description)));
 			if (count($spec->params)) {
 				$entry .= "\n<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> relay list {$subCommand} {$spec->name}") . "]";
 			}
@@ -401,7 +407,10 @@ class RelayController {
 				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
 				"</i>\n\n";
 		}
-		return (array)$this->text->makeBlob("{$spec->name}", $blob);
+		return (array)$this->text->makeBlob(
+			"Detailed description for {$spec->name}",
+			$blob
+		);
 	}
 
 	/**
@@ -542,11 +551,16 @@ class RelayController {
 			return;
 		}
 		$this->db->commit();
-		$sendto->reply(
-			"Relay <highlight>{$args['name']}<end> added. ".
-			"Make sure to set a <highlight><symbol>route<end> ".
-			"to specify which messages to relay from where to where."
+		$blob = $this->quickRelayController->getRouteInformation(
+			$args['name'],
+			in_array($layer->layer, ["tyrbot", "nadynative"])
 		);
+		$msg = "Relay <highlight>{$args['name']}<end> added.";
+		if (!$this->messageHub->hasRouteFor($relay->getChannelName())) {
+			$help = $this->text->makeBlob("setup your routing", $blob);
+			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
+		}
+		$sendto->reply($msg);
 		$relay->init(function() use ($relay) {
 			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
 		});
@@ -881,7 +895,7 @@ class RelayController {
 			Registry::injectDependencies($result);
 			return $result;
 		} catch (Throwable $e) {
-			throw new Exception("There was an error setting up the {$name} modifier: " . $e->getMessage());
+			throw new Exception("There was an error setting up the {$name} layer: " . $e->getMessage());
 		}
 	}
 }
