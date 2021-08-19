@@ -633,6 +633,7 @@ class Util {
 				case $param::TYPE_BOOL:
 				case $param::TYPE_STRING:
 				case $param::TYPE_INT:
+				case $param::TYPE_STRING_ARRAY:
 					$param->type = $paramAnnotation->type;
 					break;
 				case "integer":

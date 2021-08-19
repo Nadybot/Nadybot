@@ -32,7 +32,7 @@ class PrivateChannel implements MessageReceiver {
 				return false;
 			}
 			$msg = $event->data->message;
-			$renderPath =$event->data->renderPath;
+			$renderPath = $event->data->renderPath;
 		} else {
 			$msg = $event->getData();
 		}

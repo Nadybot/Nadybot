@@ -210,11 +210,7 @@ class Relay implements MessageReceiver {
 			Source::RELAY,
 			$this->name
 		));
-		if ($event->getType() === $event::TYPE_MESSAGE) {
-			$this->messageHub->handle($event);
-			return;
-		}
-		// Handle event
+		$this->messageHub->handle($event);
 	}
 
 	/**

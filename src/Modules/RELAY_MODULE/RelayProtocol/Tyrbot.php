@@ -94,6 +94,12 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	protected function encodeMessage(RoutableEvent $event): array {
+		$event = clone $event;
+		if (is_string($event->data)) {
+			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
+		} elseif (isset($event->data) && is_string($event->data->message??null)) {
+			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		}
 		$packet = [
 			"type" => "message",
 			"message" => $event->data,

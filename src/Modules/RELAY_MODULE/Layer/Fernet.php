@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
+use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
 
@@ -23,6 +24,9 @@ class Fernet implements RelayLayerInterface {
 	protected FernetProto $fernet;
 
 	protected Relay $relay;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	public function __construct(string $password, string $salt, string $hashAlgo="sha256", int $iterations=10000) {
 		$key = hash_pbkdf2($hashAlgo, $password, $salt, $iterations, 32, true);

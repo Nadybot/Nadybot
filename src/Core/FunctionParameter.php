@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 class FunctionParameter {
 	public const TYPE_STRING = "string";
+	public const TYPE_STRING_ARRAY = "string[]";
 	public const TYPE_INT = "int";
 	public const TYPE_BOOL = "bool";
 

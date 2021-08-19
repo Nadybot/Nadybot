@@ -133,6 +133,11 @@ class MessageHub {
 						$arguments []= (int)$value;
 						unset($params[$parameter->name]);
 						break;
+					case $parameter::TYPE_STRING_ARRAY:
+						$value = array_map(fn($x) => (string)$x, (array)$value);
+						$arguments []= $value;
+						unset($params[$parameter->name]);
+						break;
 					default:
 						$arguments []= (string)$value;
 						unset($params[$parameter->name]);

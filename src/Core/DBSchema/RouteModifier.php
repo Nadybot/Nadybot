@@ -39,7 +39,15 @@ class RouteModifier extends DBRow {
 		return array_reduce(
 			$this->arguments,
 			function(array $kv, RouteModifierArgument $argument): array {
-				$kv[$argument->name] = $argument->value;
+				if (isset($kv[$argument->name])) {
+					if (is_array($kv[$argument->name])) {
+						$kv[$argument->name] []= $argument->value;
+					} else {
+						$kv[$argument->name] = [$kv[$argument->name], $argument->value];
+					}
+				} else {
+					$kv[$argument->name] = $argument->value;
+				}
 				return $kv;
 			},
 			[]

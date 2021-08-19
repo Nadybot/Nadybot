@@ -8,12 +8,13 @@ use Nadybot\Core\BotRunner;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\EventManager;
-use Nadybot\Core\GuildChannelCommandReply;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
 use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\MessageEmitter;
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
-use Nadybot\Core\PrivateChannelCommandReply;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Timer;
 use Throwable;
@@ -30,7 +31,7 @@ use ZipArchive;
  *
  * @Instance
  */
-class WebUiController {
+class WebUiController implements MessageEmitter {
 	public string $moduleName;
 
 	/** @Inject */
@@ -44,6 +45,9 @@ class WebUiController {
 
 	/** @Inject */
 	public WebserverController $webserverController;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -86,6 +90,11 @@ class WebUiController {
 			"nadyui_channel",
 			[$this, "changeNadyUiChannel"]
 		);
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . '(webui)';
 	}
 
 	public function changeNadyUiChannel(string $setting, string $old, string $new): void {
@@ -105,14 +114,7 @@ class WebUiController {
 		if (empty($channel) || $channel === 'off') {
 			return;
 		}
-		if (empty($this->chatBot->vars["my_guild"])) {
-			$sendto = new PrivateChannelCommandReply(
-				$this->chatBot,
-				$this->chatBot->setting->default_private_channel
-			);
-		} else {
-			$sendto = new GuildChannelCommandReply($this->chatBot);
-		}
+		$sendto = new WebUIChannel($this->messageHub);
 		$sendto->reply("Checking for new NadyUI release...");
 		$this->processNadyUIRelease($channel, $sendto, function() {
 		});
