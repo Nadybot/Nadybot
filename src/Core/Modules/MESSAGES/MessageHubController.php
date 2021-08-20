@@ -329,7 +329,6 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route$/i")
 	 * @Matches("/^route list$/i")
 	 */
 	public function routeList(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -348,6 +347,66 @@ class MessageHubController {
 		}
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= join("\n<tab>", $list);
+		$msg = $this->text->makeBlob("Message Routes (" . count($routes) . ")", $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route$/i")
+	 * @Matches("/^route tree$/i")
+	 */
+	public function routeList2(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$routes = $this->messageHub->getRoutes();
+		if (empty($routes)) {
+			$sendto->reply("There are no routes defined.");
+			return;
+		}
+		$grouped = [];
+		foreach ($routes as $route) {
+			$dests = [$route->getDest()];
+			if ($route->getTwoWay()) {
+				$dests []= $route->getSource();
+			}
+			foreach ($dests as $dest) {
+				if (!isset($dest) || $this->messageHub->getReceiver($dest) === null) {
+					continue;
+				}
+				$grouped[$dest] ??= [];
+				$grouped[$dest] []= $route;
+			}
+		}
+		/** @var array<string,MessageRoute[]> $grouped */
+		$result = [];
+		foreach ($grouped as $receiver => $recRoutes) {
+			$result[$receiver] = [];
+			foreach ($recRoutes as $route) {
+				$delLink = $this->text->makeChatcmd("delete", "/tell <myname> route del " . $route->getID());
+				$arrow = "&lt;-";
+				if ($route->getTwoWay() && $this->messageHub->getReceiver($route->getSource()) !== null) {
+					$arrow .= "&gt;";
+				} else {
+					$arrow .= "<black>><end>";
+				}
+				$routeName = $route->getSource();
+				if ($route->getTwoWay() && ($route->getSource() === $receiver)) {
+					$routeName = $route->getDest();
+				}
+				$result[$receiver][$routeName] = "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
+					join(" ", $route->renderModifiers());
+			}
+		}
+		$blobs = [];
+		ksort($result);
+		foreach ($result as $receiver => $senders) {
+			ksort($senders);
+			$blob = "<header2>{$receiver}<end>\n";
+			foreach ($senders as $sender => $line) {
+				$blob .= $line . "\n";
+			}
+			$blobs []= $blob;
+		}
+		$blob = join("\n", $blobs);
 		$msg = $this->text->makeBlob("Message Routes (" . count($routes) . ")", $blob);
 		$sendto->reply($msg);
 	}

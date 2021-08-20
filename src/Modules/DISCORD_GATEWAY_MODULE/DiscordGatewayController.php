@@ -431,14 +431,6 @@ class DiscordGatewayController {
 			$this->logger->logChat("Inc. Discord Msg.", $name, $message->content);
 		}
 
-		$event = new DiscordMessageEvent();
-		$event->message = $message->content;
-		$event->sender = $name;
-		$event->type = $message->guild_id ? "discordpriv" : "discordmsg";
-		$event->discord_message = $message;
-		$event->channel = $message->channel_id;
-		$this->eventManager->fireEvent($event);
-
 		$this->resolveDiscordMentions(
 			$message->guild_id??null,
 			$message->content,
@@ -459,6 +451,14 @@ class DiscordGatewayController {
 				$this->messageHub->handle($rMessage);
 			}
 		);
+
+		$event = new DiscordMessageEvent();
+		$event->message = $message->content;
+		$event->sender = $name;
+		$event->type = $message->guild_id ? "discordpriv" : "discordmsg";
+		$event->discord_message = $message;
+		$event->channel = $message->channel_id;
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**

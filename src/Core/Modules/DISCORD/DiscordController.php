@@ -111,13 +111,16 @@ class DiscordController {
 		$text = preg_replace("/^    /m", "_ _  ", $text);
 		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/.+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
-			"/(?:<font[^>]*#000000[^>]*>|<black>)(0+)(?:<end>|<\/font>)/",
+			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+)(?:<end>|<\/font>)/",
 			function(array $matches): string {
-				return str_repeat(" ", strlen($matches[1]));
+				if (preg_match("/^0+$/", $matches[1])) {
+					return "_ _" . str_repeat(" ", strlen($matches[1]));
+				}
+				return "_ _" . str_repeat(" ", strlen($matches[1]));
 			},
 			$text
 		);
-		$text = preg_replace('/<(black|white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
+		$text = preg_replace('/<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
 		$text = preg_replace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
