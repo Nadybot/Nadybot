@@ -528,7 +528,6 @@ class RelayController {
 			$sendto->reply($e->getMessage());
 			return;
 		}
-		$this->db->beginTransaction();
 		$layers = [];
 		foreach ($relayConf->layers as $layer) {
 			$layers []= $layer->toString();
