@@ -716,14 +716,6 @@
 			"RelayLayerArgument": {
 				"type": "object",
 				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "The id of the argument"
-					},
-					"layer_id": {
-						"type": "integer",
-						"description": "The id of the layer where this argument belongs to"
-					},
 					"name": {
 						"type": "string",
 						"description": "The name of the argument"
@@ -737,14 +729,6 @@
 			"RelayLayer": {
 				"type": "object",
 				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "The id of the relay layer. Lower id means higher priority"
-					},
-					"relay_id": {
-						"type": "integer",
-						"description": "The id of the relay where this layer belongs to"
-					},
 					"layer": {
 						"type": "string",
 						"description": "Which relay stack layer does this represent?"
@@ -760,10 +744,6 @@
 			"RelayConfig": {
 				"type": "object",
 				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "The unique ID of this relay config"
-					},
 					"name": {
 						"type": "string",
 						"description": "The name of this relay"
@@ -1793,6 +1773,19 @@
 						}
 					}
 				}
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new relay",
+				"responses": {
+					"204": {
+						"description": "Relay created successfully"
+					}
+				}
 			}
 		},
 		"/relay/{relayName}": {
@@ -1828,36 +1821,17 @@
 						"description": "Relay not found"
 					}
 				}
-			}
-		},
-		"/relay/{relayId}": {
-			"parameters": [
-				{
-					"name": "relayId",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "integer"
-					}
-				}
-			],
-			"get": {
+			},
+			"delete": {
 				"security": [
 					{
 						"basicAuth": []
 					}
 				],
-				"description": "Get a single relay",
+				"description": "Delete a relay",
 				"responses": {
-					"200": {
-						"description": "The configured relay",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/RelayConfig"
-								}
-							}
-						}
+					"204": {
+						"description": "The relay was deleted"
 					},
 					"404": {
 						"description": "Relay not found"
@@ -1873,41 +1847,6 @@
 					"in": "path",
 					"schema": {
 						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a relay's status",
-				"responses": {
-					"200": {
-						"description": "The status message of the relay",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/RelayStatus"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Relay not found"
-					}
-				}
-			}
-		},
-		"/relay/{relayId}/status": {
-			"parameters": [
-				{
-					"name": "relayId",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "integer"
 					}
 				}
 			],
