@@ -1788,10 +1788,10 @@
 				}
 			}
 		},
-		"/relay/{relayName}": {
+		"/relay/{relay}": {
 			"parameters": [
 				{
-					"name": "relayName",
+					"name": "relay",
 					"required": true,
 					"in": "path",
 					"schema": {

@@ -976,8 +976,8 @@ class RelayController {
 	 * @ApiResult(code=200, class='RelayConfig', desc='The configured relay')
 	 * @ApiResult(code=404, desc='Relay not found')
 	 */
-	public function apiGetRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relayName): Response {
-		$relay = $this->getRelayByName($relayName);
+	public function apiGetRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
 			return new Response(Response::NOT_FOUND);
 		}
@@ -992,8 +992,8 @@ class RelayController {
 	 * @ApiResult(code=204, desc='The relay was deleted')
 	 * @ApiResult(code=404, desc='Relay not found')
 	 */
-	public function apiDelRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relayName): Response {
-		$relay = $this->getRelayByName($relayName);
+	public function apiDelRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
 			return new Response(Response::NOT_FOUND);
 		}
