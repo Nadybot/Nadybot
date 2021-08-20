@@ -546,6 +546,9 @@ class RelayController {
 	}
 
 	public function createRelay(RelayConfig $relayConf): Relay {
+		if ($this->getRelayByName($relayConf->name)) {
+			throw new Exception("The relay <highlight>{$relayConf->name}<end> already exists.");
+		}
 		$this->db->beginTransaction();
 		try {
 			$relayConf->id = $this->db->insert(static::DB_TABLE, $relayConf);
@@ -576,6 +579,38 @@ class RelayController {
 			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
 		});
 		return $relay;
+	}
+
+	public function deleteRelay(RelayConfig $relay): bool {
+		/** @var int[] List of modifier-ids for the route */
+		$layers = array_column($relay->layers, "id");
+		$this->db->beginTransaction();
+		try {
+			if (count($layers)) {
+				$this->db->table(static::DB_TABLE_ARGUMENT)
+					->whereIn("layer_id", $layers)
+					->delete();
+				$this->db->table(static::DB_TABLE_LAYER)
+					->where("relay_id", $relay->id)
+					->delete();
+			}
+			$this->db->table(static::DB_TABLE)
+				->delete($relay->id);
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw $e;
+		}
+		$this->db->commit();
+		$liveRelay = $this->relays[$relay->name] ?? null;
+		unset($this->relays[$relay->name]);
+		if (!isset($liveRelay)) {
+			return false;
+		}
+		$liveRelay->deinit(function(Relay $relay) {
+			$this->logger->log('INFO', "Relay " . $relay->getName() . " destroyed");
+			unset($relay);
+		});
+		return true;
 	}
 
 	/**
@@ -658,33 +693,11 @@ class RelayController {
 			);
 			return;
 		}
-		/** @var int[] List of modifier-ids for the route */
-		$layers = array_column($relay->layers, "id");
-		$this->db->beginTransaction();
 		try {
-			if (count($layers)) {
-				$this->db->table(static::DB_TABLE_ARGUMENT)
-					->whereIn("layer_id", $layers)
-					->delete();
-				$this->db->table(static::DB_TABLE_LAYER)
-					->where("relay_id", $relay->id)
-					->delete();
-			}
-			$this->db->table(static::DB_TABLE)
-				->delete($relay->id);
-		} catch (Throwable $e) {
-			$this->db->rollback();
-			$sendto->reply("Error deleting the relay: " . $e->getMessage());
+			$this->deleteRelay($relay);
+		} catch (Exception $e) {
+			$sendto->reply($e->getMessage());
 			return;
-		}
-		$this->db->commit();
-		$liveRelay = $this->relays[$relay->name] ?? null;
-		unset($this->relays[$relay->name]);
-		if (isset($liveRelay)) {
-			$liveRelay->deinit(function(Relay $relay) {
-				$this->logger->log('INFO', "Relay " . $relay->getName() . " destroyed");
-				unset($relay);
-			});
 		}
 		$sendto->reply(
 			"Relay #{$relay->id} (<highlight>{$relay->name}<end>) deleted."
@@ -972,19 +985,24 @@ class RelayController {
 	}
 
 	/**
-	 * Get a single relay
-	 * @Api("/relay/%d")
-	 * @GET
+	 * Delete a relay
+	 * @Api("/relay/%s")
+	 * @DELETE
 	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayConfig', desc='The configured relay')
+	 * @ApiResult(code=204, desc='The relay was deleted')
 	 * @ApiResult(code=404, desc='Relay not found')
 	 */
-	public function apiGetRelayByIdEndpoint(Request $request, HttpProtocolWrapper $server, int $relayId): Response {
-		$relay = $this->getRelay($relayId);
+	public function apiDelRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relayName): Response {
+		$relay = $this->getRelayByName($relayName);
 		if (!isset($relay)) {
 			return new Response(Response::NOT_FOUND);
 		}
-		return new ApiResponse($relay);
+		try {
+			$this->deleteRelay($relay);
+		} catch (Exception $e) {
+			return new Response(Response::INTERNAL_SERVER_ERROR, [], $e->getMessage());
+		}
+		return new Response(Response::NO_CONTENT);
 	}
 
 	/**
@@ -1000,22 +1018,6 @@ class RelayController {
 			return new Response(Response::NOT_FOUND);
 		}
 		return new ApiResponse($this->relays[$relay]->getStatus());
-	}
-
-	/**
-	 * Get a relay's status
-	 * @Api("/relay/%d/status")
-	 * @GET
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayStatus', desc='The status message of the relay')
-	 * @ApiResult(code=404, desc='Relay not found')
-	 */
-	public function apiGetRelayStatusByIdEndpoint(Request $request, HttpProtocolWrapper $server, int $relayId): Response {
-		$relay = $this->getRelay($relayId);
-		if (!isset($relay) || !isset($this->relays[$relay->name])) {
-			return new Response(Response::NOT_FOUND);
-		}
-		return new ApiResponse($this->relays[$relay->name]->getStatus());
 	}
 
 	/**
