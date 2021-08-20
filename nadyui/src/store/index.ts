@@ -156,10 +156,17 @@ export default createStore({
         (!this.state.system_information.basic.org ||
           this.state.system_information.basic.bot_name != msg.channel)
       ) {
-        await notify(
-          `Message from ${msg.sender}`,
-          xml.firstElementChild.firstElementChild.textContent
-        );
+        if (msg.sender) {
+          await notify(
+            `Message from ${msg.sender}`,
+            xml.firstElementChild.firstElementChild.textContent
+          );
+        } else {
+          await notify(
+            "New Message",
+            xml.firstElementChild.firstElementChild.textContent
+          );
+        }
       }
       const new_message: ChatMessage = {
         message: xml,

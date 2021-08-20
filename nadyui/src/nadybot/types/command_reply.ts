@@ -14,15 +14,15 @@ export interface ChatMessagePath {
 
 export interface ChatMessageIncoming {
   channel: string;
-  path: Array<ChatMessagePath>,
+  path: Array<ChatMessagePath>;
   message: string;
-  sender: string;
+  sender: string | null;
 }
 
 export interface ChatMessage {
-  path: Array<ChatMessagePath>,
+  path: Array<ChatMessagePath>;
   message: XMLDocument;
-  sender: string;
+  sender: string | null;
 }
 
 export interface Message {
