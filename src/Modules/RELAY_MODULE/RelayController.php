@@ -27,6 +27,10 @@ use Nadybot\Core\{
 	WebsocketClient,
 };
 use Nadybot\Modules\GUILD_MODULE\GuildController;
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
@@ -612,7 +616,7 @@ class RelayController {
 			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString() . "<end>\n";
 			$live = $this->relays[$relay->name] ?? null;
 			if (isset($live)) {
-				$blob .= "<tab>Status: " . $live->getStatus();
+				$blob .= "<tab>Status: " . $live->getStatus()->toString();
 			} else {
 				$blob .= "<tab>Status: <red>error<end>";
 			}
@@ -897,5 +901,112 @@ class RelayController {
 		} catch (Throwable $e) {
 			throw new Exception("There was an error setting up the {$name} layer: " . $e->getMessage());
 		}
+	}
+
+	/**
+	 * List all relay transports
+	 * @Api("/relay-component/transport")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available relay transport layers')
+	 */
+	public function apiGetTransportsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_values($this->transports));
+	}
+
+	/**
+	 * List all relay layers
+	 * @Api("/relay-component/layer")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available generic relay layers')
+	 */
+	public function apiGetLayersEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_values($this->stackElements));
+	}
+
+	/**
+	 * List all relay protocols
+	 * @Api("/relay-component/protocol")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available relay protocols')
+	 */
+	public function apiGetProtocolsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_values($this->relayProtocols));
+	}
+
+	/**
+	 * List all relays
+	 * @Api("/relay")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayConfig[]', desc='The configured relays')
+	 */
+	public function apiGetRelaysEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_values($this->getRelays()));
+	}
+
+	/**
+	 * Get a single relay
+	 * @Api("/relay/%s")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayConfig', desc='The configured relay')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiGetRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relayName): Response {
+		$relay = $this->getRelayByName($relayName);
+		if (!isset($relay)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($relay);
+	}
+
+	/**
+	 * Get a single relay
+	 * @Api("/relay/%d")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayConfig', desc='The configured relay')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiGetRelayByIdEndpoint(Request $request, HttpProtocolWrapper $server, int $relayId): Response {
+		$relay = $this->getRelay($relayId);
+		if (!isset($relay)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($relay);
+	}
+
+	/**
+	 * Get a relay's status
+	 * @Api("/relay/%s/status")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayStatus', desc='The status message of the relay')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiGetRelayStatusByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		if (!isset($this->relays[$relay])) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($this->relays[$relay]->getStatus());
+	}
+
+	/**
+	 * Get a relay's status
+	 * @Api("/relay/%d/status")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayStatus', desc='The status message of the relay')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiGetRelayStatusByIdEndpoint(Request $request, HttpProtocolWrapper $server, int $relayId): Response {
+		$relay = $this->getRelay($relayId);
+		if (!isset($relay) || !isset($this->relays[$relay->name])) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($this->relays[$relay->name]->getStatus());
 	}
 }

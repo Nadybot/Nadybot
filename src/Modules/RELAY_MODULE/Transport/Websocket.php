@@ -11,6 +11,7 @@ use Nadybot\Core\WebsocketCallback;
 use Nadybot\Core\WebsocketClient;
 use Nadybot\Core\WebsocketError;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
@@ -40,7 +41,7 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	protected Relay $relay;
 
-	protected ?string $status;
+	protected ?RelayStatus $status = null;
 
 	protected string $uri;
 	protected ?string $authorization;
@@ -69,8 +70,8 @@ class Websocket implements TransportInterface, StatusProvider {
 		$this->relay = $relay;
 	}
 
-	public function getStatus(): string {
-		return $this->status ?? "unknown";
+	public function getStatus(): RelayStatus {
+		return $this->status ?? new RelayStatus();
 	}
 
 	public function send(array $data): array {
@@ -86,7 +87,10 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	public function processError(WebsocketCallback $event): void {
 		$this->logger->log("ERROR", "[{$this->uri}] [Code $event->code] $event->data");
-		$this->status = "[Code {$event->code}] {$event->data}";
+		$this->status = new RelayStatus(
+			RelayStatus::INIT,
+			"{$event->code}: {$event->data}"
+		);
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
 				$this->timer->callLater(30, [$this->client, 'connect']);
@@ -100,7 +104,10 @@ class Websocket implements TransportInterface, StatusProvider {
 	public function processClose(WebsocketCallback $event): void {
 		$this->logger->log("INFO", "Reconnecting to Websocket {$this->uri} in 10s.");
 		if (isset($this->initCallback)) {
-			$this->status = "Reconnecting to {$this->uri}";
+			$this->status = new RelayStatus(
+				RelayStatus::INIT,
+				"Reconnecting to {$this->uri}"
+			);
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		} else {
 			unset($this->client);

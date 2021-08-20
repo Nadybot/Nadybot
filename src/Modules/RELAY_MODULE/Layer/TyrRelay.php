@@ -6,6 +6,7 @@ use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
@@ -15,7 +16,7 @@ use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected Relay $relay;
 
-	protected ?string $status;
+	protected ?RelayStatus $status = null;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -29,8 +30,8 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		$this->relay = $relay;
 	}
 
-	public function getStatus(): string {
-		return $this->status ?? "unknown";
+	public function getStatus(): RelayStatus {
+		return $this->status ?? new RelayStatus();
 	}
 
 	public function init(callable $callback): array {
@@ -68,22 +69,30 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		try {
 			$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->status = "Unable to decode tyr-relay message: ".
-					$e->getMessage();
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				"Unable to decode tyr-relay message: " . $e->getMessage()
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return null;
 		}
 		if (!isset($json->type)) {
-			$this->status = 'Received tyr-relay message without type';
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Received tyr-relay message without type'
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return null;
 		}
 		if ($json->type !== "message") {
 			return null;
 		}
 		if (!isset($json->payload)) {
-			$this->status = 'Received tyr-relay message without payload';
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Received tyr-relay message without payload'
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return null;
 		}
 		return $json->payload;

@@ -9,6 +9,8 @@ use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 use Nadybot\Core\StopExecutionException;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayStackMemberInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
@@ -30,7 +32,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	protected Relay $relay;
 
-	protected ?string $status;
+	protected ?RelayStatus $status = null;
 
 	protected string $channel;
 
@@ -49,8 +51,8 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->relay = $relay;
 	}
 
-	public function getStatus(): string {
-		return $this->status ?? "unknown";
+	public function getStatus(): RelayStatus {
+		return $this->status ?? new RelayStatus();
 	}
 
 	public function send(array $data): array {
@@ -90,7 +92,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->status = "ready";
+		$this->status = new RelayStatus(RelayStatus::READY, "ready");
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			unset($this->initCallback);
@@ -102,7 +104,10 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
-			$this->status = "Waiting for invite to {$this->channel}";
+			$this->status = new RelayStatus(
+				RelayStatus::INIT,
+				"Waiting for invite to {$this->channel}"
+			);
 			// In case we have a race condition and received the invite before
 			$this->initCallback = $callback;
 			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);

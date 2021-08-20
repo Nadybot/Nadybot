@@ -9,6 +9,7 @@ use Nadybot\Core\EventManager;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -95,7 +96,7 @@ class AMQP implements TransportInterface, StatusProvider {
 
 	protected Relay $relay;
 
-	protected ?string $status;
+	protected ?RelayStatus $status = null;
 
 	/** Slot we use in the event loop */
 	protected int $loopTicket;
@@ -147,8 +148,8 @@ class AMQP implements TransportInterface, StatusProvider {
 		$this->reconnectInterval = $reconnectInterval;
 	}
 
-	public function getStatus(): string {
-		return $this->status ?? "unknown";
+	public function getStatus(): RelayStatus {
+		return $this->status ?? new RelayStatus();
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -258,7 +259,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			return null;
 		}
 		$this->lastConnectTry = time();
-		$this->status = "Connecting";
+		$this->status = new RelayStatus(RelayStatus::INIT, "Connecting");
 		try {
 			$connection = new AMQPStreamConnection(
 				$this->server,
@@ -268,11 +269,17 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->vhost
 			);
 		} catch (AMQPIOException $e) {
-			$this->status = 'Connection to AMQP server failed: ' . $e->getMessage();
-			$this->logger->log('INFO', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Connection to AMQP server failed: ' . $e->getMessage()
+			);
+			$this->logger->log('INFO', $this->status->text);
 			return null;
 		} catch (Throwable $e) {
-			$this->status = 'Connection to AMQP server failed: ' . $e->getMessage();
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Connection to AMQP server failed: ' . $e->getMessage()
+			);
 			$this->logger->log(
 				'INFO',
 				'Connection to AMQP server failed (' . get_class($e) . '): '.
@@ -298,24 +305,33 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->logger->log("INFO", "Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
 			}
 		} catch (AMQPTimeoutException $e) {
-			$this->status = 'Connection to AMQP server timed out';
-			$this->logger->log('INFO', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Connection to AMQP server timed out'
+			);
+			$this->logger->log('INFO', $this->status->text);
 			return null;
 		} catch (AMQPIOException $e) {
-			$this->status = 'Connection to AMQP server interrupted';
-			$this->logger->log('INFO', $this->status);
+			$this->status = new RelayStatus(RelayStatus::ERROR, 'Connection to AMQP server interrupted');
+			$this->logger->log('INFO', $this->status->text);
 			return null;
 		} catch (AMQPProtocolChannelException $e) {
-			$this->status = $e->getMessage();
+			$this->status = new RelayStatus(RelayStatus::ERROR, $e->getMessage());
 			$this->logger->log('INFO', 'AMQP error: ' . $e->getMessage());
 			return null;
 		} catch (ErrorException $e) {
-			$this->status = 'Error Connecting to AMQP server: ' . $e->getMessage();
-			$this->logger->log('INFO', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Error Connecting to AMQP server: ' . $e->getMessage()
+			);
+			$this->logger->log('INFO', $this->status->text);
 			return null;
 		}
-		$this->status = "Connected to AMQP server {$this->server}:{$this->port}";
-		$this->logger->log('INFO', $this->status);
+		$this->status = new RelayStatus(
+			RelayStatus::READY,
+			"Connected to AMQP server {$this->server}:{$this->port}"
+		);
+		$this->logger->log('INFO', $this->status->text);
 		$this->channel = $channel;
 		$this->listenForMessages();
 
@@ -340,14 +356,23 @@ class AMQP implements TransportInterface, StatusProvider {
 		try {
 			$channel->basic_publish($message, $exchange, $routingKey);
 		} catch (AMQPTimeoutException $e) {
-			$this->status = 'Sending message to AMQP server timed out';
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Sending message to AMQP server timed out'
+			);
 		} catch (AMQPIOException $e) {
-			$this->status = 'Sending message to AMQP server interrupted';
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Sending message to AMQP server interrupted'
+			);
 		} catch (ErrorException $e) {
-			$this->status = 'Error sending message to AMQP server: ' . $e->getMessage();
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				'Error sending message to AMQP server: ' . $e->getMessage()
+			);
 		}
 		if (isset($e)) {
-			$this->logger->log('INFO', $this->status);
+			$this->logger->log('INFO', $this->status->text);
 			$this->channel = null;
 			$this->connection = null;
 			if (isset($this->eventTicket)) {
@@ -423,21 +448,39 @@ class AMQP implements TransportInterface, StatusProvider {
 			try {
 				$channel->wait(null, true);
 			} catch (AMQPConnectionClosedException $e) {
-				$this->status = 'AMQP server closed connection';
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'AMQP server closed connection'
+				);
 			} catch (AMQPRuntimeException $e) {
-				$this->status = 'AMQP server runtime exception: ' . $e->getMessage();
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'AMQP server runtime exception: ' . $e->getMessage()
+				);
 			} catch (AMQPTimeoutException $e) {
-				$this->status = 'AMQP server timed out';
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'AMQP server timed out'
+				);
 			} catch (AMQPIOException $e) {
-				$this->status = 'AMQP IO exception';
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'AMQP IO exception'
+				);
 			} catch (ErrorException $e) {
-				$this->status = 'Error receiving AMQP message: ' . $e->getMessage();
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'Error receiving AMQP message: ' . $e->getMessage()
+				);
 			} catch (Throwable $e) {
-				$this->status = 'Unknown AMQP exception (' . get_class($e) . "): ".
-					$e->getMessage();
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'Unknown AMQP exception (' . get_class($e) . "): ".
+						$e->getMessage()
+				);
 			}
 			if (isset($e)) {
-				$this->logger->log('INFO', $this->status);
+				$this->logger->log('INFO', $this->status->text);
 				$this->channel = null;
 				$this->connection = null;
 				if (isset($this->eventTicket)) {

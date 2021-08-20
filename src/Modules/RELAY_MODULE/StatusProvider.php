@@ -3,5 +3,5 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 interface StatusProvider {
-	public function getStatus(): string;
+	public function getStatus(): RelayStatus;
 }

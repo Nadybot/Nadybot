@@ -7,6 +7,7 @@ use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 /**
@@ -29,7 +30,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	protected Relay $relay;
 
-	protected ?string $status;
+	protected ?RelayStatus $status = null;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -47,8 +48,8 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		$this->relay = $relay;
 	}
 
-	public function getStatus(): string {
-		return $this->status ?? "unknown";
+	public function getStatus(): RelayStatus {
+		return $this->status ?? new RelayStatus();
 	}
 
 	public function init(callable $callback): array {
@@ -60,13 +61,19 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		try {
 			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
-			$this->status = "Unable to encode subscribe-command into ".
-				"highway protocol: " . $e->getMessage();
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				"Unable to encode subscribe-command into highway protocol: ".
+					$e->getMessage()
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return [];
 		}
 		$this->initCallback = $callback;
-		$this->status = "Joining room {$this->room}";
+		$this->status = new RelayStatus(
+			RelayStatus::INIT,
+			"Joining room {$this->room}"
+		);
 		return [$encoded];
 	}
 
@@ -79,9 +86,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		try {
 			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
-			$this->status = "Unable to encode unsubscribe-command into ".
-				"highway protocol: " . $e->getMessage();
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				"Unable to encode unsubscribe-command into highway protocol: ".
+					$e->getMessage()
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return [];
 		}
 		$this->initCallback = $callback;
@@ -114,18 +124,23 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		try {
 			$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->status = "Unable to decode highway message: ".
-					$e->getMessage();
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::ERROR,
+				"Unable to decode highway message: " . $e->getMessage()
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return null;
 		}
 		if (!isset($json->type)) {
-			$this->status = 'Received highway message without type';
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::INIT,
+				'Received highway message without type'
+			);
+			$this->logger->log('WARN', $this->status->text);
 			return null;
 		}
 		if ($json->type === "success" && isset($this->initCallback)) {
-			$this->status = "ready";
+			$this->status = new RelayStatus(RelayStatus::READY, "ready");
 			$callback = $this->initCallback;
 			unset($this->initCallback);
 			$callback();
@@ -133,15 +148,18 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		}
 		if ($json->type === "error") {
 			$this->logger->log("ERROR", $json->message);
-			$this->status = $json->message;
+			$this->status = new RelayStatus(RelayStatus::ERROR, $json->message);
 			return null;
 		}
 		if ($json->type !== "message") {
 			return null;
 		}
 		if (!isset($json->body)) {
-			$this->status = 'Received highway message without body';
-			$this->logger->log('ERROR', $this->status);
+			$this->status = new RelayStatus(
+				RelayStatus::INIT,
+				'Received highway message without body'
+			);
+			$this->logger->log('ERROR', $this->status->text);
 			return null;
 		}
 		return $json->body;

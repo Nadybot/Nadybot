@@ -90,24 +90,26 @@ class Relay implements MessageReceiver {
 		unset($this->onlineChars[$where][$character]);
 	}
 
-	public function getStatus(): string {
+	public function getStatus(): RelayStatus {
 		if ($this->initialized) {
-			return "<green>ready<end>";
+			return new RelayStatus(RelayStatus::READY, "ready");
 		}
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$this->initStep] ?? null;
 		if (!isset($element)) {
-			return "<red>unknown<end>";
+			return new RelayStatus(RelayStatus::ERROR, "unknown");
 		}
 		$class = get_class($element);
 		if (($pos = strrpos($class, '\\')) !== false) {
 			$class = substr($class, $pos + 1);
 		}
 		if ($element instanceof StatusProvider) {
-			$status = $element->getStatus();
-			return "<yellow>{$status}<end>";
+			return $element->getStatus();
 		}
-		return "<yellow>initializing {$class}<end>";
+		return new RelayStatus(
+			RelayStatus::INIT,
+			"initializing {$class}"
+		);
 	}
 
 	public function getChannelName(): string {

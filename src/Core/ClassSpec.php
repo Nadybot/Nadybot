@@ -9,14 +9,14 @@ class ClassSpec {
 
 	/** @var FunctionParameter[] */
 	public array $params;
-	
+
 	public ?string $description = null;
 
 	public function __construct(string $name, string $class) {
 		$this->name = $name;
 		$this->class = $class;
 	}
-	
+
 	public function setParameters(FunctionParameter ...$params): self {
 		$this->params = $params;
 		return $this;
