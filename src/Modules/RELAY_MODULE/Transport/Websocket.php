@@ -87,10 +87,7 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	public function processError(WebsocketCallback $event): void {
 		$this->logger->log("ERROR", "[{$this->uri}] [Code $event->code] $event->data");
-		$this->status = new RelayStatus(
-			RelayStatus::INIT,
-			"{$event->code}: {$event->data}"
-		);
+		$this->status = new RelayStatus(RelayStatus::INIT, $event->data);
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
 				$this->timer->callLater(30, [$this->client, 'connect']);
@@ -110,6 +107,7 @@ class Websocket implements TransportInterface, StatusProvider {
 			);
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		} else {
+			$this->client->close();
 			unset($this->client);
 			$this->relay->init();
 		}
@@ -122,6 +120,7 @@ class Websocket implements TransportInterface, StatusProvider {
 		}
 		$callback = $this->initCallback;
 		unset($this->initCallback);
+		$this->status = new RelayStatus(RelayStatus::READY, "ready");
 		$callback();
 	}
 
@@ -132,6 +131,7 @@ class Websocket implements TransportInterface, StatusProvider {
 		if (isset($this->authorization)) {
 			$this->client->withHeader("Authorization", $this->authorization);
 		}
+		$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
 		$this->client->withTimeout(30)
 			->on(WebsocketClient::ON_CONNECT, [$this, "processConnect"])
 			->on(WebsocketClient::ON_CLOSE, [$this, "processClose"])

@@ -29,6 +29,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
 use ReflectionClass;
@@ -516,45 +517,22 @@ class RelayController {
 		$relayConf->name = $args['name'];
 		$parser = new RelayLayerExpressionParser();
 		try {
-			$layers = $parser->parse($args["spec"]);
+			$relayConf->layers = $parser->parse($args["spec"]);
 		} catch (LayerParserException $e) {
 			$sendto->reply($e->getMessage());
 			return;
 		}
-		$this->db->beginTransaction();
 		try {
-			$relayConf->id = $this->db->insert(static::DB_TABLE, $relayConf);
-			foreach ($layers as $layer) {
-				$layer->relay_id = $relayConf->id;
-				$layer->id = $this->db->insert(static::DB_TABLE_LAYER, $layer);
-				foreach ($layer->arguments as $argument) {
-					$argument->layer_id = $layer->id;
-					$argument->id = $this->db->insert(static::DB_TABLE_ARGUMENT, $argument);
-				}
-				$relayConf->layers []= $layer;
-			}
-		} catch (Throwable $e) {
-			$this->db->rollback();
-			$sendto->reply("Error saving the relay: " . $e->getMessage());
+			$relay = $this->createRelay($relayConf);
+		} catch (Exception $e) {
+			$sendto->reply($e->getMessage());
 			return;
 		}
+		$this->db->beginTransaction();
 		$layers = [];
 		foreach ($relayConf->layers as $layer) {
 			$layers []= $layer->toString();
 		}
-		try {
-			$relay = $this->createRelayFromDB($relayConf);
-		} catch (Exception $e) {
-			$this->db->rollback();
-			$sendto->reply($e->getMessage());
-			return;
-		}
-		if (!$this->addRelay($relay)) {
-			$this->db->rollback();
-			$sendto->reply("A relay with that name is already registered");
-			return;
-		}
-		$this->db->commit();
 		$blob = $this->quickRelayController->getRouteInformation(
 			$args['name'],
 			in_array($layer->layer, ["tyrbot", "nadynative"])
@@ -565,9 +543,39 @@ class RelayController {
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
 		$sendto->reply($msg);
+	}
+
+	public function createRelay(RelayConfig $relayConf): Relay {
+		$this->db->beginTransaction();
+		try {
+			$relayConf->id = $this->db->insert(static::DB_TABLE, $relayConf);
+			foreach ($relayConf->layers as $layer) {
+				$layer->relay_id = $relayConf->id;
+				$layer->id = $this->db->insert(static::DB_TABLE_LAYER, $layer);
+				foreach ($layer->arguments as $argument) {
+					$argument->layer_id = $layer->id;
+					$argument->id = $this->db->insert(static::DB_TABLE_ARGUMENT, $argument);
+				}
+			}
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw new Exception("Error saving the relay: " . $e->getMessage());
+		}
+		try {
+			$relay = $this->createRelayFromDB($relayConf);
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw $e;
+		}
+		if (!$this->addRelay($relay)) {
+			$this->db->rollback();
+			throw new Exception("A relay with that name is already registered");
+		}
+		$this->db->commit();
 		$relay->init(function() use ($relay) {
 			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
 		});
+		return $relay;
 	}
 
 	/**
@@ -1008,5 +1016,39 @@ class RelayController {
 			return new Response(Response::NOT_FOUND);
 		}
 		return new ApiResponse($this->relays[$relay->name]->getStatus());
+	}
+
+	/**
+	 * Create a new relay
+	 * @Api("/relay")
+	 * @POST
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=204, desc='Relay created successfully')
+	 */
+	public function apiCreateRelay(Request $request, HttpProtocolWrapper $server): Response {
+		$relay = $request->decodedBody;
+		try {
+			/** @var RelayConfig */
+			$relay = JsonImporter::convert(RelayConfig::class, $relay);
+			foreach ($relay->layers as &$layer) {
+				/** @var RelayLayer */
+				$layer = JsonImporter::convert(RelayLayer::class, $layer);
+				foreach ($layer->arguments as &$argument) {
+					$argument = JsonImporter::convert(RelayLayerArgument::class, $argument);
+				}
+			}
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		try {
+			$this->createRelay($relay);
+		} catch (Exception $e) {
+			return new Response(
+				Response::INTERNAL_SERVER_ERROR,
+				[],
+				$this->text->formatMessage($e->getMessage())
+			);
+		}
+		return new Response(Response::NO_CONTENT);
 	}
 }
