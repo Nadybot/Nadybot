@@ -5,7 +5,10 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class RouteHopFormat extends DBRow {
-	/** Internal primary key */
+	/**
+	 * Internal primary key
+	 * @json:ignore
+	 */
 	public int $id;
 
 	/** The hop mask (discord, *, aopriv, ...) */
@@ -15,5 +18,5 @@ class RouteHopFormat extends DBRow {
 	public bool $render = true;
 
 	/** The format what the text of the tag should look like */
-	public ?string $format;
+	public string $format = '%s';
 }

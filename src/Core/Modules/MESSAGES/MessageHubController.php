@@ -20,11 +20,8 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Core\DBSchema\RouteHopColor;
+use Nadybot\Core\DBSchema\RouteHopFormat;
 use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
 use ReflectionClass;
 use Throwable;
 
@@ -466,9 +463,18 @@ class MessageHubController {
 
 			$blobs []= $part;
 		}
+		$blob .= join("\n", $blobs);
+		$blob .= "\n\n".
+			"You can specify colors for any of the types and names listed ".
+			"at with <highlight><symbol>!route list src<end>.\n".
+			"Types are 'system', 'aopriv', etc. and names are specific sub-".
+			"parts of these, like 'gsp' in 'system(gsp)'.\n\n".
+			"Set the colors with\n".
+			"<tab><highlight><symbol>route color tag pick type(name)<end> or\n".
+			"<tab><highlight><symbol>route color text pick type(name)<end>.";
 		$msg = $this->text->makeBlob(
 			"Routing colors (" . count($colors) . ")",
-			$blob . join("\n", $blobs)
+			$blob
 		);
 		$sendto->reply($msg);
 	}
@@ -573,6 +579,148 @@ class MessageHubController {
 		$sendto->reply($msg);
 	}
 
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route format$/i")
+	 */
+	public function routeListFormatCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$formats = Source::$format;
+		if ($formats->isEmpty()) {
+			$sendto->reply("No formats have been defined yet.");
+			return;
+		}
+		$blob = "<header2>Format definitions<end>\n";
+		$blobs = [];
+		foreach ($formats as $format) {
+			$remCmd = $this->text->makeChatcmd(
+				"clear",
+				"/tell <myname> route format rem {$format->hop}"
+			);
+			if ($format->render) {
+				$switchCmd = $this->text->makeChatcmd(
+					"disable",
+					"/tell <myname> route format render {$format->hop} false"
+				);
+			} else {
+				$switchCmd = $this->text->makeChatcmd(
+					"enable",
+					"/tell <myname> route format render {$format->hop} true"
+				);
+			}
+			$part = "<tab><highlight>{$format->hop}<end> [{$remCmd}]\n".
+				"<tab><tab>Render: <highlight>".
+				($format->render ? "true" : "false") . "<end> [{$switchCmd}]\n".
+				"<tab><tab>Display: <highlight>{$format->format}<end>\n";
+
+			$blobs []= $part;
+		}
+		$blob .= join("\n", $blobs);
+		$blob .= "\n\n".
+			"You can specify the format for any of the types and names listed ".
+			"at with <highlight><symbol>!route list src<end>.\n".
+			"Types are 'system', 'aopriv', etc. and names are specific sub-".
+			"parts of these, like 'gsp' in 'system(gsp)'.\n\n".
+			"Set the format with\n".
+			"<tab><highlight><symbol>route format render type(name) false<end> or\n".
+			"<tab><highlight><symbol>route format display type(name) gsp:%s<end>.";
+		$msg = $this->text->makeBlob(
+			"Routing formats (" . count($formats) . ")",
+			$blob
+		);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route format (clear|del|rem|rm|reset) (?<hop>.+)$/i")
+	 */
+	public function routeFormatClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!$this->clearHopFormat($args['hop'])) {
+			$sendto->reply("No format defined for <highlight>{$args['hop']}<end>.");
+			return;
+		}
+		$sendto->reply("Format cleared for <highlight>{$args['hop']}<end>.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route format render (?<hop>.+) (?<render>true|false)$/i")
+	 */
+	public function routeFormatChangeRenderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->setHopRender($args['hop'], $args['render'] === 'true');
+		$sendto->reply("Format saved.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route format display (?<hop>[^ ]+) (?<format>.+)$/i")
+	 * @Matches("/^route format display (?<hop>[^ ]+\(.*?\)) (?<format>.+)$/i")
+	 */
+	public function routeFormatChangeDisplayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		try {
+			$this->setHopDisplay($args['hop'], $args['format']);
+		} catch (Exception $e) {
+			$sendto->reply($e->getMessage());
+			return;
+		}
+		$sendto->reply("Display format saved.");
+	}
+
+	/** Turn on/off rendering of a specific hop */
+	public function setHopRender(string $hop, bool $state): void {
+		/** @var ?RouteHopFormat */
+		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		$update = true;
+		if (!isset($format)) {
+			$format = new RouteHopFormat();
+			$format->hop = $hop;
+			$format->format = '%s';
+			$update = false;
+		}
+		$format->render = $state;
+		if ($update) {
+			$this->db->update(Source::DB_TABLE, "id", $format);
+		} else {
+			$format->id = $this->db->insert(Source::DB_TABLE, $format);
+			$this->messageHub->loadTagFormat();
+		}
+	}
+
+	/** Define how to render a specific hop */
+	public function setHopDisplay(string $hop, string $format): void {
+		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
+			throw new Exception("Invalid format string given.");
+		}
+		$spec = Source::$format->first(fn($x) => $x->hop === $hop);
+		/** @var RouteHopFormat $format */
+		$update = true;
+		if (!isset($spec)) {
+			$spec = new RouteHopFormat();
+			$spec->hop = $hop;
+			$update = false;
+		}
+		$spec->format = $format;
+		if ($update) {
+			$this->db->update(Source::DB_TABLE, "id", $spec);
+		} else {
+			$spec->id = $this->db->insert(Source::DB_TABLE, $spec);
+			$this->messageHub->loadTagFormat();
+		}
+	}
+
+	public function clearHopFormat(string $hop): bool {
+		/** @var ?RouteHopFormat */
+		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		if (!isset($format)) {
+			return false;
+		}
+		if ($this->db->table(Source::DB_TABLE)->delete($format->id) === 0) {
+			return false;
+		}
+		$this->messageHub->loadTagFormat();
+		return true;
+	}
+
 	public function getHopColor(string $hop): ?RouteHopColor {
 		return $this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->where("hop", $hop)
@@ -633,21 +781,5 @@ class MessageHubController {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(fn(MessageEmitter $emitter) => $emitter->getChannelName())
 				->join("\n<tab>");
-	}
-
-	/**
-	 * List all relay transports
-	 * @Api("/hop/color")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='RouteHopColor[]', desc='The hop color definitions')
-	 */
-	public function apiGetHopColors(Request $request, HttpProtocolWrapper $server): Response {
-		$query = $this->db->table($this->messageHub::DB_TABLE_COLORS);
-		/** @var Collection<RouteHopColor> */
-		$colors = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
-			->asObj(RouteHopColor::class)
-			->toArray();
-		return new ApiResponse($colors);
 	}
 }

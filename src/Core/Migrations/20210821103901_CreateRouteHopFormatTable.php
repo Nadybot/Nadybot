@@ -15,7 +15,7 @@ class CreateRouteHopFormatTable implements SchemaMigration {
 			$table->id();
 			$table->string("hop", 25)->unique();
 			$table->boolean("render")->default(true);
-			$table->string("format", 50)->nullable();
+			$table->string("format", 50)->default('%s');
 		});
 		$db->table($table)->insert([
 			[
