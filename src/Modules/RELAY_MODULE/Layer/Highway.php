@@ -17,16 +17,18 @@ use Nadybot\Modules\RELAY_MODULE\StatusProvider;
  * 	Room names can be picked freely as long as they are at least 32 characters
  * 	long. They should be as random as possible to prevent unauthorized
  *	access to messages.
+ *	Shorter room names are system rooms and by definition read-only.
  *	For further security, using an encryption layer is recommended.")
  * @Param(
  * 	name='room',
- * 	description='The room to join. Must be at least 32 characters long.',
- * 	type='string',
+ * 	description='The room(s) to join. Must be at least 32 characters long if you want to be able to send.',
+ * 	type='string[]',
  * 	required=true
  * )
  */
 class Highway implements RelayLayerInterface, StatusProvider {
-	protected string $room;
+	/** @var string[] */
+	protected array $rooms = [];
 
 	protected Relay $relay;
 
@@ -37,11 +39,13 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	protected $initCallback = null;
 
-	public function __construct(string $room) {
-		if (strlen($room) < 32) {
-			throw new Exception("<highlight>room<end> must be at least 32 characters long.");
+	public function __construct(array $rooms) {
+		foreach ($rooms as $room) {
+			if (strlen($room) < 32) {
+				throw new Exception("<highlight>room<end> must be at least 32 characters long.");
+			}
 		}
-		$this->room = $room;
+		$this->rooms = $rooms;
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -53,68 +57,78 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	}
 
 	public function init(callable $callback): array {
-		$json = (object)[
-			"type" => "command",
-			"cmd" => "subscribe",
-			"room" => $this->room,
-		];
-		try {
-			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-		} catch (JsonException $e) {
+		$cmd = [];
+		foreach ($this->rooms as $room) {
+			$json = (object)[
+				"type" => "command",
+				"cmd" => "subscribe",
+				"room" => $room,
+			];
+			try {
+				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			} catch (JsonException $e) {
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					"Unable to encode subscribe-command into highway protocol: ".
+						$e->getMessage()
+				);
+				$this->logger->log('ERROR', $this->status->text);
+				return [];
+			}
+			$this->initCallback = $callback;
 			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				"Unable to encode subscribe-command into highway protocol: ".
-					$e->getMessage()
+				RelayStatus::INIT,
+				"Joining room {$room}"
 			);
-			$this->logger->log('ERROR', $this->status->text);
-			return [];
+			$cmd []= $encoded;
 		}
-		$this->initCallback = $callback;
-		$this->status = new RelayStatus(
-			RelayStatus::INIT,
-			"Joining room {$this->room}"
-		);
-		return [$encoded];
+		return $cmd;
 	}
 
 	public function deinit(callable $callback): array {
-		$json = (object)[
-			"type" => "command",
-			"cmd" => "unsubscribe",
-			"room" => $this->room,
-		];
-		try {
-			$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-		} catch (JsonException $e) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				"Unable to encode unsubscribe-command into highway protocol: ".
-					$e->getMessage()
-			);
-			$this->logger->log('ERROR', $this->status->text);
-			return [];
+		$cmd = [];
+		foreach ($this->rooms as $room) {
+			$json = (object)[
+				"type" => "command",
+				"cmd" => "unsubscribe",
+				"room" => $room,
+			];
+			try {
+				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			} catch (JsonException $e) {
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					"Unable to encode unsubscribe-command into highway protocol: ".
+						$e->getMessage()
+				);
+				$this->logger->log('ERROR', $this->status->text);
+				return [];
+			}
+			$this->initCallback = $callback;
+			$cmd []= $encoded;
 		}
-		$this->initCallback = $callback;
-		return [$encoded];
+		return $cmd;
 	}
 
 	public function send(array $packets): array {
 		$encoded = [];
 		foreach ($packets as $packet) {
-			$json = (object)[
-				"type" => "message",
-				"room" => $this->room,
-				"body" => $packet,
-			];
-			try {
-				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			} catch (JsonException $e) {
-				$this->logger->log(
-					'ERROR',
-					"Unable to encode the relay data into highway protocol: ".
-						$e->getMessage()
-				);
-				continue;
+			foreach ($this->rooms as $room) {
+				$json = (object)[
+					"type" => "message",
+					"room" => $room,
+					"body" => $packet,
+				];
+				try {
+					$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				} catch (JsonException $e) {
+					$this->logger->log(
+						'ERROR',
+						"Unable to encode the relay data into highway protocol: ".
+							$e->getMessage()
+					);
+					continue;
+				}
 			}
 		}
 		return $encoded;

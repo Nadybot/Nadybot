@@ -8,10 +8,10 @@ use Nadybot\Core\Routing\RoutableEvent;
 /**
  * @EventModifier("if-not-by")
  * @Description("This modifier will only route messages that are
- *	not sent by a given person.")
+ *	not sent by a given person or group of people.")
  * @Param(
  *	name='sender',
- *	type='string',
+ *	type='string[]',
  *	description='The name of the character (case-insensitive)',
  *	required=true
  * )
@@ -24,11 +24,12 @@ use Nadybot\Core\Routing\RoutableEvent;
  * )
  */
 class IfNotBy implements EventModifier {
-	protected string $sender;
+	/** @var string[] */
+	protected array $senders = [];
 	protected bool $inverse;
 
-	public function __construct(string $sender, bool $inverse=false) {
-		$this->sender = strtolower($sender);
+	public function __construct(array $senders, bool $inverse=false) {
+		$this->senders = array_map("strtolower", $senders);
 		$this->inverse = $inverse;
 	}
 
@@ -37,7 +38,7 @@ class IfNotBy implements EventModifier {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
-		$matches = isset($char) && strtolower($event->char->name) === $this->sender;
+		$matches = isset($char) && in_array(strtolower($event->char->name), $this->senders);
 		if ($matches === $this->inverse) {
 			return $event;
 		}

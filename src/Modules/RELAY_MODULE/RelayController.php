@@ -129,146 +129,12 @@ class RelayController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
 			$this->moduleName,
-			'relay_color_guild',
-			"Color of messages from relay to guild channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_color_priv',
-			"Color of messages from relay to private channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
 			'relay_guild_abbreviation',
 			'Abbreviation to use for org name',
 			'edit',
 			'text',
 			'none',
 			'none'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_bot_color_org',
-			"Color of bot messages from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_bot_color_priv',
-			"Color of bot messages from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_tag_color_org',
-			"Color of the guild name tag from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_tag_color_priv',
-			"Color of the guild name tag from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_color_org',
-			"Color of the org chat from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_color_priv',
-			"Color of the org chat from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guest_tag_color_org',
-			"Color of the [Guest] tag from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guest_tag_color_priv',
-			"Color of the [Guest] tag from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guest_color_org',
-			"Color of the guest channel messages from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guest_color_priv',
-			"Color of the guest channel messages from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_raidbot_tag_color_org',
-			"Color of the raidboot name tag from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_raidbot_tag_color_priv',
-			"Color of the raidboot name tag from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_raidbot_color_org',
-			"Color of the raidboot chat from relay to org channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_raidbot_color_priv',
-			"Color of the raidboot chat from relay to priv channel",
-			'edit',
-			"color",
-			"<font color='#C3C3C3'>"
-		);
-
-		$this->commandAlias->register(
-			$this->moduleName,
-			"macro settings save relaytype 1|settings save relaysymbol Always relay|settings save relaybot",
-			"tellrelay"
 		);
 		$this->loadStackComponents();
 	}
@@ -881,6 +747,11 @@ class RelayController {
 							);
 						}
 						$arguments []= (int)$value;
+						unset($params[$parameter->name]);
+						break;
+					case $parameter::TYPE_STRING_ARRAY:
+						$value = array_map(fn($x) => (string)$x, (array)$value);
+						$arguments []= $value;
 						unset($params[$parameter->name]);
 						break;
 					default:

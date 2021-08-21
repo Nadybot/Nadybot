@@ -12,8 +12,9 @@ use Nadybot\Core\Routing\RoutableEvent;
  *	a certain text.")
  * @Param(
  *	name='text',
- *	type='string',
- *	description='The text that needs to be in the message',
+ *	type='string[]',
+ *	description='The text that needs to be in the message.
+ *	If more than one is given, any of the texts must match, not all.',
  *	required=true
  * )
  * @Param(
@@ -37,21 +38,47 @@ use Nadybot\Core\Routing\RoutableEvent;
  * )
  */
 class IfMatches implements EventModifier {
-	protected string $text = "";
+	/** @var string[] */
+	protected array $text = [];
 	protected bool $caseSensitive = false;
 	protected bool $isRegexp = false;
 	protected bool $inverse = false;
 
-	public function __construct(string $text, bool $caseSensitive=false, bool $isRegexp=false, bool $inverse=false) {
+	public function __construct(array $text, bool $caseSensitive=false, bool $isRegexp=false, bool $inverse=false) {
 		$this->text = $text;
 		$this->caseSensitive = $caseSensitive;
 		$this->inverse = $inverse;
 		$this->isRegexp = $isRegexp;
-		if ($isRegexp && @preg_match(chr(1) . $text . chr(1) . "si", "") === false) {
-			$error = error_get_last()["message"];
-			$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
-			throw new Exception("Invalid regular expression: {$error}.");
+		foreach ($text as $match) {
+			if ($isRegexp && @preg_match(chr(1) . $match . chr(1) . "si", "") === false) {
+				$error = error_get_last()["message"];
+				$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
+				throw new Exception("Invalid regular expression '{$match}': {$error}.");
+			}
 		}
+	}
+
+	protected function matches(string $message): bool {
+		foreach ($this->text as $text) {
+			if ($this->isRegexp) {
+				$modifier = "s";
+				if ($this->caseSensitive) {
+					$modifier .= "i";
+				}
+				if (preg_match(chr(1) . $text . chr(1) . "{$modifier}", $message) !== 1) {
+					return true;
+				}
+			} elseif ($this->caseSensitive) {
+				if (strpos($message, $text) !== false) {
+					return true;
+				}
+			} else {
+				if (stripos($message, $text) !== false) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
@@ -60,17 +87,7 @@ class IfMatches implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
-		if ($this->isRegexp) {
-			$modifier = "s";
-			if ($this->caseSensitive) {
-				$modifier .= "i";
-			}
-			$matches = preg_match(chr(1) . $this->text . chr(1) . "{$modifier}", $message) !== 1;
-		} elseif ($this->caseSensitive) {
-			$matches = strpos($message, $this->text) !== false;
-		} else {
-			$matches = stripos($message, $this->text) !== false;
-		}
+		$matches = $this->matches($message);
 		if ($matches === $this->inverse) {
 			return null;
 		}
