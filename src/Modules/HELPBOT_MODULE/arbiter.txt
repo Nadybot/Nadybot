@@ -5,3 +5,12 @@ To check which mission will be active at a future date/time, use
 <tab><highlight><symbol>arbiter june 6th 2025<end>
 <tab><highlight><symbol>arbiter next week<end>
 <tab><highlight><symbol>arbiter saturday<end>
+
+Once in a while, the arbiter takes a break and doesn't come to the ICC.
+In that case, you can use
+<tab><highlight><symbol>arbiter set bs<end>
+<tab><highlight><symbol>arbiter set ai<end>
+<tab><highlight><symbol>arbiter set dio<end>
+
+to manually set that you are currently in one of those weeks.
+All future calculations will then be adjusted accordingly.
