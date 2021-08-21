@@ -180,7 +180,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list from$/i")
+	 * @Matches("/^route list (?:from|sources?|src)$/i")
 	 */
 	public function routeListFromCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$emitters = $this->messageHub->getEmitters();
@@ -196,7 +196,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list to$/i")
+	 * @Matches("/^route list (?:to|dsts?|dests?|destinations?)$/i")
 	 */
 	public function routeListToCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$receivers = $this->messageHub->getReceivers();
@@ -212,7 +212,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list modifiers?$/i")
+	 * @Matches("/^route list (?:mod|mods|modifiers?)$/i")
 	 */
 	public function routeListModifiersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$mods = $this->messageHub->modifiers;
@@ -228,7 +228,7 @@ class MessageHubController {
 				"<tab><i>".
 				join("\n<tab>", explode("\n", trim($description))).
 				"</i>\n".
-				"<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> route list modifier {$mod->name}") . "]";
+				"<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> route list mod {$mod->name}") . "]";
 			$blobs []= $entry;
 		}
 		$blob = join("\n\n", $blobs);
@@ -238,7 +238,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list modifier (.+)$/i")
+	 * @Matches("/^route list (?:mod|modifier) (.+)$/i")
 	 */
 	public function routeListModifierCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$mod = $this->messageHub->modifiers[$args[1]];

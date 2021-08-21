@@ -1,0 +1,51 @@
+Routes define from which source to which destination
+messages will be forwarded. They consist of a source,
+a destination and any number of modifiers, where modifiers
+can either modify or completely drop a message.
+
+To see all currently defined routes, simply issue
+<tab><highlight><symbol>route<end>
+
+Alternatively, use
+<tab><highlight><symbol>route list<end> for a list view
+
+To create a new route, use
+<tab><highlight><symbol>route add 'from' -&gt; 'to' 'any number of modifiers'<end> or
+<tab><highlight><symbol>route add 'from' &lt;-&gt; 'to' 'any number of modifiers'<end>
+
+To create a new route that will forward all messages from
+your org channel to your private channel, use
+<tab><highlight><symbol>route add aoorg -&gt; aopriv<end>
+
+This will have no effect on messages sent from aopriv, so
+if you want the messages to be forwarded in both directions, use
+<tab><highlight><symbol>route add aoorg &lt;-&gt; aopriv<end>
+
+To delete an existing route, use
+<tab><highlight><symbol>route rem &lt;route id&gt;<end>
+The IDs are listed in the <highlight><symbol>route<end>-command.
+
+For a list of all sources and destinations for this command, use:
+<tab><highlight><symbol>route list src<end>
+<tab><highlight><symbol>route list dst<end>
+
+For a list of all modifiers for routes, use:
+<tab><highlight><symbol>route list mods<end>
+
+If you want to change how the hops of a route are rendered:
+<tab><highlight><symbol>route color<end>
+
+
+<header2>Examples<end>
+
+To route all system messages to the web interface:
+<tab><highlight><symbol>route add system(*) -&gt; web<end>
+
+To relay between org and private channel by using a dash prefix:
+<tab><highlight><symbol>route add aopriv &lt;-&gt; aoorg if-has-prefix(prefix="-")<end>
+
+To send all messages from Darknet containing "machi" to Nady:
+<tab><highlight><symbol>route add tradebot -&gt; aotell(Nady) if-matches(text=machi case-sensitive=false)<end>
+
+
+For more information, please see the Nadybot WIKI.
