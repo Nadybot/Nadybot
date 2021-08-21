@@ -21,6 +21,10 @@ use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
 use ReflectionClass;
 use Throwable;
 
@@ -629,5 +633,21 @@ class MessageHubController {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(fn(MessageEmitter $emitter) => $emitter->getChannelName())
 				->join("\n<tab>");
+	}
+
+	/**
+	 * List all relay transports
+	 * @Api("/hop/color")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='RouteHopColor[]', desc='The hop color definitions')
+	 */
+	public function apiGetHopColors(Request $request, HttpProtocolWrapper $server): Response {
+		$query = $this->db->table($this->messageHub::DB_TABLE_COLORS);
+		/** @var Collection<RouteHopColor> */
+		$colors = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->asObj(RouteHopColor::class)
+			->toArray();
+		return new ApiResponse($colors);
 	}
 }

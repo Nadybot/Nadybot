@@ -1401,6 +1401,32 @@
 				}
 			}
 		},
+		"/hop/color": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay transports",
+				"responses": {
+					"200": {
+						"description": "The hop color definitions",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RouteHopColor"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/setting/{key}": {
 			"parameters": [
 				{

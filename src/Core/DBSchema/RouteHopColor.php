@@ -5,7 +5,10 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class RouteHopColor extends DBRow {
-	/** Internal primary key */
+	/**
+	 * Internal primary key
+	 * @json:ignore
+	 */
 	public int $id;
 
 	/** The hop mask (discord, *, aopriv, ...) */
