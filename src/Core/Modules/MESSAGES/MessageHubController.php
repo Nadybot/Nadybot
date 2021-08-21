@@ -427,38 +427,40 @@ class MessageHubController {
 		$blob = "<header2>Color definitions<end>\n";
 		$blobs = [];
 		foreach ($colors as $color) {
-			$textColorStart = $tagColorStart = '';
-			$textColorEnd = $tagColorEnd = '';
-			$textLinks = $tagLinks = "";
+			$remCmd = $this->text->makeChatcmd(
+				"clear",
+				"/tell <myname> route color tag rem {$color->hop}"
+			);
+			$pickCmd = $this->text->makeChatcmd(
+				"pick",
+				"/tell <myname> route color tag pick {$color->hop}"
+			);
+			$part = "<tab><highlight>{$color->hop}<end>\n".
+				"<tab><tab>Tag: ";
 			if (isset($color->tag_color)) {
-				$tagColorStart = "<font color=#{$color->tag_color}>";
-				$tagColorEnd = "</font>";
-				$tagLinks =
-				" [" . $this->text->makeChatcmd(
-					"rem tag",
-					"/tell <myname> route color tag rem {$color->hop}"
-				) . "] ".
-				"[" . $this->text->makeChatcmd(
-					"pick tag",
-					"/tell <myname> route color tag pick {$color->hop}"
-				) . "]";
+				$part .= "<font color=#{$color->tag_color}>#{$color->tag_color}</font>".
+					" [{$pickCmd}] [{$remCmd}]\n";
+			} else {
+				$part .= "&lt;unset&gt; [{$pickCmd}]\n";
 			}
+
+			$remCmd = $this->text->makeChatcmd(
+				"clear",
+				"/tell <myname> route color text rem {$color->hop}"
+			);
+			$pickCmd = $this->text->makeChatcmd(
+				"pick",
+				"/tell <myname> route color text pick {$color->hop}"
+			);
+			$part .= "<tab><tab>Text: ";
 			if (isset($color->text_color)) {
-				$textColorStart = "<font color=#{$color->text_color}>";
-				$textColorEnd = "</font>";
-				$textLinks =
-				" [" . $this->text->makeChatcmd(
-					"rem text",
-					"/tell <myname> route color text rem {$color->hop}"
-				) . "] ".
-				"[" . $this->text->makeChatcmd(
-					"pick text",
-					"/tell <myname> route color text pick {$color->hop}"
-				) . "]";
+				$part .= "<font color=#{$color->text_color}>#{$color->text_color}</font>".
+					" [{$pickCmd}] [{$remCmd}]\n";
+			} else {
+				$part .= "&lt;unset&gt; [{$pickCmd}]\n";
 			}
-			$blobs []= "<tab>{$tagColorStart}[{$color->hop}]{$tagColorEnd}: ".
-				"{$textColorStart}This is an example text.{$textColorEnd}".
-				$tagLinks . $textLinks;
+
+			$blobs []= $part;
 		}
 		$msg = $this->text->makeBlob(
 			"Routing colors (" . count($colors) . ")",

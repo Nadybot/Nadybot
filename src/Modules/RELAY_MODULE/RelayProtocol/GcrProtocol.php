@@ -63,8 +63,10 @@ class GcrProtocol implements RelayProtocolInterface {
 	public function renderUserState(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
+		$lastHop = null;
 		foreach ($path as $hop) {
-			$hops []= "##relay_channel##[" . ($hop->label ?: $hop->name) . "]##end##";
+			$hops []= "##relay_channel##[" . $hop->render($lastHop) . "]##end##";
+			$lastHop = $hop;
 		}
 		$character = $event->getCharacter();
 		if (!isset($character) || !$this->util->isValidSender($character->name)) {

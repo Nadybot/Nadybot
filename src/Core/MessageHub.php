@@ -9,6 +9,7 @@ use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\DBSchema\RouteHopColor;
+use Nadybot\Core\DBSchema\RouteHopFormat;
 use ReflectionMethod;
 use Throwable;
 
@@ -67,6 +68,14 @@ class MessageHub {
 				$this->registerEventModifier($spec);
 			}
 		}
+		$this->loadTagFormat();
+	}
+
+	public function loadTagFormat(): void {
+		$query = $this->db->table(Source::DB_TABLE);
+		Source::$format = $query
+			->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->asObj(RouteHopFormat::class);
 	}
 
 	/**
