@@ -34,6 +34,7 @@ For a list of all modifiers for routes, use:
 
 If you want to change how the hops of a route are rendered:
 <tab><highlight><symbol>route color<end>
+<tab><highlight><symbol>route format<end>
 
 
 <header2>Examples<end>

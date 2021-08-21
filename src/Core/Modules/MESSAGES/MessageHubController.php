@@ -3,27 +3,29 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
-use Illuminate\Support\Collection;
 use JsonException;
-use Nadybot\Core\ColorSettingHandler;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\RouteModifierArgument;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageRoute;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteHopFormat;
-use Nadybot\Core\Routing\Source;
 use ReflectionClass;
 use Throwable;
+use Illuminate\Support\Collection;
+use Nadybot\Core\{
+	ColorSettingHandler,
+	CommandReply,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteHopFormat,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
+	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
+	MessageRoute,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+	Routing\Source,
+};
 
 /**
  * @author Nadyita (RK5)
