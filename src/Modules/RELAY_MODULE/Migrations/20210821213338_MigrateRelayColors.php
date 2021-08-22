@@ -7,6 +7,7 @@ use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 
@@ -49,11 +50,11 @@ class MigrateRelayColors implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$orgTagColor = $this->getColor($db, "relay_guild_tag_color_org", "relay_guild_tag_color_priv");
 		$orgTextColor = $this->getColor($db, "relay_guild_color_org", "relay_guild_color_priv");
-		$this->saveColor($db, "aoorg", $orgTagColor, $orgTextColor);
+		$this->saveColor($db, Source::ORG, $orgTagColor, $orgTextColor);
 
 		$privTagColor = $this->getColor($db, "relay_guest_tag_color_org", "relay_guest_tag_color_priv");
 		$privTextColor = $this->getColor($db, "relay_guest_color_org", "relay_guest_color_priv");
-		$this->saveColor($db, "aopriv", $privTagColor, $privTextColor);
+		$this->saveColor($db, Source::PRIV, $privTagColor, $privTextColor);
 
 		$relaySysColor = $this->getSetting($db, "relay_color_guild")
 			?? $this->getSetting($db, "relay_color_priv");
