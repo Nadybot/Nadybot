@@ -395,7 +395,8 @@ class MessageHubController {
 				if ($route->getTwoWay() && ($route->getSource() === $receiver)) {
 					$routeName = $route->getDest();
 				}
-				$result[$receiver][$routeName] = "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
+				$result[$receiver][$routeName] ??= [];
+				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
 					join(" ", $route->renderModifiers());
 			}
 		}
@@ -404,8 +405,8 @@ class MessageHubController {
 		foreach ($result as $receiver => $senders) {
 			ksort($senders);
 			$blob = "<header2>{$receiver}<end>\n";
-			foreach ($senders as $sender => $line) {
-				$blob .= $line . "\n";
+			foreach ($senders as $sender => $lines) {
+				$blob .= join("\n", $lines) . "\n";
 			}
 			$blobs []= $blob;
 		}
@@ -419,10 +420,7 @@ class MessageHubController {
 	 * @Matches("/^route color$/i")
 	 */
 	public function routeListColorConfigCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$query = $this->db->table($this->messageHub::DB_TABLE_COLORS);
-		/** @var Collection<RouteHopColor> */
-		$colors = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
-			->asObj(RouteHopColor::class);
+		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
 			$sendto->reply("No colors have been defined yet.");
 			return;
@@ -499,6 +497,7 @@ class MessageHubController {
 		}
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->delete($color->id);
+		$this->messageHub->loadTagColor();
 		$sendto->reply("Color definition for <highlight>[{$args['tag']}] deleted.");
 	}
 
@@ -520,6 +519,7 @@ class MessageHubController {
 		}
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->delete($color->id);
+		$this->messageHub->loadTagColor();
 		$sendto->reply("Color definition for <highlight>[{$args['tag']}] deleted.");
 	}
 
@@ -550,6 +550,7 @@ class MessageHubController {
 			$this->db->update($table, "id", $colorDef);
 		} else {
 			$colorDef->id = $this->db->insert($table, $colorDef);
+			$this->messageHub->loadTagColor();
 		}
 		$sendto->reply(
 			ucfirst(strtolower($type)) . " color for ".
@@ -724,10 +725,8 @@ class MessageHubController {
 	}
 
 	public function getHopColor(string $hop): ?RouteHopColor {
-		return $this->db->table($this->messageHub::DB_TABLE_COLORS)
-			->where("hop", $hop)
-			->asObj(RouteHopColor::class)
-			->first();
+		return $this->messageHub::$colors
+			->first(fn(RouteHopColor $x) => $x->hop === $hop);
 	}
 
 	public function getRoute(int $id): ?Route {

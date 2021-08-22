@@ -14,6 +14,9 @@ class MigrateRelayColors implements SchemaMigration {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -57,5 +60,6 @@ class MigrateRelayColors implements SchemaMigration {
 		if (isset($relaySysColor)) {
 			$this->settingManager->save("default_routed_sys_color", $relaySysColor->value);
 		}
+		$this->messageHub->loadTagColor();
 	}
 }

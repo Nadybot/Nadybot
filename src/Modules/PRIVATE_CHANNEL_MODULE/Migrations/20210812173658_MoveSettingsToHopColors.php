@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\Setting;
@@ -16,6 +15,9 @@ use Nadybot\Core\SettingManager;
 class MoveSettingsToHopColors implements SchemaMigration {
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	protected function getSettingColor(DB $db, string $name): ?string {
 		/** @var ?Setting */
@@ -48,5 +50,6 @@ class MoveSettingsToHopColors implements SchemaMigration {
 			$hop->hop .= "({$org})";
 		}
 		$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
+		$this->messageHub->loadTagColor();
 	}
 }

@@ -37,12 +37,7 @@ class MessageHubAPI {
 	 * @ApiResult(code=200, class='RouteHopColor[]', desc='The hop color definitions')
 	 */
 	public function apiGetHopColors(Request $request, HttpProtocolWrapper $server): Response {
-		$query = $this->db->table($this->messageHub::DB_TABLE_COLORS);
-		/** @var Collection<RouteHopColor> */
-		$colors = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
-			->asObj(RouteHopColor::class)
-			->toArray();
-		return new ApiResponse($colors);
+		return new ApiResponse(MessageHub::$colors->toArray());
 	}
 
 	/**

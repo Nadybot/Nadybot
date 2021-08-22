@@ -29,7 +29,7 @@ class MessageHub {
 	/** @var array<string,MessageEmitter> */
 	protected array $emitters = [];
 
-	/** @var array<string,array<string,MessageRoute>> */
+	/** @var array<string,array<string,MessageRoute[]>> */
 	protected array $routes = [];
 
 	/** @var array<string,ClassSpec> */
@@ -56,6 +56,9 @@ class MessageHub {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** @var Collection<RouteHopColor> */
+	public static Collection $colors;
+
 	/** @Setup */
 	public function setup(): void {
 		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
@@ -69,6 +72,7 @@ class MessageHub {
 			}
 		}
 		$this->loadTagFormat();
+		$this->loadTagColor();
 	}
 
 	public function loadTagFormat(): void {
@@ -76,6 +80,13 @@ class MessageHub {
 		Source::$format = $query
 			->orderByDesc($query->colFunc("LENGTH", "hop"))
 			->asObj(RouteHopFormat::class);
+	}
+
+	public function loadTagColor(): void {
+		$query = $this->db->table(static::DB_TABLE_COLORS);
+		static::$colors = $query
+			->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->asObj(RouteHopColor::class);
 	}
 
 	/**
@@ -298,23 +309,25 @@ class MessageHub {
 			if (!fnmatch(strtolower($source), $type)) {
 				continue;
 			}
-			foreach ($dest as $destName => $route) {
+			foreach ($dest as $destName => $routes) {
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
 					$this->logger->log('DEBUG', "No receiver registered for {$destName}");
 					continue;
 				}
-				$modifiedEvent = $route->modifyEvent($event);
-				if (!isset($modifiedEvent)) {
-					$this->logger->log('DEBUG', "Event filtered away for {$destName}");
-					continue;
+				foreach ($routes as $route) {
+					$modifiedEvent = $route->modifyEvent($event);
+					if (!isset($modifiedEvent)) {
+						$this->logger->log('DEBUG', "Event filtered away for {$destName}");
+						continue;
+					}
+					$this->logger->log('DEBUG', "Event routed to {$destName}");
+					$destination = $route->getDest();
+					if (preg_match("/\((.+)\)$/", $destination, $matches)) {
+						$destination = $matches[1];
+					}
+					$receiver->receive($modifiedEvent, $destination);
 				}
-				$this->logger->log('DEBUG', "Event routed to {$destName}");
-				$destination = $route->getDest();
-				if (preg_match("/\((.+)\)$/", $destination, $matches)) {
-					$destination = $matches[1];
-				}
-				$receiver->receive($modifiedEvent, $destination);
 			}
 		}
 	}
@@ -373,7 +386,8 @@ class MessageHub {
 		$dest = $route->getDest();
 
 		$this->routes[$source] ??= [];
-		$this->routes[$source][$dest] = $route;
+		$this->routes[$source][$dest] ??= [];
+		$this->routes[$source][$dest] []= $route;
 		$char = $this->getCharacter($dest);
 		if (isset($char)) {
 			$this->buddyListManager->add($char, "msg_hub");
@@ -382,7 +396,8 @@ class MessageHub {
 			return;
 		}
 		$this->routes[$dest] ??= [];
-		$this->routes[$dest][$source] = $route;
+		$this->routes[$dest][$source] ??= [];
+		$this->routes[$dest][$source] []= $route;
 		$char = $this->getCharacter($source);
 		if (isset($char)) {
 			$this->buddyListManager->add($char, "msg_hub");
@@ -393,42 +408,45 @@ class MessageHub {
 	 * @return MessageRoute[]
 	 */
 	public function getRoutes(): array {
-		$ids = [];
-		$routes = [];
+		$allRoutes = [];
 		foreach ($this->routes as $source => $destData) {
-			foreach ($destData as $dest => $route) {
-				if (isset($ids[$route->getID()])) {
-					continue;
+			foreach ($destData as $dest => $routes) {
+				foreach ($routes as $route) {
+					$allRoutes [$route->getID()]= $route;
 				}
-				$routes []= $route;
-				$ids[$route->getID()] = true;
 			}
 		}
-		return $routes;
+		return array_values($allRoutes);
 	}
 
 	public function deleteRouteID(int $id): ?MessageRoute {
+		$result = null;
 		foreach ($this->routes as $source => $destData) {
-			foreach ($destData as $dest => $route) {
-				if ($route->getID() !== $id) {
-					continue;
-				}
-				$result = $this->routes[$source][$dest];
-				unset($this->routes[$source][$dest]);
-				$char = $this->getCharacter($dest);
-				if (isset($char)) {
-					$this->buddyListManager->remove($char, "msg_hub");
-				}
-				if ($result->getTwoWay()) {
-					$char = $this->getCharacter($source);
+			foreach ($destData as $dest => $routes) {
+				for ($i = 0; $i < count($routes); $i++) {
+					$route = $routes[0];
+					if ($route->getID() !== $id) {
+						continue;
+					}
+					$result = $route;
+					unset($this->routes[$source][$dest][$i]);
+					$char = $this->getCharacter($dest);
 					if (isset($char)) {
 						$this->buddyListManager->remove($char, "msg_hub");
 					}
+					if ($result->getTwoWay()) {
+						$char = $this->getCharacter($source);
+						if (isset($char)) {
+							$this->buddyListManager->remove($char, "msg_hub");
+						}
+					}
 				}
-				return $result;
+				$this->routes[$source][$dest] = array_values(
+					$this->routes[$source][$dest]
+				);
 			}
 		}
-		return null;
+		return $result;
 	}
 
 	/**
@@ -453,10 +471,7 @@ class MessageHub {
 	}
 
 	public function getHopColor(string $type, string $name, string $color): ?RouteHopColor {
-		$query = $this->db->table(static::DB_TABLE_COLORS);
-		/** @var Collection<RouteHopColor> */
-		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "hop"))
-			->asObj(RouteHopColor::class);
+		$colorDefs = static::$colors;
 		if (isset($name)) {
 			$fullDefs = $colorDefs->filter(function (RouteHopColor $color): bool {
 				return strpos($color->hop, "(") !== false;
