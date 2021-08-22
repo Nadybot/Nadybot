@@ -56,11 +56,10 @@ class MigrateRelayColors implements SchemaMigration {
 		$privTextColor = $this->getColor($db, "relay_guest_color_org", "relay_guest_color_priv");
 		$this->saveColor($db, Source::PRIV, $privTagColor, $privTextColor);
 
-		$relaySysColor = $this->getSetting($db, "relay_color_guild")
-			?? $this->getSetting($db, "relay_color_priv");
-		if (isset($relaySysColor)) {
-			$this->settingManager->save("default_routed_sys_color", $relaySysColor->value);
-		}
+		$relaySysColor = $this->getColor($db, "default_guild_color");
+		$this->settingManager->save("default_routed_sys_color", "<font color='#{$relaySysColor}'>");
+		$this->saveColor($db, Source::SYSTEM, $relaySysColor, $relaySysColor);
+
 		$this->messageHub->loadTagColor();
 	}
 }

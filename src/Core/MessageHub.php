@@ -498,15 +498,16 @@ class MessageHub {
 	 * Get a font tag for the text of a routable message
 	 */
 	public function getTextColor(RoutableEvent $event): string {
+		$path = $event->path ?? [];
+		/** @var ?Source */
+		$hop = $path[count($path)-1] ?? null;
 		if (empty($event->char) || $event->char->id === $this->chatBot->char->id) {
-			$sysColor = $this->settingManager->getString("default_routed_sys_color");
-			return $sysColor;
+			if (!isset($hop) || $hop->type !== Source::SYSTEM) {
+				$sysColor = $this->settingManager->getString("default_routed_sys_color");
+				return $sysColor;
+			}
 		}
-		if (!count($event->path)) {
-			return "";
-		}
-		$hop = $event->path[count($event->path)-1] ?? null;
-		if (!isset($hop)) {
+		if (!count($path) || !isset($hop)) {
 			return "";
 		}
 		$color = $this->getHopColor($hop->type, $hop->name, "text_color");
