@@ -105,21 +105,18 @@ class MigrateToRoutes implements SchemaMigration {
 		$route->destination = $to;
 		$route->two_way = true;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
-		if ($relayCommands) {
-			return;
+		if (!$relayCommands) {
+			$mod = new RouteModifier();
+			$mod->route_id = $route->id;
+			$mod->modifier = "if-not-command";
+			$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+			$route->modifiers []= $mod;
 		}
 
-		$mod = new RouteModifier();
-		$mod->route_id = $route->id;
-		$mod->modifier = "if-not-command";
-		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
-
-		$route->modifiers []= $mod;
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 			$this->messageHub->addRoute($msgRoute);
 		} catch (Exception $e) {
-			throw $e;
 			// Ain't nothing we can do, errors will be given on next restart
 		}
 	}
