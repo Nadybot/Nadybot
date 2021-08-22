@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
-use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\RouteHopColor;
@@ -120,6 +119,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 			$this->messageHub->addRoute($msgRoute);
 		} catch (Exception $e) {
+			throw $e;
 			// Ain't nothing we can do, errors will be given on next restart
 		}
 	}
