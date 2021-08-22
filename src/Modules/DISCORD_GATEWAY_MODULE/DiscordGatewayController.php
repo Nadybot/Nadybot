@@ -170,74 +170,6 @@ class DiscordGatewayController {
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
-			"discord_relay",
-			"What to relay text into Discord channel",
-			"edit",
-			"options",
-			"0",
-			"off;priv;org;priv+org",
-			"0;1;2;3"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_channel",
-			"Discord channel to relay into",
-			"edit",
-			"discord_channel",
-			"off"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_commands",
-			"Relay commands into Discord channel",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_color_sender_guild",
-			"Color of sender name in Discord messages relayed into org chat",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_color_sender_priv",
-			"Color of sender name in Discord messages relayed into priv channel",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_color_guild",
-			"Color of Discord messages relayed into org chat",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_color_priv",
-			"Color of Discord messages relayed into priv channel",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_color_channel",
-			"Color of the Discord tag when relaying",
-			"edit",
-			"color",
-			"<font color=#C3C3C3>"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
 			"discord_notify_voice_changes",
 			"Show people joining or leaving voice channels",
 			"edit",
@@ -245,14 +177,6 @@ class DiscordGatewayController {
 			"0",
 			"off;priv;org;priv+org",
 			"0;1;2;3"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_mention_rank",
-			"Minimum ranks allowed to use @here and @everyone",
-			"edit",
-			"rank",
-			"mod"
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
 	}
@@ -510,7 +434,7 @@ class DiscordGatewayController {
 		$this->resolveDiscordMentions(
 			$message->guild_id??null,
 			$message->content,
-			function(string $text) use ($message, $channelName, $name): void {
+			function(string $text) use ($message, $channelName, $name, $member): void {
 				$aoMessage = DiscordRelayController::formatMessage($text);
 				$rMessage = new RoutableMessage($aoMessage);
 				if ($message->guild_id) {
@@ -521,6 +445,9 @@ class DiscordGatewayController {
 				} else {
 					$source = new Source(Source::DISCORD_MSG, $name);
 					$rMessage->prependPath($source);
+				}
+				if (isset($member)) {
+					$name = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $name;
 				}
 				$senderDisplayName = trim(preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name));
 				$rMessage->setCharacter(new Character($senderDisplayName));

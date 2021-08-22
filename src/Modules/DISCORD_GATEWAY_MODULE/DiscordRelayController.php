@@ -95,92 +95,14 @@ class DiscordRelayController {
 
 	/** @Setup */
 	public function setup() {
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_relay",
-		// 	"What to relay text into Discord channel",
-		// 	"edit",
-		// 	"options",
-		// 	"0",
-		// 	"off;priv;org;priv+org",
-		// 	"0;1;2;3"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_relay_commands",
-		// 	"Relay commands into Discord channel",
-		// 	"edit",
-		// 	"options",
-		// 	"0",
-		// 	"true;false",
-		// 	"1;0"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_prefix_relay",
-		// 	"Prefix messages to Discord with org/botname",
-		// 	"edit",
-		// 	"options",
-		// 	"1",
-		// 	"true;false",
-		// 	"1;0"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_relay_channel",
-		// 	"Discord channel to relay into",
-		// 	"edit",
-		// 	"discord_channel",
-		// 	"off"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_color_sender_guild",
-		// 	"Color of sender name in Discord messages relayed into org chat",
-		// 	"edit",
-		// 	"color",
-		// 	"<font color=#C3C3C3>"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_color_sender_priv",
-		// 	"Color of sender name in Discord messages relayed into priv channel",
-		// 	"edit",
-		// 	"color",
-		// 	"<font color=#C3C3C3>"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_color_guild",
-		// 	"Color of Discord messages relayed into org chat",
-		// 	"edit",
-		// 	"color",
-		// 	"<font color=#C3C3C3>"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_color_priv",
-		// 	"Color of Discord messages relayed into priv channel",
-		// 	"edit",
-		// 	"color",
-		// 	"<font color=#C3C3C3>"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_color_channel",
-		// 	"Color of the Discord tag when relaying",
-		// 	"edit",
-		// 	"color",
-		// 	"<font color=#C3C3C3>"
-		// );
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	"discord_relay_mention_rank",
-		// 	"Minimum ranks allowed to use @here and @everyone",
-		// 	"edit",
-		// 	"rank",
-		// 	"mod"
-		// );
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_relay_mention_rank",
+			"Minimum ranks allowed to use @here and @everyone",
+			"edit",
+			"rank",
+			"mod"
+		);
 	}
 
 	/**
