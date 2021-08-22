@@ -573,15 +573,34 @@ class DiscordGatewayController {
 					}
 				)
 			);
+			$fullName = Source::DISCORD_PRIV . "({$channel->name})";
+			$this->messageHub
+				->unregisterMessageEmitter($fullName)
+				->unregisterMessageReceiver($fullName);
 			return;
 		}
 		if ($event->payload->t === "CHANNEL_UPDATE") {
 			for ($i = 0; $i < count($channels); $i++) {
 				if ($channels[$i]->id === $channel->id) {
+					$oldChannel = $channels[$i];
 					$channels[$i] = $channel;
-					return;
+					break;
 				}
 			}
+			if (!isset($oldChannel)) {
+				return;
+			}
+			$fullName = Source::DISCORD_PRIV . "({$oldChannel->name})";
+			$this->messageHub
+				->unregisterMessageEmitter($fullName)
+				->unregisterMessageReceiver($fullName);
+
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
+			return;
 		}
 	}
 
