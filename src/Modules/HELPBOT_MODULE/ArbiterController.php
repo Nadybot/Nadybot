@@ -4,6 +4,7 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
 	CommandAlias,
@@ -128,6 +129,7 @@ class ArbiterController {
 	/**
 	 * @HandlesCommand("arbiter")
 	 * @Matches("/^arbiter set$/i")
+	 * @Matches("/^arbiter set (.+) (ends)$/i")
 	 * @Matches("/^arbiter set (.+)$/i")
 	 */
 	public function arbiterSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -146,13 +148,17 @@ class ArbiterController {
 		}
 		$pos = array_search($args[1], $validTypes);
 		$this->db->beginTransaction();
+		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
+		$startsToday = ($day === "7") && !isset($args[2]);
+		$start =  strtotime($startsToday ? "today" : "last sunday");
+		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
 				$arb = new ICCArbiter();
 				$arb->type = $validTypes[($pos + $i) % 3];
-				$arb->start = (new DateTime())->setTimestamp(strtotime("last sunday"));
-				$arb->end = (new DateTime())->setTimestamp(strtotime("next monday"));
+				$arb->start = (new DateTime())->setTimestamp($start);
+				$arb->end = (new DateTime())->setTimestamp($end);
 				$days = 14 * $i;
 				$arb->start->add(new DateInterval("P{$days}D"));
 				$arb->end->add(new DateInterval("P{$days}D"));
