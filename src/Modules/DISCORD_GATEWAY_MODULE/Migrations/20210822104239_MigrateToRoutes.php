@@ -25,6 +25,9 @@ class MigrateToRoutes implements SchemaMigration {
 	/** @Inject */
 	public Nadybot $chatBot;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -59,6 +62,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
 		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
+		$this->messageHub->loadTagColor();
 
 		$relayChannel = $this->getSetting($db, "discord_relay_channel");
 		$relayWhat = $this->getSetting($db, "discord_relay");
@@ -109,6 +113,14 @@ class MigrateToRoutes implements SchemaMigration {
 		$mod = new RouteModifier();
 		$mod->route_id = $route->id;
 		$mod->modifier = "if-not-command";
-		$db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
+
+		$route->modifiers []= $mod;
+		try {
+			$msgRoute = $this->messageHub->createMessageRoute($route);
+			$this->messageHub->addRoute($msgRoute);
+		} catch (Exception $e) {
+			// Ain't nothing we can do, errors will be given on next restart
+		}
 	}
 }
