@@ -73,6 +73,7 @@ class MessageHubController {
 	/**
 	 * @Event("connect")
 	 * @Description("Load routing from database")
+	 * @DefaultStatus("1")
 	 */
 	public function loadRouting() {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
