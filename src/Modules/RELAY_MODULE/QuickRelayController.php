@@ -54,6 +54,15 @@ class QuickRelayController {
 				"It provides Funcom-speed messages, but no encryption or ".
 				"shared online lists.\n".
 				"Colors usually cannot be configured on the other bots.",
+			"tyr" => "Use this to setup relaying between a mixed setup ".
+				"of only Tyrbots and Nadybots.\n".
+				"Currently, the only way to use this in practise is by ".
+				"setting up your own local relay server\n".
+				"from <a href='chatcmd:///start https://github.com/Budabot/Tyrbot/wiki/Websocket-Relay'>here</a> ".
+				"and have all bots connect to it.\n".
+				"It provides near-realtime-speed messages, encryption and ".
+				"shared online lists.\n".
+				"Customization of all colors is possible",
 			"old" => "Use this to setup relaying between two or more ".
 				"(older) bots of mixed type.\n".
 				"This relay type is supported by all bots, except for ".
@@ -76,6 +85,28 @@ class QuickRelayController {
 			count($types) . " relay-types found",
 			join("\n\n", $blobs)
 		);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("quickrelay")
+	 * @Matches("/^quickrelay tyr$/i")
+	 */
+	public function quickrelayTyrCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$password = $this->util->getPassword(16);
+		$name = "tyr";
+		$blob = "First, you have to run a local installation of <a href='chatcmd:///start https://github.com/Budabot/Tyrbot/wiki/Websocket-Relay'>".
+			"Tyrence's Websocket relay</a>.\n".
+			"This example assumes that we can connect to it at ws://127.0.0.1:8000.\n\n".
+			"To setup a relay called \"{$name}\" between multiple Nadybots and Tyrbots, run this on all bots:\n".
+			"<tab><highlight><symbol>relay add {$name} websocket(server=\"ws://127.0.0.1:8000/subscribe/relay\") ".
+				"tyr-relay() ".
+				"tyr-encryption(password=\"{$password}\") ".
+				"tyrbot()<end>\n\n".
+			$this->getRouteInformation($name, true).
+			$this->getDisclaimer($name);
+		$msg = "Instructions to setup the relay \"{$name}\"";
+		$msg = $this->text->makeBlob($msg, $blob);
 		$sendto->reply($msg);
 	}
 
@@ -141,10 +172,15 @@ class QuickRelayController {
 
 	protected function getDisclaimer(string $name): string {
 		return "\n\n<i>".
-			"This will create a relay named \"{$name}\". Feel free to ".
-			"change the name or any of the parameters to your needs.\n".
+			"This will create a relay named \"{$name}\".\n".
+			"Feel free to change the name or any of the parameters to your needs.\n".
 			"Except for the name, the <symbol>relay-command must be ".
-			"executed exactly the same on all the bots.".
+			"executed exactly the same on all the bots.\n\n".
+			"The Nadybot Wiki has a more detailed documentation of ".
+			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Relaying-(form-5.2-onward)'>".
+			"the relay stack</a> and ".
+			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Routing'>".
+			"how routing is configured</a>.".
 			"</i>";
 	}
 
