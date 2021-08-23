@@ -31,6 +31,9 @@ use Throwable;
  * 	AMQP has a built-in transport protocol: Every client can subscribe
  * 	to one or more exchanges and sending a message to an exchange will
  * 	automatically send it to everyone else that's subscribed to it.
+ * 	AMQP does not support proper sharing of online lists. Because
+ * 	we are never informed when a bot leaves the relay, we will show
+ * 	the bot's users as online forever.
  * 	This transport was introduced in Nadybot 5.0.")
  * @Param(
  * 	name='exchange',
