@@ -14,6 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	BasePacket,
 	Logoff,
@@ -27,12 +28,15 @@ use Throwable;
 /**
  * @RelayProtocol("tyrbot")
  * @Description("This is the enhanced protocol of Tyrbot. If your
- * 	relay consists only of Nadybots and Tyrbots, use this one.")
+ * 	relay consists only of Nadybots and Tyrbots, use this one.
+ * 	It allows sharing of online users as well as fully customized
+ * 	colors.")
  * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
  */
 class Tyrbot implements RelayProtocolInterface {
 	protected Relay $relay;
 
+	/** Do we want to sync online users? */
 	protected bool $syncOnline = true;
 
 	/** @Logger */
@@ -123,12 +127,16 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
-	public function receive(string $serialized): ?RoutableEvent {
+	public function receive(RelayMessage $msg): ?RoutableEvent {
+		if (empty($msg->packages)) {
+			return null;
+		}
+		$serialized = array_shift($msg->packages);
 		$this->logger->log('DEBUG', "[Tyrbot] {$serialized}");
 		try {
 			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
-			return $this->decodeAndHandlePacket($identify, $data);
+			return $this->decodeAndHandlePacket($msg->sender, $identify, $data);
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
@@ -147,21 +155,21 @@ class Tyrbot implements RelayProtocolInterface {
 		return null;
 	}
 
-	protected function decodeAndHandlePacket(BasePacket $identify, array $data): ?RoutableEvent {
+	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
 			case $identify::MESSAGE:
 				return $this->receiveMessage(new Message($data));
 			case $identify::LOGON:
-				$this->handleLogon(new Logon($data));
+				$this->handleLogon($sender, new Logon($data));
 				return null;
 			case $identify::LOGOFF:
-				$this->handleLogoff(new Logoff($data));
+				$this->handleLogoff($sender, new Logoff($data));
 				return null;
 			case $identify::ONLINE_LIST_REQUEST:
 				$this->sendOnlineList();
 				return null;
 			case $identify::ONLINE_LIST:
-				$this->handleOnlineList(new OnlineList($data));
+				$this->handleOnlineList($sender, new OnlineList($data));
 				return null;
 			default:
 				$this->logger->log("INFO", "Received unknown Tyrbot packet: {$identify->type}");
@@ -169,7 +177,10 @@ class Tyrbot implements RelayProtocolInterface {
 		return null;
 	}
 
-	protected function handleOnlineList(OnlineList $list): void {
+	protected function handleOnlineList(?string $sender, OnlineList $list): void {
+		if (!isset($sender)) {
+			return;
+		}
 		foreach ($list->online as $block) {
 			$key = $block->source->label ?? $block->source->name;
 			if (isset($block->source->channel)) {
@@ -177,25 +188,31 @@ class Tyrbot implements RelayProtocolInterface {
 			}
 			$this->relay->clearOnline($key);
 			foreach ($block->users as $user) {
-				$this->relay->setOnline($key, $user->name, $user->id, $block->source->server);
+				$this->relay->setOnline($sender, $key, $user->name, $user->id, $block->source->server);
 			}
 		}
 	}
 
-	protected function handleLogon(Logon $event): void {
+	protected function handleLogon(?string $sender, Logon $event): void {
+		if (!isset($sender)) {
+			return;
+		}
 		$key = $event->source->label ?? $event->source->name;
 		if (isset($event->source->channel)) {
 			$key .= " {$event->source->channel}";
 		}
-		$this->relay->setOnline($key, $event->user->name, $event->user->id, $event->source->server);
+		$this->relay->setOnline($sender, $key, $event->user->name, $event->user->id, $event->source->server);
 	}
 
-	protected function handleLogoff(Logoff $event): void {
+	protected function handleLogoff(?string $sender, Logoff $event): void {
+		if (!isset($sender)) {
+			return;
+		}
 		$key = $event->source->label ?? $event->source->name;
 		if (isset($event->source->channel)) {
 			$key .= " {$event->source->channel}";
 		}
-		$this->relay->setOffline($key, $event->user->name, $event->user->id, $event->source->server);
+		$this->relay->setOffline($sender, $key, $event->user->name, $event->user->id, $event->source->server);
 	}
 
 	protected function getOnlineList(): OnlineList {

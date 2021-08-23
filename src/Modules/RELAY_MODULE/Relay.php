@@ -57,7 +57,7 @@ class Relay implements MessageReceiver {
 		unset($this->onlineChars[$where]);
 	}
 
-	public function setOnline(string $where, string $character, ?int $uid, ?int $dimension) {
+	public function setOnline(string $clientId, string $where, string $character, ?int $uid, ?int $dimension): void {
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
@@ -65,18 +65,20 @@ class Relay implements MessageReceiver {
 		$player->pmain = $character;
 		$player->online = true;
 		$player->afk = "";
+		$player->source = $clientId;
 		if (isset($uid)) {
 			$player->charid = $uid;
 		}
 		$this->onlineChars[$where][$character] = $player;
 		$this->playerManager->getByNameCallback(
-			function(?Player $player) use ($where, $character, $uid): void {
+			function(?Player $player) use ($where, $character, $clientId): void {
 				if (!isset($player)) {
 					return;
 				}
 				foreach ($player as $key => $value) {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
+				$this->onlineChars[$where][$character]->source = $clientId;
 			},
 			false,
 			$character,
@@ -84,10 +86,21 @@ class Relay implements MessageReceiver {
 		);
 	}
 
-	public function setOffline(string $where, string $character, ?int $uid, ?int $dimension) {
+	public function setOffline(string $sender, string $where, string $character, ?int $uid, ?int $dimension): void {
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		unset($this->onlineChars[$where][$character]);
+	}
+
+	public function setClientOffline(string $clientId): void {
+		foreach ($this->onlineChars as $where => &$characters) {
+			foreach ($characters as $name => $player) {
+				if (!isset($player) || !isset($player->source) || $player->source !== $clientId) {
+					continue;
+				}
+				unset($this->onlineChars[$where][$name]);
+			}
+		}
 	}
 
 	public function getStatus(): RelayStatus {
@@ -104,7 +117,9 @@ class Relay implements MessageReceiver {
 			$class = substr($class, $pos + 1);
 		}
 		if ($element instanceof StatusProvider) {
-			return $element->getStatus();
+			$status = $element->getStatus();
+			$status->text = "{$class}: {$status->text}";
+			return $status;
 		}
 		return new RelayStatus(
 			RelayStatus::INIT,
@@ -197,7 +212,7 @@ class Relay implements MessageReceiver {
 	/**
 	 * Handle data received from the transport layer
 	 */
-	public function receiveFromTransport(string $data): void {
+	public function receiveFromTransport(RelayMessage $data): void {
 		foreach ($this->stack as $stackMember) {
 			$data = $stackMember->receive($data);
 			if (!isset($data)) {

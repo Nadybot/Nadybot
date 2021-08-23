@@ -9,6 +9,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayProtocol("grcv2")
@@ -68,7 +69,11 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		];
 	}
 
-	public function receive(string $data): ?RoutableEvent {
+	public function receive(RelayMessage $msg): ?RoutableEvent {
+		if (empty($msg->packages)) {
+			return null;
+		}
+		$data = array_shift($msg->packages);
 		if (!preg_match("/^.?grc <v2>(.+)/s", $data, $matches)) {
 			return null;
 		}

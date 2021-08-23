@@ -6,6 +6,7 @@ use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
@@ -62,36 +63,54 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		return $encoded;
 	}
 
-	public function receive(string $data): ?string {
-		try {
-			$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
-		} catch (JsonException $e) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				"Unable to decode tyr-relay message: " . $e->getMessage()
-			);
-			$this->logger->log('ERROR', $this->status->text);
-			return null;
+	public function receive(RelayMessage $msg): ?RelayMessage {
+		foreach ($msg->packages as &$data) {
+			try {
+				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+			} catch (JsonException $e) {
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					"Unable to decode tyr-relay message: " . $e->getMessage()
+				);
+				$this->logger->log('ERROR', $this->status->text);
+				$data = null;
+				continue;
+			}
+			if (isset($json->client_id)) {
+				$msg->sender = $json->client_id;
+			}
+			if (!isset($json->type)) {
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'Received tyr-relay message without type'
+				);
+				$this->logger->log('ERROR', $this->status->text);
+				$data = null;
+				continue;
+			}
+			if ($json->type === "left") {
+				if (isset($msg->sender)) {
+					$this->relay->setClientOffline($msg->sender);
+				}
+				$data = null;
+				continue;
+			}
+			if ($json->type !== "message") {
+				$data = null;
+				continue;
+			}
+			if (!isset($json->payload)) {
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					'Received tyr-relay message without payload'
+				);
+				$this->logger->log('ERROR', $this->status->text);
+				$data = null;
+				continue;
+			}
+			$data = $json->payload;
 		}
-		if (!isset($json->type)) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				'Received tyr-relay message without type'
-			);
-			$this->logger->log('ERROR', $this->status->text);
-			return null;
-		}
-		if ($json->type !== "message") {
-			return null;
-		}
-		if (!isset($json->payload)) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				'Received tyr-relay message without payload'
-			);
-			$this->logger->log('ERROR', $this->status->text);
-			return null;
-		}
-		return $json->payload;
+		$msg->packages = array_values(array_filter($msg->packages));
+		return $msg;
 	}
 }

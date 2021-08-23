@@ -12,6 +12,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock;
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\OnlineList;
 
@@ -64,7 +65,11 @@ class NadyNative implements RelayProtocolInterface {
 		return [$data];
 	}
 
-	public function receive(string $serialized): ?RoutableEvent {
+	public function receive(RelayMessage $msg): ?RoutableEvent {
+		if (empty($msg->packages)) {
+			return null;
+		}
+		$serialized = array_shift($msg->packages);
 		try {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
@@ -80,7 +85,7 @@ class NadyNative implements RelayProtocolInterface {
 				$this->sendOnlineList();
 				return null;
 			case "online_list":
-				$this->handleOnlineList($data);
+				$this->handleOnlineList($msg->sender, $data);
 				return null;
 		}
 		$event = new RoutableEvent();
@@ -104,8 +109,11 @@ class NadyNative implements RelayProtocolInterface {
 				)
 			);
 		}
-		if ($event->type === RoutableEvent::TYPE_EVENT && $event->data->type === Online::TYPE) {
-			$this->handleOnlineEvent($event);
+		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& $event->data->type === Online::TYPE
+			&& isset($msg->sender)
+		) {
+			$this->handleOnlineEvent($msg->sender, $event);
 		}
 		return $event;
 	}
@@ -117,14 +125,19 @@ class NadyNative implements RelayProtocolInterface {
 		);
 	}
 
-	protected function handleOnlineList(object $onlineList): void {
+	protected function handleOnlineList(?string $sender, object $onlineList): void {
+		if (!isset($sender)) {
+			// If we don't know the sender of that package, we can never
+			// put people to offline when the bot leaves
+			return;
+		}
 		/** @var OnlineList $onlineList */
 		foreach ($onlineList->online as $block) {
-			$this->handleOnlineBlock($block);
+			$this->handleOnlineBlock($sender, $block);
 		}
 	}
 
-	protected function handleOnlineBlock(object $block): void {
+	protected function handleOnlineBlock(string $sender, object $block): void {
 		/** @var OnlineBlock $block */
 		$hops = [];
 		$lastHop = null;
@@ -142,6 +155,7 @@ class NadyNative implements RelayProtocolInterface {
 		$where = join(" ", $hops);
 		foreach ($block->users as $user) {
 			$this->relay->setOnline(
+				$sender,
 				$where,
 				$user->name,
 				$user->id??null,
@@ -150,7 +164,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 	}
 
-	protected function handleOnlineEvent(RoutableEvent $event): void {
+	protected function handleOnlineEvent(string $sender, RoutableEvent $event): void {
 		$hops = [];
 		$lastHop = null;
 		foreach ($event->path as $hop) {
@@ -162,7 +176,7 @@ class NadyNative implements RelayProtocolInterface {
 		/** @var Online */
 		$llEvent = $event->data;
 		$call = $llEvent->online ? [$this->relay, "setOnline"] : [$this->relay, "setOffline"];
-		$call($where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
+		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
 	}
 
 	protected function getOnlineList(): OnlineList {

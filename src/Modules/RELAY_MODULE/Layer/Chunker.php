@@ -9,6 +9,7 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Layer\Chunker\Chunk;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Throwable;
 
 /**
@@ -89,50 +90,56 @@ class Chunker implements RelayLayerInterface {
 		return $result;
 	}
 
-	public function receive(string $data): ?string {
-		try {
-			$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-			$chunk = new Chunk($json);
-		} catch (Throwable $e) {
-			// Chunking is optional
-			return $data;
-		}
-		if ($chunk->count === 1) {
-			$this->logger->log("INFO", "Single-chunk chunk received.");
-			return $chunk->data;
-		}
-		if (!isset($this->timerEvent)) {
-			$this->logger->log("INFO", "Setup new cleanup call");
-			$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
-		}
-		if (!isset($this->queue[$chunk->id])) {
-			$this->logger->log("INFO", "New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
-			$chunk->sent = time();
-			$this->queue[$chunk->id] = [
-				$chunk->part => $chunk
-			];
-			return null;
-		}
-		$this->queue[$chunk->id][$chunk->part] = $chunk;
-		if (count($this->queue[$chunk->id]) !== $chunk->count) {
-			$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
-			// Not yet complete;
-			return null;
-		}
-		$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
-		$data = "";
-		for ($i = 1; $i <= $chunk->count; $i++) {
-			$block  = $this->queue[$chunk->id][$i]->data ?? null;
-			if (!isset($block)) {
-				unset($this->queue[$chunk->id]);
-				$this->logger->log("ERROR", "Invalid data received.");
-				return null;
+	public function receive(RelayMessage $msg): ?RelayMessage {
+		foreach ($msg->packages as &$data) {
+			try {
+				$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+				$chunk = new Chunk($json);
+			} catch (Throwable $e) {
+				// Chunking is optional
+				continue;
 			}
-			$data .= $block;
+			if ($chunk->count === 1) {
+				$this->logger->log("INFO", "Single-chunk chunk received.");
+				continue;
+			}
+			if (!isset($this->timerEvent)) {
+				$this->logger->log("INFO", "Setup new cleanup call");
+				$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+			}
+			if (!isset($this->queue[$chunk->id])) {
+				$this->logger->log("INFO", "New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
+				$chunk->sent = time();
+				$this->queue[$chunk->id] = [
+					$chunk->part => $chunk
+				];
+				$data = null;
+				continue;
+			}
+			$this->queue[$chunk->id][$chunk->part] = $chunk;
+			if (count($this->queue[$chunk->id]) !== $chunk->count) {
+				$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
+				// Not yet complete;
+				$data = null;
+				continue;
+			}
+			$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
+			$data = "";
+			for ($i = 1; $i <= $chunk->count; $i++) {
+				$block  = $this->queue[$chunk->id][$i]->data ?? null;
+				if (!isset($block)) {
+					unset($this->queue[$chunk->id]);
+					$this->logger->log("ERROR", "Invalid data received.");
+					$data = null;
+					continue;
+				}
+				$data .= $block;
+			}
+			$this->logger->log("INFO", "Removed chunks from memory.");
+			unset($this->queue[$chunk->id]);
 		}
-		$this->logger->log("INFO", "Removed chunks from memory.");
-		unset($this->queue[$chunk->id]);
-		return $data;
+		$msg->data = array_values(array_filter($msg->data));
+		return $msg;
 	}
 
 	public function cleanStaleChunks(): void {

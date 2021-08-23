@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStackMemberInterface;
 
 interface RelayProtocolInterface extends RelayStackMemberInterface {
@@ -18,8 +19,8 @@ interface RelayProtocolInterface extends RelayStackMemberInterface {
 	/**
 	 * Parse a natively encoded protocol string into a routable event
 	 *
-	 * @param string $message The string to parse
+	 * @param RelayMessage $message The packets to parse
 	 * @return null|RoutableEvent The parsed event or null if not parsable
 	 */
-	public function receive(string $message): ?RoutableEvent;
+	public function receive(RelayMessage $message): ?RoutableEvent;
 }

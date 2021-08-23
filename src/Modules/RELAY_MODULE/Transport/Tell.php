@@ -9,6 +9,7 @@ use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 use Nadybot\Core\StopExecutionException;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayTransport("tell")
@@ -59,7 +60,10 @@ class Tell implements TransportInterface {
 		if (strtolower($event->sender) !== strtolower($this->bot)) {
 			return;
 		}
-		$this->relay->receiveFromTransport($event->message);
+		$msg = new RelayMessage();
+		$msg->packages = [$event->message];
+		$msg->sender = $event->sender;
+		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}
 

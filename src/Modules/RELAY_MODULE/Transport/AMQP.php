@@ -9,6 +9,7 @@ use Nadybot\Core\EventManager;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -431,7 +432,10 @@ class AMQP implements TransportInterface, StatusProvider {
 			return;
 		}
 		$this->logger->logChat('Inc. AMQP Msg.', $sender, $message->body);
-		$this->relay->receiveFromTransport($message->body);
+		$msg = new RelayMessage();
+		$msg->packages = [$message->body];
+		$msg->sender = $sender;
+		$this->relay->receiveFromTransport($msg);
 	}
 
 	/**

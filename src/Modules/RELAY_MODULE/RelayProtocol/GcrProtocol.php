@@ -10,6 +10,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Util;
 use Nadybot\Core\Text;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayProtocol("gcr")
@@ -78,7 +79,11 @@ class GcrProtocol implements RelayProtocolInterface {
 		return [$joinMsg];
 	}
 
-	public function receive(string $data): ?RoutableEvent {
+	public function receive(RelayMessage $msg): ?RoutableEvent {
+		if (empty($msg->packages)) {
+			return null;
+		}
+		$data = array_shift($msg->packages);
 		if (!preg_match("/^.?gcr (.+)/", $data, $matches)) {
 			return null;
 		}

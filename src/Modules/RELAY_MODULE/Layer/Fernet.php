@@ -6,6 +6,7 @@ use Fernet\Fernet as FernetProto;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayStackMember("fernet-encryption")
@@ -51,7 +52,10 @@ class Fernet implements RelayLayerInterface {
 		return array_map([$this->fernet, "encode"], $packets);
 	}
 
-	public function receive(string $text): ?string {
-		return $this->fernet->decode($text);
+	public function receive(RelayMessage $msg): ?RelayMessage {
+		foreach ($msg->packages as &$text) {
+			$text = $this->fernet->decode($text);
+		}
+		return $msg;
 	}
 }

@@ -11,6 +11,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayProtocol("agcr")
@@ -50,7 +51,11 @@ class AgcrProtocol implements RelayProtocolInterface {
 		];
 	}
 
-	public function receive(string $data): ?RoutableEvent {
+	public function receive(RelayMessage $msg): ?RoutableEvent {
+		if (empty($msg->packages)) {
+			return null;
+		}
+		$data = array_shift($msg->packages);
 		if (!preg_match("/^!agcr\s+(.+)/s", $data, $matches)) {
 			return null;
 		}

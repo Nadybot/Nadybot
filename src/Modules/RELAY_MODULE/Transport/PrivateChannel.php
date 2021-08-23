@@ -9,7 +9,7 @@ use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 use Nadybot\Core\StopExecutionException;
 use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayStackMemberInterface;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
@@ -77,7 +77,10 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->relay->receiveFromTransport($event->message);
+		$msg = new RelayMessage();
+		$msg->packages []= $event->message;
+		$msg->sender = $event->sender;
+		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}
 

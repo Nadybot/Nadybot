@@ -11,6 +11,7 @@ use Nadybot\Core\WebsocketCallback;
 use Nadybot\Core\WebsocketClient;
 use Nadybot\Core\WebsocketError;
 use Nadybot\Modules\RELAY_MODULE\Relay;
+use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
@@ -82,7 +83,9 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function processMessage(WebsocketCallback $event): void {
-		$this->relay->receiveFromTransport($event->data);
+		$msg = new RelayMessage();
+		$msg->packages = [$event->data];
+		$this->relay->receiveFromTransport($msg);
 	}
 
 	public function processError(WebsocketCallback $event): void {
