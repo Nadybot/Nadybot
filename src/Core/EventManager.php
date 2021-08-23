@@ -41,7 +41,7 @@ class EventManager {
 		'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
 		'extjoinpriv', 'extleavepriv', 'sendmsg', 'sendpriv', 'sendguild',
 		'orgmsg', 'extjoinprivrequest', 'logon', 'logoff', 'towers',
-		'connect', 'setup', 'amqp', 'pong'
+		'connect', 'setup', 'amqp', 'pong', 'otherleavepriv'
 	];
 
 	private int $lastCronTime = 0;

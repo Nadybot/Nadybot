@@ -718,6 +718,9 @@ class Nadybot extends AOChat {
 			$this->eventManager->fireEvent($eventObj);
 		} elseif ($this->char->id === $userId) {
 			unset($this->privateChats[$channel]);
+		} else {
+			$eventObj->type = "otherleavepriv";
+			$this->eventManager->fireEvent($eventObj);
 		}
 	}
 

@@ -28,7 +28,7 @@ class MigrateRelayColors implements SchemaMigration {
 	protected function getColor(DB $db, string ...$names): string {
 		foreach ($names as $name) {
 			$setting = $this->getSetting($db, $name);
-			if (!isset($setting) || $setting->value !== "<font color='#C3C3C3'>") {
+			if (!isset($setting) || $setting->value === "<font color='#C3C3C3'>") {
 				continue;
 			}
 			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value, $matches)) {
@@ -56,9 +56,11 @@ class MigrateRelayColors implements SchemaMigration {
 		$privTextColor = $this->getColor($db, "relay_guest_color_org", "relay_guest_color_priv");
 		$this->saveColor($db, Source::PRIV, $privTagColor, $privTextColor);
 
-		$relaySysColor = $this->getColor($db, "default_guild_color");
-		$this->settingManager->save("default_routed_sys_color", "<font color='#{$relaySysColor}'>");
-		$this->saveColor($db, Source::SYSTEM, $relaySysColor, $relaySysColor);
+		if ($this->getSetting($db, "default_guild_color") !== null) {
+			$relaySysColor = $this->getColor($db, "default_guild_color");
+			$this->settingManager->save("default_routed_sys_color", "<font color='#{$relaySysColor}'>");
+			$this->saveColor($db, Source::SYSTEM, $relaySysColor, $relaySysColor);
+		}
 
 		$this->messageHub->loadTagColor();
 	}
