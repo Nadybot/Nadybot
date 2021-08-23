@@ -23,9 +23,6 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 
 	protected $initCallback = null;
 
-	public function __construct() {
-	}
-
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;
 	}

@@ -11,9 +11,6 @@ use Nadybot\Core\Routing\RoutableEvent;
  *	leave the link name.")
  */
 class RemovePopups implements EventModifier {
-	public function __construct() {
-	}
-
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through
 		if ($event->getType() !== $event::TYPE_MESSAGE) {

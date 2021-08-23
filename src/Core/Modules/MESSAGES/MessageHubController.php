@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Util,
 	Routing\Source,
 };
+use ReflectionException;
 
 /**
  * @author Nadyita (RK5)
@@ -251,39 +252,45 @@ class MessageHubController {
 		}
 		try {
 			$refClass = new ReflectionClass($mod->class);
-			$refConstr = $refClass->getMethod("__construct");
-			$refParams = $refConstr->getParameters();
-		} catch (Throwable $e) {
+		} catch (ReflectionException $e) {
 			$sendto->reply("The modifier <highlight>{$args[1]}<end> cannot be initialized.");
 			return;
+		}
+		try {
+			$refConstr = $refClass->getMethod("__construct");
+			$refParams = $refConstr->getParameters();
+		} catch (ReflectionException $e) {
+			$refParams = [];
 		}
 		$description = $mod->description ?? "Someone forgot to add a description";
 		$blob = "<header2>Description<end>\n".
 			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
-			"\n\n".
-			"<header2>Parameters<end>\n";
-		$parNum = 0;
-		foreach ($mod->params as $param) {
-			$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
-			if (!$param->required) {
-				if ($refParams[$parNum]->isDefaultValueAvailable()) {
-					try {
-						$blob .= " (optional, default=".
-							json_encode(
-								$refParams[$parNum]->getDefaultValue(),
-								JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
-							) . ")";
-					} catch (JsonException $e) {
+			"\n";
+		if (count($mod->params)) {
+			$blob .= "\n<header2>Parameters<end>\n";
+			$parNum = 0;
+			foreach ($mod->params as $param) {
+				$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
+				if (!$param->required) {
+					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
+						try {
+							$blob .= " (optional, default=".
+								json_encode(
+									$refParams[$parNum]->getDefaultValue(),
+									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
+								) . ")";
+						} catch (JsonException $e) {
+							$blob .= " (optional)";
+						}
+					} else {
 						$blob .= " (optional)";
 					}
-				} else {
-					$blob .= " (optional)";
 				}
+				$parNum++;
+				$blob .= "\n<tab><i>".
+					join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
+					"</i>\n\n";
 			}
-			$parNum++;
-			$blob .= "\n<tab><i>".
-				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
-				"</i>\n\n";
 		}
 		$msg = $this->text->makeBlob("{$mod->name}", $blob);
 		$sendto->reply($msg);

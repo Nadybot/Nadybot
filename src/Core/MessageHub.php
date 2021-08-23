@@ -10,6 +10,7 @@ use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\RouteHopFormat;
+use ReflectionException;
 use ReflectionMethod;
 use Throwable;
 
@@ -168,7 +169,11 @@ class MessageHub {
 					"to <highlight>{$name}<end>."
 				);
 			} else {
-				$ref = new ReflectionMethod($spec->class, "__construct");
+				try {
+					$ref = new ReflectionMethod($spec->class, "__construct");
+				} catch (ReflectionException $e) {
+					continue;
+				}
 				$conParams = $ref->getParameters();
 				if (!isset($conParams[$paramPos])) {
 					continue;

@@ -33,6 +33,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use Throwable;
 
@@ -245,38 +246,44 @@ class RelayController {
 		}
 		try {
 			$refClass = new ReflectionClass($spec->class);
+		} catch (ReflectionException $e) {
+			return ["<highlight>{$spec->name}<end> cannot be initialized."];
+		}
+		try {
 			$refConstr = $refClass->getMethod("__construct");
 			$refParams = $refConstr->getParameters();
-		} catch (Throwable $e) {
-			return ["<highlight>{$spec->name}<end> cannot be initialized."];
+		} catch (ReflectionException $e) {
+			$refParams = [];
 		}
 		$description = $spec->description ?? "Someone forgot to add a description";
 		$blob = "<header2>Description<end>\n".
 			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
-			"\n\n".
-			"<header2>Parameters<end>\n";
-		$parNum = 0;
-		foreach ($spec->params as $param) {
-			$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
-			if (!$param->required) {
-				if ($refParams[$parNum]->isDefaultValueAvailable()) {
-					try {
-						$blob .= " (optional, default=".
-							json_encode(
-								$refParams[$parNum]->getDefaultValue(),
-								JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
-							) . ")";
-					} catch (JsonException $e) {
+			"\n";
+		if (count($spec->params)) {
+			$blob .= "\n<header2>Parameters<end>\n";
+			$parNum = 0;
+			foreach ($spec->params as $param) {
+				$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
+				if (!$param->required) {
+					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
+						try {
+							$blob .= " (optional, default=".
+								json_encode(
+									$refParams[$parNum]->getDefaultValue(),
+									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
+								) . ")";
+						} catch (JsonException $e) {
+							$blob .= " (optional)";
+						}
+					} else {
 						$blob .= " (optional)";
 					}
-				} else {
-					$blob .= " (optional)";
 				}
+				$parNum++;
+				$blob .= "\n<tab><i>".
+					join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
+					"</i>\n\n";
 			}
-			$parNum++;
-			$blob .= "\n<tab><i>".
-				join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
-				"</i>\n\n";
 		}
 		return (array)$this->text->makeBlob(
 			"Detailed description for {$spec->name}",

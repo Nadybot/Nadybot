@@ -19,9 +19,6 @@ class IfNotCommand implements EventModifier {
 	/** @Inject */
 	public SettingManager $settingManager;
 
-	public function __construct() {
-	}
-
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
