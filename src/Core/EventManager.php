@@ -159,10 +159,8 @@ class EventManager {
 			return;
 		}
 		if ($this->isValidEventType($type)) {
-			if (!isset($this->dynamicEvents[$type])) {
-				$this->dynamicEvents[$type] = [];
-			}
-			if (!in_array($callback, $this->dynamicEvents[$type])) {
+			$this->dynamicEvents[$type] ??= [];
+			if (!in_array($callback, $this->dynamicEvents[$type], true)) {
 				$this->dynamicEvents[$type] []= $callback;
 			}
 		} else {

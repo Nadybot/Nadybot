@@ -70,6 +70,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->eventManager->unsubscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
 		$this->eventManager->unsubscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
 		$this->eventManager->unsubscribe("otherLeavePriv", [$this, "receiveLeave"]);
+		$this->eventManager->unsubscribe("extLeavePriv", [$this, "leftPrivateChannel"]);
 		$callback();
 		return [];
 	}
@@ -111,10 +112,20 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		}
 	}
 
+	public function leftPrivateChannel(AOChatEvent $event): void {
+		if (strtolower($event->channel) !== strtolower($this->channel)) {
+			return;
+		}
+		$this->relay->deinit(function(Relay $relay): void {
+			$relay->init();
+		});
+	}
+
 	public function init(callable $callback): array {
 		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
 		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
 		$this->eventManager->subscribe("otherLeavePriv", [$this, "receiveLeave"]);
+		$this->eventManager->subscribe("extLeavePriv", [$this, "leftPrivateChannel"]);
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
 			$this->status = new RelayStatus(
 				RelayStatus::INIT,

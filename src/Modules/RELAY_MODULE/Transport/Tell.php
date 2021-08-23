@@ -4,10 +4,13 @@ namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use Exception;
 use Nadybot\Core\AOChatEvent;
+use Nadybot\Core\BuddylistManager;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\PacketEvent;
 use Nadybot\Core\Registry;
 use Nadybot\Core\StopExecutionException;
+use Nadybot\Core\UserStateEvent;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
@@ -28,9 +31,14 @@ class Tell implements TransportInterface {
 	/** @Inject */
 	public EventManager $eventManager;
 
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
+
 	protected Relay $relay;
 
 	protected string $bot;
+
+	protected $initCallback;
 
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));
@@ -67,14 +75,70 @@ class Tell implements TransportInterface {
 		throw new StopExecutionException();
 	}
 
+	public function botOnline(UserStateEvent $event): void {
+		if ($event->sender !== $this->bot) {
+			return;
+		}
+		if (!isset($this->initCallback)) {
+			return;
+		}
+		$callback = $this->initCallback;
+		unset($this->initCallback);
+		$callback();
+	}
+
+	public function botOffline(UserStateEvent $event): void {
+		if ($event->sender !== $this->bot) {
+			return;
+		}
+		if (isset($this->initCallback)) {
+			return;
+		}
+		$this->relay->deinit(function(Relay $relay): void {
+			$relay->init();
+		});
+	}
+
 	public function init(callable $callback): array {
 		$this->eventManager->subscribe("msg", [$this, "receiveMessage"]);
-		$callback();
+		$this->eventManager->subscribe("logon", [$this, "botOnline"]);
+		$this->eventManager->subscribe("logoff", [$this, "botOffline"]);
+		if ($this->buddylistManager->isOnline($this->bot)) {
+			$callback();
+		} else {
+			$this->initCallback = $callback;
+			$this->buddylistManager->add(
+				$this->bot,
+				$this->relay->getName() . "_relay"
+			);
+		}
 		return [];
 	}
 
 	public function deinit(callable $callback): array {
-		$callback();
+		$this->eventManager->unsubscribe("msg", [$this, "receiveMessage"]);
+		$this->eventManager->unsubscribe("logon", [$this, "botOnline"]);
+		$this->eventManager->unsubscribe("logoff", [$this, "botOffline"]);
+		$this->buddylistManager->remove(
+			$this->bot,
+			$this->relay->getName() . "_relay"
+		);
+		$buddy = $this->buddylistManager->getBuddy($this->bot);
+		if (!count($buddy->types)) {
+			// We need to wait for the buddy-remove packet
+			$waitForRemoval = function (PacketEvent $event) use ($callback, &$waitForRemoval): void {
+				$uid = $event->packet->args[0];
+				$name = $this->chatBot->lookup_user($uid);
+				if ($name === $this->bot) {
+					$this->buddylistManager->updateRemoved($uid);
+					$this->eventManager->unsubscribe("packet(41)", $waitForRemoval);
+					$callback();
+				}
+			};
+			$this->eventManager->subscribe("packet(41)", $waitForRemoval);
+		} else {
+			$callback();
+		}
 		return [];
 	}
 }
