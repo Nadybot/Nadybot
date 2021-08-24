@@ -65,16 +65,9 @@ class WebUiController implements MessageEmitter {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$uiBranches = ["off", "stable", "unstable"];
-		$baseDir = BotRunner::getBasedir();
-		if (@file_exists("{$baseDir}/.git")) {
-			try {
-				$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
-				$branch = explode("/", $ref, 3)[2];
-				if (!in_array($branch, $uiBranches)) {
-					$uiBranches []= $branch;
-				}
-			} catch (Throwable $e) {
-				// No use to try git
+		if (preg_match("/@(?<branch>.+)$/", BotRunner::getVersion(), $matches)) {
+			if (!in_array($matches['branch'], $uiBranches)) {
+				$uiBranches []= $matches['branch'];
 			}
 		}
 		$this->settingManager->add(

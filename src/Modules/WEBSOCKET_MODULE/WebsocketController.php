@@ -278,7 +278,7 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->log('INFO', "Sending {$class} to Websocket client");
+					$this->logger->log('DEBUG', "Sending {$class} to Websocket client");
 				}
 			}
 		}
