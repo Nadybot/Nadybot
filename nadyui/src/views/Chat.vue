@@ -2,9 +2,11 @@
   <ul class="list-group" id="chat-list">
     <template v-for="msg in chat_messages" :key="msg">
       <li class="list-group-item org-text">
-        [{{
-          msg.path.map((p) => p.label || p.name).join("] [")
-        }}]&nbsp;<template v-if="msg.sender">{{ msg.sender }}:&nbsp;</template
+        <template v-if="msg.path"
+          >[{{
+            msg.path.map((p) => p.label || p.name).join("] [")
+          }}]&nbsp;</template
+        ><template v-if="msg.sender">{{ msg.sender }}:&nbsp;</template
         ><message
           :content="msg.message"
           @run-command="runCommand($event)"
