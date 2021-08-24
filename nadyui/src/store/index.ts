@@ -177,7 +177,11 @@ export default createStore({
     },
     async executeCommand(context, command: string): Promise<void> {
       const message: Message = {
-        message: parseXml(`<message><text>${command}</text></message>`),
+        message: parseXml(
+          `<message><text>${command
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")}</text></message>`
+        ),
         from_user: true,
       };
       context.state.console_messages.push(message);
