@@ -7,6 +7,7 @@ use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
+use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
@@ -17,6 +18,9 @@ class MigrateRelayColors implements SchemaMigration {
 
 	/** @Inject */
 	public MessageHub $messageHub;
+
+	/** @Inject */
+	public ConfigController $configController;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -48,6 +52,27 @@ class MigrateRelayColors implements SchemaMigration {
 	}
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
+		$relayType = $this->getSetting($db, "relaytype");
+		$relayBot = $this->getSetting($db, "relaybot");
+		if (isset($relayType) && isset($relayBot) && $relayBot->value !== 'Off') {
+			$this->migrateRelayModuleColors($db);
+		}
+		$relayType = $this->getSetting($db, "arelaytype");
+		$relayBot = $this->getSetting($db, "arelaybot");
+		if (isset($relayType) && isset($relayBot) && $relayBot->value !== 'Off') {
+			$this->migrateAllianceRelayModuleColors($db);
+		}
+
+		$this->messageHub->loadTagColor();
+		$this->configController->toggleModule("ALLIANCE_RELAY_MODULE", "all", false);
+	}
+
+	protected function migrateAllianceRelayModuleColors(DB $db): void {
+		$textColor = $tagColor = $this->getColor($db, "arelay_color_guild", "arelay_color_priv");
+		$this->saveColor($db, Source::ORG, $tagColor, $textColor);
+	}
+
+	protected function migrateRelayModuleColors(DB $db): void {
 		$orgTagColor = $this->getColor($db, "relay_guild_tag_color_org", "relay_guild_tag_color_priv");
 		$orgTextColor = $this->getColor($db, "relay_guild_color_org", "relay_guild_color_priv");
 		$this->saveColor($db, Source::ORG, $orgTagColor, $orgTextColor);
@@ -61,7 +86,5 @@ class MigrateRelayColors implements SchemaMigration {
 			$this->settingManager->save("default_routed_sys_color", "<font color='#{$relaySysColor}'>");
 			$this->saveColor($db, Source::SYSTEM, $relaySysColor, $relaySysColor);
 		}
-
-		$this->messageHub->loadTagColor();
 	}
 }

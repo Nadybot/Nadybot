@@ -26,9 +26,17 @@ class MigrateToRelayTable implements SchemaMigration {
 	public MessageHub $messageHub;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public Nadybot $chatBot;
 
+	protected string $prefix = "";
+
 	protected function getSetting(DB $db, string $name): ?Setting {
+		if (preg_match("/^(bot|relay)/", $name)) {
+			$name = "{$this->prefix}{$name}";
+		}
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
 			->asObj(Setting::class)
@@ -63,7 +71,17 @@ class MigrateToRelayTable implements SchemaMigration {
 		$relayType = $this->getSetting($db, "relaytype");
 		$relayBot = $this->getSetting($db, "relaybot");
 		if (!isset($relayType) || !isset($relayBot) || $relayBot->value === 'Off') {
-			return null;
+			if ($this->prefix !== "") {
+				return null;
+			}
+			$this->prefix = "a";
+			return$this->migrateRelay($db);
+		}
+		if ($this->prefix === "a") {
+			$abbr = $this->getSetting($db, "relay_guild_abbreviation");
+			if (isset($abbr) && $abbr->value !== "none") {
+				$this->settingManager->save("relay_guild_abbreviation", $abbr->value);
+			}
 		}
 		$relay = new RelayConfig();
 		$relay->name = $relayBot->value;

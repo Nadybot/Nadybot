@@ -345,7 +345,7 @@ class ConfigController {
 	/**
 	 * Enable or disable all commands and events for a module
 	 * @param string $module Name of the module
-	 * @param string $channel  msg, prov or guild
+	 * @param string $channel msg, priv, guild or all
 	 * @param bool $enable true for enabling, false for disabling
 	 * @return bool True for success, False if the module doesn't exist
 	 */
