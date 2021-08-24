@@ -3,14 +3,18 @@
     <template v-for="msg in chat_messages" :key="msg">
       <li class="list-group-item org-text">
         <template v-if="msg.path"
-          >[{{
-            msg.path.map((p) => p.label || p.name).join("] [")
-          }}]&nbsp;</template
+          >[{{ msg.path .filter((p) => p.renderAs !== null) .map((p) => { if
+          (!p.color) { `[${p.renderAs}]` } else { `<span
+            style="color: #${p.color}"
+            >[${p.renderAs}]</span
+          >` } }) .join(" ") }}]&nbsp;</template
         ><template v-if="msg.sender">{{ msg.sender }}:&nbsp;</template
-        ><message
-          :content="msg.message"
-          @run-command="runCommand($event)"
-        ></message>
+        ><span v-if="msg.color" :style="'color: #' + msg.color"
+          ><message
+            :content="msg.message"
+            @run-command="runCommand($event)"
+          ></message
+        ></span>
       </li>
     </template>
   </ul>
