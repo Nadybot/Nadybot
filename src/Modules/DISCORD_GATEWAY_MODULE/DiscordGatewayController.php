@@ -29,6 +29,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
+	Activity,
 	CloseEvents,
 	Guild,
 	GuildMember,
@@ -37,6 +38,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Opcode,
 	Payload,
 	ResumePacket,
+	UpdateStatus,
 	VoiceState,
 };
 
@@ -170,6 +172,14 @@ class DiscordGatewayController {
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
+			"discord_activity_name",
+			"Game the bot is shown to play on Discord",
+			"edit",
+			"text",
+			"Anarchy Online",
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"discord_notify_voice_changes",
 			"Show people joining or leaving voice channels",
 			"edit",
@@ -179,6 +189,21 @@ class DiscordGatewayController {
 			"0;1;2;3"
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
+		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);
+	}
+
+	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
+		$packet = new Payload();
+		$packet->op = Opcode::PRESENCE_UPDATE;
+		$packet->d = new UpdateStatus();
+		$activity = new Activity();
+		$activity->name = $newValue;
+		if (strlen($newValue)) {
+			$packet->d->activities = [$activity];
+		} else {
+			$packet->d->activities = [];
+		}
+		$this->client->send(json_encode($packet));
 	}
 
 	/**
