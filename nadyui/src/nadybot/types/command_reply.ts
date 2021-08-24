@@ -10,13 +10,16 @@ export interface ChatMessagePath {
   name: string;
   label: string | null;
   type: string;
+  color: string;
 }
 
 export interface ChatMessageIncoming {
   channel: string;
   path: Array<ChatMessagePath> | null;
   message: string;
+  renderAs: string | null;
   sender: string | null;
+  color: string;
 }
 
 export interface ChatMessage {
