@@ -2,14 +2,30 @@
   <ul class="list-group" id="chat-list">
     <template v-for="msg in chat_messages" :key="msg">
       <li class="list-group-item org-text">
-        <template v-if="msg.path"
-          >[{{ msg.path .filter((p) => p.renderAs !== null) .map((p) => { if
-          (!p.color) { `[${p.renderAs}]` } else { `<span
-            style="color: #${p.color}"
+        <template
+          v-if="
+            msg.path && msg.path.filter((p) => p.renderAs !== null).length > 0
+          "
+          ><span
+            v-html="
+              msg.path
+                .filter((p) => p.renderAs !== null)
+                .map((p) => {
+                  if (!p.color) {
+                    return `[${p.renderAs}]`;
+                  } else {
+                    return `<span
+            style='color: #${p.color}'
             >[${p.renderAs}]</span
-          >` } }) .join(" ") }}]&nbsp;</template
-        ><template v-if="msg.sender">{{ msg.sender }}:&nbsp;</template
-        ><span v-if="msg.color" :style="'color: #' + msg.color"
+          >`;
+                  }
+                })
+                .join(' ')
+            "
+          ></span
+          >&nbsp;</template
+        ><span v-if="msg.sender" class="link">{{ msg.sender }}:&nbsp;</span
+        ><span :style="msg.color ? 'color: #' + msg.color : ''"
           ><message
             :content="msg.message"
             @run-command="runCommand($event)"
@@ -32,6 +48,7 @@
 
 <style lang="scss">
 $org-color: #00f700;
+$link-color: #5798f9;
 
 #chat-channel {
   max-width: 5vw;
@@ -46,6 +63,10 @@ $org-color: #00f700;
 .org-text {
   color: $org-color !important;
   padding: 0.25rem 0.5rem;
+}
+
+.link {
+  color: $link-color;
 }
 </style>
 
