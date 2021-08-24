@@ -112,6 +112,7 @@ class WebChatConverter {
 	}
 
 	public function formatMsg(string $message): string {
+		$message = preg_replace("/^<header>\s*<header>/s", "<header>", $message);
 		$colors = [
 			"header"    => "<h1>",
 			"header2"   => "<h2>",
@@ -222,6 +223,7 @@ class WebChatConverter {
 	public function parseAOFormat(string $message): AOMsg {
 		$parts = [];
 		$id = 0;
+// var_dump($message);
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
