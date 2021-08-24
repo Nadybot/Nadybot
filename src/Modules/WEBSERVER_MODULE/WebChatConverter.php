@@ -223,7 +223,6 @@ class WebChatConverter {
 	public function parseAOFormat(string $message): AOMsg {
 		$parts = [];
 		$id = 0;
-// var_dump($message);
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
