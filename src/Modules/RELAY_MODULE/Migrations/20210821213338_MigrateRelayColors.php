@@ -70,6 +70,7 @@ class MigrateRelayColors implements SchemaMigration {
 	protected function migrateAllianceRelayModuleColors(DB $db): void {
 		$textColor = $tagColor = $this->getColor($db, "arelay_color_guild", "arelay_color_priv");
 		$this->saveColor($db, Source::ORG, $tagColor, $textColor);
+		$this->saveColor($db, Source::PRIV, $tagColor, $textColor);
 	}
 
 	protected function migrateRelayModuleColors(DB $db): void {

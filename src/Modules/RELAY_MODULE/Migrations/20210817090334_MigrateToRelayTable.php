@@ -121,7 +121,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		$protocol = new RelayLayer();
 		$protocol->relay_id = $relay->id;
-		$protocol->layer = "grcv2";
+		$protocol->layer = ($this->prefix === "a") ? "agcr" : "grcv2";
 		$db->insert($this->relayController::DB_TABLE_LAYER, $protocol);
 		return $relay;
 	}
