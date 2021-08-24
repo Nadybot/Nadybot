@@ -8,7 +8,6 @@ use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
