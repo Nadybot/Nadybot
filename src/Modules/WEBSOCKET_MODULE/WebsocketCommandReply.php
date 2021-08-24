@@ -7,6 +7,9 @@ use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
@@ -34,6 +37,17 @@ class WebsocketCommandReply implements CommandReply {
 	}
 
 	public function reply($msg): void {
+		foreach ((array)$msg as $text) {
+			$rMessage = new RoutableMessage($text);
+			$rMessage->setCharacter(new Character(
+				$this->chatBot->char->name,
+				$this->chatBot->char->id
+			));
+			$rMessage->path = [
+				new Source(Source::WEB, "web")
+			];
+			$this->messageHub->handle($rMessage);
+		}
 		$xmlMessage = new AOChatEvent();
 		$xmlMessage->message = $this->webChatConverter->convertMessage($msg);
 		$xmlMessage->sender = $this->chatBot->char->name;
