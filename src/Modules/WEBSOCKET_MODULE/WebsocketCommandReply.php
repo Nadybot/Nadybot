@@ -6,6 +6,7 @@ use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\SettingManager;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
 class WebsocketCommandReply implements CommandReply {
@@ -17,6 +18,9 @@ class WebsocketCommandReply implements CommandReply {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
 
 	protected string $type;
 
@@ -30,6 +34,10 @@ class WebsocketCommandReply implements CommandReply {
 		$xmlMessage->sender = $this->chatBot->char->name;
 		$xmlMessage->type = "chat({$this->type})";
 		$xmlMessage->channel = $this->type;
+		$xmlMessage->path = [];
+		if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color"), $matches)) {
+			$xmlMessage->color = $matches[1];
+		}
 		$this->eventManager->fireEvent($xmlMessage);
 	}
 }

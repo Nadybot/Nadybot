@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -24,6 +25,9 @@ class WebChannel implements MessageReceiver {
 	/** @Inject */
 	public WebsocketController $websocketController;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	public function getChannelName(): string {
 		return Source::WEB;
 	}
@@ -33,7 +37,11 @@ class WebChannel implements MessageReceiver {
 			return false;
 		}
 		$webEvent = new AOChatEvent();
-		$webEvent->path = $event->getPath();
+		$webEvent->path = $this->webChatConverter->convertPath($event->getPath());
+		$webEvent->color = $this->messageHub->getTextColor($event);
+		if (preg_match("/#([A-Fa-f0-9]{6})/", $webEvent->color, $matches)) {
+			$webEvent->color = $matches[1];
+		}
 		$webEvent->channel = "web";
 		$webEvent->sender = $event->getCharacter()->name;
 		$webEvent->message = $this->webChatConverter->convertMessage($event->getData());

@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 
 /**
@@ -17,12 +19,41 @@ class WebChatConverter {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	/**
 	 * @param string $msg
 	 * @return self
 	 */
 	public function convertMessage(string $msg): string {
 		return $this->toXML($this->parseAOFormat($msg));
+	}
+
+	/**
+	 * Add the color and display information to the path
+	 * @param null|Source[] $path
+	 * @return null|Source[]
+	 */
+	public function convertPath(?array $path=null): ?array {
+		if (!isset($path)) {
+			return null;
+		}
+		$result = [];
+		$lastHop = null;
+		foreach ($path as $hop) {
+			$newHop = clone $hop;
+			$newHop->renderAs = $newHop->render($lastHop);
+			$lastHop = $hop;
+			$color = $this->messageHub->getHopColor($newHop->type, $newHop->name, "tag_color");
+			if (isset($color)) {
+				$newHop->color = $color->tag_color;
+			} else {
+				$newHop->color = "";
+			}
+			$result []= $newHop;
+		}
+		return $result;
 	}
 
 	/**
