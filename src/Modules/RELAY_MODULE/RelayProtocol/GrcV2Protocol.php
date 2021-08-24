@@ -82,7 +82,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		while (preg_match("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data, $matches)) {
 			if (strlen($matches[2])) {
 				$type = ($matches[1] === "guild") ? Source::ORG : Source::PRIV;
-				$msg->appendPath(new Source($type, $matches[2]));
+				$msg->appendPath(new Source($type, $matches[2], $matches[2]));
 			}
 			$data = $matches[3];
 		}

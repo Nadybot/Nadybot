@@ -57,8 +57,8 @@ class Source {
 
 	public function render(?Source $lastHop): ?string {
 		$name = $this->label ?? $this->name;
-		if (isset($lastHop) && $lastHop->type === static::ORG) {
-			$name = "Guest";
+		if (isset($lastHop) && $this->type === static::PRIV && $lastHop->type === static::ORG) {
+			$name = $this->label ?? "Guest";
 		}
 		$exactMatch = $this->getFormat();
 		if (!isset($exactMatch)) {
