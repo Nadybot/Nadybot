@@ -390,10 +390,12 @@ class ConfigController {
 			return;
 		}
 		if ($cfg->cmdevent === "event") {
-			if ($enable) {
-				$this->eventManager->activate($cfg->type, $cfg->file);
-			} else {
-				$this->eventManager->deactivate($cfg->type, $cfg->file);
+			if ($cfg->verify !== 0) {
+				if ($enable) {
+					$this->eventManager->activate($cfg->type, $cfg->file);
+				} else {
+					$this->eventManager->deactivate($cfg->type, $cfg->file);
+				}
 			}
 		} elseif ($cfg->cmdevent === "cmd") {
 			if ($enable) {

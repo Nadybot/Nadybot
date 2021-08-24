@@ -224,7 +224,7 @@ class EventManager {
 		$this->logger->log('debug', "Deactivating event Type:($type) Handler:($filename)");
 
 		if ($this->isValidEventType($type)) {
-			if (in_array($filename, $this->events[$type])) {
+			if (in_array($filename, $this->events[$type]??[])) {
 				$found = true;
 				$temp = array_flip($this->events[$type]);
 				unset($this->events[$type][$temp[$filename]]);

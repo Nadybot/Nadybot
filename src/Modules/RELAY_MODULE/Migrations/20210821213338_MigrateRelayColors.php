@@ -64,7 +64,14 @@ class MigrateRelayColors implements SchemaMigration {
 		}
 
 		$this->messageHub->loadTagColor();
-		$this->configController->toggleModule("ALLIANCE_RELAY_MODULE", "all", false);
+		if ($this->configController->toggleModule("ALLIANCE_RELAY_MODULE", "all", false)) {
+			$logger->log(
+				'WARN',
+				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".
+				"deactivated it. Please remove the module, so it cannot ".
+				"interfere. It is not compatible with Nadybot 5.2.0 or newer."
+			);
+		}
 	}
 
 	protected function migrateAllianceRelayModuleColors(DB $db): void {
