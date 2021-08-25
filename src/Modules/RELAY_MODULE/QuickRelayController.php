@@ -58,7 +58,7 @@ class QuickRelayController {
 				"org and guest chat for colorization.",
 			"tyr" => "Use this to setup relaying between a mixed setup ".
 				"of only Tyrbots and Nadybots.\n".
-				"Currently, the only way to use this in practise is by ".
+				"Currently, the only way to use this in practice is by ".
 				"setting up your own local relay server\n".
 				"from <a href='chatcmd:///start https://github.com/Budabot/Tyrbot/wiki/Websocket-Relay'>here</a> ".
 				"and have all bots connect to it.\n".
