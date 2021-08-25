@@ -30,6 +30,7 @@ class DiscordMessageIn extends JSONDataModel {
 	public array $mention_roles = [];
 	public ?array $mention_channels = null;
 	public ?array $attachments = [];
+	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
 	public ?array $reactions = null;
 	public $nonce = null;

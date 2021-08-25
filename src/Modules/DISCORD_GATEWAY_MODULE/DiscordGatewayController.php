@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	SettingManager,
+	Text,
 	Timer,
 	Websocket,
 	WebsocketClient,
@@ -21,6 +22,7 @@ use Nadybot\Core\{
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,
+	DiscordEmbed,
 	DiscordMessageIn,
 	DiscordUser,
 };
@@ -87,6 +89,9 @@ class DiscordGatewayController {
 
 	/** @Inject */
 	public Timer $timer;
+
+	/** @Inject */
+	public Text $text;
 
 	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
@@ -456,11 +461,21 @@ class DiscordGatewayController {
 			$this->logger->logChat("Inc. Discord Msg.", $name, $message->content);
 		}
 
+		$text = DiscordRelayController::formatMessage($message->content);
+		foreach (($message->embeds??[]) as $embed) {
+			if (strlen($text)) {
+				$text .= "\n";
+			}
+			$text .= $this->embedToAOML($embed);
+		}
+		if (empty($text)) {
+			return;
+		}
 		$this->resolveDiscordMentions(
 			$message->guild_id??null,
-			$message->content,
+			$text,
 			function(string $text) use ($message, $channelName, $name, $member): void {
-				$aoMessage = DiscordRelayController::formatMessage($text);
+				$aoMessage = $text;
 				$rMessage = new RoutableMessage($aoMessage);
 				if ($message->guild_id) {
 					// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
@@ -489,17 +504,48 @@ class DiscordGatewayController {
 		$this->eventManager->fireEvent($event);
 	}
 
+	public function embedToAOML(DiscordEmbed $embed): string {
+		$blob = "";
+		if (!empty($embed->description)) {
+			$blob .= DiscordRelayController::formatMessage($embed->description) . "\n\n";
+		}
+		foreach ($embed->fields??[] as $field) {
+			$blob .= "<header2>".
+				DiscordRelayController::formatMessage($field->name).
+				"<end>\n".
+				DiscordRelayController::formatMessage($field->value) . "\n\n";
+		}
+		if (!empty($embed->footer) && !empty($embed->footer->text)) {
+			$blob .= "<i>".
+				DiscordRelayController::formatMessage($embed->footer->text).
+				"</i>";
+		}
+		if (!empty($embed->title)) {
+			if (!empty($embed->url)) {
+				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
+					$blob;
+			}
+			$msg = $this->text->makeBlob(
+				DiscordRelayController::formatMessage($embed->title),
+				$blob
+			);
+		} else {
+			$msg = $blob;
+		}
+		return $msg;
+	}
+
 	/**
 	 * Recursively resolve all mentions in $message and then call $callback
 	 */
 	public function resolveDiscordMentions(?string $guildId, string $message, callable $callback): void {
-		if (!preg_match("/<@!?(\d+)>/", $message, $matches)) {
+		if (!preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
 			$callback($message);
 			return;
 		}
 		$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
 		if (isset($niceName)) {
-			$message = preg_replace("/<@!?" . $matches[1] . ">/", "@{$niceName}", $message);
+			$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
 			$this->resolveDiscordMentions($guildId, $message, $callback);
 			return;
 		}
@@ -508,7 +554,7 @@ class DiscordGatewayController {
 				$guildId,
 				$matches[1],
 				function(GuildMember $member, string $guildId, string $message, callable $callback) {
-					$message = preg_replace("/<@!?" . $member->user->id . ">/", "@" . $member->getName(), $message);
+					$message = preg_replace("/(?:<|&lt;)@!?" . $member->user->id . "(?:>|&gt;)/", "@" . $member->getName(), $message);
 					$this->resolveDiscordMentions($guildId, $message, $callback);
 				},
 				$guildId,
@@ -520,7 +566,7 @@ class DiscordGatewayController {
 		$this->discordAPIClient->getUser(
 			$matches[1],
 			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
-				$message = preg_replace("/<@!?" . $user->id . ">/", "@{$user->username}", $message);
+				$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
 				$this->resolveDiscordMentions($guildId, $message, $callback);
 			},
 			$guildId,
