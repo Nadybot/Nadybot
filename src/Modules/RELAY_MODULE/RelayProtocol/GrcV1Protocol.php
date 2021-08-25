@@ -17,6 +17,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Description("This is the old BudaBot protocol.
  * 	It only supports relaying messages - no sharing of online lists
  * 	or any form of colorization beyond org or guest chat.")
+ * @Param(name='command', description='The command we send with each packet', type='string', required=false)
+ * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class GrcV1Protocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -30,12 +32,20 @@ class GrcV1Protocol implements RelayProtocolInterface {
 	/** @Inject */
 	public MessageHub $messageHub;
 
+	protected string $command = "grc";
+	protected string $prefix = "";
+
+	public function __construct(string $command="grc", string $prefix="") {
+		$this->command = $command;
+		$this->prefix = $prefix;
+	}
+
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
 			return [];
 		}
 		return [
-			"grc " . $this->messageHub->renderPath($event, false).
+			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, false).
 			$this->text->formatMessage($event->getData())
 		];
 	}
@@ -45,7 +55,9 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($msg->packages);
-		if (!preg_match("/^.?grc (.+)/s", $data, $matches)) {
+		$prefix = preg_quote($this->prefix, "/");
+		$command = preg_quote($this->command, "/");
+		if (!preg_match("/^(?:{$prefix})?{$command} (.+)/", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];

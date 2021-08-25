@@ -18,6 +18,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Description("This is the protocol that is used by the alliance of Rimor.
  * 	It does not supports sharing online lists and can only colorize
  * 	org and guest chat properly.")
+ * @Param(name='command', description='The command we send with each packet', type='string', required=false)
+ * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class AgcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -30,6 +32,14 @@ class AgcrProtocol implements RelayProtocolInterface {
 
 	/** @Inject */
 	public Text $text;
+
+	protected string $command = "agcr";
+	protected string $prefix = "!";
+
+	public function __construct(string $command="agcr", string $prefix="!") {
+		$this->command = $command;
+		$this->prefix = $prefix;
+	}
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
@@ -47,8 +57,9 @@ class AgcrProtocol implements RelayProtocolInterface {
 
 	public function renderMessage(RoutableEvent $event): array {
 		return [
-			"!agcr " . $this->messageHub->renderPath($event, false).
-			$this->text->formatMessage($event->getData())
+			$this->prefix.$this->command . " ".
+				$this->messageHub->renderPath($event, false).
+				$this->text->formatMessage($event->getData())
 		];
 	}
 
@@ -56,8 +67,10 @@ class AgcrProtocol implements RelayProtocolInterface {
 		if (empty($msg->packages)) {
 			return null;
 		}
+		$prefix = preg_quote($this->prefix, "/");
+		$command = preg_quote($this->command, "/");
 		$data = array_shift($msg->packages);
-		if (!preg_match("/^!agcr\s+(.+)/s", $data, $matches)) {
+		if (!preg_match("/^(?:{$prefix})?{$command}\s+(.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];

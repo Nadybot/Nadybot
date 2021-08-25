@@ -18,6 +18,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * 	in front of the tags and messages, so the client-side
  * 	can decide how to colorize them. However, it only supports
  * 	org, guest and raidbot chat.")
+ * @Param(name='command', description='The command we send with each packet', type='string', required=false)
+ * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -27,6 +29,14 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 	/** @Inject */
 	public Text $text;
+
+	protected string $command = "grc";
+	protected string $prefix = "";
+
+	public function __construct(string $command="grc", string $prefix="") {
+		$this->command = $command;
+		$this->prefix = $prefix;
+	}
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
@@ -65,8 +75,9 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			$msgColor = "<relay_bot_color>";
 		}
 		return [
-			"grc <v2>" . join(" ", $hops) . " {$senderLink}: {$msgColor}".
-			$this->text->formatMessage($event->getData()) . "</end>"
+			"{$this->prefix}{$this->command} <v2>".
+				join(" ", $hops) . " {$senderLink}: {$msgColor}".
+				$this->text->formatMessage($event->getData()) . "</end>"
 		];
 	}
 
@@ -75,7 +86,9 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($msg->packages);
-		if (!preg_match("/^.?grc <v2>(.+)/s", $data, $matches)) {
+		$prefix = preg_quote($this->prefix, "/");
+		$command = preg_quote($this->command, "/");
+		if (!preg_match("/^(?:{$prefix})?{$command} <v2>(.+)/", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];

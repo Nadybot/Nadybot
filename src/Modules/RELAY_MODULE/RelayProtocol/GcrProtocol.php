@@ -19,6 +19,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * 	including sharing online lists.
  * 	Nadybot also only support colorization of messages from the
  * 	org and guest chat.")
+ * @Param(name='command', description='The command we send with each packet', type='string', required=false)
+ * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class GcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -28,6 +30,14 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	/** @Inject */
 	public Text $text;
+
+	protected string $command = "gcr";
+	protected string $prefix = "";
+
+	public function __construct(string $command="gcr", string $prefix="") {
+		$this->command = $command;
+		$this->prefix = $prefix;
+	}
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
@@ -59,8 +69,9 @@ class GcrProtocol implements RelayProtocolInterface {
 			$senderLink = "##relay_name##{$character->name}:##end##";
 		}
 		return [
-			"gcr " . join(" ", $hops) . " {$senderLink} ".
-			$this->text->formatMessage($event->getData())
+			$this->prefix.$this->command . " ".
+				join(" ", $hops) . " {$senderLink} ".
+				$this->text->formatMessage($event->getData())
 		];
 	}
 
@@ -77,7 +88,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			return null;
 		}
 		$type = ($event->getData()->type === "logon") ? "on" : "off";
-		$joinMsg = "gcr " . join(" ", $hops).
+		$joinMsg = $this->prefix.$this->command . " " . join(" ", $hops).
 			" ##logon_log{$type}_spam##{$character->name} logged {$type}##end##";
 		return [$joinMsg];
 	}
@@ -87,7 +98,9 @@ class GcrProtocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($msg->packages);
-		if (!preg_match("/^.?gcr (.+)/", $data, $matches)) {
+		$prefix = preg_quote($this->prefix, "/");
+		$command = preg_quote($this->command, "/");
+		if (!preg_match("/^(?:{$prefix})?{$command} (.+)/", $data, $matches)) {
 			return null;
 		}
 		$data = preg_replace("/##(relay_message|relay_channel)##/", "", $matches[1]);
