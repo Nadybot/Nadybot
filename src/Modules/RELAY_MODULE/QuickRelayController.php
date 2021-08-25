@@ -53,7 +53,9 @@ class QuickRelayController {
 				"private channel for relaying.\n".
 				"It provides Funcom-speed messages, but no encryption or ".
 				"shared online lists.\n".
-				"Colors usually cannot be configured on the other bots.",
+				"Colors usually cannot be configured on the other bots and ".
+				"Nadybot can only detect\n".
+				"org and guest chat for colorization.",
 			"tyr" => "Use this to setup relaying between a mixed setup ".
 				"of only Tyrbots and Nadybots.\n".
 				"Currently, the only way to use this in practise is by ".
@@ -70,7 +72,9 @@ class QuickRelayController {
 				"a private channel for relaying.\n".
 				"It provides Funcom-speed messages, but no encryption or ".
 				"shared online lists.\n".
-				"Colors can be configured on participating Nadybots",
+				"Colors can be configured on participating Nadybots, ".
+				"but they can only detect\n".
+				"org, guest and raidbot chat. Don't use it unless you have to.",
 		];
 		$blobs = [];
 		foreach ($types as $type => $description) {

@@ -15,8 +15,9 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @RelayProtocol("grcv2")
  * @Description("This is the old Nadybot protocol.
  * 	It enhances the old grc protocol by adding descriptions
- * in front of the tags and messages, so the client-side
- * can decide how to colorize them.")
+ * 	in front of the tags and messages, so the client-side
+ * 	can decide how to colorize them. However, it only supports
+ * 	org, guest and raidbot chat.")
  */
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected Relay $relay;

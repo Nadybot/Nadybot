@@ -15,7 +15,10 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 /**
  * @RelayProtocol("gcr")
  * @Description("This is the protocol that BeBot used to speak.
- * 	It supports a lot of stuff, including sharing online lists.")
+ * 	It supports a lot of things Nadybot currently does not support,
+ * 	including sharing online lists.
+ * 	Nadybot also only support colorization of messages from the
+ * 	org and guest chat.")
  */
 class GcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;

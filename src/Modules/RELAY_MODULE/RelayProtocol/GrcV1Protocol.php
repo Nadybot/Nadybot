@@ -15,7 +15,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 /**
  * @RelayProtocol("grc")
  * @Description("This is the old BudaBot protocol.
- * 	It only supports relaying messages - no sharing of online lists.")
+ * 	It only supports relaying messages - no sharing of online lists
+ * 	or any form of colorization beyond org or guest chat.")
  */
 class GrcV1Protocol implements RelayProtocolInterface {
 	protected Relay $relay;

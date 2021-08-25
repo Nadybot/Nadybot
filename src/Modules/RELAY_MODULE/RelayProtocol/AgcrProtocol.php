@@ -16,7 +16,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 /**
  * @RelayProtocol("agcr")
  * @Description("This is the protocol that is used by the alliance of Rimor.
- * 	It supports sharing online lists.")
+ * 	It does not supports sharing online lists and can only colorize
+ * 	org and guest chat properly.")
  */
 class AgcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
