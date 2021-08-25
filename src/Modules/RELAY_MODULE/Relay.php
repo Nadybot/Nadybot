@@ -57,7 +57,7 @@ class Relay implements MessageReceiver {
 		unset($this->onlineChars[$where]);
 	}
 
-	public function setOnline(string $clientId, string $where, string $character, ?int $uid, ?int $dimension): void {
+	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
@@ -86,7 +86,7 @@ class Relay implements MessageReceiver {
 		);
 	}
 
-	public function setOffline(string $sender, string $where, string $character, ?int $uid, ?int $dimension): void {
+	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		unset($this->onlineChars[$where][$character]);

@@ -2,25 +2,31 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Event;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Core\SettingManager;
 use Nadybot\Core\Util;
 use Nadybot\Core\Text;
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
  * @RelayProtocol("gcr")
- * @Description("This is the protocol that BeBot used to speak.
- * 	It supports a lot of things Nadybot currently does not support,
- * 	including sharing online lists.
- * 	Nadybot also only support colorization of messages from the
- * 	org and guest chat.")
+ * @Description("This is the protocol that BeBot speaks natively.
+ * 	It supports sharing online lists and basic colorization.
+ * 	Nadybot only support colorization of messages from the
+ * 	org and guest chat and not the BeBot native encryption.")
  * @Param(name='command', description='The command we send with each packet', type='string', required=false)
  * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
+ * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
+ * @Param(name='send-logon', description='Send messages that people in your org go online or offline', type='bool', required=false)
  */
 class GcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -31,12 +37,25 @@ class GcrProtocol implements RelayProtocolInterface {
 	/** @Inject */
 	public Text $text;
 
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
+	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public OnlineController $onlineController;
+
 	protected string $command = "gcr";
 	protected string $prefix = "";
+	protected bool $syncOnline = true;
+	protected bool $spamOnline = true;
 
-	public function __construct(string $command="gcr", string $prefix="") {
+	public function __construct(string $command="gcr", string $prefix="", bool $syncOnline=true, bool $spamOnline=false) {
 		$this->command = $command;
 		$this->prefix = $prefix;
+		$this->syncOnline = $syncOnline;
+		$this->spamOnline = $spamOnline;
 	}
 
 	public function send(RoutableEvent $event): array {
@@ -46,7 +65,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
 			/** @var Event $llEvent */
 			$llEvent = $event->getData();
-			if (in_array($llEvent->type, ["logon", "logoff"])) {
+			if ($llEvent->type??null === Online::TYPE) {
 				return $this->renderUserState($event);
 			}
 		}
@@ -76,21 +95,76 @@ class GcrProtocol implements RelayProtocolInterface {
 	}
 
 	public function renderUserState(RoutableEvent $event): array {
-		$path = $event->getPath();
-		$hops = [];
-		$lastHop = null;
-		foreach ($path as $hop) {
-			$hops []= "##relay_channel##[" . $hop->render($lastHop) . "]##end##";
-			$lastHop = $hop;
+		$character = $event->getData()->char ?? null;
+		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
+			return [];
 		}
-		$character = $event->getCharacter();
-		if (!isset($character) || !$this->util->isValidSender($character->name)) {
+		$this->playerManager->getByNameCallback(
+			function(?Player $player) use ($event): void {
+				if (!isset($player)) {
+					return;
+				}
+				$send = [];
+				if (($msg = $this->getBeBotLogonOffMsg($player, $event)) !== null) {
+					$send []= $msg;
+				}
+				if (($msg = $this->getBeBotLogonOffStatus($player, $event)) !== null) {
+					$send []= $msg;
+				}
+				if (count($send)) {
+					$this->relay->receiveFromMember($this, $send);
+				}
+			},
+			false,
+			$character->name
+		);
+		return [];
+	}
+
+	protected function getBeBotLogonOffStatus(Player $player, RoutableEvent $event): ?string {
+		if (!$this->syncOnline) {
 			return null;
 		}
-		$type = ($event->getData()->type === "logon") ? "on" : "off";
-		$joinMsg = $this->prefix.$this->command . " " . join(" ", $hops).
-			" ##logon_log{$type}_spam##{$character->name} logged {$type}##end##";
-		return [$joinMsg];
+		$path = $event->getPath();
+		$lastHop = $path[count($path)-1] ?? null;
+		if (!isset($lastHop)) {
+			return null;
+		}
+		$onlineUpdate = $this->prefix.$this->command . "c buddy ".
+			(int)$event->getData()->online . " {$player->name} ";
+		if ($lastHop->type === Source::ORG) {
+			return $onlineUpdate . "gc {$player->guild_rank_id}";
+		} elseif ($lastHop->type === Source::PRIV) {
+			return $onlineUpdate . "pg";
+		}
+		return null;
+	}
+
+	protected function getBeBotLogonOffMsg(Player $player, RoutableEvent $event): ?string {
+		if (!$this->spamOnline) {
+			return null;
+		}
+		$path = $event->getPath();
+		$lastHop = $path[count($path)-1] ?? null;
+		if (!isset($lastHop) || $lastHop->type !== Source::ORG) {
+			return null;
+		}
+		if (!$event->getData()->online) {
+			return $this->prefix.$this->command . " ".
+				"##logon_logoff_spam##{$player->name} logged off##end##";
+		}
+		$msg = $this->prefix.$this->command . " ".
+			"##logon_logon_spam##".
+			"##highlight##{$player->name}##end## ".
+			"(Lvl ##logon_level##{$player->level}##end##/".
+			"##logon_ailevel##{$player->ai_level}##end## ".
+			$player->faction . " " . $player->profession;
+		if (strlen($player->guild??"")) {
+			$msg .= ", ##logon_organization##{$player->guild_rank} ".
+			"of {$player->guild}##end##";
+		}
+		$msg .= ") logged On##end##";
+		return $msg;
 	}
 
 	public function receive(RelayMessage $msg): ?RoutableEvent {
@@ -101,41 +175,137 @@ class GcrProtocol implements RelayProtocolInterface {
 		$prefix = preg_quote($this->prefix, "/");
 		$command = preg_quote($this->command, "/");
 		if (!preg_match("/^(?:{$prefix})?{$command} (.+)/", $data, $matches)) {
+			if (preg_match("/^(?:{$prefix})?{$command}c (.+)/", $data, $matches)) {
+				return $this->handleOnlineCommands($msg->sender, $matches[1]);
+			}
 			return null;
 		}
-		$data = preg_replace("/##(relay_message|relay_channel)##/", "", $matches[1]);
-		$data = preg_replace(
-			"/##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##/",
-			"<a href=user://$1>$1</a>$2",
-			$data
-		);
-		$data = preg_replace("/##logon_logo(n|ff)_spam##(.+)##end##$/", "$2", $data, -1, $count);
-		if ($count > 0) {
-			// @TODO: Send logon event
+		if (preg_match("/##logon_log(on|off)_spam##/s", $data)) {
+			return $this->handleLogonSpam($msg->sender, $data);
 		}
-		$data = preg_replace("/##relay_message##(.*)##end##$/", "$1", $data);
-		$data = preg_replace("/##logon_logo(n|ff)_spam##(.+)##end##/", "$2", $data);
-		$data = preg_replace("/##logon_ailevel##(.*?)##end##/", "<font color=#00DE42>$1</font>", $data);
-		$data = preg_replace("/##logon_organization##(.*?)##end##/", "$1", $data);
-		$data = preg_replace("/##(?:relay_mainname|logon_level)##(.+?)##end##/", "<highlight>$1<end>", $data);
-		$msg = new RoutableMessage($data);
-		if (preg_match("/^\[(.+?)\]\s*(.*)/", $data, $matches)) {
-			$msg->appendPath(new Source(Source::ORG, $matches[1]));
-			$data = $matches[2];
+		$data = $matches[1];
+		$r = new RoutableMessage($data);
+		while (preg_match("/^\s*\[##relay_channel##(.*?)##end##\]\s*/", $data, $matches)) {
+			if (preg_match("/ Guest$/", $matches[1])) {
+				$source = new Source(
+					Source::ORG,
+					substr($matches[1], 0, -6)
+				);
+				$r->appendPath($source);
+				$source = new Source(
+					Source::PRIV,
+					$msg->sender,
+					"Guest"
+				);
+				$r->appendPath($source);
+			} else {
+				$source = new Source(
+					count($r->path) ? Source::PRIV : Source::ORG,
+					$matches[1]
+				);
+				$r->appendPath($source);
+			}
+			$data = preg_replace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/", "", $data);
 		}
-		if (preg_match("/^\[(.+?)\]\s*(.*)/", $data, $matches)) {
-			$msg->appendPath(new Source(Source::PRIV, $matches[1]));
-			$data = $matches[2];
+		if (preg_match("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", $data, $matches)) {
+			$r->setCharacter(new Character($matches[1]));
+			$data = preg_replace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", "", $data);
 		}
-		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
-			$data = $matches[2];
-		} elseif (preg_match("/^([^ ]+):?\s*(.*)/", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
-			$data = $matches[2];
+		if (preg_match("/\s*##relay_message##(.*)##end##$/", $data, $matches)) {
+			$r->setData($this->replaceBeBotColors($matches[1]));
 		}
-		$msg->setData($this->replaceBeBotColors($data));
-		return $msg;
+		return $r;
+	}
+
+	public function handleLogonSpam(?string $sender, string $text): ?RoutableEvent {
+		if (!preg_match("/##logon_log(off|on)_spam##(.+)##end##$/s", $text, $matches)) {
+			return null;
+		}
+		$r = new RoutableEvent();
+		$r->type = RoutableEvent::TYPE_EVENT;
+		$r->path = [];
+		$r->data = new Online();
+		$r->data->online = $matches[1] === "on";
+		$r->data->message = $this->replaceBeBotColors($matches[2]);
+		$r->data->renderPath = false;
+		return $r;
+	}
+
+	public function handleOnlineCommands(?string $sender, string $text): ?RoutableEvent {
+		if (!isset($sender) || !$this->syncOnline) {
+			return null;
+		}
+		if (preg_match("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text, $matches)) {
+			$callback = ($matches['status'] === '1')
+				? [$this->relay, "setOnline"]
+				: [$this->relay, "setOffline"];
+			$this->playerManager->getByNameCallback(
+				function(?Player $player) use ($matches, $callback): void {
+					if (!isset($player)) {
+						return;
+					}
+					$callback(
+						$player->name,
+						(!empty($player->guild))
+							? ($matches['where'] === 'pg'
+								? "{$player->guild} Guest"
+								: "{$player->guild}")
+							: "{$player->name}",
+						$matches['char']
+					);
+				},
+				false,
+				$sender
+			);
+		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
+			$this->playerManager->getByNameCallback(
+				function(?Player $player) use ($matches): void {
+					if (!isset($player)) {
+						return;
+					}
+					$chars = explode(";", $matches[1]);
+					foreach ($chars as $char) {
+						[$name,$where,$rank] = [...explode(",", $char), null, null];
+						$this->relay->setOnline(
+							$player->name,
+							(!empty($player->guild))
+								? ($where === 'pg'
+									? "{$player->guild} Guest"
+									: "{$player->guild}")
+								: "{$player->name}",
+							$name
+						);
+					}
+				},
+				false,
+				$sender
+			);
+		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
+			$onlineList = $this->getOnlineList();
+			if (isset($onlineList)) {
+				$this->relay->receiveFromMember(
+					$this,
+					[$this->getOnlineList()]
+				);
+			}
+		}
+		return null;
+	}
+
+	public function getOnlineList(): ?string {
+		$chunks = [];
+		$onlineOrg = $this->onlineController->getPlayers('guild');
+		foreach ($onlineOrg as $char) {
+			$chunks []= "{$char->name},gc,{$char->guild_rank_id}";
+		}
+		$onlineOrg = $this->onlineController->getPlayers('priv');
+		foreach ($onlineOrg as $char) {
+			$chunks []= "{$char->name},pg";
+		}
+		if (empty($chunks)) {
+			return null;
+		}
+		return $this->prefix.$this->command . "c online " . join(";", $chunks);
 	}
 
 	/**
@@ -239,9 +409,12 @@ class GcrProtocol implements RelayProtocolInterface {
 			"tower"          => "lightfuchsia",
 			"vicinity"       => "lightyellow",
 			"whisper"        => "dullteal",
+			"logon_level"    => "highlight",
+			"logon_ailevel"  => "lightgreen",
+			"logon_organization" => "highlight",
 		];
 		$colorizedText = preg_replace_callback(
-			"/##([a-zA-Z]+)##/",
+			"/##([a-zA-Z_]+)##/",
 			function (array $matches) use ($colorAliases, $colors): string {
 				$color = strtolower($matches[1]);
 				if (isset($colorAliases[$color])) {
@@ -261,6 +434,12 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function init(callable $callback): array {
 		$callback();
+		if ($this->syncOnline) {
+			return array_values(array_filter([
+				$this->getOnlineList(),
+				$this->prefix.$this->command . "c onlinereq",
+			]));
+		}
 		return [];
 	}
 
