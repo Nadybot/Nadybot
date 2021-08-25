@@ -172,10 +172,9 @@ class GcrProtocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($msg->packages);
-		$prefix = preg_quote($this->prefix, "/");
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^(?:{$prefix})?{$command} (.+)/", $data, $matches)) {
-			if (preg_match("/^(?:{$prefix})?{$command}c (.+)/", $data, $matches)) {
+		if (!preg_match("/^.?{$command} (.+)/", $data, $matches)) {
+			if (preg_match("/^.?{$command}c (.+)/", $data, $matches)) {
 				return $this->handleOnlineCommands($msg->sender, $matches[1]);
 			}
 			return null;
