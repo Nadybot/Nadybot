@@ -335,7 +335,7 @@ class DiscordRelayController {
 		$text = htmlspecialchars($text);
 		$text = preg_replace("/\*\*(.+?)\*\*/s", "<highlight>$1<end>", $text);
 		$text = preg_replace("/\*(.+?)\*/s", "<i>$1</i>", $text);
-		$text = preg_replace("/\\-/", "-", $text);
+		$text = preg_replace("/\\\\-/s", "-", $text);
 		$text = preg_replace("/\[(.+?)\]\((.+?)\)/s", "<a href='chatcmd:///start $2'>$1</a>", $text);
 		$text = str_replace(
 			array_keys($smileyMapping),
