@@ -180,6 +180,13 @@ class WebChatConverter {
 			},
 			$message
 		);
+		$message = preg_replace_callback(
+			"/^((?:    )+)/m",
+			function(array $matches): string {
+				return str_repeat("<indent />", (int)(strlen($matches[1])/4));
+			},
+			$message
+		);
 		$message = preg_replace("/\r?\n/", "<br />", $message);
 		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
 		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
@@ -231,9 +238,10 @@ class WebChatConverter {
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
 						preg_replace(
-							"/^\s*<font[^>]*>(.+)<\/font>/s",
-							"<header>$1<end>",
-							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2])
+							"/^\s*(<font[^>]*>)?\s*<font[^>]*>(.+)<\/font>/m",
+							"$1<header>$2<end>",
+							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2]),
+							1
 						)
 					)
 				);
