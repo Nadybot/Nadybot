@@ -2,10 +2,14 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use DateInterval;
 use DateTime;
+use DateTimeZone;
+use Exception;
 use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
+	DB,
 	Text,
 	Util,
 };
@@ -29,6 +33,14 @@ class ArbiterController {
 	public const BS = "bs";
 	public const CYCLE_LENGTH = 3628800;
 
+	public const DB_TABLE = "icc_arbiter";
+
+	/**
+	 * Name of the module.
+	 * Set automatically by module loader.
+	 */
+	public string $moduleName;
+
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
@@ -38,15 +50,12 @@ class ArbiterController {
 	/** @Inject */
 	public Text $text;
 
-	/** @var array<string,int[]> */
-	protected static array $dates = [
-		self::AI  => [1618704000, 1619395200],
-		self::BS  => [1619913600, 1620604800],
-		self::DIO => [1621123200, 1621814400],
-	];
+	/** @Inject */
+	public DB $db;
 
 	/** @Setup */
 	public function setup(): void {
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Arbiter");
 		$this->commandAlias->register($this->moduleName, "arbiter", "icc");
 	}
 
@@ -58,8 +67,16 @@ class ArbiterController {
 		$event->shortName = $type;
 		$event->longName = $this->getLongName($event->shortName);
 		$time ??= time();
-		$event->start = static::$dates[$type][0];
-		$event->end = static::$dates[$type][1];
+		/** @var ?ICCArbiter */
+		$entry = $this->db->table(static::DB_TABLE)
+			->where("type", $type)
+			->asObj(ICCArbiter::class)
+			->first();
+		if (!isset($entry)) {
+			throw new Exception("No arbiter data found for {$type}.");
+		}
+		$event->start = $entry->start->getTimestamp();
+		$event->end = $entry->end->getTimestamp();
 		$cycles = intdiv($time - $event->start, static::CYCLE_LENGTH);
 		$event->start += $cycles * static::CYCLE_LENGTH;
 		$event->end += $cycles * static::CYCLE_LENGTH;
@@ -107,6 +124,59 @@ class ArbiterController {
 	/** Get a nice representation of a duration, rounded to minutes */
 	public function niceTimeWithoutSecs(int $time): string {
 		return $this->util->unixtimeToReadable($time - ($time % 60));
+	}
+
+	/**
+	 * @HandlesCommand("arbiter")
+	 * @Matches("/^arbiter set$/i")
+	 * @Matches("/^arbiter set (.+) (ends)$/i")
+	 * @Matches("/^arbiter set (.+)$/i")
+	 */
+	public function arbiterSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$validTypes = [static::AI, static::BS, static::DIO];
+		if (!in_array($args[1]??null, $validTypes)) {
+			$sendto->reply(
+				"Allowed current arbiter weeks are ".
+				$this->text->enumerate(
+					...$this->text->arraySprintf(
+						"<highlight>%s<end>",
+						...$validTypes
+					)
+				)
+			);
+			return;
+		}
+		$pos = array_search($args[1], $validTypes);
+		$this->db->beginTransaction();
+		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
+		$startsToday = ($day === "7") && !isset($args[2]);
+		$start =  strtotime($startsToday ? "today" : "last sunday");
+		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
+		try {
+			$this->db->table(static::DB_TABLE)->truncate();
+			for ($i = 0; $i < 3; $i++) {
+				$arb = new ICCArbiter();
+				$arb->type = $validTypes[($pos + $i) % 3];
+				$arb->start = (new DateTime())->setTimestamp($start);
+				$arb->end = (new DateTime())->setTimestamp($end);
+				$days = 14 * $i;
+				$arb->start->add(new DateInterval("P{$days}D"));
+				$arb->end->add(new DateInterval("P{$days}D"));
+				$this->db->insert(static::DB_TABLE, $arb);
+			}
+		} catch (Exception $e) {
+			$this->db->rollback();
+			$sendto->reply(
+				"Error saving the new dates into the database: ".
+				$e->getMessage()
+			);
+			return;
+		}
+		$this->db->commit();
+		$sendto->reply(
+			"New times saved. It's currently <highlight>".
+			strtoupper($args[1]) . "<end> week."
+		);
 	}
 
 	/**

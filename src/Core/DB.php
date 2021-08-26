@@ -816,6 +816,9 @@ class DB {
 			}
 			if ($prop->isInitialized($row)) {
 				$data[$prop->name] = $prop->getValue($row);
+				if ($data[$prop->name] instanceof DateTime) {
+					$data[$prop->name] = $data[$prop->name]->getTimestamp();
+				}
 			}
 		}
 		$table = $this->formatSql($table);
