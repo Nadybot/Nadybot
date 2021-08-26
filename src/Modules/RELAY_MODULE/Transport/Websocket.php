@@ -25,7 +25,7 @@ use Nadybot\Modules\RELAY_MODULE\StatusProvider;
  * 	and if they are public, you might also want to add an encryption
  * 	layer on top of that.")
  * @Param(name='server', description='The URI of the websocket to connect to', type='string', required=true)
- * @Param(name='authorization', description='If set, authorize against the Websocket server with a password', type='string', required=false)
+ * @Param(name='authorization', description='If set, authorize against the Websocket server with a password', type='secret', required=false)
  */
 class Websocket implements TransportInterface, StatusProvider {
 	/** @Inject */

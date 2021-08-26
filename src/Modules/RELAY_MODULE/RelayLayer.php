@@ -26,10 +26,10 @@ class RelayLayer extends DBRow {
 	 */
 	public array $arguments = [];
 
-	public function toString(): string {
+	public function toString(array $secrets=[]): string {
 		$arguments = array_map(
-			function(RelayLayerArgument $argument): string {
-				return $argument->toString();
+			function(RelayLayerArgument $argument) use ($secrets): string {
+				return $argument->toString(in_array($argument->name, $secrets));
 			},
 			$this->arguments
 		);

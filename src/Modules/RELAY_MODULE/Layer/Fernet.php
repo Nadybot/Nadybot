@@ -14,8 +14,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  *	You can configure all parameters of the encryption key generation via options.
  *	Encryption layers only work if all relay-parties use the same encryption parameters!
  *	Fernet guarantees that the data you send is unaltered')
- * @Param(name='password', description='The password to derive our encryption key from', type='string', required=true)
- * @Param(name='salt', description='The salt to add to the password', type='string', required=true)
+ * @Param(name='password', description='The password to derive our encryption key from', type='secret', required=true)
+ * @Param(name='salt', description='The salt to add to the password', type='secret', required=true)
  * @Param(name='hash', description='The hash algorithm to ensure messages are unaltered', type='string', required=false)
  * @Param(name='iterations', description='Number of iterations', type='integer', required=false)
  * @package Nadybot\Modules\RELAY_MODULE\Encryption

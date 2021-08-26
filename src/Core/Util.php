@@ -631,6 +631,7 @@ class Util {
 			$param->required = $paramAnnotation->required ?: false;
 			switch ($paramAnnotation->type) {
 				case $param::TYPE_BOOL:
+				case $param::TYPE_SECRET:
 				case $param::TYPE_STRING:
 				case $param::TYPE_INT:
 				case $param::TYPE_STRING_ARRAY:

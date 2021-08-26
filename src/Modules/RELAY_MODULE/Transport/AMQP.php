@@ -50,7 +50,7 @@ use Throwable;
  * @Param(
  * 	name='password',
  * 	description='The password to connect with.',
- * 	type='string',
+ * 	type='secret',
  * 	required=true
  * )
  * @Param(

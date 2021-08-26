@@ -26,4 +26,14 @@ class ClassSpec {
 		$this->description = $description;
 		return $this;
 	}
+
+	public function getSecrets(): array {
+		$secrets = [];
+		foreach ($this->params??[] as $param) {
+			if ($param->type === $param::TYPE_SECRET) {
+				$secrets []= $param->name;
+			}
+		}
+		return $secrets;
+	}
 }

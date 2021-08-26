@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 class FunctionParameter {
+	public const TYPE_SECRET = "secret";
 	public const TYPE_STRING = "string";
 	public const TYPE_STRING_ARRAY = "string[]";
 	public const TYPE_INT = "int";

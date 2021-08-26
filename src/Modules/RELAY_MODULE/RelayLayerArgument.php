@@ -23,7 +23,10 @@ class RelayLayerArgument extends DBRow {
 	/** The value of the argument */
 	public string $value;
 
-	public function toString(): string {
+	public function toString(bool $isSecret): string {
+		if ($isSecret) {
+			return "{$this->name}=&lt;hidden&gt;";
+		}
 		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}

@@ -263,7 +263,8 @@ class RelayController {
 			$blob .= "\n<header2>Parameters<end>\n";
 			$parNum = 0;
 			foreach ($spec->params as $param) {
-				$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
+				$type = ($param->type === $param::TYPE_SECRET) ? $param::TYPE_STRING : $param->type;
+				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
 				if (!$param->required) {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
@@ -491,6 +492,13 @@ class RelayController {
 	 * @Matches("/^relay describe (?<name>.+)$/is")
 	 */
 	public function relayDescribeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($channel !== "msg") {
+			$sendto->reply(
+				"Because the relay stack might contain passwords, ".
+				"this command works only in tells."
+			);
+			return;
+		}
 		$relay = isset($args['id'])
 			? $this->getRelay((int)$args['id'])
 			: $this->getRelayByName($args['name']);
@@ -523,12 +531,15 @@ class RelayController {
 		}
 		$blobs = [];
 		foreach ($relays as $relay) {
+			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
 			$blob = "<header2>{$relay->name}<end>\n".
-				"<tab>Transport: <highlight>" . $relay->layers[0]->toString() . "<end>\n";
+				"<tab>Transport: <highlight>" . $relay->layers[0]->toString($secrets) . "<end>\n";
 			for ($i = 1; $i < count($relay->layers)-1; $i++) {
-				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString() . "<end>\n";
+				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
+				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString($secrets) . "<end>\n";
 			}
-			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString() . "<end>\n";
+			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
+			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString($secrets) . "<end>\n";
 			$live = $this->relays[$relay->name] ?? null;
 			if (isset($live)) {
 				$blob .= "<tab>Status: " . $live->getStatus()->toString();

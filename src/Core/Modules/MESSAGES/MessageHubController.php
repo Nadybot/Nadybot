@@ -271,7 +271,8 @@ class MessageHubController {
 			$blob .= "\n<header2>Parameters<end>\n";
 			$parNum = 0;
 			foreach ($mod->params as $param) {
-				$blob .= "<tab><green>{$param->type}<end> <highlight>{$param->name}<end>";
+				$type = ($param->type === $param::TYPE_SECRET) ? $param::TYPE_STRING : $param->type;
+				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
 				if (!$param->required) {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
