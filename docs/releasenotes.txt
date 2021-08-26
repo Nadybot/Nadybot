@@ -1,4 +1,10 @@
 *****************************
+	Version 5.1.3
+*****************************
+Features:
+- Allow manual adjusting which arbiter week it is
+
+*****************************
 	Version 5.1.2
 *****************************
 Features:
@@ -999,21 +1005,21 @@ added packet(id) event type and removed allpackets event type
 *****************************
 	Version 0.6.1:
 *****************************
-- Changed the Online module output design and added the rank of each player  
-- Fixed a problem within the adminmodule that their online status was not shown correctly  
-- On the adminlist it is now shown too if he is in the private group  
-- Removed an old Tower debuge message that was shown on the console  
-- Corrected some itemlinks in the bio material script  
-- Some old helpfile descriptions weren't stored correctly in the Database  
-- The log functions(file and console) are put now into one function to. Also the format of the output has been changed a bit.  
-- Messages from the Bot itself are shown in the logfiles and the console now too.  
-- Added that you can set in which channel you want to see the city attacks.(useful when you have 2bots(1raidbot and 1 orgbot) so they don't show both the attack in your guild channel)  
-- Fixed a problem when assigning some to a team when he had a number in his name  
-- Fixed that players that left the Bot couldn't be removed from a team  
-- Using a command with prefix(like # or !) in tells will work now too  
-- Added a AI Raidhoster Module(used to roll for a AI Raid sponsor)  
-- Added a little countdown command to the timers module  
-- Removed the loot module as it is now part of the raidmodule  
+- Changed the Online module output design and added the rank of each player
+- Fixed a problem within the adminmodule that their online status was not shown correctly
+- On the adminlist it is now shown too if he is in the private group
+- Removed an old Tower debuge message that was shown on the console
+- Corrected some itemlinks in the bio material script
+- Some old helpfile descriptions weren't stored correctly in the Database
+- The log functions(file and console) are put now into one function to. Also the format of the output has been changed a bit.
+- Messages from the Bot itself are shown in the logfiles and the console now too.
+- Added that you can set in which channel you want to see the city attacks.(useful when you have 2bots(1raidbot and 1 orgbot) so they don't show both the attack in your guild channel)
+- Fixed a problem when assigning some to a team when he had a number in his name
+- Fixed that players that left the Bot couldn't be removed from a team
+- Using a command with prefix(like # or !) in tells will work now too
+- Added a AI Raidhoster Module(used to roll for a AI Raid sponsor)
+- Added a little countdown command to the timers module
+- Removed the loot module as it is now part of the raidmodule
 - Added that you can see the rank too on the orgmembers function
 - Fixed a problem with commands that are used in different modules but where shown on one cmd config window
 - Changed the Forum address in various scripts
@@ -1069,24 +1075,24 @@ added packet(id) event type and removed allpackets event type
 - Added a list to show current orgmembers, their stats and when they logged off the last time
 - Fixed a problem with the new timer syntax and removed debug messages
 - Fixed a bug in one of the SELECT query statements(some entries has been shown double or more)
-- Updated the Header in all Files which licence infos and stuff 
-- Added a GPL licence file 
-- Added a file with the patchnotes 
-- The Helpfile system got an overwork. Now only active modulehelpfiles are shown, they are categorized, their accesslvl can be changed over the config command and the help command works in guild channel too now 
+- Updated the Header in all Files which licence infos and stuff
+- Added a GPL licence file
+- Added a file with the patchnotes
+- The Helpfile system got an overwork. Now only active modulehelpfiles are shown, they are categorized, their accesslvl can be changed over the config command and the help command works in guild channel too now
 - Added Helpfiles
 - Updated Helpfiles
 - Fixed a problem with the newplugins command
 - Fixed a problem with the timer syntax
-- The minlvl for a lootspot wasn't checked correctly 
-- Fixed a bug in the calc command that has shown an error when the result was zero 
-- Added that persons can be banned for an specific amount of time 
+- The minlvl for a lootspot wasn't checked correctly
+- Fixed a bug in the calc command that has shown an error when the result was zero
+- Added that persons can be banned for an specific amount of time
 - Added a listbot module
 - Logons are now relayed to the relayorg
-- Guestchannel messages are send over guildrelay too now 
-- Fixed a bug in the tower messages.(instead of attacker side was attacker guild save into the DB) 
-- Did a little overwork on the timer module. Some old timers didn't got deleted in the DB and you can now use as time 2days 18hr 15min instead of setting it with the time in minutes. [color=red]THIS CHANGES REQUIRES A DELETE OF THE OLD TIMERS TABLE.[/color] 
-- Added an Healassist Macro 
-- Added a command so that player can force an update of their characters stats for private channel 
+- Guestchannel messages are send over guildrelay too now
+- Fixed a bug in the tower messages.(instead of attacker side was attacker guild save into the DB)
+- Did a little overwork on the timer module. Some old timers didn't got deleted in the DB and you can now use as time 2days 18hr 15min instead of setting it with the time in minutes. [color=red]THIS CHANGES REQUIRES A DELETE OF THE OLD TIMERS TABLE.[/color]
+- Added an Healassist Macro
+- Added a command so that player can force an update of their characters stats for private channel
 
 *****************************
 	Version 0.5:

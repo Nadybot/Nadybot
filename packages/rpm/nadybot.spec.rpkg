@@ -173,6 +173,9 @@ exit 0
 %endif
 
 %changelog
+* Fri Aug 26 2021 Nadyita <nadyita@hodorraid.org> 5.1.3-1
+- Allow manual adjusting which arbiter week it is
+
 * Tue Jul 11 2021 Nadyita <nadyita@hodorraid.org> 5.1.2-1
 - Add setting to prevent joining the raid multiple times with alts
 - Tower module overhaul:
