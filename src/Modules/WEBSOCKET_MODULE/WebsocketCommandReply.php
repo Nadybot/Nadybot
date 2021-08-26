@@ -47,24 +47,27 @@ class WebsocketCommandReply implements CommandReply {
 			];
 			$this->messageHub->handle($rMessage);
 		}
-		$xmlMessage = new AOChatEvent();
-		$xmlMessage->message = $this->webChatConverter->convertMessage($msg);
-		$xmlMessage->sender = $this->chatBot->char->name;
-		$xmlMessage->type = "chat({$this->type})";
-		$xmlMessage->channel = $this->type;
-		$xmlMessage->path = [
-			new Source(Source::WEB, "web")
-		];
-		$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
-		$color = $this->messageHub->getHopColor(Source::WEB, "web", "tag_color");
-		if (isset($color) && isset($color->tag_color)) {
-			$xmlMessage->path[0]->color = $color->tag_color;
-		} else {
-			$xmlMessage->path[0]->color = "";
+		$msgs = $this->webChatConverter->convertMessages((array)$msg);
+		foreach ($msgs as $msg) {
+			$xmlMessage = new AOChatEvent();
+			$xmlMessage->message = $msg;
+			$xmlMessage->sender = $this->chatBot->char->name;
+			$xmlMessage->type = "chat({$this->type})";
+			$xmlMessage->channel = $this->type;
+			$xmlMessage->path = [
+				new Source(Source::WEB, "web")
+			];
+			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
+			$color = $this->messageHub->getHopColor(Source::WEB, "web", "tag_color");
+			if (isset($color) && isset($color->tag_color)) {
+				$xmlMessage->path[0]->color = $color->tag_color;
+			} else {
+				$xmlMessage->path[0]->color = "";
+			}
+			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color"), $matches)) {
+				$xmlMessage->color = $matches[1];
+			}
+			$this->eventManager->fireEvent($xmlMessage);
 		}
-		if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color"), $matches)) {
-			$xmlMessage->color = $matches[1];
-		}
-		$this->eventManager->fireEvent($xmlMessage);
 	}
 }
