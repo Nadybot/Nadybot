@@ -67,26 +67,25 @@ class AgcrProtocol implements RelayProtocolInterface {
 		if (empty($msg->packages)) {
 			return null;
 		}
-		$prefix = preg_quote($this->prefix, "/");
 		$command = preg_quote($this->command, "/");
 		$data = array_shift($msg->packages);
-		if (!preg_match("/^(?:{$prefix})?{$command}\s+(.+)/s", $data, $matches)) {
+		if (!preg_match("/^.?{$command}\s+(.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
 		$msg = new RoutableMessage($data);
 		if (preg_match("/^\[(.+?)\]\s*(.*)/s", $data, $matches)) {
-			$msg->appendPath(new Source(Source::ORG, $matches[1]));
+			$msg->appendPath(new Source(Source::ORG, $matches[1], $matches[1]));
 			$data = $matches[2];
 		}
 		if (preg_match("/^\[(.+?)\]\s*(.*)/s", $data, $matches)) {
-			$msg->appendPath(new Source(Source::PRIV, $matches[1]));
+			$msg->appendPath(new Source(Source::PRIV, $matches[1], $matches[1]));
 			$data = $matches[2];
 		}
 		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/^([^ :]+):?\s*(.*)/s", $data, $matches)) {
+		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}

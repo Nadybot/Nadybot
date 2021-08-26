@@ -86,9 +86,8 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($msg->packages);
-		$prefix = preg_quote($this->prefix, "/");
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^(?:{$prefix})?{$command} <v2>(.+)/", $data, $matches)) {
+		if (!preg_match("/^.?{$command} <v2>(.+)/", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
@@ -103,7 +102,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/([^ ]+):\s*(.*)/s", $data, $matches)) {
+		} elseif (preg_match("/([^ :]+):\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
