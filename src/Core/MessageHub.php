@@ -352,7 +352,13 @@ class MessageHub {
 		$hopText = "";
 		$char = $event->getCharacter();
 		if (isset($char)) {
-			$charLink = $this->text->makeUserlink($char->name) . ": ";
+			$charLink = $char->name . ": ";
+			if (in_array(
+				$lastHop->type??null,
+				[Source::ORG, Source::PRIV, Source::PUB, Source::TELL]
+			)) {
+				$charLink = $this->text->makeUserlink($char->name) . ": ";
+			}
 		}
 		if (!empty($hops)) {
 			$hopText = join(" ", $hops) . " ";
