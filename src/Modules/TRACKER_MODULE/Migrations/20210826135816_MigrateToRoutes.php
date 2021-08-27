@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
+use Exception;
 use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\Channels\DiscordChannel;
 use Nadybot\Core\DB;
@@ -24,6 +25,9 @@ class MigrateToRoutes implements SchemaMigration {
 
 	/** @Inject */
 	public TrackerController $trackerController;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -73,6 +77,12 @@ class MigrateToRoutes implements SchemaMigration {
 		$route = new Route();
 		$route->source = $this->trackerController->getChannelName();
 		$route->destination = Source::DISCORD_PRIV . "({$channel->name})";
-		$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+		try {
+			$msgRoute = $this->messageHub->createMessageRoute($route);
+			$this->messageHub->addRoute($msgRoute);
+		} catch (Exception $e) {
+			// Ain't nothing we can do, errors will be given on next restart
+		}
 	}
 }
