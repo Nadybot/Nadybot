@@ -4,7 +4,7 @@ namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Exception;
 use Nadybot\Core\Annotations\Setting;
-use Nadybot\Core\Channels\DiscordChannel;
+use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\LoggerWrapper;
