@@ -82,7 +82,6 @@ class MigrateToRoutes implements SchemaMigration {
 	}
 
 	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, Setting $relayWhat, Setting $relayCommands): void {
-		var_dump($relayCommands);
 		if ((int)$relayWhat->value & 2) {
 			$this->addRoute(
 				$db,
