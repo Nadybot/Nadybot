@@ -18,6 +18,9 @@ use Throwable;
  * @Instance
  */
 class MessageHub {
+	public const EVENT_NOT_ROUTED = 0;
+	public const EVENT_DISCARDED = 1;
+	public const EVENT_DELIVERED = 2;
 	public const DB_TABLE_ROUTES = "route_<myname>";
 	public const DB_TABLE_COLORS = "route_hop_color_<myname>";
 	public const DB_TABLE_TEXT_COLORS = "route_text_color_<myname>";
@@ -290,12 +293,12 @@ class MessageHub {
 	/**
 	 * Submit an event to be routed according to the configured connections
 	 */
-	public function handle(RoutableEvent $event): void {
+	public function handle(RoutableEvent $event): int {
 		$this->logger->log('DEBUG', "Received event to route");
 		$path = $event->getPath();
 		if (empty($path)) {
 			$this->logger->log('DEBUG', "Discarding event without path");
-			return;
+			return static::EVENT_NOT_ROUTED;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
 		try {
@@ -307,6 +310,7 @@ class MessageHub {
 		} catch (JsonException $e) {
 			// Ignore
 		}
+		$returnStatus = static::EVENT_NOT_ROUTED;
 		foreach ($this->routes as $source => $dest) {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
@@ -324,6 +328,7 @@ class MessageHub {
 					$modifiedEvent = $route->modifyEvent($event);
 					if (!isset($modifiedEvent)) {
 						$this->logger->log('DEBUG', "Event filtered away for {$destName}");
+						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
 					$this->logger->log('DEBUG', "Event routed to {$destName}");
@@ -332,9 +337,11 @@ class MessageHub {
 						$destination = $matches[1];
 					}
 					$receiver->receive($modifiedEvent, $destination);
+					$returnStatus = static::EVENT_DELIVERED;
 				}
 			}
 		}
+		return $returnStatus;
 	}
 
 	/** Get the text to prepend to a message to denote its source path */

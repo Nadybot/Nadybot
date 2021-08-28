@@ -849,6 +849,13 @@ class Nadybot extends AOChat {
 			return;
 		}
 
+		$rMsg = new RoutableMessage($message);
+		$rMsg->appendPath(new Source(Source::TELL, $sender));
+		$rMsg->setCharacter(new Character($sender, $senderId, (int)$this->vars['dimension']));
+		if ($this->messageHub->handle($rMsg) !== $this->messageHub::EVENT_NOT_ROUTED) {
+			return;
+		}
+
 		$this->banController->handleBan(
 			$senderId,
 			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
