@@ -70,11 +70,7 @@ class MessageHubController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Event("connect")
-	 * @Description("Load routing from database")
-	 * @DefaultStatus("1")
-	 */
+	/** Load defined routes from the database and activate them */
 	public function loadRouting() {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
 			->orderBy("id")

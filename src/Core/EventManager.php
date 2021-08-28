@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\EventCfg;
+use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 
 /**
  * @Instance
@@ -23,6 +24,9 @@ class EventManager {
 
 	/** @Inject */
 	public Util $util;
+
+	/** @Inject */
+	public MessageHubController $messageHubController;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -391,6 +395,7 @@ class EventManager {
 		$this->areConnectEventsFired = true;
 
 		$this->logger->log('DEBUG', "Executing connected events");
+		$this->messageHubController->loadRouting();
 
 		$eventObj = new Event();
 		$eventObj->type = 'connect';
