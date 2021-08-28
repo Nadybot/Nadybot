@@ -51,7 +51,7 @@ class CreateRouteHopFormatTable implements SchemaMigration {
 			[
 				"hop" => Source::TELL,
 				"render" => true,
-				"format" => "@%s",
+				"format" => "%s",
 			],
 			[
 				"hop" => "*",
