@@ -7,15 +7,11 @@ use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 
 class ConvertBroadcastsToRoutes implements SchemaMigration {
-	/** @Inject */
-	public Nadybot $chatBot;
-
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -41,7 +37,7 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 
 	public function convertBroadcastToRoute(DB $db, object $broadcast, bool $org, bool $priv): void {
 		$name = ucfirst(strtolower($broadcast->name));
-		$botName = $this->chatBot->vars['myname'];
+		$botName = $db->getMyname();
 		if ($org) {
 			$route = new Route();
 			$route->source = Source::TELL . "({$name})";
