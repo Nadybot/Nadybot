@@ -251,7 +251,7 @@ class MessageHub {
 			return $this->receivers[$channel];
 		}
 		foreach ($this->receivers as $receiverChannel => $receiver) {
-			if (fnmatch($receiverChannel, $channel)) {
+			if (fnmatch($receiverChannel, $channel, FNM_CASEFOLD)) {
 				return $receiver;
 			}
 		}
@@ -275,7 +275,7 @@ class MessageHub {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
 			}
-			if (fnmatch(strtolower($source), $sender)) {
+			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
 				return true;
 			}
 		}
@@ -315,7 +315,7 @@ class MessageHub {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
 			}
-			if (!fnmatch(strtolower($source), $type)) {
+			if (!fnmatch($source, $type, FNM_CASEFOLD)) {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {

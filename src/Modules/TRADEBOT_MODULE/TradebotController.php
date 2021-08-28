@@ -226,7 +226,7 @@ class TradebotController {
 			return;
 		}
 		if (count($botsToSignUp)) {
-			$msg = "Please make sure to use <highlight><symbol>route add<end> to ".
+			$msg = "Please make sure to use <highlight><symbol>route add tradebot -&gt; &lt;aoorg|aopriv&gt;<end> to ".
 				"setup message routing between the tradebot and your org/private channel.";
 			if (strlen($this->chatBot->vars["my_guild"]??"")) {
 				$this->chatBot->sendGuild($msg, true);
@@ -326,9 +326,8 @@ class TradebotController {
 			$message = $this->addCommentsToMessage($message);
 		}
 		$rMessage = new RoutableMessage($message);
-		$source = new Source(Source::TRADEBOT, $sender);
+		$source = new Source(Source::TRADEBOT, $sender . "-{$matches[1]}");
 		$rMessage->prependPath($source);
-		// $rMessage->setCharacter(new Character($sender));
 		$this->messageHub->handle($rMessage);
 	}
 
@@ -402,7 +401,7 @@ class TradebotController {
 		$this->logger->log('INFO', "Joining {$sender}'s private channel.");
 		if ($this->chatBot->privategroup_join($sender)) {
 			$this->messageHub->registerMessageEmitter(
-				new TradebotChannel($sender)
+				new TradebotChannel($sender . "-*")
 			);
 		}
 	}
