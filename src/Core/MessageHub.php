@@ -358,7 +358,9 @@ class MessageHub {
 		$charLink = "";
 		$hopText = "";
 		$char = $event->getCharacter();
-		if (isset($char)) {
+		// Render "[Name]" instead of "[Name] Name: "
+		$isTell = (isset($lastHop) && $lastHop->type === Source::TELL);
+		if (isset($char) && !$isTell) {
 			$charLink = $char->name . ": ";
 			if (in_array(
 				$lastHop->type??null,
