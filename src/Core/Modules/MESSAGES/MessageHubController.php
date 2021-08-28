@@ -115,6 +115,16 @@ class MessageHubController {
 			$sendto->reply("Unknown target <highlight>{$args["to"]}<end>.");
 			return;
 		}
+		/** @Collection<MessageEmitter> */
+		$senders = new Collection($this->messageHub->getEmitters());
+		$hasSender = $senders->first(function(MessageEmitter $e) use ($args) {
+			return fnmatch($e->getChannelName(), $args["from"], FNM_CASEFOLD)
+				|| fnmatch($args["from"], $e->getChannelName(), FNM_CASEFOLD);
+		});
+		if (!isset($hasSender)) {
+			$sendto->reply("No message source for <highlight>{$args['from']}<end> found.");
+			return;
+		}
 		$route = new Route();
 		$route->source = $args["from"];
 		$route->destination = $args["to"];
@@ -372,7 +382,7 @@ class MessageHubController {
 		}
 		$grouped = [];
 		foreach ($routes as $route) {
-			$dests = [$route->getDest()];
+			$dests = [strtolower($route->getDest())];
 			if ($route->getTwoWay()) {
 				$dests []= $route->getSource();
 			}
@@ -380,8 +390,8 @@ class MessageHubController {
 				if (!isset($dest) || $this->messageHub->getReceiver($dest) === null) {
 					continue;
 				}
-				$grouped[$dest] ??= [];
-				$grouped[$dest] []= $route;
+				$grouped[strtolower($dest)] ??= [];
+				$grouped[strtolower($dest)] []= $route;
 			}
 		}
 		/** @var array<string,MessageRoute[]> $grouped */
