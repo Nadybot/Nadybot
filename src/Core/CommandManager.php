@@ -10,6 +10,8 @@ use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @Instance
@@ -19,7 +21,7 @@ use Nadybot\Core\Modules\USAGE\UsageController;
  * @ProvidesEvent("command(help)")
  * @ProvidesEvent("command(error)")
  */
-class CommandManager {
+class CommandManager implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
 
 	/** @Inject */
@@ -33,6 +35,9 @@ class CommandManager {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -384,12 +389,9 @@ class CommandManager {
 			return true;
 		}
 		if ($channel == 'msg') {
-			if ($this->settingManager->getBool('access_denied_notify_guild')) {
-				$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
-			}
-			if ($this->settingManager->getBool('access_denied_notify_priv')) {
-				$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.", true);
-			}
+			$r = new RoutableMessage("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.");
+			$r->appendPath(new Source(Source::SYSTEM, "access-denied"));
+			$this->messageHub->handle($r);
 		}
 
 		// if they've disabled feedback for guild or private channel, just return
@@ -533,5 +535,9 @@ class CommandManager {
 			}
 		}
 		return $regexes;
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(access-denied)";
 	}
 }

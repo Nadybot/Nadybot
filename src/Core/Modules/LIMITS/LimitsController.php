@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdEvent,
 	CommandHandler,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Timer,
@@ -21,6 +22,8 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -45,6 +48,9 @@ class LimitsController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public PlayerManager $playerManager;
@@ -228,12 +234,9 @@ class LimitsController {
 		$cmd = explode(' ', $message, 2)[0];
 		$cmd = strtolower($cmd);
 
-		if ($this->settingManager->getBool('access_denied_notify_guild')) {
-			$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-		}
-		if ($this->settingManager->getBool('access_denied_notify_priv')) {
-			$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-		}
+		$r = new RoutableMessage("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.");
+		$r->appendPath(new Source(Source::SYSTEM, "access-denied"));
+		$this->messageHub->handle($r);
 	}
 
 	/**
