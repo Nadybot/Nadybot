@@ -503,7 +503,7 @@ class MessageHubController {
 		$blob .= join("\n", $blobs);
 		$blob .= "\n\n".
 			"You can specify colors for any of the types and names listed ".
-			"at with <highlight><symbol>route list src<end>.\n".
+			"at <highlight><symbol>route list src<end>.\n".
 			"Types are 'system', 'aopriv', etc. and names are specific sub-".
 			"parts of these, like 'gsp' in 'system(gsp)'.\n\n".
 			"Set the colors with\n".
