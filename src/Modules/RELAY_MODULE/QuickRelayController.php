@@ -120,12 +120,11 @@ class QuickRelayController {
 	 */
 	public function quickrelayNadyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$password = $this->util->getPassword(16);
-		$salt = $this->util->getPassword(8);
 		$room = $this->util->createUUID();
 		$blob = "To setup a relay called \"nady\" between multiple Nadybots, run this on all bots:\n".
 			"<tab><highlight><symbol>relay add nady websocket(server=\"wss://ws.nadybot.org\") ".
 				"highway(room=\"{$room}\") ".
-				"fernet-encryption(password=\"{$password}\", salt=\"{$salt}\") ".
+				"aes-gcm-encryption(password=\"{$password}\") ".
 				"nadynative()<end>\n\n".
 			$this->getRouteInformation("nady", true).
 			$this->getDisclaimer("nady");

@@ -11,10 +11,10 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 /**
  * @RelayStackMember("aes-gcm-encryption")
  * @Description('This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.
- *	It guarantees the data wasn't tampered with, and rotates salt(iv) on every
- *	message to protect against rainbow table attacks. This should be as secure
- *	as it gets.
- *	Encryption layers only work if all relay-parties use the same encryption parameters!')
+ *	It guarantees that the data was not tampered with, and rotates the salt(iv)
+ *	on every message, so even if one was cracked, the rest is still secure.
+ *	This is state-of-the-art cryptography and proven secure.
+ *	Encryption only works if all parties use the same password!')
  * @Param(name='password', description='The password to derive our encryption key from', type='secret', required=true)
  */
 class AesGcmEncryption implements RelayLayerInterface {
