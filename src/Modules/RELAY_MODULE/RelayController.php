@@ -546,7 +546,7 @@ class RelayController {
 					$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
 				}
 			}
-			if (isset($this->relayProtocols[$relay->layers[count($relay->layers)-1]]->layer)) {
+			if (isset($this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer])) {
 				$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
 				$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString($secrets) . "<end>\n";
 			} else {
