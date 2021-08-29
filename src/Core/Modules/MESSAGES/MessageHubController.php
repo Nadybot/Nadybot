@@ -416,7 +416,7 @@ class MessageHubController {
 					$arrow .= "<black>><end>";
 				}
 				$routeName = $route->getSource();
-				if ($route->getTwoWay() && ($route->getSource() === $receiver)) {
+				if ($route->getTwoWay() && (strcasecmp($route->getSource(), $receiver) === 0)) {
 					$routeName = $route->getDest();
 				}
 				$result[$receiver][$routeName] ??= [];
