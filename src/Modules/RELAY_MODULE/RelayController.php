@@ -531,15 +531,29 @@ class RelayController {
 		}
 		$blobs = [];
 		foreach ($relays as $relay) {
-			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
-			$blob = "<header2>{$relay->name}<end>\n".
-				"<tab>Transport: <highlight>" . $relay->layers[0]->toString($secrets) . "<end>\n";
-			for ($i = 1; $i < count($relay->layers)-1; $i++) {
-				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
-				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString($secrets) . "<end>\n";
+			$blob = "<header2>{$relay->name}<end>\n";
+			if (isset($this->transports[$relay->layers[0]->layer])) {
+				$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
+				$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString($secrets) . "<end>\n";
+			} else {
+				$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
 			}
-			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
-			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString($secrets) . "<end>\n";
+			for ($i = 1; $i < count($relay->layers)-1; $i++) {
+				if (isset($this->stackElements[$relay->layers[$i]->layer])) {
+					$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
+					$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString($secrets) . "<end>\n";
+				} else {
+					$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
+				}
+			}
+			if (isset($this->relayProtocols[$relay->layers[count($relay->layers)-1]]->layer)) {
+				$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
+				$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString($secrets) . "<end>\n";
+			} else {
+				$blob .= "<tab>Protocol: <highlight>".
+					$relay->layers[count($relay->layers)-1]->layer.
+					"(<red>error<end>)<end>\n";
+			}
 			$live = $this->relays[$relay->name] ?? null;
 			if (isset($live)) {
 				$blob .= "<tab>Status: " . $live->getStatus()->toString();
