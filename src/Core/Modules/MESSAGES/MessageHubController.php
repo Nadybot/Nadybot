@@ -372,16 +372,24 @@ class MessageHubController {
 	/**
 	 * @HandlesCommand("route")
 	 * @Matches("/^route$/i")
-	 * @Matches("/^route tree$/i")
+	 * @Matches("/^route (all)$/i")
+	 * @Matches("/^route tree (all)$/i")
 	 */
-	public function routeList2(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeTree(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$sendto->reply("There are no routes defined.");
 			return;
 		}
 		$grouped = [];
+		$numTotal = count($routes);
+		$numShown = 0;
 		foreach ($routes as $route) {
+			$isSystemRoute = preg_match("/^system/", $route->getDest())
+				|| preg_match("/^system/", $route->getSource());
+			if (!isset($args[1]) && $isSystemRoute) {
+				continue;
+			}
 			$dests = [strtolower($route->getDest())];
 			if ($route->getTwoWay()) {
 				$dests []= $route->getSource();
@@ -393,6 +401,7 @@ class MessageHubController {
 				$grouped[strtolower($dest)] ??= [];
 				$grouped[strtolower($dest)] []= $route;
 			}
+			$numShown++;
 		}
 		/** @var array<string,MessageRoute[]> $grouped */
 		$result = [];
@@ -426,7 +435,20 @@ class MessageHubController {
 			$blobs []= $blob;
 		}
 		$blob = join("\n", $blobs);
-		$msg = $this->text->makeBlob("Message Routes (" . count($routes) . ")", $blob);
+		if (!isset($args[1])) {
+			$blob .= "\n\n".
+				"<i>This view does not include system messages.\n".
+				"Use " . $this->text->makeChatcmd("<symbol>route all", "/tell <myname> route all").
+				" or " . $this->text->makeChatcmd("<symbol>route list", "/tell <myname> route list").
+				" to see them.</i>";
+		}
+		$msg = "Message routes ";
+		if ($numShown < $numTotal) {
+			$msg .= "({$numShown} / {$numTotal})";
+		} else {
+			$msg .= "({$numTotal})";
+		}
+		$msg = $this->text->makeBlob($msg, $blob);
 		$sendto->reply($msg);
 	}
 
