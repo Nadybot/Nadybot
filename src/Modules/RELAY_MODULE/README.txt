@@ -3,3 +3,4 @@ so members of different orgs and bots can chat with each other.
 See https://github.com/Nadybot/Nadybot/wiki/Relaying-(from-5.2-onward)
 for a detailed description on how to setup a relay and what the different
 types are.
+Use !quickrelay to find out how to set up a relay easily.
