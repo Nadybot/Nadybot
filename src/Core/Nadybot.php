@@ -917,7 +917,10 @@ class Nadybot extends AOChat {
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
 		$this->messageHub->handle($rMessage);
-		if ($message[0] !== $this->settingManager->get("symbol") || strlen($message) <= 1) {
+		if ($message[0] !== $this->settingManager->get("symbol")
+			|| strlen($message) <= 1
+			|| !$this->isDefaultPrivateChannel($channel)
+		) {
 			return;
 		}
 
