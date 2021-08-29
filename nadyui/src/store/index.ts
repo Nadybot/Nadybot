@@ -63,10 +63,11 @@ export default createStore({
             users.org.length + users.private_channel.length
           }`
         );
-      } catch (_e) {
-        const e: Error = _e;
-        console.log(`Fetching users failed: ${e.message}`);
-        state.users_failed = true;
+      } catch (e) {
+        if (e instanceof Error) {
+          console.log(`Fetching users failed: ${e.message}`);
+          state.users_failed = true;
+        }
       }
     },
     addOnlineOrgUser(state, player: OnlinePlayer): void {
