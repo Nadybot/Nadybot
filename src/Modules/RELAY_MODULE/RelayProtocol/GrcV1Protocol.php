@@ -56,7 +56,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 		}
 		$data = array_shift($msg->packages);
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^.?{$command} (.+)/", $data, $matches)) {
+		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];

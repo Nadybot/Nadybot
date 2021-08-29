@@ -173,8 +173,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$data = array_shift($msg->packages);
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^.?{$command} (.+)/", $data, $matches)) {
-			if (preg_match("/^.?{$command}c (.+)/", $data, $matches)) {
+		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
+			if (preg_match("/^.?{$command}c (.+)/s", $data, $matches)) {
 				return $this->handleOnlineCommands($msg->sender, $matches[1]);
 			}
 			return null;
@@ -184,7 +184,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$data = $matches[1];
 		$r = new RoutableMessage($data);
-		while (preg_match("/^\s*\[##relay_channel##(.*?)##end##\]\s*/", $data, $matches)) {
+		while (preg_match("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", $data, $matches)) {
 			if (preg_match("/ Guest$/", $matches[1])) {
 				$source = new Source(
 					Source::ORG,
@@ -204,13 +204,13 @@ class GcrProtocol implements RelayProtocolInterface {
 				);
 				$r->appendPath($source);
 			}
-			$data = preg_replace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/", "", $data);
+			$data = preg_replace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", "", $data);
 		}
-		if (preg_match("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", $data, $matches)) {
+		if (preg_match("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/s", $data, $matches)) {
 			$r->setCharacter(new Character($matches[1]));
 			$data = preg_replace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", "", $data);
 		}
-		if (preg_match("/\s*##relay_message##(.*)##end##$/", $data, $matches)) {
+		if (preg_match("/\s*##relay_message##(.*)##end##$/s", $data, $matches)) {
 			$r->setData($this->replaceBeBotColors($matches[1]));
 		}
 		return $r;
