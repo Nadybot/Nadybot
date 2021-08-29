@@ -102,7 +102,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/([^ :]+):\s*(.*)/s", $data, $matches)) {
+		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
 			$msg->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
