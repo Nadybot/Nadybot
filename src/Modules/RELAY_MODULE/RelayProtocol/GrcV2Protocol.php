@@ -74,13 +74,13 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		$senderLink = "";
 		$character = $event->getCharacter();
 		if (isset($character) && $this->util->isValidSender($character->name)) {
-			$senderLink = $this->text->makeUserlink($character->name);
+			$senderLink = $this->text->makeUserlink($character->name) . ": ";
 		} else {
 			$msgColor = "<relay_bot_color>";
 		}
 		return [
 			"{$this->prefix}{$this->command} <v2>".
-				join(" ", $hops) . " {$senderLink}: {$msgColor}".
+				join(" ", $hops) . " {$senderLink}{$msgColor}".
 				$this->text->formatMessage($event->getData()) . "</end>"
 		];
 	}
