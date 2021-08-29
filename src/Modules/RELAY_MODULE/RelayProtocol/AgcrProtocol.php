@@ -46,11 +46,12 @@ class AgcrProtocol implements RelayProtocolInterface {
 			return $this->renderMessage($event);
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
-			/** @var Event $llEvent */
-			$llEvent = $event->getData();
-			if (in_array($llEvent->type, ["logon", "logoff"])) {
-				// return $this->renderUserState($event);
+			if (!strlen($event->data->message??"")) {
+				return [];
 			}
+			$event = clone $event;
+			$event->setData($event->data->message);
+			return $this->renderMessage($event);
 		}
 		return [];
 	}

@@ -42,7 +42,11 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			return [];
+			if (!strlen($event->data->message??"")) {
+				return [];
+			}
+			$event = clone $event;
+			$event->setData($event->data->message);
 		}
 		return [
 			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, false).

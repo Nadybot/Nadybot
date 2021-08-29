@@ -40,7 +40,11 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			return [];
+			if (!strlen($event->data->message??"")) {
+				return [];
+			}
+			$event = clone $event;
+			$event->setData($event->data->message);
 		}
 		$path = $event->getPath();
 		$msgColor = "";
