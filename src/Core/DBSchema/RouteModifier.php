@@ -20,16 +20,18 @@ class RouteModifier extends DBRow {
 	 */
 	public array $arguments = [];
 
-	public function toString(): string {
+	public function toString(bool $asLink=false): string {
 		$arguments = array_map(
 			function(RouteModifierArgument $argument): string {
 				return $argument->toString();
 			},
 			$this->arguments
 		);
-		return $this->modifier . "(".
-			join(", ", $arguments).
-			")";
+		$modName = $this->modifier;
+		if ($asLink) {
+			$modName = "<a href='chatcmd:///tell <myname> route list mod {$modName}'>{$modName}</a>";
+		}
+		return $modName . "(" . join(", ", $arguments) . ")";
 	}
 
 	/**

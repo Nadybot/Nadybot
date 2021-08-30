@@ -421,7 +421,7 @@ class MessageHubController {
 				}
 				$result[$receiver][$routeName] ??= [];
 				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
-					join(" ", $route->renderModifiers());
+					join(" ", $route->renderModifiers(true));
 			}
 		}
 		$blobs = [];
@@ -801,7 +801,7 @@ class MessageHubController {
 		$to = $route->getDest();
 		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
 		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
-			join(" ", $route->renderModifiers());
+			join(" ", $route->renderModifiers(true));
 	}
 
 	/** Get the type (the part before the bracket) of an emitter */

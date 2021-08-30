@@ -55,10 +55,10 @@ class MessageRoute {
 	 * Render the modifiers so we can display them
 	 * @return string[]
 	 */
-	public function renderModifiers(): array {
+	public function renderModifiers(bool $asLink=false): array {
 		$result = [];
 		foreach ($this->route->modifiers as $modifier) {
-			$result []= $modifier->toString();
+			$result []= $modifier->toString($asLink);
 		}
 		return $result;
 	}
