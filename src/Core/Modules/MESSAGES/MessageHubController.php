@@ -562,7 +562,7 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>tag|text) set (?<tag>[^ ]+) #?(?<color>[0-9a-f]{6})$/i")
+	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 */
 	public function routeSetColorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$tag = strtolower($args['tag']);
