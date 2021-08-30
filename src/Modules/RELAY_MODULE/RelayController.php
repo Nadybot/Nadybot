@@ -125,21 +125,6 @@ class RelayController {
 	/** @Inject */
 	public Timer $timer;
 
-	/** @Setup */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_abbreviation',
-			'Abbreviation to use for org name',
-			'edit',
-			'text',
-			'none',
-			'none'
-		);
-		$this->loadStackComponents();
-	}
-
 	/**
 	 * @Event("connect")
 	 * @Description("Load relays from database")
@@ -157,6 +142,21 @@ class RelayController {
 				$this->logger->log('ERROR', $e->getMessage(), $e);
 			}
 		}
+	}
+
+	/** @Setup */
+	public function setup(): void {
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_guild_abbreviation',
+			'Abbreviation to use for org name',
+			'edit',
+			'text',
+			'none',
+			'none'
+		);
+		$this->loadStackComponents();
 	}
 
 	public function loadStackComponents(): void {

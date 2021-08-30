@@ -135,7 +135,7 @@ class EventManager {
 		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
-			} else {
+			} elseif ($this->chatBot->isReady()) {
 				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). Event already activated!");
 			}
 		} else {
