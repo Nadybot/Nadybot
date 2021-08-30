@@ -26,6 +26,16 @@ use Nadybot\Core\Routing\Source;
  *	required=false
  * )
  * @Param(
+ *	name='for-events',
+ *	type='bool',
+ *	description='Determines if the optional message that an event can have is cleared unless
+ *	it starts with the prefix. This does not alter the event itself, it will still
+ *	be routed, but it will not generate a message.
+ *	Common use case is not routing the online/offline messages via relays, but
+ *	keeping the event itself to share online lists.',
+ *	required=false
+ * )
+ * @Param(
  *	name='trim',
  *	type='bool',
  *	description='Shall we trim the prefix? By default we do.',
@@ -42,20 +52,37 @@ class IfHasPrefix implements EventModifier {
 	protected string $prefix = "-";
 	protected bool $trim = true;
 	protected bool $inverse = false;
+	protected bool $forEvents = true;
 	protected bool $forRelays = false;
 
-	public function __construct(string $prefix, bool $forRelays=false, bool $trim=true, bool $inverse=false) {
+	public function __construct(string $prefix, bool $forRelays=false, bool $forEvents=true, bool $trim=true, bool $inverse=false) {
 		$this->prefix = $prefix;
 		$this->trim = $trim;
 		$this->forRelays = $forRelays;
+		$this->forEvents = $forEvents;
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return null;
 		}
-		// We only require prefixes for messages, the rest is passed through
+		// Events might have their default message modified
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
+			if (!$this->forEvents) {
+				return $event;
+			}
+			$message = $event->getData()->message ?? null;
+			$hasPrefix = (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
+			if ($hasPrefix === $this->inverse) {
+				$event = clone $event;
+				$event->data->message = null;
+				return $event;
+			}
+			if (!$hasPrefix || !$this->trim) {
+				return $event;
+			}
+			$event = clone $event;
+			$event->data->message = ltrim(substr($message, strlen($this->prefix)));
 			return $event;
 		}
 		$fromRelay = isset($event->path[0]) && $event->path[0]->type === Source::RELAY;
