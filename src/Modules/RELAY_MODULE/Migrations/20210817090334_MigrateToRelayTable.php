@@ -7,6 +7,7 @@ use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\RouteModifier;
 use Nadybot\Core\DBSchema\RouteModifierArgument;
 use Nadybot\Core\DBSchema\Setting;
+use Nadybot\Core\EventManager;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
@@ -47,6 +48,18 @@ class MigrateToRelayTable implements SchemaMigration {
 			->first();
 	}
 
+	protected function relayLogon(DB $db): bool {
+		if ($this->prefix === "a") {
+			return false;
+		}
+		$relayLogon = $db->table(EventManager::DB_TABLE)
+			->where("module", "RELAY_MODULE")
+			->where("status", "1")
+			->whereIn("type", ["logon", "logoff", "joinpriv", "leavepriv"])
+			->exists();
+		return $relayLogon;
+	}
+
 	protected function addMod(DB $db, int $routeId, string $modifier): int {
 		$mod = new RouteModifier();
 		$mod->route_id = $routeId;
@@ -80,7 +93,7 @@ class MigrateToRelayTable implements SchemaMigration {
 				return null;
 			}
 			$this->prefix = "a";
-			return$this->migrateRelay($db);
+			return $this->migrateRelay($db);
 		}
 		if ($this->prefix === "a") {
 			$abbr = $this->getSetting($db, "relay_guild_abbreviation");
@@ -158,10 +171,21 @@ class MigrateToRelayTable implements SchemaMigration {
 		if (isset($relayWhen) && $relayWhen->value !== "0") {
 			foreach ($routesOut as $routeId) {
 				$symId = $this->addMod($db, $routeId, "if-has-prefix");
-				$args = ["prefix" => $relaySymbol ? $relaySymbol->value : "@"];
+				$args = [
+					"prefix" => $relaySymbol ? $relaySymbol->value : "@",
+					"for-events" => false,
+				];
 				if ($relayWhen->value === "2") {
 					$args["inverse"] = "true";
 				}
+				$this->addArgs($db, $symId, $args);
+			}
+		}
+
+		if (!$this->relayLogon($db)) {
+			foreach ($routesOut as $routeId) {
+				$symId = $this->addMod($db, $routeId, "remove-event");
+				$args = ["type" => "online"];
 				$this->addArgs($db, $symId, $args);
 			}
 		}
