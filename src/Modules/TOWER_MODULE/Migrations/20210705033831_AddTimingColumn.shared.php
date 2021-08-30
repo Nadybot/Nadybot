@@ -10,6 +10,9 @@ use Nadybot\Core\SchemaMigration;
 class AddTimingColumn implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "tower_site";
+		if ($db->schema()->hasColumn($table, "timing")) {
+			return;
+		}
 		$db->schema()->table($table, function(Blueprint $table) {
 			$table->unsignedSmallInteger("timing")->default(0);
 		});
