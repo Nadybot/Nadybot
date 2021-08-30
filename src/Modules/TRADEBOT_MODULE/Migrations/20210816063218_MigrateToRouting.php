@@ -21,7 +21,7 @@ class MigrateToRouting implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", "guest_relay")
+			->where("name", $name)
 			->asObj(Setting::class)
 			->first();
 	}
