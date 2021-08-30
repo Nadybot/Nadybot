@@ -9,6 +9,7 @@ use Nadybot\Core\DBSchema\RouteModifierArgument;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
+use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
@@ -27,6 +28,9 @@ class MigrateToRelayTable implements SchemaMigration {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public ConfigController $configController;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -63,6 +67,7 @@ class MigrateToRelayTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$relay = $this->migrateRelay($db);
 		if (isset($relay)) {
+			$this->configController->toggleEvent("connect", "relaycontroller.loadRelays", true);
 			$this->addRouting($db, $relay);
 		}
 	}
