@@ -763,7 +763,7 @@ class MessageHubController {
 
 	public function getHopColor(string $hop): ?RouteHopColor {
 		return $this->messageHub::$colors
-			->first(fn(RouteHopColor $x) => $x->hop === $hop);
+			->first(fn(RouteHopColor $x) => strcasecmp($x->hop, $hop) === 0);
 	}
 
 	public function getRoute(int $id): ?Route {
