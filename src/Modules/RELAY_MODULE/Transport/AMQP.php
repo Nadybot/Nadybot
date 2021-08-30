@@ -94,6 +94,8 @@ class AMQP implements TransportInterface, StatusProvider {
 	/** @Inject */
 	public EventManager $eventManager;
 
+	protected static int $instance=0;
+
 	protected ?AMQPChannel $channel = null;
 
 	protected ?AMQPStreamConnection $connection;
@@ -170,7 +172,7 @@ class AMQP implements TransportInterface, StatusProvider {
 	}
 
 	public function init(callable $callback): array {
-		$this->queueName ??= $this->chatBot->char->name;
+		$this->queueName ??= $this->chatBot->char->name . "-" . (++static::$instance);
 		$this->initCallback = $callback;
 		foreach ($this->exchangeNames as $exchange) {
 			$exchObject = new AMQPExchange();

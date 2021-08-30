@@ -56,6 +56,7 @@ class EventLoop {
 			if (!array_key_exists($i, static::$callbacks)) {
 				break;
 			}
+			$i++;
 		}
 		static::$callbacks[$i] = $callback;
 		return $i;
