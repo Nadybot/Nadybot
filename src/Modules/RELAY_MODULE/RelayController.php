@@ -534,25 +534,24 @@ class RelayController {
 			$blob = "<header2>{$relay->name}<end>\n";
 			if (isset($this->transports[$relay->layers[0]->layer])) {
 				$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
-				$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString($secrets) . "<end>\n";
+				$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString("transport", $secrets) . "<end>\n";
 			} else {
 				$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
 			}
 			for ($i = 1; $i < count($relay->layers)-1; $i++) {
 				if (isset($this->stackElements[$relay->layers[$i]->layer])) {
 					$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
-					$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString($secrets) . "<end>\n";
+					$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString("layer", $secrets) . "<end>\n";
 				} else {
 					$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
 				}
 			}
-			if (isset($this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer])) {
+			$layerName = $relay->layers[count($relay->layers)-1]->layer;
+			if (isset($this->relayProtocols[$layerName])) {
 				$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
-				$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString($secrets) . "<end>\n";
+				$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString("protocol", $secrets) . "<end>\n";
 			} else {
-				$blob .= "<tab>Protocol: <highlight>".
-					$relay->layers[count($relay->layers)-1]->layer.
-					"(<red>error<end>)<end>\n";
+				$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
 			}
 			$live = $this->relays[$relay->name] ?? null;
 			if (isset($live)) {
@@ -564,7 +563,11 @@ class RelayController {
 				"delete",
 				"/tell <myname> relay rem {$relay->id}"
 			);
-			$blobs []= $blob . " [{$delLink}]";
+			$desclLink = $this->text->makeChatcmd(
+				"describe",
+				"/tell <myname> relay describe {$relay->id}"
+			);
+			$blobs []= $blob . " [{$delLink}] [{$desclLink}]";
 		}
 		$msg = $this->text->makeBlob(
 			"Relays (" . count($relays) . ")",

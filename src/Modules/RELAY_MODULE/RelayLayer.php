@@ -26,16 +26,19 @@ class RelayLayer extends DBRow {
 	 */
 	public array $arguments = [];
 
-	public function toString(array $secrets=[]): string {
+	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
 			function(RelayLayerArgument $argument) use ($secrets): string {
 				return $argument->toString(in_array($argument->name, $secrets));
 			},
 			$this->arguments
 		);
-		return $this->layer . "(".
-			join(", ", $arguments).
-			")";
+		$argString = "(" . join(", ", $arguments) . ")";
+		if (!isset($linkType)) {
+			return $this->layer . $argString;
+		}
+		return "<a href='chatcmd:///tell <myname> relay list {$linkType} {$this->layer}'>".
+			$this->layer . "</a>{$argString}";
 	}
 
 	/**
