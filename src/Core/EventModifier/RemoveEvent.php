@@ -30,7 +30,7 @@ use Nadybot\Core\Routing\RoutableEvent;
  */
 class RemoveEvent implements EventModifier {
 	protected array $filter = [];
-	protected string $from;
+	protected ?string $from;
 
 	public function __construct(array $filter, ?string $from=null) {
 		$this->filter = $filter;
