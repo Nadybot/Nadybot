@@ -11,9 +11,6 @@ use Nadybot\Core\Routing\Source;
  * 	coming from the relay')
  */
 class RemoveOnlineMessages extends RemoveEvent {
-	protected array $filter = [];
-	protected string $from;
-
 	public function __construct() {
 		parent::__construct([Online::TYPE], Source::RELAY . "(*)");
 	}
