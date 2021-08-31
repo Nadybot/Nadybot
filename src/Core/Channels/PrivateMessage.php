@@ -41,8 +41,9 @@ class PrivateMessage implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$msgColor = $this->messageHub->getTextColor($event);
-		$message = ($renderPath ? $this->messageHub->renderPath($event) : "").
+		$where = Source::TELL . "({$destination})";
+		$msgColor = $this->messageHub->getTextColor($event, $where);
+		$message = ($renderPath ? $this->messageHub->renderPath($event, $where) : "").
 			$msgColor.$msg;
 		$message = $this->text->formatMessage($message);
 		$this->chatBot->send_tell($destination, $message, "\0");

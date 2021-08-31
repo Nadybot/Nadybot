@@ -43,9 +43,10 @@ class MigrateRelayColors implements SchemaMigration {
 		return "C3C3C3";
 	}
 
-	protected function saveColor(DB $db, string $hop, string $tag, string $text): void {
+	protected function saveColor(DB $db, string $hop, ?string $where, ?string $tag, string $text): void {
 		$spec = new RouteHopColor();
 		$spec->hop = $hop;
+		$spec->where = $where;
 		$spec->tag_color = $tag;
 		$spec->text_color = $text;
 		$db->insert(MessageHub::DB_TABLE_COLORS, $spec);
@@ -75,24 +76,43 @@ class MigrateRelayColors implements SchemaMigration {
 	}
 
 	protected function migrateAllianceRelayModuleColors(DB $db): void {
-		$textColor = $tagColor = $this->getColor($db, "arelay_color_guild", "arelay_color_priv");
-		$this->saveColor($db, Source::ORG, $tagColor, $textColor);
-		$this->saveColor($db, Source::PRIV, $tagColor, $textColor);
+		$textColorOrg = $tagColor = $this->getColor($db, "arelay_color_guild");
+		$this->saveColor($db, Source::ORG, null, $tagColor, $textColorOrg);
+		$this->saveColor($db, Source::PRIV, null, $tagColor, $textColorOrg);
+
+		$textColorPriv = $tagColor = $this->getColor($db, "arelay_color_priv");
+		if ($textColorOrg !== $textColorPriv) {
+			$this->saveColor($db, Source::ORG, Source::PRIV, $tagColor, $textColorPriv);
+			$this->saveColor($db, Source::PRIV, Source::PRIV, $tagColor, $textColorPriv);
+		}
 	}
 
 	protected function migrateRelayModuleColors(DB $db): void {
-		$orgTagColor = $this->getColor($db, "relay_guild_tag_color_org", "relay_guild_tag_color_priv");
-		$orgTextColor = $this->getColor($db, "relay_guild_color_org", "relay_guild_color_priv");
-		$this->saveColor($db, Source::ORG, $orgTagColor, $orgTextColor);
+		$privChannel = Source::PRIV . "(" . $db->getMyname() . ")";
+		$orgTagColor = $this->getColor($db, "relay_guild_tag_color_org");
+		$orgTextColor = $this->getColor($db, "relay_guild_color_org");
+		$this->saveColor($db, Source::ORG, null, $orgTagColor, $orgTextColor);
 
-		$privTagColor = $this->getColor($db, "relay_guest_tag_color_org", "relay_guest_tag_color_priv");
-		$privTextColor = $this->getColor($db, "relay_guest_color_org", "relay_guest_color_priv");
-		$this->saveColor($db, Source::PRIV, $privTagColor, $privTextColor);
+		$orgTagColorPriv = $this->getColor($db, "relay_guild_tag_color_priv");
+		$orgTextColorPriv = $this->getColor($db, "relay_guild_color_priv");
+		if ($orgTagColor !== $orgTagColorPriv || $orgTextColor !== $orgTextColorPriv) {
+			$this->saveColor($db, Source::ORG, $privChannel, $orgTagColorPriv, $orgTextColorPriv);
+		}
+
+		$privTagColor = $this->getColor($db, "relay_guest_tag_color_org");
+		$privTextColor = $this->getColor($db, "relay_guest_color_org");
+		$this->saveColor($db, Source::PRIV, null, $privTagColor, $privTextColor);
+
+		$privTagColorPriv = $this->getColor($db, "relay_guest_tag_color_priv");
+		$privTextColorPriv = $this->getColor($db, "relay_guest_color_priv");
+		if ($privTagColor !== $privTagColorPriv || $privTextColor !== $privTextColorPriv) {
+			$this->saveColor($db, Source::PRIV, $privChannel, $privTagColorPriv, $privTextColorPriv);
+		}
 
 		if ($this->getSetting($db, "default_guild_color") !== null) {
 			$relaySysColor = $this->getColor($db, "default_guild_color");
 			$this->settingManager->save("default_routed_sys_color", "<font color='#{$relaySysColor}'>");
-			$this->saveColor($db, Source::SYSTEM, $relaySysColor, $relaySysColor);
+			$this->saveColor($db, Source::SYSTEM, Source::ORG, null, $relaySysColor);
 		}
 	}
 }

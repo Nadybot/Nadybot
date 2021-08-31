@@ -62,13 +62,13 @@ class WebchatApiController {
 			new Source(Source::WEB, "Web")
 		];
 		$event->path[0]->renderAs = $event->path[0]->render(null);
-		$color = $this->messageHub->getHopColor(Source::WEB, "Web", "tag_color");
+		$color = $this->messageHub->getHopColor(Source::WEB, Source::WEB, "Web", "tag_color");
 		if (isset($color) && isset($color->tag_color)) {
 			$event->path[0]->color = $color->tag_color;
 		} else {
 			$event->path[0]->color = "";
 		}
-		$color = $this->messageHub->getHopColor(Source::WEB, "Web", "text_color");
+		$color = $this->messageHub->getHopColor(Source::WEB, Source::WEB, "Web", "text_color");
 		if (isset($color) && isset($color->text_color)) {
 			$event->color = $color->text_color;
 		}

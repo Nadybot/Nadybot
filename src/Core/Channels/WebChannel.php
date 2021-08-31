@@ -38,7 +38,7 @@ class WebChannel implements MessageReceiver {
 		}
 		$webEvent = new AOChatEvent();
 		$webEvent->path = $this->webChatConverter->convertPath($event->getPath());
-		$webEvent->color = $this->messageHub->getTextColor($event);
+		$webEvent->color = $this->messageHub->getTextColor($event, $this->getChannelName());
 		if (preg_match("/#([A-Fa-f0-9]{6})/", $webEvent->color, $matches)) {
 			$webEvent->color = $matches[1];
 		}

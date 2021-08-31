@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\Event;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -59,7 +58,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 	public function renderMessage(RoutableEvent $event): array {
 		return [
 			$this->prefix.$this->command . " ".
-				$this->messageHub->renderPath($event, false).
+				$this->messageHub->renderPath($event, "relay", false).
 				$this->text->formatMessage($event->getData())
 		];
 	}

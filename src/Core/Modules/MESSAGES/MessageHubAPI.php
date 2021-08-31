@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Nadybot\Core\DB;
 use Nadybot\Core\MessageHub;
-use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;

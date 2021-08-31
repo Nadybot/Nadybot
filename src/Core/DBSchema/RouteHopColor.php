@@ -14,6 +14,9 @@ class RouteHopColor extends DBRow {
 	/** The hop mask (discord, *, aopriv, ...) */
 	public string $hop;
 
+	/** The channel for which to apply these colors or null for all */
+	public ?string $where;
+
 	/** The 6 hex digits of the tag color, like FFFFFF */
 	public ?string $tag_color;
 

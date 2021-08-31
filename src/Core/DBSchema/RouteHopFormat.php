@@ -14,6 +14,9 @@ class RouteHopFormat extends DBRow {
 	/** The hop mask (discord, *, aopriv, ...) */
 	public string $hop;
 
+	/** The channel for which to apply these, or null for all */
+	public ?string $where;
+
 	/** Whether to render this tag or not */
 	public bool $render = true;
 

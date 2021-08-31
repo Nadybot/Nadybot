@@ -90,6 +90,7 @@ class MessageHub {
 		$query = $this->db->table(static::DB_TABLE_COLORS);
 		static::$colors = $query
 			->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->orderByDesc($query->colFunc("LENGTH", "where"))
 			->asObj(RouteHopColor::class);
 	}
 
@@ -345,11 +346,11 @@ class MessageHub {
 	}
 
 	/** Get the text to prepend to a message to denote its source path */
-	public function renderPath(RoutableEvent $event, bool $withColor=true): string {
+	public function renderPath(RoutableEvent $event, string $where, bool $withColor=true): string {
 		$hops = [];
 		$lastHop = null;
 		foreach ($event->getPath() as $hop) {
-			$renderedHop = $this->renderSource($hop, $lastHop, $withColor);
+			$renderedHop = $this->renderSource($hop, $lastHop, $where, $withColor);
 			if (isset($renderedHop)) {
 				$hops []= $renderedHop;
 			}
@@ -375,7 +376,7 @@ class MessageHub {
 		return $hopText.$charLink;
 	}
 
-	public function renderSource(Source $source, ?Source $lastHop, bool $withColor): ?string {
+	public function renderSource(Source $source, ?Source $lastHop, string $where, bool $withColor): ?string {
 		$name = $source->render($lastHop);
 		if (!isset($name)) {
 			return null;
@@ -383,7 +384,7 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($source->type, $source->name, "tag_color");
+		$color = $this->getHopColor($where, $source->type, $source->name, "tag_color");
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
@@ -490,21 +491,32 @@ class MessageHub {
 		return $msgRoute;
 	}
 
-	public function getHopColor(string $type, string $name, string $color): ?RouteHopColor {
+	public function getHopColor(string $where, string $type, string $name, string $color): ?RouteHopColor {
 		$colorDefs = static::$colors;
 		if (isset($name)) {
 			$fullDefs = $colorDefs->filter(function (RouteHopColor $color): bool {
 				return strpos($color->hop, "(") !== false;
 			});
 			foreach ($fullDefs as $colorDef) {
-				if (fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)
-					&&  isset($colorDef->{$color})
-				) {
+				if (!fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)) {
+					continue;
+				}
+				$colorWhere = $colorDef->where??'*';
+				if (!fnmatch($colorWhere, $where, FNM_CASEFOLD)
+					&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
+					continue;
+				}
+				if (isset($colorDef->{$color})) {
 					return $colorDef;
 				}
 			}
 		}
 		foreach ($colorDefs as $colorDef) {
+			$colorWhere = $colorDef->where??'*';
+			if (!fnmatch($colorWhere, $where, FNM_CASEFOLD)
+				&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
+				continue;
+			}
 			if (fnmatch($colorDef->hop, $type, FNM_CASEFOLD)
 				&& isset($colorDef->{$color})
 			) {
@@ -517,7 +529,7 @@ class MessageHub {
 	/**
 	 * Get a font tag for the text of a routable message
 	 */
-	public function getTextColor(RoutableEvent $event): string {
+	public function getTextColor(RoutableEvent $event, string $where): string {
 		$path = $event->path ?? [];
 		/** @var ?Source */
 		$hop = $path[count($path)-1] ?? null;
@@ -530,7 +542,7 @@ class MessageHub {
 		if (!count($path) || !isset($hop)) {
 			return "";
 		}
-		$color = $this->getHopColor($hop->type, $hop->name, "text_color");
+		$color = $this->getHopColor($where, $hop->type, $hop->name, "text_color");
 		if (!isset($color) || !isset($color->text_color)) {
 			return "";
 		}

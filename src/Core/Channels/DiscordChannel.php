@@ -54,7 +54,7 @@ class DiscordChannel implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$message = ($renderPath ? $this->messageHub->renderPath($event) : "").
+		$message = ($renderPath ? $this->messageHub->renderPath($event, $this->getChannelName()) : "").
 			$msg;
 		$discordMsg = $this->discordController->formatMessage($message);
 

@@ -124,7 +124,7 @@ class DB {
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
 		$this->dim = $vars["dimension"];
-		$this->guild = str_replace("'", "''", $vars["my_guild"]);
+		$this->guild = str_replace("'", "''", $vars["my_guild"]??"");
 		$this->capsule = new Capsule();
 
 		if ($this->type === self::MYSQL) {

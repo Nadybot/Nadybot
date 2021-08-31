@@ -49,7 +49,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			$event->setData($event->data->message);
 		}
 		return [
-			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, false).
+			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, "*", false).
 			$this->text->formatMessage($event->getData())
 		];
 	}

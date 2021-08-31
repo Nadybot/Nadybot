@@ -36,8 +36,8 @@ class PrivateChannel implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$msgColor = $this->messageHub->getTextColor($event);
-		$message = ($renderPath ? $this->messageHub->renderPath($event) : "").
+		$msgColor = $this->messageHub->getTextColor($event, $this->getChannelName());
+		$message = ($renderPath ? $this->messageHub->renderPath($event, $this->getChannelName()) : "").
 			$msgColor.$msg;
 		$this->chatBot->sendPrivate($message, true, $this->channel, false);
 		return true;
