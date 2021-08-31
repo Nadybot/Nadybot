@@ -518,40 +518,26 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color tag (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
+	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
 	 */
 	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$color = $this->getHopColor($args['tag']);
-		if (!isset($color) || !isset($color->tag_color)) {
+		$attr = $args['type'] . "_color";
+		$otherAttr = "text_color";
+		if ($args['type'] === "text") {
+			$otherAttr = "tag_color";
+		}
+		if (!isset($color) || !isset($color->{$attr})) {
 			$sendto->reply("No tag color for <highlight>[{$args['tag']}]<end> defined.");
 			return;
 		}
-		if (isset($color->text_color)) {
-			$color->tag_color = null;
+		if (isset($color->{$otherAttr})) {
+			$color->{$attr} = null;
 			$this->db->update($this->messageHub::DB_TABLE_COLORS, "id", $color);
-			$sendto->reply("Tag color definition for <highlight>[{$args['tag']}] deleted.");
-			return;
-		}
-		$this->db->table($this->messageHub::DB_TABLE_COLORS)
-			->delete($color->id);
-		$this->messageHub->loadTagColor();
-		$sendto->reply("Color definition for <highlight>[{$args['tag']}] deleted.");
-	}
-
-	/**
-	 * @HandlesCommand("route")
-	 * @Matches("/^route color text (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
-	 */
-	public function routeTextColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$color = $this->getHopColor($args['tag']);
-		if (!isset($color) || !isset($color->text_color)) {
-			$sendto->reply("No text color for <highlight>[{$args['tag']}]<end> defined.");
-			return;
-		}
-		if (isset($color->tag_color)) {
-			$color->text_color = null;
-			$this->db->update($this->messageHub::DB_TABLE_COLORS, "id", $color);
-			$sendto->reply("Text color definition for <highlight>[{$args['tag']}] deleted.");
+			$sendto->reply(
+				ucfirst($args['type']) . " color definition for ".
+				"<highlight>[{$args['tag']}] deleted."
+			);
 			return;
 		}
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
