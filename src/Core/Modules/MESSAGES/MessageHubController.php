@@ -570,8 +570,12 @@ class MessageHubController {
 		}
 		$type = strtolower($args['type']);
 		$color = strtoupper($args['color']);
-		if (strlen($tag) > 25) {
-			$sendto->reply("Your tag is longer than the supported 25 characters.");
+		if (strlen($tag) > 50) {
+			$sendto->reply("Your tag is longer than the supported 50 characters.");
+			return;
+		}
+		if (strlen($where??"") > 50) {
+			$sendto->reply("Your destination is longer than the supported 50 characters.");
 			return;
 		}
 		$colorDef = $this->getHopColor($tag, $where);
@@ -612,8 +616,12 @@ class MessageHubController {
 			$id .= " -> {$where}";
 		}
 		$type = strtolower($args['type']);
-		if (strlen($tag) > 25) {
+		if (strlen($tag) > 50) {
 			$sendto->reply("Your tag name is too long.");
+			return;
+		}
+		if (strlen($where??"") > 50) {
+			$sendto->reply("Your destination is too long.");
 			return;
 		}
 		$colorList = ColorSettingHandler::getExampleColors();

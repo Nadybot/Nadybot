@@ -13,8 +13,8 @@ class CreateRouteHopFormatTable implements SchemaMigration {
 		$table = Source::DB_TABLE;
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->id();
-			$table->string("hop", 25);
-			$table->string("where", 25)->nullable(true);
+			$table->string("hop", 50);
+			$table->string("where", 50)->nullable(true);
 			$table->boolean("render")->default(true);
 			$table->string("format", 50)->default('%s');
 			$table->unique(["hop", "where"]);

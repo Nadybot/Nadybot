@@ -24,8 +24,8 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_COLORS;
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->id();
-			$table->string("hop", 25)->default('*');
-			$table->string("where", 25)->nullable(true);
+			$table->string("hop", 50)->default('*');
+			$table->string("where", 50)->nullable(true);
 			$table->string("tag_color", 6)->nullable(true);
 			$table->string("text_color", 6)->nullable(true);
 			$table->unique(["hop", "where"]);
