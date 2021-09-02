@@ -4,13 +4,15 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use JsonException;
 use Nadybot\Core\{
-	AMQP,
 	CommandManager,
 	Event,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
+	Registry,
 	SettingManager,
+	Text,
 	Timer,
 	Websocket,
 	WebsocketClient,
@@ -20,11 +22,16 @@ use Nadybot\Core\{
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,
+	DiscordEmbed,
 	DiscordMessageIn,
 	DiscordUser,
 };
-
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
+	Activity,
 	CloseEvents,
 	Guild,
 	GuildMember,
@@ -33,6 +40,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Opcode,
 	Payload,
 	ResumePacket,
+	UpdateStatus,
 	VoiceState,
 };
 
@@ -71,9 +79,6 @@ class DiscordGatewayController {
 	public string $moduleName;
 
 	/** @Inject */
-	public AMQP $amqp;
-
-	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
@@ -86,6 +91,9 @@ class DiscordGatewayController {
 	public Timer $timer;
 
 	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
 
 	/** @Inject */
@@ -93,6 +101,9 @@ class DiscordGatewayController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -166,6 +177,14 @@ class DiscordGatewayController {
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
+			"discord_activity_name",
+			"Game the bot is shown to play on Discord",
+			"edit",
+			"text",
+			"Anarchy Online",
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"discord_notify_voice_changes",
 			"Show people joining or leaving voice channels",
 			"edit",
@@ -175,6 +194,21 @@ class DiscordGatewayController {
 			"0;1;2;3"
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
+		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);
+	}
+
+	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
+		$packet = new Payload();
+		$packet->op = Opcode::PRESENCE_UPDATE;
+		$packet->d = new UpdateStatus();
+		$activity = new Activity();
+		$activity->name = $newValue;
+		if (strlen($newValue)) {
+			$packet->d->activities = [$activity];
+		} else {
+			$packet->d->activities = [];
+		}
+		$this->client->send(json_encode($packet));
 	}
 
 	/**
@@ -420,12 +454,46 @@ class DiscordGatewayController {
 			$name = $message->member->nick ?? $name;
 		}
 		$channel = $this->getChannel($message->channel_id);
-		$channelName = $channel ? ($channel->name??"DM") : $event->channel;
+		$channelName = $channel ? ($channel->name??"DM") : "thread";
 		if ($message->guild_id) {
 			$this->logger->logChat("Discord:{$channelName}", $name, $message->content);
 		} else {
 			$this->logger->logChat("Inc. Discord Msg.", $name, $message->content);
 		}
+
+		$text = DiscordRelayController::formatMessage($message->content);
+		foreach (($message->embeds??[]) as $embed) {
+			if (strlen($text)) {
+				$text .= "\n";
+			}
+			$text .= $this->embedToAOML($embed);
+		}
+		if (empty($text)) {
+			return;
+		}
+		$this->resolveDiscordMentions(
+			$message->guild_id??null,
+			$text,
+			function(string $text) use ($message, $channelName, $name, $member): void {
+				$aoMessage = $text;
+				$rMessage = new RoutableMessage($aoMessage);
+				if ($message->guild_id) {
+					// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
+					// $rMessage->appendPath($source);
+					$source = new Source(Source::DISCORD_PRIV, $channelName, null, (int)$message->guild_id);
+					$rMessage->appendPath($source);
+				} else {
+					$source = new Source(Source::DISCORD_MSG, $name);
+					$rMessage->prependPath($source);
+				}
+				if (isset($member)) {
+					$name = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $name;
+				}
+				$senderDisplayName = trim(preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name));
+				$rMessage->setCharacter(new Character($senderDisplayName));
+				$this->messageHub->handle($rMessage);
+			}
+		);
 
 		$event = new DiscordMessageEvent();
 		$event->message = $message->content;
@@ -434,6 +502,77 @@ class DiscordGatewayController {
 		$event->discord_message = $message;
 		$event->channel = $message->channel_id;
 		$this->eventManager->fireEvent($event);
+	}
+
+	public function embedToAOML(DiscordEmbed $embed): string {
+		$blob = "";
+		if (!empty($embed->description)) {
+			$blob .= DiscordRelayController::formatMessage($embed->description) . "\n\n";
+		}
+		foreach ($embed->fields??[] as $field) {
+			$blob .= "<header2>".
+				DiscordRelayController::formatMessage($field->name).
+				"<end>\n".
+				DiscordRelayController::formatMessage($field->value) . "\n\n";
+		}
+		if (!empty($embed->footer) && !empty($embed->footer->text)) {
+			$blob .= "<i>".
+				DiscordRelayController::formatMessage($embed->footer->text).
+				"</i>";
+		}
+		if (!empty($embed->title)) {
+			if (!empty($embed->url)) {
+				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
+					$blob;
+			}
+			$msg = $this->text->makeBlob(
+				DiscordRelayController::formatMessage($embed->title),
+				$blob
+			);
+		} else {
+			$msg = $blob;
+		}
+		return $msg;
+	}
+
+	/**
+	 * Recursively resolve all mentions in $message and then call $callback
+	 */
+	public function resolveDiscordMentions(?string $guildId, string $message, callable $callback): void {
+		if (!preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
+			$callback($message);
+			return;
+		}
+		$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
+		if (isset($niceName)) {
+			$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
+			$this->resolveDiscordMentions($guildId, $message, $callback);
+			return;
+		}
+		if (isset($guildId)) {
+			$this->discordAPIClient->getGuildMember(
+				$guildId,
+				$matches[1],
+				function(GuildMember $member, string $guildId, string $message, callable $callback) {
+					$message = preg_replace("/(?:<|&lt;)@!?" . $member->user->id . "(?:>|&gt;)/", "@" . $member->getName(), $message);
+					$this->resolveDiscordMentions($guildId, $message, $callback);
+				},
+				$guildId,
+				$message,
+				$callback
+			);
+			return;
+		}
+		$this->discordAPIClient->getUser(
+			$matches[1],
+			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
+				$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
+				$this->resolveDiscordMentions($guildId, $message, $callback);
+			},
+			$guildId,
+			$message,
+			$callback
+		);
 	}
 
 	/**
@@ -455,6 +594,16 @@ class DiscordGatewayController {
 				},
 				$voiceState
 			);
+		}
+		foreach ($guild->channels as $channel) {
+			if ($channel->type !== $channel::GUILD_TEXT) {
+				continue;
+			}
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
 		}
 	}
 
@@ -479,6 +628,14 @@ class DiscordGatewayController {
 		$channels = &$this->guilds[$channel->guild_id]->channels;
 		if ($event->payload->t === "CHANNEL_CREATE") {
 			$channels []= $channel;
+			if ($channel->type !== $channel::GUILD_TEXT) {
+				return;
+			}
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
 			return;
 		}
 		if ($event->payload->t === "CHANNEL_DELETE") {
@@ -490,15 +647,34 @@ class DiscordGatewayController {
 					}
 				)
 			);
+			$fullName = Source::DISCORD_PRIV . "({$channel->name})";
+			$this->messageHub
+				->unregisterMessageEmitter($fullName)
+				->unregisterMessageReceiver($fullName);
 			return;
 		}
 		if ($event->payload->t === "CHANNEL_UPDATE") {
 			for ($i = 0; $i < count($channels); $i++) {
 				if ($channels[$i]->id === $channel->id) {
+					$oldChannel = $channels[$i];
 					$channels[$i] = $channel;
-					return;
+					break;
 				}
 			}
+			if (!isset($oldChannel)) {
+				return;
+			}
+			$fullName = Source::DISCORD_PRIV . "({$oldChannel->name})";
+			$this->messageHub
+				->unregisterMessageEmitter($fullName)
+				->unregisterMessageReceiver($fullName);
+
+			$dc = new RoutedChannel($channel->name, $channel->id);
+			Registry::injectDependencies($dc);
+			$this->messageHub
+				->registerMessageReceiver($dc)
+				->registerMessageEmitter($dc);
+			return;
 		}
 	}
 

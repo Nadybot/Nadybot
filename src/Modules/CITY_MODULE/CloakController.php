@@ -8,12 +8,16 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	MessageEmitter,
+	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -31,7 +35,7 @@ use Nadybot\Core\{
  *	@ProvidesEvent("cloak(raise)")
  *	@ProvidesEvent("cloak(lower)")
  */
-class CloakController {
+class CloakController implements MessageEmitter {
 
 	public const DB_TABLE = "org_city_<myname>";
 
@@ -49,6 +53,9 @@ class CloakController {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public DB $db;
@@ -87,6 +94,12 @@ class CloakController {
 			"5m",
 			"2m;5m;10m;15m;20m"
 		);
+
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(cloak)";
 	}
 
 	/**
@@ -192,6 +205,15 @@ class CloakController {
 		return $query->asObj(OrgCity::class)->first();
 	}
 
+	public function sendCloakMessage(string $message): void {
+		$e = new RoutableMessage($message);
+		$e->prependPath(new Source(
+			Source::SYSTEM,
+			"cloak"
+		));
+		$this->messageHub->handle($e);
+	}
+
 	/**
 	 * @Event("timer(1min)")
 	 * @Description("Checks timer to see if cloak can be raised or lowered")
@@ -208,11 +230,11 @@ class CloakController {
 			$interval = $this->settingManager->getInt('cloak_reminder_interval');
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
-				$this->chatBot->sendGuild("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
+				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
 			}
 		} elseif ($row->action === "on") {
 			if ($timeSinceChange >= 60*60 && $timeSinceChange < 61*60) {
-				$this->chatBot->sendGuild("The cloaking device was enabled one hour ago. Alien attacks can now be initiated.");
+				$this->sendCloakMessage("The cloaking device was enabled one hour ago. Alien attacks can now be initiated.");
 			}
 		}
 	}

@@ -39,7 +39,10 @@
 		"niktux/addendum": "0.4.4",
 		"swaggest/json-schema": "^0.12.31",
 		"illuminate/database": "^8.37",
-		"doctrine/dbal": "^3.0"
+		"doctrine/dbal": "^3.0",
+		"kelvinmo/fernet-php": "^1.0",
+		"farafiri/php-parsing-tool": "^2.0",
+		"spatie/data-transfer-object": "^2.8"
 	},
 	"autoload": {
 		"psr-4": {

@@ -12,4 +12,5 @@ class WebsocketError {
 	public const INVALID_UPGRADE_RESPONSE = 6;
 	public const WRITE_ERROR = 7;
 	public const BAD_OPCODE = 8;
+	public const CANNOT_ENABLE_SSL = 9;
 }

@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\EventCfg;
+use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 
 /**
  * @Instance
@@ -24,21 +25,27 @@ class EventManager {
 	/** @Inject */
 	public Util $util;
 
+	/** @Inject */
+	public MessageHubController $messageHubController;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @var array<string,string[]> */
 	public array $events = [];
 
+	/** @var array<string,callable[]> */
+	public array $dynamicEvents = [];
+
 	/** @var array<array<string,mixed>> */
 	private array $cronevents = [];
 
 	/** @var string[] */
 	private array $eventTypes = [
-		'msg','priv','extpriv','guild','joinpriv','leavepriv',
-		'sendmsg','sendpriv','sendguild',
-		'orgmsg','extjoinprivrequest','logon','logoff','towers',
-		'connect','setup','amqp','pong'
+		'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
+		'extjoinpriv', 'extleavepriv', 'sendmsg', 'sendpriv', 'sendguild',
+		'orgmsg', 'extjoinprivrequest', 'logon', 'logoff', 'towers',
+		'connect', 'setup', 'amqp', 'pong', 'otherleavepriv'
 	];
 
 	private int $lastCronTime = 0;
@@ -128,7 +135,7 @@ class EventManager {
 		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
-			} else {
+			} elseif ($this->chatBot->isReady()) {
 				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). Event already activated!");
 			}
 		} else {
@@ -142,6 +149,61 @@ class EventManager {
 				}
 			} else {
 				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). The type is not a recognized event type!");
+			}
+		}
+	}
+
+	/**
+	 * Subscribe to an event
+	 */
+	public function subscribe(string $type, callable $callback): void {
+		$type = strtolower($type);
+
+		if ($type == "setup") {
+			return;
+		}
+		if ($this->isValidEventType($type)) {
+			$this->dynamicEvents[$type] ??= [];
+			if (!in_array($callback, $this->dynamicEvents[$type], true)) {
+				$this->dynamicEvents[$type] []= $callback;
+			}
+		} else {
+			$time = $this->getTimerEventTime($type);
+			if ($time > 0) {
+				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+			} else {
+				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
+			}
+		}
+	}
+
+	/**
+	 * Unsubscribe from an event
+	 */
+	public function unsubscribe(string $type, callable $callback): void {
+		$type = strtolower($type);
+
+		if ($type == "setup") {
+			return;
+		}
+		if ($this->isValidEventType($type)) {
+			if (!isset($this->dynamicEvents[$type])) {
+				return;
+			}
+			$this->dynamicEvents[$type] = array_values(
+				array_filter(
+					$this->dynamicEvents[$type],
+					function($c) use ($callback): bool {
+						return $c !== $callback;
+					}
+				)
+			);
+		} else {
+			$time = $this->getTimerEventTime($type);
+			if ($time > 0) {
+				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+			} else {
+				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
 			}
 		}
 	}
@@ -166,7 +228,7 @@ class EventManager {
 		$this->logger->log('debug', "Deactivating event Type:($type) Handler:($filename)");
 
 		if ($this->isValidEventType($type)) {
-			if (in_array($filename, $this->events[$type])) {
+			if (in_array($filename, $this->events[$type]??[])) {
 				$found = true;
 				$temp = array_flip($this->events[$type]);
 				unset($this->events[$type][$temp[$filename]]);
@@ -333,6 +395,7 @@ class EventManager {
 		$this->areConnectEventsFired = true;
 
 		$this->logger->log('DEBUG', "Executing connected events");
+		$this->messageHubController->loadRouting();
 
 		$eventObj = new Event();
 		$eventObj->type = 'connect';
@@ -377,6 +440,14 @@ class EventManager {
 			}
 			foreach ($handlers as $filename) {
 				$this->callEventHandler($eventObj, $filename, $args);
+			}
+		}
+		foreach ($this->dynamicEvents as $type => $handlers) {
+			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($handlers as $callback) {
+				$callback($eventObj, ...$args);
 			}
 		}
 	}

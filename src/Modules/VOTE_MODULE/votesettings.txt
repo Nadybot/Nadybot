@@ -1,3 +1,2 @@
-<highlight>vote_channel_spam<end> Controls where vote information is posted.  When a vote starts, hits 60min remaining, 15min remaining, 60sec remaining, or its ending, a message of the vote's time remaining can be posted onto org chat, private chat, both, or neither.
-
+To start a new vote that lasts for 5 minutes with "yes", "no" and "maybe" options:
 <tab><symbol>vote add 5m|My vote question text|yes|no|maybe

@@ -14,6 +14,8 @@ use Nadybot\Core\{
 	EventManager,
 	HelpManager,
 	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
 	Nadybot,
 	PrivateMessageCommandReply,
 	SettingManager,
@@ -22,6 +24,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Annotations\Setting;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
@@ -79,7 +83,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
  *		defaultStatus = '1'
  *	)
  */
-class SystemController {
+class SystemController implements MessageEmitter {
 
 	/**
 	 * Name of the module.
@@ -125,6 +129,9 @@ class SystemController {
 
 	/** @Inject */
 	public Util $util;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -203,28 +210,6 @@ class SystemController {
 	public string $defaultVersion = "0";
 
 	/**
-	 * @Setting("access_denied_notify_guild")
-	 * @Description("Notify guild channel when a player is denied access to a command in tell")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultAccessDeniedNotifyGuild = "1";
-
-	/**
-	 * @Setting("access_denied_notify_priv")
-	 * @Description("Notify private channel when a player is denied access to a command in tell")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultAccessDeniedNotifyPriv = "1";
-
-	/**
 	 * @Setting("allow_mass_tells")
 	 * @Description("When using the proxy, allow sending tells via the workers")
 	 * @Visibility("edit")
@@ -289,6 +274,10 @@ class SystemController {
 		);
 	}
 
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(status)";
+	}
+
 	/**
 	 * @HandlesCommand("restart")
 	 * @Matches("/^restart$/i")
@@ -296,8 +285,9 @@ class SystemController {
 	public function restartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $sender);
-		$this->chatBot->sendPrivate($msg, true);
-		$this->chatBot->sendGuild($msg, true);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
+		$this->messageHub->handle($rMsg);
 
 		$this->chatBot->disconnect();
 		$this->logger->log('INFO', "The Bot is restarting.");
@@ -311,8 +301,9 @@ class SystemController {
 	public function shutdownCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $sender);
-		$this->chatBot->sendPrivate($msg, true);
-		$this->chatBot->sendGuild($msg, true);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
+		$this->messageHub->handle($rMsg);
 
 		$this->chatBot->disconnect();
 		$this->logger->log('INFO', "The Bot is shutting down.");
@@ -547,8 +538,9 @@ class SystemController {
 		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
 
 		// send a message to guild channel
-		$this->chatBot->sendGuild($msg, true);
-		$this->chatBot->sendPrivate($msg, true);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
+		$this->messageHub->handle($rMsg);
 	}
 
 	/**

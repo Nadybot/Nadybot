@@ -55,12 +55,16 @@ class JsonExporter {
 		return true;
 	}
 
+	protected static function jsonEncode($data) {
+		return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES);
+	}
+
 	public static function encode($data): string {
 		if ($data === null || is_resource($data) || $data instanceof \Socket) {
 			return 'null';
 		}
 		if (is_scalar($data)) {
-			return json_encode($data);
+			return static::jsonEncode($data);
 		}
 		if (is_array($data)) {
 			if (empty($data)) {
@@ -71,12 +75,12 @@ class JsonExporter {
 			}
 			$result = [];
 			foreach ($data as $key => $value) {
-				$result []= json_encode((string)$key) . ': ' . static::encode($value);
+				$result []= static::jsonEncode((string)$key) . ': ' . static::encode($value);
 			}
 			return "{" . join(",", $result) . "}";
 		}
 		if (!is_object($data)) {
-			return json_encode($data);
+			return static::jsonEncode($data);
 		}
 		$result = [];
 		$refClass = new ReflectionClass($data);
@@ -84,7 +88,7 @@ class JsonExporter {
 			if (!static::processAnnotations($refClass, $data, $name, $value)) {
 				continue;
 			}
-			$result []= json_encode((string)$name) . ':' . static::encode($value);
+			$result []= static::jsonEncode((string)$name) . ':' . static::encode($value);
 		}
 		return '{' . join(",", $result) . '}';
 	}

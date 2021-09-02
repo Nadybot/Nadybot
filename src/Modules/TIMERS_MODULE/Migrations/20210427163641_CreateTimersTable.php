@@ -5,7 +5,6 @@ namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Registry;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 

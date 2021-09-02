@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 
 /**
@@ -17,12 +19,41 @@ class WebChatConverter {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	/**
 	 * @param string $msg
 	 * @return self
 	 */
 	public function convertMessage(string $msg): string {
 		return $this->toXML($this->parseAOFormat($msg));
+	}
+
+	/**
+	 * Add the color and display information to the path
+	 * @param null|Source[] $path
+	 * @return null|Source[]
+	 */
+	public function convertPath(?array $path=null): ?array {
+		if (!isset($path)) {
+			return null;
+		}
+		$result = [];
+		$lastHop = null;
+		foreach ($path as $hop) {
+			$newHop = clone $hop;
+			$newHop->renderAs = $newHop->render($lastHop);
+			$lastHop = $hop;
+			$color = $this->messageHub->getHopColor(Source::WEB, $newHop->type, $newHop->name, "tag_color");
+			if (isset($color)) {
+				$newHop->color = $color->tag_color;
+			} else {
+				$newHop->color = "";
+			}
+			$result []= $newHop;
+		}
+		return $result;
 	}
 
 	/**
@@ -81,6 +112,7 @@ class WebChatConverter {
 	}
 
 	public function formatMsg(string $message): string {
+		$message = preg_replace("/^<header>\s*<header>/s", "<header>", $message);
 		$colors = [
 			"header"    => "<h1>",
 			"header2"   => "<h2>",
@@ -148,6 +180,13 @@ class WebChatConverter {
 			},
 			$message
 		);
+		$message = preg_replace_callback(
+			"/^((?:    )+)/m",
+			function(array $matches): string {
+				return str_repeat("<indent />", (int)(strlen($matches[1])/4));
+			},
+			$message
+		);
 		$message = preg_replace("/\r?\n/", "<br />", $message);
 		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
 		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
@@ -199,9 +238,10 @@ class WebChatConverter {
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
 						preg_replace(
-							"/^\s*<font[^>]*>(.+)<\/font>/s",
-							"<header>$1<end>",
-							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2])
+							"/^\s*(<font[^>]*>)?\s*<font[^>]*>(.+)<\/font>/m",
+							"$1<header>$2<end>",
+							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2]),
+							1
 						)
 					)
 				);

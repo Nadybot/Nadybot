@@ -11,6 +11,8 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	MessageEmitter,
+	MessageHub,
 	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -19,6 +21,8 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlinePlayer,
@@ -41,7 +45,7 @@ use Nadybot\Modules\{
  *	@ProvidesEvent("tracker(logon)")
  *	@ProvidesEvent("tracker(logoff)")
  */
-class TrackerController {
+class TrackerController implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
 
@@ -90,6 +94,9 @@ class TrackerController {
 	public BuddylistManager $buddylistManager;
 
 	/** @Inject */
+	public MessageHub $messageHub;
+
+	/** @Inject */
 	public PlayerManager $playerManager;
 
 	/** @Inject */
@@ -101,17 +108,6 @@ class TrackerController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
-		$this->settingManager->add(
-			$this->moduleName,
-			'show_tracker_events',
-			'Where to show tracker events',
-			'edit',
-			'options',
-			'0',
-			'none;priv;org;priv+org;discord;discord+priv;discord+org;discord+priv+org',
-			'0;1;2;3;4;5;6;7',
-			'mod',
-		);
 		$this->settingManager->add(
 			$this->moduleName,
 			'tracker_layout',
@@ -184,9 +180,19 @@ class TrackerController {
 			"edit",
 			"options",
 			"0",
-			"Off;Attacking my own org's tower fields;Attacking tower fields of bot members;Attacking Clan fields;Attacking Omni fields;Attacking Neutral fields;Attacking Non-Clan fields;Attacking Non-Omni fields;Attacking Non-Neutral fields;All",
+			"Off".
+				";Attacking my own org's tower fields".
+				";Attacking tower fields of bot members".
+				";Attacking Clan fields".
+				";Attacking Omni fields".
+				";Attacking Neutral fields".
+				";Attacking Non-Clan fields".
+				";Attacking Non-Omni fields".
+				";Attacking Non-Neutral fields".
+				";All",
 			"0;1;2;4;8;16;24;20;12;28"
 		);
+		$this->messageHub->registerMessageEmitter($this);
 	}
 
 	/**
@@ -199,6 +205,10 @@ class TrackerController {
 			->each(function(TrackedUser $row) {
 				$this->buddylistManager->add($row->name, 'tracking');
 			});
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(tracker)";
 	}
 
 	/**
@@ -270,16 +280,9 @@ class TrackerController {
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
 				$msg = $this->getLogonMessage($player, $eventObj->sender);
-
-				if ($this->settingManager->getInt('show_tracker_events') & 1) {
-					$this->chatBot->sendPrivate($msg, true);
-				}
-				if ($this->settingManager->getInt('show_tracker_events') & 2) {
-					$this->chatBot->sendGuild($msg, true);
-				}
-				if ($this->settingManager->getInt('show_tracker_events') & 4) {
-					$this->discordController->sendDiscord($msg);
-				}
+				$r = new RoutableMessage($msg);
+				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+				$this->messageHub->handle($r);
 			},
 			$eventObj->sender
 		);
@@ -359,16 +362,9 @@ class TrackerController {
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($eventObj): void {
 				$msg = $this->getLogoffMessage($player, $eventObj->sender);
-
-				if ($this->settingManager->getInt('show_tracker_events') & 1) {
-					$this->chatBot->sendPrivate($msg, true);
-				}
-				if ($this->settingManager->getInt('show_tracker_events') & 2) {
-					$this->chatBot->sendGuild($msg, true);
-				}
-				if ($this->settingManager->getInt('show_tracker_events') & 4) {
-					$this->discordController->sendDiscord($msg);
-				}
+				$r = new RoutableMessage($msg);
+				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+				$this->messageHub->handle($r);
 			},
 			$eventObj->sender
 		);

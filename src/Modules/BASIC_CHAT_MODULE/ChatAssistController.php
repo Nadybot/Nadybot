@@ -7,8 +7,7 @@ use Nadybot\Core\{
 	EventManager,
 	Nadybot,
 	SettingManager,
-    StopExecutionException,
-    Text,
+	Text,
 	Util,
 };
 

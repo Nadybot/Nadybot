@@ -13,8 +13,8 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-    Registry,
-    SettingManager,
+	Registry,
+	SettingManager,
 };
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,

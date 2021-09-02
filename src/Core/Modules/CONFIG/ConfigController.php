@@ -266,7 +266,7 @@ class ConfigController {
 		$args[3] = strtolower($args[3]);
 		$temp = explode(" ", $args[1]);
 		$event_type = strtolower($temp[0]);
-		$file = $temp[1];
+		$file = $temp[1] ?? "";
 
 		if ( !$this->toggleEvent($event_type, $file, $args[2] === "enable") ) {
 			$msg = "Could not find event <highlight>{$event_type}<end> for handler <highlight>{$file}<end>.";
@@ -345,7 +345,7 @@ class ConfigController {
 	/**
 	 * Enable or disable all commands and events for a module
 	 * @param string $module Name of the module
-	 * @param string $channel  msg, prov or guild
+	 * @param string $channel msg, priv, guild or all
 	 * @param bool $enable true for enabling, false for disabling
 	 * @return bool True for success, False if the module doesn't exist
 	 */
@@ -390,10 +390,12 @@ class ConfigController {
 			return;
 		}
 		if ($cfg->cmdevent === "event") {
-			if ($enable) {
-				$this->eventManager->activate($cfg->type, $cfg->file);
-			} else {
-				$this->eventManager->deactivate($cfg->type, $cfg->file);
+			if ($cfg->verify !== 0) {
+				if ($enable) {
+					$this->eventManager->activate($cfg->type, $cfg->file);
+				} else {
+					$this->eventManager->deactivate($cfg->type, $cfg->file);
+				}
 			}
 		} elseif ($cfg->cmdevent === "cmd") {
 			if ($enable) {

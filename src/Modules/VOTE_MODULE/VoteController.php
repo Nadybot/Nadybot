@@ -10,12 +10,16 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
@@ -44,7 +48,7 @@ use Nadybot\Core\{
  *	@ProvidesEvent("vote(del)")
  *	@ProvidesEvent("vote(change)")
  */
-class VoteController {
+class VoteController implements MessageEmitter {
 
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
@@ -82,6 +86,9 @@ class VoteController {
 	/** @Inject */
 	public Timer $timer;
 
+	/** @Inject */
+	public MessageHub $messageHub;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -104,21 +111,13 @@ class VoteController {
 	 */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
-		$this->settingManager->add(
-			$this->moduleName,
-			"vote_channel_spam",
-			"Showing Vote status messages in",
-			"edit",
-			"options",
-			"2",
-			"Private Channel;Guild;Private Channel and Guild;Neither",
-			"0;1;2;3",
-			"mod",
-			"votesettings.txt"
-		);
 		$this->commandAlias->register($this->moduleName, "poll", "polls");
 		$this->cacheVotes();
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(votes)";
 	}
 
 	public function cacheVotes(): void {
@@ -208,14 +207,9 @@ class VoteController {
 			$msg []= $this->text->makeBlob($title, $blob);
 		}
 		if (count($msg)) {
-			if ($this->settingManager->getInt("vote_channel_spam") === 0
-				|| $this->settingManager->getInt("vote_channel_spam") === 2) {
-				$this->chatBot->sendGuild(join("\n", $msg), true);
-			}
-			if ($this->settingManager->getInt("vote_channel_spam") === 1
-				|| $this->settingManager->getInt("vote_channel_spam") === 2) {
-				$this->chatBot->sendPrivate(join("\n", $msg), true);
-			}
+			$rMsg = new RoutableMessage(join("\n", $msg));
+			$rMsg->appendPath(new Source(Source::SYSTEM, "votes"));
+			$this->messageHub->handle($rMsg);
 		}
 	}
 
