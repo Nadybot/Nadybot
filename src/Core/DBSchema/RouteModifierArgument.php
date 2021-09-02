@@ -16,7 +16,7 @@ class RouteModifierArgument extends DBRow {
 
 	/** The value of the argument */
 	public string $value;
-	
+
 	public function toString(): string {
 		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
