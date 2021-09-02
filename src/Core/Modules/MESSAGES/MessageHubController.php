@@ -708,6 +708,10 @@ class MessageHubController {
 	 * @Matches("/^route format render (?<hop>.+) (?<render>true|false)$/i")
 	 */
 	public function routeFormatChangeRenderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (strlen($args['hop']) > 50) {
+			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
+			return;
+		}
 		$this->setHopRender($args['hop'], $args['render'] === 'true');
 		$sendto->reply("Format saved.");
 	}
@@ -718,6 +722,14 @@ class MessageHubController {
 	 * @Matches("/^route format display (?<hop>[^ ]+\(.*?\)) (?<format>.+)$/i")
 	 */
 	public function routeFormatChangeDisplayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (strlen($args['hop']) > 50) {
+			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
+			return;
+		}
+		if (strlen($args['format']) > 50) {
+			$sendto->reply("Your display format '<highlight>{$args['format']}<end>' is longer than the supported 50 characters.");
+			return;
+		}
 		try {
 			$this->setHopDisplay($args['hop'], $args['format']);
 		} catch (Exception $e) {
