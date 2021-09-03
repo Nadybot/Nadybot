@@ -94,15 +94,32 @@ class DiscordController {
 		return $text;
 	}
 
+	protected function factionColorsToEmojis(string $text): string {
+		$mapping = [
+			"neutral" => "▪️",
+			"clan" => "🔸",
+			"omni" => "🔹",
+		];
+		$text = preg_replace_callback(
+			"/<(neutral|clan|omni)>(.+?)<end>/s",
+			function(array $matches) use ($mapping): string {
+				return $mapping[$matches[1]] . $matches[2];
+			},
+			$text
+		);
+		return $text;
+	}
+
 	/**
 	 * Reformat a Nadybot message for sending to Discord
 	 */
 	public function formatMessage(string $text): DiscordMessageOut {
 		$text = $this->aoIconsToEmojis($text);
-		$text = preg_replace('/([~`_*])/', "\\\\$1", $text);
-		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/', "`$1`", $text);
+		$text = $this->factionColorsToEmojis($text);
+		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
+		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
-		$text = preg_replace('/<highlight>(.*?)<end>/', '**$1**', $text);
+		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
 		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
 		$text = str_replace("<symbol>", $this->settingManager->get("symbol"), $text);
@@ -111,7 +128,7 @@ class DiscordController {
 		$text = preg_replace("/^    /m", "_ _  ", $text);
 		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/.+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
-			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/",
+			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
 			function(array $matches): string {
 				if (preg_match("/^0+$/", $matches[1])) {
 					return "_ _" . str_repeat(" ", strlen($matches[1]));

@@ -2,6 +2,17 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-class HotSite extends SiteInfo {
-	public HotInfo $info;
+use Nadybot\Core\DBRow;
+
+class HotSite extends DBRow {
+	public int $id;
+	public int $playfield_id;
+	public int $site_number;
+	public int $ql;
+	public string $org_name;
+	public int $org_id;
+	public string $faction;
+	public int $close_time;
+	public int $close_time_override;
+	public int $created_at;
 }

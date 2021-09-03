@@ -115,9 +115,14 @@ class FindOrgController {
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "name");
 
-		$orgs = $query->asObj(Organization::class)->toArray();
-
-		return $orgs;
+		$orgs = $query->asObj(Organization::class);
+		$exactMatches = $orgs->filter(function (Organization $org) use ($search): bool {
+			return strcasecmp($org->name, $search) === 0;
+		});
+		if ($exactMatches->count() === 1) {
+			return [$exactMatches->first()];
+		}
+		return $orgs->toArray();
 	}
 
 	/**
