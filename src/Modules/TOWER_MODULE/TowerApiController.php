@@ -105,6 +105,9 @@ class TowerApiController {
 		if (isset($params["min_close_time"]) && isset($params["max_close_time"])) {
 			return $apiResult;
 		}
+		if (isset($params["planted"]) && $params["planted"] == "false") {
+			return $apiResult;
+		}
 		/** @var Collection<ApiSite> */
 		$penSites = new Collection($this->towerController->getSitesInPenalty()->results);
 		if (isset($params["playfield_id"])) {

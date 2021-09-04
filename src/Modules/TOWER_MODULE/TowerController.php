@@ -767,6 +767,7 @@ class TowerController {
 	protected function renderHotSites(ApiResult $result, array $params): string {
 		$sites = new Collection($result->results);
 		$grouped = $sites->groupBy("playfield_short_name");
+		$grouped = $grouped->sortKeys();
 		return $grouped->map(function (Collection $sites, string $short) use ($params): string {
 			return "<header2>{$sites[0]->playfield_long_name}<end>\n".
 				$sites->map(function (ApiSite $site) use ($params): string {
