@@ -188,8 +188,8 @@ class TowerController {
 	 * @Description("By what to group hot/penaltized sites")
 	 * @Visibility("edit")
 	 * @Type("options")
-	 * @Options("Playfield;Title level")
-	 * @Intoptions("1;2")
+	 * @Options("Playfield;Title level;Org")
+	 * @Intoptions("1;2;3")
 	 * @AccessLevel("mod")
 	 */
 	public $defaultTowerHotGroup = 1;
@@ -786,6 +786,9 @@ class TowerController {
 			$grouped = $sites->groupBy(function(ApiSite $site): string {
 				return "TL" . $this->util->levelToTL($site->ql);
 			});
+		} elseif ($grouping === 3) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_name");
 		}
 		$grouped = $grouped->sortKeys();
 		return $grouped->map(function (Collection $sites, string $short) use ($params): string {
