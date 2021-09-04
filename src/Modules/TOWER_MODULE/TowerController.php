@@ -1613,7 +1613,7 @@ class TowerController {
 			->exists();
 	}
 
-	protected function getSitesInPenalty(?int $time=null): ApiResult {
+	public function getSitesInPenalty(?int $time=null): ApiResult {
 		/** @var Collection<HotSite> */
 		$penalties = $this->db->table(static::DB_HOT)
 			->where("close_time_override", ">", $time??time())

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
 use Nadybot\Core\SettingManager;
@@ -25,6 +26,9 @@ class TowerApiController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public TowerController $towerController;
 
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
@@ -66,17 +70,18 @@ class TowerApiController {
 		$cacheEntry = $this->cache[$cacheKey]??null;
 		if ($cacheEntry !== null) {
 			if ($cacheEntry->validUntil >= time()) {
-				$callback($cacheEntry->result, ...$args);
+				$result = $this->mergeInPenaltySites($cacheEntry->result, $params);
+				$callback($result, ...$args);
 				return;
 			}
 		}
 		$this->http->get(static::TOWER_API)
 			->withQueryParams($params)
 			->withTimeout(10)
-			->withCallback([$this, "handleResult"], $cacheKey, $callback, ...$args);
+			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
 	}
 
-	public function handleResult(?HttpResponse $response, string $cacheKey, callable $callback, ...$args): void {
+	public function handleResult(?HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
 		if ($response === null || ($response->headers["status-code"]??"0") !== "200") {
 			$callback(null, ...$args);
 			return;
@@ -92,6 +97,52 @@ class TowerApiController {
 		$apiCache->validUntil = time() + $this->settingManager->getInt('tower_cache_duration');
 		$apiCache->result = $result;
 		$this->cache[$cacheKey] = $apiCache;
+		$result = $this->mergeInPenaltySites($result, $params);
 		$callback($result, ...$args);
+	}
+
+	protected function mergeInPenaltySites(ApiResult $apiResult, array $params): ApiResult {
+		if (isset($params["min_close_time"]) && isset($params["max_close_time"])) {
+			return $apiResult;
+		}
+		/** @var Collection<ApiSite> */
+		$penSites = new Collection($this->towerController->getSitesInPenalty()->results);
+		if (isset($params["playfield_id"])) {
+			$penSites = $penSites->where("playfield_id", $params["playfield_id"]);
+		}
+		if (isset($params["faction"])) {
+			$penSites = $penSites->where("faction", ucfirst(strtolower($params["faction"])));
+		}
+		if (isset($params["org_id"])) {
+			$penSites = $penSites->where("org_id", $params["org_id"]);
+		}
+		if (isset($params["org_name"])) {
+			$penSites = $penSites->where("org_name", $params["org_name"]);
+		}
+		if (isset($params["min_ql"])) {
+			$penSites = $penSites->where("ql", ">=", $params["min_ql"]);
+		}
+		if (isset($params["max_ql"])) {
+			$penSites = $penSites->where("ql", "<=", $params["max_ql"]);
+		}
+
+		$result = clone $apiResult;
+		foreach ($penSites as $penSite) {
+			$found = false;
+			foreach ($result->results as $hotSite) {
+				if ($penSite->playfield_id === $hotSite->playfield_id
+					&& $penSite->site_number === $hotSite->site_number
+				) {
+					$hotSite->close_time = $penSite->close_time;
+					$found = true;
+					break;
+				}
+			}
+			if (!$found) {
+				$result->results []= $penSite;
+				$result->count++;
+			}
+		}
+		return $result;
 	}
 }
