@@ -184,6 +184,17 @@ class TowerController {
 	public $defaultTowerPlantTimer = 0;
 
 	/**
+	 * @Setting("tower_hot_group")
+	 * @Description("By what to group hot/penaltized sites")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("Playfield;Title level")
+	 * @Intoptions("1;2")
+	 * @AccessLevel("mod")
+	 */
+	public $defaultTowerHotGroup = 1;
+
+	/**
 	 * @Setting("discord_notify_org_attacks")
 	 * @Description("Notify message for Discord if being attacked")
 	 * @Visibility("edit")
@@ -766,10 +777,19 @@ class TowerController {
 
 	protected function renderHotSites(ApiResult $result, array $params): string {
 		$sites = new Collection($result->results);
-		$grouped = $sites->groupBy("playfield_short_name");
+		$grouping = $this->settingManager->getInt('tower_hot_group');
+		if ($grouping === 1) {
+			$sites = $sites->sortBy("site_number");
+			$grouped = $sites->groupBy("playfield_long_name");
+		} elseif ($grouping === 2) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy(function(ApiSite $site): string {
+				return "TL" . $this->util->levelToTL($site->ql);
+			});
+		}
 		$grouped = $grouped->sortKeys();
 		return $grouped->map(function (Collection $sites, string $short) use ($params): string {
-			return "<header2>{$sites[0]->playfield_long_name}<end>\n".
+			return "<header2>{$short}<end>\n".
 				$sites->map(function (ApiSite $site) use ($params): string {
 					$shortName = $site->playfield_short_name . " " . $site->site_number;
 					$line = "<tab>".
