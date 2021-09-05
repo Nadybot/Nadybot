@@ -17,12 +17,18 @@ use Nadybot\Core\{
 	AccessManager,
 	CommandHandler,
 	CommandManager,
+	CommandReply,
+	DB,
 	EventManager,
 	LoggerWrapper,
+	Nadybot,
 	Registry,
 	SettingManager,
 	SubcommandManager,
+	Text,
+	Util,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
@@ -33,9 +39,17 @@ use Throwable;
 
 /**
  * @Instance
+ *	@DefineCommand(
+ *		command     = 'apiauth',
+ *		accessLevel = 'mod',
+ *		description = 'Create public/private key pairs for auth against the API',
+ *		help        = 'apiauth.txt'
+ *	)
  * @ProvidesEvent("cmdreply")
  */
 class ApiController {
+	public const DB_TABLE = "api_key_<myname>";
+
 	public string $moduleName;
 
 	/** @Inject */
@@ -59,6 +73,18 @@ class ApiController {
 	/** @Inject */
 	public WebsocketController $websocketController;
 
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
 	/** @Logger */
 	public LoggerWrapper $logger;
 
@@ -79,6 +105,52 @@ class ApiController {
 		);
 
 		$this->scanApiAnnotations();
+	}
+
+	/**
+	 * @HandlesCommand("apiauth")
+	 * @Matches("/^apiauth$/")
+	 */
+	public function apiauthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
+		if ($key === false) {
+			$sendto->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
+			return;
+		}
+		$keyDetails = openssl_pkey_get_details($key);
+		if ($keyDetails === false) {
+			$sendto->reply("There was an error creating the public/private key pair");
+			return;
+		}
+		$pubKeyPem = $keyDetails['key'];
+		if (openssl_pkey_export($key, $privKeyPem) === false) {
+			$sendto->reply(
+				"There was an error extracting the private key from the generated ".
+				"public/private key pair"
+			);
+			return;
+		}
+		$apiKey = new ApiKey();
+		$apiKey->pubkey = $pubKeyPem;
+		$apiKey->character = $sender;
+		do {
+			$apiKey->token = bin2hex(random_bytes(4));
+			try {
+				$apiKey->id = $this->db->insert(static::DB_TABLE, $apiKey);
+			} catch (Throwable $e) {
+				// Ignore and retry
+			}
+		} while (!isset($apiKey->id));
+
+		$blob = "<header2>Your private key<end>\n".
+			"<tab>" . implode("\n<tab>", explode("\n", trim($privKeyPem))) . "\n\n".
+			"<header2>Your API token<end>\n".
+			"<tab>{$apiKey->token}\n\n".
+			"<header2>What to do with this?<end>\n".
+			"<tab>See the WIKI please.";
+		$msg = $this->text->makeBlob("Your API key and token", $blob);
+		$sendto->reply($msg);
+		// $this->chatBot->send_tell($sender, $msg);
 	}
 
 	/**
