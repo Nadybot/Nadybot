@@ -1,0 +1,14 @@
+To see a list of all currently issued tokens:
+<tab><highlight><symbol>apiauth<end>
+
+To create a new token for yourself:
+<tab><highlight><symbol>apiauth create<end>
+
+To delete one of your tokens:
+<tab><highlight><symbol>apiauth delete 'token'<end>
+
+To reset the last used sequence for one of your tokens:
+<tab><highlight><symbol>apiauth reset 'token'<end>
+
+
+The <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests'>full API documentation</a> in on the Nadybot WIKI.

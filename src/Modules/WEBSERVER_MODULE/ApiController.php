@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Addendum\ReflectionAnnotatedClass;
 use Closure;
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\Annotations\{
 	DELETE,
 	GET,
@@ -110,8 +111,45 @@ class ApiController {
 	/**
 	 * @HandlesCommand("apiauth")
 	 * @Matches("/^apiauth$/")
+	 * @Matches("/^apiauth list$/i")
 	 */
-	public function apiauthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apiauthListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$keys = $this->db->table(static::DB_TABLE)
+			->orderBy("created")
+			->asObj(ApiKey::class);
+		if ($keys->isEmpty()) {
+			$sendto->reply("There are currently no active API tokens");
+			return;
+		}
+		$blocks = $keys->groupBy("character")
+			->map(function (Collection $keys, string $character): string {
+				return "<header2>{$character}<end>\n".
+					$keys->map(function (ApiKey $key): string {
+						$resetLink = $this->text->makeChatcmd(
+							"reset",
+							"/tell <myname> apiauth reset {$key->token}"
+						);
+						$delLink = $this->text->makeChatcmd(
+							"remove",
+							"/tell <myname> apiauth rem {$key->token}"
+						);
+						return "<tab><highlight>{$key->token}<end> - ".
+							"sequence {$key->last_sequence_nr} [{$resetLink}], ".
+							"created " . $key->created->format("Y-m-d H:i e").
+							" [{$delLink}]";
+					})->join("\n");
+			});
+		$blob = $blocks->join("\n\n");
+		$msg = "All active API tokens (" . $keys->count() . ")";
+		$msg = $this->text->makeBlob($msg, $blob);
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("apiauth")
+	 * @Matches("/^apiauth (create|new)$/i")
+	 */
+	public function apiauthCreateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$sendto->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
@@ -147,10 +185,68 @@ class ApiController {
 			"<header2>Your API token<end>\n".
 			"<tab>{$apiKey->token}\n\n".
 			"<header2>What to do with this?<end>\n".
-			"<tab>See the WIKI please.";
+			"<tab>Store both of these safely, they cannot be retrieved later.\n".
+			"<tab>See ".
+			$this->text->makeChatcmd(
+				"the Nadybot WIKI",
+				"/start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests"
+			) . " for a documentation on how to use them.";
 		$msg = $this->text->makeBlob("Your API key and token", $blob);
 		$sendto->reply($msg);
 		// $this->chatBot->send_tell($sender, $msg);
+	}
+
+	/**
+	 * @HandlesCommand("apiauth")
+	 * @Matches("/^apiauth (?:delete|del|rem|rm|erase) (.+)$/i")
+	 */
+	public function apiauthDeleteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		/** @var ?ApiKey */
+		$key = $this->db->table(static::DB_TABLE)
+			->where("token", $args[1])
+			->asObj(ApiKey::class)
+			->first();
+		if (!isset($key)) {
+			$sendto->reply("The API token <highlight>{$args[1]}<end> was not found.");
+			return;
+		}
+		$alDiff = $this->accessManager->compareCharacterAccessLevels($sender, $key->character);
+		if ($alDiff !== 1 && $sender !== $key->character) {
+			$sendto->reply(
+				"Your access level must be higher than the token owner's ".
+				"in order to delete their token."
+			);
+			return;
+		}
+		$this->db->table(static::DB_TABLE)->delete($key->id);
+		$sendto->reply("API token <highlight>{$args[1]}<end> deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("apiauth")
+	 * @Matches("/^apiauth (?:reset) (.+)$/i")
+	 */
+	public function apiauthResetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		/** @var ?ApiKey */
+		$key = $this->db->table(static::DB_TABLE)
+			->where("token", $args[1])
+			->asObj(ApiKey::class)
+			->first();
+		if (!isset($key)) {
+			$sendto->reply("The API token <highlight>{$args[1]}<end> was not found.");
+			return;
+		}
+		$alDiff = $this->accessManager->compareCharacterAccessLevels($sender, $key->character);
+		if ($alDiff !== 1 && $sender !== $key->character) {
+			$sendto->reply(
+				"Your access level must be higher than the token owner's ".
+				"in order to delete their token."
+			);
+			return;
+		}
+		$key->last_sequence_nr = 0;
+		$this->db->update(static::DB_TABLE, "id", $key);
+		$sendto->reply("API token <highlight>{$args[1]}<end> reset.");
 	}
 
 	/**
