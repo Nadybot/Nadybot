@@ -27,6 +27,9 @@ class ApiSpecGenerator {
 		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
 			require_once $file;
 		}
+		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") as $file) {
+			require_once $file;
+		}
 		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") as $file) {
 			require_once $file;
 		}
