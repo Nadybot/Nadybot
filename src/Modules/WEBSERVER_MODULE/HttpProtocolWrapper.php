@@ -368,6 +368,11 @@ class HttpProtocolWrapper {
 	 * Return the username for which this connection as authorized or null if unauthorized
 	 */
 	protected function getAuthenticatedUser(): ?string {
+		if (strlen($this->request->headers["signature"]??"") > 16) {
+			return $this->webserverController->checkSignature(
+				$this->request->headers["signature"],
+			);
+		}
 		if (!isset($this->request->headers["authorization"])) {
 			return null;
 		}

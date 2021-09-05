@@ -8,6 +8,7 @@ use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
 	CommandReply,
+	DB,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -16,6 +17,7 @@ use Nadybot\Core\{
 	Timer,
 	Socket\AsyncSocket,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 
 /**
  * Commands this controller contains:
@@ -44,6 +46,9 @@ class WebserverController {
 
 	/** @Inject */
 	public Timer $timer;
+
+	/** @Inject */
+	public DB $db;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -476,6 +481,57 @@ class WebserverController {
 				}
 				return "application/octet-stream";
 		}
+	}
+
+	/** Check the signed request */
+	public function checkSignature(string $signature): ?string {
+		$algorithms = [
+			"sha1" => OPENSSL_ALGO_SHA1,
+			"sha224" => OPENSSL_ALGO_SHA224,
+			"sha256" => OPENSSL_ALGO_SHA256,
+			"sha384" => OPENSSL_ALGO_SHA384,
+			"sha512" => OPENSSL_ALGO_SHA512,
+		];
+		if (!preg_match("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+			return null;
+		}
+		$keyId = $matches[1];
+		if (!preg_match("/(?:^|,\s*)algorithm\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+			return null;
+		}
+		$algorithm = $algorithms[strtolower($matches[1])]??null;
+		if (!isset($algorithm)) {
+			return null;
+		}
+		if (!preg_match("/(?:^|,\s*)sequence\s*=\s*\"?(\d+)\"?/is", $signature, $matches)) {
+			return null;
+		}
+		$sequence = $matches[1];
+		if (!preg_match("/(?:^|,\s*)signature\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+			return null;
+		}
+		$signature = $matches[1];
+		/** @var ?ApiKey */
+		$key = $this->db->table(ApiController::DB_TABLE)
+			->where("token", $keyId)
+			->asObj(ApiKey::class)
+			->first();
+		if (!isset($key)) {
+			return null;
+		}
+		if ($key->last_sequence_nr >= $sequence) {
+			return null;
+		}
+		$decodedSig = base64_decode($signature);
+		if ($decodedSig === false) {
+			return null;
+		}
+		if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+			return null;
+		}
+		$key->last_sequence_nr = (int)$sequence;
+		$this->db->update(ApiController::DB_TABLE, "id", $key);
+		return $key->character;
 	}
 
 	/**

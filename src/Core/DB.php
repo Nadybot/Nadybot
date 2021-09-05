@@ -840,8 +840,11 @@ class DB {
 			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
 				continue;
 			}
-			if ($prop->isInitialized($row) && $prop->name !== $key) {
+			if ($prop->isInitialized($row)) {
 				$updates[$prop->name] = $prop->getValue($row);
+				if ($updates[$prop->name] instanceof DateTime) {
+					$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
+				}
 			}
 		}
 		return $this->table($table)
