@@ -16,7 +16,7 @@ class CreateAuditTable implements SchemaMigration {
 			$table->string("actor", 12)->index();
 			$table->string("actee", 12)->nullable()->index();
 			$table->string("action", 20)->index();
-			$table->string("value", 50)->nullable();
+			$table->text("value")->nullable();
 			$table->integer("time")->index();
 		});
 	}
