@@ -563,6 +563,40 @@
 					}
 				}
 			},
+			"OrgHistory": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "Internal ID og this history entry"
+					},
+					"actor": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person doing the action"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional, the person the actor is acting on"
+					},
+					"action": {
+						"type": "string",
+						"nullable": true,
+						"description": "The action the actor is doing"
+					},
+					"organization": {
+						"type": "string",
+						"nullable": true,
+						"description": "Name of the organization this action was done in"
+					},
+					"time": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Timestamp when the action happened"
+					}
+				}
+			},
 			"NewNews": {
 				"type": "object",
 				"properties": {
@@ -1810,6 +1844,91 @@
 					}
 				},
 				"tags": [
+					"audit"
+				]
+			}
+		},
+		"/org/history": {
+			"parameters": [
+				{
+					"name": "limit",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "actor",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries of this actor"
+				},
+				{
+					"name": "actee",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this actee"
+				},
+				{
+					"name": "action",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this action"
+				},
+				{
+					"name": "before",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from before the given timestamp"
+				},
+				{
+					"name": "after",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from after the given timestamp"
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Query entries from the org history log",
+				"responses": {
+					"200": {
+						"description": "The org history log entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/OrgHistory"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"guild",
 					"audit"
 				]
 			}
