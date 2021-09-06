@@ -199,7 +199,9 @@ class MessageHub {
 		}
 		$class = $spec->class;
 		try {
-			return new $class(...$arguments);
+			$obj = new $class(...$arguments);
+			Registry::injectDependencies($obj);
+			return $obj;
 		} catch (Throwable $e) {
 			throw new Exception("There was an error setting up the {$name} modifier: " . $e->getMessage());
 		}
