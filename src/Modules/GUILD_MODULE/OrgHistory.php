@@ -5,7 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Nadybot\Core\DBRow;
 
 class OrgHistory extends DBRow {
-	/** Internal ID og this history entry */
+	/** Internal ID of this history entry */
 	public int $id;
 
 	/** The person doing the action */
