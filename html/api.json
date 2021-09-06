@@ -2,7 +2,7 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Nadybot API",
-		"description": "This API provides access to Nadybot function in a REST API",
+		"description": "This API provides access to Nadybot functions in a REST API",
 		"license": {
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
@@ -876,7 +876,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/events/{event}/{handler}": {
@@ -934,7 +937,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -964,7 +970,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/settings/{setting}": {
@@ -1024,7 +1033,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1064,7 +1076,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands/{command}/{channel}": {
@@ -1126,7 +1141,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1160,7 +1178,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands/{command}": {
@@ -1207,7 +1228,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1234,7 +1258,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}": {
@@ -1282,7 +1309,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1309,7 +1339,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/description": {
@@ -1344,7 +1377,10 @@
 					"204": {
 						"description": "No description set"
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/settings": {
@@ -1379,7 +1415,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/events": {
@@ -1414,7 +1453,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands": {
@@ -1449,7 +1491,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/access_levels": {
@@ -1475,7 +1520,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/hop/color": {
@@ -1501,7 +1549,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"messages"
+				]
 			}
 		},
 		"/hop/format": {
@@ -1527,7 +1578,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"messages"
+				]
 			}
 		},
 		"/setting/{key}": {
@@ -1562,7 +1616,10 @@
 					"204": {
 						"description": "No value stored"
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"post": {
 				"security": [
@@ -1592,7 +1649,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"put": {
 				"security": [
@@ -1619,7 +1679,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"delete": {
 				"security": [
@@ -1635,7 +1698,10 @@
 					"409": {
 						"description": "No setting found for that key"
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			}
 		},
 		"/sysinfo": {
@@ -1658,7 +1724,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"system"
+				]
 			}
 		},
 		"/audit": {
@@ -1748,7 +1817,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"audit"
+				]
 			}
 		},
 		"/news": {
@@ -1774,7 +1846,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			},
 			"post": {
 				"security": [
@@ -1798,7 +1873,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			}
 		},
 		"/news/{id}": {
@@ -1833,7 +1911,10 @@
 					"404": {
 						"description": "Given news id not found"
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			},
 			"patch": {
 				"security": [
@@ -1864,7 +1945,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			}
 		},
 		"/online": {
@@ -1887,7 +1971,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"online"
+				]
 			}
 		},
 		"/relay-component/transport": {
@@ -1913,7 +2000,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/relay-component/layer": {
@@ -1939,7 +2029,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/relay-component/protocol": {
@@ -1965,7 +2058,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/relay": {
@@ -1991,7 +2087,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			},
 			"post": {
 				"security": [
@@ -2004,7 +2103,10 @@
 					"204": {
 						"description": "Relay created successfully"
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/relay/{relay}": {
@@ -2039,7 +2141,10 @@
 					"404": {
 						"description": "Relay not found"
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			},
 			"delete": {
 				"security": [
@@ -2055,7 +2160,10 @@
 					"404": {
 						"description": "Relay not found"
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/relay/{relay}/status": {
@@ -2090,7 +2198,10 @@
 					"404": {
 						"description": "Relay not found"
 					}
-				}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/execute/{uuid}": {
@@ -2132,7 +2243,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"webserver"
+				]
 			}
 		},
 		"/chat/web": {
@@ -2159,7 +2273,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"webserver"
+				]
 			}
 		}
 	}

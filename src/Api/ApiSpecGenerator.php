@@ -6,6 +6,7 @@ use Addendum\ReflectionAnnotatedClass;
 use Addendum\ReflectionAnnotatedMethod;
 use Exception;
 use Nadybot\Core\Annotations\ApiResult;
+use Nadybot\Core\Annotations\ApiTag;
 use Nadybot\Core\Annotations\DELETE;
 use Nadybot\Core\Annotations\GET;
 use Nadybot\Core\Annotations\PATCH;
@@ -238,7 +239,7 @@ class ApiSpecGenerator {
 	public function getInfoSpec(): array {
 		return [
 			'title' => 'Nadybot API',
-			'description' => 'This API provides access to Nadybot function in a REST API',
+			'description' => 'This API provides access to Nadybot functions in a REST API',
 			'license' => [
 				'name' => 'GPL3',
 				'url' => 'https://www.gnu.org/licenses/gpl-3.0.en.html',
@@ -273,7 +274,6 @@ class ApiSpecGenerator {
 				$doc->path = $path;
 				$newResult[$path] ??= [];
 				$newResult[$path]["parameters"] = $this->getParamDocs($path, $refMethod);
-// var_dump($newResult[$path]["parameters"]);
 				foreach ($doc->methods as $method) {
 					$newResult[$path][$method] = [
 						"security" => [["basicAuth" => []]],
@@ -285,6 +285,9 @@ class ApiSpecGenerator {
 						if (isset($doc->requestBody->class)) {
 							$this->addSchema($result["components"]["schemas"], $doc->requestBody->class);
 						}
+					}
+					if (!empty($doc->tags)) {
+						$newResult[$path][$method]["tags"] = $doc->tags;
 					}
 					foreach ($doc->responses as $code => $response) {
 						if (isset($response->class)) {
@@ -370,7 +373,11 @@ class ApiSpecGenerator {
 		$doc->description = $this->getDescriptionFromComment($comment);
 
 		if (!$method->hasAnnotation("ApiResult")) {
-			// throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
+			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
+		}
+		$dir = dirname($method->getFileName());
+		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
+			$doc->tags = [strtolower(preg_replace("/_MODULE/", "", $matches[1]))];
 		}
 		foreach ($method->getAllAnnotations() as $anno) {
 			if ($anno instanceof ApiResult) {
@@ -378,6 +385,8 @@ class ApiSpecGenerator {
 					throw new Exception("{$method->class}::{$method->name}() has invalid @ApiResult annotation");
 				}
 				$doc->responses[$anno->code] = $anno;
+			} elseif ($anno instanceof ApiTag) {
+				$doc->tags []= $anno->value;
 			} elseif ($anno instanceof RequestBody) {
 				$doc->requestBody = $anno;
 			} elseif ($anno instanceof GET) {

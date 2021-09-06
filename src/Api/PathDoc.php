@@ -9,6 +9,7 @@ use Nadybot\Core\Annotations\RequestBody;
 class PathDoc {
 	public string $description;
 	public string $path;
+	public array $tags = [];
 	/** @var string[] */
 	public array $methods = [];
 	/** @var ApiResult[] */

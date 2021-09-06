@@ -345,6 +345,7 @@ class AccessManager {
 	 * @QueryParam(name='before', type='integer', desc='Show only entries from before the given timestamp', required=false)
 	 * @QueryParam(name='after', type='integer', desc='Show only entries from after the given timestamp', required=false)
 	 * @AccessLevel("mod")
+	 * @ApiTag("audit")
 	 * @ApiResult(code=200, class='Audit[]', desc='The audit log entries')
 	 */
 	public function auditGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
