@@ -1739,16 +1739,7 @@
 					"schema": {
 						"type": "integer"
 					},
-					"description": "How many entries to return. Default is 50"
-				},
-				{
-					"name": "offset",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "How many entries to skip before the 50 sent"
+					"description": "No more than this amount of entries will be returned. Default is 50"
 				},
 				{
 					"name": "actor",

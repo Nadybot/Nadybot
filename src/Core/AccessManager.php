@@ -337,8 +337,8 @@ class AccessManager {
 	 * Query entries from the audit log
 	 * @Api("/audit")
 	 * @GET
-	 * @QueryParam(name='limit', type='integer', desc='How many entries to return. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before the 50 sent', required=false)
+	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
+	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries, required=false)
 	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
 	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
 	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)
