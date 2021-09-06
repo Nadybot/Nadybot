@@ -8,6 +8,7 @@ use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Core\DBSchema\{
+	Audit,
 	CmdCfg,
 	EventCfg,
 	HlpCfg,
@@ -49,6 +50,9 @@ class Nadybot extends AOChat {
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public AccessManager $accessManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -667,6 +671,10 @@ class Nadybot extends AOChat {
 			$eventObj->type = "joinpriv";
 
 			$this->logger->logChat("Priv Group", -1, "$sender joined the channel.");
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->action = AccessManager::JOIN;
+			$this->accessManager->addAudit($audit);
 
 			$this->banController->handleBan(
 				$userId,
@@ -679,6 +687,12 @@ class Nadybot extends AOChat {
 				// Remove sender if they are banned
 				function (int $userId, string $sender): void {
 					$this->privategroup_kick($sender);
+					$audit = new Audit();
+					$audit->actor = $this->chatBot->char->name;
+					$audit->actor = $sender;
+					$audit->action = AccessManager::KICK;
+					$audit->value = "banned";
+					$this->accessManager->addAudit($audit);
 				},
 				$sender
 			);
@@ -716,6 +730,10 @@ class Nadybot extends AOChat {
 			unset($this->chatlist[$sender]);
 
 			$this->eventManager->fireEvent($eventObj);
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->action = AccessManager::LEAVE;
+			$this->accessManager->addAudit($audit);
 		} elseif ($this->char->id === $userId) {
 			unset($this->privateChats[$channel]);
 		} else {
