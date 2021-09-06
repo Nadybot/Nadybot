@@ -212,6 +212,9 @@ class ApiSpecGenerator {
 			}
 			return [$propName, $refType->getName()];
 		}
+		if ($refType->getName() === "DateTime") {
+			return [$propName, "integer"];
+		}
 		$name = explode("\\", $refType->getName());
 
 		return [$propName, "#/components/schemas/" . end($name)];
@@ -240,7 +243,7 @@ class ApiSpecGenerator {
 				'name' => 'GPL3',
 				'url' => 'https://www.gnu.org/licenses/gpl-3.0.en.html',
 			],
-			'version' => BotRunner::getVersion(),
+			'version' => BotRunner::getVersion(false),
 		];
 	}
 
@@ -270,6 +273,7 @@ class ApiSpecGenerator {
 				$doc->path = $path;
 				$newResult[$path] ??= [];
 				$newResult[$path]["parameters"] = $this->getParamDocs($path, $refMethod);
+// var_dump($newResult[$path]["parameters"]);
 				foreach ($doc->methods as $method) {
 					$newResult[$path][$method] = [
 						"security" => [["basicAuth" => []]],
@@ -306,39 +310,38 @@ class ApiSpecGenerator {
 	}
 
 	public function getParamDocs(string $path, ReflectionAnnotatedMethod $method): array {
-		if (!preg_match_all('/\{(.+?)\}/', $path, $matches)) {
-			return [];
-		}
 		$result = [];
-		foreach ($matches[1] as $param) {
-			foreach ($method->getParameters() as $refParam) {
-				if ($refParam->getName() !== $param) {
-					continue;
+		if (preg_match_all('/\{(.+?)\}/', $path, $matches)) {
+			foreach ($matches[1] as $param) {
+				foreach ($method->getParameters() as $refParam) {
+					if ($refParam->getName() !== $param) {
+						continue;
+					}
 				}
-			}
-			/** @var ReflectionNamedType */
-			$refType = $refParam->getType();
-			$paramResult = [
-				"name" => $param,
-				"required" => true,
-				"in" => "path",
-				"schema" => ["type" => $refType->getName()]
-			];
-			if ($refType->getName() === "int") {
-				$paramResult["schema"]["type"] = "integer";
-			}
-			if ($refType->getName() === "bool") {
-				$paramResult["schema"]["type"] = "boolean";
-			}
-			if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
-				$matches[1] = preg_replace("/\*\//", "", $matches[1]);
-				if ($matches[1]) {
-					$paramResult["description"] = trim($matches[1]);
+				/** @var ReflectionNamedType */
+				$refType = $refParam->getType();
+				$paramResult = [
+					"name" => $param,
+					"required" => true,
+					"in" => "path",
+					"schema" => ["type" => $refType->getName()]
+				];
+				if ($refType->getName() === "int") {
+					$paramResult["schema"]["type"] = "integer";
 				}
+				if ($refType->getName() === "bool") {
+					$paramResult["schema"]["type"] = "boolean";
+				}
+				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
+					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
+					if ($matches[1]) {
+						$paramResult["description"] = trim($matches[1]);
+					}
+				}
+				$result []= $paramResult;
 			}
-			$result []= $paramResult;
 		}
-		$annos = $method->getAnnotations();
+		$annos = $method->getAllAnnotations();
 		foreach ($annos as $anno) {
 			if ($anno instanceof QueryParam && isset($anno->name)) {
 				$result []= [
@@ -427,6 +430,9 @@ class ApiSpecGenerator {
 	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
 			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];
+		}
+		if ($class === "DateTime") {
+			return ["type" => "integer"];
 		}
 		return ['$ref' => "#/components/schemas/{$class}"];
 	}

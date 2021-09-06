@@ -46,9 +46,12 @@ class BotRunner {
 	 * Depending on where you got the source from,
 	 * it's either the latest tag, the branch or a fixed version
 	 */
-	public static function getVersion(): string {
+	public static function getVersion(bool $withBranch=true): string {
 		if (!isset(static::$calculatedVersion)) {
 			static::$calculatedVersion = static::calculateVersion();
+		}
+		if (!$withBranch) {
+			return preg_replace("/@.+/", "", static::$calculatedVersion);
 		}
 		return static::$calculatedVersion;
 	}

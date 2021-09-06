@@ -13,11 +13,11 @@ class CreateAuditTable implements SchemaMigration {
 		$table = AccessManager::DB_TABLE;
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->id();
-			$table->string("actor", 12);
-			$table->string("actee", 12)->nullable();
-			$table->string("action", 50);
+			$table->string("actor", 12)->index();
+			$table->string("actee", 12)->nullable()->index();
+			$table->string("action", 20)->index();
 			$table->string("value", 50)->nullable();
-			$table->integer("time");
+			$table->integer("time")->index();
 		});
 	}
 }
