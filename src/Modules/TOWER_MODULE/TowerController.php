@@ -361,7 +361,7 @@ class TowerController {
 			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
 		}
 
-		$msg = $this->text->makeBlob(
+		$msg = $this->makeBlob(
 			"All unplanted sites ({$result->count})",
 			$blob
 		);
@@ -396,7 +396,7 @@ class TowerController {
 					$this->showSitesOfOrg($orgs[0]->id, $sendto);
 				} else {
 					$blob = $this->formatOrglist($orgs);
-					$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+					$msg = $this->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
 					$sendto->reply($msg);
 				}
 			}
@@ -444,7 +444,7 @@ class TowerController {
 		$blob .= "\nTotal: QL <highlight>{$totalQL}<end>, allowing ".
 			"contracts up to QL <highlight>" . ($totalQL * 2) . "<end>.";
 
-		$msg = $this->text->makeBlob("All bases of {$site->org_name}", $blob);
+		$msg = $this->makeBlob("All bases of {$site->org_name}", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -519,7 +519,7 @@ class TowerController {
 			}
 		}
 
-		$msg = $this->text->makeBlob("All Bases in $pf->long_name", $blob);
+		$msg = $this->makeBlob("All Bases in $pf->long_name", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -598,8 +598,11 @@ class TowerController {
 	}
 
 	public function showSite(?ApiResult $result, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
-		$results = new Collection($result->results);
-		$details = $results->firstWhere("site_number", "===", $site->site_number);
+		$details = null;
+		if (isset($result)) {
+			$results = new Collection($result->results);
+			$details = $results->firstWhere("site_number", "===", $site->site_number);
+		}
 		$blob = $this->formatSiteInfo($site, $details) . "\n\n";
 
 		// show last attacks and victories
@@ -631,7 +634,11 @@ class TowerController {
 			}
 		}
 
-		$msg = $this->text->makeBlob("$playfield->short_name {$site->site_number}", $blob);
+		if (isset($details)) {
+			$msg = $this->makeBlob("$playfield->short_name {$site->site_number}", $blob);
+		} else {
+			$msg = $this->text->makeBlob("$playfield->short_name {$site->site_number}", $blob);
+		}
 
 		$sendto->reply($msg);
 	}
@@ -768,7 +775,7 @@ class TowerController {
 		$blob = $this->renderHotSites($result, $params);
 		$timeString = date("H:i:s", $params["min_close_time"]);
 		$sendto->reply(
-			$this->text->makeBlob(
+			$this->makeBlob(
 				"Hot sites at {$timeString} UTC (" . $result->count . ")",
 				$blob
 			)
@@ -1733,5 +1740,12 @@ class TowerController {
 			"<tab>{$victoryLink}";
 
 		return $blob;
+	}
+
+	protected function makeBlob(string $name, string $content): array {
+		$content = trim($content) . "\n\n\n".
+			"<i>Tower API provided by Tyrence, ".
+			"tower information provided by Draex and Unk</i>";
+		return (array)$this->text->makeBlob($name, $content);
 	}
 }
