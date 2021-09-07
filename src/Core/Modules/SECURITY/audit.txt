@@ -1,0 +1,19 @@
+If you have enabled audit logging, you can query the data like this:
+
+To see the most recent audit entries in the database:
+<tab><highlight><symbol>audit<end>
+
+To filter the entries, use
+<tab><highlight><symbol>audit 'key'='value'<end>
+where 'key' can be any amount of action, actor, actee, before and after
+
+To navigate around the results, use can use <highlight>limit<end> and <highlight>offset<end>:
+<tab><highlight><symbol>audit limit=200<end>
+<tab><highlight><symbol>audit limit=200 offset=1000<end>
+
+
+<header2>Examples<end>
+<tab><highlight><symbol>audit actor=Nady after=2020-08-20 before=2020-08-27<end>
+<tab><highlight><symbol>audit actee=Nady action=set-rank<end>
+<tab><highlight><symbol>audit actor=Nady action=set-rank after=last week<end>
+<tab><highlight><symbol>audit action=invite after=2021-08-01 20:17:55 CEST<end>

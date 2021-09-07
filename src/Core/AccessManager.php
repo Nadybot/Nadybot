@@ -9,10 +9,6 @@ use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
@@ -313,95 +309,14 @@ class AccessManager {
 		return self::$ACCESS_LEVELS;
 	}
 
-	public function addAudit(Audit $audit): int {
+	public function addAudit(Audit $audit): void {
+		if (!$this->settingManager->getBool('audit_enabled')) {
+			return;
+		}
 		if (in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {
 			$revLook = array_flip(self::$ACCESS_LEVELS);
 			$audit->value = $audit->value . " (" . $revLook[$audit->value] . ")";
 		}
-		return $this->db->insert(static::DB_TABLE, $audit);
-	}
-
-	protected function addRangeLimits(Request $request, QueryBuilder $query): ?Response {
-		$max = $request->query["max"]??null;
-		if (!isset($max)) {
-			return null;
-		}
-		if (!preg_match("/^\d+$/", $max)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], "max is not an integer value");
-		}
-		$query->where("id", "<=", $max);
-		return null;
-	}
-
-	/**
-	 * Query entries from the audit log
-	 * @Api("/audit")
-	 * @GET
-	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries, required=false)
-	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
-	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
-	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)
-	 * @QueryParam(name='before', type='integer', desc='Show only entries from before the given timestamp', required=false)
-	 * @QueryParam(name='after', type='integer', desc='Show only entries from after the given timestamp', required=false)
-	 * @AccessLevel("mod")
-	 * @ApiTag("audit")
-	 * @ApiResult(code=200, class='Audit[]', desc='The audit log entries')
-	 */
-	public function auditGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$query = $this->db->table(static::DB_TABLE)
-			->orderByDesc("time")
-			->orderByDesc("id");
-
-		$limit = $request->query["limit"]??"50";
-		if (isset($limit)) {
-			if (!preg_match("/^\d+$/", $limit)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
-			}
-			$query->limit((int)$limit);
-		}
-
-		$offset = $request->query["offset"]??null;
-		if (isset($offset)) {
-			if (!preg_match("/^\d+$/", $offset)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "offset is not an integer value");
-			}
-			$query->offset((int)$offset);
-		}
-
-		$before = $request->query["before"]??null;
-		if (isset($before)) {
-			if (!preg_match("/^\d+$/", $before)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "before is not an integer value");
-			}
-			$query->where("time", "<=", $before);
-		}
-
-		$after = $request->query["after"]??null;
-		if (isset($after)) {
-			if (!preg_match("/^\d+$/", $after)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "after is not an integer value");
-			}
-			$query->where("time", ">=", $after);
-		}
-
-		$actor = $request->query["actor"]??null;
-		if (isset($actor)) {
-			$query->where("actor", ucfirst(strtolower($actor)));
-		}
-
-		$actee = $request->query["actee"]??null;
-		if (isset($actee)) {
-			$query->where("actee", ucfirst(strtolower($actee)));
-		}
-
-		$action = $request->query["action"]??null;
-		if (isset($action)) {
-			$query->where("action", strtolower($action));
-		}
-
-		return new ApiResponse(
-			$query->asObj(Audit::class)->toArray()
-		);
+		$this->db->insert(static::DB_TABLE, $audit);
 	}
 }
