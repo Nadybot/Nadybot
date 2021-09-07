@@ -117,7 +117,7 @@ class AuditController {
 
 		$action = $params["action"]??null;
 		if (isset($action)) {
-			$query->where("action", strtolower($action));
+			$query->whereIn("action", preg_split("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;
@@ -174,7 +174,7 @@ class AuditController {
 		}
 		$lines = $data->map(function (Audit $audit): string {
 			$audit->actee = $audit->actee ? " -&gt; {$audit->actee}" : "";
-			return "<tab>" . $audit->time->format("Y-m-d H:i e").
+			return "<tab>" . $audit->time->format("Y-m-d H:i:s e").
 				" <highlight>{$audit->actor}<end>{$audit->actee} ".
 				"<highlight>{$audit->action}<end> {$audit->value}";
 		});

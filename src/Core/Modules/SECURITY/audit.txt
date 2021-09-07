@@ -16,4 +16,4 @@ To navigate around the results, use can use <highlight>limit<end> and <highlight
 <tab><highlight><symbol>audit actor=Nady after=2020-08-20 before=2020-08-27<end>
 <tab><highlight><symbol>audit actee=Nady action=set-rank<end>
 <tab><highlight><symbol>audit actor=Nady action=set-rank after=last week<end>
-<tab><highlight><symbol>audit action=invite after=2021-08-01 20:17:55 CEST<end>
+<tab><highlight><symbol>audit action=invite,join,leave after=2021-08-01 20:17:55 CEST<end>

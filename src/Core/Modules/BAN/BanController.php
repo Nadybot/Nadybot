@@ -482,7 +482,7 @@ class BanController {
 
 		$audit = new Audit();
 		$audit->actor = $sender;
-		$audit->actee = $this->chatBot->get_uid($charId);
+		$audit->actee = $this->chatBot->lookup_user($charId);
 		$audit->action = $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN;
 		$audit->value = $reason;
 		$this->accessManager->addAudit($audit);
