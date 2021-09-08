@@ -13,7 +13,7 @@ class Timer {
 	public string $owner;
 
 	/** Comma-separated list where to display the alerts (priv,guild,discord) */
-	public string $mode;
+	public ?string $mode=null;
 
 	/** Timestamp when this timer goes off */
 	public ?int $endtime;
