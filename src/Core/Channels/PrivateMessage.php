@@ -4,13 +4,12 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\BuddylistManager;
 use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Text;
 
-class PrivateMessage implements MessageReceiver {
+class PrivateMessage extends Base {
 	/** @Inject */
 	public BuddylistManager $buddyListManager;
 
@@ -28,25 +27,16 @@ class PrivateMessage implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		$renderPath = true;
 		if (!$this->buddyListManager->isOnline($destination)) {
 			return true;
 		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_string($event->data->message??null)) {
-				return false;
-			}
-			$msg = $event->data->message;
-			$renderPath = $event->data->renderPath;
-		} else {
-			$msg = $event->getData();
-		}
 		$where = Source::TELL . "({$destination})";
-		$msgColor = $this->messageHub->getTextColor($event, $where);
-		$message = ($renderPath ? $this->messageHub->renderPath($event, $where) : "").
-			$msgColor.$msg;
+		$message = $this->getEventMessage($event, $this->messageHub, $where);
+		if (!isset($message)) {
+			return false;
+		}
 		$message = $this->text->formatMessage($message);
-		$this->chatBot->send_tell($destination, $message, "\0");
+		$this->chatBot->send_tell($destination, $message);
 		return true;
 	}
 }
