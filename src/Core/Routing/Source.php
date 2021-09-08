@@ -20,6 +20,7 @@ class Source {
 	public const TRADEBOT = "tradebot";
 	public const IRC = "irc";
 	public const SYSTEM = "system";
+	public const CONSOLE = "console";
 
 	public string $name = "";
 	public ?string $label = null;

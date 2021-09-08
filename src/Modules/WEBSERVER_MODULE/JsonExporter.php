@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use DateTime;
 use ReflectionClass;
 
 class JsonExporter {
@@ -65,6 +66,9 @@ class JsonExporter {
 		}
 		if (is_scalar($data)) {
 			return static::jsonEncode($data);
+		}
+		if ($data instanceof DateTime) {
+			return (string)$data->getTimestamp();
 		}
 		if (is_array($data)) {
 			if (empty($data)) {

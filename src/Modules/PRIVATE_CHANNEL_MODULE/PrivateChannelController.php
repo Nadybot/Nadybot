@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	UserStateEvent,
 };
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\Modules\BAN\BanController;
@@ -278,7 +279,7 @@ class PrivateChannelController {
 	 * @Matches("/^member add ([a-z].+)$/i")
 	 */
 	public function addUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->addUser($args[1]);
+		$msg = $this->addUser($args[1], $sender);
 
 		$sendto->reply($msg);
 	}
@@ -288,7 +289,7 @@ class PrivateChannelController {
 	 * @Matches("/^member (?:del|rem|rm|delete|remove) ([a-z].+)$/i")
 	 */
 	public function remUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->removeUser($args[1]);
+		$msg = $this->removeUser($args[1], $sender);
 
 		$sendto->reply($msg);
 	}
@@ -318,6 +319,11 @@ class PrivateChannelController {
 		$invitation = function() use ($name, $sendto, $sender): void {
 			$msg = "Invited <highlight>$name<end> to this channel.";
 			$this->chatBot->privategroup_invite($name);
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $name;
+			$audit->action = AccessManager::INVITE;
+			$this->accessManager->addAudit($audit);
 			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
 			$this->chatBot->sendMassTell($msg2, $name);
 
@@ -359,6 +365,12 @@ class PrivateChannelController {
 				}
 				$this->chatBot->sendPrivate($msg);
 				$this->chatBot->privategroup_kick($name);
+				$audit = new Audit();
+				$audit->actor = $sender;
+				$audit->actor = $name;
+				$audit->action = AccessManager::KICK;
+				$audit->value = $args['reason']??null;
+				$this->accessManager->addAudit($audit);
 			} else {
 				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
 			}
@@ -846,6 +858,12 @@ class PrivateChannelController {
 			"Reason: <{$faction}>{$faction}<end>."
 		);
 		$this->chatBot->privategroup_kick($whois->name);
+		$audit = new Audit();
+		$audit->actor = $this->chatBot->char->name;
+		$audit->actor = $whois->name;
+		$audit->action = AccessManager::KICK;
+		$audit->value = "auto-ban";
+		$this->accessManager->addAudit($audit);
 	}
 
 	public function getLogoffMessage(string $player): ?string {
@@ -921,7 +939,7 @@ class PrivateChannelController {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	public function addUser(string $name): string {
+	public function addUser(string $name, string $sender): string {
 		$autoInvite = $this->settingManager->getBool('autoinvite_default');
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
@@ -944,10 +962,16 @@ class PrivateChannelController {
 		$event->type = "member(add)";
 		$event->sender = $name;
 		$this->eventManager->fireEvent($event);
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $name;
+		$audit->action = AccessManager::ADD_RANK;
+		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
 
-	public function removeUser(string $name): string {
+	public function removeUser(string $name, string $sender): string {
 		$name = ucfirst(strtolower($name));
 
 		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
@@ -958,6 +982,12 @@ class PrivateChannelController {
 		$event->type = "member(rem)";
 		$event->sender = $name;
 		$this->eventManager->fireEvent($event);
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $name;
+		$audit->action = AccessManager::DEL_RANK;
+		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
 	}
 }

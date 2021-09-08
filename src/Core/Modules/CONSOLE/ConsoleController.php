@@ -5,14 +5,16 @@ namespace Nadybot\Core\Modules\CONSOLE;
 use Nadybot\Core\{
 	BotRunner,
 	CommandManager,
-	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
+	Registry,
 	SettingManager,
 	SocketManager,
 	SocketNotifier,
 	Timer,
 };
+use Nadybot\Core\Channels\ConsoleChannel;
 
 /**
  * @Instance
@@ -28,9 +30,6 @@ class ConsoleController {
 	public SocketManager $socketManager;
 
 	/** @Inject */
-	public EventManager $eventManager;
-
-	/** @Inject */
 	public CommandManager $commandManager;
 
 	/** @Inject */
@@ -41,6 +40,9 @@ class ConsoleController {
 
 	/** @Inject */
 	public Timer $timer;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -73,6 +75,12 @@ class ConsoleController {
 			"true;false",
 			"1;0"
 		);
+		if ($this->chatBot->vars["enable_console_client"] &&!BotRunner::isWindows()) {
+			$handler = new ConsoleCommandReply($this->chatBot);
+			$channel = new ConsoleChannel($handler);
+			Registry::injectDependencies($channel);
+			$this->messageHub->registerMessageReceiver($channel);
+		}
 	}
 
 	public function getCacheFile(): string {

@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
@@ -416,6 +417,12 @@ class LimitsController {
 				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
 				$this->logger->log('INFO', "Kicking {$event->sender} from private channel.");
 				$this->chatBot->privategroup_kick($event->sender);
+				$audit = new Audit();
+				$audit->actor = $this->chatBot->char->name;
+				$audit->actor = $event->sender;
+				$audit->action = AccessManager::KICK;
+				$audit->value = "limits exceeded";
+				$this->accessManager->addAudit($audit);
 			}
 		}
 		if ($action & 2) {

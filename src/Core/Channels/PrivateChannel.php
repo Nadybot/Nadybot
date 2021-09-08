@@ -3,12 +3,11 @@
 namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 
-class PrivateChannel implements MessageReceiver {
+class PrivateChannel extends Base {
 	/** @Inject */
 	public Nadybot $chatBot;
 
@@ -26,19 +25,10 @@ class PrivateChannel implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		$renderPath = true;
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_string($event->data->message??null)) {
-				return false;
-			}
-			$msg = $event->data->message;
-			$renderPath = $event->data->renderPath;
-		} else {
-			$msg = $event->getData();
+		$message = $this->getEventMessage($event, $this->messageHub);
+		if (!isset($message)) {
+			return false;
 		}
-		$msgColor = $this->messageHub->getTextColor($event, $this->getChannelName());
-		$message = ($renderPath ? $this->messageHub->renderPath($event, $this->getChannelName()) : "").
-			$msgColor.$msg;
 		$this->chatBot->sendPrivate($message, true, $this->channel, false);
 		return true;
 	}
