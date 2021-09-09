@@ -39,6 +39,10 @@ class DiscordChannel implements MessageReceiver {
 		$this->id = $id;
 	}
 
+	public function getChannelID(): string {
+		return $this->id;
+	}
+
 	public function getChannelName(): string {
 		return Source::DISCORD_PRIV . "({$this->channel})";
 	}

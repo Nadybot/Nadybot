@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Util,
 	Routing\Source,
 };
+use Nadybot\Core\Channels\DiscordChannel;
 use ReflectionException;
 
 /**
@@ -97,6 +98,20 @@ class MessageHubController {
 			});
 	}
 
+	protected function fixDiscordChannelName(string $name): string {
+		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
+			return $name;
+		}
+		$emitters = $this->messageHub->getEmitters();
+		foreach ($emitters as $emitter) {
+			if ($emitter instanceof DiscordChannel
+				&& ($emitter->getChannelID() === $matches[1])) {
+				return $emitter->getChannelName();
+			}
+		}
+		return $name;
+	}
+
 	/**
 	 * @HandlesCommand("route")
 	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
@@ -104,6 +119,8 @@ class MessageHubController {
 	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["to"] = $this->fixDiscordChannelName($args['to']);
+		$args["from"] = $this->fixDiscordChannelName($args['from']);
 		if ($args["to"] === Source::PRIV) {
 			$args["to"] = Source::PRIV . "({$this->chatBot->char->name})";
 		}
@@ -858,7 +875,13 @@ class MessageHubController {
 	/** Render a blob for an emitter group */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
-			$values->map(fn(MessageEmitter $emitter) => $emitter->getChannelName())
-				->join("\n<tab>");
+			$values->map(function(MessageEmitter $emitter): string {
+				if ($emitter instanceof DiscordChannel) {
+					return $emitter->getChannelName().
+						" or discordpriv(" . $emitter->getChannelID() . ")";
+				}
+				return $emitter->getChannelName();
+			})
+			->join("\n<tab>");
 	}
 }
