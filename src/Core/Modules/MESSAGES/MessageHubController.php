@@ -545,6 +545,10 @@ class MessageHubController {
 	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
 	 */
 	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["to"] = $this->fixDiscordChannelName($args['to']);
+		if (isset($args["where"])) {
+			$args["where"] = $this->fixDiscordChannelName($args['where']);
+		}
 		$color = $this->getHopColor($args['tag'], $args['where']??null);
 		$name = $args['tag'];
 		if (isset($args['where'])) {
@@ -580,8 +584,11 @@ class MessageHubController {
 	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 */
 	public function routeSetColorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
 		$name = $tag = strtolower($args['tag']);
-		$where = isset($args['where']) ? strtolower($args['where']) : null;
+		$where = isset($args['where'])
+			? strtolower($this->fixDiscordChannelName($args['where']))
+			: null;
 		if (isset($where)) {
 			$name .= " -&gt; {$where}";
 		}
@@ -626,8 +633,11 @@ class MessageHubController {
 	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+)$/i")
 	 */
 	public function routeColorPickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
 		$id = $name = $tag = strtolower($args['tag']);
-		$where = isset($args['where']) ? strtolower($args['where']) : null;
+		$where = isset($args['where'])
+			? strtolower($this->fixDiscordChannelName($args['where']))
+			: null;
 		if (isset($where)) {
 			$name .= " -&gt; {$where}";
 			$id .= " -> {$where}";
@@ -713,6 +723,7 @@ class MessageHubController {
 	 * @Matches("/^route format (clear|del|rem|rm|reset) (?<hop>.+)$/i")
 	 */
 	public function routeFormatClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
 		if (!$this->clearHopFormat($args['hop'])) {
 			$sendto->reply("No format defined for <highlight>{$args['hop']}<end>.");
 			return;
@@ -725,6 +736,7 @@ class MessageHubController {
 	 * @Matches("/^route format render (?<hop>.+) (?<render>true|false)$/i")
 	 */
 	public function routeFormatChangeRenderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
 		if (strlen($args['hop']) > 50) {
 			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
 			return;
@@ -739,6 +751,7 @@ class MessageHubController {
 	 * @Matches("/^route format display (?<hop>[^ ]+\(.*?\)) (?<format>.+)$/i")
 	 */
 	public function routeFormatChangeDisplayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
 		if (strlen($args['hop']) > 50) {
 			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
 			return;
