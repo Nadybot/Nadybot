@@ -889,11 +889,13 @@ class MessageHubController {
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {
+				$name = $emitter->getChannelName();
 				if ($emitter instanceof DiscordChannel) {
-					return $emitter->getChannelName().
-						" or discordpriv(" . $emitter->getChannelID() . ")";
+					if (!preg_match("/^[[:graph:]]+$/s", $name)) {
+						$name .= " or discordpriv(" . $emitter->getChannelID() . ")";
+					}
 				}
-				return $emitter->getChannelName();
+				return $name;
 			})
 			->join("\n<tab>");
 	}
