@@ -111,7 +111,7 @@ class DiscordController {
 		$text = preg_replace("/^    /m", "_ _  ", $text);
 		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/.+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
-			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+)(?:<end>|<\/font>)/",
+			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/",
 			function(array $matches): string {
 				if (preg_match("/^0+$/", $matches[1])) {
 					return "_ _" . str_repeat(" ", strlen($matches[1]));

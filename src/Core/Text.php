@@ -319,4 +319,14 @@ class Text {
 			$strings
 		);
 	}
+
+	public function removePopups(string $message): string {
+		return preg_replace_callback(
+			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			function (array $matches): string {
+				return $matches[3];
+			},
+			$message
+		);
+	}
 }

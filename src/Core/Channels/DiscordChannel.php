@@ -8,9 +8,11 @@ use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
+use Nadybot\Core\Text;
 
 class DiscordChannel implements MessageReceiver {
 	/** @Inject */
@@ -30,6 +32,9 @@ class DiscordChannel implements MessageReceiver {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public Text $text;
 
 	protected string $channel;
 	protected string $id;
@@ -54,11 +59,16 @@ class DiscordChannel implements MessageReceiver {
 				return false;
 			}
 			$msg = $event->data->message;
-			$renderPath =$event->data->renderPath;
+			$renderPath = $event->data->renderPath;
+			if ($event->data->type === Online::TYPE) {
+				$msg = $this->text->removePopups($msg);
+			}
 		} else {
 			$msg = $event->getData();
 		}
-		$message = ($renderPath ? $this->messageHub->renderPath($event, $this->getChannelName()) : "").
+		$message = ($renderPath
+			? $this->messageHub->renderPath($event, $this->getChannelName())
+			: "").
 			$msg;
 		$discordMsg = $this->discordController->formatMessage($message);
 

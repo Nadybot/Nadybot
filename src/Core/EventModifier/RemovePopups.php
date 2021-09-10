@@ -4,6 +4,7 @@ namespace Nadybot\Core\EventModifier;
 
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\Text;
 
 /**
  * @EventModifier("remove-popups")
@@ -11,19 +12,22 @@ use Nadybot\Core\Routing\RoutableEvent;
  *	leave the link name.")
  */
 class RemovePopups implements EventModifier {
+	/** @Inject */
+	public Text $text;
+
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
-		// We only require prefixes for messages, the rest is passed through
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			return $event;
+			$message = $event->getData()->message??null;
+			if (!isset($message)) {
+				return $event;
+			}
+			$message = $this->text->removePopups($message);
+			$modifiedEvent = clone $event;
+			$modifiedEvent->data->message = $message;
+			return $modifiedEvent;
 		}
 		$message = $event->getData();
-		$message = preg_replace_callback(
-			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
-			function (array $matches) use (&$parts): string {
-				return $matches[3];
-			},
-			$message
-		);
+		$message = $this->text->removePopups($message);
 		$modifiedEvent = clone $event;
 		$modifiedEvent->setData($message);
 		return $modifiedEvent;
