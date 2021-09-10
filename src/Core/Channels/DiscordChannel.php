@@ -66,10 +66,15 @@ class DiscordChannel implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$message = ($renderPath
-			? $this->messageHub->renderPath($event, $this->getChannelName())
-			: "").
-			$msg;
+		$pathText = "";
+		if ($renderPath) {
+			$pathText = $this->messageHub->renderPath($event, $this->getChannelName());
+		}
+		if (isset($event->char)) {
+			$pathText = preg_replace("/<a\s[^>]*href=['\"]?user.*?>(.+)<\/a>/s", '<highlight>$1<end>', $pathText);
+			$pathText = preg_replace("/(\s)([^:\s]+): $/s", '$1<highlight>$2<end>: ', $pathText);
+		}
+		$message = $pathText.$msg;
 		$discordMsg = $this->discordController->formatMessage($message);
 
 		if (isset($event->char)) {
