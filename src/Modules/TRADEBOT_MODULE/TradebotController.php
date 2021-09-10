@@ -226,8 +226,9 @@ class TradebotController {
 			return;
 		}
 		if (count($botsToSignUp)) {
-			$msg = "Please make sure to use <highlight><symbol>route add tradebot -&gt; &lt;aoorg|aopriv&gt;<end> to ".
-				"setup message routing between the tradebot and your org/private channel.";
+			$msg = "Please make sure to use <highlight><symbol>route add tradebot(*) -&gt; aopriv<end> ".
+				"or <highlight><symbol>route add tradebot(*) -&gt; aoorg<end> to ".
+				"set up message routing between the tradebot and your org- and/or private channel.";
 			if (strlen($this->chatBot->vars["my_guild"]??"")) {
 				$this->chatBot->sendGuild($msg, true);
 			} else {
