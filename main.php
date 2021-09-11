@@ -8,6 +8,21 @@ xdebug_set_filter(
 	[ __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR ]
 );
 */
+if (!@file_exists(__DIR__ . '/vendor/autoload.php')) {
+	fwrite(
+		STDERR,
+		"Nadybot cannot find the composer modules in 'vendor'.\n".
+		"Please run 'composer install' to install all missing modules\n".
+		"or download one of the Nadybot bundles and copy the 'vendor'\n".
+		"directory from the zip-file into the Nadybot main directory.\n".
+		"\n".
+		"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
+		"for more information.\n"
+	);
+	sleep(5);
+	exit(1);
+}
+
 require 'vendor/autoload.php';
 
 $runner = new Nadybot\Core\BotRunner($argv);

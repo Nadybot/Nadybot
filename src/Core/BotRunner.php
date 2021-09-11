@@ -8,6 +8,8 @@ use Logger;
 use ErrorException;
 use Nadybot\Core\Modules\SETUP\Setup;
 use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
+use ReflectionClass;
+use ReflectionException;
 
 class BotRunner {
 
@@ -151,6 +153,25 @@ class BotRunner {
 		return static::$latestTag = $tagString;
 	}
 
+	public function checkRequiredPackages(): void {
+		try {
+			new ReflectionClass(\ParserGenerator\Parser::class);
+		} catch (ReflectionException $e) {
+			fwrite(
+				STDERR,
+				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
+				"Please run 'composer install' to install all missing modules\n".
+				"or download one of the Nadybot bundles and copy the 'vendor'\n".
+				"directory from the zip-file into the Nadybot main directory.\n".
+				"\n".
+				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
+				"for more information.\n"
+			);
+			sleep(5);
+			exit(1);
+		}
+	}
+
 	public function checkRequiredModules(): void {
 		$missing = [];
 		$requiredModules = [
@@ -230,6 +251,7 @@ class BotRunner {
 		global $vars;
 		$vars = $this->getConfigVars();
 		$this->checkRequiredModules();
+		$this->checkRequiredPackages();
 		$this->createMissingDirs();
 
 		echo $this->getInitialInfoMessage();
