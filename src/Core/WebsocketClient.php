@@ -116,9 +116,16 @@ class WebsocketClient extends WebsocketBase {
 			$errno,
 			$errstr,
 			0,
-			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_PERSISTENT,
+			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
 			$context
 		);
+		if ($this->socket === false) {
+			$this->throwError(
+				WebsocketError::CONNECT_ERROR,
+				$errstr
+			);
+			return false;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_WRITE,
@@ -137,8 +144,15 @@ class WebsocketClient extends WebsocketBase {
 	 * @return void
 	 */
 	public function enableTLS(): void {
-		$this->socketManager->removeSocketNotifier($this->notifier);
-		stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+		if (isset($this->notifier)) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+		}
+		$result = stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+		if ($result === false) {
+			$errMsg = preg_replace("/^[^:]+ /", "", error_get_last()["message"]??"Unknown SSL error");
+			$this->throwError(WebsocketError::CANNOT_ENABLE_SSL, $errMsg);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_WRITE,

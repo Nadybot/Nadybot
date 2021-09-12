@@ -7,15 +7,20 @@ use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
 	CommandReply,
+	DB,
 	Event,
 	EventManager,
 	Http,
 	HttpResponse,
+	MessageEmitter,
+	MessageHub,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -33,7 +38,7 @@ use Nadybot\Core\{
  * @ProvidesEvent("gsp(show_start)")
  * @ProvidesEvent("gsp(show_end)")
  */
-class GSPController {
+class GSPController implements MessageEmitter {
 
 	/**
 	 * Name of the module.
@@ -45,10 +50,16 @@ class GSPController {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public MessageHub $messageHub;
+
+	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
 	public Http $http;
+
+	/** @Inject */
+	public DB $db;
 
 	/** @Inject */
 	public DiscordController $discordController;
@@ -76,23 +87,16 @@ class GSPController {
 
 	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
 
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(gsp)";
+	}
+
 	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
 	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			'gsp_channels',
-			'Where to announce if a show starts',
-			'edit',
-			'options',
-			'3',
-			'Off;priv;org;priv+org;discord;discord+priv;discord+org;discord+priv+org',
-			'0;1;2;3;4;5;6;7',
-			'mod',
-			'radio.txt'
-		);
+		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
 			$this->moduleName,
 			"gsp_show_logon",
@@ -103,6 +107,7 @@ class GSPController {
 			"true;false",
 			"1;0"
 		);
+		$this->messageHub->registerMessageEmitter($this);
 	}
 
 	/**
@@ -188,25 +193,9 @@ class GSPController {
 			$specialDelimiter . "\n".
 			$this->getNotificationMessage(). "\n".
 			$specialDelimiter;
-		$this->announceShow($msg);
-	}
-
-	/**
-	 * Announce a show on all configured channels
-	 *
-	 * @param string $msg The message to announce
-	 * @return void
-	 */
-	protected function announceShow(string $msg) {
-		if ($this->settingManager->getInt('gsp_channels') & 1 ) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($this->settingManager->getInt('gsp_channels') & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($this->settingManager->getInt('gsp_channels') & 4) {
-			$this->discordController->sendDiscord($msg);
-		}
+		$r = new RoutableMessage($msg);
+		$r->prependPath(new Source(Source::SYSTEM, "gsp"));
+		$this->messageHub->handle($r);
 	}
 
 	/**

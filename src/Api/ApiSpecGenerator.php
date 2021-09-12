@@ -6,6 +6,7 @@ use Addendum\ReflectionAnnotatedClass;
 use Addendum\ReflectionAnnotatedMethod;
 use Exception;
 use Nadybot\Core\Annotations\ApiResult;
+use Nadybot\Core\Annotations\ApiTag;
 use Nadybot\Core\Annotations\DELETE;
 use Nadybot\Core\Annotations\GET;
 use Nadybot\Core\Annotations\PATCH;
@@ -25,6 +26,9 @@ use ReflectionProperty;
 class ApiSpecGenerator {
 	public function loadClasses() {
 		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
+			require_once $file;
+		}
+		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") as $file) {
 			require_once $file;
 		}
 		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") as $file) {
@@ -209,6 +213,9 @@ class ApiSpecGenerator {
 			}
 			return [$propName, $refType->getName()];
 		}
+		if ($refType->getName() === "DateTime") {
+			return [$propName, "integer"];
+		}
 		$name = explode("\\", $refType->getName());
 
 		return [$propName, "#/components/schemas/" . end($name)];
@@ -232,12 +239,12 @@ class ApiSpecGenerator {
 	public function getInfoSpec(): array {
 		return [
 			'title' => 'Nadybot API',
-			'description' => 'This API provides access to Nadybot function in a REST API',
+			'description' => 'This API provides access to Nadybot functions in a REST API',
 			'license' => [
 				'name' => 'GPL3',
 				'url' => 'https://www.gnu.org/licenses/gpl-3.0.en.html',
 			],
-			'version' => BotRunner::getVersion(),
+			'version' => BotRunner::getVersion(false),
 		];
 	}
 
@@ -279,6 +286,9 @@ class ApiSpecGenerator {
 							$this->addSchema($result["components"]["schemas"], $doc->requestBody->class);
 						}
 					}
+					if (!empty($doc->tags)) {
+						$newResult[$path][$method]["tags"] = $doc->tags;
+					}
 					foreach ($doc->responses as $code => $response) {
 						if (isset($response->class)) {
 							$this->addSchema($result["components"]["schemas"], $response->class);
@@ -303,39 +313,38 @@ class ApiSpecGenerator {
 	}
 
 	public function getParamDocs(string $path, ReflectionAnnotatedMethod $method): array {
-		if (!preg_match_all('/\{(.+?)\}/', $path, $matches)) {
-			return [];
-		}
 		$result = [];
-		foreach ($matches[1] as $param) {
-			foreach ($method->getParameters() as $refParam) {
-				if ($refParam->getName() !== $param) {
-					continue;
+		if (preg_match_all('/\{(.+?)\}/', $path, $matches)) {
+			foreach ($matches[1] as $param) {
+				foreach ($method->getParameters() as $refParam) {
+					if ($refParam->getName() !== $param) {
+						continue;
+					}
 				}
-			}
-			/** @var ReflectionNamedType */
-			$refType = $refParam->getType();
-			$paramResult = [
-				"name" => $param,
-				"required" => true,
-				"in" => "path",
-				"schema" => ["type" => $refType->getName()]
-			];
-			if ($refType->getName() === "int") {
-				$paramResult["schema"]["type"] = "integer";
-			}
-			if ($refType->getName() === "bool") {
-				$paramResult["schema"]["type"] = "boolean";
-			}
-			if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
-				$matches[1] = preg_replace("/\*\//", "", $matches[1]);
-				if ($matches[1]) {
-					$paramResult["description"] = trim($matches[1]);
+				/** @var ReflectionNamedType */
+				$refType = $refParam->getType();
+				$paramResult = [
+					"name" => $param,
+					"required" => true,
+					"in" => "path",
+					"schema" => ["type" => $refType->getName()]
+				];
+				if ($refType->getName() === "int") {
+					$paramResult["schema"]["type"] = "integer";
 				}
+				if ($refType->getName() === "bool") {
+					$paramResult["schema"]["type"] = "boolean";
+				}
+				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
+					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
+					if ($matches[1]) {
+						$paramResult["description"] = trim($matches[1]);
+					}
+				}
+				$result []= $paramResult;
 			}
-			$result []= $paramResult;
 		}
-		$annos = $method->getAnnotations();
+		$annos = $method->getAllAnnotations();
 		foreach ($annos as $anno) {
 			if ($anno instanceof QueryParam && isset($anno->name)) {
 				$result []= [
@@ -364,7 +373,11 @@ class ApiSpecGenerator {
 		$doc->description = $this->getDescriptionFromComment($comment);
 
 		if (!$method->hasAnnotation("ApiResult")) {
-			// throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
+			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
+		}
+		$dir = dirname($method->getFileName());
+		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
+			$doc->tags = [strtolower(preg_replace("/_MODULE/", "", $matches[1]))];
 		}
 		foreach ($method->getAllAnnotations() as $anno) {
 			if ($anno instanceof ApiResult) {
@@ -372,6 +385,8 @@ class ApiSpecGenerator {
 					throw new Exception("{$method->class}::{$method->name}() has invalid @ApiResult annotation");
 				}
 				$doc->responses[$anno->code] = $anno;
+			} elseif ($anno instanceof ApiTag) {
+				$doc->tags []= $anno->value;
 			} elseif ($anno instanceof RequestBody) {
 				$doc->requestBody = $anno;
 			} elseif ($anno instanceof GET) {
@@ -424,6 +439,9 @@ class ApiSpecGenerator {
 	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
 			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];
+		}
+		if ($class === "DateTime") {
+			return ["type" => "integer"];
 		}
 		return ['$ref' => "#/components/schemas/{$class}"];
 	}

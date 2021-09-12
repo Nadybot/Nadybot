@@ -22,6 +22,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Nadybot\Modules\RAID_MODULE\RaidController;
+use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
@@ -85,6 +86,9 @@ class OnlineController {
 	public RaidController $raidController;
 
 	/** @Inject */
+	public RelayController $relayController;
+
+	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
@@ -113,6 +117,16 @@ class OnlineController {
 			"2m;5m;10m;15m;20m",
 			'',
 			"mod"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_show_relay",
+			"Include players from your relay(s) by default",
+			"edit",
+			"options",
+			"0",
+			"true;false",
+			"1;0"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -202,6 +216,15 @@ class OnlineController {
 	 */
 	public function onlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$msg = $this->getOnlineList();
+		$sendto->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("online")
+	 * @Matches("/^online all$/i")
+	 */
+	public function onlineAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$msg = $this->getOnlineList(true);
 		$sendto->reply($msg);
 	}
 
@@ -320,7 +343,7 @@ class OnlineController {
 	public function showOnlineOnLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			$msg = $this->getOnlineList();
+			$msg = $this->getOnlineList(false);
 			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
@@ -539,12 +562,23 @@ class OnlineController {
 	 * Get a page or multiple pages with the online list
 	 * @return string[]
 	 */
-	public function getOnlineList(): array {
+	public function getOnlineList(bool $includeRelay=null): array {
+		$includeRelay ??= $this->settingManager->getBool("online_show_relay");
 		$orgData = $this->getPlayers('guild');
 		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild"));
 
 		$privData = $this->getPlayers('priv');
 		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
+
+		/** @var array<string,OnlineList> */
+		$relayList = [];
+		foreach ($this->relayController->relays as $name => $relay) {
+			$online = $relay->getOnlineList();
+			foreach ($online as $chanName => $onlineChars) {
+				$chars = array_values($onlineChars);
+				$relayList[$chanName] = $this->formatData($chars, 0, static::GROUP_OFF);
+			}
+		}
 
 		$discData = [];
 		if ($this->settingManager->getBool("online_show_discord")) {
@@ -580,6 +614,17 @@ class OnlineController {
 			$blob .= "<header2>{$serverName} ({$guildCount})<end>\n".
 				$guildUsers;
 			$blob .= "\n\n";
+		}
+
+		if ($includeRelay) {
+			foreach ($relayList as $chanName => $chanList) {
+				if ($chanList->count > 0) {
+					$blob .= "<header2>{$chanName} ({$chanList->count})<end>\n".
+						$chanList->blob ."\n\n";
+					$totalCount += $chanList->count;
+					$totalMain += $chanList->countMains;
+				}
+			}
 		}
 
 		if ($totalCount > 0) {
@@ -672,7 +717,7 @@ class OnlineController {
 	 * @param int $showOrgInfo
 	 * @return OnlineList
 	 */
-	public function formatData(array $players, int $showOrgInfo): OnlineList {
+	public function formatData(array $players, int $showOrgInfo, ?int $groupBy=null): OnlineList {
 		$currentGroup = "";
 		$separator = "-";
 		$list = new OnlineList();
@@ -683,7 +728,7 @@ class OnlineController {
 		if ($list->count === 0) {
 			return $list;
 		}
-		$groupBy = $this->settingManager->getInt('online_group_by');
+		$groupBy ??= $this->settingManager->getInt('online_group_by');
 		foreach ($players as $player) {
 			if ($groupBy === static::GROUP_BY_MAIN) {
 				if ($currentGroup !== $player->pmain) {
@@ -707,7 +752,7 @@ class OnlineController {
 
 			$admin = $this->getAdminInfo($player->name, $separator);
 			[$raidPre, $raidPost] = $this->getRaidInfo($player->name, $separator);
-			$afk = $this->getAfkInfo($player->afk, $separator);
+			$afk = $this->getAfkInfo($player->afk??"", $separator);
 
 			if ($player->profession === null) {
 				$list->blob .= "<tab>? {$raidPre}{$player->name}{$admin}{$raidPost}{$afk}\n";

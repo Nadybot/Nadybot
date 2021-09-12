@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Nadybot\Core\DBSchema\Admin;
+use Nadybot\Core\DBSchema\Audit;
 
 /**
  * @Instance
@@ -19,6 +20,9 @@ class AdminManager {
 
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public AccessManager $accessManager;
 
 	/**
 	 * Admin access levels of our admin users
@@ -50,10 +54,22 @@ class AdminManager {
 	/**
 	 * Demote someone from the admin position
 	 */
-	public function removeFromLists(string $who): void {
+	public function removeFromLists(string $who, string $sender): void {
+		$oldRank = $this->admins[$who]??[];
 		unset($this->admins[$who]);
 		$this->db->table(self::DB_TABLE)->where("name", $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $who;
+		$audit->action = AccessManager::DEL_RANK;
+		if (isset($oldRank)) {
+			$alMod = $this->accessManager->getAccessLevels()["mod"];
+			$audit->value = (string)($alMod - ($oldRank["level"] - $alMod));
+		} else {
+			$audit->value = "admin";
+		}
+		$this->accessManager->addAudit($audit);
 	}
 
 	/**
@@ -61,8 +77,9 @@ class AdminManager {
 	 *
 	 * @return string Either "demoted" or "promoted"
 	 */
-	public function addToLists(string $who, int $intlevel): string {
+	public function addToLists(string $who, int $intlevel, string $sender): string {
 		$action = 'promoted';
+		$alMod = $this->accessManager->getAccessLevels()["mod"];
 		if (isset($this->admins[$who])) {
 			$this->db->table(self::DB_TABLE)
 				->where("name", $who)
@@ -70,6 +87,12 @@ class AdminManager {
 			if ($this->admins[$who]["level"] > $intlevel) {
 				$action = "demoted";
 			}
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $who;
+			$audit->action = AccessManager::DEL_RANK;
+			$audit->value = (string)($alMod - ($this->admins[$who]["level"] - $alMod));
+			$this->accessManager->addAudit($audit);
 		} else {
 			$this->db->table(self::DB_TABLE)
 				->insert(["adminlevel" => $intlevel, "name" => $who]);
@@ -77,6 +100,13 @@ class AdminManager {
 
 		$this->admins[$who]["level"] = $intlevel;
 		$this->buddylistManager->add($who, 'admin');
+
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $who;
+		$audit->action = AccessManager::ADD_RANK;
+		$audit->value = (string)($alMod - ($intlevel - $alMod));
+		$this->accessManager->addAudit($audit);
 
 		return $action;
 	}

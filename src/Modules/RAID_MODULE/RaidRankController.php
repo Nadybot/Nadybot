@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\Modules\ALTS\AltsController;
 
@@ -201,12 +202,21 @@ class RaidRankController {
 	/**
 	 * Demote someone's special raid rank
 	 */
-	public function removeFromLists(string $who): void {
+	public function removeFromLists(string $who, string $sender): void {
+		$oldRank = $this->ranks[$who]??null;
 		unset($this->ranks[$who]);
 		$this->db->table(self::DB_TABLE)
 			->where("name", $who)
 			->delete();
 		$this->buddylistManager->remove($who, 'raidrank');
+		if (isset($oldRank)) {
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $who;
+			$audit->action = AccessManager::DEL_RANK;
+			$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4));
+			$this->accessManager->addAudit($audit);
+		}
 	}
 
 	/**
@@ -214,7 +224,8 @@ class RaidRankController {
 	 *
 	 * @return string Either "demoted" or "promoted"
 	 */
-	public function addToLists(string $who, int $rank): string {
+	public function addToLists(string $who, string $sender, int $rank): string {
+		$oldRank = $this->ranks[$who]??null;
 		$action = 'promoted';
 		if (isset($this->ranks[$who]) && $this->ranks[$who]->rank > $rank) {
 			$action = "demoted";
@@ -225,10 +236,26 @@ class RaidRankController {
 				["name"]
 			);
 
+		if (isset($oldRank)) {
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $who;
+			$audit->action = AccessManager::DEL_RANK;
+			$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4));
+			$this->accessManager->addAudit($audit);
+		}
+
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
 		$this->ranks[$who]->name = $who;
 		$this->buddylistManager->add($who, 'raidrank');
+
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $who;
+		$audit->action = AccessManager::ADD_RANK;
+		$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($rank-4));
+		$this->accessManager->addAudit($audit);
 
 		return $action;
 	}
@@ -306,7 +333,7 @@ class RaidRankController {
 			return false;
 		}
 
-		$action = $this->addToLists($who, $rank);
+		$action = $this->addToLists($who, $sender, $rank);
 
 		$sendto->reply(
 			"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
@@ -330,7 +357,7 @@ class RaidRankController {
 			return false;
 		}
 
-		$this->removeFromLists($who);
+		$this->removeFromLists($who, $sender);
 
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main !== $who) {
@@ -495,8 +522,8 @@ class RaidRankController {
 		if ($oldRank === null) {
 			return;
 		}
-		$this->removeFromLists($event->alt);
-		$this->addToLists($event->main, $oldRank->rank);
+		$this->removeFromLists($event->alt, $event->main);
+		$this->addToLists($event->main, $event->alt, $oldRank->rank);
 		$this->logger->log('INFO', "Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
 	}
 }

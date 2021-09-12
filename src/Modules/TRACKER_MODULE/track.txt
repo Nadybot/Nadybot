@@ -9,3 +9,7 @@ To add a player to the track history:
 
 To remove a player from the track history:
 <highlight><tab><symbol>track rem player<end>
+
+Tracked characters are announced via the source system(tracker)
+Make sure you have routes in place to display these messages
+where you want to see them. See <a href='chatcmd:///tell <myname> help route'><symbol>help route</a> for more information.

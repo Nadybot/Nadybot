@@ -15,6 +15,8 @@ use Nadybot\Core\{
 	Http,
 	HttpResponse,
 	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
 	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -23,6 +25,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
@@ -123,6 +127,9 @@ class TowerController {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Text $text;
@@ -228,25 +235,43 @@ class TowerController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"tower_spam_target",
-			"Where to send tower messages to",
-			"edit",
-			"options",
-			"2",
-			"Off;Priv;Guild;Priv+Guild;Discord;Discord+Priv;Discord+Guild;Discord+Priv+Guild",
-			"0;1;2;3;4;5;6;7"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	"tower_spam_target",
+		// 	"Where to send tower messages to",
+		// 	"edit",
+		// 	"options",
+		// 	"2",
+		// 	"Off;Priv;Guild;Priv+Guild;Discord;Discord+Priv;Discord+Guild;Discord+Priv+Guild",
+		// 	"0;1;2;3;4;5;6;7"
+		// );
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"tower_spam_color",
-			"What color to use for tower messages",
-			"edit",
-			"color",
-			"<font color=#F06AED>"
-		);
+		// $this->settingManager->add(
+		// 	$this->moduleName,
+		// 	"tower_spam_color",
+		// 	"What color to use for tower messages",
+		// 	"edit",
+		// 	"color",
+		// 	"<font color=#F06AED>"
+		// );
+		$attack = new class implements MessageEmitter {
+			public function getChannelName(): string {
+				return Source::SYSTEM . "(tower-attack)";
+			}
+		};
+		$attackOwn = new class implements MessageEmitter {
+			public function getChannelName(): string {
+				return Source::SYSTEM . "(tower-attack-own)";
+			}
+		};
+		$victory = new class implements MessageEmitter {
+			public function getChannelName(): string {
+				return Source::SYSTEM . "(tower-victory)";
+			}
+		};
+		$this->messageHub->registerMessageEmitter($attack)
+			->registerMessageEmitter($attackOwn)
+			->registerMessageEmitter($victory);
 	}
 
 	/**
@@ -1062,7 +1087,10 @@ class TowerController {
 					[$playerName, $playfieldName],
 					$discordMessage
 				);
-				$this->discordController->sendDiscord($discordMessage, true);
+				$r = new RoutableMessage($discordMessage);
+				$r->appendPath(new Source(Source::SYSTEM, "tower-attack-own"));
+				$this->messageHub->handle($r);
+				// $this->discordController->sendDiscord($discordMessage, true);
 				$this->lastDiscordNotify = time();
 			},
 			$matches[3]
@@ -1221,8 +1249,7 @@ class TowerController {
 		$targetOrg = "<".strtolower($attack->defSide).">{$attack->defGuild}<end>";
 
 		// Starting tower message to org/private chat
-		$msg = $this->settingManager->getString('tower_spam_color').
-			"[TOWERS]<end> ";
+		$msg = "";
 		$likelyFake = isset($whois->factionGuess) && isset($whois->originalGuild) && strlen($whois->originalGuild);
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
@@ -1252,16 +1279,9 @@ class TowerController {
 		if ($s === 0) {
 			return;
 		}
-		$target = $this->settingManager->getInt('tower_spam_target');
-		if ($target & 1) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($target & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($target & 4) {
-			$this->discordController->sendDiscord($msg);
-		}
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tower-attack"));
+		$this->messageHub->handle($r);
 	}
 
 	/**
@@ -1339,14 +1359,10 @@ class TowerController {
 		}
 
 		if (!$winnerFaction) {
-			$msg = $this->settingManager->getString('tower_spam_color').
-				"[TOWERS]<end> ".
-				"<" . strtolower($loserFaction) . ">{$loserOrgName}<end> ".
+			$msg = "<" . strtolower($loserFaction) . ">{$loserOrgName}<end> ".
 				"abandoned their field";
 		} else {
-			$msg = $this->settingManager->getString('tower_spam_color').
-				"[TOWERS]<end> ".
-				"<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
+			$msg = "<".strtolower($winnerFaction).">{$winnerOrgName}<end>".
 				" won against " .
 				"<" . strtolower($loserFaction) . ">{$loserOrgName}<end>";
 		}
@@ -1400,16 +1416,9 @@ class TowerController {
 			$this->setPlantTimer($timerLocation);
 		}
 
-		$target = $this->settingManager->getInt('tower_spam_target');
-		if ($target & 1) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($target & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
-		if ($target & 4) {
-			$this->discordController->sendDiscord($msg);
-		}
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tower-victory"));
+		$this->messageHub->handle($r);
 
 		if (isset($towerInfo)) {
 			$this->remScoutSite($towerInfo->playfield_id, $towerInfo->site_number);

@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Logger;
+use ReflectionProperty;
 use Throwable;
 
 /**
@@ -75,8 +76,11 @@ class LoggerWrapper {
 	 * Get the relative path of the directory where logs of this bot are stored
 	 */
 	public function getLoggingDirectory(): string {
-		global $vars;
-		return "./logs/{$vars['name']}.{$vars['dimension']}";
+		$fileAppender = $this->logger->getRootLogger()->getAppender("defaultFileAppender");
+		$ref = new ReflectionProperty($fileAppender, "file");
+		$ref->setAccessible(true);
+		$logFile = $ref->getValue($fileAppender);
+		return dirname($logFile);
 	}
 
 	/**

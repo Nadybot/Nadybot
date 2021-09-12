@@ -7,11 +7,13 @@ use Nadybot\Core\{
 	CmdEvent,
 	CommandHandler,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Timer,
 	Util,
 };
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
@@ -21,6 +23,8 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -45,6 +49,9 @@ class LimitsController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public PlayerManager $playerManager;
@@ -204,7 +211,6 @@ class LimitsController {
 		if (
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
-			|| $sender === ucfirst(strtolower($this->settingManager->get("relaybot")))
 			// if access level is at least member, skip checks
 			|| $this->accessManager->checkAccess($sender, 'member')
 		) {
@@ -229,12 +235,9 @@ class LimitsController {
 		$cmd = explode(' ', $message, 2)[0];
 		$cmd = strtolower($cmd);
 
-		if ($this->settingManager->getBool('access_denied_notify_guild')) {
-			$this->chatBot->sendGuild("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-		}
-		if ($this->settingManager->getBool('access_denied_notify_priv')) {
-			$this->chatBot->sendPrivate("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.", true);
-		}
+		$r = new RoutableMessage("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end> due to limit checks.");
+		$r->appendPath(new Source(Source::SYSTEM, "access-denied"));
+		$this->messageHub->handle($r);
 	}
 
 	/**
@@ -414,6 +417,12 @@ class LimitsController {
 				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
 				$this->logger->log('INFO', "Kicking {$event->sender} from private channel.");
 				$this->chatBot->privategroup_kick($event->sender);
+				$audit = new Audit();
+				$audit->actor = $this->chatBot->char->name;
+				$audit->actor = $event->sender;
+				$audit->action = AccessManager::KICK;
+				$audit->value = "limits exceeded";
+				$this->accessManager->addAudit($audit);
 			}
 		}
 		if ($action & 2) {

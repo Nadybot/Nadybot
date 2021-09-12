@@ -319,4 +319,23 @@ class Text {
 			$strings
 		);
 	}
+
+	public function removePopups(string $message, bool $removeLinks=false): string {
+		$message = preg_replace_callback(
+			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			function (array $matches) use ($removeLinks): string {
+				if ($removeLinks) {
+					return chr(1);
+				}
+				return $matches[3];
+			},
+			$message
+		);
+		if ($removeLinks) {
+			$message = preg_replace("/(?<=\.)\s+" . chr(1) . "/s", "", $message);
+			$message = preg_replace("/\s*\[" . chr(1) . "\]/s", "", $message);
+			$message = preg_replace("/\s*" . chr(1) . "/s", "", $message);
+		}
+		return $message;
+	}
 }

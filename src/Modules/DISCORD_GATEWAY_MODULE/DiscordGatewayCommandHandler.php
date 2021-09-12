@@ -293,9 +293,6 @@ class DiscordGatewayCommandHandler {
 			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
-		if ($this->settingManager->getBool('discord_relay_commands')) {
-			$this->discordRelayController->relayDiscordMessage($event->discord_message->member, $event->message);
-		}
 		if (!preg_match("/^extauth\s+request/", $event->message)) {
 			$discordUserId = $this->getNameForDiscordId($discordUserId) ?? $discordUserId;
 		}

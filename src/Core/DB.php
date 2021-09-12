@@ -124,7 +124,7 @@ class DB {
 		$this->type = strtolower($type);
 		$this->botname = strtolower($vars["name"]);
 		$this->dim = $vars["dimension"];
-		$this->guild = str_replace("'", "''", $vars["my_guild"]);
+		$this->guild = str_replace("'", "''", $vars["my_guild"]??"");
 		$this->capsule = new Capsule();
 
 		if ($this->type === self::MYSQL) {
@@ -840,12 +840,15 @@ class DB {
 			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
 				continue;
 			}
-			if ($prop->isInitialized($row) && $prop->name !== $key) {
+			if ($prop->isInitialized($row)) {
 				$updates[$prop->name] = $prop->getValue($row);
+				if ($updates[$prop->name] instanceof DateTime) {
+					$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
+				}
 			}
 		}
 		return $this->table($table)
-			->where($key, $updates[$key])
+			->where($key, $row->{$key})
 			->update($updates);
 	}
 

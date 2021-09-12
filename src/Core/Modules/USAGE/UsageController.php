@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BotRunner,
 	CommandReply,
@@ -14,6 +15,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Nadybot\Modules\RELAY_MODULE\RelayLayer;
 use stdClass;
 
 /**
@@ -316,23 +319,27 @@ class UsageController {
 
 		$settings = new SettingsUsageStats();
 		$settings->dimension               = (int)$this->chatBot->vars['dimension'];
-		$settings->is_guild_bot            = $this->chatBot->vars['my_guild'] !== '';
+		$settings->is_guild_bot            = strlen($this->chatBot->vars['my_guild']??'') > 0;
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
 		$settings->using_chat_proxy        = (bool)$this->chatBot->vars['use_proxy'];
 		$settings->db_type                 = $this->db->getType();
 		$settings->bot_version             = $version;
-		$settings->using_git               = @file_exists(dirname(__DIR__) . "/GIT_MODULE/GitController.class.php");
+		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
 		$settings->symbol                  = $this->settingManager->getString('symbol');
-		$settings->relay_enabled           = $this->settingManager->getString('relaybot') !== 'Off';
-		$settings->relay_type              = $this->settingManager->getInt('relaytype');
+		$settings->num_relays              = $this->db->table(RelayController::DB_TABLE)->count();
+		$settings->relay_protocols         = $this->db->table(RelayController::DB_TABLE_LAYER)
+			->orderBy("relay_id")->orderByDesc("id")->asObj(RelayLayer::class)
+			->groupBy("relay_id")
+			->map(function(Collection $group): string {
+				return $group->first()->layer;
+			})->flatten()->unique()->toArray();
 		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only');
 		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version');
 		$settings->max_blob_size           = $this->settingManager->getInt('max_blob_size');
 		$settings->online_show_org_guild   = $this->settingManager->getInt('online_show_org_guild');
 		$settings->online_show_org_priv    = $this->settingManager->getInt('online_show_org_priv');
 		$settings->online_admin            = $this->settingManager->getBool('online_admin');
-		$settings->relay_symbol_method     = $this->settingManager->getInt('relay_symbol_method');
 		$settings->tower_attack_spam       = $this->settingManager->getInt('tower_attack_spam');
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 

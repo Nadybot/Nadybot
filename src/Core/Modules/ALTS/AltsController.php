@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Nadybot\Core\{
+	AccessManager,
 	BuddylistManager,
 	CommandReply,
 	DB,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+use Nadybot\Core\DBSchema\Audit;
 
 /**
  * @author Tyrence (RK2)
@@ -71,6 +73,9 @@ class AltsController {
 
 	/** @Inject */
 	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public AccessManager $accessManager;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -405,12 +410,18 @@ class AltsController {
 			return;
 		}
 
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->action = AccessManager::SET_MAIN;
+		$this->accessManager->addAudit($audit);
+
 		// @todo Send a warning if the new main's accesslevel is not the highest
 		$event = new AltEvent();
 		$event->main = $sender;
 		$event->alt = $altInfo->main;
 		$event->type = 'alt(newmain)';
 		$this->eventManager->fireEvent($event);
+
 		$msg = "Your main is now <highlight>{$sender}<end>.";
 		$sendto->reply($msg);
 	}
@@ -493,6 +504,12 @@ class AltsController {
 			->update(["validated_by_alt" => true]);
 
 		$this->fireAltValidatedEvent($altInfo->main, $sender);
+
+		$audit = new Audit();
+		$audit->actor = $altInfo->main;
+		$audit->actee = $sender;
+		$audit->action = AccessManager::ADD_ALT;
+		$this->accessManager->addAudit($audit);
 
 		$sendto->reply("<highlight>$toValidate<end> has been validated as your main.");
 		$this->buddylistManager->remove($sender, static::ALT_VALIDATE);
@@ -710,6 +727,13 @@ class AltsController {
 			$event->type = 'alt(add)';
 			$this->eventManager->fireEvent($event);
 		}
+		if ($validatedByAlt && $validatedByMain) {
+			$audit = new Audit();
+			$audit->actor = $main;
+			$audit->actee = $alt;
+			$audit->action = AccessManager::ADD_ALT;
+			$this->accessManager->addAudit($audit);
+		}
 		return $added ? 1 : 0;
 	}
 
@@ -717,6 +741,12 @@ class AltsController {
 	 * This method removes given a $alt from being $main's alt character.
 	 */
 	public function remAlt(string $main, string $alt): int {
+		/** @var ?Alt */
+		$old = $this->db->table("alts")
+			->where("alt", $alt)
+			->where("main", $main)
+			->asObj(Alt::class)
+			->first();
 		$deleted = $this->db->table("alts")
 			->where("alt", $alt)
 			->where("main", $main)
@@ -727,6 +757,14 @@ class AltsController {
 			$event->alt = $alt;
 			$event->type = 'alt(del)';
 			$this->eventManager->fireEvent($event);
+
+			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
+				$audit = new Audit();
+				$audit->actor = $main;
+				$audit->actee = $alt;
+				$audit->action = AccessManager::DEL_ALT;
+				$this->accessManager->addAudit($audit);
+			}
 		}
 		return $deleted;
 	}

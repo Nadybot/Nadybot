@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -15,6 +16,19 @@ use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
  * @Instance
  */
 class AccessManager {
+	public const DB_TABLE = "audit_<myname>";
+	public const ADD_RANK = "add-rank";
+	public const DEL_RANK = "del-rank";
+	public const PERM_BAN = "permanent-ban";
+	public const TEMP_BAN = "temporary-ban";
+	public const JOIN = "join";
+	public const KICK = "kick";
+	public const LEAVE = "leave";
+	public const INVITE = "invite";
+	public const ADD_ALT = "add-alt";
+	public const DEL_ALT = "del-alt";
+	public const SET_MAIN = "set-main";
+
 	/**
 	 * @var array<string,int> $ACCESS_LEVELS
 	 */
@@ -293,5 +307,16 @@ class AccessManager {
 	 */
 	public function getAccessLevels(): array {
 		return self::$ACCESS_LEVELS;
+	}
+
+	public function addAudit(Audit $audit): void {
+		if (!$this->settingManager->getBool('audit_enabled')) {
+			return;
+		}
+		if (in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {
+			$revLook = array_flip(self::$ACCESS_LEVELS);
+			$audit->value = $audit->value . " (" . $revLook[$audit->value] . ")";
+		}
+		$this->db->insert(static::DB_TABLE, $audit);
 	}
 }

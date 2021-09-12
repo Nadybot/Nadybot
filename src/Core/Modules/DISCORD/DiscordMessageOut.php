@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use JsonException;
+
 class DiscordMessageOut {
 	public string $content;
 	public $nonce = null;
@@ -16,6 +18,14 @@ class DiscordMessageOut {
 	}
 
 	public function toJSON(): string {
-		return json_encode($this, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		try {
+			$string = json_encode($this, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE);
+			return $string;
+		} catch (JsonException $e) {
+			$replacement = clone $this;
+			$replacement->content = "I contain invalid characters";
+			$replacement->file = null;
+			return json_encode($replacement, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		}
 	}
 }

@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DBSchema\BanEntry,
 	SQLException,
 };
+use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
@@ -435,6 +436,12 @@ class BanController {
 
 			if ($this->add($charId, $sender, $length, $reason)) {
 				$this->chatBot->privategroup_kick($who);
+				$audit = new Audit();
+				$audit->actor = $sender;
+				$audit->actee = $who;
+				$audit->action = AccessManager::KICK;
+				$audit->value = "banned";
+				$this->accessManager->addAudit($audit);
 				$numSuccess++;
 			} else {
 				$numErrors++;
@@ -472,6 +479,13 @@ class BanController {
 			]);
 
 		$this->uploadBanlist();
+
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->actee = $this->chatBot->lookup_user($charId);
+		$audit->action = $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN;
+		$audit->value = $reason;
+		$this->accessManager->addAudit($audit);
 
 		return $inserted;
 	}

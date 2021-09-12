@@ -244,7 +244,7 @@ class AdminController {
 			return false;
 		}
 
-		$action = $this->adminManager->addToLists($who, $intlevel);
+		$action = $this->adminManager->addToLists($who, $intlevel, $sender);
 
 		$sendto->reply("<highlight>$who<end> has been $action to $rank.");
 		$this->chatBot->sendTell("You have been $action to $rank by <highlight>$sender<end>.", $who);
@@ -262,7 +262,7 @@ class AdminController {
 			return false;
 		}
 
-		$this->adminManager->removeFromLists($who);
+		$this->adminManager->removeFromLists($who, $sender);
 
 		if (!$this->checkAltsInheritAdmin($who)) {
 			$msg = "<red>WARNING<end>: $who is not a main.  This command did NOT affect $who's access level.";
@@ -294,8 +294,8 @@ class AdminController {
 		if (!isset($oldRank)) {
 			return;
 		}
-		$this->adminManager->removeFromLists($event->alt);
-		$this->adminManager->addToLists($event->main, $oldRank["level"]);
+		$this->adminManager->removeFromLists($event->alt, $event->main);
+		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
 		$this->logger->log('INFO', "Moved {$event->alt}'s admin rank to {$event->main}.");
 	}
 }

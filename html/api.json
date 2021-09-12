@@ -2,12 +2,12 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Nadybot API",
-		"description": "This API provides access to Nadybot function in a REST API",
+		"description": "This API provides access to Nadybot functions in a REST API",
 		"license": {
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.0.1@news-api"
+		"version": "5.2.0"
 	},
 	"servers": [
 		{
@@ -227,6 +227,52 @@
 						}
 					}
 				]
+			},
+			"RouteHopColor": {
+				"type": "object",
+				"properties": {
+					"hop": {
+						"type": "string",
+						"description": "The hop mask (discord, *, aopriv, ...)"
+					},
+					"where": {
+						"type": "string",
+						"nullable": true,
+						"description": "The channel for which to apply these colors or null for all"
+					},
+					"tag_color": {
+						"type": "string",
+						"nullable": true,
+						"description": "The 6 hex digits of the tag color, like FFFFFF"
+					},
+					"text_color": {
+						"type": "string",
+						"nullable": true,
+						"description": "The 6 hex digits of the text color, like FFFFFF"
+					}
+				}
+			},
+			"RouteHopFormat": {
+				"type": "object",
+				"properties": {
+					"hop": {
+						"type": "string",
+						"description": "The hop mask (discord, *, aopriv, ...)"
+					},
+					"where": {
+						"type": "string",
+						"nullable": true,
+						"description": "The channel for which to apply these, or null for all"
+					},
+					"render": {
+						"type": "boolean",
+						"description": "Whether to render this tag or not"
+					},
+					"format": {
+						"type": "string",
+						"description": "The format what the text of the tag should look like"
+					}
+				}
 			},
 			"BasicSystemInformation": {
 				"type": "object",
@@ -486,6 +532,71 @@
 					}
 				}
 			},
+			"Audit": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "ID of this audit entry"
+					},
+					"actor": {
+						"type": "string",
+						"description": "The person doing something"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person the actor is interacting with. Not set if not applicable"
+					},
+					"action": {
+						"type": "string",
+						"description": "What did the actor do"
+					},
+					"value": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional value for the action"
+					},
+					"time": {
+						"type": "integer",
+						"description": "time when it happened"
+					}
+				}
+			},
+			"OrgHistory": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "Internal ID of this history entry"
+					},
+					"actor": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person doing the action"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional, the person the actor is acting on"
+					},
+					"action": {
+						"type": "string",
+						"nullable": true,
+						"description": "The action the actor is doing"
+					},
+					"organization": {
+						"type": "string",
+						"nullable": true,
+						"description": "Name of the organization this action was done in"
+					},
+					"time": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Timestamp when the action happened"
+					}
+				}
+			},
 			"NewNews": {
 				"type": "object",
 				"properties": {
@@ -673,6 +784,99 @@
 					}
 				},
 				"description": "This is the list of all players considered to be online by the bot"
+			},
+			"FunctionParameter": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
+					"required": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ClassSpec": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"class": {
+						"type": "string"
+					},
+					"params": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/FunctionParameter"
+						}
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"RelayLayerArgument": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of the argument"
+					},
+					"value": {
+						"type": "string",
+						"description": "The value of the argument"
+					}
+				}
+			},
+			"RelayLayer": {
+				"type": "object",
+				"properties": {
+					"layer": {
+						"type": "string",
+						"description": "Which relay stack layer does this represent?"
+					},
+					"arguments": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RelayLayerArgument"
+						}
+					}
+				}
+			},
+			"RelayConfig": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of this relay"
+					},
+					"layers": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RelayLayer"
+						}
+					}
+				}
+			},
+			"RelayStatus": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					}
+				}
 			}
 		},
 		"securitySchemes": {
@@ -706,7 +910,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/events/{event}/{handler}": {
@@ -764,7 +971,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -794,7 +1004,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/settings/{setting}": {
@@ -854,7 +1067,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -894,7 +1110,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands/{command}/{channel}": {
@@ -956,7 +1175,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -990,7 +1212,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands/{command}": {
@@ -1037,7 +1262,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1064,7 +1292,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}": {
@@ -1112,7 +1343,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			},
 			"put": {
 				"security": [
@@ -1139,7 +1373,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/description": {
@@ -1174,7 +1411,10 @@
 					"204": {
 						"description": "No description set"
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/settings": {
@@ -1209,7 +1449,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/events": {
@@ -1244,7 +1487,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/module/{module}/commands": {
@@ -1279,7 +1525,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
 			}
 		},
 		"/access_levels": {
@@ -1305,7 +1554,68 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"config"
+				]
+			}
+		},
+		"/hop/color": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all hop colors",
+				"responses": {
+					"200": {
+						"description": "The hop color definitions",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RouteHopColor"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"messages"
+				]
+			}
+		},
+		"/hop/format": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all hop formats",
+				"responses": {
+					"200": {
+						"description": "The hop format definitions",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RouteHopFormat"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"messages"
+				]
 			}
 		},
 		"/setting/{key}": {
@@ -1340,7 +1650,10 @@
 					"204": {
 						"description": "No value stored"
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"post": {
 				"security": [
@@ -1370,7 +1683,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"put": {
 				"security": [
@@ -1397,7 +1713,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			},
 			"delete": {
 				"security": [
@@ -1413,7 +1732,10 @@
 					"409": {
 						"description": "No setting found for that key"
 					}
-				}
+				},
+				"tags": [
+					"preferences"
+				]
 			}
 		},
 		"/sysinfo": {
@@ -1436,7 +1758,179 @@
 							}
 						}
 					}
+				},
+				"tags": [
+					"system"
+				]
+			}
+		},
+		"/audit": {
+			"parameters": [
+				{
+					"name": "limit",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "actor",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries of this actor"
+				},
+				{
+					"name": "actee",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this actee"
+				},
+				{
+					"name": "action",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this action"
+				},
+				{
+					"name": "before",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from before the given timestamp"
+				},
+				{
+					"name": "after",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from after the given timestamp"
 				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Query entries from the audit log",
+				"responses": {
+					"200": {
+						"description": "The audit log entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Audit"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"audit"
+				]
+			}
+		},
+		"/org/history": {
+			"parameters": [
+				{
+					"name": "limit",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "actor",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries of this actor"
+				},
+				{
+					"name": "actee",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this actee"
+				},
+				{
+					"name": "action",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this action"
+				},
+				{
+					"name": "before",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from before the given timestamp"
+				},
+				{
+					"name": "after",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from after the given timestamp"
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Query entries from the org history log",
+				"responses": {
+					"200": {
+						"description": "The org history log entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/OrgHistory"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"guild",
+					"audit"
+				]
 			}
 		},
 		"/news": {
@@ -1462,7 +1956,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			},
 			"post": {
 				"security": [
@@ -1486,7 +1983,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			}
 		},
 		"/news/{id}": {
@@ -1521,7 +2021,10 @@
 					"404": {
 						"description": "Given news id not found"
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			},
 			"patch": {
 				"security": [
@@ -1552,7 +2055,10 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"news"
+				]
 			}
 		},
 		"/online": {
@@ -1575,7 +2081,237 @@
 							}
 						}
 					}
+				},
+				"tags": [
+					"online"
+				]
+			}
+		},
+		"/relay-component/transport": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay transports",
+				"responses": {
+					"200": {
+						"description": "The available relay transport layers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			}
+		},
+		"/relay-component/layer": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay layers",
+				"responses": {
+					"200": {
+						"description": "The available generic relay layers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			}
+		},
+		"/relay-component/protocol": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay protocols",
+				"responses": {
+					"200": {
+						"description": "The available relay protocols",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			}
+		},
+		"/relay": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relays",
+				"responses": {
+					"200": {
+						"description": "The configured relays",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RelayConfig"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new relay",
+				"responses": {
+					"204": {
+						"description": "Relay created successfully"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			}
+		},
+		"/relay/{relay}": {
+			"parameters": [
+				{
+					"name": "relay",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
 				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single relay",
+				"responses": {
+					"200": {
+						"description": "The configured relay",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RelayConfig"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete a relay",
+				"responses": {
+					"204": {
+						"description": "The relay was deleted"
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			}
+		},
+		"/relay/{relay}/status": {
+			"parameters": [
+				{
+					"name": "relay",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a relay's status",
+				"responses": {
+					"200": {
+						"description": "The status message of the relay",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RelayStatus"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
 			}
 		},
 		"/execute/{uuid}": {
@@ -1617,10 +2353,13 @@
 							}
 						}
 					}
-				}
+				},
+				"tags": [
+					"webserver"
+				]
 			}
 		},
-		"/chat/org": {
+		"/chat/web": {
 			"parameters": [],
 			"post": {
 				"security": [
@@ -1632,9 +2371,6 @@
 				"responses": {
 					"204": {
 						"description": "Message sent"
-					},
-					"404": {
-						"description": "Not an org bot"
 					}
 				},
 				"requestBody": {
@@ -1647,34 +2383,10 @@
 							}
 						}
 					}
-				}
-			}
-		},
-		"/chat/priv": {
-			"parameters": [],
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Send a message to the priv chat",
-				"responses": {
-					"204": {
-						"description": "Message sent"
-					}
 				},
-				"requestBody": {
-					"description": "The text to send",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
+				"tags": [
+					"webserver"
+				]
 			}
 		}
 	}

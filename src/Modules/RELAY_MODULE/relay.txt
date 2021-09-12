@@ -1,0 +1,16 @@
+To list all currently configured relays:
+<tab><highlight><symbol>relay<end>
+
+To list all currently available relay transport layers:
+<tab><highlight><symbol>relay list transports<end>
+
+To list all currently available relay protocols:
+<tab><highlight><symbol>relay list protocols<end>
+
+To create a new relay connection named 'alliance', using
+the old Budabot protocol via the private channel 'aorelay':
+<tab><highlight><symbol>relay add alliance private-channel(channel=aorelay) grcv1()<end>
+
+To configure which events are routed to and from a relay
+- given that the protocol supports this - use:
+<tab><highlight><symbol>relay config 'relayname'<end>

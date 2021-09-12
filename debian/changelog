@@ -1,3 +1,46 @@
+nadybot (5.2.0-1+ubuntu1) bionic; urgency=medium
+  Features:
+  - Complete relay stack rewrite:
+    * Allow any number of relays, each with its own prefix, protocol,
+      transport, etc. You can use any protocol with any transport
+      (Tyrbot via AMQP, BeBot via Websocket, etc.)
+    * Support BeBot's relay protocol
+    * Support Tyrbot's relay protocol
+    * Integrate agcr protocol from ALLIANCE_RELAY_MODULE
+    * Add new native relay protocol for Nadybot
+    * Support custom relay-stack layers. Built-in are:
+      * encryption, relaying over websockets and sharing online lists
+  - Complete messaging rewrite, introducing the message hub:
+    * Allows routing messages from any supported channel to another channel
+    * Supports wildcards as channel source
+    * Supports custom modifiers. Built-in are:
+      * if-has-prefix(), remove-popups(), if-matches(), if-not-by() and many more
+    * Allow setting if and how a tag is displayed for each of the
+      hops a message passes
+    * Allow configuring the color of each of the tags and texts rendered,
+      depending on source and target hop. This allows for custom colors
+      for private channel, web chat, console...
+  - New security module that lets you configure to log security-relevant
+    events and makes them available via !audit command and API calls
+  - API endpoint /org/history to complement the audit API
+  - Support for signed API calls, so pure API-calls don't need to
+    re-authenticate once per hour.
+  - Thanks to the message hub, you can now route messages into the console
+    and into the webchat. Yes, even Darknet, relays and discord... everything
+  - API spec is now tagged for better overview
+
+  Bugfixes:
+  - The !logs command now works if you have them somewhere else than ./logs/
+  - Rendering certain popups in Discord looked wrong (e.g. !alts)
+
+  Other:
+  - When updating the bot via git, you also have to run !composer install to
+    see if all required modules are present. Bot will now check for this and
+    give you a meaningful error-message
+  - Since routing is done by name now, changing your discord channel name
+    can break your routing.
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 12 Sep 2021 21:15:00 +0200
+
 nadybot (5.1.3-1+ubuntu1) bionic; urgency=medium
   Features:
   - Allow manual adjusting which arbiter week it is
