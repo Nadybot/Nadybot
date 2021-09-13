@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
@@ -13,7 +14,9 @@ use Throwable;
  */
 class TowerApiController {
 
-	public const TOWER_API = "https://tower-api.jkbff.com/api/towers";
+	public const TOWER_API = "tower_api";
+	public const API_TYRENCE = "https://tower-api.jkbff.com/api/towers";
+	public const API_NONE = "none";
 
 	/**
 	 * Name of the module.
@@ -33,16 +36,52 @@ class TowerApiController {
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
 
-	/**
-	 * @Setting("tower_cache_duration")
-	 * @Description("How long to cache data from the Tower API")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("5 min;10 min;15 min;30 min;1hour")
-	 * @Intoptions("300;600;900;1800;3600")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultTowerCacheDuration = 600;
+	/** @Setup */
+	public function setup(): void {
+		$this->settingManager->add(
+			$this->moduleName,
+			static::TOWER_API,
+			"Which API to use for querying tower infos",
+			"edit",
+			"text",
+			static::API_TYRENCE,
+			static::API_NONE . ";" . static::API_TYRENCE
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_cache_duration",
+			"How long to cache data from the Tower API",
+			"edit",
+			"options",
+			"1800",
+			"5 min;10 min;15 min;30 min;1 hour;2 hours",
+			"300;600;900;1800;3600;7200"
+		);
+		$this->settingManager->registerChangeListener(
+			static::TOWER_API,
+			[$this, "verifyTowerAPI"]
+		);
+	}
+
+	public function isActive(): bool {
+		return $this->settingManager->getString(static::TOWER_API) !== static::API_NONE;
+	}
+
+	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, $data): void {
+		if ($newValue === static::API_NONE) {
+			return;
+		}
+		$parsed = parse_url($newValue);
+		if ($parsed === false) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid URL.");
+		}
+		if (!isset($parsed["scheme"]) ||!isset($parsed["host"])) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid URL.");
+		}
+		if (!in_array(strtolower($parsed['scheme']), ["http", "https"])) {
+			throw new Exception("<highlight>{$parsed['scheme']}<end> is an unsupported scheme.");
+		}
+	}
 
 	/**
 	 * @Event("timer(5m)")
@@ -75,7 +114,7 @@ class TowerApiController {
 				return;
 			}
 		}
-		$this->http->get(static::TOWER_API)
+		$this->http->get($this->settingManager->getString(static::TOWER_API))
 			->withQueryParams($params)
 			->withTimeout(10)
 			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
