@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Addendum\ReflectionAnnotatedClass;
 use DateTime;
+use Exception;
 use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
@@ -31,6 +32,10 @@ use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
  * @Instance
  */
 class WebserverController {
+	public const AUTH_AOAUTH = "aoauth.org";
+	public const AUTH_BASIC = "webauth";
+
+	/** Set by the registry */
 	public string $moduleName;
 
 	protected $serverSocket;
@@ -124,6 +129,29 @@ class WebserverController {
 			'superadmin'
 		);
 */
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_auth',
+			'How to authenticate against the webserver',
+			'edit',
+			'options',
+			static::AUTH_BASIC,
+			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH])
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_base_url',
+			'Which is the base URL for the webserver? This is where aoauth redirects to',
+			'edit',
+			'text',
+			'default',
+			'default',
+			'',
+			'admin',
+			'webserver_base_url.txt'
+		);
 
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
@@ -400,11 +428,52 @@ class WebserverController {
 	 */
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		if (!isset($event->request->authenticatedAs)) {
-			$server->httpError(new Response(
-				Response::UNAUTHORIZED,
-				["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
-			));
+			$authType = $this->settingManager->getString('webserver_auth');
+			if ($authType === static::AUTH_BASIC) {
+				$server->httpError(new Response(
+					Response::UNAUTHORIZED,
+					["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
+				));
+			} elseif ($authType === static::AUTH_AOAUTH) {
+				$baseUrl = $this->settingManager->getString('webserver_base_url');
+				if ($baseUrl === 'default') {
+					$baseUrl = 'http://' . $event->request->headers['host'];
+				}
+				unset($event->request->query['_aoauth_token']);
+				$redirectUrl = $baseUrl . $event->request->path;
+				if (strlen($queryString = http_build_query($event->request->query))) {
+					$redirectUrl .= "?{$queryString}";
+				}
+				$server->sendResponse(new Response(
+					Response::TEMPORARY_REDIRECT,
+					[
+						'Location' => 'https://aoauth.org/auth?redirect_uri='.
+							urlencode($redirectUrl) . '&application_name='.
+							urlencode($this->db->getMyname())
+					]
+				), true);
+			}
 			return;
+		}
+		if (isset($event->request->query['_aoauth_token'])) {
+			$jwtUser = $this->checkJWTAuthentication($event->request->query['_aoauth_token']);
+			if (isset($jwtUser)) {
+				$newQuery = $event->request->query;
+				unset($newQuery['_aoauth_token']);
+				$redirectTo = $event->request->path;
+				if (strlen($queryString = http_build_query($newQuery))) {
+					$redirectTo .= "?{$queryString}";
+				}
+				$cookie = 'authorization=' . $event->request->query['_aoauth_token'];
+				$server->sendResponse(new Response(
+					Response::TEMPORARY_REDIRECT,
+					[
+						'Location' => $redirectTo,
+						'Set-Cookie' => $cookie,
+					]
+				), true);
+				return;
+			}
 		}
 
 		$handlers = $this->getHandlersForRequest($event->request);
@@ -548,6 +617,29 @@ class WebserverController {
 			return null;
 		}
 		return $user;
+	}
+
+	/**
+	 * Check if a valid user is given by a JWT
+	 * @return null|string null if token is wrong, the username that was sent if correct
+	 */
+	public function checkJWTAuthentication(string $token): ?string {
+		$aoAuthPubKey = <<<EOF
+		-----BEGIN PUBLIC KEY-----
+		MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO3LC4ykl2mx/kjJp4wsA2Zy8Yyod
+		w8BY7vWCjFsgPHWNexCmVxwohaKX1bEV0k7ixwqAgbKh2NqCOut45tFEIg==
+		-----END PUBLIC KEY-----
+		EOF;
+		try {
+			$payload = JWT::decode($token, trim($aoAuthPubKey));
+		} catch (Exception $e) {
+			$this->logger->log('ERROR', 'JWT: ' . $e->getMessage(), $e);
+			return null;
+		}
+		if ($payload->exp??time() <= time()) {
+			// return null;
+		}
+		return $payload->sub->name??null;
 	}
 
 	/**
