@@ -224,7 +224,7 @@ class WebUiController implements MessageEmitter {
 		if (!$this->settingManager->getBool('webserver')) {
 			return;
 		}
-		if (!$this->settingManager->getstring('webserver_auth') !== WebserverController::AUTH_BASIC) {
+		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
 			return;
 		}
 		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/

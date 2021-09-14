@@ -685,12 +685,11 @@ class WebserverController {
 	 * @return null|string null if token is wrong, the username that was sent if correct
 	 */
 	public function checkJWTAuthentication(string $token): ?string {
-		$aoAuthPubKey = <<<EOF
-		-----BEGIN PUBLIC KEY-----
-		MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO3LC4ykl2mx/kjJp4wsA2Zy8Yyod
-		w8BY7vWCjFsgPHWNexCmVxwohaKX1bEV0k7ixwqAgbKh2NqCOut45tFEIg==
-		-----END PUBLIC KEY-----
-		EOF;
+		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
+		if (!isset($aoAuthPubKey)) {
+			$this->logger->log('ERROR', 'No public key found to validate JWT');
+			return null;
+		}
 		try {
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
