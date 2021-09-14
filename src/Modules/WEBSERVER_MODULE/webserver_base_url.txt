@@ -1,0 +1,13 @@
+When you use aoauth.org to authenticate your logins,
+a successful authenticating will need to redirect you
+back to your Nadybot webserver.
+If you have any form of (reverse-)proxy in front of
+your bot (e.g. for https), you need to provide the base
+URL of your bot, so the redirect can go to this URL, plus
+path and parameters.
+
+If, for example, your bot's API is reachable as
+<highlight>https://bot1.securedomain.org/web/api<end>
+
+then set your base URL to
+<highlight>https://bot1.securedomain.org/web<end>
