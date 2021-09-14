@@ -224,6 +224,9 @@ class WebUiController implements MessageEmitter {
 		if (!$this->settingManager->getBool('webserver')) {
 			return;
 		}
+		if (!$this->settingManager->getstring('webserver_auth') !== WebserverController::AUTH_BASIC) {
+			return;
+		}
 		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
 		$port = $this->settingManager->getInt('webserver_port');
 		$superUser = $this->chatBot->vars['SuperAdmin'];

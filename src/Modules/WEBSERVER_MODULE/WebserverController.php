@@ -8,8 +8,11 @@ use Exception;
 use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
+	AsyncHttp,
 	CommandReply,
 	DB,
+	Http,
+	HttpResponse,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -32,7 +35,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
  * @Instance
  */
 class WebserverController {
-	public const AUTH_AOAUTH = "aoauth.org";
+	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
 
 	/** Set by the registry */
@@ -53,6 +56,9 @@ class WebserverController {
 	public Timer $timer;
 
 	/** @Inject */
+	public Http $http;
+
+	/** @Inject */
 	public DB $db;
 
 	/** @Logger */
@@ -64,6 +70,40 @@ class WebserverController {
 	protected array $authentications = [];
 
 	protected AsyncSocket $asyncSocket;
+
+	protected ?string $aoAuthPubKey = null;
+	protected AsyncHttp $aoAuthPubKeyRequest;
+
+	/**
+	 * @Event("connect")
+	 * @Description("Download aoauth public key")
+	 */
+	public function downloadPublicKey(): void {
+		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
+			return;
+		}
+		$aoAuthKeyUrl = rtrim(
+			$this->settingManager->getString('webserver_aoauth_url'),
+			'/'
+		) . '/key';
+		if (isset($this->aoAuthPubKeyRequest)) {
+			$this->aoAuthPubKeyRequest->abortWithMessage("Not needed anymore");
+		}
+		$this->aoAuthPubKeyRequest = $this->http->get($aoAuthKeyUrl)
+			->withTimeout(30)
+			->withCallback(function (HttpResponse $response): void {
+				unset($this->aoAuthPubKeyRequest);
+				$this->receiveAoAuthPubkey($response);
+			});
+	}
+
+	protected function receiveAoAuthPubkey(HttpResponse $response): void {
+		if (isset($response->error) || $response->headers['status'] !== "200") {
+			$this->logger->log('ERROR', 'Error downloading aoauth pubkey.');
+			return;
+		}
+		$this->aoAuthPubKey = $response->body;
+	}
 
 	/** @Setup */
 	public function setup(): void {
@@ -153,6 +193,16 @@ class WebserverController {
 			'webserver_base_url.txt'
 		);
 
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_aoauth_url',
+			'If you are using aoauth to authenticate: URL of the server',
+			'edit',
+			'text',
+			'https://aoauth.org',
+			'https://aoauth.org'
+		);
+
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
@@ -160,10 +210,19 @@ class WebserverController {
 		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_addr', [$this, "webserverSettingChanged"]);
+		$this->settingManager->registerChangeListener('webserver_auth', [$this, "downloadNewPublicKey"]);
+		$this->settingManager->registerChangeListener('webserver_aoauth_url', [$this, "downloadNewPublicKey"]);
 /*
 		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
 */
+	}
+
+	/**
+	 * Start or stop the webserver if the setting changed
+	 */
+	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
+		$this->timer->callLater(0, [$this, "downloadPublicKey"]);
 	}
 
 	/**
@@ -444,10 +503,12 @@ class WebserverController {
 				if (strlen($queryString = http_build_query($event->request->query))) {
 					$redirectUrl .= "?{$queryString}";
 				}
+				$aoAuthUrl = rtrim($this->settingManager->getString('webserver_aoauth_url'), '/').
+					'/auth';
 				$server->sendResponse(new Response(
 					Response::TEMPORARY_REDIRECT,
 					[
-						'Location' => 'https://aoauth.org/auth?redirect_uri='.
+						'Location' => $aoAuthUrl . '?redirect_uri='.
 							urlencode($redirectUrl) . '&application_name='.
 							urlencode($this->db->getMyname())
 					]
