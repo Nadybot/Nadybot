@@ -98,10 +98,16 @@ class WebserverController {
 	}
 
 	protected function receiveAoAuthPubkey(HttpResponse $response): void {
-		if (isset($response->error) || $response->headers['status'] !== "200") {
-			$this->logger->log('ERROR', 'Error downloading aoauth pubkey.');
+		if (isset($response->error) || $response->headers['status-code'] !== "200") {
+			$this->logger->log(
+				'ERROR',
+				'Error downloading aoauth pubkey from'.
+				$response->request->getURI() . ": ".
+				$response->error ?? $response->headers['status-code']
+			);
 			return;
 		}
+		$this->logger->log('INFO', 'New aoauth pubkey downloaded.');
 		$this->aoAuthPubKey = $response->body;
 	}
 
