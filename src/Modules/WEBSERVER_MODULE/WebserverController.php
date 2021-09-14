@@ -525,7 +525,8 @@ class WebserverController {
 				if (strlen($queryString = http_build_query($newQuery))) {
 					$redirectTo .= "?{$queryString}";
 				}
-				$cookie = 'authorization=' . $event->request->query['_aoauth_token'];
+				$cookie = 'authorization=' . $event->request->query['_aoauth_token'].
+					"; HttpOnly";
 				$server->sendResponse(new Response(
 					Response::TEMPORARY_REDIRECT,
 					[
