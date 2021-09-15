@@ -39,6 +39,9 @@ class RemovePopups implements EventModifier {
 			return $modifiedEvent;
 		}
 		$message = $event->getData();
+		if (!isset($message)) {
+			return null;
+		}
 		$message = $this->text->removePopups($message, $this->removeLinks);
 		$modifiedEvent = clone $event;
 		$modifiedEvent->setData($message);
