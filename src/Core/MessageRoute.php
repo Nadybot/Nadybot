@@ -4,8 +4,12 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
+use Throwable;
 
 class MessageRoute {
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	protected Route $route;
 
 	/** @var EventModifier[] */
@@ -43,7 +47,12 @@ class MessageRoute {
 	public function modifyEvent(RoutableEvent $event): ?RoutableEvent {
 		$modifiedEvent = clone $event;
 		foreach ($this->modifiers as $modifier) {
-			$modifiedEvent = $modifier->modify($modifiedEvent);
+			try {
+				$modifiedEvent = $modifier->modify($modifiedEvent);
+			} catch (Throwable $e) {
+				$this->logger->log('ERROR', 'Error when modifying event: ' . $e->getMessage(), $e);
+				continue;
+			}
 			if (!isset($modifiedEvent)) {
 				return null;
 			}
