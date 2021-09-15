@@ -39,7 +39,7 @@ class LoggerWrapper {
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		if (isset($throwable)) {
-			if (!preg_match("/ in file /", $message)) {
+			if (strpos($message, " in file ") === false) {
 				$message.= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
 					($throwable->getLine() ?? "Unknown");
 			}
