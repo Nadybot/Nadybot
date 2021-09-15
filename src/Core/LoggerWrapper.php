@@ -39,14 +39,16 @@ class LoggerWrapper {
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		if (isset($throwable)) {
+			$extraInfo = "";
 			if (strpos($message, " in file ") === false) {
-				$message.= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
+				$extraInfo .= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
 					($throwable->getLine() ?? "Unknown");
 			}
 			if (!preg_match("/^#\d+ /m", $message)) {
-				$message .= PHP_EOL . $throwable->getTraceAsString();
+				$extraInfo .= PHP_EOL . $throwable->getTraceAsString();
 			}
-			$message = str_replace(dirname(__DIR__, 2) . "/", "", $message);
+			$extraInfo = str_replace(dirname(__DIR__, 2) . "/", "", $extraInfo);
+			$message .= $extraInfo;
 		}
 		$this->logger->log($level, $message, $throwable);
 	}
