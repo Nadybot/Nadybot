@@ -87,7 +87,7 @@ class IfMatches implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
-		$matches = $this->matches($message);
+		$matches = isset($matches) && $this->matches($message);
 		if ($matches === $this->inverse) {
 			return null;
 		}

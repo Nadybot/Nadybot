@@ -462,7 +462,7 @@ class DB {
 			} catch (Throwable $e) {
 				$this->logger->log(
 					'ERROR',
-					$e->getMessage() . ' in file ' . $e->getFile() . ':' . $e->getLine(),
+					$e->getMessage(),
 					$e
 				);
 				throw $e;

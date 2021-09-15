@@ -480,6 +480,7 @@ class MessageHub {
 	 */
 	public function createMessageRoute(Route $route): MessageRoute {
 		$msgRoute = new MessageRoute($route);
+		Registry::injectDependencies($msgRoute);
 		foreach ($route->modifiers as $modifier) {
 			$modObj = $this->getEventModifier(
 				$modifier->modifier,
