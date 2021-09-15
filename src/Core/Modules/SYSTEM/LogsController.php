@@ -79,19 +79,30 @@ class LogsController {
 		$readsize = $this->settingManager->getInt('max_blob_size') - 500;
 
 		try {
-			$search = ' ';
-			if (count($args) > 2) {
-				$search = $args[2];
+			$search = $args[2] ?? null;
+			$lines = file($filename);
+			if ($lines === false) {
+				$sendto->reply("The file <highlight>{$filename}<end> doesn't exist.");
+				return;
 			}
-			$fileContents = file_get_contents($filename);
-			preg_match_all("/.*({$search}).*/i", $fileContents, $matches);
-			$matches = array_reverse($matches[0]);
+			$lines = array_reverse($lines);
 			$contents = '';
-			foreach ($matches as $line) {
+			$trace = [];
+			foreach ($lines as $line) {
+				if (isset($search) && !preg_match(chr(1) . $search . chr(1) ."i", $line)) {
+					if (preg_match("/^#\d+\s/", $line)) {
+						array_unshift($trace, "<tab>$line");
+					} else {
+						$trace = [];
+					}
+					continue;
+				}
+				$line .= join("", $trace);
+				$trace = [];
 				if (strlen($contents . $line) > $readsize) {
 					break;
 				}
-				$contents .= $line . "\n";
+				$contents .= $line;
 			}
 
 			if (empty($contents)) {

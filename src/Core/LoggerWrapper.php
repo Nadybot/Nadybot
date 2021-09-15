@@ -38,6 +38,16 @@ class LoggerWrapper {
 	 */
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
+		if (isset($throwable)) {
+			if (!preg_match("/ in file /", $message)) {
+				$message.= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
+					($throwable->getLine() ?? "Unknown");
+			}
+			if (!preg_match("/^#\d+ /m", $message)) {
+				$message .= PHP_EOL . $throwable->getTraceAsString();
+			}
+			$message = str_replace(dirname(__DIR__, 2) . "/", "", $message);
+		}
 		$this->logger->log($level, $message, $throwable);
 	}
 
@@ -76,11 +86,22 @@ class LoggerWrapper {
 	 * Get the relative path of the directory where logs of this bot are stored
 	 */
 	public function getLoggingDirectory(): string {
-		$fileAppender = $this->logger->getRootLogger()->getAppender("defaultFileAppender");
-		$ref = new ReflectionProperty($fileAppender, "file");
-		$ref->setAccessible(true);
-		$logFile = $ref->getValue($fileAppender);
-		return dirname($logFile);
+		try {
+			$fileAppender = $this->logger->getRootLogger()->getAppender("defaultFileAppender");
+			$ref = new ReflectionProperty($fileAppender, "file");
+			$ref->setAccessible(true);
+			$logFile = $ref->getValue($fileAppender);
+			return realpath(dirname($logFile));
+		} catch (Throwable $e) {
+			$logDir = dirname(ini_get('error_log'));
+			if (substr($logDir, 0, 1) !== '/') {
+				$logDir = realpath(dirname(__DIR__, 2) . '/' . $logDir);
+				if ($logDir === false) {
+					$logDir = dirname(__DIR__, 2) . '/' . $logDir;
+				}
+			}
+			return $logDir;
+		}
 	}
 
 	/**
