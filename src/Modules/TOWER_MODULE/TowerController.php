@@ -190,60 +190,6 @@ class TowerController {
 	/** @var array<string,array<int,?string>> */
 	protected array $lcOwningFactions = [];
 
-	/**
-	 * @Setting("tower_attack_spam")
-	 * @Description("Layout types when displaying tower attacks")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("off;compact;normal")
-	 * @Intoptions("0;1;2")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultTowerAttackSpam = 2;
-
-	/**
-	 * @Setting("tower_page_size")
-	 * @Description("Number of results to display for victory/attacks")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("5;10;15;20;25")
-	 * @Intoptions("5;10;15;20;25")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultTowerPageSize = 15;
-
-	/**
-	 * @Setting("tower_plant_timer")
-	 * @Description("Start a timer for planting whenever a tower site goes down")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("off;priv;org")
-	 * @Intoptions("0;1;2")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultTowerPlantTimer = 0;
-
-	/**
-	 * @Setting("tower_hot_group")
-	 * @Description("By what to group hot/penaltized sites")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("Playfield;Title level;Org")
-	 * @Intoptions("1;2;3")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultTowerHotGroup = 1;
-
-	/**
-	 * @Setting("discord_notify_org_attacks")
-	 * @Description("Notify message for Discord if being attacked")
-	 * @Visibility("edit")
-	 * @Type("text")
-	 * @Options("off;@here Our field in {location} is being attacked by {player}")
-	 * @AccessLevel("mod")
-	 */
-	public $defaultDiscordNotifyOrgAttacks = "@here Our field in {location} is being attacked by {player}";
-
 	public int $lastDiscordNotify = 0;
 
 	public const TIMER_NAME = "Towerbattles";
@@ -265,6 +211,61 @@ class TowerController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_attack_spam",
+			"Layout types when displaying tower attacks",
+			"edit",
+			"options",
+			"2",
+			"off;compact;normal",
+			"0;1;2",
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_page_size",
+			"Number of results to display for victory/attacks",
+			"edit",
+			"options",
+			"15",
+			"5;10;15;20;25",
+			"5;10;15;20;25",
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_plant_timer",
+			"Start a timer for planting whenever a tower site goes down",
+			"edit",
+			"options",
+			"0",
+			"off;priv;org",
+			"0;1;2",
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_hot_group",
+			"By what to group hot/penaltized sites",
+			"edit",
+			"options",
+			"1",
+			"Playfield;Title level;Org",
+			"1;2;3",
+			"mod",
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"discord_notify_org_attacks",
+			"Notify message when the own field is being attacked",
+			"edit",
+			"text",
+			"@here Our field in {location} is being attacked by {player}",
+			"off;@here Our field in {location} is being attacked by {player}",
+		);
 
 		$attack = new class implements MessageEmitter {
 			public function getChannelName(): string {
@@ -346,8 +347,8 @@ class TowerController {
 	 * and optionally by page.
 	 *
 	 * @HandlesCommand("attacks")
-	 * @Matches("/^attacks (?!org|player)([a-z0-9]+) (\d+) (\d+)$/i")
-	 * @Matches("/^attacks (?!org|player)([a-z0-9]+) (\d+)$/i")
+	 * @Matches("/^attacks (?!org|player)([0-9a-z]+[a-z])\s*(\d+)$/i")
+	 * @Matches("/^attacks (?!org|player)([0-9a-z]+[a-z])\s*(\d+)\s+(\d+)$/i")
 	 */
 	public function attacks2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($args[1]);
