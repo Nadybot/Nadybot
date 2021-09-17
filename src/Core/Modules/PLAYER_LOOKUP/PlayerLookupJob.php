@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\QueryBuilder;
 use Nadybot\Core\SettingManager;
@@ -26,8 +27,13 @@ class PlayerLookupJob {
 	/** @Inject */
 	public Timer $timer;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	/** @var Collection<Player> */
 	public Collection $toUpdate;
+
+	protected int $numActiveThreads = 0;
 
 	/**
 	 * Get a list of character names in need of updates
@@ -66,37 +72,54 @@ class PlayerLookupJob {
 			$callback(...$args);
 			return;
 		}
-		$this->toUpdate = $this->getOudatedCharacters()
-			->concat($this->getMissingAlts());
+		$this->toUpdate = $this->getMissingAlts()
+			->concat($this->getOudatedCharacters());
+		$this->logger->log('DEBUG', $this->toUpdate->count() . " missing / outdated characters found.");
 		for ($i = 0; $i < $numJobs; $i++) {
-			$this->startThread($callback, ...$args);
+			$this->numActiveThreads++;
+			$this->logger->log('DEBUG', 'Spawning lookup thread #' . $this->numActiveThreads);
+			$this->startThread($i+1, $callback, ...$args);
 		}
 	}
 
-	public function startThread(callable $callback, ...$args): void {
+	public function startThread(int $threadNum, callable $callback, ...$args): void {
 		if ($this->toUpdate->isEmpty()) {
-			$callback(...$args);
+			$this->logger->log('TRACE', "[Thread #{$threadNum}] Queue empty, stopping thread.");
+			$this->numActiveThreads--;
+			if ($this->numActiveThreads === 0) {
+				$this->logger->log('DEBUG', "[Thread #{$threadNum}] All threads stopped, calling callback.");
+				$callback(...$args);
+			}
 			return;
 		}
 		/** @var Player */
 		$todo = $this->toUpdate->shift();
+		$this->logger->log('TRACE', "[Thread #{$threadNum}] Looking up " . $todo->name);
 		$this->chatBot->getUid(
 			$todo->name,
 			[$this, "asyncPlayerLookup"],
+			$threadNum,
 			$todo,
 			$callback,
 			...$args
 		);
 	}
 
-	public function asyncPlayerLookup(?int $uid, Player $todo, callable $callback, ...$args): void {
+	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, ...$args): void {
 		if ($uid === null) {
-			$this->timer->callLater(0, [$this, "startThread"], $callback, ...$args);
+			$this->logger->log('TRACE', "[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
+			$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);
 			return;
 		}
+		$this->logger->log('TRACE', "[Thread #{$threadNum}] Player " . $todo->name . ' is active, querying PORK.');
 		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($callback, $args): void {
-				$this->timer->callLater(1, [$this, "startThread"], $callback, ...$args);
+			function(?Player $player) use ($callback, $args, $todo, $threadNum): void {
+				$this->logger->log(
+					'TRACE',
+					"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
+					(isset($player) ? 'data updated' : 'no data found')
+				);
+				$this->timer->callLater(1, [$this, "startThread"], $threadNum, $callback, ...$args);
 			},
 			$todo->name,
 			$todo->dimension
