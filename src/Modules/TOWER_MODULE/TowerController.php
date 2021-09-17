@@ -899,6 +899,7 @@ class TowerController {
 	/**
 	 * @HandlesCommand("penalty")
 	 * @Matches("/^penalty$/i")
+	 * @Matches("/^penalty\s+(?<org>.+)$/i")
 	 */
 	public function penaltySitesApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->towerApiController->isActive()) {
@@ -906,8 +907,19 @@ class TowerController {
 			return;
 		}
 		$result = $this->getSitesInPenalty();
+		if (isset($args['org'])) {
+			$sites = new Collection($result->results);
+			$result->results = $sites->filter(function (ApiSite $site) use ($args): bool {
+				return stripos($site->org_name, $args['org']) !== false;
+			})->toArray();
+			$result->count = count($result->results);
+		}
 		if ($result->count === 0) {
-			$sendto->reply("No orgs are currently in penalty.");
+			if (isset($args['org'])) {
+				$sendto->reply("No org <highlight>'{$args['org']}'<end> currently has any sites in penalty.");
+			} else {
+				$sendto->reply("No orgs are currently in penalty.");
+			}
 			return;
 		}
 		$blob = $this->renderHotSites($result, ["min_close_time" => time()]);
