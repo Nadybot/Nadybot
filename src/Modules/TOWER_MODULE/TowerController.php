@@ -1308,7 +1308,8 @@ class TowerController {
 			->select("att_faction", $query->colFunc("COUNT", "att_faction", "num"))
 			->asObj();
 		foreach ($data as $row) {
-			$blob .= "<{$row->att_faction}>{$row->att_faction}<end> have attacked <highlight>{$row->num}<end> times.\n";
+			$blob .= "<{$row->att_faction}>{$row->att_faction}s<end> have attacked <highlight>{$row->num}<end> ".
+				$this->text->pluralize("time", $row->num) . ".\n";
 		}
 		if ($data->isNotEmpty()) {
 			$blob .= "\n";
@@ -1322,7 +1323,8 @@ class TowerController {
 		$data = $query->addSelect($query->colFunc("COUNT", "lose_faction", "num"))
 			->asObj();
 		foreach ($data as $row) {
-			$blob .= "<{$row->lose_faction}>{$row->lose_faction}<end> have lost <highlight>{$row->num}<end> tower sites.\n";
+			$blob .= "<{$row->lose_faction}>{$row->lose_faction}s<end> have lost <highlight>{$row->num}<end> tower ".
+				$this->text->pluralize("site", $row->num) . ".\n";
 		}
 
 		if ($blob == '') {
