@@ -9,6 +9,8 @@ use Nadybot\Core\{
 	Http,
 	HttpResponse,
 	Nadybot,
+	Registry,
+	SettingManager,
 	SQLException,
 	Util,
 };
@@ -20,6 +22,10 @@ use Nadybot\Core\DBSchema\Player;
  * @Instance
  */
 class PlayerManager {
+	public const CACHE_GRACE_TIME = 87000;
+
+	public string $moduleName;
+
 	/** @Inject */
 	public DB $db;
 
@@ -30,7 +36,48 @@ class PlayerManager {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
 	public Http $http;
+
+	public ?PlayerLookupJob $playerLookupJob = null;
+
+	/** @Setup */
+	public function setup(): void {
+		$this->settingManager->add(
+			$this->moduleName,
+			"lookup_jobs",
+			"How many jobs in parallel to run to lookup missing character data",
+			"edit",
+			"options",
+			"0",
+			"Off;1;2;3;4;5;10",
+			"0;1;2;3;4;5;10"
+		);
+	}
+
+	/**
+	 * @Event("timer(1h)")
+	 * @Description("Periodically lookup missing or outdated player data")
+	 * @DefaultStatus("1")
+	 */
+	public function lookupMissingCharacterData(): void {
+		if ($this->settingManager->getInt('lookup_jobs') === 0) {
+			return;
+		}
+		if (isset($this->playerLookupJob)) {
+			return;
+		}
+		$this->playerLookupJob = new PlayerLookupJob();
+		Registry::injectDependencies($this->playerLookupJob);
+		$this->playerLookupJob->run(function() {
+			$this->playerLookupJob = null;
+			$this->db->table("players")
+				->where("last_update", "<", time() - 5*static::CACHE_GRACE_TIME)
+				->delete();
+		});
+	}
 
 	public function getByName(string $name, int $dimension=null, bool $forceUpdate=false): ?Player {
 		$result = null;
@@ -104,7 +151,7 @@ class PlayerManager {
 					$callback($player);
 				}
 			);
-		} elseif ($player->last_update < (time() - 87000)) {
+		} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
 			// We cache for 24h plus 10 minutes grace for Funcom
 			$lookup(
 				$name,
