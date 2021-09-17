@@ -214,17 +214,17 @@ class ConsoleCommandReply implements CommandReply {
 			$message
 		);
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?user:\/\/[^'\">]+['\"]?>(.*?)<\/a>/s", "<link>$1</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?skillid:\/\/\d+['\"]?>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]chatcmd:\/\/\/(.*?)['\"]>(.*?)<\/a>/s", "<link>$2</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemid:\/\/53019\/\d+['\"]?>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s[^>]*href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
+		$message = preg_replace("/<a\s[^>]*href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s[^>]*href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
+		$message = preg_replace("/<a\s[^>]*href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s[^>]*href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
 		$message = preg_replace("/<p\s*>/is", "\n", $message);
 		$message = preg_replace("/<\/p\s*>/is", "", $message);
-		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?>\n/s", "\n", $message);
-		$message = preg_replace("/\n<img\s+src=['\"]?rdb:\/\/\d+['\"]?>\n/s", "\n", $message);
-		$message = preg_replace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?>/s", "", $message);
-		$message = preg_replace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?>/s", "", $message);
+		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>\n/s", "\n", $message);
+		$message = preg_replace("/\n<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>\n/s", "\n", $message);
+		$message = preg_replace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>/s", "", $message);
+		$message = preg_replace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>/s", "", $message);
 		$message = preg_replace("/\n\[item:<link><\/link>]\n/s", "\n", $message);
 		$message = str_replace("\n", "\n ", $this->handleColors($message, true));
 		$parts = [];
