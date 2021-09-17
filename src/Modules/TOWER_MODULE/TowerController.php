@@ -36,6 +36,7 @@ use Nadybot\Modules\{
 	TIMERS_MODULE\TimerController,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
+use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
@@ -500,17 +501,28 @@ class TowerController {
 	/** Query the API for a list of all sites of an org and show to $sendto */
 	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
 		$params = ["enabled" => "1", "org_id" => $orgId];
-		$this->towerApiController->call($params, [$this, "showOrgSites"], $sendto);
+		$this->towerApiController->call($params, [$this, "showOrgSites"], $sendto, $orgId);
 	}
 
 	/** Show the result of the sites of org query to $sendto */
-	public function showOrgSites(?ApiResult $result, CommandReply $sendto): void {
+	public function showOrgSites(?ApiResult $result, CommandReply $sendto, int $orgId): void {
 		if (!isset($result)) {
 			$sendto->reply("Invalid data received from the tower API. Try again later.");
 			return;
 		}
 		if ($result->count === 0) {
-			$sendto->reply("No sites found for this org.");
+			/** @var ?Organization */
+			$org = $this->db->table("organizations")
+				->where("id", $orgId)
+				->asObj(Organization::class)
+				->first();
+			if (isset($org)) {
+				$sendto->reply(
+					"No sites found for <" . strtolower($org->faction) . ">{$org->name}<end>."
+				);
+			} else {
+				$sendto->reply("No sites found for this org.");
+			}
 			return;
 		}
 		$blob = '';
