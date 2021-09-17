@@ -184,6 +184,10 @@
 					"description": {
 						"type": "string",
 						"description": "A description of what this setting is for"
+					},
+					"help": {
+						"type": "string",
+						"nullable": true
 					}
 				}
 			},
@@ -271,6 +275,37 @@
 					"format": {
 						"type": "string",
 						"description": "The format what the text of the tag should look like"
+					}
+				}
+			},
+			"Audit": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "ID of this audit entry"
+					},
+					"actor": {
+						"type": "string",
+						"description": "The person doing something"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person the actor is interacting with. Not set if not applicable"
+					},
+					"action": {
+						"type": "string",
+						"description": "What did the actor do"
+					},
+					"value": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional value for the action"
+					},
+					"time": {
+						"type": "integer",
+						"description": "time when it happened"
 					}
 				}
 			},
@@ -529,37 +564,6 @@
 						"items": {
 							"$ref": "#/components/schemas/ChannelInfo"
 						}
-					}
-				}
-			},
-			"Audit": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "ID of this audit entry"
-					},
-					"actor": {
-						"type": "string",
-						"description": "The person doing something"
-					},
-					"actee": {
-						"type": "string",
-						"nullable": true,
-						"description": "The person the actor is interacting with. Not set if not applicable"
-					},
-					"action": {
-						"type": "string",
-						"description": "What did the actor do"
-					},
-					"value": {
-						"type": "string",
-						"nullable": true,
-						"description": "Optional value for the action"
-					},
-					"time": {
-						"type": "integer",
-						"description": "time when it happened"
 					}
 				}
 			},
@@ -1738,32 +1742,6 @@
 				]
 			}
 		},
-		"/sysinfo": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get system information",
-				"responses": {
-					"200": {
-						"description": "Some basic system information",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/SystemInformation"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"system"
-				]
-			}
-		},
 		"/audit": {
 			"parameters": [
 				{
@@ -1844,7 +1822,34 @@
 					}
 				},
 				"tags": [
+					"security",
 					"audit"
+				]
+			}
+		},
+		"/sysinfo": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get system information",
+				"responses": {
+					"200": {
+						"description": "Some basic system information",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SystemInformation"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"system"
 				]
 			}
 		},

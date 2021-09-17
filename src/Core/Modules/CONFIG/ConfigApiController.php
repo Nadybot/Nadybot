@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	DBSchema\Setting,
 	EventManager,
+	HelpManager,
 	InsufficientAccessException,
 	SettingManager,
 };
@@ -39,6 +40,9 @@ class ConfigApiController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public HelpManager $helpManager;
 
 	/** @Inject */
 	public DB $db;
@@ -317,6 +321,12 @@ class ConfigApiController {
 		$result = [];
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
+			if (strlen($setting->getData()->help??"") > 0) {
+				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs);
+				if ($help !== null) {
+					$modSet->help = trim($help);
+				}
+			}
 			if ($modSet->type === $modSet::TYPE_DISCORD_CHANNEL) {
 				$modSet->options = $this->discordRelayController->getChannelOptionList();
 			}
