@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
-	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
@@ -150,9 +149,6 @@ class TowerController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
-
-	/** @Inject */
-	public DiscordController $discordController;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -1472,7 +1468,6 @@ class TowerController {
 				$r = new RoutableMessage($discordMessage);
 				$r->appendPath(new Source(Source::SYSTEM, "tower-attack-own"));
 				$this->messageHub->handle($r);
-				// $this->discordController->sendDiscord($discordMessage, true);
 				$this->lastDiscordNotify = time();
 			},
 			$matches[3]
