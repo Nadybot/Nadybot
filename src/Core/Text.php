@@ -339,7 +339,7 @@ class Text {
 		return $message;
 	}
 
-	/** Return the pluralized versoin of $word if $amount is not 1 */
+	/** Return the pluralized version of $word if $amount is not 1 */
 	public function pluralize(string $word, int $amount): string {
 		return $word . (($amount === 1) ? "" : "s");
 	}
