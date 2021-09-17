@@ -750,9 +750,16 @@ class DiscordGatewayController {
 		if ($oldState === null) {
 			return;
 		}
-		$channel = $this->getChannel($oldState->channel_id);
+		$guildId = $voiceState->guild_id ?? null;
+		if (!isset($guildId)) {
+			$channel = $this->getChannel($oldState->channel_id);
+			$guildId = $channel->guild_id;
+		}
+		if (!isset($guildId) || !isset($voiceState->user_id)) {
+			return;
+		}
 		$this->discordAPIClient->getGuildMember(
-			$channel->guild_id,
+			$guildId,
 			$voiceState->user_id,
 			function (GuildMember $member) use ($oldState) {
 				$event = new DiscordVoiceEvent();
@@ -798,6 +805,9 @@ class DiscordGatewayController {
 	}
 
 	public function handleAsyncVoiceChannelJoin(DiscordChannel $channel, VoiceState $voiceState): void {
+		if (!isset($voiceState->guild_id) || !isset($voiceState->user_id)) {
+			return;
+		}
 		$this->discordAPIClient->getGuildMember(
 			$voiceState->guild_id,
 			$voiceState->user_id,
