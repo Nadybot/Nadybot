@@ -1,3 +1,6 @@
+To get a list of all tower sites without owner:
+<tab><highlight><symbol>sites<end>
+
 To get a list of all tower sites owned by an org:
 <tab><highlight><symbol>sites 'org name'<end>
 or
