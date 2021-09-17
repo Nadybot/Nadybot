@@ -471,9 +471,7 @@ class EventManager {
 		} catch (Exception $e) {
 			$this->logger->log(
 				'ERROR',
-				"Error calling event handler '$handler': " . $e->getMessage() . " in ".
-				"file " . ($e->getFile() ?? "Unknown") . "#".
-				($e->getLine() ?? "Unknown"),
+				"Error calling event handler '$handler': " . $e->getMessage(),
 				$e
 			);
 		}

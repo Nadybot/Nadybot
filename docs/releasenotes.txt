@@ -1,4 +1,17 @@
 *****************************
+	Version 5.2.1
+*****************************
+Features:
+- Added aoauth support to the webserver
+- !logs command with search will now include backtraces
+
+Bugfixes:
+- The converter for agcs() created an invalid route modifier
+- Errors in route modifiers affected things like online/offline messages
+- Routable messages with null message threw exceptions
+
+
+*****************************
 	Version 5.2.0
 *****************************
 Features:

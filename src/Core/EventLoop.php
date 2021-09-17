@@ -46,7 +46,7 @@ class EventLoop {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log('ERROR', $e->getMessage() . PHP_EOL . $e->getTraceAsString(), $e);
+			$this->logger->log('ERROR', $e->getMessage(), $e);
 		}
 	}
 

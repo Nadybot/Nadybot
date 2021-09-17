@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	EventManager,
 	LegacyLogger,
 	LoggerWrapper,
+	SettingManager,
 	Socket\AsyncSocket,
 };
 use stdClass;
@@ -39,6 +40,9 @@ class HttpProtocolWrapper {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -372,6 +376,20 @@ class HttpProtocolWrapper {
 			return $this->webserverController->checkSignature(
 				$this->request->headers["signature"],
 			);
+		}
+		$authType = $this->settingManager->getString('webserver_auth');
+		if ($authType === WebserverController::AUTH_AOAUTH) {
+			if (isset($this->request->query['_aoauth_token'])) {
+				$jwtUser = $this->webserverController->checkJWTAuthentication($this->request->query['_aoauth_token']);
+				if (isset($jwtUser)) {
+					return $jwtUser;
+				}
+			}
+			if (!count($cookies = $this->request->getCookies())
+				|| !isset($cookies['authorization'])) {
+				return null;
+			}
+			return $this->webserverController->checkJWTAuthentication($cookies['authorization']);
 		}
 		if (!isset($this->request->headers["authorization"])) {
 			return null;

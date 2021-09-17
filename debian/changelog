@@ -1,3 +1,14 @@
+nadybot (5.2.1-1+ubuntu1) bionic; urgency=medium
+  Features:
+  - Added aoauth support to the webserver
+  - !logs command with search will now include backtraces
+
+  Bugfixes:
+  - The converter for agcs() created an invalid route modifier
+  - Errors in route modifiers affected things like online/offline messages
+  - Routable messages with null message threw exceptions
+ -- Nadyita <nadyita@hodorraid.org>  Fri, 17 Sep 2021 09:45:00 +0200
+
 nadybot (5.2.0-1+ubuntu1) bionic; urgency=medium
   Features:
   - Complete relay stack rewrite:

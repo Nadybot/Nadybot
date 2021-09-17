@@ -4,11 +4,15 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Addendum\ReflectionAnnotatedClass;
 use DateTime;
+use Exception;
 use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
+	AsyncHttp,
 	CommandReply,
 	DB,
+	Http,
+	HttpResponse,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -31,6 +35,10 @@ use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
  * @Instance
  */
 class WebserverController {
+	public const AUTH_AOAUTH = "aoauth";
+	public const AUTH_BASIC = "webauth";
+
+	/** Set by the registry */
 	public string $moduleName;
 
 	protected $serverSocket;
@@ -48,6 +56,9 @@ class WebserverController {
 	public Timer $timer;
 
 	/** @Inject */
+	public Http $http;
+
+	/** @Inject */
 	public DB $db;
 
 	/** @Logger */
@@ -59,6 +70,46 @@ class WebserverController {
 	protected array $authentications = [];
 
 	protected AsyncSocket $asyncSocket;
+
+	protected ?string $aoAuthPubKey = null;
+	protected AsyncHttp $aoAuthPubKeyRequest;
+
+	/**
+	 * @Event("connect")
+	 * @Description("Download aoauth public key")
+	 */
+	public function downloadPublicKey(): void {
+		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
+			return;
+		}
+		$aoAuthKeyUrl = rtrim(
+			$this->settingManager->getString('webserver_aoauth_url'),
+			'/'
+		) . '/key';
+		if (isset($this->aoAuthPubKeyRequest)) {
+			$this->aoAuthPubKeyRequest->abortWithMessage("Not needed anymore");
+		}
+		$this->aoAuthPubKeyRequest = $this->http->get($aoAuthKeyUrl)
+			->withTimeout(30)
+			->withCallback(function (HttpResponse $response): void {
+				unset($this->aoAuthPubKeyRequest);
+				$this->receiveAoAuthPubkey($response);
+			});
+	}
+
+	protected function receiveAoAuthPubkey(HttpResponse $response): void {
+		if (isset($response->error) || $response->headers['status-code'] !== "200") {
+			$this->logger->log(
+				'ERROR',
+				'Error downloading aoauth pubkey from'.
+				$response->request->getURI() . ": ".
+				$response->error ?? $response->headers['status-code']
+			);
+			return;
+		}
+		$this->logger->log('INFO', 'New aoauth pubkey downloaded.');
+		$this->aoAuthPubKey = $response->body;
+	}
 
 	/** @Setup */
 	public function setup(): void {
@@ -125,6 +176,39 @@ class WebserverController {
 		);
 */
 
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_auth',
+			'How to authenticate against the webserver',
+			'edit',
+			'options',
+			static::AUTH_BASIC,
+			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH])
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_base_url',
+			'Which is the base URL for the webserver? This is where aoauth redirects to',
+			'edit',
+			'text',
+			'default',
+			'default',
+			'',
+			'admin',
+			'webserver_base_url.txt'
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			'webserver_aoauth_url',
+			'If you are using aoauth to authenticate: URL of the server',
+			'edit',
+			'text',
+			'https://aoauth.org',
+			'https://aoauth.org'
+		);
+
 		$this->scanRouteAnnotations();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
@@ -132,10 +216,19 @@ class WebserverController {
 		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_addr', [$this, "webserverSettingChanged"]);
+		$this->settingManager->registerChangeListener('webserver_auth', [$this, "downloadNewPublicKey"]);
+		$this->settingManager->registerChangeListener('webserver_aoauth_url', [$this, "downloadNewPublicKey"]);
 /*
 		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
 */
+	}
+
+	/**
+	 * Start or stop the webserver if the setting changed
+	 */
+	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
+		$this->timer->callLater(0, [$this, "downloadPublicKey"]);
 	}
 
 	/**
@@ -400,11 +493,55 @@ class WebserverController {
 	 */
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		if (!isset($event->request->authenticatedAs)) {
-			$server->httpError(new Response(
-				Response::UNAUTHORIZED,
-				["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
-			));
+			$authType = $this->settingManager->getString('webserver_auth');
+			if ($authType === static::AUTH_BASIC) {
+				$server->httpError(new Response(
+					Response::UNAUTHORIZED,
+					["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
+				));
+			} elseif ($authType === static::AUTH_AOAUTH) {
+				$baseUrl = $this->settingManager->getString('webserver_base_url');
+				if ($baseUrl === 'default') {
+					$baseUrl = 'http://' . $event->request->headers['host'];
+				}
+				unset($event->request->query['_aoauth_token']);
+				$redirectUrl = $baseUrl . $event->request->path;
+				if (strlen($queryString = http_build_query($event->request->query))) {
+					$redirectUrl .= "?{$queryString}";
+				}
+				$aoAuthUrl = rtrim($this->settingManager->getString('webserver_aoauth_url'), '/').
+					'/auth';
+				$server->sendResponse(new Response(
+					Response::TEMPORARY_REDIRECT,
+					[
+						'Location' => $aoAuthUrl . '?redirect_uri='.
+							urlencode($redirectUrl) . '&application_name='.
+							urlencode($this->db->getMyname())
+					]
+				), true);
+			}
 			return;
+		}
+		if (isset($event->request->query['_aoauth_token'])) {
+			$jwtUser = $this->checkJWTAuthentication($event->request->query['_aoauth_token']);
+			if (isset($jwtUser)) {
+				$newQuery = $event->request->query;
+				unset($newQuery['_aoauth_token']);
+				$redirectTo = $event->request->path;
+				if (strlen($queryString = http_build_query($newQuery))) {
+					$redirectTo .= "?{$queryString}";
+				}
+				$cookie = 'authorization=' . $event->request->query['_aoauth_token'].
+					"; HttpOnly";
+				$server->sendResponse(new Response(
+					Response::TEMPORARY_REDIRECT,
+					[
+						'Location' => $redirectTo,
+						'Set-Cookie' => $cookie,
+					]
+				), true);
+				return;
+			}
 		}
 
 		$handlers = $this->getHandlersForRequest($event->request);
@@ -548,6 +685,28 @@ class WebserverController {
 			return null;
 		}
 		return $user;
+	}
+
+	/**
+	 * Check if a valid user is given by a JWT
+	 * @return null|string null if token is wrong, the username that was sent if correct
+	 */
+	public function checkJWTAuthentication(string $token): ?string {
+		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
+		if (!isset($aoAuthPubKey)) {
+			$this->logger->log('ERROR', 'No public key found to validate JWT');
+			return null;
+		}
+		try {
+			$payload = JWT::decode($token, trim($aoAuthPubKey));
+		} catch (Exception $e) {
+			$this->logger->log('ERROR', 'JWT: ' . $e->getMessage(), $e);
+			return null;
+		}
+		if ($payload->exp??time() <= time()) {
+			// return null;
+		}
+		return $payload->sub->name??null;
 	}
 
 	/**

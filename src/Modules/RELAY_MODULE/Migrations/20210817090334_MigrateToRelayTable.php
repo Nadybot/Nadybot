@@ -173,7 +173,7 @@ class MigrateToRelayTable implements SchemaMigration {
 				$symId = $this->addMod($db, $routeId, "if-has-prefix");
 				$args = [
 					"prefix" => $relaySymbol ? $relaySymbol->value : "@",
-					"for-events" => false,
+					"for-events" => "false",
 				];
 				if ($relayWhen->value === "2") {
 					$args["inverse"] = "true";

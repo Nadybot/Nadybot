@@ -352,9 +352,7 @@ class CommandManager implements MessageEmitter {
 		} catch (Throwable $e) {
 			$this->logger->log(
 				"ERROR",
-				"Error executing '$message': " . $e->getMessage() . " in ".
-				"file " . ($e->getFile() ?? "Unknown") . "#".
-				($e->getLine() ?? "Unknown"),
+				"Error executing '$message': " . $e->getMessage(),
 				$e
 			);
 			$sendto->reply("There was an error executing your command: " . $e->getMessage());
