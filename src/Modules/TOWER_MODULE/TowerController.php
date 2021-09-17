@@ -260,7 +260,7 @@ class TowerController {
 		$this->settingManager->add(
 			$this->moduleName,
 			"discord_notify_org_attacks",
-			"Notify message when the own field is being attacked",
+			"Message for system(tower-attack-own) when the own field is being attacked",
 			"edit",
 			"text",
 			"@here Our field in {location} is being attacked by {player}",
