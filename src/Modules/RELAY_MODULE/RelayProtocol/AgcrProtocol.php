@@ -19,6 +19,11 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * 	org and guest chat properly.")
  * @Param(name='command', description='The command we send with each packet', type='string', required=false)
  * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
+ * @Param(name='force-single-hop', description='Instead of sending "[Org] [Guest]", force sending "[Org Guest]".
+ *	This might be needed when old bots have problems parsing your sent messages,
+ *	because they do not support guest chats.', type='boolean', required=false)
+ * @Param(name='send-user-links', description='Send a clickable username for the sender.
+ *	Disable when other bots cannot parse this and will render your messages wrong.', type='boolean', required=false)
  */
 class AgcrProtocol implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -34,10 +39,14 @@ class AgcrProtocol implements RelayProtocolInterface {
 
 	protected string $command = "agcr";
 	protected string $prefix = "!";
+	protected bool $forceSingleHop = false;
+	protected bool $sendUserLinks = true;
 
-	public function __construct(string $command="agcr", string $prefix="!") {
+	public function __construct(string $command="agcr", string $prefix="!", bool $forceSingleHop=false, bool $sendUserLinks=true) {
 		$this->command = $command;
 		$this->prefix = $prefix;
+		$this->forceSingleHop = $forceSingleHop;
+		$this->sendUserLinks = $sendUserLinks;
 	}
 
 	public function send(RoutableEvent $event): array {
@@ -56,9 +65,13 @@ class AgcrProtocol implements RelayProtocolInterface {
 	}
 
 	public function renderMessage(RoutableEvent $event): array {
+		$path = $this->messageHub->renderPath($event, "relay", false, $this->sendUserLinks);
+		if ($this->forceSingleHop) {
+			$path = join(" ", explode("] [", $path));
+		}
 		return [
 			$this->prefix.$this->command . " ".
-				$this->messageHub->renderPath($event, "relay", false).
+				$path.
 				$this->text->formatMessage($event->getData())
 		];
 	}

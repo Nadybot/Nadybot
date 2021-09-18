@@ -348,7 +348,7 @@ class MessageHub {
 	}
 
 	/** Get the text to prepend to a message to denote its source path */
-	public function renderPath(RoutableEvent $event, string $where, bool $withColor=true): string {
+	public function renderPath(RoutableEvent $event, string $where, bool $withColor=true, bool $withUserLink=true): string {
 		$hops = [];
 		$lastHop = null;
 		foreach ($event->getPath() as $hop) {
@@ -365,10 +365,8 @@ class MessageHub {
 		$isTell = (isset($lastHop) && $lastHop->type === Source::TELL);
 		if (isset($char) && !$isTell) {
 			$charLink = $char->name . ": ";
-			if (in_array(
-				$lastHop->type??null,
-				[Source::ORG, Source::PRIV, Source::PUB, Source::TELL]
-			)) {
+			$aoSources = [Source::ORG, Source::PRIV, Source::PUB, Source::TELL];
+			if (in_array($lastHop->type??null, $aoSources) && $withUserLink) {
 				$charLink = $this->text->makeUserlink($char->name) . ": ";
 			}
 		}
