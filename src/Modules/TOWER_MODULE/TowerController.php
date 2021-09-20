@@ -1254,6 +1254,17 @@ class TowerController {
 
 	protected function renderHotSites(ApiResult $result, array $params): string {
 		$sites = new Collection($result->results);
+		$fromTime = (new DateTime())->setTimestamp($params["min_close_time"]);
+		$toTime = (new DateTime())->setTimestamp($params["max_close_time"]);
+		if ($fromTime > $toTime) {
+			$toTime->modify("+1 day");
+		}
+		$sites = $sites->filter(function (ApiSite $site) use ($fromTime, $toTime): bool {
+			$i = (new DateTime())->setTimestamp($site->close_time);
+			return ($fromTime <= $i  && $i <= $toTime)
+				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime);
+		});
+		$result->count = $sites->count();
 		$grouping = $this->settingManager->getInt('tower_hot_group');
 		if ($grouping === 1) {
 			$sites = $sites->sortBy("site_number");
