@@ -89,8 +89,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		return [
 			$this->prefix.$this->command . " ".
-				join(" ", $hops) . " {$senderLink} ".
-				$this->text->formatMessage($event->getData())
+				join(" ", $hops) . " {$senderLink} ". "##relay_message##".
+				$this->text->formatMessage($event->getData()). "##end##"
 		];
 	}
 
@@ -205,6 +205,28 @@ class GcrProtocol implements RelayProtocolInterface {
 				$r->appendPath($source);
 			}
 			$data = preg_replace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", "", $data);
+		}
+		while (preg_match("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", $data, $matches)) {
+			if (preg_match("/ Guest$/", $matches[1])) {
+				$source = new Source(
+					Source::ORG,
+					substr($matches[1], 0, -6)
+				);
+				$r->appendPath($source);
+				$source = new Source(
+					Source::PRIV,
+					$msg->sender,
+					"Guest"
+				);
+				$r->appendPath($source);
+			} else {
+				$source = new Source(
+					count($r->path) ? Source::PRIV : Source::ORG,
+					$matches[1]
+				);
+				$r->appendPath($source);
+			}
+			$data = preg_replace("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", "", $data);
 		}
 		if (preg_match("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/s", $data, $matches)) {
 			$r->setCharacter(new Character($matches[1]));
