@@ -71,15 +71,23 @@ class AesGcmEncryption implements RelayLayerInterface {
 	}
 
 	protected function decode(string $text): ?string {
-		$rawString = base64_decode($text);
 		$ivLength = $this->ivLength;
+		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+			$rawString = sodium_base642bin($text, SODIUM_BASE64_VARIANT_ORIGINAL);
+		} else {
+			$rawString = base64_decode($text);
+		}
 		$iv = substr($rawString, 0, $ivLength);
 		$tag = substr($rawString, $ivLength, $tagLength = 16);
 		$ciphertextRaw = substr($rawString, $ivLength + $tagLength);
 		if (strlen($ciphertextRaw) === 0) {
 			return null;
 		}
-		$originalText = openssl_decrypt($ciphertextRaw, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+			$originalText = sodium_crypto_aead_aes256gcm_decrypt($ciphertextRaw.$tag, "", $iv, $this->password);
+		} else {
+			$originalText = openssl_decrypt($ciphertextRaw, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+		}
 		if ($originalText === false) {
 			return null;
 		}
@@ -91,6 +99,12 @@ class AesGcmEncryption implements RelayLayerInterface {
 		[$micro, $secs] = explode(" ", microtime());
 		$iv = pack("NN", $secs, $micro*100000000);
 		$iv .= random_bytes($ivLength - strlen($iv));
+		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, "", $iv, $this->password);
+			$ciphertextRaw = substr($enc, 0, -16);
+			$tag = substr($enc, -16);
+			return sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
+		}
 		$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
 		return base64_encode($iv . $tag . $ciphertextRaw);
 	}
