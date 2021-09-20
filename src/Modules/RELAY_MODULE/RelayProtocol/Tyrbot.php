@@ -86,13 +86,13 @@ class Tyrbot implements RelayProtocolInterface {
 			"name" => $event->path[0]->name,
 			"server" => $event->path[0]->server,
 		];
-		if (isset($event->path[0]->label)) {
+		if (strlen($event->path[0]->label??"")) {
 			$source['label'] = $event->path[0]->label;
 		}
 		$lastHop = $event->path[count($event->path)-1];
 		$source['type'] = $this->nadyTypeToTyr($lastHop->type);
 		if (count($event->path) > 1) {
-			$source['channel'] = $lastHop->label ?? $lastHop->name;
+			$source['channel'] = (strlen($lastHop->label??"")) ? $lastHop->label : $lastHop->name;
 		}
 		return $source;
 	}
@@ -227,7 +227,7 @@ class Tyrbot implements RelayProtocolInterface {
 				"server" => (int)$this->chatBot->vars["dimension"],
 			];
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
-			if (isset($orgLabel) && $orgLabel !== "none") {
+			if (strlen($orgLabel??"") && $orgLabel !== "none") {
 				$orgSource['label'] = $orgLabel;
 			}
 			$orgSource['type'] = "org";
@@ -250,7 +250,6 @@ class Tyrbot implements RelayProtocolInterface {
 			"server" => (int)$this->chatBot->vars["dimension"],
 		];
 		if (isset($this->chatBot->vars["my_guild"])) {
-			$privSource["name"] = $orgSource["name"];
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
 			}
