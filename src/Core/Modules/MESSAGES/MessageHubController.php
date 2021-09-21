@@ -593,6 +593,17 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Matches("/^route color remall$/i")
+	 */
+	public function routeTagColorRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->db->table($this->messageHub::DB_TABLE_COLORS)
+			->truncate();
+		$this->messageHub->loadTagColor();
+		$sendto->reply("All route color definitions deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
 	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) (?:->|-&gt;) (?<where>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 */
@@ -742,6 +753,16 @@ class MessageHubController {
 			return;
 		}
 		$sendto->reply("Format cleared for <highlight>{$args['hop']}<end>.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route format remall$/i")
+	 */
+	public function routeFormatRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->db->table(Source::DB_TABLE)->truncate();
+		$this->messageHub->loadTagFormat();
+		$sendto->reply("All route format definitions deleted.");
 	}
 
 	/**

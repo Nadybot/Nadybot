@@ -20,7 +20,10 @@ use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
 	EventCfg,
+	RouteHopColor,
+	RouteHopFormat,
 };
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
@@ -205,6 +208,35 @@ class ProfileController {
 		$contents .= "\n# Routes\n".
 			"!route remall\n".
 			join("\n", $this->messageHub->getRouteDump()) . "\n";
+
+		$contents .= "\n# Route colors\n".
+			"!route color remall\n";
+		/** @var RouteHopColor[] */
+		$data = $this->db->table(MessageHub::DB_TABLE_COLORS)
+			->asObj(RouteHopColor::class)->toArray();
+		foreach ($data as $row) {
+			foreach (["text", "tag"] as $color) {
+				if (isset($row->{"{$color}_color"})) {
+					$contents .= "!route color {$color} set {$row->hop} ";
+					if (isset($row->where)) {
+						$contents .= "-> {$row->where} ";
+					}
+					$contents .= $row->{"{$color}_color"} . "\n";
+				}
+			}
+		}
+
+		$contents .= "\n# Route format\n".
+			"!route format remall\n";
+		/** @var RouteHopFormat[] */
+		$data = $this->db->table(Source::DB_TABLE)
+			->asObj(RouteHopFormat::class)->toArray();
+		foreach ($data as $row) {
+			if ($row->render === false) {
+				$contents .= "!route format render {$row->hop} false\n";
+			}
+			$contents .= "!route format display {$row->hop} {$row->format}\n";
+		}
 
 		file_put_contents($filename, $contents);
 		$msg = "Profile <highlight>$profileName<end> has been saved.";
