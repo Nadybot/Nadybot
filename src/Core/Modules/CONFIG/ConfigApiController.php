@@ -20,6 +20,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
 /**
  * @Instance
@@ -43,6 +44,9 @@ class ConfigApiController {
 
 	/** @Inject */
 	public HelpManager $helpManager;
+
+	/** @Inject */
+	public WebChatConverter $webChatConverter;
 
 	/** @Inject */
 	public DB $db;
@@ -324,7 +328,11 @@ class ConfigApiController {
 			if (strlen($setting->getData()->help??"") > 0) {
 				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs);
 				if ($help !== null) {
-					$modSet->help = trim($help);
+					$modSet->help = $this->webChatConverter->toXML(
+						$this->webChatConverter->parseAOFormat(
+							trim($help)
+						)
+					);
 				}
 			}
 			if ($modSet->type === $modSet::TYPE_DISCORD_CHANNEL) {
