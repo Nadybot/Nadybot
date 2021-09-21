@@ -1,7 +1,6 @@
-To show orgs who have attack or won battles in the last 2 hours:
+To show the towersites of orgs who have attacked, or won battles
+in the last 2 hours:
 <highlight><tab><symbol>penalty<end>
-<highlight><tab><symbol>penalty 'time'<end>
 
-Note: if you leave off the 'time' parameter, the bot will use 2 hours as the time.
-
-See <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a> for info on the format of the 'time' parameter.
+To only see those of the org 'Obeya':
+<highlight><tab><symbol>penalty obeya<end>
