@@ -12,6 +12,8 @@ use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
+use ReflectionClass;
+use ReflectionNamedType;
 
 /**
  * @Instance
@@ -296,54 +298,63 @@ class CommandManager implements MessageEmitter {
 	 * @throws \Exception For a generic exception during command execution
 	 */
 	public function process(string $channel, string $message, string $sender, CommandReply $sendto): void {
-		$cmd = explode(' ', $message, 2)[0];
+		$context = new CmdContext();
+		$context->channel = $channel;
+		$context->message = $message;
+		$context->sender = $sender;
+		$context->sendto = $sendto;
+		$this->processCmd($context);
+	}
+
+	public function processCmd(CmdContext $context): void {
+		$cmd = explode(' ', $context->message, 2)[0];
 		$cmd = strtolower($cmd);
 
-		if ($this->limitsController->isIgnored($sender)) {
+		if ($this->limitsController->isIgnored($context->sender)) {
 			return;
 		}
-		$commandHandler = $this->getActiveCommandHandler($cmd, $channel, $message);
+		$commandHandler = $this->getActiveCommandHandler($cmd, $context->channel, $context->message);
 		$event = new CmdEvent();
-		$event->channel = $channel;
+		$event->channel = $context->channel;
 		$event->cmd = $cmd;
-		$event->sender = $sender;
+		$event->sender = $context->sender;
 		$event->cmdHandler = $commandHandler;
 
 		// if command doesn't exist
 		if ($commandHandler === null) {
 			// if they've disabled feedback for guild or private channel, just return
 			if (
-				($channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
-				|| ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
+				($context->channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
+				|| ($context->channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
 			) {
 				return;
 			}
 
 			$similarCommands = $this->commandSearchController->findSimilarCommands([$cmd]);
-			$similarCommands = $this->commandSearchController->filterResultsByAccessLevel($sender, $similarCommands);
+			$similarCommands = $this->commandSearchController->filterResultsByAccessLevel($context->sender, $similarCommands);
 			$similarCommands = array_slice($similarCommands, 0, 5);
 			$cmdNames = array_map([$this, 'mapToCmd'], $similarCommands);
 
-			$sendto->reply("Error! Unknown command. Did you mean..." . implode(", ", $cmdNames) . '?');
+			$context->reply("Error! Unknown command. Did you mean..." . implode(", ", $cmdNames) . '?');
 			$event->type = "command(unknown)";
 			$this->eventManager->fireEvent($event);
 			return;
 		}
 
 		// if the character doesn't have access
-		if (!$this->checkAccessLevel($channel, $message, $sender, $sendto, $cmd, $commandHandler)) {
+		if (!$this->checkAccessLevel($context->channel, $context->message, $context->sender, $context->sendto, $cmd, $commandHandler)) {
 			$event->type = "command(forbidden)";
 			$this->eventManager->fireEvent($event);
 			return;
 		}
 
 		try {
-			$handler = $this->callCommandHandler($commandHandler, $message, $channel, $sender, $sendto);
+			$handler = $this->executeCommandHandler($commandHandler, $context);
 			$event->type = "command(success)";
 
 			if ($handler === null) {
-				$help = $this->getHelpForCommand($cmd, $channel, $sender);
-				$sendto->reply($help);
+				$help = $this->getHelpForCommand($cmd, $context->channel, $context->sender);
+				$context->reply($help);
 				$event->type = "command(help)";
 				$this->eventManager->fireEvent($event);
 			}
@@ -352,15 +363,15 @@ class CommandManager implements MessageEmitter {
 			throw $e;
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$sendto->reply("There was an SQL error executing your command.");
+			$context->reply("There was an SQL error executing your command.");
 			$event->type = "command(error)";
 		} catch (Throwable $e) {
 			$this->logger->log(
 				"ERROR",
-				"Error executing '$message': " . $e->getMessage(),
+				"Error executing '{$context->message}': " . $e->getMessage(),
 				$e
 			);
-			$sendto->reply("There was an error executing your command: " . $e->getMessage());
+			$context->reply("There was an error executing your command: " . $e->getMessage());
 			$event->type = "command(error)";
 		}
 		$this->eventManager->fireEvent($event);
@@ -368,7 +379,7 @@ class CommandManager implements MessageEmitter {
 		try {
 			// record usage stats (in try/catch block in case there is an error)
 			if ($this->settingManager->getBool('record_usage_stats')) {
-				$this->usageController->record($channel, $cmd, $sender, $handler);
+				$this->usageController->record($context->channel, $cmd, $context->sender, $handler);
 			}
 		} catch (Exception $e) {
 			$this->logger->log("ERROR", $e->getMessage(), $e);
@@ -410,6 +421,15 @@ class CommandManager implements MessageEmitter {
 	 * Call the command handler for a given command and return which one was used
 	 */
 	public function callCommandHandler(CommandHandler $commandHandler, string $message, string $channel, string $sender, CommandReply $sendto): ?string {
+		$context = new CmdContext();
+		$context->message = $message;
+		$context->channel = $channel;
+		$context->sender = $sender;
+		$context->sendto = $sendto;
+		return $this->executeCommandHandler($commandHandler, $context);
+	}
+
+	public function executeCommandHandler(CommandHandler $commandHandler, CmdContext $context): ?string {
 		$successfulHandler = null;
 
 		foreach (explode(',', $commandHandler->file) as $handler) {
@@ -418,11 +438,24 @@ class CommandManager implements MessageEmitter {
 			if ($instance === null) {
 				$this->logger->log('ERROR', "Could not find instance for name '$name'");
 			} else {
-				$arr = $this->checkMatches($instance, $method, $message);
+				$arr = $this->checkMatches($instance, $method, $context->message);
 				if ($arr !== false) {
+					$context->args = is_bool($arr) ? [] : $arr;
+					$refClass = new ReflectionClass($instance);
+					$refMethod = $refClass->getMethod($method);
+					$params = $refMethod->getParameters();
 					// methods will return false to indicate a syntax error, so when a false is returned,
 					// we set $syntaxError = true, otherwise we set it to false
-					$syntaxError = ($instance->$method($message, $channel, $sender, $sendto, is_bool($arr) ? [] : $arr) === false);
+					if (count($params) > 0
+						&& $params[0]->hasType()
+						&& ($type = $params[0]->getType())
+						&& ($type instanceof ReflectionNamedType)
+						&& ($type->getName() === CmdContext::class)
+					) {
+						$syntaxError = $instance->$method($context, ...array_slice($context->args, 1)) === false;
+					} else {
+						$syntaxError = ($instance->$method($context->message, $context->channel, $context->sender, $context->sendto, $context->args) === false);
+					}
 					if ($syntaxError == false) {
 						// we can stop looking, command was handled successfully
 

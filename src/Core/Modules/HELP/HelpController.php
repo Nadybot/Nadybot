@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\HELP;
 
 use Nadybot\Core\{
 	BotRunner,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
 	CommandReply,
@@ -72,12 +73,12 @@ class HelpController {
 	 * @HandlesCommand("help")
 	 * @Matches("/^help$/i")
 	 */
-	public function helpListCommand(string $message, string $channel, string $sender, CommandReply $sendto): void {
-		$data = $this->helpManager->getAllHelpTopics($sender);
+	public function helpListCommand(CmdContext $context): void {
+		$data = $this->helpManager->getAllHelpTopics($context->sender);
 
 		if (count($data) === 0) {
 			$msg = "No help files found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -93,7 +94,7 @@ class HelpController {
 
 		$msg = $this->text->makeBlob("Help (main)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

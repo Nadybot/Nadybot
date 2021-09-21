@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
-	CommandReply,
 };
 
 /**
@@ -39,13 +39,14 @@ class RunAsController {
 	 * @HandlesCommand("runas")
 	 * @Matches("/^runas ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function runasCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$command = $args[2];
-		if ($this->accessManager->checkAccess($sender, "superadmin") || $this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
-			$this->commandManager->process($channel, $command, $name, $sendto);
-		} else {
-			$sendto->reply("Error! Access level not sufficient to run commands as <highlight>$name<end>.");
+	public function runasCommand(CmdContext $context, string $name, string $command): void {
+		$name = ucfirst(strtolower($name));
+		if (!$this->accessManager->checkAccess($context->sender, "superadmin") && $this->accessManager->compareCharacterAccessLevels($context->sender, $name) <= 0) {
+			$context->reply("Error! Access level not sufficient to run commands as <highlight>$name<end>.");
+			return;
 		}
+		$context->message = $command;
+		$context->sender = $name;
+		$this->commandManager->processCmd($context);
 	}
 }
