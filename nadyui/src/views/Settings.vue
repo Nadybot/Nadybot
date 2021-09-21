@@ -58,14 +58,24 @@
               <div class="col-9 fake-section">
                 {{ setting.description }}
 
-                <span
-                  v-if="setting.help"
-                  data-bs-toggle="popover"
-                  :title="setting.name"
-                  :data-bs-content="setting.help"
-                >
-                  <fa icon="question-circle" :invert="60"></fa>
-                </span>
+                <template v-if="setting.help">
+                  <div
+                    :id="'popover-target-' + setting.name"
+                    class="d-inline-block"
+                  >
+                    <fa icon="question-circle" :invert="60"></fa>
+                  </div>
+                  <popover
+                    :target="'popover-target-' + setting.name"
+                    triggers="click"
+                  >
+                    <template #title>{{ setting.name }}</template>
+                    <ao-message
+                      :content="parseXml(setting.help)"
+                      @run-command="runCommand($event)"
+                    ></ao-message>
+                  </popover>
+                </template>
 
                 <span class="custom-muted ml-5">{{ setting.name }}</span>
               </div>
@@ -548,6 +558,7 @@ td.clickable:hover,
 
 <script lang="ts">
 import { defineComponent, nextTick } from "vue";
+import { mapActions, mapMutations } from "vuex";
 
 import {
   getModules,
@@ -568,8 +579,7 @@ import {
   ModuleSetting,
   ModuleSubcommandChannel,
 } from "@/nadybot/types/settings";
-
-import Popover from "bootstrap/js/dist/popover";
+import { parseXml } from "@/nadybot/message";
 
 interface SettingsData {
   access_levels: Array<ModuleAccessLevel>;
@@ -579,7 +589,6 @@ interface SettingsData {
   selected_commands: Array<ModuleCommand>;
   selected_events: Array<ModuleEventConfig>;
   selected_command: ModuleCommand | null;
-  popovers: Array<Popover>;
 }
 
 export default defineComponent({
@@ -608,12 +617,6 @@ export default defineComponent({
       return text.replace(urlRegex, "<a href='$1' target='_blank'>$1</a>");
     },
     selectModule: async function (module: ConfigModule): Promise<void> {
-      this.popovers.forEach(function (popover) {
-        popover.hide();
-        popover.disable();
-        popover.dispose();
-      });
-
       let settings = await getModuleSettings(module.name);
       settings = settings.filter(function (val) {
         return val.editable == true;
@@ -626,14 +629,6 @@ export default defineComponent({
       this.selected_events = events;
       this.selected = module;
       await nextTick();
-
-      var popoverTriggerList = [].slice.call(
-        document.querySelectorAll('[data-bs-toggle="popover"]')
-      );
-      var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new Popover(popoverTriggerEl);
-      });
-      this.popovers = popoverList;
     },
     findColorFromTag: function (text: string): string | null {
       let re = /#[0-9a-f]{3,6}/i;
@@ -723,6 +718,16 @@ export default defineComponent({
     reloadModules: async function (): Promise<void> {
       this.modules = await getModules();
     },
+    parseXml: function (body: string): XMLDocument {
+      return parseXml(body);
+    },
+    runCommand: async function (command: string): Promise<void> {
+      // Soft wrapper for executeCommand with history integration
+      this.addConsoleHistoryEntry(command);
+      await this.executeCommand(command);
+    },
+    ...mapActions(["executeCommand"]),
+    ...mapMutations(["addConsoleHistoryEntry"]),
   },
 
   data(): SettingsData {
@@ -734,7 +739,6 @@ export default defineComponent({
       selected_commands: [],
       selected_events: [],
       selected_command: null,
-      popovers: [],
     };
   },
 

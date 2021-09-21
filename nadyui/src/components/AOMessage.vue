@@ -262,15 +262,7 @@
   </template>
 </template>
 
-<style lang="scss" scoped>
-strong {
-  color: #bff;
-}
-
-.invisible {
-  opacity: 0;
-}
-
+<style lang="scss">
 .triggers-action {
   color: #5798f9;
   text-decoration: underline;
@@ -279,6 +271,20 @@ strong {
     color: #397fe6;
     cursor: pointer;
   }
+}
+
+.popover-body .triggers-action::before {
+  content: "!";
+}
+</style>
+
+<style lang="scss" scoped>
+strong {
+  color: #bff;
+}
+
+.invisible {
+  opacity: 0;
 }
 
 h5 {
