@@ -10,6 +10,7 @@ import Message from "@/components/Message.vue";
 import ProfessionIcon from "@/components/ProfessionIcon.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import TimePicker from "@/components/TimePicker.vue";
+import Popover from "@/components/Popover.vue";
 import SmartTable from "vuejs-smart-table";
 
 createApp(App)
@@ -23,4 +24,5 @@ createApp(App)
   .component("ao-message", AOMessage)
   .component("message", Message)
   .component("popup", Popup)
+  .component("popover", Popover)
   .mount("#app");
