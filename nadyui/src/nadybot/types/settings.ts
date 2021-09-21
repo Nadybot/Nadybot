@@ -49,6 +49,8 @@ export interface ModuleSetting {
   readonly editable: boolean;
   // A description of what this setting is for
   readonly description: string;
+  // Detailed help text about this setting.
+  readonly help: string | null;
 }
 
 export interface ModuleEventConfig {
@@ -158,6 +160,7 @@ const moduleSettingDecoderMapping = {
   options: JsonDecoder.array(settingOptionDecoder, "options"),
   editable: JsonDecoder.boolean,
   description: JsonDecoder.string,
+  help: JsonDecoder.nullable(JsonDecoder.string),
 };
 
 const moduleSettingDecoder = JsonDecoder.objectStrict<ModuleSetting>(
