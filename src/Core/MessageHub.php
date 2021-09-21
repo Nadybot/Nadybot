@@ -499,6 +499,8 @@ class MessageHub {
 			$transactionRunning = true;
 		}
 		try {
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
 			$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
 		} catch (Exception $e) {
 			if (!$transactionRunning) {

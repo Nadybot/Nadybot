@@ -516,6 +516,8 @@ class RelayController {
 		foreach ($relays as $relay) {
 			$this->deleteRelay($relay);
 		}
+		$this->db->table(static::DB_TABLE_ARGUMENT)->truncate();
+		$this->db->table(static::DB_TABLE_LAYER)->truncate();
 		$this->db->table(static::DB_TABLE)->truncate();
 		return count($relays);
 	}
