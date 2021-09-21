@@ -795,7 +795,6 @@ class MessageHubController {
 			return;
 		}
 		$sendto->reply("<highlight>{$numDeleted}<end> routes deleted.");
-		var_dump($dump);
 	}
 
 	/** Turn on/off rendering of a specific hop */

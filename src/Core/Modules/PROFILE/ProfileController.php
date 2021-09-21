@@ -21,6 +21,7 @@ use Nadybot\Core\DBSchema\{
 	CmdCfg,
 	EventCfg,
 };
+use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
  * @author Tyrence (RK2)
@@ -68,6 +69,9 @@ class ProfileController {
 
 	/** @Inject */
 	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public RelayController $relayController;
 
 	private string $path;
 
@@ -193,6 +197,10 @@ class ProfileController {
 			$contents .= "!alias rem {$row->alias}\n";
 			$contents .= "!alias add {$row->alias} {$row->cmd}\n";
 		}
+
+		$contents .= "\n# Relays\n".
+			"!relay remall\n".
+			join("\n", $this->relayController->getRelayDump()) . "\n";
 
 		$contents .= "\n# Routes\n".
 			"!route remall\n".
