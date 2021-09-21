@@ -51,12 +51,22 @@
           <div class="card-header">Settings</div>
           <ul class="list-group list-group-flush">
             <li
-              class="list-group-item"
+              class="list-group-item setting-item"
               v-for="setting in selected_settings"
               :key="setting.name"
             >
               <div class="col-9 fake-section">
                 {{ setting.description }}
+
+                <span
+                  v-if="setting.help"
+                  data-bs-toggle="popover"
+                  :title="setting.name"
+                  :data-bs-content="setting.help"
+                >
+                  <fa icon="question-circle" :invert="60"></fa>
+                </span>
+
                 <span class="custom-muted ml-5">{{ setting.name }}</span>
               </div>
 
@@ -222,7 +232,7 @@
                         ? 'chevron-down'
                         : 'chevron-right'
                     "
-                    invert="10"
+                    :invert="10"
                   ></fa>
                   {{ command.command }}
                 </td>
@@ -454,7 +464,12 @@
   color: lighten(#6c757d, 20%);
 }
 
-.event-item:hover {
+.setting-item .fa-icon {
+  margin-right: 5px;
+}
+
+.event-item:hover,
+.setting-item:hover {
   .custom-muted {
     display: inline;
   }
@@ -532,7 +547,7 @@ td.clickable:hover,
 </style>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, nextTick } from "vue";
 
 import {
   getModules,
@@ -554,6 +569,8 @@ import {
   ModuleSubcommandChannel,
 } from "@/nadybot/types/settings";
 
+import Popover from "bootstrap/js/dist/popover";
+
 interface SettingsData {
   access_levels: Array<ModuleAccessLevel>;
   modules: Array<ConfigModule>;
@@ -562,6 +579,7 @@ interface SettingsData {
   selected_commands: Array<ModuleCommand>;
   selected_events: Array<ModuleEventConfig>;
   selected_command: ModuleCommand | null;
+  popovers: Array<Popover>;
 }
 
 export default defineComponent({
@@ -590,16 +608,32 @@ export default defineComponent({
       return text.replace(urlRegex, "<a href='$1' target='_blank'>$1</a>");
     },
     selectModule: async function (module: ConfigModule): Promise<void> {
+      this.popovers.forEach(function (popover) {
+        popover.hide();
+        popover.disable();
+        popover.dispose();
+      });
+
       let settings = await getModuleSettings(module.name);
       settings = settings.filter(function (val) {
         return val.editable == true;
       });
       let commands = await getModuleCommands(module.name);
       let events = await getModuleEvents(module.name);
+
       this.selected_settings = settings;
       this.selected_commands = commands;
       this.selected_events = events;
       this.selected = module;
+      await nextTick();
+
+      var popoverTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="popover"]')
+      );
+      var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new Popover(popoverTriggerEl);
+      });
+      this.popovers = popoverList;
     },
     findColorFromTag: function (text: string): string | null {
       let re = /#[0-9a-f]{3,6}/i;
@@ -700,6 +734,7 @@ export default defineComponent({
       selected_commands: [],
       selected_events: [],
       selected_command: null,
+      popovers: [],
     };
   },
 

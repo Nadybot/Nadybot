@@ -4,6 +4,7 @@
     :height="size"
     :width="size"
     :style="'filter: invert(' + invert + '%);'"
+    class="fa-icon"
   />
 </template>
 
