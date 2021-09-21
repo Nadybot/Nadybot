@@ -55,8 +55,8 @@ export default defineComponent({
         //container: "body",
         trigger: props.triggers,
         placement: props.placement,
-        title: titleRef.value?.innerHTML || "",
-        content: contentRef.value?.innerHTML || "",
+        title: titleRef.value || "",
+        content: contentRef.value || "",
         html: true,
       });
       if (document.getElementById(props.target)) {
