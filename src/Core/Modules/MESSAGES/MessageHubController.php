@@ -162,7 +162,12 @@ class MessageHubController {
 				return;
 			}
 		}
-		$this->db->beginTransaction();
+		$transactionRunning = false;
+		try {
+			$this->db->beginTransaction();
+		} catch (Exception $e) {
+			$transactionRunning = true;
+		}
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			foreach ($modifiers as $modifier) {
@@ -181,6 +186,9 @@ class MessageHubController {
 				$route->modifiers []= $modifier;
 			}
 		} catch (Throwable $e) {
+			if ($transactionRunning) {
+				throw $e;
+			}
 			$this->db->rollback();
 			$sendto->reply("Error saving the route: " . $e->getMessage());
 			return;
@@ -192,11 +200,16 @@ class MessageHubController {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 		} catch (Exception $e) {
+			if ($transactionRunning) {
+				throw $e;
+			}
 			$this->db->rollback();
 			$sendto->reply($e->getMessage());
 			return;
 		}
-		$this->db->commit();
+		if (!$transactionRunning) {
+			$this->db->commit();
+		}
 		$this->messageHub->addRoute($msgRoute);
 		$sendto->reply(
 			"Route added from <highlight>{$args["from"]}<end> ".
@@ -767,6 +780,22 @@ class MessageHubController {
 			return;
 		}
 		$sendto->reply("Display format saved.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route remall$/i")
+	 */
+	public function routeRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$dump = $this->messageHub->getRouteDump();
+		try {
+			$numDeleted = $this->messageHub->deleteAllRoutes();
+		} catch (Exception $e) {
+			$sendto->reply("Unknown error clearing the routing table: " . $e->getMessage());
+			return;
+		}
+		$sendto->reply("<highlight>{$numDeleted}<end> routes deleted.");
+		var_dump($dump);
 	}
 
 	/** Turn on/off rendering of a specific hop */

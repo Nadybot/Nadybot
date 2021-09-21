@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -58,6 +59,9 @@ class ProfileController {
 
 	/** @Inject */
 	public CommandManager $commandManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -189,6 +193,11 @@ class ProfileController {
 			$contents .= "!alias rem {$row->alias}\n";
 			$contents .= "!alias add {$row->alias} {$row->cmd}\n";
 		}
+
+		$contents .= "\n# Routes\n".
+			"!route remall\n".
+			join("\n", $this->messageHub->getRouteDump()) . "\n";
+
 		file_put_contents($filename, $contents);
 		$msg = "Profile <highlight>$profileName<end> has been saved.";
 		$sendto->reply($msg);
