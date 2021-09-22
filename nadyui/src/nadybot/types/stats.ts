@@ -3,6 +3,8 @@ import { JsonDecoder } from "ts.data.json";
 export enum DatabaseType {
   sqlite = "sqlite",
   mysql = "mysql",
+  postgresql = "postgresql",
+  mssql = "mssql",
 }
 
 export interface BasicSystemInformation {
