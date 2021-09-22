@@ -279,16 +279,11 @@
 </style>
 
 <style lang="scss" scoped>
-strong {
-  color: #bff;
-}
-
 .invisible {
   opacity: 0;
 }
 
 h5 {
-  color: orange;
   margin-bottom: 0;
 
   &:not(:first-child) {
