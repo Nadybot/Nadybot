@@ -59,7 +59,7 @@ class Tyrbot implements RelayProtocolInterface {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->encodeMessage($event);
 		} elseif ($event->data instanceof Online) {
-			return $this->encodeUserStateChange($event, $event->data);
+			return [...$this->encodeUserStateChange($event, $event->data), ...$this->encodeMessage($event)];
 		}
 		return [];
 	}
@@ -102,7 +102,7 @@ class Tyrbot implements RelayProtocolInterface {
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
 		} elseif (isset($event->data) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
 		}
 		$packet = [
 			"type" => "message",
