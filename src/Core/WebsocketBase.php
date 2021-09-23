@@ -58,6 +58,7 @@ class WebsocketBase {
 	public ?SocketNotifier $notifier = null;
 	protected bool $connected = false;
 	protected ?int $lastReadTime = null;
+	protected ?int $pendingPingTime = null;
 	protected ?TimerEvent $timeoutChecker = null;
 	public bool $maskData = true;
 
@@ -115,10 +116,18 @@ class WebsocketBase {
 			);
 			return;
 		}
+		$this->logger->log(
+			"TRACE",
+			"No data received for " . (time() - $this->lastReadTime) . "s".
+			($this->pendingPingTime
+				? ",ping pending since " . (time() - $this->pendingPingTime) . "s"
+				: "").
+			" on websocket " . ($this->uri ?? $this->peerName) . "."
+		);
 		if (time() - $this->lastReadTime >= 30) {
 			$this->send("", 'ping');
 		}
-		if (time() - $this->lastReadTime >= 30 + $this->timeout) {
+		if (isset($this->pendingPingTime) && time() - $this->pendingPingTime >= $this->timeout) {
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
 				"Connection to {$this->uri} timed out, no response to ping."
@@ -168,11 +177,12 @@ class WebsocketBase {
 			@fclose($this->socket);
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
-				"Failed to write $length bytes to socket."
+				"Failed to write $length bytes to websocket ".
+				$this->url??$this->peerName . "."
 			);
 			return false;
 		}
-		$this->logger->log("DEBUG", "$written byte sent");
+		$this->logger->log("TRACE", "{$written} bytes sent to " . ($this->uri ?? $this->peerName).".");
 		$data = substr($data, $written);
 		if (strlen($data)) {
 			array_unshift($this->sendQueue, $data);
@@ -183,12 +193,10 @@ class WebsocketBase {
 
 	public function processQueue(): void {
 		if (count($this->sendQueue) === 0) {
-			// $this->logger->log("INFO", "[{$this->uri}] Queue empty");
 			$this->listenForRead();
 			return;
 		}
 		$packet = array_shift($this->sendQueue);
-		// $this->logger->log("INFO", "Sending packet " . var_export($packet, true));
 		if (!is_string($packet)) {
 			$this->logger->log('ERROR', "Illegal item found in send queue: " . var_export($packet, true));
 			return;
@@ -282,6 +290,8 @@ class WebsocketBase {
 			$this->send($payload, 'pong');
 			return [$payload, $final];
 		} elseif ($opcode === 'pong') {
+			$this->logger->log("TRACE", "Pong received by " . ($this->uri ?? $this->peerName).".");
+			$this->pendingPingTime = null;
 		}
 
 		if ($opcode !== 'close') {
@@ -339,6 +349,7 @@ class WebsocketBase {
 			}
 			$data .= $buffer;
 			$this->lastReadTime = time();
+			$this->logger->log("TRACE", strlen($buffer) . " bytes of websocket data read FROM " . ($this->uri ?? $this->peerName).".");
 		}
 		return $data;
 	}
@@ -356,6 +367,10 @@ class WebsocketBase {
 	public function send(string $data, string $opcode='text'): void {
 		if (!$this->isConnected()) {
 			$this->connect();
+		}
+		$this->logger->log("TRACE", "Sending {$opcode} to websocket " . ($this->uri ?? $this->peerName).".");
+		if ($opcode === 'ping') {
+			$this->pendingPingTime = time();
 		}
 		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName) . "] Queueing packet");
 
@@ -402,7 +417,6 @@ class WebsocketBase {
 	}
 
 	protected function listenForRead(): void {
-		// $this->logger->log('INFO', 'Modifying listener to read only');
 		$callback = [$this, 'onStreamActivity'];
 		if (isset($this->notifier)) {
 			$callback = $this->notifier->getCallback();
@@ -417,7 +431,6 @@ class WebsocketBase {
 	}
 
 	protected function listenForReadWrite() {
-		// $this->logger->log('INFO', 'Modifying listener to rw');
 		$callback = [$this, 'onStreamActivity'];
 		if (isset($this->notifier)) {
 			$callback = $this->notifier->getCallback();
@@ -432,7 +445,6 @@ class WebsocketBase {
 	}
 
 	protected function listenForWebsocketReadWrite() {
-		// $this->logger->log('INFO', 'Listening for WebSocket rw');
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
