@@ -119,7 +119,7 @@ class WebsocketClient extends WebsocketBase {
 			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
 			$context
 		);
-		if (!isset($this->socker) || $this->socket === false) {
+		if (!isset($this->socket) || $this->socket === false) {
 			$this->throwError(
 				WebsocketError::CONNECT_ERROR,
 				$errstr
