@@ -198,6 +198,10 @@ class DiscordGatewayController {
 	}
 
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
+		if (!isset($this->client)) {
+			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
+			return;
+		}
 		$packet = new Payload();
 		$packet->op = Opcode::PRESENCE_UPDATE;
 		$packet->d = new UpdateStatus();

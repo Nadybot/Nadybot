@@ -272,6 +272,7 @@ class SystemController implements MessageEmitter {
 			$name,
 			$name
 		);
+		$this->messageHub->registerMessageEmitter($this);
 	}
 
 	public function getChannelName(): string {

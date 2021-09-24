@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Timer,
 	WebsocketClient,
 };
+use Nadybot\Core\Modules\PROFILE\ProfileCommandReply;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
@@ -411,7 +412,7 @@ class RelayController {
 			in_array($layer->layer, ["tyrbot", "nadynative"])
 		);
 		$msg = "Relay <highlight>{$args['name']}<end> added.";
-		if (!$this->messageHub->hasRouteFor($relay->getChannelName())) {
+		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($sendto instanceof ProfileCommandReply)) {
 			$help = $this->text->makeBlob("setup your routing", $blob);
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
@@ -422,7 +423,12 @@ class RelayController {
 		if ($this->getRelayByName($relayConf->name)) {
 			throw new Exception("The relay <highlight>{$relayConf->name}<end> already exists.");
 		}
-		$this->db->beginTransaction();
+		$transactionActive = false;
+		try {
+			$this->db->beginTransaction();
+		} catch (Exception $e) {
+			$transactionActive = true;
+		}
 		try {
 			$relayConf->id = $this->db->insert(static::DB_TABLE, $relayConf);
 			foreach ($relayConf->layers as $layer) {
@@ -434,20 +440,29 @@ class RelayController {
 				}
 			}
 		} catch (Throwable $e) {
+			if ($transactionActive) {
+				throw $e;
+			}
 			$this->db->rollback();
 			throw new Exception("Error saving the relay: " . $e->getMessage());
 		}
 		try {
 			$relay = $this->createRelayFromDB($relayConf);
 		} catch (Exception $e) {
-			$this->db->rollback();
+			if (!$transactionActive) {
+				$this->db->rollback();
+			}
 			throw $e;
 		}
 		if (!$this->addRelay($relay)) {
-			$this->db->rollback();
+			if (!$transactionActive) {
+				$this->db->rollback();
+			}
 			throw new Exception("A relay with that name is already registered");
 		}
-		$this->db->commit();
+		if (!$transactionActive) {
+			$this->db->commit();
+		}
 		$relay->init(function() use ($relay) {
 			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
 		});
@@ -457,7 +472,12 @@ class RelayController {
 	public function deleteRelay(RelayConfig $relay): bool {
 		/** @var int[] List of modifier-ids for the route */
 		$layers = array_column($relay->layers, "id");
-		$this->db->beginTransaction();
+		$transactionActive = false;
+		try {
+			$this->db->beginTransaction();
+		} catch (Exception $e) {
+			$transactionActive = true;
+		}
 		try {
 			if (count($layers)) {
 				$this->db->table(static::DB_TABLE_ARGUMENT)
@@ -470,10 +490,14 @@ class RelayController {
 			$this->db->table(static::DB_TABLE)
 				->delete($relay->id);
 		} catch (Throwable $e) {
-			$this->db->rollback();
+			if (!$transactionActive) {
+				$this->db->rollback();
+			}
 			throw $e;
 		}
-		$this->db->commit();
+		if (!$transactionActive) {
+			$this->db->commit();
+		}
 		$liveRelay = $this->relays[$relay->name] ?? null;
 		unset($this->relays[$relay->name]);
 		if (!isset($liveRelay)) {
@@ -484,6 +508,33 @@ class RelayController {
 			unset($relay);
 		});
 		return true;
+	}
+
+	/** Delete all relays and return how many were deleted */
+	public function deleteAllRelays(): int {
+		$relays = $this->getRelays();
+		foreach ($relays as $relay) {
+			$this->deleteRelay($relay);
+		}
+		$this->db->table(static::DB_TABLE_ARGUMENT)->truncate();
+		$this->db->table(static::DB_TABLE_LAYER)->truncate();
+		$this->db->table(static::DB_TABLE)->truncate();
+		return count($relays);
+	}
+
+	/**
+	 * Get a list of commands to create all current relays
+	 * @return string[]
+	 */
+	public function getRelayDump(): array {
+		$relays = $this->getRelays();
+		return array_map(function (RelayConfig $relay): string {
+			$msg = "!relay add {$relay->name}";
+			foreach ($relay->layers as $layer) {
+				$msg .= " " . $layer->toString();
+			}
+			return $msg;
+		}, $relays);
 	}
 
 	/**
@@ -602,6 +653,15 @@ class RelayController {
 		$sendto->reply(
 			"Relay #{$relay->id} (<highlight>{$relay->name}<end>) deleted."
 		);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 * @Matches("/^relay (?:remall|delall)$/i")
+	 */
+	public function relayRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$numDeleted = $this->deleteAllRelays();
+		$sendto->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
 	/**

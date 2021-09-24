@@ -179,14 +179,14 @@ class Relay implements MessageReceiver {
 		$this->initialized = false;
 		$this->onlineChars = [];
 		$this->initStep = $index;
+		$this->messageHub
+			->registerMessageEmitter($this)
+			->registerMessageReceiver($this);
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
 			$this->initialized = true;
-			$this->messageHub
-				->registerMessageEmitter($this)
-				->registerMessageReceiver($this);
 			if (isset($callback)) {
 				$callback();
 			}

@@ -433,11 +433,31 @@ class MessageHub {
 		foreach ($this->routes as $source => $destData) {
 			foreach ($destData as $dest => $routes) {
 				foreach ($routes as $route) {
-					$allRoutes [$route->getID()]= $route;
+					$allRoutes [$route->getID()] = $route;
 				}
 			}
 		}
 		return array_values($allRoutes);
+	}
+
+	/** Get a list of commands to re-create all routes */
+	public function getRouteDump(bool $useForce=false): array {
+		$routes = $this->getRoutes();
+		$cmd = $useForce ? "addforce" : "add";
+		return array_map(function(MessageRoute $route) use ($cmd): string {
+			$routeCode = $route->getSource();
+			if ($route->getTwoWay()) {
+				$routeCode .= " <-> ";
+			} else {
+				$routeCode .= " -> ";
+			}
+			$routeCode .= $route->getDest();
+			$mods = $route->renderModifiers();
+			if (count($mods)) {
+				$routeCode .= " " . join(" ", $mods);
+			}
+			return "!route {$cmd} {$routeCode}";
+		}, $routes);
 	}
 
 	public function deleteRouteID(int $id): ?MessageRoute {
@@ -468,6 +488,32 @@ class MessageHub {
 			}
 		}
 		return $result;
+	}
+
+	/** Remove all routes from the routing table and return how many were removed */
+	public function deleteAllRoutes(): int {
+		$routes = $this->getRoutes();
+		$transactionRunning = false;
+		try {
+			$this->db->beginTransaction();
+		} catch (Exception $e) {
+			$transactionRunning = true;
+		}
+		try {
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
+			$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
+		} catch (Exception $e) {
+			if (!$transactionRunning) {
+				$this->db->rollback();
+			}
+			throw $e;
+		}
+		if (!$transactionRunning) {
+			$this->db->commit();
+		}
+		$this->routes = [];
+		return count($routes);
 	}
 
 	/**

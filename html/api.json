@@ -1742,6 +1742,177 @@
 				]
 			}
 		},
+		"/profile": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of saved profiles",
+				"responses": {
+					"200": {
+						"description": "A list of saved profiled",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			}
+		},
+		"/profile/{profile}": {
+			"parameters": [
+				{
+					"name": "profile",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "View a profile",
+				"responses": {
+					"200": {
+						"description": "Profile found and shown",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete a profile",
+				"responses": {
+					"204": {
+						"description": "Profile successfully deleted"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile saved successfully"
+					},
+					"409": {
+						"description": "Profile already exists"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			}
+		},
 		"/audit": {
 			"parameters": [
 				{

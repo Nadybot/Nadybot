@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SQLException,
 	Text,
+	Timer,
 	Util,
 };
 
@@ -51,6 +52,9 @@ class FindOrgController {
 
 	/** @Inject */
 	public Http $http;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -139,7 +143,11 @@ class FindOrgController {
 		return $blob;
 	}
 
-	public function handleOrglistResponse(string $url, int $searchIndex, HttpResponse $response) {
+	public function handleOrglistResponse(string $url, int $searchIndex, HttpResponse $response): void {
+		if ($this->db->inTransaction()) {
+			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
+			return;
+		}
 		if ($response === null || $response->headers["status-code"] !== "200") {
 			$this->ready = true;
 			return;

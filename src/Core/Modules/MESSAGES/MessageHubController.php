@@ -114,9 +114,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args["to"] = $this->fixDiscordChannelName($args['to']);
@@ -128,7 +128,7 @@ class MessageHubController {
 			$args["from"] = Source::PRIV . "({$this->chatBot->char->name})";
 		}
 		$receiver = $this->messageHub->getReceiver($args["to"]);
-		if (!isset($receiver)) {
+		if (!strlen($args['force']??"") && !isset($receiver)) {
 			$sendto->reply("Unknown target <highlight>{$args["to"]}<end>.");
 			return;
 		}
@@ -138,7 +138,7 @@ class MessageHubController {
 			return fnmatch($e->getChannelName(), $args["from"], FNM_CASEFOLD)
 				|| fnmatch($args["from"], $e->getChannelName(), FNM_CASEFOLD);
 		});
-		if (!isset($hasSender)) {
+		if (!strlen($args['force']??"") && !isset($hasSender)) {
 			$sendto->reply("No message source for <highlight>{$args['from']}<end> found.");
 			return;
 		}
@@ -148,7 +148,7 @@ class MessageHubController {
 		if ($args["direction"] === "<->" || $args["direction"] === "&lt;-&gt;") {
 			$route->two_way = true;
 			$receiver = $this->messageHub->getReceiver($args["from"]);
-			if (!isset($receiver)) {
+			if (!strlen($args['force']??"") && !isset($receiver)) {
 				$sendto->reply("Unable to route to <highlight>{$args["from"]}<end>.");
 				return;
 			}
@@ -162,7 +162,12 @@ class MessageHubController {
 				return;
 			}
 		}
-		$this->db->beginTransaction();
+		$transactionRunning = false;
+		try {
+			$this->db->beginTransaction();
+		} catch (Exception $e) {
+			$transactionRunning = true;
+		}
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			foreach ($modifiers as $modifier) {
@@ -181,6 +186,9 @@ class MessageHubController {
 				$route->modifiers []= $modifier;
 			}
 		} catch (Throwable $e) {
+			if ($transactionRunning) {
+				throw $e;
+			}
 			$this->db->rollback();
 			$sendto->reply("Error saving the route: " . $e->getMessage());
 			return;
@@ -192,11 +200,16 @@ class MessageHubController {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 		} catch (Exception $e) {
+			if ($transactionRunning) {
+				throw $e;
+			}
 			$this->db->rollback();
 			$sendto->reply($e->getMessage());
 			return;
 		}
-		$this->db->commit();
+		if (!$transactionRunning) {
+			$this->db->commit();
+		}
 		$this->messageHub->addRoute($msgRoute);
 		$sendto->reply(
 			"Route added from <highlight>{$args["from"]}<end> ".
@@ -580,6 +593,17 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Matches("/^route color remall$/i")
+	 */
+	public function routeTagColorRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->db->table($this->messageHub::DB_TABLE_COLORS)
+			->truncate();
+		$this->messageHub->loadTagColor();
+		$sendto->reply("All route color definitions deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
 	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) (?:->|-&gt;) (?<where>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) #?(?<color>[0-9a-f]{6})$/i")
 	 */
@@ -733,6 +757,16 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Matches("/^route format remall$/i")
+	 */
+	public function routeFormatRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$this->db->table(Source::DB_TABLE)->truncate();
+		$this->messageHub->loadTagFormat();
+		$sendto->reply("All route format definitions deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
 	 * @Matches("/^route format render (?<hop>.+) (?<render>true|false)$/i")
 	 */
 	public function routeFormatChangeRenderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
@@ -767,6 +801,21 @@ class MessageHubController {
 			return;
 		}
 		$sendto->reply("Display format saved.");
+	}
+
+	/**
+	 * @HandlesCommand("route")
+	 * @Matches("/^route remall$/i")
+	 */
+	public function routeRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$dump = $this->messageHub->getRouteDump();
+		try {
+			$numDeleted = $this->messageHub->deleteAllRoutes();
+		} catch (Exception $e) {
+			$sendto->reply("Unknown error clearing the routing table: " . $e->getMessage());
+			return;
+		}
+		$sendto->reply("<highlight>{$numDeleted}<end> routes deleted.");
 	}
 
 	/** Turn on/off rendering of a specific hop */
