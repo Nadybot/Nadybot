@@ -183,7 +183,9 @@ class WebserverController {
 			'edit',
 			'options',
 			static::AUTH_BASIC,
-			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH])
+			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
+			"",
+			"superadmin"
 		);
 
 		$this->settingManager->add(
@@ -206,7 +208,9 @@ class WebserverController {
 			'edit',
 			'text',
 			'https://aoauth.org',
-			'https://aoauth.org'
+			'https://aoauth.org',
+			"",
+			"superadmin"
 		);
 
 		$this->scanRouteAnnotations();
