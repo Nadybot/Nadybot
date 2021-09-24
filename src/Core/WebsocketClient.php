@@ -119,7 +119,7 @@ class WebsocketClient extends WebsocketBase {
 			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
 			$context
 		);
-		if ($this->socket === false) {
+		if (!isset($this->socker) || $this->socket === false) {
 			$this->throwError(
 				WebsocketError::CONNECT_ERROR,
 				$errstr
@@ -146,6 +146,9 @@ class WebsocketClient extends WebsocketBase {
 	public function enableTLS(): void {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
+		}
+		if (!isset($this->socket)) {
+			return;
 		}
 		$result = stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 		if ($result === false) {
