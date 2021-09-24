@@ -934,7 +934,6 @@ class PrivateChannelController {
 	 */
 	public function joinPrivateChannelShowOnlineEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		$msg = "";
 		$msg = $this->onlineController->getOnlineList();
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
