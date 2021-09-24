@@ -441,9 +441,10 @@ class MessageHub {
 	}
 
 	/** Get a list of commands to re-create all routes */
-	public function getRouteDump(): array {
+	public function getRouteDump(bool $useForce=false): array {
 		$routes = $this->getRoutes();
-		return array_map(function(MessageRoute $route): string {
+		$cmd = $useForce ? "addforce" : "add";
+		return array_map(function(MessageRoute $route) use ($cmd): string {
 			$routeCode = $route->getSource();
 			if ($route->getTwoWay()) {
 				$routeCode .= " <-> ";
@@ -455,7 +456,7 @@ class MessageHub {
 			if (count($mods)) {
 				$routeCode .= " " . join(" ", $mods);
 			}
-			return "!route add {$routeCode}";
+			return "!route {$cmd} {$routeCode}";
 		}, $routes);
 	}
 

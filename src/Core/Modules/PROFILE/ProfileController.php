@@ -228,7 +228,7 @@ class ProfileController {
 
 		$contents .= "\n# Routes\n".
 			"!route remall\n".
-			join("\n", $this->messageHub->getRouteDump()) . "\n";
+			join("\n", $this->messageHub->getRouteDump(true)) . "\n";
 
 		$contents .= "\n# Route colors\n".
 			"!route color remall\n";

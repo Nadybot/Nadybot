@@ -114,9 +114,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
+	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
 	 */
 	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args["to"] = $this->fixDiscordChannelName($args['to']);
@@ -128,7 +128,7 @@ class MessageHubController {
 			$args["from"] = Source::PRIV . "({$this->chatBot->char->name})";
 		}
 		$receiver = $this->messageHub->getReceiver($args["to"]);
-		if (!isset($receiver)) {
+		if (!strlen($args['force']??"") && !isset($receiver)) {
 			$sendto->reply("Unknown target <highlight>{$args["to"]}<end>.");
 			return;
 		}
@@ -138,7 +138,7 @@ class MessageHubController {
 			return fnmatch($e->getChannelName(), $args["from"], FNM_CASEFOLD)
 				|| fnmatch($args["from"], $e->getChannelName(), FNM_CASEFOLD);
 		});
-		if (!isset($hasSender)) {
+		if (!strlen($args['force']??"") && !isset($hasSender)) {
 			$sendto->reply("No message source for <highlight>{$args['from']}<end> found.");
 			return;
 		}
@@ -148,7 +148,7 @@ class MessageHubController {
 		if ($args["direction"] === "<->" || $args["direction"] === "&lt;-&gt;") {
 			$route->two_way = true;
 			$receiver = $this->messageHub->getReceiver($args["from"]);
-			if (!isset($receiver)) {
+			if (!strlen($args['force']??"") && !isset($receiver)) {
 				$sendto->reply("Unable to route to <highlight>{$args["from"]}<end>.");
 				return;
 			}
