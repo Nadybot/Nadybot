@@ -64,13 +64,15 @@ class FindOrgController {
 	private $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-		'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 		'others'
 	];
 
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->ready = $this->db->table("organizations")
+			->where("index", "others")
+			->exists();
 	}
 
 	/**
@@ -133,12 +135,18 @@ class FindOrgController {
 	 * @param Organization[] $orgs
 	 */
 	public function formatResults(array $orgs): string {
-		$blob = '';
+		$blob = "<header2>Matching orgs<end>\n";
+		usort($orgs, function (Organization $a, Organization $b): int {
+			return strcasecmp($a->name, $b->name);
+		});
 		foreach ($orgs as $org) {
 			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$org->id}");
 			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$org->id}");
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
-			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [$orglist] [$whoisorg] [$orgmembers]\n\n";
+			$blob .= "<tab><{$org->faction}>{$org->name}<end> ({$org->id}) - ".
+				"<highlight>{$org->num_members}<end> ".
+				$this->text->pluralize("member", $org->num_members).
+				", {$org->governing_form} [$orglist] [$whoisorg] [$orgmembers]\n";
 		}
 		return $blob;
 	}
@@ -177,10 +185,14 @@ class FindOrgController {
 				$obj->name = trim($match[3]);
 				$obj->num_members = (int)$match[4];
 				$obj->faction = $match[6];
+				$obj->index = $search;
+				$obj->governing_form = $match[7];
 				$inserts []= get_object_vars($obj);
-				//$obj->governingForm = $match[7]; unused
 			}
 			$this->db->beginTransaction();
+			$this->db->table("organizations")
+				->where("index", $search)
+				->delete();
 			$this->db->table("organizations")
 				->chunkInsert($inserts);
 			$this->db->commit();
@@ -198,7 +210,7 @@ class FindOrgController {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Error downloading orgs");
+			$this->logger->log("ERROR", "Error downloading orgs: " . $e->getMessage(), $e);
 			$this->db->rollback();
 			$this->ready = true;
 		}
@@ -215,8 +227,9 @@ class FindOrgController {
 	public function downloadOrglist(): void {
 		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
 
-		$this->ready = false;
-		$this->db->table("organizations")->truncate();
+		$this->ready = $this->db->table("organizations")
+			->where("index", "others")
+			->exists();
 		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http
