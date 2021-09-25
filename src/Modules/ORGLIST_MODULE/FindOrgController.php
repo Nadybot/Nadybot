@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Event,
 	CommandReply,
@@ -135,12 +136,18 @@ class FindOrgController {
 	 * @param Organization[] $orgs
 	 */
 	public function formatResults(array $orgs): string {
-		$blob = '';
+		$blob = "<header2>Matching orgs<end>\n";
+		usort($orgs, function (Organization $a, Organization $b): int {
+			return strcasecmp($a->name, $b->name);
+		});
 		foreach ($orgs as $org) {
 			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$org->id}");
 			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$org->id}");
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
-			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [$orglist] [$whoisorg] [$orgmembers]\n\n";
+			$blob .= "<tab><{$org->faction}>{$org->name}<end> ({$org->id}) - ".
+				"<highlight>{$org->num_members}<end> ".
+				$this->text->pluralize("member", $org->num_members).
+				", {$org->governing_form} [$orglist] [$whoisorg] [$orgmembers]\n";
 		}
 		return $blob;
 	}
@@ -180,8 +187,8 @@ class FindOrgController {
 				$obj->num_members = (int)$match[4];
 				$obj->faction = $match[6];
 				$obj->index = $search;
+				$obj->governing_form = $match[7];
 				$inserts []= get_object_vars($obj);
-				//$obj->governingForm = $match[7]; unused
 			}
 			$this->db->beginTransaction();
 			$this->db->table("organizations")

@@ -13,6 +13,7 @@ class AddIndexName implements SchemaMigration {
 		$db->table($table)->truncate();
 		$db->schema()->table($table, function(Blueprint $table) {
 			$table->string("index", 6)->index();
+			$table->string("governing_form", 10);
 		});
 	}
 }
