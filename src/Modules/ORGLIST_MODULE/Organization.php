@@ -9,4 +9,5 @@ class Organization extends DBRow {
 	public string $name = "Illegal Org";
 	public int $num_members = 0;
 	public string $faction = "Neutral";
+	public string $index = "others";
 }
