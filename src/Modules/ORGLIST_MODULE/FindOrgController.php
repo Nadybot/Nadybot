@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Event,
 	CommandReply,
