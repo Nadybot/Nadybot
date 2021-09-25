@@ -523,7 +523,8 @@ class DB {
 				$this->logger->log(
 					"WARN",
 					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
-					"consider upgrading to the latest MariaDB or use SQLite."
+					"consider upgrading to the latest MariaDB or use SQLite.",
+					$e
 				);
 				return 1;
 			}
@@ -981,7 +982,7 @@ class DB {
 		try {
 			require_once $file;
 		} catch (Throwable $e) {
-			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage());
+			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage(), $e);
 			return;
 		}
 		$new = array_diff(get_declared_classes(), $old);
@@ -1001,7 +1002,8 @@ class DB {
 				$this->logger->log(
 					'ERROR',
 					"Error executing {$class}::migrate(): ".
-						$e->getMessage()
+						$e->getMessage(),
+					$e
 				);
 				continue;
 			}
@@ -1097,7 +1099,7 @@ class DB {
 				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
-			$this->logger->log('ERROR', $e->getMessage());
+			$this->logger->log('ERROR', $e->getMessage(), $e);
 			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);

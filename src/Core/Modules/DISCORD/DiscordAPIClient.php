@@ -220,7 +220,8 @@ class DiscordAPIClient {
 				$this->logger->log(
 					'ERROR',
 					'Error decoding JSON response from Discord-Server: '.
-					$e->getMessage()
+					$e->getMessage(),
+					$e
 				);
 				return;
 			}

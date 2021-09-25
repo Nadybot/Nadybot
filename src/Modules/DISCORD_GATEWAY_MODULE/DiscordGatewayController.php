@@ -278,7 +278,11 @@ class DiscordGatewayController {
 		try {
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
-			$this->logger->log("ERROR", "Invalid JSON data received from Discord");
+			$this->logger->log(
+				"ERROR",
+				"Invalid JSON data received from Discord: " . $e->getMessage(),
+				$e
+			);
 			$this->client->close(4002);
 			return;
 		}

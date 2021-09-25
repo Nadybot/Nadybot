@@ -121,7 +121,7 @@ class Tyrbot implements RelayProtocolInterface {
 		try {
 			$data = $this->jsonEncode($packet);
 		} catch (JsonException $e) {
-			$this->logger->log('ERROR', "Error ecoding Tyrbot message: " . $e->getMessage());
+			$this->logger->log('ERROR', "Error ecoding Tyrbot message: " . $e->getMessage(), $e);
 			return [];
 		}
 		return [$data];
@@ -140,15 +140,16 @@ class Tyrbot implements RelayProtocolInterface {
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
-				"Invalid data received via Tyrbot protocol: {$serialized}"
+				"Invalid data received via Tyrbot protocol: {$serialized}",
+				$e
 			);
 			return null;
 		} catch (Throwable $e) {
 			$this->logger->log(
 				'ERROR',
-				"Invalid Tyrbot-package received: {$serialized}"
+				"Invalid Tyrbot-package received: {$serialized}",
+				$e
 			);
-			$this->logger->log('ERROR', $e->getMessage());
 			return null;
 		}
 
