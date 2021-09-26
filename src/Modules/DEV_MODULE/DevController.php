@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
@@ -240,12 +241,8 @@ class DevController {
 	 * @HandlesCommand("makeitem")
 	 * @Matches("/^makeitem (\d+) (\d+) (\d+) (.+)$/i")
 	 */
-	public function makeItemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$lowId = (int)$args[1];
-		$highId = (int)$args[2];
-		$ql = (int)$args[3];
-		$name = $args[4];
-		$sendto->reply($this->text->makeItem($lowId, $highId, $ql, $name));
+	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
+		$context->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
 
 	/**
