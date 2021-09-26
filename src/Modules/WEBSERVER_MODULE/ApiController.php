@@ -16,6 +16,7 @@ use Nadybot\Core\Annotations\{
 };
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandHandler,
 	CommandManager,
 	CommandReply,
@@ -512,7 +513,14 @@ class ApiController {
 		if (strlen($msg)) {
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);
-			$this->commandManager->process("msg", $msg, $request->authenticatedAs, $handler);
+			$context = new CmdContext($request->authenticatedAs);
+			$context->channel = "msg";
+			$context->sendto = $handler;
+			$context->message = $msg;
+			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+				$context->char->id = $uid;
+				$this->commandManager->processCmd($context);
+			}, $context);
 		}
 		return new Response(Response::NO_CONTENT);
 	}

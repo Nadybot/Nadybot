@@ -186,11 +186,13 @@ class ConsoleController {
 			readline_add_history($line);
 			$this->saveHistory();
 		}
-		$context = new CmdContext();
+		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
 		$context->channel = "msg";
 		$context->message = $line;
-		$context->sender = $this->chatBot->vars["SuperAdmin"];
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
-		$this->commandManager->processCmd($context);
+		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->processCmd($context);
+		}, $context);
 	}
 }

@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandManager,
 	CommandReply,
@@ -315,6 +316,10 @@ class ProfileController {
 		$this->db->beginTransaction();
 		try {
 			$profileSendTo = new ProfileCommandReply();
+			$context = new CmdContext($sender);
+			$context->char->id = $this->chatBot->get_uid($sender) ?: null;
+			$context->sendto = $profileSendTo;
+			$context->channel = "msg";
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];
@@ -379,7 +384,8 @@ class ProfileController {
 				if ($line[0] === "!") {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
-					$this->commandManager->process("msg", $line, $sender, $profileSendTo);
+					$context->message = $line;
+					$this->commandManager->processCmd($context);
 					$profileSendTo->reply("");
 				} else {
 					$numSkipped++;

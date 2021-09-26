@@ -5,6 +5,7 @@ namespace Nadybot\Modules\LOOT_MODULE;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	CommandManager,
@@ -281,14 +282,12 @@ class LootController {
 	 * @HandlesCommand("loot .+")
 	 * @Matches("/^loot auction (\d+)$/i")
 	 */
-	public function lootAuctionByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function lootAuctionByIdCommand(CmdContext $context, int $id): void {
 		$row = $this->getLootEntryID($id);
 
 		if ($row === null) {
 			$msg = "Could not find item with id <highlight>$id<end> to add.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -297,7 +296,8 @@ class LootController {
 			$item = $this->text->makeItem((int)$row->lowid, $row->highid, $row->ql, $row->name);
 		}
 		// We want this command to always use the same rights as the bid start
-		$this->commandManager->process($channel, "bid start {$item}", $sender, $sendto);
+		$context->message = "bid start {$item}";
+		$this->commandManager->processCmd($context);
 	}
 
 	/**

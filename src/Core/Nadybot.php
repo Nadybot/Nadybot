@@ -896,10 +896,9 @@ class Nadybot extends AOChat {
 				}
 
 				// check tell limits
-				$context = new CmdContext();
+				$context = new CmdContext($sender, $senderId);
 				$context->channel = $type;
 				$context->message = $message;
-				$context->sender = $sender;
 				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
 				$this->limitsController->checkAndExecute(
 					$sender,
@@ -958,10 +957,9 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$context = new CmdContext();
+		$context = new CmdContext($sender, $senderId);
 		$context->channel = $type;
 		$context->message = substr($message, 1);
-		$context->sender = $sender;
 		$context->sendto = new PrivateChannelCommandReply($this, $channel);
 		$this->banController->handleBan(
 			$senderId,
@@ -1043,10 +1041,9 @@ class Nadybot extends AOChat {
 			$this->eventManager->fireEvent($eventObj);
 
 			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$context = new CmdContext();
+				$context = new CmdContext($sender, $senderId);
 				$context->channel = "guild";
 				$context->message = substr($message, 1);
-				$context->sender = $sender;
 				$context->sendto = new GuildChannelCommandReply($this);
 				$this->banController->handleBan(
 					$senderId,

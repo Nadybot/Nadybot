@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\AOChatEvent;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandManager;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageHub;
@@ -87,7 +88,14 @@ class WebchatApiController {
 			$message = substr($message, 1);
 			$sendto = new WebsocketCommandReply("web");
 			Registry::injectDependencies($sendto);
-			$this->commandManager->process("priv", $message, $request->authenticatedAs, $sendto);
+			$context = new CmdContext($request->authenticatedAs);
+			$context->channel = "priv";
+			$context->sendto = $sendto;
+			$context->message = $message;
+			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+				$context->char->id = $uid;
+				$this->commandManager->processCmd($context);
+			}, $context);
 		}
 		return new Response(Response::NO_CONTENT);
 	}

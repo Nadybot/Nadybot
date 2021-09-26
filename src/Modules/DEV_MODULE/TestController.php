@@ -6,6 +6,7 @@ use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
 	AOChatPacket,
+	CmdContext,
 	CommandManager,
 	CommandReply,
 	Event,
@@ -237,64 +238,62 @@ class TestController {
 	 * @HandlesCommand("test")
 	 * @Matches("/^test all$/i")
 	 */
-	public function testAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = "msg";
-		if ($this->settingManager->getBool('show_test_results')) {
-			$mockSendto = $sendto;
-		} else {
-			$mockSendto = new MockCommandReply();
+	public function testAllCommand(CmdContext $context): void {
+		$testContext = clone $context;
+		$testContext->channel = "msg";
+		if (!$this->settingManager->getBool('show_test_results')) {
+			$testContext->sendto = new MockCommandReply();
 		}
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$starttime = time();
-		$sendto->reply("Starting tests...");
+		$context->reply("Starting tests...");
 		foreach ($files as $file) {
 			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			$this->runTests($lines, $sender, $type, $mockSendto);
+			$this->runTests($lines, $testContext);
 		}
 		$time = $this->util->unixtimeToReadable(time() - $starttime);
-		$sendto->reply("Finished tests. Time: $time");
+		$context->reply("Finished tests. Time: $time");
 	}
 
 	/**
 	 * @HandlesCommand("test")
 	 * @Matches("/^test ([a-z0-9_-]+)$/i")
 	 */
-	public function testModuleCommand($message, $channel, $sender, $sendto, $args) {
-		$file = $args[1] . ".txt";
+	public function testModuleCommand(CmdContext $context, string $file): void {
+		$file = "{$file}.txt";
 
-		$type = "msg";
-		if ($this->setting->show_test_results == 1) {
-			$mockSendto = $sendto;
-		} else {
-			$mockSendto = new MockCommandReply();
-			$mockSendto->logger = $this->logger;
+		$testContext = clone $context;
+		$testContext->channel = "msg";
+		if (!$this->settingManager->getBool('show_test_results')) {
+			$testContext->sendto = new MockCommandReply();
+			$testContext->sendto->logger = $this->logger;
 		}
 
 		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
 		if ($lines === false) {
-			$sendto->reply("Could not find test <highlight>$file<end> to run.");
+			$context->reply("Could not find test <highlight>$file<end> to run.");
 		} else {
 			$starttime = time();
-			$sendto->reply("Starting test $file...");
-			$this->runTests($lines, $sender, $type, $mockSendto);
+			$context->reply("Starting test $file...");
+			$this->runTests($lines, $testContext);
 			$time = $this->util->unixtimeToReadable(time() - $starttime);
-			$sendto->reply("Finished test $file. Time: $time");
+			$context->reply("Finished test $file. Time: $time");
 		}
 	}
 
-	public function runTests(array $commands, string $sender, string $type, CommandReply $sendto): void {
+	public function runTests(array $commands, CmdContext $context): void {
 		foreach ($commands as $line) {
 			if ($line[0] !== "!") {
 				continue;
 			}
 			if ($this->settingManager->getBool('show_test_commands')) {
-				$this->chatBot->sendTell($line, $sender);
+				$this->chatBot->sendTell($line, $context->char->name);
 			} else {
 				$this->logger->log('INFO', $line);
 			}
-			$line = substr($line, 1);
-			$this->commandManager->process($type, $line, $sender, $sendto);
+			$context->message = substr($line, 1);
+			$this->commandManager->processCmd($context);
 		}
 	}
 
@@ -571,11 +570,10 @@ class TestController {
 	 * @HandlesCommand("msginfo")
 	 * @Matches("/^msginfo (.+)$/i")
 	 */
-	public function msgInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = $args[1];
-
-		$mockSendto = new MessageInfoCommandReply($sendto);
-		$this->commandManager->process($channel, $cmd, $sender, $mockSendto);
+	public function msgInfoCommand(CmdContext $context, string $cmd): void {
+		$context->message = $cmd;
+		$context->sendto = new MessageInfoCommandReply($context);
+		$this->commandManager->processCmd($context);
 	}
 
 	/**

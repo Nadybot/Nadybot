@@ -74,7 +74,7 @@ class HelpController {
 	 * @Matches("/^help$/i")
 	 */
 	public function helpListCommand(CmdContext $context): void {
-		$data = $this->helpManager->getAllHelpTopics($context->sender);
+		$data = $this->helpManager->getAllHelpTopics($context->char->name);
 
 		if (count($data) === 0) {
 			$msg = "No help files found.";
@@ -101,29 +101,29 @@ class HelpController {
 	 * @HandlesCommand("help")
 	 * @Matches("/^help (.+)$/i")
 	 */
-	public function helpShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$helpcmd = strtolower($args[1]);
+	public function helpShowCommand(CmdContext $context, string $helpCmd): void {
+		$helpCmd = strtolower($helpCmd);
 
-		if ($helpcmd === 'about') {
+		if ($helpCmd === 'about') {
 			$msg = $this->getAbout();
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		// check for alias
-		$row = $this->commandAlias->get($helpcmd);
+		$row = $this->commandAlias->get($helpCmd);
 		if ($row !== null && $row->status === 1) {
-			$helpcmd = explode(' ', $row->cmd)[0];
+			$helpCmd = explode(' ', $row->cmd)[0];
 		}
 
-		$blob = $this->helpManager->find($helpcmd, $sender);
+		$blob = $this->helpManager->find($helpCmd, $context->char->name);
 		if ($blob === null) {
 			$msg = "No help found on this topic.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$helpcmd = ucfirst($helpcmd);
-		$msg = $this->text->makeBlob("Help ($helpcmd)", $blob);
-		$sendto->reply($msg);
+		$helpCmd = ucfirst($helpCmd);
+		$msg = $this->text->makeBlob("Help ($helpCmd)", $blob);
+		$context->reply($msg);
 	}
 }

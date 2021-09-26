@@ -293,15 +293,15 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Handle an incoming command
 	 *
+	 * @deprecated Please use processCmd() instead
 	 * @throws \Nadybot\Core\StopExecutionException
 	 * @throws \Nadybot\Core\SQLException For SQL errors during command execution
 	 * @throws \Exception For a generic exception during command execution
 	 */
 	public function process(string $channel, string $message, string $sender, CommandReply $sendto): void {
-		$context = new CmdContext();
+		$context = new CmdContext($sender);
 		$context->channel = $channel;
 		$context->message = $message;
-		$context->sender = $sender;
 		$context->sendto = $sendto;
 		$this->processCmd($context);
 	}
@@ -310,14 +310,14 @@ class CommandManager implements MessageEmitter {
 		$cmd = explode(' ', $context->message, 2)[0];
 		$cmd = strtolower($cmd);
 
-		if ($this->limitsController->isIgnored($context->sender)) {
+		if ($this->limitsController->isIgnored($context->char->name)) {
 			return;
 		}
 		$commandHandler = $this->getActiveCommandHandler($cmd, $context->channel, $context->message);
 		$event = new CmdEvent();
 		$event->channel = $context->channel;
 		$event->cmd = $cmd;
-		$event->sender = $context->sender;
+		$event->sender = $context->char->name;
 		$event->cmdHandler = $commandHandler;
 
 		// if command doesn't exist
@@ -331,7 +331,7 @@ class CommandManager implements MessageEmitter {
 			}
 
 			$similarCommands = $this->commandSearchController->findSimilarCommands([$cmd]);
-			$similarCommands = $this->commandSearchController->filterResultsByAccessLevel($context->sender, $similarCommands);
+			$similarCommands = $this->commandSearchController->filterResultsByAccessLevel($context->char->name, $similarCommands);
 			$similarCommands = array_slice($similarCommands, 0, 5);
 			$cmdNames = array_map([$this, 'mapToCmd'], $similarCommands);
 
@@ -342,7 +342,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		// if the character doesn't have access
-		if (!$this->checkAccessLevel($context->channel, $context->message, $context->sender, $context->sendto, $cmd, $commandHandler)) {
+		if (!$this->checkAccessLevel($context->channel, $context->message, $context->char->name, $context->sendto, $cmd, $commandHandler)) {
 			$event->type = "command(forbidden)";
 			$this->eventManager->fireEvent($event);
 			return;
@@ -353,7 +353,7 @@ class CommandManager implements MessageEmitter {
 			$event->type = "command(success)";
 
 			if ($handler === null) {
-				$help = $this->getHelpForCommand($cmd, $context->channel, $context->sender);
+				$help = $this->getHelpForCommand($cmd, $context->channel, $context->char->name);
 				$context->reply($help);
 				$event->type = "command(help)";
 				$this->eventManager->fireEvent($event);
@@ -379,7 +379,7 @@ class CommandManager implements MessageEmitter {
 		try {
 			// record usage stats (in try/catch block in case there is an error)
 			if ($this->settingManager->getBool('record_usage_stats')) {
-				$this->usageController->record($context->channel, $cmd, $context->sender, $handler);
+				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
 			$this->logger->log("ERROR", $e->getMessage(), $e);
@@ -421,10 +421,9 @@ class CommandManager implements MessageEmitter {
 	 * Call the command handler for a given command and return which one was used
 	 */
 	public function callCommandHandler(CommandHandler $commandHandler, string $message, string $channel, string $sender, CommandReply $sendto): ?string {
-		$context = new CmdContext();
+		$context = new CmdContext($sender);
 		$context->message = $message;
 		$context->channel = $channel;
-		$context->sender = $sender;
 		$context->sendto = $sendto;
 		return $this->executeCommandHandler($commandHandler, $context);
 	}
@@ -452,9 +451,28 @@ class CommandManager implements MessageEmitter {
 						&& ($type instanceof ReflectionNamedType)
 						&& ($type->getName() === CmdContext::class)
 					) {
+						for ($i = 1; $i < count($context->args); $i++) {
+							if (!isset($params[$i]) || !$params[$i]->hasType() || !$params[$i]->getType()->isBuiltin()) {
+								break;
+							}
+							$type = $params[$i]->getType();
+							if ($type instanceof ReflectionNamedType) {
+								switch ($type->getName()) {
+									case "int":
+										$context->args[$i] = (int)$context->args[$i];
+										break;
+									case "bool":
+										$context->args[$i] = (bool)$context->args[$i];
+										break;
+									case "float":
+										$context->args[$i] = (float)$context->args[$i];
+										break;
+								}
+							}
+						}
 						$syntaxError = $instance->$method($context, ...array_slice($context->args, 1)) === false;
 					} else {
-						$syntaxError = ($instance->$method($context->message, $context->channel, $context->sender, $context->sendto, $context->args) === false);
+						$syntaxError = ($instance->$method($context->message, $context->channel, $context->char->name, $context->sendto, $context->args) === false);
 					}
 					if ($syntaxError == false) {
 						// we can stop looking, command was handled successfully
