@@ -462,7 +462,7 @@ class CommandManager implements MessageEmitter {
 										$context->args[$i] = (int)$context->args[$i];
 										break;
 									case "bool":
-										$context->args[$i] = (bool)$context->args[$i];
+										$context->args[$i] = in_array(strtolower($context->args[$i]), ["yes", "true", "1", "on", "enable", "enabled"]);
 										break;
 									case "float":
 										$context->args[$i] = (float)$context->args[$i];
