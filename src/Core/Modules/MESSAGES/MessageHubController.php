@@ -647,7 +647,7 @@ class MessageHubController {
 			$name .= "<end> via <highlight>{$via}";
 		}
 		$type = strtolower($type);
-		$color = $color->code;
+		$color = $color->getCode();
 		if (strlen($tag) > 50) {
 			$context->reply("Your tag is longer than the supported 50 characters.");
 			return;
