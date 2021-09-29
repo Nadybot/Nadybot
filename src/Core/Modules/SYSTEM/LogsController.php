@@ -4,13 +4,14 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
 use Nadybot\Core\{
+	CmdContext,
 	CommandManager,
-	CommandReply,
 	LoggerWrapper,
 	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PFilename;
 
 /**
  * @author Tyrence (RK2)
@@ -50,9 +51,8 @@ class LogsController {
 
 	/**
 	 * @HandlesCommand("logs")
-	 * @Matches("/^logs$/i")
 	 */
-	public function logsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function logsCommand(CmdContext $context): void {
 		$files = $this->util->getFilesInDirectory(
 			$this->logger->getLoggingDirectory()
 		);
@@ -66,23 +66,20 @@ class LogsController {
 		}
 
 		$msg = $this->text->makeBlob('Log Files', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("logs")
-	 * @Matches("/^logs ([a-zA-Z0-9-_\.]+)$/i")
-	 * @Matches("/^logs ([a-zA-Z0-9-_\.]+) (.+)$/i")
 	 */
-	public function logsFileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $args[1];
+	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
+		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = $this->settingManager->getInt('max_blob_size') - 500;
 
 		try {
-			$search = $args[2] ?? null;
 			$lines = file($filename);
 			if ($lines === false) {
-				$sendto->reply("The file <highlight>{$filename}<end> doesn't exist.");
+				$context->reply("The file <highlight>{$filename}<end> doesn't exist.");
 				return;
 			}
 			$lines = array_reverse($lines);
@@ -108,14 +105,14 @@ class LogsController {
 			if (empty($contents)) {
 				$msg = "File is empty or nothing matched your search criteria.";
 			} else {
-				if (isset($args[2])) {
-					$contents = "Search: $args[2]\n\n" . $contents;
+				if (isset($search)) {
+					$contents = "Search: <highlight>{$search}<end>\n\n" . $contents;
 				}
-				$msg = $this->text->makeBlob($args[1], $contents);
+				$msg = $this->text->makeBlob($file(), $contents);
 			}
 		} catch (Exception $e) {
 			$msg = "Error: " . $e->getMessage();
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

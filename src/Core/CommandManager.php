@@ -10,6 +10,7 @@ use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
+use Nadybot\Core\ParamClass\Base;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use ReflectionClass;
@@ -71,9 +72,18 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> $commands */
 	public array $commands;
 
+	protected array $matchClasses = [];
+
 	/** @Setup */
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
+		$this->matchClasses['CHARACTER'] = "[a-zA-Z][a-zA-Z0-9-]{3,11}";
+		$this->matchClasses['PLAYFIELD'] = "[0-9A-Za-z]+[A-Za-z]";
+	}
+
+	public function registerMatchClass(string $name, string $regexp): bool {
+		$this->matchClasses[strtoupper($name)] = $regexp;
+		return true;
 	}
 
 	/**
@@ -451,26 +461,41 @@ class CommandManager implements MessageEmitter {
 						&& ($type instanceof ReflectionNamedType)
 						&& ($type->getName() === CmdContext::class)
 					) {
-						for ($i = 1; $i < count($context->args); $i++) {
-							if (!isset($params[$i]) || !$params[$i]->hasType() || !$params[$i]->getType()->isBuiltin()) {
-								break;
+						$args = [];
+						for ($i = 1; $i < count($params); $i++) {
+							$var = $params[$i]->getName();
+							if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
+								$args []= null;
+								continue;
 							}
 							$type = $params[$i]->getType();
+							if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+								$args []= null;
+								continue;
+							}
 							if ($type instanceof ReflectionNamedType) {
 								switch ($type->getName()) {
 									case "int":
-										$context->args[$i] = (int)$context->args[$i];
+										$args []= (int)$context->args[$var];
 										break;
 									case "bool":
-										$context->args[$i] = in_array(strtolower($context->args[$i]), ["yes", "true", "1", "on", "enable", "enabled"]);
+										$args []= in_array(strtolower($context->args[$var]), ["yes", "true", "1", "on", "enable", "enabled"]);
 										break;
 									case "float":
-										$context->args[$i] = (float)$context->args[$i];
+										$args []= (float)$context->args[$var];
+										break;
+									default:
+										if (is_subclass_of($type->getName(), Base::class)) {
+											$class = $type->getName();
+											$args []= new $class($context->args[$var]);
+										} else {
+											$args []= $context->args[$var];
+										}
 										break;
 								}
 							}
 						}
-						$syntaxError = $instance->$method($context, ...array_slice($context->args, 1)) === false;
+						$syntaxError = $instance->$method($context, ...$args) === false;
 					} else {
 						$syntaxError = ($instance->$method($context->message, $context->channel, $context->char->name, $context->sendto, $context->args) === false);
 					}
@@ -585,10 +610,85 @@ class CommandManager implements MessageEmitter {
 		$regexes = [];
 		if ($reflectedMethod->hasAnnotation('Matches')) {
 			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
-				$regexes []= $annotation->value;
+				$regexes []= preg_replace_callback(
+					"/:([A-Z]+)/",
+					function (array $matches): string {
+						return $this->matchClasses[$matches[1]] ?? ":{$matches[1]}";
+					},
+					$annotation->value
+				);
 			}
+		} elseif ($reflectedMethod->hasAnnotation('HandlesCommand')) {
+			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
 		}
 		return $regexes;
+	}
+
+	public function getRegexpFromCharClass(ReflectionAnnotatedMethod $method): array {
+		$params = $method->getParameters();
+		if (count($params) === 0
+			|| !$params[0]->hasType() ) {
+			return [];
+		}
+		$type = $params[0]->getType();
+		if (!($type instanceof ReflectionNamedType)
+			|| ($type->getName() !== CmdContext::class)) {
+			return [];
+		}
+		$regexp = [];
+		if ($method->hasAnnotation('HandlesCommand')) {
+			$regexp []= explode(" ", $method->getAnnotation('HandlesCommand')->value)[0];
+		}
+		for ($i = 1; $i < count($params); $i++) {
+			$new = null;
+			if (!$params[$i]->hasType()) {
+				return [];
+			}
+			$type = $params[$i]->getType();
+			if (!($type instanceof ReflectionNamedType)) {
+				return [];
+			}
+			if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+				return [];
+			}
+			$varName = $params[$i]->getName();
+			if ($type->isBuiltin()) {
+				switch ($type->getName()) {
+					case "string":
+						try {
+							$default = $params[$i]->getDefaultValue();
+							if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
+								$new = "(?<{$varName}>" . substr($default, 1);
+							} else {
+								$new = "(?<{$varName}>" . preg_quote($default) . ")";
+							}
+						} catch (ReflectionException $e) {
+							$new = "(?<{$varName}>.+)";
+						}
+						break;
+					case "int":
+						$new = "(?<{$varName}>\d+)";
+						break;
+					case "bool":
+						$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
+						break;
+					case "float":
+						$new  = "(?<{$varName}>\d*\.\d+|\d)";
+						break;
+				}
+			} else {
+				$new = "(?<{$varName}>" . [$type->getName(), "getRegexp"]() . ")";
+			}
+			if (isset($new)) {
+				if ($params[$i]->allowsNull()) {
+					$regexp []= "(?:\\s+{$new})?";
+				} else {
+					$regexp []= "\\s+{$new}";
+				}
+			}
+		}
+		$result = [chr(1) . "^" . join("", $regexp) . '$' . chr(1) . "is"];
+		return $result;
 	}
 
 	public function getChannelName(): string {

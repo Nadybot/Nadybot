@@ -8,8 +8,8 @@ use ReflectionClass;
 use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	ColorSettingHandler,
-	CommandReply,
 	DB,
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
@@ -27,6 +27,8 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 use Nadybot\Core\Channels\DiscordChannel;
+use Nadybot\Core\ParamClass\PColor;
+use Nadybot\Core\ParamClass\PRemove;
 use ReflectionException;
 
 /**
@@ -114,51 +116,57 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>[^ ]+\(.*?\)) (?<modifiers>.+)$/i")
-	 * @Matches("/^route add(?<force>force)? (?:from )?(?<from>.+?) (?<direction>to|->|-&gt;|<->|&lt;-&gt;) (?<to>.+)$/i")
 	 */
-	public function routeAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["to"] = $this->fixDiscordChannelName($args['to']);
-		$args["from"] = $this->fixDiscordChannelName($args['from']);
-		if ($args["to"] === Source::PRIV) {
-			$args["to"] = Source::PRIV . "({$this->chatBot->char->name})";
+	public function routeAddCommand(
+		CmdContext $context,
+		string $action="(add|addforce)",
+		?string $fromConst="from",
+		PSource $from,
+		string $direction="(to|->|-&gt;|<->|&lt;-&gt;)",
+		PSource $to,
+		?string $modifiers
+	): void {
+		$force = (strtolower($action) === "addforce");
+		$to = $this->fixDiscordChannelName($to());
+		$from = $this->fixDiscordChannelName($from());
+		if ($to === Source::PRIV) {
+			$to = Source::PRIV . "({$this->chatBot->char->name})";
 		}
-		if ($args["from"] === Source::PRIV) {
-			$args["from"] = Source::PRIV . "({$this->chatBot->char->name})";
+		if ($from === Source::PRIV) {
+			$from = Source::PRIV . "({$this->chatBot->char->name})";
 		}
-		$receiver = $this->messageHub->getReceiver($args["to"]);
-		if (!strlen($args['force']??"") && !isset($receiver)) {
-			$sendto->reply("Unknown target <highlight>{$args["to"]}<end>.");
+		$receiver = $this->messageHub->getReceiver($to);
+		if (!$force && !isset($receiver)) {
+			$context->reply("Unknown target <highlight>{$to}<end>.");
 			return;
 		}
 		/** @Collection<MessageEmitter> */
 		$senders = new Collection($this->messageHub->getEmitters());
-		$hasSender = $senders->first(function(MessageEmitter $e) use ($args) {
-			return fnmatch($e->getChannelName(), $args["from"], FNM_CASEFOLD)
-				|| fnmatch($args["from"], $e->getChannelName(), FNM_CASEFOLD);
+		$hasSender = $senders->first(function(MessageEmitter $e) use ($from) {
+			return fnmatch($e->getChannelName(), $from, FNM_CASEFOLD)
+				|| fnmatch($from, $e->getChannelName(), FNM_CASEFOLD);
 		});
-		if (!strlen($args['force']??"") && !isset($hasSender)) {
-			$sendto->reply("No message source for <highlight>{$args['from']}<end> found.");
+		if (!$force && !isset($hasSender)) {
+			$context->reply("No message source for <highlight>{$from}<end> found.");
 			return;
 		}
 		$route = new Route();
-		$route->source = $args["from"];
-		$route->destination = $args["to"];
-		if ($args["direction"] === "<->" || $args["direction"] === "&lt;-&gt;") {
+		$route->source = $from;
+		$route->destination = $to;
+		if ($direction === "<->" || $direction === "&lt;-&gt;") {
 			$route->two_way = true;
-			$receiver = $this->messageHub->getReceiver($args["from"]);
-			if (!strlen($args['force']??"") && !isset($receiver)) {
-				$sendto->reply("Unable to route to <highlight>{$args["from"]}<end>.");
+			$receiver = $this->messageHub->getReceiver($from);
+			if (!$force && !isset($receiver)) {
+				$context->reply("Unable to route to <highlight>{$from}<end>.");
 				return;
 			}
 		}
-		if (isset($args["modifiers"])) {
+		if (isset($modifiers)) {
 			$parser = new ModifierExpressionParser();
 			try {
-				$modifiers = $parser->parse($args["modifiers"]);
+				$modifiers = $parser->parse($modifiers);
 			} catch (ModifierParserException $e) {
-				$sendto->reply($e->getMessage());
+				$context->reply($e->getMessage());
 				return;
 			}
 		}
@@ -190,7 +198,7 @@ class MessageHubController {
 				throw $e;
 			}
 			$this->db->rollback();
-			$sendto->reply("Error saving the route: " . $e->getMessage());
+			$context->reply("Error saving the route: " . $e->getMessage());
 			return;
 		}
 		$modifiers = [];
@@ -204,16 +212,16 @@ class MessageHubController {
 				throw $e;
 			}
 			$this->db->rollback();
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
 		if (!$transactionRunning) {
 			$this->db->commit();
 		}
 		$this->messageHub->addRoute($msgRoute);
-		$sendto->reply(
-			"Route added from <highlight>{$args["from"]}<end> ".
-			"to <highlight>{$args["to"]}<end>".
+		$context->reply(
+			"Route added from <highlight>{$from}<end> ".
+			"to <highlight>{$to}<end>".
 			(count($modifiers) ? " using " : "").
 			join(" ", $modifiers)  . "."
 		);
@@ -221,9 +229,8 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list (?:from|sources?|src)$/i")
 	 */
-	public function routeListFromCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeListFromCommand(CmdContext $context, string $action="list", string $subAction="(from|sources?|src)"): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -232,14 +239,13 @@ class MessageHubController {
 			->map([$this, "renderEmitterGroup"])
 			->join("\n\n");
 		$msg = $this->text->makeBlob("Message sources ({$count})", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list (?:to|dsts?|dests?|destinations?)$/i")
 	 */
-	public function routeListToCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeListToCommand(CmdContext $context, string $action="list", string $subAction="(to|dsts?|dests?|destinations?)"): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -248,18 +254,17 @@ class MessageHubController {
 			->map([$this, "renderEmitterGroup"])
 			->join("\n\n");
 		$msg = $this->text->makeBlob("Message targets ({$count})", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list (?:mod|mods|modifiers?)$/i")
 	 */
-	public function routeListModifiersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeListModifiersCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)"): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
-			$sendto->reply("No message modifiers available.");
+			$context->reply("No message modifiers available.");
 			return;
 		}
 		$blobs = [];
@@ -274,23 +279,22 @@ class MessageHubController {
 		}
 		$blob = join("\n\n", $blobs);
 		$msg = $this->text->makeBlob("Message modifiers ({$count})", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list (?:mod|modifier) (.+)$/i")
 	 */
-	public function routeListModifierCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$mod = $this->messageHub->modifiers[$args[1]];
+	public function routeListModifierCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)", string $modifier): void {
+		$mod = $this->messageHub->modifiers[$modifier];
 		if (!isset($mod)) {
-			$sendto->reply("No message modifier <highlight>{$args[1]}<end> found.");
+			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
 		}
 		try {
 			$refClass = new ReflectionClass($mod->class);
 		} catch (ReflectionException $e) {
-			$sendto->reply("The modifier <highlight>{$args[1]}<end> cannot be initialized.");
+			$context->reply("The modifier <highlight>{$modifier}<end> cannot be initialized.");
 			return;
 		}
 		try {
@@ -331,18 +335,16 @@ class MessageHubController {
 			}
 		}
 		$msg = $this->text->makeBlob("{$mod->name}", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route (?:del|rem) (\d+)$/i")
 	 */
-	public function routeDel(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
-			$sendto->reply("No route <highlight>#{$id}<end> found.");
+			$context->reply("No route <highlight>#{$id}<end> found.");
 			return;
 		}
 		/** @var int[] List of modifier-ids for the route */
@@ -361,28 +363,27 @@ class MessageHubController {
 				->delete($id);
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$sendto->reply("Error deleting the route: " . $e->getMessage());
+			$context->reply("Error deleting the route: " . $e->getMessage());
 			return;
 		}
 		$this->db->commit();
 		$deleted = $this->messageHub->deleteRouteID($id);
 		if (isset($deleted)) {
-			$sendto->reply(
+			$context->reply(
 				"Route #{$id} (" . $this->renderRoute($deleted) . ") deleted."
 			);
 		} else {
-			$sendto->reply("Route <highlight>#${id}<end> deleted.");
+			$context->reply("Route <highlight>#${id}<end> deleted.");
 		}
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route list$/i")
 	 */
-	public function routeList(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeList(CmdContext $context, string $action="list"): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
-			$sendto->reply("There are no routes defined.");
+			$context->reply("There are no routes defined.");
 			return;
 		}
 		$list = [];
@@ -396,19 +397,16 @@ class MessageHubController {
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= join("\n<tab>", $list);
 		$msg = $this->text->makeBlob("Message Routes (" . count($routes) . ")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route$/i")
-	 * @Matches("/^route (all)$/i")
-	 * @Matches("/^route tree (all)$/i")
 	 */
-	public function routeTree(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeTree(CmdContext $context, ?string $tree="tree", ?string $all="all"): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
-			$sendto->reply("There are no routes defined.");
+			$context->reply("There are no routes defined.");
 			return;
 		}
 		$grouped = [];
@@ -417,7 +415,7 @@ class MessageHubController {
 		foreach ($routes as $route) {
 			$isSystemRoute = preg_match("/^system/", $route->getDest())
 				|| preg_match("/^system/", $route->getSource());
-			if (!isset($args[1]) && $isSystemRoute) {
+			if (!isset($all) && $isSystemRoute) {
 				continue;
 			}
 			$dests = [strtolower($route->getDest())];
@@ -479,17 +477,16 @@ class MessageHubController {
 			$msg .= "({$numTotal})";
 		}
 		$msg = $this->text->makeBlob($msg, $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color$/i")
 	 */
-	public function routeListColorConfigCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeListColorConfigCommand(CmdContext $context, string $action="color"): void {
 		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
-			$sendto->reply("No colors have been defined yet.");
+			$context->reply("No colors have been defined yet.");
 			return;
 		}
 		$blob = "<header2>Color definitions<end>\n";
@@ -554,45 +551,52 @@ class MessageHubController {
 			"Routing colors (" . count($colors) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+?)(?: (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))?$/i")
 	 */
-	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
-		$where = strlen($args["where"]??"") ? $args["where"] : null;
-		$via = strlen($args["via"]??"") ? $args["via"] : null;
+	public function routeTagColorRemCommand(
+		CmdContext $context,
+		string $action="color",
+		string $type="(tag|text)",
+		PRemove $remove,
+		PSource $tag,
+		?string $arrow="(->|-&gt;)",
+		?PSource $where,
+		?string $viaIndicator="via",
+		?PSource $via,
+	): void {
+		$tag = $this->fixDiscordChannelName($tag());
 		if (isset($where)) {
-			$where = $this->fixDiscordChannelName($where);
+			$where = $this->fixDiscordChannelName($where());
 		}
 		if (isset($via)) {
-			$via = $this->fixDiscordChannelName($via);
+			$via = $this->fixDiscordChannelName($via());
 		}
-		$color = $this->getHopColor($args['tag'], $where, $via);
-		$name = $args['tag'];
+		$color = $this->getHopColor($tag, $where??null, $via??null);
+		$name = $tag;
 		if (isset($where)) {
 			$name .= "<end> -&gt; <highlight>{$where}";
 		}
 		if (isset($via)) {
 			$name .= "<end> via <highlight>{$via}";
 		}
-		$attr = $args['type'] . "_color";
+		$attr = "{$type}_color";
 		$otherAttr = "text_color";
-		if ($args['type'] === "text") {
+		if ($type === "text") {
 			$otherAttr = "tag_color";
 		}
 		if (!isset($color) || !isset($color->{$attr})) {
-			$sendto->reply("No {$args['type']} color for <highlight>{$name}<end> defined.");
+			$context->reply("No {$type} color for <highlight>{$name}<end> defined.");
 			return;
 		}
 		if (isset($color->{$otherAttr})) {
 			$color->{$attr} = null;
 			$this->db->update($this->messageHub::DB_TABLE_COLORS, "id", $color);
-			$sendto->reply(
-				ucfirst($args['type']) . " color definition for ".
+			$context->reply(
+				ucfirst($type) . " color definition for ".
 				"<highlight>{$name}<end> deleted."
 			);
 			return;
@@ -600,32 +604,41 @@ class MessageHubController {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->delete($color->id);
 		$this->messageHub->loadTagColor();
-		$sendto->reply("Color definition for <highlight>{$name}<end> deleted.");
+		$context->reply("Color definition for <highlight>{$name}<end> deleted.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color remall$/i")
 	 */
-	public function routeTagColorRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeTagColorRemAllCommand(CmdContext $context, string $action="color", string $subAction="remall"): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->truncate();
 		$this->messageHub->loadTagColor();
-		$sendto->reply("All route color definitions deleted.");
+		$context->reply("All route color definitions deleted.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+?)(?: (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))? #?(?<color>[0-9a-f]{6})$/i")
 	 */
-	public function routeSetColorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
-		$name = $tag = strtolower($args['tag']);
-		$where = strlen($args['where']??"")
-			? strtolower($this->fixDiscordChannelName($args['where']))
+	public function routeSetColorCommand(
+		CmdContext $context,
+		string $action="color",
+		string $type="(tag|text)",
+		string $subAction="set",
+		PSource $tag,
+		?string $arrow="(->|-&gt;)",
+		?PSource $where,
+		?string $viaIndicator="via",
+		?PSource $via,
+		PColor $color
+	): void {
+		$tag = $this->fixDiscordChannelName($tag());
+		$name = $tag = strtolower($tag);
+		$where = isset($where)
+			? strtolower($this->fixDiscordChannelName($where()))
 			: null;
-		$via = strlen($args['via']??"")
-			? strtolower($this->fixDiscordChannelName($args['via']))
+		$via = isset($via)
+			? strtolower($this->fixDiscordChannelName($via()))
 			: null;
 		if (isset($where)) {
 			$name .= "<end> -&gt; <highlight>{$where}";
@@ -633,14 +646,14 @@ class MessageHubController {
 		if (isset($via)) {
 			$name .= "<end> via <highlight>{$via}";
 		}
-		$type = strtolower($args['type']);
-		$color = strtoupper($args['color']);
+		$type = strtolower($type);
+		$color = $color->code;
 		if (strlen($tag) > 50) {
-			$sendto->reply("Your tag is longer than the supported 50 characters.");
+			$context->reply("Your tag is longer than the supported 50 characters.");
 			return;
 		}
 		if (strlen($where??"") > 50) {
-			$sendto->reply("Your destination is longer than the supported 50 characters.");
+			$context->reply("Your destination is longer than the supported 50 characters.");
 			return;
 		}
 		if (strlen($via??"") > 50) {
@@ -666,7 +679,7 @@ class MessageHubController {
 			$colorDef->id = $this->db->insert($table, $colorDef);
 			$this->messageHub->loadTagColor();
 		}
-		$sendto->reply(
+		$context->reply(
 			ucfirst(strtolower($type)) . " color for ".
 			"<highlight>{$name}<end> set to ".
 			"<font color='#{$color}'>#{$color}</font>."
@@ -675,16 +688,25 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+?)?( (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))?$/i")
 	 */
-	public function routeColorPickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
-		$id = $name = $tag = strtolower($args['tag']);
-		$where = strlen($args['where']??"")
-			? strtolower($this->fixDiscordChannelName($args['where']))
+	public function routePickColorCommand(
+		CmdContext $context,
+		string $action="color",
+		string $type="(tag|text)",
+		string $subAction="pick",
+		PSource $tag,
+		?string $arrow="(->|-&gt;)",
+		?PSource $where
+		?string $viaIndicator="via",
+		?PSource $via
+	): void {
+		$tag = $this->fixDiscordChannelName($tag());
+		$id = $name = $tag = strtolower($tag);
+		$where = isset($where)
+			? strtolower($this->fixDiscordChannelName($where()))
 			: null;
-		$via = strlen($args['via']??"")
-			? strtolower($this->fixDiscordChannelName($args['via']))
+		$via = isset($via)
+			? strtolower($this->fixDiscordChannelName($via)
 			: null;
 		if (isset($where)) {
 			$name .= " -&gt; {$where}";
@@ -694,13 +716,13 @@ class MessageHubController {
 			$name .= " <i>via {$via}</i>";
 			$id .= " via {$via}";
 		}
-		$type = strtolower($args['type']);
+		$type = strtolower($type);
 		if (strlen($tag) > 50) {
-			$sendto->reply("Your tag name is too long.");
+			$context->reply("Your tag name is too long.");
 			return;
 		}
 		if (strlen($where??"") > 50) {
-			$sendto->reply("Your destination is too long.");
+			$context->reply("Your destination is too long.");
 			return;
 		}
 		if (strlen($via??"") > 50) {
@@ -720,17 +742,16 @@ class MessageHubController {
 			"Choose from colors (" . count($colorList) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route format$/i")
 	 */
-	public function routeListFormatCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeListFormatCommand(CmdContext $context, string $action="format"): void {
 		$formats = Source::$format;
 		if ($formats->isEmpty()) {
-			$sendto->reply("No formats have been defined yet.");
+			$context->reply("No formats have been defined yet.");
 			return;
 		}
 		$blob = "<header2>Format definitions<end>\n";
@@ -771,83 +792,88 @@ class MessageHubController {
 			"Routing formats (" . count($formats) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route format (clear|del|rem|rm|reset) (?<hop>.+)$/i")
 	 */
-	public function routeFormatClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
-		if (!$this->clearHopFormat($args['hop'])) {
-			$sendto->reply("No format defined for <highlight>{$args['hop']}<end>.");
+	public function routeFormatClearCommand(CmdContext $context, string $action="format", PRemove $rem, PSource $hop): void {
+		$hop = $this->fixDiscordChannelName($hop());
+		if (!$this->clearHopFormat($hop)) {
+			$context->reply("No format defined for <highlight>{$hop}<end>.");
 			return;
 		}
-		$sendto->reply("Format cleared for <highlight>{$args['hop']}<end>.");
+		$context->reply("Format cleared for <highlight>{$hop}<end>.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route format remall$/i")
 	 */
-	public function routeFormatRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function routeFormatRemAllCommand(CmdContext $context, string $action="format", string $subAction="remall"): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
 		$this->messageHub->loadTagFormat();
-		$sendto->reply("All route format definitions deleted.");
+		$context->reply("All route format definitions deleted.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route format render (?<hop>.+) (?<render>true|false)$/i")
 	 */
-	public function routeFormatChangeRenderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
-		if (strlen($args['hop']) > 50) {
-			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
+	public function routeFormatChangeRenderCommand(
+		CmdContext $context,
+		string $action="format",
+		string $subAction="render",
+		PSource $hop,
+		bool $render
+	): void {
+		$hop = $this->fixDiscordChannelName($hop());
+		if (strlen($hop) > 50) {
+			$context->reply("Your tag '<highlight>{$hop}<end>' is longer than the supported 50 characters.");
 			return;
 		}
-		$this->setHopRender($args['hop'], $args['render'] === 'true');
-		$sendto->reply("Format saved.");
+		$this->setHopRender($hop, $render);
+		$context->reply("Format saved.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route format display (?<hop>[^ ]+) (?<format>.+)$/i")
-	 * @Matches("/^route format display (?<hop>[^ ]+\(.*?\)) (?<format>.+)$/i")
 	 */
-	public function routeFormatChangeDisplayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["hop"] = $this->fixDiscordChannelName($args['hop']);
-		if (strlen($args['hop']) > 50) {
-			$sendto->reply("Your tag '<highlight>{$args['hop']}<end>' is longer than the supported 50 characters.");
+	public function routeFormatChangeDisplayCommand(
+		CmdContext $context,
+		string $action="format",
+		string $subAction="display",
+		PSource $hop,
+		string $format
+	): void {
+		$hop = $this->fixDiscordChannelName($hop());
+		if (strlen($hop) > 50) {
+			$context->reply("Your tag '<highlight>{$hop}<end>' is longer than the supported 50 characters.");
 			return;
 		}
-		if (strlen($args['format']) > 50) {
-			$sendto->reply("Your display format '<highlight>{$args['format']}<end>' is longer than the supported 50 characters.");
+		if (strlen($format) > 50) {
+			$context->reply("Your display format '<highlight>{$format}<end>' is longer than the supported 50 characters.");
 			return;
 		}
 		try {
-			$this->setHopDisplay($args['hop'], $args['format']);
+			$this->setHopDisplay($hop, $format);
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
-		$sendto->reply("Display format saved.");
+		$context->reply("Display format saved.");
 	}
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route remall$/i")
 	 */
-	public function routeRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$dump = $this->messageHub->getRouteDump();
+	public function routeRemAllCommand(CmdContext $context, string $action="remall"): void {
 		try {
 			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
-			$sendto->reply("Unknown error clearing the routing table: " . $e->getMessage());
+			$context->reply("Unknown error clearing the routing table: " . $e->getMessage());
 			return;
 		}
-		$sendto->reply("<highlight>{$numDeleted}<end> routes deleted.");
+		$context->reply("<highlight>{$numDeleted}<end> routes deleted.");
 	}
 
 	/** Turn on/off rendering of a specific hop */

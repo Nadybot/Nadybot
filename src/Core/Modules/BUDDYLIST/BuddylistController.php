@@ -5,8 +5,11 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 use Nadybot\Core\BuddylistEntry;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\BuddylistManager;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
@@ -41,18 +44,14 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist$/i")
-	 * @Matches("/^buddylist (clean)$/i")
 	 */
-	public function buddylistShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) === 2) {
-			$cleanup = true;
-		}
+	public function buddylistShowCommand(CmdContext $context, ?string $clean="clean"): void {
+		$cleanup = isset($clean);
 
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no players on the buddy list.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$count = 0;
@@ -88,57 +87,52 @@ class BuddylistController {
 		}
 
 		if ($cleanup) {
-			$sendto->reply("Removed {$orphanCount} characters from the buddy list.");
+			$context->reply("Removed {$orphanCount} characters from the buddy list.");
 		}
 		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist add ([^ ]+) ([^ ]+)$/i")
 	 */
-	public function buddylistAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$type = $args[2];
+	public function buddylistAddCommand(CmdContext $context, string $add="add", PCharacter $who, PWord $type): void {
+		$name = $who();
 
-		if ($this->buddylistManager->add($name, $type)) {
+		if ($this->buddylistManager->add($name, $type())) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist rem all$/i")
 	 */
-	public function buddylistRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all="all"): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
 
 		$msg = "All characters have been removed from the buddy list.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist rem ([^ ]+) ([^ ]+)$/i")
 	 */
-	public function buddylistRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$type = $args[2];
+	public function buddylistRemCommand(CmdContext $context, PRemove $rem, PCharacter $who, PWord $type): void {
+		$name = $who();
 
-		if ($this->buddylistManager->remove($name, $type)) {
+		if ($this->buddylistManager->remove($name, $type())) {
 			$msg = "<highlight>{$name}<end> removed from the buddy list successfully.";
 		} else {
 			$msg = "Could not remove <highlight>{$name}<end> from the buddy list.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/** Render a BuddylistEntry as a string */
@@ -154,14 +148,11 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
-	 * @Matches("/^buddylist search (.*)$/i")
 	 */
-	public function buddylistSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
+	public function buddylistSearchCommand(CmdContext $context, string $action="search", string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$count = 0;
@@ -178,7 +169,7 @@ class BuddylistController {
 		} else {
 			$msg = "No characters on the buddy list found containing '$search'";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

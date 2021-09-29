@@ -3,12 +3,14 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	Text,
 };
 use Nadybot\Core\DBSchema\CmdAlias;
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @Instance
@@ -33,23 +35,29 @@ class AliasController {
 	/** @Inject */
 	public Text $text;
 
-	/**
-	 * This command handler add a command alias.
-	 *
-	 * @HandlesCommand("alias")
-	 * @Matches('/^alias add "([a-z 0-9]+?)" (.+)/si')
-	 * @Matches("/^alias add '([a-z 0-9]+?)' (.+)/si")
-	 * @Matches("/^alias add ([a-z0-9]+) (.+)/si")
-	 */
-	public function aliasAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$alias = strtolower($args[1]);
-		$cmd = $args[2];
+	/** @HandlesCommand("alias") */
+	public function aliasAddCommand1(CmdContext $context, string $add="add", string $alias='("[a-z 0-9]+")', string $command): void {
+		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
+	}
 
-		$alias_obj = new CmdAlias();
-		$alias_obj->module = '';
-		$alias_obj->cmd = $cmd;
-		$alias_obj->alias = $alias;
-		$alias_obj->status = 1;
+	/** @HandlesCommand("alias") */
+	public function aliasAddCommand2(CmdContext $context, string $add="add", string $alias="('[a-z 0-9]+')", string $command): void {
+		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
+	}
+
+	/** @HandlesCommand("alias") */
+	public function aliasAddCommand3(CmdContext $context, string $add="add", PWord $alias, string $command): void {
+		$this->aliasAddCommand($context, $alias(), $command);
+	}
+
+	public function aliasAddCommand(CmdContext $context, string $alias, string $cmd): void {
+		$alias = strtolower($alias);
+
+		$aliasObj = new CmdAlias();
+		$aliasObj->module = '';
+		$aliasObj->cmd = $cmd;
+		$aliasObj->alias = $alias;
+		$aliasObj->status = 1;
 
 		$commands = $this->commandManager->get($alias);
 		$enabled = false;
@@ -63,26 +71,25 @@ class AliasController {
 		if ($enabled) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since there is already an active command with that name.";
 		} elseif ($row === null) {
-			$this->commandAlias->add($alias_obj);
+			$this->commandAlias->add($aliasObj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
 		} elseif ($row->status == 0 || ($row->status == 1 && $row->cmd == $cmd)) {
-			$this->commandAlias->update($alias_obj);
+			$this->commandAlias->update($aliasObj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
 		} elseif ($row->status == 1 && $row->cmd != $cmd) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler list all aliases.
 	 *
 	 * @HandlesCommand("alias")
-	 * @Matches("/^alias list$/i")
 	 */
-	public function aliasListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function aliasListCommand(CmdContext $context, string $list="list"): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];
@@ -95,11 +102,11 @@ class AliasController {
 		}
 		ksort($grouped);
 		foreach ($grouped as $key => $aliases) {
-			$blob .= "<header2>$key<end>\n";
+			$blob .= "<header2>{$key}<end>\n";
 			foreach ($aliases as $alias) {
 				$removeLink = $this->text->makeChatcmd('Remove', "/tell <myname> alias rem {$alias->alias}");
 				if ($alias->cmd === $key) {
-					$blob .= "<tab>{$alias->alias} $removeLink\n";
+					$blob .= "<tab>{$alias->alias} {$removeLink}\n";
 				} else {
 					$alias->cmd = implode(" ", array_slice(explode(" ", $alias->cmd), 1));
 					$blob .= "<tab><highlight>{$alias->cmd}<end>: {$alias->alias} $removeLink\n";
@@ -108,20 +115,19 @@ class AliasController {
 		}
 
 		$msg = $this->text->makeBlob('Alias List', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler remove a command alias.
 	 *
 	 * @HandlesCommand("alias")
-	 * @Matches("/^alias rem ([a-z 0-9]+)/i")
 	 */
-	public function aliasRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$alias = strtolower($args[1]);
+	public function aliasRemCommand(CmdContext $context, PRemove $rem, string $alias): void {
+		$alias = strtolower($alias);
 
 		$row = $this->commandAlias->get($alias);
-		if ($row === null || $row->status != 1) {
+		if ($row === null || $row->status !== 1) {
 			$msg = "Could not find alias <highlight>{$alias}<end>!";
 		} else {
 			$row->status = 0;
@@ -130,6 +136,6 @@ class AliasController {
 
 			$msg = "Alias <highlight>{$alias}<end> removed successfully.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

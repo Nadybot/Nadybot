@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
-	CommandReply,
 	DB,
 	HelpManager,
 	SettingHandler,
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\DBSchema\Setting;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @Instance
@@ -67,9 +68,8 @@ class SettingsController {
 
 	/**
 	 * @HandlesCommand("settings")
-	 * @Matches("/^settings$/i")
 	 */
-	public function settingsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function settingsCommand(CmdContext $context): void {
 		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
 		/** @var Setting[] $data */
 		$data = $this->db->table(SettingManager::DB_TABLE)
@@ -91,21 +91,20 @@ class SettingsController {
 
 			$settingHandler = $this->settingManager->getSettingHandler($row);
 			if ($settingHandler instanceof SettingHandler) {
-				$blob .= ": " . $settingHandler->displayValue($sender);
+				$blob .= ": " . $settingHandler->displayValue($context->char->name);
 			}
 			$blob .= "\n";
 		}
 
 		$msg = $this->text->makeBlob("Bot Settings", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("settings")
-	 * @Matches("/^settings change ([a-z0-9_]+)$/i")
 	 */
-	public function changeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$settingName = strtolower($args[1]);
+	public function changeCommand(CmdContext $context, string $action="change", PWord $setting): void {
+		$settingName = strtolower($setting());
 		/** @var Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $settingName)
@@ -113,7 +112,7 @@ class SettingsController {
 			->first();
 		if ($row === null) {
 			$msg = "Could not find setting <highlight>{$settingName}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$settingHandler = $this->settingManager->getSettingHandler($row);
@@ -121,28 +120,26 @@ class SettingsController {
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
-		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($sender) . "\n\n";
+		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($context->char->name) . "\n\n";
 		$blob .= $settingHandler->getDescription();
 		$blob .= $settingHandler->getOptions();
 
 		// show help topic if there is one
-		$help = $this->helpManager->find($settingName, $sender);
+		$help = $this->helpManager->find($settingName, $context->char->name);
 		if ($help !== null) {
 			$blob .= "\n\n<header2>Help ($settingName)<end>\n\n" . $help;
 		}
 
 		$msg = $this->text->makeBlob("Settings Info for {$settingName}", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("settings")
-	 * @Matches("/^settings save ([a-z0-9_]+) (.+)$/i")
 	 */
-	public function saveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = strtolower($args[1]);
-		$newValue = $args[2];
+	public function saveCommand(CmdContext $context, string $action="save", PWord $setting, string $newValue): void {
+		$name = strtolower($setting());
 		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -150,12 +147,12 @@ class SettingsController {
 			->first();
 		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		if (!$this->accessManager->checkAccess($sender, $setting->admin)) {
+		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin)) {
 			$msg = "You don't have the necessary rights to change this setting.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$settingHandler = $this->settingManager->getSettingHandler($setting);
@@ -163,7 +160,7 @@ class SettingsController {
 			$newValueToSave = $settingHandler->save($newValue);
 			if ($this->settingManager->save($name, $newValueToSave)) {
 				$settingHandler->getData()->value = $newValueToSave;
-				$dispValue = $settingHandler->displayValue($sender);
+				$dispValue = $settingHandler->displayValue($context->char->name);
 				$savedValue = "<highlight>" . htmlspecialchars($newValue) . "<end>";
 				if ($savedValue !== $dispValue) {
 					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue} (<highlight>".htmlspecialchars($newValue)."<end>).";
@@ -176,6 +173,6 @@ class SettingsController {
 		} catch (Exception $e) {
 			$msg = $e->getMessage();
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

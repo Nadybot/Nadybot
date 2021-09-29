@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CommandManager,
 	Nadybot,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Routing\Character;
 
 /**
@@ -42,13 +43,11 @@ class RunAsController {
 
 	/**
 	 * @HandlesCommand("runas")
-	 * @Matches("/^runas ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function runasCommand(CmdContext $context, string $name, string $command): void {
-		$name = ucfirst(strtolower($name));
+	public function runasCommand(CmdContext $context, PCharacter $name, string $command): void {
 		$context->message = $command;
 		$this->chatBot->getUid(
-			$name,
+			$name(),
 			function (?int $uid, CmdContext $context, string $name): void {
 				if (!isset($uid)) {
 					$context->reply("Player <highlight>{$name}<end> does not exist.");
@@ -64,7 +63,7 @@ class RunAsController {
 				$this->commandManager->processCmd($context);
 			},
 			$context,
-			$name
+			$name()
 		);
 	}
 }

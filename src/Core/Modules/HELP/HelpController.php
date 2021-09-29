@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	HelpManager,
 	Text,
 };
@@ -71,7 +70,6 @@ class HelpController {
 
 	/**
 	 * @HandlesCommand("help")
-	 * @Matches("/^help$/i")
 	 */
 	public function helpListCommand(CmdContext $context): void {
 		$data = $this->helpManager->getAllHelpTopics($context->char->name);
@@ -99,31 +97,30 @@ class HelpController {
 
 	/**
 	 * @HandlesCommand("help")
-	 * @Matches("/^help (.+)$/i")
 	 */
-	public function helpShowCommand(CmdContext $context, string $helpCmd): void {
-		$helpCmd = strtolower($helpCmd);
+	public function helpShowCommand(CmdContext $context, string $cmd): void {
+		$cmd = strtolower($cmd);
 
-		if ($helpCmd === 'about') {
+		if ($cmd === 'about') {
 			$msg = $this->getAbout();
 			$context->reply($msg);
 			return;
 		}
 
 		// check for alias
-		$row = $this->commandAlias->get($helpCmd);
+		$row = $this->commandAlias->get($cmd);
 		if ($row !== null && $row->status === 1) {
-			$helpCmd = explode(' ', $row->cmd)[0];
+			$cmd = explode(' ', $row->cmd)[0];
 		}
 
-		$blob = $this->helpManager->find($helpCmd, $context->char->name);
+		$blob = $this->helpManager->find($cmd, $context->char->name);
 		if ($blob === null) {
 			$msg = "No help found on this topic.";
 			$context->reply($msg);
 			return;
 		}
-		$helpCmd = ucfirst($helpCmd);
-		$msg = $this->text->makeBlob("Help ($helpCmd)", $blob);
+		$cmd = ucfirst($cmd);
+		$msg = $this->text->makeBlob("Help ($cmd)", $blob);
 		$context->reply($msg);
 	}
 }

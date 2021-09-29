@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\BAN;
 use Nadybot\Core\{
 	Event,
 	AccessManager,
+	CmdContext,
 	CommandReply,
 	DBSchema\Player,
 	Modules\ALTS\AltsController,
@@ -20,6 +21,9 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @Instance
@@ -150,115 +154,95 @@ class BanController {
 	}
 
 	/**
-	 * Command parameters are:
-	 *  - name of the character
-	 *  - time of ban
-	 *  - banning reason string
+	 * This command handler bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
-	 * @Matches("/^ban ([a-z0-9-]+) ([a-z0-9]+) (for|reason) (.+)$/i")
 	 */
-	public function banPlayerWithTimeAndReasonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
-		$length = $this->util->parseTime($args[2]);
-		$reason = $args[4];
+	public function banPlayerWithTimeAndReasonCommand(CmdContext $context, PCharacter $who, PDuration $duration, string $for="(for|reason)", string $reason): void {
+		$who = $who();
+		$length = $duration->toSecs();
 
-		if (!$this->banPlayer($who, $sender, $length, $reason, $sendto)) {
+		if (!$this->banPlayer($who, $context->char->name, $length, $reason, $context)) {
 			return;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($length);
-		$sendto->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
+		$context->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
 		if (!$this->settingManager->getBool('notify_banned_player')) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You have been banned from this bot by <highlight>{$sender}<end> for {$timeString}. ".
+			"You have been banned from this bot by <highlight>{$context->char->name}<end> for {$timeString}. ".
 			"Reason: $reason",
 			$who
 		);
 	}
 
 	/**
-	 * This command handler bans a player from this bot.
-	 *
-	 * Command parameters are:
-	 *  - name of the player
-	 *  - time of ban
+	 * This command handler bans a player from this bot without reason.
 	 *
 	 * @HandlesCommand("ban")
-	 * @Matches("/^ban ([a-z0-9-]+) ([a-z0-9]+)$/i")
 	 */
-	public function banPlayerWithTimeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
-		$length = $this->util->parseTime($args[2]);
+	public function banPlayerWithTimeCommand(CmdContext $context, PCharacter $who, PDuration $duration): void {
+		$who = $who();
+		$length = $duration->toSecs();
 
-		if (!$this->banPlayer($who, $sender, $length, '', $sendto)) {
+		if (!$this->banPlayer($who, $context->char->name, $length, '', $context)) {
 			return;
 		}
 
 		$timeString = $this->util->unixtimeToReadable($length);
-		$sendto->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
+		$context->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
 		if (!$this->settingManager->getBool('notify_banned_player')) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You have been banned from this bot by <highlight>{$sender}<end> for {$timeString}.",
+			"You have been banned from this bot by <highlight>{$context->char->name}<end> for {$timeString}.",
 			$who
 		);
 	}
 
 	/**
-	 * This command handler bans a player from this bot.
-	 *
-	 * Command parameters are:
-	 *  - name of the player
-	 *  - banning reason string
+	 * This command handler permanently bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
-	 * @Matches("/^ban ([a-z0-9-]+) (for|reason) (.+)$/i")
 	 */
-	public function banPlayerWithReasonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
-		$reason = $args[3];
+	public function banPlayerWithReasonCommand(CmdContext $context, PCharacter $who, string $for="(for|reason)", string $reason): void {
+		$who = $who();
 
-		if (!$this->banPlayer($who, $sender, null, $reason, $sendto)) {
+		if (!$this->banPlayer($who, $context->char->name, null, $reason, $context)) {
 			return;
 		}
 
-		$sendto->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
+		$context->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
 		if (!$this->settingManager->getBool('notify_banned_player')) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You have been permanently banned from this bot by <highlight>{$sender}<end>. ".
+			"You have been permanently banned from this bot by <highlight>{$context->char->name}<end>. ".
 			"Reason: {$reason}",
 			$who
 		);
 	}
 
 	/**
-	 * This command handler bans a player from this bot.
-	 *
-	 * Command parameter is:
-	 *  - name of the player
+	 * This command handler permanently bans a player from this bot without reason.
 	 *
 	 * @HandlesCommand("ban")
-	 * @Matches("/^ban ([a-z0-9-]+)$/i")
 	 */
-	public function banPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
+		$who = $who();
 
-		if (!$this->banPlayer($who, $sender, null, '', $sendto)) {
+		if (!$this->banPlayer($who, $context->char->name, null, '', $context)) {
 			return;
 		}
 
-		$sendto->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
+		$context->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
 		if (!$this->settingManager->getBool('notify_banned_player')) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You have been permanently banned from this bot by <highlight>{$sender}<end>.",
+			"You have been permanently banned from this bot by <highlight>{$context->char->name}<end>.",
 			$who
 		);
 	}
@@ -267,14 +251,13 @@ class BanController {
 	 * This command handler shows who is on the banlist.
 	 *
 	 * @HandlesCommand("banlist")
-	 * @Matches("/^banlist$/i")
 	 */
-	public function banlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function banlistCommand(CmdContext $context): void {
 		$banlist = $this->getBanlist();
 		$count = count($banlist);
 		if ($count === 0) {
 			$msg = "No one is currently banned from this bot.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$bans = [];
@@ -295,7 +278,7 @@ class BanController {
 		}
 		$blob = join("\n<pagebreak>", $bans);
 		$msg = $this->text->makeBlob("Banlist ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -305,18 +288,17 @@ class BanController {
 	 *  - name of one of the player's characters
 	 *
 	 * @HandlesCommand("unban")
-	 * @Matches("/^unban all (.+)$/i")
 	 */
-	public function unbanAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function unbanAllCommand(CmdContext $context, string $all="all", PCharacter $who): void {
+		$who = $who();
 
 		$charId = $this->chatBot->get_uid($who);
 		if (!$charId) {
-			$sendto->reply("Player <highlight>{$who}<end> doesn't exist.");
+			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
 		}
 		if (!$this->isBanned($charId)) {
-			$sendto->reply("<highlight>$who<end> is not banned on this bot.");
+			$context->reply("<highlight>$who<end> is not banned on this bot.");
 			return;
 		}
 
@@ -330,9 +312,9 @@ class BanController {
 			$this->remove($charId);
 		}
 
-		$sendto->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
+		$context->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendMassTell("You have been unbanned from this bot by $sender.", $who);
+			$this->chatBot->sendMassTell("You have been unbanned from this bot by {$context->char->name}.", $who);
 		}
 	}
 
@@ -343,26 +325,25 @@ class BanController {
 	 *  - name of the player
 	 *
 	 * @HandlesCommand("unban")
-	 * @Matches("/^unban (.+)$/i")
 	 */
-	public function unbanCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function unbanCommand(CmdContext $context, PCharacter $who): void {
+		$who = $who();
 
 		$charId = $this->chatBot->get_uid($who);
 		if (!$charId) {
-			$sendto->reply("Player <highlight>{$who}<end> doesn't exist.");
+			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
 		}
 		if (!$this->isBanned($charId)) {
-			$sendto->reply("<highlight>{$who}<end> is not banned on this bot.");
+			$context->reply("<highlight>{$who}<end> is not banned on this bot.");
 			return;
 		}
 
 		$this->remove($charId);
 
-		$sendto->reply("You have unbanned <highlight>$who<end> from this bot.");
+		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
 		if ($this->settingManager->getBool('notify_banned_player')) {
-			$this->chatBot->sendMassTell("You have been unbanned from this bot by $sender.", $who);
+			$this->chatBot->sendMassTell("You have been unbanned from this bot by {$context->char->name}.", $who);
 		}
 	}
 
@@ -600,23 +581,22 @@ class BanController {
 
 	/**
 	 * @HandlesCommand("orgban")
-	 * @Matches("/^orgban$/i")
 	 */
-	public function orgbanListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function orgbanListCommand(CmdContext $context): void {
 		$blocks = [];
 		foreach ($this->orgbanlist as $orgIf => $ban) {
 			$blocks []= $this->renderBannedOrg($ban);
 		}
 		$count = count($blocks);
 		if ($count === 0) {
-			$sendto->reply("No orgs are banned at the moment");
+			$context->reply("No orgs are banned at the moment");
 			return;
 		}
 		$msg = $this->text->makeBlob(
 			"Banned orgs ({$count})",
 			join("\n", $blocks)
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function renderBannedOrg(BannedOrg $ban): string {
@@ -633,11 +613,9 @@ class BanController {
 
 	/**
 	 * @HandlesCommand("orgban")
-	 * @Matches("/^orgban add (?<orgid>\d+) (?<duration>(?:\d+[a-z])+) (?:for|reason|because) (?<reason>.+)$/i")
-	 * @Matches("/^orgban add (?<orgid>\d+) (?:for|reason|because) (?<reason>.+)$/i")
 	 */
-	public function orgbanAddByIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->banOrg((int)$args["orgid"], $args["duration"]??null, $sender, $args["reason"], $sendto);
+	public function orgbanAddByIdCommand(CmdContext $context, string $add="add", int $orgId, ?PDuration $duration, string $for="(for|reason|because)", string $reason): void {
+		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason, $context);
 	}
 
 	/**
@@ -688,10 +666,8 @@ class BanController {
 
 	/**
 	 * @HandlesCommand("orgban")
-	 * @Matches("/^orgban rem (?<orgid>\d+)$/i")
 	 */
-	public function orgbanRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$orgId = (int)$args["orgid"];
+	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$this->guildManager->getByIdAsync(
 				$orgId,
@@ -705,7 +681,7 @@ class BanController {
 					$sendto->reply("<highlight>{$guild->orgname}<end> is currently not banned.");
 				},
 				$orgId,
-				$sendto
+				$context
 			);
 			return;
 		}
@@ -713,7 +689,7 @@ class BanController {
 		$this->db->table(self::DB_TABLE_BANNED_ORGS)
 			->where("org_id", $orgId)
 			->delete();
-		$sendto->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
+		$context->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
 		unset($this->orgbanlist[$orgId]);
 	}
 }

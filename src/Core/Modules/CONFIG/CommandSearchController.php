@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
-	CommandReply,
 	DB,
 	Nadybot,
 	SQLException,
@@ -46,37 +46,36 @@ class CommandSearchController {
 
 	/**
 	 * @HandlesCommand("cmdsearch")
-	 * @Matches("/^cmdsearch (.*)/i")
 	 */
-	public function searchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $arr): void {
-		$this->searchWords = explode(" ", $arr[1]);
+	public function searchCommand(CmdContext $context, string $search): void {
+		$this->searchWords = preg_split("/\s+/", $search);
 
 		// if a mod or higher, show all commands, not just enabled commands
 		$access = false;
-		if ($this->accessManager->checkAccess($sender, 'mod')) {
+		if ($this->accessManager->checkAccess($context->char->name, 'mod')) {
 			$access = true;
 		}
 
 		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $arr[1])
+			->where("cmd", $search)
 			->select("module", "cmd", "help", "description", "admin")->distinct();
 		if (!$access) {
 			$query->where("status", 1);
 		}
 		$results = $query->asObj(CommandSearchResult::class)->toArray();
-		$results = $this->filterResultsByAccessLevel($sender, $results);
+		$results = $this->filterResultsByAccessLevel($context->char->name, $results);
 
 		$exactMatch = !empty($results);
 
 		if (!$exactMatch) {
 			$results = $this->findSimilarCommands($this->searchWords, $access);
-			$results = $this->filterResultsByAccessLevel($sender, $results);
+			$results = $this->filterResultsByAccessLevel($context->char->name, $results);
 			$results = array_slice($results, 0, 5);
 		}
 
 		$msg = $this->render($results, $access, $exactMatch);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

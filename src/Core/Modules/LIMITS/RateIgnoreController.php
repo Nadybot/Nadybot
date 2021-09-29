@@ -3,13 +3,15 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Nadybot,
 	SQLException,
 	Text,
 };
 use Nadybot\Core\DBSchema\RateIgnoreList;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
@@ -53,12 +55,11 @@ class RateIgnoreController {
 
 	/**
 	 * @HandlesCommand("rateignore")
-	 * @Matches("/^rateignore$/i")
 	 */
-	public function rateignoreCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function rateignoreCommand(CmdContext $context): void {
 		$list = $this->all();
 		if (count($list) === 0) {
-			$sendto->reply("No entries in rate limit ignore list");
+			$context->reply("No entries in rate limit ignore list");
 			return;
 		}
 		$blob = '';
@@ -68,23 +69,21 @@ class RateIgnoreController {
 			$blob .= "<highlight>{$entry->name}<end> [added by {$entry->added_by}] {$date} {$remove}\n";
 		}
 		$msg = $this->text->makeBlob("Rate limit ignore list", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("rateignore")
-	 * @Matches("/^rateignore add (.+)$/i")
 	 */
-	public function rateignoreAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply($this->add($args[1], $sender));
+	public function rateignoreAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+		$context->reply($this->add($who(), $context->char->name));
 	}
 
 	/**
 	 * @HandlesCommand("rateignore")
-	 * @Matches("/^rateignore (rem|remove|del|delete) (.+)$/i")
 	 */
-	public function rateignoreRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply($this->remove($args[2]));
+	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
+		$context->reply($this->remove($who()));
 	}
 
 	/**
