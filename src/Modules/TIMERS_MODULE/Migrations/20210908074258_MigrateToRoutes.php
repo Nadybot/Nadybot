@@ -36,7 +36,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$table->string("mode", 50)->nullable()->change();
 		});
 		$defaultChannel = $this->getSetting($db, 'timer_alert_location');
-		if (!isset($defaultChannel)) {
+		if (!isset($defaultChannel) || $defaultChannel->value === "0") {
 			$defaultChannel = 3;
 		} else {
 			$defaultChannel = (int)$defaultChannel->value;

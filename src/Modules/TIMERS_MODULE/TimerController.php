@@ -128,16 +128,6 @@ class TimerController implements MessageEmitter {
 			'mod',
 			'timer_alert_times.txt'
 		);
-		// $this->settingManager->add(
-		// 	$this->moduleName,
-		// 	'timer_alert_location',
-		// 	'Where to display timer alerts',
-		// 	'edit',
-		// 	"options",
-		// 	"0",
-		// 	"Source only;Source+Priv;Source+Guild;Source+Priv+Guild;Source+Discord;Source+Discord+Priv;Source+Discord+Guild;Source+Discord+Priv+Guild",
-		// 	"0;1;2;3;4;5;6;7"
-		// );
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',
 			[$this, 'changeTimerAlertTimes']
@@ -247,7 +237,7 @@ class TimerController implements MessageEmitter {
 				return;
 			}
 		}
-		$mode = isset($timer->mode)? explode(",", $timer->mode) : [];
+		$mode = isset($timer->mode) ? explode(",", $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
