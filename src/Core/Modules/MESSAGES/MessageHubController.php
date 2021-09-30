@@ -558,7 +558,7 @@ class MessageHubController {
 	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
 	 */
 	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args["to"] = $this->fixDiscordChannelName($args['to']);
+		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
 		if (isset($args["where"])) {
 			$args["where"] = $this->fixDiscordChannelName($args['where']);
 		}
