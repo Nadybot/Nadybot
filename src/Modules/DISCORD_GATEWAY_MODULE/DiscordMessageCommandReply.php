@@ -43,6 +43,9 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 	}
 
 	public function getChannelName(): string {
+		if ($this->isDirectMsg) {
+			return Source::DISCORD_MSG . "({$this->channelId})";
+		}
 		$emitters = $this->messageHub->getEmitters();
 		foreach ($emitters as $emitter) {
 			if ($emitter instanceof ChannelsDiscordChannel

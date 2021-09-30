@@ -30,6 +30,7 @@ use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
+use Nadybot\Core\Channels\DiscordMsg;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
@@ -613,6 +614,11 @@ class DiscordGatewayController {
 				->registerMessageReceiver($dc)
 				->registerMessageEmitter($dc);
 		}
+		$dm = new DiscordMsg();
+		Registry::injectDependencies($dm);
+		$this->messageHub
+			->registerMessageReceiver($dm)
+			->registerMessageEmitter($dm);
 	}
 
 	/**
