@@ -34,6 +34,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = TimerController::DB_TABLE;
 		$db->schema()->table($table, function(Blueprint $table) {
 			$table->string("mode", 50)->nullable()->change();
+			$table->string("origin", 100)->nullable();
 		});
 		$defaultChannel = $this->getSetting($db, 'timer_alert_location');
 		if (!isset($defaultChannel) || $defaultChannel->value === "0") {

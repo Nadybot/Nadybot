@@ -2,13 +2,19 @@
 
 namespace Nadybot\Core;
 
-class PrivateChannelCommandReply implements CommandReply {
+use Nadybot\Core\Routing\Source;
+
+class PrivateChannelCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
 	private string $channel;
 
 	public function __construct(Nadybot $chatBot, string $channel) {
 		$this->chatBot = $chatBot;
 		$this->channel = $channel;
+	}
+
+	public function getChannelName(): string {
+		return Source::PRIV . "({$this->channel})";
 	}
 
 	public function reply($msg): void {

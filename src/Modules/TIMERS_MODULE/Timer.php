@@ -27,6 +27,8 @@ class Timer {
 	/** For repeating timers, this is the repeat interval in seconds */
 	public ?string $data;
 
+	public ?string $origin=null;
+
 	/**
 	 * A list of alerts, each calling $callback
 	 * @var Alert[]

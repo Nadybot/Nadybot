@@ -139,7 +139,7 @@ class TimerController implements MessageEmitter {
 	public function readAllTimers(): Collection {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
-			->select("id", "name", "owner", "mode", "endtime", "settime")
+			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
 			->addSelect("callback", "data", "alerts AS alerts_raw")
 			->asObj(Timer::class);
 		foreach ($data as $row) {
@@ -225,7 +225,7 @@ class TimerController implements MessageEmitter {
 		$endTime = (int)$timer->data + $alert->time;
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->setting->timer_alert_times));
 		$this->remove($timer->id);
-		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data);
+		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
 	}
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
@@ -233,7 +233,18 @@ class TimerController implements MessageEmitter {
 		if (!isset($timer->mode)) {
 			$rMsg = new RoutableMessage($msg);
 			$rMsg->appendPath(new Source(Source::SYSTEM, "timers"));
+			$delivered = false;
 			if ($this->messageHub->handle($rMsg) === MessageHub::EVENT_DELIVERED) {
+				$delivered = true;
+			}
+			if (isset($timer->origin) && !$this->messageHub->hasRouteFromTo($this->getChannelName(), $timer->origin)) {
+				$receiver = $this->messageHub->getReceiver($timer->origin);
+				if (isset($receiver)) {
+					$receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin));
+					$delivered = true;
+				}
+			}
+			if ($delivered) {
 				return;
 			}
 		}
@@ -295,7 +306,8 @@ class TimerController implements MessageEmitter {
 
 		$alerts = $this->generateAlerts($sender, $timerName, $endTime, explode(' ', $this->setting->timer_alert_times));
 
-		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime);
+		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
+		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime, $origin);
 
 		$initialTimerSet = $this->util->unixtimeToReadable($initialRunTime);
 		$timerSet = $this->util->unixtimeToReadable($runTime);
@@ -377,7 +389,8 @@ class TimerController implements MessageEmitter {
 		}
 		$alertChannel = $this->getTimerAlertChannel($channel);
 
-		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel);
+		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
+		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
 	}
 
@@ -467,7 +480,7 @@ class TimerController implements MessageEmitter {
 	 * @return string Message to display
 	 * @throws SQLException
 	 */
-	public function addTimer(string $sender, string $name, int $runTime, ?string $channel=null, ?array $alerts=null): string {
+	public function addTimer(string $sender, string $name, int $runTime, ?string $channel=null, ?array $alerts=null, ?string $origin=null): string {
 		if ($name === '') {
 			return '';
 		}
@@ -490,7 +503,7 @@ class TimerController implements MessageEmitter {
 			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
 		}
 
-		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback');
+		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback', null, $origin);
 
 		$timerset = $this->util->unixtimeToReadable($runTime);
 		return "Timer <highlight>$name<end> has been set for <highlight>$timerset<end>.";
@@ -499,7 +512,7 @@ class TimerController implements MessageEmitter {
 	/**
 	 * @param Alert[] $alerts
 	 */
-	public function add(string $name, string $owner, ?string $mode=null, array $alerts, string $callback, string $data=null): int {
+	public function add(string $name, string $owner, ?string $mode=null, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
 		usort($alerts, function(Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
@@ -511,6 +524,7 @@ class TimerController implements MessageEmitter {
 		$timer->settime = time();
 		$timer->callback = $callback;
 		$timer->data = $data;
+		$timer->origin = $origin;
 		$timer->mode = strlen($mode??"") ? $mode : null;
 		$timer->alerts = $alerts;
 
@@ -523,6 +537,7 @@ class TimerController implements MessageEmitter {
 				"name" => $name,
 				"owner" => $owner,
 				"mode" => $timer->mode,
+				"origin" => $timer->origin,
 				"endtime" => $timer->endtime,
 				"settime" => $timer->settime,
 				"callback" => $callback,

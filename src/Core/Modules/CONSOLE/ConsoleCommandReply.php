@@ -3,13 +3,19 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\MessageEmitter;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Source;
 
-class ConsoleCommandReply implements CommandReply {
+class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
+	}
+
+	public function getChannelName(): string {
+		return Source::CONSOLE;
 	}
 
 	public function reply($msg): void {
