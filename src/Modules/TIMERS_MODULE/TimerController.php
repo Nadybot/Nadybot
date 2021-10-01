@@ -230,9 +230,9 @@ class TimerController implements MessageEmitter {
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$msg = $alert->message;
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(Source::SYSTEM, "timers"));
 		if (!isset($timer->mode) || $timer->mode === "") {
-			$rMsg = new RoutableMessage($msg);
-			$rMsg->appendPath(new Source(Source::SYSTEM, "timers"));
 			$delivered = false;
 			if ($this->messageHub->handle($rMsg) === MessageHub::EVENT_DELIVERED) {
 				$delivered = true;
@@ -262,9 +262,16 @@ class TimerController implements MessageEmitter {
 				$sent = true;
 			}
 		}
-		if ($sent === false) {
-			$this->chatBot->sendMassTell($msg, $timer->owner);
+		if ($sent) {
+			return;
 		}
+		if (preg_match("/^(discordmsg|console)/", $timer->origin??"")) {
+			$receiver = $this->messageHub->getReceiver($timer->origin);
+			if (isset($receiver) && $receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
+				return;
+			}
+		}
+		$this->chatBot->sendMassTell($msg, $timer->owner);
 	}
 
 	/**
