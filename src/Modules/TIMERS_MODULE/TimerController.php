@@ -230,7 +230,7 @@ class TimerController implements MessageEmitter {
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$msg = $alert->message;
-		if (!isset($timer->mode)) {
+		if (!isset($timer->mode) || $timer->mode === "") {
 			$rMsg = new RoutableMessage($msg);
 			$rMsg->appendPath(new Source(Source::SYSTEM, "timers"));
 			$delivered = false;
@@ -248,7 +248,7 @@ class TimerController implements MessageEmitter {
 				return;
 			}
 		}
-		$mode = isset($timer->mode) ? explode(",", $timer->mode) : [];
+		$mode = strlen($timer->mode??"") ? explode(",", $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
@@ -362,7 +362,6 @@ class TimerController implements MessageEmitter {
 	}
 
 	protected function getTimerAlertChannel(string ...$channels): string {
-		return "";
 		// Timers via tell always create tell alerts only
 		if ($channels === ["msg"]) {
 			return "msg";

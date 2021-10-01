@@ -37,7 +37,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$table->string("origin", 100)->nullable();
 		});
 		$defaultChannel = $this->getSetting($db, 'timer_alert_location');
-		if (!isset($defaultChannel) || $defaultChannel->value === "0") {
+		if (!isset($defaultChannel)) {
 			$defaultChannel = 3;
 		} else {
 			$defaultChannel = (int)$defaultChannel->value;
@@ -50,39 +50,63 @@ class MigrateToRoutes implements SchemaMigration {
 		if ($defaultChannel & 2) {
 			$this->addRoute($db, Source::ORG);
 			$defaultMode []= "org";
+			$defaultMode []= "guild";
 		}
 		if ($defaultChannel & 4) {
-			$discordCannel = $this->getSetting($db, "discord_notify_channel") ?? null;
-			if (isset($discordCannel) && $discordCannel->value !== 'off') {
-				$this->discordAPIClient->getChannel(
-					$discordCannel->value,
-					[$this, "migrateChannelToRoute"],
-					$db,
-				);
-				$defaultMode []= "discord";
-			}
+			$defaultMode []= "discord";
 		}
-		sort($defaultMode);
-		$timerIds = $db->table($table)
-			->asObj()
-			->filter(function ($timer): bool {
-				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
-					return false;
-				}
-				if ($timer->mode === 'msg') {
-					return false;
-				}
-				return true;
-			})->pluck("id")
-			->toArray();
-		if (count($timerIds)) {
-			$db->table($table)
-				->whereIn("id", $timerIds)
-				->update(["mode" => null]);
+		$discordCannel = $this->getSetting($db, "discord_notify_channel") ?? null;
+		if (isset($discordCannel) && $discordCannel->value !== 'off') {
+			$this->discordAPIClient->getChannel(
+				$discordCannel->value,
+				[$this, "migrateChannelToRoute"],
+				$db,
+				$table,
+				$defaultMode
+			);
+			return;
 		}
+		$this->rewriteTimerMode($db, $table, $defaultMode);
 	}
 
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db): void {
+	protected function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
+		sort($defaultMode);
+		$db->table($table)
+			->asObj()
+			->each(function ($timer) use ($defaultMode, $table, $db, $discord): void {
+				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
+					return;
+				}
+				if ($timer->mode === 'msg') {
+					return;
+				}
+				$timerMode = explode(",", $timer->mode);
+				sort($timerMode);
+				$modeDiff = array_values(array_diff($timerMode, $defaultMode));
+				if (count($modeDiff) > 1) {
+					return;
+				}
+				$update = ["mode" => null];
+				if (count($modeDiff) === 1) {
+					if ($modeDiff[0] === "priv") {
+						$update["origin"] = Source::PRIV . "(" . $db->getMyname() . ")";
+					} elseif ($modeDiff[0] === "org" || $modeDiff[0] === "guild") {
+						$update["origin"] = Source::ORG;
+					} elseif ($modeDiff[0] === "discord") {
+						$update["origin"] = $discord;
+					}
+				}
+				$db->table($table)
+					->where("id", $timer->id)
+					->update($update);
+			});
+	}
+
+	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, string $table, array $defaultMode): void {
+		$this->rewriteTimerMode($db, $table, $defaultMode, Source::DISCORD_PRIV . "({$channel->name})");
+		if (!in_array("discord", $defaultMode)) {
+			return;
+		}
 		$route = $this->addRoute(
 			$db,
 			Source::DISCORD_PRIV . "({$channel->name})",
