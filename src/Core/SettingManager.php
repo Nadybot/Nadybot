@@ -6,6 +6,7 @@ use Nadybot\Core\DBSchema\Setting;
 
 /**
  * @Instance
+ * @ProvidesEvent("setting(*)")
  */
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
@@ -23,6 +24,9 @@ class SettingManager {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -225,6 +229,14 @@ class SettingManager {
 				call_user_func($listener->callback, $name, $this->settings[$name]->value, $value, $listener->data);
 			}
 		}
+		$event = new SettingEvent();
+		$event->setting = $name;
+		$event->type = "setting({$name})";
+		$event->oldValue = $this->settings[$name];
+		$event->newValue = clone $event->oldValue;
+		$event->newValue->value = $value;
+		$this->eventManager->fireEvent($event);
+
 		$this->settings[$name]->value = $value;
 		$this->db->table(self::DB_TABLE)
 			->where("name", $name)
