@@ -1234,7 +1234,7 @@ class Nadybot extends AOChat {
 						$moduleName,
 						$eventAnnotation->value,
 						$name . '.' . $method->name,
-						@$method->getAnnotation('Description')->value,
+						@$method->getAnnotation('Description')->value ?? "none",
 						@$method->getAnnotation('Help')->value,
 						isset($defaultStatus) ? (int)$defaultStatus : null
 					);
