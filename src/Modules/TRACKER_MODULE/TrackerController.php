@@ -746,7 +746,7 @@ class TrackerController implements MessageEmitter {
 			}
 			if (count($toInsert)) {
 				$maxBuddies = $this->chatBot->getBuddyListSize();
-				$numBuddies = count($this->buddylistManager->buddyList);
+				$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 				if (count($toInsert) + $numBuddies > $maxBuddies) {
 					$callback(
 						"You cannot add " . count($toInsert) . " more ".

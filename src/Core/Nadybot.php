@@ -783,6 +783,16 @@ class Nadybot extends AOChat {
 		} catch (Throwable $e) {
 		}
 
+		// If this UID was added via the queue, then every UID before its
+		// queue entry is an inactive or non-existing player
+		$queuePos = array_search($userId, $this->buddyQueue);
+		if ($queuePos !== false) {
+			for ($i = 0; $i < $queuePos; $i++) {
+				$remUid = array_shift($this->buddyQueue);
+				$this->buddylistManager->updateRemoved($remUid);
+			}
+			array_shift($this->buddyQueue);
+		}
 		$this->buddylistManager->update($userId, (bool)$status, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
