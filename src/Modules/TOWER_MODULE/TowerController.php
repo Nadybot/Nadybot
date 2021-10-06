@@ -906,6 +906,8 @@ class TowerController {
 			$sendto->reply("This command works only with a tower API.");
 			return;
 		}
+		$sendto->reply("This command is currently disabled, because it causes issues with the tower API.");
+		return;
 		$result = $this->getSitesInPenalty();
 		if (isset($args['org'])) {
 			$sites = new Collection($result->results);
@@ -2037,6 +2039,7 @@ class TowerController {
 	}
 
 	protected function recordHotSites(Player $whois, Attack $attack, TowerSite $closestSite): void {
+		return;
 		if (!$this->towerApiController->isActive()) {
 			return;
 		}
