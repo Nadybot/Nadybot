@@ -163,6 +163,9 @@ class AOChat {
 
 	public LoggerWrapper $logger;
 
+	/** @var int[] */
+	public array $buddyQueue = [];
+
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser('data/text.mdb');
@@ -749,6 +752,7 @@ class AOChat {
 		if ($uid === $this->char->id) {
 			return false;
 		}
+		$this->buddyQueue []= $uid;
 		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, $payload]));
 	}
 

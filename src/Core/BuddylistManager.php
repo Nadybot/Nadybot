@@ -23,6 +23,20 @@ class BuddylistManager {
 	public array $buddyList = [];
 
 	/**
+	 * Get the number of definitively used up buddy slots
+	 */
+	public function getUsedBuddySlots(): int {
+		return count(
+			array_filter(
+				$this->buddyList,
+				function(BuddylistEntry $buddy): bool {
+					return $buddy->known;
+				}
+			)
+		);
+	}
+
+	/**
 	 * Check if a friend is online
 	 *
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline

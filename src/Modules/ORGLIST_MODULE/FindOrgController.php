@@ -88,6 +88,13 @@ class FindOrgController {
 		);
 	}
 
+	public function getByID(int $orgID): ?Organization {
+		return $this->db->table("organizations")
+			->where("id", $orgID)
+			->asObj(Organization::class)
+			->first();
+	}
+
 	/**
 	 * @HandlesCommand("findorg")
 	 * @Matches("/^findorg (.+)$/i")

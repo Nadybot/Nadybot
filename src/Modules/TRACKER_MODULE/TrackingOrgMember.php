@@ -4,10 +4,9 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\DBRow;
 
-class TrackedUser extends DBRow {
+class TrackingOrgMember extends DBRow {
+	public int $org_id;
 	public int $uid;
 	public string $name;
-	public string $added_by;
-	public int $added_dt;
 	public bool $hidden=false;
 }
