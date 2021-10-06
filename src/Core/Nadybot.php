@@ -789,7 +789,7 @@ class Nadybot extends AOChat {
 		if ($queuePos !== false) {
 			$remUid = array_shift($this->buddyQueue);
 			while (isset($remUid) && $remUid !== $userId) {
-				$this->logger->log('INFO', "Removing non-existing UID {$remUid} from buddylist");
+				$this->logger->log('DEBUG', "Removing non-existing UID {$remUid} from buddylist");
 				$this->buddylistManager->updateRemoved($remUid);
 				$remUid = array_shift($this->buddyQueue);
 			}
