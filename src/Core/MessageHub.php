@@ -298,6 +298,9 @@ class MessageHub {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {
+				if (empty($routes)) {
+					continue;
+				}
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
 					continue;
@@ -510,6 +513,9 @@ class MessageHub {
 				$this->routes[$source][$dest] = array_values(
 					$this->routes[$source][$dest]
 				);
+				if (empty($this->routes[$source][$dest])) {
+					unset($this->routes[$source][$dest]);
+				}
 			}
 		}
 		return $result;
