@@ -286,6 +286,34 @@ class MessageHub {
 	}
 
 	/**
+	 * Check if there is a route defined for a MessageSender to a receiver
+	 */
+	public function hasRouteFromTo(string $sender, string $destination): bool {
+		$sender = strtolower($sender);
+		foreach ($this->routes as $source => $dest) {
+			if (!strpos($source, '(')) {
+				$source .= '(*)';
+			}
+			if (!fnmatch($source, $sender, FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($dest as $destName => $routes) {
+				if (empty($routes)) {
+					continue;
+				}
+				$receiver = $this->getReceiver($destName);
+				if (!isset($receiver)) {
+					continue;
+				}
+				if (fnmatch($receiver->getChannelName(), $destination, FNM_CASEFOLD)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Get a list of all message emitters
 	 * @return array<string,MessageEmitter>
 	 */
@@ -485,6 +513,9 @@ class MessageHub {
 				$this->routes[$source][$dest] = array_values(
 					$this->routes[$source][$dest]
 				);
+				if (empty($this->routes[$source][$dest])) {
+					unset($this->routes[$source][$dest]);
+				}
 			}
 		}
 		return $result;

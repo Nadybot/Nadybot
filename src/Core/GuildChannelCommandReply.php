@@ -2,11 +2,17 @@
 
 namespace Nadybot\Core;
 
-class GuildChannelCommandReply implements CommandReply {
+use Nadybot\Core\Routing\Source;
+
+class GuildChannelCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
+	}
+
+	public function getChannelName(): string {
+		return Source::ORG;
 	}
 
 	/**
