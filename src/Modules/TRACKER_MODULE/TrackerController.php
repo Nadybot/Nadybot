@@ -496,9 +496,9 @@ class TrackerController implements MessageEmitter {
 				$status = "<grey>None<end>";
 			}
 
-			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> track rem $user->name");
+			$remove = $this->text->makeChatcmd('remove', "/tell <myname> track rem {$user->uid}");
 
-			$history = $this->text->makeChatcmd('History', "/tell <myname> track $user->name");
+			$history = $this->text->makeChatcmd('history', "/tell <myname> track show {$user->name}");
 
 			$blob .= "<tab><highlight>{$user->name}<end> ({$status}{$lastAction}) - [{$remove}] [$history]\n";
 		}
@@ -512,11 +512,19 @@ class TrackerController implements MessageEmitter {
 	 * @Matches("/^track (?:rem|del) (.+)$/i")
 	 */
 	public function trackRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$uid = $this->chatBot->get_uid($name);
+		if (preg_match("/^\d+$/", $args[1])) {
+			$uid = (int)$args[1];
+			$name = $this->chatBot->lookup_user($uid);
+			if ($name === '4294967295') {
+				$name = "UID {$uid}";
+			}
+		} else {
+			$name = ucfirst(strtolower($args[1]));
+			$uid = $this->chatBot->get_uid($name);
+		}
 
 		if (!$uid) {
-			$msg = "Character <highlight>$name<end> does not exist.";
+			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$sendto->reply($msg);
 			return;
 		}
@@ -908,7 +916,7 @@ class TrackerController implements MessageEmitter {
 	/**
 	 * Render a single online-line of a player
 	 * @param OnlinePlayer $player The player to render
-	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't showthe prof icon
+	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
 	 * @return string A single like without newlines
 	 */
 	public function renderPlayerLine(OnlinePlayer $player, int $groupBy, bool $edit): string {
@@ -933,8 +941,8 @@ class TrackerController implements MessageEmitter {
 			$blob .= " :: <{$faction}>{$player->guild}<end> ({$player->guild_rank})";
 		}
 		if ($edit) {
-			$historyLink = $this->text->makeChatcmd("history", "/tell <myname> track {$player->name}");
-			$removeLink = $this->text->makeChatcmd("untrack", "/tell <myname> track rem {$player->name}");
+			$historyLink = $this->text->makeChatcmd("history", "/tell <myname> track show {$player->name}");
+			$removeLink = $this->text->makeChatcmd("untrack", "/tell <myname> track rem {$player->charid}");
 			$hideLink = $this->text->makeChatcmd("hide", "/tell <myname> track hide {$player->charid}");
 			$unhideLink = $this->text->makeChatcmd("unhide", "/tell <myname> track unhide {$player->charid}");
 			$blob .= " [{$removeLink}] [{$historyLink}]";
@@ -975,7 +983,7 @@ class TrackerController implements MessageEmitter {
 			$sendto->reply($msg);
 			return;
 		}
-		$msg = "<highlight>{$name}<end> is no longer shown in <symbol>track online.";
+		$msg = "<highlight>{$name}<end> is no longer shown in <highlight><symbol>track online<end>.";
 		$sendto->reply($msg);
 	}
 
@@ -1008,7 +1016,7 @@ class TrackerController implements MessageEmitter {
 			$sendto->reply($msg);
 			return;
 		}
-		$msg = "<highlight>{$name}<end> is now shown in <symbol>track online again.";
+		$msg = "<highlight>{$name}<end> is now shown in <highlight><symbol>track online<end> again.";
 		$sendto->reply($msg);
 	}
 
