@@ -787,11 +787,12 @@ class Nadybot extends AOChat {
 		// queue entry is an inactive or non-existing player
 		$queuePos = array_search($userId, $this->buddyQueue);
 		if ($queuePos !== false) {
-			for ($i = 0; $i < $queuePos; $i++) {
-				$remUid = array_shift($this->buddyQueue);
+			$remUid = array_shift($this->buddyQueue);
+			while (isset($remUid) && $remUid !== $userId) {
+				$this->logger->log('INFO', "Removing non-existing UID {$remUid} from buddylist");
 				$this->buddylistManager->updateRemoved($remUid);
+				$remUid = array_shift($this->buddyQueue);
 			}
-			array_shift($this->buddyQueue);
 		}
 		$this->buddylistManager->update($userId, (bool)$status, $worker);
 

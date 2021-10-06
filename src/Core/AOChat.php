@@ -163,6 +163,7 @@ class AOChat {
 
 	public LoggerWrapper $logger;
 
+	/** @var int[] */
 	public array $buddyQueue = [];
 
 	public function __construct() {
