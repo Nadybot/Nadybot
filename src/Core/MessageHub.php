@@ -91,6 +91,7 @@ class MessageHub {
 		static::$colors = $query
 			->orderByDesc($query->colFunc("LENGTH", "hop"))
 			->orderByDesc($query->colFunc("LENGTH", "where"))
+			->orderByDesc($query->colFunc("LENGTH", "via"))
 			->asObj(RouteHopColor::class);
 	}
 
@@ -380,7 +381,7 @@ class MessageHub {
 		$hops = [];
 		$lastHop = null;
 		foreach ($event->getPath() as $hop) {
-			$renderedHop = $this->renderSource($hop, $lastHop, $where, $withColor);
+			$renderedHop = $this->renderSource($hop, $event, $where, $withColor);
 			if (isset($renderedHop)) {
 				$hops []= $renderedHop;
 			}
@@ -404,7 +405,11 @@ class MessageHub {
 		return $hopText.$charLink;
 	}
 
-	public function renderSource(Source $source, ?Source $lastHop, string $where, bool $withColor): ?string {
+	public function renderSource(Source $source, RoutableEvent $event, string $where, bool $withColor): ?string {
+		$lastHop = null;
+		$hops = $event->getPath();
+		$hopPos = array_search($source, $hops, true);
+		$lastHop = ($hopPos === false || $hopPos === 0) ? null : $hops[$hopPos-1];
 		$name = $source->render($lastHop);
 		if (!isset($name)) {
 			return null;
@@ -412,7 +417,7 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($where, $source->type, $source->name, "tag_color");
+		$color = $this->getHopColor($hops, $where, $source, "tag_color");
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
@@ -569,19 +574,25 @@ class MessageHub {
 		return $msgRoute;
 	}
 
-	public function getHopColor(string $where, string $type, string $name, string $color): ?RouteHopColor {
+	/**
+	 * @param Source[] $path
+	 */
+	public function getHopColor(array $path, string $where, Source $source, string $color): ?RouteHopColor {
 		$colorDefs = static::$colors;
-		if (isset($name)) {
+		if (isset($source->name)) {
 			$fullDefs = $colorDefs->filter(function (RouteHopColor $color): bool {
 				return strpos($color->hop, "(") !== false;
 			});
 			foreach ($fullDefs as $colorDef) {
-				if (!fnmatch($colorDef->hop, "{$type}({$name})", FNM_CASEFOLD)) {
+				if (!fnmatch($colorDef->hop, "{$source->type}({$source->name})", FNM_CASEFOLD)) {
 					continue;
 				}
 				$colorWhere = $colorDef->where??'*';
 				if (!fnmatch($colorWhere, $where, FNM_CASEFOLD)
 					&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
+					continue;
+				}
+				if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
 					continue;
 				}
 				if (isset($colorDef->{$color})) {
@@ -595,13 +606,35 @@ class MessageHub {
 				&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
 				continue;
 			}
-			if (fnmatch($colorDef->hop, $type, FNM_CASEFOLD)
+			if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
+				continue;
+			}
+			if (fnmatch($colorDef->hop, $source->type, FNM_CASEFOLD)
 				&& isset($colorDef->{$color})
 			) {
 				return $colorDef;
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Check if $via is part of $path
+	 * @param string $via
+	 * @param Source[] $path
+	 */
+	protected function isSentVia(string $via, array $path): bool {
+		for ($i = 0; $i < count($path)-1; $i++) {
+			$viaName = $path[$i]->type;
+			if (isset($path[$i]->name)) {
+				$viaName .= "({$path[$i]->name})";
+			}
+			if (fnmatch($via, $viaName, FNM_CASEFOLD)
+				|| fnmatch($via.'(*)', $viaName, FNM_CASEFOLD)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -620,7 +653,7 @@ class MessageHub {
 		if (!count($path) || !isset($hop)) {
 			return "";
 		}
-		$color = $this->getHopColor($where, $hop->type, $hop->name, "text_color");
+		$color = $this->getHopColor($path, $where, $hop, "text_color");
 		if (!isset($color) || !isset($color->text_color)) {
 			return "";
 		}

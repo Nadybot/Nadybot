@@ -497,8 +497,12 @@ class MessageHubController {
 		foreach ($colors as $color) {
 			$id = $title = $color->hop;
 			if (isset($color->where)) {
-				$title .= " -&gt; {$color->where}";
+				$title .= "<end> -&gt; <highlight>{$color->where}";
 				$id .= " -> {$color->where}";
+			}
+			if (isset($color->via)) {
+				$title .= "<end> via <highlight>{$color->via}";
+				$id .= " via {$color->via}";
 			}
 			$remCmd = $this->text->makeChatcmd(
 				"clear",
@@ -543,8 +547,9 @@ class MessageHubController {
 			"parts of these, like 'gsp' in 'system(gsp)'.\n\n".
 			"Set the colors with\n".
 			"<tab><highlight><symbol>route color tag pick type(name)<end>,\n".
-			"<tab><highlight><symbol>route color text pick type(name)<end> or\n".
-			"<tab><highlight><symbol>route color text pick type(name) -&gt; type(name)<end>";
+			"<tab><highlight><symbol>route color text pick type(name)<end>,\n".
+			"<tab><highlight><symbol>route color text pick type(name) -&gt; type(name)<end> or \n".
+			"<tab><highlight><symbol>route color text pick type(name) -&gt; type(name) via type(name)<end>";
 		$msg = $this->text->makeBlob(
 			"Routing colors (" . count($colors) . ")",
 			$blob
@@ -554,18 +559,25 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+) (?:->|-&gt;) (?<where>.+)$/i")
-	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+)$/i")
+	 * @Matches("/^route color (?<type>tag|text) (?:rem|del|remove|delete|rm) (?<tag>.+?)(?: (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))?$/i")
 	 */
 	public function routeTagColorRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
-		if (isset($args["where"])) {
-			$args["where"] = $this->fixDiscordChannelName($args['where']);
+		$where = strlen($args["where"]??"") ? $args["where"] : null;
+		$via = strlen($args["via"]??"") ? $args["via"] : null;
+		if (isset($where)) {
+			$where = $this->fixDiscordChannelName($where);
 		}
-		$color = $this->getHopColor($args['tag'], $args['where']??null);
+		if (isset($via)) {
+			$via = $this->fixDiscordChannelName($via);
+		}
+		$color = $this->getHopColor($args['tag'], $where, $via);
 		$name = $args['tag'];
-		if (isset($args['where'])) {
-			$name .= " -&gt; {$args['where']}";
+		if (isset($where)) {
+			$name .= "<end> -&gt; <highlight>{$where}";
+		}
+		if (isset($via)) {
+			$name .= "<end> via <highlight>{$via}";
 		}
 		$attr = $args['type'] . "_color";
 		$otherAttr = "text_color";
@@ -573,7 +585,7 @@ class MessageHubController {
 			$otherAttr = "tag_color";
 		}
 		if (!isset($color) || !isset($color->{$attr})) {
-			$sendto->reply("No tag color for <highlight>{$name}<end> defined.");
+			$sendto->reply("No {$args['type']} color for <highlight>{$name}<end> defined.");
 			return;
 		}
 		if (isset($color->{$otherAttr})) {
@@ -604,17 +616,22 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) (?:->|-&gt;) (?<where>.+) #?(?<color>[0-9a-f]{6})$/i")
-	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+) #?(?<color>[0-9a-f]{6})$/i")
+	 * @Matches("/^route color (?<type>tag|text) set (?<tag>.+?)(?: (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))? #?(?<color>[0-9a-f]{6})$/i")
 	 */
 	public function routeSetColorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
 		$name = $tag = strtolower($args['tag']);
-		$where = isset($args['where'])
+		$where = strlen($args['where']??"")
 			? strtolower($this->fixDiscordChannelName($args['where']))
 			: null;
+		$via = strlen($args['via']??"")
+			? strtolower($this->fixDiscordChannelName($args['via']))
+			: null;
 		if (isset($where)) {
-			$name .= " -&gt; {$where}";
+			$name .= "<end> -&gt; <highlight>{$where}";
+		}
+		if (isset($via)) {
+			$name .= "<end> via <highlight>{$via}";
 		}
 		$type = strtolower($args['type']);
 		$color = strtoupper($args['color']);
@@ -626,11 +643,16 @@ class MessageHubController {
 			$sendto->reply("Your destination is longer than the supported 50 characters.");
 			return;
 		}
-		$colorDef = $this->getHopColor($tag, $where);
+		if (strlen($via??"") > 50) {
+			$sendto->reply("Your via hop is longer than the supported 50 characters.");
+			return;
+		}
+		$colorDef = $this->getHopColor($tag, $where, $via);
 		if (!isset($colorDef)) {
 			$colorDef = new RouteHopColor();
 			$colorDef->hop = $tag;
 			$colorDef->where = $where;
+			$colorDef->via = $via;
 		}
 		if ($type === "text") {
 			$colorDef->text_color = $color;
@@ -653,18 +675,24 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
-	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+) (?:->|-&gt;) (?<where>.+)$/i")
-	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+)$/i")
+	 * @Matches("/^route color (?<type>text|tag) pick (?<tag>.+?)?( (?:->|-&gt;) (?<where>.+?))?(?: via (?<via>.+))?$/i")
 	 */
 	public function routeColorPickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$args["tag"] = $this->fixDiscordChannelName($args['tag']);
 		$id = $name = $tag = strtolower($args['tag']);
-		$where = isset($args['where'])
+		$where = strlen($args['where']??"")
 			? strtolower($this->fixDiscordChannelName($args['where']))
+			: null;
+		$via = strlen($args['via']??"")
+			? strtolower($this->fixDiscordChannelName($args['via']))
 			: null;
 		if (isset($where)) {
 			$name .= " -&gt; {$where}";
 			$id .= " -> {$where}";
+		}
+		if (isset($via)) {
+			$name .= " <i>via {$via}</i>";
+			$id .= " via {$via}";
 		}
 		$type = strtolower($args['type']);
 		if (strlen($tag) > 50) {
@@ -673,6 +701,10 @@ class MessageHubController {
 		}
 		if (strlen($where??"") > 50) {
 			$sendto->reply("Your destination is too long.");
+			return;
+		}
+		if (strlen($via??"") > 50) {
+			$sendto->reply("Your via hop name is too long.");
 			return;
 		}
 		$colorList = ColorSettingHandler::getExampleColors();
@@ -873,13 +905,19 @@ class MessageHubController {
 		return true;
 	}
 
-	public function getHopColor(string $hop, ?string $where=null): ?RouteHopColor {
+	public function getHopColor(string $hop, ?string $where=null, ?string $via=null): ?RouteHopColor {
 		return $this->messageHub::$colors
-			->first(function (RouteHopColor $x) use ($hop, $where): bool {
+			->first(function (RouteHopColor $x) use ($hop, $where, $via): bool {
 				if (isset($where) !== isset($x->where)) {
 					return false;
 				}
 				if (isset($where) && strcasecmp($x->where, $where) !== 0) {
+					return false;
+				}
+				if (isset($via) !== isset($x->via)) {
+					return false;
+				}
+				if (isset($via) && strcasecmp($x->via, $via) !== 0) {
 					return false;
 				}
 				return strcasecmp($x->hop, $hop) === 0;
