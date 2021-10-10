@@ -466,6 +466,14 @@ class TowerController {
 		$this->orglistController->getMatches(
 			$search,
 			function(array $orgs) use ($sendto, $search): void {
+				$orgs = array_values(
+					array_filter(
+						$orgs,
+						function(Organization $org): bool {
+							return $org->num_members > 0;
+						}
+					)
+				);
 				$count = count($orgs);
 
 				if ($count === 0) {
@@ -664,8 +672,7 @@ class TowerController {
 		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
 		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT ".
-				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
+			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			if ($showOrgLinks) {
 				$orgLink = $this->text->makeChatcmd(
 					"show sites",
@@ -675,8 +682,13 @@ class TowerController {
 			}
 			$blob .= "\n";
 			$gas = $this->getGasLevel($site->close_time);
-			$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-				$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
+			if ($gas->gas_level === "75%" && $site->penalty_until >= time() && $site->penalty_until >= $gas->time_until_close_time) {
+				$blob .= "<tab>Gas: <green>25%<end>, closes in ".
+					$this->util->unixtimeToReadable($site->penalty_until - time()) . "\n";
+			} else {
+				$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
+					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
+			}
 		} else {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 		}
@@ -906,25 +918,43 @@ class TowerController {
 			$sendto->reply("This command works only with a tower API.");
 			return;
 		}
-		$sendto->reply("This command is currently disabled, because it causes issues with the tower API.");
-		return;
-		$result = $this->getSitesInPenalty();
-		if (isset($args['org'])) {
-			$sites = new Collection($result->results);
-			$result->results = $sites->filter(function (ApiSite $site) use ($args): bool {
-				return stripos($site->org_name, $args['org']) !== false;
-			})->toArray();
-			$result->count = count($result->results);
-		}
-		if ($result->count === 0) {
-			if (isset($args['org'])) {
-				$sendto->reply("No org <highlight>'{$args['org']}'<end> currently has any sites in penalty.");
-			} else {
-				$sendto->reply("No orgs are currently in penalty.");
+		$params = ["enabled" => "true", "penalty" => "true"];
+		if (strlen($args['org']??"")) {
+			if (strcasecmp($args['org'], "neut") === 0) {
+				$args["org"] = "neutral";
 			}
+			if (preg_match("/^(clan|omni|neutral)$/", $args['org'])) {
+				$params["faction"] = $args["org"];
+			} else {
+				$params["org_name"] = $args["org"];
+			}
+		}
+		$this->towerApiController->call(
+			$params,
+			[$this, "processPenaltySites"],
+			$sendto
+		);
+	}
+
+	public function processPenaltySites(?ApiResult $result, CommandReply $sendto): void {
+		if (!isset($result)) {
+			$sendto->reply("Invalid data received from the tower API. Try again later.");
 			return;
 		}
-		$blob = $this->renderHotSites($result, ["min_close_time" => time()]);
+		if ($result->count === 0) {
+			$sendto->reply("No sites are currently in penalty.");
+			return;
+		}
+		$params = [
+			"enabled" => "true",
+			"min_close_time" => time() % 84600,
+			"max_close_time" => (time() + 6 * 3600) % 86400,
+		];
+		if ($result->results[0]->penalty_until === 0) {
+			$sendto->reply("The API currently doesn't support penalty queries. Try again later.");
+			return;
+		}
+		$blob = $this->renderHotSites($result, $params, 0);
 		$sendto->reply(
 			$this->text->makeBlob(
 				"Sites in penalty (" . $result->count . ")",
@@ -1053,7 +1083,8 @@ class TowerController {
 				[$this, "showHotSites"],
 				$params,
 				$sender,
-				$sendto
+				$sendto,
+				$time
 			);
 			return;
 		}
@@ -1114,7 +1145,7 @@ class TowerController {
 	public function renderHotSitesOld(Collection $sites): string {
 		$grouped = $sites->groupBy("short_name");
 		$blob = $grouped->map(function (Collection $sites, string $short): string {
-			return "<header2>{$sites[0]->long_name}<end>\n".
+			return "<pagebreak><header2>{$sites[0]->long_name}<end>\n".
 				$sites->map(function (HotSite $site): string {
 					$shortName = $site->short_name . " " . $site->site_number;
 					$line = "<tab>".
@@ -1197,54 +1228,34 @@ class TowerController {
 		return $data->filter(fn($site) => isset($site->info->close_time));
 	}
 
-	public function showHotSites(?ApiResult $result, array $params, string $sender, CommandReply $sendto): void {
+	public function qlToSiteType(int $qlCT): int {
+		if ($qlCT < 34) {
+			return 1;
+		} elseif ($qlCT < 82) {
+			return 2;
+		} elseif ($qlCT < 129) {
+			return 3;
+		} elseif ($qlCT < 177) {
+			return 4;
+		} elseif ($qlCT < 201) {
+			return 5;
+		} elseif ($qlCT < 226) {
+			return 6;
+		} else {
+			return 7;
+		}
+	}
+
+	public function showHotSites(?ApiResult $result, array $params, string $sender, CommandReply $sendto, int $time=0): void {
 		if ($result === null) {
 			$sendto->reply("Invalid data received from tower API. Try again later.");
 			return;
-		}
-		$penaltySites = $this->getSitesInPenalty();
-		$penSites = new Collection($penaltySites->results);
-		if (isset($params["playfield_id"])) {
-			$penSites = $penSites->where("playfield_id", $params["playfield_id"]);
-		}
-		if (isset($params["faction"])) {
-			$penSites = $penSites->where("faction", ucfirst(strtolower($params["faction"])));
-		}
-		if (isset($params["min_ql"])) {
-			$penSites = $penSites->where("ql", ">=", $params["min_ql"]);
-			$penSites = $penSites->where("ql", "<=", $params["max_ql"]);
-		}
-		$fromTime = (new DateTime())->setTimestamp($params["min_close_time"]);
-		$toTime = (new DateTime())->setTimestamp($params["max_close_time"]);
-		if ($fromTime > $toTime) {
-			$toTime->modify("+1 day");
-		}
-		$penSites = $penSites->filter(function(ApiSite $site) use ($fromTime, $toTime): bool {
-			$i = (new DateTime())->setTimestamp($site->close_time);
-			return ($fromTime <= $i  && $i <= $toTime)
-				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime);
-		});
-
-		foreach ($penSites as $penSite) {
-			$found = false;
-			foreach ($result->results as $hotSite) {
-				if ($penSite->playfield_id === $hotSite->playfield_id
-					&& $penSite->site_number === $hotSite->site_number
-				) {
-					$found = true;
-					break;
-				}
-			}
-			if (!$found) {
-				$result->results []= $penSite;
-				$result->count++;
-			}
 		}
 		if ($result->count === 0) {
 			$sendto->reply("No sites matching your criteria are currently hot.");
 			return;
 		}
-		$blob = $this->renderHotSites($result, $params);
+		$blob = $this->renderHotSites($result, $params, $time);
 		$timeString = date("H:i:s", $params["min_close_time"]);
 		$sendto->reply(
 			$this->makeBlob(
@@ -1254,17 +1265,19 @@ class TowerController {
 		);
 	}
 
-	protected function renderHotSites(ApiResult $result, array $params): string {
+	protected function renderHotSites(ApiResult $result, array $params, int $time): string {
+		$time += time();
 		$sites = new Collection($result->results);
 		$fromTime = (new DateTime())->setTimestamp($params["min_close_time"]);
 		$toTime = (new DateTime())->setTimestamp($params["max_close_time"]);
 		if ($fromTime > $toTime) {
 			$toTime->modify("+1 day");
 		}
-		$sites = $sites->filter(function (ApiSite $site) use ($fromTime, $toTime): bool {
+		$sites = $sites->filter(function (ApiSite $site) use ($fromTime, $toTime, $time): bool {
 			$i = (new DateTime())->setTimestamp($site->close_time);
 			return ($fromTime <= $i  && $i <= $toTime)
-				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime);
+				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime)
+				|| ($site->penalty_until >= $time);
 		});
 		$result->count = $sites->count();
 		$grouping = $this->settingManager->getInt('tower_hot_group');
@@ -1281,9 +1294,9 @@ class TowerController {
 			$grouped = $sites->groupBy("org_name");
 		}
 		$grouped = $grouped->sortKeys();
-		return $grouped->map(function (Collection $sites, string $short) use ($params): string {
-			return "<header2>{$short}<end>\n".
-				$sites->map(function (ApiSite $site) use ($params): string {
+		return $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
+			return "<pagebreak><header2>{$short}<end>\n".
+				$sites->map(function (ApiSite $site) use ($params, $time): string {
 					$shortName = $site->playfield_short_name . " " . $site->site_number;
 					$line = "<tab>".
 						$this->text->makeChatcmd(
@@ -1301,8 +1314,12 @@ class TowerController {
 					}
 					if (isset($site->close_time)) {
 						$gas = $this->getGasLevel($site->close_time, (int)$params["min_close_time"]);
-						$line .= " {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-							$this->util->unixtimeToReadable($gas->gas_change, false);
+						if ($gas->gas_level === "75%" && $site->penalty_until >= $time && $site->penalty_until >= $gas->time_until_close_time) {
+							$line .= " <green>25%<end>, closes in " . $this->util->unixtimeToReadable($site->penalty_until - $time);
+						} else {
+							$line .= " {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
+								$this->util->unixtimeToReadable($gas->gas_change, false);
+						}
 					} else {
 						$line .= " unknown gas level";
 					}
@@ -1605,7 +1622,7 @@ class TowerController {
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
 			$this->recordAttack($whois, $attack, $closestSite);
-			$this->recordHotSites($whois, $attack, $closestSite);
+			$this->towerApiController->wipeApiCache();
 			$this->logger->log('debug', "Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
 
 			// Beginning of the 'more' window
@@ -1849,6 +1866,7 @@ class TowerController {
 		}
 
 		$this->recordVictory($lastAttack);
+		$this->towerApiController->wipeApiCache();
 		$event->attack = $lastAttack;
 		$this->eventManager->fireEvent($event);
 	}
@@ -2038,43 +2056,6 @@ class TowerController {
 			->first();
 	}
 
-	protected function recordHotSites(Player $whois, Attack $attack, TowerSite $closestSite): void {
-		return;
-		if (!$this->towerApiController->isActive()) {
-			return;
-		}
-		if (!strlen($attack->attGuild??"")) {
-			return;
-		}
-		$params = ["enabled" => 1, "org_name" => $attack->attGuild];
-		$this->towerApiController->call(
-			$params,
-			[$this, "recordHotOrgSites"],
-			time(),
-		);
-	}
-
-	public function recordHotOrgSites(?ApiResult $result, int $time): void {
-		if (!isset($result) || !$result->count) {
-			return;
-		}
-		foreach ($result->results as $site) {
-			$this->db->table(static::DB_HOT)->insert([
-				[
-					"playfield_id" => $site->playfield_id,
-					"site_number" => $site->site_number,
-					"ql" => $site->ql,
-					"org_name" => $site->org_name,
-					"org_id" => $site->org_id,
-					"faction" => $site->faction,
-					"close_time" => $site->close_time,
-					"close_time_override" => $time + 2 * 3600,
-					"created_at" => $site->created_at,
-				]
-			]);
-		}
-	}
-
 	protected function recordAttack(Player $whois, Attack $attack, TowerSite $closestSite): int {
 		$event = new TowerAttackEvent();
 		$event->attacker = $whois;
@@ -2236,10 +2217,10 @@ class TowerController {
 		$attacksLink = $this->text->makeChatcmd("Recent attacks", "/tell <myname> attacks {$row->short_name} {$row->site_number}");
 		$victoryLink = $this->text->makeChatcmd("Recent victories", "/tell <myname> victory {$row->short_name} {$row->site_number}");
 
-		$blob = "<header2>{$row->short_name} {$row->site_number} ({$row->site_name})<end>\n".
+		$blob = "<pagebreak><header2>{$row->short_name} {$row->site_number} ({$row->site_name})<end>\n".
 			"<tab>Level range: <highlight>{$row->min_ql}-{$row->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT ".
+			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".
 				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			$orgLink = $this->text->makeChatcmd(
 				"show sites",
@@ -2247,8 +2228,13 @@ class TowerController {
 			);
 			$blob .= " [{$orgLink}]\n";
 			$gas = $this->getGasLevel($site->close_time);
-			$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-				$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
+			if (isset($site->penalty_until) && $gas->gas_level === "75%" && $site->penalty_until >= time() && $site->penalty_until >= $gas->time_until_close_time) {
+				$blob .= "<tab>Gas: <green>25%<end>, closes in ".
+					$this->util->unixtimeToReadable($site->penalty_until - time()) . "\n";
+			} else {
+				$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
+					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
+			}
 		} elseif (isset($site)) {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 		}
