@@ -4,3 +4,6 @@ in the last 2 hours:
 
 To only see those of the org 'Obeya':
 <highlight><tab><symbol>penalty obeya<end>
+
+To only see those of neutral orgs:
+<highlight><tab><symbol>penalty neutral<end>

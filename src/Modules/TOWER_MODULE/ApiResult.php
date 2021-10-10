@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Spatie\DataTransferObject\DataTransferObject;
+use Spatie\DataTransferObject\FlexibleDataTransferObject;
 
-class ApiResult extends DataTransferObject {
+class ApiResult extends FlexibleDataTransferObject {
 	public int $count;
 	/** @var \Nadybot\Modules\TOWER_MODULE\ApiSite[] */
 	public array $results = [];
