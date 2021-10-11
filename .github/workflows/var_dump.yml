@@ -1,0 +1,14 @@
+name: Check for var_dumps
+on: [push, pull_request]
+
+jobs:
+  vardump_check:
+    runs-on: ubuntu-latest
+    name: Check for forgotten var_dumps
+    steps:
+    - uses: actions/checkout@v2
+    - uses: umutphp/php-var-dump-check-action@v1
+      with:
+        checktype: 'none'
+        exclude: 'vendor,test'
+        extensions: 'php'

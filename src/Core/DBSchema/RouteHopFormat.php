@@ -17,6 +17,9 @@ class RouteHopFormat extends DBRow {
 	/** The channel for which to apply these, or null for all */
 	public ?string $where;
 
+	/** Only apply these settings if the event was routed via this hop */
+	public ?string $via;
+
 	/** Whether to render this tag or not */
 	public bool $render = true;
 
