@@ -1,0 +1,15 @@
+name: Check coding standards
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Run style checker
+        shell: bash
+        run: |
+          composer install --no-dev --no-suggest
+          vendor/bin/phpcs --standard=style/Nadybot/ruleset.xml src
