@@ -615,7 +615,7 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("track")
-	 * @Matches("/^track addorg (.+)$/i")
+	 * @Matches("/^track addorg (.*[^\d].*)$/i")
 	 */
 	public function trackAddOrgNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!$this->findOrgController->isReady()) {
@@ -1022,7 +1022,7 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("track")
-	 * @Matches("/^track(?: show)? (.+)$/i")
+	 * @Matches("/^track (?:show|view) (.+)$/i")
 	 */
 	public function trackShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
