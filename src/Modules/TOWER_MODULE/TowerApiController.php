@@ -15,7 +15,7 @@ use Throwable;
 class TowerApiController {
 
 	public const TOWER_API = "tower_api";
-	public const API_TYRENCE = "https://tower-api.jkbff.com/api/towers";
+	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
 
 	/**

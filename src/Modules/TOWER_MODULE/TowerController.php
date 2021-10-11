@@ -1294,7 +1294,7 @@ class TowerController {
 			$grouped = $sites->groupBy("org_name");
 		}
 		$grouped = $grouped->sortKeys();
-		return $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
+		$blob = $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
 			return "<pagebreak><header2>{$short}<end>\n".
 				$sites->map(function (ApiSite $site) use ($params, $time): string {
 					$shortName = $site->playfield_short_name . " " . $site->site_number;
@@ -1326,6 +1326,11 @@ class TowerController {
 					return $line;
 				})->join("\n");
 		})->join("\n\n");
+		if ($result->count === 50) {
+			$blob .= "\n\n\n<i>Number of matches limited to 50. ".
+				"Please use filtering to see the rest.</i>";
+		}
+		return $blob;
 	}
 
 	/**
@@ -2254,8 +2259,13 @@ class TowerController {
 	}
 
 	protected function makeBlob(string $name, string $content): array {
-		$content = trim($content) . "\n\n\n".
-			"<i>Tower API provided by Tyrence, ".
+		$content = trim($content);
+		$lines = explode("\n", $content);
+		$content .= "\n\n";
+		if (strpos($lines[count($lines)-1], "<i>") === false) {
+			$content .= "\n";
+		}
+		$content .= "<i>Tower API provided by Tyrence, ".
 			"tower information provided by Draex and Unk</i>";
 		return (array)$this->text->makeBlob($name, $content);
 	}
