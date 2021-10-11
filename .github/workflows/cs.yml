@@ -11,5 +11,6 @@ jobs:
       - name: Run style checker
         shell: bash
         run: |
-          composer install --no-dev --no-suggest
-          vendor/bin/phpcs --standard=style/Nadybot/ruleset.xml src
+          composer install --no-suggest
+          composer dumpautoload
+          "$(composer config vendor-dir)/bin/phpcs" --standard=style/Nadybot/ruleset.xml src
