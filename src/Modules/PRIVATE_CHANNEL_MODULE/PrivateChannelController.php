@@ -106,6 +106,18 @@ use Nadybot\Modules\{
  *		description = "Leave command for characters in private channel",
  *		help        = 'private_channel.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'lock',
+ *		accessLevel = 'superadmin',
+ *		description = "Kick everyone and lock the private channel",
+ *		help        = 'lock.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'unlock',
+ *		accessLevel = 'superadmin',
+ *		description = "Allow people to join the private channel again",
+ *		help        = 'lock.txt'
+ *	)
  *	@ProvidesEvent("online(priv)")
  *	@ProvidesEvent("offline(priv)")
  *	@ProvidesEvent("member(add)")
@@ -175,6 +187,9 @@ class PrivateChannelController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** If set, the private channel is currently locked for a reason */
+	protected ?string $lockReason = null;
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
@@ -239,6 +254,14 @@ class PrivateChannelController {
 			"",
 			"mod",
 			"welcome_msg.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"lock_minrank",
+			"Minimum rank allowed to join private channel during a lock",
+			"edit",
+			"rank",
+			"superadmin",
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
@@ -365,6 +388,14 @@ class PrivateChannelController {
 			$msg = "<highlight>$name<end> is already in the private channel.";
 			$sendto->reply($msg);
 			return;
+		}
+		if (isset($this->lockReason)) {
+			$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
+			$alRequired = $this->settingManager->getString('lock_minrank');
+			if ($this->accessManager->compareAccessLevels($alSender, $alRequired) < 0) {
+				$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+				return;
+			}
 		}
 		$invitation = function() use ($name, $sendto, $sender): void {
 			$msg = "Invited <highlight>$name<end> to this channel.";
@@ -675,6 +706,14 @@ class PrivateChannelController {
 	 * @Matches("/^join$/i")
 	 */
 	public function joinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (isset($this->lockReason)) {
+			$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
+			$alRequired = $this->settingManager->getString('lock_minrank');
+			if ($this->accessManager->compareAccessLevels($alSender, $alRequired) < 0) {
+				$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+				return;
+			}
+		}
 		if (isset($this->chatBot->chatlist[$sender])) {
 			$msg = "You are already in the private channel.";
 			$sendto->reply($msg);
@@ -709,6 +748,42 @@ class PrivateChannelController {
 	 */
 	public function leaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->chatBot->privategroup_kick($sender);
+	}
+
+	/**
+	 * @HandlesCommand("lock")
+	 * @Matches("/^lock\s+(?<reason>.+)$/i")
+	 */
+	public function lockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (isset($this->lockReason)) {
+			$this->lockReason = trim($args['reason']);
+			$sendto->reply("Lock reason changed.");
+			return;
+		}
+		$this->lockReason = trim($args['reason']);
+		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$sender}: <highlight>{$this->lockReason}<end>");
+		$alRequired = $this->settingManager->getString('lock_minrank');
+		foreach ($this->chatBot->chatlist as $char => $online) {
+			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
+			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
+				$this->chatBot->privategroup_kick($char);
+			}
+		}
+		$sendto->reply("You <red>locked<end> the private channel: {$this->lockReason}");
+	}
+
+	/**
+	 * @HandlesCommand("unlock")
+	 * @Matches("/^unlock$/i")
+	 */
+	public function unlockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->lockReason)) {
+			$sendto->reply("The private channel is currently not locked.");
+			return;
+		}
+		unset($this->lockReason);
+		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
+		$sendto->reply("You <green>unlocked<end> the private channel.");
 	}
 
 	/**
