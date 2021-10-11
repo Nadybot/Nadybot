@@ -235,7 +235,7 @@ class PrivateChannelController {
 			"edit",
 			"text",
 			"<link>Welcome to <myname></link>!",
-			"<link>Welcome to <myname></link>!;Welcome to <myname>, here is some <link>information to get you started</link>.",
+			"<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
 			"",
 			"mod",
 			"welcome_msg.txt"
