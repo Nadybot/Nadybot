@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 	DBSchema\Member,
+	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -169,6 +170,9 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @Setup */
 	public function setup(): void {
@@ -968,6 +972,31 @@ class PrivateChannelController {
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been added as a member of this bot.";
+	}
+
+	/**
+	 * @Event("member(add)")
+	 * @Description("Send welcome message data/welcome.txt to new members")
+	 */
+	public function sendWelcomeMessage(MemberEvent $event): void {
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		if (!@file_exists("{$dataPath}/welcome.txt")) {
+			return;
+		}
+		error_clear_last();
+		$content = @file_get_contents("{$dataPath}/welcome.txt");
+		if ($content === false) {
+			$error = error_get_last();
+			if (isset($error)) {
+				$error = ": " . $error["message"];
+			} else {
+				$error = "";
+			}
+			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
+			return;
+		}
+		$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
 
 	public function removeUser(string $name, string $sender): string {
