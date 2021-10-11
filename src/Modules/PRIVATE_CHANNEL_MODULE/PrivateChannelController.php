@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -227,6 +228,18 @@ class PrivateChannelController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"welcome_msg_string",
+			"Message to send when welcoming new members",
+			"edit",
+			"text",
+			"<link>Welcome to <myname></link>!",
+			"<link>Welcome to <myname></link>!;Welcome to <myname>, here is some <link>information to get you started</link>.",
+			"",
+			"mod",
+			"welcome_msg.txt"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -242,6 +255,32 @@ class PrivateChannelController {
 			"member del",
 			"remuser"
 		);
+		$this->settingManager->registerChangeListener(
+			"welcome_msg_string",
+			[$this, "validateWelcomeMsg"]
+		);
+	}
+
+	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
+		if (!preg_match("|<link>.+?</link>|", $new)) {
+			throw new Exception(
+				"Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will ".
+				"then be a popup with the actual welcome message. The link text sits between ".
+				"the tags, e.g. <highlight>&lt;link&gt;click me&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<link>") > 1 || substr_count($new, "</link>") > 1) {
+			throw new Exception(
+				"Your message can only contain a single block of <highlight>&lt;link&gt;&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<") !== substr_count($new, ">")) {
+			throw new Exception("Your text seems to be invalid HTML.");
+		}
+		$stripped = strip_tags($new);
+		if (preg_match("/[<>]/", $stripped)) {
+			throw new Exception("Your text seems to generate invalid HTML.");
+		}
 	}
 
 	/**
@@ -995,7 +1034,15 @@ class PrivateChannelController {
 			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
 			return;
 		}
-		$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+		$msg = $this->settingManager->getString("welcome_msg_string");
+		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
+			$msg = (array)$this->text->makeBlob($matches[2], $content);
+			foreach ($msg as &$part) {
+				$part = "{$matches[1]}{$part}{$matches[3]}";
+			}
+		} else {
+			$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+		}
 		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
 
