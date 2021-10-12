@@ -262,6 +262,13 @@ class PrivateChannelController {
 	}
 
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
+		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
+			throw new Exception(
+				"You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain ".
+				"tags like &lt;link&gt;, because the AO client escapes the tags. ".
+				"This command is part of the DEV_MODULE."
+			);
+		}
 		if (!preg_match("|<link>.+?</link>|", $new)) {
 			throw new Exception(
 				"Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will ".

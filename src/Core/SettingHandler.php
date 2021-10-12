@@ -55,12 +55,12 @@ abstract class SettingHandler {
 			if ($intoptions) {
 				foreach ($options_map as $key => $label) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
-					$msg .= "<tab> <highlight>{$label}<end> ({$save_link})\n";
+					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> ({$save_link})\n";
 				}
 			} else {
 				foreach ($options as $char) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$char}");
-					$msg .= "<tab> <highlight>{$char}<end> ({$save_link})\n";
+					$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> ({$save_link})\n";
 				}
 			}
 		}
