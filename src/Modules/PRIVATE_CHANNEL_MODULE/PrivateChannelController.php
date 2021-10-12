@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 	DBSchema\Member,
+	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -170,6 +172,9 @@ class PrivateChannelController {
 	/** @Inject */
 	public CommandAlias $commandAlias;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	/** @Setup */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
@@ -223,6 +228,18 @@ class PrivateChannelController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"welcome_msg_string",
+			"Message to send when welcoming new members",
+			"edit",
+			"text",
+			"<link>Welcome to <myname></link>!",
+			"<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
+			"",
+			"mod",
+			"welcome_msg.txt"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -238,6 +255,39 @@ class PrivateChannelController {
 			"member del",
 			"remuser"
 		);
+		$this->settingManager->registerChangeListener(
+			"welcome_msg_string",
+			[$this, "validateWelcomeMsg"]
+		);
+	}
+
+	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
+		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
+			throw new Exception(
+				"You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain ".
+				"tags like &lt;link&gt;, because the AO client escapes the tags. ".
+				"This command is part of the DEV_MODULE."
+			);
+		}
+		if (!preg_match("|<link>.+?</link>|", $new)) {
+			throw new Exception(
+				"Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will ".
+				"then be a popup with the actual welcome message. The link text sits between ".
+				"the tags, e.g. <highlight>&lt;link&gt;click me&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<link>") > 1 || substr_count($new, "</link>") > 1) {
+			throw new Exception(
+				"Your message can only contain a single block of <highlight>&lt;link&gt;&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<") !== substr_count($new, ">")) {
+			throw new Exception("Your text seems to be invalid HTML.");
+		}
+		$stripped = strip_tags($new);
+		if (preg_match("/[<>]/", $stripped)) {
+			throw new Exception("Your text seems to generate invalid HTML.");
+		}
 	}
 
 	/**
@@ -968,6 +1018,39 @@ class PrivateChannelController {
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been added as a member of this bot.";
+	}
+
+	/**
+	 * @Event("member(add)")
+	 * @Description("Send welcome message data/welcome.txt to new members")
+	 */
+	public function sendWelcomeMessage(MemberEvent $event): void {
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		if (!@file_exists("{$dataPath}/welcome.txt")) {
+			return;
+		}
+		error_clear_last();
+		$content = @file_get_contents("{$dataPath}/welcome.txt");
+		if ($content === false) {
+			$error = error_get_last();
+			if (isset($error)) {
+				$error = ": " . $error["message"];
+			} else {
+				$error = "";
+			}
+			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
+			return;
+		}
+		$msg = $this->settingManager->getString("welcome_msg_string");
+		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
+			$msg = (array)$this->text->makeBlob($matches[2], $content);
+			foreach ($msg as &$part) {
+				$part = "{$matches[1]}{$part}{$matches[3]}";
+			}
+		} else {
+			$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+		}
+		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
 
 	public function removeUser(string $name, string $sender): string {
