@@ -389,13 +389,9 @@ class PrivateChannelController {
 			$sendto->reply($msg);
 			return;
 		}
-		if (isset($this->lockReason)) {
-			$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
-			$alRequired = $this->settingManager->getString('lock_minrank');
-			if ($this->accessManager->compareAccessLevels($alSender, $alRequired) < 0) {
-				$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
-				return;
-			}
+		if ($this->isLockedFor($sender)) {
+			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+			return;
 		}
 		$invitation = function() use ($name, $sendto, $sender): void {
 			$msg = "Invited <highlight>$name<end> to this channel.";
@@ -706,13 +702,9 @@ class PrivateChannelController {
 	 * @Matches("/^join$/i")
 	 */
 	public function joinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (isset($this->lockReason)) {
-			$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
-			$alRequired = $this->settingManager->getString('lock_minrank');
-			if ($this->accessManager->compareAccessLevels($alSender, $alRequired) < 0) {
-				$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
-				return;
-			}
+		if ($this->isLockedFor($sender)) {
+			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+			return;
 		}
 		if (isset($this->chatBot->chatlist[$sender])) {
 			$msg = "You are already in the private channel.";
@@ -787,6 +779,19 @@ class PrivateChannelController {
 	}
 
 	/**
+	 * @Event("timer(5m)")
+	 * @Description("Send reminder if the private channel is locked")
+	 */
+	public function remindOfLock(): void {
+		if (!isset($this->lockReason)) {
+			return;
+		}
+		$msg = "Reminder: the private channel is currently <red>locked<end>!";
+		$this->chatBot->sendGuild($msg, true);
+		$this->chatBot->sendPrivate($msg, true);
+	}
+
+	/**
 	 * @Event("connect")
 	 * @Description("Adds all members as buddies")
 	 */
@@ -815,6 +820,9 @@ class PrivateChannelController {
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
 		if ($uid === false) {
+			return;
+		}
+		if ($this->isLockedFor($sender)) {
 			return;
 		}
 		$this->banController->handleBan(
@@ -1146,5 +1154,17 @@ class PrivateChannelController {
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
+	}
+
+	/**
+	 * Check if the private channel is currently locked for a character
+	 */
+	public function isLockedFor(string $sender): bool {
+		if (!isset($this->lockReason)) {
+			return false;
+		}
+		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
+		$alRequired = $this->settingManager->getString('lock_minrank');
+		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 }
