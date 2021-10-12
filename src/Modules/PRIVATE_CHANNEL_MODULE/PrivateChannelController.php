@@ -262,6 +262,9 @@ class PrivateChannelController {
 			"edit",
 			"rank",
 			"superadmin",
+			"",
+			"",
+			"superadmin"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
