@@ -39,7 +39,6 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
-	RELAY_MODULE\RelayController
 };
 
 /**
@@ -171,9 +170,6 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public OnlineController $onlineController;
-
-	/** @Inject */
-	public RelayController $relayController;
 
 	/** @Inject */
 	public Timer $timer;
@@ -765,6 +761,11 @@ class PrivateChannelController {
 			}
 		}
 		$sendto->reply("You <red>locked<end> the private channel: {$this->lockReason}");
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->action = AccessManager::LOCK;
+		$audit->value = $this->lockReason;
+		$this->accessManager->addAudit($audit);
 	}
 
 	/**
@@ -779,6 +780,10 @@ class PrivateChannelController {
 		unset($this->lockReason);
 		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
 		$sendto->reply("You <green>unlocked<end> the private channel.");
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->action = AccessManager::UNLOCK;
+		$this->accessManager->addAudit($audit);
 	}
 
 	/**
