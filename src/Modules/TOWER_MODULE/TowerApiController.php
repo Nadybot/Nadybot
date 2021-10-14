@@ -117,7 +117,11 @@ class TowerApiController {
 				return;
 			}
 		}
-		$this->http->get($this->settingManager->getString(static::TOWER_API))
+		$apiURL = $this->settingManager->getString(static::TOWER_API);
+		if ($apiURL === static::API_NONE) {
+			$apiURL = static::API_TYRENCE;
+		}
+		$this->http->get($apiURL)
 			->withQueryParams($params)
 			->withTimeout(10)
 			->withHeader('User-Agent', 'Naughtybot ' . BotRunner::getVersion())
