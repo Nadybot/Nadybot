@@ -636,7 +636,7 @@ class TowerController {
 			}
 		}
 		if ($sitesUpdated === 0) {
-			$sendto->reply("All your scouted data is already up-to-date.");
+			$sendto->reply("All your scouted data in {$result->results[0]->playfield_short_name} is <highlight>already up-to-date<end>.");
 			return;
 		}
 		$sendto->reply("Updated {$sitesUpdated} / {$sitesTotal} sites.");
@@ -2313,8 +2313,23 @@ class TowerController {
 		if ($towerInfo === null) {
 			$sendto->reply("Invalid site number <highlight>{$playfield->long_name} {$siteNumber}<end>.");
 		}
-		$pattern = "@Control Tower - (?<faction>[^ ]+)\s+Level: (?<ql>\d+)\s+Danger level:\s+(.+)\s+Alignment:\s+([^ ]+)\s+Organization:\s+(?<org_name>.+)\s+Created at UTC:\s+(?<created>[^ ]+ [^ ]+)@si";
-		if (!preg_match($pattern, $tower, $arr)) {
+		$ctPattern = "@".
+			"Control Tower - (?<faction>[^ ]+)\s+".
+			"Level: (?<ql>\d+)\s+".
+			"Danger level:\s+(.+)\s+".
+			"Alignment:\s+([^ ]+)\s+".
+			"Organization:\s+(?<org_name>.+)\s+".
+			"Created at UTC:\s+(?<created>[^ ]+ [^ ]+)".
+			"@si";
+		if (!preg_match($ctPattern, $tower, $arr)) {
+			if (preg_match("/^(empty|free|un-?planted|clea[rn]|none)$/i", $tower)) {
+				$scoutInfo = new ScoutInfo();
+				$scoutInfo->playfield_id = $playfield->id;
+				$scoutInfo->site_number = $siteNumber;
+				$this->addScoutSite($scoutInfo);
+				$sendto->reply("<highlight>{$playfield->short_name} {$siteNumber}<end> marked as unplanted.");
+				return;
+			}
 			$sendto->reply("Please capture the whole tower string.");
 			return;
 		}
