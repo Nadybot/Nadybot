@@ -466,14 +466,6 @@ class TowerController {
 		$this->orglistController->getMatches(
 			$search,
 			function(array $orgs) use ($sendto, $search): void {
-				$orgs = array_values(
-					array_filter(
-						$orgs,
-						function(Organization $org): bool {
-							return $org->num_members > 0;
-						}
-					)
-				);
 				$count = count($orgs);
 
 				if ($count === 0) {
@@ -533,6 +525,7 @@ class TowerController {
 			}
 			return;
 		}
+		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
 		$blob = '';
 		$totalQL = 0;
 		foreach ($result->results as $site) {
