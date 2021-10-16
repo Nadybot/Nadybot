@@ -766,7 +766,7 @@ class TowerController {
 				$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
 					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
 			}
-		} elseif ($site->source === "api") {
+		} elseif ($site->source === "api" || $site->source === "empty") {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 		} else {
 			$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
@@ -2232,7 +2232,7 @@ class TowerController {
 					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
 			}
 		} elseif (isset($site)) {
-			if ($site->source === "api") {
+			if ($site->source === "api" || $site->source === "empty") {
 				$blob .= "<tab>Planted: <highlight>No<end>\n";
 			} else {
 				$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
@@ -2326,6 +2326,7 @@ class TowerController {
 				$scoutInfo->scouted_by = $sender;
 				$scoutInfo->playfield_id = $playfield->id;
 				$scoutInfo->site_number = $siteNumber;
+				$scoutInfo->source = "empty";
 				$this->addScoutSite($scoutInfo);
 				$sendto->reply("<highlight>{$playfield->short_name} {$siteNumber}<end> marked as unplanted.");
 				return;
