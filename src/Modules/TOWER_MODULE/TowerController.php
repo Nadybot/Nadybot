@@ -254,7 +254,7 @@ class TowerController {
 			"When to automatically merge API results into scouted data",
 			"edit",
 			"options",
-			"0",
+			"1",
 			"Never;Do not merge, just remove scouting data when API-data is newer;When API-data is newer;When API-data is newer or no scouted data exists",
 			"0;1;2;3",
 			"mod",
