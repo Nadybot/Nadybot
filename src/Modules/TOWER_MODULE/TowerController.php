@@ -258,6 +258,7 @@ class TowerController {
 			"Never;Do not merge, just remove scouting data when API-data is newer;When API-data is newer;When API-data is newer or no scouted data exists",
 			"0;1;2;3",
 			"mod",
+			"tower_api_automerge.txt"
 		);
 
 		$this->settingManager->add(
