@@ -706,7 +706,7 @@ class TowerController {
 				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
 				"o.id AS org_id"
 			])
-			->where("t.enabled", true);
+			->where("t.enabled", 1);
 	}
 
 	/** Show the API-result of a whole playfield */
@@ -954,7 +954,7 @@ class TowerController {
 					->on("s.site_number", "t.site_number");
 			})->join("playfields AS p", "t.playfield_id", "p.id")
 			->select("t.*", "p.*")
-			->where("t.enabled", true)
+			->where("t.enabled", 1)
 			->where(function (QueryBuilder $where): void {
 				$where->whereNull("s.playfield_id")
 				->orWhere(function (QueryBuilder $where): void {
@@ -1116,7 +1116,7 @@ class TowerController {
 				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
 				"o.id AS org_id"
 			])
-			->where("t.enabled", true);
+			->where("t.enabled", 1);
 	}
 
 	public function getScoutedHotSites(array $params, int $time, CommandReply $sendto): ?Collection {

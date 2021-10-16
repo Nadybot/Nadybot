@@ -28,7 +28,7 @@ class CreateNewScoutInfoTable implements SchemaMigration {
 			$table->unsignedInteger("created_at")->nullable(true);
 			$table->unsignedInteger("penalty_duration")->nullable(true);
 			$table->unsignedInteger("penalty_until")->nullable(true);
-			$table->string("source", 20);
+			$table->string("source", 20)->default('scout');
 		});
 		$db->schema()->table($table, function(Blueprint $table) {
 			$table->string("faction", 7)->default(null)->change();
