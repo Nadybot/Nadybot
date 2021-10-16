@@ -1153,10 +1153,6 @@ class TowerController {
 				return $site->playfield_id === $pf->id;
 			});
 		}
-		if ($sites->count() === 0) {
-			$sendto->reply("No sites are currently hot.");
-			return null;
-		}
 		return $sites;
 	}
 
@@ -1232,7 +1228,7 @@ class TowerController {
 					->where("site_number", $apiSite->site_number)
 					->asObj(ScoutInfo::class)
 					->first();
-				if (isset($apiSite) && ($apiSite->created_at > $localSite->scouted_on || !isset($localSite->scouted_on))) {
+				if (isset($apiSite) && (!isset($localSite->scouted_on) || $apiSite->created_at > $localSite->scouted_on)) {
 					if ($mergeStrategy === 1) {
 						$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
 					} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
@@ -2095,6 +2091,7 @@ class TowerController {
 		if (isset($attack->site_number) && isset($attack->playfield_id)) {
 			// If we know which field was destroyed, mark it unplanted
 			$scout = new ScoutInfo();
+			$scout->scouted_on = time();
 			$scout->scouted_by = $this->chatBot->char->name;
 			$scout->playfield_id = $attack->playfield_id;
 			$scout->site_number = $attack->site_number;
@@ -2324,6 +2321,8 @@ class TowerController {
 		if (!preg_match($ctPattern, $tower, $arr)) {
 			if (preg_match("/^(empty|free|un-?planted|clea[rn]|none)$/i", $tower)) {
 				$scoutInfo = new ScoutInfo();
+				$scoutInfo->scouted_on = time();
+				$scoutInfo->scouted_by = $sender;
 				$scoutInfo->playfield_id = $playfield->id;
 				$scoutInfo->site_number = $siteNumber;
 				$this->addScoutSite($scoutInfo);
@@ -2336,6 +2335,8 @@ class TowerController {
 		$scoutInfo = new ScoutInfo();
 		$scoutInfo->playfield_id = $playfield->id;
 		$scoutInfo->site_number = $siteNumber;
+		$scoutInfo->scouted_on = time();
+		$scoutInfo->scouted_by = $sender;
 		$scoutInfo->created_at = (new DateTime($arr['created']))->getTimestamp();
 		$scoutInfo->close_time = $scoutInfo->created_at % 86400;
 		if ($towerInfo->timing > 0) {

@@ -19,10 +19,6 @@ class ScoutInfo extends DBRow {
 	public ?int $penalty_until = null;
 	public string $source = "scout";
 
-	public function __construct() {
-		$this->scouted_on = time();
-	}
-
 	public static function fromApiSite(ApiSite $data): self {
 		$scout = new self();
 		$vars = get_class_vars(self::class);
