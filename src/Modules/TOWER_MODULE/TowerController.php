@@ -22,21 +22,21 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
 	LEVEL_MODULE\LevelController,
 	TIMERS_MODULE\Alert,
+	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\OrglistController,
 	TIMERS_MODULE\TimerController,
 };
-use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
  * @Instance
