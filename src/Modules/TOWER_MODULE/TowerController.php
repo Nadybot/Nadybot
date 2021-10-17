@@ -36,7 +36,6 @@ use Nadybot\Modules\{
 	TIMERS_MODULE\TimerController,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
