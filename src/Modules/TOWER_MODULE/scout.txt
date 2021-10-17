@@ -6,11 +6,11 @@ For instance:
 
 Note that the closing time is the "Created at" time, but only the time part, not the date part.
 
-To remove a scouted tower site:
+To remove a scouted tower site and mark it as unscouted:
 <highlight><tab><symbol>remscout 'playfield' 'site number'<end>
 
-To show info on the list of scouted bases:
-<highlight><tab><symbol>opentimes<end>
+To mark a tower site as unplanted:
+<highlight><tab><symbol>scout 'playfield' 'site number' none<end>
 
 To show a list of sites that need scouting:
 <highlight><tab><symbol>needsscout<end>

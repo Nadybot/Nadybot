@@ -126,6 +126,10 @@ class PlayerManager {
 		$name = ucfirst(strtolower($name));
 
 		$charid = '';
+		if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
+			$callback(null);
+			return;
+		}
 		if ($dimension === (int)$this->chatBot->vars['dimension']) {
 			$charid = $this->chatBot->get_uid($name);
 		}

@@ -23,4 +23,5 @@ class ApiSite extends FlexibleDataTransferObject {
 	public ?int $close_time = null;
 	public ?int $created_at = null;
 	public int $enabled;
+	public string $source = "api";
 }

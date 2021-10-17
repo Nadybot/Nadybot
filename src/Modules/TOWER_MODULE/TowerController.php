@@ -22,22 +22,21 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
 	LEVEL_MODULE\LevelController,
 	TIMERS_MODULE\Alert,
+	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\OrglistController,
 	TIMERS_MODULE\TimerController,
 };
-use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
-use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
  * @Instance
@@ -67,12 +66,6 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
  *		accessLevel = 'member',
  *		description = 'Show sites of an org',
  *		help        = 'sites.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'opentimes',
- *		accessLevel = 'guild',
- *		description = 'Show status of towers',
- *		help        = 'scout.txt'
  *	)
 *	@DefineCommand(
  *		command     = 'penalty',
@@ -123,8 +116,8 @@ class TowerController {
 
 	public const TYPE_LEGACY = 0;
 	public const FIXED_TIMES = [
-		1 => [4, 22, 3],
-		2 => [20, 14, 19],
+		1 => 4,
+		2 => 20,
 	];
 
 	/**
@@ -252,6 +245,19 @@ class TowerController {
 			"Playfield;Title level;Org",
 			"1;2;3",
 			"mod",
+		);
+
+		$this->settingManager->add(
+			$this->moduleName,
+			"tower_api_automerge",
+			"When to automatically merge API results into scouted data",
+			"edit",
+			"options",
+			"1",
+			"Never;Do not merge, just remove scouting data when API-data is newer;When API-data is newer;When API-data is newer or no scouted data exists",
+			"0;1;2;3",
+			"mod",
+			"tower_api_automerge.txt"
 		);
 
 		$this->settingManager->add(
@@ -411,12 +417,16 @@ class TowerController {
 	 * @Matches("/^sites$/i")
 	 */
 	public function unplantedSitesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->towerApiController->isActive()) {
-			$sendto->reply("This command only works with a tower API.");
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "1", "planted" => "false"];
+			$this->towerApiController->call($params, [$this, "showUnplantedSites"], $sendto);
 			return;
 		}
-		$params = ["enabled" => "1", "planted" => "false"];
-		$this->towerApiController->call($params, [$this, "showUnplantedSites"], $sendto);
+		$query = $this->getScoutPlusQuery()
+			->whereNull("s.ql");
+		$sites = $query->asObj(ScoutInfoPlus::class);
+		$result = $this->scoutToAPI($sites);
+		$this->showUnplantedSites($result, $sendto);
 	}
 
 	/** Show the result of the unplanted sites query to $sendto */
@@ -450,10 +460,6 @@ class TowerController {
 	 * @Matches("/^sites (.+)$/i")
 	 */
 	public function sitesByNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->towerApiController->isActive()) {
-			$sendto->reply("This command only works with a tower API.");
-			return;
-		}
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($sendto);
 			return;
@@ -500,22 +506,31 @@ class TowerController {
 
 	/** Query the API for a list of all sites of an org and show to $sendto */
 	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
-		$params = ["enabled" => "1", "org_id" => $orgId];
-		$this->towerApiController->call($params, [$this, "showOrgSites"], $sendto, $orgId);
+		$sites = $this->getScoutPlusQuery()
+			->where("o.id", $orgId)
+			->asObj(ScoutInfoPlus::class);
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "1", "org_id" => $orgId];
+			$this->towerApiController->call($params, [$this, "showOrgSites"], $sites, $sendto, $orgId);
+			return;
+		}
+		$result = $this->scoutToAPI($sites);
+		$this->showOrgSites($result, null, $sendto, $orgId);
 	}
 
 	/** Show the result of the sites of org query to $sendto */
-	public function showOrgSites(?ApiResult $result, CommandReply $sendto, int $orgId): void {
+	public function showOrgSites(?ApiResult $result, ?Collection $local, CommandReply $sendto, int $orgId): void {
+		if (isset($result) && isset($local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) {
+			$result = $this->scoutToAPI($local);
+		}
 		if (!isset($result)) {
 			$sendto->reply("Invalid data received from the tower API. Try again later.");
 			return;
 		}
 		if ($result->count === 0) {
-			/** @var ?Organization */
-			$org = $this->db->table("organizations")
-				->where("id", $orgId)
-				->asObj(Organization::class)
-				->first();
+			$org = $this->findOrgController->getByID($orgId);
 			if (isset($org)) {
 				$sendto->reply(
 					"No sites found for <" . strtolower($org->faction) . ">{$org->name}<end>."
@@ -528,6 +543,7 @@ class TowerController {
 		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
 		$blob = '';
 		$totalQL = 0;
+		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
 		foreach ($result->results as $site) {
 			$totalQL += $site->ql;
 			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
@@ -563,20 +579,12 @@ class TowerController {
 	}
 
 	/**
-	 * This command handler shows status of all tower sites in a zone.
+	 * This command handler imports API data into scouted
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc ([0-9a-z]+[a-z])$/i")
+	 * @Matches("/^lc import ([0-9a-z]+[a-z])$/i")
 	 */
-	public function lc2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($this->towerApiController->isActive()) {
-			$this->lc2ApiCommand(...func_get_args());
-		} else {
-			$this->lc2NonApiCommand(...func_get_args());
-		}
-	}
-
-	public function lc2ApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function lcImportCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfieldName = strtoupper($args[1]);
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -598,14 +606,49 @@ class TowerController {
 		$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 		$this->towerApiController->call(
 			$params,
-			[$this, "showArea"],
-			$data,
-			$playfield,
+			[$this, "importArea"],
 			$sendto
 		);
 	}
 
-	public function lc2NonApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	/** Import the API-result of a whole playfield into scouted data*/
+	public function importArea(?ApiResult $result, CommandReply $sendto): void {
+		if ($result === null) {
+			$sendto->reply("Invalid data received from the tower API. Try again later.");
+			return;
+		}
+		if ($result->count === 0) {
+			$sendto->reply("The API has no tower data for this playfield.");
+			return;
+		}
+		/** @var Collection<ScoutInfo> */
+		$localSites = $this->db->table("scout_info")
+			->where("playfield_id", $result->results[0]->playfield_id)
+			->asObj(ScoutInfo::class);
+		$sitesTotal = $result->count;
+		$sitesUpdated = 0;
+		foreach ($result->results as $site) {
+			/** @var ?ScoutInfo */
+			$localSite = $localSites->where("site_number", $site->site_number)->first();
+			if (!isset($localSite) || ($site->created_at > $localSite->scouted_on) || !isset($localSite->scouted_on)) {
+				$this->addScoutSite(ScoutInfo::fromApiSite($site));
+				$sitesUpdated++;
+			}
+		}
+		if ($sitesUpdated === 0) {
+			$sendto->reply("All your scouted data in {$result->results[0]->playfield_short_name} is <highlight>already up-to-date<end>.");
+			return;
+		}
+		$sendto->reply("Updated {$sitesUpdated} / {$sitesTotal} sites.");
+	}
+
+	/**
+	 * This command handler shows status of all tower sites in a zone.
+	 *
+	 * @HandlesCommand("lc")
+	 * @Matches("/^lc ([0-9a-z][a-z]{1,3})$/i")
+	 */
+	public function lc2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfieldName = strtoupper($args[1]);
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -624,19 +667,59 @@ class TowerController {
 			$sendto->reply($msg);
 			return;
 		}
-		$blob = '';
-		foreach ($data as $row) {
-			$blob .= "<pagebreak>" . $this->formatSiteInfo($row) . "\n\n";
+		$query = $this->getPFQuery();
+		/** @var Collection<ScoutInfoPlus> */
+		$sites = $query->where("t.playfield_id", $playfield->id)
+			->asObj(ScoutInfoPlus::class);
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
+			$this->towerApiController->call(
+				$params,
+				[$this, "showArea"],
+				$sites,
+				$data,
+				$playfield,
+				$sendto
+			);
+			return;
 		}
 
-		$msg = $this->text->makeBlob("All Bases in $playfield->long_name", $blob);
+		$sites = $this->scoutToAPI($sites);
+		$this->showArea($sites, null, $data, $playfield, $sendto);
+	}
 
-		$sendto->reply($msg);
+	public function getPFQuery(): QueryBuilder {
+		return $this->db->table("tower_site", "t")
+			->join("playfields AS p", "t.playfield_id", "=", "p.id")
+			->leftJoin("scout_info AS s", function (JoinClause $join) {
+				$join->on("s.playfield_id", "=", "t.playfield_id")
+					->on("s.site_number", "=", "t.site_number");
+			})
+			->leftJoin("organizations AS o", function (JoinClause $join) {
+				$join->on("s.org_name", "=", "o.name")
+					->on("s.faction", "=", "o.faction");
+			})
+			->select([
+				"s.*",
+				"t.playfield_id", "t.site_number",
+				"p.long_name AS playfield_long_name", "p.short_name AS playfield_short_name",
+				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
+				"o.id AS org_id"
+			])
+			->where("t.enabled", 1);
 	}
 
 	/** Show the API-result of a whole playfield */
-	public function showArea(?ApiResult $result, Collection $data, Playfield $pf, CommandReply $sendto): void {
+	public function showArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf, CommandReply $sendto): void {
 		$blob = '';
+		if (isset($result) && isset($local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) {
+			$result = $this->scoutToAPI($local);
+		}
+		usort($result->results, function(ApiSite $a, ApiSite $b): int {
+			return $a->site_number <=> $b->site_number;
+		});
 		if ($result === null || $result->count === 0) {
 			foreach ($data as $row) {
 				$blob .= "<pagebreak>" . $this->formatSiteInfo($row) . "\n\n";
@@ -665,7 +748,9 @@ class TowerController {
 		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
 		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
+			$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n".
+				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
+				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			if ($showOrgLinks) {
 				$orgLink = $this->text->makeChatcmd(
 					"show sites",
@@ -682,8 +767,10 @@ class TowerController {
 				$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
 					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
 			}
-		} else {
+		} elseif ($site->source === "api" || $site->source === "empty") {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
+		} else {
+			$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
 		}
 		$blob .= "<tab>Center coordinates: {$waypointLink}\n".
 			"<tab>{$attacksLink}\n".
@@ -699,103 +786,53 @@ class TowerController {
 	 * @Matches("/^lc ([0-9a-z]+[a-z])\s*(\d+)$/i")
 	 */
 	public function lc3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		$playfieldName = strtoupper($args[1]);
+		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
+		if ($playfield === null) {
+			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
+			$sendto->reply($msg);
+			return;
+		}
+
+		$siteNumber = (int)$args[2];
+		/** @var ?SiteInfo */
+		$site = $this->db->table("tower_site AS t")
+			->join("playfields AS p", "p.id", "t.playfield_id")
+			->where("t.playfield_id", $playfield->id)
+			->where("t.site_number", $siteNumber)
+			->asObj(SiteInfo::class)->first();
+		if ($site === null) {
+			$msg = "Invalid site number.";
+			$sendto->reply($msg);
+			return;
+		}
+		$query = $this->getPFQuery();
+		/** @var Collection<ScoutInfoPlus> */
+		$sites = $query->where("t.playfield_id", $playfield->id)
+			->asObj(ScoutInfoPlus::class);
 		if ($this->towerApiController->isActive()) {
-			$this->lc3ApiCommand(...func_get_args());
-		} else {
-			$this->lc3NonApiCommand(...func_get_args());
+			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
+			$this->towerApiController->call(
+				$params,
+				[$this, "showSite"],
+				$sites,
+				$site,
+				$playfield,
+				$sendto
+			);
+			return;
 		}
+		$sites = $this->scoutToAPI($sites);
+		$this->showSite($sites, null, $site, $playfield, $sendto);
 	}
 
-	public function lc3ApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = strtoupper($args[1]);
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
-			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$sendto->reply($msg);
-			return;
-		}
-
-		$siteNumber = (int)$args[2];
-		/** @var ?SiteInfo */
-		$site = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
-			->where("t.playfield_id", $playfield->id)
-			->where("t.site_number", $siteNumber)
-			->asObj(SiteInfo::class)->first();
-		if ($site === null) {
-			$msg = "Invalid site number.";
-			$sendto->reply($msg);
-			return;
-		}
-		$params = ["enabled" => "1", "playfield_id" => $playfield->id];
-		$this->towerApiController->call(
-			$params,
-			[$this, "showSite"],
-			$site,
-			$playfield,
-			$sendto
-		);
-	}
-
-	public function lc3NonApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = strtoupper($args[1]);
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
-			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$sendto->reply($msg);
-			return;
-		}
-
-		$siteNumber = (int)$args[2];
-		/** @var ?SiteInfo */
-		$site = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
-			->where("t.playfield_id", $playfield->id)
-			->where("t.site_number", $siteNumber)
-			->asObj(SiteInfo::class)->first();
-		if ($site === null) {
-			$msg = "Invalid site number.";
-			$sendto->reply($msg);
-			return;
-		}
-		$blob = $this->formatSiteInfo($site) . "\n\n";
-
-		// show last attacks and victories
-		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
-			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
-			->where("a.playfield_id", $playfield->id)
-			->where("a.site_number", $siteNumber)
-			->orderByDesc("dt")
-			->limit(10)
-			->select("a.*", "v.*");
-		$query->select($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"));
-		/** @var Collection<TowerAttackAndVictory> */
-		$attacks = $query->asObj(TowerAttackAndVictory::class);
-		if ($attacks->isNotEmpty()) {
-			$blob .= "<header2>Recent Attacks<end>\n";
-		}
-		foreach ($attacks as $attack) {
-			if (empty($attack->attack_id)) {
-				// attack
-				if (!empty($attack->att_guild_name)) {
-					$name = $attack->att_guild_name;
-				} else {
-					$name = $attack->att_player;
-				}
-				$blob .= "<tab><$attack->att_faction>$name<end> attacked <$attack->def_faction>$attack->def_guild_name<end>\n";
-			} else {
-				// victory
-				$blob .= "<tab><$attack->win_faction>$attack->win_guild_name<end> won against <$attack->lose_faction>$attack->lose_guild_name<end>\n";
-			}
-		}
-
-		$msg = $this->text->makeBlob("$playfield->short_name $siteNumber", $blob);
-
-		$sendto->reply($msg);
-	}
-
-	public function showSite(?ApiResult $result, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
+	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
 		$details = null;
+		if (isset($result) && isset($local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) {
+			$result = $this->scoutToAPI($local);
+		}
 		if (isset($result)) {
 			$results = new Collection($result->results);
 			$details = $results->firstWhere("site_number", "===", $site->site_number);
@@ -810,7 +847,7 @@ class TowerController {
 			->orderByDesc("dt")
 			->limit(10)
 			->select("a.*", "v.*");
-		$query->select($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"));
+		$query->addSelect($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"));
 		/** @var Collection<TowerAttackAndVictory> */
 		$attacks = $query->asObj(TowerAttackAndVictory::class);
 		if ($attacks->isNotEmpty()) {
@@ -822,9 +859,11 @@ class TowerController {
 				if (!empty($attack->att_guild_name)) {
 					$name = $attack->att_guild_name;
 				} else {
-					$name = $attack->att_player;
+					$name = $attack->att_player ?? "Unknown player";
 				}
-				$blob .= "<tab><$attack->att_faction>$name<end> attacked <$attack->def_faction>$attack->def_guild_name<end>\n";
+				$attFaction = strtolower($attack->att_faction ?? "highlight");
+				$defFaction = strtolower($attack->def_faction ?? "highlight");
+				$blob .= "<tab><{$attFaction}>{$name}<end> attacked <{$defFaction}>{$attack->def_guild_name}<end>\n";
 			} else {
 				// victory
 				$blob .= "<tab><$attack->win_faction>$attack->win_guild_name<end> won against <$attack->lose_faction>$attack->lose_guild_name<end>\n";
@@ -841,95 +880,44 @@ class TowerController {
 	}
 
 	/**
-	 * @HandlesCommand("opentimes")
-	 * @Matches("/^opentimes$/i")
-	 */
-	public function openTimesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$query = $this->db->table("scout_info")
-			->groupBy("guild_name")
-			->orderBy("guild_name");
-		$data = $query->select("guild_name", $query->colFunc("SUM", "ct_ql", "total_ql"))
-			->asObj();
-		$contractQls = [];
-		foreach ($data as $row) {
-			$contractQls[$row->guild_name] = (int)$row->total_ql;
-		}
-
-		$data = $this->db->table("tower_site AS t")
-			->join("scout_info AS s", function (JoinClause $join) {
-				$join->on("t.playfield_id", "s.playfield_id")
-					->on("s.site_number", "t.site_number");
-			})->join("playfields AS p", "t.playfield_id", "p.id")
-			->orderBy("guild_name")
-			->orderByDesc("ct_ql")
-			->asObj();
-
-		if (count($data) > 0) {
-			$blob = '';
-			$currentGuildName = '';
-			foreach ($data as $row) {
-				if ($row->guild_name !== $currentGuildName) {
-					$contractQl = $contractQls[$row->guild_name];
-					$contractQl = ($contractQl * 2);
-					$faction = strtolower($row->faction);
-
-					$blob .= "\n<u><$faction>$row->guild_name<end></u> (Total Contract QL: $contractQl)\n";
-					$currentGuildName = $row->guild_name;
-				}
-				$gasInfo = $this->getGasLevel((int)$row->close_time);
-				$gasChangeString = "{$gasInfo->color}{$gasInfo->gas_level}<end> - ".
-					"{$gasInfo->next_state} in <highlight>".
-					$this->util->unixtimeToReadable($gasInfo->gas_change).
-					"<end>";
-
-				$siteLink = $this->text->makeChatcmd(
-					"$row->short_name $row->site_number",
-					"/tell <myname> lc $row->short_name $row->site_number"
-				);
-				$openTime = $row->close_time - (3600 * 6);
-				if ($openTime < 0) {
-					$openTime += 86400;
-				}
-
-				$blob .= "<tab>$siteLink - {$row->min_ql}-{$row->max_ql}, $row->ct_ql CT, $gasChangeString [by $row->scouted_by]\n";
-			}
-
-			$msg = $this->text->makeBlob("Scouted Bases", $blob);
-		} else {
-			$msg = "No sites currently scouted.";
-		}
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("penalty")
 	 * @Matches("/^penalty$/i")
 	 * @Matches("/^penalty\s+(?<org>.+)$/i")
 	 */
 	public function penaltySitesApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->towerApiController->isActive()) {
-			$sendto->reply("This command works only with a tower API.");
+		$sites = $this->getScoutPlusQuery()
+			->where("s.penalty_until", ">=", time())
+			->asObj(ScoutInfoPlus::class);
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "true", "penalty" => "true"];
+			if (strlen($args['org']??"")) {
+				if (strcasecmp($args['org'], "neut") === 0) {
+					$args["org"] = "neutral";
+				}
+				if (preg_match("/^(clan|omni|neutral)$/", $args['org'])) {
+					$params["faction"] = $args["org"];
+				} else {
+					$params["org_name"] = $args["org"];
+				}
+			}
+			$this->towerApiController->call(
+				$params,
+				[$this, "processPenaltySites"],
+				$sites,
+				$sendto
+			);
 			return;
 		}
-		$params = ["enabled" => "true", "penalty" => "true"];
-		if (strlen($args['org']??"")) {
-			if (strcasecmp($args['org'], "neut") === 0) {
-				$args["org"] = "neutral";
-			}
-			if (preg_match("/^(clan|omni|neutral)$/", $args['org'])) {
-				$params["faction"] = $args["org"];
-			} else {
-				$params["org_name"] = $args["org"];
-			}
-		}
-		$this->towerApiController->call(
-			$params,
-			[$this, "processPenaltySites"],
-			$sendto
-		);
+		$result = $this->scoutToAPI($sites);
+		$this->processPenaltySites($result, null, $sendto);
 	}
 
-	public function processPenaltySites(?ApiResult $result, CommandReply $sendto): void {
+	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
+		if (isset($result) && isset($local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) {
+			$result = $this->scoutToAPI($local);
+		}
 		if (!isset($result)) {
 			$sendto->reply("Invalid data received from the tower API. Try again later.");
 			return;
@@ -968,7 +956,14 @@ class TowerController {
 					->on("s.site_number", "t.site_number");
 			})->join("playfields AS p", "t.playfield_id", "p.id")
 			->select("t.*", "p.*")
-			->whereNull("s.playfield_id")
+			->where("t.enabled", 1)
+			->where(function (QueryBuilder $where): void {
+				$where->whereNull("s.playfield_id")
+				->orWhere(function (QueryBuilder $where): void {
+					$where->whereNull("s.ql")
+						->where("s.scouted_on", "<", time() - 20*60);
+				});
+			})
 			->orderBy("p.short_name")
 			->orderBy("t.site_number");
 		if (isset($args["pf"])) {
@@ -981,7 +976,11 @@ class TowerController {
 		}
 		$data = $query->asObj(SiteInfo::class);
 		if ($data->count() === 0) {
-			$sendto->reply("No sites need scouting right now.");
+			if (isset($pf)) {
+				$sendto->reply("No sites in {$pf->long_name} need scouting right now.");
+			} else {
+				$sendto->reply("No sites need scouting right now.");
+			}
 			return;
 		}
 		$groups = $data->groupBy("short_name");
@@ -1012,7 +1011,8 @@ class TowerController {
 			);
 			return $siteLink;
 		})->join(", ");
-		return "<pagebreak><header2>{$siteGroup[0]->long_name}<end>\n".
+		$importLink = $this->text->makeChatcmd("from API", "/tell <myname> lc import {$shortName}");
+		return "<pagebreak><header2>{$siteGroup[0]->long_name} [{$importLink}]<end>\n".
 			"<tab>{$siteLinks}";
 	}
 
@@ -1070,10 +1070,15 @@ class TowerController {
 		}
 		$params["min_close_time"] %= 86400;
 		$params["max_close_time"] %= 86400;
+		$hotSites = $this->getScoutedHotSites($params, $time + time(), $sendto);
+		if (!isset($hotSites)) {
+			return;
+		}
 		if ($this->towerApiController->isActive()) {
 			$this->towerApiController->call(
 				$params,
 				[$this, "showHotSites"],
+				$hotSites,
 				$params,
 				$sender,
 				$sendto,
@@ -1081,144 +1086,91 @@ class TowerController {
 			);
 			return;
 		}
-		$this->showHotSitesNonApi($params, $time, $sender, $sendto);
+		if ($hotSites->count() === 0) {
+			$sendto->reply("No sites are currently hot.");
+			return;
+		}
+		$hotSites = $this->scoutToAPI($hotSites);
+		$blob = $this->renderHotSites($hotSites, $params, $time);
+		$faction = isset($args['faction']) ? " " . strtolower($args['faction']) : "";
+		$sendto->reply(
+			$this->text->makeBlob(
+				"Hot{$faction} sites ({$hotSites->count})",
+				$blob
+			)
+		);
 	}
 
-	public function showHotSitesNonApi(array $params, int $time, string $sender, CommandReply $sendto): void {
-		$sites = $this->getSitesWithKnownTimer()
-			->filter(function (HotSite $site) use ($time): bool {
-				$gas = $this->getGasLevel($site->info->close_time, $time ?: time());
-				return $gas->gas_level < 75;
-			});
+	public function getScoutPlusQuery(): QueryBuilder {
+		return $this->db->table("scout_info", "s")
+			->join("playfields AS p", "s.playfield_id", "=", "p.id")
+			->join("tower_site AS t", function (JoinClause $join) {
+				$join->on("s.playfield_id", "=", "t.playfield_id")
+					->on("s.site_number", "=", "t.site_number");
+			})
+			->leftJoin("organizations AS o", function (JoinClause $join) {
+				$join->on("s.org_name", "=", "o.name")
+					->on("s.faction", "=", "o.faction");
+			})
+			->select([
+				"s.*",
+				"p.long_name AS playfield_long_name", "p.short_name AS playfield_short_name",
+				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
+				"o.id AS org_id"
+			])
+			->where("t.enabled", 1);
+	}
+
+	public function getScoutedHotSites(array $params, int $time, CommandReply $sendto): ?Collection {
+		$query = $this->getScoutPlusQuery()
+			->whereNotNull("close_time");
+		$sites = $query->asObj(ScoutInfoPlus::class);
+		$sites = $sites->filter(function (ScoutInfoPlus $site) use ($time): bool {
+			$gas = $this->getGasLevel($site->close_time, $time ?: time());
+			return $gas->gas_level < 75
+				|| ($site->penalty_until > 0 && $site->penalty_until <= $time);
+		});
 		if (isset($params['faction'])) {
-			$sites = $sites->filter(function (HotSite $site) use ($params): bool {
-				return $site->info->faction === ucfirst(strtolower($params['faction']));
+			$sites = $sites->filter(function (ScoutInfoPlus $site) use ($params): bool {
+				return $site->faction === ucfirst(strtolower($params['faction']));
 			});
 		}
 		if (isset($params['min_ql'])) {
-			$sites = $sites->filter(function (HotSite $site) use ($params): bool {
-				$ql = $site->info->ct_ql ?? $site->max_ql;
-				return $ql >= $params['min_ql'];
+			$sites = $sites->filter(function (ScoutInfoPlus $site) use ($params): bool {
+				return $site->ql >= $params['min_ql'];
 			});
 		}
 		if (isset($params['max_ql'])) {
-			$sites = $sites->filter(function (HotSite $site) use ($params): bool {
-				$ql = $site->info->ct_ql ?? $site->min_ql;
-				return $ql <= $params['max_ql'];
+			$sites = $sites->filter(function (ScoutInfoPlus $site) use ($params): bool {
+				return $site->ql <= $params['max_ql'];
 			});
 		}
 		if (isset($params["playfield_id"])) {
 			$pf = $this->playfieldController->getPlayfieldById((int)$params["playfield_id"]);
 			if (!isset($pf)) {
 				$sendto->reply("Unable to find playfield <highlight>{$params['playfield_id']}<end>.");
-				return;
+				return null;
 			}
-			$sites = $sites->filter(function (HotSite $site) use ($pf): bool {
+			$sites = $sites->filter(function (ScoutInfoPlus $site) use ($pf): bool {
 				return $site->playfield_id === $pf->id;
 			});
 		}
-		if ($sites->count() === 0) {
-			$sendto->reply("No sites are currently hot.");
-			return;
-		}
-		$blob = $this->renderHotSitesOld($sites);
-		$faction = isset($args['faction']) ? " " . strtolower($args['faction']) : "";
-		$sendto->reply(
-			$this->text->makeBlob(
-				"Hot{$faction} sites (" . $sites->count() .")",
-				$blob
-			)
-		);
+		return $sites;
 	}
 
 	/**
-	 * @param Collection<HotSite> $site
-	 * @return string[]
-	 */
-	public function renderHotSitesOld(Collection $sites): string {
-		$grouped = $sites->groupBy("short_name");
-		$blob = $grouped->map(function (Collection $sites, string $short): string {
-			return "<pagebreak><header2>{$sites[0]->long_name}<end>\n".
-				$sites->map(function (HotSite $site): string {
-					$shortName = $site->short_name . " " . $site->site_number;
-					$line = "<tab>".
-						$this->text->makeChatcmd(
-							$shortName,
-							"/tell <myname> <symbol>lc {$shortName}"
-						);
-					$factionColor = "";
-					if ($site->info->faction) {
-						$factionColor = "<" . strtolower($site->info->faction) . ">";
-						$org = $site->info->guild_name ?? $site->info->faction;
-						$line .= " {$factionColor}{$org}<end>";
-					} else {
-						$line .= " &lt;Free or unknown planter&gt;";
-					}
-					$gas = $this->getGasLevel($site->info->close_time);
-					$line .= " {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-						$this->util->unixtimeToReadable($gas->gas_change, false);
-					return $line;
-				})->join("\n");
-		})->join("\n\n");
-		return $blob;
-	}
-
-	/**
-	 * Get a list of all sites with known closing time
+	 * Convert the locally scouted data into an API result
 	 *
-	 * @return Collection<HotSite>
+	 * @param \Illuminate\Support\Collection<ScoutInfoPlus> $scoutInfos
+	 * @return ApiResult
 	 */
-	public function getSitesWithKnownTimer(): Collection {
-		$data = $this->db->table("tower_site", "t")
-			->leftJoin("scout_info AS s", function (JoinClause $join) {
-				$join->on("t.playfield_id", "s.playfield_id")
-					->on("s.site_number", "t.site_number");
-			})->join("playfields AS p", "t.playfield_id", "p.id")
-			->orderBy("p.short_name")
-			->orderBy("t.site_number")
-			->select("t.*", "p.*", "s.ct_ql", "s.guild_name", "s.faction", "s.close_time")
-			->asObj(HotSite::class);
-		$data->each(function (HotSite $site) {
-			$site->info = new HotInfo();
-			$site->info->ct_ql = $site->ct_ql ? (int)$site->ct_ql : null;
-			$site->info->guild_name = $site->guild_name ? (string)$site->guild_name : null;
-			$site->info->faction = $site->faction ? (string)$site->faction : null;
-			$site->info->close_time = $site->close_time ? (int)$site->close_time : null;
-			foreach (['ct_ql', 'guild_name', 'faction', 'close_time'] as $attr) {
-				unset($site->{$attr});
-			}
-		});
-		$data->each(function (HotSite $site) {
-			if (isset($site->ct_ql)) {
-				return;
-			}
-			if ($site->timing !== self::TYPE_LEGACY) {
-				$site->info->close_time = self::FIXED_TIMES[$site->timing][0] * 3600;
-			}
-			if (isset($this->lcOwningFactions[$site->long_name][$site->site_number])) {
-				$site->info->faction = $this->lcOwningFactions[$site->long_name][$site->site_number];
-			}
-		});
-		$orgsInPenalty = $this->getSitesInPenalty();
-		// All fields of orgs that attacked another org in the last 2h
-		// are hot for 2h
-		$data->each(function (HotSite $site) use ($orgsInPenalty) {
-			if (!isset($site->info->guild_name)) {
-				return;
-			}
-			foreach ($orgsInPenalty as $org) {
-				if ($org->att_guild_name !== $site->info->guild_name) {
-					continue;
-				}
-				$penEnd = $org->penalty_time + 7200;
-				$gas = $this->getGasLevel($site->info->close_time);
-				if ($gas->close_time < $penEnd) {
-					$site->info->close_time = $penEnd % 86400;
-				}
-			}
-		});
-
-		return $data->filter(fn($site) => isset($site->info->close_time));
+	public function scoutToAPI(Collection $scoutInfos): ApiResult {
+		$data = [];
+		foreach ($scoutInfos as $info) {
+			$data []= (array)$info;
+		}
+		$data = ["count" => $scoutInfos->count(), "results" => $data];
+		return new ApiResult($data);
 	}
 
 	public function qlToSiteType(int $qlCT): int {
@@ -1239,11 +1191,88 @@ class TowerController {
 		}
 	}
 
-	public function showHotSites(?ApiResult $result, array $params, string $sender, CommandReply $sendto, int $time=0): void {
+	/** Check if the data from $apiSite is more up-to-date than $localSite */
+	public function isApiVersionNewer(?ApiSite $apiSite, ?ScoutInfo $localSite): bool {
+		// Unplanted API data cannot override local data, because there is no
+		// way of knowing how old it is
+		if (!isset($apiSite) || !isset($apiSite->created_at)) {
+			return false;
+		}
+		if (!isset($localSite)) {
+			return true;
+		}
+		// If the local data is empty, then whatever the API has, must be newer
+		if (!isset($localSite->scouted_on)) {
+			return true;
+		}
+		// If we have both, local and api data, check the CT's plant time.
+		// If the local data is marked unplanted, compare the local scout date
+		// to the API CT's plant time
+		return $apiSite->created_at > ($localSite->created_at ?? $localSite->scouted_on);
+	}
+
+	/**
+	 * Merge local scout data into API results and vice versa
+	 * @param Collection<ScoutInfoPlus> $local
+	 * @param ApiResult $api
+	 * @return ApiResult
+	 */
+	protected function mergeLocalToAPI(Collection $local, ApiResult $api): ApiResult {
+		$result = [];
+		$apiSites = [];
+		foreach ($api->results as $apiSite) {
+			$apiSites[$apiSite->playfield_id] ??= [];
+			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
+		}
+		/** @var array<int,array<int,ApiSite>> $apiSites */
+		$mergeStrategy = $this->settingManager->getInt('tower_api_automerge');
+		foreach ($local as $localSite) {
+			/** @var ?ApiSite */
+			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
+			if ($this->isApiVersionNewer($apiSite, $localSite)) {
+				if ($mergeStrategy === 1) {
+					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
+				} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
+					|| $mergeStrategy === 3) {
+					$this->addScoutSite(ScoutInfo::fromApiSite($apiSite));
+				}
+				continue;
+			}
+			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
+			$result []= new ApiSite((array)$localSite);
+		}
+		foreach ($apiSites as $pfId => $siteList) {
+			foreach ($siteList as $siteId => $apiSite) {
+				$result []= $apiSite;
+				/** @var ?ScoutInfo */
+				$localSite = $this->db->table("scout_info")
+					->where("playfield_id", $apiSite->playfield_id)
+					->where("site_number", $apiSite->site_number)
+					->asObj(ScoutInfo::class)
+					->first();
+				if ($this->isApiVersionNewer($apiSite, $localSite)) {
+					if ($mergeStrategy === 1) {
+						$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
+					} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
+						|| $mergeStrategy === 3) {
+						$this->addScoutSite(ScoutInfo::fromApiSite($apiSite));
+					}
+				}
+			}
+		}
+		return new ApiResult(["count" => count($result), "results" => $result]);
+	}
+
+	/**
+	 * Render the API !hot results
+	 * @param Collection<ScoutInfoPlus> $local
+	 */
+	public function showHotSites(?ApiResult $result, Collection $local, array $params, string $sender, CommandReply $sendto, int $time=0): void {
 		if ($result === null) {
 			$sendto->reply("Invalid data received from tower API. Try again later.");
 			return;
 		}
+		$result = $this->mergeLocalToAPI($local, $result);
 		if ($result->count === 0) {
 			$sendto->reply("No sites matching your criteria are currently hot.");
 			return;
@@ -1798,28 +1827,7 @@ class TowerController {
 		}
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
-		// If we have the full scout information and the org has only 1 field
-		// in that playfield, we can use that
-		if ($lastAttack === null) {
-			$data = $this->db->table("tower_site", "t")
-				->leftJoin("scout_info AS s", function (JoinClause $join) {
-					$join->on("t.playfield_id", "s.playfield_id")
-						->on("s.site_number", "t.site_number");
-				})
-				->where("t.playfield_id", $playfield->id)
-				->orderBy("t.site_number")
-				->select("t.*", "s.guild_name", "s.faction")
-				->asObj();
-			// All bases scouted
-			if ($data->whereNull("guild_name")->count() === 0) {
-				$orgFields = $data->where("guild_name", $loserOrgName)
-					->where("faction", $loserFaction);
-				// And the losing org has only 1 field there
-				if ($orgFields->count() === 1) {
-					$siteNumber = (int)$orgFields->first()->site_number;
-				}
-			}
-		} else {
+		if ($lastAttack !== null) {
 			$siteNumber = $lastAttack->site_number;
 		}
 		if (isset($siteNumber)) {
@@ -2077,6 +2085,15 @@ class TowerController {
 				"y_coords" => $attack->yCoords,
 			]) ? 1 : 0;
 		$this->eventManager->fireEvent($event);
+		// Mark all of this org's sites as in penalty for 2h
+		if (isset($whois->guild)) {
+			$this->db->table("scout_info")
+				->where("org_name", $whois->guild)
+				->update([
+					"penalty_duration" => 7200,
+					"penalty_until" => time() + 7200,
+				]);
+		}
 
 		return $result;
 	}
@@ -2093,6 +2110,23 @@ class TowerController {
 	}
 
 	protected function recordVictory(TowerAttack $attack): int {
+		if (isset($attack->site_number) && isset($attack->playfield_id)) {
+			// If we know which field was destroyed, mark it unplanted
+			$scout = new ScoutInfo();
+			$scout->scouted_on = time();
+			$scout->scouted_by = $this->chatBot->char->name;
+			$scout->playfield_id = $attack->playfield_id;
+			$scout->site_number = $attack->site_number;
+			$this->addScoutSite($scout);
+		} elseif (isset($attack->playfield_id)) {
+			// If we don't know the exact field, mark all the fields of this org
+			// in that playfield as unscouted
+			$this->db->table("scout_info")
+				->where("playfield_id", $attack->playfield_id)
+				->where("org_name", $attack->def_guild_name)
+				->where("faction", $attack->def_faction)
+				->delete();
+		}
 		return $this->db->table(self::DB_TOWER_VICTORY)
 			->insertGetId([
 				"time" => time(),
@@ -2104,26 +2138,11 @@ class TowerController {
 			]);
 	}
 
-	protected function addScoutSite(TowerSite $site, int $plantTime, int $ctQL, string $faction, string $orgName, string $scoutedBy): int {
-		$closingTime = $plantTime;
-		if ($site->timing !== self::TYPE_LEGACY) {
-			$closingTime = self::FIXED_TIMES[$site->timing][0] * 3600;
+	protected function addScoutSite(ScoutInfo $scoutInfo): bool {
+		if ($this->db->update("scout_info", ["playfield_id", "site_number"], $scoutInfo) > 0) {
+			return true;
 		}
-		$result = $this->db->table("scout_info")
-			->upsert(
-				[
-					"playfield_id" => $site->playfield_id,
-					"site_number" => $site->site_number,
-					"scouted_on" => time(),
-					"scouted_by" => $scoutedBy,
-					"ct_ql" => $ctQL,
-					"guild_name" => $orgName,
-					"faction" => $faction,
-					"close_time" => $closingTime,
-				],
-				["playfield_id", "site_number"]
-			);
-		return $result;
+		return $this->db->insert("scout_info", $scoutInfo, null) > 0;
 	}
 
 	protected function remScoutSite(int $playfield_id, int $site_number): int {
@@ -2218,7 +2237,8 @@ class TowerController {
 		$blob = "<pagebreak><header2>{$row->short_name} {$row->site_number} ({$row->site_name})<end>\n".
 			"<tab>Level range: <highlight>{$row->min_ql}-{$row->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".
+			$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n".
+				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
 				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			$orgLink = $this->text->makeChatcmd(
 				"show sites",
@@ -2234,7 +2254,13 @@ class TowerController {
 					$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
 			}
 		} elseif (isset($site)) {
-			$blob .= "<tab>Planted: <highlight>No<end>\n";
+			if ($site->source === "api" || $site->source === "empty") {
+				$blob .= "<tab>Planted: <highlight>No<end>\n";
+			} else {
+				$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
+			}
+		} elseif ($row->enabled === 0) {
+				$blob .= "<tab>Planted: <highlight>This site is disabled<end>\n";
 		}
 		$blob .= "<tab>Center coordinates: $waypointLink\n".
 			"<tab>{$attacksLink}\n".
@@ -2267,7 +2293,7 @@ class TowerController {
 	 * This command handler removes tower info to watch list.
 	 *
 	 * @HandlesCommand("remscout")
-	 * @Matches("/^remscout ([a-z0-9]+) (\d+)$/i")
+	 * @Matches("/^remscout ([0-9a-z]+[a-z])\s*(\d+)$/i")
 	 */
 	public function remscoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$playfieldName = $args[1];
@@ -2297,30 +2323,72 @@ class TowerController {
 		$sendto->reply($msg);
 	}
 
-	protected function scoutInputHandler(string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) === 7) {
-			$playfieldName = $args[1];
-			$siteNumber = (int)$args[2];
-			$closingTime = $args[3];
-			$ctQL = (int)$args[4];
-			$faction = $this->getFaction($args[5]);
-			$guildName = $args[6];
-		} else {
-			$pattern = "@Control Tower - ([^ ]+)\s+Level: (\d+)\s+Danger level: (.+)\s+Alignment: ([^ ]+)\s+Organization: (.+)\s+Created at UTC: ([^ ]+) ([^ ]+)@si";
-			if (preg_match($pattern, $args[3], $arr)) {
-				$playfieldName = $args[1];
-				$siteNumber = (int)$args[2];
-				$closingTime = $arr[7];
-				$ctQL = (int)$arr[2];
-				$faction = $this->getFaction($arr[1]);
-				$guildName = $arr[5];
-			} else {
+	protected function scoutInputHandler(string $sender, CommandReply $sendto, string $playfieldName, int $siteNumber, string $tower): void {
+		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
+		if ($playfield === null) {
+			$sendto->reply("Invalid playfield <highlight>{$playfieldName}<end>.");
+			return;
+		}
+		$towerInfo = $this->getTowerInfo($playfield->id, $siteNumber);
+		if ($towerInfo === null) {
+			$sendto->reply("Invalid site number <highlight>{$playfield->long_name} {$siteNumber}<end>.");
+		}
+		$ctPattern = "@".
+			"Control Tower - (?<faction>[^ ]+)\s+".
+			"Level: (?<ql>\d+)\s+".
+			"Danger level:\s+(.+)\s+".
+			"Alignment:\s+([^ ]+)\s+".
+			"Organization:\s+(?<org_name>.+)\s+".
+			"Created at UTC:\s+(?<created>[^ ]+ [^ ]+)".
+			"@si";
+		if (!preg_match($ctPattern, $tower, $arr)) {
+			if (preg_match("/^(empty|free|un-?planted|clea[rn]|none)$/i", $tower)) {
+				$scoutInfo = new ScoutInfo();
+				$scoutInfo->scouted_on = time();
+				$scoutInfo->scouted_by = $sender;
+				$scoutInfo->playfield_id = $playfield->id;
+				$scoutInfo->site_number = $siteNumber;
+				$scoutInfo->source = "empty";
+				$this->addScoutSite($scoutInfo);
+				$sendto->reply("<highlight>{$playfield->short_name} {$siteNumber}<end> marked as unplanted.");
 				return;
 			}
+			$sendto->reply("Please capture the whole tower string.");
+			return;
+		}
+		$scoutInfo = new ScoutInfo();
+		$scoutInfo->playfield_id = $playfield->id;
+		$scoutInfo->site_number = $siteNumber;
+		$scoutInfo->scouted_on = time();
+		$scoutInfo->scouted_by = $sender;
+		$scoutInfo->created_at = (new DateTime($arr['created']))->getTimestamp();
+		$scoutInfo->close_time = $scoutInfo->created_at % 86400;
+		if ($towerInfo->timing > 0) {
+			$scoutInfo->close_time = static::FIXED_TIMES[$towerInfo->timing] * 3600
+				+ $scoutInfo->created_at % 3600;
+		}
+		$scoutInfo->org_name = $arr['org_name'];
+		$scoutInfo->ql = (int)$arr['ql'];
+		$scoutInfo->faction = $this->getFaction($arr['faction']);
+		$scoutInfo->scouted_by = $sender;
+		if ($scoutInfo->ql < $towerInfo->min_ql || $scoutInfo->ql > $towerInfo->max_ql) {
+			$sendto->reply(
+				"<highlight>{$playfield->short_name} {$towerInfo->site_number}<end> ".
+				"can only accept Control Tower of a ql between ".
+				"<highlight>{$towerInfo->min_ql}<end> and <highlight>{$towerInfo->max_ql}<end>."
+			);
+			return;
+		}
+		if (!in_array($scoutInfo->faction, ['Omni', 'Neutral', 'Clan'])) {
+			$sendto->reply("Valid values for faction are: 'Omni', 'Neutral', and 'Clan'.");
+			return;
 		}
 
-		$msg = $this->addScoutInfo($sender, $playfieldName, $siteNumber, $closingTime, $ctQL, $faction, $guildName);
-		$sendto->reply($msg);
+		if ($this->addScoutSite($scoutInfo)) {
+			$sendto->reply("Scout information recorded for {$playfield->short_name} {$towerInfo->site_number}.");
+			return;
+		}
+		$sendto->reply("There was an unknown error recording this scout information, please check the logs.");
 	}
 
 	/**
@@ -2328,34 +2396,6 @@ class TowerController {
 	 * @Matches("/^scout ([0-9a-z]+[a-z])\s*(\d+)\s+(.*)$/is")
 	 */
 	public function scoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->scoutInputHandler($sender, $sendto, $args);
-	}
-
-	public function addScoutInfo(string $sender, string $playfieldName, int $siteNumber, string $plantTime, int $ctQL, string $faction, string $guildName): string {
-		if (!in_array($faction, ['Omni', 'Neutral', 'Clan'])) {
-			return "Valid values for faction are: 'Omni', 'Neutral', and 'Clan'.";
-		}
-
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
-			return "Invalid playfield <highlight>{$playfieldName}<end>.";
-		}
-
-		$towerInfo = $this->getTowerInfo($playfield->id, $siteNumber);
-		if ($towerInfo === null) {
-			return "Invalid site number <highlight>{$playfield->long_name} {$siteNumber}<end>.";
-		}
-
-		if ($ctQL < $towerInfo->min_ql || $ctQL > $towerInfo->max_ql) {
-			return "<highlight>$playfield->short_name $towerInfo->site_number<end> ".
-				"can only accept Control Tower of ql ".
-				"<highlight>{$towerInfo->min_ql}<end>-<highlight>{$towerInfo->max_ql}<end>.";
-		}
-
-		$plantTimeArray = explode(':', $plantTime);
-		$plantTimeSeconds = (int)$plantTimeArray[0] * 3600 + (int)$plantTimeArray[1] * 60 + (int)$plantTimeArray[2];
-
-		$this->addScoutSite($towerInfo, $plantTimeSeconds, $ctQL, $faction, $guildName, $sender);
-		return "Scout info for <highlight>$playfield->short_name $siteNumber<end> has been updated.";
+		$this->scoutInputHandler($sender, $sendto, $args[1], (int)$args[2], $args[3]);
 	}
 }
