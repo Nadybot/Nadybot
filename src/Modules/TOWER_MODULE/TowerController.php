@@ -749,7 +749,9 @@ class TowerController {
 		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
 		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
+			$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n".
+				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
+				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			if ($showOrgLinks) {
 				$orgLink = $this->text->makeChatcmd(
 					"show sites",
@@ -1190,6 +1192,26 @@ class TowerController {
 		}
 	}
 
+	/** Check if the data from $apiSite is more up-to-date than $localSite */
+	public function isApiVersionNewer(?ApiSite $apiSite, ?ScoutInfo $localSite): bool {
+		// Unplanted API data cannot override local data, because there is no
+		// way of knowing how old it is
+		if (!isset($apiSite) || !isset($apiSite->created_at)) {
+			return false;
+		}
+		if (!isset($localSite)) {
+			return true;
+		}
+		// If the local data is empty, then whatever the API has, must be newer
+		if (!isset($localSite->scouted_on)) {
+			return true;
+		}
+		// If we have both, local and api data, check the CT's plant time.
+		// If the local data is marked unplanted, compare the local scout date
+		// to the API CT's plant time
+		return $apiSite->created_at > ($localSite->created_at ?? $localSite->scouted_on);
+	}
+
 	/**
 	 * Merge local scout data into API results and vice versa
 	 * @param Collection<ScoutInfoPlus> $local
@@ -1208,7 +1230,7 @@ class TowerController {
 		foreach ($local as $localSite) {
 			/** @var ?ApiSite */
 			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
-			if (isset($apiSite) && (!isset($localSite->scouted_on) || $apiSite->created_at > $localSite->scouted_on)) {
+			if ($this->isApiVersionNewer($apiSite, $localSite)) {
 				if ($mergeStrategy === 1) {
 					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
 				} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
@@ -1229,7 +1251,7 @@ class TowerController {
 					->where("site_number", $apiSite->site_number)
 					->asObj(ScoutInfo::class)
 					->first();
-				if (isset($apiSite) && (!isset($localSite->scouted_on) || $apiSite->created_at > $localSite->scouted_on)) {
+				if ($this->isApiVersionNewer($apiSite, $localSite)) {
 					if ($mergeStrategy === 1) {
 						$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
 					} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
@@ -2216,7 +2238,8 @@ class TowerController {
 		$blob = "<pagebreak><header2>{$row->short_name} {$row->site_number} ({$row->site_name})<end>\n".
 			"<tab>Level range: <highlight>{$row->min_ql}-{$row->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: QL <highlight>{$site->ql}<end> CT, Type " . $this->qlToSiteType($site->ql) . " ".
+			$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n".
+				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
 				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			$orgLink = $this->text->makeChatcmd(
 				"show sites",
