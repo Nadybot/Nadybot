@@ -471,4 +471,30 @@ class NewsController {
 		}
 		return new ApiResponse($this->getNewsItem($id));
 	}
+
+	/**
+	 * @NewsTile("news")
+	 * @Description("Show excerpts of unread news")
+	 */
+	public function newsTile(string $sender, callable $callback): void {
+		$thirtyDays = time() - (86400 * 30);
+		$news = $this->getNewsItems($sender);
+		$unreadNews = $news->where("confirmed", false)
+			->where("time", ">", $thirtyDays);
+		if ($unreadNews->isEmpty()) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>News [".
+			$this->text->makeChatcmd("see all", "/tell <myname> news") . "]<end>\n";
+		$blobLines = [];
+		foreach ($unreadNews as $news) {
+			$firstLine = explode("\n", $news->news)[0];
+			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
+			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
+				"<end>: " . join(" ", $firstWords) . "...";
+		}
+		$blob .= join("\n", $blobLines);
+		$callback($blob);
+	}
 }

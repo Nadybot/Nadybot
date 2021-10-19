@@ -840,4 +840,28 @@ class RaidPointsController {
 			->delete();
 		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
+
+	/**
+	 * @NewsTile("raid")
+	 * @Description("Shows the player's amount of raid points and if a raid
+	 * is currently running.")
+	 */
+	public function raidpointsTile(string $sender, callable $callback): void {
+		$points = $this->getRaidPoints($sender);
+		$raid = $this->raidController->raid ?? null;
+		if ($points === null && $raid === null) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Raid<end>";
+		if ($points !== null) {
+			$blob .= "\n<tab>You have <highlight>{$points}<end> raid points.";
+		}
+		if ($raid !== null) {
+			$blob .= "\n<tab>" . $raid->getAnnounceMessage().
+				"[" . $this->text->makeChatcmd("join bot", "/tell <myname> join") . "] ".
+				"[" . $this->text->makeChatcmd("join raid", "/tell <myname> raid join") . "]";
+		}
+		$callback($blob);
+	}
 }

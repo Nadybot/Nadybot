@@ -220,11 +220,11 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			$message
 		);
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
+		$message = preg_replace("/<a\s+href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
+		$message = preg_replace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
 		$message = preg_replace("/<p\s*>/is", "\n", $message);
 		$message = preg_replace("/<\/p\s*>/is", "", $message);
 		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>\n/s", "\n", $message);
@@ -236,7 +236,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$parts = [];
 		$message = html_entity_decode(
 			preg_replace_callback(
-				"/<a\s[^>]*href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/s",
+				"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/s",
 				function (array $matches) use (&$parts): string {
 					$parts[] = html_entity_decode($this->handleColors($matches[2], true), ENT_QUOTES);
 					return $this->handleColors("<link>{$matches[3]}</link>", false);

@@ -243,4 +243,64 @@ class ArbiterController {
 		}
 		$sendto->reply($msg);
 	}
+
+	/**
+	 * @NewsTile("arbiter")
+	 * @Description("Shows the current ICC arbiter week - if any")
+	 */
+	public function arbiterNewsTile(string $sender, callable $callback): void {
+		/** @var ArbiterEvent[] */
+		$upcomingEvents = [
+			$this->getNextBS(),
+			$this->getNextAI(),
+			$this->getNextDIO(),
+		];
+
+		// Sort them by start date, to the next one coming up or currently on is the first
+		usort(
+			$upcomingEvents,
+			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+				return $e1->start <=> $e2->start;
+			}
+		);
+		if (!$upcomingEvents[0]->isActiveOn(time())) {
+			return;
+		}
+		$currentEvent = array_shift($upcomingEvents);
+		$msg = "<header2>Arbiter<end>\n".
+			"<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
+		$callback($msg);
+	}
+
+	/**
+	 * @NewsTile("arbiter-force")
+	 * @Description("Shows the current ICC arbiter week or what the next one will be")
+	 */
+	public function arbiterNewsForceTile(string $sender, callable $callback): void {
+		/** @var ArbiterEvent[] */
+		$upcomingEvents = [
+			$this->getNextBS(),
+			$this->getNextAI(),
+			$this->getNextDIO(),
+		];
+
+		// Sort them by start date, to the next one coming up or currently on is the first
+		usort(
+			$upcomingEvents,
+			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+				return $e1->start <=> $e2->start;
+			}
+		);
+		$msg = "<header2>Arbiter<end>\n";
+		if (!$upcomingEvents[0]->isActiveOn(time())) {
+			$msg .= "<tab>The arbiter is currently not here.\n";
+			$nextEvent = array_shift($upcomingEvents);
+			$msg .= "<tab><highlight>{$nextEvent->longName}<end> starts in ".
+				"<highlight>" . $this->niceTimeWithoutSecs($nextEvent->start - time()) . "<end>.";
+		} else {
+			$currentEvent = array_shift($upcomingEvents);
+			$msg .= "<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
+		}
+		$callback($msg);
+	}
 }

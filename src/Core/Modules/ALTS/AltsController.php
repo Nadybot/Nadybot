@@ -768,4 +768,39 @@ class AltsController {
 		}
 		return $deleted;
 	}
+
+	/**
+	 * @NewsTile("alt-info")
+	 * @Description("Displays basic information about your alts")
+	 */
+	public function altsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		$altsCmdText = "no alts";
+		if (count($altInfo->getAllAlts()) === 2) {
+			$altsCmdText = "1 alt";
+		} elseif (count($altInfo->getAllAlts()) > 2) {
+			$altsCmdText = (count($altInfo->getAllAlts())-1) . " alts";
+		}
+		if ($altInfo->hasUnvalidatedAlts()) {
+			$numUnvalidated = 0;
+			foreach ($altInfo->getAllAlts() as $alt) {
+				if (!$altInfo->isValidated($alt)) {
+					$numUnvalidated++;
+				}
+			}
+			if ($numUnvalidated > 1) {
+				$altsCmdText .= ", {$numUnvalidated} need validation";
+			} else {
+				$altsCmdText .= ", {$numUnvalidated} needs validation";
+			}
+		}
+		$altsCommand = $altsCmdText;
+		if (count($altInfo->getAllAlts()) > 1) {
+			$altsCommand = $this->text->makeChatcmd($altsCmdText, "/tell <myname> alts");
+		}
+		$blob = "<header2>Account<end>\n".
+			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
+			"<tab>You have {$altsCommand}.";
+		$callback($blob);
+	}
 }

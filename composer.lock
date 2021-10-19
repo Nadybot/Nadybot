@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "733e339bc27ce4f3c443a01d4f98a677",
+    "content-hash": "d647b5e4f8fac8b187bebe064e3ab914",
     "packages": [
         {
             "name": "apache/log4php",
@@ -606,16 +606,16 @@
         },
         {
             "name": "illuminate/collections",
-            "version": "v8.63.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/collections.git",
-                "reference": "8e6c29c49f28b90e9de0cac1c14290feb99202c5"
+                "reference": "edaf5ea6ffe63dcab1ac86ee9db9c65209f44813"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/collections/zipball/8e6c29c49f28b90e9de0cac1c14290feb99202c5",
-                "reference": "8e6c29c49f28b90e9de0cac1c14290feb99202c5",
+                "url": "https://api.github.com/repos/illuminate/collections/zipball/edaf5ea6ffe63dcab1ac86ee9db9c65209f44813",
+                "reference": "edaf5ea6ffe63dcab1ac86ee9db9c65209f44813",
                 "shasum": ""
             },
             "require": {
@@ -656,11 +656,11 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-09-30T15:04:19+00:00"
+            "time": "2021-10-11T20:11:16+00:00"
         },
         {
             "name": "illuminate/container",
-            "version": "v8.63.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/container.git",
@@ -711,7 +711,7 @@
         },
         {
             "name": "illuminate/contracts",
-            "version": "v8.63.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
@@ -759,16 +759,16 @@
         },
         {
             "name": "illuminate/database",
-            "version": "v8.63.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/database.git",
-                "reference": "4f46da6a564fe5a906f6dbeda968f8e18c35ad92"
+                "reference": "b8c1e5393e8c7f087a7f79158d04f314f00422d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/database/zipball/4f46da6a564fe5a906f6dbeda968f8e18c35ad92",
-                "reference": "4f46da6a564fe5a906f6dbeda968f8e18c35ad92",
+                "url": "https://api.github.com/repos/illuminate/database/zipball/b8c1e5393e8c7f087a7f79158d04f314f00422d0",
+                "reference": "b8c1e5393e8c7f087a7f79158d04f314f00422d0",
                 "shasum": ""
             },
             "require": {
@@ -823,11 +823,11 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-10-05T13:08:53+00:00"
+            "time": "2021-10-07T16:45:33+00:00"
         },
         {
             "name": "illuminate/macroable",
-            "version": "v8.62.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/macroable.git",
@@ -873,16 +873,16 @@
         },
         {
             "name": "illuminate/support",
-            "version": "v8.63.0",
+            "version": "v8.64.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/support.git",
-                "reference": "259993e2119e99be17c10486f66c5a13b7fe4a70"
+                "reference": "5346222c24bbc0da88af032053328dbebd1ab2d8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/support/zipball/259993e2119e99be17c10486f66c5a13b7fe4a70",
-                "reference": "259993e2119e99be17c10486f66c5a13b7fe4a70",
+                "url": "https://api.github.com/repos/illuminate/support/zipball/5346222c24bbc0da88af032053328dbebd1ab2d8",
+                "reference": "5346222c24bbc0da88af032053328dbebd1ab2d8",
                 "shasum": ""
             },
             "require": {
@@ -937,7 +937,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-10-04T13:02:25+00:00"
+            "time": "2021-10-06T13:04:48+00:00"
         },
         {
             "name": "kelvinmo/fernet-php",
@@ -1577,27 +1577,30 @@
         },
         {
             "name": "swaggest/json-schema",
-            "version": "v0.12.38",
+            "version": "v0.12.39",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swaggest/php-json-schema.git",
-                "reference": "ab7cca149a5822acc5be538dd6c008a348f6cb89"
+                "reference": "193ba39cce1ffa2d55ddd5445315e945a63298a2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swaggest/php-json-schema/zipball/ab7cca149a5822acc5be538dd6c008a348f6cb89",
-                "reference": "ab7cca149a5822acc5be538dd6c008a348f6cb89",
+                "url": "https://api.github.com/repos/swaggest/php-json-schema/zipball/193ba39cce1ffa2d55ddd5445315e945a63298a2",
+                "reference": "193ba39cce1ffa2d55ddd5445315e945a63298a2",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "ext-mbstring": "*",
                 "php": ">=5.4",
                 "phplang/scope-exit": "^1.0",
-                "swaggest/json-diff": "^3.8.2"
+                "swaggest/json-diff": "^3.8.2",
+                "symfony/polyfill-mbstring": "^1.19"
             },
             "require-dev": {
                 "phpunit/phpunit": "^4.8.23"
+            },
+            "suggest": {
+                "ext-mbstring": "For better performance"
             },
             "type": "library",
             "autoload": {
@@ -1619,9 +1622,9 @@
             "support": {
                 "email": "vearutop@gmail.com",
                 "issues": "https://github.com/swaggest/php-json-schema/issues",
-                "source": "https://github.com/swaggest/php-json-schema/tree/v0.12.38"
+                "source": "https://github.com/swaggest/php-json-schema/tree/v0.12.39"
             },
-            "time": "2021-09-17T13:54:01+00:00"
+            "time": "2021-10-15T18:12:27+00:00"
         },
         {
             "name": "symfony/console",
@@ -3317,16 +3320,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.6.0",
+            "version": "3.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
-                "reference": "ffced0d2c8fa8e6cdc4d695a743271fab6c38625"
+                "reference": "f268ca40d54617c6e06757f83f699775c9b3ff2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/ffced0d2c8fa8e6cdc4d695a743271fab6c38625",
-                "reference": "ffced0d2c8fa8e6cdc4d695a743271fab6c38625",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/f268ca40d54617c6e06757f83f699775c9b3ff2e",
+                "reference": "f268ca40d54617c6e06757f83f699775c9b3ff2e",
                 "shasum": ""
             },
             "require": {
@@ -3369,7 +3372,7 @@
                 "source": "https://github.com/squizlabs/PHP_CodeSniffer",
                 "wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
             },
-            "time": "2021-04-09T00:54:41+00:00"
+            "time": "2021-10-11T04:00:11+00:00"
         },
         {
             "name": "symfony/filesystem",
