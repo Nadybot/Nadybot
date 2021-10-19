@@ -529,4 +529,31 @@ class NotesController {
 		$this->preferences->save($main, 'reminder_format', $format);
 		$sendto->reply("Your reminder format has been set to <highlight>{$format}<end>.");
 	}
+
+	/**
+	 * @NewsTile("notes")
+	 * @Description("Shows you how many notes you have for this character
+	 * as well with a link to show them")
+	 */
+	public function notesNewsTile(string $sender, callable $callback): void {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->getValidatedMain($sender);
+
+		$this->assignNotesToMain($main, $sender);
+
+		$notes = $this->readNotes($main, false);
+		$count = count($notes);
+
+		if ($count === 0) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Notes<end>\n".
+			"<tab>You have <highlight>{$count} ".
+			$this->text->pluralize("note", $count).
+			"<end> [".
+			$this->text->makeChatcmd("show", "/tell <myname> notes").
+			"]";
+		$callback($blob);
+	}
 }
