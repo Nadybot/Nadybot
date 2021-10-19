@@ -278,9 +278,13 @@ class QuoteController {
 			$callback(null);
 			return;
 		}
-		$quote = join("\n<tab>", explode("\n", $row->msg));
-		$msg = "<header2>Random quote<end>\n".
-			"<tab>{$quote}";
+		$result = [];
+		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		foreach ($lines as $line) {
+			$result = [...$result, ...explode("\n", $line)];
+		}
+		$quote = join("\n» ", $result);
+		$msg = "» {$quote}";
 		$callback($msg);
 	}
 }
