@@ -10,14 +10,19 @@ use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Registry;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
 use ReflectionMethod;
+use Nadybot\Core\{
+	AccessManager,
+	CommandReply,
+	DB,
+	Event,
+	Nadybot,
+	Registry,
+	SettingManager,
+	Text,
+	Util,
+};
+use Nadybot\Core\Modules\BAN\BanController;
 
 /**
  * @Instance
@@ -50,6 +55,12 @@ class StartpageController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public AccessManager $accessManager;
+
+	/** @Inject */
+	public BanController $banController;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -111,6 +122,89 @@ class StartpageController {
 			"text",
 			""
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"startpage_startmsg",
+			"The message when sending the startpage to people",
+			"edit",
+			"text",
+			"Welcome, {name}!",
+			"",
+			"",
+			"mod",
+			"startpage_startmsg.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"startpage_show_members",
+			"When to show non-org-members the startpage",
+			"edit",
+			"options",
+			"2",
+			"Do not show to non-org-members;When Logging in;When joining the private channel",
+			"0;1;2",
+		);
+	}
+
+	protected function getMassTell(string $receiver): CommandReply {
+		$sendto = new class implements CommandReply {
+			public Nadybot $chatBot;
+			public string $receiver;
+			public function reply($msg): void {
+				$this->chatBot->sendMassTell($msg, $this->receiver);
+			}
+		};
+		$sendto->chatBot = $this->chatBot;
+		$sendto->receiver = $receiver;
+		return $sendto;
+	}
+
+	/**
+	 * @Event("logOn")
+	 * @Description("Show startpage to (org) members logging in")
+	 */
+	public function logonEvent(Event $eventObj): void {
+		$sender = $eventObj->sender;
+		if (!$this->chatBot->isReady()) {
+			return;
+		}
+		if (isset($this->chatBot->guildmembers[$sender])) {
+			$this->showStartpage($sender, $this->getMassTell($sender));
+			return;
+		}
+		$uid = $this->chatBot->get_uid($sender);
+		if ($uid === false) {
+			return;
+		}
+		if ($this->settingManager->getInt("startpage_show_members") !== 1) {
+			return;
+		}
+		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
+			return;
+		}
+		$this->banController->handleBan(
+			$uid,
+			function (int $uid, string $sender): void {
+				$this->showStartpage($sender, $this->getMassTell($sender));
+			},
+			null,
+			$sender
+		);
+	}
+
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Show startpage to players joining private channel")
+	 */
+	public function privateChannelJoinEvent(Event $eventObj): void {
+		$sender = $eventObj->sender;
+		if (!$this->chatBot->isReady() || isset($this->chatBot->guildmembers[$sender])) {
+			return;
+		}
+		if ($this->settingManager->getInt("startpage_show_members") !== 2) {
+			return;
+		}
+		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
 	/**
@@ -184,10 +278,24 @@ class StartpageController {
 		};
 	}
 
-	public function showStartpage(string $sender, CommandReply $sendto): void {
+	public function getStartpageString(string $sender): string {
+		$msg = $this->settingManager->getString("startpage_startmsg");
+		$repl = [
+			"{name}" => $sender,
+			"{myname}" => "<myname>",
+			"{orgname}" => "<myguild>",
+			"{date}" => (new DateTime())->format("l, d-M-Y"),
+			"{time}" => (new DateTime())->format("H:i:s"),
+		];
+		return str_replace(array_keys($repl), array_values($repl), $msg);
+	}
+
+	public function showStartpage(string $sender, CommandReply $sendto, bool $showEmpty=false): void {
 		$tiles = $this->getActiveLayout();
 		if (empty($tiles)) {
-			$sendto->reply("Your startpage is currently <highlight>empty<end>.");
+			if ($showEmpty) {
+				$sendto->reply("Your startpage is currently <highlight>empty<end>.");
+			}
 			return;
 		}
 		$callResults = [];
@@ -197,9 +305,13 @@ class StartpageController {
 			if (count($callResults) < count($tiles)) {
 				return;
 			}
-			ksort($callResults);
-			$blob = join("\n\n", array_filter(array_values($callResults)));
-			$msg = $this->text->makeBlob("Welcome, {$sender}", $blob);
+			ksort($callResults, SORT_NUMERIC);
+			$dataParts = array_filter(array_values($callResults));
+			if (empty($dataParts)) {
+				return;
+			}
+			$blob = join("\n\n", $dataParts);
+			$msg = $this->text->makeBlob($this->getStartpageString($sender), $blob);
 			$sendto->reply($msg);
 		};
 		foreach ($tiles as $name => $tile) {
@@ -214,7 +326,7 @@ class StartpageController {
 	 * @Matches("/^start$/i")
 	 */
 	public function startCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showStartpage($sender, $sendto);
+		$this->showStartpage($sender, $sendto, true);
 	}
 
 	/**
