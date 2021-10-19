@@ -770,7 +770,7 @@ class AltsController {
 	}
 
 	/**
-	 * @NewsTile("alt-info")
+	 * @NewsTile("alts-info")
 	 * @Description("Displays basic information about your alts")
 	 */
 	public function altsTile(string $sender, callable $callback): void {
@@ -801,6 +801,26 @@ class AltsController {
 		$blob = "<header2>Account<end>\n".
 			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
 			"<tab>You have {$altsCommand}.";
+		$callback($blob);
+	}
+
+	/**
+	 * @NewsTile("alts-unvalidated")
+	 * @Description("Show a notice if char has any unvalidated alts")
+	 */
+	public function unvalidatedAltsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		if (!$altInfo->hasUnvalidatedAlts()) {
+			$callback(null);
+			return;
+		}
+		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
+		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
+		foreach ($altInfo->getAllAlts() as $alt) {
+			if (!$altInfo->isValidated($alt)) {
+				$blob .= "\n<tab>- {$alt}";
+			}
+		}
 		$callback($blob);
 	}
 }
