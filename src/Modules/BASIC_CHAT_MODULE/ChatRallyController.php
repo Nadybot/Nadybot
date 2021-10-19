@@ -104,9 +104,9 @@ class ChatRallyController {
 
 		if (is_numeric($args[5])) {
 			$playfieldId = (int)$args[5];
-			$playfieldName = $playfieldId;
+			$playfieldName = (string)$playfieldId;
 
-			$playfield = $this->playfieldController->getPlayfieldById((int)$playfieldId);
+			$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
 			if ($playfield !== null) {
 				$playfieldName = $playfield->short_name;
 			}
