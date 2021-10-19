@@ -350,4 +350,55 @@ class GSPController implements MessageEmitter {
 		$msg = $currentlyPlaying." - ".$lastSongsPage.$this->renderTuneIn($show);
 		return $msg;
 	}
+
+	/**
+	 * @NewsTile("gsp-show")
+	 * @Description("Show the currently running GSP show and location - if any")
+	 */
+	public function gspShowTile(string $sender, callable $callback): void {
+		if (!$this->showRunning) {
+			$callback(null);
+			return;
+		}
+		$msg = "<header2>GSP<end>\n".
+			"<tab>" . $this->getNotificationMessage();
+		$callback($msg);
+	}
+
+	/**
+	 * @NewsTile("gsp")
+	 * @Description("Show what's currently playing on GSP")
+	 */
+	public function gspTile(string $sender, callable $callback): void {
+		$this->http
+				->get(static::GSP_URL)
+				->withTimeout(5)
+				->withCallback([$this, "renderForGspTile"], $callback);
+	}
+
+	public function renderForGspTile(HttpResponse $response, callable $callback): void {
+		if (!isset($response->body) || $response->error) {
+			$callback(null);
+			return;
+		}
+		$show = new Show();
+		try {
+			$show->fromJSON(json_decode($response->body));
+		} catch (JsonException $e) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>GSP<end>\n<tab>";
+		if (empty($show->history)) {
+			$callback($blob . "GSP is currently not playing any music.");
+			return;
+		}
+		$song = array_shift($show->history);
+		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
+		$showInfos = $this->getShowInfos($show);
+		if (strlen($showInfos)) {
+			$showInfos = "\n<tab>" . join("\n<tab>", explode("\n", $showInfos));
+		}
+		$callback("{$blob}{$currentlyPlaying}{$showInfos}");
+	}
 }
