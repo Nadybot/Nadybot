@@ -1,4 +1,45 @@
 *****************************
+	Version 5.2.2
+*****************************
+Features:
+- Rewritten tower module to support Tyrence's tower API as well
+  as manual scouting and mixed mode.
+- New commands !lock/!unlock to lock/unlock the private channel
+  to a certain rank and upwards so you can perform maintenance work
+- Welcome messages: When a file data/welcome.txt exists, new members
+  will get a tell with this in a popup. Used to welcome them, explain
+  basic things like netiquette, rules, etc.
+- Route colors now support the "via" clause. Colors can now be defined
+  depending on which hop (e.g. relay) they pass
+- The track module now allows tracking whole orgs with "!track addorg"
+  Since this will also add their bots, you can now hide and unhide
+  individual chars from the !track online list.
+- Timers are now channels and can be routed.
+- Orglist will now be available immediately after bot start.
+- Profiles now save and restore routes, relays and their colors.
+- New option for !online allows to send 2 tells with online lists
+  (local and alliance)
+- More compatibility options for agcr()
+- Add a new setting that allows to spin up one or more threads
+  that continually lookup missing or outdated player data.
+
+Bugfixes:
+- Support unsupported PFs in !rally
+- Fix GHSA-frqg-7g38-6gcf vulnerability
+- Fix bug in !route color rem
+- Fix possible sleep-bug with websockets
+- Fix relayed online list error when player lookup failed
+- Convert events to messages for Tyrbot
+- Fix gcr message send/receive
+- Fix some tyrbot protocol issues
+
+Other:
+- Changing settings now generates a SettingEvent
+- Add more backtraces to errors and errors better searchable.
+- Use libsodium for encryption if present
+- Return extended help for settings via API
+
+*****************************
 	Version 5.2.1
 *****************************
 Features:

@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.2.1"
+		"version": "5.2.2"
 	},
 	"servers": [
 		{
@@ -244,6 +244,11 @@
 						"nullable": true,
 						"description": "The channel for which to apply these colors or null for all"
 					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply this color if the event was routed via this hop"
+					},
 					"tag_color": {
 						"type": "string",
 						"nullable": true,
@@ -267,6 +272,11 @@
 						"type": "string",
 						"nullable": true,
 						"description": "The channel for which to apply these, or null for all"
+					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply these settings if the event was routed via this hop"
 					},
 					"render": {
 						"type": "boolean",
