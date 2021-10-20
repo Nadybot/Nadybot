@@ -145,6 +145,9 @@ class AsyncHttp {
 	 */
 	public static ?int $overridePort = null;
 
+	/** How often to retry in case of errors */
+	private int $retriesLeft = 5;
+
 	/**
 	 * Create a new instance
 	 */
@@ -377,7 +380,12 @@ class AsyncHttp {
 				break;
 
 			case SocketNotifier::ACTIVITY_WRITE:
-				$this->processRequest();
+				try {
+					$this->processRequest();
+				} catch (HttpRetryException $e) {
+					$this->execute();
+					return;
+				}
 				break;
 
 			case SocketNotifier::ACTIVITY_ERROR:
@@ -390,7 +398,12 @@ class AsyncHttp {
 	 * Process a received response
 	 */
 	private function processResponse(): void {
-		$this->responseData .= $this->readAllFromSocket();
+		try {
+			$this->responseData .= $this->readAllFromSocket();
+		} catch (HttpRetryException $e) {
+			$this->execute();
+			return;
+		}
 
 		if (!$this->isStreamClosed()) {
 			return;
@@ -468,8 +481,20 @@ class AsyncHttp {
 		while (true) {
 			$chunk = fread($this->stream, 8192);
 			if ($chunk === false) {
-				$this->abortWithMessage("Failed to read from the stream for uri '{$this->uri}'");
-				break;
+				if (feof($this->stream)) {
+					if ($this->retriesLeft--) {
+						if ($this->timeoutEvent) {
+							$this->timer->abortEvent($this->timeoutEvent);
+							$this->timeoutEvent = null;
+						}
+						throw new HttpRetryException();
+					}
+					$this->abortWithMessage("Server unexpectedly closed connection");
+					break;
+				} else {
+					$this->abortWithMessage("Failed to read 8192 bytes from the stream");
+					break;
+				}
 			}
 			if (strlen($chunk) === 0) {
 				break; // nothing to read, stop looping
@@ -522,7 +547,15 @@ class AsyncHttp {
 		}
 		$written = fwrite($this->stream, $this->requestData);
 		if ($written === false) {
-			$this->abortWithMessage("Cannot write request headers for uri '{$this->uri}' to stream");
+			if ($this->retriesLeft--) {
+				if ($this->timeoutEvent) {
+					$this->timer->abortEvent($this->timeoutEvent);
+					$this->timeoutEvent = null;
+				}
+				throw new HttpRetryException();
+			} else {
+				$this->abortWithMessage("Cannot write request headers to stream");
+			}
 		} elseif ($written > 0) {
 			$this->requestData = substr($this->requestData, $written);
 

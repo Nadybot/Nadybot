@@ -42,7 +42,8 @@ class MigrateReputationTable implements SchemaMigration {
 			$logger->log(
 				"WARNING",
 				"Error during the conversion of the reputation table: ".
-				$e->getMessage()
+				$e->getMessage(),
+				$e
 			);
 			return;
 		}

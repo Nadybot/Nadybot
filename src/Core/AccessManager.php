@@ -21,6 +21,8 @@ class AccessManager {
 	public const DEL_RANK = "del-rank";
 	public const PERM_BAN = "permanent-ban";
 	public const TEMP_BAN = "temporary-ban";
+	public const LOCK = "lock";
+	public const UNLOCK = "unlock";
 	public const JOIN = "join";
 	public const KICK = "kick";
 	public const LEAVE = "leave";

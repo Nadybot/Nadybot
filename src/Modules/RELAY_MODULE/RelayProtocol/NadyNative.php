@@ -58,7 +58,8 @@ class NadyNative implements RelayProtocolInterface {
 			$this->logger->log(
 				'ERROR',
 				'Cannot send event via Nadynative protocol: '.
-				$e->getMessage()
+				$e->getMessage(),
+				$e
 			);
 			return [];
 		}
@@ -75,7 +76,8 @@ class NadyNative implements RelayProtocolInterface {
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
-				'Invalid data received via Nadynative protocol: '.$data
+				'Invalid data received via Nadynative protocol: '.$data,
+				$e
 			);
 			return null;
 		}
@@ -197,8 +199,8 @@ class NadyNative implements RelayProtocolInterface {
 			foreach ($onlineOrg as $player) {
 				$block->users []= new Character(
 					$player->name,
-					$player->charid,
-					$player->dimension
+					$player->charid ?? null,
+					$player->dimension ?? (int)$this->chatBot->vars['dimension']
 				);
 			}
 			$onlineList->online []= $block;
@@ -219,8 +221,8 @@ class NadyNative implements RelayProtocolInterface {
 		foreach ($onlinePriv as $player) {
 			$privBlock->users []= new Character(
 				$player->name,
-				$player->charid,
-				$player->dimension
+				$player->charid ?? null,
+				$player->dimension ?? (int)$this->chatBot->vars['dimension']
 			);
 		}
 		$onlineList->online []= $privBlock;

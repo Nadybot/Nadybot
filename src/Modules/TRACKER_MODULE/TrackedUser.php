@@ -9,4 +9,5 @@ class TrackedUser extends DBRow {
 	public string $name;
 	public string $added_by;
 	public int $added_dt;
+	public bool $hidden=false;
 }

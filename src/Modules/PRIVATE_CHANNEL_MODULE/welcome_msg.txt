@@ -1,0 +1,10 @@
+The welcome message is the text that is sent to new members
+of the bot if a file data/welcome.txt exists.
+
+The content of data/welcome.txt will be put into a popup and
+the link to this popup is the "click me" in
+&lt;link&gt;click me&lt;/link&gt;.
+
+You are free to use the variable &lt;myname&gt;, which is the botname,
+as well as any supported color like &lt;color&gt;text&lt;end&gt;, e.g.
+&lt;green&gt;I am green&lt;end&gt; or &lt;highlight&gt;important&lt;end&gt;.

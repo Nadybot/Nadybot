@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 	DBSchema\Member,
+	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -37,7 +39,6 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
-	RELAY_MODULE\RelayController
 };
 
 /**
@@ -104,6 +105,18 @@ use Nadybot\Modules\{
  *		description = "Leave command for characters in private channel",
  *		help        = 'private_channel.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'lock',
+ *		accessLevel = 'superadmin',
+ *		description = "Kick everyone and lock the private channel",
+ *		help        = 'lock.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'unlock',
+ *		accessLevel = 'superadmin',
+ *		description = "Allow people to join the private channel again",
+ *		help        = 'lock.txt'
+ *	)
  *	@ProvidesEvent("online(priv)")
  *	@ProvidesEvent("offline(priv)")
  *	@ProvidesEvent("member(add)")
@@ -159,9 +172,6 @@ class PrivateChannelController {
 	public OnlineController $onlineController;
 
 	/** @Inject */
-	public RelayController $relayController;
-
-	/** @Inject */
 	public Timer $timer;
 
 	/** @Inject */
@@ -169,6 +179,12 @@ class PrivateChannelController {
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
+
+	/** If set, the private channel is currently locked for a reason */
+	protected ?string $lockReason = null;
 
 	/** @Setup */
 	public function setup(): void {
@@ -223,6 +239,29 @@ class PrivateChannelController {
 			"true;false",
 			"1;0"
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"welcome_msg_string",
+			"Message to send when welcoming new members",
+			"edit",
+			"text",
+			"<link>Welcome to <myname></link>!",
+			"<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
+			"",
+			"mod",
+			"welcome_msg.txt"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"lock_minrank",
+			"Minimum rank allowed to join private channel during a lock",
+			"edit",
+			"rank",
+			"superadmin",
+			"",
+			"",
+			"superadmin"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -238,6 +277,39 @@ class PrivateChannelController {
 			"member del",
 			"remuser"
 		);
+		$this->settingManager->registerChangeListener(
+			"welcome_msg_string",
+			[$this, "validateWelcomeMsg"]
+		);
+	}
+
+	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
+		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
+			throw new Exception(
+				"You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain ".
+				"tags like &lt;link&gt;, because the AO client escapes the tags. ".
+				"This command is part of the DEV_MODULE."
+			);
+		}
+		if (!preg_match("|<link>.+?</link>|", $new)) {
+			throw new Exception(
+				"Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will ".
+				"then be a popup with the actual welcome message. The link text sits between ".
+				"the tags, e.g. <highlight>&lt;link&gt;click me&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<link>") > 1 || substr_count($new, "</link>") > 1) {
+			throw new Exception(
+				"Your message can only contain a single block of <highlight>&lt;link&gt;&lt;/link&gt;<end>."
+			);
+		}
+		if (substr_count($new, "<") !== substr_count($new, ">")) {
+			throw new Exception("Your text seems to be invalid HTML.");
+		}
+		$stripped = strip_tags($new);
+		if (preg_match("/[<>]/", $stripped)) {
+			throw new Exception("Your text seems to generate invalid HTML.");
+		}
 	}
 
 	/**
@@ -314,6 +386,10 @@ class PrivateChannelController {
 		if (isset($this->chatBot->chatlist[$name])) {
 			$msg = "<highlight>$name<end> is already in the private channel.";
 			$sendto->reply($msg);
+			return;
+		}
+		if ($this->isLockedFor($sender)) {
+			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
 			return;
 		}
 		$invitation = function() use ($name, $sendto, $sender): void {
@@ -625,6 +701,10 @@ class PrivateChannelController {
 	 * @Matches("/^join$/i")
 	 */
 	public function joinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if ($this->isLockedFor($sender)) {
+			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+			return;
+		}
 		if (isset($this->chatBot->chatlist[$sender])) {
 			$msg = "You are already in the private channel.";
 			$sendto->reply($msg);
@@ -662,6 +742,64 @@ class PrivateChannelController {
 	}
 
 	/**
+	 * @HandlesCommand("lock")
+	 * @Matches("/^lock\s+(?<reason>.+)$/i")
+	 */
+	public function lockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (isset($this->lockReason)) {
+			$this->lockReason = trim($args['reason']);
+			$sendto->reply("Lock reason changed.");
+			return;
+		}
+		$this->lockReason = trim($args['reason']);
+		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$sender}: <highlight>{$this->lockReason}<end>");
+		$alRequired = $this->settingManager->getString('lock_minrank');
+		foreach ($this->chatBot->chatlist as $char => $online) {
+			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
+			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
+				$this->chatBot->privategroup_kick($char);
+			}
+		}
+		$sendto->reply("You <red>locked<end> the private channel: {$this->lockReason}");
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->action = AccessManager::LOCK;
+		$audit->value = $this->lockReason;
+		$this->accessManager->addAudit($audit);
+	}
+
+	/**
+	 * @HandlesCommand("unlock")
+	 * @Matches("/^unlock$/i")
+	 */
+	public function unlockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		if (!isset($this->lockReason)) {
+			$sendto->reply("The private channel is currently not locked.");
+			return;
+		}
+		unset($this->lockReason);
+		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
+		$sendto->reply("You <green>unlocked<end> the private channel.");
+		$audit = new Audit();
+		$audit->actor = $sender;
+		$audit->action = AccessManager::UNLOCK;
+		$this->accessManager->addAudit($audit);
+	}
+
+	/**
+	 * @Event("timer(5m)")
+	 * @Description("Send reminder if the private channel is locked")
+	 */
+	public function remindOfLock(): void {
+		if (!isset($this->lockReason)) {
+			return;
+		}
+		$msg = "Reminder: the private channel is currently <red>locked<end>!";
+		$this->chatBot->sendGuild($msg, true);
+		$this->chatBot->sendPrivate($msg, true);
+	}
+
+	/**
 	 * @Event("connect")
 	 * @Description("Adds all members as buddies")
 	 */
@@ -690,6 +828,9 @@ class PrivateChannelController {
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
 		if ($uid === false) {
+			return;
+		}
+		if ($this->isLockedFor($sender)) {
 			return;
 		}
 		$this->banController->handleBan(
@@ -934,7 +1075,6 @@ class PrivateChannelController {
 	 */
 	public function joinPrivateChannelShowOnlineEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
-		$msg = "";
 		$msg = $this->onlineController->getOnlineList();
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
@@ -971,6 +1111,39 @@ class PrivateChannelController {
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
 
+	/**
+	 * @Event("member(add)")
+	 * @Description("Send welcome message data/welcome.txt to new members")
+	 */
+	public function sendWelcomeMessage(MemberEvent $event): void {
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		if (!@file_exists("{$dataPath}/welcome.txt")) {
+			return;
+		}
+		error_clear_last();
+		$content = @file_get_contents("{$dataPath}/welcome.txt");
+		if ($content === false) {
+			$error = error_get_last();
+			if (isset($error)) {
+				$error = ": " . $error["message"];
+			} else {
+				$error = "";
+			}
+			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
+			return;
+		}
+		$msg = $this->settingManager->getString("welcome_msg_string");
+		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
+			$msg = (array)$this->text->makeBlob($matches[2], $content);
+			foreach ($msg as &$part) {
+				$part = "{$matches[1]}{$part}{$matches[3]}";
+			}
+		} else {
+			$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+		}
+		$this->chatBot->sendMassTell($msg, $event->sender);
+	}
+
 	public function removeUser(string $name, string $sender): string {
 		$name = ucfirst(strtolower($name));
 
@@ -989,5 +1162,17 @@ class PrivateChannelController {
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
+	}
+
+	/**
+	 * Check if the private channel is currently locked for a character
+	 */
+	public function isLockedFor(string $sender): bool {
+		if (!isset($this->lockReason)) {
+			return false;
+		}
+		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
+		$alRequired = $this->settingManager->getString('lock_minrank');
+		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 }

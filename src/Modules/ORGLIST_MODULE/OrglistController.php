@@ -130,6 +130,10 @@ class OrglistController {
 	 */
 	public function getMatches(string $search, callable $callback): void {
 		$orgs = $this->findOrgController->lookupOrg($search);
+		if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
+			$callback($orgs);
+			return;
+		}
 
 		// check if search is a character and add character's org to org list if it's not already in the list
 		$name = ucfirst(strtolower($search));
@@ -146,12 +150,10 @@ class OrglistController {
 					}
 				}
 
-				$obj = new Organization();
-				$obj->name = $whois->guild;
-				$obj->id = $whois->guild_id;
-				$obj->faction = $whois->faction;
-				$obj->num_members = 0;
-				$orgs []= $obj;
+				$obj = $this->findOrgController->getByID($whois->guild_id);
+				if (isset($obj)) {
+					$orgs []= $obj;
+				}
 				$callback($orgs);
 			},
 			$name

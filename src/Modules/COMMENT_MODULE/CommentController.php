@@ -196,7 +196,7 @@ class CommentController {
 				}
 			}
 		} catch (SQLException $e) {
-			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage());
+			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage(), $e);
 			$this->db->rollback();
 			$this->db->registerTableName("comments", $oldCommentTable);
 			$this->db->registerTableName("comment_categories", $oldCategoryTable);

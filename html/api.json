@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.2.1"
+		"version": "5.2.2"
 	},
 	"servers": [
 		{
@@ -184,6 +184,10 @@
 					"description": {
 						"type": "string",
 						"description": "A description of what this setting is for"
+					},
+					"help": {
+						"type": "string",
+						"nullable": true
 					}
 				}
 			},
@@ -240,6 +244,11 @@
 						"nullable": true,
 						"description": "The channel for which to apply these colors or null for all"
 					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply this color if the event was routed via this hop"
+					},
 					"tag_color": {
 						"type": "string",
 						"nullable": true,
@@ -264,6 +273,11 @@
 						"nullable": true,
 						"description": "The channel for which to apply these, or null for all"
 					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply these settings if the event was routed via this hop"
+					},
 					"render": {
 						"type": "boolean",
 						"description": "Whether to render this tag or not"
@@ -271,6 +285,37 @@
 					"format": {
 						"type": "string",
 						"description": "The format what the text of the tag should look like"
+					}
+				}
+			},
+			"Audit": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "ID of this audit entry"
+					},
+					"actor": {
+						"type": "string",
+						"description": "The person doing something"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person the actor is interacting with. Not set if not applicable"
+					},
+					"action": {
+						"type": "string",
+						"description": "What did the actor do"
+					},
+					"value": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional value for the action"
+					},
+					"time": {
+						"type": "integer",
+						"description": "time when it happened"
 					}
 				}
 			},
@@ -529,37 +574,6 @@
 						"items": {
 							"$ref": "#/components/schemas/ChannelInfo"
 						}
-					}
-				}
-			},
-			"Audit": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "ID of this audit entry"
-					},
-					"actor": {
-						"type": "string",
-						"description": "The person doing something"
-					},
-					"actee": {
-						"type": "string",
-						"nullable": true,
-						"description": "The person the actor is interacting with. Not set if not applicable"
-					},
-					"action": {
-						"type": "string",
-						"description": "What did the actor do"
-					},
-					"value": {
-						"type": "string",
-						"nullable": true,
-						"description": "Optional value for the action"
-					},
-					"time": {
-						"type": "integer",
-						"description": "time when it happened"
 					}
 				}
 			},
@@ -1738,7 +1752,7 @@
 				]
 			}
 		},
-		"/sysinfo": {
+		"/profile": {
 			"parameters": [],
 			"get": {
 				"security": [
@@ -1746,21 +1760,166 @@
 						"basicAuth": []
 					}
 				],
-				"description": "Get system information",
+				"description": "Get a list of saved profiles",
 				"responses": {
 					"200": {
-						"description": "Some basic system information",
+						"description": "A list of saved profiled",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/SystemInformation"
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
 								}
 							}
 						}
 					}
 				},
 				"tags": [
-					"system"
+					"profile"
+				]
+			}
+		},
+		"/profile/{profile}": {
+			"parameters": [
+				{
+					"name": "profile",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "View a profile",
+				"responses": {
+					"200": {
+						"description": "Profile found and shown",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete a profile",
+				"responses": {
+					"204": {
+						"description": "Profile successfully deleted"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile saved successfully"
+					},
+					"409": {
+						"description": "Profile already exists"
+					}
+				},
+				"tags": [
+					"profile"
 				]
 			}
 		},
@@ -1844,7 +2003,34 @@
 					}
 				},
 				"tags": [
+					"security",
 					"audit"
+				]
+			}
+		},
+		"/sysinfo": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get system information",
+				"responses": {
+					"200": {
+						"description": "Some basic system information",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SystemInformation"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"system"
 				]
 			}
 		},

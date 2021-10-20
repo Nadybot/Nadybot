@@ -45,7 +45,7 @@ class WebChatConverter {
 			$newHop = clone $hop;
 			$newHop->renderAs = $newHop->render($lastHop);
 			$lastHop = $hop;
-			$color = $this->messageHub->getHopColor(Source::WEB, $newHop->type, $newHop->name, "tag_color");
+			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, "tag_color");
 			if (isset($color)) {
 				$newHop->color = $color->tag_color;
 			} else {

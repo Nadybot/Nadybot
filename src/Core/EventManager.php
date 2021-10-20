@@ -66,7 +66,7 @@ class EventManager {
 		$this->logger->log('DEBUG', "Registering event Type:($type) Handler:($filename) Module:($module)");
 
 		if (!$this->isValidEventType($type) && $this->getTimerEventTime($type) === 0) {
-			$this->logger->log('ERROR', "Error registering event Type:($type) Handler:($filename) Module:($module). The type is not a recognized event type!");
+			$this->logger->log('ERROR', "Error registering event Type $type, Handler $filename in Module $module: The type is not a recognized event type!");
 			return;
 		}
 
@@ -109,7 +109,7 @@ class EventManager {
 						"help" => $help,
 					]);
 		} catch (SQLException $e) {
-			$this->logger->log('ERROR', "Error registering method $filename for event type $type: " . $e->getMessage());
+			$this->logger->log('ERROR', "Error registering method $filename for event type $type: " . $e->getMessage(), $e);
 		}
 	}
 
@@ -412,6 +412,9 @@ class EventManager {
 		}
 		foreach ($this->eventTypes as $check) {
 			if (fnmatch($type, $check, FNM_CASEFOLD)) {
+				return true;
+			}
+			if (strpos($check, "*") !== false && fnmatch($check, $type, FNM_CASEFOLD)) {
 				return true;
 			}
 		}

@@ -59,7 +59,7 @@ class Tyrbot implements RelayProtocolInterface {
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->encodeMessage($event);
 		} elseif ($event->data instanceof Online) {
-			return $this->encodeUserStateChange($event, $event->data);
+			return [...$this->encodeUserStateChange($event, $event->data), ...$this->encodeMessage($event)];
 		}
 		return [];
 	}
@@ -86,13 +86,13 @@ class Tyrbot implements RelayProtocolInterface {
 			"name" => $event->path[0]->name,
 			"server" => $event->path[0]->server,
 		];
-		if (isset($event->path[0]->label)) {
+		if (strlen($event->path[0]->label??"")) {
 			$source['label'] = $event->path[0]->label;
 		}
 		$lastHop = $event->path[count($event->path)-1];
 		$source['type'] = $this->nadyTypeToTyr($lastHop->type);
 		if (count($event->path) > 1) {
-			$source['channel'] = $lastHop->label ?? $lastHop->name;
+			$source['channel'] = (strlen($lastHop->label??"")) ? $lastHop->label : $lastHop->name;
 		}
 		return $source;
 	}
@@ -102,7 +102,7 @@ class Tyrbot implements RelayProtocolInterface {
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
 		} elseif (isset($event->data) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
 		}
 		$packet = [
 			"type" => "message",
@@ -121,7 +121,7 @@ class Tyrbot implements RelayProtocolInterface {
 		try {
 			$data = $this->jsonEncode($packet);
 		} catch (JsonException $e) {
-			$this->logger->log('ERROR', "Error ecoding Tyrbot message: " . $e->getMessage());
+			$this->logger->log('ERROR', "Error ecoding Tyrbot message: " . $e->getMessage(), $e);
 			return [];
 		}
 		return [$data];
@@ -140,15 +140,16 @@ class Tyrbot implements RelayProtocolInterface {
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
-				"Invalid data received via Tyrbot protocol: {$serialized}"
+				"Invalid data received via Tyrbot protocol: {$serialized}",
+				$e
 			);
 			return null;
 		} catch (Throwable $e) {
 			$this->logger->log(
 				'ERROR',
-				"Invalid Tyrbot-package received: {$serialized}"
+				"Invalid Tyrbot-package received: {$serialized}",
+				$e
 			);
-			$this->logger->log('ERROR', $e->getMessage());
 			return null;
 		}
 
@@ -221,13 +222,13 @@ class Tyrbot implements RelayProtocolInterface {
 			"online" => []
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild');
-		if (isset($this->chatBot->vars["my_guild"])) {
+		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			$orgSource = [
 				"name" => $this->chatBot->vars["my_guild"],
 				"server" => (int)$this->chatBot->vars["dimension"],
 			];
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
-			if (isset($orgLabel) && $orgLabel !== "none") {
+			if (strlen($orgLabel??"") && $orgLabel !== "none") {
 				$orgSource['label'] = $orgLabel;
 			}
 			$orgSource['type'] = "org";
@@ -249,8 +250,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"name" => $this->chatBot->char->name,
 			"server" => (int)$this->chatBot->vars["dimension"],
 		];
-		if (isset($this->chatBot->vars["my_guild"])) {
-			$privSource["name"] = $orgSource["name"];
+		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
 			}

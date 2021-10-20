@@ -39,6 +39,8 @@ class ModuleSetting {
 	/** A description of what this setting is for */
 	public string $description = "Description missing";
 
+	public ?string $help = null;
+
 	public function __construct(Setting $setting) {
 		$this->editable = $setting->mode === 'edit';
 		$this->description = $setting->description;

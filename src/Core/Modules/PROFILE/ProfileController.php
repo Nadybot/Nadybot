@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -19,7 +20,11 @@ use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
 	EventCfg,
+	RouteHopColor,
+	RouteHopFormat,
 };
+use Nadybot\Core\Routing\Source;
+use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
  * @author Tyrence (RK2)
@@ -60,10 +65,16 @@ class ProfileController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public MessageHub $messageHub;
+
+	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
 	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public RelayController $relayController;
 
 	private string $path;
 
@@ -82,13 +93,13 @@ class ProfileController {
 	}
 
 	/**
-	 * @HandlesCommand("profile")
-	 * @Matches("/^profile$/i")
+	 * Get a list of all stored profiles
+	 *
+	 * @return string[]
 	 */
-	public function profileListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function getProfileList(): array {
 		if (($handle = opendir($this->path)) === false) {
-			$msg = "Could not open profiles directory.";
-			$sendto->reply($msg);
+			throw new Exception("Could not open profiles directory.");
 		}
 		$profileList = [];
 
@@ -102,6 +113,20 @@ class ProfileController {
 		closedir($handle);
 
 		sort($profileList);
+		return $profileList;
+	}
+
+	/**
+	 * @HandlesCommand("profile")
+	 * @Matches("/^profile$/i")
+	 */
+	public function profileListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+		try {
+			$profileList = $this->getProfileList();
+		} catch (Exception $e) {
+			$sendto->reply($e->getMessage());
+			return;
+		}
 
 		$linkContents = '';
 		foreach ($profileList as $profile) {
@@ -144,12 +169,19 @@ class ProfileController {
 	 * @Matches("/^profile save ([a-z0-9_-]+)$/i")
 	 */
 	public function profileSaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profileName = $args[1];
+		try {
+			$this->saveProfile($args[1]);
+		} catch (Exception $e) {
+			$sendto->reply($e->getMessage());
+		}
+		$msg = "Profile <highlight>{$args[1]}<end> has been saved.";
+		$sendto->reply($msg);
+	}
+
+	public function saveProfile(string $profileName): bool {
 		$filename = $this->getFilename($profileName);
 		if (@file_exists($filename)) {
-			$msg = "Profile <highlight>$profileName<end> already exists.";
-			$sendto->reply($msg);
-			return;
+			throw new Exception("Profile <highlight>$profileName<end> already exists.");
 		}
 		$contents = "# Settings\n";
 		foreach ($this->settingManager->settings as $name => $value) {
@@ -189,9 +221,45 @@ class ProfileController {
 			$contents .= "!alias rem {$row->alias}\n";
 			$contents .= "!alias add {$row->alias} {$row->cmd}\n";
 		}
-		file_put_contents($filename, $contents);
-		$msg = "Profile <highlight>$profileName<end> has been saved.";
-		$sendto->reply($msg);
+
+		$contents .= "\n# Relays\n".
+			"!relay remall\n".
+			join("\n", $this->relayController->getRelayDump()) . "\n";
+
+		$contents .= "\n# Routes\n".
+			"!route remall\n".
+			join("\n", $this->messageHub->getRouteDump(true)) . "\n";
+
+		$contents .= "\n# Route colors\n".
+			"!route color remall\n";
+		/** @var RouteHopColor[] */
+		$data = $this->db->table(MessageHub::DB_TABLE_COLORS)
+			->asObj(RouteHopColor::class)->toArray();
+		foreach ($data as $row) {
+			foreach (["text", "tag"] as $color) {
+				if (isset($row->{"{$color}_color"})) {
+					$contents .= "!route color {$color} set {$row->hop} ";
+					if (isset($row->where)) {
+						$contents .= "-> {$row->where} ";
+					}
+					$contents .= $row->{"{$color}_color"} . "\n";
+				}
+			}
+		}
+
+		$contents .= "\n# Route format\n".
+			"!route format remall\n";
+		/** @var RouteHopFormat[] */
+		$data = $this->db->table(Source::DB_TABLE)
+			->asObj(RouteHopFormat::class)->toArray();
+		foreach ($data as $row) {
+			if ($row->render === false) {
+				$contents .= "!route format render {$row->hop} false\n";
+			}
+			$contents .= "!route format display {$row->hop} {$row->format}\n";
+		}
+
+		return file_put_contents($filename, $contents) !== false;
 	}
 
 	/**
@@ -324,7 +392,7 @@ class ProfileController {
 			}
 			return $profileSendTo->result;
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Could not load profile", $e);
+			$this->logger->log("ERROR", "Could not load profile: " . $e->getMessage(), $e);
 			$this->db->rollback();
 			return null;
 		}

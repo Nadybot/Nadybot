@@ -10,6 +10,8 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	LoggerWrapper,
+	MessageHub,
+	MessageEmitter,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -19,6 +21,8 @@ use Nadybot\Core\{
 	Util,
 	Modules\DISCORD\DiscordController,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -43,7 +47,7 @@ use Nadybot\Core\{
  * @ProvidesEvent("timer(end)")
  * @ProvidesEvent("timer(del)")
  */
-class TimerController {
+class TimerController implements MessageEmitter {
 
 	public const DB_TABLE = "timers_<myname>";
 
@@ -61,6 +65,9 @@ class TimerController {
 
 	/** @Inject */
 	public AccessManager $accessManager;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	/** @Inject */
 	public Text $text;
@@ -85,6 +92,10 @@ class TimerController {
 
 	/** @var Timer[] */
 	private $timers = [];
+
+	public function getChannelName(): string {
+		return Source::SYSTEM . "(timers)";
+	}
 
 	/**
 	 * @Setup
@@ -117,27 +128,18 @@ class TimerController {
 			'mod',
 			'timer_alert_times.txt'
 		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'timer_alert_location',
-			'Where to display timer alerts',
-			'edit',
-			"options",
-			"0",
-			"Source only;Source+Priv;Source+Guild;Source+Priv+Guild;Source+Discord;Source+Discord+Priv;Source+Discord+Guild;Source+Discord+Priv+Guild",
-			"0;1;2;3;4;5;6;7"
-		);
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',
 			[$this, 'changeTimerAlertTimes']
 		);
+		$this->messageHub->registerMessageEmitter($this);
 	}
 
 	/** @return Collection<Timer> */
 	public function readAllTimers(): Collection {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
-			->select("id", "name", "owner", "mode", "endtime", "settime")
+			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
 			->addSelect("callback", "data", "alerts AS alerts_raw")
 			->asObj(Timer::class);
 		foreach ($data as $row) {
@@ -223,12 +225,30 @@ class TimerController {
 		$endTime = (int)$timer->data + $alert->time;
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->setting->timer_alert_times));
 		$this->remove($timer->id);
-		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data);
+		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
 	}
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$msg = $alert->message;
-		$mode = explode(",", $timer->mode);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(Source::SYSTEM, "timers"));
+		if (!isset($timer->mode) || $timer->mode === "") {
+			$delivered = false;
+			if ($this->messageHub->handle($rMsg) === MessageHub::EVENT_DELIVERED) {
+				$delivered = true;
+			}
+			if (isset($timer->origin) && !$this->messageHub->hasRouteFromTo($this->getChannelName(), $timer->origin)) {
+				$receiver = $this->messageHub->getReceiver($timer->origin);
+				if (isset($receiver)) {
+					$receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin));
+					$delivered = true;
+				}
+			}
+			if ($delivered) {
+				return;
+			}
+		}
+		$mode = strlen($timer->mode??"") ? explode(",", $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
@@ -242,9 +262,16 @@ class TimerController {
 				$sent = true;
 			}
 		}
-		if ($sent === false) {
-			$this->chatBot->sendMassTell($msg, $timer->owner);
+		if ($sent) {
+			return;
 		}
+		if (preg_match("/^(discordmsg|console)/", $timer->origin??"")) {
+			$receiver = $this->messageHub->getReceiver($timer->origin);
+			if (isset($receiver) && $receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
+				return;
+			}
+		}
+		$this->chatBot->sendMassTell($msg, $timer->owner);
 	}
 
 	/**
@@ -258,15 +285,7 @@ class TimerController {
 		$timeString = $args[3];
 		$timerName = $args[4];
 
-		$timerName = preg_replace("/^\+discord\s*/i", "", $timerName, -1, $addDiscord);
-		if ($addDiscord > 0) {
-			$alertChannel = $this->getTimerAlertChannel($channel, "discord");
-			if (empty($timerName)) {
-				$timerName = $sender;
-			}
-		} else {
-			$alertChannel = $this->getTimerAlertChannel($channel);
-		}
+		$alertChannel = $this->getTimerAlertChannel($channel);
 
 		$timer = $this->get($timerName);
 		if ($timer !== null) {
@@ -294,7 +313,8 @@ class TimerController {
 
 		$alerts = $this->generateAlerts($sender, $timerName, $endTime, explode(' ', $this->setting->timer_alert_times));
 
-		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime);
+		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
+		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime, $origin);
 
 		$initialTimerSet = $this->util->unixtimeToReadable($initialRunTime);
 		$timerSet = $this->util->unixtimeToReadable($runTime);
@@ -353,17 +373,7 @@ class TimerController {
 		if ($channels === ["msg"]) {
 			return "msg";
 		}
-		$location = $this->settingManager->getInt('timer_alert_location');
-		if ($location & 1) {
-			$channels []= "priv";
-		}
-		if ($location & 2) {
-			$channels []= "guild";
-		}
-		if ($location & 4) {
-			$channels []= "discord";
-		}
-		return join(",", array_values(array_unique($channels)));
+		return "";
 	}
 
 	/**
@@ -383,17 +393,10 @@ class TimerController {
 		} else {
 			$runTime = $this->util->parseTime($timeString);
 		}
-		$name = preg_replace("/^\+discord\s*/i", "", $name, -1, $addDiscord);
-		if ($addDiscord > 0) {
-			$alertChannel = $this->getTimerAlertChannel($channel, "discord");
-			if (empty($name)) {
-				$name = $sender;
-			}
-		} else {
-			$alertChannel = $this->getTimerAlertChannel($channel);
-		}
+		$alertChannel = $this->getTimerAlertChannel($channel);
 
-		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel);
+		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
+		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
 	}
 
@@ -483,7 +486,7 @@ class TimerController {
 	 * @return string Message to display
 	 * @throws SQLException
 	 */
-	public function addTimer(string $sender, string $name, int $runTime, string $channel, ?array $alerts=null): string {
+	public function addTimer(string $sender, string $name, int $runTime, ?string $channel=null, ?array $alerts=null, ?string $origin=null): string {
 		if ($name === '') {
 			return '';
 		}
@@ -506,7 +509,7 @@ class TimerController {
 			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
 		}
 
-		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback');
+		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback', null, $origin);
 
 		$timerset = $this->util->unixtimeToReadable($runTime);
 		return "Timer <highlight>$name<end> has been set for <highlight>$timerset<end>.";
@@ -515,7 +518,7 @@ class TimerController {
 	/**
 	 * @param Alert[] $alerts
 	 */
-	public function add(string $name, string $owner, string $mode, array $alerts, string $callback, string $data=null): int {
+	public function add(string $name, string $owner, ?string $mode=null, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
 		usort($alerts, function(Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
@@ -523,11 +526,12 @@ class TimerController {
 		$timer = new Timer();
 		$timer->name = $name;
 		$timer->owner = $owner;
-		$timer->mode = $mode;
 		$timer->endtime = end($alerts)->time;
 		$timer->settime = time();
 		$timer->callback = $callback;
 		$timer->data = $data;
+		$timer->origin = $origin;
+		$timer->mode = strlen($mode??"") ? $mode : null;
 		$timer->alerts = $alerts;
 
 		$event = new TimerEvent();
@@ -538,7 +542,8 @@ class TimerController {
 			->insertGetId([
 				"name" => $name,
 				"owner" => $owner,
-				"mode" => $mode,
+				"mode" => $timer->mode,
+				"origin" => $timer->origin,
 				"endtime" => $timer->endtime,
 				"settime" => $timer->settime,
 				"callback" => $callback,

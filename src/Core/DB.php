@@ -15,6 +15,7 @@ use ReflectionProperty;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
 use Throwable;
@@ -523,7 +524,8 @@ class DB {
 				$this->logger->log(
 					"WARN",
 					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
-					"consider upgrading to the latest MariaDB or use SQLite."
+					"consider upgrading to the latest MariaDB or use SQLite.",
+					$e
 				);
 				return 1;
 			}
@@ -830,8 +832,16 @@ class DB {
 
 	/**
 	 * Update a DBRow $row in the database table $table, using property $key in the where
+	 *
+	 * @param string $table Name of the database table
+	 * @param string|string[] $key Name of the primary key or array of the primary keys
+	 * @param DBRow $row The data to update
+	 * @return int Number of updates records
 	 */
-	public function update(string $table, string $key, DBRow $row): int {
+	public function update(string $table, $key, DBRow $row): int {
+		if (!is_string($key) && !is_array($key)) {
+			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
+		}
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$updates = [];
@@ -847,9 +857,11 @@ class DB {
 				}
 			}
 		}
-		return $this->table($table)
-			->where($key, $row->{$key})
-			->update($updates);
+		$query = $this->table($table);
+		foreach ((array)$key as $k) {
+			$query->where($k, $row->{$k});
+		}
+		return $query->update($updates);
 	}
 
 	/** Register a table name for a key */
@@ -981,7 +993,7 @@ class DB {
 		try {
 			require_once $file;
 		} catch (Throwable $e) {
-			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage());
+			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage(), $e);
 			return;
 		}
 		$new = array_diff(get_declared_classes(), $old);
@@ -1001,7 +1013,8 @@ class DB {
 				$this->logger->log(
 					'ERROR',
 					"Error executing {$class}::migrate(): ".
-						$e->getMessage()
+						$e->getMessage(),
+					$e
 				);
 				continue;
 			}
@@ -1097,7 +1110,7 @@ class DB {
 				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
-			$this->logger->log('ERROR', $e->getMessage());
+			$this->logger->log('ERROR', $e->getMessage(), $e);
 			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);

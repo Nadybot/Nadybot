@@ -69,6 +69,11 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> $commands */
 	public array $commands;
 
+	/** @Setup */
+	public function setup(): void {
+		$this->messageHub->registerMessageEmitter($this);
+	}
+
 	/**
 	 * Registers a command
 	 *
@@ -143,7 +148,7 @@ class CommandManager implements MessageEmitter {
 						["module", "verify", "file", "description", "help"]
 					);
 			} catch (SQLException $e) {
-				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command': " . $e->getMessage());
+				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command': " . $e->getMessage(), $e);
 			}
 		}
 	}

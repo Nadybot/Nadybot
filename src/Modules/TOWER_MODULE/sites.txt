@@ -1,0 +1,10 @@
+To get a list of all tower sites without owner:
+<tab><highlight><symbol>sites<end>
+
+To get a list of all tower sites owned by an org:
+<tab><highlight><symbol>sites 'org name'<end>
+or
+<tab><highlight><symbol>sites 'org id'<end>
+
+To see all of Athen Paladin's tower sites:
+<tab><highlight><symbol>sites athen paladins<end>

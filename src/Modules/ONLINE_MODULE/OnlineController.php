@@ -48,7 +48,12 @@ use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 class OnlineController {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
+	protected const GROUP_BY_ORG = 1;
 	protected const GROUP_BY_PROFESSION = 2;
+
+	protected const RELAY_OFF = 0;
+	protected const RELAY_YES = 1;
+	protected const RELAY_SEPARATE = 2;
 
 	protected const RAID_OFF = 0;
 	protected const RAID_IN = 1;
@@ -125,8 +130,8 @@ class OnlineController {
 			"edit",
 			"options",
 			"0",
-			"true;false",
-			"1;0"
+			"No;Always;In a separate message",
+			"0;1;2"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -135,6 +140,16 @@ class OnlineController {
 			"edit",
 			"options",
 			"1",
+			"Show org and rank;Show rank only;Show org only;Show no org info",
+			"2;1;3;0"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_show_org_guild_relay",
+			"Show org/rank for players in your relays",
+			"edit",
+			"options",
+			"0",
 			"Show org and rank;Show rank only;Show org only;Show no org info",
 			"2;1;3;0"
 		);
@@ -176,6 +191,16 @@ class OnlineController {
 			"options",
 			"1",
 			"do not group;player;profession",
+			"0;1;2"
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"online_relay_group_by",
+			"Group relay online list by",
+			"edit",
+			"options",
+			"1",
+			"do not group;org;profession",
 			"0;1;2"
 		);
 		$this->settingManager->add(
@@ -224,7 +249,7 @@ class OnlineController {
 	 * @Matches("/^online all$/i")
 	 */
 	public function onlineAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getOnlineList(true);
+		$msg = $this->getOnlineList(1);
 		$sendto->reply($msg);
 	}
 
@@ -343,7 +368,7 @@ class OnlineController {
 	public function showOnlineOnLogonEvent(Event $eventObj): void {
 		$sender = $eventObj->sender;
 		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			$msg = $this->getOnlineList(false);
+			$msg = $this->getOnlineList();
 			$this->chatBot->sendMassTell($msg, $sender);
 		}
 	}
@@ -559,25 +584,69 @@ class OnlineController {
 	}
 
 	/**
+	 * Group the relay online list as configured
+	 *
+	 * @param array<string,Relay> $relays
+	 * @return array<string,OnlinePlayer[]>
+	 */
+	protected function groupRelayList(array $relays): array {
+		$groupBy = $this->settingManager->getInt('online_relay_group_by');
+		if ($groupBy === self::GROUP_OFF) {
+			$key = 'Alliance';
+		}
+		$result = [];
+		foreach ($this->relayController->relays as $name => $relay) {
+			$online = $relay->getOnlineList();
+			foreach ($online as $chanName => $onlineChars) {
+				if ($groupBy === self::GROUP_BY_ORG) {
+					$key = $chanName;
+				}
+				$chars = array_values($onlineChars);
+				foreach ($chars as $char) {
+					if ($groupBy === self::GROUP_BY_PROFESSION) {
+						$key = $char->profession ?? "Unknown";
+						$profIcon = "?";
+						if ($char->profession !== null) {
+							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($char->profession).">";
+						}
+						$key = "{$profIcon} {$key}";
+					}
+					$result[$key] ??= [];
+					$result[$key][$char->name] = $char;
+				}
+			}
+		}
+		foreach ($result as $key => &$chars) {
+			$chars = array_values($chars);
+			usort($chars, function(OnlinePlayer $a, OnlinePlayer $b): int {
+				return strcasecmp($a->name, $b->name);
+			});
+		}
+		uksort($result, function (string $a, string $b): int {
+			return strcasecmp(strip_tags($a), strip_tags($b));
+		});
+
+		return $result;
+	}
+
+	/**
 	 * Get a page or multiple pages with the online list
 	 * @return string[]
 	 */
-	public function getOnlineList(bool $includeRelay=null): array {
-		$includeRelay ??= $this->settingManager->getBool("online_show_relay");
+	public function getOnlineList(int $includeRelay=null): array {
+		$includeRelay ??= $this->settingManager->getInt("online_show_relay");
 		$orgData = $this->getPlayers('guild');
 		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild"));
 
 		$privData = $this->getPlayers('priv');
 		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
 
+		$relayGrouped = $this->groupRelayList($this->relayController->relays);
 		/** @var array<string,OnlineList> */
 		$relayList = [];
-		foreach ($this->relayController->relays as $name => $relay) {
-			$online = $relay->getOnlineList();
-			foreach ($online as $chanName => $onlineChars) {
-				$chars = array_values($onlineChars);
-				$relayList[$chanName] = $this->formatData($chars, 0, static::GROUP_OFF);
-			}
+		$relayOrgInfo = $this->settingManager->getInt("online_show_org_guild_relay");
+		foreach ($relayGrouped as $group => $chars) {
+			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
 		}
 
 		$discData = [];
@@ -616,36 +685,53 @@ class OnlineController {
 			$blob .= "\n\n";
 		}
 
-		if ($includeRelay) {
+		$blob2 = '';
+		$allianceTotalCount = 0;
+		$allianceTotalMain = 0;
+		if ($includeRelay !== self::RELAY_OFF) {
 			foreach ($relayList as $chanName => $chanList) {
 				if ($chanList->count > 0) {
-					$blob .= "<header2>{$chanName} ({$chanList->count})<end>\n".
-						$chanList->blob ."\n\n";
-					$totalCount += $chanList->count;
-					$totalMain += $chanList->countMains;
+					$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
+						$chanList->blob ."\n";
+					if ($includeRelay === self::RELAY_YES) {
+						$blob .= $part;
+					} elseif ($includeRelay === self::RELAY_SEPARATE) {
+						$blob2 .= $part;
+					}
+					$allianceTotalCount += $chanList->count;
+					$allianceTotalMain += $chanList->countMains;
 				}
 			}
 		}
+		if ($includeRelay !== self::RELAY_SEPARATE) {
+			$totalCount += $allianceTotalCount;
+			$totalMain += $allianceTotalMain;
+		}
 
+		$msg = [];
 		if ($totalCount > 0) {
 			$blob .= "Originally written by Naturarum (RK2)";
-			$msg = $this->text->makeBlob("Players Online ($totalMain)", $blob);
-		} else {
-			$msg = "Players Online (0)";
+			$msg = (array)$this->text->makeBlob("Players Online ($totalMain)", $blob);
 		}
-		return (array)$msg;
+		if ($allianceTotalCount > 0 && $includeRelay === self::RELAY_SEPARATE) {
+			$msg = [...$msg, ...(array)$this->text->makeBlob("Players Online in alliance ($allianceTotalMain)", $blob2)];
+		}
+		if (empty($msg)) {
+			$msg = (array)"Players Online (0)";
+		}
+		return $msg;
 	}
 
 	public function getOrgInfo(int $showOrgInfo, string $fancyColon, string $guild, string $guild_rank): string {
 		switch ($showOrgInfo) {
 			case 3:
-				  return $guild !== "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
+				return $guild !== "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
 			case 2:
-				  return $guild !== "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
+				return $guild !== "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
 			case 1:
-				  return $guild !== "" ? " $fancyColon {$guild_rank}":"";
+				return $guild !== "" ? " $fancyColon {$guild_rank}":"";
 			default:
-				  return "";
+				return "";
 		}
 	}
 

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSOCKET_MODULE;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
+use Nadybot\Core\MessageEmitter;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
@@ -13,7 +14,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
-class WebsocketCommandReply implements CommandReply {
+class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	/** @Inject */
 	public Nadybot $chatBot;
 
@@ -33,6 +34,10 @@ class WebsocketCommandReply implements CommandReply {
 
 	public function __construct(string $type) {
 		$this->type = $type;
+	}
+
+	public function getChannelName(): string {
+		return Source::WEB;
 	}
 
 	public function reply($msg): void {
@@ -58,7 +63,7 @@ class WebsocketCommandReply implements CommandReply {
 				new Source(Source::WEB, "Web")
 			];
 			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
-			$color = $this->messageHub->getHopColor(Source::WEB, Source::WEB, "Web", "tag_color");
+			$color = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
 			if (isset($color) && isset($color->tag_color)) {
 				$xmlMessage->path[0]->color = $color->tag_color;
 			} else {

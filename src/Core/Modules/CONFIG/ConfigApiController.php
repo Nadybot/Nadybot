@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	DBSchema\Setting,
 	EventManager,
+	HelpManager,
 	InsufficientAccessException,
 	SettingManager,
 };
@@ -19,6 +20,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
 /**
  * @Instance
@@ -39,6 +41,12 @@ class ConfigApiController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public HelpManager $helpManager;
+
+	/** @Inject */
+	public WebChatConverter $webChatConverter;
 
 	/** @Inject */
 	public DB $db;
@@ -317,6 +325,16 @@ class ConfigApiController {
 		$result = [];
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
+			if (strlen($setting->getData()->help??"") > 0) {
+				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs);
+				if ($help !== null) {
+					$modSet->help = $this->webChatConverter->toXML(
+						$this->webChatConverter->parseAOFormat(
+							trim($help)
+						)
+					);
+				}
+			}
 			if ($modSet->type === $modSet::TYPE_DISCORD_CHANNEL) {
 				$modSet->options = $this->discordRelayController->getChannelOptionList();
 			}

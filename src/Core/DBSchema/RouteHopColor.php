@@ -17,6 +17,9 @@ class RouteHopColor extends DBRow {
 	/** The channel for which to apply these colors or null for all */
 	public ?string $where;
 
+	/** Only apply this color if the event was routed via this hop */
+	public ?string $via;
+
 	/** The 6 hex digits of the tag color, like FFFFFF */
 	public ?string $tag_color;
 

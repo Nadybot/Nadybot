@@ -2,7 +2,7 @@ To see the list of users on the track list:
 <highlight><tab><symbol>track<end>
 
 To see the track history for a specific player:
-<highlight><tab><symbol>track player<end>
+<highlight><tab><symbol>track show player<end>
 
 To add a player to the track history:
 <highlight><tab><symbol>track add player<end>

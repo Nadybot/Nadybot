@@ -163,6 +163,9 @@ class AOChat {
 
 	public LoggerWrapper $logger;
 
+	/** @var int[] */
+	public array $buddyQueue = [];
+
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser('data/text.mdb');
@@ -299,10 +302,20 @@ class AOChat {
 			case AOCP_CLIENT_NAME:
 			case AOCP_CLIENT_LOOKUP:
 				[$id, $name] = $packet->args;
-				$id = "" . $id;
+				$uid = (string)$id;
 				$name = ucfirst(strtolower($name));
-				$this->id[$id]   = $name;
-				$this->id[$name] = $id;
+				$this->id[$uid]   = $name;
+				$this->id[$name] = $uid;
+				if (isset($this->pendingIdLookups[$name])) {
+					foreach ($this->pendingIdLookups[$name]->callbacks as $cb) {
+						[$callback, $args] = $cb;
+						if ($id === 0xFFFFFFFF) {
+							$callback(null, ...$args);
+						} else {
+							$callback($id, ...$args);
+						}
+					}
+				}
 				unset($this->pendingIdLookups[$name]);
 				break;
 
@@ -449,13 +462,17 @@ class AOChat {
 	}
 
 
-	public function sendLookupPacket(string $userName): void {
+	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
 		$time = time();
 		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
-		if (isset($lastLookup) && $lastLookup > $time - 10) {
+		if (isset($lastLookup) && $lastLookup->time > $time - 10) {
 			return;
 		}
-		$this->pendingIdLookups[$userName] = $time;
+		$this->pendingIdLookups[$userName] ??= (object)["callbacks" => []];
+		$this->pendingIdLookups[$userName]->time = $time;
+		if (isset($callback)) {
+			$this->pendingIdLookups[$userName]->callbacks []= [$callback, $args];
+		}
 		$this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $userName));
 	}
 
@@ -477,6 +494,26 @@ class AOChat {
 		}
 
 		return (int)$uid;
+	}
+
+	public function getUid(string $user, callable $callback, ...$args): void {
+		if ($this->isReallyNumeric($user)) {
+			$callback($this->fixunsigned((int)$user), ...$args);
+			return;
+		}
+
+		$user = ucfirst(strtolower($user));
+		if ($user === '') {
+			$callback(null, ...$args);
+			return;
+		}
+
+		if (isset($this->id[$user])) {
+			$callback((int)$this->id[$user], ...$args);
+			return;
+		}
+
+		$this->sendLookupPacket($user, $callback, ...$args);
 	}
 
 	/**
@@ -715,6 +752,7 @@ class AOChat {
 		if ($uid === $this->char->id) {
 			return false;
 		}
+		$this->buddyQueue []= $uid;
 		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, $payload]));
 	}
 

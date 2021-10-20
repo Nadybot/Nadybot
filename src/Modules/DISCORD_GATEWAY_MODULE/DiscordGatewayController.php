@@ -30,6 +30,7 @@ use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
+use Nadybot\Core\Channels\DiscordMsg;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
@@ -198,6 +199,10 @@ class DiscordGatewayController {
 	}
 
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
+		if (!isset($this->client)) {
+			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
+			return;
+		}
 		$packet = new Payload();
 		$packet->op = Opcode::PRESENCE_UPDATE;
 		$packet->d = new UpdateStatus();
@@ -274,7 +279,11 @@ class DiscordGatewayController {
 		try {
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
-			$this->logger->log("ERROR", "Invalid JSON data received from Discord");
+			$this->logger->log(
+				"ERROR",
+				"Invalid JSON data received from Discord: " . $e->getMessage(),
+				$e
+			);
 			$this->client->close(4002);
 			return;
 		}
@@ -605,6 +614,11 @@ class DiscordGatewayController {
 				->registerMessageReceiver($dc)
 				->registerMessageEmitter($dc);
 		}
+		$dm = new DiscordMsg();
+		Registry::injectDependencies($dm);
+		$this->messageHub
+			->registerMessageReceiver($dm)
+			->registerMessageEmitter($dm);
 	}
 
 	/**
@@ -750,9 +764,16 @@ class DiscordGatewayController {
 		if ($oldState === null) {
 			return;
 		}
-		$channel = $this->getChannel($oldState->channel_id);
+		$guildId = $voiceState->guild_id ?? null;
+		if (!isset($guildId)) {
+			$channel = $this->getChannel($oldState->channel_id);
+			$guildId = $channel->guild_id;
+		}
+		if (!isset($guildId) || !isset($voiceState->user_id)) {
+			return;
+		}
 		$this->discordAPIClient->getGuildMember(
-			$channel->guild_id,
+			$guildId,
 			$voiceState->user_id,
 			function (GuildMember $member) use ($oldState) {
 				$event = new DiscordVoiceEvent();
@@ -798,6 +819,9 @@ class DiscordGatewayController {
 	}
 
 	public function handleAsyncVoiceChannelJoin(DiscordChannel $channel, VoiceState $voiceState): void {
+		if (!isset($voiceState->guild_id) || !isset($voiceState->user_id)) {
+			return;
+		}
 		$this->discordAPIClient->getGuildMember(
 			$voiceState->guild_id,
 			$voiceState->user_id,

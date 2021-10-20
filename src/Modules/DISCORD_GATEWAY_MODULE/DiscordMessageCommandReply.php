@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Nadybot\Core\Channels\DiscordChannel as ChannelsDiscordChannel;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\MessageEmitter;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
@@ -14,7 +16,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
-class DiscordMessageCommandReply implements CommandReply {
+class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 	/** @Inject */
 	public DiscordAPIClient $discordAPIClient;
 
@@ -38,6 +40,21 @@ class DiscordMessageCommandReply implements CommandReply {
 		$this->channelId = $channelId;
 		$this->isDirectMsg = $isDirectMsg;
 		$this->message = $message;
+	}
+
+	public function getChannelName(): string {
+		if ($this->isDirectMsg) {
+			return Source::DISCORD_MSG . "({$this->channelId})";
+		}
+		$emitters = $this->messageHub->getEmitters();
+		foreach ($emitters as $emitter) {
+			if ($emitter instanceof ChannelsDiscordChannel
+				&& $emitter->getChannelID() === $this->channelId
+			) {
+				return $emitter->getChannelName();
+			}
+		}
+		return Source::DISCORD_PRIV . "({$this->channelId})";
 	}
 
 	public function reply($msg): void {
