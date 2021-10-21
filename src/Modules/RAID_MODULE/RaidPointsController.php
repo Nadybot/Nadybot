@@ -845,6 +845,9 @@ class RaidPointsController {
 	 * @NewsTile("raid")
 	 * @Description("Shows the player's amount of raid points and if a raid
 	 * is currently running.")
+	 * @Example("<header2>Raid<end>
+	 * <tab>You have <highlight>2222<end> raid points.
+	 * <tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]")
 	 */
 	public function raidpointsTile(string $sender, callable $callback): void {
 		$points = $this->getRaidPoints($sender);

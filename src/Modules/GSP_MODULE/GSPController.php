@@ -354,6 +354,8 @@ class GSPController implements MessageEmitter {
 	/**
 	 * @NewsTile("gsp-show")
 	 * @Description("Show the currently running GSP show and location - if any")
+	 * @Example("<header2>GSP<end>
+	 * <tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>.")
 	 */
 	public function gspShowTile(string $sender, callable $callback): void {
 		if (!$this->showRunning) {
@@ -368,6 +370,8 @@ class GSPController implements MessageEmitter {
 	/**
 	 * @NewsTile("gsp")
 	 * @Description("Show what's currently playing on GSP")
+	 * @Example("<header2>GSP<end>
+	 * <tab>Currently playing on GSP: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]")
 	 */
 	public function gspTile(string $sender, callable $callback): void {
 		$this->http

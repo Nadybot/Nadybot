@@ -555,6 +555,9 @@ class VoteController implements MessageEmitter {
 	/**
 	 * @NewsTile("polls")
 	 * @Description("Shows currently running polls - if any")
+	 * @Example("<header2>Polls<end>
+	 * <tab>Shall we use startpage instead of news? [<u>show</u>]
+	 * <tab>New logo for Discord [<u>show</u>]")
 	 */
 	public function pollsNewsTile(string $sender, callable $callback): void {
 		/** @var Poll[] */

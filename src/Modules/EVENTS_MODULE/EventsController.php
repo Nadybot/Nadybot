@@ -395,6 +395,8 @@ class EventsController {
 	/**
 	 * @NewsTile("events")
 	 * @Description("Shows upcoming events - if any")
+	 * @Example("<header2>Events [<u>see more</u>]<end>
+	 * <tab>2021-10-31 <highlight>GSP Halloween Party<end>")
 	 */
 	public function eventsTile(string $sender, callable $callback): void {
 		/** @var Collection<EventModel> */

@@ -14,6 +14,9 @@ class NewsTile {
 	/** A description what this news tile shows */
 	public string $description;
 
+	/** An example what this could look like if there was data */
+	public ?string $example;
+
 	/**
 	 * The callback that returns the news tile data
 	 * @json:ignore

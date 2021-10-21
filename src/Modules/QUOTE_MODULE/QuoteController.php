@@ -267,6 +267,8 @@ class QuoteController {
 	/**
 	 * @NewsTile("quote")
 	 * @Description("Displays a random quote from your quote database")
+	 * @Example("» [Team] This is a random quote from Player 1
+	 * » [Team] And a witty response from Player 2")
 	 */
 	public function quoteTile(string $sender, callable $callback): void {
 		/** @var ?Quote */

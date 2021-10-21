@@ -243,6 +243,7 @@ class FunController {
 	/**
 	 * @NewsTile("fun-compliment")
 	 * @Description("Gives a random motivational compliment")
+	 * @Example("» You inspire be to do good things.")
 	 */
 	public function complimentTile(string $sender, callable $callback): void {
 		$msg = "» " . $this->getFunItem('compliment', $sender, null);

@@ -204,6 +204,8 @@ class ChatRallyController {
 	/**
 	 * @NewsTile("rally")
 	 * @Description("Will show a waypoint-link to the current rally-point - if any")
+	 * @Example("<header2>Rally<end>
+	 * <tab>We are rallying <u>here</u>")
 	 */
 	public function rallyTile(string $sender, callable $callback): void {
 		$data = $this->settingManager->get("rally");

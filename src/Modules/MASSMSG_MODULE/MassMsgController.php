@@ -324,6 +324,9 @@ class MassMsgController {
 	 * @NewsTile("massmsg-settings")
 	 * @Description("Shows your current settings for mass messages and -invites
 	 * as well with links to change these")
+	 * @Example("<header2>Mass messages<end>
+	 * <tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages
+	 * <tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites")
 	 */
 	public function massMsgNewsTile(string $sender, callable $callback): void {
 		$msgs = $this->preferences->get($sender, static::PREF_MSGS);
@@ -344,7 +347,7 @@ class MassMsgController {
 		}
 		$blob = "<header2>Mass messages<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Receive Mass messages\n".
-			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Receive Mass invites\n";
+			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Receive Mass invites";
 		$callback($blob);
 	}
 }

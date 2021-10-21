@@ -534,6 +534,8 @@ class NotesController {
 	 * @NewsTile("notes")
 	 * @Description("Shows you how many notes you have for this character
 	 * as well with a link to show them")
+	 * @Example("<header2>Notes<end>
+	 * <tab>You have <highlight>2 notes<end> [<u>show</u>]")
 	 */
 	public function notesNewsTile(string $sender, callable $callback): void {
 		$altInfo = $this->altsController->getAltInfo($sender);

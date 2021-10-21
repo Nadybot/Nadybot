@@ -475,6 +475,8 @@ class NewsController {
 	/**
 	 * @NewsTile("news")
 	 * @Description("Show excerpts of unread news")
+	 * @Example("<header2>News [<u>see more</u>]<end>
+	 * <tab><highlight>2021-Oct-18<end>: We have a new tower site...")
 	 */
 	public function newsTile(string $sender, callable $callback): void {
 		$thirtyDays = time() - (86400 * 30);

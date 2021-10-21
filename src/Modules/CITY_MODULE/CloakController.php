@@ -337,6 +337,8 @@ class CloakController implements MessageEmitter {
 	 * @NewsTile("cloak-status")
 	 * @Description("Shows the current status of the city cloak, if and when
 	 * new raids can be initiated")
+	 * @Example("<header2>City<end>
+	 * <tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
 	 */
 	public function cloakStatusTile(string $sender, callable $callback): void {
 		$data = $this->getCloakStatus();

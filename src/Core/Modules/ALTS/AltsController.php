@@ -772,6 +772,9 @@ class AltsController {
 	/**
 	 * @NewsTile("alts-info")
 	 * @Description("Displays basic information about your alts")
+	 * @Example("<header2>Account<end>
+	 * <tab>Your main is <highlight>Nady<end>
+	 * <tab>You have <u>15 alts</u>.")
 	 */
 	public function altsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);
@@ -807,6 +810,9 @@ class AltsController {
 	/**
 	 * @NewsTile("alts-unvalidated")
 	 * @Description("Show a notice if char has any unvalidated alts")
+	 * @Example("<header2>Unvalidated Alts [<u>see more</u>]<end>
+	 * <tab>- Char1
+	 * <tab>- Char2")
 	 */
 	public function unvalidatedAltsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);

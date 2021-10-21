@@ -27,6 +27,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
 use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 use Throwable;
 
 /**
@@ -70,6 +71,9 @@ class StartpageController {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public WebChatConverter $webChatConverter;
+
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
 
@@ -105,6 +109,10 @@ class StartpageController {
 		}
 		$tile = new NewsTile($name, $method->getClosure($instance));
 		$tile->description = $descr;
+		$example = $method->getAnnotation("Example");
+		if (isset($example) && $example !== false) {
+			$tile->example = $example->value;
+		}
 		$this->registerNewsTile($tile);
 	}
 
@@ -219,6 +227,8 @@ class StartpageController {
 	/**
 	 * @NewsTile("time")
 	 * @Description("Shows the current date and time in UTC and game")
+	 * @Example("<header2>Time<end>
+	 * <tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)")
 	 */
 	public function timeTile(string $sender, callable $callback): void {
 		$seeMoreLink = $this->text->makeChatcmd("see more", "/tell <myname> time");
@@ -378,11 +388,13 @@ class StartpageController {
 		$blobLines = [];
 		ksort($unusedTiles);
 		foreach ($unusedTiles as $name => $tile) {
-			$blobLines []= "<header2>{$name}<end>\n".
-				"<tab>" . implode("\n<tab>", explode("\n", $tile->description)) . "\n".
-				"<tab>".
-				$this->text->makeChatcmd("pick this", "/tell <myname> startpage pick {$args[1]} {$name}").
-				"\n";
+			$pickLink = $this->text->makeChatcmd("pick this", "/tell <myname> startpage pick {$args[1]} {$name}");
+			$line = "<header2>{$name} [{$pickLink}]<end>\n".
+				"<tab>" . implode("\n<tab>", explode("\n", $tile->description)) . "\n";
+			if (isset($tile->example)) {
+				$line .= "\n<tab>| " . implode("\n<tab>| ", explode("\n", $tile->example)) . "\n";
+			}
+			$blobLines []= $line;
 		}
 		if (empty($blobLines)) {
 			$sendto->reply("You already assigned positions to all tiles.\n");
@@ -525,7 +537,13 @@ class StartpageController {
 	 * @ApiResult(code=200, class='NewsTile[]', desc='List of all news items')
 	 */
 	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_values($this->getTiles()));
+		$tiles = array_values($this->getTiles());
+		foreach ($tiles as &$tile) {
+			if (isset($tile->example)) {
+				$tile->example = $this->webChatConverter->convertMessage($tile->example);
+			}
+		}
+		return new ApiResponse($tiles);
 	}
 
 	/**

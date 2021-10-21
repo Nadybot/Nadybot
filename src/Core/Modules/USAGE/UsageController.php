@@ -378,6 +378,11 @@ class UsageController {
 	/**
 	 * @NewsTile("popular-commands")
 	 * @Description("A player's 4 most used commands in the last 7 days")
+	 * @Example("<header2>Popular commands<end>
+	 * <tab>hot
+	 * <tab>startpage
+	 * <tab>config
+	 * <tab>time")
 	 */
 	public function usageNewsTile(string $sender, callable $callback): void {
 		$data = $this->db->table(self::DB_TABLE)
