@@ -95,8 +95,7 @@ class ApiSpecGenerator {
 	public function getFullClass(string $className): ?string {
 		$classes = get_declared_classes();
 		foreach ($classes as $class) {
-			$ref = new \ReflectionClass($class);
-			if ($ref->isSubclassOf(\Addendum\Annotation::class)) {
+			if (is_subclass_of($class, \Addendum\Annotation::class)) {
 				continue;
 			}
 			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q$className\E$/", $class)) {
