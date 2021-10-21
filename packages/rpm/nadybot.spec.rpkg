@@ -173,7 +173,7 @@ exit 0
 %endif
 
 %changelog
-* Web Oct 20 2021 Nadyita <nadyita@hodorraid.org> 5.2.2-1
+* Wed Oct 20 2021 Nadyita <nadyita@hodorraid.org> 5.2.2-2
 - Rewritten tower module to support Tyrence's tower API as well
   as manual scouting and mixed mode.
 - New commands !lock/!unlock to lock/unlock the private channel
