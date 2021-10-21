@@ -437,21 +437,27 @@ class StartpageController {
 	 * This command handler moves around tiles
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+setpos\s+(.+)\s+(\d+)$/i")
+	 * @Matches("/^startpage\s+move\s+(.+)\s+(up|down)$/i")
 	 */
-	public function startpageSetPosCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpageMoveTileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$args[1]])) {
 			$sendto->reply("<highlight>{$args[1]}<end> is currently not on your startpage.");
 			return;
 		}
+		$delta = (strtolower($args[2]) === "up") ? -1 : 1;
 		$tileKeys = array_keys($currentTiles);
 		$oldPos = array_search($args[1], $tileKeys);
-		$toMove = $tileKeys[$args[2]];
-		$tileKeys[$args[2]] = $args[1];
+		$newPos = $oldPos + $delta;
+		if ($newPos < 0 || $newPos >= count($tileKeys)) {
+			$sendto->reply("Cannot move <highlight>{$args[1]}<end> further.");
+			return;
+		}
+		$toMove = $tileKeys[$newPos];
+		$tileKeys[$newPos] = $args[1];
 		$tileKeys[$oldPos] = $toMove;
-
 		$this->setTiles(...$tileKeys);
+
 		$this->showStartpageLayout($sendto, true);
 	}
 
@@ -490,12 +496,10 @@ class StartpageController {
 			$moveUpLink = "<black>[up]<end>";
 			$moveDownLink = "<black>[down]<end>";
 			if ($i > 0) {
-				$upPos = $i-1;
-				$moveUpLink = "[" . $this->text->makeChatcmd("up", "/tell <myname> startpage setpos {$name} {$upPos}") . "]";
+				$moveUpLink = "[" . $this->text->makeChatcmd("up", "/tell <myname> startpage move {$name} up") . "]";
 			}
 			if ($i < count($tiles) - 1) {
-				$downPos = $i+1;
-				$moveDownLink = "[" . $this->text->makeChatcmd("down", "/tell <myname> startpage setpos {$name} {$downPos}") . "]";
+				$moveDownLink = "[" . $this->text->makeChatcmd("down", "/tell <myname> startpage move {$name} down") . "]";
 			}
 			$line = "<tab>" . $this->text->alignNumber($i+1, strlen((string)count($tiles))).
 				" - {$moveUpLink} {$moveDownLink}   <highlight>{$name}<end> [{$descrLink}] [{$remLink}]\n";
