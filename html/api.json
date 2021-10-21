@@ -653,15 +653,22 @@
 				]
 			},
 			"NewsTile": {
-				"allOf": [
-					{
-						"$ref": "#/components/schemas/Annotation"
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of this news tile"
 					},
-					{
-						"type": "object",
-						"properties": []
+					"description": {
+						"type": "string",
+						"description": "A description what this news tile shows"
+					},
+					"example": {
+						"type": "string",
+						"nullable": true,
+						"description": "An example what this could look like if there was data"
 					}
-				]
+				}
 			},
 			"Player": {
 				"type": "object",
