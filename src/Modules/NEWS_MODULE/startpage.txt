@@ -10,7 +10,7 @@ information to be shown twice.</i>
 To show the currently configured startpage:
 <tab><highlight><symbol>startpage<end>
 
-To add a tile to the beginning of the startpage:
+To add a tile to the top of the startpage:
 <tab><highlight><symbol>startpage pick 0<end>
 
 To remove a tile from the startpage:
