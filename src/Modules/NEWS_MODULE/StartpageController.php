@@ -538,12 +538,15 @@ class StartpageController {
 	 */
 	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$tiles = array_values($this->getTiles());
-		foreach ($tiles as &$tile) {
+		$result = [];
+		foreach ($tiles as $tile) {
+			$newTile = clone $tile;
 			if (isset($tile->example)) {
-				$tile->example = $this->webChatConverter->convertMessage($tile->example);
+				$newTile->example = $this->webChatConverter->convertMessage($tile->example);
 			}
+			$result []= $newTile;
 		}
-		return new ApiResponse($tiles);
+		return new ApiResponse($result);
 	}
 
 	/**
