@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.2.1"
+		"version": "5.2.2"
 	},
 	"servers": [
 		{
@@ -244,6 +244,11 @@
 						"nullable": true,
 						"description": "The channel for which to apply these colors or null for all"
 					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply this color if the event was routed via this hop"
+					},
 					"tag_color": {
 						"type": "string",
 						"nullable": true,
@@ -267,6 +272,11 @@
 						"type": "string",
 						"nullable": true,
 						"description": "The channel for which to apply these, or null for all"
+					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply these settings if the event was routed via this hop"
 					},
 					"render": {
 						"type": "boolean",
@@ -639,6 +649,17 @@
 								"description": "The internal ID of this news entry"
 							}
 						}
+					}
+				]
+			},
+			"NewsTile": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/Annotation"
+					},
+					{
+						"type": "object",
+						"properties": []
 					}
 				]
 			},
@@ -2228,6 +2249,94 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/NewNews"
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			}
+		},
+		"/startpage/tiles": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all news tiles",
+				"responses": {
+					"200": {
+						"description": "List of all news items",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/NewsTile"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			}
+		},
+		"/startpage/layout": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get the currently configured startpage layout",
+				"responses": {
+					"200": {
+						"description": "The order of the tiles",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all news tiles",
+				"responses": {
+					"204": {
+						"description": "New layout saved"
+					}
+				},
+				"requestBody": {
+					"description": "The new order for the tiles",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
 							}
 						}
 					}

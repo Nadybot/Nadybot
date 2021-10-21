@@ -23,6 +23,11 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\BAN\BanController;
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
+use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\WEBSERVER_MODULE\Request;
+use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Throwable;
 
 /**
  * @Instance
@@ -146,6 +151,10 @@ class StartpageController {
 		);
 	}
 
+	/**
+	 * Creates a CommandReply object that sens mass tells
+	 * @param string $receiver The character to send the mass tells to
+	 */
 	protected function getMassTell(string $receiver): CommandReply {
 		$sendto = new class implements CommandReply {
 			public Nadybot $chatBot;
@@ -232,13 +241,13 @@ class StartpageController {
 	public function setTiles(string ...$tileNames): bool {
 		$coll = (new Collection($tileNames))->unique();
 		if ($coll->count() !== count($tileNames)) {
-			throw new InvalidArgumentException("You cannot display a news tile more than once.");
+			throw new DuplicateTileException("You cannot display a news tile more than once.");
 		}
 		$invalid = $coll->filter(function (string $tileName): bool {
 			return !isset($this->tiles[$tileName]);
 		});
 		if ($invalid->isNotEmpty()) {
-			throw new InvalidArgumentException($invalid->first() . " is not a valid tile.");
+			throw new InvalidTileException($invalid->first() . " is not a valid tile.");
 		}
 		return $this->settingManager->save("startpage_layout", $coll->flatten()->join(";"));
 	}
@@ -502,5 +511,48 @@ class StartpageController {
 			"<header2>Your layout<end>\n\n".
 			join("\n", $blobLines). "\n\n\n".
 			"[" . $this->text->makeChatcmd("preview", "/tell <myname> start") . "]";
+	}
+
+	/**
+	 * List all news tiles
+	 * @Api("/startpage/tiles")
+	 * @GET
+	 * @AccessLevelFrom("startpage")
+	 * @ApiResult(code=200, class='NewsTile[]', desc='List of all news items')
+	 */
+	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_values($this->getTiles()));
+	}
+
+	/**
+	 * Get the currently configured startpage layout
+	 * @Api("/startpage/layout")
+	 * @GET
+	 * @AccessLevelFrom("startpage")
+	 * @ApiResult(code=200, class='string[]', desc='The order of the tiles')
+	 */
+	public function apiGetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_keys($this->getActiveLayout()));
+	}
+
+	/**
+	 * List all news tiles
+	 * @Api("/startpage/layout")
+	 * @PUT
+	 * @AccessLevelFrom("startpage")
+	 * @RequestBody(class='string[]', desc='The new order for the tiles', required=true)
+	 * @ApiResult(code=204, desc='New layout saved')
+	 */
+	public function apiSetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$tiles = $request->decodedBody;
+		if (!is_array($tiles)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		try {
+			$this->setTiles(...$tiles);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+		}
+		return new Response(Response::NO_CONTENT);
 	}
 }

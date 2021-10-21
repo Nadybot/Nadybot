@@ -14,7 +14,10 @@ class NewsTile {
 	/** A description what this news tile shows */
 	public string $description;
 
-	/** The callback that returns the news tile data */
+	/**
+	 * The callback that returns the news tile data
+	 * @json:ignore
+	 */
 	public Closure $callback;
 
 	public function __construct(string $name, callable $callback) {
@@ -37,9 +40,11 @@ class NewsTile {
 		}
 		if ($params[0]->hasType()) {
 			$type = $params[0]->getType();
-			$typeNames = ($type instanceof ReflectionNamedType)
-				? [$type->getName()]
-				: array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+			if ($type instanceof ReflectionNamedType) {
+				$typeNames =[$type->getName()];
+			} elseif (is_object($type)) {
+				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+			}
 			if (!in_array("string", $typeNames)) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
@@ -49,9 +54,11 @@ class NewsTile {
 		}
 		if ($params[1]->hasType()) {
 			$type = $params[1]->getType();
-			$typeNames = ($type instanceof ReflectionNamedType)
-				? [$type->getName()]
-				: array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+			if ($type instanceof ReflectionNamedType) {
+				$typeNames =[$type->getName()];
+			} elseif (is_object($type)) {
+				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+			}
 			if (!in_array("callable", $typeNames)) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
