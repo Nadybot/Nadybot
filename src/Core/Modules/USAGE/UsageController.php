@@ -374,4 +374,33 @@ class UsageController {
 		}
 		return $guildClass;
 	}
+
+	/**
+	 * @NewsTile("popular-commands")
+	 * @Description("A player's 4 most used commands in the last 7 days")
+	 * @Example("<header2>Popular commands<end>
+	 * <tab>hot
+	 * <tab>startpage
+	 * <tab>config
+	 * <tab>time")
+	 */
+	public function usageNewsTile(string $sender, callable $callback): void {
+		$data = $this->db->table(self::DB_TABLE)
+			->where("sender", $sender)
+			->where("dt", ">", time() - 7*24*3600)
+			->groupBy("command")
+			->orderByColFunc("COUNT", "command", "desc")
+			->addSelect("command")
+			->limit(4)
+			->asObj();
+		if ($data->isEmpty()) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Popular commands<end>\n";
+		foreach ($data as $cmdSpec) {
+			$blob .= "<tab>{$cmdSpec->command}\n";
+		}
+		$callback($blob);
+	}
 }

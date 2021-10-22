@@ -1,0 +1,9 @@
+This is the text of the link that's being sent when the
+startpage has anything to show.
+
+You can use the following placeholders:
+- {name}: Name of the person receiving the text
+- {myname}: Name of the bot
+- {orgname}: Name of the org - if the bot is a member
+- {date}: The current date as in "Tue, 19-Oct-2021"
+- {time}: The current time as in "23:45:12"

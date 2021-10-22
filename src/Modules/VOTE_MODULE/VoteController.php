@@ -228,7 +228,7 @@ class VoteController implements MessageEmitter {
 		$over = "";
 		$blob = "";
 		if (count($topics) === 0) {
-			$msg = "There are currently no votes to view.";
+			$msg = "There are currently no polls.";
 			$sendto->reply($msg);
 			return;
 		}
@@ -550,5 +550,33 @@ class VoteController implements MessageEmitter {
 		}
 
 		return $blob;
+	}
+
+	/**
+	 * @NewsTile("polls")
+	 * @Description("Shows currently running polls - if any")
+	 * @Example("<header2>Polls<end>
+	 * <tab>Shall we use startpage instead of news? [<u>show</u>]
+	 * <tab>New logo for Discord [<u>show</u>]")
+	 */
+	public function pollsNewsTile(string $sender, callable $callback): void {
+		/** @var Poll[] */
+		$topics = $this->db->table(self::DB_POLLS)
+			->orderBy("started")
+			->asObj(Poll::class)->toArray();
+		if (count($topics) === 0) {
+			$callback(null);
+			return;
+		}
+		$lines = [];
+		foreach ($topics as $topic) {
+			$lines []= "<tab>{$topic->question} [" . $this->text->makeChatcmd(
+				"show",
+				"/tell <myname> poll show {$topic->id}"
+			) . "]";
+		}
+		$blob = "<header2>Polls<end>\n".
+			join("\n", $lines);
+		$callback($blob);
 	}
 }

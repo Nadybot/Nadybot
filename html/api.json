@@ -652,6 +652,24 @@
 					}
 				]
 			},
+			"NewsTile": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of this news tile"
+					},
+					"description": {
+						"type": "string",
+						"description": "A description what this news tile shows"
+					},
+					"example": {
+						"type": "string",
+						"nullable": true,
+						"description": "An example what this could look like if there was data"
+					}
+				}
+			},
 			"Player": {
 				"type": "object",
 				"properties": {
@@ -2238,6 +2256,94 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/NewNews"
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			}
+		},
+		"/startpage/tiles": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all news tiles",
+				"responses": {
+					"200": {
+						"description": "List of all news items",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/NewsTile"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			}
+		},
+		"/startpage/layout": {
+			"parameters": [],
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get the currently configured startpage layout",
+				"responses": {
+					"200": {
+						"description": "The order of the tiles",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all news tiles",
+				"responses": {
+					"204": {
+						"description": "New layout saved"
+					}
+				},
+				"requestBody": {
+					"description": "The new order for the tiles",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
 							}
 						}
 					}

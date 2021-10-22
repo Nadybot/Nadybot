@@ -319,4 +319,35 @@ class MassMsgController {
 		$this->preferences->save($sender, static::PREF_INVITES, 'yes');
 		$sendto->reply("You will again receive mass invites from this bot.");
 	}
+
+	/**
+	 * @NewsTile("massmsg-settings")
+	 * @Description("Shows your current settings for mass messages and -invites
+	 * as well with links to change these")
+	 * @Example("<header2>Mass messages<end>
+	 * <tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages
+	 * <tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites")
+	 */
+	public function massMsgNewsTile(string $sender, callable $callback): void {
+		$msgs = $this->preferences->get($sender, static::PREF_MSGS);
+		$invs = $this->preferences->get($sender, static::PREF_INVITES);
+		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
+		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
+		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
+		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
+		if ($msgs === "no") {
+			$msgOffLink = "<red>Off<end>";
+		} else {
+			$msgOnLink = "<green>On<end>";
+		}
+		if ($invs === "no") {
+			$invitesOffLink = "<red>Off<end>";
+		} else {
+			$invitesOnLink = "<green>On<end>";
+		}
+		$blob = "<header2>Mass messages<end>\n".
+			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Receive Mass messages\n".
+			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Receive Mass invites";
+		$callback($blob);
+	}
 }

@@ -391,4 +391,33 @@ class EventsController {
 			->where("event_date", ">", $sevenDays)
 			->exists();
 	}
+
+	/**
+	 * @NewsTile("events")
+	 * @Description("Shows upcoming events - if any")
+	 * @Example("<header2>Events [<u>see more</u>]<end>
+	 * <tab>2021-10-31 <highlight>GSP Halloween Party<end>")
+	 */
+	public function eventsTile(string $sender, callable $callback): void {
+		/** @var Collection<EventModel> */
+		$data = $this->db->table("events")
+			->whereNull("event_date")
+			->orWhere("event_date", ">", time())
+			->orderBy("event_date")
+			->limit($this->settingManager->getInt('num_events_shown'))
+			->asObj(EventModel::class);
+		if ($data->count() === 0) {
+			$callback(null);
+			return;
+		}
+		$eventsLink = $this->text->makeChatcmd("see more", "/tell <myname> events");
+		$blob = "<header2>Events [{$eventsLink}]<end>\n";
+		$blob .= $data->map(function (EventModel $event): string {
+			return "<tab>" . ($event->event_date
+				? $this->util->date($event->event_date)
+				: "soon").
+				": <highlight>{$event->event_name}<end>";
+		})->join("\n");
+		$callback($blob);
+	}
 }

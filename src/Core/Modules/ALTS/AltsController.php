@@ -768,4 +768,65 @@ class AltsController {
 		}
 		return $deleted;
 	}
+
+	/**
+	 * @NewsTile("alts-info")
+	 * @Description("Displays basic information about your alts")
+	 * @Example("<header2>Account<end>
+	 * <tab>Your main is <highlight>Nady<end>
+	 * <tab>You have <u>15 alts</u>.")
+	 */
+	public function altsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		$altsCmdText = "no alts";
+		if (count($altInfo->getAllAlts()) === 2) {
+			$altsCmdText = "1 alt";
+		} elseif (count($altInfo->getAllAlts()) > 2) {
+			$altsCmdText = (count($altInfo->getAllAlts())-1) . " alts";
+		}
+		if ($altInfo->hasUnvalidatedAlts()) {
+			$numUnvalidated = 0;
+			foreach ($altInfo->getAllAlts() as $alt) {
+				if (!$altInfo->isValidated($alt)) {
+					$numUnvalidated++;
+				}
+			}
+			if ($numUnvalidated > 1) {
+				$altsCmdText .= ", {$numUnvalidated} need validation";
+			} else {
+				$altsCmdText .= ", {$numUnvalidated} needs validation";
+			}
+		}
+		$altsCommand = $altsCmdText;
+		if (count($altInfo->getAllAlts()) > 1) {
+			$altsCommand = $this->text->makeChatcmd($altsCmdText, "/tell <myname> alts");
+		}
+		$blob = "<header2>Account<end>\n".
+			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
+			"<tab>You have {$altsCommand}.";
+		$callback($blob);
+	}
+
+	/**
+	 * @NewsTile("alts-unvalidated")
+	 * @Description("Show a notice if char has any unvalidated alts")
+	 * @Example("<header2>Unvalidated Alts [<u>see more</u>]<end>
+	 * <tab>- Char1
+	 * <tab>- Char2")
+	 */
+	public function unvalidatedAltsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		if (!$altInfo->hasUnvalidatedAlts()) {
+			$callback(null);
+			return;
+		}
+		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
+		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
+		foreach ($altInfo->getAllAlts() as $alt) {
+			if (!$altInfo->isValidated($alt)) {
+				$blob .= "\n<tab>- {$alt}";
+			}
+		}
+		$callback($blob);
+	}
 }

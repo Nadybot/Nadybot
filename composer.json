@@ -38,7 +38,7 @@
 		"php-amqplib/php-amqplib": "2.11.3",
 		"niktux/addendum": "0.4.4",
 		"swaggest/json-schema": "^0.12.31",
-		"illuminate/database": "^8.37",
+		"illuminate/database": "^8.64",
 		"doctrine/dbal": "^3.0",
 		"kelvinmo/fernet-php": "^1.0",
 		"farafiri/php-parsing-tool": "^2.0",

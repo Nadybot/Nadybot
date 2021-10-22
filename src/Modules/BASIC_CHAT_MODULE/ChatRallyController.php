@@ -200,4 +200,22 @@ class ChatRallyController {
 		}
 		$sendto->reply($rally);
 	}
+
+	/**
+	 * @NewsTile("rally")
+	 * @Description("Will show a waypoint-link to the current rally-point - if any")
+	 * @Example("<header2>Rally<end>
+	 * <tab>We are rallying <u>here</u>")
+	 */
+	public function rallyTile(string $sender, callable $callback): void {
+		$data = $this->settingManager->get("rally");
+		if (strpos($data, ":") === false) {
+			$callback(null);
+			return;
+		}
+		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
+		$link = $this->text->makeChatcmd("here", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
+		$msg = "<header2>Rally<end>\n<tab>We are rallying {$link}";
+		$callback($msg);
+	}
 }

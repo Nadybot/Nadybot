@@ -263,4 +263,30 @@ class QuoteController {
 
 		return $this->text->makeBlob("Quote", $msg).': "'.$quoteMsg.'"';
 	}
+
+	/**
+	 * @NewsTile("quote")
+	 * @Description("Displays a random quote from your quote database")
+	 * @Example("» [Team] This is a random quote from Player 1
+	 * » [Team] And a witty response from Player 2")
+	 */
+	public function quoteTile(string $sender, callable $callback): void {
+		/** @var ?Quote */
+		$row = $this->db->table("quote")
+			->inRandomOrder()
+			->limit(1)
+			->asObj(Quote::class)->first();
+		if (!isset($row)) {
+			$callback(null);
+			return;
+		}
+		$result = [];
+		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		foreach ($lines as $line) {
+			$result = [...$result, ...explode("\n", $line)];
+		}
+		$quote = join("\n» ", $result);
+		$msg = "» {$quote}";
+		$callback($msg);
+	}
 }

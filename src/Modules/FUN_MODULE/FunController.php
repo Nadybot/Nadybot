@@ -239,4 +239,14 @@ class FunController {
 		$msg = $this->getFunItem('compliment', $sender, isset($args[1]) ? (int)$args[1] : null);
 		$sendto->reply($msg);
 	}
+
+	/**
+	 * @NewsTile("fun-compliment")
+	 * @Description("Gives a random motivational compliment")
+	 * @Example("» You inspire be to do good things.")
+	 */
+	public function complimentTile(string $sender, callable $callback): void {
+		$msg = "» " . $this->getFunItem('compliment', $sender, null);
+		$callback($msg);
+	}
 }

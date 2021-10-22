@@ -2399,4 +2399,71 @@ class TowerController {
 	public function scoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$this->scoutInputHandler($sender, $sendto, $args[1], (int)$args[2], $args[3]);
 	}
+
+	/**
+	 * @NewsTile("tower-own")
+	 * @Description("Show the last 5 attacks on your org's towers from the last 3
+	 * days - or nothing, if no attacks occurred.")
+	 * @Example("<header2>Notum Wars [<u>see more</u>]<end>
+	 * <tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):")
+	 */
+	public function towerOwnTile(string $sender, callable $callback): void {
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($callback): void {
+				$this->showTowerSelfTile($whois, $callback);
+			},
+			$sender
+		);
+	}
+
+	protected function showTowerSelfTile(?Player $whois, callable $callback): void {
+		if (!isset($whois) || !isset($whois->guild)) {
+			$callback(null);
+			return;
+		}
+		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
+			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
+			->join("playfields AS p", "a.playfield_id", "p.id")
+			->join("tower_site AS t", function (JoinClause $join) {
+				$join->on("a.playfield_id", "t.playfield_id")
+					->on("a.site_number", "t.site_number");
+			})
+			->where("a.def_guild_name", $whois->guild)
+			->where("a.time", ">", time() - 3600*72)
+			->orderByDesc("dt")
+			->select("a.*", "v.*", "p.short_name", "p.long_name", "t.min_ql", "t.max_ql");
+		$attacks = $query->addSelect($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"))
+			->limit(5)
+			->asObj(TowerAttackAndVictory::class);
+		if ($attacks->isEmpty()) {
+			$callback(null);
+			return;
+		}
+		$blob = $attacks->map(
+			function(TowerAttackAndVictory $attack): string {
+				$line = "<tab>" . $this->util->date($attack->dt) . " - ";
+				if (empty($attack->attack_id)) {
+					// attack
+					$attFaction = strtolower($attack->att_faction ?? "highlight");
+					if (!empty($attack->att_guild_name)) {
+						$line .= "{$attack->att_player} (<{$attFaction}>$attack->att_guild_name<end>)";
+					} else {
+						$line .= "<{$attFaction}>" . ($attack->att_player ?? "Unknown player") . "<end>";
+					}
+					$line .= " attacked ";
+				} else {
+					// victory
+					$line .= "<$attack->win_faction>$attack->win_guild_name<end> won in ";
+				}
+				$line .= $this->text->makeChatcmd(
+					"{$attack->short_name} {$attack->site_number}",
+					"/waypoint {$attack->x_coords} {$attack->y_coord} {$attack->playfield_id}"
+				);
+				$line .= " (QL {$attack->min_ql}-{$attack->max_ql})";
+				return $line;
+			}
+		)->join("\n");
+		$moreLink = $this->text->makeChatcmd("see more", "/tell <myname> attacks org {$whois->guild}");
+		$callback("<header2>Notum Wars [{$moreLink}]<end>\n{$blob}");
+	}
 }

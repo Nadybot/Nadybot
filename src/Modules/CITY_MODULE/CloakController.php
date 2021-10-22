@@ -69,6 +69,9 @@ class CloakController implements MessageEmitter {
 	/** @Inject */
 	public AltsController $altsController;
 
+	/** @Inject */
+	public CityWaveController $cityWaveController;
+
 	/**
 	 * @Setup
 	 */
@@ -284,37 +287,67 @@ class CloakController implements MessageEmitter {
 		) {
 			return;
 		}
-		$row = $this->getLastOrgEntry(true);
 
-		if ($row === null) {
+		$data = $this->getCloakStatus();
+		if (!isset($data)) {
 			return;
 		}
-		$timeSinceChange = time() - $row->time;
-		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
-
-		$case = 0;
-		if ($timeSinceChange >= 60*60 && $row->action === "off") {
-			$case = 1;
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible to enable it.";
-		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
-			$case = 1;
-			$msg = "<red>RAID IN PROGRESS!  DO NOT ENTER CITY!</red>";
-		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
-			$msg = "Cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
-			$case = 1;
-		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
-			$case = 2;
-		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
-			$case = 2;
-		} else {
-			$msg = "Unknown status on city cloak!";
-			$case = 1;
-		}
+		[$case, $msg] = $data;
 
 		if ($case <= $this->settingManager->getInt("showcloakstatus")) {
 			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
+	}
+
+	protected function getCloakStatus(): ?array {
+		$row = $this->getLastOrgEntry(true);
+
+		if ($row === null) {
+			return null;
+		}
+		$timeSinceChange = time() - $row->time;
+		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
+
+		if ($timeSinceChange >= 60*60 && $row->action === "off") {
+			return [1, "The cloaking device is <orange>disabled<end>. ".
+				"It is possible to enable it."];
+		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
+			$msg = "RAID IN PROGRESS, <red>DO NOT ENTER CITY!<end>";
+			$wave = $this->cityWaveController->getWave();
+			if ($wave === 9) {
+				$msg .= " - Waiting for <highlight>General<end>.";
+			} elseif (isset($wave)) {
+				$msg .= " - Waiting for <highlight>wave {$wave}<end>.";
+			}
+			return [1, $msg];
+		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
+			return [1, "Cloaking device is <orange>disabled<end>. ".
+				"It is possible in <highlight>$timeString<end> to enable it."];
+		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
+			return [2, "The cloaking device is <green>enabled<end>. ".
+				"It is possible to disable it."];
+		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
+			return [2, "The cloaking device is <green>enabled<end>. ".
+				"It is possible in <highlight>$timeString<end> to disable it."];
+		}
+		return [1, "Unknown status on city cloak!"];
+	}
+
+	/**
+	 * @NewsTile("cloak-status")
+	 * @Description("Shows the current status of the city cloak, if and when
+	 * new raids can be initiated")
+	 * @Example("<header2>City<end>
+	 * <tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
+	 */
+	public function cloakStatusTile(string $sender, callable $callback): void {
+		$data = $this->getCloakStatus();
+		if (!isset($data)) {
+			$callback(null);
+			return;
+		}
+		[$case, $msg] = $data;
+		$msg = "<header2>City<end>\n<tab>{$msg}";
+		$callback($msg);
 	}
 }
