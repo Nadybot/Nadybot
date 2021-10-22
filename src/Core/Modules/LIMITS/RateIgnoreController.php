@@ -103,7 +103,7 @@ class RateIgnoreController {
 		}
 
 		if ($this->check($user) === true) {
-			return "Error! <highlight>$user<end> already added to the rate limit ignore list.";
+			return "<highlight>$user<end> is already on the rate limit ignore list.";
 		}
 		$this->db->table("rateignorelist")
 			->insert([
@@ -129,7 +129,7 @@ class RateIgnoreController {
 		}
 
 		if ($this->check($user) === false) {
-			return "Error! <highlight>$user<end> is not on the rate limit ignore list.";
+			return "<highlight>$user<end> is not on the rate limit ignore list.";
 		}
 		$this->db->table("rateignorelist")->where("name", $user)->delete();
 		return "<highlight>{$user}<end> has been removed from the rate limit ignore list.";

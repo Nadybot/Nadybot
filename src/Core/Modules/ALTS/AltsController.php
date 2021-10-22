@@ -517,7 +517,6 @@ class AltsController {
 	 * This command handler declines alt or main requests
 	 *
 	 * @HandlesCommand("altdecline")
-	 * @Matches("/^altdecline ([a-z0-9-]+)$/i")
 	 */
 	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
 		$altInfo = $this->getAltInfo($context->char->name, true);

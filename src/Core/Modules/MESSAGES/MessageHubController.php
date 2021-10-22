@@ -122,7 +122,7 @@ class MessageHubController {
 		string $action="(add|addforce)",
 		?string $fromConst="from",
 		PSource $from,
-		string $direction="(to|->|-&gt;|<->|&lt;-&gt;)",
+		PDirection $direction,
 		PSource $to,
 		?string $modifiers
 	): void {
@@ -153,7 +153,7 @@ class MessageHubController {
 		$route = new Route();
 		$route->source = $from;
 		$route->destination = $to;
-		if ($direction === "<->" || $direction === "&lt;-&gt;") {
+		if ($direction->isTwoWay()) {
 			$route->two_way = true;
 			$receiver = $this->messageHub->getReceiver($from);
 			if (!$force && !isset($receiver)) {

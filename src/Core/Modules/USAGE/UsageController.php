@@ -16,6 +16,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\RELAY_MODULE\RelayLayer;
 use stdClass;
@@ -145,7 +146,7 @@ class UsageController {
 	public function usageCmdCommand(
 		CmdContext $context,
 		string $action="cmd",
-		string $cmd,
+		PWord $cmd,
 		?PDuration $duration
 	): void {
 		$time = 604800;
@@ -161,7 +162,7 @@ class UsageController {
 		$timeString = $this->util->unixtimeToReadable($time);
 		$time = time() - $time;
 
-		$cmd = strtolower($cmd);
+		$cmd = strtolower($cmd());
 
 		$query = $this->db->table(self::DB_TABLE)
 			->where("command", $cmd)

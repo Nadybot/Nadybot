@@ -558,7 +558,7 @@ class SystemController implements MessageEmitter {
 	 * @HandlesCommand("showcommand")
 	 */
 	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
-		$this->chatBot->getUid($name(), [$this, "showCommandUid"], ...func_get_args());
+		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
 	}
 
 	public function showCommandUid(?int $uid, CmdContext $context, string $name, string $cmd): void {
