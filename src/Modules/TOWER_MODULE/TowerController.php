@@ -748,7 +748,8 @@ class TowerController {
 		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
 		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
 		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n".
+			$blob .= "<tab>Planted: <highlight>".
+				(isset($site->created_at) ? $this->util->date($site->created_at) : "Unknown") . "<end>\n".
 				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
 				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
 			if ($showOrgLinks) {
