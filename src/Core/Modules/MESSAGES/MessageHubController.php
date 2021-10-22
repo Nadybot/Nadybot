@@ -563,10 +563,8 @@ class MessageHubController {
 		string $type="(tag|text)",
 		PRemove $remove,
 		PSource $tag,
-		?string $arrow="(->|-&gt;)",
-		?PSource $where,
-		?string $viaIndicator="via",
-		?PSource $via,
+		?PWhere $where,
+		?PVia $via
 	): void {
 		$tag = $this->fixDiscordChannelName($tag());
 		if (isset($where)) {
@@ -626,10 +624,8 @@ class MessageHubController {
 		string $type="(tag|text)",
 		string $subAction="set",
 		PSource $tag,
-		?string $arrow="(->|-&gt;)",
-		?PSource $where,
-		?string $viaIndicator="via",
-		?PSource $via,
+		?PWhere $where,
+		?PVia $via,
 		PColor $color
 	): void {
 		$tag = $this->fixDiscordChannelName($tag());
@@ -657,7 +653,7 @@ class MessageHubController {
 			return;
 		}
 		if (strlen($via??"") > 50) {
-			$sendto->reply("Your via hop is longer than the supported 50 characters.");
+			$context->reply("Your via hop is longer than the supported 50 characters.");
 			return;
 		}
 		$colorDef = $this->getHopColor($tag, $where, $via);
@@ -695,10 +691,8 @@ class MessageHubController {
 		string $type="(tag|text)",
 		string $subAction="pick",
 		PSource $tag,
-		?string $arrow="(->|-&gt;)",
-		?PSource $where
-		?string $viaIndicator="via",
-		?PSource $via
+		?PWhere $where,
+		?PVia $via
 	): void {
 		$tag = $this->fixDiscordChannelName($tag());
 		$id = $name = $tag = strtolower($tag);
@@ -706,7 +700,7 @@ class MessageHubController {
 			? strtolower($this->fixDiscordChannelName($where()))
 			: null;
 		$via = isset($via)
-			? strtolower($this->fixDiscordChannelName($via)
+			? strtolower($this->fixDiscordChannelName($via()))
 			: null;
 		if (isset($where)) {
 			$name .= " -&gt; {$where}";
@@ -726,7 +720,7 @@ class MessageHubController {
 			return;
 		}
 		if (strlen($via??"") > 50) {
-			$sendto->reply("Your via hop name is too long.");
+			$context->reply("Your via hop name is too long.");
 			return;
 		}
 		$colorList = ColorSettingHandler::getExampleColors();
