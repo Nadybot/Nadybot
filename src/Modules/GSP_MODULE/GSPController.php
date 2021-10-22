@@ -369,11 +369,12 @@ class GSPController implements MessageEmitter {
 
 	/**
 	 * @NewsTile("gsp")
-	 * @Description("Show what's currently playing on GSP")
+	 * @Description("Show what's currently playing on GSP.
+	 * If there's a show, it also shows which one and its location.")
 	 * @Example("<header2>GSP<end>
 	 * <tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]
 	 * <tab>Current show: <highlight>The Odd End /w DJ Shigy<end>
-	 * <tab>Location: <highlight>Borealis west of the wompahs (AO)")
+	 * <tab>Location: <highlight>Borealis west of the wompahs (AO)<end>")
 	 */
 	public function gspTile(string $sender, callable $callback): void {
 		$this->http
