@@ -464,7 +464,7 @@ class TrackerController implements MessageEmitter {
 			->select("o.added_dt", "o.added_by", "m.name", "m.uid");
 		/** @var Collection<TrackedUser> */
 		$users = $this->db->table(self::DB_TABLE)
-			->select("added_dy", "added_by", "name", "uid")
+			->select("added_dt", "added_by", "name", "uid")
 			->union($orgUsers)
 			->asObj(TrackedUser::class)
 			->sortBy("name");

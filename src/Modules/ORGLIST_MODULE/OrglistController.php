@@ -297,7 +297,7 @@ class OrglistController {
 	 * @return string[]
 	 */
 	public function orgmatesformat(Orglist $memberlist, array $orgcolor, int $timestart): array {
-		$map = $memberlist->orgtype;
+		$map = $memberlist->orgtype ?? [];
 
 		$totalonline = 0;
 		$totalcount = count($memberlist->result);

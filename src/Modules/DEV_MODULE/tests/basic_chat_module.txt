@@ -29,6 +29,8 @@ Foo bar baz
 /delay %1
 !rally 10.9 x 30 x 505
 /delay %1
+!rally 1 2 3
+/delay %1
 !rally
 /delay %1
 !rally clear
@@ -61,7 +63,7 @@ Foo bar baz
 /delay %1
 !topic
 /delay %1
-!topic 
+!topic
 /delay %1
 !topic clear
 
