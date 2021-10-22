@@ -319,7 +319,7 @@ class StartpageController {
 		}
 		$callResults = [];
 		$callNum = 0;
-		$callback = function(int $numCall, ?string $text) use (&$callResults, $tiles, $sendto, $sender): void {
+		$callback = function(int $numCall, ?string $text) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
 			$callResults[$numCall] = isset($text) ? trim($text) : null;
 			if (count($callResults) < count($tiles)) {
 				return;
@@ -327,6 +327,9 @@ class StartpageController {
 			ksort($callResults, SORT_NUMERIC);
 			$dataParts = array_filter(array_values($callResults));
 			if (empty($dataParts)) {
+				if ($showEmpty) {
+					$sendto->reply("Your startpage is currently <highlight>empty<end>.");
+				}
 				return;
 			}
 			$blob = join("\n\n", $dataParts);
