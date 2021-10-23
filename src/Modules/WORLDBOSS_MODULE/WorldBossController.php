@@ -123,6 +123,11 @@ class WorldBossController {
 		self::VIZARESH => "gauntlet",
 	];
 
+	/**
+	 * @var WorldbossTimer[]
+	 */
+	public array $timers = [];
+
 	/** @Setup */
 	public function setup() {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
@@ -132,6 +137,7 @@ class WorldBossController {
 				$this->messageHub->registerMessageEmitter($emitter);
 			}
 		}
+		$this->reloadWorldBossTimers();
 	}
 
 	/**
@@ -169,12 +175,16 @@ class WorldBossController {
 	 * @return WorldbossTimer[]
 	 */
 	protected function getWorldBossTimers(): array {
+		return $this->timers;
+	}
+
+	protected function reloadWorldBossTimers(): void {
 		/** @var WorldbossTimer[] */
 		$timers = $this->db->table(static::DB_TABLE)
 			->asObj(WorldbossTimer::class)
 			->toArray();
 		$this->addNextDates($timers);
-		return $timers;
+		$this->timers = $timers;
 	}
 
 	protected function niceTime(int $timestamp): string {
@@ -249,6 +259,7 @@ class WorldBossController {
 		) {
 			return "There is currently no timer for <highlight>$mobName<end>.";
 		}
+		$this->reloadWorldBossTimers();
 		return "The timer for <highlight>$mobName<end> has been deleted.";
 	}
 
@@ -266,6 +277,7 @@ class WorldBossController {
 				["mob_name"]
 			);
 		$msg = "The timer for <highlight>$mobName<end> has been updated.";
+		$this->reloadWorldBossTimers();
 		return $msg;
 	}
 
@@ -288,6 +300,7 @@ class WorldBossController {
 				["mob_name"]
 			);
 		$msg = "The timer for <highlight>$mobName<end> has been updated.";
+		$this->reloadWorldBossTimers();
 		return $msg;
 	}
 
@@ -450,29 +463,37 @@ class WorldBossController {
 	}
 
 	/**
-	 * @Event("timer(10sec)")
+	 * @Event("timer(1sec)")
 	 * @Description("Check timer to announce big boss events")
 	 */
 	public function checkTimerEvent(Event $eventObj): void {
 		$timers = $this->getWorldBossTimers();
+		$triggered = false;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
-			if ($timer->next_spawn <= time()+15*60 && $timer->next_spawn > time()+15*60-10) {
-				$msg = "<highlight>".$timer->mob_name."<end> will spawn in ".
+			if ($timer->next_spawn === time()+15*60) {
+				$msg = "<highlight>{$timer->mob_name}<end> will spawn in ".
 					"<highlight>".$this->util->unixtimeToReadable($timer->next_spawn-time())."<end>.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 1);
+				$triggered = true;
 			}
-			if ($timer->next_spawn <= time() && $timer->next_spawn > time()-10) {
-				$msg = "<highlight>".$timer->mob_name."<end> has spawned and will be vulnerable in ".
+			if ($timer->next_spawn === time()) {
+				$msg = "<highlight>{$timer->mob_name}<end> has spawned and will be vulnerable in ".
 					"<highlight>".$this->util->unixtimeToReadable($timer->next_killable-time())."<end>.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 2);
+				$triggered = true;
 			}
-			$nextKillTime = time() + $timer->timer+$invulnerableTime;
-			if ($timer->next_killable == time() || ($timer->next_killable <= $nextKillTime && $timer->next_killable > $nextKillTime-10)) {
-				$msg = "<highlight>".$timer->mob_name."<end> is no longer immortal.";
+			$nextKillTime = time() + $timer->timer + $invulnerableTime;
+			if ($timer->next_killable === time() || $timer->next_killable === $nextKillTime) {
+				$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 3);
+				$triggered = true;
 			}
 		}
+		if (!$triggered) {
+			return;
+		}
+		$this->timers = $this->addNextDates($this->timers);
 	}
 
 	/**
