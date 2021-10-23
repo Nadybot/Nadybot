@@ -1,0 +1,18 @@
+Manage Loren Warr spawn times
+
+To list the next spawn time(s) for Loren Warr:
+<tab><highlight><symbol>loren<end>
+
+To set a new timers once Loren Warr has been killed:
+<tab><highlight><symbol>loren kill<end>
+
+To manually set a new timers when Loren Warr is vulnerable:
+<tab><highlight><symbol>loren update 'time'<end>
+
+To delete the timer, because you are not interested in it:
+<tab><highlight><symbol>loren del<end>
+
+<header2>Examples:<end>
+
+Loren Warr will be vulnerable in 1 hours, 2 minutes and 10 seconds:
+<tab><highlight><symbol>loren update 1h2m10s<end>

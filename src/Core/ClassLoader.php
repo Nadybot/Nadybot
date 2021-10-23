@@ -67,14 +67,18 @@ class ClassLoader {
 		$this->logger->log('INFO', "Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->log('DEBUG', "Loading modules in path '$path'");
-			if (@file_exists($path) && $d = dir($path)) {
-				while (false !== ($moduleName = $d->read())) {
-					if ($this->isModuleDir($path, $moduleName)) {
-						$this->registerModule($path, $moduleName);
-					}
-				}
-				$d->close();
+			if (!@file_exists($path) || ($d = dir($path)) === false) {
+				continue;
 			}
+			while (false !== ($moduleName = $d->read())) {
+				if (in_array($moduleName, ["BIGBOSS_MODULE", "GAUNTLET_MODULE"])) {
+					continue;
+				}
+				if ($this->isModuleDir($path, $moduleName)) {
+					$this->registerModule($path, $moduleName);
+				}
+			}
+			$d->close();
 		}
 	}
 

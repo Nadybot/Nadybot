@@ -1,0 +1,17 @@
+<header>::::: Gauntlet Buff :::::<end>
+
+To show current Gauntlet buff Timer:
+<tab><highlight><symbol>gaubuff<end>
+
+To set the Gauntlet buff Timer:
+<tab><highlight><symbol>gaubuff 'time'<end>
+
+<header2>Examples:<end>
+
+Set the gauntlet buff to expire in 10 hours and 15 minutes:
+<tab><highlight><symbol>gaubuff 10h15m<end>
+
+Set the gauntlet buff to expire in 1 hour, 5 minutes and 10 seconds:
+<tab><highlight><symbol>gaubuff 1h5m10s<end>
+
+See <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a> for info on the format of the 'time' parameter.

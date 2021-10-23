@@ -1,0 +1,29 @@
+<header>::::: Gauntlet Timer :::::<end>
+
+<highlight>Show current Gauntlet Timer:<end>
+<tab><symbol>gauntlet
+
+<highlight>Update Gauntletimer:<end>
+<tab><symbol>gauupdate X:Y
+<tab><symbol>gauupdate XhYmZs
+<highlight>or<end>
+<tab><symbol>gauset X:Y
+<tab><symbol>gauset XhYmZs
+X = hours and Y = minutes and Z = seconds until Vizaresh is vulnerable!
+
+<highlight>Vizaresh killed:<end>
+<tab><symbol>gaukill
+automatically sets a 17h7m timer.
+
+<highlight>Subscribe for a raid<end>
+If you want to subscribe for a raid then simply
+use the <symbol>gauntlet command and click the date
+and the char you want to participate.
+
+<highlight>Show Bastion tradeskillprocess:<end>
+<tab><symbol>gautrade
+
+For manual Subscribequeue roll:
+<tab><symbol>gauntlet rollqueue
+
+Normal respawntime is 17h7m
