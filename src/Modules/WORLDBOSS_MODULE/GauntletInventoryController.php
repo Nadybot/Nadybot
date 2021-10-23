@@ -58,7 +58,7 @@ class GauntletInventoryController {
 		return $this->preferences->get($name, 'gauntlet') !== null;
 	}
 
-	private function getData(string $name): array {
+	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
 			return json_decode($data);
@@ -67,7 +67,7 @@ class GauntletInventoryController {
 		}
 	}
 
-	private function saveData(string $sender, array $inv): void {
+	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}
 
