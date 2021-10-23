@@ -6,6 +6,7 @@ use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\SchemaMigration;
+use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 
@@ -15,6 +16,9 @@ class MigrateGauntletData implements SchemaMigration {
 
 	/** @Inject */
 	public GauntletInventoryController $gauntletInventoryController;
+
+	/** @Inject */
+	public TimerController $timerController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "timers_<myname>";
@@ -34,13 +38,18 @@ class MigrateGauntletData implements SchemaMigration {
 				61200,
 				420
 			);
+			$this->timerController->remove("Gauntlet");
 		}
-		$db->table($table)
-			->where("name", "Gauntlet")
-			->delete();
+		$timers = $this->timerController->getAllTimers();
+		foreach ($timers as $timer) {
+			if ($timer->callback ===  "GauntletController.gaubuffcallback") {
+				$timer->callback = "GauntletBuffController.gaubuffcallback";
+			}
+		}
+var_dump($this->timerController->getAllTimers());
 		$db->table($table)
 			->where("callback", "GauntletController.gaubuffcallback")
-			->update(["callback" => "GauntletBuffController.gaubuffcallback"])
+			->update(["callback" => "GauntletBuffController.gaubuffcallback"]);
 
 		$table = "gauntlet";
 		if (!$db->schema()->hasTable($table)) {
