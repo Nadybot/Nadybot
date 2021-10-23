@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
@@ -116,7 +116,7 @@ class GauntletBuffController implements MessageEmitter {
 		return $gtime->format("D, H:i T (Y-m-d)");
 	}
 
-	public function setGaubuff(string $side, string $time, string $creator, int $createtime): void {
+	public function setGaubuff(string $side, int $time, string $creator, int $createtime): void {
 		$alerts = [];
 		foreach (explode(' ', $this->settingManager->get('gaubuff_times')) as $utime) {
 			$alertTimes[] = $this->util->parseTime($utime);
