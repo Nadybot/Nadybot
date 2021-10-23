@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandManager,
 	CommandReply,
 	DB,
@@ -255,15 +256,24 @@ class DiscordGatewayCommandHandler {
 		);
 		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id;
-		if (!preg_match("/^extauth\s+request/", $event->message)) {
-			$discordUserId = $this->getNameForDiscordId($discordUserId) ?? $discordUserId;
+		$context = new CmdContext($discordUserId);
+		$context->channel = "msg";
+		$context->message = $event->message;
+		$context->sendto = $sendto;
+		if (preg_match("/^extauth\s+request/si", $event->message)) {
+			$this->commandManager->processCmd($context);
+			return;
 		}
-		$this->commandManager->process(
-			"msg",
-			$event->message,
-			$discordUserId,
-			$sendto
-		);
+		$userId = $this->getNameForDiscordId($discordUserId);
+		if (!isset($userId)) {
+			$this->commandManager->processCmd($context);
+			return;
+		}
+		$context->char->name = $userId;
+		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->processCmd($context);
+		}, $context);
 	}
 
 	/**
@@ -293,14 +303,24 @@ class DiscordGatewayCommandHandler {
 			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
-		if (!preg_match("/^extauth\s+request/", $event->message)) {
-			$discordUserId = $this->getNameForDiscordId($discordUserId) ?? $discordUserId;
+		$discordUserId = $event->discord_message->author->id;
+		$context = new CmdContext($discordUserId);
+		$context->channel = "priv";
+		$context->message = substr($event->message, 1);
+		$context->sendto = $sendto;
+		if (preg_match("/^extauth\s+request/si", $event->message)) {
+			$this->commandManager->processCmd($context);
+			return;
 		}
-		$this->commandManager->process(
-			"priv",
-			substr($event->message, 1),
-			$discordUserId,
-			$sendto
-		);
+		$userId = $this->getNameForDiscordId($discordUserId);
+		if (!isset($userId)) {
+			$this->commandManager->processCmd($context);
+			return;
+		}
+		$context->char->name = $userId;
+		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->processCmd($context);
+		}, $context);
 	}
 }

@@ -6,7 +6,7 @@ use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	DBSchema\Audit,
 	QueryBuilder,
@@ -150,21 +150,20 @@ class AuditController {
 
 	/**
 	 * @HandlesCommand("audit")
-	 * @Matches("/^audit(.*)$/i")
 	 */
-	public function auditListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function auditListCommand(CmdContext $context, ?string $filter): void {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")
 			->orderByDesc("id");
 		$params = [];
-		$error = $this->parseParams($query, $args[1], $params);
+		$error = $this->parseParams($query, $filter??"", $params);
 		if (isset($error)) {
-			$sendto->reply($error);
+			$context->reply($error);
 			return;
 		}
 		$data = $query->asObj(Audit::class);
 		if ($data->isEmpty()) {
-			$sendto->reply("No audit data found.");
+			$context->reply("No audit data found.");
 			return;
 		}
 
@@ -186,7 +185,7 @@ class AuditController {
 		}
 		$msg = "Audit entries (" . $lines->count() . ")";
 		$msg = $this->text->makeBlob($msg, $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

@@ -4,9 +4,12 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
-	CommandReply,
+	Nadybot,
 };
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\Routing\Character;
 
 /**
  * @author Tyrence (RK2)
@@ -35,17 +38,32 @@ class RunAsController {
 	/** @Inject */
 	public CommandManager $commandManager;
 
+	/** @Inject */
+	public Nadybot $chatBot;
+
 	/**
 	 * @HandlesCommand("runas")
-	 * @Matches("/^runas ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function runasCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$command = $args[2];
-		if ($this->accessManager->checkAccess($sender, "superadmin") || $this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
-			$this->commandManager->process($channel, $command, $name, $sendto);
-		} else {
-			$sendto->reply("Error! Access level not sufficient to run commands as <highlight>$name<end>.");
-		}
+	public function runasCommand(CmdContext $context, PCharacter $name, string $command): void {
+		$context->message = $command;
+		$this->chatBot->getUid(
+			$name(),
+			function (?int $uid, CmdContext $context, string $name): void {
+				if (!isset($uid)) {
+					$context->reply("Player <highlight>{$name}<end> does not exist.");
+					return;
+				}
+				if (!$this->accessManager->checkAccess($context->char->name, "superadmin")
+					&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $name) <= 0
+				) {
+					$context->reply("Error! Access level not sufficient to run commands as <highlight>$name<end>.");
+					return;
+				}
+				$context->char = new Character($name, $uid);
+				$this->commandManager->processCmd($context);
+			},
+			$context,
+			$name()
+		);
 	}
 }

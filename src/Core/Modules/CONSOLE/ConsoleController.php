@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
 	BotRunner,
+	CmdContext,
 	CommandManager,
 	LoggerWrapper,
 	MessageHub,
@@ -185,7 +186,13 @@ class ConsoleController {
 			readline_add_history($line);
 			$this->saveHistory();
 		}
-		$handler = new ConsoleCommandReply($this->chatBot);
-		$this->commandManager->process("msg", $line, $this->chatBot->vars["SuperAdmin"], $handler);
+		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
+		$context->channel = "msg";
+		$context->message = $line;
+		$context->sendto = new ConsoleCommandReply($this->chatBot);
+		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->processCmd($context);
+		}, $context);
 	}
 }

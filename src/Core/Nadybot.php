@@ -896,13 +896,17 @@ class Nadybot extends AOChat {
 				}
 
 				// check tell limits
+				$context = new CmdContext($sender, $senderId);
+				$context->channel = $type;
+				$context->message = $message;
+				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
 				$this->limitsController->checkAndExecute(
 					$sender,
 					$message,
-					function() use ($sender, $type, $message, $eventObj): void {
-						$sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
-						$this->commandManager->process($type, $message, $sender, $sendto);
-					}
+					function(CmdContext $context): void {
+						$this->commandManager->processCmd($context);
+					},
+					$context
 				);
 			},
 			null,
@@ -953,18 +957,17 @@ class Nadybot extends AOChat {
 			return;
 		}
 
+		$context = new CmdContext($sender, $senderId);
+		$context->channel = $type;
+		$context->message = substr($message, 1);
+		$context->sendto = new PrivateChannelCommandReply($this, $channel);
 		$this->banController->handleBan(
 			$senderId,
-			function (int $senderId, string $type, string $message, string $sender, string $channel): void {
-				$message = substr($message, 1);
-				$sendto = new PrivateChannelCommandReply($this, $channel);
-				$this->commandManager->process($type, $message, $sender, $sendto);
+			function (int $senderId, CmdContext $context): void {
+				$this->commandManager->processCmd($context);
 			},
 			null,
-			$type,
-			$message,
-			$sender,
-			$channel,
+			$context
 		);
 	}
 
@@ -1038,16 +1041,17 @@ class Nadybot extends AOChat {
 			$this->eventManager->fireEvent($eventObj);
 
 			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+				$context = new CmdContext($sender, $senderId);
+				$context->channel = "guild";
+				$context->message = substr($message, 1);
+				$context->sendto = new GuildChannelCommandReply($this);
 				$this->banController->handleBan(
 					$senderId,
-					function (int $senderId, string $message, string $sender): void {
-						$message = substr($message, 1);
-						$sendto = new GuildChannelCommandReply($this);
-						$this->commandManager->process("guild", $message, $sender, $sendto);
+					function (int $senderId, CmdContext $context): void {
+						$this->commandManager->processCmd($context);
 					},
 					null,
-					$message,
-					$sender,
+					$context
 				);
 			}
 		}

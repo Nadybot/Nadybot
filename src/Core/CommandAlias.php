@@ -96,8 +96,8 @@ class CommandAlias {
 	/**
 	 * Check incoming commands if they are aliases for commands and execute them
 	 */
-	public function process(string $message, string $channel, string $sender, CommandReply $sendto): bool {
-		$params = explode(' ', $message);
+	public function process(CmdContext $context): bool {
+		$params = explode(' ', $context->message);
 		while (count($params) && !isset($row)) {
 			$row = $this->get(strtolower(join(' ', $params)));
 			if (!isset($row)) {
@@ -107,7 +107,7 @@ class CommandAlias {
 		if ($row === null) {
 			return false;
 		}
-		$tokens = explode(' ', $message, count($params)+1);
+		$tokens = explode(' ', $context->message, count($params)+1);
 		if (count($tokens) > count($params)) {
 			$params = $tokens[count($params)];
 		} else {
@@ -151,7 +151,8 @@ class CommandAlias {
 		if (preg_match("/\{\\d+(:.*?)?\}/", $cmd)) {
 			return false;
 		}
-		$this->commandManager->process($channel, $cmd, $sender, $sendto);
+		$context->message = $cmd;
+		$this->commandManager->processCmd($context);
 		return true;
 	}
 

@@ -6,9 +6,9 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	DB,
 	Event,
 	EventManager,
@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Annotations\Setting;
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -281,11 +282,10 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("restart")
-	 * @Matches("/^restart$/i")
 	 */
-	public function restartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
-		$this->chatBot->sendTell($msg, $sender);
+		$this->chatBot->sendTell($msg, $context->char->name);
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
 		$this->messageHub->handle($rMsg);
@@ -297,11 +297,10 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("shutdown")
-	 * @Matches("/^shutdown$/i")
 	 */
-	public function shutdownCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
-		$this->chatBot->sendTell($msg, $sender);
+		$this->chatBot->sendTell($msg, $context->char->name);
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
 		$this->messageHub->handle($rMsg);
@@ -377,9 +376,8 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("system")
-	 * @Matches("/^system$/i")
 	 */
-	public function systemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function systemCommand(CmdContext $context): void {
 		$info = $this->getSystemInfo();
 
 		$blob = "<header2>Basic Info<end>\n";
@@ -455,56 +453,68 @@ class SystemController implements MessageEmitter {
 		}
 
 		$msg = $this->text->makeBlob('System Info', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("checkaccess")
-	 * @Matches("/^checkaccess$/i")
-	 * @Matches("/^checkaccess (.+)$/i")
 	 */
-	public function checkaccessCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = $sender;
-		if (count($args) > 1) {
-			$name = ucfirst(strtolower($args[1]));
-			if (!$this->chatBot->get_uid($name)) {
-				$sendto->reply("Character <highlight>{$name}<end> does not exist.");
+	public function checkaccessSelfCommand(CmdContext $context): void {
+		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
+
+		$msg = "Access level for <highlight>{$context->char->name}<end> (".
+			(isset($context->char->id) ? "ID {$context->char->id}" : "No ID").
+			") is <highlight>$accessLevel<end>.";
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("checkaccess")
+	 */
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $name): void {
+		$this->chatBot->getUid(
+			$name(),
+			function (?int $uid, CmdContext $context, string $name): void {
+				if (!isset($uid)) {
+					$context->reply("Character <highlight>{$name}<end> does not exist.");
+					return;
+				}
+				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
+				$msg = "Access level for <highlight>{$name}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
+				$context->reply($msg);
 				return;
-			}
-		}
-
-		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
-
-		$msg = "Access level for <highlight>$name<end> is <highlight>$accessLevel<end>.";
-		$sendto->reply($msg);
+			},
+			$context,
+			$name()
+		);
+		return;
 	}
 
 	/**
 	 * This command handler clears outgoing chatqueue from all pending messages.
 	 *
 	 * @HandlesCommand("clearqueue")
-	 * @Matches("/^clearqueue$/")
 	 */
-	public function clearqueueCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function clearqueueCommand(CmdContext $context): void {
 		$num = 0;
 		foreach ($this->chatBot->chatqueue->queue as $priority) {
 			$num += count($priority);
 		}
 		$this->chatBot->chatqueue->queue = [];
 
-		$sendto->reply("Chat queue has been cleared of $num messages.");
+		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
 	}
 
 	/**
 	 * This command handler execute multiple commands at once, separated by pipes.
 	 *
 	 * @HandlesCommand("macro")
-	 * @Matches("/^macro (.+)$/si")
 	 */
-	public function macroCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$commands = explode("|", $args[1]);
+	public function macroCommand(CmdContext $context, string $command): void {
+		$commands = explode("|", $command);
 		foreach ($commands as $commandString) {
-			$this->commandManager->process($channel, trim($commandString), $sender, $sendto);
+			$context->message = $commandString;
+			$this->commandManager->processCmd($context);
 		}
 	}
 
@@ -546,21 +556,26 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("showcommand")
-	 * @Matches("/^showcommand ([^ ]+) (.+)$/i")
 	 */
-	public function showCommandCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$cmd = $args[2];
-		$type = "msg";
-		if (!$this->chatBot->get_uid($name)) {
-			$sendto->reply("Character <highlight>{$name}<end> does not exist.");
+	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
+		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
+	}
+
+	public function showCommandUid(?int $uid, CmdContext $context, string $name, string $cmd): void {
+		$name = ucfirst(strtolower($name));
+		if (!isset($uid)) {
+			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		}
 
 		$showSendto = new PrivateMessageCommandReply($this->chatBot, $name);
-		$this->commandManager->process($type, $cmd, $sender, $showSendto);
+		$newContext = new CmdContext($context->char->name, $context->char->id);
+		$newContext->sendto = $showSendto;
+		$newContext->message = $cmd;
+		$newContext->channel = "msg";
+		$this->commandManager->processCmd($newContext);
 
-		$sendto->reply("Command <highlight>$cmd<end> has been sent to <highlight>$name<end>.");
+		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");
 	}
 
 	/**
