@@ -107,6 +107,9 @@ class WorldBossController {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public GauntletBuffController $gauntletBuffController;
+
+	/** @Inject */
 	public MessageHub $messageHub;
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
@@ -499,6 +502,10 @@ class WorldBossController {
 	/**
 	 * @NewsTile("boss-timers")
 	 * @Description("A list of upcoming boss spawn timers")
+	 * @Example("<header2>Boss timers<end>
+	 * <tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.
+	 * <tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.
+	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
 	 */
 	public function bossTimersNewsTile(string $sender, callable $callback): void {
 		$timers = $this->getWorldBossTimers();
@@ -516,6 +523,8 @@ class WorldBossController {
 	/**
 	 * @NewsTile("tara-timer")
 	 * @Description("The current tara timer")
+	 * @Example("<header2>Tara timer<end>
+	 * <tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.")
 	 */
 	public function taraTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::TARA);
@@ -531,6 +540,8 @@ class WorldBossController {
 	/**
 	 * @NewsTile("gauntlet-timer")
 	 * @Description("Show when Vizaresh spawns/is vulnerable")
+	 * @Example("<header2>Gauntlet<end>
+	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
 	 */
 	public function gauntletTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
@@ -540,6 +551,30 @@ class WorldBossController {
 		}
 		$blob = "<header2>Gauntlet<end>\n".
 			"<tab>" . $this->formatWorldBossMessage($timer, true);
+		$callback($blob);
+	}
+
+	/**
+	 * @NewsTile("gauntlet")
+	 * @Description("Show when Vizaresh spawns/is vulnerable")
+	 * @Example("<header2>Gauntlet<end>
+	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.
+	 * <tab><omni>Omni Gauntlet buff<end> runs out in 4 hrs 59 mins 31 secs.")
+	 */
+	public function gauntletNewsTile(string $sender, callable $callback): void {
+		$timer = $this->getWorldBossTimer(static::VIZARESH);
+		$buffLine = $this->gauntletBuffController->getGauntletBuffLine();
+		if (!isset($timer) && !isset($buffLine)) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Gauntlet<end>";
+		if (isset($timer)) {
+			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true);
+		}
+		if (isset($buffLine)) {
+			$blob .= "\n{$buffLine}";
+		}
 		$callback($blob);
 	}
 }

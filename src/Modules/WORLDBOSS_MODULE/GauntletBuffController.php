@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
-use DateTimeZone;
 use Nadybot\Core\{
 	CmdContext,
 	LoggerWrapper,
@@ -114,7 +113,6 @@ class GauntletBuffController implements MessageEmitter {
 	private function tmTime($zz) {
 		$gtime = new DateTime();
 		$gtime->setTimestamp($zz);
-		$gtime->setTimezone(new DateTimeZone($this->settingManager->get('gauntlet_timezone')));
 		return $gtime->format("D, H:i T (Y-m-d)");
 	}
 
@@ -275,7 +273,9 @@ class GauntletBuffController implements MessageEmitter {
 
 	/**
 	 * @NewsTile("gauntlet-buff")
-	 * @Description("If the Gauntlet buff has been popped, show how much is remaining")
+	 * @Description("Show the remaining time of the currently popped Gauntlet buff(s) - if any")
+	 * @Example("<header2>Gauntlet buff<end>
+	 * <tab><omni>Omni Gauntlet buff<end> runs out in 4 hrs 59 mins 31 secs.")
 	 */
 	public function gauntletBuffNewsTile(string $sender, callable $callback): void {
 		$buffLine = $this->getGauntletBuffLine();
