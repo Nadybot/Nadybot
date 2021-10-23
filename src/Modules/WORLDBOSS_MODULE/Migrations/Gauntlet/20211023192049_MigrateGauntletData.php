@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 
 use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\Routing\Character;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
@@ -26,7 +27,13 @@ class MigrateGauntletData implements SchemaMigration {
 			while ($timer->endtime < time()) {
 				$timer->endtime += 61640;
 			}
-			$this->worldBossController->worldBossUpdateCommand($timer->owner, $timer->endtime - time(), WorldBossController::VIZARESH, 61200, 420);
+			$this->worldBossController->worldBossUpdateCommand(
+				new Character($timer->owner),
+				$timer->endtime - time() + 420,
+				WorldBossController::VIZARESH,
+				61200,
+				420
+			);
 		}
 		$db->table($table)
 			->where("name", "Gauntlet")

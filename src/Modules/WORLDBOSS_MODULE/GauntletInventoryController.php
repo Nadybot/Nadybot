@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Nadybot\Core\{
 	CmdContext,
+	DB,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
@@ -33,6 +34,9 @@ class GauntletInventoryController {
 	public string $moduleName;
 
 	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
@@ -50,12 +54,9 @@ class GauntletInventoryController {
 		[292517, 292762, 3]
 	];
 
-	private function checkZero(int $number) {
-		return max(0, $number);
-	}
-
-	private function playerHasData(string $name): bool {
-		return $this->preferences->get($name, 'gauntlet') !== null;
+	/** @Setup */
+	public function setup() {
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Gauntlet');
 	}
 
 	public function getData(string $name): array {
