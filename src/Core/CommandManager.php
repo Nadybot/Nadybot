@@ -677,7 +677,8 @@ class CommandManager implements MessageEmitter {
 						break;
 				}
 			} else {
-				$new = "(?<{$varName}>" . [$type->getName(), "getRegexp"]() . ")";
+				$new = "(?:" . [$type->getName(), "getPreRegExp"]().
+					"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
 			}
 			if (isset($new)) {
 				if ($params[$i]->allowsNull()) {

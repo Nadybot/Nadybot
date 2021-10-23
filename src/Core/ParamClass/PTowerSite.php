@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PTowerSite extends Base {
-	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]\s*\d+";
+	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]{1,3}\s*\d+";
 	protected string $value;
 
 	public string $pf;

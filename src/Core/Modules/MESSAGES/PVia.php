@@ -3,11 +3,11 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 class PVia extends PSource {
-	protected static string $regExp = "(via)\s+[a-zA-Z*]+(?:\(.*?\))?";
+	protected static string $preRegExp = "via\s+";
+	protected static string $regExp = "[a-zA-Z*]+(?:\(.*?\))?";
 	protected string $value;
 
 	public function __construct(string $value) {
-		$value = preg_replace("/^(via)\s+/is", "", $value);
 		$this->value = strtolower($value);
 	}
 }
