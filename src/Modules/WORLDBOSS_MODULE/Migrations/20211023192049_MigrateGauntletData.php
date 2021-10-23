@@ -38,6 +38,10 @@ class MigrateGauntletData implements SchemaMigration {
 		$db->table($table)
 			->where("name", "Gauntlet")
 			->delete();
+		$db->table($table)
+			->where("callback", "GauntletController.gaubuffcallback")
+			->update(["callback" => "GauntletBuffController.gaubuffcallback"])
+
 		$table = "gauntlet";
 		if (!$db->schema()->hasTable($table)) {
 			return;

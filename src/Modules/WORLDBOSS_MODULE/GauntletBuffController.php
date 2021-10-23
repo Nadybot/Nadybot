@@ -144,7 +144,7 @@ class GauntletBuffController implements MessageEmitter {
 		$data['repeat'] = 0;
 
 		$this->timerController->remove("Gaubuff_{$side}");
-		$this->timerController->add("Gaubuff_{$side}", $this->chatBot->char->name, $this->settingManager->get('gauntlet_channels'), $alerts, "GauntletController.gaubuffcallback", json_encode($data));
+		$this->timerController->add("Gaubuff_{$side}", $this->chatBot->char->name, $this->settingManager->get('gauntlet_channels'), $alerts, "GauntletBuffController.gaubuffcallback", json_encode($data));
 	}
 
 	public function gaubuffcallback(Timer $timer, Alert $alert) {
