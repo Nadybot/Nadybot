@@ -36,7 +36,6 @@ class CreateWorldbossTimersTable implements SchemaMigration {
 			->toArray();
 		$db->table(WorldBossController::DB_TABLE)
 			->insert($oldTimers);
-		// $db->schema()->dropIfExists("bigboss_timers");
 		$db->table(CommandManager::DB_TABLE)
 			->where('module', 'BIGBOSS_MODULE')
 			->update(["status" => 0]);

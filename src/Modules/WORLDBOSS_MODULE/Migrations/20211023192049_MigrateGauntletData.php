@@ -3,7 +3,9 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 
 use Nadybot\Core\DB;
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
@@ -46,13 +48,23 @@ class MigrateGauntletData implements SchemaMigration {
 				$timer->callback = "GauntletBuffController.gaubuffcallback";
 			}
 		}
-var_dump($this->timerController->getAllTimers());
 		$db->table($table)
 			->where("callback", "GauntletController.gaubuffcallback")
 			->update(["callback" => "GauntletBuffController.gaubuffcallback"]);
 
 		$table = "gauntlet";
 		if (!$db->schema()->hasTable($table)) {
+			if (!$db->schema()->hasTable("bigboss_timers")) {
+				$route = new Route();
+				$route->source = "spawn(*)";
+				$route->destination = "aoorg";
+				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+
+				$route = new Route();
+				$route->source = "spawn(*)";
+				$route->destination = "aopriv(" . $db->getMyname() . ")";
+				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			}
 			return;
 		}
 		$gauInv = $db->table($table)
@@ -64,5 +76,6 @@ var_dump($this->timerController->getAllTimers());
 			}
 		});
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists("bigboss_timers");
 	}
 }
