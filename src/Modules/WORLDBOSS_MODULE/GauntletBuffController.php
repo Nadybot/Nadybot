@@ -153,6 +153,7 @@ class GauntletBuffController implements MessageEmitter {
 			Source::SYSTEM,
 			"gauntlet-buff"
 		));
+		var_dump($rMsg);
 		$this->messageHub->handle($rMsg);
 	}
 
