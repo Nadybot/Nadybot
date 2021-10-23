@@ -559,7 +559,7 @@ class WorldBossController {
 	 * @Description("Show when Vizaresh spawns/is vulnerable")
 	 * @Example("<header2>Gauntlet<end>
 	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.
-	 * <tab><omni>Omni Gauntlet buff<end> runs out in 4 hrs 59 mins 31 secs.")
+	 * <tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
 	 */
 	public function gauntletNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);

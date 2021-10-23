@@ -275,7 +275,7 @@ class GauntletBuffController implements MessageEmitter {
 	 * @NewsTile("gauntlet-buff")
 	 * @Description("Show the remaining time of the currently popped Gauntlet buff(s) - if any")
 	 * @Example("<header2>Gauntlet buff<end>
-	 * <tab><omni>Omni Gauntlet buff<end> runs out in 4 hrs 59 mins 31 secs.")
+	 * <tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
 	 */
 	public function gauntletBuffNewsTile(string $sender, callable $callback): void {
 		$buffLine = $this->getGauntletBuffLine();
