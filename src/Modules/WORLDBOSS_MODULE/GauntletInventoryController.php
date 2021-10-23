@@ -4,7 +4,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Nadybot\Core\{
 	CmdContext,
-	DB,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
@@ -34,9 +33,6 @@ class GauntletInventoryController {
 	public string $moduleName;
 
 	/** @Inject */
-	public DB $db;
-
-	/** @Inject */
 	public Text $text;
 
 	/** @Inject */
@@ -53,11 +49,6 @@ class GauntletInventoryController {
 		[292538, 292772, 3], [292525, 292763, 3], [292526, 292777, 3], [292528, 292778, 3],
 		[292517, 292762, 3]
 	];
-
-	/** @Setup */
-	public function setup() {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Gauntlet');
-	}
 
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');

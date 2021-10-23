@@ -125,7 +125,7 @@ class WorldBossController {
 
 	/** @Setup */
 	public function setup() {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Worldboss');
+		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 		foreach (["tara", "lauren", "reaper", "gauntlet"] as $boss) {
 			foreach (["prespawn", "spawn", "vulnerable"] as $event) {
 				$emitter = new WorldBossChannel("{$boss}-{$event}");
