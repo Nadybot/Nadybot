@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
 
 /**
@@ -29,11 +30,10 @@ class GauntletTradeController {
 
 	/**
 	 * @HandlesCommand("gautrade")
-	 * @Matches("/^gautrade$/i")
 	 */
-	public function gautradeCommand($message, $channel, $sender, $sendto, $args) {
+	public function gautradeCommand(CmdContext $context): void {
 		$info = file_get_contents(__DIR__ . '/gautrade');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

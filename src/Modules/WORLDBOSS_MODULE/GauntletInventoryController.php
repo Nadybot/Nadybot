@@ -75,15 +75,14 @@ class GauntletInventoryController {
 			"Needed items for: [".
 			sprintf($gauListMask, 1, 1) . "|" .
 			sprintf($gauListMask, 2, 2) . "|" .
-			sprintf($gauListMask, 3, 3) . "]\n";
-		$list .= "Items needed for {$numArmors} Bastion armor parts.\n".
-			"<green>[Amount you have]<end>|<red>[Amount you need]<end>\n".
-			"[+]=increase Item      [-]=decrease Item\n\n";
+			sprintf($gauListMask, 3, 3) . "]\n\n";
+		$list .= "<header2>Items needed for {$numArmors} Bastion armor parts<end>\n".
+			"<tab>[ + increase amount | <green>Amount you have<end> | <red>Amount you still need<end> | - decrease amount ]\n\n";
 
 		$incLink = $this->text->makeChatcmd(" + ", "/tell <myname> gaulist add {$name} %d");
 		$decLink = $this->text->makeChatcmd(" - ", "/tell <myname> gaulist del {$name} %d");
-		$headerLine = "";
-		$line = "";
+		$headerLine = "<tab>";
+		$line = "<tab>";
 		for ($i = 0; $i <= 16; $i++) {
 			$d = $this->gaulisttab[$i];
 			$itemLink = $this->text->makeItem($d[0], $d[0], 300, $this->text->makeImage($d[1]));
@@ -99,12 +98,12 @@ class GauntletInventoryController {
 				"] ";
 			if ((($i+1) % 4) === 0 || $i === 16) {
 				$list .= $headerLine . "\n" . $line . "\n\n";
-				$headerLine = "";
-				$line = "";
+				$headerLine = "<tab>";
+				$line = "<tab>";
 			}
 		}
 		$refreshLink = $this->text->makeChatcmd("Refresh", "/tell <myname> gaulist {$name} {$numArmors}");
-		$list .= "\n                         [{$refreshLink}]";
+		$list .= "\n<tab>[{$refreshLink}]";
 		$link = $this->text->makeBlob("Bastion inventory for $name", $list);
 		$blob = "Bastion inventory: ".$link;
 		return $blob;

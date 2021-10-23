@@ -110,15 +110,15 @@ class GauntletBuffController implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	private function tmTime($zz) {
+	private function tmTime(int $time) {
 		$gtime = new DateTime();
-		$gtime->setTimestamp($zz);
-		return $gtime->format("D, H:i T (Y-m-d)");
+		$gtime->setTimestamp($time);
+		return $gtime->format("D, H:i T (d-M-Y)");
 	}
 
 	public function setGaubuff(string $side, int $time, string $creator, int $createtime): void {
 		$alerts = [];
-		foreach (explode(' ', $this->settingManager->get('gaubuff_times')) as $utime) {
+		foreach (explode(' ', $this->settingManager->getString('gaubuff_times')) as $utime) {
 			$alertTimes[] = $this->util->parseTime($utime);
 		}
 		$alertTimes[] = 0; //timer runs out
@@ -128,10 +128,10 @@ class GauntletBuffController implements MessageEmitter {
 				$alert->time = $time - $alertTime;
 				$alert->message = "<{$side}>" . ucfirst($side) . "<end> Gauntlet buff ";
 				if ($alertTime === 0) {
-					$alert->message .= "<highlight>expired<end>!";
+					$alert->message .= "<highlight>expired<end>.";
 				} else {
 					$alert->message .= "runs out in <highlight>".
-						$this->util->unixtimeToReadable($alertTime)."<end>!";
+						$this->util->unixtimeToReadable($alertTime)."<end>.";
 				}
 				$alerts []= $alert;
 			}
@@ -172,7 +172,7 @@ class GauntletBuffController implements MessageEmitter {
 			$msgs []= "<{$side}>" . ucfirst($side) . " Gauntlet buff<end> ".
 					"runs out in <highlight>".
 					$this->util->unixtimeToReadable($timer->endtime - time()).
-					"<end>!";
+					"<end>.";
 		}
 		if (empty($msgs)) {
 			return;
@@ -188,7 +188,7 @@ class GauntletBuffController implements MessageEmitter {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
 			|| (!isset($this->chatBot->guildmembers[$sender]))
-			|| (!$this->settingManager->get('gaubuff_logon'))) {
+			|| (!$this->settingManager->getBool('gaubuff_logon'))) {
 			return;
 		}
 		$this->showGauntletBuff($sender);
@@ -200,13 +200,13 @@ class GauntletBuffController implements MessageEmitter {
 	 */
 	public function privateChannelJoinEvent($eventObj) {
 		$sender = $eventObj->sender;
-		if ($this->settingManager->get('gaubuff_logon')) {
+		if ($this->settingManager->getBool('gaubuff_logon')) {
 			$this->showGauntletBuff($sender);
 		}
 	}
 
 	/**
-	 * This command handler shows gauntlet.
+	 * This command handler shows when all known gauntlet buffs
 	 *
 	 * @HandlesCommand("gaubuff")
 	 */
@@ -223,9 +223,9 @@ class GauntletBuffController implements MessageEmitter {
 		}
 		if (empty($msgs)) {
 			if (isset($args['side'])) {
-				$context->reply("No <{$side}>{$side} Gauntlet buff<end> available!");
+				$context->reply("No <{$side}>{$side} Gauntlet buff<end> available.");
 			} else {
-				$context->reply("No Gauntlet buff available!");
+				$context->reply("No Gauntlet buff available.");
 			}
 			return;
 		}
@@ -233,18 +233,18 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler shows gauntlet.
+	 * This command sets a gauntlet buff timer
 	 *
 	 * @HandlesCommand("gaubuff")
 	 */
 	public function gaubuffSetCommand(CmdContext $context, ?string $side="(clan|omni)", PDuration $time): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side');
-		if (!isset($side) && isset($time) && $defaultSide === static::SIDE_NONE) {
+		$side = $side ?? $defaultSide;
+		if ($side === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
 			$context->reply($msg);
 			return;
 		}
-		$side = $side ?? $defaultSide;
 		$buffEnds = $time->toSecs();
 		if ($buffEnds < 1) {
 			$msg = "You must enter a valid time parameter for the gauntlet buff time.";
@@ -255,7 +255,6 @@ class GauntletBuffController implements MessageEmitter {
 		$this->setGaubuff($side, $buffEnds, $context->char->name, time());
 		$msg = "Gauntletbuff timer for <{$side}>{$side}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
 		$context->reply($msg);
-		return;
 	}
 
 	/**

@@ -3,13 +3,11 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
-use DateTimeZone;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
 	Event,
 	MessageHub,
-	Nadybot,
 	SettingManager,
 	Text,
 	Util,
@@ -24,7 +22,6 @@ use Nadybot\Core\Routing\Source;
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  *
  * @Instance
- * @Deprecates("BIGBOSS_MODULE")
  *
  * Commands this controller contains:
  *	@DefineCommand(
@@ -84,7 +81,6 @@ use Nadybot\Core\Routing\Source;
  *	)
  */
 class WorldBossController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -102,9 +98,6 @@ class WorldBossController {
 
 	/** @Inject */
 	public DB $db;
-
-	/** @Inject */
-	public Nadybot $chatBot;
 
 	/** @Inject */
 	public GauntletBuffController $gauntletBuffController;
@@ -193,8 +186,7 @@ class WorldBossController {
 	protected function niceTime(int $timestamp): string {
 		$time = new DateTime();
 		$time->setTimestamp($timestamp);
-		$time->setTimezone(new DateTimeZone('UTC'));
-		return $time->format("D, H:i T (Y-m-d)");
+		return $time->format("D, H:i T (d-M-Y)");
 	}
 
 	protected function getNextSpawnsMessage(WorldbossTimer $timer, int $howMany=10): string {
@@ -445,7 +437,7 @@ class WorldBossController {
 	/**
 	 * Announce an event
 	 *
-	 * @param string $msg The nmessage to send
+	 * @param string $msg The message to send
 	 * @param int $step 1 => spawns soon, 2 => has spawned, 3 => vulnerable
 	 * @return void
 	 */

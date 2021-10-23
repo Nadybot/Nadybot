@@ -1,10 +1,5 @@
-<header>::::: Gauntlet inventar :::::<end>
-
-<highlight>Create a Gauntletinventar for you char:<end>
-<tab><symbol>gaulist register
-
-<highlight>Show gauntlet inventar:<end>
-<tab><symbol>gaulist
-<tab><symbol>gaulist name
-<tab><symbol>gaulist amount
-<tab><symbol>gaulist name amount
+Show gauntlet inventar:
+<tab><highlight><symbol>gaulist<end>
+<tab><highlight><symbol>gaulist 'name'<end>
+<tab><highlight><symbol>gaulist 'amount of armors'<end>
+<tab><highlight><symbol>gaulist 'name' 'amount of armors'<end>
