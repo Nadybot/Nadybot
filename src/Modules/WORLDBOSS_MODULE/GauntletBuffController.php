@@ -247,7 +247,7 @@ class GauntletBuffController implements MessageEmitter {
 		}
 		$buffEnds = $time->toSecs();
 		if ($buffEnds < 1) {
-			$msg = "You must enter a valid time parameter for the gauntlet buff time.";
+			$msg = "<highlight>" . $time() . "<end> is not a valid budatime string.";
 			$context->reply($msg);
 			return;
 		}
