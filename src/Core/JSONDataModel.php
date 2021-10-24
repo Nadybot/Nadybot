@@ -65,7 +65,11 @@ class JSONDataModel {
 					}
 				}
 			} elseif ($type->isBuiltin() === true) {
-				$refProp->setValue($this, $data->{$propName});
+				if ($typeName === "string") {
+					$refProp->setValue($this, (string)$data->{$propName});
+				} else {
+					$refProp->setValue($this, $data->{$propName});
+				}
 			} elseif ($typeName === "DateTime") {
 				if (isset($data->{$propName})) {
 					$refProp->setValue($this, DateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
