@@ -5,7 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 
 /**
- * Class to represent a time setting for BudaBot
+ * Class to represent a time setting for NadyBot
+ * @SettingHandler("time")
  */
 class TimeSettingHandler extends SettingHandler {
 	/** @Inject */

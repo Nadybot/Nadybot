@@ -7,6 +7,7 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 
 /**
  * Class to represent a setting with an access level value for NadyBot
+ * @SettingHandler("rank")
  */
 class AccessLevelSettingHandler extends SettingHandler {
 

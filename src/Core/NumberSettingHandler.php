@@ -4,6 +4,9 @@ namespace Nadybot\Core;
 
 use Exception;
 
+/**
+ * @SettingHandler("number")
+ */
 class NumberSettingHandler extends SettingHandler {
 
 	/**

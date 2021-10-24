@@ -7,7 +7,8 @@ use JsonException;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
- * Class to represent a setting with a text value for BudaBot
+ * Class to represent a setting with a discord channel value for NadyBot
+ * @SettingHandler("discord_channel")
  */
 class DiscordChannelSettingHandler extends SettingHandler {
 
