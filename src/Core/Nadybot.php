@@ -193,8 +193,6 @@ class Nadybot extends AOChat {
 		$allClasses = get_declared_classes();
 		foreach ($allClasses as $class) {
 			$this->registerEvents($class);
-		}
-		foreach ($allClasses as $class) {
 			$this->registerSettingHandlers($class);
 		}
 		$this->db->commit();
