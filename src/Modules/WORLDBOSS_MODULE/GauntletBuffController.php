@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
+use Exception;
 use Nadybot\Core\{
 	CmdContext,
 	LoggerWrapper,
@@ -101,13 +102,28 @@ class GauntletBuffController implements MessageEmitter {
 		$this->settingManager->add(
 			$this->moduleName,
 			"gaubuff_default_side",
-			"Implicit gauntlet buff side if none specified",
+			"Gauntlet buff side if none specified for gaubuff",
 			"edit",
 			"options",
 			"none",
 			"none;clan;omni"
 		);
 		$this->messageHub->registerMessageEmitter($this);
+		$this->settingManager->registerChangeListener("gaubuff_times", [$this, "validateGaubuffTimes"]);
+	}
+
+	public function validateGaubuffTimes(string $setting, string $old, string $new): void {
+		$lastTime = null;
+		foreach (explode(' ', $new) as $utime) {
+			$secs = $this->util->parseTime($utime);
+			if ($secs === 0) {
+				throw new Exception("<highlight>{$new}<end> is not a list of budatimes.");
+			}
+			if (isset($lastTime) && $secs >= $lastTime) {
+				throw new Exception("You have to give notification times in descending order.");
+			}
+			$lastTime = $secs;
+		}
 	}
 
 	private function tmTime(int $time) {
