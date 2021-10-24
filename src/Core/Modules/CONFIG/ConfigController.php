@@ -685,6 +685,9 @@ class ConfigController {
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
+			usort($data, function (CmdCfg $a, CmdCfg $b): int {
+				return strcmp($a->cmd, $b->cmd);
+			});
 		}
 		foreach ($data as $row) {
 			$guild = '';
@@ -698,7 +701,7 @@ class ConfigController {
 			} elseif ($row->cmdevent === 'subcmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config subcmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config subcmd $row->cmd disable all");
-				$cmdNameLink = $row->cmd;
+				$cmdNameLink = "<tab>{$row->cmd}";
 			}
 
 			$tell = "<red>T<end>";
@@ -733,6 +736,7 @@ class ConfigController {
 		$data = $this->db->table(EventManager::DB_TABLE)
 			->where("type", "!=", "setup")
 			->where("module", $module)
+			->orderBy("type")
 			->asObj(EventCfg::class)
 			->toArray();
 		if (count($data) > 0) {
