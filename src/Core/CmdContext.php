@@ -18,4 +18,9 @@ class CmdContext implements CommandReply {
 	public function reply($msg): void {
 		$this->sendto->reply($msg);
 	}
+
+	/** Check if we received this from a direct message of any form */
+	public function isDM(): bool {
+		return in_array($this->channel, ["tell", "msg"]);
+	}
 }
