@@ -1684,7 +1684,7 @@ class TowerController {
 				$link .= "Level: <highlight>{$whois->level}/<green>{$whois->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
 			}
 
-			$link .= "Alignment: <highlight>{$whois->faction}<end>\n";
+			$link .= "Alignment: <" . strtolower($whois->faction) . ">{$whois->faction}<end>\n";
 
 			if (isset($whois->guild)) {
 				$link .= "Organization: <highlight>$whois->guild<end>\n";
@@ -1696,7 +1696,7 @@ class TowerController {
 			$link .= "\n";
 
 			$link .= "Defender: <highlight>{$attack->defGuild}<end>\n";
-			$link .= "Alignment: <highlight>{$attack->defSide}<end>\n\n";
+			$link .= "Alignment: <" . strtolower($attack->defSide) . ">{$attack->defSide}<end>\n\n";
 
 			$baseLink = $this->text->makeChatcmd("{$playfield->short_name} {$closestSite->site_number}", "/tell <myname> lc {$playfield->short_name} {$closestSite->site_number}");
 			$attackWaypoint = $this->text->makeChatcmd("{$attack->xCoords}x{$attack->yCoords}", "/waypoint {$attack->xCoords} {$attack->yCoords} {$playfield->id}");
