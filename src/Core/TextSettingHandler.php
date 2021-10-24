@@ -5,7 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 
 /**
- * Class to represent a setting with a text value for BudaBot
+ * Class to represent a setting with a text value for NadyBot
+ * @SettingHandler("text")
  */
 class TextSettingHandler extends SettingHandler {
 

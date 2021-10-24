@@ -37,6 +37,9 @@ class SettingManager {
 	/** @var array<string,ChangeListener[]> $changeListeners */
 	private array $changeListeners = [];
 
+	/** @var array<string,string> */
+	private array $settingHandlers = [];
+
 	/**
 	 * Register a setting for a module
 	 *
@@ -297,39 +300,22 @@ class SettingManager {
 	}
 
 	/**
+	 * Registers a new setting type $name that's implemented by $class
+	 */
+	public function registerSettingHandler(string $name, string $class): void {
+		$this->settingHandlers[$name] = $class;
+	}
+
+	/**
 	 * Get the handler for a setting
 	 */
 	public function getSettingHandler(Setting $row): ?SettingHandler {
-		$handler = null;
-		switch ($row->type) {
-			case 'color':
-				$handler = new ColorSettingHandler($row);
-				break;
-			case 'text':
-				$handler = new TextSettingHandler($row);
-				break;
-			case 'number':
-				$handler = new NumberSettingHandler($row);
-				break;
-			case 'options':
-				$handler = new OptionsSettingHandler($row);
-				break;
-			case 'time':
-				$handler = new TimeSettingHandler($row);
-				break;
-			case 'discord_channel':
-				$handler = new DiscordChannelSettingHandler($row);
-				break;
-			case 'discord_bot_token':
-				$handler = new DiscordBotTokenSettingHandler($row);
-				break;
-			case 'rank':
-				$handler = new AccessLevelSettingHandler($row);
-				break;
-			default:
-				$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
-				return null;
+		$handler = $this->settingHandlers[$row->type] ?? null;
+		if (!isset($handler)) {
+			$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
+			return null;
 		}
+		$handler = new $handler($row);
 		Registry::injectDependencies($handler);
 		return $handler;
 	}

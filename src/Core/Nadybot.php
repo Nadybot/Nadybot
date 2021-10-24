@@ -194,6 +194,9 @@ class Nadybot extends AOChat {
 		foreach ($allClasses as $class) {
 			$this->registerEvents($class);
 		}
+		foreach ($allClasses as $class) {
+			$this->registerSettingHandlers($class);
+		}
 		$this->db->commit();
 		$this->db->beginTransaction();
 		foreach (Registry::getAllInstances() as $name => $instance) {
@@ -1162,6 +1165,20 @@ class Nadybot extends AOChat {
 		}
 		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
 			$this->eventManager->addEventType($eventAnnotation->value);
+		}
+	}
+
+	public function registerSettingHandlers(string $class): void {
+		if (!is_subclass_of($class, SettingHandler::class)) {
+			return;
+		}
+		$reflection = new ReflectionAnnotatedClass($class);
+
+		if (!$reflection->hasAnnotation('SettingHandler')) {
+			return;
+		}
+		foreach ($reflection->getAllAnnotations('SettingHandler') as $settingAnnotation) {
+			$this->settingManager->registerSettingHandler($settingAnnotation->value, $class);
 		}
 	}
 

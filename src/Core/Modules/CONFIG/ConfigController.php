@@ -976,7 +976,9 @@ class ConfigController {
 			->asObj(Setting::class)
 			->map(function (Setting $setting) {
 				return $this->settingManager->getSettingHandler($setting);
-			})->toArray();
+			})
+			->filter()
+			->toArray();
 	}
 
 	protected function getRegisteredCommandsQuery(): QueryBuilder {

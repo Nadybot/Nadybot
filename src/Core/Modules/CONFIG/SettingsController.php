@@ -116,6 +116,10 @@ class SettingsController {
 			return;
 		}
 		$settingHandler = $this->settingManager->getSettingHandler($row);
+		if (!isset($settingHandler)) {
+			$context->reply("There is no setting handler for <highlight>{$row->type}<end> defined.");
+			return;
+		}
 		$blob = "<header2>Basic Info<end>\n";
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";

@@ -5,7 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 
 /**
- * Class to represent a setting with a color value for BudaBot
+ * Class to represent a setting with a color value for NadyBot
+ * @SettingHandler("color")
  */
 class ColorSettingHandler extends SettingHandler {
 
