@@ -54,15 +54,19 @@ class MigrateGauntletData implements SchemaMigration {
 
 		$table = "gauntlet";
 		if (!$db->schema()->hasTable($table)) {
+			$channels = ["aoorg", "aopriv(" . $db->getMyname() . ")"];
 			if (!$db->schema()->hasTable("bigboss_timers")) {
+				foreach ($channels as $channel) {
+					$route = new Route();
+					$route->source = "spawn(*)";
+					$route->destination = $channel;
+					$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+				}
+			}
+			foreach ($channels as $channel) {
 				$route = new Route();
-				$route->source = "spawn(*)";
-				$route->destination = "aoorg";
-				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
-
-				$route = new Route();
-				$route->source = "spawn(*)";
-				$route->destination = "aopriv(" . $db->getMyname() . ")";
+				$route->source = "system(gauntlet-buff)";
+				$route->destination = $channel;
 				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 			}
 			return;
