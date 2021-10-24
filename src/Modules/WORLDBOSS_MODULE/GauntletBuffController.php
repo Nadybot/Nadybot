@@ -109,7 +109,10 @@ class GauntletBuffController implements MessageEmitter {
 			"none;clan;omni"
 		);
 		$this->messageHub->registerMessageEmitter($this);
-		$this->settingManager->registerChangeListener("gaubuff_times", [$this, "validateGaubuffTimes"]);
+		$this->settingManager->registerChangeListener(
+			"gaubuff_times",
+			[$this, "validateGaubuffTimes"]
+		);
 	}
 
 	public function validateGaubuffTimes(string $setting, string $old, string $new): void {
