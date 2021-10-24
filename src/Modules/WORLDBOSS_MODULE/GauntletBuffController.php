@@ -210,8 +210,8 @@ class GauntletBuffController implements MessageEmitter {
 	 *
 	 * @HandlesCommand("gaubuff")
 	 */
-	public function gaubuffCommand(CmdContext $context, ?string $side="(clan|omni)"): void {
-		$sides = $this->getSidesToShowBuff($side??null);
+	public function gaubuffCommand(CmdContext $context, ?string $buffSide="(clan|omni)"): void {
+		$sides = $this->getSidesToShowBuff($buffSide??null);
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");
@@ -222,10 +222,10 @@ class GauntletBuffController implements MessageEmitter {
 			}
 		}
 		if (empty($msgs)) {
-			if (isset($args['side'])) {
+			if (count($sides) === 1) {
 				$context->reply("No <{$side}>{$side} Gauntlet buff<end> available.");
 			} else {
-				$context->reply("No Gauntlet buff available.");
+				$context->reply("No Gauntlet buff available for either side.");
 			}
 			return;
 		}
