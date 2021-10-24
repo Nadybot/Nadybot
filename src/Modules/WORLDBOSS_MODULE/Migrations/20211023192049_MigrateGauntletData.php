@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	DB,
+	DBSchema\Route,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Character,
+	SchemaMigration,
+};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
@@ -74,7 +76,7 @@ class MigrateGauntletData implements SchemaMigration {
 		$gauInv = $db->table($table)
 			->asObj();
 		$gauInv->each(function (object $inv) use ($db): void {
-			$items = unserialize($inv->items);
+			$items = @unserialize($inv->items);
 			if (is_array($items)) {
 				$this->gauntletInventoryController->saveData($inv->player, $items);
 			}
