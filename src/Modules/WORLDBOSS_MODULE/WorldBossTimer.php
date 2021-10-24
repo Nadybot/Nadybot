@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Nadybot\Core\DBRow;
 
-class WorldbossTimer extends DBRow {
+class WorldBossTimer extends DBRow {
 	public string $mob_name;
 	public int $timer;
 	public int $spawn;

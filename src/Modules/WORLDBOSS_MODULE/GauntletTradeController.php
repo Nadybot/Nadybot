@@ -15,7 +15,7 @@ use Nadybot\Core\Text;
  *		command     = 'gautrade',
  *		accessLevel = 'all',
  *		description = 'Gauntlet tradeskills',
- *		help        = 'gautimer.txt'
+ *		help        = 'gauntlet.txt'
  *	)
  */
 class GauntletTradeController {
@@ -32,7 +32,7 @@ class GauntletTradeController {
 	 * @HandlesCommand("gautrade")
 	 */
 	public function gautradeCommand(CmdContext $context): void {
-		$info = file_get_contents(__DIR__ . '/gautrade');
+		$info = file_get_contents(__DIR__ . '/gautrade.html');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
 		$context->reply($msg);
 	}

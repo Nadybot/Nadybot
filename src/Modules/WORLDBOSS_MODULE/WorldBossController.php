@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use DateTime;
 use Nadybot\Core\{
 	CmdContext,
+	CommandAlias,
 	DB,
 	Event,
 	MessageHub,
@@ -70,14 +71,13 @@ use Nadybot\Core\Routing\Source;
  *		command     = 'gauntlet',
  *		accessLevel = 'all',
  *		description = 'shows timer of Gauntlet',
- *		help        = 'gautimer.txt'
+ *		help        = 'gauntlet.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'gauntlet .+',
  *		accessLevel = 'member',
  *		description = 'Update or set Gaunlet timer',
- *		help        = 'gautimer.txt',
- *		alias       = 'gauset'
+ *		help        = 'gauntlet.txt'
  *	)
  */
 class WorldBossController {
@@ -92,6 +92,9 @@ class WorldBossController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
 
 	/** @Inject */
 	public Util $util;
@@ -120,13 +123,28 @@ class WorldBossController {
 	];
 
 	/**
-	 * @var WorldbossTimer[]
+	 * @var WorldBossTimer[]
 	 */
 	public array $timers = [];
 
 	/** @Setup */
 	public function setup() {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
+		$this->commandAlias->register(
+			$this->moduleName,
+			"gauntlet update",
+			"gauupdate"
+		);
+		$this->commandAlias->register(
+			$this->moduleName,
+			"gauntlet update",
+			"gauset"
+		);
+		$this->commandAlias->register(
+			$this->moduleName,
+			"gauntlet kill",
+			"gaukill"
+		);
 		foreach (["tara", "lauren", "reaper", "gauntlet"] as $boss) {
 			foreach (["prespawn", "spawn", "vulnerable"] as $event) {
 				$emitter = new WorldBossChannel("{$boss}-{$event}");
@@ -137,7 +155,7 @@ class WorldBossController {
 	}
 
 	/**
-	 * @param WorldbossTimer[] $timers
+	 * @param WorldBossTimer[] $timers
 	 */
 	protected function addNextDates(array $timers): void {
 		foreach ($timers as $timer) {
@@ -154,11 +172,11 @@ class WorldBossController {
 		});
 	}
 
-	public function getWorldBossTimer(string $mobName): ?WorldbossTimer {
-		/** @var WorldbossTimer[] */
+	public function getWorldBossTimer(string $mobName): ?WorldBossTimer {
+		/** @var WorldBossTimer[] */
 		$timers = $this->db->table(static::DB_TABLE)
 			->where("mob_name", $mobName)
-			->asObj(WorldbossTimer::class)
+			->asObj(WorldBossTimer::class)
 			->toArray();
 		if (!count($timers)) {
 			return null;
@@ -168,16 +186,16 @@ class WorldBossController {
 	}
 
 	/**
-	 * @return WorldbossTimer[]
+	 * @return WorldBossTimer[]
 	 */
 	protected function getWorldBossTimers(): array {
 		return $this->timers;
 	}
 
 	protected function reloadWorldBossTimers(): void {
-		/** @var WorldbossTimer[] */
+		/** @var WorldBossTimer[] */
 		$timers = $this->db->table(static::DB_TABLE)
-			->asObj(WorldbossTimer::class)
+			->asObj(WorldBossTimer::class)
 			->toArray();
 		$this->addNextDates($timers);
 		$this->timers = $timers;
@@ -189,7 +207,7 @@ class WorldBossController {
 		return $time->format("D, H:i T (d-M-Y)");
 	}
 
-	protected function getNextSpawnsMessage(WorldbossTimer $timer, int $howMany=10): string {
+	protected function getNextSpawnsMessage(WorldBossTimer $timer, int $howMany=10): string {
 		$multiplicator = $timer->timer + $timer->killable - $timer->spawn;
 		$times = [];
 		for ($i = 0; $i < $howMany; $i++) {
@@ -212,7 +230,7 @@ class WorldBossController {
 		return $this->formatWorldBossMessage($timer, false);
 	}
 
-	public function formatWorldBossMessage(WorldbossTimer $timer, bool $short=true): string {
+	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = $this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		$spawnTimeMessage = '';

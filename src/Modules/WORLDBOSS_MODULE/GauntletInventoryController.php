@@ -21,7 +21,7 @@ use Nadybot\Core\{
  *	@DefineCommand(
  *		command     = 'gaulist',
  *		accessLevel = 'member',
- *		description = 'Manage the stuff u got and need',
+ *		description = 'Manage the stuff you got and need from the Gauntlet',
  *		help        = 'gaulist.txt'
  *	)
  */
@@ -64,7 +64,7 @@ class GauntletInventoryController {
 	}
 
 	private function renderBastionInventory(string $name, int $numArmors) {
-		$data = $this->getData($name);
+		$inventory = $this->getData($name);
 		if (($numArmors < 1) || ($numArmors > 3)) {
 			$numArmors = 1;
 		}
@@ -84,15 +84,15 @@ class GauntletInventoryController {
 		$headerLine = "<tab>";
 		$line = "<tab>";
 		for ($i = 0; $i <= 16; $i++) {
-			$d = $this->gaulisttab[$i];
-			$itemLink = $this->text->makeItem($d[0], $d[0], 300, $this->text->makeImage($d[1]));
+			$data = $this->gaulisttab[$i];
+			$itemLink = $this->text->makeItem($data[0], $data[0], 1, $this->text->makeImage($data[1]));
 			$headerLine .= "    {$itemLink}    ";
 			$line .= "[".
 				sprintf($incLink, $i).
 				"|".
-				"<green>" . ($data[$i]??0) . "<end>".
+				"<green>" . ($inventory[$i]??0) . "<end>".
 				"|".
-				"<red>".max(0, ($numArmors*$d[2])-$data[$i])."<end>".
+				"<red>".max(0, ($numArmors*$data[2])-$inventory[$i])."<end>".
 				"|".
 				sprintf($decLink, $i).
 				"] ";
