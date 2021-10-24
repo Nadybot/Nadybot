@@ -12,8 +12,12 @@ class AddIndexName implements SchemaMigration {
 		$table = "organizations";
 		$db->table($table)->truncate();
 		$db->schema()->table($table, function(Blueprint $table) {
-			$table->string("index", 6)->index();
-			$table->string("governing_form", 10);
+			$table->string("index", 6)->nullable(true)->index();
+			$table->string("governing_form", 10)->nullable(true);
+		});
+		$db->schema()->table($table, function(Blueprint $table) {
+			$table->string("index", 6)->nullable(false)->change();
+			$table->string("governing_form", 10)->nullable(false)->change();
 		});
 	}
 }
