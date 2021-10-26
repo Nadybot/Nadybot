@@ -5,6 +5,11 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use Throwable;
+
 use Nadybot\Core\{
 	ClassSpec,
 	CmdContext,
@@ -22,22 +27,20 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
+	Modules\PROFILE\ProfileCommandReply,
+	ParamClass\PNonNumber,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	Registry,
 };
-use Nadybot\Core\Modules\PROFILE\ProfileCommandReply;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Modules\GUILD_MODULE\GuildController;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionMethod;
-use Throwable;
+use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
+	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\JsonImporter,
+	WEBSERVER_MODULE\Request,
+	WEBSERVER_MODULE\Response,
+};
 
 /**
  * @author Tyrence

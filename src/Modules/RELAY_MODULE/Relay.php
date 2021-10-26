@@ -2,17 +2,21 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
-use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
+use Nadybot\Core\{
+	DBSchema\Player,
+	MessageHub,
+	MessageReceiver,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlinePlayer,
+	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
+	RELAY_MODULE\Transport\TransportInterface,
+};
 
 class Relay implements MessageReceiver {
 	/** @Inject */
@@ -27,10 +31,16 @@ class Relay implements MessageReceiver {
 	/** @Inject */
 	public PlayerManager $playerManager;
 
+	/** Name of this relay */
 	protected string $name;
+
 	/** @var RelayLayerInterface[] */
 	protected array $stack = [];
+
+	/** Events that this relay sens and/or receives */
 	protected array $events = [];
+
+	/** The transport  */
 	protected TransportInterface $transport;
 	protected RelayProtocolInterface $relayProtocol;
 

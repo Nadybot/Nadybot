@@ -107,6 +107,7 @@ use Nadybot\Modules\{
  *	)
  *  @ProvidesEvent("tower(attack)")
  *  @ProvidesEvent("tower(win)")
+ *  @ProvidesEvent("sync(scout)")
  */
 class TowerController {
 
@@ -2140,10 +2141,20 @@ class TowerController {
 	}
 
 	protected function addScoutSite(ScoutInfo $scoutInfo): bool {
+		$event = SyncScoutEvent::fromScoutInfo($scoutInfo);
+		$this->eventManager->fireEvent($event);
 		if ($this->db->update("scout_info", ["playfield_id", "site_number"], $scoutInfo) > 0) {
 			return true;
 		}
 		return $this->db->insert("scout_info", $scoutInfo, null) > 0;
+	}
+
+	/**
+	 * @Event("sync(scout)")
+	 */
+	public function processScoutSyncEvent(SyncScoutEvent $event): void {
+		var_dump(999);
+		var_dump($event);
 	}
 
 	protected function remScoutSite(int $playfield_id, int $site_number): int {
