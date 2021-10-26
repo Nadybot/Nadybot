@@ -351,6 +351,27 @@ class RaidMemberController {
 	}
 
 	/**
+	 * kick everyone on the private channel who's not in the raid $raid
+	 *
+	 * @return string[]
+	 */
+	public function kickNotInRaid(Raid $raid, bool $all): array {
+		/** @var string[] */
+		$notInRaid = [];
+		foreach ($this->chatBot->chatlist as $player => $online) {
+			if (isset($raid->raiders[$player])) {
+				// Is or was in the running raid. Could still rejoin
+				if (!$all || !isset($raid->raiders[$player]->left)) {
+					continue;
+				}
+			}
+			$this->chatBot->privategroup_kick($player);
+			$notInRaid []= $player;
+		}
+		return $notInRaid;
+	}
+
+	/**
 	 * Get the blob for the !raid list command
 	 */
 	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {

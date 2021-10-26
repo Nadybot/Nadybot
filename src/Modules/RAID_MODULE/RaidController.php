@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	CmdContext,
 	CommandReply,
 	CommandManager,
 	DB,
@@ -513,6 +514,26 @@ class RaidController {
 			return;
 		}
 		$sendto->reply($this->raidMemberController->getRaidListBlob($this->raid));
+	}
+
+	/**
+	 * @HandlesCommand("raid .+")
+	 */
+	public function raidNotinKickCommand(CmdContext $context, string $action="notinkick", ?string $all="all"): void {
+		if (!isset($this->raid)) {
+			$context->reply(static::ERR_NO_RAID);
+			return;
+		}
+		$notInRaid = $this->raidMemberController->kickNotInRaid($this->raid, isset($all));
+		$numKicked = count($notInRaid);
+		if ($numKicked === 0) {
+			$context->reply("Everyone is in the raid.");
+			return;
+		}
+		$context->reply(
+			"<highlight>{$numKicked} " . $this->text->pluralize("player", $numKicked).
+			"<end> kicked, because they are not in the raid."
+		);
 	}
 
 	/**
