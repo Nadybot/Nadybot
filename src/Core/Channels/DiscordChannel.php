@@ -82,9 +82,13 @@ class DiscordChannel implements MessageReceiver {
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users"]
+					"parse" => ["users", "everyone"]
 				];
 			}
+		} else {
+			$discordMsg->allowed_mentions = (object)[
+				"parse" => ["everyone"]
+			];
 		}
 
 		//Relay the message to the discord channel
