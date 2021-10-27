@@ -27,6 +27,9 @@ class RouteModifier extends DBRow {
 			},
 			$this->arguments
 		);
+		if ($asLink) {
+			$arguments = array_map("htmlspecialchars", $arguments);
+		}
 		$modName = $this->modifier;
 		if ($asLink) {
 			$modName = "<a href='chatcmd:///tell <myname> route list mod {$modName}'>{$modName}</a>";

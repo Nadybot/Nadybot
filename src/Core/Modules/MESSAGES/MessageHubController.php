@@ -203,7 +203,7 @@ class MessageHubController {
 		}
 		$modifiers = [];
 		foreach ($route->modifiers as $modifier) {
-			$modifiers []= $modifier->toString();
+			$modifiers []= htmlspecialchars($modifier->toString());
 		}
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
