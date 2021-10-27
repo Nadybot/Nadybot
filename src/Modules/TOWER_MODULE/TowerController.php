@@ -2120,6 +2120,8 @@ class TowerController {
 			$scout->playfield_id = $attack->playfield_id;
 			$scout->site_number = $attack->site_number;
 			$this->addScoutSite($scout);
+			$event = SyncScoutEvent::fromScoutInfo($scout);
+			$this->eventManager->fireEvent($event);
 		} elseif (isset($attack->playfield_id)) {
 			// If we don't know the exact field, mark all the fields of this org
 			// in that playfield as unscouted
@@ -2141,8 +2143,6 @@ class TowerController {
 	}
 
 	protected function addScoutSite(ScoutInfo $scoutInfo): bool {
-		$event = SyncScoutEvent::fromScoutInfo($scoutInfo);
-		$this->eventManager->fireEvent($event);
 		if ($this->db->update("scout_info", ["playfield_id", "site_number"], $scoutInfo) > 0) {
 			return true;
 		}
@@ -2153,8 +2153,9 @@ class TowerController {
 	 * @Event("sync(scout)")
 	 */
 	public function processScoutSyncEvent(SyncScoutEvent $event): void {
-		var_dump(999);
-		var_dump($event);
+		if (!$event->isLocal()) {
+			$this->addScoutSite($event->toScoutInfo());
+		}
 	}
 
 	protected function remScoutSite(int $playfield_id, int $site_number): int {
@@ -2398,6 +2399,8 @@ class TowerController {
 
 		if ($this->addScoutSite($scoutInfo)) {
 			$sendto->reply("Scout information recorded for {$playfield->short_name} {$towerInfo->site_number}.");
+			$event = SyncScoutEvent::fromScoutInfo($scoutInfo);
+			$this->eventManager->fireEvent($event);
 			return;
 		}
 		$sendto->reply("There was an unknown error recording this scout information, please check the logs.");

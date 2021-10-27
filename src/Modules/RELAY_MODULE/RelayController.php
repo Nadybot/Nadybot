@@ -61,6 +61,7 @@ class RelayController {
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
+	public const DB_TABLE_EVENT = 'relay_event_<myname>';
 
 	/** @var array<string,ClassSpec> */
 	protected array $relayProtocols = [];
@@ -728,11 +729,18 @@ class RelayController {
 				$layer->arguments = $arguments->get($layer->id, new Collection())->toArray();
 			})
 			->groupBy("relay_id");
+		$events = $this->db->table(static::DB_TABLE_EVENT)
+			->orderBy("id")
+			->asObj(RelayEvent::class)
+			->groupBy("relay_id");
 		$relays = $this->db->table(static::DB_TABLE)
 			->orderBy("id")
 			->asObj(RelayConfig::class)
-			->each(function(RelayConfig $relay) use ($layers): void {
+			->each(function(RelayConfig $relay) use ($layers, $events): void {
 				$relay->layers = $layers->get($relay->id, new Collection())->toArray();
+				$relay->events = $events->get($relay->id, new Collection())
+					->keyBy("event")
+					->toArray();
 			})
 			->toArray();
 		return $relays;
@@ -854,6 +862,7 @@ class RelayController {
 			$spec
 		);
 		$relay->setStack($transportLayer, $protocolLayer, ...$stack);
+		$relay->setEvents($conf->events);
 		return $relay;
 	}
 

@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 	SettingManager,
+	SyncEvent,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
@@ -19,8 +20,8 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayMessage,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
-	RELAY_MODULE\SyncEvent,
 };
+use Throwable;
 
 /**
  * @RelayProtocol("nadynative")
@@ -126,7 +127,32 @@ class NadyNative implements RelayProtocolInterface {
 		) {
 			$this->handleOnlineEvent($msg->sender, $event);
 		}
+		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& fnmatch("sync(*)", $event->data->type, FNM_CASEFOLD)
+		) {
+			$this->handleExtSyncEvent($event->data);
+			return null;
+		}
 		return $event;
+	}
+
+	protected function handleExtSyncEvent(object $event): void {
+		try {
+			$sEvent = new SyncEvent();
+			foreach ($event as $key => $value) {
+				$sEvent->{$key} = $value;
+			}
+			if ($sEvent->isLocal()) {
+				return;
+			}
+		} catch (Throwable $e) {
+			$this->logger->log("ERROR", "Invalid sync-event received: " . $e->getMessage(), $e);
+			return;
+		}
+		if (!$this->relay->allowIncSyncEvent($sEvent)) {
+			return;
+		}
+		$this->eventManager->fireEvent($sEvent);
 	}
 
 	protected function sendOnlineList(): void {
@@ -267,16 +293,19 @@ class NadyNative implements RelayProtocolInterface {
 	public function handleSyncEvent(SyncEvent $event): void {
 		if (isset($event)
 			&& isset($event->sourceBot)
-			&& isset($event->sourceDimention)
-			&& ($event->sourceDimention !== (int)$this->chatBot->vars["dimension"]
+			&& isset($event->sourceDimension)
+			&& ($event->sourceDimension !== (int)$this->chatBot->vars["dimension"]
 				|| $event->sourceBot !== $this->chatBot->char->name)
 		) {
 			// We don't want to relay other bot's events
 			return;
 		}
+		if (!$this->relay->allowOutSyncEvent($event)) {
+			return;
+		}
 		$sEvent = clone $event;
 		$sEvent->sourceBot = $this->chatBot->char->name;
-		$sEvent->sourceDimention = (int)$this->chatBot->vars["dimension"];
+		$sEvent->sourceDimension = (int)$this->chatBot->vars["dimension"];
 		$rEvent = new RoutableEvent();
 		$rEvent->setType($rEvent::TYPE_EVENT);
 		$rEvent->setData($sEvent);

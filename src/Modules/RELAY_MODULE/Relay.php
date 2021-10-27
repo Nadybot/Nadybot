@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 	SettingManager,
+	SyncEvent,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
@@ -19,6 +20,10 @@ use Nadybot\Modules\{
 };
 
 class Relay implements MessageReceiver {
+	public const ALLOW_NONE = 0;
+	public const ALLOW_IN = 1;
+	public const ALLOW_OUT = 2;
+
 	/** @Inject */
 	public MessageHub $messageHub;
 
@@ -37,7 +42,10 @@ class Relay implements MessageReceiver {
 	/** @var RelayLayerInterface[] */
 	protected array $stack = [];
 
-	/** Events that this relay sens and/or receives */
+	/**
+	 * Events that this relay sens and/or receives
+	 * @var array<string,int>
+	 */
 	protected array $events = [];
 
 	/** The transport  */
@@ -283,5 +291,19 @@ class Relay implements MessageReceiver {
 			$data = $this->stack[$j]->send($data);
 		}
 		$this->transport->send($data);
+	}
+
+	public function allowIncSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? static::ALLOW_NONE;
+		return ($allow & static::ALLOW_IN) > 0;
+	}
+
+	public function allowOutSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? static::ALLOW_NONE;
+		return ($allow & static::ALLOW_OUT) > 0;
+	}
+
+	public function setEvents(array $events): void {
+		$this->events = $events;
 	}
 }

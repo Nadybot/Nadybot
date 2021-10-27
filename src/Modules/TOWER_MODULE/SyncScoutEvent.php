@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Nadybot\Modules\RELAY_MODULE\SyncEvent;
+use Nadybot\Core\SyncEvent;
 
 class SyncScoutEvent extends SyncEvent {
 	public string $type = "sync(scout)";
@@ -27,5 +27,17 @@ class SyncScoutEvent extends SyncEvent {
 			$event->{$attrib} = $si->{$attrib} ?? null;
 		}
 		return $event;
+	}
+
+	public function toScoutInfo(): ScoutInfo {
+		$si = new ScoutInfo();
+		$syncAttribs = [
+			"playfield_id", "site_number", "scouted_on", "scouted_by",
+			"ql", "org_name", "faction", "close_time", "created_at",
+		];
+		foreach ($syncAttribs as $attrib) {
+			$si->{$attrib} = $this->{$attrib} ?? null;
+		}
+		return $si;
 	}
 }
