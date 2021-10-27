@@ -31,7 +31,6 @@ class HtmlDecodeController {
 
 	/**
 	 * @HandlesCommand("htmldecode")
-	 * @Matches("/^htmldecode (.+)$/is")
 	 */
 	public function htmldecodeCommand(CmdContext $context, string $command): void {
 		$context->message = html_entity_decode($command, ENT_QUOTES);
