@@ -163,14 +163,6 @@ class DB {
 			}
 			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->sql->exec("SET time_zone = '+00:00'");
-			$mysqlVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
-
-			// MariaDB 10.0.12 made aria storage stable which is read-optimized
-			if (preg_match("/MariaDB-\d+:([0-9.]+)/", $mysqlVersion, $matches)) {
-				if (version_compare($matches[1], "10.0.12") >= 0) {
-					$this->sql->exec("SET default_storage_engine = aria");
-				}
-			}
 			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
