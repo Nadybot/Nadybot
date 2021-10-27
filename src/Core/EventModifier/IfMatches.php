@@ -65,7 +65,7 @@ class IfMatches implements EventModifier {
 				if ($this->caseSensitive) {
 					$modifier .= "i";
 				}
-				if (preg_match(chr(1) . $text . chr(1) . "{$modifier}", $message) !== 1) {
+				if (preg_match(chr(1) . $text . chr(1) . "{$modifier}", $message) === 1) {
 					return true;
 				}
 			} elseif ($this->caseSensitive) {
@@ -82,12 +82,12 @@ class IfMatches implements EventModifier {
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
-		// We only require prefixes for messages, the rest is passed through
+		// We only check messages, not events
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		$message = $event->getData();
-		$matches = isset($matches) && $this->matches($message);
+		$matches = $this->matches($message);
 		if ($matches === $this->inverse) {
 			return null;
 		}
