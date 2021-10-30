@@ -31,6 +31,8 @@ use Throwable;
  * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
  */
 class NadyNative implements RelayProtocolInterface {
+	protected static int $supportedFeatures = 3;
+
 	protected Relay $relay;
 
 	/** @Logger */
@@ -310,5 +312,9 @@ class NadyNative implements RelayProtocolInterface {
 		$rEvent->setType($rEvent::TYPE_EVENT);
 		$rEvent->setData($sEvent);
 		$this->relay->receive($rEvent, "*");
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

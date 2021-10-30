@@ -44,7 +44,7 @@ class Relay implements MessageReceiver {
 
 	/**
 	 * Events that this relay sens and/or receives
-	 * @var array<string,int>
+	 * @var array<string,RelayEvent>
 	 */
 	protected array $events = [];
 
@@ -223,8 +223,13 @@ class Relay implements MessageReceiver {
 		}
 	}
 
-	public function getEventConfig(string $event): int {
-		return $this->events[$event] ?? 0;
+	public function getEventConfig(string $eventName): RelayEvent {
+		$event = $this->events[$eventName] ?? null;
+		if (!isset($event)) {
+			$event = new RelayEvent();
+			$event->event = $eventName;
+		}
+		return $event;
 	}
 
 	/**
@@ -294,16 +299,27 @@ class Relay implements MessageReceiver {
 	}
 
 	public function allowIncSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? static::ALLOW_NONE;
-		return ($allow & static::ALLOW_IN) > 0;
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->incoming;
 	}
 
 	public function allowOutSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? static::ALLOW_NONE;
-		return ($allow & static::ALLOW_OUT) > 0;
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->outgoing;
 	}
 
 	public function setEvents(array $events): void {
 		$this->events = $events;
+	}
+
+	/** Check id the relay protocol supports a certain feature */
+	public function protocolSupportsFeature(int $feature): bool {
+		return $this->relayProtocol->supportsFeature($feature);
 	}
 }

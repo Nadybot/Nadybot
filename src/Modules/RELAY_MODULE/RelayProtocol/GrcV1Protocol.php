@@ -21,6 +21,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class GrcV1Protocol implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_NONE;
+
 	protected Relay $relay;
 
 	/** @Inject */
@@ -100,5 +102,9 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

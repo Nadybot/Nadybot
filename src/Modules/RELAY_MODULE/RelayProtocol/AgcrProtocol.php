@@ -26,6 +26,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  *	Disable when other bots cannot parse this and will render your messages wrong.', type='boolean', required=false)
  */
 class AgcrProtocol implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_NONE;
+
 	protected Relay $relay;
 
 	/** @Inject */
@@ -118,5 +120,9 @@ class AgcrProtocol implements RelayProtocolInterface {
 
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

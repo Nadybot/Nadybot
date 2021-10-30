@@ -21,8 +21,14 @@ class RelayEvent extends DBRow {
 	public string $event;
 
 	/** Allow sending the event via this relay? */
-	public bool $incoming;
+	public bool $incoming = false;
 
 	/** Allow receiving the event via this relay? */
-	public bool $outgoing;
+	public bool $outgoing = false;
+
+	public function toString(): string {
+		return "{$this->event} ".
+			($this->incoming ? "I" : "").
+			($this->outgoing ? "O" : "");
+	}
 }
