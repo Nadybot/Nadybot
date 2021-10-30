@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ClassSpec,
 	CmdContext,
 	CommandAlias,
+	CommandManager,
 	DB,
 	Event,
 	EventManager,
@@ -56,6 +57,12 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
  *		accessLevel = 'mod',
  *		description = 'Setup and modify relays between bots',
  *		help        = 'relay.txt'
+ *	)
+ *  @DefineCommand(
+ *		command     = 'sync',
+ *		accessLevel = 'member',
+ *		description = 'Force syncing of next command if relay sync exists',
+ *		help        = 'sync.txt'
  *	)
  *  @ProvidesEvent("routable(message)")
  */
@@ -115,6 +122,9 @@ class RelayController {
 
 	/** @Inject */
 	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public CommandManager $commandManager;
 
 	/** @Inject */
 	public GuildController $guildController;
@@ -889,6 +899,15 @@ class RelayController {
 		}
 		$this->relays[$relay->name]->setEvents($relay->events);
 		$context->reply("Relay events set for <highlight>{$relay->name}<end>.");
+	}
+
+	/**
+	 * @HandlesCommand("sync")
+	 */
+	public function syncCommand(CmdContext $context, string $command): void {
+		$context->message = $command;
+		$context->forceSync = true;
+		$this->commandManager->processCmd($context);
 	}
 
 	/**

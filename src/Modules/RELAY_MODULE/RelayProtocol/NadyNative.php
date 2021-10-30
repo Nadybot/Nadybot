@@ -302,7 +302,7 @@ class NadyNative implements RelayProtocolInterface {
 			// We don't want to relay other bot's events
 			return;
 		}
-		if (!$this->relay->allowOutSyncEvent($event)) {
+		if (!$this->relay->allowOutSyncEvent($event) && !$event->forceSync) {
 			return;
 		}
 		$sEvent = clone $event;
