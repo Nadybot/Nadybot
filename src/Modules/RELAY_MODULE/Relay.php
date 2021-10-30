@@ -2,19 +2,28 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
-use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
+use Nadybot\Core\{
+	DBSchema\Player,
+	MessageHub,
+	MessageReceiver,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+	SyncEvent,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlinePlayer,
+	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
+	RELAY_MODULE\Transport\TransportInterface,
+};
 
 class Relay implements MessageReceiver {
+	public const ALLOW_NONE = 0;
+	public const ALLOW_IN = 1;
+	public const ALLOW_OUT = 2;
+
 	/** @Inject */
 	public MessageHub $messageHub;
 
@@ -27,10 +36,19 @@ class Relay implements MessageReceiver {
 	/** @Inject */
 	public PlayerManager $playerManager;
 
+	/** Name of this relay */
 	protected string $name;
+
 	/** @var RelayLayerInterface[] */
 	protected array $stack = [];
+
+	/**
+	 * Events that this relay sens and/or receives
+	 * @var array<string,RelayEvent>
+	 */
 	protected array $events = [];
+
+	/** The transport  */
 	protected TransportInterface $transport;
 	protected RelayProtocolInterface $relayProtocol;
 
@@ -205,8 +223,13 @@ class Relay implements MessageReceiver {
 		}
 	}
 
-	public function getEventConfig(string $event): int {
-		return $this->events[$event] ?? 0;
+	public function getEventConfig(string $eventName): RelayEvent {
+		$event = $this->events[$eventName] ?? null;
+		if (!isset($event)) {
+			$event = new RelayEvent();
+			$event->event = $eventName;
+		}
+		return $event;
 	}
 
 	/**
@@ -273,5 +296,30 @@ class Relay implements MessageReceiver {
 			$data = $this->stack[$j]->send($data);
 		}
 		$this->transport->send($data);
+	}
+
+	public function allowIncSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->incoming;
+	}
+
+	public function allowOutSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->outgoing;
+	}
+
+	public function setEvents(array $events): void {
+		$this->events = $events;
+	}
+
+	/** Check id the relay protocol supports a certain feature */
+	public function protocolSupportsFeature(int $feature): bool {
+		return $this->relayProtocol->supportsFeature($feature);
 	}
 }

@@ -10,6 +10,7 @@ class CmdContext implements CommandReply {
 	public Character $char;
 	public CommandReply $sendto;
 	public array $args = [];
+	public bool $forceSync = false;
 
 	public function __construct(string $charName, ?int $charId=null) {
 		$this->char = new Character($charName, $charId);
@@ -17,5 +18,10 @@ class CmdContext implements CommandReply {
 
 	public function reply($msg): void {
 		$this->sendto->reply($msg);
+	}
+
+	/** Check if we received this from a direct message of any form */
+	public function isDM(): bool {
+		return in_array($this->channel, ["tell", "msg"]);
 	}
 }

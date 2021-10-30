@@ -34,6 +34,8 @@ use Throwable;
  * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
  */
 class Tyrbot implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
+
 	protected Relay $relay;
 
 	/** Do we want to sync online users? */
@@ -368,5 +370,9 @@ class Tyrbot implements RelayProtocolInterface {
 
 	protected function jsonEncode($data): string {
 		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

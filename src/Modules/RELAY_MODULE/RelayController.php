@@ -5,10 +5,16 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use Throwable;
+
 use Nadybot\Core\{
 	ClassSpec,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
+	CommandManager,
 	DB,
 	Event,
 	EventManager,
@@ -22,21 +28,22 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
+	Modules\PROFILE\ProfileCommandReply,
+	ParamClass\PNonNumber,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	Registry,
-	Timer,
-	WebsocketClient,
 };
-use Nadybot\Core\Modules\PROFILE\ProfileCommandReply;
-use Nadybot\Modules\GUILD_MODULE\GuildController;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionMethod;
-use Throwable;
+use Nadybot\Core\ParamClass\PNonNumberWord;
+use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
+	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\JsonImporter,
+	WEBSERVER_MODULE\Request,
+	WEBSERVER_MODULE\Response,
+};
+use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
 
 /**
  * @author Tyrence
@@ -51,12 +58,19 @@ use Throwable;
  *		description = 'Setup and modify relays between bots',
  *		help        = 'relay.txt'
  *	)
+ *  @DefineCommand(
+ *		command     = 'sync',
+ *		accessLevel = 'member',
+ *		description = 'Force syncing of next command if relay sync exists',
+ *		help        = 'sync.txt'
+ *	)
  *  @ProvidesEvent("routable(message)")
  */
 class RelayController {
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
+	public const DB_TABLE_EVENT = 'relay_event_<myname>';
 
 	/** @var array<string,ClassSpec> */
 	protected array $relayProtocols = [];
@@ -110,6 +124,9 @@ class RelayController {
 	public CommandAlias $commandAlias;
 
 	/** @Inject */
+	public CommandManager $commandManager;
+
+	/** @Inject */
 	public GuildController $guildController;
 
 	/** @Inject */
@@ -120,11 +137,6 @@ class RelayController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-
-	public WebsocketClient $tyrClient;
-
-	/** @Inject */
-	public Timer $timer;
 
 	/**
 	 * @Event("connect")
@@ -295,10 +307,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list protocols?$/i")
 	 */
-	public function relayListProtocolsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListProtocolsCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="(protocols?)"
+	): void {
+		$context->reply(
 			$this->renderClassSpecOverview(
 				$this->relayProtocols,
 				"relay protocol",
@@ -309,13 +324,17 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list protocol (.+)$/i")
 	 */
-	public function relayListProtocolDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListProtocolDetailCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="protocol",
+		string $protocol
+	): void {
+		$context->reply(
 			$this->renderClassSpecDetails(
 				$this->relayProtocols,
-				$args[1],
+				$protocol,
 				"relay protocol",
 				"protocol"
 			)
@@ -324,10 +343,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list transports?$/i")
 	 */
-	public function relayListTransportsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListTransportsCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="(transports?)"
+	): void {
+		$context->reply(
 			$this->renderClassSpecOverview(
 				$this->transports,
 				"relay transport",
@@ -338,13 +360,17 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list transport (.+)$/i")
 	 */
-	public function relayListTransportDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListTransportDetailCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="transport",
+		string $transport
+	): void {
+		$context->reply(
 			$this->renderClassSpecDetails(
 				$this->transports,
-				$args[1],
+				$transport,
 				"relay transport",
 				"transport"
 			)
@@ -353,10 +379,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list layers?$/i")
 	 */
-	public function relayListStacksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListStacksCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="(layers?)"
+	): void {
+		$context->reply(
 			$this->renderClassSpecOverview(
 				$this->stackElements,
 				"relay layer",
@@ -367,13 +396,17 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay list layer (.+)$/i")
 	 */
-	public function relayListStackDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply(
+	public function relayListStackDetailCommand(
+		CmdContext $context,
+		string $action="list",
+		string $subAction="layer",
+		string $layer
+	): void {
+		$context->reply(
 			$this->renderClassSpecDetails(
 				$this->stackElements,
-				$args[1],
+				$layer,
 				"relay layer"
 			)
 		);
@@ -381,26 +414,31 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay add (?<name>.+?) (?<spec>.+)$/is")
 	 */
-	public function relayAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (strlen($args['name']) > 100) {
-			$sendto->reply("The name of the relay must be 100 characters max.");
+	public function relayAddCommand(
+		CmdContext $context,
+		string $action="add",
+		PWord $name,
+		string $spec
+	): void {
+		$name = $name();
+		if (strlen($name) > 100) {
+			$context->reply("The name of the relay must be 100 characters max.");
 			return;
 		}
 		$relayConf = new RelayConfig();
-		$relayConf->name = $args['name'];
+		$relayConf->name = $name;
 		$parser = new RelayLayerExpressionParser();
 		try {
-			$relayConf->layers = $parser->parse($args["spec"]);
+			$relayConf->layers = $parser->parse($spec);
 		} catch (LayerParserException $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
 		try {
 			$relay = $this->createRelay($relayConf);
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
 		$layers = [];
@@ -408,15 +446,19 @@ class RelayController {
 			$layers []= $layer->toString();
 		}
 		$blob = $this->quickRelayController->getRouteInformation(
-			$args['name'],
+			$name,
 			in_array($layer->layer, ["tyrbot", "nadynative"])
 		);
-		$msg = "Relay <highlight>{$args['name']}<end> added.";
-		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($sendto instanceof ProfileCommandReply)) {
+		$msg = "Relay <highlight>{$name}<end> added.";
+		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
 			$help = $this->text->makeBlob("setup your routing", $blob);
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
-		$sendto->reply($msg);
+		if ($relay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$msg .= " This protocol supports relaying certain events. Use ".
+				"<highlight><symbol>relay config {$relayConf->name}<end> to configure which ones.";
+		}
+		$context->reply($msg);
 	}
 
 	public function createRelay(RelayConfig $relayConf): Relay {
@@ -487,6 +529,9 @@ class RelayController {
 					->where("relay_id", $relay->id)
 					->delete();
 			}
+			$this->db->table(static::DB_TABLE_EVENT)
+				->where("relay_id", $relay->id)
+				->delete();
 			$this->db->table(static::DB_TABLE)
 				->delete($relay->id);
 		} catch (Throwable $e) {
@@ -518,6 +563,7 @@ class RelayController {
 		}
 		$this->db->table(static::DB_TABLE_ARGUMENT)->truncate();
 		$this->db->table(static::DB_TABLE_LAYER)->truncate();
+		$this->db->table(static::DB_TABLE_EVENT)->truncate();
 		$this->db->table(static::DB_TABLE)->truncate();
 		return count($relays);
 	}
@@ -533,31 +579,56 @@ class RelayController {
 			foreach ($relay->layers as $layer) {
 				$msg .= " " . $layer->toString();
 			}
+			if (!empty($relay->events)) {
+				$events = [];
+				foreach ($relay->events as $event) {
+					$events []= $event->toString();
+				}
+				$msg .= "\n!relay config {$relay->name} eventset ".
+					join(" ", $events);
+			}
 			return $msg;
 		}, $relays);
 	}
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay describe (?<id>\d+)$/is")
-	 * @Matches("/^relay describe (?<name>.+)$/is")
 	 */
-	public function relayDescribeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== "msg") {
-			$sendto->reply(
+	public function relayDescribeIdCommand(
+		CmdContext $context,
+		string $action="describe",
+		int $id
+	): void {
+		$this->relayDescribeCommand($context, $id, null);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayDescribeNameCommand(
+		CmdContext $context,
+		string $action="describe",
+		PNonNumber $name
+	): void {
+		$this->relayDescribeCommand($context, null, $name());
+	}
+
+	public function relayDescribeCommand(CmdContext $context, ?int $id, ?string $name): void {
+		if (!$context->isDM()) {
+			$context->reply(
 				"Because the relay stack might contain passwords, ".
 				"this command works only in tells."
 			);
 			return;
 		}
-		$relay = isset($args['id'])
-			? $this->getRelay((int)$args['id'])
-			: $this->getRelayByName($args['name']);
+		$relay = isset($id)
+			? $this->getRelay($id)
+			: $this->getRelayByName($name);
 		/** @var ?RelayConfig $relay */
 		if (!isset($relay)) {
-			$sendto->reply(
+			$context->reply(
 				"Relay <highlight>".
-				(isset($args['id']) ? "#{$args['id']}" : $args['name']).
+				(isset($id) ? "#{$id}" : $name).
 				"<end> not found."
 			);
 			return;
@@ -566,18 +637,16 @@ class RelayController {
 		foreach ($relay->layers as $layer) {
 			$msg .= " " . $layer->toString();
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay$/i")
-	 * @Matches("/^relay list$/i")
 	 */
-	public function relayListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function relayListCommand(CmdContext $context, ?string $action="list"): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
-			$sendto->reply("There are no relays defined.");
+			$context->reply("There are no relays defined.");
 			return;
 		}
 		$blobs = [];
@@ -624,22 +693,31 @@ class RelayController {
 			"Relays (" . count($relays) . ")",
 			join("\n\n", $blobs)
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay (?:rem|del) (?<id>\d+)$/i")
-	 * @Matches("/^relay (?:rem|del) (?<name>.+)$/i")
 	 */
-	public function relayRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$relay = isset($args['id'])
-			? $this->getRelay((int)$args['id'])
-			: $this->getRelayByName($args['name']);
+	public function relayRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
+		$this->relayRemCommand($context, $id, null);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayRemNameCommand(CmdContext $context, PRemove $action, PNonNumber $name): void {
+		$this->relayRemCommand($context, null, $name());
+	}
+
+	public function relayRemCommand(CmdContext $context, ?int $id, ?string $name): void {
+		$relay = isset($id)
+			? $this->getRelay($id)
+			: $this->getRelayByName($name);
 		if (!isset($relay)) {
-			$sendto->reply(
+			$context->reply(
 				"Relay <highlight>".
-				(isset($args['id']) ? "#{$args['id']}" : $args['name']).
+				(isset($id) ? "#{$id}" : $name).
 				"<end> not found."
 			);
 			return;
@@ -647,21 +725,222 @@ class RelayController {
 		try {
 			$this->deleteRelay($relay);
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
-		$sendto->reply(
+		$context->reply(
 			"Relay #{$relay->id} (<highlight>{$relay->name}<end>) deleted."
 		);
 	}
 
 	/**
 	 * @HandlesCommand("relay")
-	 * @Matches("/^relay (?:remall|delall)$/i")
 	 */
-	public function relayRemAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function relayRemAllCommand(CmdContext $context, string $action="(remall|delall)"): void {
 		$numDeleted = $this->deleteAllRelays();
-		$sendto->reply("<highlight>{$numDeleted}<end> relays deleted.");
+		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayConfigIdCommand(CmdContext $context, string $action="config", int $id): void {
+		$this->relayConfigCommand($context, $id, null);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayConfigNameCommand(CmdContext $context, string $action="config", PNonNumberWord $name): void {
+		$this->relayConfigCommand($context, null, $name());
+	}
+
+	public function relayConfigCommand(CmdContext $context, ?int $id, ?string $name): void {
+		$relay = isset($id)
+			? $this->getRelay($id)
+			: $this->getRelayByName($name);
+		if (!isset($relay)) {
+			$context->reply(
+				"Relay <highlight>".
+				(isset($id) ? "#{$id}" : $name).
+				"<end> not found."
+			);
+			return;
+		}
+		$oRelay = $this->relays[$relay->name];
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$context->reply("This relay has nothing to configure.");
+			return;
+		}
+		$events = $this->getRegisteredSyncEvents();
+		$blob = "This relay protocol supports sending events between bots on the same relay.\n".
+			"For this to work, the bot sending the event must allow outgoing events of\n".
+			"that event type and the receiving bot(s) must allow incoming events of that\n".
+			"very type.\n\n".
+			"If bot 'Alice' allows outgoing sync(cd) and 'Bobby' allows incoming sync(cd),\n".
+			"then every time someone on 'Alice' starts a countdown, the same countdown will\n".
+			"be started on Bobby in sync.\n\n".
+			"If you only want to send these events selectively, you can prefix your commands\n".
+			"with 'sync' instead of enabling that outgoing sync-event, e.g. '<symbol>sync cd KILL!'.\n\n";
+		$blob .= "<header2>Syncable events<end>";
+		foreach ($events as $event) {
+			$eConf = $relay->events[$event] ?? new RelayEvent();
+			$line = "\n<tab>{$event}:";
+			foreach (["incoming", "outgoing"] as $type) {
+				if ($eConf->{$type}) {
+					$line .= " <green>" . ucfirst($type) . "<end> [".
+						$this->text->makeChatcmd(
+							"disable",
+							"/tell <myname> relay config {$relay->name} eventmod {$event} disable {$type}"
+						) . "]";
+				} else {
+					$line .= " <red>" . ucfirst($type) . "<end> [".
+						$this->text->makeChatcmd(
+							"enable",
+							"/tell <myname> relay config {$relay->name} eventmod {$event} enable {$type}"
+						) . "]";
+				}
+			}
+			$blob .= $line;
+		}
+		$msg = $this->text->makeBlob("Relay configuration for {$relay->name}", $blob);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayConfigEventmodCommand(
+		CmdContext $context,
+		string $action="config",
+		PWord $name,
+		string $subAction="eventmod",
+		PWord $event,
+		bool $enable,
+		string $direction="(incoming|outgoing)"
+	): void {
+		$name = $name();
+		$relay = $this->getRelayByName($name);
+		if (!isset($relay)) {
+			$context->reply("Relay <highlight>{$name}<end> not found.");
+			return;
+		}
+		$oRelay = $this->relays[$relay->name];
+		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$context->reply(
+				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
+				"does not support syncing events."
+			);
+			return;
+		}
+		$statusMsg = $enable ? "<green>enabled<end>" : "<red>disabled<end>";
+		if ($this->changeRelayEventStatus($relay, $event(), $direction, $enable)) {
+			$context->reply(
+				"Successfully {$statusMsg} {$direction} events of type <highlight>".
+				$event() . "<end> for relay <highlight>{$relay->name}<end>."
+			);
+			return;
+		}
+		$context->reply(
+			ucfirst($direction) . " events of type <highlight>" . $event() . "<end> ".
+			"were already {$statusMsg} for relay <highlight>{$relay->name}<end>."
+		);
+	}
+
+	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
+		$event = $relay->events[$eventName] ?? null;
+		if (!isset($event)) {
+			if ($enable === false) {
+				return false;
+			}
+			$event = new RelayEvent();
+			$event->event = $eventName;
+			$event->relay_id = $relay->id;
+		}
+		if ($event->{$direction} === $enable) {
+			return false;
+		}
+		$event->{$direction} = $enable;
+		if (isset($event->id)) {
+			if ($event->incoming === false && $event->outgoing === false) {
+				$this->db->table(static::DB_TABLE_EVENT)->delete($event->id);
+				unset($relay->events[$eventName]);
+			} else {
+				$this->db->update(static::DB_TABLE_EVENT, "id", $event);
+			}
+		} else {
+			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
+			$relay->events[$eventName] = $event;
+		}
+		$this->relays[$relay->name]->setEvents($relay->events);
+		return true;
+	}
+
+	/**
+	 * @HandlesCommand("relay")
+	 */
+	public function relayConfigEventsetCommand(
+		CmdContext $context,
+		string $action="config",
+		PWord $name,
+		string $subAction="eventset",
+		?string $events="([a-z()_-]+\s+(?:IO|O|I)(?:\s+[a-z()_-]+\s+(?:IO|OI|O|I))*)"
+	): void {
+		$name = $name();
+		$relay = $this->getRelayByName($name);
+		if (!isset($relay)) {
+			$context->reply("Relay <highlight>{$name}<end> not found.");
+			return;
+		}
+		$oRelay = $this->relays[$relay->name];
+		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$context->reply(
+				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
+				"does not support syncing events."
+			);
+			return;
+		}
+		preg_match_all("/\s*(?<event>[a-z()_-]+)\s+(?<dir>IO|O|I)/is", $events??"", $matches);
+		$eventConfigs = array_combine($matches['event'], $matches['dir']);
+		$this->db->table(static::DB_TABLE_EVENT)
+			->where("relay_id", $relay->id)
+			->delete();
+		$relay->events = [];
+		foreach ($eventConfigs as $eventName => $dir) {
+			$event = new RelayEvent();
+			$event->relay_id = $relay->id;
+			$event->event = $eventName;
+			$event->incoming = stripos($dir, "I") !== false;
+			$event->outgoing = stripos($dir, "O") !== false;
+			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
+			$relay->events[$event] = $event;
+		}
+		$this->relays[$relay->name]->setEvents($relay->events);
+		$context->reply("Relay events set for <highlight>{$relay->name}<end>.");
+	}
+
+	/**
+	 * @HandlesCommand("sync")
+	 */
+	public function syncCommand(CmdContext $context, string $command): void {
+		$context->message = $command;
+		$context->forceSync = true;
+		$this->commandManager->processCmd($context);
+	}
+
+	/**
+	 * Get a list of all registered sync events as array with names
+	 * @return string[]
+	 */
+	protected function getRegisteredSyncEvents(): array {
+		return array_values(
+			array_filter(
+				$this->eventManager->getEventTypes(),
+				function (string $event): bool {
+					return fnmatch("sync(*)", $event, FNM_CASEFOLD);
+				}
+			)
+		);
 	}
 
 	/**
@@ -680,11 +959,18 @@ class RelayController {
 				$layer->arguments = $arguments->get($layer->id, new Collection())->toArray();
 			})
 			->groupBy("relay_id");
+		$events = $this->db->table(static::DB_TABLE_EVENT)
+			->orderBy("id")
+			->asObj(RelayEvent::class)
+			->groupBy("relay_id");
 		$relays = $this->db->table(static::DB_TABLE)
 			->orderBy("id")
 			->asObj(RelayConfig::class)
-			->each(function(RelayConfig $relay) use ($layers): void {
+			->each(function(RelayConfig $relay) use ($layers, $events): void {
 				$relay->layers = $layers->get($relay->id, new Collection())->toArray();
+				$relay->events = $events->get($relay->id, new Collection())
+					->keyBy("event")
+					->toArray();
 			})
 			->toArray();
 		return $relays;
@@ -734,6 +1020,12 @@ class RelayController {
 			->asObj(RelayLayerArgument::class)
 			->toArray();
 		}
+		$relay->events = $this->db->table(static::DB_TABLE_EVENT)
+			->where("relay_id", $relay->id)
+			->orderBy("id")
+			->asObj(RelayEvent::class)
+			->keyBy("event")
+			->toArray();
 	}
 
 	public function addRelay(Relay $relay): bool {
@@ -806,6 +1098,7 @@ class RelayController {
 			$spec
 		);
 		$relay->setStack($transportLayer, $protocolLayer, ...$stack);
+		$relay->setEvents($conf->events);
 		return $relay;
 	}
 

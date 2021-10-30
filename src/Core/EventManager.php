@@ -4,8 +4,12 @@ namespace Nadybot\Core;
 
 use Exception;
 use Addendum\ReflectionAnnotatedMethod;
+use Closure;
 use Nadybot\Core\DBSchema\EventCfg;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
+use ReflectionFunction;
+use ReflectionFunctionAbstract;
+use ReflectionMethod;
 
 /**
  * @Instance
@@ -450,9 +454,29 @@ class EventManager {
 				continue;
 			}
 			foreach ($handlers as $callback) {
-				$callback($eventObj, ...$args);
+				if (is_array($callback)) {
+					$callback = Closure::fromCallable($callback);
+				}
+				$refMeth = new ReflectionFunction($callback);
+				$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
+				$callback($newEventObj, ...$args);
 			}
 		}
+	}
+
+	protected function convertSyncEvent(ReflectionFunctionAbstract $refMeth, Event $eventObj): Event {
+		if (get_class($eventObj) !== SyncEvent::class) {
+			return $eventObj;
+		}
+		$params = $refMeth->getParameters();
+		if (!count($params) || ($type = $params[0]->getType()) === null) {
+			return $eventObj;
+		}
+		$class = $type->getName();
+		if (!is_subclass_of($class, SyncEvent::class)) {
+			return $eventObj;
+		}
+		return $class::fromSyncEvent($eventObj);
 	}
 
 	/**
@@ -467,6 +491,8 @@ class EventManager {
 			if ($instance === null) {
 				$this->logger->log('ERROR', "Could not find instance for name '$name' in '$handler' for event type '$eventObj->type'");
 			} else {
+				$refMeth = new ReflectionMethod($instance, $method);
+				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
 				$instance->$method($eventObj, ...$args);
 			}
 		} catch (StopExecutionException $e) {
@@ -492,5 +518,13 @@ class EventManager {
 		}
 		$this->eventTypes []= $eventType;
 		return true;
+	}
+
+	/**
+	 * Get a list of all registered event types
+	 * @return string[]
+	 */
+	public function getEventTypes(): array {
+		return $this->eventTypes;
 	}
 }

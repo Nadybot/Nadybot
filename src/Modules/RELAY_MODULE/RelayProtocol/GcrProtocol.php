@@ -29,6 +29,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Param(name='send-logon', description='Send messages that people in your org go online or offline', type='bool', required=false)
  */
 class GcrProtocol implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
+
 	protected Relay $relay;
 
 	/** @Inject */
@@ -471,5 +473,9 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }
