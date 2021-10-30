@@ -23,6 +23,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Modules\TIMER_MODULE\SyncTimerEvent;
 
 /**
  * @author Tyrence (RK2)
@@ -46,6 +47,7 @@ use Nadybot\Core\Routing\Source;
  * @ProvidesEvent("timer(start)")
  * @ProvidesEvent("timer(end)")
  * @ProvidesEvent("timer(del)")
+ * @ProvidesEvent("sync(timer)")
  */
 class TimerController implements MessageEmitter {
 
@@ -321,6 +323,14 @@ class TimerController implements MessageEmitter {
 		$msg = "Repeating timer <highlight>$timerName<end> will go off in $initialTimerSet and repeat every $timerSet.";
 
 		$sendto->reply($msg);
+
+		$sTimer = new SyncTimerEvent();
+		$sTimer->name = $timerName;
+		$sTimer->endtime = $endTime;
+		$sTimer->settime = time();
+		$sTimer->interval = $runTime;
+		$sTimer->owner = $sender;
+		$this->eventManager->fireEvent($sTimer);
 	}
 
 	/**
@@ -398,6 +408,13 @@ class TimerController implements MessageEmitter {
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
 		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
+		$sTimer = new SyncTimerEvent();
+		$sTimer->name = $name;
+		$sTimer->endtime = time() + $runTime;
+		$sTimer->settime = time();
+		$sTimer->interval;
+		$sTimer->owner = $sender;
+		$this->eventManager->fireEvent($sTimer);
 	}
 
 	/**
@@ -597,5 +614,28 @@ class TimerController implements MessageEmitter {
 	 */
 	public function getAllTimers(): array {
 		return $this->timers;
+	}
+
+	/**
+	 * @Event("sync(timer)")
+	 * @Description("Sync external timers")
+	 */
+	public function syncExtTimers(SyncTimerEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$timerName = $event->name;
+		$i = 1;
+		while ($this->get($timerName) !== null) {
+			$timerName = $event->name . "-" . (++$i);
+		}
+		$event->name = $timerName;
+
+		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->setting->timer_alert_times));
+		if (isset($event->interval)) {
+			$this->add($event->name, $event->owner, null, $alerts, "timercontroller.repeatingTimerCallback", (string)$event->interval);
+		} else {
+			$this->add($event->name, $event->owner, null, $alerts, 'timercontroller.timerCallback');
+		}
 	}
 }
