@@ -6,6 +6,7 @@ use DateTime;
 use Exception;
 use Nadybot\Core\{
 	CmdContext,
+	EventManager,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -34,6 +35,7 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
  *		description = 'Handles timer for gauntlet buff',
  *		help        = 'gaubuff.txt'
  *	)
+ *	@ProvidesEvent("sync(gaubuff)")
  */
 class GauntletBuffController implements MessageEmitter {
 	public const SIDE_NONE = 'none';
@@ -55,6 +57,9 @@ class GauntletBuffController implements MessageEmitter {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public Util $util;
@@ -274,6 +279,32 @@ class GauntletBuffController implements MessageEmitter {
 		$this->setGaubuff($side, $buffEnds, $context->char->name, time());
 		$msg = "Gauntletbuff timer for <{$side}>{$side}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
 		$context->reply($msg);
+		$event = new SyncGaubuffEvent();
+		$event->expires = $buffEnds;
+		$event->faction = strtolower($side);
+		$event->sender = $context->char->name;
+		$event->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($event);
+	}
+
+	/**
+	 * @Event("sync(gaubuff)")
+	 * @Description("Sync external gauntlet buff events")
+	 */
+	public function syncExtGaubuff(SyncGaubuffEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->setGaubuff($event->faction, $event->expires, $event->sender, time());
+		$msg = "Gauntletbuff timer for <{$event->faction}>{$event->faction}<end> has ".
+			"been set and expires at <highlight>" . $this->tmTime($event->expires).
+			"<end>.";
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(
+			Source::SYSTEM,
+			"gauntlet-buff"
+		));
+		$this->messageHub->handle($rMsg);
 	}
 
 	/**
