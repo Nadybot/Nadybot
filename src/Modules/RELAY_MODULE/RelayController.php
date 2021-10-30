@@ -454,6 +454,10 @@ class RelayController {
 			$help = $this->text->makeBlob("setup your routing", $blob);
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
+		if ($relay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$msg .= " This protocol supports relaying certain events. Use ".
+				"<highlight><symbol>relay config {$relayConf->name}<end> to configure which ones.";
+		}
 		$context->reply($msg);
 	}
 
@@ -763,8 +767,22 @@ class RelayController {
 			);
 			return;
 		}
+		$oRelay = $this->relays[$relay->name];
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			$context->reply("This relay has nothing to configure.");
+			return;
+		}
 		$events = $this->getRegisteredSyncEvents();
-		$blob = "<header2>Syncable events<end>";
+		$blob = "This relay protocol supports sending events between bots on the same relay.\n".
+			"For this to work, the bot sending the event must allow outgoing events of\n".
+			"that event type and the receiving bot(s) must allow incoming events of that\n".
+			"very type.\n\n".
+			"If bot 'Alice' allows outgoing sync(cd) and 'Bobby' allows incoming sync(cd),\n".
+			"then every time someone on 'Alice' starts a countdown, the same countdown will\n".
+			"be started on Bobby in sync.\n\n".
+			"If you only want to send these events selectively, you can prefix your commands\n".
+			"with 'sync' instead of enabling that outgoing sync-event, e.g. '<symbol>sync cd KILL!'.\n\n";
+		$blob .= "<header2>Syncable events<end>";
 		foreach ($events as $event) {
 			$eConf = $relay->events[$event] ?? new RelayEvent();
 			$line = "\n<tab>{$event}:";
@@ -773,19 +791,19 @@ class RelayController {
 					$line .= " <green>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"disable",
-							"/tell <myname> relay config {$relay->id} eventmod {$event} disable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event} disable {$type}"
 						) . "]";
 				} else {
 					$line .= " <red>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"enable",
-							"/tell <myname> relay config {$relay->id} eventmod {$event} enable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event} enable {$type}"
 						) . "]";
 				}
 			}
 			$blob .= $line;
 		}
-		$msg = $this->text->makeBlob("Relay configuration", $blob);
+		$msg = $this->text->makeBlob("Relay configuration for {$relay->name}", $blob);
 		$context->reply($msg);
 	}
 
