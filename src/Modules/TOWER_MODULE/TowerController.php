@@ -29,11 +29,13 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PNonGreedy;
-use Nadybot\Core\ParamClass\PPlayfield;
-use Nadybot\Core\ParamClass\PTowerSite;
+use Nadybot\Core\ParamClass\{
+	PCharacter,
+	PDuration,
+	PNonGreedy,
+	PPlayfield,
+	PTowerSite,
+};
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
