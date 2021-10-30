@@ -2,10 +2,14 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Closure;
+use Nadybot\Core\{
+	CmdContext,
+	EventManager,
+	Nadybot,
+	SettingManager,
+	Timer,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -20,6 +24,7 @@ use Nadybot\Core\Timer;
  *		help        = 'countdown.txt',
  *		alias		= 'cd'
  *	)
+ *	@ProvidesEvent("sync(cd)")
  */
 class CountdownController {
 
@@ -41,6 +46,9 @@ class CountdownController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public Timer $timer;
@@ -84,34 +92,40 @@ class CountdownController {
 
 	/**
 	 * @HandlesCommand("countdown")
-	 * @Matches("/^countdown$/i")
-	 * @Matches("/^countdown (.+)$/i")
 	 */
-	public function countdownCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$message = $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT);
-		if (count($args) === 2) {
-			$message = $args[1];
-		}
+	public function countdownCommand(CmdContext $context, ?string $message): void {
+		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT);
 		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN);
 
 		if ($this->lastCountdown >= (time() - $cooldown)) {
 			$msg = "You can only start a countdown once every {$cooldown} seconds.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$callback = [$sendto, "reply"];
-		if ($channel === "msg") {
-			$callback = function($text): void {
-				if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_PRIV) {
-					$this->chatBot->sendPrivate($text, true);
-				}
-				if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_ORG) {
-					$this->chatBot->sendGuild($text, true);
-				}
-			};
+		$callback = [$context, "reply"];
+		if ($context->isDM()) {
+			$callback = $this->getDmCallback();
 		}
+		$this->startCountdown($callback, $message);
+		$sEvent = new SyncCdEvent();
+		$sEvent->owner = $context->char->name;
+		$sEvent->message = $message;
+		$this->eventManager->fireEvent($sEvent);
+	}
 
+	protected function getDmCallback(): Closure {
+		return function($text): void {
+			if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_PRIV) {
+				$this->chatBot->sendPrivate($text, true);
+			}
+			if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_ORG) {
+				$this->chatBot->sendGuild($text, true);
+			}
+		};
+	}
+
+	public function startCountdown(callable $callback, string $message): void {
 		$this->lastCountdown = time();
 
 		for ($i = 5; $i > 0; $i--) {
@@ -128,5 +142,20 @@ class CountdownController {
 
 		$msg = "[<green>------&gt; {$message} &lt;-------<end>]";
 		$this->timer->callLater(6, $callback, $msg);
+	}
+
+	/**
+	 * @Event("sync(cd)")
+	 * @Description("Process externally started countdowns")
+	 */
+	public function syncCountdown(SyncCdEvent $event): void {
+		if (time() - $this->lastCountdown < 7) {
+			return;
+		}
+		if ($event->isLocal()) {
+			return;
+		}
+		$callback = $this->getDmCallback();
+		$this->startCountdown($callback, $event->message);
 	}
 }

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\TIMER_MODULE;
+namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Nadybot\Core\SyncEvent;
 

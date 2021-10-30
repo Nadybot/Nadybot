@@ -12,18 +12,17 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
+	Modules\DISCORD\DiscordController,
 	Nadybot,
 	Registry,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SettingObject,
 	SQLException,
 	Text,
 	Util,
-	Modules\DISCORD\DiscordController,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\TIMER_MODULE\SyncTimerEvent;
 
 /**
  * @author Tyrence (RK2)
@@ -408,13 +407,15 @@ class TimerController implements MessageEmitter {
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
 		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
-		$sTimer = new SyncTimerEvent();
-		$sTimer->name = $name;
-		$sTimer->endtime = time() + $runTime;
-		$sTimer->settime = time();
-		$sTimer->interval;
-		$sTimer->owner = $sender;
-		$this->eventManager->fireEvent($sTimer);
+		if (preg_match("/has been set for/", $msg)) {
+			$sTimer = new SyncTimerEvent();
+			$sTimer->name = $name;
+			$sTimer->endtime = time() + $runTime;
+			$sTimer->settime = time();
+			$sTimer->interval;
+			$sTimer->owner = $sender;
+			$this->eventManager->fireEvent($sTimer);
+		}
 	}
 
 	/**
