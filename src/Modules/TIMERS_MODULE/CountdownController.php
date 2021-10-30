@@ -111,6 +111,7 @@ class CountdownController {
 		$sEvent = new SyncCdEvent();
 		$sEvent->owner = $context->char->name;
 		$sEvent->message = $message;
+		$sEvent->forceSync = $context->forceSync;
 		$this->eventManager->fireEvent($sEvent);
 	}
 

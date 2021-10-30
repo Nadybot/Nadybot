@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 class SyncEvent extends Event {
 	public string $sourceBot;
 	public int $sourceDimension;
+	public bool $forceSync = false;
 
 	public static function fromSyncEvent(SyncEvent $event): self {
 		$obj = new static();

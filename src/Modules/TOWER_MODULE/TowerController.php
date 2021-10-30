@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
+	CmdContext,
 	CommandReply,
 	DB,
 	DBSchema\Player,
@@ -28,6 +29,11 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PNonGreedy;
+use Nadybot\Core\ParamClass\PPlayfield;
+use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
@@ -338,12 +344,9 @@ class TowerController {
 	 * This command handler shows the last tower attack messages.
 	 *
 	 * @HandlesCommand("attacks")
-	 * @Matches("/^attacks (\d+)$/i")
-	 * @Matches("/^attacks$/i")
 	 */
-	public function attacksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$page = $args[1] ?? 1;
-		$this->attacksCommandHandler((int)$page, null, '', $sendto);
+	public function attacksCommand(CmdContext $context, ?int $page=1): void {
+		$this->attacksCommandHandler($page??1, null, '', $context);
 	}
 
 	/**
@@ -351,31 +354,28 @@ class TowerController {
 	 * and optionally by page.
 	 *
 	 * @HandlesCommand("attacks")
-	 * @Matches("/^attacks (?!org|player)([0-9a-z]+[a-z])\s*(\d+)$/i")
-	 * @Matches("/^attacks (?!org|player)([0-9a-z]+[a-z])\s*(\d+)\s+(\d+)$/i")
 	 */
-	public function attacks2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfield = $this->playfieldController->getPlayfieldByName($args[1]);
+	public function attacks2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
+		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
-			$msg = "<highlight>{$args[1]}<end> is not a valid playfield.";
-			$sendto->reply($msg);
+			$msg = "<highlight>{$site->pf}<end> is not a valid playfield.";
+			$context->reply($msg);
 			return;
 		}
 
-		$towerInfo = $this->getTowerInfo($playfield->id, (int)$args[2]);
+		$towerInfo = $this->getTowerInfo($playfield->id, $site->site);
 		if ($towerInfo === null) {
-			$msg = "<highlight>{$playfield->long_name}<end> doesn't have a site <highlight>X{$args[2]}<end>.";
-			$sendto->reply($msg);
+			$msg = "<highlight>{$playfield->long_name}<end> doesn't have a site <highlight>X{$site->site}<end>.";
+			$context->reply($msg);
 			return;
 		}
 
-		$cmd = "$args[1] $args[2] ";
+		$cmd = "{$site->pf} {$site->site} ";
 		$search = function (QueryBuilder $query) use ($towerInfo) {
 			$query->where("a.playfield_id", $towerInfo->playfield_id)
 				->where("a.site_number", $towerInfo->site_number);
 		};
-		$page = $args[3] ?? 1;
-		$this->attacksCommandHandler((int)$page, $search, $cmd, $sendto);
+		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
@@ -383,16 +383,14 @@ class TowerController {
 	 * org has been an attacker or defender.
 	 *
 	 * @HandlesCommand("attacks")
-	 * @Matches("/^attacks org (.+) (\d+)$/i")
-	 * @Matches("/^attacks org (.+)$/i")
 	 */
-	public function attacksOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = "org $args[1] ";
-		$search = function (QueryBuilder $query) use ($args) {
-			$query->whereIlike("a.att_guild_name", $args[1])
-				->orWhereIlike("a.def_guild_name", $args[1]);
+	public function attacksOrgCommand(CmdContext $context, string $action="org", PNonGreedy $orgName, ?int $page): void {
+		$cmd = "org $orgName ";
+		$search = function (QueryBuilder $query) use ($orgName) {
+			$query->whereIlike("a.att_guild_name", $orgName())
+				->orWhereIlike("a.def_guild_name", $orgName());
 		};
-		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
+		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
@@ -400,34 +398,31 @@ class TowerController {
 	 * player has been as attacker.
 	 *
 	 * @HandlesCommand("attacks")
-	 * @Matches("/^attacks player (.+) (\d+)$/i")
-	 * @Matches("/^attacks player (.+)$/i")
 	 */
-	public function attacksPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = "player $args[1] ";
-		$search = function (QueryBuilder $query) use ($args) {
-			$query->whereIlike("a.att_player", $args[1]);
+	public function attacksPlayerCommand(CmdContext $context, string $action="player", PCharacter $player, ?int $page): void {
+		$cmd = "player {$player} ";
+		$search = function (QueryBuilder $query) use ($player) {
+			$query->whereIlike("a.att_player", $player());
 		};
-		$this->attacksCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
+		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
 	 * This command handler shows all towerfields of a single org
 	 *
 	 * @HandlesCommand("sites")
-	 * @Matches("/^sites$/i")
 	 */
-	public function unplantedSitesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function unplantedSitesCommand(CmdContext $context): void {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
-			$this->towerApiController->call($params, [$this, "showUnplantedSites"], $sendto);
+			$this->towerApiController->call($params, [$this, "showUnplantedSites"], $context);
 			return;
 		}
 		$query = $this->getScoutPlusQuery()
 			->whereNull("s.ql");
 		$sites = $query->asObj(ScoutInfoPlus::class);
 		$result = $this->scoutToAPI($sites);
-		$this->showUnplantedSites($result, $sendto);
+		$this->showUnplantedSites($result, $context);
 	}
 
 	/** Show the result of the unplanted sites query to $sendto */
@@ -458,32 +453,30 @@ class TowerController {
 	 * This command handler shows all towerfields of a single org
 	 *
 	 * @HandlesCommand("sites")
-	 * @Matches("/^sites (.+)$/i")
 	 */
-	public function sitesByNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function sitesByNameCommand(CmdContext $context, string $search): void {
 		if (!$this->findOrgController->isReady()) {
-			$this->findOrgController->sendNotReadyError($sendto);
+			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
-		$search = $args[1];
 		if (preg_match("/^\d+$/", $search)) {
-			$this->showSitesOfOrg((int)$search, $sendto);
+			$this->showSitesOfOrg((int)$search, $context);
 			return;
 		}
 		$this->orglistController->getMatches(
 			$search,
-			function(array $orgs) use ($sendto, $search): void {
+			function(array $orgs) use ($context, $search): void {
 				$count = count($orgs);
 
 				if ($count === 0) {
 					$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
-					$sendto->reply($msg);
+					$context->reply($msg);
 				} elseif ($count === 1) {
-					$this->showSitesOfOrg($orgs[0]->id, $sendto);
+					$this->showSitesOfOrg($orgs[0]->id, $context);
 				} else {
 					$blob = $this->formatOrglist($orgs);
 					$msg = $this->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
-					$sendto->reply($msg);
+					$context->reply($msg);
 				}
 			}
 		);
@@ -560,9 +553,8 @@ class TowerController {
 	 * This command handler shows status of towers.
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc$/i")
 	 */
-	public function lcCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function lcCommand(CmdContext $context): void {
 		/** @var Collectionn<Playfield> */
 		$playfields = $this->db->table("tower_site AS t")
 			->join("playfields AS p", "p.id", "t.playfield_id")
@@ -576,21 +568,20 @@ class TowerController {
 			$blob .= "<tab>$baseLink <highlight>($pf->short_name)<end>\n";
 		}
 		$msg = $this->text->makeBlob('Land Control Index', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler imports API data into scouted
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc import ([0-9a-z]+[a-z])$/i")
 	 */
-	public function lcImportCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = strtoupper($args[1]);
+	public function lcImportCommand(CmdContext $context, string $action="import", PPlayfield $pf): void {
+		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
 			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -601,14 +592,14 @@ class TowerController {
 			->asObj(SiteInfo::class);
 		if ($data->isEmpty()) {
 			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 		$this->towerApiController->call(
 			$params,
 			[$this, "importArea"],
-			$sendto
+			$context
 		);
 	}
 
@@ -647,14 +638,13 @@ class TowerController {
 	 * This command handler shows status of all tower sites in a zone.
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc ([0-9a-z][a-z]{1,3})$/i")
 	 */
-	public function lc2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = strtoupper($args[1]);
+	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
+		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
 			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -665,7 +655,7 @@ class TowerController {
 			->asObj(SiteInfo::class);
 		if ($data->isEmpty()) {
 			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$query = $this->getPFQuery();
@@ -680,13 +670,13 @@ class TowerController {
 				$sites,
 				$data,
 				$playfield,
-				$sendto
+				$context
 			);
 			return;
 		}
 
 		$sites = $this->scoutToAPI($sites);
-		$this->showArea($sites, null, $data, $playfield, $sendto);
+		$this->showArea($sites, null, $data, $playfield, $context);
 	}
 
 	public function getPFQuery(): QueryBuilder {
@@ -785,27 +775,25 @@ class TowerController {
 	 * This command handler shows status of towers.
 	 *
 	 * @HandlesCommand("lc")
-	 * @Matches("/^lc ([0-9a-z]+[a-z])\s*(\d+)$/i")
 	 */
-	public function lc3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = strtoupper($args[1]);
+	public function lc3Command(CmdContext $context, PTowerSite $site): void {
+		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
 			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$siteNumber = (int)$args[2];
 		/** @var ?SiteInfo */
 		$site = $this->db->table("tower_site AS t")
 			->join("playfields AS p", "p.id", "t.playfield_id")
 			->where("t.playfield_id", $playfield->id)
-			->where("t.site_number", $siteNumber)
+			->where("t.site_number", $site->site)
 			->asObj(SiteInfo::class)->first();
 		if ($site === null) {
 			$msg = "Invalid site number.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$query = $this->getPFQuery();
@@ -820,12 +808,12 @@ class TowerController {
 				$sites,
 				$site,
 				$playfield,
-				$sendto
+				$context
 			);
 			return;
 		}
 		$sites = $this->scoutToAPI($sites);
-		$this->showSite($sites, null, $site, $playfield, $sendto);
+		$this->showSite($sites, null, $site, $playfield, $context);
 	}
 
 	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
@@ -883,35 +871,33 @@ class TowerController {
 
 	/**
 	 * @HandlesCommand("penalty")
-	 * @Matches("/^penalty$/i")
-	 * @Matches("/^penalty\s+(?<org>.+)$/i")
 	 */
-	public function penaltySitesApiCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): void {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
 			->asObj(ScoutInfoPlus::class);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "true", "penalty" => "true"];
-			if (strlen($args['org']??"")) {
-				if (strcasecmp($args['org'], "neut") === 0) {
-					$args["org"] = "neutral";
+			if (strlen($orgName??"")) {
+				if (strcasecmp($orgName, "neut") === 0) {
+					$orgName = "neutral";
 				}
-				if (preg_match("/^(clan|omni|neutral)$/", $args['org'])) {
-					$params["faction"] = $args["org"];
+				if (preg_match("/^(clan|omni|neutral)$/", $orgName)) {
+					$params["faction"] = $orgName;
 				} else {
-					$params["org_name"] = $args["org"];
+					$params["org_name"] = $orgName;
 				}
 			}
 			$this->towerApiController->call(
 				$params,
 				[$this, "processPenaltySites"],
 				$sites,
-				$sendto
+				$context
 			);
 			return;
 		}
 		$result = $this->scoutToAPI($sites);
-		$this->processPenaltySites($result, null, $sendto);
+		$this->processPenaltySites($result, null, $context);
 	}
 
 	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
@@ -948,10 +934,8 @@ class TowerController {
 
 	/**
 	 * @HandlesCommand("needsscout")
-	 * @Matches("/^needsscout$/i")
-	 * @Matches("/^needsscout (?<pf>.+)$/i")
 	 */
-	public function needsScoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function needsScoutCommand(CmdContext $context, ?PPlayfield $playfield): void {
 		$query = $this->db->table("tower_site AS t")
 			->leftJoin("scout_info AS s", function (JoinClause $join) {
 				$join->on("t.playfield_id", "s.playfield_id")
@@ -968,10 +952,10 @@ class TowerController {
 			})
 			->orderBy("p.short_name")
 			->orderBy("t.site_number");
-		if (isset($args["pf"])) {
-			$pf = $this->playfieldController->getPlayfieldByName($args["pf"]);
+		if (isset($playfield)) {
+			$pf = $this->playfieldController->getPlayfieldByName($playfield());
 			if (!isset($pf)) {
-				$sendto->reply("Unable to find playfield <highlight>{$args['pf']}<end>.");
+				$context->reply("Unable to find playfield <highlight>{$playfield}<end>.");
 				return;
 			}
 			$query->where("p.id", $pf->id);
@@ -979,9 +963,9 @@ class TowerController {
 		$data = $query->asObj(SiteInfo::class);
 		if ($data->count() === 0) {
 			if (isset($pf)) {
-				$sendto->reply("No sites in {$pf->long_name} need scouting right now.");
+				$context->reply("No sites in {$pf->long_name} need scouting right now.");
 			} else {
-				$sendto->reply("No sites need scouting right now.");
+				$context->reply("No sites need scouting right now.");
 			}
 			return;
 		}
@@ -989,7 +973,7 @@ class TowerController {
 		$blob = $groups->map([$this, "formatSiteGroup"])
 			->join("\n\n");
 
-		$sendto->reply(
+		$context->reply(
 			$groups->count() > 1
 				? $this->text->makeBlob(
 					"Sites in need of scouting (" . $data->count() . ")",
@@ -1020,32 +1004,32 @@ class TowerController {
 
 	/**
 	 * @HandlesCommand("hot")
-	 * @Matches("/^hot(.*)$/i")
 	 */
-	public function hotSitesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function hotSitesCommand(CmdContext $context, ?string $search): void {
+		$search ??= "";
 		$params = [
 			"enabled" => "true",
 			"min_close_time" => time(),
 			"max_close_time" => time() + 6 * 3600,
 		];
 		$pf = null;
-		if (preg_match("/\s+(neutral|omni|clan|neut)\b/i", $args[1], $matches)) {
+		if (preg_match("/\s+(neutral|omni|clan|neut)\b/i", $search, $matches)) {
 			$faction = strtolower($matches[1]);
-			$args[1] = preg_replace("/\s+(neutral|omni|clan|neut)\b/i", "", $args[1]);
+			$search = preg_replace("/\s+(neutral|omni|clan|neut)\b/i", "", $search);
 			if ($faction === "neut") {
 				$faction = "neutral";
 			}
 			$params["faction"] = $faction;
 		}
-		if (preg_match("/\s+(\d+)\s*-\s*(\d+)\b/", $args[1], $matches)) {
+		if (preg_match("/\s+(\d+)\s*-\s*(\d+)\b/", $search, $matches)) {
 			$params["min_ql"] = $matches[1];
 			$params["max_ql"] = $matches[2];
-			$args[1] = preg_replace("/\s+(\d+)\s*-\s*(\d+)\b/", "", $args[1]);
+			$search = preg_replace("/\s+(\d+)\s*-\s*(\d+)\b/", "", $search);
 		}
-		if (preg_match("/\s+(\d+)\b/", $args[1], $matches)) {
+		if (preg_match("/\s+(\d+)\b/", $search, $matches)) {
 			$lvlInfo = $this->levelController->getLevelInfo((int)$matches[1]);
 			if (!isset($lvlInfo)) {
-				$sendto->reply("<highlight>{$matches[1]}<end> is an invalid level.");
+				$context->reply("<highlight>{$matches[1]}<end> is an invalid level.");
 				return;
 			}
 			$params["min_ql"] = (string)$lvlInfo->pvpMin;
@@ -1053,26 +1037,26 @@ class TowerController {
 			if ($params["max_ql"] === "220") {
 				$params["max_ql"] = "300";
 			}
-			$args[1] = preg_replace("/\s+(\d+)\b/", "", $args[1]);
+			$search = preg_replace("/\s+(\d+)\b/", "", $search);
 		}
-		if (preg_match("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", $args[1], $matches)) {
+		if (preg_match("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", $search, $matches)) {
 			$pf = $this->playfieldController->getPlayfieldByName($matches[1]);
 			if (!isset($pf)) {
-				$sendto->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
+				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
 				return;
 			}
 			$params["playfield_id"] = (string)$pf->id;
-			$args[1] = preg_replace("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", "", $args[1]);
+			$search = preg_replace("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", "", $search);
 		}
-		$args[1] = trim($args[1]);
-		$time = $this->util->parseTime($args[1]);
+		$search = trim($search);
+		$time = $this->util->parseTime($search);
 		if ($time !== 0) {
 			$params["min_close_time"] += $time;
 			$params["max_close_time"] += $time;
 		}
 		$params["min_close_time"] %= 86400;
 		$params["max_close_time"] %= 86400;
-		$hotSites = $this->getScoutedHotSites($params, $time + time(), $sendto);
+		$hotSites = $this->getScoutedHotSites($params, $time + time(), $context);
 		if (!isset($hotSites)) {
 			return;
 		}
@@ -1082,20 +1066,20 @@ class TowerController {
 				[$this, "showHotSites"],
 				$hotSites,
 				$params,
-				$sender,
-				$sendto,
+				$context->char->name,
+				$context,
 				$time
 			);
 			return;
 		}
 		if ($hotSites->count() === 0) {
-			$sendto->reply("No sites are currently hot.");
+			$context->reply("No sites are currently hot.");
 			return;
 		}
 		$hotSites = $this->scoutToAPI($hotSites);
 		$blob = $this->renderHotSites($hotSites, $params, $time);
 		$faction = isset($args['faction']) ? " " . strtolower($args['faction']) : "";
-		$sendto->reply(
+		$context->reply(
 			$this->text->makeBlob(
 				"Hot{$faction} sites ({$hotSites->count})",
 				$blob
@@ -1359,19 +1343,12 @@ class TowerController {
 
 	/**
 	 * @HandlesCommand("towerstats")
-	 * @Matches("/^towerstats (.+)$/i")
-	 * @Matches("/^towerstats$/i")
 	 */
-	public function towerStatsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$budatime = "1d";
-		if (count($args) === 2) {
-			$budatime = $args[1];
-		}
-
-		$time = $this->util->parseTime($budatime);
+	public function towerStatsCommand(CmdContext $context, ?PDuration $time): void {
+		$time = isset($time) ? $time->toSecs() : 86400;
 		if ($time < 1) {
 			$msg = "You must enter a valid time parameter.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -1411,80 +1388,71 @@ class TowerController {
 		} else {
 			$msg = $this->text->makeBlob("Tower Stats for the Last $timeString", $blob);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows the last tower battle results.
 	 *
 	 * @HandlesCommand("victory")
-	 * @Matches("/^victory (\d+)$/i")
-	 * @Matches("/^victory$/i")
 	 */
-	public function victoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$page = (int)($args[1] ?? 1);
-		$this->victoryCommandHandler($page, null, "", $sendto);
+	public function victoryCommand(CmdContext $context, ?int $page): void {
+		$this->victoryCommandHandler($page??1, null, "", $context);
 	}
 
 	/**
 	 * This command handler shows the last tower battle results.
 	 *
 	 * @HandlesCommand("victory")
-	 * @Matches("/^victory (?!org|player)([a-z0-9]+) (\d+) (\d+)$/i")
-	 * @Matches("/^victory (?!org|player)([a-z0-9]+) (\d+)$/i")
 	 */
-	public function victory2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfield = $this->playfieldController->getPlayfieldByName($args[1]);
+	public function victory2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
+		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
 			$msg = "Invalid playfield.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$towerInfo = $this->getTowerInfo($playfield->id, (int)$args[2]);
+		$towerInfo = $this->getTowerInfo($playfield->id, $site->site);
 		if ($towerInfo === null) {
 			$msg = "Invalid site number.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$cmd = "$args[1] $args[2] ";
+		$cmd = "{$site->pf} {$site->site} ";
 		$search = function (QueryBuilder $query) use ($towerInfo) {
 			$query->where("a.playfield_id", $towerInfo->playfield_id)
 				->where("a.site_number", $towerInfo->site_number);
 		};
-		$this->victoryCommandHandler((int)($args[3] ?? 1), $search, $cmd, $sendto);
+		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
 	 * This command handler shows the last tower battle results.
 	 *
 	 * @HandlesCommand("victory")
-	 * @Matches("/^victory org (.+) (\d+)$/i")
-	 * @Matches("/^victory org (.+)$/i")
 	 */
-	public function victoryOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = "org $args[1] ";
-		$search = function (QueryBuilder $query) use ($args) {
-			$query->whereIlike("v.win_guild_name", $args[1])
-				->orWhereIlike("v.lose_guild_name", $args[1]);
+	public function victoryOrgCommand(CmdContext $context, string $action="org", PNonGreedy $orgName, ?int $page): void {
+		$cmd = "org {$orgName} ";
+		$search = function (QueryBuilder $query) use ($orgName) {
+			$query->whereIlike("v.win_guild_name", $orgName())
+				->orWhereIlike("v.lose_guild_name", $orgName());
 		};
-		$this->victoryCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
+		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
 	 * This command handler shows the last tower battle results.
 	 *
 	 * @HandlesCommand("victory")
-	 * @Matches("/^victory player (.+) (\d+)$/i")
-	 * @Matches("/^victory player (.+)$/i")
 	 */
-	public function victoryPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = "player $args[1] ";
-		$search = function (QueryBuilder $query) use ($args) {
-			$query->whereIlike("a.att_player", $args[1]);
+	public function victoryPlayerCommand(CmdContext $context, string $action="player", PCharacter $player, ?int $page): void {
+		$cmd = "player {$player} ";
+		$search = function (QueryBuilder $query) use ($player) {
+			$query->whereIlike("a.att_player", $player());
 		};
-		$this->victoryCommandHandler((int)($args[2] ?? 1), $search, $cmd, $sendto);
+		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
@@ -2306,45 +2274,41 @@ class TowerController {
 	 * This command handler removes tower info to watch list.
 	 *
 	 * @HandlesCommand("remscout")
-	 * @Matches("/^remscout ([0-9a-z]+[a-z])\s*(\d+)$/i")
 	 */
-	public function remscoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$playfieldName = $args[1];
-		$siteNumber = (int)$args[2];
-
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
+	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {
+		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
 			$msg = "Invalid playfield.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$towerInfo = $this->getTowerInfo($playfield->id, $siteNumber);
+		$towerInfo = $this->getTowerInfo($playfield->id, $site->site);
 		if ($towerInfo === null) {
 			$msg = "Invalid site number.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$numDeleted = $this->remScoutSite($playfield->id, $siteNumber);
+		$numDeleted = $this->remScoutSite($playfield->id, $site->site);
 
 		if ($numDeleted === 0) {
-			$msg = "Could not find a scout record for <highlight>{$playfield->short_name} {$siteNumber}<end>.";
+			$msg = "Could not find a scout record for <highlight>{$playfield->short_name} {$site->site}<end>.";
 		} else {
-			$msg = "<highlight>{$playfield->short_name} {$siteNumber}<end> removed successfully.";
+			$msg = "<highlight>{$playfield->short_name} {$site->site}<end> removed successfully.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	protected function scoutInputHandler(string $sender, CommandReply $sendto, string $playfieldName, int $siteNumber, string $tower): void {
+	protected function scoutInputHandler(CmdContext $context, string $playfieldName, int $siteNumber, string $tower): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$sendto->reply("Invalid playfield <highlight>{$playfieldName}<end>.");
+			$context->reply("Invalid playfield <highlight>{$playfieldName}<end>.");
 			return;
 		}
 		$towerInfo = $this->getTowerInfo($playfield->id, $siteNumber);
 		if ($towerInfo === null) {
-			$sendto->reply("Invalid site number <highlight>{$playfield->long_name} {$siteNumber}<end>.");
+			$context->reply("Invalid site number <highlight>{$playfield->long_name} {$siteNumber}<end>.");
 		}
 		$ctPattern = "@".
 			"Control Tower - (?<faction>[^ ]+)\s+".
@@ -2358,22 +2322,22 @@ class TowerController {
 			if (preg_match("/^(empty|free|un-?planted|clea[rn]|none)$/i", $tower)) {
 				$scoutInfo = new ScoutInfo();
 				$scoutInfo->scouted_on = time();
-				$scoutInfo->scouted_by = $sender;
+				$scoutInfo->scouted_by = $context->char->name;
 				$scoutInfo->playfield_id = $playfield->id;
 				$scoutInfo->site_number = $siteNumber;
 				$scoutInfo->source = "empty";
 				$this->addScoutSite($scoutInfo);
-				$sendto->reply("<highlight>{$playfield->short_name} {$siteNumber}<end> marked as unplanted.");
+				$context->reply("<highlight>{$playfield->short_name} {$siteNumber}<end> marked as unplanted.");
 				return;
 			}
-			$sendto->reply("Please capture the whole tower string.");
+			$context->reply("Please capture the whole tower string.");
 			return;
 		}
 		$scoutInfo = new ScoutInfo();
 		$scoutInfo->playfield_id = $playfield->id;
 		$scoutInfo->site_number = $siteNumber;
 		$scoutInfo->scouted_on = time();
-		$scoutInfo->scouted_by = $sender;
+		$scoutInfo->scouted_by = $context->char->name;
 		$scoutInfo->created_at = (new DateTime($arr['created']))->getTimestamp();
 		$scoutInfo->close_time = $scoutInfo->created_at % 86400;
 		if ($towerInfo->timing > 0) {
@@ -2383,9 +2347,8 @@ class TowerController {
 		$scoutInfo->org_name = $arr['org_name'];
 		$scoutInfo->ql = (int)$arr['ql'];
 		$scoutInfo->faction = $this->getFaction($arr['faction']);
-		$scoutInfo->scouted_by = $sender;
 		if ($scoutInfo->ql < $towerInfo->min_ql || $scoutInfo->ql > $towerInfo->max_ql) {
-			$sendto->reply(
+			$context->reply(
 				"<highlight>{$playfield->short_name} {$towerInfo->site_number}<end> ".
 				"can only accept Control Tower of a ql between ".
 				"<highlight>{$towerInfo->min_ql}<end> and <highlight>{$towerInfo->max_ql}<end>."
@@ -2393,25 +2356,25 @@ class TowerController {
 			return;
 		}
 		if (!in_array($scoutInfo->faction, ['Omni', 'Neutral', 'Clan'])) {
-			$sendto->reply("Valid values for faction are: 'Omni', 'Neutral', and 'Clan'.");
+			$context->reply("Valid values for faction are: 'Omni', 'Neutral', and 'Clan'.");
 			return;
 		}
 
 		if ($this->addScoutSite($scoutInfo)) {
-			$sendto->reply("Scout information recorded for {$playfield->short_name} {$towerInfo->site_number}.");
+			$context->reply("Scout information recorded for {$playfield->short_name} {$towerInfo->site_number}.");
 			$event = SyncScoutEvent::fromScoutInfo($scoutInfo);
+			$event->forceSync = $context->forceSync;
 			$this->eventManager->fireEvent($event);
 			return;
 		}
-		$sendto->reply("There was an unknown error recording this scout information, please check the logs.");
+		$context->reply("There was an unknown error recording this scout information, please check the logs.");
 	}
 
 	/**
 	 * @HandlesCommand("scout")
-	 * @Matches("/^scout ([0-9a-z]+[a-z])\s*(\d+)\s+(.*)$/is")
 	 */
-	public function scoutCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->scoutInputHandler($sender, $sendto, $args[1], (int)$args[2], $args[3]);
+	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
+		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
 	}
 
 	/**
