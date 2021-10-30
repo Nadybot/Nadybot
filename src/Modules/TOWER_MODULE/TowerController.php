@@ -114,6 +114,7 @@ use Nadybot\Modules\{
  *  @ProvidesEvent("tower(attack)")
  *  @ProvidesEvent("tower(win)")
  *  @ProvidesEvent("sync(scout)")
+ *  @ProvidesEvent("sync(remscout)")
  */
 class TowerController {
 
@@ -2119,10 +2120,21 @@ class TowerController {
 
 	/**
 	 * @Event("sync(scout)")
+	 * @Description("Sync external scout information")
 	 */
 	public function processScoutSyncEvent(SyncScoutEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->addScoutSite($event->toScoutInfo());
+		}
+	}
+
+	/**
+	 * @Event("sync(remscout)")
+	 * @Description("Sync external scout information")
+	 */
+	public function processRemscoutSyncEvent(SyncRemscoutEvent $event): void {
+		if (!$event->isLocal()) {
+			$this->remScoutSite($event->playfield_id, $event->site_number);
 		}
 	}
 
@@ -2296,6 +2308,12 @@ class TowerController {
 			$msg = "Could not find a scout record for <highlight>{$playfield->short_name} {$site->site}<end>.";
 		} else {
 			$msg = "<highlight>{$playfield->short_name} {$site->site}<end> removed successfully.";
+			$rEvent = new SyncRemscoutEvent();
+			$rEvent->playfield_id = $playfield->id;
+			$rEvent->site_number = $site->site;
+			$rEvent->scouted_by = $context->char->name;
+			$rEvent->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($rEvent);
 		}
 		$context->reply($msg);
 	}
