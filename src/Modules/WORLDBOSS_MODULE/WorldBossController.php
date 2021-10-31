@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	LoggerWrapper,
 	MessageHub,
 	SettingManager,
 	Text,
@@ -113,6 +114,9 @@ class WorldBossController {
 	/** @Inject */
 	public MessageHub $messageHub;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	public const DB_TABLE = "worldboss_timers_<myname>";
 
 	public const INTERVAL = "interval";
@@ -131,19 +135,19 @@ class WorldBossController {
 	];
 
 	public const BOSS_DATA = [
-		"tara" => [
+		self::TARA => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 30*60,
 		],
-		"reaper" => [
+		self::REAPER => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
 		],
-		"loren" => [
+		self::LOREN => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
 		],
-		"gauntlet" => [
+		self::VIZARESH => [
 			self::INTERVAL => 17*3600,
 			self::IMMORTAL => 420,
 		],
@@ -251,7 +255,7 @@ class WorldBossController {
 	protected function getWorldBossMessage(string $mobName): string {
 		$timer = $this->getWorldBossTimer($mobName);
 		if ($timer === null) {
-			$msg = "I currently don't have an accurate timer for <highlight>$mobName<end>.";
+			$msg = "I currently don't have an accurate timer for <highlight>{$mobName}<end>.";
 			return $msg;
 		}
 		return $this->formatWorldBossMessage($timer, false);
@@ -275,7 +279,7 @@ class WorldBossController {
 				}
 			}
 			$timeUntilSpawn = $this->util->unixtimeToReadable($timer->next_spawn-time());
-			$spawnTimeMessage = " spawns in <highlight>$timeUntilSpawn<end>";
+			$spawnTimeMessage = " spawns in <highlight>{$timeUntilSpawn}<end>";
 			if ($short) {
 				return "{$timer->mob_name}{$spawnTimeMessage}.";
 			}
@@ -284,7 +288,7 @@ class WorldBossController {
 			$spawnTimeMessage = " spawned and";
 		}
 		$timeUntilKill = $this->util->unixtimeToReadable($timer->next_killable-time());
-		$killTimeMessage = " will be vulnerable in <highlight>$timeUntilKill<end>";
+		$killTimeMessage = " will be vulnerable in <highlight>{$timeUntilKill}<end>";
 		if ($short) {
 			return "{$timer->mob_name}{$spawnTimeMessage}{$killTimeMessage}.";
 		}
@@ -303,57 +307,38 @@ class WorldBossController {
 		return "The timer for <highlight>$mobName<end> has been deleted.";
 	}
 
-	public function worldBossKillCommand(Character $sender, string $mobName, int $timeUntilSpawn, int $timeUntilKillable, bool $forceSync=false): string {
+	protected function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
+		$mobData = static::BOSS_DATA[$mobName] ?? null;
+		if (!isset($mobData)) {
+			return false;
+		}
+		if ($vulnerable === 0) {
+			$vulnerable += $mobData[static::INTERVAL] + $mobData[static::IMMORTAL];
+		}
+		$vulnerable += time();
 		$this->db->table(static::DB_TABLE)
 			->upsert(
 				[
 					"mob_name" => $mobName,
-					"timer" => $timeUntilSpawn,
-					"spawn" => time() + $timeUntilSpawn,
-					"killable" => time() + $timeUntilKillable,
+					"timer" => $mobData[static::INTERVAL],
+					"spawn" => $vulnerable - $mobData[static::IMMORTAL],
+					"killable" => $vulnerable,
 					"time_submitted" => time(),
 					"submitter_name" => $sender->name,
 				],
 				["mob_name"]
 			);
-		$msg = "The timer for <highlight>$mobName<end> has been updated.";
 		$this->reloadWorldBossTimers();
-		$event = new SyncWorldbossEvent();
-		$event->boss = static::BOSS_MAP[$mobName];
-		$event->vulnerable = time() + $timeUntilKillable;
-		$event->sender = $sender->name;
-		$event->forceSync = $forceSync;
-		$this->eventManager->fireEvent($event);
-		return $msg;
+		return true;
 	}
 
-	public function worldBossUpdateCommand(Character $sender, int $newKillTime, string $mobName, int $downTime, int $timeUntilKillable, bool $forceSync=false): string {
-		if ($newKillTime < 1) {
-			$msg = "You must enter a valid time parameter for the time until <highlight>${mobName}<end> will be vulnerable.";
-			return $msg;
-		}
-		$newKillTime += time();
-		$this->db->table(static::DB_TABLE)
-			->upsert(
-				[
-					"mob_name" => $mobName,
-					"timer" => $downTime,
-					"spawn" => $newKillTime-$timeUntilKillable,
-					"killable" => $newKillTime,
-					"time_submitted" => time(),
-					"submitter_name" => $sender->name,
-				],
-				["mob_name"]
-			);
-		$msg = "The timer for <highlight>$mobName<end> has been updated.";
-		$this->reloadWorldBossTimers();
+	protected function sendSyncEvent(string $sender, string $mobName, int $immortal, bool $forceSync): void {
 		$event = new SyncWorldbossEvent();
 		$event->boss = static::BOSS_MAP[$mobName];
-		$event->vulnerable = $newKillTime;
-		$event->sender = $sender->name;
+		$event->vulnerable = $immortal;
+		$event->sender = $sender;
 		$event->forceSync = $forceSync;
 		$this->eventManager->fireEvent($event);
-		return $msg;
 	}
 
 	/**
@@ -375,119 +360,57 @@ class WorldBossController {
 		$context->reply($msg);
 	}
 
+	protected function getMobFromContext(CmdContext $context): string {
+		$mobs = array_flip(static::BOSS_MAP);
+		return $mobs[explode(" ", $context->message)[0]];
+	}
+
 	/**
 	 * @HandlesCommand("tara")
-	 */
-	public function taraCommand(CmdContext $context): void {
-		$context->reply($this->getWorldBossMessage(static::TARA));
-	}
-
-	/**
-	 * @HandlesCommand("tara .+")
-	 */
-	public function taraKillCommand(CmdContext $context, string $action="kill"): void {
-		$msg = $this->worldBossKillCommand($context->char, static::TARA, 9*3600, (int)(9.5*3600), $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("tara .+")
-	 */
-	public function taraUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
-		$msg = $this->worldBossUpdateCommand($context->char, $duration->toSecs(), static::TARA, 9*3600, 1800, $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("tara .+")
-	 */
-	public function taraDeleteCommand(CmdContext $context, PRemove $action): void {
-		$msg = $this->worldBossDeleteCommand($context->char, static::TARA);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("reaper")
-	 */
-	public function reaperCommand(CmdContext $context): void {
-		$context->reply($this->getWorldBossMessage(static::REAPER));
-	}
-
-	/**
-	 * @HandlesCommand("reaper .+")
-	 */
-	public function reaperKillCommand(CmdContext $context, string $action="kill"): void {
-		$msg = $this->worldBossKillCommand($context->char, static::REAPER, 9*3600, (int)(9.25*3600), $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("reaper .+")
-	 */
-	public function reaperUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
-		$msg = $this->worldBossUpdateCommand($context->char, $duration->toSecs(), static::REAPER, 9*3600, 900, $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("reaper .+")
-	 */
-	public function reaperDeleteCommand(CmdContext $context, PRemove $action): void {
-		$msg = $this->worldBossDeleteCommand($context->char, static::REAPER);
-		$context->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("loren")
-	 */
-	public function lorenCommand(CmdContext $context): void {
-		$context->reply($this->getWorldBossMessage(static::LOREN));
-	}
-
-	/**
-	 * @HandlesCommand("loren .+")
-	 */
-	public function lorenKillCommand(CmdContext $context, string $action="kill"): void {
-		$msg = $this->worldBossKillCommand($context->char, static::LOREN, 9*3600, (int)(9.25*3600), $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("loren .+")
-	 */
-	public function lorenUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
-		$msg = $this->worldBossUpdateCommand($context->char, $duration->toSecs(), static::LOREN, 9*3600, 900, $context->forceSync);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("loren .+")
-	 */
-	public function lorenDeleteCommand(CmdContext $context, PRemove $action): void {
-		$msg = $this->worldBossDeleteCommand($context->char, static::LOREN);
-		$context->reply($msg);
-	}
-
-	/**
+	 * @HandlesCommand("reaper")
 	 * @HandlesCommand("gauntlet")
 	 */
-	public function gauntletCommand(CmdContext $context): void {
-		$context->reply($this->getWorldBossMessage(static::VIZARESH));
+	public function bossSpawnCommand(CmdContext $context): void {
+		$context->reply($this->getWorldBossMessage($this->getMobFromContext($context)));
 	}
 
 	/**
+	 * @HandlesCommand("tara .+")
+	 * @HandlesCommand("loren .+")
+	 * @HandlesCommand("reaper .+")
 	 * @HandlesCommand("gauntlet .+")
 	 */
-	public function gauntletKillCommand(CmdContext $context, string $action="kill"): void {
-		$msg = $this->worldBossKillCommand($context->char, static::VIZARESH, 61200, 61620, $context->forceSync);
+	public function bossKillCommand(CmdContext $context, string $action="kill"): void {
+		$boss = $this->getMobFromContext($context);
+		$this->worldBossUpdate($context->char, $boss, 0);
+		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
 		$context->reply($msg);
+		$this->sendSyncEvent($context->char->name, $boss, 0, $context->forceSync);
 	}
 
 	/**
+	 * @HandlesCommand("tara .+")
+	 * @HandlesCommand("loren .+")
+	 * @HandlesCommand("reaper .+")
 	 * @HandlesCommand("gauntlet .+")
 	 */
-	public function gauntletUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
-		$msg = $this->worldBossUpdateCommand($context->char, $duration->toSecs(), static::VIZARESH, 61200, 420, $context->forceSync);
+	public function bossUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
+		$boss = $this->getMobFromContext($context);
+		$this->worldBossUpdate($context->char, $boss, $duration->toSecs());
+		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
+		$context->reply($msg);
+		$this->sendSyncEvent($context->char->name, $boss, $duration->toSecs(), $context->forceSync);
+	}
+
+	/**
+	 * @HandlesCommand("tara .+")
+	 * @HandlesCommand("loren .+")
+	 * @HandlesCommand("reaper .+")
+	 */
+	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
+		$boss = $this->getMobFromContext($context);
+		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);
 	}
 
@@ -545,7 +468,7 @@ class WorldBossController {
 		if (!$triggered) {
 			return;
 		}
-		$this->timers = $this->addNextDates($this->timers);
+		$this->addNextDates($this->timers);
 	}
 
 	/**
@@ -558,24 +481,12 @@ class WorldBossController {
 		}
 		$map = array_flip(static::BOSS_MAP);
 		$mobName = $map[$event->boss] ?? null;
-		$mobData = static::BOSS_DATA[$event->boss];
-		if (!isset($mobName) || !isset($mobData)) {
-			// Unknown boss
+
+		if (!isset($mobName)) {
+			$this->logger->log('WARN', "Received timer update for unknown boss {$event->boss}.");
 			return;
 		}
-		$this->db->table(static::DB_TABLE)
-			->upsert(
-				[
-					"mob_name" => $mobName,
-					"timer" => $mobData[static::INTERVAL],
-					"spawn" => $event->vulnerable-$mobData[static::IMMORTAL],
-					"killable" => $event->vulnerable,
-					"time_submitted" => time(),
-					"submitter_name" => $event->sender,
-				],
-				["mob_name"]
-			);
-		$this->reloadWorldBossTimers();
+		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
 	}
 
 	/**

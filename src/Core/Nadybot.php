@@ -1248,14 +1248,16 @@ class Nadybot extends AOChat {
 					$this->logger->log('ERROR', "Failed to call setup handler for '$name'");
 				}
 			} elseif ($method->hasAnnotation('HandlesCommand')) {
-				$commandName = $method->getAnnotation('HandlesCommand')->value;
-				$handlerName = "{$name}.{$method->name}";
-				if (isset($commands[$commandName])) {
-					$commands[$commandName]['handlers'][] = $handlerName;
-				} elseif (isset($subcommands[$commandName])) {
-					$subcommands[$commandName]['handlers'][] = $handlerName;
-				} else {
-					$this->logger->log('WARN', "Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
+				foreach ($method->getAllAnnotations('HandlesCommand') as $command) {
+					$commandName = $command->value;
+					$handlerName = "{$name}.{$method->name}";
+					if (isset($commands[$commandName])) {
+						$commands[$commandName]['handlers'][] = $handlerName;
+					} elseif (isset($subcommands[$commandName])) {
+						$subcommands[$commandName]['handlers'][] = $handlerName;
+					} else {
+						$this->logger->log('WARN', "Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
+					}
 				}
 			} elseif ($method->hasAnnotation('Event')) {
 				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
