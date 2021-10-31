@@ -82,6 +82,7 @@ use Nadybot\Core\Routing\Source;
  *		help        = 'gauntlet.txt'
  *	)
  *	@ProvidesEvent("sync(worldboss)")
+ *	@ProvidesEvent("sync(worldboss-delete)")
  */
 class WorldBossController {
 	/**
@@ -341,6 +342,14 @@ class WorldBossController {
 		$this->eventManager->fireEvent($event);
 	}
 
+	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
+		$event = new SyncWorldbossDeleteEvent();
+		$event->boss = static::BOSS_MAP[$mobName];
+		$event->sender = $sender;
+		$event->forceSync = $forceSync;
+		$this->eventManager->fireEvent($event);
+	}
+
 	/**
 	 * @HandlesCommand("boss")
 	 */
@@ -412,6 +421,7 @@ class WorldBossController {
 		$boss = $this->getMobFromContext($context);
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);
+		$this->sendSyncDeleteEvent($context->char->name, $boss, $context->forceSync);
 	}
 
 	/**
@@ -431,8 +441,8 @@ class WorldBossController {
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(
 			"spawn",
-			self::BOSS_MAP[$boss] . "-{$event}",
-			ucfirst(self::BOSS_MAP[$boss])
+			static::BOSS_MAP[$boss] . "-{$event}",
+			ucfirst(static::BOSS_MAP[$boss])
 		));
 		$this->messageHub->handle($rMsg);
 	}
@@ -487,6 +497,24 @@ class WorldBossController {
 			return;
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
+	}
+
+	/**
+	 * @Event("sync(worldboss-delete)")
+	 * @Description("Sync external worldboss timer deletes")
+	 */
+	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$map = array_flip(static::BOSS_MAP);
+		$mobName = $map[$event->boss] ?? null;
+
+		if (!isset($mobName)) {
+			$this->logger->log('WARN', "Received timer update for unknown boss {$event->boss}.");
+			return;
+		}
+		$this->worldBossDeleteCommand(new Character($event->sender), $mobName);
 	}
 
 	/**
