@@ -194,7 +194,7 @@ class WorldBossController {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
 			$timer->next_spawn    = $timer->spawn;
-			while ($timer->next_killable < time()) {
+			while ($timer->next_killable <= time()) {
 				$timer->next_killable += $timer->timer + $invulnerableTime;
 				$timer->next_spawn    += $timer->timer + $invulnerableTime;
 			}
