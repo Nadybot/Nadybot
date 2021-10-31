@@ -637,7 +637,15 @@ class CommandManager implements MessageEmitter {
 		}
 		$regexp = [];
 		if ($method->hasAnnotation('HandlesCommand')) {
-			$regexp []= explode(" ", $method->getAnnotation('HandlesCommand')->value)[0];
+			$commands = [];
+			foreach ($method->getAllAnnotations("HandlesCommand") as $command) {
+				$commands []= explode(" ", $command->value)[0];
+			}
+			if (count($commands) === 1) {
+				$regexp = $commands;
+			} else {
+				$regexp []= "(?:" . join("|", $commands) . ")";
+			}
 		}
 		for ($i = 1; $i < count($params); $i++) {
 			$new = null;

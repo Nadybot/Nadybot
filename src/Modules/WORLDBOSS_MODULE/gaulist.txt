@@ -1,0 +1,5 @@
+Show gauntlet inventar:
+<tab><highlight><symbol>gaulist<end>
+<tab><highlight><symbol>gaulist 'name'<end>
+<tab><highlight><symbol>gaulist 'amount of armors'<end>
+<tab><highlight><symbol>gaulist 'name' 'amount of armors'<end>
