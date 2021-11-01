@@ -1,4 +1,58 @@
 *****************************
+	Version 5.3.0 alpha
+*****************************
+Features:
+- New WORLDBOSS_MODULE to track tara, vizaresh, etc. as well
+  as the gauntlet buff. This obsolete's the old external
+  GAUNTLET_MODULE and BIGBOSS_MODULE
+- Non-routable events can now be relayed via supporting protocols
+  (currently only nadynative). Non-routable events are a special
+  type of event that are shared via nadynative relays. These
+  include tower scouting, tara spawn, timers, countdown, etc.
+- New command "!raid notinkick" to kick every character on the
+  private channel who's not in the raid.
+- New event modifier "change-message()" that allows you to modify
+  messages with prefixes (like @here) and search & replace
+- New customizable "news" page that can be shown on login. This
+  one can be made up from individual "tiles", so you have a single
+  start/welcome message displaying multiple tiles, like gauntlet
+  buff, current arbiter, actual unread news, tara spawn, etc.
+  The content of this page can be customized with "!startpage"
+
+Bugfixes:
+- Convert all Aria tables to InnoDB as it doesn't support
+  transactions.
+- Fix displaying of route modifiers with <, > or "
+- Fix the if-matches() modifier
+- Allow the use of @here for people allowed to use mentions and
+  messages from the bot itself
+- Fix for old SQLite versions that do not support adding
+  new non-null columns to the database without default
+- Fix for discord roles with too many permissions
+- Fixed some errors in the tracker and orglist module
+- Fix migration of tower data from pre-5.2.2 release
+
+
+Other:
+- Support custom setting handlers with new "@SettingHandler()"
+  annotation. This allows modules to have their own custom setting
+  types.
+- Group subcommands below their commands in "!config"
+- The alignment in tower pop-up messages is now colorized
+- New syntax for writing commands
+  The old way was to write a function and declare the command
+  it was for and a regular expression that needs to match for this
+  function to be used. Then the function was given 5 well-defined
+  arguments, so you could not easily add new parameters to those.
+  The new way just gives one parameter, a CmdContext instance that
+  contains everything the old parameters had, but is more extensible.
+  You also no longer define a regular expression that needs to match,
+  but give the parameters your command needs as additional parameters
+  to your function.
+  The old syntax will still be supported until at least 7.0 release.
+  See the WIKI for details.
+
+*****************************
 	Version 5.2.2
 *****************************
 Features:
