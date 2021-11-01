@@ -152,7 +152,7 @@ class JsonImporter {
 		// Support string[], int[] and the likes for simple types
 		if (preg_match("/^(.+?)\[\]$/", $type, $matches) && is_array($obj->{$name})) {
 			foreach ($obj->{$name} as $value) {
-				if (!static::matchesType($type, $value)) {
+				if (!static::matchesType($matches[1], $value)) {
 					throw new Exception("Invalid type found: {$type}");
 				}
 				$className = static::expandClassname($matches[1]);
