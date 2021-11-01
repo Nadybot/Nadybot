@@ -22,6 +22,7 @@ class RelayConfig extends DBRow {
 
 	/**
 	 * @db:ignore
+	 * @json:ignore
 	 * @var array<string,RelayEvent>
 	 */
 	public array $events = [];
