@@ -1,4 +1,11 @@
 *****************************
+	Version 5.3.0 alpha 2
+*****************************
+Bugfixes:
+- Converting Gauntlet timer fixed
+- "!boss" command renamed to "!wb"
+
+*****************************
 	Version 5.3.0 alpha
 *****************************
 Features:
