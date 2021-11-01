@@ -162,10 +162,10 @@ class ApiSpecGenerator {
 			if ($nameAndType[1] === 'array') {
 				$docBlock = $refProp->getDocComment();
 				if ($docBlock === false) {
-					throw new Exception("Untyped array found");
+					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				if (!preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
-					throw new Exception("Untyped array found");
+					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				$parts = explode("\\", $matches[1]);
 				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
