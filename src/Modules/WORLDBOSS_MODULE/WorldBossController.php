@@ -28,10 +28,10 @@ use Nadybot\Core\Routing\Source;
  *
  * Commands this controller contains:
  *	@DefineCommand(
- *		command     = 'boss',
+ *		command     = 'wb',
  *		accessLevel = 'all',
  *		description = 'Show next spawntime(s)',
- *		help        = 'boss.txt'
+ *		help        = 'wb.txt'
  *	)
  *	@DefineCommand(
  *		command     = 'tara',
@@ -308,7 +308,7 @@ class WorldBossController {
 		return "The timer for <highlight>$mobName<end> has been deleted.";
 	}
 
-	protected function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
+	public function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
 		$mobData = static::BOSS_DATA[$mobName] ?? null;
 		if (!isset($mobData)) {
 			return false;
@@ -351,7 +351,7 @@ class WorldBossController {
 	}
 
 	/**
-	 * @HandlesCommand("boss")
+	 * @HandlesCommand("wb")
 	 */
 	public function bossCommand(CmdContext $context): void {
 		$timers = $this->getWorldBossTimers();

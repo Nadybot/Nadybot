@@ -35,12 +35,10 @@ class MigrateGauntletData implements SchemaMigration {
 			while ($timer->endtime < time()) {
 				$timer->endtime += 61640;
 			}
-			$this->worldBossController->worldBossUpdateCommand(
+			$this->worldBossController->worldBossUpdate(
 				new Character($timer->owner),
-				$timer->endtime - time() + 420,
 				WorldBossController::VIZARESH,
-				61200,
-				420
+				$timer->endtime - time(),
 			);
 			$this->timerController->remove("Gauntlet");
 		}
