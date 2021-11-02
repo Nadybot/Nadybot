@@ -89,6 +89,12 @@ class ApiSpecGenerator {
 				$paths[$path] []= $method;
 			}
 		}
+		uksort(
+			$paths,
+			function (string $a, string $b): int {
+				return strcmp("{$a}/", "{$b}/");
+			}
+		);
 		return $paths;
 	}
 

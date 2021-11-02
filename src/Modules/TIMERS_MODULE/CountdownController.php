@@ -24,7 +24,7 @@ use Nadybot\Core\{
  *		help        = 'countdown.txt',
  *		alias		= 'cd'
  *	)
- *	@ProvidesEvent("sync(cd)")
+ *	@ProvidesEvent(value="sync(cd)", desc="Triggered when someone starts a countdown")
  */
 class CountdownController {
 

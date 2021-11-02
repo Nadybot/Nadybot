@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	EventType,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -481,6 +482,10 @@ class RelayController {
 					$argument->id = $this->db->insert(static::DB_TABLE_ARGUMENT, $argument);
 				}
 			}
+			foreach ($relayConf->events as $event) {
+				$event->relay_id = $relayConf->id;
+				$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event);
+			}
 		} catch (Throwable $e) {
 			if ($transactionActive) {
 				throw $e;
@@ -784,24 +789,28 @@ class RelayController {
 			"with 'sync' instead of enabling that outgoing sync-event, e.g. '<symbol>sync cd KILL!'.\n\n";
 		$blob .= "<header2>Syncable events<end>";
 		foreach ($events as $event) {
-			$eConf = $relay->events[$event] ?? new RelayEvent();
-			$line = "\n<tab>{$event}:";
+			$eConf = $relay->getEvent($event->name) ?? new RelayEvent();
+			$line = "\n<tab><highlight>{$event->name}<end>:";
 			foreach (["incoming", "outgoing"] as $type) {
 				if ($eConf->{$type}) {
 					$line .= " <green>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"disable",
-							"/tell <myname> relay config {$relay->name} eventmod {$event} disable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event->name} disable {$type}"
 						) . "]";
 				} else {
 					$line .= " <red>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"enable",
-							"/tell <myname> relay config {$relay->name} eventmod {$event} enable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event->name} enable {$type}"
 						) . "]";
 				}
 			}
 			$blob .= $line;
+			if (isset($event->description)) {
+				$blob .= "\n<tab><tab><i>{$event->description}</i>";
+			}
+			$blob .= "\n";
 		}
 		$msg = $this->text->makeBlob("Relay configuration for {$relay->name}", $blob);
 		$context->reply($msg);
@@ -848,7 +857,7 @@ class RelayController {
 	}
 
 	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
-		$event = $relay->events[$eventName] ?? null;
+		$event = $relay->getEvent($eventName);
 		if (!isset($event)) {
 			if ($enable === false) {
 				return false;
@@ -864,13 +873,13 @@ class RelayController {
 		if (isset($event->id)) {
 			if ($event->incoming === false && $event->outgoing === false) {
 				$this->db->table(static::DB_TABLE_EVENT)->delete($event->id);
-				unset($relay->events[$eventName]);
+				$relay->deleteEvent($eventName);
 			} else {
 				$this->db->update(static::DB_TABLE_EVENT, "id", $event);
 			}
 		} else {
 			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
-			$relay->events[$eventName] = $event;
+			$relay->addEvent($event);
 		}
 		$this->relays[$relay->name]->setEvents($relay->events);
 		return true;
@@ -913,7 +922,7 @@ class RelayController {
 			$event->incoming = stripos($dir, "I") !== false;
 			$event->outgoing = stripos($dir, "O") !== false;
 			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
-			$relay->events[$event] = $event;
+			$relay->addEvent($event);
 		}
 		$this->relays[$relay->name]->setEvents($relay->events);
 		$context->reply("Relay events set for <highlight>{$relay->name}<end>.");
@@ -930,14 +939,14 @@ class RelayController {
 
 	/**
 	 * Get a list of all registered sync events as array with names
-	 * @return string[]
+	 * @return EventType[]
 	 */
 	protected function getRegisteredSyncEvents(): array {
 		return array_values(
 			array_filter(
 				$this->eventManager->getEventTypes(),
-				function (string $event): bool {
-					return fnmatch("sync(*)", $event, FNM_CASEFOLD);
+				function (EventType $event): bool {
+					return fnmatch("sync(*)", $event->name, FNM_CASEFOLD);
 				}
 			)
 		);
@@ -969,7 +978,6 @@ class RelayController {
 			->each(function(RelayConfig $relay) use ($layers, $events): void {
 				$relay->layers = $layers->get($relay->id, new Collection())->toArray();
 				$relay->events = $events->get($relay->id, new Collection())
-					->keyBy("event")
 					->toArray();
 			})
 			->toArray();
@@ -1024,7 +1032,6 @@ class RelayController {
 			->where("relay_id", $relay->id)
 			->orderBy("id")
 			->asObj(RelayEvent::class)
-			->keyBy("event")
 			->toArray();
 	}
 
@@ -1243,6 +1250,109 @@ class RelayController {
 	}
 
 	/**
+	 * Get a single relay's event config
+	 * @Api("/relay/%s/events")
+	 * @GET
+	 * @AccessLevelFrom("relay")
+	 * @ApiResult(code=200, class='RelayEvent[]', desc='The configured relay events')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiGetRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		$relay = $this->getRelayByName($relay);
+		if (!isset($relay)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($relay->events);
+	}
+
+	/**
+	 * Get a single relay's event config
+	 * @Api("/relay/%s/events")
+	 * @PUT
+	 * @AccessLevelFrom("relay")
+	 * @RequestBody(class="RelayEvent[]", desc="The event configuration", required=true)
+	 * @ApiResult(code=204, desc='The event configuration was set')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		$relay = $this->getRelayByName($relay);
+		if (!isset($relay)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$oRelay = $this->relays[$relay->name]??null;
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$events = $request->decodedBody;
+		try {
+			foreach ($events as &$event) {
+				/** @var RelayEvent */
+				$event = JsonImporter::convert(RelayEvent::class, $event);
+			}
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$this->db->beginTransaction();
+		$oldEvents = $relay->events;
+		try {
+			$this->db->table(static::DB_TABLE_EVENT)
+				->where("relay_id", $relay->id)
+				->delete();
+			$relay->events = [];
+			foreach ($events as $event) {
+				$event->relay_id = $relay->id;
+				$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
+				$relay->addEvent($event);
+			}
+			$this->relays[$relay->name]->setEvents($relay->events);
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$relay->events = $oldEvents;
+			var_dump($e->getMessage());
+			return new Response(Response::INTERNAL_SERVER_ERROR);
+		}
+		$this->db->commit();
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Get a single relay's event config
+	 * @Api("/relay/%s/events")
+	 * @PATCH
+	 * @AccessLevelFrom("relay")
+	 * @RequestBody(class="RelayEvent", desc="The changed event configuration for one event", required=true)
+	 * @ApiResult(code=204, desc='The event configuration was set')
+	 * @ApiResult(code=404, desc='Relay not found')
+	 */
+	public function apiPatchRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+		$relay = $this->getRelayByName($relay);
+		if (!isset($relay)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$oRelay = $this->relays[$relay->name]??null;
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$event = $request->decodedBody;
+		try {
+			/** @var RelayEvent */
+			JsonImporter::convert(RelayEvent::class, $event);
+			if (!isset($event->event)) {
+				throw new Exception("event name not given");
+			}
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+		}
+		if (isset($event->incoming)) {
+			$this->changeRelayEventStatus($relay, $event->event, "incoming", $event->incoming);
+		}
+		if (isset($event->outgoing)) {
+			$this->changeRelayEventStatus($relay, $event->event, "outgoing", $event->outgoing);
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
 	 * Delete a relay
 	 * @Api("/relay/%s")
 	 * @DELETE
@@ -1297,6 +1407,14 @@ class RelayController {
 					$argument = JsonImporter::convert(RelayLayerArgument::class, $argument);
 				}
 			}
+			$relay->events ??= [];
+			foreach ($relay->events as &$event) {
+				/** @var RelayEvent */
+				$event = JsonImporter::convert(RelayEvent::class, $event);
+				foreach ($layer->arguments as &$argument) {
+					$argument = JsonImporter::convert(RelayLayerArgument::class, $argument);
+				}
+			}
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -1310,5 +1428,16 @@ class RelayController {
 			);
 		}
 		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * List all relay layers
+	 * @Api("/relay-component/event")
+	 * @GET
+	 * @AccessLevel("all")
+	 * @ApiResult(code=200, class='EventType[]', desc='The available non-routable relay events')
+	 */
+	public function apiGetEventsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse($this->getRegisteredSyncEvents());
 	}
 }

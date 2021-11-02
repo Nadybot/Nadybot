@@ -44,13 +44,8 @@ class EventManager {
 	/** @var array<array<string,mixed>> */
 	private array $cronevents = [];
 
-	/** @var string[] */
-	private array $eventTypes = [
-		'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
-		'extjoinpriv', 'extleavepriv', 'sendmsg', 'sendpriv', 'sendguild',
-		'orgmsg', 'extjoinprivrequest', 'logon', 'logoff', 'towers',
-		'connect', 'setup', 'amqp', 'pong', 'otherleavepriv'
-	];
+	/** @var array<string,EventType> */
+	private array $eventTypes = [];
 
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
@@ -59,6 +54,19 @@ class EventManager {
 	protected array $dontActivateEvents = [];
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
+
+	public function __construct() {
+		foreach ([
+			'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
+			'extjoinpriv', 'extleavepriv', 'sendmsg', 'sendpriv', 'sendguild',
+			'orgmsg', 'extjoinprivrequest', 'logon', 'logoff', 'towers',
+			'connect', 'setup', 'amqp', 'pong', 'otherleavepriv'
+		] as $event) {
+			$type = new EventType();
+			$type->name = $event;
+			$this->eventTypes[$event] = $type;
+		}
+	}
 
 	/**
 	 * @name: register
@@ -408,13 +416,13 @@ class EventManager {
 	}
 
 	public function isValidEventType(string $type): bool {
-		if (in_array($type, $this->eventTypes)) {
+		if (isset($this->eventTypes[$type])) {
 			return true;
 		}
 		if (preg_match(self::PACKET_TYPE_REGEX, $type) === 1) {
 			return true;
 		}
-		foreach ($this->eventTypes as $check) {
+		foreach ($this->eventTypes as $check => $event) {
 			if (fnmatch($type, $check, FNM_CASEFOLD)) {
 				return true;
 			}
@@ -509,14 +517,16 @@ class EventManager {
 	/**
 	 * Dynamically add an event to the allowed types
 	 */
-	public function addEventType(string $eventType): bool {
+	public function addEventType(string $eventType, ?string $description=null): bool {
 		$eventType = strtolower($eventType);
 
-		if (in_array($eventType, $this->eventTypes)) {
+		if (isset($this->eventTypes[$eventType])) {
 			$this->logger->log('WARN', "Event type already registered: '$eventType'");
 			return false;
 		}
-		$this->eventTypes []= $eventType;
+		$this->eventTypes[$eventType] = new EventType();
+		$this->eventTypes[$eventType]->name = $eventType;
+		$this->eventTypes[$eventType]->description = $description;
 		return true;
 	}
 

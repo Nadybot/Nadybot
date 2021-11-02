@@ -1162,7 +1162,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
-			$this->eventManager->addEventType($eventAnnotation->value);
+			$this->eventManager->addEventType($eventAnnotation->value, $eventAnnotation->desc??null);
 		}
 	}
 

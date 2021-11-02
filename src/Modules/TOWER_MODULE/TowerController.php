@@ -115,8 +115,8 @@ use Nadybot\Modules\{
  *	)
  *  @ProvidesEvent("tower(attack)")
  *  @ProvidesEvent("tower(win)")
- *  @ProvidesEvent("sync(scout)")
- *  @ProvidesEvent("sync(remscout)")
+ *  @ProvidesEvent(value="sync(scout)", desc="Triggered whenever someone manually scouts a site")
+ *  @ProvidesEvent(value="sync(remscout)", desc="Triggered when marking a site as in need of scouting")
  */
 class TowerController {
 

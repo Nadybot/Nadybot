@@ -5,4 +5,5 @@ namespace Nadybot\Core\Annotations;
 use Addendum\Annotation;
 
 class ProvidesEvent extends Annotation {
+	public ?string $desc = null;
 }

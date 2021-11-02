@@ -43,7 +43,7 @@ class Relay implements MessageReceiver {
 	protected array $stack = [];
 
 	/**
-	 * Events that this relay sens and/or receives
+	 * Events that this relay sends and/or receives
 	 * @var array<string,RelayEvent>
 	 */
 	protected array $events = [];
@@ -153,9 +153,9 @@ class Relay implements MessageReceiver {
 	 * Set the stack members that make up the stack
 	 */
 	public function setStack(
-		 TransportInterface $transport,
-		 RelayProtocolInterface $relayProtocol,
-		 RelayLayerInterface ...$stack
+		TransportInterface $transport,
+		RelayProtocolInterface $relayProtocol,
+		RelayLayerInterface ...$stack
 	) {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
@@ -315,7 +315,10 @@ class Relay implements MessageReceiver {
 	}
 
 	public function setEvents(array $events): void {
-		$this->events = $events;
+		$this->events = [];
+		foreach ($events as $event) {
+			$this->events[$event->event] = $event;
+		}
 	}
 
 	/** Check id the relay protocol supports a certain feature */

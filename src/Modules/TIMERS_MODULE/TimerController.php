@@ -49,7 +49,7 @@ use Nadybot\Core\ParamClass\PRemove;
  * @ProvidesEvent("timer(start)")
  * @ProvidesEvent("timer(end)")
  * @ProvidesEvent("timer(del)")
- * @ProvidesEvent("sync(timer)")
+ * @ProvidesEvent(value="sync(timer)", desc="Triggered when a new timer is created with the timer command")
  */
 class TimerController implements MessageEmitter {
 

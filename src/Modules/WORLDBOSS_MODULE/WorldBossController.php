@@ -81,8 +81,8 @@ use Nadybot\Core\Routing\Source;
  *		description = 'Update or set Gaunlet timer',
  *		help        = 'gauntlet.txt'
  *	)
- *	@ProvidesEvent("sync(worldboss)")
- *	@ProvidesEvent("sync(worldboss-delete)")
+ *	@ProvidesEvent(value="sync(worldboss)", desc="Triggered when the spawntime of a worldboss is set manually")
+ *	@ProvidesEvent(value="sync(worldboss-delete)", desc="Triggered when the timer for a worldboss is deleted")
  */
 class WorldBossController {
 	/**

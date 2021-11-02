@@ -35,7 +35,7 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
  *		description = 'Handles timer for gauntlet buff',
  *		help        = 'gaubuff.txt'
  *	)
- *	@ProvidesEvent("sync(gaubuff)")
+ *	@ProvidesEvent(value="sync(gaubuff)", desc="Triggered when someone sets the gauntlet buff for either side")
  */
 class GauntletBuffController implements MessageEmitter {
 	public const SIDE_NONE = 'none';

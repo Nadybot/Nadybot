@@ -416,7 +416,7 @@ class ApiController {
 			if (is_object($request->decodedBody) || is_array($request->decodedBody)) {
 				$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
 			}
-		} catch (Exception $e) {
+		} catch (Throwable $e) {
 			return false;
 		}
 		return true;

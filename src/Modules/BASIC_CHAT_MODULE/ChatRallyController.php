@@ -30,8 +30,8 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
  *		description = 'Sets the rally waypoint',
  *		help        = 'rally.txt'
  *	)
- *	@ProvidesEvent("sync(rally-set)")
- *	@ProvidesEvent("sync(rally-clear)")
+ *	@ProvidesEvent(value="sync(rally-set)", desc="Triggered when a rally point is set")
+ *	@ProvidesEvent(value="sync(rally-clear)", desc="Triggered when someone clears the rally point")
  */
 class ChatRallyController {
 	public string $moduleName;
