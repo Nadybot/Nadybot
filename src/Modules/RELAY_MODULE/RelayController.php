@@ -1308,7 +1308,6 @@ class RelayController {
 		} catch (Throwable $e) {
 			$this->db->rollback();
 			$relay->events = $oldEvents;
-			var_dump($e->getMessage());
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}
 		$this->db->commit();
