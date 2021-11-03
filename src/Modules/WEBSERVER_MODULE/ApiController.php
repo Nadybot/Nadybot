@@ -4,7 +4,6 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Addendum\ReflectionAnnotatedClass;
 use Closure;
-use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Annotations\{
 	DELETE,
