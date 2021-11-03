@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -9,14 +10,14 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
+	DBSchema\Audit,
 	LoggerWrapper,
+	Modules\ALTS\AltEvent,
+	Modules\ALTS\AltsController,
 	Nadybot,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\Modules\ALTS\AltEvent;
-use Nadybot\Core\Modules\ALTS\AltsController;
 
 /**
  * @Instance
@@ -168,6 +169,16 @@ class RaidRankController {
 			'edit',
 			'text',
 			'Veteran Raid Admin'
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_duration_recently',
+			'Duration considered "recent" in raid stats for leaders command',
+			'edit',
+			'options',
+			'2592000',
+			'Off;1 Month;3 Months;6 Months;1 Year',
+			'0;2592000;7776000;15552000;31536000'
 		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
@@ -432,13 +443,43 @@ class RaidRankController {
 		$this->remove($who, $sender, $sendto, [4, 5, 6], $rank);
 	}
 
-	protected function renderLeaders(bool $showOfflineAlts, string ...$names): string {
+	protected function getRaidsByStarter(): Collection {
+		$query = $this->db->table(RaidController::DB_TABLE, "r")
+			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
+			->leftJoin("alts AS a", "r.started_by", "a.alt")
+			->groupBy("r.raid_id", "r.started_by", "r.started");
+		$query = $query->havingRaw("COUNT(*) >= 5")
+			->select(
+				"r.raid_id",
+				"r.started",
+				$query->colFunc("COALESCE", ["a.main", "r.started_by"], "main"),
+				$query->colFunc("COUNT", "*", "count")
+			);
+		return $query->asObj();
+	}
+
+	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
+		$raids = $stats->groupBy("main");
 		foreach ($names as $who) {
-			$output []= "<tab>$who".
-				$this->getOnlineStatus($who) . "\n".
+			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
+			if ($showStats) {
+				$myRaids = $raids->get($who, new Collection());
+				$numRaids = $myRaids->count();
+				$recentlyDuration = $this->settingManager->getInt('raid_duration_recently');
+				if ($recentlyDuration > 0) {
+					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
+				}
+				$line .= " (Raids started: {$numRaids}";
+				if (isset($numRaidsRecently)) {
+					$line .= " / {$numRaidsRecently}";
+				}
+				$line .= ")";
+			}
+			$line .= "\n".
 				$this->getAltLeaderInfo($who, $showOfflineAlts);
+			$output []= $line;
 		}
 		return join("", $output) . "\n";
 	}
@@ -469,14 +510,30 @@ class RaidRankController {
 			}
 		);
 
+		if (empty($leaders) && empty($admins)) {
+			$sendto->reply("<myname> has no raid leaders or raid admins.");
+			return;
+		}
+
+		$raidStats = $this->getRaidsByStarter();
 		if (count($admins)) {
 			$blob .= "<header2>Raid admins<end>\n".
-				$this->renderLeaders($showOfflineAlts, ...array_keys($admins));
+				$this->renderLeaders(
+					$this->accessManager->checkSingleAccess($sender, "raid_leader_2"),
+					$showOfflineAlts,
+					$raidStats,
+					...array_keys($admins)
+				);
 		}
 
 		if (count($leaders)) {
 			$blob .= "<header2>Raid leaders<end>\n".
-				$this->renderLeaders($showOfflineAlts, ...array_keys($leaders));
+				$this->renderLeaders(
+					$this->accessManager->checkSingleAccess($sender, "raid_admin_2"),
+					$showOfflineAlts,
+					$raidStats,
+					...array_keys($leaders)
+				);
 		}
 
 		$link = $this->text->makeBlob('Raid leaders/admins', $blob);
