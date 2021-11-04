@@ -159,6 +159,8 @@ class WorldBossController {
 	 */
 	public array $timers = [];
 
+	private array $sentNotifications = [];
+
 	/** @Setup */
 	public function setup() {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
@@ -395,6 +397,8 @@ class WorldBossController {
 		$this->worldBossUpdate($context->char, $boss, 0);
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
 		$context->reply($msg);
+		$msg = "<highlight>{$boss}<end> has been killed.";
+		$this->announceBigBossEvent($boss, $msg, 3);
 		$this->sendSyncEvent($context->char->name, $boss, 0, $context->forceSync);
 	}
 
@@ -432,6 +436,11 @@ class WorldBossController {
 	 * @return void
 	 */
 	protected function announceBigBossEvent(string $boss, string $msg, int $step): void {
+		if (time() - ($this->sentNotifications[$boss][$step]??0) < 30) {
+			return;
+		}
+		$this->sentNotifications[$boss] ??= [];
+		$this->sentNotifications[$boss][$step] = time();
 		$event = 'spawn';
 		if ($step === 1) {
 			$event = 'prespawn';
@@ -451,7 +460,7 @@ class WorldBossController {
 	 * @Event("timer(1sec)")
 	 * @Description("Check timer to announce big boss events")
 	 */
-	public function checkTimerEvent(Event $eventObj): void {
+	public function checkTimerEvent(): void {
 		$timers = $this->getWorldBossTimers();
 		$triggered = false;
 		foreach ($timers as $timer) {
@@ -496,7 +505,12 @@ class WorldBossController {
 			$this->logger->log('WARN', "Received timer update for unknown boss {$event->boss}.");
 			return;
 		}
+		if ($event->vulnerable === 0) {
+			$msg = "<highlight>{$mobName}<end> has been killed.";
+			$this->announceBigBossEvent($mobName, $msg, 3);
+		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
+		$this->checkTimerEvent();
 	}
 
 	/**
