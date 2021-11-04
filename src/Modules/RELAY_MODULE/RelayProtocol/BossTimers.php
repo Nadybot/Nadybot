@@ -22,7 +22,7 @@ class BossTimers implements RelayProtocolInterface {
 	public LoggerWrapper $logger;
 
 	public function send(RoutableEvent $event): array {
-		return  [];
+		return [];
 	}
 
 	public function receive(RelayMessage $msg): ?RoutableEvent {

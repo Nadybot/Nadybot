@@ -10,6 +10,7 @@ use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use Throwable;
 
 /**
  * @Instance
@@ -467,12 +468,14 @@ class EventManager {
 				}
 				$refMeth = new ReflectionFunction($callback);
 				$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
-				$callback($newEventObj, ...$args);
+				if (isset($newEventObj)) {
+					$callback($newEventObj, ...$args);
+				}
 			}
 		}
 	}
 
-	protected function convertSyncEvent(ReflectionFunctionAbstract $refMeth, Event $eventObj): Event {
+	protected function convertSyncEvent(ReflectionFunctionAbstract $refMeth, Event $eventObj): ?Event {
 		if (get_class($eventObj) !== SyncEvent::class) {
 			return $eventObj;
 		}
@@ -484,7 +487,12 @@ class EventManager {
 		if (!is_subclass_of($class, SyncEvent::class)) {
 			return $eventObj;
 		}
-		return $class::fromSyncEvent($eventObj);
+		try {
+			$typedEvent = $class::fromSyncEvent($eventObj);
+		} catch (Throwable $e) {
+			return null;
+		}
+		return $typedEvent;
 	}
 
 	/**
@@ -501,7 +509,9 @@ class EventManager {
 			} else {
 				$refMeth = new ReflectionMethod($instance, $method);
 				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
-				$instance->$method($eventObj, ...$args);
+				if (isset($eventObj)) {
+					$instance->$method($eventObj, ...$args);
+				}
 			}
 		} catch (StopExecutionException $e) {
 			throw $e;
