@@ -225,6 +225,22 @@ class RelayController {
 		}
 	}
 
+	public function getTransportSpec(string $name): ?ClassSpec {
+		$spec = $this->transports[strtolower($name)] ?? null;
+		if (isset($spec)) {
+			$spec = clone $spec;
+		}
+		return $spec;
+	}
+
+	public function getStackElementSpec(string $name): ?ClassSpec {
+		$spec = $this->stackElements[strtolower($name)] ?? null;
+		if (isset($spec)) {
+			$spec = clone $spec;
+		}
+		return $spec;
+	}
+
 	/**
 	 * @param array<string,ClassSpec> $specs
 	 * @return string[]
