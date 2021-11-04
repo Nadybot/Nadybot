@@ -32,7 +32,7 @@ class BossTimers implements RelayProtocolInterface {
 		$serialized = array_shift($msg->packages);
 		try {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
-			if (!isset($data->sourceBot) || !isset($data->sourceDimension) || !isset($data->type)) {
+			if (!isset($data->sourceDimension) || !isset($data->type)) {
 				throw new Exception("Incomplete data received.");
 			}
 		} catch (JsonException $e) {
@@ -43,6 +43,8 @@ class BossTimers implements RelayProtocolInterface {
 			);
 			return null;
 		}
+		$data->sourceBot ??= "_Nadybot";
+		$data->forceSync ??= false;
 		$event = JsonImporter::convert(SyncEvent::class, $data);
 		foreach ($data as $key => $value) {
 			if (!isset($event->{$key})) {
