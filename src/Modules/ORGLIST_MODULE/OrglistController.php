@@ -349,7 +349,7 @@ class OrglistController {
 		$totaltime = time() - $timestart;
 		$blob .= "\nLookup took $totaltime seconds.";
 
-		return (array)$this->text->makeBlob("Orglist for '{$this->orglist->org}' ($totalonline / $totalcount)", $blob);
+		return (array)$this->text->makeBlob("Orglist for '{$memberlist->org}' ($totalonline / $totalcount)", $blob);
 	}
 
 	/**

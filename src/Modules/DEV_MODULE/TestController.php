@@ -236,9 +236,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("test")
-	 * @Matches("/^test all$/i")
 	 */
-	public function testAllCommand(CmdContext $context): void {
+	public function testAllCommand(CmdContext $context, string $action="all"): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
 		if (!$this->settingManager->getBool('show_test_results')) {
@@ -258,7 +257,6 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("test")
-	 * @Matches("/^test ([a-z0-9_-]+)$/i")
 	 */
 	public function testModuleCommand(CmdContext $context, string $file): void {
 		$file = "{$file}.txt";
@@ -568,7 +566,6 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("msginfo")
-	 * @Matches("/^msginfo (.+)$/i")
 	 */
 	public function msgInfoCommand(CmdContext $context, string $cmd): void {
 		$context->message = $cmd;
