@@ -1,4 +1,20 @@
 *****************************
+	Version 5.3.0 beta
+*****************************
+Features:
+- Add ability to define immutable values for any setting in the config file
+- Add separate kill message when using worldboss kill or kill sync
+
+Bugfixes:
+- !hot command honors first argument again
+- !test commands work again as expected
+- Fixed race condition of the orglist test
+- sync-online=false now behaves as expected for nadynative()
+  It will still route online events when you route org- and private
+  channels to the relay. Filter these events if you don't want that.
+- The same Worldboss message won't be displayed twice in 30s
+
+*****************************
 	Version 5.3.0 alpha 3
 *****************************
 Features:
