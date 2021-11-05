@@ -1010,6 +1010,9 @@ class TowerController {
 	 */
 	public function hotSitesCommand(CmdContext $context, ?string $search): void {
 		$search ??= "";
+		if (substr($search, 0, 1) !== " ") {
+			$search = " {$search}";
+		}
 		$params = [
 			"enabled" => "true",
 			"min_close_time" => time(),
