@@ -96,10 +96,14 @@ class NadyNative implements RelayProtocolInterface {
 		$data->type ??= RoutableEvent::TYPE_MESSAGE;
 		switch ($data->type) {
 			case "online_list_request":
-				$this->sendOnlineList();
+				if ($this->syncOnline) {
+					$this->sendOnlineList();
+				}
 				return null;
 			case "online_list":
-				$this->handleOnlineList($msg->sender, $data);
+				if ($this->syncOnline) {
+					$this->handleOnlineList($msg->sender, $data);
+				}
 				return null;
 		}
 		$event = new RoutableEvent();
@@ -126,6 +130,7 @@ class NadyNative implements RelayProtocolInterface {
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& $event->data->type === Online::TYPE
 			&& isset($msg->sender)
+			&& $this->syncOnline
 		) {
 			$this->handleOnlineEvent($msg->sender, $event);
 		}
@@ -214,6 +219,9 @@ class NadyNative implements RelayProtocolInterface {
 		$where = join(" ", $hops);
 		/** @var Online */
 		$llEvent = $event->data;
+		if (!isset($llEvent->char)) {
+			return;
+		}
 		$call = $llEvent->online ? [$this->relay, "setOnline"] : [$this->relay, "setOffline"];
 		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
 	}
