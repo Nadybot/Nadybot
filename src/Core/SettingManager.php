@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\DBSchema\Setting;
 
 /**
@@ -41,6 +42,22 @@ class SettingManager {
 	private array $settingHandlers = [];
 
 	/**
+	 * Return the hardcoded value for a setting or a given default
+	 */
+	public function getHardcoded(string $setting, $default=null): ?string {
+		$value = $this->chatBot->vars["settings"][$setting]??$default;
+		if (is_bool($value)) {
+			return $value ? "1" : "0";
+		} elseif (is_int($value)) {
+			return (string)$value;
+		} elseif (is_string($value)) {
+			return $value;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Register a setting for a module
 	 *
 	 * @param string $module The module name
@@ -57,17 +74,18 @@ class SettingManager {
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
 	public function add(
-		 string $module,
-		 string $name,
-		 string $description,
-		 string $mode,
-		 string $type,
-		 $value,
-		 ?string $options='',
-		 ?string $intoptions='',
-		 ?string $accessLevel='mod',
-		 ?string $help=''
+		string $module,
+		string $name,
+		string $description,
+		string $mode,
+		string $type,
+		$value,
+		?string $options='',
+		?string $intoptions='',
+		?string $accessLevel='mod',
+		?string $help=''
 	): void {
+		$value = $this->getHardcoded($name, $value);
 		$name = strtolower($name);
 		$type = strtolower($type);
 
@@ -223,6 +241,9 @@ class SettingManager {
 			$this->logger->log("ERROR", "Could not save value '$value' for setting '$name' because setting does not exist");
 			return false;
 		}
+		if ($this->getHardcoded($name, null) !== null) {
+			throw new Exception("<highlight>{$name}<end> is immutable.");
+		}
 		if ($this->settings[$name]->value === $value) {
 			return true;
 		}
@@ -260,6 +281,7 @@ class SettingManager {
 		/** @var Setting[] $data */
 		$data = $this->db->table(self::DB_TABLE)->asObj(Setting::class)->toArray();
 		foreach ($data as $row) {
+			$row->value = $this->getHardcoded($row->name, $row->value);
 			$this->settings[$row->name] = new SettingValue($row);
 		}
 	}
