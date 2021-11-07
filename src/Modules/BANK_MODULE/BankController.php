@@ -151,7 +151,7 @@ class BankController {
 			$blob .= "<tab>{$item_link} (QL {$row->ql})\n";
 		}
 
-		$msg = $this->text->makeBlob("Contents of $row->container", $blob);
+		$msg = $this->text->makeBlob("Contents of {$data[0]->container}", $blob);
 		$sendto->reply($msg);
 	}
 

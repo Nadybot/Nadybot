@@ -275,6 +275,9 @@ class AlienArmorController {
 				$nameArmorTarget = "Supple Body Armor";
 				$nameTarget = "supple";
 				break;
+			default:
+				$sendto->reply("Unknown type selected.");
+				return;
 		}
 
 		$list = "<header2>Result<end>\n";

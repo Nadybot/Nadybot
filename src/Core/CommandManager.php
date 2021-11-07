@@ -388,7 +388,7 @@ class CommandManager implements MessageEmitter {
 
 		try {
 			// record usage stats (in try/catch block in case there is an error)
-			if ($this->settingManager->getBool('record_usage_stats')) {
+			if ($this->settingManager->getBool('record_usage_stats') && isset($handler)) {
 				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {

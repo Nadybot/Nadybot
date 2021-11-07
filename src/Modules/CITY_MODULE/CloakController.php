@@ -134,6 +134,8 @@ class CloakController implements MessageEmitter {
 			$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "on") {
 			$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
+		} else {
+			$msg = "The cloaking device is in an unknown state.";
 		}
 
 		$list = "Time: <highlight>" . $this->util->date($row->time) . "<end>\n";

@@ -204,7 +204,7 @@ class TradebotController {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['leave'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
+					$this->chatBot->send_tell($botName, $cmd, "\0");
 					$this->chatBot->privategroup_leave($botName);
 				}
 				$this->buddylistManager->remove($botName, "tradebot");
@@ -214,7 +214,7 @@ class TradebotController {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['join'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
+					$this->chatBot->send_tell($botName, $cmd, "\0");
 				}
 				if ($this->buddylistManager->isOnline($botName)) {
 					$this->joinPrivateChannel($botName);
@@ -251,7 +251,7 @@ class TradebotController {
 	protected function joinPrivateChannel(string $botName): void {
 		$cmd = "!join";
 		$this->logger->logChat("Out. Msg.", $botName, $cmd);
-		$this->chatBot->send_tell($botName, $cmd, AOC_PRIORITY_MED);
+		$this->chatBot->send_tell($botName, $cmd);
 	}
 
 	/**

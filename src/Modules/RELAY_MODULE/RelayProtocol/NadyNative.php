@@ -82,13 +82,13 @@ class NadyNative implements RelayProtocolInterface {
 		if (empty($msg->packages)) {
 			return null;
 		}
-		$serialized = array_shift($msg->packages);
+		$serialized = array_shift($msg->packages)??"null";
 		try {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',
-				'Invalid data received via Nadynative protocol: '.$data,
+				'Invalid data received via Nadynative protocol: ' . $serialized,
 				$e
 			);
 			return null;
@@ -301,8 +301,7 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function handleSyncEvent(SyncEvent $event): void {
-		if (isset($event)
-			&& isset($event->sourceBot)
+		if (isset($event->sourceBot)
 			&& isset($event->sourceDimension)
 			&& ($event->sourceDimension !== (int)$this->chatBot->vars["dimension"]
 				|| $event->sourceBot !== $this->chatBot->char->name)

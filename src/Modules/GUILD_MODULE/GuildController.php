@@ -505,6 +505,7 @@ class GuildController {
 			$this->logger->log('ERROR', "Guild xml file has no members! Aborting roster update.");
 			return;
 		}
+		$dbEntries = [];
 
 		// Save the current org_members table in a var
 		/** @var Collection<OrgMember> */
@@ -514,8 +515,10 @@ class GuildController {
 		} else {
 			$restart = false;
 			foreach ($data as $row) {
-				$dbEntries[$row->name]["name"] = $row->name;
-				$dbEntries[$row->name]["mode"] = $row->mode;
+				$dbEntries[$row->name] = [
+					"name" => $row->name,
+					"mode" => $row->mode,
+				];
 			}
 		}
 

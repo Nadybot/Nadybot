@@ -124,6 +124,7 @@ class QuoteController {
 	public function quoteSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = $args[1];
 		$searchParam = '%' . $search . '%';
+		$msg = "";
 
 		// Search for poster:
 		$idList = $this->db->table("quote")

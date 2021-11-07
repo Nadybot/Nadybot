@@ -92,6 +92,7 @@ class RandomController {
 	 */
 	public function randomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$items = preg_split("/(,\s+|\s+|,)/", trim($args[1]));
+		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];

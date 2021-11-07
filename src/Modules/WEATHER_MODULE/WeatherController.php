@@ -210,19 +210,19 @@ class WeatherController {
 	 */
 	public function getWindStrength(float $speed): string {
 		$beaufortScale = [
-			32.7 => 'hurricane',
-			28.5 => 'violent storm',
-			24.5 => 'storm',
-			20.8 => 'strong gale',
-			17.2 => 'gale',
-			13.9 => 'high wind',
-			10.8 => 'strong breeze',
-			 8.0 => 'fresh breeze',
-			 5.5 => 'moderate breeze',
-			 3.4 => 'gentle breeze',
-			 1.6 => 'light breeze',
-			 0.5 => 'light air',
-			 0.0 => 'calm',
+			'32.7' => 'hurricane',
+			'28.5' => 'violent storm',
+			'24.5' => 'storm',
+			'20.8' => 'strong gale',
+			'17.2' => 'gale',
+			'13.9' => 'high wind',
+			'10.8' => 'strong breeze',
+			 '8.0' => 'fresh breeze',
+			 '5.5' => 'moderate breeze',
+			 '3.4' => 'gentle breeze',
+			 '1.6' => 'light breeze',
+			 '0.5' => 'light air',
+			 '0.0' => 'calm',
 		];
 		foreach ($beaufortScale as $windSpeed => $windStrength) {
 			if ($speed >= $windSpeed) {

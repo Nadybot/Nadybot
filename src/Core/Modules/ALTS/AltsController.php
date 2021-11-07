@@ -171,6 +171,7 @@ class AltsController {
 			$context->reply("You can only add alts from a main or validated alt.");
 			return;
 		}
+		$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
 
 		$success = 0;
 
@@ -219,8 +220,6 @@ class AltsController {
 				$context->reply($msg);
 				continue;
 			}
-
-			$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
 
 			// insert into database
 			$this->addAlt($senderAltInfo->main, $name, true, $validated);

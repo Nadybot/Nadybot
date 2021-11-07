@@ -22,6 +22,8 @@ class JSONDataModel {
 			}
 			if ($type instanceof ReflectionNamedType) {
 				$typeName = $type->getName();
+			} else {
+				continue;
 			}
 			if ($typeName === "array") {
 				if (($docComment = $refProp->getDocComment()) === false) {

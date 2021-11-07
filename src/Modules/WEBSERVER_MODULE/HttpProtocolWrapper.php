@@ -419,7 +419,7 @@ class HttpProtocolWrapper {
 	public function handleRequest(): void {
 		$this->request->authenticatedAs = $this->getAuthenticatedUser();
 		$event = new HttpEvent();
-		$response = $this->decodeRequestBody($this->request);
+		$response = $this->decodeRequestBody();
 		if ($response instanceof Response) {
 			$this->httpError($response);
 			return;

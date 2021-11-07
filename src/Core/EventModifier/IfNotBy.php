@@ -38,7 +38,7 @@ class IfNotBy implements EventModifier {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
-		$matches = isset($char) && in_array(strtolower($event->char->name), $this->senders);
+		$matches = isset($event->char) && in_array(strtolower($event->char->name), $this->senders);
 		if ($matches === $this->inverse) {
 			return $event;
 		}

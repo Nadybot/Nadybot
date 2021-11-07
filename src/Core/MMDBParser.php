@@ -12,7 +12,7 @@ class MMDBParser {
 
 	private LoggerWrapper $logger;
 
-	public function __construct($file) {
+	public function __construct() {
 		$this->logger = new LoggerWrapper('MMDBParser');
 	}
 

@@ -165,7 +165,7 @@ class BuffPerksController {
 	public function buffPerksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (count($args) === 1) {
 			$this->playerManager->getByNameAsync(
-				function(?Player $whois) use ($args, $sendto): void {
+				function(?Player $whois) use ($sendto): void {
 					if (empty($whois)) {
 						$msg = "Could not retrieve whois info for you.";
 						$sendto->reply($msg);
@@ -488,7 +488,7 @@ class BuffPerksController {
 			if ($profs === '*') {
 				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
 			}
-			$perk = $perks[$name];
+			$perk = $perks[$name]??null;
 			if (empty($perk)) {
 				$perk = new Perk();
 				$perks[$name] = $perk;

@@ -189,6 +189,8 @@ class TestController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	public string $path;
+
 	/**
 	 * @Setup
 	 */

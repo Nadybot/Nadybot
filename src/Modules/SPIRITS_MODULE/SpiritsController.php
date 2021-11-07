@@ -178,7 +178,7 @@ class SpiritsController {
 				$spirits .= $this->formatSpiritOutput($data);
 			}
 		}
-		if ($spirits) {
+		if (strlen($spirits) && isset($title)) {
 			$spirits = $this->text->makeBlob("Spirits", $spirits, $title);
 			$sendto->reply($spirits);
 		}

@@ -430,7 +430,7 @@ class CommentController {
 		);
 		// They are sorted by time, so last element is the newest
 		$lastComment = end($ownComments);
-		if (!isset($lastComment)) {
+		if ($lastComment === false) {
 			return 0;
 		}
 		// If the age of the last comment is less than the cooldown, return the remaining cooldown

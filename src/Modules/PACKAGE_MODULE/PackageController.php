@@ -372,9 +372,10 @@ class PackageController {
 						"update",
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
-					if (($installedVersion??"") !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
+					$installedVersion ??= "";
+					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
 						$blob .= " [{$updateLink}]";
-					} elseif (($installedVersion??"") !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
+					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
 						$blob .= " <i>Installed</i>";
 					} elseif ($installedVersion === "") {
 						$blob .= " [{$installLink}]";

@@ -257,7 +257,7 @@ class ApiSpecGenerator {
 		];
 	}
 
-	/** @param array<string,ReflectionAnnotatedMethod> $pathMapping */
+	/** @param array<string,ReflectionAnnotatedMethod> $mapping */
 	public function getSpec(array $mapping): array {
 		$result = [
 			"openapi" => "3.0.0",
@@ -329,6 +329,9 @@ class ApiSpecGenerator {
 					if ($refParam->getName() !== $param) {
 						continue;
 					}
+				}
+				if (!isset($refParam)) {
+					continue;
 				}
 				/** @var ReflectionNamedType */
 				$refType = $refParam->getType();

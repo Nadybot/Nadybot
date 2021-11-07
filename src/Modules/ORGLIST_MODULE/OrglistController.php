@@ -170,6 +170,7 @@ class OrglistController {
 
 		$this->orglist = new Orglist();
 		$this->orglist->start = time();
+		$this->orglist->org = "Org #{$orgid}";
 		$this->orglist->sendto = $sendto;
 
 		$sendto->reply("Downloading org roster for org id $orgid...");
@@ -301,8 +302,9 @@ class OrglistController {
 
 		$totalonline = 0;
 		$totalcount = count($memberlist->result);
+		$newlist = [];
 		foreach ($memberlist->result as $amember) {
-			$newlist[$amember->rank_id][] = $amember->name;
+			$newlist[$amember->rank_id] []= $amember->name;
 		}
 
 		$blob = '';

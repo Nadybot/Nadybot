@@ -4,6 +4,7 @@ namespace Nadybot\Modules\TOWER_MODULE;
 
 use Closure;
 use DateTime;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -548,7 +549,7 @@ class TowerController {
 		$blob .= "\nTotal: QL <highlight>{$totalQL}<end>, allowing ".
 			"contracts up to QL <highlight>" . ($totalQL * 2) . "<end>.";
 
-		$msg = $this->makeBlob("All bases of {$site->org_name}", $blob);
+		$msg = $this->makeBlob("All bases of {$result->results[0]->org_name}", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -1084,7 +1085,7 @@ class TowerController {
 		}
 		$hotSites = $this->scoutToAPI($hotSites);
 		$blob = $this->renderHotSites($hotSites, $params, $time);
-		$faction = isset($args['faction']) ? " " . strtolower($args['faction']) : "";
+		$faction = isset($faction) ? " " . strtolower($faction) : "";
 		$context->reply(
 			$this->text->makeBlob(
 				"Hot{$faction} sites ({$hotSites->count})",
@@ -1271,9 +1272,10 @@ class TowerController {
 		}
 		$blob = $this->renderHotSites($result, $params, $time);
 		$timeString = date("H:i:s", $params["min_close_time"]);
+		$faction = isset($params["faction"]) ? " {$params['faction']}" : "";
 		$sendto->reply(
 			$this->makeBlob(
-				"Hot sites at {$timeString} UTC (" . $result->count . ")",
+				"Hot{$faction} sites at {$timeString} UTC (" . $result->count . ")",
 				$blob
 			)
 		);
@@ -1306,6 +1308,8 @@ class TowerController {
 		} elseif ($grouping === 3) {
 			$sites = $sites->sortBy("ql");
 			$grouped = $sites->groupBy("org_name");
+		} else {
+			throw new Exception("Invalid grouping found");
 		}
 		$grouped = $grouped->sortKeys();
 		$blob = $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
@@ -1820,13 +1824,10 @@ class TowerController {
 			$msg .= " in " . $timerLocation;
 		} else {
 			$msg .= " in {$playfield->short_name}";
+			$timerLocation = "unknown field in " . $playfield->short_name;
 		}
 
 		if ($this->settingManager->getInt('tower_plant_timer') !== 0) {
-			if (!isset($siteNumber)) {
-				$timerLocation = "unknown field in " . $playfield->short_name;
-			}
-
 			$this->setPlantTimer($timerLocation);
 		}
 
@@ -2041,7 +2042,9 @@ class TowerController {
 	protected function recordAttack(Player $whois, Attack $attack, TowerSite $closestSite): int {
 		$event = new TowerAttackEvent();
 		$event->attacker = $whois;
-		$event->defender = (object)["org" => $attack->defGuild, "faction" => $attack->defSide];
+		$event->defender = new TowerDefender();
+		$event->defender->org = $attack->defGuild;
+		$event->defender->faction = $attack->defSide;
 		$event->site = $closestSite;
 		$event->type = "tower(attack)";
 		$result = $this->db->table(self::DB_TOWER_ATTACK)

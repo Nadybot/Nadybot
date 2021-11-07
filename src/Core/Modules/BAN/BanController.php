@@ -626,7 +626,7 @@ class BanController {
 	public function formatOrgsToBan(array $orgs, ?string $duration, string $reason): string {
 		$blob = '';
 		$banCmd = "/tell <myname> orgban add %d reason {$reason}";
-		if (isset($banCmd)) {
+		if (isset($duration)) {
 			$banCmd = "/tell <myname> orgban add %d {$duration} reason {$reason}";
 		}
 		foreach ($orgs as $org) {

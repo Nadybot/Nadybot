@@ -154,7 +154,7 @@ class ExportController {
 			$char->name = $name;
 		}
 		$id = $uid ?? $this->chatBot->get_uid($name);
-		if (isset($id) && is_int($id)) {
+		if (is_int($id)) {
 			$char->id = $id;
 		}
 		return $char;
@@ -498,6 +498,7 @@ class ExportController {
 
 	protected function exportTimers(): array {
 		$timers = $this->timerController->getAllTimers();
+		$result = [];
 		foreach ($timers as $timer) {
 			$data = (object)[
 				"startTime" => $timer->settime,

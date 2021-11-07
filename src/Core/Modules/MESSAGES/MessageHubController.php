@@ -286,7 +286,7 @@ class MessageHubController {
 	 * @HandlesCommand("route")
 	 */
 	public function routeListModifierCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)", string $modifier): void {
-		$mod = $this->messageHub->modifiers[$modifier];
+		$mod = $this->messageHub->modifiers[$modifier]??null;
 		if (!isset($mod)) {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
@@ -423,7 +423,7 @@ class MessageHubController {
 				$dests []= $route->getSource();
 			}
 			foreach ($dests as $dest) {
-				if (!isset($dest) || $this->messageHub->getReceiver($dest) === null) {
+				if ($this->messageHub->getReceiver($dest) === null) {
 					continue;
 				}
 				$grouped[strtolower($dest)] ??= [];
@@ -463,7 +463,7 @@ class MessageHubController {
 			$blobs []= $blob;
 		}
 		$blob = join("\n", $blobs);
-		if (!isset($args[1])) {
+		if (!isset($all)) {
 			$blob .= "\n\n".
 				"<i>This view does not include system messages.\n".
 				"Use " . $this->text->makeChatcmd("<symbol>route all", "/tell <myname> route all").

@@ -48,7 +48,7 @@ class NewsTile {
 			} elseif (is_object($type)) {
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
-			if (!in_array("string", $typeNames)) {
+			if (!in_array("string", $typeNames??[])) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
 					"a string as first argument"
@@ -62,7 +62,7 @@ class NewsTile {
 			} elseif (is_object($type)) {
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
-			if (!in_array("callable", $typeNames)) {
+			if (!in_array("callable", $typeNames??[])) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
 					"a callable as second argument"

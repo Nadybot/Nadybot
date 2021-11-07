@@ -7,6 +7,7 @@ use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
+use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
@@ -15,6 +16,9 @@ use Nadybot\Modules\VOTE_MODULE\VoteController;
 class MigrateToRoutes implements SchemaMigration {
 	/** @Inject */
 	public VoteController $voteController;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)

@@ -669,6 +669,7 @@ class SkillsController {
 		$blob .= $this->getInitDisplay($attackTime, $rechargeTime);
 		$blob .= "\n";
 
+		$found = false;
 		if ($highAttributes->full_auto !== null) {
 			$full_auto_recharge = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->full_auto, $highAttributes->full_auto, $ql);
 			[$weaponCap, $skillCap] = $this->capFullAuto($attackTime, $rechargeTime, $full_auto_recharge);

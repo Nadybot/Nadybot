@@ -277,6 +277,7 @@ class AOUController {
 			$$name = $value;
 		}
 
+		/** @phpstan-ignore-next-line */
 		return $this->text->makeChatcmd($label . " ({$x}x{$y})", "/waypoint $x $y $pf");
 	}
 

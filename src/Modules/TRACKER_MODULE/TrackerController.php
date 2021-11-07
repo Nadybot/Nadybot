@@ -353,6 +353,7 @@ class TrackerController implements MessageEmitter {
 			case 0:
 				return "TRACK: %s logged {$color}" . ($online ? "on" : "off") . "<end>.";
 			case 1:
+			default:
 				return "{$color}" . ($online ? "+" : "-") . "<end> %s";
 		}
 	}

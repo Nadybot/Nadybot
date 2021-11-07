@@ -19,13 +19,14 @@ class Reader {
 		if ($file === false) {
 			return null;
 		}
+		$numCols = 0;
 		if (!feof($file)) {
 			$headers = fgetcsv($file, 8192);
 			while (count($headers) === 1 && $headers[0][0] === "#") {
 				$headers = fgetcsv($file, 8192);
 			}
+			$numCols = count($headers);
 		}
-		$numCols = count($headers);
 		while (!feof($file)) {
 			$line = fgets($file);
 			// $row = fgetcsv($file, 8192);
@@ -50,7 +51,7 @@ class Reader {
 				}
 			}
 
-			yield array_combine($headers, $row);
+			yield array_combine($headers??[], $row);
 		}
 
 		return null;

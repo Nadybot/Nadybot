@@ -43,16 +43,16 @@ abstract class SettingHandler {
 	 * Get all options for this setting or false if no options are available
 	 */
 	public function getOptions(): ?string {
-		if ($this->row->options != '') {
+		if (strlen($this->row->options??'')) {
 			$options = explode(";", $this->row->options);
 		}
-		if ($this->row->intoptions != '') {
+		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(";", $this->row->intoptions);
-			$options_map = array_combine($intoptions, $options);
+			$options_map = array_combine($intoptions, $options??[]);
 		}
-		if ($options) {
+		if (!empty($options)) {
 			$msg = "Predefined Options:\n";
-			if ($intoptions) {
+			if (isset($options_map)) {
 				foreach ($options_map as $key => $label) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
 					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> ({$save_link})\n";
@@ -64,7 +64,7 @@ abstract class SettingHandler {
 				}
 			}
 		}
-		return $msg;
+		return $msg??"";
 	}
 
 	/**

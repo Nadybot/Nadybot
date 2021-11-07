@@ -186,7 +186,7 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	protected function showGauntletBuff(string $sender): void {
-		$sides = $this->getSidesToShowBuff($args['side']??null);
+		$sides = $this->getSidesToShowBuff(null);
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");

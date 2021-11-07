@@ -125,7 +125,7 @@ class ArulSabaController {
 			$blob .= "<tab>Recipe: [{$leftLink}] [{$rightLink}]\n\n";
 			$gems++;
 		}
-		$msg = $this->text->makeBlob("Types of a Arul Saba {$arul->name} bracelet", $blob);
+		$msg = $this->text->makeBlob("Types of a Arul Saba {$aruls[0]->name} bracelet", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -351,6 +351,10 @@ class ArulSabaController {
 			$result->ql = $result->lowql;
 			$blob .= $this->renderStep($circuitry, $target, $result, [static::ME => "*4", static::EE => "*4.2"]);
 			$target = $result;
+		}
+		if (!isset($result)) {
+			$sendto->reply("You managed to break the module. Great.");
+			return;
 		}
 
 		$coated = clone($result);

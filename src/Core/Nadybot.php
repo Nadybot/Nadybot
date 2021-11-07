@@ -106,6 +106,18 @@ class Nadybot extends AOChat {
 	 **/
 	public array $privateChats = [];
 
+	/** @var array<string,array<string,bool>> */
+	public array $existing_subcmds = [];
+
+	/** @var array<string,array<string,bool>> */
+	public array $existing_events = [];
+
+	/** @var array<string,array<string,bool>> */
+	public array $existing_helps = [];
+
+	/** @var array<string,array<string,bool>> */
+	public array $existing_settings = [];
+
 	/**
 	 * The rank for each member of this bot's guild/org
 	 * [(string)name => (int)rank]
@@ -396,7 +408,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$priority ??= AOC_PRIORITY_MED;
+		$priority ??= $this->chatqueue::PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMsg = $message);
 		$guildColor = "";
@@ -451,11 +463,10 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		if ($priority == null) {
-			$priority = AOC_PRIORITY_MED;
-		}
+		$priority ??= $this->chatqueue::PRIORITY_MED;
 
 		$rMessage = new RoutableMessage($message);
+		$tellColor = "";
 		if ($formatMessage) {
 			$message = $this->text->formatMessage($message);
 			$tellColor = $this->settingManager->get("default_tell_color");
@@ -477,7 +488,7 @@ class Nadybot extends AOChat {
 	 * Send a mass message via the chatproxy to another player/bot
 	 */
 	public function sendMassTell($message, string $character, int $priority=null, bool $formatMessage=true, int $worker=null): void {
-		$priority ??= AOC_PRIORITY_HIGH;
+		$priority ??= $this->chatqueue::PRIORITY_HIGH;
 
 		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
 		if (($this->vars["use_proxy"]??0) == 0
@@ -494,6 +505,7 @@ class Nadybot extends AOChat {
 			&& $this->settingManager->getBool('paging_on_same_worker')
 			&& count($message) > 1;
 		foreach ($message as $page) {
+			$tellColor = "";
 			if ($formatMessage) {
 				$message = $this->text->formatMessage($page);
 				$tellColor = $this->settingManager->get("default_tell_color");
@@ -536,9 +548,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		if ($priority == null) {
-			$priority = AOC_PRIORITY_MED;
-		}
+		$priority ??= $this->chatqueue::PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMessage = $message);
 		$guildColor = $this->settingManager->get("default_guild_color");
@@ -689,7 +699,7 @@ class Nadybot extends AOChat {
 				function (int $userId, string $sender): void {
 					$this->privategroup_kick($sender);
 					$audit = new Audit();
-					$audit->actor = $this->chatBot->char->name;
+					$audit->actor = $this->char->name;
 					$audit->actor = $sender;
 					$audit->action = AccessManager::KICK;
 					$audit->value = "banned";
@@ -851,7 +861,7 @@ class Nadybot extends AOChat {
 		if ($extra !== "\0") {
 			try {
 				$extraData = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
-				if (isset($extra) && is_object($extraData) && isset($extraData->id)) {
+				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
 			} catch (Throwable $e) {

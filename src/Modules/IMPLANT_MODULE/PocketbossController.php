@@ -88,6 +88,9 @@ class PocketbossController {
 			->orderBy("ql")
 			->asObj(Pocketboss::class)
 			->toArray();
+		if (empty($data)) {
+			return '';
+		}
 		$symbs = '';
 		foreach ($data as $symb) {
 			if (in_array($symb->line, ["Alpha", "Beta"])) {
@@ -276,8 +279,12 @@ class PocketbossController {
 			} else {
 				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
 			}
-			$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
-			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql) $impDesignerAddLink\n";
+			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql)";
+			if (isset($impDesignSlot) ) {
+				$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
+				$blob .= " $impDesignerAddLink";
+			}
+			$blob .= "\n";
 			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb $row->pb");
 			$blob .= "\n\n";
 		}

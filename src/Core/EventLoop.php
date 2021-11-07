@@ -33,6 +33,7 @@ class EventLoop {
 				$this->eventManager->executeConnectEvents();
 				$this->timer->executeTimerEvents();
 				foreach (static::$callbacks as $i => $callback) {
+					/** @phpstan-ignore-next-line */
 					if (isset($callback) && is_callable($callback)) {
 						$callback();
 					}

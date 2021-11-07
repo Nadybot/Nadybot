@@ -87,6 +87,9 @@ class AlienBioController {
 
 		$bios = preg_split("/(?<=>)\s*(?=<)/", $arr[1]);
 		$blob = '';
+		$bioinfo = "";
+		$ql = 0;
+		$name = "Unknown Bio-Material";
 		foreach ($bios as $bio) {
 			preg_match("|^${bio_regex}$|i", trim($bio), $arr2);
 			$highid = (int)$arr2[2];
@@ -383,11 +386,14 @@ class AlienBioController {
 			$name = "Mutated Kyr'Ozch Bio-Material";
 			$reqiredChem = (int)floor($ql * 7);
 			$chemMsg = "7 * QL";
+			$extraInfo = "";
 		} elseif (strtolower($type) == "pristine") {
 			$name = "Pristine Kyr'Ozch Bio-Material";
 			$reqiredChem = (int)floor($ql * 4.5);
 			$chemMsg = "4.5 * QL";
 			$extraInfo = "(<highlight>less tradeskill requirements than mutated.<end>)";
+		} else {
+			return "Unknown tradeskil process";
 		}
 		//End of tradeskill processes
 

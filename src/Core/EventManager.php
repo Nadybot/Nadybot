@@ -260,7 +260,7 @@ class EventManager {
 			}
 		}
 
-		if (!$found) {
+		if (!($found??false)) {
 			$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($filename). The event is not active or doesn't exist!");
 		}
 	}

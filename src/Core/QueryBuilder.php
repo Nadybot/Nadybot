@@ -92,7 +92,7 @@ class QueryBuilder extends Builder {
 	}
 
 	public function newQuery() {
-		$instance = new static($this->connection, $this->grammar, $this->processor);
+		$instance = new self($this->connection, $this->grammar, $this->processor);
 		$instance->nadyDB = $this->nadyDB;
 		return $instance;
 	}

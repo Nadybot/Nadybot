@@ -60,6 +60,7 @@ class IfHasPrefix implements EventModifier {
 		$this->trim = $trim;
 		$this->forRelays = $forRelays;
 		$this->forEvents = $forEvents;
+		$this->inverse = $inverse;
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {

@@ -42,6 +42,9 @@ class AsyncHttp {
 	 */
 	private $data;
 
+	/** The HTTP method to use (GET/POST/PUT/DELETE) */
+	private string $method;
+
 	/**
 	 * Additional headers tp send with the request
 	 *

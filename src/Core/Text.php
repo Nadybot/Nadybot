@@ -56,7 +56,7 @@ class Text {
 			$content = ' ';
 		}
 
-		$pageSize = $this->settingManager->getInt("max_blob_size") - strlen($permanentHeader ?? "");
+		$pageSize = $this->settingManager->getInt("max_blob_size") - strlen($permanentHeader);
 		$pages = $this->paginate($content, $pageSize, ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 

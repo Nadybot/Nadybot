@@ -377,6 +377,7 @@ class AMQP implements TransportInterface, StatusProvider {
 				'Error sending message to AMQP server: ' . $e->getMessage()
 			);
 		}
+		/** @phpstan-ignore-next-line */
 		if (isset($e)) {
 			$this->logger->log('INFO', $this->status->text);
 			$this->channel = null;

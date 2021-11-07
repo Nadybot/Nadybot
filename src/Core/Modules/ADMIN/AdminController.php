@@ -221,7 +221,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}
@@ -245,7 +245,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}

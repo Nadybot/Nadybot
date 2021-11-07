@@ -168,7 +168,7 @@ class AOChat {
 
 	public function __construct() {
 		$this->disconnect();
-		$this->mmdbParser = new MMDBParser('data/text.mdb');
+		$this->mmdbParser = new MMDBParser();
 		$this->logger = new LoggerWrapper('AOChat');
 	}
 
@@ -176,7 +176,7 @@ class AOChat {
 	 * Disconnect from the chat server (if connected) and init variables
 	 */
 	public function disconnect(): void {
-		if (is_resource($this->socket) || $this->socket instanceof \Socket) {
+		if (isset($this->socket) && $this->socket !== false) {
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
@@ -243,7 +243,7 @@ class AOChat {
 	 * Returns the packet if one arrived or null if none arrived in $time seconds.
 	 *
 	 * @param integer $time The  amount of seconds to wait for
-	 * @return \Nadybot\Core\AOChatPacket|false|null The received package or null if none arrived or false if we couldn't parse it
+	 * @return \Nadybot\Core\AOChatPacket|null The received package or null if none arrived or false if we couldn't parse it
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
@@ -391,8 +391,6 @@ class AOChat {
 
 			$this->chars []= $char;
 		}
-
-		$this->username = $username;
 
 		return $this->chars;
 	}
@@ -544,7 +542,7 @@ class AOChat {
 		if ($type && ($is_gid = (strlen($arg) === 5 && (ord($arg[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
-		if (!$is_gid) {
+		if (!isset($is_gid) || !$is_gid) {
 			$arg = strtolower($arg);
 		}
 		return $this->gid[$arg] ?? null;
@@ -553,7 +551,7 @@ class AOChat {
 	/**
 	 * Get the group id of a group
 	 *
-	 * @param string $arg Name of the group
+	 * @param string $g Name of the group
 	 * @return int|false Either the group id or false if not found
 	 */
 	public function get_gid(string $g) {
@@ -676,7 +674,6 @@ class AOChat {
 	 *
 	 * @param int|string $group The group id or group name to send to
 	 * @param string     $msg   The message to send
-	 * @param string     $blob  Ignored
 	 * @return bool false if the channel doesn't exist, true otherwise
 	 */
 	public function send_privgroup($group, string $msg): bool {

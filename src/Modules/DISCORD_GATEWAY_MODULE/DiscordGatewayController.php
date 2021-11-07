@@ -455,7 +455,7 @@ class DiscordGatewayController {
 
 		$this->discordAPIClient->cacheUser($message->author);
 		$name = $message->author->username . "#" . $message->author->discriminator;
-		$this->idToName[$message->author->id] = $name;
+		$member = null;
 		if (isset($message->member)) {
 			$member = $message->member;
 			$member->user ??= $message->author;

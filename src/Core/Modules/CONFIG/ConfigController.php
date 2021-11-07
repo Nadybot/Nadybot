@@ -694,6 +694,7 @@ class ConfigController {
 			$priv = '';
 			$msg = '';
 
+			$cmdNameLink = "";
 			if ($row->cmdevent === 'cmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");

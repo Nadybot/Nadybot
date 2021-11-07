@@ -7,6 +7,9 @@ class SyncEvent extends Event {
 	public int $sourceDimension;
 	public bool $forceSync = false;
 
+	final public function __construct() {
+	}
+
 	public static function fromSyncEvent(SyncEvent $event): self {
 		$obj = new static();
 		foreach ($event as $key => $value) {

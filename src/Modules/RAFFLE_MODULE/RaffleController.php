@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	PrivateChannelCommandReply,
+	QueueInterface,
 	SettingManager,
 	Text,
 	Util,
@@ -245,7 +246,7 @@ class RaffleController {
 		$adminMsg = "You can control the raffle via the ".
 			$this->text->makeBlob("Raffle Admin Menu", $this->getRaffleAdminPage($sender)).
 			".";
-		$this->chatBot->sendTell($adminMsg, $sender, AOC_PRIORITY_HIGH);
+		$this->chatBot->sendTell($adminMsg, $sender, QueueInterface::PRIORITY_HIGH);
 	}
 
 	/**

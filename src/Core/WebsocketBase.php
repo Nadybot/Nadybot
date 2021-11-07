@@ -61,6 +61,17 @@ class WebsocketBase {
 	protected ?int $pendingPingTime = null;
 	protected ?TimerEvent $timeoutChecker = null;
 	public bool $maskData = true;
+	protected string $uri;
+	protected ?int $lastWriteTime = null;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
+
+	/** @Inject */
+	public Timer $timer;
+
+	/** @Inject */
+	public SocketManager $socketManager;
 
 	public function connect(): bool {
 		return true;
@@ -101,11 +112,11 @@ class WebsocketBase {
 
 	public function isConnected() {
 		return isset($this->socket)
-			&& ($this->socket instanceof \Socket || (is_resource($this->socket)
-			&& (
+			&& ($this->socket !== false)
+			&& (!is_resource($this->socket) || (
 				get_resource_type($this->socket) === 'persistent stream'
 				|| get_resource_type($this->socket) === 'stream'
-			)));
+			));
 	}
 
 	public function checkTimeout() {
@@ -178,7 +189,7 @@ class WebsocketBase {
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
 				"Failed to write $length bytes to websocket ".
-				$this->url??$this->peerName . "."
+				$this->uri??$this->peerName . "."
 			);
 			return false;
 		}
@@ -298,6 +309,8 @@ class WebsocketBase {
 			return [$payload, $final];
 		}
 		// Get the close status.
+		$statusBin = "";
+		$status = 0;
 		if ($payloadLength > 0) {
 			$statusBin = $payload[0] . $payload[1];
 			$status = bindec(sprintf("%08b%08b", ord($payload[0]), ord($payload[1])));
@@ -385,7 +398,6 @@ class WebsocketBase {
 			$final = empty($dataChunks);
 
 			$frame = $this->toFrame($final, $chunk, $opcode, $this->maskData);
-			$this->lastEnqueueTime = time();
 			$this->sendQueue []= $frame;
 
 			$opcode = 'continuation';

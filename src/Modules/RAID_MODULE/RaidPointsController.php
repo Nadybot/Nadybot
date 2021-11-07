@@ -219,7 +219,6 @@ class RaidPointsController {
 				"delta" => 1,
 				"time" => time(),
 				"changed_by" => $this->db->getMyname(),
-				"individual" => false,
 				"reason" => "raid participation",
 				"ticker" => true,
 				"individual" => false,

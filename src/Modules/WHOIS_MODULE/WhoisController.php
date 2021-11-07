@@ -288,7 +288,7 @@ class WhoisController {
 		if ($whois === null) {
 			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
 			$blob .= "Name: <highlight>{$name}<end> {$lookupNameLink}\n";
-			if ($charID) {
+			if (isset($lookupCharIdLink)) {
 				$blob .= "Character ID: <highlight>{$charID}<end> {$lookupCharIdLink}\n\n";
 			}
 			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
@@ -322,7 +322,7 @@ class WhoisController {
 		} else {
 			$blob .= "<red>Offline<end>\n";
 		}
-		if ($charID !== false) {
+		if ($charID !== false && isset($lookupCharIdLink)) {
 			$blob .= "Character ID: <highlight>{$whois->charid}<end> {$lookupCharIdLink}\n\n";
 		}
 

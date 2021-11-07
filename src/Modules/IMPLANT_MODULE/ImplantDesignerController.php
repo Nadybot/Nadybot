@@ -48,8 +48,6 @@ class ImplantDesignerController {
 
 	/** @Setup */
 	public function setup() {
-		$this->design = new stdClass;
-
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Designer");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Ability.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Cluster.csv");

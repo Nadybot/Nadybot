@@ -353,7 +353,6 @@ class RelayController {
 				$this->relayProtocols,
 				$protocol,
 				"relay protocol",
-				"protocol"
 			)
 		);
 	}
@@ -389,7 +388,6 @@ class RelayController {
 				$this->transports,
 				$transport,
 				"relay transport",
-				"transport"
 			)
 		);
 	}
@@ -464,7 +462,7 @@ class RelayController {
 		}
 		$blob = $this->quickRelayController->getRouteInformation(
 			$name,
-			in_array($layer->layer, ["tyrbot", "nadynative"])
+			isset($layer) && in_array($layer->layer, ["tyrbot", "nadynative"])
 		);
 		$msg = "Relay <highlight>{$name}<end> added.";
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
@@ -788,7 +786,7 @@ class RelayController {
 			);
 			return;
 		}
-		$oRelay = $this->relays[$relay->name];
+		$oRelay = $this->relays[$relay->name]??null;
 		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$context->reply("This relay has nothing to configure.");
 			return;
@@ -850,7 +848,7 @@ class RelayController {
 			$context->reply("Relay <highlight>{$name}<end> not found.");
 			return;
 		}
-		$oRelay = $this->relays[$relay->name];
+		$oRelay = $this->relays[$relay->name]??null;
 		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$context->reply(
 				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
@@ -917,7 +915,7 @@ class RelayController {
 			$context->reply("Relay <highlight>{$name}<end> not found.");
 			return;
 		}
-		$oRelay = $this->relays[$relay->name];
+		$oRelay = $this->relays[$relay->name]??null;
 		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$context->reply(
 				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
@@ -1426,7 +1424,7 @@ class RelayController {
 			foreach ($relay->events as &$event) {
 				/** @var RelayEvent */
 				$event = JsonImporter::convert(RelayEvent::class, $event);
-				foreach ($layer->arguments as &$argument) {
+				foreach (($layer->arguments??[]) as &$argument) {
 					$argument = JsonImporter::convert(RelayLayerArgument::class, $argument);
 				}
 			}

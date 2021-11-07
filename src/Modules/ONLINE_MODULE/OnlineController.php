@@ -602,6 +602,7 @@ class OnlineController {
 					$key = $chanName;
 				}
 				$chars = array_values($onlineChars);
+				$key = "";
 				foreach ($chars as $char) {
 					if ($groupBy === self::GROUP_BY_PROFESSION) {
 						$key = $char->profession ?? "Unknown";

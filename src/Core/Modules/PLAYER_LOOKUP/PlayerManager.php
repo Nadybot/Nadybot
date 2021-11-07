@@ -137,7 +137,7 @@ class PlayerManager {
 		$player = $this->findInDb($name, $dimension);
 		$lookup = [$this, "lookupAsync"];
 		if ($sync) {
-			$lookup = function(string $name, int $dimension, callable $handler) use ($charid): void {
+			$lookup = function(string $name, int $dimension, callable $handler): void {
 				$player = $this->lookup($name, $dimension);
 				$handler($player);
 			};
@@ -228,7 +228,7 @@ class PlayerManager {
 			);
 	}
 
-	private function parsePlayerFromLookup(HttpResponse $response): ?Player {
+	private function parsePlayerFromLookup(?HttpResponse $response): ?Player {
 		if (!isset($response) || $response->headers["status-code"] !== "200") {
 			return null;
 		}

@@ -379,7 +379,7 @@ class VoteController implements MessageEmitter {
 		}
 
 		$msg = $this->text->makeBlob("Poll Nr. {$topic->id}", $blob);
-		if ($privmsg) {
+		if (isset($privmsg)) {
 			$sendto->reply($privmsg);
 		}
 

@@ -388,12 +388,12 @@ class LootController {
 			$item = new LootItem();
 
 			$item->name = $itemName;
-			$item->icon = $looticon;
+			$item->icon = $looticon??null;
 			$item->added_by = $sender;
 			$item->multiloot = $multiloot;
 
 			if (isset($itemHighID)) {
-				$item->display = $this->text->makeItem($itemLowID, $itemHighID, $itemQL, $itemName);
+				$item->display = $this->text->makeItem($itemLowID??null, $itemHighID, $itemQL??null, $itemName);
 			} else {
 				$item->display = $itemName;
 			}

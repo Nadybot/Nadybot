@@ -140,6 +140,7 @@ class CommandSearchController {
 	public function render(array $results, bool $hasAccess, bool $exactMatch) {
 		$blob = '';
 		foreach ($results as $row) {
+			$helpLink = "";
 			if ($row->help !== null && $row->help !== '') {
 				$helpLink = ' (' . $this->text->makeChatcmd("Help", "/tell <myname> help $row->cmd") . ')';
 			}

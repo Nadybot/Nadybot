@@ -154,7 +154,7 @@ class NanoController {
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
 		if (count($data) === 1) {
-			$msg = $info . " [" . $this->text->makeBlob("details", $blob) . "]";
+			$msg = ($info??"") . " [" . $this->text->makeBlob("details", $blob) . "]";
 		}
 
 		$sendto->reply($msg);
@@ -282,9 +282,9 @@ class NanoController {
 			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("All $nano->strain Nanos", $blob);
+		$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos", $blob);
 		if ($prof !== null) {
-			$msg = $this->text->makeBlob("All $nano->strain Nanos for $prof", $blob);
+			$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos for $prof", $blob);
 		}
 
 		$sendto->reply($msg);

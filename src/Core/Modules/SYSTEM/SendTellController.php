@@ -48,6 +48,7 @@ class SendTellController {
 					return;
 				}
 				$this->logger->logChat("Out. Msg.", $name, $message);
+				/** @phpstan-ignore-next-line */
 				$this->chatBot->send_tell($uid, $message, "\0", AOC_PRIORITY_MED);
 				$context->reply("Message has been sent to <highlight>{$name}<end>.");
 			},

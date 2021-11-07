@@ -113,7 +113,7 @@ class Relay implements MessageReceiver {
 	public function setClientOffline(string $clientId): void {
 		foreach ($this->onlineChars as $where => &$characters) {
 			foreach ($characters as $name => $player) {
-				if (!isset($player) || !isset($player->source) || $player->source !== $clientId) {
+				if (($player->source??null) === null || $player->source !== $clientId) {
 					continue;
 				}
 				unset($this->onlineChars[$where][$name]);

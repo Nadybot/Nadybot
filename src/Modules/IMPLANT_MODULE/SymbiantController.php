@@ -65,7 +65,7 @@ class SymbiantController {
 	public function findBestSymbiants(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		if (!isset($args['level'])) {
 			$this->playerManager->getByNameAsync(
-				function(?Player $whois) use ($args, $sendto): void {
+				function(?Player $whois) use ($sendto): void {
 					if (empty($whois)) {
 						$msg = "Could not retrieve whois info for you.";
 						$sendto->reply($msg);

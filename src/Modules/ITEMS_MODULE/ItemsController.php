@@ -404,7 +404,7 @@ class ItemsController {
 			} else {
 				if ($newGroup === true) {
 					$list .= "QL ";
-				} elseif ($lastQL === $row->ql) {
+				} elseif (isset($lastQL) && $lastQL === $row->ql) {
 					continue;
 				} else {
 					$list .= ", ";

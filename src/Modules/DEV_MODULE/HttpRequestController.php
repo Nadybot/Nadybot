@@ -40,7 +40,7 @@ class HttpRequestController {
 			return;
 		}
 		$client = $this->http->get($parts["scheme"] . "://" . $parts["host"] . ($parts["path"]??""));
-		if (isset($params["query"])) {
+		if (isset($parts["query"])) {
 			$params = [];
 			$groups = explode("&", $parts["query"]);
 			foreach ($groups as $group) {

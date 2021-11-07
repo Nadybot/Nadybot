@@ -237,7 +237,7 @@ class AsyncSocket {
 
 	protected function forceClose(): void {
 		$this->logger->log('DEBUG', 'Force closing connection');
-		if ((!is_resource($this->socket) && !($this->socket instanceof \Socket)) || $this->state === static::STATE_CLOSED) {
+		if (isset($this->socket) && $this->socket === false) {
 			return;
 		}
 		@fclose($this->socket);

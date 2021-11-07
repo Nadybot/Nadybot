@@ -63,12 +63,8 @@ class AdminManager {
 		$audit->actor = $sender;
 		$audit->actee = $who;
 		$audit->action = AccessManager::DEL_RANK;
-		if (isset($oldRank)) {
-			$alMod = $this->accessManager->getAccessLevels()["mod"];
-			$audit->value = (string)($alMod - ($oldRank["level"] - $alMod));
-		} else {
-			$audit->value = "admin";
-		}
+		$alMod = $this->accessManager->getAccessLevels()["mod"];
+		$audit->value = (string)($alMod - ($oldRank["level"] - $alMod));
 		$this->accessManager->addAudit($audit);
 	}
 

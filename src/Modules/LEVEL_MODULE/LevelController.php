@@ -170,6 +170,8 @@ class LevelController {
 			$msg = "From the beginning of level <highlight>$minLevel<end> ".
 				"you need <highlight>".number_format($xp)."<end> XP ".
 				"to reach level <highlight>$maxLevel<end>.";
+		} else {
+			$msg = "You somehow managed to pass illegal parameters.";
 		}
 		$sendto->reply($msg);
 	}

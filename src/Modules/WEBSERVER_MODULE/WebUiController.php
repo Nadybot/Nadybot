@@ -211,7 +211,7 @@ class WebUiController implements MessageEmitter {
 			$this->createAdminLogin();
 		} elseif ($dlVersion > $currentVersion) {
 			$action = "<green>upgraded<end> to version";
-		} elseif ($dlVersion < $currentVersion) {
+		} else {
 			$action = "<green>downgraded<end> to version";
 		}
 		$this->settingManager->save($settingName, (string)$dlVersion);
@@ -305,7 +305,9 @@ class WebUiController implements MessageEmitter {
 			$msg = "An unexpected error occurred extracting the release: " . $e->getMessage();
 			throw new Exception($msg);
 		} finally {
-			umask($oldMask);
+			if (isset($oldMask)) {
+				umask($oldMask);
+			}
 			if (isset($extractor)) {
 				@$extractor->close();
 			}

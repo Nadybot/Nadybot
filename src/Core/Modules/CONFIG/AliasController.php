@@ -80,6 +80,8 @@ class AliasController {
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
 		} elseif ($row->status == 1 && $row->cmd != $cmd) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
+		} else {
+			$msg = "Cannot add alias <highlight>{$alias}<end>.";
 		}
 		$context->reply($msg);
 	}
