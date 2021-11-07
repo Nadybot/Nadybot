@@ -186,7 +186,7 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	protected function showGauntletBuff(string $sender): void {
-		$sides = $this->getSidesToShowBuff(null);
+		$sides = $this->getSidesToShowBuff();
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");
@@ -311,7 +311,7 @@ class GauntletBuffController implements MessageEmitter {
 	 * Get a list of array for which to show the gauntlet buff(s)
 	 * @return string[]
 	 */
-	protected function getSidesToShowBuff(?string $side): array {
+	protected function getSidesToShowBuff(?string $side=null): array {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side');
 		$side ??= $defaultSide;
 		if ($side === static::SIDE_NONE) {

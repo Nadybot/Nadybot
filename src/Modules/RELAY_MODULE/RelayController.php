@@ -849,7 +849,7 @@ class RelayController {
 			return;
 		}
 		$oRelay = $this->relays[$relay->name]??null;
-		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$context->reply(
 				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
 				"does not support syncing events."
@@ -916,7 +916,7 @@ class RelayController {
 			return;
 		}
 		$oRelay = $this->relays[$relay->name]??null;
-		if (isset($oRelay) && !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
+		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$context->reply(
 				"The relay <highlight>{$relay->name}<end> uses a protocol which ".
 				"does not support syncing events."

@@ -304,6 +304,7 @@ class OrglistController {
 		$totalcount = count($memberlist->result);
 		$newlist = [];
 		foreach ($memberlist->result as $amember) {
+			$newlist[$amember->rank_id] ??= [];
 			$newlist[$amember->rank_id] []= $amember->name;
 		}
 

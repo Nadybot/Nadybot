@@ -347,9 +347,7 @@ class EventsController {
 				$past_events .= $past;
 			}
 		}
-		if (!isset($upcoming_events)) {
-			$upcoming_events = "<i>More to come.  Check back soon!</i>\n\n";
-		}
+		$upcoming_events ??= "<i>More to come.  Check back soon!</i>\n\n";
 		if (!isset($past_events)) {
 			$link = $upcoming_title.$upcoming_events;
 		} else {

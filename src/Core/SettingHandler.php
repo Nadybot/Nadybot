@@ -51,7 +51,7 @@ abstract class SettingHandler {
 			$options_map = array_combine($intoptions, $options??[]);
 		}
 		if (!empty($options)) {
-			$msg = "Predefined Options:\n";
+			$msg = "<header2>Predefined Options<end>\n";
 			if (isset($options_map)) {
 				foreach ($options_map as $key => $label) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
