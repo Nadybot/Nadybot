@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	CmdContext,
 	LoggerWrapper,
 	Nadybot,
+	QueueInterface,
 };
 use Nadybot\Core\ParamClass\PCharacter;
 
@@ -48,8 +49,7 @@ class SendTellController {
 					return;
 				}
 				$this->logger->logChat("Out. Msg.", $name, $message);
-				/** @phpstan-ignore-next-line */
-				$this->chatBot->send_tell($uid, $message, "\0", AOC_PRIORITY_MED);
+				$this->chatBot->send_tell($uid, $message, "\0", QueueInterface::PRIORITY_MED);
 				$context->reply("Message has been sent to <highlight>{$name}<end>.");
 			},
 			$context,
