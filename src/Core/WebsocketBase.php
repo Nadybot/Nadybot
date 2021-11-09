@@ -45,8 +45,12 @@ class WebsocketBase {
 	/** @var array<string,mixed> */
 	protected $tags = [];
 
+	/**
+	 * @var null|resource
+	 * @psalm-var null|resource|closed-resource
+	 */
 	protected $socket;
-	protected ?string $peerName = null;
+	protected string $peerName = "Unknown websocket";
 	protected int $timeout = 55;
 	protected int $frameSize = 4096;
 	protected bool $isClosing = false;
@@ -110,16 +114,15 @@ class WebsocketBase {
 		$this->fireEvent(static::ON_ERROR, $event);
 	}
 
-	public function isConnected() {
+	public function isConnected(): bool {
 		return isset($this->socket)
-			&& ($this->socket !== false)
 			&& (!is_resource($this->socket) || (
 				get_resource_type($this->socket) === 'persistent stream'
 				|| get_resource_type($this->socket) === 'stream'
 			));
 	}
 
-	public function checkTimeout() {
+	public function checkTimeout(): void {
 		if (!$this->isConnected() || !$this->connected) {
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
@@ -129,13 +132,13 @@ class WebsocketBase {
 		}
 		$this->logger->log(
 			"TRACE",
-			"No data received for " . (time() - $this->lastReadTime) . "s".
+			"No data received for " . (time() - ($this->lastReadTime??0)) . "s".
 			($this->pendingPingTime
 				? ",ping pending since " . (time() - $this->pendingPingTime) . "s"
 				: "").
 			" on websocket " . ($this->uri ?? $this->peerName) . "."
 		);
-		if (time() - $this->lastReadTime >= 30) {
+		if (!isset($this->lastReadTime) || time() - $this->lastReadTime >= 30) {
 			$this->send("", 'ping');
 		}
 		if (isset($this->pendingPingTime) && time() - $this->pendingPingTime >= $this->timeout) {
@@ -167,10 +170,13 @@ class WebsocketBase {
 				$mask .= chr(rand(0, 255));
 			}
 			$frame .= $mask;
-		}
-
-		for ($i = 0; $i < $dataLength; $i++) {
-			$frame .= ($masked === true) ? $data[$i] ^ $mask[$i % 4] : $data[$i];
+			for ($i = 0; $i < $dataLength; $i++) {
+				$frame .= $data[$i] ^ $mask[$i % 4];
+			}
+		} else {
+			for ($i = 0; $i < $dataLength; $i++) {
+				$frame .= $data[$i];
+			}
 		}
 
 		return $frame;
@@ -178,7 +184,7 @@ class WebsocketBase {
 
 	protected function write(string $data): bool {
 		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName)."] Writing " . strlen($data) . " bytes of data to WebSocket");
-		if (strlen($data) === 0) {
+		if (strlen($data) === 0 || !is_resource($this->socket)) {
 			return true;
 		}
 		$written = fwrite($this->socket, $data);
@@ -208,6 +214,7 @@ class WebsocketBase {
 			return;
 		}
 		$packet = array_shift($this->sendQueue);
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($packet)) {
 			$this->logger->log('ERROR', "Illegal item found in send queue: " . var_export($packet, true));
 			return;
@@ -288,7 +295,7 @@ class WebsocketBase {
 		if ($payloadLength > 0) {
 			$data = $this->read($payloadLength);
 
-			if ($mask) {
+			if (isset($maskingKey)) {
 				for ($i = 0; $i < $payloadLength; $i++) {
 					$payload .= ($data[$i] ^ $maskingKey[$i % 4]);
 				}
@@ -313,7 +320,7 @@ class WebsocketBase {
 		$status = 0;
 		if ($payloadLength > 0) {
 			$statusBin = $payload[0] . $payload[1];
-			$status = bindec(sprintf("%08b%08b", ord($payload[0]), ord($payload[1])));
+			$status = (int)bindec(sprintf("%08b%08b", ord($payload[0]), ord($payload[1])));
 			$this->closeStatus = $status;
 		}
 		// Get the additional close-message
@@ -328,7 +335,9 @@ class WebsocketBase {
 		}
 
 		// Close the socket.
-		stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+		if (is_resource($this->socket)) {
+			stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+		}
 
 		// Closing should not return message.
 		return [null, true];
@@ -339,6 +348,9 @@ class WebsocketBase {
 
 	protected function read(int $length): string {
 		$data = '';
+		if (!is_resource($this->socket)) {
+			return "";
+		}
 		while (strlen($data) < $length) {
 			$buffer = fread($this->socket, $length - strlen($data));
 			$meta = stream_get_meta_data($this->socket);
@@ -350,7 +362,7 @@ class WebsocketBase {
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
 					@fclose($this->socket);
-					$this->logger->log("DEBUG", "Socket closed with status " . $this->closeStatus ?? "<unknown>");
+					$this->logger->log("DEBUG", "Socket closed with status " . ($this->closeStatus ?? "<unknown>"));
 					$this->socket = null;
 					$event = $this->getEvent("close");
 					$event->code = $this->closeStatus;
@@ -392,6 +404,9 @@ class WebsocketBase {
 		}
 
 		$dataChunks = str_split($data, $this->frameSize);
+		if ($dataChunks === false) {
+			throw new Exception("Cannot chunk Websocket data into frames");
+		}
 
 		while (count($dataChunks)) {
 			$chunk = array_shift($dataChunks);
@@ -442,7 +457,7 @@ class WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	protected function listenForReadWrite() {
+	protected function listenForReadWrite(): void {
 		$callback = [$this, 'onStreamActivity'];
 		if (isset($this->notifier)) {
 			$callback = $this->notifier->getCallback();
@@ -456,7 +471,7 @@ class WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	protected function listenForWebsocketReadWrite() {
+	protected function listenForWebsocketReadWrite(): void {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
@@ -472,6 +487,7 @@ class WebsocketBase {
 		$this->tags[$key] = $value;
 	}
 
+	/** @return mixed */
 	public function getTag(string $key) {
 		return $this->tags[$key];
 	}

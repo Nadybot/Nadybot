@@ -72,7 +72,7 @@ class AsyncSocket {
 
 	/**
 	 * Get the low level socket
-	 * @return resource
+	 * @return null|resource
 	 * @psalm-return null|resource|closed-resource
 	 */
 	public function getSocket() {

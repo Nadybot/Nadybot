@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
@@ -31,9 +32,12 @@ class WebsocketServer extends WebsocketBase {
 		$this->connected = true;
 		$this->lastReadTime = time();
 		$this->sendQueue = $socket->getWriteQueue();
+		if (!is_resource($this->socket)) {
+			throw new Exception("Tried to create a websocket server with a closed socket.");
+		}
 		$this->peerName = stream_socket_get_name($this->socket, true);
 		[$usecs, $secs] = explode(" ", microtime(false));
-		$this->uuid = bin2hex(pack("NN", (int)$secs, (int)($usecs*1000000)) . random_bytes(16));
+		$this->uuid = bin2hex(pack("NN", (int)$secs, (int)((float)$usecs*1000000)) . random_bytes(16));
 		stream_set_blocking($this->socket, false);
 	}
 
