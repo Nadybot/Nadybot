@@ -67,7 +67,7 @@ class ClassLoader {
 		$this->logger->log('INFO', "Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->log('DEBUG', "Loading modules in path '$path'");
-			if (!@file_exists($path) || ($d = dir($path)) === false) {
+			if (!@file_exists($path) || ($d = dir($path)) === false || $d === null) {
 				continue;
 			}
 			while (false !== ($moduleName = $d->read())) {
