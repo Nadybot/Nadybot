@@ -47,7 +47,9 @@ class AdminManager {
 		$this->db->table(self::DB_TABLE)
 			->asObj(Admin::class)
 			->each(function(Admin $row) {
-				$this->admins[$row->name] = ["level" => $row->adminlevel];
+				if (isset($row->adminlevel)) {
+					$this->admins[$row->name] = ["level" => $row->adminlevel];
+				}
 			});
 	}
 

@@ -78,6 +78,44 @@ define('AOCP_ADM_MUX_INFO',          1100);
 define('AOCP_GROUP_JOIN',		AOCP_GROUP_ANNOUNCE); // compat
 
 class AOChatPacket {
+	public const AOCP_LOGIN_SEED =               0;
+	public const AOCP_LOGIN_REQUEST =            2;
+	public const AOCP_LOGIN_SELECT =             3;
+	public const AOCP_LOGIN_OK =                 5;
+	public const AOCP_LOGIN_ERROR =              6;
+	public const AOCP_LOGIN_CHARLIST =           7;
+	public const AOCP_CLIENT_UNKNOWN =          10;
+	public const AOCP_CLIENT_NAME =             20;
+	public const AOCP_CLIENT_LOOKUP =           21;
+	public const AOCP_MSG_PRIVATE =             30;
+	public const AOCP_MSG_VICINITY =            34;
+	public const AOCP_MSG_VICINITYA =           35;
+	public const AOCP_MSG_SYSTEM =              36;
+	public const AOCP_CHAT_NOTICE =             37;
+	public const AOCP_BUDDY_ADD =               40;
+	public const AOCP_BUDDY_REMOVE =            41;
+	public const AOCP_ONLINE_SET =              42;
+	public const AOCP_PRIVGRP_INVITE =          50;
+	public const AOCP_PRIVGRP_KICK =            51;
+	public const AOCP_PRIVGRP_JOIN =            52;
+	public const AOCP_PRIVGRP_PART =            53;
+	public const AOCP_PRIVGRP_KICKALL =         54;
+	public const AOCP_PRIVGRP_CLIJOIN =         55;
+	public const AOCP_PRIVGRP_CLIPART =         56;
+	public const AOCP_PRIVGRP_MESSAGE =         57;
+	public const AOCP_PRIVGRP_REFUSE =          58;
+	public const AOCP_GROUP_ANNOUNCE =          60;
+	public const AOCP_GROUP_PART =              61;
+	public const AOCP_GROUP_DATA_SET =          64;
+	public const AOCP_GROUP_MESSAGE =           65;
+	public const AOCP_GROUP_CM_SET =            66;
+	public const AOCP_CLIENTMODE_GET =          70;
+	public const AOCP_CLIENTMODE_SET =          71;
+	public const AOCP_PING =                   100;
+	public const AOCP_FORWARD =                110;
+	public const AOCP_CC =                     120;
+	public const AOCP_ADM_MUX_INFO =          1100;
+
 	/**
 	 * @var array<string,array<int,array<string,string>>>
 	 */
@@ -158,7 +196,7 @@ class AOChatPacket {
 	/**
 	 * Create a new packet, either for parsing incoming or encoding outgoing ones
 	 *
-	 * @param string|mixed[] $data Either the data to decode (if $type == "in")
+	 * @param mixed|mixed[] $data Either the data to decode (if $type == "in")
 	 *                             or the data to encode(if $type == "out")
 	 */
 	public function __construct(string $dir, int $type, $data) {
@@ -182,12 +220,14 @@ class AOChatPacket {
 				$sa = $pmap["args"][$i];
 				switch ($sa) {
 					case "I":
-						$res  = array_pop(unpack("N", $data));
+						$unp  = unpack("N", $data);
+						$res  = array_pop($unp);
 						$data = substr($data, 4);
 						break;
 
 					case "S":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$res  = substr($data, 2, $len);
 						$data = substr($data, 2 + $len);
 						break;
@@ -198,17 +238,20 @@ class AOChatPacket {
 						break;
 
 					case "i":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$res  = array_values(unpack("N" . $len, substr($data, 2)));
 						$data = substr($data, 2 + 4 * $len);
 						break;
 
 					case "s":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$data = substr($data, 2);
 						$res  = [];
 						while ($len--) {
-							$slen  = array_pop(unpack("n", $data));
+							$unp   = unpack("n", $data);
+							$slen  = array_pop($unp);
 							$res[] = substr($data, 2, $slen);
 							$data  = substr($data, 2+$slen);
 						}

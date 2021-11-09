@@ -3,6 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 use Nadybot\Core\Registry;
+use Nadybot\Core\Util;
 
 class PDuration extends Base {
 	protected static string $regExp = "(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+";
@@ -13,7 +14,11 @@ class PDuration extends Base {
 	}
 
 	public function toSecs(): int {
-		return Registry::getInstance('util')->parseTime($this->value);
+		$util = Registry::getInstance('util');
+		if (isset($util) && $util instanceof Util) {
+			return $util->parseTime($this->value);
+		}
+		return 0;
 	}
 
 	public function __invoke(): string {

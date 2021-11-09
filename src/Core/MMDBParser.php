@@ -89,7 +89,8 @@ class MMDBParser {
 	}
 
 	/**
-	 * @return array<string,int>[]
+	 * @return null|array<string,int>[]
+	 * @psalm-suppress MismatchingDocblockReturnType
 	 */
 	public function getCategories(): array {
 		$in = $this->openFile();
@@ -124,7 +125,6 @@ class MMDBParser {
 		$in = fopen($filename, 'rb');
 		if ($in === false) {
 			$this->logger->log('error', "Could not open file: '{$filename}'");
-			@fclose($in);
 			return null;
 		}
 
@@ -171,7 +171,8 @@ class MMDBParser {
 	}
 
 	private function readLong($in): int {
-		return array_pop(unpack("L", fread($in, 4)));
+		$unpacked = unpack("L", fread($in, 4));
+		return array_pop($unpacked);
 	}
 
 	private function readString($in): string {

@@ -35,7 +35,10 @@ class DiscordAPIClient {
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
 
+	/** @var array<string,array<string,GuildMember>> */
 	protected $guildMemberCache = [];
+
+	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
 
 	public const DISCORD_API = "https://discord.com/api/v9";
@@ -86,7 +89,7 @@ class DiscordAPIClient {
 			self::DISCORD_API . "/channels/{$channel}/messages",
 			$message
 		)->withCallback(
-			function(HttpResponse $response, $message) use ($errorHandler): void {
+			function(HttpResponse $response, string $message) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
 					array_unshift($this->outQueue, $message);
 					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);

@@ -86,15 +86,15 @@ class SchemaBuilder {
 	}
 
 	/** Get the column listing for a given table. */
-	public function getColumnListing(string $table) {
+	public function getColumnListing(string $table): array {
 		$table = $this->nadyDB->formatSql($table);
-		$this->builder->getColumnListing($table);
+		return $this->builder->getColumnListing($table);
 	}
 
 	/** Get the data type for the given column name. */
-	public function getColumnType(string $table, string $column) {
+	public function getColumnType(string $table, string $column): string {
 		$table = $this->nadyDB->formatSql($table);
-		$this->builder->getColumnType($table, $column);
+		return $this->builder->getColumnType($table, $column);
 	}
 
 	public function __call(string $name, array $arguments) {

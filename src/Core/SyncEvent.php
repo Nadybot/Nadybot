@@ -22,8 +22,10 @@ class SyncEvent extends Event {
 		if (!isset($this->sourceBot) || !isset($this->sourceDimension)) {
 			return true;
 		}
-		$myName = Registry::getInstance("chatBot")->char->name;
-		$myDim = (int)Registry::getInstance("chatBot")->vars['dimension'];
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance("chatBot");
+		$myName = $chatBot->char->name;
+		$myDim = (int)$chatBot->vars['dimension'];
 		return $this->sourceBot === $myName
 			&& $this->sourceDimension === $myDim;
 	}

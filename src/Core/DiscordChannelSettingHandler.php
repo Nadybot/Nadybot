@@ -63,7 +63,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			->withHeader('Authorization', 'Bot ' . $discordBotToken)
 			->withTimeout(10)
 			->waitAndReturnResponse();
-		if ($response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" && isset($response->body)) {
 			try {
 				$reply = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
@@ -76,13 +76,16 @@ class DiscordChannelSettingHandler extends SettingHandler {
 
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
-		if ($newValue === "off") {
+		if ($newValue === "off" || !isset($newValue)) {
 			return "<highlight>{$newValue}<end>";
 		}
 		$channel = $this->discordGatewayController->getChannel($newValue);
 		if ($channel !== null) {
-			$guild = $this->discordGatewayController->getGuilds()[$channel->guild_id];
-			return "<highlight>{$guild->name}<end> <img src=tdb://id:GFX_GUI_WINDOW_MAXIMIZE> #<highlight>{$channel->name}<end>";
+			$guild = $this->discordGatewayController->getGuilds()[$channel->guild_id]??null;
+			if (isset($guild)) {
+				return "<highlight>{$guild->name}<end> <img src=tdb://id:GFX_GUI_WINDOW_MAXIMIZE> #<highlight>{$channel->name}<end>";
+			}
+			return "#<highlight>{$channel->name}<end>";
 		}
 		$discordBotToken = $this->settingManager->get('discord_bot_token');
 		if (empty($discordBotToken)) {
@@ -93,7 +96,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			->withHeader('Authorization', 'Bot ' . $discordBotToken)
 			->withTimeout(10)
 			->waitAndReturnResponse();
-		if ($response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			return $newValue;
 		}
 		try {

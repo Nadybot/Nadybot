@@ -29,15 +29,15 @@ class SubcommandManager {
 	 * @description: Registers a subcommand
 	 */
 	public function register(
-		 string $module,
-		 ?string $channel,
-		 string $filename,
-		 string $command,
-		 string $admin,
-		 string $parent_command,
-		 ?string $description='none',
-		 ?string $help='',
-		 ?int $defaultStatus=null
+		string $module,
+		?string $channel,
+		string $filename,
+		string $command,
+		string $admin,
+		string $parent_command,
+		?string $description='none',
+		?string $help='',
+		?int $defaultStatus=null
 	): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
@@ -65,7 +65,7 @@ class SubcommandManager {
 		}
 
 		for ($i = 0; $i < count($channel); $i++) {
-			$this->logger->log('DEBUG', "Adding Subcommand to list:($command) File:($filename) Admin:($admin) Channel:({$channel[$i]})");
+			$this->logger->log('DEBUG', "Adding Subcommand to list:($command) File:($filename) Rights:(" . join(", ", (array)$admin).") Channel:({$channel[$i]})");
 
 			if ($this->chatBot->existing_subcmds[$channel[$i]][$command] == true) {
 				$this->db->table(CommandManager::DB_TABLE)

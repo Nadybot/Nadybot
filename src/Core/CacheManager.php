@@ -46,7 +46,7 @@ class CacheManager {
 			return null;
 		}
 		$cacheAge = $this->getCacheAge($groupName, $filename);
-		if ($cacheAge > $maxCacheAge) {
+		if (!isset($cacheAge) || $cacheAge > $maxCacheAge) {
 			return null;
 		}
 		$data = $this->retrieve($groupName, $filename);
@@ -65,6 +65,7 @@ class CacheManager {
 
 	/**
 	 * Lookup information in the cache or retrieve it when outdated and call the callback
+	 * @param mixed $args
 	 */
 	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
 		if (empty($groupName)) {
@@ -93,7 +94,7 @@ class CacheManager {
 		if ($response->error) {
 			$this->logger->log("WARN", $response->error);
 		}
-		if (!isset($response->body)) {
+		if (!isset($response->body) && isset($response->request)) {
 			$this->logger->log("WARN", "Empty reply received from " . $response->request->getURI());
 		}
 		if (empty($response->error)
@@ -128,7 +129,7 @@ class CacheManager {
 
 		$cacheResult = new CacheResult();
 		$cacheResult->data = $data;
-		$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename);
+		$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
 		$cacheResult->usedCache = true;
 		$cacheResult->oldCache = true;
 		$cacheResult->success = true;
@@ -161,7 +162,7 @@ class CacheManager {
 				$data = $this->retrieve($groupName, $filename);
 				if (call_user_func($isValidCallback, $data)) {
 					$cacheResult->data = $data;
-					$cacheResult->cacheAge = $cacheAge;
+					$cacheResult->cacheAge = $cacheAge??0;
 					$cacheResult->usedCache = true;
 					$cacheResult->oldCache = false;
 					$cacheResult->success = true;
@@ -192,7 +193,7 @@ class CacheManager {
 			$data = $this->retrieve($groupName, $filename);
 			if (call_user_func($isValidCallback, $data)) {
 				$cacheResult->data = $data;
-				$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename);
+				$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
 				$cacheResult->usedCache = true;
 				$cacheResult->oldCache = true;
 				$cacheResult->success = true;
@@ -203,7 +204,7 @@ class CacheManager {
 		}
 
 		// if a new file was downloaded, save it in the cache
-		if ($cacheResult->usedCache === false && $cacheResult->success === true) {
+		if ($cacheResult->usedCache === false && $cacheResult->success === true && isset($cacheResult->data)) {
 			$this->store($groupName, $filename, $cacheResult->data);
 		}
 

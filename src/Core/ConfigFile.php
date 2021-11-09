@@ -27,9 +27,11 @@ class ConfigFile {
 
 	/**
 	 * Loads the config file, creating the file if it doesn't exist yet.
+	 * @psalm-suppress UndefinedVariable
 	 */
 	public function load(): void {
 		$this->copyFromTemplateIfNeeded();
+		/** @psalm-suppress UnresolvableInclude */
 		require $this->filePath;
 		/** @phpstan-ignore-next-line */
 		$this->vars = $vars;
@@ -84,12 +86,10 @@ class ConfigFile {
 	 * Returns var from the config file.
 	 *
 	 * @param string $name name of the var
+	 * @return mixed
 	 */
 	public function getVar(string $name) {
-		if (isset($this->vars[$name])) {
-			return $this->vars[$name];
-		}
-		return null;
+		return $this->vars[$name] ?? null;
 	}
 
 	/**

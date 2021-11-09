@@ -22,10 +22,6 @@ class WebChatConverter {
 	/** @Inject */
 	public MessageHub $messageHub;
 
-	/**
-	 * @param string $msg
-	 * @return self
-	 */
 	public function convertMessage(string $msg): string {
 		return $this->toXML($this->parseAOFormat($msg));
 	}

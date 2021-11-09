@@ -10,6 +10,7 @@ use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionNamedType;
 use Throwable;
 
 /**
@@ -364,7 +365,7 @@ class EventManager {
 			->each(function(EventCfg $row) {
 				if (isset($this->dontActivateEvents[$row->type][$row->file])) {
 					unset($this->dontActivateEvents[$row->type][$row->file]);
-				} else {
+				} elseif (isset($row->type) && isset($row->file)) {
 					$this->activate($row->type, $row->file);
 				}
 			});
@@ -463,7 +464,7 @@ class EventManager {
 				continue;
 			}
 			foreach ($handlers as $callback) {
-				if (is_array($callback)) {
+				if (!is_object($callback) || !($callback instanceof Closure)) {
 					$callback = Closure::fromCallable($callback);
 				}
 				$refMeth = new ReflectionFunction($callback);
@@ -481,6 +482,9 @@ class EventManager {
 		}
 		$params = $refMeth->getParameters();
 		if (!count($params) || ($type = $params[0]->getType()) === null) {
+			return $eventObj;
+		}
+		if (!($type instanceof ReflectionNamedType)) {
 			return $eventObj;
 		}
 		$class = $type->getName();
@@ -542,7 +546,7 @@ class EventManager {
 
 	/**
 	 * Get a list of all registered event types
-	 * @return string[]
+	 * @return array<string,EventType>
 	 */
 	public function getEventTypes(): array {
 		return $this->eventTypes;

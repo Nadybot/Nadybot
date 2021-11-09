@@ -90,11 +90,11 @@ class CommandManager implements MessageEmitter {
 	 * Registers a command
 	 *
 	 * @param string   $module        The module that wants to register a new command
-	 * @param string[] $channel       The communication channels for which this command is available.
+	 * @param null|string $channelName The communication channels for which this command is available.
 	 *                                Any combination of "msg", "priv" or "guild" can be chosen.
 	 * @param string   $filename      A comma-separated list of "classname.method" handling $command
 	 * @param string   $command       The command to be registered
-	 * @param string   $accessLevel   The required access level to call this comnand. Valid values are:
+	 * @param string   $accessLevelStr The required access level to call this comnand. Valid values are:
 	 *                                "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
 	 *                                "mod", "guild", "member", "rl", "all"
 	 * @param string   $description   A short description what this command is for
@@ -102,11 +102,12 @@ class CommandManager implements MessageEmitter {
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, ?string $channel, string $filename, string $command, string $accessLevel, string $description, ?string $help='', $defaultStatus=null): void {
+	public function register(string $module, ?string $channelName, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
 
+		$channel = $channelName;
 		if (!$this->chatBot->processCommandArgs($channel, $accessLevel)) {
 			$this->logger->log('ERROR', "Invalid args for $module:command($command). Command not registered.");
 			return;
@@ -139,6 +140,7 @@ class CommandManager implements MessageEmitter {
 			$status = $defaultStatus;
 		}
 
+		/** @var string[] $channel */
 		for ($i = 0; $i < count($channel); $i++) {
 			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
 			try {
@@ -177,7 +179,7 @@ class CommandManager implements MessageEmitter {
 	 *                            "mod", "guild", "member", "rl", "all"
 	 * @return void
 	 */
-	public function activate(string $channel, string $filename, string $command, ?string $accessLevel='all'): void {
+	public function activate(string $channel, string $filename, string $command, string $accessLevel='all'): void {
 		$command = strtolower($command);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$channel = strtolower($channel);
@@ -252,7 +254,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach ($data as $row) {
 			if ($status === 1) {
-				$this->activate($row->type, $row->file, $row->cmd, $admin);
+				$this->activate($row->type, $row->file, $row->cmd, $admin??"all");
 			} elseif ($status === 0) {
 				$this->deactivate($row->type, $row->file, $row->cmd);
 			}
@@ -469,30 +471,29 @@ class CommandManager implements MessageEmitter {
 								continue;
 							}
 							$type = $params[$i]->getType();
-							if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+							if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
 								$args []= null;
 								continue;
 							}
-							if ($type instanceof ReflectionNamedType) {
-								switch ($type->getName()) {
-									case "int":
-										$args []= (int)$context->args[$var];
-										break;
-									case "bool":
-										$args []= in_array(strtolower($context->args[$var]), ["yes", "true", "1", "on", "enable", "enabled"]);
-										break;
-									case "float":
-										$args []= (float)$context->args[$var];
-										break;
-									default:
-										if (is_subclass_of($type->getName(), Base::class)) {
-											$class = $type->getName();
-											$args []= new $class($context->args[$var]);
-										} else {
-											$args []= $context->args[$var];
-										}
-										break;
-								}
+							switch ($type->getName()) {
+								case "int":
+									$args []= (int)$context->args[$var];
+									break;
+								case "bool":
+									$args []= in_array(strtolower($context->args[$var]), ["yes", "true", "1", "on", "enable", "enabled"]);
+									break;
+								case "float":
+									$args []= (float)$context->args[$var];
+									break;
+								default:
+									if (is_subclass_of($type->getName(), Base::class)) {
+										$class = $type->getName();
+										/** @psalm-suppress UnsafeInstantiation */
+										$args []= new $class($context->args[$var]);
+									} else {
+										$args []= $context->args[$var];
+									}
+									break;
 							}
 						}
 						$syntaxError = $instance->$method($context, ...$args) === false;

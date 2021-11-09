@@ -39,8 +39,8 @@ class Registry {
 		$name = strtolower($name);
 		LegacyLogger::log("DEBUG", "Registry", "Requesting instance for '$name'");
 
-		$instance = Registry::$repo[$name];
-		if ($instance == null) {
+		$instance = Registry::$repo[$name]??null;
+		if ($instance === null) {
 			LegacyLogger::log("WARN", "Registry", "Could not find instance for '$name'");
 		}
 

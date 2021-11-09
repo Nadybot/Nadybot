@@ -49,7 +49,7 @@ class HelpController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->helpManager->register(
 			$this->moduleName,
 			"about",
@@ -61,6 +61,7 @@ class HelpController {
 		$this->commandAlias->register($this->moduleName, "help about", "about");
 	}
 
+	/** @return string|string[] */
 	public function getAbout() {
 		$data = file_get_contents(__DIR__ . "/about.txt");
 		$version = BotRunner::getVersion();

@@ -10,7 +10,7 @@ class TimerEvent {
 	public int $delay = 0;
 
 	/** @var callable $callback */
-	public $callback = null;
+	public $callback;
 
 	/** @var mixed[] $args */
 	public array $args = [];

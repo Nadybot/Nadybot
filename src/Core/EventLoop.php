@@ -24,6 +24,9 @@ class EventLoop {
 	/** @var array<int,callable> */
 	protected static array $callbacks = [];
 
+	/**
+	 * @psalm-suppress RedundantConditionGivenDocblockType
+	 */
 	public function execSingleLoop(): void {
 		try {
 			$this->chatBot->processAllPackets();

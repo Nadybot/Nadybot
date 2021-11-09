@@ -28,8 +28,11 @@ class AsyncSocket {
 	public const STATE_CLOSING = 2;
 	public const STATE_CLOSED = 3;
 
-	/** @var resource */
-	protected $socket;
+	/**
+	 * @var ?resource
+	 * @psalm-var null|resource|closed-resource
+	 */
+	protected $socket = null;
 
 	/** @Inject */
 	public SocketManager $socketManager;
@@ -70,6 +73,7 @@ class AsyncSocket {
 	/**
 	 * Get the low level socket
 	 * @return resource
+	 * @psalm-return null|resource|closed-resource
 	 */
 	public function getSocket() {
 		return $this->socket;
@@ -81,7 +85,7 @@ class AsyncSocket {
 
 	public function setTimeout(int $timeout): self {
 		$this->timeout = $timeout;
-		if ($timeout > 0) {
+		if ($timeout > 0 && is_resource($this->socket)) {
 			stream_set_timeout($this->socket, $timeout);
 		}
 		return $this;
@@ -98,7 +102,7 @@ class AsyncSocket {
 	/**
 	 * Reset the timeout, because there was stream activity
 	 */
-	protected function refreshTimeout() {
+	protected function refreshTimeout(): void {
 		if ($this->timeout <=0) {
 			return;
 		}
@@ -122,7 +126,9 @@ class AsyncSocket {
 		$this->logger->log('DEBUG', 'Connection timeout');
 		if ($this->state === static::STATE_CLOSING) {
 			$this->logger->log('DEBUG', 'Forcefully closing socket');
-			@fclose($this->socket);
+			if (is_resource($this->socket)) {
+				@fclose($this->socket);
+			}
 			$this->destroy();
 			return;
 		}
@@ -140,7 +146,7 @@ class AsyncSocket {
 			$this->logger->log('TRACE', 'Socket ready for READ');
 			$this->lastRead = microtime(true);
 			$this->refreshTimeout();
-			if (feof($this->socket)) {
+			if (is_resource($this->socket) && feof($this->socket)) {
 				if ($this->state === static::STATE_CLOSING) {
 					$this->logger->log('DEBUG', 'Endpoint confirmed close.');
 				} else {
@@ -149,6 +155,7 @@ class AsyncSocket {
 				}
 				$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 				$this->trigger(static::CLOSE);
+				/** @psalm-suppress RedundantCondition */
 				if (isset($this->timeoutEvent)) {
 					$this->timer->abortEvent($this->timeoutEvent);
 				}
@@ -187,7 +194,7 @@ class AsyncSocket {
 		if (isset($this->callbacks[$event])) {
 			$this->callbacks[$event] []= $callback;
 		}
-		if ($event === static::DATA) {
+		if ($event === self::DATA) {
 			$mayListenToReads = !count($this->writeQueue) || !($this->writeQueue[0] instanceof WriteClosureInterface) || $this->writeQueue[0]->allowReading();
 			if ($mayListenToReads) {
 				$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
@@ -203,7 +210,7 @@ class AsyncSocket {
 		foreach ($this->callbacks[$event] as $callback) {
 			$callback($this, ...$params);
 		}
-		if ($event === static::CLOSE) {
+		if ($event === self::CLOSE) {
 			$this->destroy();
 		}
 	}
@@ -237,7 +244,7 @@ class AsyncSocket {
 
 	protected function forceClose(): void {
 		$this->logger->log('DEBUG', 'Force closing connection');
-		if (!isset($this->socket) || $this->socket === false) {
+		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
 		@fclose($this->socket);
@@ -251,10 +258,10 @@ class AsyncSocket {
 	 * Async close the socket gracefully
 	 */
 	public function close(): bool {
-		if ($this->state === static::STATE_CLOSED) {
+		if ($this->state === self::STATE_CLOSED) {
 			return true;
 		}
-		if ($this->state === static::STATE_CLOSING) {
+		if ($this->state === self::STATE_CLOSING) {
 			$this->forceClose();
 			return true;
 		}
@@ -343,7 +350,7 @@ class AsyncSocket {
 				return;
 			}
 			$this->logger->log('DEBUG', 'Closing socket');
-			if (@stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
+			if (!is_resource($this->socket) || @stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
 				$this->forceClose();
 				return;
 			}
@@ -372,10 +379,10 @@ class AsyncSocket {
 			return true;
 		}
 		if ($result === false) {
-			$this->logger->log('WARNING', 'Writing closure failed: ' . error_get_last()['message']);
+			$this->logger->log('WARNING', 'Writing closure failed: ' . (error_get_last()['message'] ?? "unknown error"));
 			$this->trigger(
-				static::ERROR,
-				static::ERROR_CALLBACK,
+				self::ERROR,
+				self::ERROR_CALLBACK,
 				"Callback returned failure."
 			);
 			$this->forceClose();
@@ -414,7 +421,7 @@ class AsyncSocket {
 				'"'
 			);
 		}
-		$written = fwrite($this->socket, $data, 4096);
+		$written = is_resource($this->socket) ? fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();
 			return false;

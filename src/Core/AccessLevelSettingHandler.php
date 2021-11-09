@@ -47,7 +47,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 	}
 
 	public function displayValue(string $sender): string {
-		$value = $this->row->value;
+		$value = $this->row->value ?? "all";
 		$rank = ucfirst(strtolower($this->accessManager->getDisplayName($value)));
 		return "<highlight>{$rank}<end>";
 	}

@@ -35,7 +35,9 @@ class Source {
 		$this->name = $name;
 		$this->label = $label;
 		if (!isset($dimension)) {
-			$this->server = (int)Registry::getInstance("chatBot")->vars["dimension"];
+			/** @var Nadybot */
+			$chatBot = Registry::getInstance("chatBot");
+			$this->server = (int)$chatBot->vars["dimension"];
 		} else {
 			$this->server = $dimension;
 		}
@@ -65,7 +67,6 @@ class Source {
 		if (!isset($exactMatch)) {
 			return $name;
 		}
-		/** @var ?RouteHopFormat $exactMatch */
 		if ($exactMatch->render === false) {
 			return null;
 		}

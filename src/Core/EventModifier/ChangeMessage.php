@@ -54,15 +54,15 @@ class ChangeMessage implements EventModifier {
 		if (isset($search) && !isset($replace)) {
 			throw new Exception("Missing parameter 'replace'");
 		}
-		if ($regexp && @preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
-			$error = error_get_last()["message"];
+		if (isset($search) && $regexp && @preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
+			$error = error_get_last()["message"]??"Unknown error";
 			$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
 			throw new Exception("Invalid regular expression '{$search}': {$error}.");
 		}
 	}
 
 	protected function alterMessage(string $message): string {
-		if (isset($this->search)) {
+		if (isset($this->search) && isset($this->replace)) {
 			if ($this->isRegExp) {
 				$message = preg_replace(
 					chr(1) . $this->search . chr(1) . "s",
@@ -80,6 +80,9 @@ class ChangeMessage implements EventModifier {
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
+		if (!isset($event)) {
+			return $event;
+		}
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			$message = $event->getData()->message??null;
 			if (!isset($message)) {
@@ -87,6 +90,9 @@ class ChangeMessage implements EventModifier {
 			}
 			$message = $this->alterMessage($message);
 			$modifiedEvent = clone $event;
+			if (!isset($modifiedEvent->data) || !is_object($modifiedEvent->data)) {
+				return $event;
+			}
 			$modifiedEvent->data->message = $message;
 			return $modifiedEvent;
 		}

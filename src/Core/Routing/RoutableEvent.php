@@ -49,6 +49,7 @@ class RoutableEvent extends Event {
 		return $this;
 	}
 
+	/** @return mixed */
 	public function getData() {
 		return $this->data;
 	}
