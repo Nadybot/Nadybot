@@ -199,6 +199,9 @@ class MessageHub {
 			);
 		}
 		$class = $spec->class;
+		if (!is_subclass_of($class, EventModifier::class)) {
+			throw new Exception("{$class} is registered as an EventModifier, but not a subclass of it.");
+		}
 		try {
 			$obj = new $class(...$arguments);
 			Registry::injectDependencies($obj);
@@ -409,7 +412,10 @@ class MessageHub {
 		$lastHop = null;
 		$hops = $event->getPath();
 		$hopPos = array_search($source, $hops, true);
-		$lastHop = ($hopPos === false || $hopPos === 0) ? null : $hops[$hopPos-1];
+		if ($hopPos === false) {
+			return null;
+		}
+		$lastHop = ($hopPos === 0) ? null : $hops[(int)$hopPos-1];
 		$name = $source->render($lastHop);
 		if (!isset($name)) {
 			return null;
@@ -646,7 +652,7 @@ class MessageHub {
 		$hop = $path[count($path)-1] ?? null;
 		if (empty($event->char) || $event->char->id === $this->chatBot->char->id) {
 			if (!isset($hop) || $hop->type !== Source::SYSTEM) {
-				$sysColor = $this->settingManager->getString("default_routed_sys_color");
+				$sysColor = $this->settingManager->getString("default_routed_sys_color")??"";
 				return $sysColor;
 			}
 		}

@@ -90,39 +90,39 @@ class Util {
 				case 'yr':
 				case 'year':
 				case 'years':
-					$unixtime += $match[1] * 31536000;
+					$unixtime += (int)$match[1] * 31536000;
 					break;
 				case 'mo':
 				case 'month':
 				case 'months':
-					$unixtime += $match[1] * 2592000;
+					$unixtime += (int)$match[1] * 2592000;
 					break;
 				case 'weeks':
 				case 'week':
 				case 'w':
-					$unixtime += $match[1] * 604800;
+					$unixtime += (int)$match[1] * 604800;
 					break;
 				case 'days':
 				case 'day':
 				case 'd':
-					$unixtime += $match[1] * 86400;
+					$unixtime += (int)$match[1] * 86400;
 					break;
 				case 'hours':
 				case 'hour':
 				case 'hrs':
 				case 'hr':
 				case 'h':
-					$unixtime += $match[1] * 3600;
+					$unixtime += (int)$match[1] * 3600;
 					break;
 				case 'mins':
 				case 'min':
 				case 'm':
-					$unixtime += $match[1] * 60;
+					$unixtime += (int)$match[1] * 60;
 					break;
 				case 'secs':
 				case 'sec':
 				case 's':
-					$unixtime += $match[1];
+					$unixtime += (int)$match[1];
 					break;
 				default:
 					return 0;
@@ -456,6 +456,7 @@ class Util {
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
 	 * @param string $column The table column to test against
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
+	 * @psalm-return array{0: string, 1: list<string>}
 	 */
 	public function generateQueryFromParams(array $params, string $column): array {
 		$queryParams = [];

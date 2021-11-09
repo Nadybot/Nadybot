@@ -29,5 +29,7 @@
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
         <UndefinedPropertyAssignment errorLevel="suppress" />
+        <MoreSpecificReturnType errorLevel="suppress" />
+        <ArgumentTypeCoercion errorLevel="suppress" />
     </issueHandlers>
 </psalm>
