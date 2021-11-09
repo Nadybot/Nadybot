@@ -90,7 +90,10 @@ class ProfileApiController {
 	 * @ApiResult(code=404, desc='Profile not found')
 	 */
 	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
-		$op = $request->decodedBody->op ?? null;
+		$op = null;
+		if (is_object($request->decodedBody)) {
+			$op = $request->decodedBody->op ?? null;
+		}
 		if ($op !== "load") {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -99,7 +102,7 @@ class ProfileApiController {
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs);
+		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
 		if ($output === null) {
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}

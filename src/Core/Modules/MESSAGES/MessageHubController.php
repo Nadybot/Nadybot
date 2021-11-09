@@ -74,7 +74,7 @@ class MessageHubController {
 	public LoggerWrapper $logger;
 
 	/** Load defined routes from the database and activate them */
-	public function loadRouting() {
+	public function loadRouting(): void {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
 			->orderBy("id")
 			->asObj(RouteModifierArgument::class)
@@ -178,7 +178,7 @@ class MessageHubController {
 		}
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-			foreach ($modifiers as $modifier) {
+			foreach ($modifiers??[] as $modifier) {
 				$modifier->route_id = $route->id;
 				$modifier->id = $this->db->insert(
 					$this->messageHub::DB_TABLE_ROUTE_MODIFIER,
@@ -873,7 +873,7 @@ class MessageHubController {
 	/** Turn on/off rendering of a specific hop */
 	public function setHopRender(string $hop, bool $state): void {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		$update = true;
 		if (!isset($format)) {
 			$format = new RouteHopFormat();
@@ -895,7 +895,7 @@ class MessageHubController {
 		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
 			throw new Exception("Invalid format string given.");
 		}
-		$spec = Source::$format->first(fn($x) => $x->hop === $hop);
+		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		/** @var RouteHopFormat $format */
 		$update = true;
 		if (!isset($spec)) {
@@ -914,7 +914,7 @@ class MessageHubController {
 
 	public function clearHopFormat(string $hop): bool {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		if (!isset($format)) {
 			return false;
 		}
@@ -931,13 +931,13 @@ class MessageHubController {
 				if (isset($where) !== isset($x->where)) {
 					return false;
 				}
-				if (isset($where) && strcasecmp($x->where, $where) !== 0) {
+				if (isset($where) && strcasecmp($x->where??"", $where) !== 0) {
 					return false;
 				}
 				if (isset($via) !== isset($x->via)) {
 					return false;
 				}
-				if (isset($via) && strcasecmp($x->via, $via) !== 0) {
+				if (isset($via) && strcasecmp($x->via??"", $via) !== 0) {
 					return false;
 				}
 				return strcasecmp($x->hop, $hop) === 0;

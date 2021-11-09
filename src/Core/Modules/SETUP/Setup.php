@@ -32,7 +32,7 @@ class Setup {
 		return trim(fgets(STDIN));
 	}
 
-	public function showStep(string $text) {
+	public function showStep(string $text): void {
 		$indentString = str_repeat(" ", self::INDENT);
 		$lines = explode("\n", trim($text));
 		echo "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Registry,
 	SettingManager,
 	SQLException,
 	Text,
@@ -94,7 +95,7 @@ class AltsController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
@@ -593,7 +594,7 @@ class AltsController {
 	 * @Description("Reminds unvalidates alts/mains to accept or deny")
 	 */
 	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
-		if (!$this->chatBot->isReady()) {
+		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
 		$sender = $eventObj->sender;
@@ -630,7 +631,7 @@ class AltsController {
 			$this->text->makeChatcmd("no", "/tell <myname> altdecline {$altInfo->main}").
 			"]";
 		$msg = "{$altInfo->main} requested to add you as their alt :: ".
-			$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt");
+			((array)$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt"))[0];
 		$this->chatBot->sendTell($msg, $sender);
 	}
 
@@ -652,7 +653,7 @@ class AltsController {
 		}
 		$msg = "You have <highlight>" . count($alts) . "<end> unanswered ".
 			"alt request{$plural} :: ".
-			$this->text->makeBlob("decide", $blob, "Decide who is your alt");
+			((array)$this->text->makeBlob("decide", $blob, "Decide who is your alt"))[0];
 		$this->chatBot->sendTell($msg, $main);
 	}
 
@@ -665,6 +666,7 @@ class AltsController {
 		$player = ucfirst(strtolower($player));
 
 		$ai = new AltInfo();
+		Registry::injectDependencies($ai);
 		$ai->main = $player;
 		$query = $this->db->table("alts")
 			->where(function(QueryBuilder $query) use ($includePending, $player) {
@@ -683,9 +685,9 @@ class AltsController {
 		$query->asObj(Alt::class)->each(function(Alt $row) use ($ai) {
 			$ai->main = $row->main;
 			$ai->alts[$row->alt] = new AltValidationStatus();
-			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt;
-			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main;
-			$ai->alts[$row->alt]->added_via = $row->added_via;
+			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
+			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
+			$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
 		});
 
 		return $ai;

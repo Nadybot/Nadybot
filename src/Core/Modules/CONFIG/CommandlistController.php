@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	CommandReply,
 	Text,
 };
 use Nadybot\Core\DBSchema\CommandListEntry;

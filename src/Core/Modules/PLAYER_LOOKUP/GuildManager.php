@@ -38,7 +38,7 @@ class GuildManager {
 	public PlayerManager $playerManager;
 
 	protected function getJsonValidator(): Closure {
-		return function($data): bool {
+		return function(?string $data): bool {
 			try {
 				if ($data === null) {
 					return false;
@@ -121,7 +121,7 @@ class GuildManager {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data);
+		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);

@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SQLException,
 	Text,
+	Util,
 };
 use Nadybot\Core\DBSchema\RateIgnoreList;
 use Nadybot\Core\ParamClass\PCharacter;
@@ -41,7 +42,7 @@ class RateIgnoreController {
 	public Text $text;
 
 	/** @Inject */
-	public $util;
+	public Util $util;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -49,7 +50,7 @@ class RateIgnoreController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 

@@ -263,7 +263,9 @@ class BanController {
 		$bans = [];
 		foreach ($banlist as $ban) {
 			$blob = "<header2>{$ban->name}<end>\n";
-			$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
+			if (isset($ban->time)) {
+				$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
+			}
 			$blob .= "<tab>By: <highlight>{$ban->admin}<end>\n";
 			if (isset($ban->banend) && $ban->banend !== 0) {
 				$blob .= "<tab>Ban ends: <highlight>" . $this->util->unixtimeToReadable($ban->banend - time(), false) . "<end>\n";
@@ -463,7 +465,11 @@ class BanController {
 
 		$audit = new Audit();
 		$audit->actor = $sender;
-		$audit->actee = $this->chatBot->lookup_user($charId);
+		$charName = $this->chatBot->lookup_user($charId);
+		if (!is_string($charName)) {
+			$charName = (string)$charId;
+		}
+		$audit->actee = $charName;
 		$audit->action = $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN;
 		$audit->value = $reason;
 		$this->accessManager->addAudit($audit);
@@ -534,7 +540,11 @@ class BanController {
 		return isset($this->banlist[$charId]);
 	}
 
-	/** Call either the notbanned ort banned callback for $charId */
+	/**
+	 * Call either the notbanned ort banned callback for $charId
+	 * @psalm-suppress MissingClosureReturnType
+	 * @psalm-suppress TooManyArguments
+	 */
 	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
 		$notBanned ??= fn() => null;
 		$banned ??= fn() => null;
@@ -550,7 +560,7 @@ class BanController {
 			$banned($charId, ...$args);
 			return;
 		}
-		$player = $this->chatBot->id[$charId];
+		$player = (string)$this->chatBot->id[$charId];
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($charId, $notBanned, $banned, $args): void {
 				if (!isset($whois) || !isset($whois->guild_id)) {

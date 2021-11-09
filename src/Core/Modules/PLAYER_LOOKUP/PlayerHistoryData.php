@@ -14,5 +14,5 @@ class PlayerHistoryData extends JSONDataModel {
 	public ?string $guild_rank_name;
 	public ?string $guild_name;
 	public DateTime $last_changed;
-	public $faction;
+	public string $faction;
 }

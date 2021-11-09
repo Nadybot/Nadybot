@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use Closure;
 use JsonException;
 use stdClass;
 use Nadybot\Core\{
@@ -157,10 +158,10 @@ class DiscordAPIClient {
 	}
 
 	public function cacheGuildMember(string $guildId, GuildMember $member): void {
-		if (!isset($this->guildMemberCache[$guildId])) {
-			$this->guildMemberCache[$guildId] = [];
+		$this->guildMemberCache[$guildId] ??= [];
+		if (isset($member->user)) {
+			$this->guildMemberCache[$guildId][$member->user->id] = $member;
 		}
-		$this->guildMemberCache[$guildId][$member->user->id] = $member;
 	}
 
 	public function getGuildMember(string $guildId, string $userId, callable $callback, ...$args): void {
@@ -181,14 +182,14 @@ class DiscordAPIClient {
 		);
 	}
 
-	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, ...$args) {
+	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, ...$args): void {
 		$this->cacheGuildMember($guildId, $member);
 		if (isset($callback)) {
 			$callback($member, ...$args);
 		}
 	}
 
-	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, ...$args) {
+	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, ...$args): Closure {
 		return function(HttpResponse $response) use ($o, $callback, $args) {
 			if (isset($response->error)) {
 				$this->logger->log('ERROR', $response->error);
@@ -199,7 +200,7 @@ class DiscordAPIClient {
 					'ERROR',
 					'Error received while sending message to Discord. Status-Code: '.
 					$response->headers['status-code'].
-					', Content: '.$response->body ?? ''
+					', Content: '.($response->body ?? '')
 				);
 				return;
 			}
@@ -218,7 +219,7 @@ class DiscordAPIClient {
 				return;
 			}
 			try {
-				$reply = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+				$reply = json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->logger->log(
 					'ERROR',

@@ -354,7 +354,7 @@ class SystemController implements MessageEmitter {
 		$info->stats = $stats = new SystemStats();
 
 		$query = $this->db->table("players");
-		$row = $query->selectRaw($query->rawFunc("COUNT", "*", "count"))
+		$row = $query->select($query->rawFunc("COUNT", "*", "count"))
 			->asObj()->first();
 		$stats->charinfo_cache_size = (int)$row->count;
 
@@ -362,13 +362,18 @@ class SystemController implements MessageEmitter {
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
 		$stats->priv_channel_size = count($this->chatBot->chatlist);
 		$stats->org_size = count($this->chatBot->guildmembers);
-		$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+		$stats->chatqueue_length = 0;
+		if (isset($this->chatBot->chatqueue)) {
+			$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+		}
 
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$channel = new ChannelInfo();
 			$channel->id = unpack("N", substr((string)$gid, 1))[1];
-			$channel->name = $this->chatBot->gid[$gid];
-			$info->channels []= $channel;
+			if (is_string($this->chatBot->gid[$gid])) {
+				$channel->name = $this->chatBot->gid[$gid];
+				$info->channels []= $channel;
+			}
 		}
 
 		return $info;
@@ -496,6 +501,10 @@ class SystemController implements MessageEmitter {
 	 * @HandlesCommand("clearqueue")
 	 */
 	public function clearqueueCommand(CmdContext $context): void {
+		if (!isset($this->chatBot->chatqueue)) {
+			$context->reply("There is currently no Chat queue set up.");
+			return;
+		}
 		$num = 0;
 		foreach ($this->chatBot->chatqueue->queue as $priority) {
 			$num += count($priority);

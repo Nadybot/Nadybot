@@ -74,7 +74,10 @@ class ConfigApiController {
 	 * @ApiResult(code=404, desc='Module or Event not found')
 	 */
 	public function toggleEventStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $event, string $handler): Response {
-		$op = $request->decodedBody->op ?? null;
+		$op = null;
+		if (is_object($request->decodedBody)) {
+			$op = $request->decodedBody->op ?? null;
+		}
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -117,6 +120,9 @@ class ConfigApiController {
 			return new Response(Response::NOT_FOUND);
 		}
 		$settingHandler = $this->settingManager->getSettingHandler($oldSetting);
+		if (!isset($settingHandler)) {
+			return new Response(Response::INTERNAL_SERVER_ERROR);
+		}
 		$modSet = new ModuleSetting($oldSetting);
 		$value = $request->decodedBody ?? null;
 		if (!is_string($value) && !is_int($value) && !is_bool($value)) {
@@ -156,7 +162,7 @@ class ConfigApiController {
 			);
 		}
 		if ($modSet->type === $modSet::TYPE_COLOR) {
-			if (preg_match("/(#[0-9a-fA-F]{6})/", $value, $matches)) {
+			if (is_string($value) && preg_match("/(#[0-9a-fA-F]{6})/", $value, $matches)) {
 				$value = "<font color='{$matches[1]}'>";
 			}
 		}
@@ -199,9 +205,9 @@ class ConfigApiController {
 			$parsed++;
 			try {
 				if ($subCmd) {
-					$result += (int)($this->configController->changeSubcommandAL($request->authenticatedAs, $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeSubcommandAL($request->authenticatedAs??"_", $command, $channel, $body->access_level) === 1);
 				} else {
-					$result += (int)($this->configController->changeCommandAL($request->authenticatedAs, $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeCommandAL($request->authenticatedAs??"_", $command, $channel, $body->access_level) === 1);
 				}
 			} catch (Exception $e) {
 				$exception = $e;
@@ -209,7 +215,7 @@ class ConfigApiController {
 		}
 		if (isset($body->enabled)) {
 			$parsed++;
-			$result += (int)$this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, $channel, $body->enabled);
+			$result += (int)$this->configController->toggleCmd($request->authenticatedAs??"_", $subCmd, $command, $channel, $body->enabled);
 		}
 		if ($parsed === 0) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
@@ -250,13 +256,16 @@ class ConfigApiController {
 	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
 	public function toggleCommandStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command): Response {
-		$op = $request->decodedBody->op ?? null;
+		$op = null;
+		if (is_object($request->decodedBody)) {
+			$op = $request->decodedBody->op ?? null;
+		}
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		$subCmd = (bool)preg_match("/\s/", $command);
 		try {
-			if ($this->configController->toggleCmd($request->authenticatedAs, $subCmd, $command, "all", $op === "enable") === true) {
+			if ($this->configController->toggleCmd($request->authenticatedAs??"_", $subCmd, $command, "all", $op === "enable") === true) {
 				$cmd = $this->configController->getRegisteredCommand($module, $command);
 				if (!isset($cmd)) {
 					return new Response(Response::NOT_FOUND);
@@ -283,7 +292,10 @@ class ConfigApiController {
 	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
 	public function toggleModuleStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
-		$op = $request->decodedBody->op ?? null;
+		$op = null;
+		if (is_object($request->decodedBody)) {
+			$op = $request->decodedBody->op ?? null;
+		}
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -326,7 +338,7 @@ class ConfigApiController {
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
 			if (strlen($setting->getData()->help??"") > 0) {
-				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs);
+				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs??"_");
 				if ($help !== null) {
 					$modSet->help = $this->webChatConverter->toXML(
 						$this->webChatConverter->parseAOFormat(

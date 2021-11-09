@@ -90,7 +90,7 @@ class AdminController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->adminManager->uploadAdmins();
 
 		$this->commandAlias->register($this->moduleName, "admin add", "addadmin");
@@ -267,7 +267,7 @@ class AdminController {
 		return $ai->main == $who;
 	}
 
-	public function checkAccessLevel(string $actor, string $actee) {
+	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;

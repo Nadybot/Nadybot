@@ -41,7 +41,7 @@ class DiscordController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
 			'discord_bot_token',
@@ -122,7 +122,7 @@ class DiscordController {
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
 		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
-		$text = str_replace("<symbol>", $this->settingManager->get("symbol"), $text);
+		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "_ _  ", $text);
 		$text = preg_replace("/^    /m", "_ _  ", $text);
@@ -156,7 +156,7 @@ class DiscordController {
 			-1,
 			$linksReplaced2
 		);
-		$linksReplaced += $linksReplaced2;
+		$linksReplaced = ($linksReplaced??0) + ($linksReplaced2??0);
 
 		$embeds = [];
 		$text = preg_replace_callback(
@@ -191,7 +191,7 @@ class DiscordController {
 		if ($discordBotToken === "" || $discordBotToken === 'off') {
 			return;
 		}
-		$discordChannel = $this->settingManager->getString('discord_notify_channel');
+		$discordChannel = $this->settingManager->getString('discord_notify_channel')??"off";
 		if ($discordChannel === 'off') {
 			return;
 		}
@@ -204,9 +204,9 @@ class DiscordController {
 				"parse" => ["users"]
 			];
 			if (!$allowGroupMentions) {
-				$message->allowed_Mentions->parse []= ["roles"];
-				$message->allowed_Mentions->parse []= ["here"];
-				$message->allowed_Mentions->parse []= ["everyone"];
+				$message->allowed_mentions->parse []= ["roles"];
+				$message->allowed_mentions->parse []= ["here"];
+				$message->allowed_mentions->parse []= ["everyone"];
 			}
 			$this->discordAPIClient->sendToChannel($discordChannel, $message->toJSON());
 		}

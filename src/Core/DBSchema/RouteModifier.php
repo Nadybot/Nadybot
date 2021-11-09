@@ -38,7 +38,7 @@ class RouteModifier extends DBRow {
 	}
 
 	/**
-	 * @return array<string,string>
+	 * @return array<string,string|string[]>
 	 */
 	public function getKVArguments(): array {
 		return array_reduce(

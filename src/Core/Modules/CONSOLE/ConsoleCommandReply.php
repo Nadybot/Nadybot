@@ -192,7 +192,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		);
 	}
 
-	public function formatMsg(string $message) {
+	public function formatMsg(string $message): string {
 		$array = [
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
@@ -286,9 +286,9 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$text = $this->replaceColorNamesWithCodes($text);
 		$sm = $this->chatBot->settingManager;
 		$array = [
-			"<header>" => str_replace("'", "", $sm->get('default_header_color')),
-			"<header2>" => str_replace("'", "", $sm->get('default_header2_color')),
-			"<highlight>" => str_replace("'", "", $sm->get('default_highlight_color')),
+			"<header>" => str_replace("'", "", $sm->getString('default_header_color')??""),
+			"<header2>" => str_replace("'", "", $sm->getString('default_header2_color')??""),
+			"<highlight>" => str_replace("'", "", $sm->getString('default_highlight_color')??""),
 			"<link>" => "\e[4m<font color=#219CFF>",
 			"</link>" => "</font>\e[24m",
 			"<black>" => "<font color=#000000>",
@@ -302,14 +302,14 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			"<cyan>" => "<font color=#00FFFF>",
 			"<violet>" => "<font color=#8F00FF>",
 
-			"<neutral>" => $sm->get('default_neut_color'),
-			"<omni>" => $sm->get('default_omni_color'),
-			"<clan>" => $sm->get('default_clan_color'),
-			"<unknown>" => $sm->get('default_unknown_color'),
+			"<neutral>" => $sm->getString('default_neut_color')??"",
+			"<omni>" => $sm->getString('default_omni_color')??"",
+			"<clan>" => $sm->getString('default_clan_color')??"",
+			"<unknown>" => $sm->getString('default_unknown_color')??"",
 
 			"<end>" => "</font>",
 		];
-		$defaultColor = $sm->get('default_priv_color');
+		$defaultColor = $sm->getString('default_priv_color')??"";
 		$text = $defaultColor . str_ireplace(array_keys($array), array_values($array), $text);
 		return $text;
 	}

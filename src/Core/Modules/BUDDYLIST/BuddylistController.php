@@ -31,7 +31,7 @@ class BuddylistController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -177,8 +177,8 @@ class BuddylistController {
 	 */
 	public function getSortedBuddyList(): array {
 		$buddylist = $this->buddylistManager->buddyList;
-		usort($buddylist, function (BuddylistEntry $entry1, BuddylistEntry $entry2) {
-			return $entry1->name > $entry2->name;
+		usort($buddylist, function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {
+			return strnatcmp($entry1->name, $entry2->name);
 		});
 		return $buddylist;
 	}

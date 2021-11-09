@@ -64,7 +64,7 @@ class UsageController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
@@ -122,8 +122,8 @@ class UsageController {
 			->where("dt", ">", $time)
 			->groupBy("command")
 			->select("command");
-		$query->orderByRaw($query->colFunc("COUNT", "command"))
-			->selectRaw($query->colFunc("COUNT", "command", "count"));
+		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue()())
+			->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
 		$data = $query->asObj();
 		$count = $data->count();
 
@@ -223,7 +223,7 @@ class UsageController {
 			->groupBy("type")
 			->orderBy("type")
 			->select("type");
-		$query->selectRaw($query->colFunc("COUNT", "type", "cnt"));
+		$query->selectRaw($query->colFunc("COUNT", "type", "cnt")->getValue());
 		$data = $query->asObj()->toArray();
 
 		$blob = "<header2>Channel Usage<end>\n";
@@ -245,7 +245,7 @@ class UsageController {
 			->orderByColFunc("COUNT", "command", "desc")
 			->limit($limit)
 			->select("command");
-		$query->selectRaw($query->colFunc("COUNT", "command", "count"));
+		$query->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
 		$data = $query->asObj()->toArray();
 
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
@@ -262,7 +262,7 @@ class UsageController {
 			->orderByColFunc("COUNT", "sender", "desc")
 			->limit($limit)
 			->select("sender");
-		$query->selectRaw($query->colFunc("COUNT", "sender", "count"));
+		$query->selectRaw($query->colFunc("COUNT", "sender", "count")->getValue());
 		$data = $query->asObj()->toArray();
 
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
@@ -298,7 +298,7 @@ class UsageController {
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
 		global $version;
 
-		$botid = $this->settingManager->getString('botid');
+		$botid = $this->settingManager->getString('botid')??"";
 		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
 			$this->settingManager->save('botid', $botid);
@@ -309,8 +309,8 @@ class UsageController {
 			->where("dt", "<", time())
 			->groupBy("command")
 			->select("command");
-		$query->selectRaw($query->rawFunc("COUNT", "*", "count"));
-		$commands = $query->asObj()->reduce(function($carry, $entry) {
+		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
+		$commands = $query->asObj()->reduce(function(stdClass $carry, object $entry) {
 			$carry->{$entry->command} = $entry->count;
 			return $carry;
 		}, new stdClass());
@@ -324,7 +324,7 @@ class UsageController {
 		$settings->bot_version             = $version;
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
-		$settings->symbol                  = $this->settingManager->getString('symbol');
+		$settings->symbol                  = $this->settingManager->getString('symbol')??"!";
 		$settings->num_relays              = $this->db->table(RelayController::DB_TABLE)->count();
 		$settings->relay_protocols         = $this->db->table(RelayController::DB_TABLE_LAYER)
 			->orderBy("relay_id")->orderByDesc("id")->asObj(RelayLayer::class)
@@ -332,13 +332,13 @@ class UsageController {
 			->map(function(Collection $group): string {
 				return $group->first()->layer;
 			})->flatten()->unique()->toArray();
-		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only');
-		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version');
-		$settings->max_blob_size           = $this->settingManager->getInt('max_blob_size');
-		$settings->online_show_org_guild   = $this->settingManager->getInt('online_show_org_guild');
-		$settings->online_show_org_priv    = $this->settingManager->getInt('online_show_org_priv');
-		$settings->online_admin            = $this->settingManager->getBool('online_admin');
-		$settings->tower_attack_spam       = $this->settingManager->getInt('tower_attack_spam');
+		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only')??false;
+		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version')??"unknown";
+		$settings->max_blob_size           = $this->settingManager->getInt('max_blob_size')??0;
+		$settings->online_show_org_guild   = $this->settingManager->getInt('online_show_org_guild')??-1;
+		$settings->online_show_org_priv    = $this->settingManager->getInt('online_show_org_priv')??-1;
+		$settings->online_admin            = $this->settingManager->getBool('online_admin')??false;
+		$settings->tower_attack_spam       = $this->settingManager->getInt('tower_attack_spam')??-1;
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
 		$obj = new UsageStats();

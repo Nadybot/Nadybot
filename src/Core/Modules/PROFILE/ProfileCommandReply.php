@@ -8,6 +8,8 @@ class ProfileCommandReply implements CommandReply {
 	public string $result = "";
 
 	public function reply($msg): void {
-		$this->result .= $msg . "\n";
+		foreach ((array)$msg as $chunk) {
+			$this->result .= $chunk . "\n";
+		}
 	}
 }

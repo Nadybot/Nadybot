@@ -148,7 +148,7 @@ class PlayerManager {
 				$name,
 				$dimension,
 				function(?Player $player) use ($charid, $callback): void {
-					if ($player !== null && $charid !== false) {
+					if ($player !== null && is_int($charid)) {
 						$player->charid = $charid;
 						$this->update($player);
 					}
@@ -163,7 +163,7 @@ class PlayerManager {
 				function(?Player $player2) use ($charid, $callback, $player): void {
 					if ($player2 !== null) {
 						$player = $player2;
-						if ($charid !== false) {
+						if (is_int($charid)) {
 							$player->charid = $charid;
 							$this->update($player);
 						}

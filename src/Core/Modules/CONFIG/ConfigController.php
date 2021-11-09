@@ -411,7 +411,7 @@ class ConfigController {
 			if ($enable) {
 				$this->commandManager->activate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
 			} else {
-				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd);
 			}
 		}
 	}
@@ -672,9 +672,9 @@ class ConfigController {
 		}
 
 		foreach ($data as $row) {
-			$blob .= "<tab>" . $row->getData()->description ?? "";
+			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
-			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin)) {
+			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
 				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
 			}
 
@@ -831,7 +831,7 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given subcommand.
 	 */
-	private function getSubCommandInfo($cmd, $type) {
+	private function getSubCommandInfo($cmd, $type): string {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
 		$data = $this->db->table(CommandManager::DB_TABLE)
