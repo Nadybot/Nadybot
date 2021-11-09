@@ -27,5 +27,6 @@
         <RedundantPropertyInitializationCheck errorLevel="suppress" />
         <RedundantCast errorLevel="suppress" />
         <RedundantCondition errorLevel="suppress" />
+        <UnresolvableInclude errorLevel="suppress" />
     </issueHandlers>
 </psalm>

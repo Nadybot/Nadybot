@@ -274,6 +274,7 @@ class DB {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
+		/** @psalm-suppress TooManyArguments */
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
 	}
 
@@ -315,14 +316,14 @@ class DB {
 			$refProp = new ReflectionProperty($row, $colMeta["name"]);
 			$refProp->setAccessible(true);
 			if ($type === "bool") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (bool)$stringValue);
 					}
 				};
 			} elseif ($type === "int") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (int)$stringValue);
@@ -349,6 +350,7 @@ class DB {
 		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
 		$result = [];
 		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
+			/** @var DBRow $row */
 			$typeChangers = $this->getTypeChanger($ps, $row);
 			foreach ($typeChangers as $changer) {
 				$changer($row);
@@ -369,6 +371,10 @@ class DB {
 		$ps = $this->executeQuery($sql, $args);
 		return $ps->fetchAll(
 			PDO::FETCH_FUNC,
+			/**
+			 * @param mixed $values
+			 * @return mixed
+			 */
 			function (...$values) use ($ps, $className) {
 				return $this->convertToClass($ps, $className, $values);
 			}
@@ -379,7 +385,7 @@ class DB {
 	 * Execute an SQL statement and return the first row as an objects of the given class
 	 * @deprecated Will be removed in Nadybot 6.0
 	 */
-	public function fetch(string $className, string $sql, ...$args) {
+	public function fetch(string $className, string $sql, ...$args): ?object {
 		return $this->fetchAll(...func_get_args())[0] ?? null;
 	}
 
@@ -412,7 +418,7 @@ class DB {
 		}
 	}
 
-	public function convertToClass(PDOStatement $ps, string $className, array $values) {
+	public function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
 		$metaKey = md5($ps->queryString);
@@ -430,7 +436,8 @@ class DB {
 			if ($values[$col] === null) {
 				try {
 					$refProp = $refClass->getProperty($colName);
-					if ($refProp->getType()->allowsNull()) {
+					$refType = $refProp->getType();
+					if (isset($refType) && $refType->allowsNull()) {
 						$row->{$colName} = $values[$col];
 					}
 				} catch (ReflectionException $e) {
@@ -504,7 +511,7 @@ class DB {
 			$indexQuery = $this->applySQLCompatFixes($indexQuery);
 			$ps = $this->executeQuery($indexQuery, [$tableName, $indexName]);
 			$indexResult = $ps->fetch(PDO::FETCH_ASSOC);
-			if ($indexResult !== null && (int)$indexResult["indexthere"] > 0) {
+			if ($indexResult !== false && (int)$indexResult["indexthere"] > 0) {
 				return 1;
 			}
 			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
@@ -831,6 +838,7 @@ class DB {
 	 * @return int Number of updates records
 	 */
 	public function update(string $table, $key, DBRow $row): int {
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($key) && !is_array($key)) {
 			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
 		}
@@ -896,7 +904,7 @@ class DB {
 	 *
 	 * @param  \Closure|\Illuminate\Database\Query\Builder|string  $query
 	 * @param  string  $as
-	 * @return $this
+	 * @return QueryBuilder
 	 */
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
@@ -1122,10 +1130,10 @@ class DB {
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
 	 * @param string $column The table column to test against
-	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
+	 * @return void
 	 */
 	public function addWhereFromParams(QueryBuilder $query, array $params, string $column, string $boolean='and'): void {
-		$closure = function (QueryBuilder $query) use ($params, $column) {
+		$closure = function (QueryBuilder $query) use ($params, $column): void {
 			foreach ($params as $key => $value) {
 				if ($value[0] == "-" && strlen($value) > 1) {
 					$value = substr($value, 1);

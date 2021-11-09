@@ -602,41 +602,41 @@ class Nadybot extends AOChat {
 
 			// event handlers
 			switch ($packet->type) {
-				case AOChatPacket::AOCP_LOGIN_OK: // 5
+				case AOChatPacket::LOGIN_OK: // 5
 					$this->buddyListSize += 1000;
 					break;
-				case AOChatPacket::AOCP_GROUP_ANNOUNCE: // 60
+				case AOChatPacket::GROUP_ANNOUNCE: // 60
 					$this->processGroupAnnounce(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PRIVGRP_CLIJOIN: // 55, Incoming player joined private chat
+				case AOChatPacket::PRIVGRP_CLIJOIN: // 55, Incoming player joined private chat
 					$this->processPrivateChannelJoin(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PRIVGRP_CLIPART: // 56, Incoming player left private chat
+				case AOChatPacket::PRIVGRP_CLIPART: // 56, Incoming player left private chat
 					$this->processPrivateChannelLeave(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PRIVGRP_KICK: // 51, we were kicked from private channel
-				case AOChatPacket::AOCP_PRIVGRP_PART: // 53, we left a private channel
+				case AOChatPacket::PRIVGRP_KICK: // 51, we were kicked from private channel
+				case AOChatPacket::PRIVGRP_PART: // 53, we left a private channel
 					$this->processPrivateChannelKick(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_BUDDY_ADD: // 40, Incoming buddy logon or off
+				case AOChatPacket::BUDDY_ADD: // 40, Incoming buddy logon or off
 					$this->processBuddyUpdate(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_BUDDY_REMOVE: // 41, Incoming buddy removed
+				case AOChatPacket::BUDDY_REMOVE: // 41, Incoming buddy removed
 					$this->processBuddyRemoved(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_MSG_PRIVATE: // 30, Incoming Msg
+				case AOChatPacket::MSG_PRIVATE: // 30, Incoming Msg
 					$this->processPrivateMessage(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PRIVGRP_MESSAGE: // 57, Incoming priv message
+				case AOChatPacket::PRIVGRP_MESSAGE: // 57, Incoming priv message
 					$this->processPrivateChannelMessage(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_GROUP_MESSAGE: // 65, Public and guild channels
+				case AOChatPacket::GROUP_MESSAGE: // 65, Public and guild channels
 					$this->processPublicChannelMessage(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PRIVGRP_INVITE: // 50, private channel invite
+				case AOChatPacket::PRIVGRP_INVITE: // 50, private channel invite
 					$this->processPrivateChannelInvite(...$packet->args);
 					break;
-				case AOChatPacket::AOCP_PING: // 100, pong
+				case AOChatPacket::PING: // 100, pong
 					$this->processPingReply(...$packet->args);
 					break;
 			}
@@ -1200,7 +1200,7 @@ class Nadybot extends AOChat {
 			$payload = static::PING_IDENTIFIER;
 		}
 		$this->last_ping = time();
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PING, $payload));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PING, $payload));
 	}
 
 	/**
@@ -1454,7 +1454,7 @@ class Nadybot extends AOChat {
 
 	public function getPacket(): ?AOChatPacket {
 		$result = parent::getPacket();
-		if (!isset($result) || $result->type !== AOChatPacket::AOCP_GROUP_ANNOUNCE) {
+		if (!isset($result) || $result->type !== AOChatPacket::GROUP_ANNOUNCE) {
 			return $result;
 		}
 		$data = unpack("Ctype/Nid", (string)$result->args[0]);

@@ -332,8 +332,8 @@ class AOChat {
 		}
 
 		switch ($type) {
-			case AOChatPacket::AOCP_CLIENT_NAME:
-			case AOChatPacket::AOCP_CLIENT_LOOKUP:
+			case AOChatPacket::CLIENT_NAME:
+			case AOChatPacket::CLIENT_LOOKUP:
 				[$id, $name] = $packet->args;
 				$uid = (string)$id;
 				$name = ucfirst(strtolower((string)$name));
@@ -352,21 +352,21 @@ class AOChat {
 				unset($this->pendingIdLookups[$name]);
 				break;
 
-			case AOChatPacket::AOCP_GROUP_ANNOUNCE:
+			case AOChatPacket::GROUP_ANNOUNCE:
 				[$gid, $name, $status] = $packet->args;
 				$this->grp[$gid] = $status;
 				$this->gid[$gid] = $name;
 				$this->gid[strtolower($name)] = $gid;
 				break;
 
-			case AOChatPacket::AOCP_GROUP_MESSAGE:
+			case AOChatPacket::GROUP_MESSAGE:
 				/* Hack to support extended messages */
 				if ($packet->args[1] === 0 && substr($packet->args[2], 0, 2) == "~&") {
 					$packet->args[2] = $this->readExtMsg($packet->args[2]);
 				}
 				break;
 
-			case AOChatPacket::AOCP_CHAT_NOTICE:
+			case AOChatPacket::CHAT_NOTICE:
 				$category_id = 20000;
 				$packet->args[4] = $this->mmdbParser->getMessageString($category_id, $packet->args[2]);
 				if ($packet->args[4] !== null) {
@@ -403,16 +403,16 @@ class AOChat {
 	 */
 	public function authenticate(string $username, string $password): ?array {
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOChatPacket::AOCP_LOGIN_SEED) {
+		if ($packet === null || $packet->type != AOChatPacket::LOGIN_SEED) {
 			return null;
 		}
 		$serverseed = $packet->args[0];
 
 		$key = $this->generateLoginKey($serverseed, $username, $password);
-		$pak = new AOChatPacket("out", AOChatPacket::AOCP_LOGIN_REQUEST, [0, $username, $key]);
+		$pak = new AOChatPacket("out", AOChatPacket::LOGIN_REQUEST, [0, $username, $key]);
 		$this->sendPacket($pak);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOChatPacket::AOCP_LOGIN_CHARLIST) {
+		if ($packet === null || $packet->type != AOChatPacket::LOGIN_CHARLIST) {
 			return null;
 		}
 
@@ -450,10 +450,10 @@ class AOChat {
 			return false;
 		}
 
-		$loginSelect = new AOChatPacket("out", AOChatPacket::AOCP_LOGIN_SELECT, $char->id);
+		$loginSelect = new AOChatPacket("out", AOChatPacket::LOGIN_SELECT, $char->id);
 		$this->sendPacket($loginSelect);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOChatPacket::AOCP_LOGIN_OK) {
+		if ($packet === null || $packet->type !== AOChatPacket::LOGIN_OK) {
 			return false;
 		}
 
@@ -507,7 +507,7 @@ class AOChat {
 		if (isset($callback)) {
 			$this->pendingIdLookups[$userName]->callbacks []= [$callback, $args];
 		}
-		$this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_CLIENT_LOOKUP, $userName));
+		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));
 	}
 
 	/**
@@ -618,7 +618,7 @@ class AOChat {
 	 */
 	public function sendPing(): bool {
 		$this->last_ping = time();
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PING, "AOChat.php"));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PING, "AOChat.php"));
 	}
 
 	/**
@@ -632,7 +632,7 @@ class AOChat {
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
-			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::AOCP_MSG_PRIVATE, [$uid, $msg, $blob]));
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::MSG_PRIVATE, [$uid, $msg, $blob]));
 		}
 		$this->iteration();
 		return true;
@@ -654,7 +654,7 @@ class AOChat {
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
-			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::AOCP_GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
 		}
 		$this->iteration();
 		return true;
@@ -672,7 +672,7 @@ class AOChat {
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
-			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::AOCP_GROUP_MESSAGE, [$gid, $msg, "\0"]));
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$gid, $msg, "\0"]));
 		}
 		$this->iteration();
 		return true;
@@ -688,7 +688,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -701,7 +701,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -728,7 +728,7 @@ class AOChat {
 		if (($gid = $this->get_uid($group)) === false) {
 			return false;
 		}
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
 	}
 
 	/**
@@ -741,7 +741,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_JOIN, $gid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_JOIN, $gid));
 	}
 
 	/**
@@ -754,7 +754,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_INVITE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_INVITE, $uid));
 	}
 
 	/**
@@ -767,7 +767,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_KICK, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_KICK, $uid));
 	}
 
 	/**
@@ -780,14 +780,14 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_PART, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_PART, $uid));
 	}
 
 	/**
 	 * Kick everyone from this bot's private group
 	 */
 	public function privategroup_kick_all(): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_PRIVGRP_KICKALL, ""));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_KICKALL, ""));
 	}
 
 	/**
@@ -798,7 +798,7 @@ class AOChat {
 			return false;
 		}
 		$this->buddyQueue []= $uid;
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_BUDDY_ADD, [$uid, $payload]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::BUDDY_ADD, [$uid, $payload]));
 	}
 
 	/**
@@ -807,14 +807,14 @@ class AOChat {
 	 * @param int $uid The user id to remove
 	 */
 	public function buddy_remove($uid): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_BUDDY_REMOVE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::BUDDY_REMOVE, $uid));
 	}
 
 	/**
 	 * Remove unknown users from our friend list
 	 */
 	public function buddy_remove_unknown(): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::AOCP_CC, [["rembuddy", "?"]]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::CC, [["rembuddy", "?"]]));
 	}
 
 	/**
