@@ -369,6 +369,7 @@ class SystemController implements MessageEmitter {
 
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$channel = new ChannelInfo();
+			$channel->class = ord(substr((string)$gid, 0, 1));
 			$channel->id = unpack("N", substr((string)$gid, 1))[1];
 			if (is_string($this->chatBot->gid[$gid])) {
 				$channel->name = $this->chatBot->gid[$gid];
@@ -453,8 +454,11 @@ class SystemController implements MessageEmitter {
 		$blob .= "<tab>Messages in the chat queue: <highlight>{$info->stats->chatqueue_length}<end>\n\n";
 
 		$blob .= "<header2>Public Channels<end>\n";
+		usort($info->channels, function(ChannelInfo $c1, ChannelInfo $c2): int {
+			return ($c1->class <=> $c2->class) ?: $c1->id <=> $c2->id;
+		});
 		foreach ($info->channels as $channel) {
-			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->id})\n";
+			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->class}:{$channel->id})\n";
 		}
 
 		$msg = $this->text->makeBlob('System Info', $blob);
