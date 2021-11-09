@@ -313,8 +313,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"$sender invited $args[1] to your organization.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -336,8 +336,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"$sender kicked $args[1] from your organization.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -359,8 +359,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"$args[1] just left your organization.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -422,8 +422,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"The tower Control Tower - Neutral in Broken Shores was just reduced to 75 % health by {$args[1]} from the {$args[2]} organization!",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -445,8 +445,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"Your controller tower in Southern Forest of Xzawkaz in Deep Artery Valley has had its defense shield disabled by {$args[1]} (clan).The attacker is a member of the organization {$args[2]}.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -486,8 +486,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"Blammo! $launcher has launched an orbital attack!",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -533,8 +533,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"$sender turned the cloaking device in your city off.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -559,8 +559,8 @@ class TestController {
 			(int)0xFFFFFFFF,
 			"$sender turned the cloaking device in your city on.",
 		];
-		$packet = new AOChatPacket("in", AOCP_LOGIN_OK, "");
-		$packet->type = AOCP_GROUP_MESSAGE;
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
@@ -581,7 +581,7 @@ class TestController {
 	 */
 	public function testTradebotMessageCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$eventObj = new AOChatEvent();
-		$tradebot = $this->settingManager->getString('tradebot');
+		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
 		$eventObj->sender = $tradebot;
 		$eventObj->channel = $tradebot;
 		$eventObj->message = "<font color='#89D2E8'>".
@@ -690,7 +690,7 @@ class TestController {
 			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOCP_BUDDY_ADD, pack("NNn", $uid, 1, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 1, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -705,7 +705,7 @@ class TestController {
 			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOCP_BUDDY_ADD, pack("NNn", $uid, 0, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 0, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -720,13 +720,13 @@ class TestController {
 			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel");
+		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
 		$channelUid = $this->chatBot->get_uid($channel);
 		if ($channelUid === false) {
 			$sendto->reply("Cannot determine this bot's private channel.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOCP_PRIVGRP_CLIJOIN, pack("NN", $channelUid, $uid));
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -741,13 +741,13 @@ class TestController {
 			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel");
+		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
 		$channelUid = $this->chatBot->get_uid($channel);
 		if ($channelUid === false) {
 			$sendto->reply("Cannot determine this bot's private channel.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOCP_PRIVGRP_CLIPART, pack("NN", $channelUid, $uid));
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}

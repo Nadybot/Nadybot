@@ -589,14 +589,6 @@ class Nadybot extends AOChat {
 	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
-		/*
-		$const = get_defined_constants(true)["user"];
-		foreach ($const as $name => $value) {
-			if ($value === $packet->type && substr($name, 0, 5) === "AOCP_") {
-				$this->logger->log("DEBUG", "Received: {$name}");
-			}
-		}
-		*/
 		try {
 			$this->process_all_packets($packet);
 
@@ -657,11 +649,11 @@ class Nadybot extends AOChat {
 	}
 
 	/**
-	 * Handle an incoming AOChatPacket::AOCP_GROUP_ANNOUNCE packet
+	 * Handle an incoming AOChatPacket::GROUP_ANNOUNCE packet
 	 */
 	public function processGroupAnnounce(string $groupId, string $groupName): void {
 		$orgId = $this->getOrgId($groupId);
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_GROUP_ANNOUNCE => name: '$groupName'");
+		$this->logger->log('DEBUG', "AOChatPacket::GROUP_ANNOUNCE => name: '$groupName'");
 		if ($orgId) {
 			$this->vars["my_guild_id"] = $orgId;
 		}
@@ -685,7 +677,7 @@ class Nadybot extends AOChat {
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_PRIVGRP_CLIJOIN => channel: '$channel' sender: '$sender'");
+		$this->logger->log('DEBUG', "AOChatPacket::PRIVGRP_CLIJOIN => channel: '$channel' sender: '$sender'");
 
 		if ($this->isDefaultPrivateChannel($channel)) {
 			$eventObj->type = "joinpriv";
@@ -747,7 +739,7 @@ class Nadybot extends AOChat {
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_PRIVGRP_CLIPART => channel: '$channel' sender: '$sender'");
+		$this->logger->log('DEBUG', "AOChatPacket::PRIVGRP_CLIPART => channel: '$channel' sender: '$sender'");
 
 		if ($this->isDefaultPrivateChannel($channel)) {
 			$eventObj->type = "leavepriv";
@@ -780,7 +772,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_PRIVGRP_KICK => channel: '$channel'");
+		$this->logger->log('DEBUG', "AOChatPacket::PRIVGRP_KICK => channel: '$channel'");
 		$this->logger->log("INFO", "Left the private channel {$channel}.");
 
 		$eventObj = new AOChatEvent();
@@ -810,7 +802,7 @@ class Nadybot extends AOChat {
 		$eventObj = new UserStateEvent();
 		$eventObj->sender = $sender;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_BUDDY_ADD => sender: '$sender' status: '$status'");
+		$this->logger->log('DEBUG', "AOChatPacket::BUDDY_ADD => sender: '$sender' status: '$status'");
 
 		$worker = 0;
 		try {
@@ -854,7 +846,7 @@ class Nadybot extends AOChat {
 	public function processBuddyRemoved(int $userId): void {
 		$sender = $this->lookup_user($userId);
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_BUDDY_REMOVE => sender: '$sender'");
+		$this->logger->log('DEBUG', "AOChatPacket::BUDDY_REMOVE => sender: '$sender'");
 
 		$this->buddylistManager->updateRemoved($userId);
 	}
@@ -870,7 +862,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_MSG_PRIVATE => sender: '$sender' message: '$message'");
+		$this->logger->log('DEBUG', "AOChatPacket::MSG_PRIVATE => sender: '$sender' message: '$message'");
 
 		// Removing tell color
 		if (preg_match("/^<font color='#([0-9a-f]+)'>(.+)$/si", $message, $arr)) {
@@ -977,7 +969,7 @@ class Nadybot extends AOChat {
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
+		$this->logger->log('DEBUG', "AOChatPacket::PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 		$this->logger->logChat($channel, $sender, $message);
 
 		if ($sender == $this->vars["name"]) {
@@ -1039,7 +1031,7 @@ class Nadybot extends AOChat {
 		$eventObj->channel = $channel;
 		$eventObj->message = $message;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_GROUP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
+		$this->logger->log('DEBUG', "AOChatPacket::GROUP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 
 		$orgId = $this->getOrgId($channelId);
 
@@ -1128,7 +1120,7 @@ class Nadybot extends AOChat {
 		$eventObj->sender = $sender;
 		$eventObj->type = $type;
 
-		$this->logger->log('DEBUG', "AOChatPacket::AOCP_PRIVGRP_INVITE => sender: '$sender'");
+		$this->logger->log('DEBUG', "AOChatPacket::PRIVGRP_INVITE => sender: '$sender'");
 
 		$this->logger->logChat("Priv Channel Invitation", -1, "$sender channel invited.");
 
