@@ -493,11 +493,11 @@ class ItemsController {
 
 	public function getItem(string $name, ?int $ql=null): ?string {
 		$row = $this->findByName($name, $ql);
-		$ql ??= $row->highql;
 		if ($row === null) {
 			$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
-			return "{$name}@{$ql}";
+			return null;
 		}
+		$ql ??= $row->highql;
 		return $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 	}
 

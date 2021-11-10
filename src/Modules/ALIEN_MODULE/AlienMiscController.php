@@ -75,7 +75,7 @@ class AlienMiscController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		// load database tables from .sql-files
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Misc');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/leprocs.csv');
@@ -164,7 +164,7 @@ class AlienMiscController {
 	 * @Matches("/^ofabarmor$/i")
 	 */
 	public function ofabarmorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var DBRow[] */
+		/** @var int[] */
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
 			->select("ql")
@@ -282,7 +282,7 @@ class AlienMiscController {
 	 * @Matches("/^ofabweapons$/i")
 	 */
 	public function ofabweaponsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/** @var DBRow[] */
+		/** @var int[] */
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
@@ -357,11 +357,14 @@ class AlienMiscController {
 		$blob .= "\n\n<header2>Upgrades<end>\n";
 
 		for ($i = 1; $i <= 6; $i++) {
-			$blob .= "<tab>" . $this->itemsController->getItem("Ofab {$weapon} Mk {$i}", $searchQL);
-			if ($i === 1) {
-				$blob .= "  (<highlight>{$row->vp}<end> VP)";
+			$item = $this->itemsController->getItem("Ofab {$weapon} Mk {$i}", $searchQL);
+			if (isset($item)) {
+				$blob .= "<tab>{$item}";
+				if ($i === 1) {
+					$blob .= "  (<highlight>{$row->vp}<end> VP)";
+				}
+				$blob .= "\n";
 			}
-			$blob .= "\n";
 		}
 
 		$msg = $this->text->makeBlob("Ofab $weapon (QL $searchQL)", $blob);

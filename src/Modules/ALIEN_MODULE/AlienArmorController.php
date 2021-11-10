@@ -297,6 +297,7 @@ class AlienArmorController {
 	/**
 	 * Extracts armor type and quality from given $args regexp matches.
 	 * @return array[string,int]
+	 * @psalm-return array{0: string, 1: int}
 	 */
 	private function extractArgs(array $args): array {
 		$armortype = '';

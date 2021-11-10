@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Exception;
 use Nadybot\Core\{
 	CommandReply,
 	DB,
@@ -63,7 +64,7 @@ class AlienBioController {
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		// load database tables from .sql-files
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Weapons');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweapons.csv');
@@ -278,6 +279,9 @@ class AlienBioController {
 	private function ofabArmorBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
+		if ($item === null) {
+			throw new Exception("Cannot find expected ofab bio material in database.");
+		}
 
 		/** @var OfabArmorType[] $data */
 		$data = $this->db->table("ofabarmortype")
@@ -291,7 +295,7 @@ class AlienBioController {
 			$blob .= $this->text->makeChatcmd($row->profession, "/tell <myname> ofabarmor {$row->profession}") . "\n";
 		}
 
-		return $this->text->makeBlob("$name (QL $ql)", $blob);
+		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
 	}
 
 	/**
@@ -301,6 +305,9 @@ class AlienBioController {
 	private function ofabWeaponBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
+		if ($item === null) {
+			throw new Exception("Cannot find expected ofab bio material in database.");
+		}
 
 		/** @var OfabWeapon[] $data */
 		$data = $this->db->table("ofabweapons")
@@ -313,7 +320,7 @@ class AlienBioController {
 			$blob .= $this->text->makeChatcmd("Ofab {$row->name} Mk 1", "/tell <myname> ofabweapons {$row->name}") . "\n";
 		}
 
-		return $this->text->makeBlob("$name (QL $ql)", $blob);
+		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
 	}
 
 	/**
@@ -324,6 +331,9 @@ class AlienBioController {
 	private function alienWeaponBio(int $ql, int $type): string {
 		$name = "Kyr'Ozch Bio-Material - Type $type";
 		$item = $this->itemsController->getItem($name, $ql);
+		if ($item === null) {
+			throw new Exception("Cannot find expected alien bio material in database.");
+		}
 
 		// Ensures that the maximum AI weapon that combines into doesn't go over QL 300 when the user presents a QL 271+ bio-material
 		$maxAIType = (int)floor($ql / 0.9);
@@ -351,13 +361,17 @@ class AlienBioController {
 			->asObj(AlienWeapon::class)
 			->toArray();
 		foreach ($data as $row) {
-			$blob .= $this->itemsController->getItem($row->name, $maxAIType) . "\n";
+			$item = $this->itemsController->getItem($row->name, $maxAIType);
+			if (!isset($item)) {
+				throw new Exception("Cannot find expected alien bio material in database.");
+			}
+			$blob .= "{$item}\n";
 		}
 
 		$blob .= $this->getWeaponInfo($maxAIType);
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return $this->text->makeBlob("$name (QL $ql)", $blob);
+		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
 	}
 
 	/**
@@ -398,6 +412,9 @@ class AlienBioController {
 		//End of tradeskill processes
 
 		$item = $this->itemsController->getItem($name, $ql);
+		if (!isset($item)) {
+			throw new Exception("Cannot find expected alien bio material in database.");
+		}
 
 		$blob = $item . "\n\n";
 		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
@@ -421,7 +438,7 @@ class AlienBioController {
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return $this->text->makeBlob("$name (QL $ql)", $blob);
+		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
 	}
 
 	/**
@@ -431,6 +448,9 @@ class AlienBioController {
 	private function serumBio(int $ql): string {
 		$name = "Kyr'Ozch Viral Serum";
 		$item = $this->itemsController->getItem($name, $ql);
+		if (!isset($item)) {
+			throw new Exception("Cannot find expected alien bio material in database.");
+		}
 
 		$requiredPharma    = (int)floor($ql * 3.5);
 		$requiredChemAndME = (int)floor($ql * 4);
@@ -467,6 +487,6 @@ class AlienBioController {
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return $this->text->makeBlob("$name (QL $ql)", $blob);
+		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
 	}
 }
