@@ -6,6 +6,7 @@ use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
+	DBSchema\CmdCfg,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
@@ -144,9 +145,9 @@ class DevController {
 
 		$count = count($regexes);
 		if ($count > 0) {
-			$blob = '';
+			$blob = "<header2>Regular expressions<end>\n";
 			foreach ($regexes as $regex) {
-				$blob .= $regex . "\n";
+				$blob .= "<tab>{$regex}\n";
 			}
 			$msg = $this->text->makeBlob("Regexes for $cmd ($count)", $blob);
 		} else {
@@ -166,7 +167,7 @@ class DevController {
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
 				if ($handler->type == $channel) {
-					$handlers []= $handler;
+					$handlers []= new CommandHandler($handler->file, $handler->admin);
 				}
 			}
 		}

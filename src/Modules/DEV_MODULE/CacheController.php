@@ -102,7 +102,7 @@ class CacheController {
 		$file = $args[2];
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
-			$contents = $this->cacheManager->retrieve($group, $file);
+			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (preg_match("/\.json$/", $file)) {
 				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
 			}
