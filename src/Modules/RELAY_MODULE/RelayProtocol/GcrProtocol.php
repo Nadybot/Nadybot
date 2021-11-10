@@ -160,7 +160,10 @@ class GcrProtocol implements RelayProtocolInterface {
 			"##highlight##{$player->name}##end## ".
 			"(Lvl ##logon_level##{$player->level}##end##/".
 			"##logon_ailevel##{$player->ai_level}##end## ".
-			$player->faction . " " . $player->profession;
+			$player->faction;
+		if (isset($player->profession)) {
+			$msg .= " " . $player->profession;
+		}
 		if (strlen($player->guild??"")) {
 			$msg .= ", ##logon_organization##{$player->guild_rank} ".
 			"of {$player->guild}##end##";
@@ -169,20 +172,20 @@ class GcrProtocol implements RelayProtocolInterface {
 		return $msg;
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$data = array_shift($msg->packages);
+		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
 		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
 			if (preg_match("/^.?{$command}c (.+)/s", $data, $matches)) {
-				return $this->handleOnlineCommands($msg->sender, $matches[1]);
+				return $this->handleOnlineCommands($message->sender, $matches[1]);
 			}
 			return null;
 		}
 		if (preg_match("/##logon_log(on|off)_spam##/s", $data)) {
-			return $this->handleLogonSpam($msg->sender, $data);
+			return $this->handleLogonSpam($message->sender, $data);
 		}
 		$data = $matches[1];
 		$r = new RoutableMessage($data);
@@ -193,12 +196,14 @@ class GcrProtocol implements RelayProtocolInterface {
 					substr($matches[1], 0, -6)
 				);
 				$r->appendPath($source);
-				$source = new Source(
-					Source::PRIV,
-					$msg->sender,
-					"Guest"
-				);
-				$r->appendPath($source);
+				if (isset($message->sender)) {
+					$source = new Source(
+						Source::PRIV,
+						$message->sender,
+						"Guest"
+					);
+					$r->appendPath($source);
+				}
 			} else {
 				$source = new Source(
 					count($r->path) ? Source::PRIV : Source::ORG,
@@ -215,12 +220,14 @@ class GcrProtocol implements RelayProtocolInterface {
 					substr($matches[1], 0, -6)
 				);
 				$r->appendPath($source);
-				$source = new Source(
-					Source::PRIV,
-					$msg->sender,
-					"Guest"
-				);
-				$r->appendPath($source);
+				if (isset($message->sender)) {
+					$source = new Source(
+						Source::PRIV,
+						$message->sender,
+						"Guest"
+					);
+					$r->appendPath($source);
+				}
 			} else {
 				$source = new Source(
 					count($r->path) ? Source::PRIV : Source::ORG,
@@ -381,7 +388,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			"clan"         => "#FF9933",
 			"neutral"      => "#FFFFFF",
 		];
-		$hlColor = $this->settingManager->getString('default_highlight_color');
+		$hlColor = $this->settingManager->getString('default_highlight_color') ?? "";
 		if (preg_match("/(#[A-F0-9]{6})/i", $hlColor, $matches)) {
 			$colors["highlight"] = $matches[1];
 		}

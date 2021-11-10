@@ -97,12 +97,12 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		if ($this->prefix === "a") {
 			$abbr = $this->getSetting($db, "relay_guild_abbreviation");
-			if (isset($abbr) && $abbr->value !== "none") {
+			if (isset($abbr) && isset($abbr->value) && $abbr->value !== "none") {
 				$this->settingManager->save("relay_guild_abbreviation", $abbr->value);
 			}
 		}
 		$relay = new RelayConfig();
-		$relay->name = $relayBot->value;
+		$relay->name = $relayBot->value ?? "Relay";
 		$relay->id = $db->insert($this->relayController::DB_TABLE, $relay);
 		$transport = new RelayLayer();
 		$transport->relay_id = $relay->id;
@@ -191,9 +191,9 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayIgnore = $this->getSetting($db, "relay_ignore");
-		if (isset($relayIgnore) && strlen($relayIgnore->value)) {
+		if (isset($relayIgnore) && strlen($relayIgnore->value??"")) {
 			foreach ($routesOut as $routeId) {
-				foreach (explode(";", $relayIgnore->value) as $ignore) {
+				foreach (explode(";", $relayIgnore->value??"") as $ignore) {
 					$modId = $this->addMod($db, $routeId, "if-not-by");
 					$this->addArgs($db, $modId, ["sender" => $ignore]);
 				}
@@ -208,7 +208,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayFilterOut = $this->getSetting($db, "relay_filter_out");
-		if (isset($relayFilterOut) && strlen($relayFilterOut->value)) {
+		if (isset($relayFilterOut) && strlen($relayFilterOut->value??"")) {
 			foreach ($routesOut as $routeId) {
 				$modId = $this->addMod($db, $routeId, "if-matches");
 
@@ -221,7 +221,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayFilterIn = $this->getSetting($db, "relay_filter_in");
-		if (isset($relayFilterIn) && strlen($relayFilterIn->value)) {
+		if (isset($relayFilterIn) && strlen($relayFilterIn->value??"")) {
 			$modId = $this->addMod($db, $routeInOrg, "if-matches");
 			$this->addArgs($db, $modId, [
 				"text" => $relayFilterIn->value,
@@ -231,7 +231,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayFilterInPriv = $this->getSetting($db, "relay_filter_in_priv");
-		if (isset($routeInPriv) && isset($relayFilterInPriv) && strlen($relayFilterInPriv->value)) {
+		if (isset($routeInPriv) && isset($relayFilterInPriv) && strlen($relayFilterInPriv->value??"")) {
 			$modId = $this->addMod($db, $routeInPriv, "if-matches");
 			$this->addArgs($db, $modId, [
 				"text" => $relayFilterInPriv->value,

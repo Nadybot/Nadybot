@@ -38,6 +38,7 @@ class Tell implements TransportInterface {
 
 	protected string $bot;
 
+	/** @var ?callable */
 	protected $initCallback;
 
 	public function __construct(string $bot) {
@@ -65,12 +66,12 @@ class Tell implements TransportInterface {
 	}
 
 	public function receiveMessage(AOChatEvent $event): void {
-		if (strtolower($event->sender) !== strtolower($this->bot)) {
+		if (strtolower((string)$event->sender) !== strtolower($this->bot)) {
 			return;
 		}
 		$msg = new RelayMessage();
 		$msg->packages = [$event->message];
-		$msg->sender = $event->sender;
+		$msg->sender = (string)$event->sender;
 		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}
@@ -124,7 +125,7 @@ class Tell implements TransportInterface {
 			$this->relay->getName() . "_relay"
 		);
 		$buddy = $this->buddylistManager->getBuddy($this->bot);
-		if (!count($buddy->types)) {
+		if (isset($buddy) && !count($buddy->types)) {
 			// We need to wait for the buddy-remove packet
 			$waitForRemoval = function (PacketEvent $event) use ($callback, &$waitForRemoval): void {
 				$uid = $event->packet->args[0];

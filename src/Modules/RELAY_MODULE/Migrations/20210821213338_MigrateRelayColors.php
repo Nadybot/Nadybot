@@ -35,7 +35,7 @@ class MigrateRelayColors implements SchemaMigration {
 			if (!isset($setting) || $setting->value === "<font color='#C3C3C3'>") {
 				continue;
 			}
-			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value, $matches)) {
+			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value??"", $matches)) {
 				continue;
 			}
 			return $matches[1];

@@ -60,19 +60,26 @@ class Chunker implements RelayLayerInterface {
 		return [];
 	}
 
-	public function send(array $packets): array {
+	public function send(array $data): array {
 		$encoded = [];
-		foreach ($packets as $packet) {
+		foreach ($data as $packet) {
 			$encoded = [...$encoded, ...$this->chunkPacket($packet)];
 		}
 		return $encoded;
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return list<string>
+	 */
 	protected function chunkPacket(string $packet): array {
 		if (strlen($packet) < $this->chunkSize) {
 			return [$packet];
 		}
 		$chunks = str_split($packet, $this->chunkSize);
+		if ($chunks === false) {
+			return [$packet];
+		}
 		$result = [];
 		$uuid = $this->util->createUUID();
 		$part = 1;
@@ -85,7 +92,10 @@ class Chunker implements RelayLayerInterface {
 				"sent" => $created,
 				"data" => $chunk,
 			]);
-			$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$json = json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			if ($json !== false) {
+				$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			}
 		}
 		return $result;
 	}
@@ -126,19 +136,19 @@ class Chunker implements RelayLayerInterface {
 			$this->logger->log("INFO", "New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
 			$data = "";
 			for ($i = 1; $i <= $chunk->count; $i++) {
-				$block  = $this->queue[$chunk->id][$i]->data ?? null;
+				$block = $this->queue[$chunk->id][$i]->data ?? null;
 				if (!isset($block)) {
 					unset($this->queue[$chunk->id]);
 					$this->logger->log("ERROR", "Invalid data received.");
 					$data = null;
-					continue;
+					continue 2;
 				}
 				$data .= $block;
 			}
 			$this->logger->log("INFO", "Removed chunks from memory.");
 			unset($this->queue[$chunk->id]);
 		}
-		$msg->data = array_values(array_filter($msg->data));
+		$msg->packages = array_values(array_filter($msg->packages));
 		return $msg;
 	}
 

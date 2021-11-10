@@ -18,7 +18,7 @@ class RelayLayerExpressionParser {
 		return $this->parser;
 	}
 
-	public function getExpressionDefinition() {
+	public function getExpressionDefinition(): string {
 		return '
 			start   :=> layerList.
 			layerList :=> layer
@@ -44,7 +44,7 @@ class RelayLayerExpressionParser {
 		$parser = $this->getParser();
 		$expr = $parser->parse($input);
 		if ($expr === false) {
-			$error = $parser->getError($input);
+			$error = $parser->getError();
 			$posData = $this->parser::getLineAndCharacterFromOffset($input, $error['index']);
 
 			$expected = implode('<end> or <highlight>', $this->parser->generalizeErrors($error['expected']));

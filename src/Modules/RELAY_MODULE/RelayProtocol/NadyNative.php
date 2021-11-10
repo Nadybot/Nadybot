@@ -58,11 +58,13 @@ class NadyNative implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		$event = clone $event;
-		$event->data->renderPath = true;
+		if (is_object($event->data)) {
+			$event->data->renderPath = true;
+		}
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (isset($event->data) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		}
 		try {
 			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
@@ -78,11 +80,11 @@ class NadyNative implements RelayProtocolInterface {
 		return [$data];
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$serialized = array_shift($msg->packages)??"null";
+		$serialized = array_shift($message->packages);
 		try {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
@@ -102,7 +104,7 @@ class NadyNative implements RelayProtocolInterface {
 				return null;
 			case "online_list":
 				if ($this->syncOnline) {
-					$this->handleOnlineList($msg->sender, $data);
+					$this->handleOnlineList($message->sender, $data);
 				}
 				return null;
 		}
@@ -128,13 +130,15 @@ class NadyNative implements RelayProtocolInterface {
 			);
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& is_object($event->data)
 			&& $event->data->type === Online::TYPE
-			&& isset($msg->sender)
+			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
-			$this->handleOnlineEvent($msg->sender, $event);
+			$this->handleOnlineEvent($message->sender, $event);
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& is_object($event->data)
 			&& fnmatch("sync(*)", $event->data->type, FNM_CASEFOLD)
 		) {
 			$this->handleExtSyncEvent($event->data);
@@ -254,7 +258,7 @@ class NadyNative implements RelayProtocolInterface {
 		$privBlock = new OnlineBlock();
 		$onlinePriv = $this->onlineController->getPlayers('priv');
 		$privLabel = null;
-		if ($isOrg) {
+		if (isset($block)) {
 			$privLabel = "Guest";
 			$privBlock->path = $block->path;
 		}

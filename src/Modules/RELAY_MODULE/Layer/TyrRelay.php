@@ -22,6 +22,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** @var ?callable */
 	protected $initCallback = null;
 
 	public function setRelay(Relay $relay): void {
@@ -42,9 +43,9 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		return [];
 	}
 
-	public function send(array $packets): array {
+	public function send(array $data): array {
 		$encoded = [];
-		foreach ($packets as $packet) {
+		foreach ($data as $packet) {
 			$json = (object)[
 				"type" => "message",
 				"payload" => $packet,

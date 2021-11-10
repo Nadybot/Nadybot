@@ -46,6 +46,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
+	/** @var ?callable */
 	protected $initCallback = null;
 
 	public function __construct(array $rooms) {
@@ -117,9 +118,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		return $cmd;
 	}
 
-	public function send(array $packets): array {
+	public function send(array $data): array {
 		$encoded = [];
-		foreach ($packets as $packet) {
+		foreach ($data as $packet) {
 			foreach ($this->rooms as $room) {
 				$json = (object)[
 					"type" => static::TYPE_MESSAGE,
@@ -187,7 +188,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			}
 			if ($json->type === static::TYPE_LEAVE) {
 				// Set all reported users of this bot offline
-				$this->relay->setClientOffline($msg->sender);
+				if (isset($msg->sender)) {
+					$this->relay->setClientOffline($msg->sender);
+				}
 				$data = null;
 				continue;
 			}

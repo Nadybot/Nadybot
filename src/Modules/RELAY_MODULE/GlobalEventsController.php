@@ -37,7 +37,7 @@ class GlobalEventsController {
 	 * @Event("connect")
 	 * @Description("Connect to the global event feed")
 	 */
-	public function connectToHighway() {
+	public function connectToHighway(): void {
 		$relay = new Relay("global_events");
 		Registry::injectDependencies($relay);
 		$transportLayer = new Websocket("wss://ws.nadybot.org");

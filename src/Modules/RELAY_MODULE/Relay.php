@@ -39,7 +39,10 @@ class Relay implements MessageReceiver {
 	/** Name of this relay */
 	protected string $name;
 
-	/** @var RelayLayerInterface[] */
+	/**
+	 * @var RelayLayerInterface[]
+	 * @psalm-var list<RelayLayerInterface>
+	 */
 	protected array $stack = [];
 
 	/**
@@ -156,7 +159,7 @@ class Relay implements MessageReceiver {
 		TransportInterface $transport,
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
-	) {
+	): void {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;

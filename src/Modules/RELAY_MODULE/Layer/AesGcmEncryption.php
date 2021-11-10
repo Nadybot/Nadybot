@@ -53,8 +53,8 @@ class AesGcmEncryption implements RelayLayerInterface {
 		return [];
 	}
 
-	public function send(array $packets): array {
-		return array_map([$this, "encode"], $packets);
+	public function send(array $data): array {
+		return array_map([$this, "encode"], $data);
 	}
 
 	public function receive(RelayMessage $msg): ?RelayMessage {
@@ -72,7 +72,11 @@ class AesGcmEncryption implements RelayLayerInterface {
 
 	protected function decode(string $text): ?string {
 		$ivLength = $this->ivLength;
-		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+		if (
+			function_exists('sodium_crypto_aead_aes256gcm_is_available')
+			&& sodium_crypto_aead_aes256gcm_is_available()
+			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
+		) {
 			$rawString = sodium_base642bin($text, SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
 			$rawString = base64_decode($text);
@@ -97,9 +101,13 @@ class AesGcmEncryption implements RelayLayerInterface {
 	public function encode(string $text): string {
 		$ivLength = $this->ivLength;
 		[$micro, $secs] = explode(" ", microtime());
-		$iv = pack("NN", $secs, $micro*100000000);
+		$iv = pack("NN", $secs, (float)$micro*100000000);
 		$iv .= random_bytes($ivLength - strlen($iv));
-		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+		if (
+			function_exists('sodium_crypto_aead_aes256gcm_is_available')
+			&& sodium_crypto_aead_aes256gcm_is_available()
+			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
+		) {
 			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, "", $iv, $this->password);
 			$ciphertextRaw = substr($enc, 0, -16);
 			$tag = substr($enc, -16);

@@ -48,8 +48,8 @@ class Fernet implements RelayLayerInterface {
 		return [];
 	}
 
-	public function send(array $packets): array {
-		return array_map([$this->fernet, "encode"], $packets);
+	public function send(array $data): array {
+		return array_map([$this->fernet, "encode"], $data);
 	}
 
 	public function receive(RelayMessage $msg): ?RelayMessage {

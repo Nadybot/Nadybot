@@ -36,6 +36,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	protected string $channel;
 
+	/** @var ?callable */
 	protected $initCallback;
 
 	public function __construct(string $channel) {
@@ -81,19 +82,22 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		}
 		$msg = new RelayMessage();
 		$msg->packages []= $event->message;
-		$msg->sender = $event->sender;
+		$msg->sender = is_string($event->sender) ? $event->sender : null;
 		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}
 
 	public function receiveInvite(AOChatEvent $event): void {
-		if (strtolower($event->sender) !== strtolower($this->channel)) {
+		if (strtolower((string)$event->sender) !== strtolower($this->channel)) {
 			return;
 		}
 		$this->chatBot->privategroup_join($event->sender);
 	}
 
 	public function receiveLeave(AOChatEvent $event): void {
+		if (!is_string($event->sender)) {
+			return;
+		}
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}

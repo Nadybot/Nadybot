@@ -143,7 +143,7 @@ class RelayController {
 	 * @Event("connect")
 	 * @Description("Load relays from database")
 	 */
-	public function loadRelays() {
+	public function loadRelays(): void {
 		$relays = $this->getRelays();
 		foreach ($relays as $relayConf) {
 			try {
@@ -218,8 +218,9 @@ class RelayController {
 	}
 
 	public function getGuildAbbreviation(): string {
-		if ($this->settingManager->getString('relay_guild_abbreviation') !== 'none') {
-			return $this->settingManager->getString('relay_guild_abbreviation');
+		$abbr = $this->settingManager->getString('relay_guild_abbreviation') ?? 'none';
+		if ($abbr !== 'none') {
+			return $abbr;
 		} else {
 			return $this->chatBot->vars["my_guild"];
 		}
@@ -466,8 +467,8 @@ class RelayController {
 		);
 		$msg = "Relay <highlight>{$name}<end> added.";
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
-			$help = $this->text->makeBlob("setup your routing", $blob);
-			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
+			$help = (array)$this->text->makeBlob("setup your routing", $blob);
+			$msg .= " Make sure to {$help[0]}, otherwise no messages will be exchanged.";
 		}
 		if ($relay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$msg .= " This protocol supports relaying certain events. Use ".
@@ -642,12 +643,12 @@ class RelayController {
 		}
 		$relay = isset($id)
 			? $this->getRelay($id)
-			: $this->getRelayByName($name);
+			: $this->getRelayByName($name??"");
 		/** @var ?RelayConfig $relay */
 		if (!isset($relay)) {
 			$context->reply(
 				"Relay <highlight>".
-				(isset($id) ? "#{$id}" : $name).
+				(isset($id) ? "#{$id}" : ($name??"unknown")).
 				"<end> not found."
 			);
 			return;
@@ -732,11 +733,11 @@ class RelayController {
 	public function relayRemCommand(CmdContext $context, ?int $id, ?string $name): void {
 		$relay = isset($id)
 			? $this->getRelay($id)
-			: $this->getRelayByName($name);
+			: $this->getRelayByName($name??"");
 		if (!isset($relay)) {
 			$context->reply(
 				"Relay <highlight>".
-				(isset($id) ? "#{$id}" : $name).
+				(isset($id) ? "#{$id}" : ($name??"unknown")).
 				"<end> not found."
 			);
 			return;
@@ -777,11 +778,11 @@ class RelayController {
 	public function relayConfigCommand(CmdContext $context, ?int $id, ?string $name): void {
 		$relay = isset($id)
 			? $this->getRelay($id)
-			: $this->getRelayByName($name);
+			: $this->getRelayByName($name??"");
 		if (!isset($relay)) {
 			$context->reply(
 				"Relay <highlight>".
-				(isset($id) ? "#{$id}" : $name).
+				(isset($id) ? "#{$id}" : ($name??"unknown")).
 				"<end> not found."
 			);
 			return;
@@ -1298,6 +1299,9 @@ class RelayController {
 			return new Response(Response::NOT_FOUND);
 		}
 		$events = $request->decodedBody;
+		if (!is_array($events)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
 		try {
 			foreach ($events as &$event) {
 				/** @var RelayEvent */
@@ -1347,6 +1351,9 @@ class RelayController {
 			return new Response(Response::NOT_FOUND);
 		}
 		$event = $request->decodedBody;
+		if (!is_object($event)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, []);
+		}
 		try {
 			/** @var RelayEvent */
 			JsonImporter::convert(RelayEvent::class, $event);
@@ -1410,6 +1417,9 @@ class RelayController {
 	 */
 	public function apiCreateRelay(Request $request, HttpProtocolWrapper $server): Response {
 		$relay = $request->decodedBody;
+		if (!is_object($relay)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
 		try {
 			/** @var RelayConfig */
 			$relay = JsonImporter::convert(RelayConfig::class, $relay);
@@ -1424,9 +1434,6 @@ class RelayController {
 			foreach ($relay->events as &$event) {
 				/** @var RelayEvent */
 				$event = JsonImporter::convert(RelayEvent::class, $event);
-				foreach (($layer->arguments??[]) as &$argument) {
-					$argument = JsonImporter::convert(RelayLayerArgument::class, $argument);
-				}
 			}
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
