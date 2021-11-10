@@ -90,7 +90,7 @@ class DiscordAPIClient {
 			self::DISCORD_API . "/channels/{$channel}/messages",
 			$message
 		)->withCallback(
-			function(HttpResponse $response, string $message) use ($errorHandler): void {
+			function(HttpResponse $response, array $message) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
 					array_unshift($this->outQueue, $message);
 					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);

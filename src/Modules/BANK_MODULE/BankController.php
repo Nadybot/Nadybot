@@ -55,7 +55,7 @@ class BankController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
@@ -130,7 +130,7 @@ class BankController {
 	public function bankBrowseContainerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$name = ucfirst(strtolower($args[1]));
 		$containerId = $args[2];
-		$limit = $this->settingManager->getInt('max_bank_items');
+		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 
 		$data = $this->db->table("bank")
 			->where("player", $name)
@@ -162,7 +162,7 @@ class BankController {
 	public function bankSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
 		$search = htmlspecialchars_decode($args[1]);
 		$words = explode(' ', $search);
-		$limit = $this->settingManager->getInt('max_bank_items');
+		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 		$query = $this->db->table("bank")
 			->orderBy("name")
 			->orderBy("ql")
@@ -192,10 +192,10 @@ class BankController {
 	 * @Matches("/^bank update$/i")
 	 */
 	public function bankUpdateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$lines = @file($this->settingManager->get('bank_file_location'));
+		$lines = @file($this->settingManager->getString('bank_file_location')??"");
 
 		if ($lines === false) {
-			$msg = "Could not open file: '" . $this->settingManager->get('bank_file_location') . "'";
+			$msg = "Could not open file: '" . ($this->settingManager->getString('bank_file_location')??"") . "'";
 			$sendto->reply($msg);
 			return;
 		}

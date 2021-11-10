@@ -88,13 +88,13 @@ class ChatAssistController {
 		$this->lastCallers []= $backup;
 		$this->lastCallers = array_slice(
 			$this->lastCallers,
-			-1 * $this->settingManager->getInt('callers_undo_steps')
+			-1 * ($this->settingManager->getInt('callers_undo_steps')??5)
 		);
 	}
 
 	/**
 	 * Save the last callers configuration
-	 * @return array<string,CallerList>
+	 * @return CallerBackup
 	 */
 	public function backupCallers(string $sender, string $command): CallerBackup {
 		$lastCallers = [];
