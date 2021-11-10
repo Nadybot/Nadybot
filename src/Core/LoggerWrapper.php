@@ -50,7 +50,6 @@ class LoggerWrapper {
 			$extraInfo = str_replace(dirname(__DIR__, 2) . "/", "", $extraInfo);
 			$message .= $extraInfo;
 		}
-		/** @psalm-suppress ArgumentTypeCoercion */
 		$this->logger->log($level, $message, $throwable);
 	}
 

@@ -155,7 +155,6 @@ class AsyncSocket {
 				}
 				$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 				$this->trigger(static::CLOSE);
-				/** @psalm-suppress RedundantCondition */
 				if (isset($this->timeoutEvent)) {
 					$this->timer->abortEvent($this->timeoutEvent);
 				}

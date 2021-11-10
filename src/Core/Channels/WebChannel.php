@@ -32,9 +32,6 @@ class WebChannel implements MessageReceiver {
 		return Source::WEB;
 	}
 
-	/**
-	 * @psalm-suppress UndefinedPropertyAssignment
-	 */
 	public function receive(RoutableEvent $event, string $destination): bool {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;

@@ -11,15 +11,15 @@ use Nadybot\Core\{
 	EventManager,
 	LoggerWrapper,
 	MessageHub,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -154,6 +154,10 @@ class WorldBossController {
 		],
 	];
 
+	public const SPAWN_SHOW = 1;
+	public const SPAWN_SHOULD = 2;
+	public const SPAWN_EVENT = 3;
+
 	/**
 	 * @var WorldBossTimer[]
 	 */
@@ -213,12 +217,12 @@ class WorldBossController {
 	 * @param WorldBossTimer[] $timers
 	 */
 	protected function addNextDates(array $timers): void {
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? static::SPAWN_SHOW;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
 			$timer->next_spawn    = $timer->spawn;
-			if ($showSpawn === 3 && !$this->lastSpawnPrecise[$timer->mob_name]) {
+			if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
 				continue;
 			}
 			while ($timer->next_killable <= time()) {
@@ -296,7 +300,6 @@ class WorldBossController {
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
-		$spawnTimeMessage = '';
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
 			if ($timer->mob_name === static::VIZARESH) {
 				$secsDead = time() - (($timer->next_spawn??0) - 61200);
@@ -517,9 +520,9 @@ class WorldBossController {
 			}
 			if ($timer->next_spawn === time()) {
 				$this->lastSpawnPrecise[$timer->mob_name] = $manual;
-				if ($showSpawn === 3 && !$manual) {
+				if ($showSpawn === static::SPAWN_EVENT && !$manual) {
 					return;
-				} elseif ($showSpawn === 2) {
+				} elseif ($showSpawn === static::SPAWN_SHOULD) {
 					$msg = "<highlight>{$timer->mob_name}<end> should spawn ".
 						"any time now";
 					$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
@@ -544,7 +547,7 @@ class WorldBossController {
 			$nextKillTime = time() + $timer->timer + $invulnerableTime;
 			if ($timer->next_killable === time() || $timer->next_killable === $nextKillTime) {
 				// With this setting, we only want to show "is mortal" when we are 100% sure
-				if ($showSpawn === 3 && !$this->lastSpawnPrecise[$timer->mob_name]) {
+				if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
 					return;
 				}
 				$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";

@@ -391,7 +391,6 @@ class BotRunner {
 	 */
 	private function loadPhpLibraries(): void {
 		foreach (glob(__DIR__ . "/Annotations/*.php") as $file) {
-			/** @psalm-suppress UnresolvableInclude */
 			require_once $file;
 		}
 	}

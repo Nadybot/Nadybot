@@ -31,7 +31,6 @@ class ConfigFile {
 	 */
 	public function load(): void {
 		$this->copyFromTemplateIfNeeded();
-		/** @psalm-suppress UnresolvableInclude */
 		require $this->filePath;
 		/** @phpstan-ignore-next-line */
 		$this->vars = $vars;
