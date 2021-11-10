@@ -159,11 +159,32 @@ class WorldBossController {
 	 */
 	public array $timers = [];
 
+	/**
+	 * Keep track whether the last spawn was manually
+	 * set or via world event (true), or just calculated (false)
+	 *
+	 * @var array<string,bool>
+	 */
+	private array $lastSpawnPrecise = [];
+
 	private array $sentNotifications = [];
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
+		$this->settingManager->add(
+			$this->moduleName,
+			"worldboss_show_spawn",
+			"How to show spawn and vulnerability events",
+			"edit",
+			"options",
+			"1",
+			"Show as if the worldboss had actually spawned.".
+				";Show 'should have' messages.".
+				";Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event.",
+			"1;2;3",
+			"mod"
+		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"gauntlet update",
@@ -192,16 +213,20 @@ class WorldBossController {
 	 * @param WorldBossTimer[] $timers
 	 */
 	protected function addNextDates(array $timers): void {
+		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
 			$timer->next_spawn    = $timer->spawn;
+			if ($showSpawn === 3 && !$this->lastSpawnPrecise[$timer->mob_name]) {
+				continue;
+			}
 			while ($timer->next_killable <= time()) {
 				$timer->next_killable += $timer->timer + $invulnerableTime;
 				$timer->next_spawn    += $timer->timer + $invulnerableTime;
 			}
 		}
-		usort($timers, function($a, $b) {
+		usort($timers, function(WorldBossTimer $a, WorldBossTimer $b) {
 			return $a->next_spawn <=> $b->next_spawn;
 		});
 	}
@@ -244,9 +269,13 @@ class WorldBossController {
 	protected function getNextSpawnsMessage(WorldBossTimer $timer, int $howMany=10): string {
 		$multiplicator = $timer->timer + $timer->killable - $timer->spawn;
 		$times = [];
-		for ($i = 0; $i < $howMany; $i++) {
-			$spawnTime = $timer->next_spawn + $i*$multiplicator;
-			$times[] = $this->niceTime($spawnTime);
+		if (isset($timer->next_spawn)) {
+			for ($i = 0; $i < $howMany; $i++) {
+				$spawnTime = $timer->next_spawn + $i*$multiplicator;
+				$times []= $this->niceTime($spawnTime);
+			}
+		} else {
+			$times []= "unknown";
 		}
 		$msg = "Timer updated".
 				" at <highlight>".$this->niceTime($timer->time_submitted)."<end>.\n\n".
@@ -266,17 +295,17 @@ class WorldBossController {
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
-		$spawntimes = $this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
+		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		$spawnTimeMessage = '';
-		if (time() < $timer->next_spawn) {
+		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
 			if ($timer->mob_name === static::VIZARESH) {
-				$secsDead = time() - ($timer->next_spawn - 61200);
+				$secsDead = time() - (($timer->next_spawn??0) - 61200);
 				if ($secsDead < 6*60 + 30) {
 					$portalOpen = 6*60 + 30 - $secsDead;
 					$portalOpenTime = $this->util->unixtimeToReadable($portalOpen);
 					$msg = "The Gauntlet portal will be open for <highlight>{$portalOpenTime}<end>.";
-					if (!$short) {
-						$msg .= " {$spawntimes}";
+					if (!$short && count($spawntimes)) {
+						$msg .= " {$spawntimes[0]}";
 					}
 					return $msg;
 				}
@@ -286,17 +315,31 @@ class WorldBossController {
 			if ($short) {
 				return "{$timer->mob_name}{$spawnTimeMessage}.";
 			}
-			$spawnTimeMessage .= " and";
 		} else {
-			$spawnTimeMessage = " spawned and";
+			$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+			if ($showSpawn === 1 || $this->lastSpawnPrecise[$timer->mob_name]) {
+				$spawnTimeMessage = " spawned";
+			} else {
+				$spawnTimeMessage = " should have spawned";
+			}
 		}
-		$timeUntilKill = $this->util->unixtimeToReadable($timer->next_killable-time());
-		$killTimeMessage = " will be vulnerable in <highlight>{$timeUntilKill}<end>";
-		if ($short) {
-			return "{$timer->mob_name}{$spawnTimeMessage}{$killTimeMessage}.";
+
+		if (isset($timer->next_killable)) {
+			$killTimeMessage = "";
+			if ($timer->next_killable > time()) {
+				$timeUntilKill = $this->util->unixtimeToReadable($timer->next_killable-time());
+				$killTimeMessage = " and will be vulnerable in <highlight>{$timeUntilKill}<end>";
+			}
+			if ($short) {
+				return "{$timer->mob_name}{$spawnTimeMessage}{$killTimeMessage}.";
+			}
+			$msg = "{$timer->mob_name}${spawnTimeMessage}${killTimeMessage}.";
+			if (count($spawntimes)) {
+				$msg .= " {$spawntimes[0]}";
+			}
+			return $msg;
 		}
-		$msg = "{$timer->mob_name}${spawnTimeMessage}${killTimeMessage}. $spawntimes";
-		return $msg;
+		return "{$timer->mob_name} does currently not have an accurate timer.";
 	}
 
 	public function worldBossDeleteCommand(Character $sender, string $mobName): string {
@@ -460,9 +503,10 @@ class WorldBossController {
 	 * @Event("timer(1sec)")
 	 * @Description("Check timer to announce big boss events")
 	 */
-	public function checkTimerEvent(): void {
+	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
 		$timers = $this->getWorldBossTimers();
 		$triggered = false;
+		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			if ($timer->next_spawn === time()+15*60) {
@@ -472,13 +516,37 @@ class WorldBossController {
 				$triggered = true;
 			}
 			if ($timer->next_spawn === time()) {
-				$msg = "<highlight>{$timer->mob_name}<end> has spawned and will be vulnerable in ".
-					"<highlight>".$this->util->unixtimeToReadable($timer->next_killable-time())."<end>.";
+				$this->lastSpawnPrecise[$timer->mob_name] = $manual;
+				if ($showSpawn === 3 && !$manual) {
+					return;
+				} elseif ($showSpawn === 2) {
+					$msg = "<highlight>{$timer->mob_name}<end> should spawn ".
+						"any time now";
+					$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
+					if (isset($invulnDuration)) {
+						$msg .= " and will be immortal for ".
+							$this->util->unixtimeToReadable($invulnDuration);
+					}
+					$msg .= ".";
+				} else {
+					$msg = "<highlight>{$timer->mob_name}<end> has spawned";
+					if (isset($timer->next_killable) && $timer->next_killable > time()) {
+						$msg .= " and will be vulnerable in <highlight>".
+							$this->util->unixtimeToReadable($timer->next_killable-time()).
+							"<end>.";
+					} else {
+						$msg .= ".";
+					}
+				}
 				$this->announceBigBossEvent($timer->mob_name, $msg, 2);
 				$triggered = true;
 			}
 			$nextKillTime = time() + $timer->timer + $invulnerableTime;
 			if ($timer->next_killable === time() || $timer->next_killable === $nextKillTime) {
+				// With this setting, we only want to show "is mortal" when we are 100% sure
+				if ($showSpawn === 3 && !$this->lastSpawnPrecise[$timer->mob_name]) {
+					return;
+				}
 				$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 3);
 				$triggered = true;
@@ -510,7 +578,7 @@ class WorldBossController {
 			$this->announceBigBossEvent($mobName, $msg, 3);
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
-		$this->checkTimerEvent();
+		$this->checkTimerEvent(new Event(), 1, true);
 	}
 
 	/**

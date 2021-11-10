@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
+	AOChatEvent,
 	CmdContext,
 	EventManager,
 	LoggerWrapper,
@@ -16,6 +17,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
 use Nadybot\Core\ParamClass\PDuration;
@@ -81,7 +83,7 @@ class GauntletBuffController implements MessageEmitter {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
 			'gaubuff_times',
@@ -134,7 +136,7 @@ class GauntletBuffController implements MessageEmitter {
 		}
 	}
 
-	private function tmTime(int $time) {
+	private function tmTime(int $time): string {
 		$gtime = new DateTime();
 		$gtime->setTimestamp($time);
 		return $gtime->format("D, H:i T (d-M-Y)");
@@ -142,10 +144,14 @@ class GauntletBuffController implements MessageEmitter {
 
 	public function setGaubuff(string $side, int $time, string $creator, int $createtime): void {
 		$alerts = [];
-		foreach (explode(' ', $this->settingManager->getString('gaubuff_times')) as $utime) {
-			$alertTimes[] = $this->util->parseTime($utime);
+		$alertTimes = [];
+		$gaubuffTimes = $this->settingManager->getString('gaubuff_times');
+		if (isset($gaubuffTimes)) {
+			foreach (explode(' ', $gaubuffTimes) as $utime) {
+				$alertTimes [] = $this->util->parseTime($utime);
+			}
 		}
-		$alertTimes[] = 0; //timer runs out
+		$alertTimes []= 0; //timer runs out
 		foreach ($alertTimes as $alertTime) {
 			if (($time - $alertTime) > time()) {
 				$alert = new Alert();
@@ -176,7 +182,7 @@ class GauntletBuffController implements MessageEmitter {
 		);
 	}
 
-	public function gaubuffcallback(Timer $timer, Alert $alert) {
+	public function gaubuffcallback(Timer $timer, Alert $alert): void {
 		$rMsg = new RoutableMessage($alert->message);
 		$rMsg->appendPath(new Source(
 			Source::SYSTEM,
@@ -190,7 +196,7 @@ class GauntletBuffController implements MessageEmitter {
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");
-			if ($timer === null) {
+			if ($timer === null || !isset($timer->endtime)) {
 				continue;
 			}
 			$msgs []= "<{$side}>" . ucfirst($side) . " Gauntlet buff<end> ".
@@ -208,9 +214,10 @@ class GauntletBuffController implements MessageEmitter {
 	 * @Event("logOn")
 	 * @Description("Sends gaubuff message on logon")
 	 */
-	public function gaubufflogonEvent($eventObj) {
+	public function gaubufflogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
+			|| !is_string($sender)
 			|| (!isset($this->chatBot->guildmembers[$sender]))
 			|| (!$this->settingManager->getBool('gaubuff_logon'))) {
 			return;
@@ -222,9 +229,9 @@ class GauntletBuffController implements MessageEmitter {
 	 * @Event("joinPriv")
 	 * @Description("Sends gaubuff message on join")
 	 */
-	public function privateChannelJoinEvent($eventObj) {
+	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if ($this->settingManager->getBool('gaubuff_logon')) {
+		if ($this->settingManager->getBool('gaubuff_logon') && is_string($sender)) {
 			$this->showGauntletBuff($sender);
 		}
 	}
@@ -239,7 +246,7 @@ class GauntletBuffController implements MessageEmitter {
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");
-			if ($timer !== null) {
+			if ($timer !== null && isset($timer->endtime)) {
 				$gaubuff = $timer->endtime - time();
 				$msgs []= "<{$side}>" . ucfirst($side) . " Gauntlet buff<end> runs out ".
 					"in <highlight>".$this->util->unixtimeToReadable($gaubuff)."<end>.";
@@ -247,7 +254,7 @@ class GauntletBuffController implements MessageEmitter {
 		}
 		if (empty($msgs)) {
 			if (count($sides) === 1) {
-				$context->reply("No <{$side}>{$side} Gauntlet buff<end> available.");
+				$context->reply("No <{$sides[0]}>{$sides[0]} Gauntlet buff<end> available.");
 			} else {
 				$context->reply("No Gauntlet buff available for either side.");
 			}
@@ -262,7 +269,7 @@ class GauntletBuffController implements MessageEmitter {
 	 * @HandlesCommand("gaubuff")
 	 */
 	public function gaubuffSetCommand(CmdContext $context, ?string $side="(clan|omni)", PDuration $time): void {
-		$defaultSide = $this->settingManager->getString('gaubuff_default_side');
+		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
 		$side = $side ?? $defaultSide;
 		if ($side === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
@@ -312,7 +319,7 @@ class GauntletBuffController implements MessageEmitter {
 	 * @return string[]
 	 */
 	protected function getSidesToShowBuff(?string $side=null): array {
-		$defaultSide = $this->settingManager->getString('gaubuff_default_side');
+		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
 		$side ??= $defaultSide;
 		if ($side === static::SIDE_NONE) {
 			return ['clan', 'omni'];
@@ -340,7 +347,7 @@ class GauntletBuffController implements MessageEmitter {
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");
-			if ($timer !== null) {
+			if ($timer !== null && isset($timer->endtime)) {
 				$gaubuff = $timer->endtime - time();
 				$msgs []= "<tab><{$side}>" . ucfirst($side) . " Gauntlet buff<end> runs out ".
 					"in <highlight>".$this->util->unixtimeToReadable($gaubuff)."<end>.\n";

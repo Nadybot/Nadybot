@@ -24,7 +24,7 @@ use ReflectionParameter;
 use ReflectionProperty;
 
 class ApiSpecGenerator {
-	public function loadClasses() {
+	public function loadClasses(): void {
 		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
 			require_once $file;
 		}
@@ -194,6 +194,10 @@ class ApiSpecGenerator {
 		$result[$className] = $newResult;
 	}
 
+	/**
+	 * @return mixed[]
+	 * @psalm-return array{0: string, 1: string|list<string>}
+	 */
 	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
