@@ -201,7 +201,7 @@ class WhompahController {
 			->keyBy("id")->toArray();
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
-			->each(function($city) use ($whompahs) {
+			->each(function(object $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
 				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
 			});

@@ -15,4 +15,5 @@ class PlayerHistoryData extends JSONDataModel {
 	public ?string $guild_name;
 	public DateTime $last_changed;
 	public string $faction;
+	public string $deleted = "0";
 }

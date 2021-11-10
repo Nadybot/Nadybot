@@ -666,7 +666,7 @@ class CommentController {
 	/**
 	 * Count all comments about a list of players or their alts/main, optionally limited to a category
 	 *
-	 * @return Comment[]
+	 * @return int
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");
