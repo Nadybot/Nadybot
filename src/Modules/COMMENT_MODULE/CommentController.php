@@ -119,8 +119,8 @@ class CommentController {
 			"text",
 			"comment_categories_<myname>",
 		);
-		$this->db->registerTableName("comments", $sm->getString("table_name_comments"));
-		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories"));
+		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
+		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
 		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 	}
@@ -198,8 +198,8 @@ class CommentController {
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage(), $e);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable);
-			$this->db->registerTableName("comment_categories", $oldCategoryTable);
+			$this->db->registerTableName("comments", $oldCommentTable??"");
+			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
 			throw new Exception("There was an error copying the comments in the database");
 		}
 		$this->db->commit();
@@ -416,7 +416,7 @@ class CommentController {
 		if ($comment->created_by === $this->chatBot->vars["name"]) {
 			return 0;
 		}
-		$cooldown = $this->settingManager->getInt("comment_cooldown");
+		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
 		// Get all comments about that same character
 		$comments = $this->getComments(null, $comment->character);
 		// Only keep those that were created by the same person creating one now
@@ -552,7 +552,10 @@ class CommentController {
 						return $accessCache[$comment->category];
 					}
 					$cat = $this->getCategory($comment->category);
-					$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+					$canRead = false;
+					if (isset($cat)) {
+						$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+					}
 					return $accessCache[$comment->category] = $canRead;
 				}
 			)

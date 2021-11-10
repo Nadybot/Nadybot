@@ -4,6 +4,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AOChatEvent,
 	CommandReply,
 	DB,
 	Event,
@@ -12,12 +13,13 @@ use Nadybot\Core\{
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -147,8 +149,11 @@ class CloakController implements MessageEmitter {
 			$list .= "Action: <highlight>Cloaking device turned " . $row->action . "<end>\n";
 			$list .= "Character: <highlight>" . $row->player . "<end>\n\n";
 		}
-		$msg .= " " . $this->text->makeBlob("Cloak History", $list);
-		$sendto->reply($msg);
+		$blob = (array)$this->text->makeBlob("Cloak History", $list);
+		foreach ($blob as &$page) {
+			$page = "{$msg} {$page}";
+		}
+		$sendto->reply($blob);
 	}
 
 	/**
@@ -182,7 +187,7 @@ class CloakController implements MessageEmitter {
 	 * @Event("guild")
 	 * @Description("Records when the cloak is raised or lowered")
 	 */
-	public function recordCloakChangesEvent(Event $eventObj): void {
+	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
 			|| !preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)
 		) {
@@ -232,7 +237,7 @@ class CloakController implements MessageEmitter {
 		if ($row->action === "off") {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
-			$interval = $this->settingManager->getInt('cloak_reminder_interval');
+			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
@@ -283,9 +288,10 @@ class CloakController implements MessageEmitter {
 	 * @Event("logOn")
 	 * @Description("Show cloak status to guild members logging in")
 	 */
-	public function cityGuildLogonEvent(Event $eventObj): void {
+	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !is_string($eventObj->sender)
 		) {
 			return;
 		}

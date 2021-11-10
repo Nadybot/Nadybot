@@ -4,6 +4,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	AOChatEvent,
 	CommandAlias,
 	CommandReply,
 	Event,
@@ -171,7 +172,7 @@ class CityWaveController implements MessageEmitter {
 	 * @Event("guild")
 	 * @Description("Starts a wave counter when cloak is lowered")
 	 */
-	public function autoStartWaveCounterEvent(Event $eventObj): void {
+	public function autoStartWaveCounterEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();
 		}
@@ -179,7 +180,7 @@ class CityWaveController implements MessageEmitter {
 
 	public function getWave(): ?int {
 		$timer = $this->timerController->get(self::TIMER_NAME);
-		if ($timer === null) {
+		if ($timer === null || !isset($timer->alerts[0]->wave)) {
 			return null;
 		}
 		return $timer->alerts[0]->wave;
@@ -209,7 +210,7 @@ class CityWaveController implements MessageEmitter {
 		$lastTime = time();
 		$wave = 1;
 		$alerts = [];
-		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times"));
+		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times")??"");
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;

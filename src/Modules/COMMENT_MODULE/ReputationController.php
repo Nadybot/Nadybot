@@ -93,13 +93,13 @@ class ReputationController {
 		}
 
 		$blob = '';
-		/** @var array<string,stdClass> */
+		/** @var array<string,\stdClass> */
 		$charReputation = [];
 		foreach ($comments as $comment) {
 			if (!array_key_exists($comment->character, $charReputation)) {
 				$charReputation[$comment->character] = (object)['total' => 0, 'comments' => []];
 			}
-			$charReputation[$comment->character]->comments[] = $comment;
+			$charReputation[$comment->character]->comments []= $comment;
 			$charReputation[$comment->character]->total += preg_match("/^\+1/", $comment->comment) ? 1 : -1;
 		}
 		$count = 0;
@@ -114,7 +114,7 @@ class ReputationController {
 					$this->util->date($comment->created_at) . ")\n";
 			}
 			if (count($charData->comments) > 3) {
-				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comment->character} all");
+				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comments[0]->character} all");
 				$blob .= "  $details_link\n";
 			}
 			$blob .= "\n<pagebreak>";
