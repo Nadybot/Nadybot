@@ -221,9 +221,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("test")
-	 * @Matches("/^test$/i")
 	 */
-	public function testListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testListCommand(CmdContext $context): void {
 		$files = $this->util->getFilesInDirectory($this->path);
 		$count = count($files);
 		sort($files);
@@ -233,7 +232,7 @@ class TestController {
 			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test $name") . "\n";
 		}
 		$msg = $this->text->makeBlob("Tests Available ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

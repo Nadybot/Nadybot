@@ -358,14 +358,15 @@ class ChatAssistController {
 		$this->callers[$groupKey]->callers = $callers;
 		$this->storeBackup($backup);
 
-		if ($groupName === "") {
-			$msg = "Callers set, here is the ".
-				$this->text->makeBlob("list of callers", $this->getAssistMessage());
-		} else {
-			$msg = "Callers set for <highlight>$groupName<end>, here is the ".
-				$this->text->makeBlob("list of callers", $this->getAssistMessage());
+		$blob = (array)$this->text->makeBlob("list of callers", $this->getAssistMessage());
+		foreach ($blob as &$page) {
+			if ($groupName === "") {
+				$page = "Callers set, here is the {$page}";
+			} else {
+				$page = "Callers set for <highlight>$groupName<end>, here is the {$page}";
+			}
 		}
-		$sendto->reply($msg);
+		$sendto->reply($blob);
 		$event = new AssistEvent();
 		$event->type = "assist(set)";
 		$event->lists = array_values($this->callers);
@@ -426,7 +427,10 @@ class ChatAssistController {
 		$this->storeBackup($backup);
 
 		$blob = $this->getAssistMessage();
-		$msg .= ". " . $this->text->makeBlob("List of callers", $blob);
+		$msg = $this->text->blobWrap(
+			"{$msg}. ",
+			$this->text->makeBlob("List of callers", $blob)
+		);
 		$sendto->reply($msg);
 		$event->lists = array_values($this->callers);
 		$this->eventManager->fireEvent($event);
@@ -450,7 +454,10 @@ class ChatAssistController {
 		$this->callers = array_splice($this->lastCallers, -1 * $undo)[0]->callers;
 		$msg = "Callers configuration restored. ";
 		if (count($this->callers) > 0) {
-			$msg .= $this->text->makeBlob("List of callers", $this->getAssistMessage());
+			$msg = $this->text->blobWrap(
+				$msg,
+				$this->text->makeBlob("List of callers", $this->getAssistMessage())
+			);
 		} else {
 			$msg .= "No callers set.";
 		}
@@ -503,6 +510,11 @@ class ChatAssistController {
 		}
 		$blob = "<header2>Assist macro<end>\n".
 			"<tab>" . $this->text->makeChatcmd("Click me for a macro", "/macro {$name} /assist {$name}");
-		$sendto->reply("Please all " . $this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}"));
+		$sendto->reply(
+			$this->text->blobWrap(
+				"Please all ",
+				$this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}")
+			)
+		);
 	}
 }

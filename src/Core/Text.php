@@ -31,6 +31,22 @@ class Text {
 	}
 
 	/**
+	 * Wraps a block in a before and after part
+	 *
+	 * @param string $before String before the link
+	 * @param string|string[] $blob The blob to wrap
+	 * @param string|null $after The optional stirng after the blob
+	 * @return string[]
+	 */
+	public function blobWrap(string $before, $blob, ?string $after=""): array {
+		$blob = (array)$blob;
+		foreach ($blob as &$page) {
+			$page = "{$before}{$page}{$after}";
+		}
+		return $blob;
+	}
+
+	/**
 	 * Creates an info window, supporting pagination
 	 *
 	 * @param string $name The text part of the clickable link

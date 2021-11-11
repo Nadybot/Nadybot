@@ -298,6 +298,7 @@ class WorldBossController {
 	}
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
+		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
@@ -314,13 +315,16 @@ class WorldBossController {
 				}
 			}
 			$timeUntilSpawn = $this->util->unixtimeToReadable($timer->next_spawn-time());
-			$spawnTimeMessage = " spawns in <highlight>{$timeUntilSpawn}<end>";
+			if ($showSpawn === static::SPAWN_SHOULD) {
+				$spawnTimeMessage = " should spawn in <highlight>{$timeUntilSpawn}<end>";
+			} else {
+				$spawnTimeMessage = " spawns in <highlight>{$timeUntilSpawn}<end>";
+			}
 			if ($short) {
 				return "{$timer->mob_name}{$spawnTimeMessage}.";
 			}
 		} else {
-			$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
-			if ($showSpawn === 1 || $this->lastSpawnPrecise[$timer->mob_name]) {
+			if ($showSpawn === static::SPAWN_SHOW || $this->lastSpawnPrecise[$timer->mob_name]) {
 				$spawnTimeMessage = " spawned";
 			} else {
 				$spawnTimeMessage = " should have spawned";
@@ -522,7 +526,7 @@ class WorldBossController {
 				$this->lastSpawnPrecise[$timer->mob_name] = $manual;
 				if ($showSpawn === static::SPAWN_EVENT && !$manual) {
 					return;
-				} elseif ($showSpawn === static::SPAWN_SHOULD) {
+				} elseif ($showSpawn === static::SPAWN_SHOULD && !$manual) {
 					$msg = "<highlight>{$timer->mob_name}<end> should spawn ".
 						"any time now";
 					$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
@@ -549,8 +553,11 @@ class WorldBossController {
 				// With this setting, we only want to show "is mortal" when we are 100% sure
 				if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
 					return;
+				} elseif ($showSpawn === static::SPAWN_SHOULD && !$this->lastSpawnPrecise[$timer->mob_name]) {
+					$msg = "<highlight>{$timer->mob_name}<end> should no longer be immortal.";
+				} else {
+					$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";
 				}
-				$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 3);
 				$triggered = true;
 			}

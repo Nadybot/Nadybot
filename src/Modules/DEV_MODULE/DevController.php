@@ -6,7 +6,6 @@ use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
-	DBSchema\CmdCfg,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
@@ -106,18 +105,15 @@ class DevController {
 
 	/**
 	 * @HandlesCommand("showcmdregex")
-	 * @Matches("/^showcmdregex (.+)$/i")
 	 */
-	public function showcmdregexCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = $args[1];
-
+	public function showcmdregexCommand(CmdContext $context, string $cmd): void {
 		// get all command handlers
-		$handlers = $this->getAllCommandHandlers($cmd, $channel);
+		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
-		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($sender, $accessManager) {
-			return $accessManager->checkAccess($sender, $handler->admin);
+		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager) {
+			return $accessManager->checkAccess($context->char->name, $handler->admin);
 		});
 
 		// get calls for handlers
@@ -147,13 +143,17 @@ class DevController {
 		if ($count > 0) {
 			$blob = "<header2>Regular expressions<end>\n";
 			foreach ($regexes as $regex) {
+				if (preg_match("/^(.)(.+?)\\1([a-z]*)$/", $regex, $matches)) {
+					$regex = "(?{$matches[3]})  {$matches[2]}";
+					$regex = preg_replace("/\(\?<.+?>/", "(", $regex);
+				}
 				$blob .= "<tab>{$regex}\n";
 			}
 			$msg = $this->text->makeBlob("Regexes for $cmd ($count)", $blob);
 		} else {
 			$msg = "No regexes found for command <highlight>$cmd<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -176,45 +176,47 @@ class DevController {
 
 	/**
 	 * @HandlesCommand("intransaction")
-	 * @Matches("/^intransaction$/i")
 	 */
-	public function inTransactionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function inTransactionCommand(CmdContext $context): void {
 		if ($this->db->inTransaction()) {
 			$msg = "There is an active transaction.";
 		} else {
 			$msg = "There is no active transaction.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("rollbacktransaction")
-	 * @Matches("/^rollbacktransaction$/i")
 	 */
-	public function rollbackTransactionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function rollbackTransactionCommand(CmdContext $context): void {
 		$this->db->rollback();
 
 		$msg = "The active transaction has been rolled back.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("stacktrace")
-	 * @Matches("/^stacktrace$/i")
 	 */
-	public function stacktraceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$stacktrace = $this->util->getStackTrace();
-		$count = substr_count($stacktrace, "\n");
-		$msg = $this->text->makeBlob("Current Stacktrace ($count)", $stacktrace);
-		$sendto->reply($msg);
+	public function stacktraceCommand(CmdContext $context): void {
+		$stacktrace = trim($this->util->getStackTrace());
+		$lines = explode("\n", $stacktrace);
+		$count = count($lines);
+		$blob = "<header2>Current call stack<end>";
+		for ($i = 0; $i < $count; $i++) {
+			$pos = $count-$i;
+			$blob .= "\n<tab>" . $this->text->alignNumber($pos, 2, "highlight") . ". {$lines[$i]}";
+		}
+		$msg = $this->text->makeBlob("Current Stacktrace ($count)", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("cmdhandlers")
-	 * @Matches("/^cmdhandlers (.*)$/i")
 	 */
-	public function cmdhandlersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmdArray = explode(" ", $args[1], 2);
+	public function cmdhandlersCommand(CmdContext $context, string $command): void {
+		$cmdArray = explode(" ", $command, 2);
 		$cmd = $cmdArray[0];
 
 		$blob = '';
@@ -235,12 +237,11 @@ class DevController {
 
 		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("makeitem")
-	 * @Matches("/^makeitem (\d+) (\d+) (\d+) (.+)$/i")
 	 */
 	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
 		$context->reply($this->text->makeItem($lowId, $highId, $ql, $name));
@@ -248,21 +249,14 @@ class DevController {
 
 	/**
 	 * @HandlesCommand("createblob")
-	 * @Matches("/^createblob (\d+)$/i")
-	 * @Matches("/^createblob (\d+) (\d+)$/i")
 	 */
-	public function createBlobCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$length = (int)$args[1];
-		if (isset($args[2])) {
-			$numBlobs = (int)$args[2];
-		} else {
-			$numBlobs = 1;
-		}
+	public function createBlobCommand(CmdContext $context, int $length, ?int $numBlobs): void {
+		$numBlobs ??= 1;
 
 		for ($i = 0; $i < $numBlobs; $i++) {
 			$blob = $this->randString($length);
 			$msg = $this->text->makeBlob("Blob $i", $blob);
-			$sendto->reply($msg);
+			$context->reply($msg);
 		}
 	}
 

@@ -90,9 +90,8 @@ class MMDBParser {
 
 	/**
 	 * @return null|array<string,int>[]
-	 * @psalm-suppress MismatchingDocblockReturnType
 	 */
-	public function getCategories(): array {
+	public function getCategories(): ?array {
 		$in = $this->openFile();
 		if ($in === null) {
 			return null;

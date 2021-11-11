@@ -62,7 +62,7 @@ class AsyncHttp {
 	/**
 	 * The query parameters to send with out query
 	 *
-	 * @var string[]
+	 * @var array<string,string|int>
 	 */
 	private array $queryParams = [];
 
@@ -611,6 +611,7 @@ class AsyncHttp {
 	 *                $body: received contents
 	 *  * $data     - optional value which is same as given as argument to
 	 *                this method.
+	 * @psalm-param callable(HttpResponse,mixed...) $callback
 	 * @param mixed $data
 	 */
 	public function withCallback(callable $callback, ...$data): self {
@@ -622,7 +623,7 @@ class AsyncHttp {
 	/**
 	 * Set the query parameters to send with the request
 	 *
-	 * @param string[] $params array of key/value pair parameters passed as a query
+	 * @param array<string,int|string> $params array of key/value pair parameters passed as a query
 	 */
 	public function withQueryParams(array $params): self {
 		$this->queryParams = $params;

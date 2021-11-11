@@ -54,6 +54,7 @@ class ConfigFile {
 		}
 
 		unset($vars['module_load_paths']); // hacky
+		unset($vars['settings']); // hacky
 
 		// if there are additional vars which were not present in the config
 		// file or in template file then add them at end of the config file

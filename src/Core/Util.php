@@ -397,16 +397,19 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd(), "", $obj['file']);
+			$file = str_replace(getcwd() . "/", "", $obj['file']);
 			$arr1 []= "{$file}({$obj['line']})";
 			$arr2 []= "{$obj['function']}()";
 		}
 
 		array_shift($arr2);
 
-		$str = '';
+		$str = "";
 		for ($i = 0; $i < count($arr1); $i++) {
-			$str .= "$arr1[$i] : $arr2[$i]\n";
+			if ($arr1[$i] !== "()") {
+				$str .= "$arr1[$i] : ";
+			}
+			$str .= "$arr2[$i]\n";
 		}
 		return $str;
 	}
