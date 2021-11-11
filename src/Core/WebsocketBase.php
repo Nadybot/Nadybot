@@ -85,6 +85,9 @@ class WebsocketBase {
 		return $this->peerName;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function on(string $event, callable $callback): self {
 		if (!in_array($event, static::ALLOWED_EVENTS)) {
 			throw new InvalidArgumentException("$event is not an allowed event.");

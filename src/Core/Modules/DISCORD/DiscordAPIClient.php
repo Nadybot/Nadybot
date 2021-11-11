@@ -200,7 +200,8 @@ class DiscordAPIClient {
 					'ERROR',
 					'Error received while sending message to Discord. Status-Code: '.
 					$response->headers['status-code'].
-					', Content: '.($response->body ?? '')
+					', Content: '.($response->body ?? '') . ", URL: ".(
+					isset($response->request) ? $response->request->getURI() : "unknown")
 				);
 				return;
 			}

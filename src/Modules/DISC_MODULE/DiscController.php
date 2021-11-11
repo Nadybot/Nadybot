@@ -119,6 +119,10 @@ class DiscController {
 		$discLink = $this->text->makeItem($disc->disc_id, $disc->disc_id, $disc->disc_ql, $disc->disc_name);
 		$nanoLink = $this->text->makeItem($disc->crystal_id, $disc->crystal_id, $disc->crystal_ql, $disc->crystal_name);
 		$nanoDetails = $this->getNanoDetails($disc);
+		if (!isset($nanoDetails)) {
+			$sendto->reply("Cannot find the nano details for {$disc->disc_name}.");
+			return;
+		}
 		$msg = sprintf(
 			"%s will turn into %s (%s, %s, <highlight>%s<end>).",
 			$discLink,
@@ -128,7 +132,7 @@ class DiscController {
 			$nanoDetails->location
 		);
 		if (strlen($disc->comment ?? "")) {
-			$msg .= " <red>" . $disc->comment . "!<end>";
+			$msg .= " <red>" . ($disc->comment??"") . "!<end>";
 		}
 		$sendto->reply($msg);
 	}

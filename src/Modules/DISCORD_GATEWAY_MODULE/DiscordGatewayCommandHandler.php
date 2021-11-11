@@ -229,7 +229,8 @@ class DiscordGatewayCommandHandler {
 						$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
 					"]";
 				$msg = $this->text->makeBlob("Request to link your account with $sender", $blob);
-				$this->chatBot->sendMassTell("You have received a $msg.", $name);
+				$msg = $this->text->blobWrap("You have received a ", $msg, ".");
+				$this->chatBot->sendMassTell($msg, $name);
 			}
 		);
 		$sendto->reply(
@@ -245,9 +246,9 @@ class DiscordGatewayCommandHandler {
 	 * @Description("Handle commands from Discord private messages")
 	 */
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
-		$isCommand = substr($event->message, 0, 1) === $this->settingManager->get("discord_symbol");
+		$isCommand = substr($event->message??"", 0, 1) === $this->settingManager->get("discord_symbol");
 		if ( $isCommand ) {
-			$event->message = substr($event->message, 1);
+			$event->message = substr($event->message??"", 1);
 		}
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
@@ -255,7 +256,7 @@ class DiscordGatewayCommandHandler {
 			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
-		$discordUserId = $event->discord_message->author->id;
+		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$context = new CmdContext($discordUserId);
 		$context->channel = "msg";
 		$context->message = $event->message;
@@ -283,7 +284,7 @@ class DiscordGatewayCommandHandler {
 	 * @Description("Handle commands from Discord channel messages")
 	 */
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
-		$discordUserId = $event->discord_message->author->id;
+		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("discord_symbol");
 		if (
 			!$isCommand
@@ -303,7 +304,7 @@ class DiscordGatewayCommandHandler {
 			$event->discord_message,
 		);
 		Registry::injectDependencies($sendto);
-		$discordUserId = $event->discord_message->author->id;
+		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$context = new CmdContext($discordUserId);
 		$context->channel = "priv";
 		$context->message = substr($event->message, 1);
