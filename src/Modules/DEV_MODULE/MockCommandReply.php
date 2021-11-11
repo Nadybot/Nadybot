@@ -11,7 +11,7 @@ class MockCommandReply implements CommandReply {
 	public function reply($msg): void {
 		if (isset($this->logger)) {
 			foreach ((array)$msg as $result) {
-				$this->logger->log('INFO', $result);
+				$this->logger->log('DEBUG', $result);
 			}
 		}
 	}

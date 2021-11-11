@@ -289,7 +289,7 @@ class TestController {
 			if ($this->settingManager->getBool('show_test_commands')) {
 				$this->chatBot->sendTell($line, $context->char->name);
 			} else {
-				$this->logger->log('INFO', $line);
+				$this->logger->log('DEBUG', $line);
 			}
 			$context->message = substr($line, 1);
 			$this->commandManager->processCmd($context);
