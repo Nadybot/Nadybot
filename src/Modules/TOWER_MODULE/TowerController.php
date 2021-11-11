@@ -315,11 +315,21 @@ class TowerController {
 	 * @Event("timer(30min)")
 	 * @Description("Download factions owning towers")
 	 */
-	public function downloadFactionsOwningTowerSites() {
+	public function downloadFactionsOwningTowerSites(): void {
 		$this->http
 				->get('http://echtedomain.club/lc.php')
 				->withTimeout(20)
 				->withCallback([$this, 'parseFactionsOwningTowerSites']);
+	}
+
+	public function readTowerSiteById(int $pfId, int $siteId): ?TowerSite {
+		/** @var ?TowerSite */
+		$site = $this->db->table("tower_site AS t")
+			->where("t.playfield_id", $pfId)
+			->where("t.site_number", $siteId)
+			->asObj(SiteInfo::class)
+			->first();
+		return $site;
 	}
 
 	public function parseFactionsOwningTowerSites(HttpResponse $response): void {
@@ -559,7 +569,7 @@ class TowerController {
 	 * @HandlesCommand("lc")
 	 */
 	public function lcCommand(CmdContext $context): void {
-		/** @var Collectionn<Playfield> */
+		/** @var Collection<Playfield> */
 		$playfields = $this->db->table("tower_site AS t")
 			->join("playfields AS p", "p.id", "t.playfield_id")
 			->orderBy("p.short_name")

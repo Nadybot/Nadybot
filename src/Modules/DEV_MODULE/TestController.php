@@ -19,7 +19,13 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PFaction;
+use Nadybot\Core\ParamClass\PPlayfield;
+use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
+use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
+use Nadybot\Modules\TOWER_MODULE\TowerController;
 
 /**
  * @author Tyrence (RK2)
@@ -184,6 +190,12 @@ class TestController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public PlayfieldController $playfieldController;
+
+	/** @Inject */
+	public TowerController $towerController;
+
+	/** @Inject */
 	public EventManager $eventManager;
 
 	/** @Logger */
@@ -298,9 +310,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testorgjoin")
-	 * @Matches("/^testorgjoin (.+)$/i")
 	 */
-	public function testOrgJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testOrgJoinCommand(CmdContext $context, PCharacter $char): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -310,7 +321,7 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"$sender invited $args[1] to your organization.",
+			"{$context->char->name} invited {$char} to your organization.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -321,9 +332,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testorgkick")
-	 * @Matches("/^testorgkick (.+)$/i")
 	 */
-	public function testOrgKickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testOrgKickCommand(CmdContext $context, PCharacter $char): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -333,7 +343,7 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"$sender kicked $args[1] from your organization.",
+			"{$context->char->name} kicked {$char} from your organization.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -344,9 +354,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testorgleave")
-	 * @Matches("/^testorgleave (.+)$/i")
 	 */
-	public function testOrgLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testOrgLeaveCommand(CmdContext $context, PCharacter $char): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -356,7 +365,7 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"$args[1] just left your organization.",
+			"{$char} just left your organization.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -365,51 +374,96 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
+	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
+		$pf = $this->playfieldController->getPlayfieldByName($site->pf);
+		if (!isset($pf)) {
+			return null;
+		}
+		$tSite = $this->towerController->readTowerSiteById($pf->id, $site->site);
+		if (!isset($tSite)) {
+			return null;
+		}
+		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
+	}
+
 	/**
 	 * @HandlesCommand("testtowerattack")
-	 * @Matches("/^testtowerattack (clan|neutral|omni) (.+) (.+) (clan|neutral|omni) (.+) (.+) (\d+) (\d+)$/i")
 	 */
-	public function testTowerAttackCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testTowerAttackCommand(
+		CmdContext $context,
+		PFaction $attFaction,
+		string $attOrg,
+		PCharacter $attChar,
+		PFaction $defFaction,
+		string $defOrg,
+		PTowerSite $site
+	): void {
+		$towerLocation = $this->getTowerLocationString($site, "%s at location (%d,%d)");
+		if ($towerLocation === null) {
+			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
+			return;
+		}
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = -1;
 		$eventObj->channel = "All Towers";
-		$eventObj->message = "The $args[1] organization $args[2] just entered a state of war! $args[3] attacked the $args[4] organization $args[5]'s tower in $args[6] at location ($args[7],$args[8]).";
+		$eventObj->message = "The {$attFaction} organization {$attOrg} just ".
+			"entered a state of war! {$attChar} attacked the ".
+			"{$defFaction} organization {$defOrg}'s tower in {$towerLocation}.";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
 	 * @HandlesCommand("testtowerattackorgless")
-	 * @Matches("/^testtowerattackorgless (.+) (clan|neutral|omni) (.+) (.+) (\d+) (\d+)$/i")
 	 */
-	public function testTowerAttackOrglessCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testTowerAttackOrglessCommand(
+		CmdContext $context,
+		PCharacter $attChar,
+		PFaction $defFaction,
+		string $defOrg,
+		PTowerSite $site
+	): void {
+		$towerLocation = $this->getTowerLocationString($site, "%s at location (%d, %d)");
+		if ($towerLocation === null) {
+			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
+			return;
+		}
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = -1;
 		$eventObj->channel = "All Towers";
-		$eventObj->message = "{$args[1]} just attacked the ".strtolower($args[2])." organization $args[3]'s tower in $args[4] at location ($args[5], $args[6]).";
+		$eventObj->message = "{$attChar} just attacked the {$defFaction} ".
+			"organization {$defOrg}'s tower in {$towerLocation}.";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
 	 * @HandlesCommand("testtowerabandon")
-	 * @Matches("/^testtowerabandon (clan|neutral|omni) ([^ ]+) (.+)$/i")
 	 */
-	public function testTowerAbandonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[1] = strtolower($args[1]);
+	public function testTowerAbandonCommand(
+		CmdContext $context,
+		PFaction $faction,
+		string $orgName,
+		PPlayfield $playfield
+	): void {
+		$pf = $this->playfieldController->getPlayfieldByName($playfield());
+		if (!isset($pf)) {
+			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
+			return;
+		}
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = (string)0xFFFFFFFF;
 		$eventObj->channel = "Tower Battle Outcome";
-		$eventObj->message = "Notum Wars Update: The {$args[1]} organization {$args[2]} lost their base in {$args[3]}.";
+		$eventObj->message = "Notum Wars Update: The {$faction->lower} ".
+			"organization {$orgName} lost their base in {$pf->long_name}.";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
 	 * @HandlesCommand("testorgattack")
-	 * @Matches("/^testorgattack ([^ ]+) (.+)$/i")
 	 */
-	public function testOrgAttackCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testOrgAttackCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -419,7 +473,9 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"The tower Control Tower - Neutral in Broken Shores was just reduced to 75 % health by {$args[1]} from the {$args[2]} organization!",
+			"The tower Control Tower - Neutral in Broken Shores was just ".
+			"reduced to 75 % health by {$attName} from the {$orgName} ".
+			"organization!",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -430,9 +486,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testorgattackprep")
-	 * @Matches("/^testorgattackprep ([^ ]+) (.+)$/i")
 	 */
-	public function testOrgAttackPrepCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testOrgAttackPrepCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -442,7 +497,10 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"Your controller tower in Southern Forest of Xzawkaz in Deep Artery Valley has had its defense shield disabled by {$args[1]} (clan).The attacker is a member of the organization {$args[2]}.",
+			"Your controller tower in Southern Forest of Xzawkaz in ".
+			"Deep Artery Valley has had its defense shield disabled by ".
+			"{$attName} (clan).The attacker is a member of the ".
+			"organization {$orgName}.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -453,27 +511,34 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testtowervictory")
-	 * @Matches("/^testtowervictory (Clan|Neutral|Omni) (.+) (Clan|Neutral|Omni) ([^ ]+) (.+)$/i")
 	 */
-	public function testTowerVictoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[1] = ucfirst(strtolower($args[1]));
-		$args[3] = ucfirst(strtolower($args[3]));
+	public function testTowerVictoryCommand(
+		CmdContext $context,
+		PFaction $attFaction,
+		string $attOrg,
+		PFaction $defFaction,
+		string $defOrg,
+		PPlayfield $playfield
+	): void {
+		$pf = $this->playfieldController->getPlayfieldByName($playfield());
+		if (!isset($pf)) {
+			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
+			return;
+		}
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = (string)0xFFFFFFFF;
 		$eventObj->channel = "Tower Battle Outcome";
-		$eventObj->message = "The $args[1] organization $args[2] attacked the $args[3] $args[4] at their base in $args[5]. The attackers won!!";
-		// $eventObj->message = "Notum Wars Update: The {$args[3]} organization {$args[4]} lost their base in {$args[5]}.";
+		$eventObj->message = "The {$attFaction} organization {$attOrg} ".
+			"attacked the {$defFaction} {$defOrg} at their base in ".
+			"{$pf->long_name}. The attackers won!!";
 		$eventObj->type = 'towers';
 		$this->eventManager->fireEvent($eventObj);
 	}
 
 	/**
 	 * @HandlesCommand("testos")
-	 * @Matches("/^testos (.+)$/i")
 	 */
-	public function testOSCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$launcher = ucfirst(strtolower($args[1]));
-
+	public function testOSCommand(CmdContext $context, PCharacter $launcher): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
@@ -483,7 +548,7 @@ class TestController {
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"Blammo! $launcher has launched an orbital attack!",
+			"Blammo! {$launcher} has launched an orbital attack!",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -494,43 +559,39 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testevent")
-	 * @Matches("/^testevent (.+)$/i")
 	 */
-	public function testEventCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$event = $args[1];
-
+	public function testEventCommand(CmdContext $context, string $event): void {
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
 		if ($instance === null) {
-			$sendto->reply("Instance <highlight>$instanceName<end> does not exist.");
+			$context->reply("Instance <highlight>$instanceName<end> does not exist.");
 		} elseif (!method_exists($instance, $methodName)) {
-			$sendto->reply("Method <highlight>$methodName<end> does not exist on instance <highlight>$instanceName<end>.");
+			$context->reply("Method <highlight>$methodName<end> does not exist on instance <highlight>$instanceName<end>.");
 		} else {
 			$testEvent = new Event();
 			$testEvent->type = 'dummy';
 			$this->eventManager->callEventHandler($testEvent, $event, []);
-			$sendto->reply("Event has been fired.");
+			$context->reply("Event has been fired.");
 		}
 	}
 
 	/**
 	 * @HandlesCommand("testcloaklower")
-	 * @Matches("/^testcloaklower$/i")
 	 */
-	public function testCloakLowerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testCloakLowerCommand(CmdContext $context): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
 			}
 		}
 		if (!isset($gid)) {
-			$sendto->reply("Your bot must be in an org to test this.");
+			$context->reply("Your bot must be in an org to test this.");
 			return;
 		}
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"$sender turned the cloaking device in your city off.",
+			"{$context->char->name} turned the cloaking device in your city off.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -541,22 +602,21 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testcloakraise")
-	 * @Matches("/^testcloakraise$/i")
 	 */
-	public function testCloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testCloakRaiseCommand(CmdContext $context): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
 			}
 		}
 		if (!isset($gid)) {
-			$sendto->reply("Your bot must be in an org to test this.");
+			$context->reply("Your bot must be in an org to test this.");
 			return;
 		}
 		$testArgs = [
 			$gid,
 			(int)0xFFFFFFFF,
-			"$sender turned the cloaking device in your city on.",
+			"{$context->char->name} turned the cloaking device in your city on.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
@@ -576,9 +636,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testtradebotmsg")
-	 * @Matches("/^testtradebotmsg$/i")
 	 */
-	public function testTradebotMessageCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testTradebotMessageCommand(CmdContext $context): void {
 		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
 		$eventObj->sender = $tradebot;
@@ -627,9 +686,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testdiscordpriv")
-	 * @Matches("/^testdiscordpriv ([^ ]+) (.+)$/i")
 	 */
-	public function testDiscordMessageCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function testDiscordMessageCommand(CmdContext $context, PCharacter $nick, string $content): void {
 		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
 		$payload = json_decode(
@@ -645,7 +703,7 @@ class TestController {
 				'"mention_everyone":false,'.
 				'"member":{'.
 					'"roles":["731589704247410729"],'.
-					'"nick":' . json_encode($args[1]) . ','.
+					'"nick":' . json_encode($nick()) . ','.
 					'"mute":false,'.
 					'"joined_at":"2020-07-11T16:46:42.205000+00:00",'.
 					'"hoisted_role":null,'.
@@ -655,11 +713,11 @@ class TestController {
 				'"flags":0,'.
 				'"embeds":[],'.
 				'"edited_timestamp":null,'.
-				'"content":' . json_encode($args[2]) . ','.
+				'"content":' . json_encode($content) . ','.
 				'"components":[],'.
 				'"channel_id":"731553649184211064",'.
 				'"author":{'.
-					'"username":' . json_encode($args[1]) . ','.
+					'"username":' . json_encode($nick()) . ','.
 					'"public_flags":0,'.
 					'"id":"356025105371103232",'.
 					'"discriminator":"9062",'.
@@ -672,7 +730,7 @@ class TestController {
 		$message->fromJSON($payload);
 		$event->discord_message = $message;
 		$event->message = $message->content;
-		$event->sender = $args[1];
+		$event->sender = $nick();
 		$event->type = "discordpriv";
 		$event->discord_message = $message;
 		$event->channel = "5361523761523761";
@@ -681,12 +739,11 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testlogon")
-	 * @Matches("/^testlogon (.+)$/i")
 	 */
-	public function testLogonCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uid = $this->chatBot->get_uid(ucfirst(strtolower($args[1])));
+	public function testLogonCommand(CmdContext $context, PCharacter $who): void {
+		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
-			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
+			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 1, 0));
@@ -696,12 +753,11 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testlogoff")
-	 * @Matches("/^testlogoff (.+)$/i")
 	 */
-	public function testLogoffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uid = $this->chatBot->get_uid(ucfirst(strtolower($args[1])));
+	public function testLogoffCommand(CmdContext $context, PCharacter $who): void {
+		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
-			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
+			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 0, 0));
@@ -711,18 +767,17 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testjoin")
-	 * @Matches("/^testjoin (.+)$/i")
 	 */
-	public function testJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uid = $this->chatBot->get_uid(ucfirst(strtolower($args[1])));
+	public function testJoinCommand(CmdContext $context, PCharacter $who): void {
+		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
-			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
+			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
 		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
 		$channelUid = $this->chatBot->get_uid($channel);
 		if ($channelUid === false) {
-			$sendto->reply("Cannot determine this bot's private channel.");
+			$context->reply("Cannot determine this bot's private channel.");
 			return;
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, pack("NN", $channelUid, $uid));
@@ -732,18 +787,17 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testleave")
-	 * @Matches("/^testleave (.+)$/i")
 	 */
-	public function testLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uid = $this->chatBot->get_uid(ucfirst(strtolower($args[1])));
+	public function testLeaveCommand(CmdContext $context, PCharacter $who): void {
+		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
-			$sendto->reply("The character <highlight>{$args[1]}<end> does not exist.");
+			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
 		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
 		$channelUid = $this->chatBot->get_uid($channel);
 		if ($channelUid === false) {
-			$sendto->reply("Cannot determine this bot's private channel.");
+			$context->reply("Cannot determine this bot's private channel.");
 			return;
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, pack("NN", $channelUid, $uid));
@@ -753,9 +807,8 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("testsleep")
-	 * @Matches("/^testsleep (\d+)$/i")
 	 */
-	public function testSleepCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		sleep((int)$args[1]);
+	public function testSleepCommand(CmdContext $context, int $duration): void {
+		sleep($duration);
 	}
 }
