@@ -122,7 +122,7 @@ class UsageController {
 			->where("dt", ">", $time)
 			->groupBy("command")
 			->select("command");
-		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue()())
+		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue())
 			->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
 		$data = $query->asObj();
 		$count = $data->count();
