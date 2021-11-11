@@ -35,7 +35,7 @@ class Text {
 	 *
 	 * @param string $before String before the link
 	 * @param string|string[] $blob The blob to wrap
-	 * @param string|null $after The optional stirng after the blob
+	 * @param string|null $after The optional string after the blob
 	 * @return string[]
 	 */
 	public function blobWrap(string $before, $blob, ?string $after=""): array {
