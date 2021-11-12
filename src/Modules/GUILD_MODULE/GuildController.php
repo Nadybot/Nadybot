@@ -5,8 +5,9 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AOChatEvent,
 	BuddylistManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	DBRow,
 	Event,
@@ -19,11 +20,16 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
@@ -122,7 +128,7 @@ class GuildController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 
 		$this->settingManager->add(
@@ -210,90 +216,80 @@ class GuildController {
 
 	/**
 	 * @HandlesCommand("logon")
-	 * @Matches("/^logon$/i")
 	 */
-	public function logonMessageShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$logonMessage = $this->preferences->get($sender, 'logon_msg');
+	public function logonMessageShowCommand(CmdContext $context): void {
+		$logonMessage = $this->preferences->get($context->char->name, 'logon_msg');
 
 		if ($logonMessage === null || $logonMessage === '') {
 			$msg = "Your logon message has not been set.";
 		} else {
-			$msg = "{$sender} logon: {$logonMessage}";
+			$msg = "{$context->char->name} logon: {$logonMessage}";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("logon")
-	 * @Matches("/^logon (.+)$/i")
 	 */
-	public function logonMessageSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$logonMessage = $args[1];
-
+	public function logonMessageSetCommand(CmdContext $context, string $logonMessage): void {
 		if ($logonMessage === 'clear') {
-			$this->preferences->save($sender, 'logon_msg', '');
+			$this->preferences->save($context->char->name, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')) {
-			$this->preferences->save($sender, 'logon_msg', $logonMessage);
+		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')??200) {
+			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
-			$msg = "Your logon message is too large. Your logon message may contain a maximum of " . $this->settingManager->get('max_logon_msg_size') . " characters.";
+			$msg = "Your logon message is too large. Your logon message may contain a maximum of " . ($this->settingManager->getInt('max_logon_msg_size')??200) . " characters.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("logoff")
-	 * @Matches("/^logoff$/i")
 	 */
-	public function logoffMessageShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$logoffMessage = $this->preferences->get($sender, 'logoff_msg');
+	public function logoffMessageShowCommand(CmdContext $context): void {
+		$logoffMessage = $this->preferences->get($context->char->name, 'logoff_msg');
 
 		if ($logoffMessage === null || $logoffMessage === '') {
 			$msg = "Your logoff message has not been set.";
 		} else {
-			$msg = "{$sender} logoff: {$logoffMessage}";
+			$msg = "{$context->char->name} logoff: {$logoffMessage}";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("logoff")
-	 * @Matches("/^logoff (.+)$/i")
 	 */
-	public function logoffMessageSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$logoffMessage = $args[1];
-
+	public function logoffMessageSetCommand(CmdContext $context, string $logoffMessage): void {
 		if ($logoffMessage == 'clear') {
-			$this->preferences->save($sender, 'logoff_msg', '');
+			$this->preferences->save($context->char->name, 'logoff_msg', '');
 			$msg = "Your logoff message has been cleared.";
 		} elseif (strlen($logoffMessage) <= $this->settingManager->getInt('max_logoff_msg_size')) {
-			$this->preferences->save($sender, 'logoff_msg', $logoffMessage);
+			$this->preferences->save($context->char->name, 'logoff_msg', $logoffMessage);
 			$msg = "Your logoff message has been set.";
 		} else {
-			$msg = "Your logoff message is too large. Your logoff message may contain a maximum of " . $this->settingManager->get('max_logoff_msg_size') . " characters.";
+			$msg = "Your logoff message is too large. Your logoff message may contain a maximum of " . ($this->settingManager->getInt('max_logoff_msg_size')??200) . " characters.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("lastseen")
-	 * @Matches("/^lastseen (.+)$/i")
 	 */
-	public function lastSeenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$uid = $this->chatBot->get_uid($name);
+	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
+		$uid = $this->chatBot->get_uid($name());
 		if (!$uid) {
-			$msg = "Character <highlight>$name<end> does not exist.";
-			$sendto->reply($msg);
+			$msg = "Character <highlight>{$name}<end> does not exist.";
+			$context->reply($msg);
 			return;
 		}
-		$altInfo = $this->altsController->getAltInfo($name);
+		$altInfo = $this->altsController->getAltInfo($name());
 		$onlineAlts = $altInfo->getOnlineAlts();
 
 		$blob = "";
 		foreach ($onlineAlts as $onlineAlt) {
-			$blob .= "<highlight>$onlineAlt<end> is currently online.\n";
+			$blob .= "<highlight>{$onlineAlt}<end> is currently online.\n";
 		}
 
 		$alts = $altInfo->getAllAlts();
@@ -309,34 +305,33 @@ class GuildController {
 				// skip
 				continue;
 			} elseif ($row->logged_off == 0) {
-				$blob .= "<highlight>$row->name<end> has never logged on.\n";
+				$blob .= "<highlight>{$row->name}<end> has never logged on.\n";
 			} else {
-				$blob .= "<highlight>$row->name<end> last seen at " . $this->util->date($row->logged_off) . ".\n";
+				$blob .= "<highlight>{$row->name}<end> last seen at " . $this->util->date($row->logged_off) . ".\n";
 			}
 		}
 
-		$msg = "Character <highlight>$name<end> is not a member of the org.";
+		$msg = "Character <highlight>{$name}<end> is not a member of the org.";
 		if ($data->count() !== 0) {
-			$msg = $this->text->makeBlob("Last Seen Info for $altInfo->main", $blob);
+			$msg = $this->text->makeBlob("Last Seen Info for {$altInfo->main}", $blob);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("recentseen")
-	 * @Matches("/^recentseen ([a-z0-9]+)/i")
 	 */
-	public function recentSeenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function recentSeenCommand(CmdContext $context, PDuration $duration): void {
 		if (!$this->isGuildBot()) {
-			$sendto->reply("The bot must be in an org.");
+			$context->reply("The bot must be in an org.");
 			return;
 		}
 
-		$time = $this->util->parseTime($args[1]);
+		$time = $duration->toSecs();
 		if ($time < 1) {
 			$msg = "You must enter a valid time parameter.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -349,12 +344,12 @@ class GuildController {
 			->where("logged_off", ">", $time)
 			->orderByDesc("o.logged_off")
 			->orderBy("o.name");
-		$query->selectRaw($query->colFunc("COALESCE", ["a.main", "o.name"], "main"));
+		$query->selectRaw($query->colFunc("COALESCE", ["a.main", "o.name"], "main")->getValue());
 		$query->addSelect("o.logged_off", "o.name");
 		$data = $query->asObj();
 
 		if ($data->count() === 0) {
-			$sendto->reply("No members recorded.");
+			$context->reply("No members recorded.");
 			return;
 		}
 
@@ -370,11 +365,12 @@ class GuildController {
 			}
 			$prevToon = $row->main;
 			$numRecentCount++;
-			$alts = $this->text->makeChatcmd("Alts", "/tell <myname> alts {$row->main}");
+			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$row->main}");
 			$logged = $row->logged_off;
 			$lastToon = $row->name;
 
-			$character = "<pagebreak>" . $row->main . " [{$alts}]\nLast seen as [$lastToon] on ".
+			$character = "<pagebreak><highlight>{$row->main}<end> [{$alts}]\n".
+				"<tab>Last seen as $lastToon on ".
 				$this->util->date($logged) . "\n\n";
 			if ($highlight === true) {
 				$blob .= "<highlight>$character<end>";
@@ -384,21 +380,20 @@ class GuildController {
 				$highlight = true;
 			}
 		}
-		$msg = $this->text->makeBlob("$numRecentCount recently seen org members", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("{$numRecentCount} recently seen org members", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("notify")
-	 * @Matches("/^notify (on|add) (.+)$/i")
 	 */
-	public function notifyAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[2]));
+	public function notifyAddCommand(CmdContext $context, string $action="(on|add)", PCharacter $who): void {
+		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
 			$msg = "<highlight>{$name}<end> does not exist.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -409,7 +404,7 @@ class GuildController {
 
 		if ($row !== null && $row->mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
@@ -429,20 +424,19 @@ class GuildController {
 		$this->chatBot->guildmembers[$name] = 6;
 		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("notify")
-	 * @Matches("/^notify (off|rem) (.+)$/i")
 	 */
-	public function notifyRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[2]));
+	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $who): void {
+		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
 			$msg = "<highlight>{$name}<end> does not exist.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -465,19 +459,18 @@ class GuildController {
 			$msg = "Removed <highlight>{$name}<end> from the Notify list.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("updateorg")
-	 * @Matches("/^updateorg$/i")
 	 */
-	public function updateorgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sendto->reply("Starting Roster update");
-		$this->updateOrgRoster([$sendto, "reply"], "Finished Roster update");
+	public function updateorgCommand(CmdContext $context): void {
+		$context->reply("Starting Roster update");
+		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
 	}
 
-	public function updateOrgRoster(?callable $callback=null, ...$args) {
+	public function updateOrgRoster(?callable $callback=null, ...$args): void {
 		if (!$this->isGuildBot()) {
 			return;
 		}
@@ -542,7 +535,7 @@ class GuildController {
 				} else {
 					// add org members who are on notify to buddy list
 					$this->buddylistManager->add($member->name, 'org');
-					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
+					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
 					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
 					if ($dbEntries[$member->name]["mode"] == "add") {
@@ -555,7 +548,7 @@ class GuildController {
 			} else {
 				// add new org members to buddy list
 				$this->buddylistManager->add($member->name, 'org');
-				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id;
+				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
 				$this->db->table(self::DB_TABLE)
 					->insert([
@@ -584,29 +577,13 @@ class GuildController {
 
 		if ($restart === true) {
 			$this->loadGuildMembers();
-			/*
-			$this->chatBot->sendGuild("Guild roster has been loaded for the first time. Restarting...");
-
-			$this->logger->log('INFO', "The bot is restarting");
-
-			// in case some of the org members were already on the buddy list, we need to restart the bot
-			// in order to get them to appear on the online list
-			if (function_exists('posix_kill')) {
-				posix_kill(posix_getpid(), SIGINT);
-			} elseif (function_exists('sapi_windows_generate_ctrl_event')) {
-				sapi_windows_generate_ctrl_event(PHP_WINDOWS_EVENT_CTRL_C, getmypid());
-			} else {
-				exit(0);
-			}
-			return;
-			*/
 		}
 		if (isset($callback)) {
 			$callback(...$args);
 		}
 	}
 
-	public function dispatchRoutableEvent(object $event): void {
+	public function dispatchRoutableEvent(Base $event): void {
 		$re = new RoutableEvent();
 		$re->type = RoutableEvent::TYPE_EVENT;
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
@@ -631,7 +608,7 @@ class GuildController {
 	 * @Event("orgmsg")
 	 * @Description("Automatically update guild roster as characters join and leave the guild")
 	 */
-	public function autoNotifyOrgMembersEvent(Event $eventObj): void {
+	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
@@ -679,10 +656,13 @@ class GuildController {
 		}
 	}
 
+	/**
+	 * @psalm-param callable(string) $callback
+	 */
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
 		$msg = '';
 		$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
-		if ($logonMsg !== null && $logonMsg !== '') {
+		if ($logonMsg !== '') {
 			$logonMsg = " - {$logonMsg}";
 		}
 		if ($whois === null) {
@@ -700,7 +680,9 @@ class GuildController {
 			} else {
 				if (count($altInfo->getAllValidatedAlts()) > 0) {
 					$altInfo->getAltsBlobAsync(
+						/** @param string|string[] $blob */
 						function($blob) use ($msg, $callback, $logonMsg): void {
+							$blob = ((array)$blob)[0];
 							$callback("{$msg}. {$blob}{$logonMsg}");
 						},
 						true
@@ -734,19 +716,23 @@ class GuildController {
 	 * @Event("logOn")
 	 * @Description("Shows an org member logon in chat")
 	 */
-	public function orgMemberLogonMessageEvent(Event $eventObj): void {
+	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
+		if (!isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($sender)) {
 			return;
 		}
-		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list');
+		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list') ?? false;
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
-			$e = new Online();
-			$e->char = new Character($sender, $this->chatBot->get_uid($sender));
-			$e->online = true;
-			$e->message = $msg;
-			$this->dispatchRoutableEvent($e);
-			$this->chatBot->sendGuild($msg, true);
+			$this->chatBot->getUid($sender, function(?int $uid, string $msg, string $sender): void {
+				$e = new Online();
+				$e->char = new Character($sender, $uid);
+				$e->online = true;
+				$e->message = $msg;
+				$this->dispatchRoutableEvent($e);
+				$this->chatBot->sendGuild($msg, true);
+			}, $msg, $sender);
 		});
 	}
 
@@ -771,36 +757,44 @@ class GuildController {
 	 * @Event("logOff")
 	 * @Description("Shows an org member logoff in chat")
 	 */
-	public function orgMemberLogoffMessageEvent(Event $eventObj): void {
+	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender]) || !$this->chatBot->isReady()) {
+		if (!isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($sender)) {
 			return;
 		}
 
-		$msg = $this->getLogoffMessage($sender);
-		$e = new Online();
-		$e->char = new Character($sender, $this->chatBot->get_uid($sender));
-		$e->online = false;
-		$e->message = $msg;
-		$this->dispatchRoutableEvent($e);
-		if ($msg === null) {
-			return;
-		}
+		$this->chatBot->getUid($sender, function(?int $uid, string $sender): void {
+			$msg = $this->getLogoffMessage($sender);
+			$e = new Online();
+			$e->char = new Character($sender, $uid);
+			$e->online = false;
+			$e->message = $msg;
+			$this->dispatchRoutableEvent($e);
+			if ($msg === null) {
+				return;
+			}
 
-		$this->chatBot->sendGuild($msg, true);
+			$this->chatBot->sendGuild($msg, true);
+		}, $sender);
 	}
 
 	/**
 	 * @Event("logOff")
 	 * @Description("Record org member logoff for lastseen command")
 	 */
-	public function orgMemberLogoffRecordEvent(Event $eventObj): void {
+	public function orgMemberLogoffRecordEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			$this->db->table(self::DB_TABLE)
-				->where("name", $sender)
-				->update(["logged_off" => time()]);
+		if (!isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($sender)
+		) {
+			return;
 		}
+		$this->db->table(self::DB_TABLE)
+			->where("name", $sender)
+			->update(["logged_off" => time()]);
 	}
 
 	public function isGuildBot(): bool {
@@ -821,8 +815,8 @@ class GuildController {
 			return;
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->chatBot->vars["my_guild_id"]);
-		$orgChannel = $this->chatBot->gid[$gid];
-		if ($orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
+		$orgChannel = $this->chatBot->gid[$gid]??null;
+		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
 			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
@@ -831,7 +825,7 @@ class GuildController {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$string = unpack("N", substr((string)$gid, 1));
 			if (ord(substr((string)$gid, 0, 1)) === 3 && $string[1] == $orgId) {
-				return $gid;
+				return (string)$gid;
 			}
 		}
 		return null;

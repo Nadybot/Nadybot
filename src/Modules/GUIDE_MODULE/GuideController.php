@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PFilename;
 
 /**
  * @author Tyrence (RK2)
@@ -49,7 +50,7 @@ class GuideController {
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "guides healdelta", "healdelta");
 		$this->commandAlias->register($this->moduleName, "guides lag", "lag");
 		$this->commandAlias->register($this->moduleName, "guides nanodelta", "nanodelta");
@@ -69,12 +70,11 @@ class GuideController {
 
 	/**
 	 * @HandlesCommand("guides")
-	 * @Matches("/^guides$/i")
 	 */
-	public function guidesListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function guidesListCommand(CmdContext $context): void {
 		if (($handle = opendir($this->path)) === false) {
 			$msg = "Error reading topics.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var string[] */
@@ -103,16 +103,15 @@ class GuideController {
 		} else {
 			$msg = "No topics available.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("guides")
-	 * @Matches("/^guides ([a-z0-9_-]+)$/i")
 	 */
-	public function guidesShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function guidesShowCommand(CmdContext $context, PFilename $fileName): void {
 		// get the filename and read in the file
-		$fileName = strtolower($args[1]);
+		$fileName = strtolower($fileName());
 		$file = $this->path . $fileName . self::FILE_EXT;
 		$info = @file_get_contents($file);
 
@@ -124,6 +123,6 @@ class GuideController {
 			$info = trim(implode("\n", $lines));
 			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

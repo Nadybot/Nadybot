@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
+use JsonException;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	DBSchema\Alt,
 	DBSchema\Admin,
@@ -95,11 +96,10 @@ class ExportController {
 
 	/**
 	 * @HandlesCommand("export")
-	 * @Matches("/^export (.+)$/i")
 	 */
-	public function exportCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function exportCommand(CmdContext $context, string $file): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
-		$fileName = "{$dataPath}/export/" . basename($args[1]);
+		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
@@ -108,14 +108,14 @@ class ExportController {
 		}
 		if (($this->chatBot->vars["use_proxy"] ?? 0) == 1) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
-				$sendto->reply(
+				$context->reply(
 					"You are using an unsupported proxy version. ".
 					"Please upgrade to the latest AOChatProxy and try again."
 				);
 				return;
 			}
 		}
-		$sendto->reply("Starting export...");
+		$context->reply("Starting export...");
 		$exports = new stdClass();
 		$exports->alts = $this->exportAlts();
 		$exports->auctions = $this->exportAuctions();
@@ -136,16 +136,17 @@ class ExportController {
 		$exports->raidPointsLog = $this->exportRaidPointsLog();
 		$exports->timers = $this->exportTimers();
 		$exports->trackedCharacters = $this->exportTrackedCharacters();
-		$output = @json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
-		if ($output === false) {
-			$sendto->reply("There was an error exporting the data: " . error_get_last()["message"]);
+		try {
+			$output = @json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+		} catch (JsonException $e) {
+			$context->reply("There was an error exporting the data: " . $e->getMessage());
 			return;
 		}
 		if (!@file_put_contents($fileName, $output)) {
-			$sendto->reply(substr(strstr(error_get_last()["message"], "): "), 3));
+			$context->reply(substr(strstr(error_get_last()["message"]??"", "): "), 3));
 			return;
 		}
-		$sendto->reply("The export was successfully saved in {$fileName}.");
+		$context->reply("The export was successfully saved in {$fileName}.");
 	}
 
 	protected function toChar(?string $name, ?int $uid=null): Character {
@@ -153,7 +154,10 @@ class ExportController {
 		if (isset($name)) {
 			$char->name = $name;
 		}
-		$id = $uid ?? $this->chatBot->get_uid($name);
+		$id = $uid;
+		if (!isset($id) && isset($name)) {
+			$id = $this->chatBot->get_uid($name);
+		}
 		if (is_int($id)) {
 			$char->id = $id;
 		}
@@ -349,6 +353,9 @@ class ExportController {
 				->asObj(Vote::class)
 				->toArray();
 			foreach ($votes as $vote) {
+				if (!isset($vote->answer)) {
+					continue;
+				}
 				$answers[$vote->answer] ??= (object)[
 					"answer" => $vote->answer,
 					"votes" => [],
@@ -505,7 +512,7 @@ class ExportController {
 				"timerName" => $timer->name,
 				"endTime" => $timer->endtime,
 				"createdBy" => $this->toChar($timer->owner),
-				"channels" => explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode)),
+				"channels" => explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode??"")),
 				"alerts" => [],
 			];
 			if (!empty($timer->data)) {

@@ -7,7 +7,7 @@ use Swaggest\JsonSchema\Schema;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	LoggerWrapper,
 	Modules\BAN\BanController,
@@ -38,11 +38,11 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
-	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
+use Nadybot\Core\ParamClass\PFilename;
 use Throwable;
 
 /**
@@ -96,7 +96,7 @@ class ImportController {
 	/** @Inject */
 	public RaidRankController $raidRankController;
 
-	protected function loadAndParseExportFile(string $fileName, CommandReply $sendto): ?object {
+	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
 		if (!@file_exists($fileName)) {
 			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
 			return null;
@@ -127,39 +127,38 @@ class ImportController {
 
 	/**
 	 * @HandlesCommand("import")
-	 * @Matches("/^import (.+?)((?: \w+=\w+)*)$/i")
 	 */
-	public function importCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function importCommand(CmdContext $context, PFilename $file, ?string $mapping="(\\w+=\\w+(?:\\s+\\w+=\\w+)*)"): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
-		$fileName = "{$dataPath}/export/" . basename($args[1]);
+		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
 		if (!@file_exists($fileName)) {
-			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
+			$context->reply("No export file <highlight>{$fileName}<end> found.");
 			return;
 		}
-		$import = $this->loadAndParseExportFile($fileName, $sendto);
+		$import = $this->loadAndParseExportFile($fileName, $context);
 		if (!isset($import)) {
 			return;
 		}
 		$usedRanks = $this->getRanks($import);
-		$rankMapping = $this->parseRankMapping($args[2]);
+		$rankMapping = $this->parseRankMapping($mapping??"");
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
-				$sendto->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
+				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
 			} else {
 				try {
 					$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
 				} catch (Exception $e) {
-					$sendto->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
+					$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
 					return;
 				}
 			}
 		}
 		$this->logger->log("INFO", "Starting import");
-		$sendto->reply("Starting import...");
+		$context->reply("Starting import...");
 		$importMap = $this->getImportMapping();
 		foreach ($importMap as $key => $func) {
 			if (!isset($import->{$key})) {
@@ -168,7 +167,7 @@ class ImportController {
 			$func($import->{$key}, $rankMapping);
 		}
 		$this->logger->log("INFO", "Import done");
-		$sendto->reply("The import finished successfully.");
+		$context->reply("The import finished successfully.");
 	}
 
 	protected function getImportMapping(): array {
@@ -441,13 +440,13 @@ class ImportController {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 3
+							"rank" => (int)$matches[1] + 3
 						]);
 				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 6
+							"rank" => (int)$matches[1] + 6
 						]);
 				} elseif (in_array($newRank, ["rl", "all"])) {
 					// Nothing, we just ignore that

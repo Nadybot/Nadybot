@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Event,
 	EventManager,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 };
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
@@ -126,7 +127,7 @@ class GSPController implements MessageEmitter {
 	 */
 	public function getNotificationMessage(): string {
 		$msg = sprintf(
-			"GSP is now running <highlight>%s<end>. Location: <highlight>%s<end>.",
+			"GSP is now running <highlight>%s<end>.\nLocation: <highlight>%s<end>.",
 			$this->showName,
 			$this->showLocation
 		);
@@ -202,13 +203,14 @@ class GSPController implements MessageEmitter {
 	 * @Event("logOn")
 	 * @Description("Announce running shows on logon")
 	 */
-	public function gspShowLogonEvent(Event $eventObj): void {
+	public function gspShowLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$sender])
 			|| !$this->settingManager->getBool('gsp_show_logon')
 			|| !$this->showRunning
+			|| !is_string($sender)
 		) {
 			return;
 		}
@@ -218,15 +220,14 @@ class GSPController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("radio")
-	 * @Matches("/^radio$/i")
 	 */
-	public function radioCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function radioCommand(CmdContext $context): void {
 		$this->http
 				->get(static::GSP_URL)
 				->withTimeout(5)
-				->withCallback(function(HttpResponse $response) use ($sendto) {
+				->withCallback(function(HttpResponse $response) use ($context) {
 					$msg = $this->renderPlaylist($response);
-					$sendto->reply($msg);
+					$context->reply($msg);
 				});
 	}
 
@@ -260,7 +261,7 @@ class GSPController implements MessageEmitter {
 			);
 		}
 		$blob .= join("\n<tab>", $streams);
-		return " - ".$this->text->makeBlob("tune in", $blob, "Choose your stream quality");
+		return " - " . ((array)$this->text->makeBlob("tune in", $blob, "Choose your stream quality"))[0];
 	}
 
 	/**
@@ -342,11 +343,11 @@ class GSPController implements MessageEmitter {
 
 		$songs = $this->getPlaylistInfos($show->history);
 		$showInfos = $this->getShowInfos($show);
-		$lastSongsPage = $this->text->makeBlob(
+		$lastSongsPage = ((array)$this->text->makeBlob(
 			"last songs",
 			$showInfos."<header2><u>Time         Song                                                                     </u><end>\n".join("\n", $songs),
 			"Last played songs (all times in UTC)",
-		);
+		))[0];
 		$msg = $currentlyPlaying." - ".$lastSongsPage.$this->renderTuneIn($show);
 		return $msg;
 	}

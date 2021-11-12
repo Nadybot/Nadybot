@@ -4,7 +4,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
-	Event,
 	CommandReply,
 	Nadybot,
 	SettingManager,
@@ -94,7 +93,7 @@ class DiscordRelayController {
 	public Nadybot $chatBot;
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
 			"discord_relay_mention_rank",
@@ -209,9 +208,9 @@ class DiscordRelayController {
 	 * Returns a channel name with a link to pick that one as notifications target
 	 */
 	protected function channelnotifyPicker(DiscordChannel $channel): string {
-		$name = $channel->name;
+		$name = $channel->name ?? $channel->id;
 		if ($channel->type === $channel::GUILD_TEXT) {
-			$name = "#" . $channel->name;
+			$name = "#{$name}";
 		}
 		if ($channel->type !== $channel::GUILD_TEXT) {
 			return $name;
@@ -253,8 +252,12 @@ class DiscordRelayController {
 		}
 		$this->settingManager->save('discord_notify_channel', $channelId);
 		$guilds = $this->discordGatewayController->getGuilds();
-		$guild = $guilds[$channel->guild_id];
-		$msg = "Now sending notifications into <highlight>{$guild->name}<end>\<highlight>#{$channel->name}<end> (ID {$channelId})";
+		if (isset($channel->guild_id)) {
+			$guild = $guilds[$channel->guild_id];
+			$msg = "Now sending notifications into <highlight>{$guild->name}<end>\<highlight>#{$channel->name}<end> (ID {$channelId})";
+		} else {
+			$msg = "Now sending notifications into <highlight>#{$channel->name}<end> (ID {$channelId})";
+		}
 		$sendto->reply($msg);
 	}
 

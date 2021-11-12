@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Util;
 
 /**
@@ -33,9 +33,8 @@ class DingController {
 
 	/**
 	 * @HandlesCommand("ding")
-	 * @Matches("/^ding$/i")
 	 */
-	public function ding1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function ding1Command(CmdContext $context): void {
 		$dingText = [
 			"Yeah yeah gratz, I would give you a better response but you didn't say what level you dinged.",
 			"Hmmm, I really want to know what level you dinged, but gratz anyways nub.",
@@ -43,25 +42,21 @@ class DingController {
 			"Gratz! But what are we looking at? I need a level next time."
 		];
 
-		$sendto->reply($this->util->randomArrayValue($dingText));
+		$context->reply($this->util->randomArrayValue($dingText));
 	}
 
 	/**
 	 * @HandlesCommand("ding")
-	 * @Matches("/^ding dong$/i")
 	 */
-	public function dingDongCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function dingDongCommand(CmdContext $context, string $action="dong"): void {
 		$msg =	"Ditch, Bitch!";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("ding")
-	 * @Matches("/^ding ([\-+]?[0-9]+)$/i")
-	 * @Matches("/^ding ([\-+]?[0-9]+) (.+)$/i")
 	 */
-	public function ding3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$level = $args[1];
+	public function ding3Command(CmdContext $context, int $level, ?string $ignore): void {
 		if ($level <= 0) {
 			$lvl = (int)round(220 - $level);
 			$dingText = [
@@ -79,7 +74,7 @@ class DingController {
 			];
 		} elseif ($level == 100) {
 			$dingText = [
-				"Congratz! <red>Level 100<end> - ".$sender." you rock!\n",
+				"Congratz! <red>Level 100<end> - {$context->char->name} you rock!\n",
 				"Congratulations! Time to twink up for T.I.M!",
 				"Gratz, you're half way to 200. More missions, MORE!",
 				"Woot! Congrats, don't forget to put on your 1k token board."
@@ -101,10 +96,10 @@ class DingController {
 			$dingText = [
 				"Wow holy shiznits! You're TL 6 already? Congrats!",
 				"Just a few more steps and you're there buddy, keep it up!",
-				"Almost party time! just a bit more to go ".$sender.". We'll be sure to bring you a cookie!"];
+				"Almost party time! just a bit more to go {$context->char->name}. We'll be sure to bring you a cookie!"];
 		} elseif ($level == 200) {
 			$dingText = [
-				"Congratz! The big Two Zero Zero!!! Party at ".$sender."'s place",
+				"Congratz! The big Two Zero Zero!!! Party at {$context->char->name}'s place",
 				"Best of the best in froob terms, congratulations!",
 				"What a day indeed. Finally done with froob levels. Way to go!"
 			];
@@ -117,10 +112,13 @@ class DingController {
 		} elseif ($level == 220) {
 			$dingText = [
 				"Congratz! You have reached the end of the line! No more fun for you :P",
-				"Holy shit, you finally made it! What an accomplishment... Congratulations ".$sender.", for reaching a level reserved for the greatest!",
-				"I'm going to miss you a great deal, because after this, we no longer can be together ".$sender.". We must part so you can continue getting your research and AI levels done! Farewell!",
+				"Holy shit, you finally made it! What an accomplishment... Congratulations {$context->char->name}, for reaching a level reserved for the greatest!",
+				"I'm going to miss you a great deal, because after this, ".
+					"we no longer can be together {$context->char->name}. ".
+					"We must part so you can continue getting your research ".
+					"and AI levels done! Farewell!",
 				"How was the inferno grind? I'm glad to see you made it through, and congratulations for finally getting the level you well deserved!",
-				"Our congratulations, to our newest level 220 member, ".$sender.", for his dedication. We present him with his new honorary rank, Chuck Norris!"
+				"Our congratulations, to our newest level 220 member, {$context->char->name}, for his dedication. We present him with his new honorary rank, Chuck Norris!"
 			];
 		} elseif ($level > 220) {
 			$dingText = [
@@ -141,6 +139,6 @@ class DingController {
 			];
 		}
 
-		$sendto->reply($this->util->randomArrayValue($dingText));
+		$context->reply($this->util->randomArrayValue($dingText));
 	}
 }

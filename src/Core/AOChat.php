@@ -495,6 +495,7 @@ class AOChat {
 
 	/**
 	 * @param mixed $args
+	 * @psalm-param null|callable(?int,mixed...) $callback
 	 */
 	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
 		$time = time();
@@ -532,6 +533,7 @@ class AOChat {
 
 	/**
 	 * @param mixed $args
+	 * @psalm-param callable(?int, mixed...) $callback
 	 */
 	public function getUid(string $user, callable $callback, ...$args): void {
 		if ($this->isReallyNumeric($user)) {

@@ -40,6 +40,7 @@ class CacheManager {
 		}
 	}
 
+	/** @psalm-param callable(?string): bool $isValidCallback */
 	public function forceLookupFromCache(string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge): ?CacheResult {
 		// Check if a xml file of the person exists and if it is up to date
 		if (!$this->cacheExists($groupName, $filename)) {
@@ -66,6 +67,7 @@ class CacheManager {
 	/**
 	 * Lookup information in the cache or retrieve it when outdated and call the callback
 	 * @param mixed $args
+	 * @psalm-param callable(CacheResult, mixed...) $callback
 	 */
 	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
 		if (empty($groupName)) {
@@ -89,6 +91,8 @@ class CacheManager {
 
 	/**
 	 * Handle HTTP replies to lookups for the cache
+	 * @psalm-param callable(?string): bool $isValidCallback
+	 * @psalm-param callable(CacheResult, mixed...) $callback
 	 */
 	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, ...$args): void {
 		if ($response->error) {

@@ -129,6 +129,7 @@ class AltInfo {
 		return $this->getAltsBlobForPlayer($player, $firstPageOnly);
 	}
 
+	/** @psalm-param callable(string|list<string>) $callback */
 	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
 		if (count($this->alts) === 0) {
 			$callback("No registered alts.");
