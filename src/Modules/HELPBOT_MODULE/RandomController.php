@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -88,10 +89,9 @@ class RandomController {
 
 	/**
 	 * @HandlesCommand("random")
-	 * @Matches("/^random (.+)$/i")
 	 */
-	public function randomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$items = preg_split("/(,\s+|\s+|,)/", trim($args[1]));
+	public function randomCommand(CmdContext $context, string $string): void {
+		$items = preg_split("/(,\s+|\s+|,)/", trim($string));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
@@ -101,66 +101,70 @@ class RandomController {
 		$msg = "Randomized order: <highlight>" . implode("<end> -&gt; <highlight>", $list) . "<end>";
 		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
 			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
-		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+		$context->reply($this->text->blobWrap(
+			$msg . " [",
+			$this->text->makeBlob("announce", $blob, "Announce result"),
+			"]"
+		));
 	}
 
 	/**
 	 * @HandlesCommand("roll")
-	 * @Matches("/^roll ([0-9]+)$/i")
-	 * @Matches("/^roll ([0-9]+) ([0-9]+)$/i")
 	 */
-	public function rollNumericCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) == 3) {
-			$min = (int)$args[1];
-			$max = (int)$args[2];
+	public function rollNumericCommand(CmdContext $context, int $num1, ?int $num2): void {
+		if (isset($num2)) {
+			$min = $num1;
+			$max = $num2;
 		} else {
 			$min = 1;
-			$max = (int)$args[1];
+			$max = $num1;
 		}
 
 		if ($min >= $max) {
 			$msg = "The first number cannot be higher than or equal to the second number.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		if (!$this->canRoll($sender, $timeBetweenRolls)) {
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$options = [];
 		for ($i = $min; $i <= $max; $i++) {
-			$options []= $i;
+			$options []= (string)$i;
 		}
-		[$rollNumber, $result] = $this->roll($sender, $options);
+		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>$result<end> between $min and $max. To verify do /tell <myname> verify $rollNumber";
 		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
 			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
 
-		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+		$context->reply($this->text->blobWrap(
+			$msg . " [",
+			$this->text->makeBlob("announce", $blob, "Announce result"),
+			"]"
+		));
 	}
 
 	/**
 	 * @HandlesCommand("roll")
-	 * @Matches("/^roll (\d+)[x*]\s+(.+)$/i")
 	 */
-	public function rollMultipleNamesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$amount = (int)$args[1];
-		$names = $args[2];
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		if (!$this->canRoll($sender, $timeBetweenRolls)) {
+	public function rollMultipleNamesCommand(CmdContext $context, string $amount="((?:\\d+)[x*])", string $names): void {
+		$amount = (int)$amount;
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$options = preg_split("/(,\s+|\s+|,)/", $names);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		[$rollNumber, $result] = $this->roll($sender, $options, $amount);
+		[$rollNumber, $result] = $this->roll($context->char->name, $options, $amount);
 		$winners = $this->joinOptions(explode("|", $result), "highlight");
 		if ($amount === 1) {
 			$msg = "The winner is $winners out of the possible options ".
@@ -172,29 +176,36 @@ class RandomController {
 		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
 			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
 
-		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+		$context->reply($this->text->blobWrap(
+			$msg . " [",
+			$this->text->makeBlob("announce", $blob, "Announce result"),
+			"]"
+		));
 	}
 
 	/**
 	 * @HandlesCommand("roll")
 	 * @Matches("/^roll (.+)$/i")
 	 */
-	public function rollNamesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$names = $args[1];
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls');
-		if (!$this->canRoll($sender, $timeBetweenRolls)) {
+	public function rollNamesCommand(CmdContext $context, string $names): void {
+		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$options = preg_split("/(,\s+|\s+|,)/", $names);
-		[$rollNumber, $result] = $this->roll($sender, $options);
+		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>$result<end> out of the possible options ".
 			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
 		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
 			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
 
-		$sendto->reply($msg . " [" . $this->text->makeBlob("announce", $blob, "Announce result") . "]");
+		$context->reply($this->text->blobWrap(
+			$msg . " [",
+			$this->text->makeBlob("announce", $blob, "Announce result"),
+			"]"
+		));
 	}
 
 	/**
@@ -219,10 +230,8 @@ class RandomController {
 
 	/**
 	 * @HandlesCommand("verify")
-	 * @Matches("/^verify ([0-9]+)$/i")
 	 */
-	public function verifyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function verifyCommand(CmdContext $context, int $id): void {
 		/** @var ?Roll */
 		$row = $this->db->table("roll")
 			->where("id", $id)
@@ -231,16 +240,19 @@ class RandomController {
 		if ($row === null) {
 			$msg = "Roll number <highlight>$id<end> does not exist.";
 		} else {
-			$options = explode("|", $row->options);
-			$result = explode("|", $row->result);
-			$time = $this->util->unixtimeToReadable(time() - $row->time);
+			$options = isset($row->options) ? explode("|", $row->options) : ["&lt;none&gt;"];
+			$result = isset($row->result) ? explode("|", $row->result) : ["&lt;none&gt;"];
+			$time = "an unknown time";
+			if (isset($row->time)) {
+				$time = $this->util->unixtimeToReadable(time() - $row->time);
+			}
 			$msg = $this->joinOptions($result, "highlight").
-				" rolled by <highlight>$row->name<end> $time ago.\n".
+				" rolled by <highlight>{$row->name}<end> {$time} ago.\n".
 				"Possible options were: ".
 				$this->joinOptions($options, "highlight") . ".";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
