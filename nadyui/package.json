@@ -30,9 +30,9 @@
     "@vue/cli-plugin-vuex": "^5.0.0-rc.0",
     "@vue/cli-service": "^5.0.0-rc.0",
     "@vue/compiler-sfc": "^3.2.21",
-    "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^7.0.0",
     "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-vue": "^7.20.0",
     "prettier": "^2.4.1",
@@ -49,8 +49,7 @@
       "plugin:vue/vue3-essential",
       "eslint:recommended",
       "@vue/typescript/recommended",
-      "@vue/prettier",
-      "@vue/prettier/@typescript-eslint"
+      "plugin:prettier/recommended"
     ],
     "parserOptions": {
       "ecmaVersion": 2020
