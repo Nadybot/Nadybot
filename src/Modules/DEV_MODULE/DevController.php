@@ -169,7 +169,6 @@ class DevController {
 		} else {
 			$msg = $this->text->makeBlob("Regexes for commands ($count)", $blob);
 		}
-		file_put_contents("/home/mark/commands2.txt", $blob);
 		$context->reply($msg);
 	}
 
