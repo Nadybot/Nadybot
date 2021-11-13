@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBRow;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
@@ -56,37 +57,46 @@ class SymbiantController {
 	/** @Inject */
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("bestsymbiants")
-	 * @Matches("/^bestsymbiants$/i")
-	 * @Matches("/^bestsymbiants (?<prof>[^ ]+) (?<level>\d+)$/i")
-	 * @Matches("/^bestsymbiants (?<level>\d+) (?<prof>[^ ]+)$/i")
-	 */
-	public function findBestSymbiants(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!isset($args['level'])) {
+	/** @HandlesCommand("bestsymbiants") */
+	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
+		$this->findBestSymbiants($context, $prof, $level);
+	}
+
+	/** @HandlesCommand("bestsymbiants") */
+	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
+		$this->findBestSymbiants($context, $prof, $level);
+	}
+
+	/** @HandlesCommand("bestsymbiants") */
+	public function findBestSymbiantsAuto(CmdContext $context): void {
+		$this->findBestSymbiants($context, null, null);
+	}
+
+	public function findBestSymbiants(CmdContext $context, ?PWord $prof, ?int $level): void {
+		if (!isset($level) || !isset($prof)) {
 			$this->playerManager->getByNameAsync(
-				function(?Player $whois) use ($sendto): void {
-					if (empty($whois)) {
+				function(?Player $whois) use ($context): void {
+					if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
 						$msg = "Could not retrieve whois info for you.";
-						$sendto->reply($msg);
+						$context->reply($msg);
 						return;
 					}
-					$this->showBestSymbiants($whois->profession, $whois->level, $sendto);
+					$this->showBestSymbiants($whois->profession, $whois->level, $context);
 				},
-				$sender
+				$context->char->name
 			);
 			return;
 		}
-		$prof = $this->util->getProfessionName($args['prof']);
+		$prof = $this->util->getProfessionName($prof());
 		if ($prof === '') {
-			$msg = "Could not find profession <highlight>{$args['prof']}<end>.";
-			$sendto->reply($msg);
+			$msg = "Could not find profession <highlight>{$prof}<end>.";
+			$context->reply($msg);
 			return;
 		}
-		$this->showBestSymbiants($prof, (int)$args['level'], $sendto);
+		$this->showBestSymbiants($prof, $level, $context);
 	}
 
-	public function showBestSymbiants(string $prof, int $level, CommandReply $sendto): void {
+	public function showBestSymbiants(string $prof, int $level, CmdContext $context): void {
 		$query = $this->db->table("Symbiant AS s")
 			->join("SymbiantProfessionMatrix AS spm", "spm.SymbiantID", "s.ID")
 			->join("Profession AS p", "p.ID", "spm.ProfessionID")
@@ -95,8 +105,8 @@ class SymbiantController {
 			->where("s.LevelReq", "<=", $level)
 			->where("s.Name", "NOT LIKE", "Prototype%")
 			->select("s.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName");
-		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", '%Alpha');
-		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", '%Beta');
+		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", ['%Alpha']);
+		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", ['%Beta']);
 		$query->orderByDesc("s.QL");
 		/** @var Symbiant[] */
 		$symbiants = $query->asObj(Symbiant::class)->toArray();
@@ -114,7 +124,7 @@ class SymbiantController {
 			"Best 3 symbiants in each slot for a level {$level} {$prof}",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -170,14 +180,17 @@ class SymbiantController {
 
 	/**
 	 * @HandlesCommand("symbcompare")
-	 * @Matches("/^symbcompare ((?:\s*\d+)+)$/i")
+	 * @Mask $ids (\d+(?:\s+\d+)+)
 	 */
-	public function compareSymbiants(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$ids = new Collection(preg_split("/\s+/", $args[1]));
+	public function compareSymbiants(CmdContext $context, string $ids): void {
+		$ids = new Collection(preg_split("/\s+/", $ids));
 
 		// Get all symbs that exist
-		$symbs = $ids->map(function(string $id) {
+		$symbs = $ids->map(function(string $id): ?AODBEntry {
 			$item = $this->itemsController->findById((int)$id);
+			if (!isset($item)) {
+				return null;
+			}
 			$item->buffs = $this->db->table("item_buffs")
 				->where("item_id", $id)
 				->asObj()
@@ -189,7 +202,7 @@ class SymbiantController {
 		})->filter();
 
 		// Count which skill is buffed by how many
-		$buffCounter = $symbs->reduce(function(array $carry, AODBEntry $item) {
+		$buffCounter = $symbs->reduce(function(array $carry, AODBEntry $item): array {
 			foreach ($item->buffs as $skillId => $amount) {
 				$carry[$skillId] ??= 0;
 				$carry[$skillId]++;
@@ -231,6 +244,6 @@ class SymbiantController {
 			return $blob;
 		});
 		$msg = $this->text->makeBlob("Item comparison", $blobs->join("\n"));
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

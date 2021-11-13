@@ -4,7 +4,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Text,
 	Util,
@@ -42,9 +42,8 @@ class ClusterController {
 
 	/**
 	 * @HandlesCommand("cluster")
-	 * @Matches("/^cluster$/i")
 	 */
-	public function clusterListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function clusterListCommand(CmdContext $context): void {
 		/** @var Collection<Cluster> */
 		$data = $this->db->table("Cluster")
 			->orderBy("LongName")
@@ -64,15 +63,13 @@ class ClusterController {
 				"\n";
 		}
 		$msg = $this->text->makeBlob("Cluster List ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("cluster")
-	 * @Matches("/^cluster (.+)$/i")
 	 */
-	public function clusterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = trim($args[1]);
+	public function clusterCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("Cluster");
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'LongName');
 
@@ -82,7 +79,7 @@ class ClusterController {
 
 		if ($count === 0) {
 			$msg = "No skills found that match <highlight>{$search}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
@@ -99,15 +96,15 @@ class ClusterController {
 
 			foreach ($results as $row) {
 				$impDesignerLink = $this->text->makeChatcmd(
-					"Add",
+					"add",
 					"/tell <myname> implantdesigner $row->Slot $row->ClusterType $cluster->LongName"
 				);
 				$clusterType = ucfirst($row->ClusterType);
-				$blob .= "<tab><highlight>$clusterType<end>: $row->Slot ($impDesignerLink)";
+				$blob .= "<tab><highlight>$clusterType<end>: $row->Slot [$impDesignerLink]";
 			}
 			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob("Cluster search results ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }
