@@ -342,11 +342,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action list
+	 * @Mask $subAction protocol
 	 */
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="protocol",
+		string $action,
+		string $subAction,
 		string $protocol
 	): void {
 		$context->reply(
@@ -377,11 +379,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action list
+	 * @Mask $subAction transport
 	 */
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="transport",
+		string $action,
+		string $subAction,
 		string $transport
 	): void {
 		$context->reply(
@@ -412,11 +416,13 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action list
+	 * @Mask $subAction layer
 	 */
 	public function relayListStackDetailCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="layer",
+		string $action,
+		string $subAction,
 		string $layer
 	): void {
 		$context->reply(
@@ -430,10 +436,11 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action add
 	 */
 	public function relayAddCommand(
 		CmdContext $context,
-		string $action="add",
+		string $action,
 		PWord $name,
 		string $spec
 	): void {
@@ -613,10 +620,11 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action describe
 	 */
 	public function relayDescribeIdCommand(
 		CmdContext $context,
-		string $action="describe",
+		string $action,
 		int $id
 	): void {
 		$this->relayDescribeCommand($context, $id, null);
@@ -624,10 +632,11 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action describe
 	 */
 	public function relayDescribeNameCommand(
 		CmdContext $context,
-		string $action="describe",
+		string $action,
 		PNonNumber $name
 	): void {
 		$this->relayDescribeCommand($context, null, $name());
@@ -763,15 +772,17 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action config
 	 */
-	public function relayConfigIdCommand(CmdContext $context, string $action="config", int $id): void {
+	public function relayConfigIdCommand(CmdContext $context, string $action, int $id): void {
 		$this->relayConfigCommand($context, $id, null);
 	}
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action config
 	 */
-	public function relayConfigNameCommand(CmdContext $context, string $action="config", PNonNumberWord $name): void {
+	public function relayConfigNameCommand(CmdContext $context, string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
 	}
 
@@ -833,15 +844,18 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action config
+	 * @Mask $subAction eventmod
+	 * @Mask $direction (incoming|outgoing)
 	 */
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
-		string $action="config",
+		string $action,
 		PWord $name,
-		string $subAction="eventmod",
+		string $subAction,
 		PWord $event,
 		bool $enable,
-		string $direction="(incoming|outgoing)"
+		string $direction
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -902,13 +916,16 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action config
+	 * @Mask $subAction eventset
+	 * @Mask $events ([a-z()_-]+\s+(?:IO|O|I)(?:\s+[a-z()_-]+\s+(?:IO|OI|O|I))*)
 	 */
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
-		string $action="config",
+		string $action,
 		PWord $name,
-		string $subAction="eventset",
-		?string $events="([a-z()_-]+\s+(?:IO|O|I)(?:\s+[a-z()_-]+\s+(?:IO|OI|O|I))*)"
+		string $subAction,
+		?string $events
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);

@@ -97,10 +97,11 @@ class UsageController {
 
 	/**
 	 * @HandlesCommand("usage")
+	 * @Mask $action player
 	 */
 	public function usagePlayerCommand(
 		CmdContext $context,
-		string $action="player",
+		string $action,
 		PCharacter $player,
 		?PDuration $duration
 	): void {
@@ -142,10 +143,11 @@ class UsageController {
 
 	/**
 	 * @HandlesCommand("usage")
+	 * @Mask $action cmd
 	 */
 	public function usageCmdCommand(
 		CmdContext $context,
-		string $action="cmd",
+		string $action,
 		PWord $cmd,
 		?PDuration $duration
 	): void {

@@ -457,8 +457,9 @@ class WorldBossController {
 	 * @HandlesCommand("loren .+")
 	 * @HandlesCommand("reaper .+")
 	 * @HandlesCommand("gauntlet .+")
+	 * @Mask $action update
 	 */
-	public function bossUpdateCommand(CmdContext $context, string $action="update", PDuration $duration): void {
+	public function bossUpdateCommand(CmdContext $context, string $action, PDuration $duration): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, $duration->toSecs());
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";

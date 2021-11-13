@@ -157,8 +157,15 @@ class BanController {
 	 * This command handler bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
+	 * @Mask $for (for|reason)
 	 */
-	public function banPlayerWithTimeAndReasonCommand(CmdContext $context, PCharacter $who, PDuration $duration, string $for="(for|reason)", string $reason): void {
+	public function banPlayerWithTimeAndReasonCommand(
+		CmdContext $context,
+		PCharacter $who,
+		PDuration $duration,
+		string $for,
+		string $reason
+	): void {
 		$who = $who();
 		$length = $duration->toSecs();
 
@@ -206,8 +213,14 @@ class BanController {
 	 * This command handler permanently bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
+	 * @Mask $for (for|reason)
 	 */
-	public function banPlayerWithReasonCommand(CmdContext $context, PCharacter $who, string $for="(for|reason)", string $reason): void {
+	public function banPlayerWithReasonCommand(
+		CmdContext $context,
+		PCharacter $who,
+		string $for,
+		string $reason
+	): void {
 		$who = $who();
 
 		if (!$this->banPlayer($who, $context->char->name, null, $reason, $context)) {
@@ -290,8 +303,9 @@ class BanController {
 	 *  - name of one of the player's characters
 	 *
 	 * @HandlesCommand("unban")
+	 * @Mask $all all
 	 */
-	public function unbanAllCommand(CmdContext $context, string $all="all", PCharacter $who): void {
+	public function unbanAllCommand(CmdContext $context, string $all, PCharacter $who): void {
 		$who = $who();
 
 		$charId = $this->chatBot->get_uid($who);
@@ -623,8 +637,17 @@ class BanController {
 
 	/**
 	 * @HandlesCommand("orgban")
+	 * @Mask $add add
+	 * @Mask $for (for|reason|because)
 	 */
-	public function orgbanAddByIdCommand(CmdContext $context, string $add="add", int $orgId, ?PDuration $duration, string $for="(for|reason|because)", string $reason): void {
+	public function orgbanAddByIdCommand(
+		CmdContext $context,
+		string $add,
+		int $orgId,
+		?PDuration $duration,
+		string $for,
+		string $reason
+	): void {
 		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason, $context);
 	}
 

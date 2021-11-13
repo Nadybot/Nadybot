@@ -120,8 +120,9 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events")
+	 * @Mask $action join
 	 */
-	public function eventsJoinCommand(CmdContext $context, string $action="join", int $id): void {
+	public function eventsJoinCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>$id<end>.";
@@ -150,11 +151,12 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events")
+	 * @Mask $action leave
 	 */
-	public function eventsLeaveCommand(CmdContext $context, string $action="leave", int $id): void {
+	public function eventsLeaveCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "There is no event with id <highlight>$id<end>.";
+			$msg = "There is no event with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -179,8 +181,9 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events")
+	 * @Mask $action list
 	 */
-	public function eventsListCommand(CmdContext $context, string $action="list", int $id): void {
+	public function eventsListCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>$id<end>.";
@@ -225,8 +228,9 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events add .+")
+	 * @Mask $action add
 	 */
-	public function eventsAddCommand(CmdContext $context, string $action="add", string $eventName): void {
+	public function eventsAddCommand(CmdContext $context, string $action, string $eventName): void {
 		$eventId = $this->db->table("events")
 			->insertGetId([
 				"time_submitted" => time(),
@@ -254,8 +258,9 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events setdesc .+")
+	 * @Mask $action setdesc
 	 */
-	public function eventsSetDescCommand(CmdContext $context, string $action="setdesc", int $id, string $description): void {
+	public function eventsSetDescCommand(CmdContext $context, string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
@@ -270,12 +275,14 @@ class EventsController {
 
 	/**
 	 * @HandlesCommand("events setdate .+")
+	 * @Mask $action setdate
+	 * @Mask $date (\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?)
 	 */
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		string $action="setdate",
+		string $action,
 		int $id,
-		string $date="(\\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\\d|3[01])\\s+(?:[0-1]?\\d|[2][0-3]):(?:[0-5]\\d)(?::([0-5]\\d))?)"
+		string $date
 	): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {

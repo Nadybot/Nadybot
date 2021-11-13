@@ -106,7 +106,7 @@ class DevController {
 	/**
 	 * @HandlesCommand("showcmdregex")
 	 */
-	public function showcmdregexCommand(CmdContext $context, string $cmd): void {
+	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
 		// get all command handlers
 		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
 
@@ -133,41 +133,65 @@ class DevController {
 			$instance = Registry::getInstance($name);
 			try {
 				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-				$regexes = array_merge($regexes, $this->commandManager->retrieveRegexes($reflectedMethod));
+				$command = $reflectedMethod->getAnnotation("HandlesCommand")->value;
+				if (!isset($command)) {
+					continue;
+				}
+				$command = explode(" ", $command)[0];
+				$regexes[$command] ??= [];
+				$regexes[$command] = array_merge($regexes[$command], $this->commandManager->retrieveRegexes($reflectedMethod));
 			} catch (ReflectionException $e) {
 				continue;
 			}
 		}
+		ksort($regexes);
 
 		$count = count($regexes);
-		if ($count > 0) {
-			$blob = "<header2>Regular expressions<end>\n";
-			foreach ($regexes as $regex) {
+		if ($count === 0) {
+			$msg = "No regexes found for command <highlight>{$cmd}<end>.";
+			$context->reply($msg);
+			return;
+		}
+		$blob = "";
+		foreach ($regexes as $command => $list) {
+			$blob .= "<header2>{$command}<end>";
+			foreach ($list as $regex) {
 				if (preg_match("/^(.)(.+?)\\1([a-z]*)$/", $regex, $matches)) {
 					$regex = "(?{$matches[3]})  {$matches[2]}";
 					$regex = preg_replace("/\(\?<.+?>/", "(", $regex);
 				}
-				$blob .= "<tab>{$regex}\n";
+				$blob .= "\n<tab>" . htmlspecialchars($regex);
 			}
+			$blob .= "\n\n";
+		}
+		if (isset($cmd)) {
 			$msg = $this->text->makeBlob("Regexes for $cmd ($count)", $blob);
 		} else {
-			$msg = "No regexes found for command <highlight>$cmd<end>.";
+			$msg = $this->text->makeBlob("Regexes for commands ($count)", $blob);
 		}
+		file_put_contents("/home/mark/commands2.txt", $blob);
 		$context->reply($msg);
 	}
 
 	/**
 	 * @return CommandHandler[]
 	 */
-	public function getAllCommandHandlers(string $cmd, string $channel): array {
+	public function getAllCommandHandlers(?string $command, string $channel): array {
 		$handlers = [];
-		if (isset($this->commandManager->commands[$channel][$cmd])) {
-			$handlers []= $this->commandManager->commands[$channel][$cmd];
+		if (!isset($command)) {
+			$cmds = array_keys($this->commandManager->commands[$channel]);
+		} else {
+			$cmds = (array)$command;
 		}
-		if (isset($this->subcommandManager->subcommands[$cmd])) {
-			foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
-				if ($handler->type == $channel) {
-					$handlers []= new CommandHandler($handler->file, $handler->admin);
+		foreach ($cmds as $cmd) {
+			if (isset($this->commandManager->commands[$channel][$cmd])) {
+				$handlers []= $this->commandManager->commands[$channel][$cmd];
+			}
+			if (isset($this->subcommandManager->subcommands[$cmd])) {
+				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
+					if ($handler->type == $channel) {
+						$handlers []= new CommandHandler($handler->file, $handler->admin);
+					}
 				}
 			}
 		}

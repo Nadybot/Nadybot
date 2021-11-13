@@ -37,8 +37,9 @@ class FightController {
 
 	/**
 	 * @HandlesCommand("fight")
+	 * @Mask $vs vs
 	 */
-	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs="vs", PCharacter $player2): void {
+	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs, PCharacter $player2): void {
 		$player1 = $player1();
 		$player2 = $player2();
 

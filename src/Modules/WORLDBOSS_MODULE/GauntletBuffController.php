@@ -267,8 +267,9 @@ class GauntletBuffController implements MessageEmitter {
 	 * This command sets a gauntlet buff timer
 	 *
 	 * @HandlesCommand("gaubuff")
+	 * @Mask $side (clan|omni)
 	 */
-	public function gaubuffSetCommand(CmdContext $context, ?string $side="(clan|omni)", PDuration $time): void {
+	public function gaubuffSetCommand(CmdContext $context, ?string $side, PDuration $time): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
 		$side = $side ?? $defaultSide;
 		if ($side === static::SIDE_NONE) {

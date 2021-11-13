@@ -149,8 +149,9 @@ class RandomController {
 
 	/**
 	 * @HandlesCommand("roll")
+	 * @Mask $amount ((?:\d+)[x*])
 	 */
-	public function rollMultipleNamesCommand(CmdContext $context, string $amount="((?:\\d+)[x*])", string $names): void {
+	public function rollMultipleNamesCommand(CmdContext $context, string $amount, string $names): void {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {

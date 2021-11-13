@@ -165,8 +165,9 @@ class AltsController {
 	 * This command handler adds alt characters.
 	 *
 	 * @HandlesCommand("alts")
+	 * @Mask $action add
 	 */
-	public function addAltCommand(CmdContext $context, string $action="add", PCharacterList $names): void {
+	public function addAltCommand(CmdContext $context, string $action, PCharacterList $names): void {
 		$senderAltInfo = $this->getAltInfo($context->char->name, true);
 		if (!$senderAltInfo->isValidated($context->char->name)) {
 			$context->reply("You can only add alts from a main or validated alt.");
@@ -257,8 +258,9 @@ class AltsController {
 	 * This command handler adds alts to another main character.
 	 *
 	 * @HandlesCommand("alts")
+	 * @Mask $action main
 	 */
-	public function addMainCommand(CmdContext $context, string $action="main", PCharacter $main): void {
+	public function addMainCommand(CmdContext $context, string $action, PCharacter $main): void {
 		$newMain = $main();
 
 		if ($newMain === $context->char->name) {

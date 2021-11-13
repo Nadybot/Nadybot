@@ -131,8 +131,9 @@ class AOUController {
 	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
 	 *
 	 * @HandlesCommand("aou")
+	 * @Mask $action all
 	 */
-	public function aouAllSearch(CmdContext $context, string $action="all", string $search): void {
+	public function aouAllSearch(CmdContext $context, string $action, string $search): void {
 		$this->searchAndShowAOUGuide($search, true, $context);
 	}
 

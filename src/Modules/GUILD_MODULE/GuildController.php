@@ -386,8 +386,9 @@ class GuildController {
 
 	/**
 	 * @HandlesCommand("notify")
+	 * @Mask $action (on|add)
 	 */
-	public function notifyAddCommand(CmdContext $context, string $action="(on|add)", PCharacter $who): void {
+	public function notifyAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
 

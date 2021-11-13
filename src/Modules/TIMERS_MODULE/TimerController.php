@@ -252,7 +252,7 @@ class TimerController implements MessageEmitter {
 				return;
 			}
 		}
-		$mode = strlen($timer->mode??"") ? explode(",", $timer->mode) : [];
+		$mode = (isset($timer->mode) && strlen($timer->mode)) ? explode(",", $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
@@ -269,7 +269,7 @@ class TimerController implements MessageEmitter {
 		if ($sent) {
 			return;
 		}
-		if (preg_match("/^(discordmsg|console)/", $timer->origin??"")) {
+		if (isset($timer->origin) && preg_match("/^(discordmsg|console)/", $timer->origin)) {
 			$receiver = $this->messageHub->getReceiver($timer->origin);
 			if (isset($receiver) && $receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
 				return;
@@ -282,10 +282,11 @@ class TimerController implements MessageEmitter {
 	 * This command handler adds a repeating timer.
 	 *
 	 * @HandlesCommand("rtimer")
+	 * @Mask $action add
 	 */
 	public function rtimerCommand(
 		CmdContext $context,
-		?string $action="add",
+		?string $action,
 		PDuration $initial,
 		PDuration $interval,
 		string $name
@@ -340,8 +341,9 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("timers")
+	 * @Mask $action view
 	 */
-	public function timersViewCommand(CmdContext $context, string $action="view", string $id): void {
+	public function timersViewCommand(CmdContext $context, string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (preg_match("/^\d+$/", $id)) {
@@ -352,10 +354,13 @@ class TimerController implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
-		$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
+		$timeLeft = "an unknown amount of time";
+		if (isset($timer->endtime)) {
+			$timeLeft = $this->util->unixtimeToReadable($timer->endtime - time());
+		}
 		$name = $timer->name;
 
-		$msg = "Timer <highlight>{$name}<end> has <highlight>{$time_left}<end> left.";
+		$msg = "Timer <highlight>{$name}<end> has <highlight>{$timeLeft}<end> left.";
 		$context->reply($msg);
 	}
 
@@ -389,10 +394,11 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("timers")
+	 * @Mask $action add
 	 */
 	public function timersAddCommand(
 		CmdContext $context,
-		?string $action="add",
+		?string $action,
 		PDuration $duration,
 		?string $name
 	): void {
@@ -434,7 +440,10 @@ class TimerController implements MessageEmitter {
 			return $a->endtime <=> $b->endtime;
 		});
 		foreach ($timers as $timer) {
-			$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
+			$timeLeft = "&lt;unknown&gt;";
+			if (isset($timer->endtime)) {
+				$timeLeft = $this->util->unixtimeToReadable($timer->endtime - time());
+			}
 			$name = $timer->name;
 			$owner = $timer->owner;
 
@@ -447,7 +456,7 @@ class TimerController implements MessageEmitter {
 			}
 
 			$blob .= "Name: <highlight>$name<end> {$remove_link}\n";
-			$blob .= "Time left: <highlight>$time_left<end> $repeatingInfo\n";
+			$blob .= "Time left: <highlight>$timeLeft<end> $repeatingInfo\n";
 			$blob .= "Set by: <highlight>$owner<end>\n\n";
 		}
 		$msg = $this->text->makeBlob("Timers ($count)", $blob);
@@ -567,9 +576,6 @@ class TimerController implements MessageEmitter {
 				"alerts" => json_encode($alerts),
 			]);
 
-		if (!isset($timer->id)) {
-			throw new Exception("Unable to save the timer.");
-		}
 		$this->timers[strtolower($name)] = $timer;
 		$this->eventManager->fireEvent($event);
 		return $timer->id;

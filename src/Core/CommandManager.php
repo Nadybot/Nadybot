@@ -648,6 +648,7 @@ class CommandManager implements MessageEmitter {
 				$regexp []= "(?:" . join("|", $commands) . ")";
 			}
 		}
+		$comment = $method->getDocComment();
 		for ($i = 1; $i < count($params); $i++) {
 			$new = null;
 			if (!$params[$i]->hasType()) {
@@ -664,15 +665,18 @@ class CommandManager implements MessageEmitter {
 			if ($type->isBuiltin()) {
 				switch ($type->getName()) {
 					case "string":
-						try {
+						$new = "(?<{$varName}>.+)";
+						if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+							$default = $masks[1];
+						} elseif ($params[$i]->isDefaultValueAvailable()) {
 							$default = $params[$i]->getDefaultValue();
-							if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
-								$new = "(?<{$varName}>" . substr($default, 1);
-							} else {
-								$new = "(?<{$varName}>" . preg_quote($default) . ")";
-							}
-						} catch (ReflectionException $e) {
-							$new = "(?<{$varName}>.+)";
+						} else {
+							break;
+						}
+						if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
+							$new = "(?<{$varName}>" . substr($default, 1);
+						} else {
+							$new = "(?<{$varName}>" . preg_quote($default) . ")";
 						}
 						break;
 					case "int":

@@ -35,18 +35,29 @@ class AliasController {
 	/** @Inject */
 	public Text $text;
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand1(CmdContext $context, string $add="add", string $alias='("[a-z 0-9]+")', string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 * @Mask $alias ("[a-z 0-9]+")
+	 */
+	public function aliasAddCommand1(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand2(CmdContext $context, string $add="add", string $alias="('[a-z 0-9]+')", string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 * @Mask $alias ('[a-z 0-9]+')
+	 */
+	public function aliasAddCommand2(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand3(CmdContext $context, string $add="add", PWord $alias, string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 */
+	public function aliasAddCommand3(CmdContext $context, string $action, PWord $alias, string $command): void {
 		$this->aliasAddCommand($context, $alias(), $command);
 	}
 

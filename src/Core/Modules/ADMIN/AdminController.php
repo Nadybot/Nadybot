@@ -101,8 +101,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("admin")
+	 * @Mask $action add
 	 */
-	public function adminAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+	public function adminAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
 
@@ -111,8 +112,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("mod")
+	 * @Mask $action add
 	 */
-	public function modAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+	public function modAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
 

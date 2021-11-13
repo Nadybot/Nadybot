@@ -116,11 +116,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action (add|addforce)
+	 * @Mask $fromConst from
 	 */
 	public function routeAddCommand(
 		CmdContext $context,
-		string $action="(add|addforce)",
-		?string $fromConst="from",
+		string $action,
+		?string $fromConst,
 		PSource $from,
 		PDirection $direction,
 		PSource $to,
@@ -284,8 +286,15 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (mods?|modifiers?)
 	 */
-	public function routeListModifierCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)", string $modifier): void {
+	public function routeListModifierCommand(
+		CmdContext $context,
+		string $action,
+		string $subAction,
+		string $modifier
+	): void {
 		$mod = $this->messageHub->modifiers[$modifier]??null;
 		if (!isset($mod)) {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
@@ -556,12 +565,14 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
 	 */
 	public function routeTagColorRemCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		PRemove $remove,
+		string $action,
+		string $type,
+		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -617,12 +628,15 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
+	 * @Mask $subAction set
 	 */
 	public function routeSetColorCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		string $subAction="set",
+		string $action,
+		string $type,
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via,
@@ -684,12 +698,15 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
+	 * @Mask $subAction pick
 	 */
 	public function routePickColorCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		string $subAction="pick",
+		string $action,
+		string $type,
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -791,8 +808,14 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
 	 */
-	public function routeFormatClearCommand(CmdContext $context, string $action="format", PRemove $rem, PSource $hop): void {
+	public function routeFormatClearCommand(
+		CmdContext $context,
+		string $action,
+		PRemove $subAction,
+		PSource $hop
+	): void {
 		$hop = $this->fixDiscordChannelName($hop());
 		if (!$this->clearHopFormat($hop)) {
 			$context->reply("No format defined for <highlight>{$hop}<end>.");
@@ -812,11 +835,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction render
 	 */
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
-		string $action="format",
-		string $subAction="render",
+		string $action,
+		string $subAction,
 		PSource $hop,
 		bool $render
 	): void {
@@ -831,11 +856,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction display
 	 */
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
-		string $action="format",
-		string $subAction="display",
+		string $action,
+		string $subAction,
 		PSource $hop,
 		string $format
 	): void {

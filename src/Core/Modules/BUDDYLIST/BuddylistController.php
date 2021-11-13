@@ -95,8 +95,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action add
 	 */
-	public function buddylistAddCommand(CmdContext $context, string $add="add", PCharacter $who, PWord $type): void {
+	public function buddylistAddCommand(CmdContext $context, string $action, PCharacter $who, PWord $type): void {
 		$name = $who();
 
 		if ($this->buddylistManager->add($name, $type())) {
@@ -148,8 +149,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action search
 	 */
-	public function buddylistSearchCommand(CmdContext $context, string $action="search", string $search): void {
+	public function buddylistSearchCommand(CmdContext $context, string $action, string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
 			$context->reply($msg);

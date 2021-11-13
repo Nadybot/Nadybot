@@ -164,8 +164,9 @@ class GuildRankController {
 
 	/**
 	 * @HandlesCommand("maprank")
+	 * @Mask $to to
 	 */
-	public function maprankCommand(CmdContext $context, int $rank, ?string $to="to", PWord $accessLevel): void {
+	public function maprankCommand(CmdContext $context, int $rank, ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;

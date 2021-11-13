@@ -101,8 +101,10 @@ class ChatRallyController {
 	 *  - etc...
 	 *
 	 * @HandlesCommand("rally .+")
+	 * @Mask $x ([0-9.]+\s*(?:[x,.]*))
+	 * @Mask $y ([0-9.]+\s*(?:[x,.]*))
 	 */
-	public function rallySet2Command(CmdContext $context, string $x="([0-9.]+\s*(?:[x,.]*))", string $y="([0-9.]+\s*(?:[x,.]*))", PWord $pf): void {
+	public function rallySet2Command(CmdContext $context, string $x, string $y, PWord $pf): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

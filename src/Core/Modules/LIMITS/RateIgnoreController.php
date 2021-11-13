@@ -75,8 +75,9 @@ class RateIgnoreController {
 
 	/**
 	 * @HandlesCommand("rateignore")
+	 * @Mask $action add
 	 */
-	public function rateignoreAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+	public function rateignoreAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 

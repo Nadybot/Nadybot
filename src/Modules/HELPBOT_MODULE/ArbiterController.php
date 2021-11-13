@@ -129,8 +129,9 @@ class ArbiterController {
 
 	/**
 	 * @HandlesCommand("arbiter")
+	 * @Mask $action set
 	 */
-	public function arbiterSetCommand(CmdContext $context, string $action="set", ?PWord $setWeek, ?string $ends="ends"): void {
+	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends="ends"): void {
 		$validTypes = [static::AI, static::BS, static::DIO];
 		if (!isset($setWeek) || !is_int($pos = array_search($setWeek(), $validTypes))) {
 			$context->reply(

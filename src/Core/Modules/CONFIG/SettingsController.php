@@ -102,8 +102,9 @@ class SettingsController {
 
 	/**
 	 * @HandlesCommand("settings")
+	 * @Mask $action change
 	 */
-	public function changeCommand(CmdContext $context, string $action="change", PWord $setting): void {
+	public function changeCommand(CmdContext $context, string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
 		/** @var ?Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
@@ -141,8 +142,9 @@ class SettingsController {
 
 	/**
 	 * @HandlesCommand("settings")
+	 * @Mask $action save
 	 */
-	public function saveCommand(CmdContext $context, string $action="save", PWord $setting, string $newValue): void {
+	public function saveCommand(CmdContext $context, string $action, PWord $setting, string $newValue): void {
 		$name = strtolower($setting());
 		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
