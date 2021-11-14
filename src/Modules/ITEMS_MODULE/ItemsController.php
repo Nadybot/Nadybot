@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandReply,
 	DB,
 	Http,
@@ -82,25 +83,20 @@ class ItemsController {
 
 	/**
 	 * @HandlesCommand("items")
-	 * @Matches("/^items (\d+) (.+)$/i")
-	 * @Matches("/^items (.+)$/i")
 	 */
-	public function itemsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->findItems($args);
-		$sendto->reply($msg);
+	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
+		$msg = $this->findItems($ql, $search);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("itemid")
-	 * @Matches("/^itemid (\d+)$/i")
 	 */
-	public function itemIdCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function itemIdCommand(CmdContext $context, int $id): void {
 		$row = $this->findById($id);
 		if ($row === null) {
 			$msg = "No item found with id <highlight>$id<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "";
@@ -112,11 +108,13 @@ class ItemsController {
 			$row->ql = $row->lowql;
 		}
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
-		$msg = "Details about item ID ".
-			$this->text->makeBlob((string)$id, $blob, "Details about item ID $id").
-			" ({$row->name})";
+		$msg = $this->text->blobWrap(
+			"Details about item ID ",
+			$this->text->makeBlob((string)$id, $blob, "Details about item ID $id"),
+			" ({$row->name})"
+		);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function findById(int $id): ?AODBEntry {
@@ -133,23 +131,20 @@ class ItemsController {
 
 	/**
 	 * @HandlesCommand("id")
-	 * @Matches("/^id (.+)$/i")
 	 */
-	public function idCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
+	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")
 			->leftJoin("item_groups AS g", "g.item_id", "a.lowid")
 			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
 			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
 			->orderBy("a.lowql")
-			->limit($this->settingManager->getInt('maxitems'));
+			->limit($this->settingManager->getInt('maxitems')??40);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");
 		/** @var AODBEntry[] */
 		$items = $query->asObj(AODBEntry::class)->toArray();
 		if (!count($items)) {
-			$sendto->reply("No items found matching <highlight>{$search}<end>.");
+			$context->reply("No items found matching <highlight>{$search}<end>.");
 			return;
 		}
 		$blob = "<header2><u>Low ID    Low QL    High ID    High QL    Name                                         </u><end>\n";
@@ -162,26 +157,22 @@ class ItemsController {
 				"         " . (($item->highid === $item->lowid) ? "         <black>|<end>" : $this->text->alignNumber($item->highql, 3) . "    ").
 				$item->name . "\n";
 		}
-		if (count($items) === $this->settingManager->getInt('maxitems')) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
+		if (count($items) === ($this->settingManager->getInt('maxitems')??40)) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . ($this->settingManager->getInt("maxitems")??40) . " results.<end>";
 		}
 		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @param array $args
 	 * @return string|string[]
 	 */
-	public function findItems(array $args) {
-		$search = $args[1];
-		$ql = null;
-		if (count($args) === 3) {
-			$ql = (int)$args[1];
+	public function findItems(?int $ql, string $search) {
+		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
 				return "QL must be between 1 and 500.";
 			}
-			$search = $args[2];
 		}
 
 		$search = htmlspecialchars_decode($search);
@@ -193,7 +184,7 @@ class ItemsController {
 		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
 			"Item DB rips created using the $aoiaPlusLink tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->get('aodb_db_version'), 'local', $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", 'local', $footer);
 
 		return $msg;
 	}
@@ -202,7 +193,7 @@ class ItemsController {
 	 * Search for items in the local database
 	 * @param string $search The searchterm
 	 * @param null|int $ql The QL to return the results in
-	 * @return ItemSearchResult
+	 * @return ItemSearchResult[]
 	 */
 	public function findItemsFromLocal(string $search, ?int $ql): array {
 		$innerQuery = $this->db->table("aodb AS a")
@@ -214,12 +205,12 @@ class ItemsController {
 			$innerQuery->where("a.lowql", "<=", $ql)
 				->where("a.highql", ">=", $ql);
 		}
-		$innerQuery->groupByRaw($innerQuery->colFunc("COALESCE", ["g.group_id", "a.lowid"]))
+		$innerQuery->groupByRaw($innerQuery->colFunc("COALESCE", ["g.group_id", "a.lowid"])->getValue())
 			->groupBy("a.lowid", "a.highid", "a.lowql", "a.highql", "a.name")
 			->groupBy("a.icon", "a.froob_friendly", "a.slot", "a.flags", "g.group_id")
 			->orderBy("a.name")
 			->orderByDesc("a.highql")
-			->limit($this->settingManager->getInt('maxitems'))
+			->limit($this->settingManager->getInt('maxitems')??40)
 			->select("a.*", "g.group_id");
 		$query = $this->db->fromSub($innerQuery, "foo")
 			->leftJoin("item_groups AS g", "foo.group_id", "g.group_id")
@@ -227,15 +218,15 @@ class ItemsController {
 			->leftJoin("aodb AS a1", "g.item_id", "a1.lowid")
 			->leftJoin("aodb AS a2", "g.item_id", "a2.highid")
 			->orderBy("g.id");
-		$query->selectRaw($query->colFunc("COALESCE", ["a2.name", "a1.name", "foo.name"], "name"))
+		$query->selectRaw($query->colFunc("COALESCE", ["a2.name", "a1.name", "foo.name"], "name")->getValue())
 			->addSelect("n.name AS group_name")
 			->addSelect("foo.icon")
 			->addSelect("g.group_id")
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid"))
-			->selectRaw($query->colFunc("COALESCE", ["a1.highid", "a2.highid", "foo.highid"], "highid"))
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql"))
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.lowql", "foo.lowql"], "lowql"))
-			->selectRaw($query->colFunc("COALESCE", ["a1.highql", "a2.highql", "foo.highql"], "highql"));
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid")->getValue())
+			->selectRaw($query->colFunc("COALESCE", ["a1.highid", "a2.highid", "foo.highid"], "highid")->getValue())
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql")->getValue())
+			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.lowql", "foo.lowql"], "lowql")->getValue())
+			->selectRaw($query->colFunc("COALESCE", ["a1.highql", "a2.highql", "foo.highql"], "highql")->getValue());
 		$data = $query->asObj(ItemSearchResult::class)->toArray();
 		// $data = $this->orderSearchResults($data, $search);
 
@@ -292,7 +283,7 @@ class ItemsController {
 		$blob .= "\n";
 		$blob .= $this->formatSearchResults($data, $ql, true, $search);
 		if ($numItems === $this->settingManager->getInt('maxitems')) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first " . $this->settingManager->get("maxitems") . " results.<end>";
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . ($this->settingManager->getInt("maxitems")??40) . " results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
 		$link = $this->text->makeBlob("Item Search Results ($numItems)", $blob);
@@ -425,10 +416,11 @@ class ItemsController {
 				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, (string)$row->ql);
 				if ($ql === $row->ql) {
 					$list .= "<yellow>[<end>$item<yellow>]<end>";
-				} elseif ($ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
+				} elseif (isset($ql) && $ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
 					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
 					$list .= ", $item";
 				} elseif (
+					isset($ql) &&
 					$ql > $row->lowql && $ql < $row->highql && $ql > $row->ql &&
 					isset($data[$itemNum+1]) && $data[$itemNum+1]->group_id === $row->group_id &&
 					$data[$itemNum+1]->lowql > $ql

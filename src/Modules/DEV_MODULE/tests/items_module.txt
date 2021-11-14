@@ -31,6 +31,22 @@
 !whatbuffs perks
 !whatbuffs nanoprogram sta
 
+!whatbuffsfroob
+!whatbuffsfroob agility
+!whatbuffsfroob sta
+!whatbuffsfroob legs
+!whatbuffsfroob sta legs
+!whatbuffsfroob stamina legs
+!whatbuffsfroob legs sta
+!whatbuffsfroob legs stamina
+!whatbuffsfroob foo bar
+!whatbuffsfroob legs bar
+!whatbuffsfroob foo sta
+!whatbuffsfroob perks sta
+!whatbuffsfroob nanoprogram
+!whatbuffsfroob perks
+!whatbuffsfroob nanoprogram sta
+
 !id chirop
 !id crispy chirop
 
