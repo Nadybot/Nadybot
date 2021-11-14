@@ -5,6 +5,7 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	CommandManager,
 	CommandReply,
 	DB,
@@ -16,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @Instance
@@ -104,20 +106,14 @@ class WhatBuffsController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs$/i")
-	 */
-	public function whatbuffsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showSkillChoice($sendto, false);
+	/** @HandlesCommand("whatbuffs") */
+	public function whatbuffsCommand(CmdContext $context): void {
+		$this->showSkillChoice($context, false);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroobs?$/i")
-	 */
-	public function whatbuffsFroobCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showSkillChoice($sendto, true);
+	/** @HandlesCommand("whatbuffsfroob") */
+	public function whatbuffsFroobCommand(CmdContext $context): void {
+		$this->showSkillChoice($context, true);
 	}
 
 	public function showSkillChoice(CommandReply $sendto, bool $froobFriendly): void {
@@ -141,30 +137,18 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs\s+([^ ]+)$/i")
-	 */
-	public function whatbuffsOneWordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = ucfirst(strtolower($this->resolveLocationAlias($args[1])));
-
-		if ($this->verifySlot($type)) {
-			$this->showSkillsBuffingType($type, false, "whatbuffs", $sendto);
-			return;
-		}
-		$this->handleOtherComandline(false, $sendto, $args);
-	}
-
-	/**
 	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroob\s+([^ ]+)$/i")
 	 */
-	public function whatbuffsFroobOneWordCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = ucfirst(strtolower($this->resolveLocationAlias($args[1])));
+	public function whatbuffsOneWordCommand(CmdContext $context, PWord $search): void {
+		$command = explode(" ", $context->message)[0];
+		$froobFriendly = strtolower($command) === "whatbuffsfroob";
+		$type = ucfirst(strtolower($this->resolveLocationAlias($search())));
 
 		if ($this->verifySlot($type)) {
-			$this->showSkillsBuffingType($type, true, "whatbuffsfroob", $sendto);
+			$this->showSkillsBuffingType($type, $froobFriendly, $command, $context);
 			return;
 		}
-		$this->handleOtherComandline(true, $sendto, $args);
+		$this->handleOtherComandline($froobFriendly, $context, $search());
 	}
 
 	public function showSkillsBuffingType(string $type, bool $froobFriendly, string $command, CommandReply $sendto): void {
@@ -227,7 +211,7 @@ class WhatBuffsController {
 					$query->rawFunc('COUNT', 1, 'num')
 				]);
 			if ($froobFriendly) {
-				$query->where('buffs.froob_friendly', '=', true);
+				$query->where('aodb.froob_friendly', '=', true);
 			}
 			$data = $query->asObj();
 		}
@@ -243,37 +227,35 @@ class WhatBuffsController {
 
 	/**
 	 * @HandlesCommand("whatbuffs")
-	 * @Matches("/^whatbuffs (.+)$/i")
 	 */
-	public function whatbuffs5Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->handleOtherComandline(false, $sendto, $args);
+	public function whatbuffs5Command(CmdContext $context, string $search): void {
+		$this->handleOtherComandline(false, $context, $search);
 	}
 
 	/**
 	 * @HandlesCommand("whatbuffsfroob")
-	 * @Matches("/^whatbuffsfroobs? (.+)$/i")
 	 */
-	public function whatbuffsfroob5Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->handleOtherComandline(true, $sendto, $args);
+	public function whatbuffsfroob5Command(CmdContext $context, string $search): void {
+		$this->handleOtherComandline(true, $context, $search);
 	}
 
-	public function handleOtherComandline(bool $froobFriendly, CommandReply $sendto, array $args): void {
-		$tokens = explode(" ", $args[1]);
+	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
+		$tokens = explode(" ", $search);
 		$firstType = ucfirst(strtolower($this->resolveLocationAlias($tokens[0])));
 		$lastType = ucfirst(strtolower($this->resolveLocationAlias($tokens[count($tokens) - 1])));
 
 		if ($this->verifySlot($firstType) && !preg_match("/^smt\.?$/i", $tokens[1]??"")) {
 			array_shift($tokens);
 			$msg = $this->showSearchResults($firstType, join(" ", $tokens), $froobFriendly);
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		} elseif ($this->verifySlot($lastType)) {
 			array_pop($tokens);
 			$msg = $this->showSearchResults($lastType, join(" ", $tokens), $froobFriendly);
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$skill = $args[1];
+		$skill = $search;
 		$command = "whatbuffs" . ($froobFriendly ? "froob" : "");
 		$suffix = $froobFriendly ? "Froob" : "";
 
@@ -283,7 +265,7 @@ class WhatBuffsController {
 		$blob = "";
 		if ($count === 0) {
 			$msg = "Could not find skill <highlight>$skill<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($count > 1) {
@@ -293,7 +275,7 @@ class WhatBuffsController {
 			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
 			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$skillId = $data[0]->id;
@@ -356,7 +338,7 @@ class WhatBuffsController {
 		$data = $query->asObj();
 		if (count($data) === 0) {
 			$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Choose buff type<end>\n";
@@ -365,7 +347,7 @@ class WhatBuffsController {
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$skillName} - Choose Type", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -497,6 +479,7 @@ class WhatBuffsController {
 		// If a perk has different max levels for profs, we create one entry for each of the
 		// buff levels, so 1 perk can appear several times with different max buffs
 		foreach ($result as $perk => $perkData) {
+			/** @var PerkBuffSearchResult $perkData */
 			$diffValues = array_unique(array_values($perkData->profMax));
 			foreach ($diffValues as $buffValue) {
 				$profs = [];
@@ -505,7 +488,7 @@ class WhatBuffsController {
 						$profs []= $prof;
 					}
 				}
-				$obj = clone($perkData);
+				$obj = clone $perkData;
 				$obj->amount = $buffValue;
 				$obj->profs = join(",", $profs);
 				$obj->profMax = [];
@@ -515,7 +498,7 @@ class WhatBuffsController {
 		usort(
 			$data,
 			function(PerkBuffSearchResult $p1, PerkBuffSearchResult $p2): int {
-				return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name, $p2->name);
+				return ($p2->amount <=> $p1->amount) ?: strcmp($p1->name??"", $p2->name??"");
 			}
 		);
 		return $data;
@@ -573,7 +556,7 @@ class WhatBuffsController {
 			->toArray();
 	}
 
-	public function showItemLink(DBRow $item, $ql) {
+	public function showItemLink(DBRow $item, $ql): string {
 		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 
@@ -587,6 +570,7 @@ class WhatBuffsController {
 		$showNodrops = $this->settingManager->getInt('whatbuffs_show_nodrop');
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
+		$itemMapping = [];
 		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
 				$item->highql = $item->lowql;
@@ -601,7 +585,7 @@ class WhatBuffsController {
 					strncmp($item->name, "Universal Advantage - ", 22) === 0
 				)
 			) {
-				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount, $item->amount, 250);
+				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount??$item->amount, $item->amount, 250);
 				$item->highql = 250;
 			}
 			$maxBuff = (int)max($maxBuff, abs($item->amount));
@@ -806,8 +790,8 @@ class WhatBuffsController {
 			} else {
 				$blob .= "($item->ncu NCU)";
 			}
-			if ($item->lowid > 0) {
-				$blob .= " (from " . $this->text->makeItem($item->lowid, $item->highid, $item->lowql, $item->use_name) . ")";
+			if ($item->lowid > 0 && isset($item->lowql)) {
+				$blob .= " (from " . $this->text->makeItem($item->lowid, $item->highid??$item->lowid, $item->lowql, $item->use_name??"") . ")";
 			}
 			$blob .= "\n";
 		}
