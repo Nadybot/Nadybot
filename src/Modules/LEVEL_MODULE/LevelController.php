@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
+use Illuminate\Support\Collection;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
-use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 
 /**
@@ -36,7 +37,6 @@ use Nadybot\Core\DB;
  *	)
  */
 class LevelController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -61,18 +61,13 @@ class LevelController {
 		$this->commandAlias->register($this->moduleName, "level", "lvl");
 	}
 
-	/**
-	 * @HandlesCommand("level")
-	 * @Matches("/^level (\d+)$/i")
-	 */
-	public function levelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$level = (int)$args[1];
+	/** @HandlesCommand("level") */
+	public function levelCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
 			$msg = "Level must be between <highlight>1<end> and <highlight>220<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$msg = "Level must be between <highlight>1<end> and <highlight>220<end>.";
 		$msg = "<white>L $row->level: Team {$row->teamMin}-{$row->teamMax}<end>".
 			"<highlight> | <end>".
 			"<cyan>PvP {$row->pvpMin}-{$row->pvpMax}<end>".
@@ -81,41 +76,32 @@ class LevelController {
 			"<highlight> | <end>".
 			"<blue>{$row->tokens} token(s)<end>";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("missions")
-	 * @Matches("/^missions (\d+)$/i")
-	 */
-	public function missionsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$missionQl = (int)$args[1];
-
-		if ($missionQl <= 0 || $missionQl > 250) {
+	/** @HandlesCommand("missions") */
+	public function missionsCommand(CmdContext $context, int $missionQL): void {
+		if ($missionQL <= 0 || $missionQL > 250) {
 			$msg = "Missions are only available between QL1 and QL250.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$msg = "QL{$missionQl} missions can be rolled from these levels:";
+		$msg = "QL{$missionQL} missions can be rolled from these levels:";
 
 		foreach ($this->findAllLevels() as $row) {
 			$array = explode(",", $row->missions);
-			if (in_array($missionQl, $array)) {
+			if (in_array($missionQL, $array)) {
 				$msg .= " " . $row->level;
 			}
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("xp")
-	 * @Matches("/^xp (\d+)$/i")
-	 */
-	public function xpSingleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$level = (int)$args[1];
+	/** @HandlesCommand("xp") */
+	public function xpSingleCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
 			$msg = "Level must be between 1 and 219.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$xp = "XP";
@@ -123,24 +109,19 @@ class LevelController {
 			$xp = "SK";
 		}
 		$msg = "At level <highlight>{$row->level}<end> you need <highlight>".number_format($row->xpsk)."<end> ${xp} to level up.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("xp")
-	 * @Matches("/^xp (\d+) (\d+)$/i")
-	 */
-	public function xpDoubleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$minLevel = (int)$args[1];
-		$maxLevel = (int)$args[2];
+	/** @HandlesCommand("xp") */
+	public function xpDoubleCommand(CmdContext $context, int $minLevel, int $maxLevel): void {
 		if ($minLevel < 1 || $minLevel > 220 || $maxLevel < 1 || $maxLevel > 220) {
 			$msg = "Level must be between 1 and 220.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($minLevel >= $maxLevel) {
 			$msg = "The start level must be lower than the end level.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var Collection<Level> */
@@ -173,7 +154,7 @@ class LevelController {
 		} else {
 			$msg = "You somehow managed to pass illegal parameters.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getLevelInfo(int $level): ?Level {
