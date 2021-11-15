@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\DBSchema\OnlinePlayer;
-
 /**
  * This is the list of all players considered to be online by the bot
  * @package Nadybot\Modules\ONLINE_MODULE

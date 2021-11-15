@@ -6,9 +6,10 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	AOChatEvent,
 	BuddylistManager,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Event,
 	EventManager,
@@ -18,15 +19,19 @@ use Nadybot\Core\{
 	SettingManager,
 	StopExecutionException,
 	Text,
+	UserStateEvent,
 	Util,
 };
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
-use Nadybot\Modules\RAID_MODULE\RaidController;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
+use Nadybot\Modules\{
+	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
+	RAID_MODULE\RaidController,
+	RELAY_MODULE\RelayController,
+	RELAY_MODULE\Relay,
+	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\Request,
+	WEBSERVER_MODULE\Response,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -106,7 +111,7 @@ class OnlineController {
 	public LoggerWrapper $logger;
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->table("online")
 			->where("added_by", $this->db->getBotname())
@@ -237,35 +242,34 @@ class OnlineController {
 
 	/**
 	 * @HandlesCommand("online")
-	 * @Matches("/^online$/i")
 	 */
-	public function onlineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function onlineCommand(CmdContext $context): void {
 		$msg = $this->getOnlineList();
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("online")
-	 * @Matches("/^online all$/i")
+	 * @Mask $action all
 	 */
-	public function onlineAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function onlineAllCommand(CmdContext $context, string $action): void {
 		$msg = $this->getOnlineList(1);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("online")
-	 * @Matches("/^online (.+)$/i")
 	 */
-	public function onlineProfCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profession = $this->util->getProfessionName($args[1]);
+	public function onlineProfCommand(CmdContext $context, string $profName): void {
+		$profession = $this->util->getProfessionName($profName);
 		if (empty($profession)) {
-			$msg = "<highlight>{$args[1]}<end> is not a recognized profession.";
-			$sendto->reply($msg);
+			$msg = "<highlight>{$profName}<end> is not a recognized profession.";
+			$context->reply($msg);
 			return;
 		}
 
 		$query = $this->db->table("online AS o");
+		/** @psalm-suppress ImplicitToStringCast */
 		$query->leftJoin("alts AS a", function (JoinClause $join) {
 			$join->on("o.name", "a.alt")
 				->where("a.validated_by_main", true)
@@ -293,7 +297,7 @@ class OnlineController {
 
 		if ($count === 0) {
 			$msg = "$profession Search Results (0)";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		foreach ($players as $player) {
@@ -311,7 +315,7 @@ class OnlineController {
 				$blob .= "<tab>($playerName)\n";
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
-				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($player->profession)??0).">";
 				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
 			}
 			if ($player->online) {
@@ -322,16 +326,16 @@ class OnlineController {
 		$blob .= "\nWritten by Naturarum (RK2)";
 		$msg = $this->text->makeBlob("$profession Search Results ($mainCount)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @Event("logOn")
 	 * @Description("Records an org member login in db")
 	 */
-	public function recordLogonEvent(Event $eventObj): void {
+	public function recordLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
 		}
 		$player = $this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
@@ -349,28 +353,33 @@ class OnlineController {
 	 * @Event("logOff")
 	 * @Description("Records an org member logoff in db")
 	 */
-	public function recordLogoffEvent(Event $eventObj): void {
+	public function recordLogoffEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender])) {
-			$this->removePlayerFromOnlineList($sender, 'guild');
-			$event = new OfflineEvent();
-			$event->type = "offline(org)";
-			$event->player = $sender;
-			$event->channel = "org";
-			$this->eventManager->fireEvent($event);
+		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
+			return;
 		}
+		$this->removePlayerFromOnlineList($sender, 'guild');
+		$event = new OfflineEvent();
+		$event->type = "offline(org)";
+		$event->player = $sender;
+		$event->channel = "org";
+		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @Event("logOn")
 	 * @Description("Sends a tell to players on logon showing who is online in org")
 	 */
-	public function showOnlineOnLogonEvent(Event $eventObj): void {
+	public function showOnlineOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->guildmembers[$sender]) && $this->chatBot->isReady()) {
-			$msg = $this->getOnlineList();
-			$this->chatBot->sendMassTell($msg, $sender);
+		if (!isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($sender)
+		) {
+			return;
 		}
+		$msg = $this->getOnlineList();
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
 	/**
@@ -441,7 +450,7 @@ class OnlineController {
 			->where(function(QueryBuilder $query) use ($time) {
 				$query->where("dt", "<", $time)
 					->where("added_by", $this->db->getBotname());
-			})->orWhere("dt", "<", $time - $this->settingManager->get('online_expire'))
+			})->orWhere("dt", "<", $time - ($this->settingManager->getInt('online_expire')??900))
 			->delete();
 	}
 
@@ -450,7 +459,7 @@ class OnlineController {
 	 * @Description("Afk check")
 	 * @Help("afk")
 	 */
-	public function afkCheckPrivateChannelEvent(Event $eventObj) {
+	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -459,7 +468,7 @@ class OnlineController {
 	 * @Description("Afk check")
 	 * @Help("afk")
 	 */
-	public function afkCheckGuildChannelEvent(Event $eventObj) {
+	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -468,7 +477,10 @@ class OnlineController {
 	 * @Description("Sets a member afk")
 	 * @Help("afk")
 	 */
-	public function afkPrivateChannelEvent(Event $eventObj) {
+	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender)) {
+			return;
+		}
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -477,7 +489,10 @@ class OnlineController {
 	 * @Description("Sets a member afk")
 	 * @Help("afk")
 	 */
-	public function afkGuildChannelEvent(Event $eventObj): void {
+	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender)) {
+			return;
+		}
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -502,7 +517,7 @@ class OnlineController {
 			return;
 		}
 		$time = explode('|', $row->afk)[0];
-		$timeString = $this->util->unixtimeToReadable(time() - $time);
+		$timeString = $this->util->unixtimeToReadable(time() - (int)$time);
 		// $sender is back
 		$this->buildOnlineQuery($sender, $type)
 			->update(["afk" => ""]);
@@ -590,7 +605,7 @@ class OnlineController {
 	 * @return array<string,OnlinePlayer[]>
 	 */
 	protected function groupRelayList(array $relays): array {
-		$groupBy = $this->settingManager->getInt('online_relay_group_by');
+		$groupBy = $this->settingManager->getInt('online_relay_group_by')??self::GROUP_BY_ORG;
 		if ($groupBy === self::GROUP_OFF) {
 			$key = 'Alliance';
 		}
@@ -598,17 +613,17 @@ class OnlineController {
 		foreach ($this->relayController->relays as $name => $relay) {
 			$online = $relay->getOnlineList();
 			foreach ($online as $chanName => $onlineChars) {
+				$key = "";
 				if ($groupBy === self::GROUP_BY_ORG) {
 					$key = $chanName;
 				}
 				$chars = array_values($onlineChars);
-				$key = "";
 				foreach ($chars as $char) {
 					if ($groupBy === self::GROUP_BY_PROFESSION) {
 						$key = $char->profession ?? "Unknown";
 						$profIcon = "?";
 						if ($char->profession !== null) {
-							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($char->profession).">";
+							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($char->profession)??0).">";
 						}
 						$key = "{$profIcon} {$key}";
 					}
@@ -637,15 +652,15 @@ class OnlineController {
 	public function getOnlineList(int $includeRelay=null): array {
 		$includeRelay ??= $this->settingManager->getInt("online_show_relay");
 		$orgData = $this->getPlayers('guild');
-		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild"));
+		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild")??1);
 
 		$privData = $this->getPlayers('priv');
-		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv"));
+		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv")??2);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
 		/** @var array<string,OnlineList> */
 		$relayList = [];
-		$relayOrgInfo = $this->settingManager->getInt("online_show_org_guild_relay");
+		$relayOrgInfo = $this->settingManager->getInt("online_show_org_guild_relay")??0;
 		foreach ($relayGrouped as $group => $chars) {
 			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
 		}
@@ -715,7 +730,8 @@ class OnlineController {
 			$msg = (array)$this->text->makeBlob("Players Online ($totalMain)", $blob);
 		}
 		if ($allianceTotalCount > 0 && $includeRelay === self::RELAY_SEPARATE) {
-			$msg = [...$msg, ...(array)$this->text->makeBlob("Players Online in alliance ($allianceTotalMain)", $blob2)];
+			$allianceMsg = (array)$this->text->makeBlob("Players Online in alliance ($allianceTotalMain)", $blob2);
+			$msg = array_merge($msg, $allianceMsg);
 		}
 		if (empty($msg)) {
 			$msg = (array)"Players Online (0)";
@@ -762,7 +778,7 @@ class OnlineController {
 	}
 
 	public function getRaidInfo(string $name, string $fancyColon): array {
-		$mode = $this->settingManager->getInt("online_raid");
+		$mode = $this->settingManager->getInt("online_raid")??0;
 		if ($mode === 0) {
 			return ["", ""];
 		}
@@ -792,10 +808,10 @@ class OnlineController {
 		}
 		$props = explode("|", $afk, 2);
 		if (count($props) === 1 || !strlen($props[1])) {
-			$timeString = $this->util->unixtimeToReadable(time() - $props[0], false);
+			$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
 			return " $fancyColon <highlight>AFK for $timeString<end>";
 		}
-		$timeString = $this->util->unixtimeToReadable(time() - $props[0], false);
+		$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
 		return " $fancyColon <highlight>AFK for $timeString: {$props[1]}<end>";
 	}
 
@@ -828,7 +844,7 @@ class OnlineController {
 				if ($currentGroup !== $player->profession) {
 					$profIcon = "?";
 					if ($player->profession !== null) {
-						$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession).">";
+						$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($player->profession)??0).">";
 					}
 					$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
 					$currentGroup = $player->profession;
@@ -845,10 +861,13 @@ class OnlineController {
 				$list->blob .= "<tab>? {$raidPre}{$player->name}{$admin}{$raidPost}{$afk}\n";
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
-				$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
+				$orgRank = "";
+				if (isset($player->guild) && isset($player->guild_rank)) {
+					$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
+				}
 				$profIcon = "";
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
-					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".$this->getProfessionId($player->profession)."> ";
+					$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($player->profession)??0)."> ";
 				}
 				$list->blob.= "<tab>{$profIcon}{$raidPre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidPost}{$afk}\n";
 			}
@@ -872,7 +891,7 @@ class OnlineController {
 		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		if ($groupBy === static::GROUP_BY_MAIN) {
-			$query->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]));
+			$query->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"])->getValue());
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
 			$query->orderByRaw(
 				"COALESCE(" . $query->grammar->wrap("p.profession") . ", ?) asc",
