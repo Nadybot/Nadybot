@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Text,
 };
@@ -33,27 +33,27 @@ class ChatCheckController {
 	/**
 	 * This command handler checks who of the raidgroup is in the area.
 	 * @HandlesCommand("check")
-	 * @Matches("/^check$/i")
 	 */
-	public function checkAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
-		/** @var Collection<DBRow> */
+	public function checkAllCommand(CmdContext $context): void {
+		/** @var Collection<string> */
 		$data = $this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", self::CHANNEL_TYPE)
 			->select("name")
-			->asObj();
+			->asObj()
+			->pluck("name");
 		$content = "";
 		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		foreach ($data as $row) {
-			$content .= " \\n /assist $row->name";
+		foreach ($data as $name) {
+			$content .= " \\n /assist {$name}";
 		}
 
-		$list = $this->text->makeChatcmd("Check Players", "/text Assisting All: $content");
+		$list = $this->text->makeChatcmd("Check Players", "/text Assisting All: {$content}");
 		$msg = $this->text->makeBlob("Check Players In Vicinity", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

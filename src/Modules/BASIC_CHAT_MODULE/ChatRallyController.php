@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
+	AOChatEvent,
 	CmdContext,
 	CommandReply,
 	Event,
@@ -112,12 +113,13 @@ class ChatRallyController {
 		$xCoords = preg_replace("/^([0-9.]+).*/", "", $x);
 		$yCoords = preg_replace("/^([0-9.]+).*/", "", $y);
 
+		$playfieldName = $pf();
 		if (is_numeric($pf())) {
 			$playfieldId = (int)$pf();
 			$playfieldName = (string)$playfieldId;
 
 			$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
-			if ($playfield !== null) {
+			if ($playfield !== null && isset($playfield->short_name)) {
 				$playfieldName = $playfield->short_name;
 			}
 		} else {
@@ -164,7 +166,7 @@ class ChatRallyController {
 
 		$name = (string)$playfieldId;
 		$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
-		if ($playfield !== null) {
+		if ($playfield !== null && isset($playfield->short_name)) {
 			$name = $playfield->short_name;
 		}
 		$this->set($name, $playfieldId, $xCoords, $yCoords);
@@ -206,11 +208,11 @@ class ChatRallyController {
 	 * @Event("joinpriv")
 	 * @Description("Sends rally to players joining the private channel")
 	 */
-	public function sendRally(Event $eventObj): void {
+	public function sendRally(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
 		$rally = $this->get();
-		if ($rally !== '') {
+		if ($rally !== '' && is_string($sender)) {
 			$this->chatBot->sendMassTell($rally, $sender);
 		}
 	}
@@ -222,7 +224,7 @@ class ChatRallyController {
 	}
 
 	public function get(): string {
-		$data = $this->settingManager->get("rally");
+		$data = $this->settingManager->getString("rally")??"";
 		if (strpos($data, ":") === false) {
 			return "";
 		}
@@ -230,7 +232,7 @@ class ChatRallyController {
 		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use rally: $link";
 		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
-		return $this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob);
+		return ((array)$this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob))[0];
 	}
 
 	public function clear(): void {
@@ -254,7 +256,7 @@ class ChatRallyController {
 	 * <tab>We are rallying <u>here</u>")
 	 */
 	public function rallyTile(string $sender, callable $callback): void {
-		$data = $this->settingManager->get("rally");
+		$data = $this->settingManager->getString("rally")??"";
 		if (strpos($data, ":") === false) {
 			$callback(null);
 			return;

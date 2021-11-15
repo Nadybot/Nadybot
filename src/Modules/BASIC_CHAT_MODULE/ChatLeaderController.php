@@ -4,12 +4,14 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	AOChatEvent,
+	CmdContext,
 	Event,
 	EventManager,
 	Nadybot,
 	SettingManager,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @Instance
@@ -83,10 +85,9 @@ class ChatLeaderController {
 	/**
 	 * This command handler sets the leader of the raid.
 	 * @HandlesCommand("leader")
-	 * @Matches("/^leader$/i")
 	 */
-	public function leaderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($this->leader === $sender) {
+	public function leaderCommand(CmdContext $context): void {
+		if ($this->leader === $context->char->name) {
 			$this->leader = null;
 			$this->chatBot->sendPrivate("Raid Leader cleared.");
 			$event = new LeaderEvent();
@@ -94,21 +95,20 @@ class ChatLeaderController {
 			$this->eventManager->fireEvent($event);
 			return;
 		}
-		$msg = $this->setLeader($sender, $sender);
+		$msg = $this->setLeader($context->char->name, $context->char->name);
 		if ($msg !== null) {
-			$sendto->reply($msg);
+			$context->reply($msg);
 		}
 	}
 
 	/**
 	 * This command handler sets a specific leader.
 	 * @HandlesCommand("leader (.+)")
-	 * @Matches("/^leader (.+)$/i")
 	 */
-	public function leaderSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->setLeader($args[1], $sender);
+	public function leaderSetCommand(CmdContext $context, PCharacter $leader): void {
+		$msg = $this->setLeader($leader(), $context->char->name);
 		if ($msg !== null) {
-			$sendto->reply($msg);
+			$context->reply($msg);
 		}
 	}
 
@@ -138,39 +138,23 @@ class ChatLeaderController {
 	/**
 	 * This command handler enables leader echoing in private channel.
 	 * @HandlesCommand("leaderecho")
-	 * @Matches("/^leaderecho on$/i")
 	 */
-	public function leaderEchoOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function leaderEchoOnCommand(CmdContext $context, bool $on): void {
+		if (!$this->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-		$this->settingManager->save("leaderecho", "1");
-		$this->chatBot->sendPrivate("Leader echo has been " . $this->getEchoStatusText());
-	}
-
-	/**
-	 * This command handler disables leader echoing in private channel.
-	 * @HandlesCommand("leaderecho")
-	 * @Matches("/^leaderecho off$/i")
-	 */
-	public function leaderEchoOffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
-			return;
-		}
-		$this->settingManager->save("leaderecho", "0");
+		$this->settingManager->save("leaderecho", $on ? "1" : "0");
 		$this->chatBot->sendPrivate("Leader echo has been " . $this->getEchoStatusText());
 	}
 
 	/**
 	 * This command handler shows current echoing state.
 	 * @HandlesCommand("leaderecho")
-	 * @Matches("/^leaderecho$/i")
 	 */
-	public function leaderEchoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function leaderEchoCommand(CmdContext $context): void {
+		if (!$this->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 		$this->chatBot->sendPrivate("Leader echo is currently " . $this->getEchoStatusText());
@@ -180,13 +164,13 @@ class ChatLeaderController {
 	 * @Event("priv")
 	 * @Description("Repeats what the leader says in the color of leaderecho_color setting")
 	 */
-	public function privEvent(Event $eventObj): void {
+	public function privEvent(AOChatEvent $eventObj): void {
 		if (!$this->settingManager->getBool("leaderecho")
 			|| $this->leader !== $eventObj->sender
 			|| $eventObj->message[0] === $this->settingManager->get("symbol")) {
 			return;
 		}
-		$msg = $this->settingManager->get("leaderecho_color") . $eventObj->message . "<end>";
+		$msg = ($this->settingManager->getString("leaderecho_color")??"<font>") . $eventObj->message . "<end>";
 		$this->chatBot->sendPrivate($msg);
 	}
 
@@ -194,7 +178,7 @@ class ChatLeaderController {
 	 * @Event("leavePriv")
 	 * @Description("Removes leader when the leader leaves the channel")
 	 */
-	public function leavePrivEvent(Event $eventObj): void {
+	public function leavePrivEvent(AOChatEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {
 			return;
 		}
