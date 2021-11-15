@@ -33,7 +33,7 @@ class MigrateWaveToRoute implements SchemaMigration {
 			"priv" => Source::PRIV . "(" . $db->getMyname() .")",
 			"org" => Source::ORG,
 		];
-		foreach (explode(",", $channel->value) as $channel) {
+		foreach (explode(",", $channel->value??"") as $channel) {
 			$new = $map[$channel] ?? null;
 			if (!isset($new)) {
 				continue;
