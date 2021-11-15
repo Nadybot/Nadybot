@@ -548,7 +548,11 @@ class AOChat {
 		}
 
 		if (isset($this->id[$user])) {
-			$callback((int)$this->id[$user], ...$args);
+			if ($this->id[$user] === 0xFFFFFFFF || $this->id[$user] === "4294967295") {
+				$callback(null, ...$args);
+			} else {
+				$callback((int)$this->id[$user], ...$args);
+			}
 			return;
 		}
 

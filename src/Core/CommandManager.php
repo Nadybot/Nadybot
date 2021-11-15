@@ -680,7 +680,11 @@ class CommandManager implements MessageEmitter {
 						}
 						break;
 					case "int":
-						$new = "(?<{$varName}>\d+)";
+						$mask = '\d+';
+						if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+							$mask = $masks[1];
+						}
+						$new = "(?<{$varName}>{$mask})";
 						break;
 					case "bool":
 						$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";

@@ -24,7 +24,6 @@ use Nadybot\Core\Text;
  *	)
  */
 class OrgMembersController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.

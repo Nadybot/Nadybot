@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	CmdContext,
 	Event,
 	CommandReply,
 	DB,
@@ -31,7 +32,6 @@ use Nadybot\Core\{
  *	)
  */
 class FindOrgController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -61,7 +61,7 @@ class FindOrgController {
 
 	protected bool $ready = false;
 
-	private $searches = [
+	private array $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'others'
@@ -97,14 +97,12 @@ class FindOrgController {
 
 	/**
 	 * @HandlesCommand("findorg")
-	 * @Matches("/^findorg (.+)$/i")
 	 */
-	public function findOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
-			$this->sendNotReadyError($sendto);
+			$this->sendNotReadyError($context);
 			return;
 		}
-		$search = $args[1];
 
 		$orgs = $this->lookupOrg($search);
 		$count = count($orgs);
@@ -115,7 +113,7 @@ class FindOrgController {
 		} else {
 			$msg = "No matches found.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -163,7 +161,7 @@ class FindOrgController {
 			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
 			return;
 		}
-		if ($response === null || $response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			$this->ready = true;
 			return;
 		}

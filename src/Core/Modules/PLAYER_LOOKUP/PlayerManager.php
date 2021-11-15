@@ -93,6 +93,7 @@ class PlayerManager {
 		return $result;
 	}
 
+	/** @psalm-param callable(list<?Player>) $callback */
 	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
 		$result = [];
 		$left = count($names);
@@ -116,10 +117,12 @@ class PlayerManager {
 		}
 	}
 
+	/** @psalm-param callable(?Player) $callback */
 	public function getByNameAsync(callable $callback, string $name, int $dimension=null, bool $forceUpdate=false): void {
 		$this->getByNameCallback($callback, false, $name, $dimension, $forceUpdate);
 	}
 
+	/** @psalm-param callable(?Player) $callback */
 	public function getByNameCallback(callable $callback, bool $sync, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
 		$dimension ??= (int)$this->chatBot->vars['dimension'];
 
@@ -137,6 +140,7 @@ class PlayerManager {
 		$player = $this->findInDb($name, $dimension);
 		$lookup = [$this, "lookupAsync"];
 		if ($sync) {
+			/** @psalm-param callable(?Player) $handler */
 			$lookup = function(string $name, int $dimension, callable $handler): void {
 				$player = $this->lookup($name, $dimension);
 				$handler($player);
@@ -199,6 +203,7 @@ class PlayerManager {
 		return null;
 	}
 
+	/** @psalm-param callable(?Player, mixed...) $callback */
 	public function lookupAsync(string $name, int $dimension, callable $callback, ...$args): void {
 		$this->lookupUrlAsync(
 			"http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json",
@@ -217,6 +222,7 @@ class PlayerManager {
 		return $this->parsePlayerFromLookup($response);
 	}
 
+	/** @psalm-param callable(?Player) $callback */
 	private function lookupUrlAsync(string $url, callable $callback): void {
 		$this->http
 			->get($url)
@@ -228,8 +234,8 @@ class PlayerManager {
 			);
 	}
 
-	private function parsePlayerFromLookup(?HttpResponse $response): ?Player {
-		if (!isset($response) || $response->headers["status-code"] !== "200") {
+	private function parsePlayerFromLookup(HttpResponse $response): ?Player {
+		if ($response->headers["status-code"] !== "200") {
 			return null;
 		}
 		if (!isset($response->body) || $response->body === "null") {
