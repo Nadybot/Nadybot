@@ -4,7 +4,7 @@ namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	SettingManager,
 	Text,
@@ -101,17 +101,14 @@ class NanoController {
 
 	/**
 	 * @HandlesCommand("nano")
-	 * @Matches("/^nano (.+)$/i")
 	 */
-	public function nanoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
+	public function nanoCommand(CmdContext $context, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table("nanos")
 			->orderBy("strain")
 			->orderBy("sub_strain")
 			->orderBy("sort_order")
-			->limit($this->settingManager->getInt("maxnano"));
+			->limit($this->settingManager->getInt("maxnano")??40);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "nano_name");
 
@@ -121,7 +118,7 @@ class NanoController {
 		$count = $data->count();
 		if ($count === 0) {
 			$msg = "No nanos found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -154,36 +151,38 @@ class NanoController {
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
 		if (count($data) === 1) {
-			$msg = ($info??"") . " [" . $this->text->makeBlob("details", $blob) . "]";
+			$msg = $this->text->blobWrap(
+				($info??"") . " [",
+				$this->text->makeBlob("details", $blob),
+				"]"
+			);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("nanolines")
-	 * @Matches("/^nanolines$/i")
 	 */
-	public function nanolinesListProfsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->listNanolineProfs($sendto, false);
+	public function nanolinesListProfsCommand(CmdContext $context): void {
+		$this->listNanolineProfs($context, false);
 	}
 
 	/**
 	 * @HandlesCommand("nanolinesfroob")
-	 * @Matches("/^nanolinesfroob$/i")
 	 */
-	public function nanolinesFroobListProfsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->listNanolineProfs($sendto, true);
+	public function nanolinesFroobListProfsCommand(CmdContext $context): void {
+		$this->listNanolineProfs($context, true);
 	}
 
 	/**
 	 * List all professions for which nanolines exist
 	 *
-	 * @param \Nadybot\Core\CommandReply $sendto Where to send the reply to
+	 * @param CmdContext $context Where to send the reply to
 	 * @param bool $froobObly Is set, only show professions a froob can play
 	 * @return void
 	 */
-	public function listNanolineProfs(CommandReply $sendto, bool $froobOnly): void {
+	public function listNanolineProfs(CmdContext $context, bool $froobOnly): void {
 		$query = $this->db->table("nanos")
 			->where("professions", "not like", "%:%")
 			->orderBy("professions")
@@ -202,46 +201,44 @@ class NanoController {
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob('Nanolines', $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("nanolines")
-	 * @Matches("/^nanolines (.+)$/i")
 	 */
-	public function nanolinesListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->listNanolines($sendto, false, $args);
+	public function nanolinesListCommand(CmdContext $context, string $arg): void {
+		$this->listNanolines($context, false, $arg);
 	}
 
 	/**
 	 * @HandlesCommand("nanolinesfroob")
-	 * @Matches("/^nanolinesfroob (.+)$/i")
 	 */
-	public function nanolinesFroobListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->listNanolines($sendto, true, $args);
+	public function nanolinesFroobListCommand(CmdContext $context, string $arg): void {
+		$this->listNanolines($context, true, $arg);
 	}
 
-	public function listNanolines(CommandReply $sendto, bool $froobOnly, array $args): void {
-		$args[1] = html_entity_decode($args[1]);
-		$nanoArgs = explode(" > ", $args[1]);
+	public function listNanolines(CmdContext $context, bool $froobOnly, string $arg): void {
+		$arg = html_entity_decode($arg);
+		$nanoArgs = explode(" > ", $arg);
 		$profArg = array_shift($nanoArgs);
 		$profession = $this->util->getProfessionName($profArg);
 		if (in_array($profArg, ["general", "General"])) {
 			$profession = "General";
 		}
 		if ($profession === '') {
-			$this->nanolinesShow($args[1], null, $froobOnly, $sendto);
+			$this->nanolinesShow($arg, null, $froobOnly, $context);
 		} elseif (count($nanoArgs)) {
-			$this->nanolinesShow(implode(" > ", $nanoArgs), $profession, $froobOnly, $sendto);
+			$this->nanolinesShow(implode(" > ", $nanoArgs), $profession, $froobOnly, $context);
 		} else {
-			$this->nanolinesList($profession, $froobOnly, $sendto);
+			$this->nanolinesList($profession, $froobOnly, $context);
 		}
 	}
 
 	/**
 	 * Show all nanos of a nanoline grouped by sub-strain
 	 */
-	private function nanolinesShow(string $nanoline, ?string $prof, bool $froobOnly, CommandReply $sendto): void {
+	private function nanolinesShow(string $nanoline, ?string $prof, bool $froobOnly, CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->whereIlike("strain", $nanoline)
 			->orderBy("sub_strain")
@@ -252,7 +249,7 @@ class NanoController {
 		if ($froobOnly) {
 			if ($prof !== null && in_array($prof, ["Keeper", "Shade"])) {
 				$msg = "<highlight>$prof<end> is not playable as froob.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 			$query->where("froob_friendly", true);
@@ -264,7 +261,7 @@ class NanoController {
 			if ($prof !== null) {
 				$msg = "No nanoline named <highlight>$nanoline<end> found for <highlight>$prof<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -287,7 +284,7 @@ class NanoController {
 			$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos for $prof", $blob);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -295,10 +292,10 @@ class NanoController {
 	 *
 	 * @param string $profession The full name of the profession
 	 * @param bool   $froobOnly  If true, only show nanolines containing nanos a froob can use
-	 * @param \Nadybot\Core\CommandReply $sendto Object to send the reply to
+	 * @param CmdContext $context Object to send the reply to
 	 * @return void
 	 */
-	private function nanolinesList(string $profession, bool $froobOnly, CommandReply $sendto): void {
+	private function nanolinesList(string $profession, bool $froobOnly, CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->whereIlike("professions", "%{$profession}%")
 			->orderBy("school")
@@ -307,7 +304,7 @@ class NanoController {
 		if ($froobOnly) {
 			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
 				$msg = "<highlight>$profession<end> is not playable as froob.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 			$query->where("froob_friendly", true);
@@ -339,14 +336,13 @@ class NanoController {
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("$profession Nanolines", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("nanoloc")
-	 * @Matches("/^nanoloc$/i")
 	 */
-	public function nanolocListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function nanolocListCommand(CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->groupBy("location")
 			->orderBy("location")
@@ -371,16 +367,13 @@ class NanoController {
 		}
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Locations", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("nanoloc")
-	 * @Matches("/^nanoloc (.+)$/i")
 	 */
-	public function nanolocViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$location = $args[1];
-
+	public function nanolocViewCommand(CmdContext $context, string $location): void {
 		$nanos = $this->db->table("nanos")
 			->whereIlike("location", $location)
 			->orWhereIlike("location", "%/{$location}")
@@ -398,7 +391,7 @@ class NanoController {
 		}
 		if ($count === 0) {
 			$msg = "No nanos found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var Collection<Nano> $nanos */
@@ -416,7 +409,7 @@ class NanoController {
 		}
 
 		$msg = $this->text->makeBlob("Nanos for Location '$location' ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	private function getFooter(): string {
