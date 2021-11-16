@@ -589,6 +589,7 @@ class Nadybot extends AOChat {
 	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
+		// $this->logger->log('INFO', "< {$packet->type}");
 		try {
 			$this->process_all_packets($packet);
 

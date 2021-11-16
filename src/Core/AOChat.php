@@ -133,6 +133,13 @@ class AOChat {
 	 */
 	public array $id;
 
+	/**
+	 * A temporary lookup cache for character name => id and id => character name
+	 *
+	 * @var array<int|string,int|string> $id
+	 */
+	public array $tempId = [];
+
 	public array $pendingIdLookups = [];
 
 	/**
@@ -391,6 +398,7 @@ class AOChat {
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
+		// $this->logger->log('INFO', "> {$packet->type}");
 		$this->logger->log('debug', $data);
 
 		/** @psalm-suppress InvalidArgument */
@@ -547,11 +555,12 @@ class AOChat {
 			return;
 		}
 
-		if (isset($this->id[$user])) {
-			if ($this->id[$user] === 0xFFFFFFFF || $this->id[$user] === "4294967295") {
+		$uid = $this->id[$user] ?? null;
+		if (isset($uid)) {
+			if ($uid === 0xFFFFFFFF || $uid === "4294967295") {
 				$callback(null, ...$args);
 			} else {
-				$callback((int)$this->id[$user], ...$args);
+				$callback((int)$uid, ...$args);
 			}
 			return;
 		}

@@ -152,7 +152,7 @@ class GuildManager {
 		// pre-fetch the charids...this speeds things up immensely
 		foreach ($members as $member) {
 			$name = $member->NAME;
-			if (!isset($this->chatBot->id[$name])) {
+			if (!isset($this->chatBot->id[$name]) && !isset($member->CHAR_INSTANCE)) {
 				$this->chatBot->sendLookupPacket($name);
 			}
 		}

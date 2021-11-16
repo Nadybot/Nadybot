@@ -192,6 +192,7 @@ class OrglistController {
 			$this->orglist->orgtype = $this->getOrgGoverningForm($org->members);
 		}
 
+		$uidLookup = [];
 		// Check each name if they are already on the buddylist (and get online status now)
 		// Or make note of the name so we can add it to the buddylist later.
 		foreach ($org->members as $member) {
@@ -209,6 +210,9 @@ class OrglistController {
 			if (isset($member->profession)) {
 				$thismember .= " <highlight>{$member->profession}<end>)";
 			}
+			if (isset($member->charid)) {
+				$uidLookup[$member->name] = $member->charid;
+			}
 
 			$this->orglist->result[$member->name] = new OrglistResult();
 			$this->orglist->result[$member->name]->post = $thismember;
@@ -219,13 +223,13 @@ class OrglistController {
 
 		$sendto->reply("Checking online status for " . count($org->members) ." members of <highlight>$org->orgname<end>…");
 
-		$this->checkOnline($org->members, function(): void {
-			$this->addOrgMembersToBuddylist();
+		$this->checkOnline($org->members);
+		$this->addOrgMembersToBuddylist($uidLookup);
 
-			if (isset($this->orglist) && count($this->orglist->added) === 0) {
-				$this->orglistEnd();
-			}
-		});
+		if (isset($this->orglist) && count($this->orglist->added) === 0) {
+			$this->orglistEnd();
+			return;
+		}
 	}
 
 	/**
@@ -255,57 +259,62 @@ class OrglistController {
 	/**
 	 * @param array<string,Player> $members
 	 */
-	public function checkOnline(array $members, callable $callback): void {
+	public function checkOnline(array $members): void {
 		if (!isset($this->orglist)) {
-			$callback();
 			return;
 		}
-		$jobsTotal = count($members);
-		$async = false;
 		foreach ($members as $member) {
-			$buddyOnlineStatus = $this->buddylistManager->isOnline($member->name);
+			$buddyOnlineStatus = $this->buddylistManager->isUidOnline($member->charid);
 			if ($buddyOnlineStatus !== null) {
 				$this->orglist->result[$member->name]->online = $buddyOnlineStatus;
-				$jobsTotal--;
-			} elseif ($this->chatBot->vars["name"] == $member->name) {
+			} elseif ($this->chatBot->vars["name"] === $member->name) {
 				$this->orglist->result[$member->name]->online = true;
-				$jobsTotal--;
 			} else {
-				$async = true;
-				// check if they exist
-				$this->chatBot->getUid(
-					$member->name,
-					function (?int $uid, string $name, callable $callback) use (&$jobsTotal): void {
-						$jobsTotal--;
-						if (isset($uid) && isset($this->orglist)) {
-							$this->orglist->check[$name] = true;
-						}
-						if ($jobsTotal === 0) {
-							$callback();
-						}
-					},
-					$member->name,
-					$callback
-				);
+				$this->orglist->check[$member->name] = true;
 			}
-		}
-		if (!$async && $jobsTotal === 0) {
-			$callback();
 		}
 	}
 
-	public function addOrgMembersToBuddylist(): void {
+	public function addOrgMembersToBuddylist(array $uidLookup=[]): void {
 		if (!isset($this->orglist)) {
 			return;
 		}
-		foreach ($this->orglist->check as $name => $value) {
+		foreach ($this->orglist->check as $name => &$value) {
+			if ($value === false) {
+				continue;
+			}
 			if (!$this->checkBuddylistSize()) {
 				return;
 			}
 
-			$this->orglist->added[$name] = true;
-			unset($this->orglist->check[$name]);
-			$this->buddylistManager->add($name, 'onlineorg');
+			$value = false;
+			if (isset($uidLookup[$name])) {
+				$this->buddylistManager->addId($uidLookup[$name], 'onlineorg');
+				$this->orglist->added[$name] = $uidLookup[$name];
+				$this->orglist->numAdded++;
+			} else {
+				$this->chatBot->getUid($name, function(?int $uid) use ($name, &$value): void {
+					if (!isset($this->orglist)) {
+						return;
+					}
+					$this->orglist->added[$name] = 0;
+					if (isset($uid)) {
+						if (!$this->checkBuddylistSize()) {
+							$value = true;
+							return;
+						}
+						$this->buddylistManager->addId($uid, 'onlineorg');
+						$this->orglist->added[$name] = $uid;
+					}
+					$this->orglist->numAdded++;
+				});
+			}
+		}
+		if ($this->orglist->numAdded >= count($this->orglist->check)) {
+			unset($this->chatBot->id["_"]);
+			$this->chatBot->getUid("_", function(?int $uid): void {
+				$this->orglistEnd();
+			});
 		}
 	}
 
@@ -319,8 +328,8 @@ class OrglistController {
 		$this->orglist->sendto->reply($msg);
 
 		// in case it was ended early
-		foreach ($this->orglist->added as $name => $value) {
-			$this->buddylistManager->remove($name, 'onlineorg');
+		foreach ($this->orglist->added as $name => $uid) {
+			$this->buddylistManager->removeId($uid, 'onlineorg');
 		}
 		unset($this->orglist);
 	}

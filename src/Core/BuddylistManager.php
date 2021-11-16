@@ -50,6 +50,19 @@ class BuddylistManager {
 	}
 
 	/**
+	 * Check if a friend is online
+	 *
+	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 */
+	public function isUidOnline(int $uid): ?bool {
+		if ($this->chatBot->char->id === $uid) {
+			return true;
+		}
+		$buddy = $this->buddyList[$uid] ?? null;
+		return $buddy ? $buddy->online : null;
+	}
+
+	/**
 	 * Get how many friends are really on the buddylist
 	 * This ignores the ones that are only queued up for addition
 	 */

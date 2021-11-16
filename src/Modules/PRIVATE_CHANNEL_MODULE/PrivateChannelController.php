@@ -545,20 +545,22 @@ class PrivateChannelController {
 	 * @Matches("/^count (all|profs?)$/i")
 	 */
 	public function countProfessionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$online["Adventurer"] = 0;
-		$online["Agent"] = 0;
-		$online["Bureaucrat"] = 0;
-		$online["Doctor"] = 0;
-		$online["Enforcer"] = 0;
-		$online["Engineer"] = 0;
-		$online["Fixer"] = 0;
-		$online["Keeper"] = 0;
-		$online["Martial Artist"] = 0;
-		$online["Meta-Physicist"] = 0;
-		$online["Nano-Technician"] = 0;
-		$online["Soldier"] = 0;
-		$online["Trader"] = 0;
-		$online["Shade"] = 0;
+		$online = [
+			"Adventurer" => 0,
+			"Agent" => 0,
+			"Bureaucrat" => 0,
+			"Doctor" => 0,
+			"Enforcer" => 0,
+			"Engineer" => 0,
+			"Fixer" => 0,
+			"Keeper" => 0,
+			"Martial Artist" => 0,
+			"Meta-Physicist" => 0,
+			"Nano-Technician" => 0,
+			"Soldier" => 0,
+			"Trader" => 0,
+			"Shade" => 0,
+		];
 
 		$query = $this->db->table("online AS o")
 			->leftJoin("players AS p", function (JoinClause $join) {
@@ -753,7 +755,7 @@ class PrivateChannelController {
 		}
 		$this->lockReason = trim($args['reason']);
 		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$sender}: <highlight>{$this->lockReason}<end>");
-		$alRequired = $this->settingManager->getString('lock_minrank');
+		$alRequired = $this->settingManager->getString('lock_minrank')??"superadmin";
 		foreach ($this->chatBot->chatlist as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
 			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
@@ -817,6 +819,9 @@ class PrivateChannelController {
 	 */
 	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
+		if (!is_string($sender)) {
+			return;
+		}
 		/** @var Member[] */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $sender)
@@ -868,8 +873,9 @@ class PrivateChannelController {
 		} else {
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$altInfo->getAltsBlobAsync(
-					function(string $blob) use ($msg, $callback): void {
-						$callback("{$msg} {$blob}");
+					/** @param string|string[] $blob */
+					function($blob) use ($msg, $callback): void {
+						$callback("{$msg} " . ((array)$blob)[0]);
 					},
 					true
 				);
@@ -912,20 +918,33 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Displays a message when a character joins the private channel")
 	 */
-	public function joinPrivateChannelMessageEvent(Event $eventObj) {
+	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender)) {
+			return;
+		}
 		$sender = $eventObj->sender;
-		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list');
+		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list')??false;
 
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
-			$e = new Online();
-			$e->char = new Character($sender, $this->chatBot->get_uid($sender));
-			$e->online = true;
-			$e->message = $msg;
-			$this->dispatchRoutableEvent($e);
-			$this->chatBot->sendPrivate($msg, true);
+			$this->chatBot->getUid(
+				$sender,
+				function(?int $uid, string $name, string $msg): void {
+					$e = new Online();
+					$e->char = new Character($name, $uid);
+					$e->online = true;
+					$e->message = $msg;
+					$this->dispatchRoutableEvent($e);
+					$this->chatBot->sendPrivate($msg, true);
+				},
+				$sender,
+				$msg
+			);
 		});
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($sender): void {
+				if (!isset($whois)) {
+					return;
+				}
 				$event = new OnlineEvent();
 				$event->type = "online(priv)";
 				$event->player = new OnlinePlayer();
@@ -947,8 +966,8 @@ class PrivateChannelController {
 	 * @Description("Autoban players of unwanted factions when they join the bot")
 	 */
 	public function autobanOnJoin(AOChatEvent $eventObj): void {
-		$reqFaction = $this->settingManager->getString('only_allow_faction');
-		if ($reqFaction === 'all') {
+		$reqFaction = $this->settingManager->getString('only_allow_faction') ?? "all";
+		if ($reqFaction === 'all' || !is_String($eventObj->sender)) {
 			return;
 		}
 		$this->playerManager->getByNameAsync(
@@ -975,7 +994,7 @@ class PrivateChannelController {
 		) {
 			return;
 		}
-		if (in_array($reqFaction, ["not Omni", "not Clan", "not Neutral"])) {
+		if (in_array($reqFaction, ["not Omni", "not Clan", "not Neutral"], true)) {
 			$tmp = explode(" ", $reqFaction);
 			if ($tmp[1] !== $whois->faction) {
 				return;
@@ -1024,21 +1043,27 @@ class PrivateChannelController {
 	 * @Event("leavePriv")
 	 * @Description("Displays a message when a character leaves the private channel")
 	 */
-	public function leavePrivateChannelMessageEvent(Event $eventObj): void {
+	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		$msg = $this->getLogoffMessage($sender);
-
-		$e = new Online();
-		$e->char = new Character($sender, $this->chatBot->get_uid($sender));
-		$e->online = false;
-		if (isset($msg)) {
-			$e->message = $msg;
-		}
-		$this->dispatchRoutableEvent($e);
-
-		if ($msg === null) {
+		if (!is_string($sender)) {
 			return;
 		}
+		$msg = $this->getLogoffMessage($sender);
+
+		$this->chatBot->getUid(
+			$sender,
+			function(?int $uid, string $sender, ?string $msg): void {
+				$e = new Online();
+				$e->char = new Character($sender, $uid);
+				$e->online = false;
+				if (isset($msg)) {
+					$e->message = $msg;
+				}
+				$this->dispatchRoutableEvent($e);
+			},
+			$sender,
+			$msg
+		);
 
 		$event = new OfflineEvent();
 		$event->type = "offline(priv)";
