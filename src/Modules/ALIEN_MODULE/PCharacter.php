@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\ParamClass;
 
-class PRemove extends Base {
-	protected static string $regExp = "remove|delete|erase|rem|del|rm|off";
+class PBotType extends Base {
+	protected static string $regExp = "strong|supple|enduring|observant|arithmetic|spiritual";
 	protected string $value;
 
 	public function __construct(string $value) {
-		$this->value = strtolower($value);
+		$this->value = ucfirst(strtolower($value));
 	}
 
 	public function __invoke(): string {

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DISC_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	DBRow,
 	Nadybot,
@@ -78,37 +78,36 @@ class DiscController {
 	 * Command to show what nano a disc will turn into
 	 *
 	 * @HandlesCommand("disc")
-	 * @Matches("/^disc (.+)$/i")
 	 */
-	public function discCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function discCommand(CmdContext $context, string $item): void {
 		$disc = null;
 		// Check if a disc was pasted into the chat and extract its ID
-		if (preg_match("|<a href=['\"]itemref://(?<lowId>\d+)/(?<highId>\d+)/(?<ql>\d+)['\"]>(?<name>.+?)</a>|", $args[1], $matches)) {
+		if (preg_match("|<a href=['\"]itemref://(?<lowId>\d+)/(?<highId>\d+)/(?<ql>\d+)['\"]>(?<name>.+?)</a>|", $item, $matches)) {
 			$discId = (int)$matches['lowId'];
 			// If there is a DiscID deducted, get the nano crystal ID and name
 			$disc = $this->getDiscById($discId);
 			// None found? Cannot be made into a nano anymore
 			if ($disc === null) {
 				if (!preg_match('|instruction\s*dis[ck]|i', $matches["name"])) {
-					$msg = $args[1] . " is not an instruction disc.";
+					$msg = "{$item} is not an instruction disc.";
 				} else {
-					$msg = $args[1] . " cannot be made into a nano anymore.";
+					$msg = "{$item} cannot be made into a nano anymore.";
 				}
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 		} else {
 			// If only a name was given, lookup the disc's ID
-			$discs = $this->getDiscsByName($args[1]);
+			$discs = $this->getDiscsByName($item);
 			// Not found? Cannot be made into a nano anymore or simply mistyped
 			if (empty($discs)) {
-				$msg = "Either <highlight>" . $args[1] . "<end> was mistyped or it cannot be turned into a nano anymore.";
-				$sendto->reply($msg);
+				$msg = "Either <highlight>{$item}<end> was mistyped or it cannot be turned into a nano anymore.";
+				$context->reply($msg);
 				return;
 			}
 			// If there are multiple matches, present a list of discs to choose from
 			if (count($discs) > 1) {
-				$sendto->reply($this->getDiscChoiceDialogue($discs));
+				$context->reply($this->getDiscChoiceDialogue($discs));
 				return;
 			}
 			// Only one found, so pick this one
@@ -120,7 +119,7 @@ class DiscController {
 		$nanoLink = $this->text->makeItem($disc->crystal_id, $disc->crystal_id, $disc->crystal_ql, $disc->crystal_name);
 		$nanoDetails = $this->getNanoDetails($disc);
 		if (!isset($nanoDetails)) {
-			$sendto->reply("Cannot find the nano details for {$disc->disc_name}.");
+			$context->reply("Cannot find the nano details for {$disc->disc_name}.");
 			return;
 		}
 		$msg = sprintf(
@@ -134,7 +133,7 @@ class DiscController {
 		if (strlen($disc->comment ?? "")) {
 			$msg .= " <red>" . ($disc->comment??"") . "!<end>";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

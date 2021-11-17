@@ -379,7 +379,7 @@ class EventManager {
 	public function crons(): void {
 		$time = time();
 
-		if ($this->lastCronTime == $time) {
+		if ($this->lastCronTime === $time) {
 			return;
 		}
 		$this->lastCronTime = $time;

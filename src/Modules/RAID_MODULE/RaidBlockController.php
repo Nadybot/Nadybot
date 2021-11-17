@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -10,6 +11,9 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
@@ -60,7 +64,7 @@ class RaidBlockController {
 	public Text $text;
 
 	/** @Setup */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Block");
 		$this->loadBlocks();
 	}
@@ -123,55 +127,56 @@ class RaidBlockController {
 
 	/**
 	 * @HandlesCommand("raidblock .+")
-	 * @Matches("/^raidblock (points|join|bid) ([^ ]+) ([^ ]+) (.+)$/")
+	 * @Mask $blockFrom (points|join|bid)
 	 */
-	public function raidBlockAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$player = ucfirst(strtolower($args[2]));
-		if ($this->isBlocked($player, $args[1])) {
-			$sendto->reply("<highlight>{$player}<end> is already blocked on <highlight>{$args[1]}<end>.");
+	public function raidBlockAddCommand(
+		CmdContext $context,
+		string $blockFrom,
+		PCharacter $player,
+		?PDuration $duration,
+		string $reason
+	): void {
+		$player = $player();
+		if ($this->isBlocked($player, $blockFrom)) {
+			$context->reply("<highlight>{$player}<end> is already blocked on <highlight>{$blockFrom}<end>.");
 			return;
 		}
 		if (!$this->chatBot->get_uid($player)) {
-			$sendto->reply("<highlight>{$player}<end> doesn't exist.");
+			$context->reply("<highlight>{$player}<end> doesn't exist.");
 		}
 		$player = $this->altsController->getAltInfo($player)->main;
-		$duration = $this->util->parseTime($args[3]);
-		$reason = $args[4];
-		if ($duration === 0) {
-			$reason = "{$args[3]} $reason";
-			$expiration = null;
-		} else {
+		if (isset($duration)) {
+			$duration = $duration->toSecs();
 			$expiration = time() + $duration;
 		}
 		$block = new RaidBlock();
-		$block->blocked_by = $sender;
-		$block->blocked_from = $args[1];
-		$block->expiration = $expiration;
+		$block->blocked_by = $context->char->name;
+		$block->blocked_from = $blockFrom;
+		$block->expiration = $expiration??null;
 		$block->player = $player;
 		$block->reason = $reason;
 		$block->time = time();
 		$this->blocks[$player] ??= [];
-		$this->blocks[$player][$args[1]] = $block;
+		$this->blocks[$player][$blockFrom] = $block;
 		$this->db->insert(self::DB_TABLE, $block, null);
 		$msg = "<highlight>{$player}<end> is now blocked from <highlight>".
-			$this->blockToString($args[1]) . "<end> ";
+			$this->blockToString($blockFrom) . "<end> ";
 		if ($duration > 0) {
 			$msg .= "for <highlight>" . $this->util->unixtimeToReadable($duration) . "<end>.";
 		} else {
 			$msg .= "until someone removes the block.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raidblock")
-	 * @Matches("/^raidblock$/i")
 	 */
-	public function raidBlockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidBlockCommand(CmdContext $context): void {
 		$this->expireBans();
-		$player = $this->altsController->getAltInfo($sender)->main;
+		$player = $this->altsController->getAltInfo($context->char->name)->main;
 		if (!isset($this->blocks[$player])) {
-			$sendto->reply("You are currently not blocked from any part of raiding.");
+			$context->reply("You are currently not blocked from any part of raiding.");
 			return;
 		}
 		$blocks = $this->blocks[$player];
@@ -184,19 +189,18 @@ class RaidBlockController {
 				$msg .= "until block is lifted";
 			}
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raidblock .+")
-	 * @Matches("/^raidblock ([^ ]+)$/i")
 	 */
-	public function raidBlockShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$player = ucfirst(strtolower($args[1]));
+	public function raidBlockShowCommand(CmdContext $context, PCharacter $char): void {
+		$player = $char();
 		$player = $this->altsController->getAltInfo($player)->main;
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
-			$sendto->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
+			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
 			return;
 		}
 		$blocks = $this->blocks[$player];
@@ -211,40 +215,43 @@ class RaidBlockController {
 			}
 			$blob .= " (by <highlight>{$block->blocked_by}<end>: {$block->reason})";
 		}
-		$sendto->reply($this->text->makeBlob($msg, $blob));
+		$context->reply($this->text->makeBlob($msg, $blob));
 	}
 
 	/**
 	 * @HandlesCommand("raidblock .+")
-	 * @Matches("/^raidblock (?:lift|del|rem) ([^ ]+) (points|join|bid)$/i")
-	 * @Matches("/^raidblock (?:lift|del|rem) ([^ ]+)$/i")
+	 * @Mask $blockFrom (points|join|bid)
 	 */
-	public function raidBlockLiftCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$player = ucfirst(strtolower($args[1]));
+	public function raidBlockLiftCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $char,
+		?string $blockFrom
+	): void {
+		$player = $char();
 		$player = $this->altsController->getAltInfo($player)->main;
-		$block = $args[2] ?? null;
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
-			$sendto->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
+			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
 			return;
 		}
-		if (isset($block) && !isset($this->blocks[$player][$block])) {
-			$sendto->reply(
-				"<highlight>{$player}<end> is currently not blocked from " . $this->blockToString($block) . "."
+		if (isset($blockFrom) && !isset($this->blocks[$player][$blockFrom])) {
+			$context->reply(
+				"<highlight>{$player}<end> is currently not blocked from " . $this->blockToString($blockFrom) . "."
 			);
 			return;
 		}
 		$query = $this->db->table(self::DB_TABLE)
 			->where("player", $player);
-		if (isset($block)) {
-			$query->where("blocked_from", $block);
-			$this->blocks[$player][$block]->expiration = time();
+		if (isset($blockFrom)) {
+			$query->where("blocked_from", $blockFrom);
+			$this->blocks[$player][$blockFrom]->expiration = time();
 		} else {
-			foreach ($this->blocks[$player] as $name => $block) {
-				$block->expiration = time();
+			foreach ($this->blocks[$player] as $name => $blockFrom) {
+				$blockFrom->expiration = time();
 			}
 		}
 		$query->update(["expiration" => time()]);
-		$sendto->reply("Raidblock removed from <highlight>{$player}<end>.");
+		$context->reply("Raidblock removed from <highlight>{$player}<end>.");
 	}
 }

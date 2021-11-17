@@ -121,6 +121,7 @@ class DiscordAPIClient {
 		$this->userCache[$user->id] = $user;
 	}
 
+	/** @psalm-param null|callable(DiscordUser, mixed...) $callback */
 	public function cacheUserLookup(DiscordUser $user, ?callable $callback, ...$args): void {
 		$this->cacheUser($user);
 		if (isset($callback)) {
@@ -128,6 +129,7 @@ class DiscordAPIClient {
 		}
 	}
 
+	/** @psalm-param callable(DiscordChannel, mixed...) $callback */
 	public function getChannel(string $channelId, callable $callback, ...$args): void {
 		$this->get(
 			self::DISCORD_API . "/channels/{$channelId}"
@@ -140,6 +142,7 @@ class DiscordAPIClient {
 		);
 	}
 
+	/** @psalm-param callable(DiscordUser, mixed...) $callback */
 	public function getUser(string $userId, callable $callback, ...$args): void {
 		if (isset($this->userCache[$userId])) {
 			$callback($this->userCache[$userId], ...$args);

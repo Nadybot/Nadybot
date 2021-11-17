@@ -4,13 +4,14 @@ namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	DBRow,
 	LoggerWrapper,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -50,7 +51,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  *	)
  */
 class AlienMiscController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -90,9 +90,8 @@ class AlienMiscController {
 	 * This command handler shows menu of each profession's LE procs.
 	 *
 	 * @HandlesCommand("leprocs")
-	 * @Matches("/^leprocs$/i")
 	 */
-	public function leprocsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function leprocsCommand(CmdContext $context): void {
 		$blob = "<header2>Choose a profession<end>\n";
 		$blob = $this->db->table("leprocs")
 			->orderBy("profession")
@@ -108,20 +107,19 @@ class AlienMiscController {
 			);
 
 		$msg = $this->text->makeBlob("LE Procs (Choose profession)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows the LE procs for a particular profession.
 	 *
 	 * @HandlesCommand("leprocs")
-	 * @Matches("/^leprocs (.+)$/i")
 	 */
-	public function leprocsInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profession = $this->util->getProfessionName($args[1]);
+	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
+		$profession = $this->util->getProfessionName($prof);
 		if (empty($profession)) {
-			$msg = "<highlight>{$args[1]}<end> is not a valid profession.";
-			$sendto->reply($msg);
+			$msg = "<highlight>{$prof}<end> is not a valid profession.";
+			$context->reply($msg);
 			return;
 		}
 
@@ -132,8 +130,8 @@ class AlienMiscController {
 			->orderByDesc("research_lvl")
 			->asObj(LEProc::class);
 		if ($data->count() === 0) {
-			$msg = "No procs found for profession <highlight>$profession<end>.";
-			$sendto->reply($msg);
+			$msg = "No procs found for profession <highlight>{$profession}<end>.";
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -154,16 +152,15 @@ class AlienMiscController {
 			"\n<i>Defensive procs have a 10% chance of firing every time something attacks you.</i>";
 
 		$msg = $this->text->makeBlob("$profession LE Procs", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows Ofab armors and VP cost.
 	 *
 	 * @HandlesCommand("ofabarmor")
-	 * @Matches("/^ofabarmor$/i")
 	 */
-	public function ofabarmorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function ofabarmorCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
@@ -186,25 +183,31 @@ class AlienMiscController {
 			);
 
 		$msg = $this->text->makeBlob("Ofab Armor Bio-Material Types", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows list of ofab armors available to a given profession.
 	 *
 	 * @HandlesCommand("ofabarmor")
-	 * @Matches("/^ofabarmor (?<prof>.+) (?<ql>\d+)$/i")
-	 * @Matches("/^ofabarmor (?<ql>\d+) (?<prof>.+)$/i")
-	 * @Matches("/^ofabarmor (?<prof>.+)$/i")
 	 */
-	public function ofabarmorInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$ql = intval($args['ql'] ?? 300);
+	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
+		$this->ofabarmorInfoCommand($context, $ql, $prof);
+	}
 
-		$profession = $this->util->getProfessionName($args['prof']);
+	/**
+	 * This command handler shows list of ofab armors available to a given profession.
+	 *
+	 * @HandlesCommand("ofabarmor")
+	 */
+	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
+		$ql ??= 300;
+
+		$profession = $this->util->getProfessionName($prof);
 
 		if ($profession === '') {
 			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, or trader";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -222,7 +225,7 @@ class AlienMiscController {
 			->asObj();
 		if ($data->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession} in QL {$ql}.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -272,16 +275,15 @@ class AlienMiscController {
 		$blob .= "\nCost for full set: <highlight>$fullSetVP<end> VP";
 
 		$msg = $this->text->makeBlob("$profession Ofab Armor (QL $ql)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows Ofab weapons and VP cost.
 	 *
 	 * @HandlesCommand("ofabweapons")
-	 * @Matches("/^ofabweapons$/i")
 	 */
-	public function ofabweaponsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function ofabweaponsCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
@@ -306,19 +308,17 @@ class AlienMiscController {
 			);
 
 		$msg = $this->text->makeBlob("Ofab Weapons", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows all six marks of the Ofab weapon.
 	 *
 	 * @HandlesCommand("ofabweapons")
-	 * @Matches("/^ofabweapons (\S+)$/i")
-	 * @Matches("/^ofabweapons (\S+) (\d+)$/i")
 	 */
-	public function ofabweaponsInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$weapon = ucfirst($args[1]);
-		$searchQL = isset($args[2])? intval($args[2]): 300;
+	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
+		$weapon = ucfirst($weapon());
+		$searchQL ??= 300;
 
 		/** @var DBRow|null */
 		$row = $this->db->table("ofabweapons AS w")
@@ -327,8 +327,8 @@ class AlienMiscController {
 			->where("c.ql", $searchQL)
 			->asObj()->first();
 		if ($row === null) {
-			$msg = "Could not find any OFAB weapon <highlight>$weapon<end> in QL <highlight>{$searchQL}<end>.";
-			$sendto->reply($msg);
+			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
+			$context->reply($msg);
 			return;
 		}
 
@@ -368,17 +368,17 @@ class AlienMiscController {
 		}
 
 		$msg = $this->text->makeBlob("Ofab $weapon (QL $searchQL)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows info about Alien City Generals.
 	 *
 	 * @HandlesCommand("aigen")
-	 * @Matches("/^aigen (ankari|ilari|rimah|jaax|xoch|cha)$/i")
+	 * @Mask $general (ankari|ilari|rimah|jaax|xoch|cha)
 	 */
-	public function aigenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$gen = ucfirst(strtolower($args[1]));
+	public function aigenCommand(CmdContext $context, string $general): void {
+		$gen = ucfirst(strtolower($general));
 
 		$blob = '';
 		switch ($gen) {
@@ -428,6 +428,6 @@ class AlienMiscController {
 		}
 
 		$msg = $this->text->makeBlob("General $gen", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

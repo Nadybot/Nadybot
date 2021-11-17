@@ -5,7 +5,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
-	CommandReply,
+	CmdContext,
 	DB,
 	Event,
 	EventManager,
@@ -38,7 +38,6 @@ use Nadybot\Core\{
  *	@ProvidesEvent("cloak(lower)")
  */
 class CloakController implements MessageEmitter {
-
 	public const DB_TABLE = "org_city_<myname>";
 
 	/**
@@ -109,9 +108,8 @@ class CloakController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("cloak")
-	 * @Matches("/^cloak$/i")
 	 */
-	public function cloakCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cloakCommand(CmdContext $context): void {
 		/** @var Collection<OrgCity> */
 		$data = $this->db->table(self::DB_TABLE)
 			->whereIn("action", ["on", "off"])
@@ -120,7 +118,7 @@ class CloakController implements MessageEmitter {
 			->asObj(OrgCity::class);
 		if ($data->count() === 0) {
 			$msg = "Unknown status on cloak!";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var OrgCity $row */
@@ -153,14 +151,14 @@ class CloakController implements MessageEmitter {
 		foreach ($blob as &$page) {
 			$page = "{$msg} {$page}";
 		}
-		$sendto->reply($blob);
+		$context->reply($blob);
 	}
 
 	/**
 	 * @HandlesCommand("cloak")
-	 * @Matches("/^cloak (raise|on)$/i")
+	 * @Mask $action (raise|on)
 	 */
-	public function cloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cloakRaiseCommand(CmdContext $context, string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 
@@ -171,15 +169,15 @@ class CloakController implements MessageEmitter {
 				->insert([
 					"time" => time(),
 					"action" => "on",
-					"player" => "{$sender}*",
+					"player" => "{$context->char->name}*",
 				]);
 			$msg = "The cloaking device has been manually enabled in the bot (you must still enable the cloak if it's disabled).";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new CloakEvent();
 		$event->type = "cloak(raise)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 

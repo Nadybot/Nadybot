@@ -4,9 +4,10 @@ namespace Nadybot\Modules\QUOTE_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	Nadybot,
+	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -26,7 +27,6 @@ use Nadybot\Core\{
  *	)
  */
 class QuoteController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -58,24 +58,24 @@ class QuoteController {
 
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote add (.+)$/si")
+	 * @Mask $action add
 	 */
-	public function quoteAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$quoteMsg = trim($args[1]);
+	public function quoteAddCommand(CmdContext $context, string $action, string $quote): void {
+		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
 			->asObj()->first();
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if (strlen($quoteMsg) > 1000) {
 			$msg = "This quote is too long.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$poster = $sender;
+		$poster = $context->char->name;
 
 		$id = $this->db->table("quote")
 			->insertGetId([
@@ -83,16 +83,14 @@ class QuoteController {
 				"dt" => time(),
 				"msg" => $quoteMsg,
 			]);
-		$msg = "Quote <highlight>$id<end> has been added.";
-		$sendto->reply($msg);
+		$msg = "Quote <highlight>{$id}<end> has been added.";
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote (rem|del|remove|delete) (\d+)$/i")
 	 */
-	public function quoteRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[2];
+	public function quoteRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Quote */
 		$row = $this->db->table("quote")
 			->where("id", $id)
@@ -100,30 +98,29 @@ class QuoteController {
 
 		if ($row === null) {
 			$msg = "Could not find this quote. Already deleted?";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$poster = $row->poster;
 
 		//only author or admin can delete.
-		if (($poster === $sender)
-			|| $this->accessManager->checkAccess($sender, 'moderator')
+		if (($poster === $context->char->name)
+			|| $this->accessManager->checkAccess($context->char->name, 'moderator')
 		) {
 			$this->db->table("quote")->delete($id);
 			$msg = "This quote has been deleted.";
 		} else {
-			$msg = "Only a moderator or $poster can delete this quote.";
+			$msg = "Only a moderator or {$poster} can delete this quote.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote search (.+)$/i")
+	 * @Mask $action search
 	 */
-	public function quoteSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-		$searchParam = '%' . $search . '%';
+	public function quoteSearchCommand(CmdContext $context, string $action, string $search): void {
+		$searchParam = "%{$search}%";
 		$msg = "";
 
 		// Search for poster:
@@ -161,41 +158,37 @@ class QuoteController {
 		} else {
 			$msg = "Could not find any matches for this search.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote (\d+)$/i")
-	 * @Matches("/^quote (org|priv) (\d+)$/i")
+	 * @Mask $channel (org|priv)
 	 */
-	public function quoteShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)($args[2] ?? $args[1]);
-
+	public function quoteShowCommand(CmdContext $context, ?string $channel, int $id): void {
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {
-			$msg = "No quote found with ID <highlight>$id<end>.";
-			$sendto->reply($msg);
+			$msg = "No quote found with ID <highlight>{$id}<end>.";
+			$context->reply($msg);
 			return;
 		}
 		$msg = $result;
-		if (count($args) === 2) {
-			$sendto->reply($msg);
+		if (!isset($channel)) {
+			$context->reply($msg);
 			return;
 		}
-		if ($args[1] === "priv") {
-			$this->chatBot->sendPrivate($msg);
-		} elseif ($args[1] === "org") {
-			$this->chatBot->sendGuild($msg);
+		if ($channel === "priv") {
+			$this->chatBot->sendPrivate($msg, true);
+		} else {
+			$this->chatBot->sendGuild($msg, true);
 		}
 	}
 
 	/**
 	 * @HandlesCommand("quote")
-	 * @Matches("/^quote$/i")
 	 */
-	public function quoteShowRandomCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function quoteShowRandomCommand(CmdContext $context): void {
 		// choose a random quote to show
 		$result = $this->getQuoteInfo(null);
 
@@ -204,13 +197,14 @@ class QuoteController {
 		} else {
 			$msg = $result;
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getMaxId(): int {
 		return (int)($this->db->table("quote")->max("id") ?? 0);
 	}
 
+	/** @return null|string|string[] */
 	public function getQuoteInfo(int $id=null) {
 		$count = $this->getMaxId();
 
@@ -250,7 +244,7 @@ class QuoteController {
 			$this->text->makeChatcmd("To Privchat", "/tell <myname> quote priv {$row->id}").
 		"]\n\n";
 
-		$msg .= "<header2>Quotes posted by \"$poster\"<end>\n";
+		$msg .= "<header2>Quotes posted by \"{$poster}\"<end>\n";
 		$idList = $this->db->table("quote")
 			->where("poster", $poster)
 			->asObj(Quote::class)
@@ -262,7 +256,11 @@ class QuoteController {
 			});
 		$msg .= "<tab>" . $idList->join(", ");
 
-		return $this->text->makeBlob("Quote", $msg).': "'.$quoteMsg.'"';
+		return $this->text->blobWrap(
+			"",
+			$this->text->makeBlob("Quote", $msg),
+			": \"{$quoteMsg}\""
+		);
 	}
 
 	/**

@@ -5,8 +5,8 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	Event,
 	EventManager,
 	MessageEmitter,
@@ -41,7 +41,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
  *	@ProvidesEvent("cityraid(end)")
  */
 class CityWaveController implements MessageEmitter {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -126,37 +125,36 @@ class CityWaveController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("citywave")
-	 * @Matches("/^citywave start$/i")
+	 * @Mask $action start
 	 */
-	public function citywaveStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function citywaveStartCommand(CmdContext $context, string $action): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
-			$sendto->reply("A raid is already in progress.");
+			$context->reply("A raid is already in progress.");
 		} else {
-			$this->startWaveCounter($sender);
+			$this->startWaveCounter($context->char->name);
 		}
 	}
 
 	/**
 	 * @HandlesCommand("citywave")
-	 * @Matches("/^citywave stop$/i")
+	 * @Mask $action stop
 	 */
-	public function citywaveStopCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function citywaveStopCommand(CmdContext $context, string $action): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
 		} else {
 			$this->timerController->remove(self::TIMER_NAME);
-			$msg = "Wave counter stopped by $sender.";
+			$msg = "Wave counter stopped by {$context->char->name}.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("citywave")
-	 * @Matches("/^citywave$/i")
 	 */
-	public function citywaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function citywaveCommand(CmdContext $context): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
@@ -165,7 +163,7 @@ class CityWaveController implements MessageEmitter {
 		} else {
 			$msg = "Waiting for wave $wave.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

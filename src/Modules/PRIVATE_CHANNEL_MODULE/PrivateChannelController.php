@@ -9,8 +9,8 @@ use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
 	BuddylistManager,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Event,
 	EventManager,
@@ -19,21 +19,23 @@ use Nadybot\Core\{
 	Text,
 	Timer,
 	Util,
+	DBSchema\Audit,
 	DBSchema\Member,
+	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\ALTS\AltInfo,
+	Modules\BAN\BanController,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
+	Routing\Character,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
 	UserStateEvent,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\ALTS\AltInfo;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -123,7 +125,6 @@ use Nadybot\Modules\{
  *	@ProvidesEvent("member(rem)")
  */
 class PrivateChannelController {
-
 	public const DB_TABLE = "members_<myname>";
 
 	/**
@@ -135,10 +136,7 @@ class PrivateChannelController {
 	/** @Inject */
 	public DB $db;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
+	/** @Inject */
 	public Nadybot $chatBot;
 
 	/** @Inject */
@@ -314,16 +312,15 @@ class PrivateChannelController {
 
 	/**
 	 * @HandlesCommand("members")
-	 * @Matches("/^members$/i")
 	 */
-	public function membersCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function membersCommand(CmdContext $context): void {
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)
 			->orderBy("name")
 			->asObj(Member::class);
 		$count = $members->count();
 		if ($count === 0) {
-			$sendto->reply("This bot has no members.");
+			$context->reply("This bot has no members.");
 			return;
 		}
 		$list = "<header2>Members of <myname><end>\n";
@@ -343,67 +340,65 @@ class PrivateChannelController {
 		}
 
 		$msg = $this->text->makeBlob("Members ($count)", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("member")
-	 * @Matches("/^member add ([a-z].+)$/i")
+	 * @Mask $action add
 	 */
-	public function addUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->addUser($args[1], $sender);
+	public function addUserCommand(CmdContext $context, string $action, PCharacter $member): void {
+		$msg = $this->addUser($member(), $context->char->name);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("member")
-	 * @Matches("/^member (?:del|rem|rm|delete|remove) ([a-z].+)$/i")
 	 */
-	public function remUserCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->removeUser($args[1], $sender);
+	public function remUserCommand(CmdContext $context, PRemove $action, PCharacter $member): void {
+		$msg = $this->removeUser($member(), $context->char->name);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("invite")
-	 * @Matches("/^invite ([a-z].+)$/i")
 	 */
-	public function inviteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
+	public function inviteCommand(CmdContext $context, PCharacter $char): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($this->chatBot->vars["name"] == $name) {
 			$msg = "You cannot invite the bot to its own private channel.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if (isset($this->chatBot->chatlist[$name])) {
 			$msg = "<highlight>$name<end> is already in the private channel.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		if ($this->isLockedFor($sender)) {
-			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+		if ($this->isLockedFor($context->char->name)) {
+			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
 			return;
 		}
-		$invitation = function() use ($name, $sendto, $sender): void {
-			$msg = "Invited <highlight>$name<end> to this channel.";
+		$invitation = function() use ($name, $context): void {
+			$msg = "Invited <highlight>{$name}<end> to this channel.";
 			$this->chatBot->privategroup_invite($name);
 			$audit = new Audit();
-			$audit->actor = $sender;
+			$audit->actor = $context->char->name;
 			$audit->actee = $name;
 			$audit->action = AccessManager::INVITE;
 			$this->accessManager->addAudit($audit);
-			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>$sender<end>.";
+			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>{$context->char->name}<end>.";
 			$this->chatBot->sendMassTell($msg2, $name);
 
-			$sendto->reply($msg);
+			$context->reply($msg);
 		};
 		if ($this->settingManager->getBool('invite_banned_chars')) {
 			$invitation();
@@ -412,66 +407,63 @@ class PrivateChannelController {
 		$this->banController->handleBan(
 			$uid,
 			$invitation,
-			function() use ($name, $sendto): void {
+			function() use ($name, $context): void {
 				$msg = "<highlight>{$name}<end> is banned from <highlight><myname><end>.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 			}
 		);
 	}
 
 	/**
 	 * @HandlesCommand("kick")
-	 * @Matches("/^kick ([^ ]+)$/i")
-	 * @Matches("/^kick ([^ ]+) (?<reason>.+)$/i")
 	 */
-	public function kickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
+	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 		} elseif (!isset($this->chatBot->chatlist[$name])) {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
-			if ($this->accessManager->compareCharacterAccessLevels($sender, $name) > 0) {
-				$msg = "<highlight>$name<end> has been kicked from the private channel";
-				if (isset($args["reason"])) {
-					$msg .= ": <highlight>{$args['reason']}<end>";
+			if ($this->accessManager->compareCharacterAccessLevels($context->char->name, $name) > 0) {
+				$msg = "<highlight>{$name}<end> has been kicked from the private channel";
+				if (isset($reason)) {
+					$msg .= ": <highlight>{$reason}<end>";
 				} else {
 					$msg .= ".";
 				}
 				$this->chatBot->sendPrivate($msg);
 				$this->chatBot->privategroup_kick($name);
 				$audit = new Audit();
-				$audit->actor = $sender;
+				$audit->actor = $context->char->name;
 				$audit->actor = $name;
 				$audit->action = AccessManager::KICK;
-				$audit->value = $args['reason']??null;
+				$audit->value = $reason;
 				$this->accessManager->addAudit($audit);
 			} else {
 				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
 			}
 		}
-		if ($channel !== "priv") {
-			$sendto->reply($msg);
+		if ($context->isDM()) {
+			$context->reply($msg);
 		}
 	}
 
 	/**
 	 * @HandlesCommand("autoinvite")
-	 * @Matches("/^autoinvite (on|off)$/i")
 	 */
-	public function autoInviteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($args[1] === 'on') {
+	public function autoInviteCommand(CmdContext $context, bool $status): void {
+		if ($status) {
 			$onOrOff = 1;
-			$this->buddylistManager->add($sender, 'member');
+			$this->buddylistManager->add($context->char->name, 'member');
 		} else {
 			$onOrOff = 0;
 		}
 
-		if (!$this->db->table(self::DB_TABLE)->where("name", $sender)->exists()) {
+		if (!$this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
 			$this->db->table(self::DB_TABLE)
 				->insert([
-					"name" => $sender,
+					"name" => $context->char->name,
 					"autoinv" => $onOrOff,
 				]);
 			$msg = "You have been added as a member of this bot. ".
@@ -479,23 +471,23 @@ class PrivateChannelController {
 				"your auto invite preference.";
 			$event = new MemberEvent();
 			$event->type = "member(add)";
-			$event->sender = $sender;
+			$event->sender = $context->char->name;
 			$this->eventManager->fireEvent($event);
 		} else {
 			$this->db->table(self::DB_TABLE)
-				->where("name", $sender)
+				->where("name", $context->char->name)
 				->update(["autoinv" => $onOrOff]);
 			$msg = "Your auto invite preference has been updated.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("count")
-	 * @Matches("/^count (levels?|lvls?)$/i")
+	 * @Mask $action (levels?|lvls?)
 	 */
-	public function countLevelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function countLevelCommand(CmdContext $context, string $action): void {
 		$tl1 = 0;
 		$tl2 = 0;
 		$tl3 = 0;
@@ -537,14 +529,14 @@ class PrivateChannelController {
 			"TL5: <highlight>$tl5<end>, ".
 			"TL6: <highlight>$tl6<end>, ".
 			"TL7: <highlight>$tl7<end>";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("count")
-	 * @Matches("/^count (all|profs?)$/i")
+	 * @Mask $action (all|profs?)
 	 */
-	public function countProfessionCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function countProfessionCommand(CmdContext $context, string $action): void {
 		$online = [
 			"Adventurer" => 0,
 			"Agent" => 0,
@@ -593,21 +585,21 @@ class PrivateChannelController {
 			. "<highlight>".$online['Shade']."<end> Shade, "
 			. "<highlight>".$online['Trader']."<end> Trader";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("count")
-	 * @Matches("/^count orgs?$/i")
+	 * @Mask $action (orgs?)
 	 */
-	public function countOrganizationCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function countOrganizationCommand(CmdContext $context, string $action): void {
 		$numOnline = $this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", "priv")->count();
 
 		if ($numOnline === 0) {
 			$msg = "No characters in channel.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$query = $this->db->table("online AS o")
@@ -639,18 +631,17 @@ class PrivateChannelController {
 		}
 
 		$msg = $this->text->makeBlob("Organizations ($numOrgs)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("count")
-	 * @Matches("/^count (.*)$/i")
 	 */
-	public function countCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$prof = $this->util->getProfessionName($args[1]);
+	public function countCommand(CmdContext $context, string $profession): void {
+		$prof = $this->util->getProfessionName($profession);
 		if ($prof === '') {
 			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$data = $this->db->table("online AS o")
@@ -664,7 +655,7 @@ class PrivateChannelController {
 		$numonline = $data->count();
 		if ($numonline === 0) {
 			$msg = "<highlight>$numonline<end> {$prof}s.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$msg = "<highlight>$numonline<end> $prof:";
@@ -675,54 +666,52 @@ class PrivateChannelController {
 			} else {
 				$afk = "";
 			}
-			$msg .= " [<highlight>$row->name<end> - ".$row->level.$afk."]";
+			$msg .= " [<highlight>{$row->name}<end> - {$row->level}{$afk}]";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("kickall")
-	 * @Matches("/^kickall now$/i")
+	 * @Mask $action now
 	 */
-	public function kickallNowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function kickallNowCommand(CmdContext $context, string $action): void {
 		$this->chatBot->privategroup_kick_all();
 	}
 
 	/**
 	 * @HandlesCommand("kickall")
-	 * @Matches("/^kickall( now)?$/i")
 	 */
-	public function kickallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>$sender<end>]";
+	public function kickallCommand(CmdContext $context): void {
+		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
 		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
 	}
 
 	/**
 	 * @HandlesCommand("join")
-	 * @Matches("/^join$/i")
 	 */
-	public function joinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($this->isLockedFor($sender)) {
-			$sendto->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+	public function joinCommand(CmdContext $context): void {
+		if ($this->isLockedFor($context->char->name)) {
+			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
 			return;
 		}
-		if (isset($this->chatBot->chatlist[$sender])) {
+		if (isset($this->chatBot->chatlist[$context->char->name])) {
 			$msg = "You are already in the private channel.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$this->chatBot->privategroup_invite($sender);
+		$this->chatBot->privategroup_invite($context->char->name);
 		if (!$this->settingManager->getBool('add_member_on_join')) {
 			return;
 		}
-		if ($this->db->table(self::DB_TABLE)->where("name", $sender)->exists()) {
+		if ($this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
 			return;
 		}
 		$autoInvite = $this->settingManager->getBool('autoinvite_default');
 		$this->db->table(self::DB_TABLE)
 			->insert([
-				"name" => $sender,
+				"name" => $context->char->name,
 				"autoinv" => $autoInvite,
 			]);
 		$msg = "You have been added as a member of this bot. ".
@@ -730,31 +719,29 @@ class PrivateChannelController {
 			"auto invite preference.";
 		$event = new MemberEvent();
 		$event->type = "member(add)";
-		$event->sender = $sender;
+		$event->sender = $context->char->name;
 		$this->eventManager->fireEvent($event);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("leave")
-	 * @Matches("/^leave$/i")
 	 */
-	public function leaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->chatBot->privategroup_kick($sender);
+	public function leaveCommand(CmdContext $context): void {
+		$this->chatBot->privategroup_kick($context->char->name);
 	}
 
 	/**
 	 * @HandlesCommand("lock")
-	 * @Matches("/^lock\s+(?<reason>.+)$/i")
 	 */
-	public function lockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function lockCommand(CmdContext $context, string $reason): void {
 		if (isset($this->lockReason)) {
-			$this->lockReason = trim($args['reason']);
-			$sendto->reply("Lock reason changed.");
+			$this->lockReason = trim($reason);
+			$context->reply("Lock reason changed.");
 			return;
 		}
-		$this->lockReason = trim($args['reason']);
-		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$sender}: <highlight>{$this->lockReason}<end>");
+		$this->lockReason = trim($reason);
+		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->settingManager->getString('lock_minrank')??"superadmin";
 		foreach ($this->chatBot->chatlist as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
@@ -762,9 +749,9 @@ class PrivateChannelController {
 				$this->chatBot->privategroup_kick($char);
 			}
 		}
-		$sendto->reply("You <red>locked<end> the private channel: {$this->lockReason}");
+		$context->reply("You <red>locked<end> the private channel: {$this->lockReason}");
 		$audit = new Audit();
-		$audit->actor = $sender;
+		$audit->actor = $context->char->name;
 		$audit->action = AccessManager::LOCK;
 		$audit->value = $this->lockReason;
 		$this->accessManager->addAudit($audit);
@@ -772,18 +759,17 @@ class PrivateChannelController {
 
 	/**
 	 * @HandlesCommand("unlock")
-	 * @Matches("/^unlock$/i")
 	 */
-	public function unlockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function unlockCommand(CmdContext $context): void {
 		if (!isset($this->lockReason)) {
-			$sendto->reply("The private channel is currently not locked.");
+			$context->reply("The private channel is currently not locked.");
 			return;
 		}
 		unset($this->lockReason);
 		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
-		$sendto->reply("You <green>unlocked<end> the private channel.");
+		$context->reply("You <green>unlocked<end> the private channel.");
 		$audit = new Audit();
-		$audit->actor = $sender;
+		$audit->actor = $context->char->name;
 		$audit->action = AccessManager::UNLOCK;
 		$this->accessManager->addAudit($audit);
 	}
@@ -1076,8 +1062,11 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Updates the database when a character joins the private channel")
 	 */
-	public function joinPrivateChannelRecordEvent(Event $eventObj): void {
+	public function joinPrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
+		if (!is_string($sender)) {
+			return;
+		}
 		$this->onlineController->addPlayerToOnlineList(
 			$sender,
 			$this->chatBot->vars['my_guild'] . ' Guests',
@@ -1089,8 +1078,11 @@ class PrivateChannelController {
 	 * @Event("leavePriv")
 	 * @Description("Updates the database when a character leaves the private channel")
 	 */
-	public function leavePrivateChannelRecordEvent(Event $eventObj): void {
+	public function leavePrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
+		if (!is_string($sender)) {
+			return;
+		}
 		$this->onlineController->removePlayerFromOnlineList($sender, 'priv');
 	}
 
@@ -1098,8 +1090,11 @@ class PrivateChannelController {
 	 * @Event("joinPriv")
 	 * @Description("Sends the online list to people as they join the private channel")
 	 */
-	public function joinPrivateChannelShowOnlineEvent(Event $eventObj): void {
+	public function joinPrivateChannelShowOnlineEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
+		if (!is_string($sender)) {
+			return;
+		}
 		$msg = $this->onlineController->getOnlineList();
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
@@ -1157,7 +1152,7 @@ class PrivateChannelController {
 			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
 			return;
 		}
-		$msg = $this->settingManager->getString("welcome_msg_string");
+		$msg = $this->settingManager->getString("welcome_msg_string")??"<link>Welcome</link>!";
 		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
 			$msg = (array)$this->text->makeBlob($matches[2], $content);
 			foreach ($msg as &$part) {
@@ -1197,7 +1192,7 @@ class PrivateChannelController {
 			return false;
 		}
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
-		$alRequired = $this->settingManager->getString('lock_minrank');
+		$alRequired = $this->settingManager->getString('lock_minrank')??"superadmin";
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 }

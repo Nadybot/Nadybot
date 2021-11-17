@@ -12,7 +12,6 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
  * @Instance
  */
 class OSController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.

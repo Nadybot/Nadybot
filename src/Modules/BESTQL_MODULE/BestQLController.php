@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\BESTQL_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -62,22 +63,16 @@ class BestQLController {
 
 	/**
 	 * @HandlesCommand("bestql")
-	 * @Matches("/^bestql ([0-9 ]+)$/i")
-	 * @Matches("{^bestql ([0-9 ]+) (<a href=(?:&#39;|'|\x22)itemref://\d+/\d+/\d+(?:&#39;|'|\x22)>[^<]+</a>)$}i")
+	 * @Mask $specs ([0-9 ]+)
 	 */
-	public function bestqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bestqlCommand(CmdContext $context, string $specs, ?PItem $item): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
-		$itemToScale = null;
-		if (count($args) > 2) {
-			$itemPattern = "{<a href=(?:&#39;|'|\")itemref://(\d+)/(\d+)/(\d+)(?:&#39;|'|\")>([^<]+)</a>}";
-			preg_match($itemPattern, $args[2], $itemToScale);
-		}
-		$specPairs = preg_split('/\s+/', $args[1]);
+		$specPairs = preg_split('/\s+/', $specs);
 
 		if (count($specPairs) < 4) {
 			$msg = "You have to provide at least 2 bonuses at 2 different QLs.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -96,14 +91,14 @@ class BestQLController {
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
 			if ($value === null) {
 				$msg = "I was unable to find any breakpoints for the given stats.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 			$value = (int)round($value);
 			if (count($specPairs) % 2) {
 				if ($value > $maxAttribute) {
 					$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>$oldRequirement<end>. QL $searchedQL already requires $value.";
-					$sendto->reply($msg);
+					$context->reply($msg);
 					return;
 				}
 				$oldRequirement = $value;
@@ -113,8 +108,8 @@ class BestQLController {
 					$this->text->alignNumber($searchedQL, 3, "highlight"),
 					$value
 				);
-				if ($itemToScale) {
-					$msg .= " " . $this->text->makeItem((int)$itemToScale[1], (int)$itemToScale[2], $searchedQL, $itemToScale[4]);
+				if ($item) {
+					$msg .= " " . $this->text->makeItem($item->lowID, $item->highID, $searchedQL, $item->name);
 				}
 				$msg .= "\n";
 				$numFoundItems++;
@@ -125,13 +120,13 @@ class BestQLController {
 		$blob = $this->text->makeBlob("breakpoints", $msg, "Calculated breakpoints for your item");
 		if (is_string($blob)) {
 			$msg = "Found <highlight>$numFoundItems<end> $blob with different stats.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$pages = [];
 		for ($i = 0; $i < count($blob); $i++) {
 			$pages[] = "Found <highlight>$numFoundItems<end> ".$blob[$i]." with different stats.";
 		}
-		$sendto->reply($pages);
+		$context->reply($pages);
 	}
 }

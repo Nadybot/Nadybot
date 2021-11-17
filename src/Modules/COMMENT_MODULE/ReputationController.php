@@ -3,16 +3,17 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
-	SQLException,
 	Text,
 	Timer,
 	Util,
 };
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
@@ -78,9 +79,8 @@ class ReputationController {
 
 	/**
 	 * @HandlesCommand("reputation")
-	 * @Matches("/^reputation$/i")
 	 */
-	public function reputationListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function reputationListCommand(CmdContext $context): void {
 		$cat = $this->getReputationCategory();
 		$comments = $this->commentController->readCategoryComments($cat);
 
@@ -88,7 +88,7 @@ class ReputationController {
 
 		if ($count === 0) {
 			$msg = "There are no characters on the reputation list.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -103,42 +103,52 @@ class ReputationController {
 			$charReputation[$comment->character]->total += preg_match("/^\+1/", $comment->comment) ? 1 : -1;
 		}
 		$count = 0;
+		$blobs = [];
 		foreach ($charReputation as $char => $charData) {
 			$count++;
-			$blob .= "<header2>$char<end>" . " (" . sprintf('%+d', $charData->total) . ")\n";
+			$blob = "<pagebreak><header2>$char<end>" . " (" . sprintf('%+d', $charData->total) . ")";
 			$comments = array_slice($charData->comments, 0, 3);
 			foreach ($comments as $comment) {
 				$color = preg_match("/^\+1/", $comment->comment) ? 'green' : 'red';
-				$blob .= "<tab><$color>{$comment->comment}<end> ".
+				$blob .= "\n<tab><$color>{$comment->comment}<end> ".
 					"(<highlight>{$comment->created_by}<end>, ".
-					$this->util->date($comment->created_at) . ")\n";
+					$this->util->date($comment->created_at) . ")";
 			}
 			if (count($charData->comments) > 3) {
 				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comments[0]->character} all");
-				$blob .= "  $details_link\n";
+				$blob .= "\n<tab>[$details_link]";
 			}
-			$blob .= "\n<pagebreak>";
+			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob("Reputation List ($count)", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("Reputation List ($count)", join("\n\n", $blobs));
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("reputation")
-	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (\+1|\-1) (.+)$/i")
+	 * @Mask $action (\+1|\-1)
 	 */
-	public function reputationAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args = [$args[0], $args[1], $this->getReputationCategory()->name, "{$args[2]} {$args[3]}"];
-		$this->commentController->addCommentCommand(...func_get_args());
+	public function reputationAddCommand(
+		CmdContext $context,
+		PCharacter $char,
+		string $action,
+		string $comment
+	): void {
+		$this->commentController->addCommentCommand(
+			$context,
+			"add",
+			$char,
+			new PWord($this->getReputationCategory()->name),
+			"{$action} {$comment}"
+		);
 	}
 
 	/**
 	 * @HandlesCommand("reputation")
-	 * @Matches("/^reputation ([a-z][a-z0-9-]+) (all)$/i")
-	 * @Matches("/^reputation ([a-z][a-z0-9-]+)$/i")
+	 * @Mask $action all
 	 */
-	public function reputationViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
+	public function reputationViewCommand(CmdContext $context, PCharacter $char, ?string $all): void {
+		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);
 		$numComments = count($comments);
 		$numPositive = 0;
@@ -152,20 +162,20 @@ class ReputationController {
 		}
 
 		$comments = array_slice($comments, 0, 1000);
-		if (count($args) < 3) {
+		if (!isset($all)) {
 			$comments = array_slice($comments, 0, 10);
 		}
 		/** @var Comment[] $comments */
 
 		if (!count($comments)) {
 			$msg = "<highlight>{$name}<end> has no reputation.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$blob = "Positive reputation:  <green>{$numPositive}<end>\n";
 		$blob .= "Negative reputation: <red>{$numNegative}<end>\n\n";
-		if (count($args) < 3) {
+		if (!isset($all)) {
 			$blob .= "<header2>Last " . count($comments) . " comments about {$name}<end>\n";
 		} else {
 			$blob .= "<header>All comments about {$name}<end>\n";
@@ -182,12 +192,12 @@ class ReputationController {
 			$blob .= "<tab>{$comment->comment}<end> (<highlight>{$comment->created_by}<end>, {$time} ago)\n";
 		}
 
-		if (count($args) < 3 && $numComments > count($comments)) {
+		if (!isset($all) && $numComments > count($comments)) {
 			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
 		}
 
 		$msg = $this->text->makeBlob("Reputation for {$name} (+$numPositive -$numNegative)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

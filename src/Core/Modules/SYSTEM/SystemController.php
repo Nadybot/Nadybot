@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
+	DBSchema\Setting,
 	Event,
 	EventManager,
 	HelpManager,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;

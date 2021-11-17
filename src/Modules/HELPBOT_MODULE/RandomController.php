@@ -5,7 +5,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	SettingManager,
 	SQLException,
@@ -186,7 +185,6 @@ class RandomController {
 
 	/**
 	 * @HandlesCommand("roll")
-	 * @Matches("/^roll (.+)$/i")
 	 */
 	public function rollNamesCommand(CmdContext $context, string $names): void {
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;

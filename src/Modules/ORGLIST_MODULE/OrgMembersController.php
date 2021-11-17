@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
@@ -41,14 +42,11 @@ class OrgMembersController {
 
 	/**
 	 * @HandlesCommand("orgmembers")
-	 * @Matches("/^orgmembers ([1-9]\d*)$/i")
 	 */
-	public function orgmembers2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$guildId = (int)$args[1];
+	public function orgmembers2Command(CmdContext $context, int $orgId): void {
+		$context->reply("Getting org info...");
 
-		$sendto->reply("Getting org info...");
-
-		$this->guildManager->getByIdAsync($guildId, null, false, [$this, "showOrglist"], $guildId, $sendto);
+		$this->guildManager->getByIdAsync($orgId, null, false, [$this, "showOrglist"], $orgId, $context);
 	}
 
 	public function showOrglist(?Guild $org, int $guildId, CommandReply $sendto): void {

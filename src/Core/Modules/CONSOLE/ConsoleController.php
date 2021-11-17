@@ -192,6 +192,7 @@ class ConsoleController {
 		if ($this->useReadline) {
 			readline_add_history($line);
 			$this->saveHistory();
+			readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
 		$context->channel = "msg";

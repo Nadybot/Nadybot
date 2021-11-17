@@ -15,6 +15,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordUser;
+use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Nadyita (RK5)
@@ -107,95 +108,95 @@ class DiscordGatewayCommandHandler {
 
 	/**
 	 * @HandlesCommand("extauth")
-	 * @Matches("/^extauth accept (.+)$/i")
+	 * @Mask $action accept
 	 */
-	public function extAuthAccept(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== "msg") {
+	public function extAuthAccept(CmdContext $context, string $action, string $uid): void {
+		if (!$context->isDM()) {
 			return;
 		}
-		$uid = strtoupper($args[1]);
+		$uid = strtoupper($uid);
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $args[1])
+			->where("name", $uid)
 			->whereNotNull("confirmed")
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data !== null) {
 			$msg = "You have already linked your account with <highlight>{$data->discord_id}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $sender)
+			->where("name", $context->char->name)
 			->where("token", $uid)
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data === null) {
 			$msg = "There is currently no request to link with this token.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->where("name", $sender)
+			->where("name", $context->char->name)
 			->where("token", $uid)
 			->update([
 				"confirmed" => time(),
 				"token" => null
 			]);
 		$msg = "You have linked your accounts successfully.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("extauth")
-	 * @Matches("/^extauth reject (.+)$/i")
+	 * @Mask $action reject
 	 */
-	public function extAuthRejectCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== "msg") {
+	public function extAuthRejectCommand(CmdContext $context, string $action, string $uid): void {
+		if (!$context->isDM()) {
 			return;
 		}
-		$uid = strtoupper($args[1]);
+		$uid = strtoupper($uid);
 		$this->db->table(self::DB_TABLE)
 			->where("token", $uid)
-			->where("name", $sender)
+			->where("name", $context->char->name)
 			->delete();
 		$msg = "The request has been rejected.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("extauth")
-	 * @Matches("/^extauth request (.+)$/i")
+	 * @Mask $action request
 	 */
-	public function extAuthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$discordUserId = $sender;
+	public function extAuthCommand(CmdContext $context, string $action, PCharacter $char): void {
+		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>$authedAs<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$name = ucfirst(strtolower($args[1]));
+		$name = $char();
 
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $args[1])
+			->where("name", $name)
 			->whereNotNull("confirmed")
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data !== null) {
-			$msg = "<highlight>$name<end> is already linked with a different Discord user.";
-			$sendto->reply($msg);
+			$msg = "<highlight>{$name}<end> is already linked with a different Discord user.";
+			$context->reply($msg);
 			return;
 		}
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $args[1])
+			->where("name", $name)
 			->where("discord_id", $discordUserId)
 			->asObj(DiscordMapping::class)
 			->first();
@@ -214,9 +215,9 @@ class DiscordGatewayCommandHandler {
 		}
 		$this->discordAPIClient->getUser(
 			$discordUserId,
-			function(DiscordUser $user) use ($name, $discordUserId, $uid) {
-				$sender = $user ? $user->username . "#" . $user->discriminator : $discordUserId;
-				$blob = "The Discord user <highlight>$sender<end> has requested to be linked with your ".
+			function(DiscordUser $user) use ($context, $name, $discordUserId, $uid) {
+				$context->char->name = $user ? $user->username . "#" . $user->discriminator : $discordUserId;
+				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
 					"game account. If you confirm the link, that discord user will be linked ".
 					"with this account, be able to run the same commands and have the same rights ".
 					"as you.\n".
@@ -228,12 +229,12 @@ class DiscordGatewayCommandHandler {
 					"[".
 						$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
 					"]";
-				$msg = $this->text->makeBlob("Request to link your account with $sender", $blob);
+				$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
 				$msg = $this->text->blobWrap("You have received a ", $msg, ".");
 				$this->chatBot->sendMassTell($msg, $name);
 			}
 		);
-		$sendto->reply(
+		$context->reply(
 			"I sent a tell to {$name} on Anarchy Online. ".
 			"Follow the instructions there to finish linking these 2 accounts."
 		);

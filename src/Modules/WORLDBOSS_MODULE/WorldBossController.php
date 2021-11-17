@@ -423,7 +423,7 @@ class WorldBossController {
 
 	protected function getMobFromContext(CmdContext $context): string {
 		$mobs = array_flip(static::BOSS_MAP);
-		return $mobs[explode(" ", $context->message)[0]];
+		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
 	/**

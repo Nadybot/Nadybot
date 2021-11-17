@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Exception;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	LoggerWrapper,
 	Text,
@@ -75,18 +75,17 @@ class AlienBioController {
 	 * This command handler identifies Solid Clump of Kyr'Ozch Bio-Material.
 	 *
 	 * @HandlesCommand("bio")
-	 * @Matches("/^bio (.+)$/i")
 	 */
-	public function bioCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bioCommand(CmdContext $context, string $data): void {
 		$bio_regex = "<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>Solid Clump of Kyr\'Ozch Bio-Material</a>";
 
-		if (!preg_match("|^(( *${bio_regex})+)$|i", $args[1], $arr)) {
-			$msg = "<highlight>{$args[1]}<end> is not an unidentified clump.";
-			$sendto->reply($msg);
+		if (!preg_match("|^(( *${bio_regex})+)$|i", $data, $arr)) {
+			$msg = "<highlight>{$data}<end> is not an unidentified clump.";
+			$context->reply($msg);
 			return;
 		}
 
-		$bios = preg_split("/(?<=>)\s*(?=<)/", $arr[1]);
+		$bios = preg_split("/(?<=>)\s*(?=<)/", $data);
 		$blob = '';
 		$bioinfo = "";
 		$ql = 0;
@@ -188,18 +187,17 @@ class AlienBioController {
 
 		if (count($bios) === 1) {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
-			$this->bioinfoCommand("", $channel, $sender, $sendto, ["bioinfo $bioinfo $ql", $bioinfo, $ql]);
+			$this->bioinfoCommand($context, $bioinfo, $ql);
 		} else {
 			$msg = $this->text->makeBlob("Identified Bio-Materials", $blob);
-			$sendto->reply($msg);
+			$context->reply($msg);
 		}
 	}
 
 	/**
 	 * @HandlesCommand("bioinfo")
-	 * @Matches("/^bioinfo$/i")
 	 */
-	public function bioinfoListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bioinfoListCommand(CmdContext $context): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
 
@@ -213,7 +211,7 @@ class AlienBioController {
 		$blob .= $this->getTypeBlob(self::AI_WEAPON_TYPES);
 
 		$msg = $this->text->makeBlob("Bio-Material Types", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -230,15 +228,10 @@ class AlienBioController {
 	/**
 	 * This command handler shows info about a particular bio type.
 	 * @HandlesCommand("bioinfo")
-	 * @Matches("/^bioinfo (.+) (\d+)$/i")
-	 * @Matches("/^bioinfo (.+)$/i")
 	 */
-	public function bioinfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$bio = strtolower($args[1]);
-		$ql = 300;
-		if ($args[2]) {
-			$ql = (int)$args[2];
-		}
+	public function bioinfoCommand(CmdContext $context, string $bio, ?int $ql): void {
+		$bio = strtolower($bio);
+		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 
 		$msg = "Unknown Bio-Material";
@@ -254,7 +247,7 @@ class AlienBioController {
 			$msg = $this->serumBio($ql);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
