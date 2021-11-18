@@ -690,7 +690,7 @@ class CommandManager implements MessageEmitter {
 						$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
 						break;
 					case "float":
-						$new  = "(?<{$varName}>\d*\.\d+|\d)";
+						$new  = "(?<{$varName}>\d*\.?\d+)";
 						break;
 				}
 			} else {

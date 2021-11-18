@@ -3,13 +3,15 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Http,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PItem;
+use Nadybot\Core\ParamClass\PNonNumber;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
@@ -130,17 +132,12 @@ class SkillsController {
 
 	/**
 	 * @HandlesCommand("aggdef")
-	 * @Matches("/^aggdef (\d*\.?\d+) (\d*\.?\d+) (\d+)$/i")
 	 */
-	public function aggdefCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$AttTim = (float)$args[1];
-		$RechT = (float)$args[2];
-		$InitS = (int)$args[3];
-
-		$blob = $this->getAggDefOutput($AttTim, $RechT, $InitS);
+	public function aggdefCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $initValue): void {
+		$blob = $this->getAggDefOutput($attackTime, $rechargeTime, $initValue);
 
 		$msg = $this->text->makeBlob("Agg/Def Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	protected function getAggdefBar(float $percent, int $length=50): string {
@@ -213,27 +210,22 @@ class SkillsController {
 		return (int)round(max(max($initAttack, $initRecharge), 0), 0);
 	}
 
-	public function getInitsNeededFullAgg(float $attackTime, float $rechargeTime) {
+	public function getInitsNeededFullAgg(float $attackTime, float $rechargeTime): int {
 		return $this->getInitsForPercent(100, $attackTime, $rechargeTime);
 	}
 
-	public function getInitsNeededNeutral(float $attackTime, float $rechargeTime) {
+	public function getInitsNeededNeutral(float $attackTime, float $rechargeTime): int {
 		return $this->getInitsForPercent(87.5, $attackTime, $rechargeTime);
 	}
 
-	public function getInitsNeededFullDef(float $attackTime, float $rechargeTime) {
+	public function getInitsNeededFullDef(float $attackTime, float $rechargeTime): int {
 		return $this->getInitsForPercent(0, $attackTime, $rechargeTime);
 	}
 
 	/**
 	 * @HandlesCommand("aimshot")
-	 * @Matches("/^aimshot (\d*\.?\d+) (\d*\.?\d+) (\d+)$/i")
 	 */
-	public function aimshotCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$rechargeTime = (float)$args[2];
-		$aimedShot = (int)$args[3];
-
+	public function aimshotCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $aimedShot): void {
 		[$cap, $ASCap] = $this->capAimedShot($attackTime, $rechargeTime);
 
 		$ASRecharge	= (int)ceil(($rechargeTime * 40) - ($aimedShot * 3 / 100) + $attackTime - 1);
@@ -251,15 +243,13 @@ class SkillsController {
 		$blob .= "You need <highlight>{$ASCap}<end> Aimed Shot skill to cap your recharge.";
 
 		$msg = $this->text->makeBlob("Aimed Shot Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("brawl")
-	 * @Matches("/^brawl (\d+)$/i")
 	 */
-	public function brawlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$brawlSkill = (int)$args[1];
+	public function brawlCommand(CmdContext $context, int $brawlSkill): void {
 
 		$skillList  = [ 1, 1000, 1001, 2000, 2001, 3000];
 		$minList	= [ 1,  100,  101,  170,  171,  235];
@@ -294,19 +284,13 @@ class SkillsController {
 		$blob .= "\n\nby Imoutochan, RK1";
 
 		$msg = $this->text->makeBlob("Brawl Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("burst")
-	 * @Matches("/^burst (\d*\.?\d+) (\d*\.?\d+) (\d+) (\d+)$/i")
 	 */
-	public function burstCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$rechargeTime = (float)$args[2];
-		$burstDelay = (int)$args[3];
-		$burstSkill = (int)$args[4];
-
+	public function burstCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $burstDelay, int $burstSkill): void {
 		[$burstWeaponCap, $burstSkillCap] = $this->capBurst($attackTime, $rechargeTime, $burstDelay);
 
 		$burstRecharge = (int)floor(($rechargeTime * 20) + ($burstDelay / 100) - ($burstSkill / 25) + $attackTime);
@@ -322,16 +306,13 @@ class SkillsController {
 			"<highlight>{$burstWeaponCap}<end>s.";
 
 		$msg = $this->text->makeBlob("Burst Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("dimach")
-	 * @Matches("/^dimach (\d+)$/i")
 	 */
-	public function dimachCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$dimachSkill = (int)$args[1];
-
+	public function dimachCommand(CmdContext $context, int $dimachSkill): void {
 		$skillList	        = [   1, 1000, 1001, 2000, 2001, 3000];
 		$generalDamageList	= [   1, 2000, 2001, 2500, 2501, 2850];
 		$maRechargeList  	= [1800, 1800, 1188,  600,  600,  300];
@@ -378,17 +359,13 @@ class SkillsController {
 		$blob .= "by Imoutochan, RK1";
 
 		$msg = $this->text->makeBlob("Dimach Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("fastattack")
-	 * @Matches("/^fastattack (\d*\.?\d+) (\d+)$/i")
 	 */
-	public function fastAttackCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$fastAttack = (int)$args[2];
-
+	public function fastAttackCommand(CmdContext $context, float $attackTime, int $fastAttack): void {
 		[$weaponCap, $skillNeededForCap] = $this->capFastAttack($attackTime);
 
 		$recharge = (int)round(($attackTime * 16) - ($fastAttack / 100));
@@ -406,17 +383,13 @@ class SkillsController {
 		$blob .= "Every 100 points in Fast Attack skill less than this will increase the recharge by 1s.";
 
 		$msg = $this->text->makeBlob("Fast Attack Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("fling")
-	 * @Matches("/^fling (\d*\.?\d+) (\d+)$/i")
 	 */
-	public function flighShotCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$flingShot = (int)$args[2];
-
+	public function flighShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
 		[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
 
 		$recharge =  round(($attackTime * 16) - ($flingShot / 100));
@@ -429,19 +402,13 @@ class SkillsController {
 		$blob .= "You need <highlight>{$skillCap}<end> Fling Shot skill to cap your fling at <highlight>{$weaponCap}<end>s.";
 
 		$msg = $this->text->makeBlob("Fling Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("fullauto")
-	 * @Matches("/^fullauto (\d*\.?\d+) (\d*\.?\d+) (\d+) (\d+)$/i")
 	 */
-	public function fullAutoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$rechargeTime = (float)$args[2];
-		$faRecharge = (int)$args[3];
-		$faSkill = (int)$args[4];
-
+	public function fullAutoCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $faRecharge, int $faSkill): void {
 		[$faWeaponCap, $faSkillCap] = $this->capFullAuto($attackTime, $rechargeTime, $faRecharge);
 
 		$myFullAutoRecharge = (int)round(($rechargeTime * 40) + ($faRecharge / 100) - ($faSkill / 25) + round($attackTime - 1));
@@ -463,16 +430,13 @@ class SkillsController {
 		$blob .= "<highlight>15K<end> is the damage cap.";
 
 		$msg = $this->text->makeBlob("Full Auto Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("mafist")
-	 * @Matches("/^mafist (\d+)$/i")
 	 */
-	public function maFistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$maSkill = (int)$args[1];
-
+	public function maFistCommand(CmdContext $context, int $maSkill): void {
 		// MA templates
 		$skillList =     [     1,    200,   1000,   1001,   2000,   2001,   3000];
 
@@ -547,17 +511,13 @@ class SkillsController {
 		$blob .= "<tab>Fist damage: {$dmg}\n\n";
 
 		$msg = $this->text->makeBlob("Martial Arts Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("nanoinit")
-	 * @Matches("/^nanoinit (\d*\.?\d+) (\d+)$/i")
 	 */
-	public function nanoInitCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$attackTime = (float)$args[1];
-		$initSkill = (int)$args[2];
-
+	public function nanoInitCommand(CmdContext $context, float $attackTime, int $initSkill): void {
 		$attackTimeReduction = $this->calcAttackTimeReduction($initSkill);
 		$effectiveAttackTime = $attackTime - $attackTimeReduction;
 
@@ -591,23 +551,16 @@ class SkillsController {
 		$blob .= "                         You: <highlight>${initSkill}<end>\n\n";
 
 		$msg = $this->text->makeBlob("Nano Init Results", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("weapon")
-	 * @Matches('|^weapon <a href="itemref://(\d+)/(\d+)/(\d+)">|i')
-	 * @Matches('|^weapon (\d+) (\d+)|i')
-	 */
-	public function weaponCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) == 4) {
-			$highid = (int)$args[2];
-			$ql = (int)$args[3];
-		} else {
-			$highid = (int)$args[1];
-			$ql = (int)$args[2];
-		}
+	/** @HandlesCommand("weapon") */
+	public function weaponCommandWithDrop(CmdContext $context, PItem $item): void {
+		$this->weaponCommand($context, $item->highID, $item->ql);
+	}
 
+	/** @HandlesCommand("weapon") */
+	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
 		$queryOne = $this->db->table("aodb")
@@ -629,7 +582,7 @@ class SkillsController {
 
 		if ($row === null) {
 			$msg = "Item does not exist in the items database.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -646,7 +599,7 @@ class SkillsController {
 
 		if ($lowAttributes === null || $highAttributes === null) {
 			$msg = "Could not find any weapon info for this item.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -670,14 +623,14 @@ class SkillsController {
 		$blob .= "\n";
 
 		$found = false;
-		if ($highAttributes->full_auto !== null) {
+		if ($highAttributes->full_auto !== null && $lowAttributes->full_auto !== null) {
 			$full_auto_recharge = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->full_auto, $highAttributes->full_auto, $ql);
 			[$weaponCap, $skillCap] = $this->capFullAuto($attackTime, $rechargeTime, $full_auto_recharge);
 			$blob .= "<header2>Full Auto<end>\n";
 			$blob .= "<tab>You need <highlight>".$skillCap."<end> Full Auto skill to cap your recharge at <highlight>".$weaponCap."<end>s.\n\n";
 			$found = true;
 		}
-		if ($highAttributes->burst !== null) {
+		if ($highAttributes->burst !== null && $lowAttributes->burst !== null) {
 			$burst_recharge = $this->util->interpolate($row->lowql, $row->highql, $lowAttributes->burst, $highAttributes->burst, $ql);
 			[$weaponCap, $skillCap] = $this->capBurst($attackTime, $rechargeTime, $burst_recharge);
 			$blob .= "<header2>Burst<end>\n";
@@ -722,21 +675,12 @@ class SkillsController {
 		$blob .= "\nRewritten by Nadyita (RK5)";
 		$msg = $this->text->makeBlob("Weapon Info for $name", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("weapon")
-	 * @Matches('/^weapon (\d+) (.+)/i')
-	 * @Matches('/^weapon (.+)/i')
-	 */
-	public function weaponSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$ql = null;
-		$search = $args[1];
-		if (count($args) > 2) {
-			$ql = (int)$args[1];
-			$search = $args[2];
-		}
+	/** @HandlesCommand("weapon") */
+	public function weaponSearchCommand(CmdContext $context, ?int $ql, PNonNumber $search): void {
+		$search = $search();
 		$data = $this->itemsController->findItemsFromLocal($search, $ql);
 		$kept = [];
 		$data = array_values(
@@ -767,11 +711,11 @@ class SkillsController {
 			} else {
 				$msg = "No items found matching <highlight>{$search}<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if (count($data) === 1) {
-			$this->weaponCommand($message, $channel, $sender, $sendto, [$message, $data[0]->lowid, $ql ?? $data[0]->ql]);
+			$this->weaponCommand($context, $data[0]->lowid, $ql ?? $data[0]->ql);
 			return;
 		}
 		/** @var ItemSearchResult[] $data */
@@ -783,7 +727,7 @@ class SkillsController {
 			$blob .= "<tab>[{$statsLink}] {$itemLink} (QL {$useQL})\n";
 		}
 		$msg = $this->text->makeBlob("Weapons (" . count($data) .")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function calcAttackTimeReduction(int $initSkill): float {
@@ -817,7 +761,7 @@ class SkillsController {
 	}
 
 	/**
-	 * @return int[]
+	 * @return float[]
 	 */
 	public function capFullAuto(float $attackTime, float $rechargeTime, int $fullAutoRecharge): array {
 		$weaponCap = floor(10 + $attackTime);
@@ -837,7 +781,7 @@ class SkillsController {
 	}
 
 	/**
-	 * @return int[]
+	 * @return float[]
 	 */
 	public function capFlingShot(float $attackTime): array {
 		$weaponCap = 5 + $attackTime;
@@ -847,7 +791,7 @@ class SkillsController {
 	}
 
 	/**
-	 * @return int[]
+	 * @return float[]
 	 */
 	public function capFastAttack(float $attackTime): array {
 		$weaponCap = (int)floor(5 + $attackTime);

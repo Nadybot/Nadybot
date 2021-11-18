@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Util;
 use Nadybot\Core\Text;
@@ -72,9 +74,8 @@ class ArulSabaController {
 
 	/**
 	 * @HandlesCommand("arulsaba")
-	 * @Matches("/^arulsaba$/i")
 	 */
-	public function arulSabaListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function arulSabaListCommand(CmdContext $context): void {
 		$blob = "<header2>Choose the type of bracer<end>\n";
 		$blob = $this->db->table("arulsaba")
 			->asObj(ArulSaba::class)
@@ -88,21 +89,20 @@ class ArulSabaController {
 					"{$type->name}: <highlight>{$type->buffs}<end>\n";
 			}, $blob);
 		$msg = $this->text->makeBlob("Arul Saba - Choose type", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("arulsaba")
-	 * @Matches("/^arulsaba ([^ ]+)$/i")
 	 */
-	public function arulSabaChooseQLCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
 		/** @var Collection<ArulSabaBuffs> */
 		$aruls = $this->db->table("arulsaba_buffs")
-			->where("name", ucfirst(strtolower($args[1])))
+			->where("name", ucfirst(strtolower($name())))
 			->orderBy("min_level")
 			->asObj(ArulSabaBuffs::class);
 		if ($aruls->isEmpty()) {
-			$sendto->reply("No Bracelet of Arul Saba ({$args[1]}) found.");
+			$context->reply("No Bracelet of Arul Saba ({$name}) found.");
 			return;
 		}
 		$blob = '';
@@ -114,6 +114,10 @@ class ArulSabaController {
 				->select("s.name", "ib.amount", "s.unit")
 				->asObj();
 			$item = $this->itemsController->findById($arul->left_aoid);
+			if (!isset($item)) {
+				$context->reply("Cannot find item #{$arul->left_aoid} in bot's item database.");
+				return;
+			}
 			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
@@ -126,13 +130,10 @@ class ArulSabaController {
 			$gems++;
 		}
 		$msg = $this->text->makeBlob("Types of a Arul Saba {$aruls[0]->name} bracelet", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	protected function enrichIngredient(?Ingredient $ing, int $amount, ?int $ql=null, bool $qlCanBeHigher=false): ?Ingredient {
-		if (!isset($ing)) {
-			return null;
-		}
+	protected function enrichIngredient(Ingredient $ing, int $amount, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
 		$ing->qlCanBeHigher = $qlCanBeHigher;
 		if (isset($ql)) {
 			$ing->ql = $ql;
@@ -155,10 +156,13 @@ class ArulSabaController {
 			->where("aoid", $aoid)
 			->asObj(Ingredient::class)
 			->first();
+		if (!isset($ing)) {
+			throw new Exception("Cannot find ingredient #{$aoid} in the bot's database.");
+		}
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
-	public function readIngredientByName(string $name, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): ?Ingredient {
+	public function readIngredientByName(string $name, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
 		/** @var Ingredient|null */
 		$ing = $this->db->table("ingredient")
 			->where("name", $name)
@@ -170,18 +174,20 @@ class ArulSabaController {
 			$this->db->addWhereFromParams($query, $tmp, "name");
 			$ing = $query->asObj(Ingredient::class)->first();
 		}
+		if (!isset($ing)) {
+			throw new Exception("Cannot find ingredient {$name} in the bot's database.");
+		}
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
 	/**
 	 * @HandlesCommand("arulsaba")
-	 * @Matches("/^arulsaba ([^ ]+) (\d+) (left|right)$/i")
+	 * @Mask $side (left|right)
 	 */
-	public function arulSabaRecipeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = ucfirst(strtolower($args[1]));
-		$numGems = (int)$args[2];
+	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, string $side): void {
+		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);
-		$side = strtolower($args[3]);
+		$side = strtolower($side);
 
 		$gemGrades = [
 			["Arbiter Gem",     "Scheol",   288,  306],
@@ -264,7 +270,7 @@ class ArulSabaController {
 			->asObj(ArulSaba::class)
 			->first();
 		if (!isset($arul)) {
-			$sendto->reply("No Bracelet of Arul Saba ({$type}) found.");
+			$context->reply("No Bracelet of Arul Saba ({$type}) found.");
 			return;
 		}
 		$gems = [];
@@ -272,8 +278,13 @@ class ArulSabaController {
 		$ingredients = new Ingredients();
 		for ($i = 0; $i < $reqGems; $i++) {
 			$name = $gemGrades[$i][0] . " {$prefix} {$arul->name}";
-			$ingredients->add($this->readIngredientByName($name));
-			$gems []= $ingredients->last()->item;
+			$ingredient = $this->readIngredientByName($name);
+			if (!isset($ingredient->item)) {
+				$context->reply("Your bot's item database is missing information to illustrate the process.");
+				return;
+			}
+			$ingredients->add($ingredient);
+			$gems []= $ingredient->item;
 		}
 		// A lot of the items used in the TS process are simply missing in the AODB
 		// so we have to work around this, because no one wants them in searches anyway
@@ -281,8 +292,13 @@ class ArulSabaController {
 		// Blueprints
 		$bpQL = $blueprints[$numGems][2];
 		$balId = $side === "left" ? 3 : 5;
-		$ingredients->add($this->readIngredientByAoid($blueprints[$numGems][0], 1, $bpQL));
-		$bPrint = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByAoid($blueprints[$numGems][0], 1, $bpQL);
+		if (!isset($ingredient) || !isset($ingredient->item)) {
+			$context->reply("Item #{$blueprints[$numGems][0]} not found in bot's item database.");
+			return;
+		}
+		$ingredients->add($ingredient);
+		$bPrint = $ingredient->item;
 		$bPrint->ql = $bpQL;
 		$bbPrint = clone($bPrint);
 		$bbPrint->lowid = $blueprints[$numGems][$balId];
@@ -290,45 +306,74 @@ class ArulSabaController {
 		$bbPrint->name = "Balanced Bracelet Blueprints";
 
 		// Adjuster
-		$ingredients->add($this->readIngredientByName("Balance Adjuster - " . ucfirst($side)));
-		$adjuster = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Balance Adjuster - " . ucfirst($side));
+		$ingredients->add($ingredient);
+		$adjuster = $ingredient->item;
 		// Ingots
 		$minIngotQL = (int)ceil(0.7 * $bpQL);
-		$ingredients->add($this->readIngredientByName("Small Silver Ingot", $reqGems+1, $minIngotQL, true));
-		$ingot = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Small Silver Ingot", $reqGems+1, $minIngotQL, true);
+		$ingredients->add($ingredient);
+		$ingot = $ingredient->item;
 		// Furnace
-		$ingredients->add($this->readIngredientByName("Personal Furnace", $reqGems+1));
-		$furnace = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Personal Furnace", $reqGems+1);
+		$ingredients->add($ingredient);
+		$furnace = $ingredient->item;
 		// Robot Junk
 		$minJunkQL = (int)ceil(0.53 * $bpQL);
-		$ingredients->add($this->readIngredientByName("Robot Junk", $reqGems, $minJunkQL, true));
-		$junk = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Robot Junk", $reqGems, $minJunkQL, true);
+		$ingredients->add($ingredient);
+		$junk = $ingredient->item;
 		// Wire
 		$minWireQL = (int)ceil(0.35 * $bpQL);
-		$ingredients->add($this->readIngredientByName("Nano Circuitry Wire", $reqGems*2, $minWireQL, true));
-		$wire = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Nano Circuitry Wire", $reqGems*2, $minWireQL, true);
+		$ingredients->add($ingredient);
+		$wire = $ingredient->item;
 		// Wire Drawing Machine
-		$ingredients->add($this->readIngredientByName("Wire Drawing Machine", 1, 100, true));
-		$wireMachine = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Wire Drawing Machine", 1, 100, true);
+		$ingredients->add($ingredient);
+		$wireMachine = $ingredient->item;
 		// Screwdriver
-		$ingredients->add($this->readIngredientByName("Screwdriver"));
-		$screwdriver = $ingredients->last()->item;
+		$ingredient = $this->readIngredientByName("Screwdriver");
+		$ingredients->add($ingredient);
+		$screwdriver = $ingredient->item;
+
+		if (!isset($adjuster)
+			|| !isset($ingot)
+			|| !isset($furnace)
+			|| !isset($junk)
+			|| !isset($wire)
+			|| !isset($wireMachine)
+			|| !isset($screwdriver)
+		) {
+			$context->reply("Your item database is missing some key items to illustrate the process.");
+			return;
+		}
 
 		$blob = $this->renderIngredients($ingredients);
 
 		$blob .= "<pagebreak><header2>Balancing the blueprint<end>\n".
 			$this->renderStep($adjuster, $bPrint, $bbPrint, [static::ME => "*3", static::EE => "*3.2"]);
 		$liqSilver         = $this->itemsController->findByName("Liquid Silver", $ingot->ql);
-		$liqSilver->ql     = $ingot->ql;
-		$silFilWire        = $this->itemsController->findByName("Silver Filigree Wire", $liqSilver->ql);
-		$silFilWire->ql    = $liqSilver->ql;
-		$silNaCircWire     = $this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $silFilWire->ql);
-		$silNaCircWire->ql = $silFilWire->ql;
+		$silFilWire        = $this->itemsController->findByName("Silver Filigree Wire", $ingot->ql);
+		$silNaCircWire     = $this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $ingot->ql);
 		$nanoSensor        = $this->itemsController->findById(150923);
-		$nanoSensor->ql    = min(250, $junk->ql);
 		$intNanoSensor     = $this->itemsController->findById(150926);
+		$circuitry         = $this->itemsController->findByName("Bracelet Circuitry", $ingot->ql);
+		if (!isset($liqSilver)
+			|| !isset($silFilWire)
+			|| !isset($silNaCircWire)
+			|| !isset($nanoSensor)
+			|| !isset($intNanoSensor)
+			|| !isset($circuitry)
+		) {
+			$context->reply("Your item database is missing some key items to illustrate the process.");
+			return;
+		}
+		$liqSilver->ql     = $ingot->ql;
+		$silFilWire->ql    = $liqSilver->ql;
+		$silNaCircWire->ql = $silFilWire->ql;
+		$nanoSensor->ql    = min(250, $junk->ql);
 		$intNanoSensor->ql = $nanoSensor->ql;
-		$circuitry         = $this->itemsController->findByName("Bracelet Circuitry", $silNaCircWire->ql);
 		$circuitry->ql     = $silNaCircWire->ql;
 
 		$blob .= "\n<pagebreak><header2>Bracelet circuitry ({$reqGems}x)<end>\n".
@@ -353,10 +398,11 @@ class ArulSabaController {
 			$target = $result;
 		}
 		if (!isset($result)) {
-			$sendto->reply("You managed to break the module. Great.");
+			$context->reply("You managed to break the module. Great.");
 			return;
 		}
 
+		/** @var AODBEntry $result */
 		$coated = clone($result);
 		$coated->lowid = $coated->highid = $finished[$numGems][$side];
 		$coated->name = "Bracelet of Arul Saba";
@@ -372,6 +418,10 @@ class ArulSabaController {
 				($i + 1) . "/{$reqGems} - ".
 				ucfirst($side) . ")";
 			$result = $this->itemsController->findByName($resultName);
+			if (!isset($result)) {
+				$context->reply("Unable to find the item {$resultName} in your bot's item database.");
+				return;
+			}
 			$result->ql = $result->lowql;
 			$blob .= $this->renderStep($gem, $target, $result, [static::ME => $gemGrades[$i][2], static::EE => $gemGrades[$i][3]]);
 			$target = $result;
@@ -387,7 +437,7 @@ class ArulSabaController {
 			"{$reqGems}/{$reqGems} - " . ucfirst($side) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	protected function renderStep(AODBEntry $source, AODBEntry $dest, AODBEntry $result, array $skillReqs=[]): string {
@@ -433,6 +483,9 @@ class ArulSabaController {
 		foreach ($skillReqs as $skillID => $amount) {
 			$amount = (string)$amount;
 			$skill = $this->readSkill($skillID);
+			if (!isset($skill)) {
+				throw new Exception("Unable to find skill {$skillID}");
+			}
 			if (substr($amount, 0, 1) === "*") {
 				$exAmount = (int)ceil((float)substr($amount, 1) * $dest->ql);
 				$requirements []= "<yellow>{$skill->name}: {$exAmount}<end> (" . substr($amount, 1) . "x)";
