@@ -208,6 +208,9 @@ class SpiritsController {
 	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
 		$name = ucwords(strtolower($search()));
 		$title = "Spirits Database for $name";
+		if (PImplantSlot::matches($name)) {
+			$name = (new PImplantSlot($name))();
+		}
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->whereIlike("name", "%{$name}%")

@@ -430,7 +430,7 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Mask $action (announce(?:ment)?)
+	 * @Mask $action (announce|announcement)
 	 */
 	public function raidChangeAnnounceCommand(CmdContext $context, string $action, string $interval): void {
 		if (!isset($this->raid)) {
