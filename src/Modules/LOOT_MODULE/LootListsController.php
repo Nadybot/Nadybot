@@ -50,6 +50,12 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *		help        = 'dbloot.txt'
  *	)
  *	@DefineCommand(
+ *		command     = 'db3',
+ *		accessLevel = 'all',
+ *		description = 'Shows possible DB3 Loot',
+ *		help        = 'dbloot.txt'
+ *	)
+ *	@DefineCommand(
  *		command     = '7',
  *		accessLevel = 'all',
  *		description = 'Shows the Sector 7 loot list',
@@ -252,6 +258,17 @@ class LootListsController {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $context);
 		$msg = $this->text->makeBlob("DB2 Loot", $blob);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @author Nadyita (RK5)
+	 *
+	 * @HandlesCommand("db3")
+	 */
+	public function db3Command(CmdContext $context): void {
+		$blob = $this->findRaidLoot('DustBrigade', 'DB3', $context);
+		$msg = $this->text->makeBlob("DB3 Loot", $blob);
 		$context->reply($msg);
 	}
 
