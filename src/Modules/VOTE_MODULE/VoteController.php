@@ -4,8 +4,8 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Event,
 	EventManager,
@@ -18,6 +18,8 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 
@@ -204,7 +206,10 @@ class VoteController implements MessageEmitter {
 			}
 			$blob = $this->getPollBlob($poll);
 
-			$msg []= $this->text->makeBlob($title, $blob);
+			$pages = (array)$this->text->makeBlob($title, $blob);
+			foreach ($pages as $page) {
+				$msg []= $page;
+			}
 		}
 		if (count($msg)) {
 			$rMsg = new RoutableMessage(join("\n", $msg));
@@ -217,9 +222,8 @@ class VoteController implements MessageEmitter {
 	 * This command handler shows votes.
 	 *
 	 * @HandlesCommand("poll")
-	 * @Matches("/^poll$/i")
 	 */
-	public function pollCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function pollCommand(CmdContext $context): void {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
 			->orderBy("started")
@@ -229,7 +233,7 @@ class VoteController implements MessageEmitter {
 		$blob = "";
 		if (count($topics) === 0) {
 			$msg = "There are currently no polls.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		foreach ($topics as $topic) {
@@ -253,26 +257,24 @@ class VoteController implements MessageEmitter {
 		}
 
 		$msg = $this->text->makeBlob("All voting topics", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler deletes polls.
 	 *
 	 * @HandlesCommand("poll")
-	 * @Matches("/^poll (?:kill|del|delete|rem|remove|rm) (\d+)$/i")
 	 */
-	public function pollKillCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		$owner = null;
-		if (!$this->accessManager->checkAccess($sender, "moderator")) {
-			$owner = $sender;
+		if (!$this->accessManager->checkAccess($context->char->name, "moderator")) {
+			$owner = $context->char->name;
 		}
-		$topic = $this->getPoll($id, $owner);
+		$topic = $this->getPoll($pollId, $owner);
 
 		if ($topic === null) {
 			$msg = "Either this poll does not exist, or you did not create it.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$this->db->table(self::DB_VOTES)->where("poll_id", $topic->id)->delete();
@@ -283,7 +285,7 @@ class VoteController implements MessageEmitter {
 		$event->type = "poll(del)";
 		unset($this->polls[$topic->id]);
 		$msg = "The poll <highlight>{$topic->question}<end> has been removed.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -291,19 +293,17 @@ class VoteController implements MessageEmitter {
 	 * This command handler removes someones vote from a running vote.
 	 *
 	 * @HandlesCommand("vote")
-	 * @Matches("/^vote (?:rem|remove|del|erase|rm|delete) (\d+)$/i")
 	 */
-	public function voteRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-		if (!isset($this->polls[$id])) {
-			$msg = "There is no active poll Nr. <highlight>$id<end>.";
-			$sendto->reply($msg);
+	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
+		if (!isset($this->polls[$pollId])) {
+			$msg = "There is no active poll Nr. <highlight>{$pollId}<end>.";
+			$context->reply($msg);
 			return;
 		}
-		$topic = $this->polls[$id];
+		$topic = $this->polls[$pollId];
 		$deleted = $this->db->table(self::DB_VOTES)
-			->where("poll_id", $id)
-			->where("author", $sender)
+			->where("poll_id", $pollId)
+			->where("author", $context->char->name)
 			->delete();
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
@@ -311,27 +311,26 @@ class VoteController implements MessageEmitter {
 			$event->poll = clone($topic);
 			unset($event->poll->possible_answers);
 			$event->type = "vote(del)";
-			$event->player = $sender;
+			$event->player = $context->char->name;
 			$this->eventManager->fireEvent($event);
 		} else {
 			$msg = "You have not voted on <highlight>{$topic->question}<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler ends a running vote.
 	 *
 	 * @HandlesCommand("poll")
-	 * @Matches("/^poll end (\d+)$/i")
+	 * @Mask $action end
 	 */
-	public function pollEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-		$topic = $this->getPoll($id);
+	public function pollEndCommand(CmdContext $context, string $action, int $pollId): void {
+		$topic = $this->getPoll($pollId);
 
 		if ($topic === null) {
 			$msg = "Either this poll does not exist, or you did not create it.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$timeleft = $topic->getTimeLeft();
@@ -341,29 +340,28 @@ class VoteController implements MessageEmitter {
 			$this->db->table(self::DB_POLLS)
 				->where("id", $topic->id)
 				->update(["duration" => $topic->duration]);
-			$this->polls[$id]->duration = $topic->duration;
+			$this->polls[$pollId]->duration = $topic->duration;
 			$msg = "Vote duration reduced to 60 seconds.";
 		} elseif ($timeleft <= 0) {
 			$msg = "This poll has already finished.";
 		} else {
 			$msg = "There is only <highlight>$timeleft<end> seconds left.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("poll")
-	 * @Matches("/^poll(?: show| view)? (\d+)$/i")
+	 * @Mask $action (show|view)
 	 */
-	public function voteShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function voteShowCommand(CmdContext $context, ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
-			$sendto->reply("There is no poll Nr. <highlight>{$id}<end>.");
+			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
 			return;
 		}
 
-		$blob = $this->getPollBlob($topic, $sender);
+		$blob = $this->getPollBlob($topic, $context->char->name);
 
 		/** @var ?Vote */
 		$vote = $this->db->table(self::DB_VOTES)
@@ -380,47 +378,43 @@ class VoteController implements MessageEmitter {
 
 		$msg = $this->text->makeBlob("Poll Nr. {$topic->id}", $blob);
 		if (isset($privmsg)) {
-			$sendto->reply($privmsg);
+			$context->reply($privmsg);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("vote")
-	 * @Matches("/^vote (\d+) (.+)$/i")
 	 */
-	public function voteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-		$answer = $args[2];
-
-		$topic = $this->getPoll($id);
+	public function voteCommand(CmdContext $context, int $pollId, string $answer): void {
+		$topic = $this->getPoll($pollId);
 		if ($topic === null) {
-			$msg = "Poll Nr. <highlight>{$id}<end> does not exist.";
-			$sendto->reply($msg);
+			$msg = "Poll Nr. <highlight>{$pollId}<end> does not exist.";
+			$context->reply($msg);
 			return;
 		}
 		$timeleft = $topic->getTimeLeft();
 
 		if ($timeleft <= 0) {
 			$msg = "No longer accepting votes for this poll.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var ?Vote */
 		$oldVote = $this->db->table(self::DB_VOTES)
 			->where("poll_id", $topic->id)
-			->where("author", $sender)
+			->where("author", $context->char->name)
 			->asObj(Vote::class)
 			->first();
 		$event = new VoteEvent();
 		$event->poll = clone($topic);
 		unset($event->poll->possible_answers);
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$event->vote = $answer;
-		if ($oldVote) {
+		if (isset($oldVote)) {
 			$this->db->table(self::DB_VOTES)
-				->where("author", $sender)
+				->where("author", $context->char->name)
 				->where("poll_id", $topic->id)
 				->update([
 					"answer" => $answer,
@@ -429,10 +423,10 @@ class VoteController implements MessageEmitter {
 			$msg = "You have changed your vote to ".
 				"<highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event->type = "vote(change)";
-			$event->oldVote = $oldVote->answer;
+			$event->oldVote = $oldVote->answer??"unknown";
 		} else {
 			$this->db->table(self::DB_VOTES)->insert([
-				"author" => $sender,
+				"author" => $context->char->name,
 				"answer" => $answer,
 				"time" => time(),
 				"poll_id" => $topic->id
@@ -440,32 +434,37 @@ class VoteController implements MessageEmitter {
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event->type = "vote(cast)";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("poll")
-	 * @Matches("/^poll (?:add|create|new) ([^ ]+)\s+(.+)$/i")
+	 * @Mask $action (add|create|new)
 	 */
-	public function pollCreateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
-		$answers = preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $args[2]);
+	public function pollCreateCommand(
+		CmdContext $context,
+		string $action,
+		PDuration $duration,
+		string $definition
+	): void {
+		$answers = preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
 		$question = array_shift($answers);
-		$duration = $this->util->parseTime($args[1]);
+		$duration = $duration->toSecs();
 
 		if ($duration === 0) {
 			$msg = "Invalid duration entered. Time format should be: 1d2h3m4s";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if (count($answers) < 2) {
 			$msg = "You must have at least two options for this poll.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$topic = new Poll();
 		$topic->question = $question;
-		$topic->author = $sender;
+		$topic->author = $context->char->name;
 		$topic->started = time();
 		$topic->duration = $duration;
 		$topic->answers = $answers;
@@ -476,7 +475,7 @@ class VoteController implements MessageEmitter {
 		$this->polls[$topic->id] = $topic;
 		$msg = "Voting topic <highlight>{$topic->id}<end> has been created.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new PollEvent();
 		$event->poll = clone($topic);
 		unset($event->poll->possible_answers);
@@ -484,7 +483,7 @@ class VoteController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getPollBlob(Poll $topic, ?string $sender=null) {
+	public function getPollBlob(Poll $topic, ?string $sender=null): string {
 		/** @var Vote[] */
 		$votes = $this->db->table(self::DB_VOTES)
 			->where("poll_id", $topic->id)
@@ -498,8 +497,10 @@ class VoteController implements MessageEmitter {
 		$totalresults = 0;
 		foreach ($votes as $vote) {
 			$answer = $vote->answer;
-			$results[$answer]++;
-			$totalresults++;
+			if (isset($answer)) {
+				$results[$answer]++;
+				$totalresults++;
+			}
 		}
 
 		$timeleft = $topic->getTimeLeft();
