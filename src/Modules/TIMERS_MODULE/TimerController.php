@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
-	CommandReply,
 	DB,
 	EventManager,
 	LoggerWrapper,

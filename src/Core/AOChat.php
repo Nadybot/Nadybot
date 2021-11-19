@@ -231,7 +231,7 @@ class AOChat {
 	/**
 	 * Connect to the chatserver $server on port $port
 	 *
-	 * @return resource|null null if we cannot connect, otherwise the connected socket
+	 * @return bool false we cannot connect, otherwise true
 	 */
 	public function connect(string $server, int $port) {
 		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -248,12 +248,12 @@ class AOChat {
 		if (@socket_connect($this->socket, $server, $port) === false) {
 			$this->logger->log('error', "Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
 			$this->disconnect();
-			return null;
+			return false;
 		}
 
 		$this->chatqueue = new LeakyBucket(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
 
-		return $this->socket;
+		return true;
 	}
 
 	/**

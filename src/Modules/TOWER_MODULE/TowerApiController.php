@@ -101,7 +101,7 @@ class TowerApiController {
 	}
 
 	public function call(array $params, callable $callback, ...$args): void {
-		$roundTo = $this->settingManager->getInt('tower_cache_duration');
+		$roundTo = $this->settingManager->getInt('tower_cache_duration') ?? 600;
 		if (isset($params["min_close_time"])) {
 			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
 		}
@@ -117,7 +117,7 @@ class TowerApiController {
 				return;
 			}
 		}
-		$apiURL = $this->settingManager->getString(static::TOWER_API);
+		$apiURL = $this->settingManager->getString(static::TOWER_API) ?? static::API_TYRENCE;
 		if ($apiURL === static::API_NONE) {
 			$apiURL = static::API_TYRENCE;
 		}
@@ -128,8 +128,8 @@ class TowerApiController {
 			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
 	}
 
-	public function handleResult(?HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
-		if ($response === null || ($response->headers["status-code"]??"0") !== "200") {
+	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
+		if (!isset($response->body) || ($response->headers["status-code"]??"0") !== "200") {
 			$callback(null, ...$args);
 			return;
 		}
@@ -141,7 +141,7 @@ class TowerApiController {
 			return;
 		}
 		$apiCache = new ApiCache();
-		$apiCache->validUntil = time() + $this->settingManager->getInt('tower_cache_duration');
+		$apiCache->validUntil = time() + ($this->settingManager->getInt('tower_cache_duration') ?? 600);
 		$apiCache->result = $result;
 		$this->cache[$cacheKey] = $apiCache;
 		$callback($result, ...$args);

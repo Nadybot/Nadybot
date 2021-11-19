@@ -238,7 +238,7 @@ class Nadybot extends AOChat {
 	public function connectAO(string $login, string $password, string $server, int $port): void {
 		// Begin the login process
 		$this->logger->log('INFO', "Connecting to AO Server...({$server}:{$port})");
-		if (null === $this->connect($server, $port)) {
+		if (!$this->connect($server, $port)) {
 			$this->logger->log('ERROR', "Connection failed! Please check your Internet connection and firewall.");
 			sleep(10);
 			die();
@@ -1183,6 +1183,39 @@ class Nadybot extends AOChat {
 		if ($reply->rate_limited && isset($this->chatqueue)) {
 			$this->chatqueue->disable();
 		}
+	}
+
+	/**
+	 * Retrieve the character name of a UID, or null if inactive or UID doesn't exist
+	 *
+	 * @param mixed $args
+	 * @psalm-param callable(?string, mixed...) $callback
+	 */
+	public function getName(int $uid, callable $callback, ...$args): void {
+		$dummyName = "_" . (string)(microtime(true)*10000);
+		unset($this->id[$dummyName]);
+		if (isset($this->id[$uid])) {
+			$callback((string)$this->id[$uid], ...$args);
+			return;
+		}
+		$buddyEntry = $this->buddylistManager->buddyList[$uid] ?? null;
+		if (isset($buddyEntry)) {
+			if ($buddyEntry->known) {
+				$callback(null, ...$args);
+				return;
+			}
+		} else {
+			$this->buddylistManager->addId($uid, "name_lookup");
+		}
+		$this->getUid($dummyName, function(?int $null) use ($dummyName, $uid, $callback, $args): void {
+			unset($this->id[$dummyName]);
+			$this->buddylistManager->removeId($uid, "name_lookup");
+			$name = $this->id[(int)$uid] ?? null;
+			if (!is_string($name) || $name === '4294967295') {
+				$name = null;
+			}
+			$callback($name, ...$args);
+		});
 	}
 
 	/**
