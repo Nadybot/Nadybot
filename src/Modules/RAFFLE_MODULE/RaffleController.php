@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Event,
 	EventManager,
@@ -173,6 +172,14 @@ class RaffleController {
 			"1;0",
 			'mod'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"raffle_cancelother_rank",
+			"Rank required to cancel other people's raffle",
+			"edit",
+			"rank",
+			'mod'
+		);
 		$this->commandAlias->register($this->moduleName, "raffleadmin start", "raffle start");
 		$this->commandAlias->register($this->moduleName, "raffleadmin end", "raffle end");
 		$this->commandAlias->register($this->moduleName, "raffleadmin cancel", "raffle cancel");
@@ -320,8 +327,10 @@ class RaffleController {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, "mod")) {
-			$msg = "Only the owner or a moderator may cancel the raffle.";
+		$cancelMinRank = $this->settingManager->getString('raffle_cancelother_rank') ?? "mod";
+		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, $cancelMinRank)) {
+			$requiredRank = $this->accessManager->getDisplayName($cancelMinRank);
+			$msg = "Only the owner or a {$requiredRank} may cancel the raffle.";
 			$context->reply($msg);
 			return;
 		}
