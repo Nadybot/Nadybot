@@ -53,7 +53,7 @@ class WebChatConverter {
 	}
 
 	/**
-	 * @param string[] $msg
+	 * @param string[] $msgs
 	 * @return string[]
 	 */
 	public function convertMessages(array $msgs): array {
@@ -68,7 +68,7 @@ class WebChatConverter {
 	/**
 	 * Try to reverse the splitting of a large message into multiple ones
 	 * @param AOMsg[] $msgs
-	 * @return string[]
+	 * @return AOMsg[]
 	 */
 	public function tryToUnbreakPopups(array $msgs): array {
 		if (!preg_match("/<popup ref=\"(ao-\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
@@ -101,7 +101,7 @@ class WebChatConverter {
 	}
 
 	public function getColorFromSetting(string $setting): string {
-		if (preg_match('/#[0-9A-F]{6}/', $this->settingManager->getString($setting), $matches)) {
+		if (preg_match('/#[0-9A-F]{6}/', $this->settingManager->getString($setting)??"", $matches)) {
 			return $matches[0];
 		}
 		return "#000000";
@@ -151,7 +151,7 @@ class WebChatConverter {
 				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
 					$tag = $colorMatch[1];
 				} else {
-					$tag = $colors[strtolower($matches[1])];
+					$tag = $colors[strtolower($matches[1])]??null;
 				}
 				if ($tag === null) {
 					return "";

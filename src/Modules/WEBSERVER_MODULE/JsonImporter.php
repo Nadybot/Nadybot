@@ -46,9 +46,6 @@ class JsonImporter {
 	}
 
 	public static function matchesType(string $type, &$value): bool {
-		if ($type === null) {
-			return true;
-		}
 		if (substr($type, 0, 1) === "?") {
 			if ($value === null) {
 				return true;

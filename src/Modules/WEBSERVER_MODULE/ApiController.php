@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Addendum\ReflectionAnnotatedClass;
+use Addendum\ReflectionAnnotatedMethod;
 use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Annotations\{
@@ -18,7 +19,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandHandler,
 	CommandManager,
-	CommandReply,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -29,11 +29,11 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
-use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Throwable;
@@ -89,7 +89,7 @@ class ApiController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	/** @var array<array<string,APiHandler>> */
+	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
 
 	/** @Setup */
@@ -110,15 +110,14 @@ class ApiController {
 
 	/**
 	 * @HandlesCommand("apiauth")
-	 * @Matches("/^apiauth$/")
-	 * @Matches("/^apiauth list$/i")
+	 * @Mask $action list
 	 */
-	public function apiauthListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apiauthListCommand(CmdContext $context, ?string $action): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
 			->asObj(ApiKey::class);
 		if ($keys->isEmpty()) {
-			$sendto->reply("There are currently no active API tokens");
+			$context->reply("There are currently no active API tokens");
 			return;
 		}
 		$blocks = $keys->groupBy("character")
@@ -142,27 +141,27 @@ class ApiController {
 		$blob = $blocks->join("\n\n");
 		$msg = "All active API tokens (" . $keys->count() . ")";
 		$msg = $this->text->makeBlob($msg, $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("apiauth")
-	 * @Matches("/^apiauth (create|new)$/i")
+	 * @Mask $action (create|new)
 	 */
-	public function apiauthCreateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apiauthCreateCommand(CmdContext $context, string $action): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
-			$sendto->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
+			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
 			return;
 		}
 		$keyDetails = openssl_pkey_get_details($key);
 		if ($keyDetails === false) {
-			$sendto->reply("There was an error creating the public/private key pair");
+			$context->reply("There was an error creating the public/private key pair");
 			return;
 		}
 		$pubKeyPem = $keyDetails['key'];
 		if (openssl_pkey_export($key, $privKeyPem) === false) {
-			$sendto->reply(
+			$context->reply(
 				"There was an error extracting the private key from the generated ".
 				"public/private key pair"
 			);
@@ -170,7 +169,7 @@ class ApiController {
 		}
 		$apiKey = new ApiKey();
 		$apiKey->pubkey = $pubKeyPem;
-		$apiKey->character = $sender;
+		$apiKey->character = $context->char->name;
 		do {
 			$apiKey->token = bin2hex(random_bytes(4));
 			try {
@@ -192,53 +191,51 @@ class ApiController {
 				"/start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests"
 			) . " for a documentation on how to use them.";
 		$msg = $this->text->makeBlob("Your API key and token", $blob);
-		$sendto->reply($msg);
-		// $this->chatBot->send_tell($sender, $msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("apiauth")
-	 * @Matches("/^apiauth (?:delete|del|rem|rm|erase) (.+)$/i")
 	 */
-	public function apiauthDeleteCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apiauthDeleteCommand(CmdContext $context, PRemove $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
-			->where("token", $args[1])
+			->where("token", $token)
 			->asObj(ApiKey::class)
 			->first();
 		if (!isset($key)) {
-			$sendto->reply("The API token <highlight>{$args[1]}<end> was not found.");
+			$context->reply("The API token <highlight>{$token}<end> was not found.");
 			return;
 		}
-		$alDiff = $this->accessManager->compareCharacterAccessLevels($sender, $key->character);
-		if ($alDiff !== 1 && $sender !== $key->character) {
-			$sendto->reply(
+		$alDiff = $this->accessManager->compareCharacterAccessLevels($context->char->name, $key->character);
+		if ($alDiff !== 1 && $context->char->name !== $key->character) {
+			$context->reply(
 				"Your access level must be higher than the token owner's ".
 				"in order to delete their token."
 			);
 			return;
 		}
 		$this->db->table(static::DB_TABLE)->delete($key->id);
-		$sendto->reply("API token <highlight>{$args[1]}<end> deleted.");
+		$context->reply("API token <highlight>{$token}<end> deleted.");
 	}
 
 	/**
 	 * @HandlesCommand("apiauth")
-	 * @Matches("/^apiauth (?:reset) (.+)$/i")
+	 * @Mask $action reset
 	 */
-	public function apiauthResetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apiauthResetCommand(CmdContext $context, string $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
-			->where("token", $args[1])
+			->where("token", $token)
 			->asObj(ApiKey::class)
 			->first();
 		if (!isset($key)) {
-			$sendto->reply("The API token <highlight>{$args[1]}<end> was not found.");
+			$context->reply("The API token <highlight>{$token}<end> was not found.");
 			return;
 		}
-		$alDiff = $this->accessManager->compareCharacterAccessLevels($sender, $key->character);
-		if ($alDiff !== 1 && $sender !== $key->character) {
-			$sendto->reply(
+		$alDiff = $this->accessManager->compareCharacterAccessLevels($context->char->name, $key->character);
+		if ($alDiff !== 1 && $context->char->name !== $key->character) {
+			$context->reply(
 				"Your access level must be higher than the token owner's ".
 				"in order to delete their token."
 			);
@@ -246,7 +243,7 @@ class ApiController {
 		}
 		$key->last_sequence_nr = 0;
 		$this->db->update(static::DB_TABLE, "id", $key);
-		$sendto->reply("API token <highlight>{$args[1]}<end> reset.");
+		$context->reply("API token <highlight>{$token}<end> reset.");
 	}
 
 	/**
@@ -258,7 +255,7 @@ class ApiController {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionAnnotatedClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var \Addendum\ReflectionAnnotatedMethod $method */
+				/** @var ReflectionAnnotatedMethod $method */
 				if (!$method->hasAnnotation("Api")) {
 					continue;
 				}
@@ -284,7 +281,10 @@ class ApiController {
 						/** @var GET|POST|PUT|DELETE|PATCH $annotation */
 						$methods []= strtolower($annoName);
 					}
-					$this->addApiRoute($routes, $methods, $method->getClosure($instance), $accessLevelFrom, $accessLevel, $method);
+					$closure = $method->getClosure($instance);
+					if (isset($closure)) {
+						$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
+					}
 				}
 			}
 		}
@@ -294,7 +294,7 @@ class ApiController {
 	/**
 	 * Add a HTTP route handler for a path
 	 */
-	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
+	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionAnnotatedMethod $refMet): void {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
@@ -355,6 +355,9 @@ class ApiController {
 	}
 
 	protected function getCommandHandler(ApiHandler $handler): ?CommandHandler {
+		if (!isset($handler->accessLevelFrom)) {
+			return null;
+		}
 		// Check if a subcommands for this exists
 		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
@@ -370,7 +373,7 @@ class ApiController {
 
 	protected function checkHasAccess(Request $request, ApiHandler $apiHandler): bool {
 		$cmdHandler = $this->getCommandHandler($apiHandler);
-		if ($cmdHandler === null) {
+		if ($cmdHandler === null || !isset($request->authenticatedAs)) {
 			return false;
 		}
 		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->admin);
@@ -412,8 +415,12 @@ class ApiController {
 			return true;
 		}
 		try {
-			if (is_object($request->decodedBody) || is_array($request->decodedBody)) {
+			if (is_object($request->decodedBody)) {
 				$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
+			} elseif (is_array($request->decodedBody)) {
+				foreach ($request->decodedBody as &$part) {
+					$request->decodedBody = JsonImporter::convert($reqBody->class, $part);
+				}
 			}
 		} catch (Throwable $e) {
 			return false;
@@ -447,7 +454,7 @@ class ApiController {
 		}
 		$authorized = true;
 		if (isset($handler->accessLevel)) {
-			$authorized = $this->accessManager->checkAccess($request->authenticatedAs, $handler->accessLevel);
+			$authorized = $this->accessManager->checkAccess($request->authenticatedAs??"_", $handler->accessLevel);
 		} elseif (isset($handler->accessLevelFrom)) {
 			$authorized = $this->checkHasAccess($request, $handler);
 		}
@@ -480,7 +487,7 @@ class ApiController {
 		if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
 			$response->headers['Content-Type'] = 'application/json';
 		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
-			$response->headers['Content-Length'] = 0;
+			$response->headers['Content-Length'] = "0";
 			$response->setCode(Response::CREATED);
 		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
 			$response->setCode(Response::NO_CONTENT);
@@ -509,7 +516,7 @@ class ApiController {
 		if ($this->websocketController->clientExists($uuid) === false) {
 			return new Response(Response::NOT_FOUND);
 		}
-		if (strlen($msg)) {
+		if (strlen($msg) && isset($request->authenticatedAs)) {
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);
 			$context = new CmdContext($request->authenticatedAs);

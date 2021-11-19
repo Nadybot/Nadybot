@@ -55,6 +55,9 @@ class WebchatApiController {
 	 */
 	public function sendWebMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$message = $request->decodedBody;
+		if (!is_string($message) || !isset($request->authenticatedAs)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
 		$event = new AOChatEvent();
 		$event->type = "chat(web)";
 		$event->channel = "web";

@@ -137,16 +137,22 @@ class Response {
 
 	public int $code;
 	public string $codeString;
-	/** @var array<string,string> */
+	/** @var array<string,null|string> */
 	public array $headers = [];
 	public ?string $body;
 
+	/**
+	 * @param array<string,null|string> $headers
+	 */
 	public function __construct(int $code=200, array $headers=[], ?string $body=null) {
 		$this->code = $code;
 		$codeString = static::DEFAULT_RESPONSE_TEXT[$this->code] ?? "Unknown";
 		$this->codeString = $codeString;
 		$this->body = $body;
-		$this->headers['Date'] = (new DateTime())->format(DateTime::RFC7231);
+		$date = (new DateTime())->format(DateTime::RFC7231);
+		if (is_string($date)) {
+			$this->headers['Date'] = $date;
+		}
 		$this->headers = array_merge($this->headers, $headers);
 	}
 
@@ -174,7 +180,7 @@ class Response {
 		}
 		if (isset($this->body) || in_array($this->code, [static::OK, static::CREATED])) {
 			if (!array_key_exists('Content-Length', $this->headers)) {
-				$this->headers["Content-Length"] = strlen($this->body??"");
+				$this->headers["Content-Length"] = (string)strlen($this->body??"");
 			}
 		}
 		$headers = "";
