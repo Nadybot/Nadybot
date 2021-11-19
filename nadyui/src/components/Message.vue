@@ -25,7 +25,7 @@ interface Data {
 }
 
 export default defineComponent({
-  name: "Message",
+  name: "AOXMLMessage",
 
   data(): Data {
     return {
