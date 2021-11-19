@@ -327,6 +327,7 @@ class DiscordGatewayController {
 	}
 
 	protected function sendIdentify(): void {
+		$this->guilds = [];
 		$this->logger->log("INFO", "Logging into Discord gateway");
 		$identify = new IdentifyPacket();
 		$identify->token = $this->settingManager->getString('discord_bot_token') ?? "off";
@@ -449,7 +450,6 @@ class DiscordGatewayController {
 			$this->lastSequenceNumber = null;
 			$this->sessionId = null;
 		}
-		$this->guilds = [];
 		if (
 			(($event->code ?? null) === 1000 && $this->mustReconnect)
 			|| $this->shouldReconnect($event->code ?? null)
@@ -458,6 +458,8 @@ class DiscordGatewayController {
 			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+		} else {
+			$this->guilds = [];
 		}
 	}
 
