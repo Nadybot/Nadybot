@@ -55,10 +55,10 @@ class MigrateToRoutes implements SchemaMigration {
 		if ($defaultChannel & 4) {
 			$defaultMode []= "discord";
 		}
-		$discordCannel = $this->getSetting($db, "discord_notify_channel") ?? null;
-		if (isset($discordCannel) && $discordCannel->value !== 'off') {
+		$discordChannel = $this->getSetting($db, "discord_notify_channel") ?? null;
+		if (isset($discordChannel) && isset($discordChannel->value) && $discordChannel->value !== 'off') {
 			$this->discordAPIClient->getChannel(
-				$discordCannel->value,
+				$discordChannel->value,
 				[$this, "migrateChannelToRoute"],
 				$db,
 				$table,
@@ -73,7 +73,7 @@ class MigrateToRoutes implements SchemaMigration {
 		sort($defaultMode);
 		$db->table($table)
 			->asObj()
-			->each(function ($timer) use ($defaultMode, $table, $db, $discord): void {
+			->each(function (object $timer) use ($defaultMode, $table, $db, $discord): void {
 				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
 					return;
 				}

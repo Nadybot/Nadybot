@@ -9,7 +9,7 @@ use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
 	AsyncHttp,
-	CommandReply,
+	CmdContext,
 	DB,
 	Http,
 	HttpResponse,
@@ -276,13 +276,12 @@ class WebserverController {
 
 	/**
 	 * @HandlesCommand("webauth")
-	 * @Matches("/^webauth$/")
 	 */
-	public function webauthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uuid = $this->authenticate($sender, 3600);
+	public function webauthCommand(CmdContext $context): void {
+		$uuid = $this->authenticate($context->char->name, 3600);
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
 			"credentials <highlight>{$uuid}<end>.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**

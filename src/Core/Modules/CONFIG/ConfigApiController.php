@@ -132,7 +132,7 @@ class ConfigApiController {
 			if (!is_bool($value)) {
 				return new Response(
 					Response::UNPROCESSABLE_ENTITY,
-					["Content-Type: text/plain"],
+					["Content-Type" => "text/plain"],
 					"Bool value required"
 				);
 			}
@@ -150,14 +150,14 @@ class ConfigApiController {
 			if (!is_int($value)) {
 				return new Response(
 					Response::UNPROCESSABLE_ENTITY,
-					["Content-Type: text/plain"],
+					["Content-Type" => "text/plain"],
 					"Integer value required"
 				);
 			}
 		} elseif (!is_string($value)) {
 			return new Response(
 				Response::UNPROCESSABLE_ENTITY,
-				["Content-Type: text/plain"],
+				["Content-Type" => "text/plain"],
 				"String value required"
 			);
 		}
@@ -174,7 +174,7 @@ class ConfigApiController {
 		} catch (Exception $e) {
 			return new Response(
 				Response::UNPROCESSABLE_ENTITY,
-				["Content-Type: text/plain"],
+				["Content-Type" => "text/plain"],
 				"Invalid value: " . $e->getMessage()
 			);
 		}

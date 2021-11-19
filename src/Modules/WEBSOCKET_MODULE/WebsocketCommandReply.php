@@ -73,7 +73,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			} else {
 				$xmlMessage->path[0]->color = "";
 			}
-			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color"), $matches)) {
+			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>", $matches)) {
 				$xmlMessage->color = $matches[1];
 			}
 			$this->eventManager->fireEvent($xmlMessage);

@@ -94,8 +94,8 @@ class CountdownController {
 	 * @HandlesCommand("countdown")
 	 */
 	public function countdownCommand(CmdContext $context, ?string $message): void {
-		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT);
-		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN);
+		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT)??"GO";
+		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN)??30;
 
 		if ($this->lastCountdown >= (time() - $cooldown)) {
 			$msg = "You can only start a countdown once every {$cooldown} seconds.";
@@ -116,16 +116,17 @@ class CountdownController {
 	}
 
 	protected function getDmCallback(): Closure {
-		return function($text): void {
-			if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_PRIV) {
+		return function(string $text): void {
+			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_PRIV) {
 				$this->chatBot->sendPrivate($text, true);
 			}
-			if ($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION) & self::LOC_ORG) {
+			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_ORG) {
 				$this->chatBot->sendGuild($text, true);
 			}
 		};
 	}
 
+	/** @psalm-param callable(string) $callback */
 	public function startCountdown(callable $callback, string $message): void {
 		$this->lastCountdown = time();
 
