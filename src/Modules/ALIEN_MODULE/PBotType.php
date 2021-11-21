@@ -1,6 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\ParamClass;
+namespace Nadybot\Modules\ALIEN_MODULE;
+
+use Nadybot\Core\ParamClass\Base;
 
 class PBotType extends Base {
 	protected static string $regExp = "strong|supple|enduring|observant|arithmetic|spiritual";

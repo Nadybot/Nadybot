@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Nadybot\Core\CmdContext;
-use Nadybot\Core\ParamClass\PBotType;
 use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 

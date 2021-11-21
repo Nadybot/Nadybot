@@ -30,7 +30,6 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;

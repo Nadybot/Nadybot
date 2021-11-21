@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Timer,
 	Socket\AsyncSocket,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 
 /**
  * Commands this controller contains:
