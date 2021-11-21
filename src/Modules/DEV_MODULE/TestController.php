@@ -292,6 +292,7 @@ class TestController {
 
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {
 		foreach ($commands as $line) {
+			$testContext = clone $context;
 			if ($line[0] !== "!") {
 				continue;
 			}
@@ -299,11 +300,11 @@ class TestController {
 				$this->chatBot->sendTell($line, $context->char->name);
 			} else {
 				$this->logger->log('INFO', $line);
-				$context->sendto = new MockCommandReply($line, $logFile);
-				$context->sendto->logger = $this->logger;
+				$testContext->sendto = new MockCommandReply($line, $logFile);
+				$testContext->sendto->logger = $this->logger;
 			}
-			$context->message = substr($line, 1);
-			$this->commandManager->processCmd($context);
+			$testContext->message = substr($line, 1);
+			$this->commandManager->processCmd($testContext);
 		}
 	}
 

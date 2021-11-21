@@ -159,6 +159,7 @@ class PlayfieldController {
 				return;
 			}
 			$playfieldId = $playfield->id;
+			$playfieldName = $playfield->short_name;
 		} else {
 			$context->reply("Wrong waypoint format.");
 			return;

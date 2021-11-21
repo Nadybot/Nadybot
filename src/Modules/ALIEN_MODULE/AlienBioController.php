@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Text,
 };
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -55,10 +56,10 @@ class AlienBioController {
 	/** @Logger */
 	public LoggerWrapper $logger;
 
-	private const LE_ARMOR_TYPES  = ['64', '295', '468', '935'];
-	private const LE_WEAPON_TYPES = ['18', '34', '687', '812'];
+	private const LE_ARMOR_TYPES  = [64, 295, 468, 935];
+	private const LE_WEAPON_TYPES = [18, 34, 687, 812];
 	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
-	private const AI_WEAPON_TYPES = ['1', '2', '3', '4', '5', '12', '13', '48', '76', '112', '240', '880', '992'];
+	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
 
 	/**
 	 * This handler is called on bot startup.
@@ -187,7 +188,11 @@ class AlienBioController {
 
 		if (count($bios) === 1) {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
-			$this->bioinfoCommand($context, $bioinfo, $ql);
+			if (is_numeric($bioinfo)) {
+				$this->bioinfoIDCommand($context, (int)$bioinfo, $ql);
+			} else {
+				$this->bioinfoCommand($context, new PWord($bioinfo), $ql);
+			}
 		} else {
 			$msg = $this->text->makeBlob("Identified Bio-Materials", $blob);
 			$context->reply($msg);
@@ -215,12 +220,12 @@ class AlienBioController {
 	}
 
 	/**
-	 * @param string[] $types
+	 * @param int[]|string[] $types
 	 */
 	public function getTypeBlob(array $types): string {
 		$blob = '';
 		foreach ($types as $type) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($type, "/tell <myname> bioinfo $type") . "\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd((string)$type, "/tell <myname> bioinfo $type") . "\n";
 		}
 		return $blob;
 	}
@@ -229,20 +234,34 @@ class AlienBioController {
 	 * This command handler shows info about a particular bio type.
 	 * @HandlesCommand("bioinfo")
 	 */
-	public function bioinfoCommand(CmdContext $context, string $bio, ?int $ql): void {
-		$bio = strtolower($bio);
+	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 
 		$msg = "Unknown Bio-Material";
 		if (in_array($bio, self::LE_ARMOR_TYPES)) {
-			$msg = $this->ofabArmorBio($ql, (int)$bio);
+			$msg = $this->ofabArmorBio($ql, $bio);
 		} elseif (in_array($bio, self::LE_WEAPON_TYPES)) {
-			$msg = $this->ofabWeaponBio($ql, (int)$bio);
-		} elseif (in_array($bio, self::AI_ARMOR_TYPES)) {
-			$msg = $this->alienArmorBio($ql, $bio);
+			$msg = $this->ofabWeaponBio($ql, $bio);
 		} elseif (in_array($bio, self::AI_WEAPON_TYPES)) {
-			$msg = $this->alienWeaponBio($ql, (int)$bio);
+			$msg = $this->alienWeaponBio($ql, $bio);
+		}
+
+		$context->reply($msg);
+	}
+
+	/**
+	 * This command handler shows info about a particular bio type.
+	 * @HandlesCommand("bioinfo")
+	 */
+	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
+		$bio = strtolower($bio());
+		$ql ??= 300;
+		$ql = min(300, max(1, $ql));
+
+		$msg = "Unknown Bio-Material";
+		if (in_array($bio, self::AI_ARMOR_TYPES)) {
+			$msg = $this->alienArmorBio($ql, $bio);
 		} elseif ($bio === 'serum') {
 			$msg = $this->serumBio($ql);
 		}

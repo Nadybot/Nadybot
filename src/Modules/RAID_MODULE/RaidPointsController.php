@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Timer,
 };
 use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PNonNumber;
 use Nadybot\Core\ParamClass\PNonNumberWord;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\ParamClass\PWord;
@@ -348,8 +349,8 @@ class RaidPointsController {
 	 * @HandlesCommand("raidpoints")
 	 * @Mask $action reward
 	 */
-	public function raidRewardPredefCommand(CmdContext $context, string $action, string $mob): void {
-		$reward = $this->getRaidReward($mob);
+	public function raidRewardPredefCommand(CmdContext $context, string $action, PNonNumber $mob): void {
+		$reward = $this->getRaidReward($mob());
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
@@ -599,6 +600,7 @@ class RaidPointsController {
 	}
 	/**
 	 * @HandlesCommand("pointsmod")
+	 * @Mask $action add
 	 */
 	public function pointsAdd2Command(CmdContext $context, string $action, int $points, PCharacter $char, string $reason): void {
 		$this->pointsAddCommand($context, $action, $char, $points, $reason);
@@ -606,6 +608,7 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("pointsmod")
+	 * @Mask $action add
 	 */
 	public function pointsAddCommand(CmdContext $context, string $action, PCharacter $char, int $points, string $reason): void {
 		$receiver = $char();

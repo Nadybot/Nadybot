@@ -87,13 +87,13 @@ class SymbiantController {
 			);
 			return;
 		}
-		$prof = $this->util->getProfessionName($prof());
-		if ($prof === '') {
+		$profession = $this->util->getProfessionName($prof());
+		if ($profession === '') {
 			$msg = "Could not find profession <highlight>{$prof}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		$this->showBestSymbiants($prof, $level, $context);
+		$this->showBestSymbiants($profession, $level, $context);
 	}
 
 	public function showBestSymbiants(string $prof, int $level, CmdContext $context): void {

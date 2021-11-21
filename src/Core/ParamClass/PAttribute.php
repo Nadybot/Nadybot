@@ -3,10 +3,11 @@
 namespace Nadybot\Core\ParamClass;
 
 class PAttribute extends Base {
-	protected static string $regExp = "agi(?:lity)?|int(?:elligence)?|psy(?:chic)?|sen(?:se)?|str(?:ength)?|sta(?:mina)?";
+	protected static string $regExp = "agi(?:lity)?|agl|int(?:elligence)?|psy(?:chic)?|sen(?:se)?|str(?:ength)?|sta(?:mina)?";
 	protected string $value;
 	protected static array $mapping = [
 		"agi" => "agility",
+		"agl" => "agility",
 		"int" => "intelligence",
 		"psy" => "psychic",
 		"sen" => "sense",
