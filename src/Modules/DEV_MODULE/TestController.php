@@ -253,16 +253,15 @@ class TestController {
 	public function testAllCommand(CmdContext $context, string $action="all"): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
-		if (!$this->settingManager->getBool('show_test_results')) {
-			$testContext->sendto = new MockCommandReply();
-		}
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$starttime = time();
 		$context->reply("Starting tests...");
+		$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
+			"/tests-" . date("YmdHis", $starttime) . ".json";
 		foreach ($files as $file) {
 			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			$this->runTests($lines, $testContext);
+			$this->runTests($lines, $testContext, $logFile);
 		}
 		$time = $this->util->unixtimeToReadable(time() - $starttime);
 		$context->reply("Finished tests. Time: $time");
@@ -276,24 +275,22 @@ class TestController {
 
 		$testContext = clone $context;
 		$testContext->channel = "msg";
-		if (!$this->settingManager->getBool('show_test_results')) {
-			$testContext->sendto = new MockCommandReply();
-			$testContext->sendto->logger = $this->logger;
-		}
 
 		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
 		if ($lines === false) {
 			$context->reply("Could not find test <highlight>$file<end> to run.");
 		} else {
 			$starttime = time();
+			$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
+				"/tests-" . date("YmdHis", $starttime) . ".json";
 			$context->reply("Starting test $file...");
-			$this->runTests($lines, $testContext);
+			$this->runTests($lines, $testContext, $logFile);
 			$time = $this->util->unixtimeToReadable(time() - $starttime);
 			$context->reply("Finished test $file. Time: $time");
 		}
 	}
 
-	public function runTests(array $commands, CmdContext $context): void {
+	public function runTests(array $commands, CmdContext $context, string $logFile): void {
 		foreach ($commands as $line) {
 			if ($line[0] !== "!") {
 				continue;
@@ -301,7 +298,9 @@ class TestController {
 			if ($this->settingManager->getBool('show_test_commands')) {
 				$this->chatBot->sendTell($line, $context->char->name);
 			} else {
-				$this->logger->log('DEBUG', $line);
+				$this->logger->log('INFO', $line);
+				$context->sendto = new MockCommandReply($line, $logFile);
+				$context->sendto->logger = $this->logger;
 			}
 			$context->message = substr($line, 1);
 			$this->commandManager->processCmd($context);

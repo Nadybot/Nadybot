@@ -257,10 +257,13 @@ class ImplantDesignerController {
 		PClusterSlot $type,
 		string $item
 	): void {
+		$slot = $slot();
+		$type = $type();
 		$design = $this->getDesign($context->char->name, '@');
+		$design->$slot ??= new stdClass();
 		$slotObj = &$design->$slot;
 
-		if ($type == 'symb') {
+		if ($type === 'symb') {
 			$symbRow = $this->db->table("Symbiant AS s")
 				->join("ImplantType AS i", "s.SlotID", "i.ImplantTypeID")
 				->where("i.ShortName", $slot)

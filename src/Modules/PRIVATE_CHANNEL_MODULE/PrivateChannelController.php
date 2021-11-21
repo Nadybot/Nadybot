@@ -626,7 +626,7 @@ class PrivateChannelController {
 				(int)round($row->cnt * 100 / $numOnline, 0),
 				3
 			);
-			$avg_level = round($row->avg_level, 1);
+			$avg_level = round((float)$row->avg_level, 1);
 			$blob .= "{$percent}% <highlight>{$guild}<end> - {$row->cnt} member(s), average level {$avg_level}\n";
 		}
 
