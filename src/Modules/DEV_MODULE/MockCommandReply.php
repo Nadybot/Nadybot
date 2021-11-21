@@ -18,7 +18,6 @@ class MockCommandReply implements CommandReply {
 	}
 
 	public function reply($msg): void {
-		var_dump($this->command . " data");
 		foreach ((array)$msg as $result) {
 			if (isset($this->logger)) {
 				$this->logger->log('INFO', $result);
@@ -28,7 +27,6 @@ class MockCommandReply implements CommandReply {
 	}
 
 	public function __destruct() {
-		var_dump($this->command . " destroyed");
 		file_put_contents(
 			$this->logFile,
 			json_encode([
