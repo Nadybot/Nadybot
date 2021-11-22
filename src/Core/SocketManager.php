@@ -15,9 +15,9 @@ class SocketManager {
 	];
 
 	public function checkMonitoredSockets(): bool {
-		$read   = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] ?? [];
-		$write  = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] ?? [];
-		$except = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] ?? [];
+		$read   = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] ?? [], "is_resource");
+		$write  = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] ?? [], "is_resource");
+		$except = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] ?? [], "is_resource");
 		if (empty($read) && empty($write) && empty($except)) {
 			return false;
 		}
