@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Text,
 };
+use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
@@ -77,25 +78,12 @@ class AlienBioController {
 	 *
 	 * @HandlesCommand("bio")
 	 */
-	public function bioCommand(CmdContext $context, string $data): void {
-		$bio_regex = "<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>Solid Clump of Kyr\'Ozch Bio-Material</a>";
-
-		if (!preg_match("|^(( *${bio_regex})+)$|i", $data, $arr)) {
-			$msg = "<highlight>{$data}<end> is not an unidentified clump.";
-			$context->reply($msg);
-			return;
-		}
-
-		$bios = preg_split("/(?<=>)\s*(?=<)/", $data);
+	public function bioCommand(CmdContext $context, PItem ...$clumps): void {
 		$blob = '';
 		$bioinfo = "";
-		$ql = 0;
 		$name = "Unknown Bio-Material";
-		foreach ($bios as $bio) {
-			preg_match("|^${bio_regex}$|i", trim($bio), $arr2);
-			$highid = (int)$arr2[2];
-			$ql = (int)$arr2[3];
-			switch ($highid) {
+		foreach ($clumps as $clump) {
+			switch ($clump->highID) {
 				case 247707:
 				case 247708:
 					$bioinfo = "1";
@@ -178,20 +166,25 @@ class AlienBioController {
 					break;
 				default:
 					$bioinfo = "";
-					$name = "Unknown Bio-Material";
+					if ($clump->name === "Solid Clump of Kyr'Ozch Bio-Material") {
+						$name = "Unknown Bio-Material";
+					} else {
+						$context->reply("{$clump} is not bio material.");
+						return;
+					}
 					break;
 			}
 
-			$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo $ql");
-			$blob .= "<header2>QL $ql clump<end>\n<tab>{$biotypeLink} (QL $ql)\n\n";
+			$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo {$clump->ql}");
+			$blob .= "<header2>QL {$clump->ql} clump<end>\n<tab>{$biotypeLink} (QL {$clump->ql})\n\n";
 		}
 
-		if (count($bios) === 1) {
+		if (count($clumps) === 1) {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
 			if (is_numeric($bioinfo)) {
-				$this->bioinfoIDCommand($context, (int)$bioinfo, $ql);
+				$this->bioinfoIDCommand($context, (int)$bioinfo, $clumps[0]->ql);
 			} else {
-				$this->bioinfoCommand($context, new PWord($bioinfo), $ql);
+				$this->bioinfoCommand($context, new PWord($bioinfo), $clumps[0]->ql);
 			}
 		} else {
 			$msg = $this->text->makeBlob("Identified Bio-Materials", $blob);

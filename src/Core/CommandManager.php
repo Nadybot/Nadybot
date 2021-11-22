@@ -15,6 +15,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use ReflectionClass;
 use ReflectionNamedType;
+use ReflectionParameter;
 
 /**
  * @Instance
@@ -475,23 +476,36 @@ class CommandManager implements MessageEmitter {
 								$args []= null;
 								continue;
 							}
+							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
+								$context->args[$var] = $context->args[$var][0];
+							}
 							switch ($type->getName()) {
 								case "int":
-									$args []= (int)$context->args[$var];
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= (int)$val;
+									}
 									break;
 								case "bool":
-									$args []= in_array(strtolower($context->args[$var]), ["yes", "true", "1", "on", "enable", "enabled"]);
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
+									}
 									break;
 								case "float":
-									$args []= (float)$context->args[$var];
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= (float)$val;
+									}
 									break;
 								default:
 									if (is_subclass_of($type->getName(), Base::class)) {
 										$class = $type->getName();
-										/** @psalm-suppress UnsafeInstantiation */
-										$args []= new $class($context->args[$var]);
+										foreach ((array)$context->args[$var] as $val) {
+											/** @psalm-suppress UnsafeInstantiation */
+											$args []= new $class($val);
+										}
 									} else {
-										$args []= $context->args[$var];
+										foreach ((array)$context->args[$var] as $val) {
+											$args []= $val;
+										}
 									}
 									break;
 							}
@@ -579,7 +593,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Check if a received message matches the stored Regexp handler of a method
 	 *
-	 * @return string[]|bool true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
+	 * @return string[]|bool|array<string,string[]> true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
 	 */
 	public function checkMatches(object $instance, string $method, string $message) {
 		try {
@@ -593,7 +607,10 @@ class CommandManager implements MessageEmitter {
 
 		if (count($regexes) > 0) {
 			foreach ($regexes as $regex) {
-				if (preg_match($regex, $message, $arr)) {
+				if (preg_match($regex->match, $message, $arr)) {
+					if (isset($regex->variadicMatch)) {
+						preg_match_all($regex->variadicMatch, $message, $arr);
+					}
 					return $arr;
 				}
 			}
@@ -605,19 +622,19 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get all stored regular expression Matches for a function
 	 *
-	 * @return string[]
+	 * @return CommandRegexp[]
 	 */
 	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
 		$regexes = [];
 		if ($reflectedMethod->hasAnnotation('Matches')) {
 			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
-				$regexes []= preg_replace_callback(
+				$regexes []= new CommandRegexp(preg_replace_callback(
 					"/:([A-Z]+)/",
 					function (array $matches): string {
 						return $this->matchClasses[$matches[1]] ?? ":{$matches[1]}";
 					},
 					$annotation->value
-				);
+				));
 			}
 		} elseif ($reflectedMethod->hasAnnotation('HandlesCommand')) {
 			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
@@ -625,6 +642,74 @@ class CommandManager implements MessageEmitter {
 		return $regexes;
 	}
 
+	protected function getParamRegexp(ReflectionParameter $param, string $comment): ?CommandRegexp {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		$varName = $param->getName();
+		if ($type->isBuiltin()) {
+			switch ($type->getName()) {
+				case "string":
+					$new = "(?<{$varName}>.+)";
+					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+						$default = $masks[1];
+					} elseif ($param->isDefaultValueAvailable()) {
+						$default = $param->getDefaultValue();
+					} else {
+						break;
+					}
+					if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
+						$new = "(?<{$varName}>" . substr($default, 1);
+					} else {
+						$new = "(?<{$varName}>" . preg_quote($default) . ")";
+					}
+					break;
+				case "int":
+					$mask = '\d+';
+					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+						$mask = $masks[1];
+					}
+					$new = "(?<{$varName}>{$mask})";
+					break;
+				case "bool":
+					$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
+					break;
+				case "float":
+					$new  = "(?<{$varName}>\d*\.?\d+)";
+					break;
+			}
+		} else {
+			$new = "(?:" . [$type->getName(), "getPreRegExp"]().
+				"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
+		}
+		if (!isset($new)) {
+			return null;
+		}
+		$regexp = new CommandRegexp("\\s+{$new}");
+		if ($param->allowsNull()) {
+			if ($param->isVariadic()) {
+				$regexp->variadicMatch = $regexp->match;
+				$regexp->match = "(?:{$regexp->match})*";
+			} else {
+				$regexp->match = "(?:{$regexp->match})?";
+			}
+		} elseif ($param->isVariadic()) {
+			$regexp->variadicMatch = $regexp->match;
+			$regexp->match = "(?:{$regexp->match})+";
+		}
+		return $regexp;
+	}
+
+	/**
+	 * @return CommandRegexp[]
+	 */
 	public function getRegexpFromCharClass(ReflectionAnnotatedMethod $method): array {
 		$params = $method->getParameters();
 		if (count($params) === 0
@@ -649,63 +734,23 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 		$comment = $method->getDocComment();
+		$variadic = null;
 		for ($i = 1; $i < count($params); $i++) {
-			$new = null;
-			if (!$params[$i]->hasType()) {
+			$regex = $this->getParamRegexp($params[$i], $comment);
+			if ($regex === null) {
 				return [];
 			}
-			$type = $params[$i]->getType();
-			if (!($type instanceof ReflectionNamedType)) {
-				return [];
+			if (isset($regex->variadicMatch)) {
+				$variadic = ["(?:^", ...$regexp, "|\\G)"];
+				$variadic []= $regex->variadicMatch;
 			}
-			if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-				return [];
-			}
-			$varName = $params[$i]->getName();
-			if ($type->isBuiltin()) {
-				switch ($type->getName()) {
-					case "string":
-						$new = "(?<{$varName}>.+)";
-						if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-							$default = $masks[1];
-						} elseif ($params[$i]->isDefaultValueAvailable()) {
-							$default = $params[$i]->getDefaultValue();
-						} else {
-							break;
-						}
-						if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
-							$new = "(?<{$varName}>" . substr($default, 1);
-						} else {
-							$new = "(?<{$varName}>" . preg_quote($default) . ")";
-						}
-						break;
-					case "int":
-						$mask = '\d+';
-						if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-							$mask = $masks[1];
-						}
-						$new = "(?<{$varName}>{$mask})";
-						break;
-					case "bool":
-						$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
-						break;
-					case "float":
-						$new  = "(?<{$varName}>\d*\.?\d+)";
-						break;
-				}
-			} else {
-				$new = "(?:" . [$type->getName(), "getPreRegExp"]().
-					"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
-			}
-			if (isset($new)) {
-				if ($params[$i]->allowsNull()) {
-					$regexp []= "(?:\\s+{$new})?";
-				} else {
-					$regexp []= "\\s+{$new}";
-				}
-			}
+			$regexp []= $regex->match;
 		}
-		$result = [chr(1) . "^" . join("", $regexp) . '$' . chr(1) . "is"];
+		$regexp = new CommandRegexp(chr(1) . "^" . join("", $regexp) . '$' . chr(1) . "is");
+		if (isset($variadic)) {
+			$regexp->variadicMatch = chr(1) . join("", $variadic) . chr(1) . "is";
+		}
+		$result = [$regexp];
 		return $result;
 	}
 
