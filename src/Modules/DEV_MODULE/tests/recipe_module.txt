@@ -6,13 +6,12 @@
 !recipe comp
 !recipe 781
 !recipe <a href='itemref://150930/150930/10'>Personal Furnace</a>
-!rshow 30
-!rshow 3000
 
 !arulsaba
 !arulsaba glory
 !arulsaba glory 0 left
 !arulsaba glory 1 left
 !arulsaba glory 5 right
+!arulsaba glory 6 left
 
 /text End RECIPE_MODULE

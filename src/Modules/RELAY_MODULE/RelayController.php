@@ -671,8 +671,9 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action list
 	 */
-	public function relayListCommand(CmdContext $context, ?string $action="list"): void {
+	public function relayListCommand(CmdContext $context, ?string $action): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
 			$context->reply("There are no relays defined.");
@@ -918,14 +919,14 @@ class RelayController {
 	 * @HandlesCommand("relay")
 	 * @Mask $action config
 	 * @Mask $subAction eventset
-	 * @Mask $events ([a-z()_-]+\s+(?:IO|O|I)(?:\s+[a-z()_-]+\s+(?:IO|OI|O|I))*)
+	 * @Mask $events ([a-z()_-]+\s+(?:IO|O|I))
 	 */
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
 		string $action,
 		PWord $name,
 		string $subAction,
-		?string $events
+		?string ...$events
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -941,8 +942,11 @@ class RelayController {
 			);
 			return;
 		}
-		preg_match_all("/\s*(?<event>[a-z()_-]+)\s+(?<dir>IO|O|I)/is", $events??"", $matches);
-		$eventConfigs = array_combine($matches['event'], $matches['dir']);
+		$eventConfigs = [];
+		foreach ($events as $eventConfig) {
+			[$eventName, $dir] = preg_split("/\s+/", $eventConfig??"");
+			$eventConfigs[$eventName] = $dir;
+		}
 		$this->db->table(static::DB_TABLE_EVENT)
 			->where("relay_id", $relay->id)
 			->delete();

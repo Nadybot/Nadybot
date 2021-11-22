@@ -1,6 +1,36 @@
 #relay_module
 /text Start RELAY_MODULE
-#todo
+!quickrelay
+!quickrelay nady
+!quickrelay tyr
+!quickrelay old
+!quickrelay alliance
+
+!relay
+!relay list protocol
+!relay list protocol agcr
+!relay list protocol error
+!relay list transport
+!relay list transport amqp
+!relay list transport error
+!relay list layer
+!relay list layer highway
+!relay list layer error
+
+!relay add test websocket(server="wss://ws.nadybot.org") highway(room="deadbeed-dead-beef-dead-beefdeadbeef") aes-gcm-encryption(password="deadBeefd34db33f") nadynative()
+!relay describe test
+!relay describe error
+!relay config test
+!relay config error
+!relay config test eventmod sync(cd) enable incoming
+!relay config test eventmod sync(cd) enable outgoing
+!relay config test eventset
+!relay config test eventset sync(cd) I sync(timer) O
+!relay config test eventset sync(cd) O
+!sync cd
+!relay del error
+!relay del test
+!relay remall
 /text End RELAY_MODULE
 
 /raid_module.txt %1

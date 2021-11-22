@@ -16,4 +16,15 @@
 !news confirm 1
 !news
 
+!start
+!startpage
+!startpage pick 0
+!startpage pick 0 time
+!startpage pick 0 gsp
+!startpage pick 0 news
+!startpage move gsp down
+!startpage describe time
+!start
+!startpage rem gsp
+
 /text End NEWS_MODULE

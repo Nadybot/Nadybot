@@ -46,6 +46,7 @@
 !count adventurer
 !count error
 !kickall
+!kickall now
 !settings save add_member_on_join 1
 !join
 !mod add Regolus
@@ -55,5 +56,10 @@
 !testleave Pigtail
 !kickall later
 !kickall now
+!rules
+!lock Maintenance work
+!lock Fixing typos
+!unlock
+
 
 /text End PRIVATE_CHANNEL_MODULE

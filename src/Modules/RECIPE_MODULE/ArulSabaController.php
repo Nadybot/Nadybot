@@ -269,8 +269,8 @@ class ArulSabaController {
 			->where("name", $type)
 			->asObj(ArulSaba::class)
 			->first();
-		if (!isset($arul)) {
-			$context->reply("No Bracelet of Arul Saba ({$type}) found.");
+		if (!isset($arul) || ($numGems > 0 && !isset($blueprints[$numGems]))) {
+			$context->reply("No Bracelet of Arul Saba ({$type} - {$numGems}/{$numGems}) found.");
 			return;
 		}
 		$gems = [];

@@ -9,6 +9,7 @@
 !orglist end
 !orglist Team Rainbow
 !orglist Nadyita
+!orglist xx
 
 !orgmembers
 !orgmembers Nadyita
@@ -19,6 +20,9 @@
 !whoisorg
 !whoisorg Nadyita
 !whoisorg Team Rainbow
+!whoisorg Mjolnir
+!whoisorg Avue 5
+!whoisorg Avue 6
 !whoisorg 1329153
 !whoisorg -1
 !whoisorg 0

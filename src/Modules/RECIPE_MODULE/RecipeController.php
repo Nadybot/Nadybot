@@ -6,6 +6,7 @@ use Exception;
 use JsonException;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
+use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -196,11 +197,12 @@ class RecipeController {
 	public function recipeSearchCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("recipes")
 			->orderBy("name");
-		if (preg_match("|<a href=[\"']?itemref://(\d+)/(\d+)/(\d+)[\"']?>([^<]+)</a>|", $search, $matches)) {
-			$search = $matches[4];
+		if (PItem::matches($search)) {
+			$item = new PItem($search);
+			$search = $item->name;
 
-			$query->whereIlike("recipe", "%{$matches[1]}%")
-				->orWhereIlike("recipe", "%{$search}%");
+			$query->whereIlike("recipe", "%{$item->lowID}%")
+				->orWhereIlike("recipe", "%{$item->name}%");
 		} else {
 			$this->db->addWhereFromParams($query, explode(" ", $search), "recipe");
 		}
