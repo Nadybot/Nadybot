@@ -1,6 +1,15 @@
 #items_module
 /text Start ITEMS_MODULE
 
+!boss
+!boss xark
+!boss abmouth
+!boss ekljhwjef
+!bossloot
+!bossloot Obliterator
+!bossloot ekjfhwkjfhkjwe
+
+
 !updateitems
 !items
 !items fjhfjkwef
