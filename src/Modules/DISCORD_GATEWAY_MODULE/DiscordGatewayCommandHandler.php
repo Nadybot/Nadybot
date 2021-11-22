@@ -5,7 +5,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
-	CommandReply,
 	DB,
 	LoggerWrapper,
 	Nadybot,

@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -79,42 +80,42 @@ class DiscController {
 	 *
 	 * @HandlesCommand("disc")
 	 */
-	public function discCommand(CmdContext $context, string $item): void {
-		$disc = null;
-		// Check if a disc was pasted into the chat and extract its ID
-		if (preg_match("|<a href=['\"]itemref://(?<lowId>\d+)/(?<highId>\d+)/(?<ql>\d+)['\"]>(?<name>.+?)</a>|", $item, $matches)) {
-			$discId = (int)$matches['lowId'];
-			// If there is a DiscID deducted, get the nano crystal ID and name
-			$disc = $this->getDiscById($discId);
-			// None found? Cannot be made into a nano anymore
-			if ($disc === null) {
-				if (!preg_match('|instruction\s*dis[ck]|i', $matches["name"])) {
-					$msg = "{$item} is not an instruction disc.";
-				} else {
-					$msg = "{$item} cannot be made into a nano anymore.";
-				}
-				$context->reply($msg);
-				return;
-			}
-		} else {
-			// If only a name was given, lookup the disc's ID
-			$discs = $this->getDiscsByName($item);
-			// Not found? Cannot be made into a nano anymore or simply mistyped
-			if (empty($discs)) {
-				$msg = "Either <highlight>{$item}<end> was mistyped or it cannot be turned into a nano anymore.";
-				$context->reply($msg);
-				return;
-			}
-			// If there are multiple matches, present a list of discs to choose from
-			if (count($discs) > 1) {
-				$context->reply($this->getDiscChoiceDialogue($discs));
-				return;
-			}
-			// Only one found, so pick this one
-			$disc = $discs[0];
+	public function discByItemCommand(CmdContext $context, PItem $item): void {
+		$disc = $this->getDiscById($item->lowID);
+		if (!isset($disc)) {
+			$msg = "Either <highlight>{$item}<end> is not an instruction disc, or it ".
+				"cannot be turned into a nano anymore.";
+			$context->reply($msg);
+			return;
 		}
+		$this->discCommand($context, $disc);
+	}
 
-		// Now we have exactly one nano. Show it to the user
+	/**
+	 * Command to show what nano a disc will turn into
+	 *
+	 * @HandlesCommand("disc")
+	 */
+	public function discByNameCommand(CmdContext $context, string $item): void {
+		// If only a name was given, lookup the disc's ID
+		$discs = $this->getDiscsByName($item);
+		// Not found? Cannot be made into a nano anymore or simply mistyped
+		if (empty($discs)) {
+			$msg = "Either <highlight>{$item}<end> was mistyped or it cannot be turned into a nano anymore.";
+			$context->reply($msg);
+			return;
+		}
+		// If there are multiple matches, present a list of discs to choose from
+		if (count($discs) > 1) {
+			$context->reply($this->getDiscChoiceDialogue($discs));
+			return;
+		}
+		// Only one found, so pick this one
+		$disc = $discs[0];
+		$this->discCommand($context, $disc);
+	}
+
+	public function discCommand(CmdContext $context, Disc $disc): void {
 		$discLink = $this->text->makeItem($disc->disc_id, $disc->disc_id, $disc->disc_ql, $disc->disc_name);
 		$nanoLink = $this->text->makeItem($disc->crystal_id, $disc->crystal_id, $disc->crystal_ql, $disc->crystal_name);
 		$nanoDetails = $this->getNanoDetails($disc);

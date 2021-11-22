@@ -180,10 +180,9 @@ class SymbiantController {
 
 	/**
 	 * @HandlesCommand("symbcompare")
-	 * @Mask $ids (\d+(?:\s+\d+)+)
 	 */
-	public function compareSymbiants(CmdContext $context, string $ids): void {
-		$ids = new Collection(preg_split("/\s+/", $ids));
+	public function compareSymbiants(CmdContext $context, int ...$ids): void {
+		$ids = new Collection($ids);
 
 		// Get all symbs that exist
 		$symbs = $ids->map(function(string $id): ?AODBEntry {
@@ -200,6 +199,11 @@ class SymbiantController {
 				}, []);
 			return $item;
 		})->filter();
+
+		if ($symbs->count() < 2) {
+			$context->reply("You have to give at least 2 symbiants for a comparison.");
+			return;
+		}
 
 		// Count which skill is buffed by how many
 		$buffCounter = $symbs->reduce(function(array $carry, AODBEntry $item): array {

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Nadybot\Core\{
 	CmdContext,
-	CommandReply,
 	DB,
 	Http,
 	LoggerWrapper,

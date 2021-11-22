@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\ParamClass\PQuantity;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
@@ -753,29 +754,20 @@ class LootController {
 	 * Add an item to the loot roll
 	 *
 	 * @HandlesCommand("mloot")
+	 * @SpaceOptional $loot
 	 */
-	public function mlootCommand(CmdContext $context, string $loot): void {
+	public function mlootCommand(CmdContext $context, PItem ...$loot): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-
-		$syntaxCorrect = preg_match_all(
-			"|(<a [^>]*?href=['\"]itemref://\d+/\d+/\d+['\"]>.+?</a>)|",
-			$loot,
-			$matches
-		);
-		if (!$syntaxCorrect) {
-			$context->reply("No items were identified. Only item references are supported.");
-			return;
-		}
-		foreach ($matches[1] as $item) {
-			$this->addLootItem($item, 1, $context->char->name, true);
+		foreach ($loot as $item) {
+			$this->addLootItem($item(), 1, $context->char->name, true);
 		}
 		$lootList = $this->getCurrentLootList();
 		$this->chatBot->sendPrivate(
 			$this->text->blobWrap(
-				"{$context->char->name} added " . count($matches[1]) . " items to the ",
+				"{$context->char->name} added " . count($loot) . " items to the ",
 				$lootList,
 				"."
 			)

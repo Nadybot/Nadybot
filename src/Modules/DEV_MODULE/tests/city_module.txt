@@ -4,3 +4,11 @@
 !cloak on
 !testcloaklower
 !testcloakraise
+!citywave start
+!citywave
+!citywave stop
+!testos Regolus
+!testos Pigtail
+!testos Nady
+!testos Nadyita
+/text End CITY_MODULE

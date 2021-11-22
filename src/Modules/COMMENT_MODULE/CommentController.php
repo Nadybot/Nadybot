@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	LoggerWrapper,
 	Nadybot,
@@ -282,9 +281,8 @@ class CommentController {
 	 * Command to delete a category
 	 *
 	 * @HandlesCommand("commentcategories")
-	 * @Mask $action (delete|del|rem|rm)
 	 */
-	public function deleteCategoryCommand(CmdContext $context, string $action, string $category): void {
+	public function deleteCategoryCommand(CmdContext $context, PRemove $action, string $category): void {
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
 			if ($cat->user_managed === false) {
@@ -629,7 +627,6 @@ class CommentController {
 	 * Command to delete a comment about a player
 	 *
 	 * @HandlesCommand("comment")
-	 * @Mask (delete|del|rem|rm)
 	 */
 	public function deleteCommentCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Comment */
