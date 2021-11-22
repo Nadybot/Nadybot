@@ -240,9 +240,10 @@ class GauntletBuffController implements MessageEmitter {
 	 * This command handler shows when all known gauntlet buffs
 	 *
 	 * @HandlesCommand("gaubuff")
+	 * @Mask $buffSide (clan|omni)
 	 */
-	public function gaubuffCommand(CmdContext $context, ?string $buffSide="(clan|omni)"): void {
-		$sides = $this->getSidesToShowBuff($buffSide??null);
+	public function gaubuffCommand(CmdContext $context, ?string $buffSide): void {
+		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
 		foreach ($sides as $side) {
 			$timer = $this->timerController->get("Gaubuff_{$side}");

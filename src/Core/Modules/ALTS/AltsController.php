@@ -370,8 +370,9 @@ class AltsController {
 	 * This command handler sets main character.
 	 *
 	 * @HandlesCommand("alts")
+	 * @Mask $action setmain
 	 */
-	public function setMainCommand(CmdContext $context, string $action="setmain"): void {
+	public function setMainCommand(CmdContext $context, string $action): void {
 		$newMain = $context->char->name;
 		$altInfo = $this->getAltInfo($newMain);
 

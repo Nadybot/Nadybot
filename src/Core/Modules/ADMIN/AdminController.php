@@ -143,8 +143,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("adminlist")
+	 * @Mask $all all
 	 */
-	public function adminlistCommand(CmdContext $context, ?string $all="all"): void {
+	public function adminlistCommand(CmdContext $context, ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";
 		foreach ($this->adminManager->admins as $who => $data) {

@@ -44,9 +44,10 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action (clear|clean)
 	 */
-	public function buddylistShowCommand(CmdContext $context, ?string $clean="clean"): void {
-		$cleanup = isset($clean);
+	public function buddylistShowCommand(CmdContext $context, ?string $action): void {
+		$cleanup = isset($action);
 
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -111,8 +112,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $all all
 	 */
-	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all="all"): void {
+	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}

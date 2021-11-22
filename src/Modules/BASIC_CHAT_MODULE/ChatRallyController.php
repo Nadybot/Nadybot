@@ -78,8 +78,9 @@ class ChatRallyController {
 	/**
 	 * This command handler clears the current rally location
 	 * @HandlesCommand("rally .+")
+	 * @Mask $action clear
 	 */
-	public function rallyClearCommand(CmdContext $context, string $action="clear"): void {
+	public function rallyClearCommand(CmdContext $context, string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

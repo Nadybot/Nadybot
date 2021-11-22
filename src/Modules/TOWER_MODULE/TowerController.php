@@ -359,7 +359,7 @@ class TowerController {
 	 *
 	 * @HandlesCommand("attacks")
 	 */
-	public function attacksCommand(CmdContext $context, ?int $page=1): void {
+	public function attacksCommand(CmdContext $context, ?int $page): void {
 		$this->attacksCommandHandler($page??1, null, '', $context);
 	}
 

@@ -231,8 +231,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (from|sources?|src)
 	 */
-	public function routeListFromCommand(CmdContext $context, string $action="list", string $subAction="(from|sources?|src)"): void {
+	public function routeListFromCommand(CmdContext $context, string $action, string $subAction): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -246,8 +248,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (to|dsts?|dests?|destinations?)
 	 */
-	public function routeListToCommand(CmdContext $context, string $action="list", string $subAction="(to|dsts?|dests?|destinations?)"): void {
+	public function routeListToCommand(CmdContext $context, string $action, string $subAction): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -261,8 +265,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (mods?|modifiers?)
 	 */
-	public function routeListModifiersCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)"): void {
+	public function routeListModifiersCommand(CmdContext $context, string $action, string $subAction): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
@@ -388,8 +394,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
 	 */
-	public function routeList(CmdContext $context, string $action="list"): void {
+	public function routeList(CmdContext $context, string $action): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -411,8 +418,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $tree tree
+	 * @Mask $all all
 	 */
-	public function routeTree(CmdContext $context, ?string $tree="tree", ?string $all="all"): void {
+	public function routeTree(CmdContext $context, ?string $tree, ?string $all): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -491,8 +500,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
 	 */
-	public function routeListColorConfigCommand(CmdContext $context, string $action="color"): void {
+	public function routeListColorConfigCommand(CmdContext $context, string $action): void {
 		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
 			$context->reply("No colors have been defined yet.");
@@ -618,8 +628,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $subAction remall
 	 */
-	public function routeTagColorRemAllCommand(CmdContext $context, string $action="color", string $subAction="remall"): void {
+	public function routeTagColorRemAllCommand(CmdContext $context, string $action, string $subAction): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->truncate();
 		$this->messageHub->loadTagColor();
@@ -758,8 +770,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
 	 */
-	public function routeListFormatCommand(CmdContext $context, string $action="format"): void {
+	public function routeListFormatCommand(CmdContext $context, string $action): void {
 		$formats = Source::$format;
 		if ($formats->isEmpty()) {
 			$context->reply("No formats have been defined yet.");
@@ -826,8 +839,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction remall
 	 */
-	public function routeFormatRemAllCommand(CmdContext $context, string $action="format", string $subAction="remall"): void {
+	public function routeFormatRemAllCommand(CmdContext $context, string $action, string $subAction): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
 		$this->messageHub->loadTagFormat();
 		$context->reply("All route format definitions deleted.");
@@ -886,8 +901,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action remall
 	 */
-	public function routeRemAllCommand(CmdContext $context, string $action="remall"): void {
+	public function routeRemAllCommand(CmdContext $context, string $action): void {
 		try {
 			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {

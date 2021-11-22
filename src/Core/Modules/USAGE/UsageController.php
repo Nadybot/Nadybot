@@ -190,8 +190,9 @@ class UsageController {
 
 	/**
 	 * @HandlesCommand("usage")
+	 * @Mask $action info
 	 */
-	public function usageInfoCommand(CmdContext $context, string $action="info"): void {
+	public function usageInfoCommand(CmdContext $context, string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
 		$blob = json_encode(
 			$info,

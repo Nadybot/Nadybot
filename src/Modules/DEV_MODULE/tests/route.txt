@@ -1,0 +1,36 @@
+#messages
+/text Start MESSAGES
+!route
+!route list
+!route all
+!route add
+!route list src
+!route list dst
+!route list mods
+!route list mod remove-popups
+!route color
+!route color text
+!route color tag
+!route color text pick aopriv
+!route color text pick aopriv -> aotell(Nady)
+!route color text set aopriv #223344
+!route color text set aopriv -> aotell(Nady) #112233
+!route color text set aopriv -> aotell(Nady) <font color=#992233>
+!route color text set aopriv -> aotell(Nady) via relay(xxx) <font color=#992233>
+!route color text del aopriv -> aotell(Nady) via relay(xxx)
+!route color text del aopriv -> aotell(Nady)
+!route color text del aopriv
+
+!route format render aopriv false
+!route format render aopriv true
+!route format display aopriv PRIV:%s
+!say priv TEST
+!route format display aopriv %s
+
+!route add aopruv -> aotell(Nady)
+!route add aopriv -> aotoll(Nady)
+!route add aopriv -> aotell(Nady) if-matches(text="wejhfgwejf") remove-online-messages() if-not-command() remove-popups(remove-links=true)
+!route del 999
+!route del a
+
+/text End MESSAGES

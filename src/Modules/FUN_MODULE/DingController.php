@@ -47,8 +47,9 @@ class DingController {
 
 	/**
 	 * @HandlesCommand("ding")
+	 * @Mask $action dong
 	 */
-	public function dingDongCommand(CmdContext $context, string $action="dong"): void {
+	public function dingDongCommand(CmdContext $context, string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);
 	}

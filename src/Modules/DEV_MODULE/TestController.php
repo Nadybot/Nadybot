@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	AOChatPacket,
 	CmdContext,
 	CommandManager,
-	CommandReply,
 	Event,
 	EventManager,
 	LoggerWrapper,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Registry,
 	SettingManager,
 	Text,
+	Timer,
 	Util,
 };
 use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
@@ -187,6 +187,9 @@ class TestController {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public Timer $timer;
+
+	/** @Inject */
 	public CommandManager $commandManager;
 
 	/** @Inject */
@@ -249,22 +252,23 @@ class TestController {
 
 	/**
 	 * @HandlesCommand("test")
+	 * @Mask $action all
 	 */
-	public function testAllCommand(CmdContext $context, string $action="all"): void {
+	public function testAllCommand(CmdContext $context, string $action): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
 
 		$files = $this->util->getFilesInDirectory($this->path);
-		$starttime = time();
 		$context->reply("Starting tests...");
 		$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
-			"/tests-" . date("YmdHis", $starttime) . ".json";
+			"/tests-" . date("YmdHis", time()) . ".json";
+		$testLines = [];
 		foreach ($files as $file) {
 			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			$this->runTests($lines, $testContext, $logFile);
+			$testLines = [...$testLines, ...$lines];
 		}
-		$time = $this->util->unixtimeToReadable(time() - $starttime);
-		$context->reply("Finished tests. Time: $time");
+		$this->runTests($testLines, $testContext, $logFile);
+		$context->reply("Tests queued.");
 	}
 
 	/**
@@ -291,21 +295,23 @@ class TestController {
 	}
 
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {
-		foreach ($commands as $line) {
-			$testContext = clone $context;
-			if ($line[0] !== "!") {
-				continue;
-			}
-			if ($this->settingManager->getBool('show_test_commands')) {
-				$this->chatBot->sendTell($line, $context->char->name);
-			} else {
-				$this->logger->log('INFO', $line);
-				$testContext->sendto = new MockCommandReply($line, $logFile);
-				$testContext->sendto->logger = $this->logger;
-			}
-			$testContext->message = substr($line, 1);
-			$this->commandManager->processCmd($testContext);
+		do {
+			$line = array_shift($commands);
+		} while (isset($line) && $line[0] !== "!");
+		if (!isset($line)) {
+			return;
 		}
+		$testContext = clone $context;
+		if ($this->settingManager->getBool('show_test_commands')) {
+			$this->chatBot->sendTell($line, $context->char->name);
+		} else {
+			$this->logger->log('INFO', $line);
+			$testContext->sendto = new MockCommandReply($line, $logFile);
+			$testContext->sendto->logger = $this->logger;
+		}
+		$testContext->message = substr($line, 1);
+		$this->commandManager->processCmd($testContext);
+		$this->timer->callLater(0, [$this, __FUNCTION__], $commands, $context, $logFile);
 	}
 
 	/**

@@ -76,4 +76,5 @@
 !mloot <a href="itemref://280727/280727/300">Sloth of the Xan</a> <a href='itemref://150930/150930/10'>Personal Furnace</a>
 !loot clear
 !mloot <a href="itemref://280727/280727/300">Sloth of the Xan</a><a href='itemref://150930/150930/10'>Personal Furnace</a>
+!loot clear
 /text End LOOT_MODULE

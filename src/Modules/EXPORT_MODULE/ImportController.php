@@ -127,8 +127,9 @@ class ImportController {
 
 	/**
 	 * @HandlesCommand("import")
+	 * @Mask $mappings (\w+=\w+)
 	 */
-	public function importCommand(CmdContext $context, PFilename $file, ?string $mapping="(\\w+=\\w+(?:\\s+\\w+=\\w+)*)"): void {
+	public function importCommand(CmdContext $context, PFilename $file, ?string ...$mappings): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
@@ -143,7 +144,7 @@ class ImportController {
 			return;
 		}
 		$usedRanks = $this->getRanks($import);
-		$rankMapping = $this->parseRankMapping($mapping??"");
+		$rankMapping = $this->parseRankMapping(array_filter($mappings));
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
 				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
@@ -194,11 +195,13 @@ class ImportController {
 		];
 	}
 
-	protected function parseRankMapping(string $input): array {
+	/**
+	 * @param string[] $mappings
+	 * @return array<string,string>
+	 */
+	protected function parseRankMapping(array $mappings): array {
 		$mapping = [];
-		$input = trim($input);
-		$parts = preg_split("/\s+/", $input);
-		foreach ($parts as $part) {
+		foreach ($mappings as $part) {
 			[$key, $value] = explode("=", $part);
 			$mapping[$key] = $value;
 		}

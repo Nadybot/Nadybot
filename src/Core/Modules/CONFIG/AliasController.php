@@ -101,8 +101,9 @@ class AliasController {
 	 * This command handler list all aliases.
 	 *
 	 * @HandlesCommand("alias")
+	 * @Mask $action list
 	 */
-	public function aliasListCommand(CmdContext $context, string $list="list"): void {
+	public function aliasListCommand(CmdContext $context, string $action): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];

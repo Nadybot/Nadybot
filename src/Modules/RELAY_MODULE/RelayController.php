@@ -765,8 +765,9 @@ class RelayController {
 
 	/**
 	 * @HandlesCommand("relay")
+	 * @Mask $action (remall|delall)
 	 */
-	public function relayRemAllCommand(CmdContext $context, string $action="(remall|delall)"): void {
+	public function relayRemAllCommand(CmdContext $context, string $action): void {
 		$numDeleted = $this->deleteAllRelays();
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
