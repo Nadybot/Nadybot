@@ -608,7 +608,6 @@ class CommandManager implements MessageEmitter {
 		if (count($regexes) > 0) {
 			foreach ($regexes as $regex) {
 				if (preg_match($regex->match, $message, $arr)) {
-					var_dump($regex->match);
 					if (isset($regex->variadicMatch)) {
 						preg_match_all($regex->variadicMatch, $message, $arr);
 					}
