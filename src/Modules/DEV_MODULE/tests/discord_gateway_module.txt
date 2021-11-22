@@ -2,3 +2,6 @@
 !extauth reject Nady
 !extauth request Nady
 !extauth accept Nady
+
+!discord channels
+!discord notify

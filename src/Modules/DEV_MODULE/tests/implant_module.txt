@@ -26,6 +26,17 @@
 !bestsymbiants 200
 !bestsymbiants xxx
 
+!symbcompare
+!symbcompare error
+!symbcompare a b c
+!symbcompare 1
+!symbcompare 1 2
+!symbcompare 1 2 3
+!symbcompare 278957
+!symbcompare 278957 278996
+!symbcompare 278957 278996 278983
+!symbcompare 278957 278996 278983 278970
+
 !implantdesigner clear
 !implantdesigner head
 !implantdesigner head shiny Treatment
@@ -33,5 +44,20 @@
 !implantdesigner eye require
 !implantdesigner head require
 !implantdesigner head require Agility
+
+!ladder treat 200
+!ladder ability 200
+!ladder int 200
+
+!pocketboss
+!pocketboss xark
+!pocketboss error
+!pocketboss Xark the Battletoad
+
+!symbiant eye
+!symbiant error
+!symbiant eye inf
+!symbiant eye error
+!symbiant head art alpha
 
 /text End IMPLANT_MODULE

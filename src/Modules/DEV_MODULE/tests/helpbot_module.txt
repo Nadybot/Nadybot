@@ -1,6 +1,12 @@
 #helpbot_module
 /text Start HELPBOT_MODULE
 
+!arbiter
+!arbiter set ai
+!arbiter set dio
+!arbiter set error
+!arbiter next monday
+
 !whatbuffs
 !whatbuffs nanoprogram
 !whatbuffs weapon
@@ -37,6 +43,9 @@
 !roll 5
 !roll 5 10
 !roll 10 5
+!roll Nady Pigtail Orana Regolus
+!roll 2x Nady Pigtail Orana Regolus
+!roll 3* Nady Pigtail Orana Regolus Leri Yume
 
 !flip
 
