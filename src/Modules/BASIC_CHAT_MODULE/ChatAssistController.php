@@ -313,29 +313,26 @@ class ChatAssistController {
 	 * @HandlesCommand("assist .+")
 	 * @Mask $action set
 	 */
-	public function assistSetCommand(CmdContext $context, string $action, string $callers): void {
+	public function assistSetCommand(CmdContext $context, string $action, PWord ...$callers): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-
-		$nameArray = preg_split("/\s+|\s*,\s*/", $callers);
-
 		$errors = [];
-		$callers = [];
+		$newCallers = [];
 		$groupName = "";
-		for ($i = 0; $i < count($nameArray); $i++) {
-			$name = ucfirst(strtolower($nameArray[$i]));
+		for ($i = 0; $i < count($callers); $i++) {
+			$name = ucfirst(strtolower($callers[$i]()));
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>$name<end> does not exist.";
 			} elseif ($context->channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$errors []= "Character <highlight>$name<end> is not in this bot.";
 			} else {
-				$callers []= $name;
+				$newCallers []= $name;
 			}
 			if (count($errors) && $i === 0) {
-				$groupName = $nameArray[$i];
+				$groupName = $callers[$i]();
 				$errors = [];
 			}
 		}
@@ -345,18 +342,18 @@ class ChatAssistController {
 		}
 
 		// reverse array so that the first character will be the primary assist, and so on
-		$callers = array_map(
+		$newCallers = array_map(
 			function(string $name) use ($context): Caller {
 				return new Caller($name, $context->char->name);
 			},
-			array_reverse($callers)
+			array_reverse($newCallers)
 		);
 		$backup = $this->backupCallers($context->char->name, $context->message);
 		$groupKey = strtolower($groupName);
 		$this->callers[$groupKey] = new CallerList();
 		$this->callers[$groupKey]->creator = $context->char->name;
 		$this->callers[$groupKey]->name = $groupName;
-		$this->callers[$groupKey]->callers = $callers;
+		$this->callers[$groupKey]->callers = $newCallers;
 		$this->storeBackup($backup);
 
 		$blob = (array)$this->text->makeBlob("list of callers", $this->getAssistMessage());
