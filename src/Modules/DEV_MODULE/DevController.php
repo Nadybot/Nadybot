@@ -156,11 +156,11 @@ class DevController {
 		foreach ($regexes as $command => $list) {
 			$blob .= "<header2>{$command}<end>";
 			foreach ($list as $regex) {
-				if (preg_match("/^(.)(.+?)\\1([a-z]*)$/", $regex, $matches)) {
-					$regex = "(?{$matches[3]})  {$matches[2]}";
-					$regex = preg_replace("/\(\?<.+?>/", "(", $regex);
+				if (preg_match("/^(.)(.+?)\\1([a-z]*)$/", $regex->match, $matches)) {
+					$regex->match = "(?{$matches[3]})  {$matches[2]}";
+					$regex->match = preg_replace("/\(\?<.+?>/", "(", $regex->match);
 				}
-				$blob .= "\n<tab>" . htmlspecialchars($regex);
+				$blob .= "\n<tab>" . htmlspecialchars($regex->match);
 			}
 			$blob .= "\n\n";
 		}
