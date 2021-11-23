@@ -176,8 +176,12 @@ class AlienBioController {
 					break;
 			}
 
-			$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo {$clump->ql}");
-			$blob .= "<header2>QL {$clump->ql} clump<end>\n<tab>{$biotypeLink} (QL {$clump->ql})\n\n";
+			$biotypeLink = $name;
+			if ($bioinfo !== "") {
+				$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo {$clump->ql}");
+			}
+			$blob .= "<header2>QL {$clump->ql} clump<end>\n".
+				"<tab>{$biotypeLink} (QL {$clump->ql})\n\n";
 		}
 
 		if (count($clumps) === 1) {
