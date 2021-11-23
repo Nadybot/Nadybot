@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+use Nadybot\Core\Modules\BUDDYLIST\BuddylistController;
 use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\ParamClass\PFaction;
@@ -193,6 +194,9 @@ class TestController {
 	public CommandManager $commandManager;
 
 	/** @Inject */
+	public BuddylistController $buddylistController;
+
+	/** @Inject */
 	public PlayfieldController $playfieldController;
 
 	/** @Inject */
@@ -257,6 +261,8 @@ class TestController {
 	public function testAllCommand(CmdContext $context, string $action): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
+		$testContext->sendto = new MockCommandReply("buddylist clear");
+		$this->buddylistController->buddylistShowCommand($testContext, "clear");
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");
