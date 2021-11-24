@@ -1,8 +1,0 @@
-#Broadcast Module
-/text Start BROADCAST_MODULE
-
-!broadcast
-!broadcast add Nady
-!broadcast add Nadydoesnotexist
-!broadcast rem Nadydoesnotexist
-!broadcast rem Nady

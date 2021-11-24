@@ -100,7 +100,10 @@ class BosslootController {
 			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
 			->where("name", $row->bossname)
 			->asObj(WhereisResult::class)
-			->map(function(WhereisResult $npc): string {
+			->map(function (WhereisResult $npc): string {
+				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
+					return $npc->answer;
+				}
 				return $this->text->makeChatcmd(
 					$npc->answer,
 					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
@@ -181,6 +184,9 @@ class BosslootController {
 			->where("name", $row->bossname)
 			->asObj(WhereisResult::class)
 			->map(function (WhereisResult $npc): string {
+				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
+					return "<highlight>{$npc->answer}<end>";
+				}
 				return $this->text->makeChatcmd(
 					$npc->answer,
 					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"

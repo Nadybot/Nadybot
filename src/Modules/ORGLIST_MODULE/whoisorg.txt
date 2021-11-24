@@ -1,4 +1,4 @@
-To shhow info about an org on the current server:
+To show info about an org on the current server:
 <highlight><tab><symbol>whoisorg 'org id'<end>
 
 To show info about a player's org on the current server:

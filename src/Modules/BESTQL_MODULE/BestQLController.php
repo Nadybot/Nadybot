@@ -97,7 +97,11 @@ class BestQLController {
 			$value = (int)round($value);
 			if (count($specPairs) % 2) {
 				if ($value > $maxAttribute) {
-					$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>$oldRequirement<end>. QL $searchedQL already requires $value.";
+					if ($searchedQL === 1) {
+						$msg = "Your stats are too low to equip any QL of this item.";
+					} else {
+						$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>$oldRequirement<end>. QL $searchedQL already requires $value.";
+					}
 					$context->reply($msg);
 					return;
 				}
@@ -115,6 +119,12 @@ class BestQLController {
 				$numFoundItems++;
 				$oldValue = $value;
 			}
+		}
+		if (count($specPairs) % 2) {
+			$maxQL = max(array_keys($itemSpecs));
+			$msg = "The highest QL is <highlight>{$maxQL}<end> with a requirement of <highlight>{$itemSpecs[$maxQL]}<end>.";
+			$context->reply($msg);
+			return;
 		}
 
 		$blob = $this->text->makeBlob("breakpoints", $msg, "Calculated breakpoints for your item");

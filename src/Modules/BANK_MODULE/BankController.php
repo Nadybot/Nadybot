@@ -88,6 +88,10 @@ class BankController {
 			->orderBy("player")
 			->select("player")->distinct()
 			->asObj()->pluck("player");
+		if ($characters->isEmpty()) {
+			$context->reply("No bank characters found.");
+			return;
+		}
 		$blob = "<header2>Available characters<end>\n";
 		foreach ($characters as $character) {
 			$characterLink = $this->text->makeChatcmd($character, "/tell <myname> bank browse {$character}");

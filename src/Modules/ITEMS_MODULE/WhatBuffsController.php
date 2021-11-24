@@ -178,6 +178,10 @@ class WhatBuffsController {
 			}
 			$data = $query->asObj();
 		} elseif ($type === 'Perk') {
+			if ($froobFriendly) {
+				$sendto->reply("Froobs don't have perks.");
+				return;
+			}
 			$query = $this->db->table('perk');
 			$query
 				->join("perk_level", "perk_level.perk_id", "=", "perk.id")
@@ -328,8 +332,10 @@ class WhatBuffsController {
 			$nanoQuery->where('buffs.froob_friendly', '=', true);
 		}
 		$innerQuery = $itemQuery
-			->unionAll($nanoQuery)
-			->unionAll($perkQuery);
+			->unionAll($nanoQuery);
+		if (!$froobFriendly) {
+			$innerQuery->unionAll($perkQuery);
+		}
 		$query = $this->db->fromSub($innerQuery, "foo");
 		$query
 			->groupBy('foo.item_type')
@@ -387,6 +393,9 @@ class WhatBuffsController {
 			}
 			$result = $this->formatBuffs($data->toArray(), $skill);
 		} elseif ($category === 'Perk') {
+			if ($froobFriendly) {
+				return "Froobs don't have perks.";
+			}
 			$query = $this->db->table('perk AS p');
 			/** @var Collection<PerkBuffSearchResult> */
 			$data = $query

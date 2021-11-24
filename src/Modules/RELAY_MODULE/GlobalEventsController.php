@@ -40,6 +40,8 @@ class GlobalEventsController {
 	public function connectToHighway(): void {
 		$relay = new Relay("global_events");
 		Registry::injectDependencies($relay);
+		$relay->registerAsEmitter = false;
+		$relay->registerAsReceiver = false;
 		$transportLayer = new Websocket("wss://ws.nadybot.org");
 		Registry::injectDependencies($transportLayer);
 		$highwayLayer = new HighwayPublic(["boss_timers"]);

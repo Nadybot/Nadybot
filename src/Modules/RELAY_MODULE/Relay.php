@@ -60,6 +60,8 @@ class Relay implements MessageReceiver {
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
+	public bool $registerAsReceiver = true;
+	public bool $registerAsEmitter = true;
 
 	public function __construct(string $name) {
 		$this->name = $name;
@@ -167,9 +169,12 @@ class Relay implements MessageReceiver {
 
 	public function deinit(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
-			$this->messageHub
-				->unregisterMessageEmitter($this->getChannelName())
-				->unregisterMessageReceiver($this->getChannelName());
+			if ($this->registerAsEmitter) {
+				$this->messageHub->unregisterMessageEmitter($this->getChannelName());
+			}
+			if ($this->registerAsReceiver) {
+				$this->messageHub->unregisterMessageReceiver($this->getChannelName());
+			}
 		}
 		/** @var RelayStackArraySenderInterface[] */
 		$layers = [
@@ -200,9 +205,12 @@ class Relay implements MessageReceiver {
 		$this->initialized = false;
 		$this->onlineChars = [];
 		$this->initStep = $index;
-		$this->messageHub
-			->registerMessageEmitter($this)
-			->registerMessageReceiver($this);
+		if ($this->registerAsEmitter) {
+			$this->messageHub->registerMessageEmitter($this);
+		}
+		if ($this->registerAsReceiver) {
+			$this->messageHub->registerMessageReceiver($this);
+		}
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;

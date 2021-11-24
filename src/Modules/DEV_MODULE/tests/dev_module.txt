@@ -5,3 +5,21 @@
 !silence raid tell
 !unsilence raid all
 !unsilence raid tell
+!showcmdregex
+!showcmdregex bio
+!showcmdregex raid
+!showcmdregex errrror
+!intransaction
+!stacktrace
+!cmdhandlers
+!cmdhandlers raid
+!cmdhandlers fwegfw
+!makeitem 1 2 3 Test name
+!createblob error
+!createblob 200
+!createblob 200 2
+!createblob 200 error
+!gameicons
+!gameicons error
+!htmldecode
+!htmldecode bio &lt;a href="itemref://247764/247764/1"&gt;Solid Clump of Kyr'Ozch Bio-Material&lt;/a&gt;

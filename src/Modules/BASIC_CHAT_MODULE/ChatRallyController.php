@@ -111,8 +111,8 @@ class ChatRallyController {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-		$xCoords = preg_replace("/^([0-9.]+).*/", "", $x);
-		$yCoords = preg_replace("/^([0-9.]+).*/", "", $y);
+		$xCoords = (float)$x;
+		$yCoords = (float)$y;
 
 		$playfieldName = $pf();
 		if (is_numeric($pf())) {
@@ -132,11 +132,11 @@ class ChatRallyController {
 			}
 			$playfieldId = $playfield->id;
 		}
-		$this->set($playfieldName, $playfieldId, $xCoords, $yCoords);
+		$this->set($playfieldName, $playfieldId, (string)$xCoords, (string)$yCoords);
 		$this->replyCurrentRally($context);
 		$rEvent = new SyncRallySetEvent();
-		$rEvent->x = (int)round((float)$xCoords);
-		$rEvent->y = (int)round((float)$yCoords);
+		$rEvent->x = (int)round($xCoords);
+		$rEvent->y = (int)round($yCoords);
 		$rEvent->pf = $playfieldId;
 		$rEvent->owner = $context->char->name;
 		$rEvent->name = $playfieldName;

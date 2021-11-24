@@ -1,7 +1,10 @@
-/tell <myname> <symbol>fling [<orange>A<end>] [<orange>FS<end>]
-[<orange>A<end>] = Weapon Attack Time
-[<orange>FS<end>] = Fling Skill
+To calculate your fling shot recharge:
+<tab><highlight><symbol>fling 'attack time' 'fling shot skill'<end>
+
+If you are lazy, just use
+<tab><highlight><symbol>weapon 'drop weapon into chat'<end>
 
 Example:
-Your weapon has an attack of <orange>1.2<end> seconds and you have <orange>900<end> Fling skill.
-<a href='chatcmd:///tell <myname> <symbol>fling 1.2 900'>/tell <myname> <symbol>fling 1.2 900</a>
+<tab>Your weapon has an attack of <highlight>1.2<end> seconds.
+<tab>You have <highlight>900<end> Fling skill.
+<tab><a href='chatcmd:///tell <myname> <symbol>fling 1.2 900'>/tell <myname> <symbol>fling 1.2 900</a>

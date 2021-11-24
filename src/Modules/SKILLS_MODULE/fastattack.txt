@@ -1,7 +1,10 @@
-/tell <myname> <symbol>fastattack [<orange>A<end>] [<orange>F<end>]
-[<orange>A<end>] = Weapon Attack Time
-[<orange>F<end>] = Your Fast Attack Skill
+To calculate your fast attack recharge:
+<tab><highlight><symbol>fastattack 'attack time' 'fast attack skill'<end>
+
+If you are lazy, just use
+<tab><highlight><symbol>weapon 'drop weapon into chat'<end>
 
 Example:
-Your weapon has an attack time of <orange>1.2<end> seconds and you have <orange>900<end> Fast Attack skill.
-<a href='chatcmd:///tell <myname> <symbol>fastattack 1.2 900'>/tell <myname> <symbol>fastattack 1.2 900</a>
+<tab>Your weapon has an attack time of <highlight>1.2<end> seconds.
+<tab>You have <highlight>900<end> Fast Attack skill:
+<tab><a href='chatcmd:///tell <myname> <symbol>fastattack 1.2 900'>/tell <myname> <symbol>fastattack 1.2 900</a>

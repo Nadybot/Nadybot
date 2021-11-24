@@ -45,8 +45,6 @@ class PremadeImplantController {
 	/** @Inject */
 	public Util $util;
 
-	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-
 	/**
 	 * @Setup
 	 */
@@ -66,8 +64,8 @@ class PremadeImplantController {
 		if ($profession !== '') {
 			$searchTerms = $profession;
 			$results = $this->searchByProfession($profession);
-		} elseif (in_array($searchTerms, $this->slots)) {
-			$results = $this->searchBySlot($searchTerms);
+		} elseif (PImplantSlot::matches($searchTerms)) {
+			$results = $this->searchBySlot((new PImplantSlot($searchTerms))());
 		} else {
 			$results = $this->searchByModifier($searchTerms);
 		}

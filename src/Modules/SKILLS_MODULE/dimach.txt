@@ -1,6 +1,6 @@
-/tell <myname> <symbol>dimach [<orange>D<end>]
-[<orange>D<end>] = Dimach Skill
+To calculate your dimach recharge and damage:
+<tab><highlight><symbol>dimach 'dimach skill'<end>
 
 Example:
-You have 750 Dimach skill.
-<a href='chatcmd:///tell <myname> <symbol>dimach 750'>/tell <myname> <symbol>dimach 750</a>
+<tab>You have <highlight>750<end> Dimach skill.
+<tab><a href='chatcmd:///tell <myname> <symbol>dimach 750'>/tell <myname> <symbol>dimach 750</a>

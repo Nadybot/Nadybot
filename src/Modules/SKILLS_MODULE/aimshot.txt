@@ -1,8 +1,10 @@
-/tell <myname> <symbol>aimshot [<orange>A<end>] [<orange>R<end>] [<orange>AS<end>]
-[<orange>A<end>] = Weapon Attack Time
-[<orange>R<end>] = Weapon Recharge Time
-[<orange>AS<end>] = Your Aimed Shot skill
+To calculate your aimed shot recharge:
+<tab><highlight><symbol>aimshot 'attack time' 'recharge time' 'aimed shot skill'<end>
+
+If you are lazy, just use
+<tab><highlight><symbol>weapon 'drop weapon into chat'<end>
 
 Example:
-Your weapon has an attack time of <orange>1.2<end> seconds and a recharge time of <orange>1.5<end> seconds.  You have <orange>1200<end> Aimed Shot skill.
-<a href='chatcmd:///tell <myname> <symbol>aimshot 1.2 1.5 1200'>/tell <myname> <symbol>aimshot 1.2 1.5 1200</a>
+<tab>Your weapon has an attack time of <highlight>1.2<end> seconds and a recharge time of <highlight>1.5<end> seconds.
+<tab>You have <highlight>1200<end> Aimed Shot skill:
+<tab><a href='chatcmd:///tell <myname> <symbol>aimshot 1.2 1.5 1200'>/tell <myname> <symbol>aimshot 1.2 1.5 1200</a>

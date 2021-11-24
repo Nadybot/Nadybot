@@ -133,8 +133,11 @@ class ArbiterController {
 	 * @Mask $ends ends
 	 */
 	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends): void {
+		if (isset($setWeek)) {
+			$setWeek = strtolower($setWeek());
+		}
 		$validTypes = [static::AI, static::BS, static::DIO];
-		if (!isset($setWeek) || !is_int($pos = array_search($setWeek(), $validTypes))) {
+		if (!isset($setWeek) || !is_int($pos = array_search($setWeek, $validTypes))) {
 			$context->reply(
 				"Allowed current arbiter weeks are ".
 				$this->text->enumerate(
@@ -175,7 +178,7 @@ class ArbiterController {
 		$this->db->commit();
 		$context->reply(
 			"New times saved. It's currently <highlight>".
-			strtoupper($setWeek()) . "<end> week."
+			strtoupper($setWeek) . "<end> week."
 		);
 	}
 
