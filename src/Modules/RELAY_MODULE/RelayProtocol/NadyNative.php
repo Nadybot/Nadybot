@@ -232,7 +232,7 @@ class NadyNative implements RelayProtocolInterface {
 
 	protected function getOnlineList(): OnlineList {
 		$onlineList = new OnlineList();
-		$onlineOrg = $this->onlineController->getPlayers('guild');
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->chatBot->vars["my_guild"] ?? "") ;
 		if ($isOrg) {
 			$block = new OnlineBlock();
@@ -256,7 +256,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 
 		$privBlock = new OnlineBlock();
-		$onlinePriv = $this->onlineController->getPlayers('priv');
+		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privLabel = null;
 		if (isset($block)) {
 			$privLabel = "Guest";

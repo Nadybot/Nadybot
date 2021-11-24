@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Event;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -47,6 +48,9 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	/** @Inject */
 	public OnlineController $onlineController;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	protected string $command = "gcr";
 	protected string $prefix = "";
@@ -324,11 +328,11 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function getOnlineList(): ?string {
 		$chunks = [];
-		$onlineOrg = $this->onlineController->getPlayers('guild');
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},gc,{$char->guild_rank_id}";
 		}
-		$onlineOrg = $this->onlineController->getPlayers('priv');
+		$onlineOrg = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},pg";
 		}

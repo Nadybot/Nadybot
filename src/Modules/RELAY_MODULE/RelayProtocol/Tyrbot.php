@@ -231,7 +231,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"type" => "online_list",
 			"online" => []
 		];
-		$onlineOrg = $this->onlineController->getPlayers('guild');
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			$orgSource = [
 				"name" => $this->chatBot->vars["my_guild"],
@@ -255,7 +255,7 @@ class Tyrbot implements RelayProtocolInterface {
 			];
 		}
 
-		$onlinePriv = $this->onlineController->getPlayers('priv');
+		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privSource = [
 			"name" => $this->chatBot->char->name,
 			"server" => (int)$this->chatBot->vars["dimension"],

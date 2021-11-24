@@ -879,7 +879,7 @@ class OnlineController {
 	/**
 	 * @return OnlinePlayer[]
 	 */
-	public function getPlayers(string $channelType): array {
+	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table("online AS o")
 			->leftJoin("alts AS a", function (JoinClause $join) {
 				$join->on("o.name", "a.alt")
@@ -888,6 +888,9 @@ class OnlineController {
 			})->leftJoin("players AS p", "o.name", "p.name")
 			->where("o.channel_type", $channelType)
 			->select("p.*", "o.name", "o.afk");
+		if (isset($limitToBot)) {
+			$query->where("o.added_by", strtolower($limitToBot));
+		}
 		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		if ($groupBy === static::GROUP_BY_MAIN) {
