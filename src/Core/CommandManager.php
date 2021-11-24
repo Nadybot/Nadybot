@@ -468,7 +468,9 @@ class CommandManager implements MessageEmitter {
 						for ($i = 1; $i < count($params); $i++) {
 							$var = $params[$i]->getName();
 							if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
-								$args []= null;
+								if (!$params[$i]->isVariadic()) {
+									$args []= null;
+								}
 								continue;
 							}
 							$type = $params[$i]->getType();
@@ -609,7 +611,9 @@ class CommandManager implements MessageEmitter {
 			foreach ($regexes as $regex) {
 				if (preg_match($regex->match, $message, $arr)) {
 					if (isset($regex->variadicMatch)) {
-						preg_match_all($regex->variadicMatch, $message, $arr);
+						if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
+							$arr = $arr2;
+						}
 					}
 					return $arr;
 				}
