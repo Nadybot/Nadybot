@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TOWER_MODULE;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Nadybot;
 use Nadybot\Core\Registry;
 
 class ScoutInfo extends DBRow {
@@ -28,7 +29,9 @@ class ScoutInfo extends DBRow {
 			}
 		}
 		$scout->scouted_on = $data->created_at ?? time();
-		$scout->scouted_by = Registry::getInstance("chatBot")->char->name;
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance("chatBot");
+		$scout->scouted_by = $chatBot->char->name;
 		return $scout;
 	}
 }

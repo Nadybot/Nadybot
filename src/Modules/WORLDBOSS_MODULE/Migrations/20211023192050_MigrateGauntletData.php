@@ -73,7 +73,7 @@ class MigrateGauntletData implements SchemaMigration {
 		}
 		$gauInv = $db->table($table)
 			->asObj();
-		$gauInv->each(function (object $inv) use ($db): void {
+		$gauInv->each(function (object $inv): void {
 			$items = @unserialize($inv->items);
 			if (is_array($items)) {
 				$this->gauntletInventoryController->saveData($inv->player, $items);

@@ -4,8 +4,10 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
 	CacheManager,
-	CommandReply,
+	CmdContext,
 	Nadybot,
+	ParamClass\PFilename,
+	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -24,7 +26,6 @@ use Nadybot\Core\{
  *	)
  */
 class CacheController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -45,24 +46,22 @@ class CacheController {
 
 	/**
 	 * @HandlesCommand("cache")
-	 * @Matches("/^cache$/i")
 	 */
-	public function cacheCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
 			$blob .= $this->text->makeChatcmd($group, "/tell <myname> cache browse $group") . "\n";
 		}
 		$msg = $this->text->makeBlob("Cache Groups", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("cache")
-	 * @Matches("/^cache browse ([a-z0-9_-]+)$/i")
+	 * @Mask $action browse
+	 * @Mask $group ([a-z0-9_-]+)
 	 */
-	public function cacheBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$group = $args[1];
-
+	public function cacheBrowseCommand(CmdContext $context, string $action, string $group): void {
 		$path = $this->chatBot->vars['cachefolder'] . $group;
 
 		$blob = '';
@@ -73,36 +72,35 @@ class CacheController {
 			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem $group $file") . "]\n";
 		}
 		$msg = $this->text->makeBlob("Cache Group: $group", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("cache")
-	 * @Matches("/^cache rem ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
+	 * @Mask $group ([a-z0-9_-]+)
 	 */
-	public function cacheRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$group = $args[1];
-		$file = $args[2];
+	public function cacheRemCommand(CmdContext $context, PRemove $action, string $group, PFilename $file): void {
+		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
-			$$this->cacheManager->remove($group, $file);
+			$this->cacheManager->remove($group, $file);
 			$msg = "Cache file <highlight>$file<end> in cache group <highlight>$group<end> has been deleted.";
 		} else {
 			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("cache")
-	 * @Matches("/^cache view ([a-z0-9_-]+) ([a-z0-9_\.-]+)$/i")
+	 * @Mask $action view
+	 * @Mask $group ([a-z0-9_-]+)
 	 */
-	public function cacheViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$group = $args[1];
-		$file = $args[2];
+	public function cacheViewCommand(CmdContext $context, string $action, string $group, PFilename $file): void {
+		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
-			$contents = $this->cacheManager->retrieve($group, $file);
+			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (preg_match("/\.json$/", $file)) {
 				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
 			}
@@ -110,6 +108,6 @@ class CacheController {
 		} else {
 			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

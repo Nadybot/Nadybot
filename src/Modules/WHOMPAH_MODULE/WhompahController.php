@@ -3,9 +3,10 @@
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
-use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\Text;
 
 /**
@@ -53,10 +54,11 @@ class WhompahController {
 	}
 
 	/**
+	 * Shows a list of known cities
+	 *
 	 * @HandlesCommand("whompah")
-	 * @Matches("/^whompah$/i")
 	 */
-	public function whompahListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
 		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
 
@@ -69,25 +71,26 @@ class WhompahController {
 
 		$msg = $this->text->makeBlob('Whompah Cities', $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
+	 * Searches for a whompah-route from start to end
+	 *
 	 * @HandlesCommand("whompah")
-	 * @Matches("/^whompah (.+) (.+)$/i")
 	 */
-	public function whompahTravelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$startCity = $this->findCity($args[1]);
-		$endCity   = $this->findCity($args[2]);
+	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
+		$startCity = $this->findCity($start());
+		$endCity   = $this->findCity($end());
 
 		if ($startCity === null) {
-			$msg = "Error! Could not find city <highlight>{$args[1]}<end>.";
-			$sendto->reply($msg);
+			$msg = "Error! Could not find city <highlight>{$start}<end>.";
+			$context->reply($msg);
 			return;
 		}
 		if ($endCity === null) {
-			$msg = "Error! Could not find city <highlight>$args[2]<end>.";
-			$sendto->reply($msg);
+			$msg = "Error! Could not find city <highlight>{$end}<end>.";
+			$context->reply($msg);
 			return;
 		}
 
@@ -99,7 +102,7 @@ class WhompahController {
 
 		if ($obj === null) {
 			$msg = "There was an error while trying to find the whompah path.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$cities = [];
@@ -110,19 +113,20 @@ class WhompahController {
 		$cityList = $this->getColoredNamelist($cities);
 		$msg = implode(" -> ", $cityList);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
+	 * Shows all whompah-connections of a city
+	 *
 	 * @HandlesCommand("whompah")
-	 * @Matches("/^whompah (.+)$/i")
 	 */
-	public function whompahDestinationsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$city = $this->findCity($args[1]);
+	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
+		$city = $this->findCity($cityName);
 
 		if ($city === null) {
-			$msg = "Error! Could not find city <highlight>{$args[1]}<end>.";
-			$sendto->reply($msg);
+			$msg = "Error! Could not find city <highlight>{$cityName}<end>.";
+			$context->reply($msg);
 			return;
 		}
 
@@ -137,7 +141,7 @@ class WhompahController {
 		$msg = "From <highlight>{$city->city_name}<end> you can get to\n- " .
 			implode("\n- ", $this->getColoredNamelist($cities));
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -201,7 +205,7 @@ class WhompahController {
 			->keyBy("id")->toArray();
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
-			->each(function($city) use ($whompahs) {
+			->each(function(object $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
 				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
 			});

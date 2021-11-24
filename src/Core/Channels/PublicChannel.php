@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
@@ -9,6 +10,9 @@ use Nadybot\Core\Routing\Source;
 class PublicChannel extends Base {
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Inject */
+	public MessageHub $messageHub;
 
 	protected string $channel;
 

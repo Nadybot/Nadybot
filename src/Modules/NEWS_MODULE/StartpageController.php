@@ -13,6 +13,8 @@ use InvalidArgumentException;
 use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
+	AOChatEvent,
+	CmdContext,
 	CommandReply,
 	DB,
 	Event,
@@ -20,9 +22,11 @@ use Nadybot\Core\{
 	Registry,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
 use Nadybot\Core\Modules\BAN\BanController;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
@@ -107,7 +111,13 @@ class StartpageController {
 				"{$funcName} has an invalid @Description annotation."
 			);
 		}
-		$tile = new NewsTile($name, $method->getClosure($instance));
+		$closure = $method->getClosure($instance);
+		if (!isset($closure)) {
+			throw new InvalidArgumentException(
+				"{$funcName} cannot be made into a closure."
+			);
+		}
+		$tile = new NewsTile($name, $closure);
 		$tile->description = $descr;
 		$example = $method->getAnnotation("Example");
 		if (isset($example) && $example !== false) {
@@ -180,9 +190,9 @@ class StartpageController {
 	 * @Event("logOn")
 	 * @Description("Show startpage to (org) members logging in")
 	 */
-	public function logonEvent(Event $eventObj): void {
+	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady()) {
+		if (!$this->chatBot->isReady() || !is_string($sender)) {
 			return;
 		}
 		if (isset($this->chatBot->guildmembers[$sender])) {
@@ -213,9 +223,9 @@ class StartpageController {
 	 * @Event("joinPriv")
 	 * @Description("Show startpage to players joining private channel")
 	 */
-	public function privateChannelJoinEvent(Event $eventObj): void {
+	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady() || isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isReady() || !is_string($sender) || isset($this->chatBot->guildmembers[$sender])) {
 			return;
 		}
 		if ($this->settingManager->getInt("startpage_show_members") !== 2) {
@@ -277,7 +287,7 @@ class StartpageController {
 	 * @return array<string,NewsTile>
 	 */
 	public function getActiveLayout(): array {
-		$tileString = $this->settingManager->getString("startpage_layout");
+		$tileString = $this->settingManager->getString("startpage_layout")??"";
 		if ($tileString === "") {
 			return [];
 		}
@@ -298,7 +308,7 @@ class StartpageController {
 	}
 
 	public function getStartpageString(string $sender): string {
-		$msg = $this->settingManager->getString("startpage_startmsg");
+		$msg = $this->settingManager->getString("startpage_startmsg")??"";
 		$repl = [
 			"{name}" => $sender,
 			"{myname}" => "<myname>",
@@ -345,26 +355,24 @@ class StartpageController {
 	 * This command handler shows one's personal startpage
 	 *
 	 * @HandlesCommand("start")
-	 * @Matches("/^start$/i")
 	 */
-	public function startCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showStartpage($sender, $sendto, true);
+	public function startCommand(CmdContext $context): void {
+		$this->showStartpage($context->char->name, $context, true);
 	}
 
 	/**
 	 * This command handler shows one's personal startpage
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage$/i")
 	 */
-	public function startpageCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showStartpageLayout($sendto, false);
+	public function startpageCommand(CmdContext $context): void {
+		$this->showStartpageLayout($context, false);
 	}
 
-	protected function showStartpageLayout(CommandReply $sendto, bool $changed): void {
+	protected function showStartpageLayout(CmdContext $context, bool $changed): void {
 		$tiles = $this->getActiveLayout();
 		if (empty($tiles)) {
-			$sendto->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
+			$context->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
 			return;
 		}
 		$blob = $this->renderLayout($tiles);
@@ -373,16 +381,16 @@ class StartpageController {
 		} else {
 			$msg = $this->text->makeBlob("Current startpage layout", $blob);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler lets you pick an unused tile for a specific position
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+pick\s+(\d+)$/i")
+	 * @Mask $action pick
 	 */
-	public function startpagePickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpagePickCommand(CmdContext $context, string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
 		foreach ($tiles as $name => $tile) {
@@ -391,7 +399,7 @@ class StartpageController {
 		$blobLines = [];
 		ksort($unusedTiles);
 		foreach ($unusedTiles as $name => $tile) {
-			$pickLink = $this->text->makeChatcmd("pick this", "/tell <myname> startpage pick {$args[1]} {$name}");
+			$pickLink = $this->text->makeChatcmd("pick this", "/tell <myname> startpage pick {$pos} {$name}");
 			$line = "<header2>{$name} [{$pickLink}]<end>\n".
 				"<tab>" . implode("\n<tab>", explode("\n", $tile->description)) . "\n";
 			if (isset($tile->example)) {
@@ -400,98 +408,112 @@ class StartpageController {
 			$blobLines []= $line;
 		}
 		if (empty($blobLines)) {
-			$sendto->reply("You already assigned positions to all tiles.\n");
+			$context->reply("You already assigned positions to all tiles.\n");
 			return;
 		}
 		$blob = join("\n", $blobLines);
 		$msg = $this->text->makeBlob("Pick a tile to insert", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows the description of a tile
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+describe\s+(.+)$/i")
+	 * @Mask $action describe
 	 */
-	public function startpageDescribeTileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpageDescribeTileCommand(CmdContext $context, string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
-		$tile = $allTiles[$args[1]] ?? null;
+		$tile = $allTiles[$tileName] ?? null;
 		if (!isset($tile)) {
-			$sendto->reply("There is no tile <highlight>{$args[1]}<end>.");
+			$context->reply("There is no tile <highlight>{$tileName}<end>.");
 			return;
 		}
-		$msg = "<highlight>{$args[1]}<end>: " . str_replace("\n", " ", $tile->description);
-		$sendto->reply($msg);
+		$msg = "<highlight>{$tileName}<end>: " . str_replace("\n", " ", $tile->description);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler assigns an unused tile to a position
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+pick\s+(\d+)\s+(.+)$/i")
+	 * @Mask $action pick
 	 */
-	public function startpagePickTileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpagePickTileCommand(
+		CmdContext $context,
+		string $action,
+		int $pos,
+		string $tileName
+	): void {
 		$currentTiles = $this->getActiveLayout();
-		if (isset($currentTiles[$args[2]])) {
-			$sendto->reply("You already assigned a position to this tile.");
+		if (isset($currentTiles[$tileName])) {
+			$context->reply("You already assigned a position to this tile.");
 			return;
 		}
 		$allTiles = $this->getTiles();
-		if (!isset($allTiles[$args[2]])) {
-			$sendto->reply("There is no tile <highlight>{$args[2]}<end>.");
+		if (!isset($allTiles[$tileName])) {
+			$context->reply("There is no tile <highlight>{$tileName}<end>.");
 			return;
 		}
 		$tileKeys = array_keys($currentTiles);
-		array_splice($tileKeys, (int)$args[1], 0, $args[2]);
+		array_splice($tileKeys, $pos, 0, $tileName);
 		$this->setTiles(...$tileKeys);
-		$this->showStartpageLayout($sendto, true);
+		$this->showStartpageLayout($context, true);
 	}
 
 	/**
 	 * This command handler moves around tiles
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+move\s+(.+)\s+(up|down)$/i")
+	 * @Mask $action move
+	 * @mask $direction (up|down)
 	 */
-	public function startpageMoveTileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpageMoveTileCommand(
+		CmdContext $context,
+		string $action,
+		string $tileName,
+		string $direction
+	): void {
 		$currentTiles = $this->getActiveLayout();
-		if (!isset($currentTiles[$args[1]])) {
-			$sendto->reply("<highlight>{$args[1]}<end> is currently not on your startpage.");
+		if (!isset($currentTiles[$tileName])) {
+			$context->reply("<highlight>{$tileName}<end> is currently not on your startpage.");
 			return;
 		}
-		$delta = (strtolower($args[2]) === "up") ? -1 : 1;
+		$delta = (strtolower($direction) === "up") ? -1 : 1;
 		$tileKeys = array_keys($currentTiles);
-		$oldPos = array_search($args[1], $tileKeys);
+		$oldPos = array_search($tileName, $tileKeys);
+		if ($oldPos === false) {
+			$context->reply("<highlight>{$tileName}<end> is currently not on your startpage.");
+			return;
+		}
 		$newPos = $oldPos + $delta;
 		if ($newPos < 0 || $newPos >= count($tileKeys)) {
-			$sendto->reply("Cannot move <highlight>{$args[1]}<end> further.");
+			$context->reply("Cannot move <highlight>{$tileName}<end> further.");
 			return;
 		}
 		$toMove = $tileKeys[$newPos];
-		$tileKeys[$newPos] = $args[1];
+		$tileKeys[$newPos] = $tileName;
 		$tileKeys[$oldPos] = $toMove;
 		$this->setTiles(...$tileKeys);
 
-		$this->showStartpageLayout($sendto, true);
+		$this->showStartpageLayout($context, true);
 	}
 
 	/**
 	 * This command handler removes a tile from the startpage
 	 *
 	 * @HandlesCommand("startpage")
-	 * @Matches("/^startpage\s+(?:remove|delete|rem|del|rm)\s+(.+)$/i")
 	 */
-	public function startpageRemTileCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
 		$currentTiles = $this->getActiveLayout();
-		if (!isset($currentTiles[$args[1]])) {
-			$sendto->reply("<highlight>{$args[1]}<end> is currently not used.");
+		if (!isset($currentTiles[$tileName])) {
+			$context->reply("<highlight>{$tileName}<end> is currently not used.");
 			return;
 		}
-		unset($currentTiles[$args[1]]);
+		unset($currentTiles[$tileName]);
 		$tileKeys = array_keys($currentTiles);
 		$this->setTiles(...$tileKeys);
-		$this->showStartpageLayout($sendto, true);
+		$this->showStartpageLayout($context, true);
 	}
 
 	protected function getInsertLine(int $num): string {

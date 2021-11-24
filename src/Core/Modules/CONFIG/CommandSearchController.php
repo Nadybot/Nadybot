@@ -98,7 +98,7 @@ class CommandSearchController {
 		return $results;
 	}
 
-	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false) {
+	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false): array {
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->select("module", "cmd", "help", "description", "admin")->distinct();
 		if (!$includeDisabled) {
@@ -140,6 +140,7 @@ class CommandSearchController {
 	public function render(array $results, bool $hasAccess, bool $exactMatch) {
 		$blob = '';
 		foreach ($results as $row) {
+			$helpLink = "";
 			if ($row->help !== null && $row->help !== '') {
 				$helpLink = ' (' . $this->text->makeChatcmd("Help", "/tell <myname> help $row->cmd") . ')';
 			}

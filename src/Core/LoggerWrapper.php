@@ -41,8 +41,8 @@ class LoggerWrapper {
 		if (isset($throwable)) {
 			$extraInfo = "";
 			if (strpos($message, " in file ") === false) {
-				$extraInfo .= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
-					($throwable->getLine() ?? "Unknown");
+				$extraInfo .= " in file " . $throwable->getFile() . ":".
+					$throwable->getLine();
 			}
 			if (!preg_match("/^#\d+ /m", $message)) {
 				$extraInfo .= PHP_EOL . $throwable->getTraceAsString();
@@ -97,10 +97,11 @@ class LoggerWrapper {
 		} catch (Throwable $e) {
 			$logDir = dirname(ini_get('error_log'));
 			if (substr($logDir, 0, 1) !== '/') {
-				$logDir = realpath(dirname(__DIR__, 2) . '/' . $logDir);
-				if ($logDir === false) {
-					$logDir = dirname(__DIR__, 2) . '/' . $logDir;
+				$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
+				if ($logDirNew === false) {
+					$logDirNew = dirname(__DIR__, 2) . '/' . $logDir;
 				}
+				$logDir = $logDirNew;
 			}
 			return $logDir;
 		}

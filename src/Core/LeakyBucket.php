@@ -59,7 +59,7 @@ class LeakyBucket implements QueueInterface {
 	public function __construct(int $bucketSize, int $refillIntervall) {
 		$this->bucketFill = (float)$bucketSize;
 		$this->bucketSize = $bucketSize;
-		$this->refillInterval = $refillIntervall;
+		$this->refillIntervall = $refillIntervall;
 		$this->lastRefill = microtime(true);
 		$this->queue = [];
 		$this->queueSize = 0;
@@ -93,7 +93,7 @@ class LeakyBucket implements QueueInterface {
 				$current = microtime(true);
 				$timePassed = $current - $this->lastRefill;
 
-				$refillAmount = $timePassed / $this->refillInterval;
+				$refillAmount = $timePassed / $this->refillIntervall;
 				if ($refillAmount >= 1.0) {
 					$this->bucketFill += $refillAmount;
 					$this->lastRefill = $current;

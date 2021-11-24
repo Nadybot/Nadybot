@@ -2,6 +2,7 @@
 /text Start ONLINE_MODULE
 
 !online
+!online all
 !online enf
 !online enforcer
 !online nonexistingclass

@@ -315,9 +315,9 @@ class AccessManager {
 		if (!$this->settingManager->getBool('audit_enabled')) {
 			return;
 		}
-		if (in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {
+		if (isset($audit->value) && in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {
 			$revLook = array_flip(self::$ACCESS_LEVELS);
-			$audit->value = $audit->value . " (" . $revLook[$audit->value] . ")";
+			$audit->value = $audit->value . " (" . $revLook[(int)$audit->value] . ")";
 		}
 		$this->db->insert(static::DB_TABLE, $audit);
 	}

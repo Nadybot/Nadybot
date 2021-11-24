@@ -66,6 +66,10 @@ class Tyrbot implements RelayProtocolInterface {
 		return [];
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return list<string>
+	 */
 	protected function encodeUserStateChange(RoutableEvent $r, Online $event): array {
 		if (!$this->syncOnline) {
 			return [];
@@ -99,11 +103,15 @@ class Tyrbot implements RelayProtocolInterface {
 		return $source;
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return list<string>
+	 */
 	protected function encodeMessage(RoutableEvent $event): array {
 		$event = clone $event;
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (isset($event->data) && is_string($event->data->message??null)) {
+		} elseif (is_object($event->data) && is_string($event->data->message)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
 		}
 		$packet = [
@@ -129,16 +137,16 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$serialized = array_shift($msg->packages);
+		$serialized = array_shift($message->packages);
 		$this->logger->log('DEBUG', "[Tyrbot] {$serialized}");
 		try {
 			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
-			return $this->decodeAndHandlePacket($msg->sender, $identify, $data);
+			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
 			$this->logger->log(
 				'ERROR',

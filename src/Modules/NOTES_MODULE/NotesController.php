@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	AccessManager,
 	BuddylistManager,
-	CommandReply,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
@@ -20,6 +20,7 @@ use Nadybot\Core\{
 use Nadybot\Core\Annotations\Logger;
 use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
@@ -120,54 +121,52 @@ class NotesController {
 
 	/**
 	 * @HandlesCommand("notes")
-	 * @Matches("/^notes$/i")
 	 */
-	public function notesListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
+	public function notesListCommand(CmdContext $context): void {
+		$altInfo = $this->altsController->getAltInfo($context->char->name);
+		$main = $altInfo->getValidatedMain($context->char->name);
 
-		$this->assignNotesToMain($main, $sender);
+		$this->assignNotesToMain($main, $context->char->name);
 
 		$notes = $this->readNotes($main, false);
 		$count = count($notes);
 
 		if ($count === 0) {
-			$msg = "No notes for $sender.";
-			$sendto->reply($msg);
+			$msg = "No notes for {$context->char->name}.";
+			$context->reply($msg);
 			return;
 		}
-		$blob = $this->renderNotes($notes, $sender);
-		$msg = $this->text->makeBlob("Notes for $sender ($count)", $blob);
-		$sendto->reply($msg);
+		$blob = $this->renderNotes($notes, $context->char->name);
+		$msg = $this->text->makeBlob("Notes for {$context->char->name} ({$count})", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("reminders")
-	 * @Matches("/^reminders$/i")
 	 */
-	public function remindersListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
+	public function remindersListCommand(CmdContext $context): void {
+		$altInfo = $this->altsController->getAltInfo($context->char->name);
+		$main = $altInfo->getValidatedMain($context->char->name);
 
-		$this->assignNotesToMain($main, $sender);
+		$this->assignNotesToMain($main, $context->char->name);
 
 		$notes = $this->readNotes($main, true);
 		$count = count($notes);
 
 		if ($count === 0) {
-			$msg = "No reminders for $sender.";
-			$sendto->reply($msg);
+			$msg = "No reminders for {$context->char->name}.";
+			$context->reply($msg);
 			return;
 		}
-		$blob = $this->renderNotes($notes, $sender);
-		$blob .= "\n\nReminders are sent every time you logon or enter the bot's ".
+		$blob = trim($this->renderNotes($notes, $context->char->name));
+		$blob .= "\n\n<i>Reminders are sent every time you logon or enter the bot's ".
 			"private channel.\n".
 			"To change the format in which the bot sends reminders, ".
 			"you can use the ".
 			$this->text->makeChatcmd("!reminderformat", "/tell <myname> reminderformat").
-			" command.";
-		$msg = $this->text->makeBlob("Reminders for $sender ($count)", $blob);
-		$sendto->reply($msg);
+			" command.</i>";
+		$msg = $this->text->makeBlob("Reminders for {$context->char->name} ({$count})", $blob);
+		$context->reply($msg);
 	}
 
 	/**
@@ -205,7 +204,7 @@ class NotesController {
 	protected function renderNotes(array $notes, string $sender): string {
 		$blob = '';
 		$current = '';
-		$format = $this->settingManager->getInt('reminder_format');
+		$format = $this->settingManager->getInt('reminder_format') ?? 2;
 		$reminderCommands = $this->commandManager->get('reminders', 'msg');
 		// If the command is not available to the sender, don't render reminder-links
 		if (empty($reminderCommands)
@@ -219,7 +218,7 @@ class NotesController {
 				$blob .= "\n<header2>{$note->added_by}<end>\n";
 				$current = $note->added_by;
 			}
-			$deleteLink = $this->text->makeChatcmd('Remove', "/tell <myname> notes rem {$note->id}");
+			$deleteLink = $this->text->makeChatcmd('remove', "/tell <myname> notes rem {$note->id}");
 
 			$reminderLinks = $this->renderReminderLinks($note, $format);
 			if ($format === 0) {
@@ -239,7 +238,7 @@ class NotesController {
 		}
 		$texts = [
 			1 => ["O", "S", "A"],
-			2 => ["Off", "Self", "All"],
+			2 => ["off", "self", "all"],
 		];
 		$labels = $texts[$format];
 		$links = [];
@@ -293,44 +292,36 @@ class NotesController {
 
 	/**
 	 * @HandlesCommand("notes")
-	 * @Matches("/^notes add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function notesAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$noteText = $args[1];
-
-		$this->saveNote($noteText, $sender);
+	public function notesAddCommand(CmdContext $context, string $action, string $note): void {
+		$this->saveNote($note, $context->char->name);
 		$msg = "Note added successfully.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("reminders")
-	 * @Matches("/^reminders (add|addall|addself) (.+)$/i")
+	 * @Mask $action (add|addall|addself)
 	 */
-	public function reminderAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = $args[1];
-		$noteText = $args[2];
-
+	public function reminderAddCommand(CmdContext $context, string $action, string $note): void {
 		$reminder = Note::REMIND_ALL;
-		if ($type === "addself") {
+		if ($action === "addself") {
 			$reminder = Note::REMIND_SELF;
 		}
-		$this->saveNote($noteText, $sender, $reminder);
+		$this->saveNote($note, $context->char->name, $reminder);
 		$msg = "Reminder added successfully.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("notes")
-	 * @Matches("/^notes rem (\d+)$/i")
 	 */
-	public function notesRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
+	public function notesRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+		$altInfo = $this->altsController->getAltInfo($context->char->name);
+		$main = $altInfo->getValidatedMain($context->char->name);
 
 		$numRows = $this->db->table("notes")
 			->where("id", $id)
@@ -342,35 +333,33 @@ class NotesController {
 			$msg = "Note deleted successfully.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("reminders")
-	 * @Matches("/^reminders set (all|self|off) (\d+)$/i")
+	 * @Mask $action set
+	 * @Mask $type (all|self|off)
 	 */
-	public function reminderSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$type = $args[1];
-		$id = (int)$args[2];
-
+	public function reminderSetCommand(CmdContext $context, string $action, string $type, int $id): void {
 		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
 			$reminder = Note::REMIND_SELF;
 		} elseif ($type === "off") {
 			$reminder = Note::REMIND_NONE;
 		}
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
+		$altInfo = $this->altsController->getAltInfo($context->char->name);
+		$main = $altInfo->getValidatedMain($context->char->name);
 		$updated = $this->db->table("notes")
 			->where("id", $id)
 			->where("owner", $main)
 			->update(["reminder" => $reminder]);
 		if (!$updated) {
-			$sendto->reply("No note or reminder #{$id} found for you.");
+			$context->reply("No note or reminder #{$id} found for you.");
 			return;
 		}
 		$msg = "Reminder changed successfully.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -379,7 +368,7 @@ class NotesController {
 	 */
 	public function showRemindersOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (isset($this->chatBot->chatlist[$sender])) {
+		if (!is_string($sender) || isset($this->chatBot->chatlist[$sender])) {
 			return;
 		}
 		$this->showReminders($sender);
@@ -391,7 +380,7 @@ class NotesController {
 	 */
 	public function showRemindersOnPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if ($this->buddylistManager->isOnline($sender)) {
+		if (!is_string($sender) || $this->buddylistManager->isOnline($sender)) {
 			return;
 		}
 		$this->showReminders($sender);
@@ -476,12 +465,11 @@ class NotesController {
 
 	/**
 	 * @HandlesCommand("reminderformat")
-	 * @Matches("/^reminderformat$/i")
 	 */
-	public function reminderformatShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reminderFormat = $this->getReminderFormat($sender);
+	public function reminderformatShowCommand(CmdContext $context): void {
+		$reminderFormat = $this->getReminderFormat($context->char->name);
 		$exampleNote1 = new Note();
-		$exampleNote1->added_by = $sender;
+		$exampleNote1->added_by = $context->char->name;
 		$exampleNote1->note = "Example text about something super important";
 		$exampleNote2 = new Note();
 		$exampleNote2->added_by = "Nadyita";
@@ -507,27 +495,30 @@ class NotesController {
 		$blob .= "\n<i>Your reminder format preference is the same for all of your alts</i>.";
 
 		$blobLink = $this->text->makeBlob("Details", $blob, "The available reminder formats");
-		$msg = "Your reminder format is <highlight>{$reminderFormat}<end> :: [{$blobLink}]";
-		$sendto->reply($msg);
+		$msg = $this->text->blobWrap(
+			"Your reminder format is <highlight>{$reminderFormat}<end> :: [",
+			$blobLink,
+			"]"
+		);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("reminderformat")
-	 * @Matches("/^reminderformat\s+(.+)$/i")
 	 */
-	public function reminderformatChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$format = strtolower($args[1]);
+	public function reminderformatChangeCommand(CmdContext $context, string $format): void {
+		$format = strtolower($format);
 		$formats = static::VALID_FORMATS;
 		if (!in_array($format, $formats, true)) {
 			$formats = $this->text->arraySprintf("<highlight>%s<end>", ...$formats);
 			$formatString = $this->text->enumerate(...$formats);
-			$sendto->reply("Valid options are {$formatString}.");
+			$context->reply("Valid options are {$formatString}.");
 			return;
 		}
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
+		$altInfo = $this->altsController->getAltInfo($context->char->name);
+		$main = $altInfo->getValidatedMain($context->char->name);
 		$this->preferences->save($main, 'reminder_format', $format);
-		$sendto->reply("Your reminder format has been set to <highlight>{$format}<end>.");
+		$context->reply("Your reminder format has been set to <highlight>{$format}<end>.");
 	}
 
 	/**

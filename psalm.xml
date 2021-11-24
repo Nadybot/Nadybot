@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<psalm
+    phpVersion="7.4"
+    errorLevel="8"
+    findUnusedPsalmSuppress="true"
+    resolveFromConfigFile="true"
+    allowStringToStandInForClass="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="src" />
+        <ignoreFiles>
+            <directory name="vendor" />
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <PropertyNotSetInConstructor errorLevel="suppress" />
+        <UndefinedDocblockClass errorLevel="suppress" />
+        <TooManyTemplateParams errorLevel="suppress" />
+        <MissingParamType errorLevel="suppress" />
+        <NoInterfaceProperties errorLevel="suppress" />
+        <RawObjectIteration errorLevel="suppress" />
+        <DeprecatedMethod errorLevel="suppress" />
+        <RedundantCastGivenDocblockType errorLevel="suppress" />
+        <TypeDoesNotContainType errorLevel="suppress" />
+        <RedundantPropertyInitializationCheck errorLevel="suppress" />
+        <RedundantCast errorLevel="suppress" />
+        <RedundantCondition errorLevel="suppress" />
+        <UnresolvableInclude errorLevel="suppress" />
+        <UndefinedPropertyAssignment errorLevel="suppress" />
+        <MoreSpecificReturnType errorLevel="suppress" />
+        <ArgumentTypeCoercion errorLevel="suppress" />
+        <RedundantConditionGivenDocblockType errorLevel="suppress" />
+    </issueHandlers>
+</psalm>

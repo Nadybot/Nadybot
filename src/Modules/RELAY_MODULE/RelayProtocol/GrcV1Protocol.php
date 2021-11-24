@@ -44,11 +44,12 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			if (!strlen($event->data->message??"")) {
+			if (!is_object($event->data) || !strlen($event->data->message??"")) {
 				return [];
 			}
-			$event = clone $event;
-			$event->setData($event->data->message);
+			$event2 = clone $event;
+			$event2->setData($event->data->message);
+			$event = $event2;
 		}
 		return [
 			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, "*", false).
@@ -56,38 +57,38 @@ class GrcV1Protocol implements RelayProtocolInterface {
 		];
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$data = array_shift($msg->packages);
+		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
 		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
-		$msg = new RoutableMessage($data);
+		$message = new RoutableMessage($data);
 		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
 			if (strlen($matches[1])) {
-				$msg->appendPath(new Source(Source::ORG, $matches[1]));
+				$message->appendPath(new Source(Source::ORG, $matches[1]));
 			}
 			$data = $matches[2];
 		}
 		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
 			if (strlen($matches[1])) {
-				$msg->appendPath(new Source(Source::PRIV, $matches[1]));
+				$message->appendPath(new Source(Source::PRIV, $matches[1]));
 			}
 			$data = $matches[2];
 		}
 		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
+			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
+			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		$msg->setData($data);
-		return $msg;
+		$message->setData($data);
+		return $message;
 	}
 
 	public function init(callable $callback): array {

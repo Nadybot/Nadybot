@@ -50,6 +50,10 @@ class ConsoleController {
 
 	public SocketNotifier $notifier;
 
+	/**
+	 * @var resource
+	 * @psalm-var resource|closed-resource
+	 */
 	public $socket;
 
 	public bool $useReadline = false;
@@ -159,6 +163,9 @@ class ConsoleController {
 	 * Handle data arriving on stdin
 	 */
 	public function processStdin(): void {
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			@fclose($this->socket);
@@ -185,6 +192,7 @@ class ConsoleController {
 		if ($this->useReadline) {
 			readline_add_history($line);
 			$this->saveHistory();
+			readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
 		$context->channel = "msg";

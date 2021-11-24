@@ -3,12 +3,13 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
-	Event,
+	AOChatEvent,
+	CmdContext,
 	EventManager,
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
 
@@ -90,56 +91,54 @@ class ChatTopicController {
 	/**
 	 * This command handler shows topic.
 	 * @HandlesCommand("topic")
-	 * @Matches("/^topic$/i")
 	 */
-	public function topicCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($this->settingManager->get('topic') === '') {
+	public function topicCommand(CmdContext $context): void {
+		if ($this->settingManager->getString('topic') === '') {
 			$msg = 'No topic set.';
 		} else {
 			$msg = $this->buildTopicMessage();
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler clears topic.
 	 * @HandlesCommand("topic .+")
-	 * @Matches("/^topic clear$/i")
+	 * @Mask $action clear
 	 */
-	public function topicClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function topicClearCommand(CmdContext $context, string $action): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$this->setTopic($sender, "");
+		$this->setTopic($context->char->name, "");
 		$msg = "Topic has been cleared.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new TopicEvent();
 		$event->type = "topic(clear)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * This command handler sets topic.
 	 * @HandlesCommand("topic .+")
-	 * @Matches("/^topic (.+)$/i")
 	 */
-	public function topicSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function topicSetCommand(CmdContext $context, string $topic): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$this->setTopic($sender, $args[1]);
+		$this->setTopic($context->char->name, $topic);
 		$msg = "Topic has been updated.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new TopicEvent();
 		$event->type = "topic(clear)";
-		$event->topic = $args[1];
-		$event->player = $sender;
+		$event->topic = $topic;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -147,22 +146,24 @@ class ChatTopicController {
 	 * @Event("logOn")
 	 * @Description("Shows topic on logon of members")
 	 */
-	public function logonEvent(Event $eventObj): void {
-		if ($this->settingManager->get('topic') === '') {
+	public function logonEvent(UserStateEvent $eventObj): void {
+		if ($this->settingManager->getString('topic') === ''
+			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($eventObj->sender)
+		) {
 			return;
 		}
-		if (isset($this->chatBot->guildmembers[$eventObj->sender]) && $this->chatBot->isReady()) {
-			$msg = $this->buildTopicMessage();
-			$this->chatBot->sendMassTell($msg, $eventObj->sender);
-		}
+		$msg = $this->buildTopicMessage();
+		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 
 	/**
 	 * @Event("joinPriv")
 	 * @Description("Shows topic when someone joins the private channel")
 	 */
-	public function joinPrivEvent(Event $eventObj): void {
-		if ($this->settingManager->get('topic') === '') {
+	public function joinPrivEvent(AOChatEvent $eventObj): void {
+		if ($this->settingManager->getString('topic') === '' || !is_string($eventObj->sender)) {
 			return;
 		}
 		$msg = $this->buildTopicMessage();
@@ -183,12 +184,12 @@ class ChatTopicController {
 	 * Builds current topic information message and returns it.
 	 */
 	public function buildTopicMessage(): string {
-		$date_string = $this->util->unixtimeToReadable(time() - $this->settingManager->getInt('topic_time'), false);
-		$topic = $this->settingManager->get('topic');
-		$set_by = $this->settingManager->get('topic_setby');
+		$topicAge = $this->util->unixtimeToReadable(time() - ($this->settingManager->getInt('topic_time')??0), false);
+		$topic = $this->settingManager->getString('topic') ?? "&lt;none&gt;";
+		$topicCreator = $this->settingManager->getString('topic_setby') ?? "&lt;unknown&gt;";
 		$msg = "Topic: <red>{$topic}<end> (set by ".
-			$this->text->makeUserlink($set_by).
-			", <highlight>{$date_string} ago<end>)";
+			$this->text->makeUserlink($topicCreator).
+			", <highlight>{$topicAge} ago<end>)";
 		return $msg;
 	}
 }

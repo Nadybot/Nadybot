@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Util;
 
 /**
@@ -31,12 +31,9 @@ class UnixtimeController {
 
 	/**
 	 * @HandlesCommand("unixtime")
-	 * @Matches("/^unixtime (\d+)$/i")
 	 */
-	public function reloadinstanceAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$time = $args[1];
-
-		$msg = "$time is " . $this->util->date($time) . ".";
-		$sendto->reply($msg);
+	public function reloadinstanceAllCommand(CmdContext $context, int $time): void {
+		$msg = "$time is <highlight>" . $this->util->date($time) . "<end>.";
+		$context->reply($msg);
 	}
 }

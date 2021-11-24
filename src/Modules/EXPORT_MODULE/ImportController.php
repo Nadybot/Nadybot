@@ -7,7 +7,7 @@ use Swaggest\JsonSchema\Schema;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	LoggerWrapper,
 	Modules\BAN\BanController,
@@ -38,11 +38,11 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
-	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
+use Nadybot\Core\ParamClass\PFilename;
 use Throwable;
 
 /**
@@ -96,7 +96,7 @@ class ImportController {
 	/** @Inject */
 	public RaidRankController $raidRankController;
 
-	protected function loadAndParseExportFile(string $fileName, CommandReply $sendto): ?object {
+	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
 		if (!@file_exists($fileName)) {
 			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
 			return null;
@@ -127,39 +127,39 @@ class ImportController {
 
 	/**
 	 * @HandlesCommand("import")
-	 * @Matches("/^import (.+?)((?: \w+=\w+)*)$/i")
+	 * @Mask $mappings (\w+=\w+)
 	 */
-	public function importCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function importCommand(CmdContext $context, PFilename $file, ?string ...$mappings): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
-		$fileName = "{$dataPath}/export/" . basename($args[1]);
+		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
 		if (!@file_exists($fileName)) {
-			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
+			$context->reply("No export file <highlight>{$fileName}<end> found.");
 			return;
 		}
-		$import = $this->loadAndParseExportFile($fileName, $sendto);
+		$import = $this->loadAndParseExportFile($fileName, $context);
 		if (!isset($import)) {
 			return;
 		}
 		$usedRanks = $this->getRanks($import);
-		$rankMapping = $this->parseRankMapping($args[2]);
+		$rankMapping = $this->parseRankMapping(array_filter($mappings));
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
-				$sendto->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
+				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
 			} else {
 				try {
 					$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
 				} catch (Exception $e) {
-					$sendto->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
+					$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
 					return;
 				}
 			}
 		}
 		$this->logger->log("INFO", "Starting import");
-		$sendto->reply("Starting import...");
+		$context->reply("Starting import...");
 		$importMap = $this->getImportMapping();
 		foreach ($importMap as $key => $func) {
 			if (!isset($import->{$key})) {
@@ -168,7 +168,7 @@ class ImportController {
 			$func($import->{$key}, $rankMapping);
 		}
 		$this->logger->log("INFO", "Import done");
-		$sendto->reply("The import finished successfully.");
+		$context->reply("The import finished successfully.");
 	}
 
 	protected function getImportMapping(): array {
@@ -195,11 +195,13 @@ class ImportController {
 		];
 	}
 
-	protected function parseRankMapping(string $input): array {
+	/**
+	 * @param string[] $mappings
+	 * @return array<string,string>
+	 */
+	protected function parseRankMapping(array $mappings): array {
 		$mapping = [];
-		$input = trim($input);
-		$parts = preg_split("/\s+/", $input);
-		foreach ($parts as $part) {
+		foreach ($mappings as $part) {
 			[$key, $value] = explode("=", $part);
 			$mapping[$key] = $value;
 		}
@@ -294,7 +296,7 @@ class ImportController {
 					->insert([
 						"raid_id" => $auction->raidId ?? null,
 						"item" => $auction->item,
-						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->vars["name"],
+						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->char->name,
 						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost, 0) : null,
 						"winner" => $this->characterToName($auction->winner??null),
 						"end" => $auction->timeEnd ?? time(),
@@ -326,7 +328,7 @@ class ImportController {
 				$this->db->table(BanController::DB_TABLE)
 				->insert([
 					"charid" => $id,
-					"admin" => $this->characterToName($ban->bannedBy ?? null) ?? $this->chatBot->vars["name"],
+					"admin" => $this->characterToName($ban->bannedBy ?? null) ?? $this->chatBot->char->name,
 					"time" => $ban->banStart ?? time(),
 					"reason" => $ban->banReason ?? "None given",
 					"banend" => $ban->banEnd ?? 0,
@@ -355,7 +357,7 @@ class ImportController {
 					->insert([
 						"time" => $action->time ?? null,
 						"action" => $action->cloakOn ? "on" : "off",
-						"player" => $this->characterToName($action->character??null) ?? $this->chatBot->vars["name"],
+						"player" => $this->characterToName($action->character??null) ?? $this->chatBot->char->name,
 					]);
 			}
 		} catch (Throwable $e) {
@@ -377,7 +379,7 @@ class ImportController {
 			foreach ($links as $link) {
 				$this->db->table("links")
 					->insert([
-						"name" => $this->characterToName($link->createdBy??null) ?? $this->chatBot->vars["name"],
+						"name" => $this->characterToName($link->createdBy??null) ?? $this->chatBot->char->name,
 						"website" => $link->url,
 						"comments" => $link->description ?? "",
 						"dt" => $link->creationTime ?? null,
@@ -441,13 +443,13 @@ class ImportController {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 3
+							"rank" => (int)$matches[1] + 3
 						]);
 				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 6
+							"rank" => (int)$matches[1] + 6
 						]);
 				} elseif (in_array($newRank, ["rl", "all"])) {
 					// Nothing, we just ignore that
@@ -487,7 +489,7 @@ class ImportController {
 				$newsId = $this->db->table("news")
 				->insertGetId([
 					"time" => $item->addedTime ?? time(),
-					"name" => $this->characterToName($item->author ?? null) ?? $this->chatbot->vars["name"],
+					"name" => $this->characterToName($item->author ?? null) ?? $this->chatBot->char->name,
 					"news" => $item->news,
 					"sticky" => $item->pinned ?? false,
 					"deleted" => $item->deleted ?? false,
@@ -561,7 +563,7 @@ class ImportController {
 			foreach ($polls as $poll) {
 				$pollId = $this->db->table(VoteController::DB_POLLS)
 					->insertGetId([
-						"author" => $this->characterToName($poll->author??null) ?? $this->chatbot->vars["name"],
+						"author" => $this->characterToName($poll->author??null) ?? $this->chatBot->char->name,
 						"question" => $poll->question,
 						"possible_answers" => json_encode(
 							array_map(
@@ -606,7 +608,7 @@ class ImportController {
 			foreach ($quotes as $quote) {
 				$this->db->table("quote")
 					->insert([
-						"poster" => $this->characterToName($quote->contributor??null) ?? $this->chatBot->vars["name"],
+						"poster" => $this->characterToName($quote->contributor??null) ?? $this->chatBot->char->name,
 						"dt" => $quote->time??time(),
 						"msg" => $quote->quote,
 					]);
@@ -663,7 +665,7 @@ class ImportController {
 					->insert([
 						"player" => $name,
 						"blocked_from" => $block->blockedFrom,
-						"blocked_by" => $this->characterToName($block->blockedBy??null) ?? $this->chatBot->vars["name"],
+						"blocked_by" => $this->characterToName($block->blockedBy??null) ?? $this->chatBot->char->name,
 						"reason" => $block->blockedReason ?? "No reason given",
 						"time" => $block->blockStart ?? time(),
 						"expiration" => $block->blockEnd ?? null,
@@ -703,9 +705,9 @@ class ImportController {
 				$historyEntry->announce_interval = $entry->announce_interval = $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval');
 				$historyEntry->locked = $entry->locked = $raid->raidLocked ?? false;
 				$entry->started = $raid->time ?? time();
-				$entry->started_by = $this->chatBot->vars["name"];
+				$entry->started_by = $this->chatBot->char->name;
 				$entry->stopped = $lastEntry ? $lastEntry->time : $entry->started;
-				$entry->stopped_by = $this->chatBot->vars["name"];
+				$entry->stopped_by = $this->chatBot->char->name;
 				$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, "raid_id");
 				$historyEntry->raid_id = $raidId;
 				foreach ($raid->raiders??[] as $raider) {
@@ -793,7 +795,7 @@ class ImportController {
 						"username" => $name,
 						"delta" => $point->raidPoints,
 						"time" => $point->time ?? time(),
-						"changed_by" => $this->characterToName($point->givenBy ??null) ?? $this->chatBot->vars["name"],
+						"changed_by" => $this->characterToName($point->givenBy ??null) ?? $this->chatBot->char->name,
 						"individual" => $point->givenIndividually ?? true,
 						"raid_id" => $point->raidId ?? null,
 						"reason" => $point->reason ?? "Raid participation",
@@ -837,10 +839,10 @@ class ImportController {
 			$timerNum = 1;
 			foreach ($timers as $timer) {
 				$entry = new Timer();
-				$entry->owner = $this->characterToName($timer->createdBy??null) ?? $this->chatBot->vars["name"];
+				$entry->owner = $this->characterToName($timer->createdBy??null) ?? $this->chatBot->char->name;
 				$entry->data = $timer->repeatInterval ? (string)$timer->repeatInterval : null;
 				$entry->mode = $this->channelsToMode($timer->channels??[]);
-				$entry->name = $timer->timerName ?? $this->characterToName($timer->createdBy??null) ?? $this->chatBot->vars["name"] . "-{$timerNum}";
+				$entry->name = $timer->timerName ?? $this->characterToName($timer->createdBy??null) ?? $this->chatBot->char->name . "-{$timerNum}";
 				$entry->endtime = $timer->endTime;
 				$entry->callback = $entry->data ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
 				$entry->alerts = [];
@@ -898,7 +900,7 @@ class ImportController {
 					->insert([
 						"uid" => $id,
 						"name" => $name,
-						"added_by" => $this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->vars["name"],
+						"added_by" => $this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->char->name,
 						"added_dt" => $trackedUser->addedTime ?? time(),
 					]);
 				foreach ($trackedUser->events??[] as $event) {
@@ -932,7 +934,7 @@ class ImportController {
 				$oldEntry = $this->commentController->getCategory($category->name);
 				$entry = new CommentCategory();
 				$entry->name = $category->name;
-				$entry->created_by = $this->characterToName($category->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_by = $this->characterToName($category->createdBy ??null) ?? $this->chatBot->char->name;
 				$entry->created_at = $category->createdAt ?? time();
 				$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? "mod";
 				$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? "admin";
@@ -967,13 +969,13 @@ class ImportController {
 				$entry = new Comment();
 				$entry->comment = $comment->comment;
 				$entry->character = $name;
-				$entry->created_by = $this->characterToName($comment->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_by = $this->characterToName($comment->createdBy ??null) ?? $this->chatBot->char->name;
 				$entry->created_at = $comment->createdAt ?? time();
 				$entry->category = $comment->category ?? "admin";
 				if ($this->commentController->getCategory($entry->category) === null) {
 					$cat = new CommentCategory();
 					$cat->name = $entry->category;
-					$cat->created_by = $this->chatBot->vars["name"];
+					$cat->created_by = $this->chatBot->char->name;
 					$cat->created_at = time();
 					$cat->min_al_read = "mod";
 					$cat->min_al_write = "admin";

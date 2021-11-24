@@ -3,8 +3,9 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
@@ -30,7 +31,6 @@ use Nadybot\Core\Util;
  *	)
  */
 class PocketbossController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -57,10 +57,8 @@ class PocketbossController {
 
 	/**
 	 * @HandlesCommand("pocketboss")
-	 * @Matches("/^pocketboss (.+)$/i")
 	 */
-	public function pocketbossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
+	public function pocketbossCommand(CmdContext $context, string $search): void {
 		$data = $this->pbSearchResults($search);
 		$numrows = count($data);
 		$blob = "";
@@ -78,7 +76,7 @@ class PocketbossController {
 			}
 			$msg = $this->text->makeBlob("Search results for $search ($numrows)", $blob);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function singlePbBlob(string $name): string {
@@ -88,6 +86,9 @@ class PocketbossController {
 			->orderBy("ql")
 			->asObj(Pocketboss::class)
 			->toArray();
+		if (empty($data)) {
+			return '';
+		}
 		$symbs = '';
 		foreach ($data as $symb) {
 			if (in_array($symb->line, ["Alpha", "Beta"])) {
@@ -126,19 +127,23 @@ class PocketbossController {
 
 		$pb =$query->asObj(Pocketboss::class);
 		return $pb->groupBy("pb")
-			->map(fn(Collection $col) => $col->first())
+			->map(fn(Collection $col): Pocketboss => $col->first())
 			->values()
 			->toArray();
 	}
 
 	/**
 	 * @HandlesCommand("symbiant")
-	 * @Matches("/^symbiant ([a-z]+)$/i")
-	 * @Matches("/^symbiant ([a-z]+) ([a-z]+)$/i")
-	 * @Matches("/^symbiant ([a-z]+) ([a-z]+) ([a-z]+)$/i")
 	 */
-	public function symbiantCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$paramCount = count($args) - 1;
+	public function symbiantCommand(
+		CmdContext $context,
+		PWord $arg1,
+		?PWord $arg2,
+		?PWord $arg3
+	): void {
+		$args = $context->args;
+		$args = array_filter([$args[1], $args[2]??null, $args[3]??null]);
+		$paramCount = count($args);
 
 		$slot = '%';
 		$symbtype = '%';
@@ -147,7 +152,7 @@ class PocketbossController {
 		$lines = $this->db->table("pocketboss")->select("line")->distinct()
 			->asObj()->pluck("line")->toArray();
 
-		for ($i = 1; $i <= $paramCount; $i++) {
+		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {
 				case "eye":
 				case "ocular":
@@ -243,7 +248,7 @@ class PocketbossController {
 						$line = array_shift($matchingLines);
 						break;
 					}
-					$sendto->reply(
+					$context->reply(
 						"I cannot find any symbiant line, location or type '<highlight>{$args[$i]}<end>'."
 					);
 					return;
@@ -265,23 +270,27 @@ class PocketbossController {
 		$numrows = count($data);
 		if ($numrows === 0) {
 			$msg = "Could not find any symbiants that matched your search criteria.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
-		$blob = "Click 'Add' to add symbiant to $implantDesignerLink.\n\n";
+		$blob = "Click '[add]' to add symbiant to $implantDesignerLink.\n\n";
 		foreach ($data as $row) {
 			if (in_array($row->line, ["Alpha", "Beta"])) {
 				$name = "Xan $row->slot Symbiant, $row->type Unit $row->line";
 			} else {
 				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
 			}
-			$impDesignerAddLink = $this->text->makeChatcmd("Add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
-			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql) $impDesignerAddLink\n";
+			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql)";
+			if (isset($impDesignSlot) ) {
+				$impDesignerAddLink = $this->text->makeChatcmd("add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
+				$blob .= " [$impDesignerAddLink]";
+			}
+			$blob .= "\n";
 			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb $row->pb");
 			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob("Symbiant Search Results ($numrows)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

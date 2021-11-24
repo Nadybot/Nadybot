@@ -1,6 +1,6 @@
 #tower_module
 /text Start TOWER_MODULE
-!testtowerattack neutral Troet Orana clan Vengeance WW 200 50
+!testtowerattack neutral Troet Orana clan Vengeance WW3
 !victory
 !victory 2
 !victory error 4
@@ -36,19 +36,18 @@
 !scout pw 4 12:24:48 90 error Conquered Dreams
 !scout pw 4 12:24:48 90 Omni Conquered Dreams
 !scout pw 4 12:24:48 190 Omni Conquered Dreams
+!scout pw 4 none
 !scout pw 4 12:24:48 190 Omni Conquering Dreams
-!forcescout pw 44 12:24:48 190 Omni Conquered Dreams
-!forcescout pw 4 12:24:48 90 error Conquered Dreams
-!forcescout pw 4 12:24:48 90 Omni Conquered Dreams
-!forcescout pw 4 12:24:48 190 Omni Conquered Dreams
-!forcescout pw 4 12:24:48 190 Omni Conquering Dreams
 !opentimes
 !remscout pw 4
-!opentimes
+!needsscout
+!needsscout pw
+!needsscout error
+!needsscout pw 4
 !penalty
 !penalty 4h
-!testtowerattack neutral Troet Orana clan Vengeance WW 200 50
-!testtowervictory neutral Troet clan Vengeance Wailing Wastes
+!testtowerattack neutral Troet Orana clan Vengeance WW3
+!testtowervictory neutral Troet clan Vengeance WW
 
 !towerstats
 !towerstats 20d

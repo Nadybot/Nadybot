@@ -5,6 +5,7 @@ namespace Nadybot\Modules\MASSMSG_MODULE;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
+	CmdContext,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -105,18 +106,17 @@ class MassMsgController {
 			"<tab>Change your preferences:\n\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = $this->text->makeBlob("Preferences", $blob, "Change your mass message preferences");
+		$prefLink = ((array)$this->text->makeBlob("Preferences", $blob, "Change your mass message preferences"))[0];
 
 		return "[{$prefLink}]";
 	}
 
 	/**
 	 * @HandlesCommand("massmsg")
-	 * @Matches("/^massmsg (.+)$/i")
 	 */
-	public function massMsgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$message = "<highlight>Message from {$sender}<end>: ".
-			$this->settingManager->getString('massmsg_color') . $args[1] . "<end>";
+	public function massMsgCommand(CmdContext $context, string $message): void {
+		$message = "<highlight>Message from {$context->char->name}<end>: ".
+			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
@@ -126,16 +126,15 @@ class MassMsgController {
 			}
 		]);
 		$msg = $this->getMassResultPopup($result);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("massinv")
-	 * @Matches("/^massinv (.+)$/i")
 	 */
-	public function massInvCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$message = "<highlight>Invite from {$sender}<end>: ".
-			$this->settingManager->getString('massmsg_color') . $args[1] . "<end>";
+	public function massInvCommand(CmdContext $context, string $message): void {
+		$message = "<highlight>Invite from {$context->char->name}<end>: ".
+			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
@@ -146,7 +145,7 @@ class MassMsgController {
 			static::PREF_INVITES => [$this->chatBot, "privategroup_invite"],
 		]);
 		$msg = $this->getMassResultPopup($result);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -243,7 +242,8 @@ class MassMsgController {
 	}
 
 	/** Show a character their current mass message and -invite preferences */
-	protected function showMassPreferences(string $character, CommandReply $sendto): void {
+	protected function showMassPreferences(CmdContext $context): void {
+		$character = $context->char->name;
 		$msgs = $this->preferences->get($character, static::PREF_MSGS);
 		$invs = $this->preferences->get($character, static::PREF_INVITES);
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
@@ -265,59 +265,41 @@ class MassMsgController {
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
 		$prefLink = $this->text->makeBlob("Your current mass message preferences", $blob);
 
-		$sendto->reply($prefLink);
+		$context->reply($prefLink);
 	}
 
 	/**
 	 * @HandlesCommand("massmsgs")
-	 * @Matches("/^massmsgs$/i")
 	 */
-	public function massMessagesOverviewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showMassPreferences($sender, $sendto);
+	public function massMessagesOverviewCommand(CmdContext $context): void {
+		$this->showMassPreferences($context);
 	}
 
 	/**
 	 * @HandlesCommand("massinvites")
-	 * @Matches("/^massinvites$/i")
 	 */
-	public function massInvitesOverviewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showMassPreferences($sender, $sendto);
+	public function massInvitesOverviewCommand(CmdContext $context): void {
+		$this->showMassPreferences($context);
 	}
 
 	/**
 	 * @HandlesCommand("massmsgs")
-	 * @Matches("/^massmsgs (off|no|disable)$/i")
 	 */
-	public function massMessagesOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF_MSGS, 'no');
-		$sendto->reply("You will no longer receive mass messages from this bot.");
-	}
-
-	/**
-	 * @HandlesCommand("massmsgs")
-	 * @Matches("/^massmsgs (on|yes|enable)$/i")
-	 */
-	public function massMessagesOffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF_MSGS, 'yes');
-		$sendto->reply("You will again receive mass messages from this bot.");
+	public function massMessagesOnCommand(CmdContext $context, bool $status): void {
+		$value = $status ? "yes" : "no";
+		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
+		$this->preferences->save($context->char->name, static::PREF_MSGS, $value);
+		$context->reply("You will {$colText} mass messages from this bot.");
 	}
 
 	/**
 	 * @HandlesCommand("massinvites")
-	 * @Matches("/^massinvites (off|no|disable)$/i")
 	 */
-	public function massInvitesOnCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF_INVITES, 'no');
-		$sendto->reply("You will no longer receive mass invites from this bot.");
-	}
-
-	/**
-	 * @HandlesCommand("massinvites")
-	 * @Matches("/^massinvites (on|yes|enable)$/i")
-	 */
-	public function massInvitesOffCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->preferences->save($sender, static::PREF_INVITES, 'yes');
-		$sendto->reply("You will again receive mass invites from this bot.");
+	public function massInvitesOnCommand(CmdContext $context, bool $status): void {
+		$value = $status ? "yes" : "no";
+		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
+		$this->preferences->save($context->char->name, static::PREF_INVITES, $value);
+		$context->reply("You will {$colText} mass invites from this bot.");
 	}
 
 	/**

@@ -45,5 +45,6 @@
 !maprank 1 to memberxx
 !maprank
 !maprank rem 1
+!maprank rem 11
 
 /text End GUILD_MODULE

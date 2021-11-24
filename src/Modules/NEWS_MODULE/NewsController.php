@@ -2,17 +2,21 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	AOChatEvent,
+	CmdContext,
 	DB,
 	Event,
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	HttpProtocolWrapper,
@@ -114,7 +118,7 @@ class NewsController {
 			->where("deleted", 0)
 			->orderByDesc("sticky")
 			->orderByDesc("time")
-			->limit($this->settingManager->getInt('num_news_shown'))
+			->limit($this->settingManager->getInt('num_news_shown')??10)
 			->select("n.*")
 			->selectSub(
 				$this->db->table("news_confirmed AS c")
@@ -159,14 +163,14 @@ class NewsController {
 			$blob .= ($item->confirmed ? "<grey>" : "<highlight>").
 				"{$item->news}<end>\n";
 			$blob .= "By {$item->name} " . $this->util->date($item->time) . " ";
-			$blob .= $this->text->makeChatcmd("Remove", "/tell <myname> news rem $item->id") . " ";
+			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem $item->id") . "] ";
 			if ($item->sticky) {
-				$blob .= $this->text->makeChatcmd("Unpin", "/tell <myname> news unpin $item->id") . " ";
+				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin $item->id") . "] ";
 			} else {
-				$blob .= $this->text->makeChatcmd("Pin", "/tell <myname> news pin $item->id") . " ";
+				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin $item->id") . "] ";
 			}
 			if (!$item->confirmed) {
-				$blob .= $this->text->makeChatcmd("Confirm", "/tell <myname> news confirm $item->id") . " ";
+				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm $item->id") . "] ";
 			}
 			$blob .= "\n";
 			$sticky = $item->sticky;
@@ -179,16 +183,22 @@ class NewsController {
 			->limit(1)
 			->asObj(News::class)
 			->first();
-		$layout = $this->settingManager->getInt('news_announcement_layout');
+		if (!isset($item)) {
+			return null;
+		}
+		$layout = $this->settingManager->getInt('news_announcement_layout')??1;
 		if ($layout === 1) {
 			$msg = $this->text->makeBlob(
 				"News [Last updated at " . $this->util->date($item->time) . "]",
 				$blob
 			);
 		} elseif ($layout === 2) {
-			$msg = "<yellow>NEWS:<end> <highlight>{$latestNews->news}<end>\nBy {$latestNews->name} (".
-				$this->util->date($latestNews->time) . ") ".
-				$this->text->makeBlob("more", $blob, "News");
+			$msg = $this->text->blobWrap(
+				"<yellow>NEWS:<end> <highlight>{$latestNews->news}<end>\n".
+					"By {$latestNews->name} (".
+					$this->util->date($latestNews->time) . ") ",
+				$this->text->makeBlob("more", $blob, "News")
+			);
 		}
 		return $msg;
 	}
@@ -197,14 +207,19 @@ class NewsController {
 	 * @Event("logOn")
 	 * @Description("Sends news to org members logging in")
 	 */
-	public function logonEvent(Event $eventObj): void {
+	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
-		if (!$this->chatBot->isReady() || !isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isReady()
+			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !is_string($sender)
+			|| !$this->hasRecentNews($sender)
+		) {
 			return;
 		}
-		if ($this->hasRecentNews($sender)) {
-			$this->chatBot->sendMassTell($this->getNews($sender, true), $sender);
+		$news = $this->getNews($sender, true);
+		if (isset($news)) {
+			$this->chatBot->sendMassTell($news, $sender);
 		}
 	}
 
@@ -212,9 +227,15 @@ class NewsController {
 	 * @Event("joinPriv")
 	 * @Description("Sends news to players joining private channel")
 	 */
-	public function privateChannelJoinEvent(Event $eventObj): void {
-		if ($this->hasRecentNews($eventObj->sender)) {
-			$this->chatBot->sendMassTell($this->getNews($eventObj->sender, true), $eventObj->sender);
+	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender)
+			|| !$this->hasRecentNews($eventObj->sender)
+		) {
+			return;
+		}
+		$news = $this->getNews($eventObj->sender, true);
+		if (isset($news)) {
+			$this->chatBot->sendMassTell($news, $eventObj->sender);
 		}
 	}
 
@@ -232,82 +253,75 @@ class NewsController {
 	 * This command handler shows latest news.
 	 *
 	 * @HandlesCommand("news")
-	 * @Matches("/^news$/i")
 	 */
-	public function newsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getNews($sender, false);
+	public function newsCommand(CmdContext $context): void {
+		$msg = $this->getNews($context->char->name, false);
 
-		$sendto->reply($msg ?? "No News recorded yet.");
+		$context->reply($msg ?? "No News recorded yet.");
 	}
 
 	/**
 	 * This command handler confirms a news entry.
 	 *
 	 * @HandlesCommand("news confirm .+")
-	 * @Matches("/^news confirm (\d+)$/i")
+	 * @Mask $action confirm
 	 */
-	public function newsconfirmCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function newsconfirmCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$sender = $this->altsController->getAltInfo($sender)->main;
+			$sender = $this->altsController->getAltInfo($context->char->name)->main;
 		}
 
 		if ($this->db->table("news_confirmed")
 			->where("id", $row->id)
-			->where("player", $sender)
+			->where("player", $context->char->name)
 			->exists()
 		) {
 			$msg = "You've already confirmed these news.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$this->db->table("news_confirmed")
 			->insert([
 				"id" => $row->id,
-				"player" => $sender,
+				"player" => $context->char->name,
 				"time" => time(),
 			]);
 		$msg = "News confirmed, it won't be shown to you again.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler adds a news entry.
 	 *
 	 * @HandlesCommand("news .+")
-	 * @Matches("/^news add (.+)$/si")
+	 * @Mask $action add
 	 */
-	public function newsAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$news = $args[1];
+	public function newsAddCommand(CmdContext $context, string $action, string $news): void {
 		$this->db->table("news")
 			->insert([
 				"time" => time(),
-				"name" => $sender,
+				"name" => $context->char->name,
 				"news" => $news,
 				"sticky" => 0,
 				"deleted" => 0,
 			]);
 		$msg = "News has been added successfully.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler removes a news entry.
 	 *
 	 * @HandlesCommand("news .+")
-	 * @Matches("/^news rem (\d+)$/i")
 	 */
-	public function newsRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function newsRemCommand(CmdContext $context, PRemove $action, int $id): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -318,55 +332,51 @@ class NewsController {
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler pins a news entry.
 	 *
 	 * @HandlesCommand("news .+")
-	 * @Matches("/^news pin (\d+)$/i")
+	 * @Mask $action pin
 	 */
-	public function newsPinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function newsPinCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
 		} elseif ($row->sticky) {
-			$msg = "News ID $id is already pinned.";
+			$msg = "News ID {$id} is already pinned.";
 		} else {
 			$this->db->table("news")
 				->where("id", $id)
 				->update(["sticky" => 1]);
-			$msg = "News ID $id successfully pinned.";
+			$msg = "News ID {$id} successfully pinned.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler unpins a news entry.
 	 *
 	 * @HandlesCommand("news .+")
-	 * @Matches("/^news unpin (\d+)$/i")
+	 * @Mask $action unpin
 	 */
-	public function newsUnpinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function newsUnpinCommand(CmdContext $context, string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
 		} elseif (!$row->sticky) {
-			$msg = "News ID $id is not pinned.";
+			$msg = "News ID {$id} is not pinned.";
 		} else {
 			$this->db->table("news")
 				->where("id", $id)
 				->update(["sticky" => 0]);
-			$msg = "News ID $id successfully unpinned.";
+			$msg = "News ID {$id} successfully unpinned.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getNewsItem(int $id): ?News {
@@ -420,6 +430,9 @@ class NewsController {
 	public function apiNewsCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$news = $request->decodedBody;
 		try {
+			if (!is_object($news)) {
+				throw new Exception("Wrong content body");
+			}
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
@@ -427,7 +440,7 @@ class NewsController {
 		}
 		unset($decoded->id);
 		$decoded->time ??= time();
-		$decoded->name = $request->authenticatedAs;
+		$decoded->name = $request->authenticatedAs??"_";
 		$decoded->sticky ??= false;
 		$decoded->deleted ??= false;
 		if (!isset($decoded->news)) {
@@ -454,13 +467,16 @@ class NewsController {
 		}
 		$news = $request->decodedBody;
 		try {
+			if (!is_object($news)) {
+				throw new Exception("Wrong content");
+			}
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		$decoded->id = $id;
-		$decoded->name = $request->authenticatedAs;
+		$decoded->name = $request->authenticatedAs??"_";
 		foreach ($decoded as $attr => $value) {
 			if (isset($value)) {
 				$result->{$attr} = $value;

@@ -22,6 +22,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -213,6 +215,9 @@ class RaidController {
 	 * Get the content of the popup that shows you how to join the raid
 	 */
 	public function getRaidJoinLink(): string {
+		if (!isset($this->raid)) {
+			return "";
+		}
 		$blob = "<header2>Current raid<end>\n".
 			"<tab>Description: <highlight>{$this->raid->description}<end>\n".
 			"<tab>Duration: running for <highlight>".
@@ -236,6 +241,9 @@ class RaidController {
 	}
 
 	public function getControlInterface(): string {
+		if (!isset($this->raid)) {
+			return "";
+		}
 		$blob = "<header2>Raid Control Interface<end>\n".
 			"Raid Status: Running for <highlight>".
 			$this->util->unixtimeToReadable(time() - $this->raid->started) . "<end>".
@@ -275,7 +283,7 @@ class RaidController {
 				$this->text->makeChatcmd(
 					"Enable",
 					"/tell <myname> raid announce ".
-					$this->settingManager->getInt('raid_announcement_interval')
+					($this->settingManager->getInt('raid_announcement_interval')??90)
 				).
 				"]\n";
 		} else {
@@ -292,23 +300,25 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid")
-	 * @Matches("/^raid$/i")
 	 */
-	public function raidCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidCommand(CmdContext $context): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		$handler = $this->commandManager->getActiveCommandHandler("raid", "priv", "raid start test");
-		$canAdminRaid = $this->accessManager->checkAccess($sender, $handler->admin);
-		if ($canAdminRaid) {
-			$this->chatBot->sendTell(
-				$this->text->makeBlob("Raid Control", $this->getControlInterface()),
-				$sender
-			);
+		if (isset($handler)) {
+			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->admin);
+			if ($canAdminRaid) {
+				$this->chatBot->sendTell(
+					$this->text->makeBlob("Raid Control", $this->getControlInterface()),
+					$context->char->name
+				);
+			}
 		}
-		$msg = $this->text->makeBlob("click to join", $this->getRaidJoinLink(), "Raid information");
-		$sendto->reply($this->raid->getAnnounceMessage($msg));
+		$msg = ((array)$this->text->makeBlob("click to join", $this->getRaidJoinLink(), "Raid information"))[0];
+		$announceMsg = $this->raid->getAnnounceMessage($msg);
+		$context->reply($announceMsg);
 	}
 
 	/**
@@ -344,182 +354,183 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid (?:start|run|create) (.+)$/i")
+	 * @Mask $action (start|run|create)
 	 */
-	public function raidStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidStartCommand(CmdContext $context, string $action, string $description): void {
 		if (isset($this->raid)) {
-			$sendto->reply("There's already a raid running.");
+			$context->reply("There's already a raid running.");
 			return;
 		}
 		$raid = new Raid();
-		$raid->started_by = $sender;
-		$raid->description = $args[1];
+		$raid->started_by = $context->char->name;
+		$raid->description = $description;
 		if ($this->settingManager->getBool('raid_announcement')) {
-			$raid->announce_interval = $this->settingManager->getInt('raid_announcement_interval');
+			$raid->announce_interval = $this->settingManager->getInt('raid_announcement_interval')??90;
 		}
 		if ($this->settingManager->getBool('raid_points_for_time')) {
-			$raid->seconds_per_point = $this->settingManager->getInt('raid_points_interval');
+			$raid->seconds_per_point = $this->settingManager->getInt('raid_points_interval')??300;
 		}
 		$this->startRaid($raid);
 		if ($this->settingManager->getBool('raid_auto_add_creator')) {
-			$this->raidMemberController->joinRaid($sender, $sender, $channel, false);
+			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->channel, false);
 		}
 		$this->chatBot->sendTell(
 			$this->text->makeBlob("Raid Control", $this->getControlInterface()),
-			$sender
+			$context->char->name
 		);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid (stop|end)$/i")
+	 * @Mask $action (stop|end)
 	 */
-	public function raidStopCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidStopCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->stopRaid($sender);
+		$this->stopRaid($context->char->name);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid descr? (.+)$/i")
-	 * @Matches("/^raid description (.+)$/i")
+	 * @Mask $action (description|descr?)
 	 */
-	public function raidChangeDescCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidChangeDescCommand(CmdContext $context, string $action, string $description): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raid->description = $args[1];
+		$this->raid->description = $description;
 		$this->logRaidChanges($this->raid);
-		$sendto->reply("Raid description changed.");
+		$context->reply("Raid description changed.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("raid spp .+")
-	 * @Matches("/^raid spp (\d+)s?$/i")
+	 * @Mask $action spp
 	 */
-	public function raidChangeSppCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidChangeSppCommand(CmdContext $context, string $action, int $spp): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raid->seconds_per_point = (int)$args[1];
+		$this->raid->seconds_per_point = $spp;
 		$this->logRaidChanges($this->raid);
-		$sendto->reply("Raid seconds per point changed.");
+		$context->reply("Raid seconds per point changed.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid announce(?:ment)? (.+)$/i")
+	 * @Mask $action (announce|announcement)
 	 */
-	public function raidChangeAnnounceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidChangeAnnounceCommand(CmdContext $context, string $action, string $interval): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		if (strtolower($args[1]) === 'off') {
+		if (strtolower($interval) === 'off') {
 			$this->raid->announce_interval = 0;
-			$sendto->reply("Raid announcement turned off.");
+			$context->reply("Raid announcement turned off.");
 		} else {
-			$newInterval = $this->util->parseTime($args[1]);
+			$newInterval = $this->util->parseTime($interval);
 			if ($newInterval === 0) {
-				$sendto->reply("<highlight>{$args[1]}<end> is not a valid interval.");
+				$context->reply("<highlight>{$interval}<end> is not a valid interval.");
 				return;
 			}
 			$this->raid->announce_interval = $newInterval;
-			$sendto->reply("Raid announcement interval changed to <highlight>{$args[1]}<end>.");
+			$context->reply("Raid announcement interval changed to <highlight>{$interval}<end>.");
 		}
 
 		$this->logRaidChanges($this->raid);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid lock$/i")
+	 * @Mask $action lock
 	 */
-	public function raidLockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidLockCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		if ($this->raid->locked) {
-			$sendto->reply("The raid is already locked.");
+			$context->reply("The raid is already locked.");
 			return;
 		}
 		$this->raid->locked = true;
 		$this->logRaidChanges($this->raid);
-		$this->chatBot->sendPrivate("{$sender} <red>locked<end> the raid.");
+		$this->chatBot->sendPrivate("{$context->char->name} <red>locked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(lock)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid unlock$/i")
+	 * @Mask $action unlock
 	 */
-	public function raidUnlockCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidUnlockCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		if ($this->raid->locked === false) {
-			$sendto->reply("The raid is already unlocked.");
+			$context->reply("The raid is already unlocked.");
 			return;
 		}
 		$this->raid->locked = false;
 		$this->logRaidChanges($this->raid);
-		$this->chatBot->sendPrivate("{$sender} <green>unlocked<end> the raid.");
+		$this->chatBot->sendPrivate("{$context->char->name} <green>unlocked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(unlock)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid check$/i")
+	 * @Mask $action check
 	 */
-	public function raidCheckCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidCheckCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raidMemberController->sendRaidCheckBlob($this->raid, $sendto);
+		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid list$/i")
+	 * @Mask $action list
 	 */
-	public function raidListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidListCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$sendto->reply($this->raidMemberController->getRaidListBlob($this->raid));
+		$context->reply($this->raidMemberController->getRaidListBlob($this->raid));
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
+	 * @Mask $action notinkick
+	 * @Mask $all all
 	 */
-	public function raidNotinKickCommand(CmdContext $context, string $action="notinkick", ?string $all="all"): void {
+	public function raidNotinKickCommand(CmdContext $context, string $action, ?string $all): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -538,21 +549,21 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid notin$/i")
+	 * @Mask $action notin
 	 */
-	public function raidNotinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidNotinCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		$notInRaid = $this->raidMemberController->sendNotInRaidWarning($this->raid);
 		if (!count($notInRaid)) {
-			$sendto->reply("Everyone is in the raid.");
+			$context->reply("Everyone is in the raid.");
 			return;
 		}
 		$this->playerManager->massGetByNameAsync(
-			function(array $result) use ($sendto) {
-				$this->reportNotInResult($result, $sendto);
+			function(array $result) use ($context) {
+				$this->reportNotInResult($result, $context);
 			},
 			$notInRaid
 		);
@@ -562,9 +573,9 @@ class RaidController {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
 		foreach ($players as $name => $player) {
-			if ($player instanceof Player) {
+			if ($player instanceof Player && isset($player->profession)) {
 				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-					$this->onlineController->getProfessionId($player->profession).">";
+					($this->onlineController->getProfessionId($player->profession)??0).">";
 				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level}\n";
 			} else {
 				$blob .= "<tab>{$name}\n";
@@ -580,9 +591,9 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid history$/i")
+	 * @Mask $action history
 	 */
-	public function raidHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidHistoryCommand(CmdContext $context, string $action): void {
 		$query = $this->db->table(self::DB_TABLE, "r")
 			->join(RaidPointsController::DB_TABLE_LOG . ' AS p', "r.raid_id", "p.raid_id")
 			->where("p.individual", false)
@@ -601,7 +612,7 @@ class RaidController {
 		)->asObj();
 		if ($raids->isEmpty()) {
 			$msg = "No raids have ever been run on <myname>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "";
@@ -617,7 +628,7 @@ class RaidController {
 				"[{$detailsCmd}]\n";
 		}
 		$msg = $this->text->makeBlob("Last Raids (" . count($raids).")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	protected function getRaidSummary(Raid $raid): string {
@@ -644,19 +655,19 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid history (\d+)$/i")
+	 * @Mask $action history
 	 */
-	public function raidHistoryDetailCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidHistoryDetailCommand(CmdContext $context, string $action, int $raidId): void {
 		/** @var ?Raid */
 		$raid = $this->db->table(self::DB_TABLE)
-			->where("raid_id", (int)$args[1])
+			->where("raid_id", $raidId)
 			->asObj(Raid::class)->first();
 		if ($raid === null) {
-			$sendto->reply("The raid <highlight>{$args[1]}<end> doesn't exist.");
+			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
 		}
 		$query = $this->db->table(RaidPointsController::DB_TABLE_LOG)
-			->where("raid_id", (int)$args[1])
+			->where("raid_id", $raidId)
 			->where("individual", false)
 			->groupBy("username")
 			->select("username");
@@ -667,7 +678,7 @@ class RaidController {
 				$join->on("rm.raid_id", "l.raid_id")
 					->on("rm.player", "l.username");
 			})
-			->where("rm.raid_id", (int)$args[1])
+			->where("rm.raid_id", $raidId)
 			->whereNull("l.username")
 			->groupBy("rm.player")
 			->select("rm.player AS username");
@@ -694,54 +705,58 @@ class RaidController {
 			$blob .= "\n";
 		}
 		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid history (\d+) (.+)$/i")
+	 * @Mask $action history
 	 */
-	public function raidHistoryDetailRaiderCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[2] = ucfirst(strtolower($args[2]));
+	public function raidHistoryDetailRaiderCommand(
+		CmdContext $context,
+		string $action,
+		int $raidId,
+		PCharacter $char
+	): void {
 		/** @var ?Raid */
 		$raid = $this->db->table(self::DB_TABLE)
-			->where('raid_id', (int)$args[1])
+			->where('raid_id', $raidId)
 			->asObj(Raid::class)
 			->first();
 		if ($raid === null) {
-			$sendto->reply("The raid <highlight>{$args[1]}<end> doesn't exist.");
+			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
 		}
 		/** @var Collection<RaidPointsLog> */
 		$logs = $this->db->table(RaidPointsController::DB_TABLE_LOG)
-			->where("raid_id", (int)$args[1])
-			->where("username", $args[2])
+			->where("raid_id", $raidId)
+			->where("username", $char())
 			->asObj(RaidPointsLog::class);
 		$joined = $this->db->table(RaidMemberController::DB_TABLE)
-			->where("raid_id", (int)$args[1])
-			->where("player", $args[2])
+			->where("raid_id", $raidId)
+			->where("player", $char())
 			->whereNotNull("joined")
 			->select("joined AS time");
 		$joined->selectRaw("1" . $joined->as("status"));
 		$left = $this->db->table(RaidMemberController::DB_TABLE)
-			->where("raid_id", (int)$args[1])
-			->where("player", $args[2])
+			->where("raid_id", $raidId)
+			->where("player", $char())
 			->whereNotNull("left")
 			->select("left AS time");
 		$left->selectRaw("0" . $left->as("status"));
 		$events = $joined->union($left)->orderBy("time")->asObj();
 		$allLogs = $logs->concat($events)
-			->sort(function($a, $b) {
+			->sort(function(object $a, object $b) {
 				return $a->time <=> $b->time;
 			});
 		if ($allLogs->isEmpty()) {
-			$sendto->reply("<highlight>{$args[2]}<end> didn't get any points in this raid.");
+			$context->reply("<highlight>{$char}<end> didn't get any points in this raid.");
 			return;
 		}
-		$main = $this->altsController->getAltInfo($args[2])->main;
+		$main = $this->altsController->getAltInfo($char())->main;
 		$blob = $this->getRaidSummary($raid);
-		$blob .= "\n<header2>Detailed points for {$args[2]}";
-		if ($main !== $args[2]) {
+		$blob .= "\n<header2>Detailed points for {$char}";
+		if ($main !== $char()) {
 			$blob .= " ({$main})";
 		}
 		$blob .= "<end>\n";
@@ -765,17 +780,17 @@ class RaidController {
 			$blob .= "<tab>" . $this->util->date($raid->stopped) . "<tab>".
 				"Raid stopped by {$raid->stopped_by}\n";
 		}
-		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$args[2]}", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$char}", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid dual$/i")
+	 * @Mask $action dual
 	 */
-	public function raidDualCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidDualCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		/** @var array<string,bool> */
@@ -804,7 +819,7 @@ class RaidController {
 			}
 		}
 		if (!count($duals)) {
-			$sendto->reply("No one is currently dual-logged.");
+			$context->reply("No one is currently dual-logged.");
 			return;
 		}
 		$toLookup = [];
@@ -812,7 +827,7 @@ class RaidController {
 			$toLookup = [...$toLookup, $name, ...array_keys($alts)];
 		}
 		$this->playerManager->massGetByNameAsync(
-			function (array $lookup) use ($duals, $sendto): void {
+			function (array $lookup) use ($duals, $context): void {
 				$blob = "";
 				foreach ($duals as $name => $alts) {
 					$player = $lookup[$name];
@@ -836,7 +851,7 @@ class RaidController {
 					$blob,
 					"Dual-logged players with at last 1 char in the raid"
 				);
-				$sendto->reply($msg);
+				$context->reply($msg);
 			},
 			$toLookup
 		);
@@ -896,11 +911,11 @@ class RaidController {
 		}
 		$this->chatBot->sendPrivate(
 			$this->raid->getAnnounceMessage(
-				$this->text->makeBlob(
+				((array)$this->text->makeBlob(
 					"click to join",
 					$this->getRaidJoinLink(),
 					"Raid information"
-				)
+				))[0]
 			)
 		);
 		$this->raid->last_announcement = time();
@@ -916,11 +931,11 @@ class RaidController {
 		$this->chatBot->sendPrivate(
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
 			"<highlight>{$event->raid->description}<end> :: ".
-			$this->text->makeBlob(
+			((array)$this->text->makeBlob(
 				"click to join",
 				$this->getRaidJoinLink(),
 				"Raid information"
-			)
+			))[0]
 		);
 	}
 
@@ -936,7 +951,7 @@ class RaidController {
 	/**
 	 * Start a new raid and also register it in the database
 	 */
-	public function startRaid(Raid $raid) {
+	public function startRaid(Raid $raid): void {
 		if (isset($raid->raid_id)) {
 			$this->raid = $raid;
 			return;
@@ -960,7 +975,7 @@ class RaidController {
 	/**
 	 * Stop the current raid
 	 */
-	public function stopRaid(string $sender) {
+	public function stopRaid(string $sender): void {
 		if (!isset($this->raid)) {
 			return;
 		}
@@ -985,46 +1000,68 @@ class RaidController {
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid (notes?|comments?)$/i")
+	 * @Mask $action (notes?|comments?)
 	 */
-	public function raidCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== 'msg') {
-			$sendto->reply("<red>The '<symbol>raid {$args[1]}' command only works in tells<end>.");
+	public function raidCommentsCommand(CmdContext $context, string $action): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
 			return;
 		}
 		if (!isset($this->raid)) {
-			$sendto->reply(static::ERR_NO_RAID);
+			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		$raiderNames = array_keys($this->raid->raiders);
 		$category = $this->getRaidCategory();
 		$comments = $this->commentController->getComments($category, ...$raiderNames);
-		$comments = $this->commentController->filterInaccessibleComments($comments, $sender);
+		$comments = $this->commentController->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {
-			$sendto->reply("There are no notes about any raider that you have access to.");
+			$context->reply("There are no notes about any raider that you have access to.");
 			return;
 		}
 		$format = $this->commentController->formatComments($comments, true);
 		$msg = "Comments ({$format->numComments}) about the current raiders ({$format->numMains})";
 		$msg = $this->text->makeBlob($msg, $format->blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid (?:notes?|comments?) (?:add|create|new) (\w+) (.+)$/i")
+	 * @Mask $action (notes?|comments?)
+	 * @Mask $subAction (add|create|new)
 	 */
-	public function raidCommentAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args = [$args[0], $args[1], $this->getRaidCategory()->name, $args[2]];
-		$this->commentController->addCommentCommand(...func_get_args());
+	public function raidCommentAddCommand(
+		CmdContext $context,
+		string $action,
+		string $subAction,
+		PCharacter $char,
+		string $comment
+	): void {
+		$this->commentController->addCommentCommand(
+			$context,
+			"new",
+			$char,
+			new PWord($this->getRaidCategory()->name),
+			$comment
+		);
 	}
 
 	/**
 	 * @HandlesCommand("raid .+")
-	 * @Matches("/^raid (?:notes?|comments?) (?:get|read|search|find) (\w+)$/i")
+	 * @Mask $action (notes?|comments?)
+	 * @Mask $subAction (get|read|search|find)
 	 */
-	public function raidCommentSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args []= $this->getRaidCategory()->name;
-		$this->commentController->searchCommentCommand(...func_get_args());
+	public function raidCommentSearchCommand(
+		CmdContext $context,
+		string $action,
+		string $subAction,
+		PCharacter $char
+	): void {
+		$this->commentController->searchCommentCommand(
+			$context,
+			"get",
+			$char,
+			new PWord($this->getRaidCategory()->name),
+		);
 	}
 }

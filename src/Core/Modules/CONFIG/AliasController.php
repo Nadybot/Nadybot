@@ -35,18 +35,29 @@ class AliasController {
 	/** @Inject */
 	public Text $text;
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand1(CmdContext $context, string $add="add", string $alias='("[a-z 0-9]+")', string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 * @Mask $alias ("[a-z 0-9]+")
+	 */
+	public function aliasAddCommand1(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand2(CmdContext $context, string $add="add", string $alias="('[a-z 0-9]+')", string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 * @Mask $alias ('[a-z 0-9]+')
+	 */
+	public function aliasAddCommand2(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/** @HandlesCommand("alias") */
-	public function aliasAddCommand3(CmdContext $context, string $add="add", PWord $alias, string $command): void {
+	/**
+	 * @HandlesCommand("alias")
+	 * @Mask $action add
+	 */
+	public function aliasAddCommand3(CmdContext $context, string $action, PWord $alias, string $command): void {
 		$this->aliasAddCommand($context, $alias(), $command);
 	}
 
@@ -80,6 +91,8 @@ class AliasController {
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
 		} elseif ($row->status == 1 && $row->cmd != $cmd) {
 			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
+		} else {
+			$msg = "Cannot add alias <highlight>{$alias}<end>.";
 		}
 		$context->reply($msg);
 	}
@@ -88,8 +101,9 @@ class AliasController {
 	 * This command handler list all aliases.
 	 *
 	 * @HandlesCommand("alias")
+	 * @Mask $action list
 	 */
-	public function aliasListCommand(CmdContext $context, string $list="list"): void {
+	public function aliasListCommand(CmdContext $context, string $action): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];

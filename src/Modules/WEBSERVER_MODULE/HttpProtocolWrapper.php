@@ -82,8 +82,12 @@ class HttpProtocolWrapper {
 	 */
 	public function handleIncomingData(AsyncSocket $socket): void {
 		$this->logger->log('TRACE', 'Data available for read');
+		$sock = $socket->getSocket();
+		if (!isset($sock) || !is_resource($sock)) {
+			throw new Exception("Webserver out-of-sync");
+		}
 		if ($this->asyncSocket->getState() !== $this->asyncSocket::STATE_READY) {
-			fread($socket->getSocket(), 4096);
+			fread($sock, 4096);
 			return;
 		}
 		switch ($this->nextPart) {
@@ -100,7 +104,7 @@ class HttpProtocolWrapper {
 				$this->readBody($socket);
 				break;
 			case self::EXPECT_IGNORE:
-				@fread($socket->getSocket(), 4096);
+				@fread($sock, 4096);
 				break;
 			case self::EXPECT_DONE:
 				break;
@@ -120,9 +124,14 @@ class HttpProtocolWrapper {
 	 */
 	protected function readSocketLine(AsyncSocket $socket): ?string {
 		$lowSocket = $socket->getSocket();
+		if (!isset($lowSocket) || !is_resource($lowSocket)) {
+			$this->logger->log('DEBUG', 'Error reading a line from socket: ' . (error_get_last()["message"]??""));
+			$socket->close();
+			return null;
+		}
 		$buffer = fgets($lowSocket, 4098);
 		if ($buffer === false) {
-			$this->logger->log('DEBUG', 'Error reading a line from socket: ' . error_get_last());
+			$this->logger->log('DEBUG', 'Error reading a line from socket: ' . (error_get_last()["message"]??""));
 			$socket->close();
 			return null;
 		}
@@ -183,7 +192,7 @@ class HttpProtocolWrapper {
 				unset($response->headers['Content-Type']);
 			} else {
 				$response->code = Response::PRECONDITION_FAILED;
-				$response->headers['Content-Length'] = 0;
+				$response->headers['Content-Length'] = "0";
 			}
 			$response->codeString = Response::DEFAULT_RESPONSE_TEXT[$response->code];
 			$this->logger->log('DEBUG', "Changing reply to {$response->code} ({$response->codeString})");
@@ -254,14 +263,15 @@ class HttpProtocolWrapper {
 	 */
 	public function readRequestLine(AsyncSocket $socket): void {
 		$line = $this->readSocketLine($socket);
-		if ($line === null) {
+		$sock = $socket->getSocket();
+		if ($line === null || !isset($sock) || !is_resource($sock)) {
 			return;
 		}
 		// Try to detect raw SSL data in case the server is not running SSL/TLS
 		if (strlen($line) > 5 && ord($line[0]) === 0x16 && ord($line[5]) === 0x01) {
 			$this->logger->log('DEBUG', "SSL connection for non-SSL socket detected");
 			// Empty the socket data, send a close and ignore all further replies
-			@fread($socket->getSocket(), 4096);
+			@fread($sock, 4096);
 			$socket->close();
 			$this->nextPart = static::EXPECT_IGNORE;
 			return;
@@ -277,7 +287,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		$parts = parse_url($matches[2]);
-		if ($parts === false || $parts === null) {
+		if (!is_array($parts)) {
 			$this->httpError(new Response(Response::BAD_REQUEST));
 			$this->nextPart = static::EXPECT_IGNORE;
 			return;
@@ -287,7 +297,7 @@ class HttpProtocolWrapper {
 			$queryParts = explode("&", $parts["query"]);
 			$this->request->query = array_reduce(
 				$queryParts,
-				function(array $carry, $newPart): array {
+				function(array $carry, string $newPart): array {
 					$kv = explode("=", $newPart, 2);
 					$kv = array_map("urldecode", $kv);
 					$carry[$kv[0]] = $kv[1] ?? null;
@@ -347,9 +357,15 @@ class HttpProtocolWrapper {
 		$toRead = (int)$this->request->headers['content-length'] - strlen($this->request->body ?? "");
 		$readChunk = min(4096, $toRead);
 		$this->logger->log('TRACE', "Reading {$readChunk} bytes");
-		$buffer = fread($socket->getSocket(), $readChunk);
+		$sock = $socket->getSocket();
+		if (!is_resource($sock)) {
+			$this->logger->log('DEBUG', "Error reading from closed socket: " . (error_get_last()["message"]??""));
+			$socket->close();
+			return;
+		}
+		$buffer = fread($sock, $readChunk);
 		if ($buffer === false) {
-			$this->logger->log('DEBUG', "Error reading body from socket: " . error_get_last());
+			$this->logger->log('DEBUG', "Error reading body from socket: " . (error_get_last()["message"]??""));
 			$socket->close();
 			return;
 		}
@@ -419,7 +435,7 @@ class HttpProtocolWrapper {
 	public function handleRequest(): void {
 		$this->request->authenticatedAs = $this->getAuthenticatedUser();
 		$event = new HttpEvent();
-		$response = $this->decodeRequestBody($this->request);
+		$response = $this->decodeRequestBody();
 		if ($response instanceof Response) {
 			$this->httpError($response);
 			return;

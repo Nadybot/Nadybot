@@ -74,7 +74,7 @@ class LogsController {
 	 */
 	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
 		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
-		$readsize = $this->settingManager->getInt('max_blob_size') - 500;
+		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
 
 		try {
 			$lines = file($filename);

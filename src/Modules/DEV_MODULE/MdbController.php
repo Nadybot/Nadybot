@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	Nadybot,
 	Text,
 	Util,
@@ -33,7 +33,6 @@ class MdbController {
 	public string $moduleName;
 
 	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
 	 * @Inject
 	 */
 	public Nadybot $chatBot;
@@ -46,10 +45,13 @@ class MdbController {
 
 	/**
 	 * @HandlesCommand("mdb")
-	 * @Matches("/^mdb$/i")
 	 */
-	public function mdbCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function mdbCommand(CmdContext $context): void {
 		$categories = $this->chatBot->mmdbParser->getCategories();
+		if (!isset($categories)) {
+			$context->reply("Cannot find any categories.");
+			return;
+		}
 
 		$blob = '';
 		foreach ($categories as $category) {
@@ -58,17 +60,18 @@ class MdbController {
 
 		$msg = $this->text->makeBlob("MDB Categories", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("mdb")
-	 * @Matches("/^mdb ([0-9]+)$/i")
 	 */
-	public function mdbCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$categoryId = (int)$args[1];
-
+	public function mdbCategoryCommand(CmdContext $context, int $categoryId): void {
 		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
+		if (!isset($instances)) {
+			$context->reply("Cannot find category <highlight>{$categoryId}<end>.");
+			return;
+		}
 
 		$blob = '';
 		foreach ($instances as $instance) {
@@ -77,23 +80,19 @@ class MdbController {
 
 		$msg = $this->text->makeBlob("MDB Instances for Category $categoryId", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("mdb")
-	 * @Matches("/^mdb ([0-9]+) ([0-9]+)$/i")
 	 */
-	public function mdbInstanceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$categoryId = (int)$args[1];
-		$instanceId = (int)$args[2];
-
+	public function mdbInstanceCommand(CmdContext $context, int $categoryId, int $instanceId): void {
 		$messageString = $this->chatBot->mmdbParser->getMessageString($categoryId, $instanceId);
-		$msg = "Unable to find MDB string category <highlight>$categoryId<end>, ".
-			"instance <highlight>$instanceId<end>.";
+		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".
+			"instance <highlight>{$instanceId}<end>.";
 		if ($messageString !== null) {
 			$msg = "[$categoryId : $instanceId] $messageString";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

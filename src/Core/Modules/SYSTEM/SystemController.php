@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
+	DBSchema\Setting,
 	Event,
 	EventManager,
 	HelpManager,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
@@ -258,7 +258,7 @@ class SystemController implements MessageEmitter {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
@@ -354,7 +354,7 @@ class SystemController implements MessageEmitter {
 		$info->stats = $stats = new SystemStats();
 
 		$query = $this->db->table("players");
-		$row = $query->selectRaw($query->rawFunc("COUNT", "*", "count"))
+		$row = $query->select($query->rawFunc("COUNT", "*", "count"))
 			->asObj()->first();
 		$stats->charinfo_cache_size = (int)$row->count;
 
@@ -362,13 +362,19 @@ class SystemController implements MessageEmitter {
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
 		$stats->priv_channel_size = count($this->chatBot->chatlist);
 		$stats->org_size = count($this->chatBot->guildmembers);
-		$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+		$stats->chatqueue_length = 0;
+		if (isset($this->chatBot->chatqueue)) {
+			$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+		}
 
 		foreach ($this->chatBot->grp as $gid => $status) {
 			$channel = new ChannelInfo();
+			$channel->class = ord(substr((string)$gid, 0, 1));
 			$channel->id = unpack("N", substr((string)$gid, 1))[1];
-			$channel->name = $this->chatBot->gid[$gid];
-			$info->channels []= $channel;
+			if (is_string($this->chatBot->gid[$gid])) {
+				$channel->name = $this->chatBot->gid[$gid];
+				$info->channels []= $channel;
+			}
 		}
 
 		return $info;
@@ -448,8 +454,11 @@ class SystemController implements MessageEmitter {
 		$blob .= "<tab>Messages in the chat queue: <highlight>{$info->stats->chatqueue_length}<end>\n\n";
 
 		$blob .= "<header2>Public Channels<end>\n";
+		usort($info->channels, function(ChannelInfo $c1, ChannelInfo $c2): int {
+			return ($c1->class <=> $c2->class) ?: $c1->id <=> $c2->id;
+		});
 		foreach ($info->channels as $channel) {
-			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->id})\n";
+			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->class}:{$channel->id})\n";
 		}
 
 		$msg = $this->text->makeBlob('System Info', $blob);
@@ -496,6 +505,10 @@ class SystemController implements MessageEmitter {
 	 * @HandlesCommand("clearqueue")
 	 */
 	public function clearqueueCommand(CmdContext $context): void {
+		if (!isset($this->chatBot->chatqueue)) {
+			$context->reply("There is currently no Chat queue set up.");
+			return;
+		}
 		$num = 0;
 		foreach ($this->chatBot->chatqueue->queue as $priority) {
 			$num += count($priority);

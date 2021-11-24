@@ -9,7 +9,7 @@ use Nadybot\Core\Annotations\HttpGet;
 use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
 	AsyncHttp,
-	CommandReply,
+	CmdContext,
 	DB,
 	Http,
 	HttpResponse,
@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Timer,
 	Socket\AsyncSocket,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\Migrations\ApiKey;
 
 /**
  * Commands this controller contains:
@@ -41,7 +40,11 @@ class WebserverController {
 	/** Set by the registry */
 	public string $moduleName;
 
-	protected $serverSocket;
+	/**
+	 * @var ?resource
+	 * @psalm-var null|resource|closed-resource
+	 */
+	protected $serverSocket = null;
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -83,7 +86,7 @@ class WebserverController {
 			return;
 		}
 		$aoAuthKeyUrl = rtrim(
-			$this->settingManager->getString('webserver_aoauth_url'),
+			$this->settingManager->getString('webserver_aoauth_url')??"https://aoauth.org",
 			'/'
 		) . '/key';
 		if (isset($this->aoAuthPubKeyRequest)) {
@@ -99,12 +102,14 @@ class WebserverController {
 
 	protected function receiveAoAuthPubkey(HttpResponse $response): void {
 		if (isset($response->error) || $response->headers['status-code'] !== "200") {
-			$this->logger->log(
-				'ERROR',
-				'Error downloading aoauth pubkey from'.
-				$response->request->getURI() . ": ".
-				$response->error ?? $response->headers['status-code']
-			);
+			if (isset($response->request)) {
+				$this->logger->log(
+					'ERROR',
+					'Error downloading aoauth pubkey from'.
+					$response->request->getURI() . ": ".
+					($response->error ?? $response->headers['status-code'] ?? "")
+				);
+			}
 			return;
 		}
 		$this->logger->log('INFO', 'New aoauth pubkey downloaded.');
@@ -270,13 +275,12 @@ class WebserverController {
 
 	/**
 	 * @HandlesCommand("webauth")
-	 * @Matches("/^webauth$/")
 	 */
-	public function webauthCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$uuid = $this->authenticate($sender, 3600);
+	public function webauthCommand(CmdContext $context): void {
+		$uuid = $this->authenticate($context->char->name, 3600);
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
 			"credentials <highlight>{$uuid}<end>.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -296,7 +300,10 @@ class WebserverController {
 					foreach ($method->getAllAnnotations($annoName) as $annotation) {
 						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $annotation */
 						if (isset($annotation->value)) {
-							$this->addRoute($annotation->type, $annotation->value, $method->getClosure($instance));
+							$closure = $method->getClosure($instance);
+							if (isset($closure)) {
+								$this->addRoute($annotation->type, $annotation->value, $closure);
+							}
 						}
 					}
 				}
@@ -352,7 +359,11 @@ class WebserverController {
 	 * Handle new client connections
 	 */
 	public function clientConnected(AsyncSocket $socket): void {
-		$newSocket = stream_socket_accept($socket->getSocket(), 0, $peerName);
+		$lowSock = $socket->getSocket();
+		if (!is_resource($lowSock)) {
+			return;
+		}
+		$newSocket = stream_socket_accept($lowSock, 0, $peerName);
 		if ($newSocket === false) {
 			return;
 		}
@@ -396,7 +407,7 @@ class WebserverController {
 			stream_context_set_option($context, 'ssl', 'verify_peer', false);
 		}
 */
-		$this->serverSocket = @stream_socket_server(
+		$serverSocket = @stream_socket_server(
 			"tcp://{$addr}:{$port}",
 			$errno,
 			$errstr,
@@ -404,11 +415,12 @@ class WebserverController {
 			$context
 		);
 
-		if ($this->serverSocket === false) {
+		if ($serverSocket === false) {
 			$error = "Could not listen on {$addr} port {$port}: {$errstr} ({$errno})";
 			$this->logger->log('ERROR', $error);
 			return false;
 		}
+		$this->serverSocket = $serverSocket;
 
 		$wrapper = $this->socket->wrap($this->serverSocket);
 		$wrapper->setTimeout(0);
@@ -423,7 +435,7 @@ class WebserverController {
 	 * Shutdown the webserver
 	 */
 	public function shutdown(): bool {
-		if (!isset($this->serverSocket) || (!is_resource($this->serverSocket) && !($this->serverSocket instanceof \Socket))) {
+		if (!isset($this->serverSocket) || !is_resource($this->serverSocket)) {
 			return true;
 		}
 		if (isset($this->asyncSocket)) {
@@ -504,7 +516,7 @@ class WebserverController {
 					["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
 				));
 			} elseif ($authType === static::AUTH_AOAUTH) {
-				$baseUrl = $this->settingManager->getString('webserver_base_url');
+				$baseUrl = $this->settingManager->getString('webserver_base_url')??"";
 				if ($baseUrl === 'default') {
 					$baseUrl = 'http://' . $event->request->headers['host'];
 				}
@@ -513,7 +525,7 @@ class WebserverController {
 				if (strlen($queryString = http_build_query($event->request->query))) {
 					$redirectUrl .= "?{$queryString}";
 				}
-				$aoAuthUrl = rtrim($this->settingManager->getString('webserver_aoauth_url'), '/').
+				$aoAuthUrl = rtrim($this->settingManager->getString('webserver_aoauth_url')??"https://aoauth.org", '/').
 					'/auth';
 				$server->sendResponse(new Response(
 					Response::TEMPORARY_REDIRECT,
@@ -585,10 +597,14 @@ class WebserverController {
 		if (!@file_exists($realFile)) {
 			return new Response(Response::NOT_FOUND);
 		}
+		$body = file_get_contents($realFile);
+		if (!is_string($body)) {
+			$body = "";
+		}
 		$response = new Response(
 			Response::OK,
 			['Content-Type' => $this->guessContentType($realFile)],
-			file_get_contents($realFile)
+			$body
 		);
 		if ($response->body === false) {
 			return new Response(Response::FORBIDDEN);
@@ -599,13 +615,17 @@ class WebserverController {
 			$response->headers['Last-Modified'] = $modifiedDate;
 		}
 		$response->headers['Cache-Control'] = 'private, max-age=3600';
-		$response->headers['ETag'] = '"' . dechex(crc32($response->body)) . '"';
+		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
 		return $response;
 	}
 
 	public function guessContentType(string $file): string {
 		$info = pathinfo($file);
-		switch ($info["extension"]) {
+		$extension = "";
+		if (is_array($info) && isset($info["extension"])) {
+			$extension = $info["extension"];
+		}
+		switch ($extension) {
 			case "html":
 				return "text/html";
 			case "css":

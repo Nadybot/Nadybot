@@ -74,7 +74,7 @@ class MessageHubController {
 	public LoggerWrapper $logger;
 
 	/** Load defined routes from the database and activate them */
-	public function loadRouting() {
+	public function loadRouting(): void {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
 			->orderBy("id")
 			->asObj(RouteModifierArgument::class)
@@ -116,11 +116,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action (add|addforce)
+	 * @Mask $fromConst from
 	 */
 	public function routeAddCommand(
 		CmdContext $context,
-		string $action="(add|addforce)",
-		?string $fromConst="from",
+		string $action,
+		?string $fromConst,
 		PSource $from,
 		PDirection $direction,
 		PSource $to,
@@ -178,7 +180,7 @@ class MessageHubController {
 		}
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-			foreach ($modifiers as $modifier) {
+			foreach ($modifiers??[] as $modifier) {
 				$modifier->route_id = $route->id;
 				$modifier->id = $this->db->insert(
 					$this->messageHub::DB_TABLE_ROUTE_MODIFIER,
@@ -229,8 +231,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (from|sources?|src)
 	 */
-	public function routeListFromCommand(CmdContext $context, string $action="list", string $subAction="(from|sources?|src)"): void {
+	public function routeListFromCommand(CmdContext $context, string $action, string $subAction): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -244,8 +248,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (to|dsts?|dests?|destinations?)
 	 */
-	public function routeListToCommand(CmdContext $context, string $action="list", string $subAction="(to|dsts?|dests?|destinations?)"): void {
+	public function routeListToCommand(CmdContext $context, string $action, string $subAction): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -259,8 +265,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (mods?|modifiers?)
 	 */
-	public function routeListModifiersCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)"): void {
+	public function routeListModifiersCommand(CmdContext $context, string $action, string $subAction): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
@@ -284,9 +292,16 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
+	 * @Mask $subAction (mods?|modifiers?)
 	 */
-	public function routeListModifierCommand(CmdContext $context, string $action="list", string $subAction="(mods?|modifiers?)", string $modifier): void {
-		$mod = $this->messageHub->modifiers[$modifier];
+	public function routeListModifierCommand(
+		CmdContext $context,
+		string $action,
+		string $subAction,
+		string $modifier
+	): void {
+		$mod = $this->messageHub->modifiers[$modifier]??null;
 		if (!isset($mod)) {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
@@ -379,8 +394,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action list
 	 */
-	public function routeList(CmdContext $context, string $action="list"): void {
+	public function routeList(CmdContext $context, string $action): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -402,8 +418,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $tree tree
+	 * @Mask $all all
 	 */
-	public function routeTree(CmdContext $context, ?string $tree="tree", ?string $all="all"): void {
+	public function routeTree(CmdContext $context, ?string $tree, ?string $all): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -423,7 +441,7 @@ class MessageHubController {
 				$dests []= $route->getSource();
 			}
 			foreach ($dests as $dest) {
-				if (!isset($dest) || $this->messageHub->getReceiver($dest) === null) {
+				if ($this->messageHub->getReceiver($dest) === null) {
 					continue;
 				}
 				$grouped[strtolower($dest)] ??= [];
@@ -463,7 +481,7 @@ class MessageHubController {
 			$blobs []= $blob;
 		}
 		$blob = join("\n", $blobs);
-		if (!isset($args[1])) {
+		if (!isset($all)) {
 			$blob .= "\n\n".
 				"<i>This view does not include system messages.\n".
 				"Use " . $this->text->makeChatcmd("<symbol>route all", "/tell <myname> route all").
@@ -482,8 +500,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
 	 */
-	public function routeListColorConfigCommand(CmdContext $context, string $action="color"): void {
+	public function routeListColorConfigCommand(CmdContext $context, string $action): void {
 		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
 			$context->reply("No colors have been defined yet.");
@@ -556,12 +575,14 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
 	 */
 	public function routeTagColorRemCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		PRemove $remove,
+		string $action,
+		string $type,
+		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -607,8 +628,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $subAction remall
 	 */
-	public function routeTagColorRemAllCommand(CmdContext $context, string $action="color", string $subAction="remall"): void {
+	public function routeTagColorRemAllCommand(CmdContext $context, string $action, string $subAction): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->truncate();
 		$this->messageHub->loadTagColor();
@@ -617,12 +640,15 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
+	 * @Mask $subAction set
 	 */
 	public function routeSetColorCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		string $subAction="set",
+		string $action,
+		string $type,
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via,
@@ -684,12 +710,15 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action color
+	 * @Mask $type (tag|text)
+	 * @Mask $subAction pick
 	 */
 	public function routePickColorCommand(
 		CmdContext $context,
-		string $action="color",
-		string $type="(tag|text)",
-		string $subAction="pick",
+		string $action,
+		string $type,
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -741,8 +770,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
 	 */
-	public function routeListFormatCommand(CmdContext $context, string $action="format"): void {
+	public function routeListFormatCommand(CmdContext $context, string $action): void {
 		$formats = Source::$format;
 		if ($formats->isEmpty()) {
 			$context->reply("No formats have been defined yet.");
@@ -791,8 +821,14 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
 	 */
-	public function routeFormatClearCommand(CmdContext $context, string $action="format", PRemove $rem, PSource $hop): void {
+	public function routeFormatClearCommand(
+		CmdContext $context,
+		string $action,
+		PRemove $subAction,
+		PSource $hop
+	): void {
 		$hop = $this->fixDiscordChannelName($hop());
 		if (!$this->clearHopFormat($hop)) {
 			$context->reply("No format defined for <highlight>{$hop}<end>.");
@@ -803,8 +839,10 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction remall
 	 */
-	public function routeFormatRemAllCommand(CmdContext $context, string $action="format", string $subAction="remall"): void {
+	public function routeFormatRemAllCommand(CmdContext $context, string $action, string $subAction): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
 		$this->messageHub->loadTagFormat();
 		$context->reply("All route format definitions deleted.");
@@ -812,11 +850,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction render
 	 */
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
-		string $action="format",
-		string $subAction="render",
+		string $action,
+		string $subAction,
 		PSource $hop,
 		bool $render
 	): void {
@@ -831,11 +871,13 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action format
+	 * @Mask $subAction display
 	 */
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
-		string $action="format",
-		string $subAction="display",
+		string $action,
+		string $subAction,
 		PSource $hop,
 		string $format
 	): void {
@@ -859,8 +901,9 @@ class MessageHubController {
 
 	/**
 	 * @HandlesCommand("route")
+	 * @Mask $action remall
 	 */
-	public function routeRemAllCommand(CmdContext $context, string $action="remall"): void {
+	public function routeRemAllCommand(CmdContext $context, string $action): void {
 		try {
 			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
@@ -873,7 +916,7 @@ class MessageHubController {
 	/** Turn on/off rendering of a specific hop */
 	public function setHopRender(string $hop, bool $state): void {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		$update = true;
 		if (!isset($format)) {
 			$format = new RouteHopFormat();
@@ -895,7 +938,7 @@ class MessageHubController {
 		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
 			throw new Exception("Invalid format string given.");
 		}
-		$spec = Source::$format->first(fn($x) => $x->hop === $hop);
+		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		/** @var RouteHopFormat $format */
 		$update = true;
 		if (!isset($spec)) {
@@ -914,7 +957,7 @@ class MessageHubController {
 
 	public function clearHopFormat(string $hop): bool {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn($x) => $x->hop === $hop);
+		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		if (!isset($format)) {
 			return false;
 		}
@@ -931,13 +974,13 @@ class MessageHubController {
 				if (isset($where) !== isset($x->where)) {
 					return false;
 				}
-				if (isset($where) && strcasecmp($x->where, $where) !== 0) {
+				if (isset($where) && strcasecmp($x->where??"", $where) !== 0) {
 					return false;
 				}
 				if (isset($via) !== isset($x->via)) {
 					return false;
 				}
-				if (isset($via) && strcasecmp($x->via, $via) !== 0) {
+				if (isset($via) && strcasecmp($x->via??"", $via) !== 0) {
 					return false;
 				}
 				return strcasecmp($x->hop, $hop) === 0;

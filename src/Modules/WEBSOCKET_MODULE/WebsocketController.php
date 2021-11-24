@@ -176,23 +176,26 @@ class WebsocketController {
 		);
 	}
 
-	public function clientConnected(WebsocketCallback $event) {
-		$this->logger->log("DEBUG", "New Websocket connection from " . $event->websocket->getPeer());
+	public function clientConnected(WebsocketCallback $event): void {
+		$this->logger->log("DEBUG", "New Websocket connection from ".
+			($event->websocket->getPeer() ?? "unknown"));
 	}
 
-	public function clientDisconnected(WebsocketCallback $event) {
-		$this->logger->log("DEBUG", "Closed Websocket connection from " . $event->websocket->getPeer());
+	public function clientDisconnected(WebsocketCallback $event): void {
+		$this->logger->log("DEBUG", "Closed Websocket connection from ".
+			($event->websocket->getPeer() ?? "unknown"));
 	}
 
-	public function clientError(WebsocketCallback $event) {
-		$this->logger->log("DEBUG", "Websocket client error from " . $event->websocket->getPeer());
+	public function clientError(WebsocketCallback $event): void {
+		$this->logger->log("DEBUG", "Websocket client error from ".
+			($event->websocket->getPeer() ?? "unknown"));
 		$event->websocket->close();
 	}
 
 	/**
 	 * Handle the Websocket client sending data
 	 */
-	public function clientSentData(WebsocketCallback $event) {
+	public function clientSentData(WebsocketCallback $event): void {
 		$this->logger->log("DEBUG", "[Data inc.] {$event->data}");
 		try {
 			if (!is_string($event->data)) {
@@ -221,6 +224,9 @@ class WebsocketController {
 			return;
 		}
 		try {
+			if (!is_object($command->data)) {
+				throw new Exception("Invalid data received");
+			}
 			$newEvent->data->fromJSON($command->data);
 		} catch (Throwable $e) {
 			$event->websocket->close(4002);
@@ -239,7 +245,9 @@ class WebsocketController {
 			$server->subscribe(...$event->data->events);
 			$this->logger->log('DEBUG', 'Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
-			$event->websocket->close(4002);
+			if (isset($event->websocket)) {
+				$event->websocket->close(4002);
+			}
 		}
 	}
 

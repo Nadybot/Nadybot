@@ -9,6 +9,10 @@ class DBRow {
 		$trace2 = $backtrace[0];
 		$logger = new LoggerWrapper('DB');
 		$logger->log('WARN', "Tried to get value '$value' from row that doesn't exist: " . var_export($this, true));
-		$logger->log('WARN', "Called by {$trace['class']}::{$trace['function']}() in {$trace2['file']} line {$trace2['line']}");
+		$class = "";
+		if (isset($trace['class'])) {
+			$class = $trace['class'] . "::";
+		}
+		$logger->log('WARN', "Called by {$class}{$trace['function']}() in {$trace2['file']} line {$trace2['line']}");
 	}
 }

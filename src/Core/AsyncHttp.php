@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Exception;
+
 /**
  * The AsyncHttp class provides means to make HTTP and HTTPS requests.
  *
@@ -31,7 +33,7 @@ class AsyncHttp {
 	/**
 	 * The function to call when data has arrived
 	 *
-	 * @var callable $callback
+	 * @var null|callable $callback
 	 */
 	private $callback;
 
@@ -41,6 +43,9 @@ class AsyncHttp {
 	 * @var mixed $data
 	 */
 	private $data;
+
+	/** The HTTP method to use (GET/POST/PUT/DELETE) */
+	private string $method;
 
 	/**
 	 * Additional headers tp send with the request
@@ -57,7 +62,7 @@ class AsyncHttp {
 	/**
 	 * The query parameters to send with out query
 	 *
-	 * @var string[]
+	 * @var array<string,string|int>
 	 */
 	private array $queryParams = [];
 
@@ -71,9 +76,10 @@ class AsyncHttp {
 	/**
 	 * The socket to communicate with
 	 *
-	 * @var resource $stream
+	 * @var null|false|resource
+	 * @psalm-var null|false|resource|closed-resource
 	 */
-	private $stream;
+	private $stream = null;
 
 	/**
 	 * The notifier to notify us when something happens in the queue
@@ -236,7 +242,7 @@ class AsyncHttp {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 			$this->notifier = null;
 		}
-		if (isset($this->stream) && $this->stream !== false) {
+		if (isset($this->stream) && is_resource($this->stream)) {
 			fclose($this->stream);
 		}
 	}
@@ -336,9 +342,14 @@ class AsyncHttp {
 
 	public function handleTlsHandshake(): void {
 		$this->logger->log('DEBUG', "Activating TLS");
+		if (!isset($this->stream) || !is_resource($this->stream)) {
+			return;
+		}
 		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 		if ($sslResult === true) {
-			$this->socketManager->removeSocketNotifier($this->notifier);
+			if (isset($this->notifier)) {
+				$this->socketManager->removeSocketNotifier($this->notifier);
+			}
 			$this->logger->log('DEBUG', "TLS crypto activated successfully");
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
@@ -456,7 +467,7 @@ class AsyncHttp {
 	 * Check if our connection is closed
 	 */
 	private function isStreamClosed(): bool {
-		return feof($this->stream);
+		return !isset($this->stream) || !is_resource($this->stream) || feof($this->stream);
 	}
 
 	/**
@@ -479,6 +490,9 @@ class AsyncHttp {
 	private function readAllFromSocket(): string {
 		$data = '';
 		while (true) {
+			if (!isset($this->stream) || !is_resource($this->stream)) {
+				throw new Exception("Trying to read from closed socket");
+			}
 			$chunk = fread($this->stream, 8192);
 			if ($chunk === false) {
 				if (feof($this->stream)) {
@@ -502,7 +516,7 @@ class AsyncHttp {
 			$data .= $chunk;
 		}
 
-		if (!empty($data)) {
+		if (!empty($data) && isset($this->timeoutEvent)) {
 			// since data was read, reset timeout
 			$this->timer->restartEvent($this->timeoutEvent);
 		}
@@ -545,6 +559,9 @@ class AsyncHttp {
 		if (!strlen($this->requestData)) {
 			return;
 		}
+		if (!isset($this->stream) || !is_resource($this->stream)) {
+			throw new Exception("Trying to write to closed stream.");
+		}
 		$written = fwrite($this->stream, $this->requestData);
 		if ($written === false) {
 			if ($this->retriesLeft--) {
@@ -560,12 +577,15 @@ class AsyncHttp {
 			$this->requestData = substr($this->requestData, $written);
 
 			// since data was written, reset timeout
-			$this->timer->restartEvent($this->timeoutEvent);
+			if (isset($this->timeoutEvent)) {
+				$this->timer->restartEvent($this->timeoutEvent);
+			}
 		}
 	}
 
 	/**
 	 * Set a headers to be send with the request
+	 * @param mixed $value
 	 */
 	public function withHeader(string $header, $value): self {
 		$this->headers[$header] = $value;
@@ -591,6 +611,8 @@ class AsyncHttp {
 	 *                $body: received contents
 	 *  * $data     - optional value which is same as given as argument to
 	 *                this method.
+	 * @psalm-param callable(HttpResponse,mixed...) $callback
+	 * @param mixed $data
 	 */
 	public function withCallback(callable $callback, ...$data): self {
 		$this->callback = $callback;
@@ -601,7 +623,7 @@ class AsyncHttp {
 	/**
 	 * Set the query parameters to send with the request
 	 *
-	 * @param string[] $params array of key/value pair parameters passed as a query
+	 * @param array<string,int|string> $params array of key/value pair parameters passed as a query
 	 */
 	public function withQueryParams(array $params): self {
 		$this->queryParams = $params;

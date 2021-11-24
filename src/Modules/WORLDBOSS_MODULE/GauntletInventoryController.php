@@ -41,8 +41,13 @@ class GauntletInventoryController {
 	/** @Inject */
 	public Preferences $preferences;
 
-	//(ref , image, need) 17 items without basic armor
-	private $gaulisttab =   [
+	/**
+	 * (ref , image, need) 17 items without basic armor
+	 *
+	 * @var int[][]
+	 * @psalm-var list<array{0: int, 1: int, 2: int}>
+	 */
+	private array $gaulisttab = [
 		[292507, 292793, 3], [292509, 292775, 1], [292508, 292776, 1], [292510, 292774, 1],
 		[292514, 292764, 1], [292515, 292780, 1], [292516, 292792, 1], [292532, 292760, 3],
 		[292533, 292788, 3], [292529, 292779, 3], [292530, 292759, 3], [292524, 292784, 3],
@@ -63,7 +68,10 @@ class GauntletInventoryController {
 		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}
 
-	private function renderBastionInventory(string $name, int $numArmors) {
+	/**
+	 * @return string[]
+	 */
+	private function renderBastionInventory(string $name, int $numArmors): array {
 		$inventory = $this->getData($name);
 		if (($numArmors < 1) || ($numArmors > 3)) {
 			$numArmors = 1;
@@ -104,8 +112,10 @@ class GauntletInventoryController {
 		}
 		$refreshLink = $this->text->makeChatcmd("Refresh", "/tell <myname> gaulist {$name} {$numArmors}");
 		$list .= "\n<tab>[{$refreshLink}]";
-		$link = $this->text->makeBlob("Bastion inventory for $name", $list);
-		$blob = "Bastion inventory: ".$link;
+		$blob = (array)$this->text->makeBlob("Bastion inventory for $name", $list);
+		foreach ($blob as &$page) {
+			$page = "Bastion inventory: {$page}";
+		}
 		return $blob;
 	}
 
@@ -119,7 +129,7 @@ class GauntletInventoryController {
 		$context->reply($msg);
 	}
 
-	protected function altCheck(CmdContext $context, string $sender, string $name) {
+	protected function altCheck(CmdContext $context, string $sender, string $name): bool {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		if ($altInfo->main !== $name && !in_array($name, $altInfo->getAllValidatedAlts())) {
 			$context->reply("Player \"{$name}\" is not your alt.");
@@ -130,8 +140,9 @@ class GauntletInventoryController {
 
 	/**
 	 * @HandlesCommand("gaulist")
+	 * @Mask $action add
 	 */
-	public function gaulistAddCommand(CmdContext $context, string $action="add", PCharacter $name, int $pos): void {
+	public function gaulistAddCommand(CmdContext $context, string $action, PCharacter $name, int $pos): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {

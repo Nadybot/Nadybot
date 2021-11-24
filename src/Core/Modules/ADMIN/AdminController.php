@@ -90,7 +90,7 @@ class AdminController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->adminManager->uploadAdmins();
 
 		$this->commandAlias->register($this->moduleName, "admin add", "addadmin");
@@ -101,8 +101,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("admin")
+	 * @Mask $action add
 	 */
-	public function adminAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+	public function adminAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
 
@@ -111,8 +112,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("mod")
+	 * @Mask $action add
 	 */
-	public function modAddCommand(CmdContext $context, string $action="add", PCharacter $who): void {
+	public function modAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
 
@@ -141,8 +143,9 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("adminlist")
+	 * @Mask $all all
 	 */
-	public function adminlistCommand(CmdContext $context, ?string $all="all"): void {
+	public function adminlistCommand(CmdContext $context, ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";
 		foreach ($this->adminManager->admins as $who => $data) {
@@ -221,7 +224,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}
@@ -245,7 +248,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}
@@ -267,7 +270,7 @@ class AdminController {
 		return $ai->main == $who;
 	}
 
-	public function checkAccessLevel(string $actor, string $actee) {
+	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;

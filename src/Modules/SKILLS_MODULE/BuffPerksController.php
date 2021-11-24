@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandReply,
 	DB,
 	LoggerWrapper,
@@ -13,7 +14,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Timer,
 };
-
+use Nadybot\Core\ParamClass\PNonNumberWord;
 use Nadybot\Modules\{
 	ITEMS_MODULE\AODBEntry,
 	ITEMS_MODULE\Skill,
@@ -43,7 +44,7 @@ class BuffPerksController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
 	/** @Inject */
 	public Text $text;
@@ -154,41 +155,35 @@ class BuffPerksController {
 		$this->db->commit();
 	}
 
-	/**
-	 * @HandlesCommand("perks")
-	 * @Matches("/^perks$/i")
-	 * @Matches("/^perks ([a-z-]*) (\d+)$/i")
-	 * @Matches("/^perks ([a-z-]*) (\d+) (.*)$/i")
-	 * @Matches("/^perks (\d+) ([a-z-]*)$/i")
-	 * @Matches("/^perks (\d+) ([a-z-]*) (.*)$/i")
-	 */
-	public function buffPerksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) === 1) {
-			$this->playerManager->getByNameAsync(
-				function(?Player $whois) use ($args, $sendto): void {
-					if (empty($whois)) {
-						$msg = "Could not retrieve whois info for you.";
-						$sendto->reply($msg);
-						return;
-					}
-					$this->showPerks($whois->profession, $whois->level, $whois->breed, null, $sendto);
-				},
-				$sender
-			);
+	/** @HandlesCommand("perks") */
+	public function buffPerksNoArgsCommand(CmdContext $context): void {
+		$this->playerManager->getByNameAsync(
+			function(?Player $whois) use ($context): void {
+				if (empty($whois) || !isset($whois->profession) || !isset($whois->level)) {
+					$msg = "Could not retrieve whois info for you.";
+					$context->reply($msg);
+					return;
+				}
+				$this->showPerks($whois->profession, $whois->level, $whois->breed, null, $context);
+			},
+			$context->char->name
+		);
+	}
+
+	/** @HandlesCommand("perks") */
+	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
+		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
+	}
+
+	/** @HandlesCommand("perks") */
+	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
+		$profession = $this->util->getProfessionName($prof());
+		if ($profession === "") {
+			$msg = "Could not find profession <highlight>{$prof}<end>.";
+			$context->reply($msg);
 			return;
 		}
-		if (($first = $this->util->getProfessionName($args[1])) !== '') {
-			$profession = $first;
-			$level = (int)$args[2];
-		} elseif (($second = $this->util->getProfessionName($args[2])) !== '') {
-			$profession = $second;
-			$level = (int)$args[1];
-		} else {
-			$msg = "Could not find profession <highlight>$args[1]<end> or <highlight>$args[2]<end>.";
-			$sendto->reply($msg);
-			return;
-		}
-		$this->showPerks($profession, $level, null, $args[3] ?? null, $sendto);
+		$this->showPerks($profession, $level, null, $search, $context);
 	}
 
 	/**
@@ -374,6 +369,9 @@ class BuffPerksController {
 				);
 			}
 			foreach ($perk->resistances as $res) {
+				if (!isset($res->nanoline)) {
+					continue;
+				}
 				$blob .= sprintf(
 					"<tab><tab>Resist %s <highlight>%d%%<end>\n",
 					$res->nanoline,
@@ -381,8 +379,14 @@ class BuffPerksController {
 				);
 			}
 			$levels = array_column($perk->actions, "perk_level");
-			$maxLevel = max($levels);
+			$maxLevel = 0;
+			if (count($levels)) {
+				$maxLevel = max($levels);
+			}
 			foreach ($perk->actions as $action) {
+				if (!isset($action->perk_level) || !isset($action->aodb)) {
+					continue;
+				}
 				$blob .= sprintf(
 					"<tab><tab>Add Action at %s: %s%s\n",
 					$this->text->alignNumber($action->perk_level, strlen((string)$maxLevel)),
@@ -488,7 +492,7 @@ class BuffPerksController {
 			if ($profs === '*') {
 				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
 			}
-			$perk = $perks[$name];
+			$perk = $perks[$name]??null;
 			if (empty($perk)) {
 				$perk = new Perk();
 				$perks[$name] = $perk;
@@ -498,7 +502,7 @@ class BuffPerksController {
 			}
 
 			$level = new PerkLevel();
-			$perk->levels[$perkLevel] = $level;
+			$perk->levels[(int)$perkLevel] = $level;
 
 			$level->perk_level = (int)$perkLevel;
 			$level->required_level = (int)$requiredLevel;
@@ -538,15 +542,15 @@ class BuffPerksController {
 			}
 
 			if (strlen($resistances??'')) {
-				$resistances = preg_split("/\s*,\s*/", $resistances);
+				$resistances = preg_split("/\s*,\s*/", $resistances??"");
 				foreach ($resistances as $resistance) {
 					[$strainId, $amount] = preg_split("/\s*:\s*/", $resistance);
-					$level->resistances[$strainId] = (int)$amount;
+					$level->resistances[(int)$strainId] = (int)$amount;
 				}
 			}
 			if (strlen($action??'')) {
 				$level->action = new PerkLevelAction();
-				$level->action->action_id = (int)preg_replace("/\*$/", "", $action, -1, $count);
+				$level->action->action_id = (int)preg_replace("/\*$/", "", $action??"", -1, $count);
 				$level->action->scaling = $count > 0;
 			}
 		}
@@ -555,18 +559,18 @@ class BuffPerksController {
 
 	/**
 	 * @HandlesCommand("perks")
-	 * @Matches("/^perks show (.+)$/i")
+	 * @Mask $action show
 	 */
-	public function showPerkCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$perk = $this->readPerk($args[1]);
+	public function showPerkCommand(CmdContext $context, string $action, string $perkName): void {
+		$perk = $this->readPerk($perkName);
 		if (!isset($perk)) {
-			$msg = "Could not find any perk '<highlight>{$args[1]}<end>'.";
-			$sendto->reply($msg);
+			$msg = "Could not find any perk '<highlight>{$perkName}<end>'.";
+			$context->reply($msg);
 			return;
 		}
 		$blob = $this->renderPerk($perk);
 		$msg = $this->text->makeBlob("Details for the perk '$perk->name'", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -575,6 +579,9 @@ class BuffPerksController {
 	public function renderPerk(Perk $perk): string {
 		$blob = "";
 		foreach ($perk->levels as $level) {
+			if (!isset($level->aoid)) {
+				continue;
+			}
 			$perkItem = $this->text->makeItem(
 				$level->aoid,
 				$level->aoid,
@@ -604,7 +611,7 @@ class BuffPerksController {
 				$blob .= "<tab>".
 					"Resist {$res->nanoline} <highlight>+{$res->amount}%<end>\n";
 			}
-			if (isset($level->action)) {
+			if (isset($level->action) && isset($level->action->aodb)) {
 				$blob .= "<tab>Add Action: ".
 					$this->text->makeItem(
 						$level->action->aodb->lowid,
@@ -673,7 +680,7 @@ class BuffPerksController {
 		usort(
 			$result->resistances,
 			function (PerkLevelResistance $a, PerkLevelResistance $b): int {
-				return strcmp($a->nanoline, $b->nanoline);
+				return strcmp($a->nanoline??"", $b->nanoline??"");
 			}
 		);
 		return $result;
@@ -722,7 +729,7 @@ class BuffPerksController {
 					unset($perkLevelAction->{$key});
 				}
 				$perkLevelAction->aodb = $item;
-				$perk->levels[$perkLevelAction->perk_level]->action = $perkLevelAction;
+				$perk->levels[$perkLevelAction->perk_level??0]->action = $perkLevelAction;
 			});
 		$this->db->table("perk_level AS pl")
 			->join("perk_level_buffs AS plb", "pl.id", "plb.perk_level_id")
@@ -801,7 +808,7 @@ class BuffPerksController {
 					unset($action->{$key});
 				}
 				$action->aodb = $item;
-				$perks[$action->perk_id]->levels[$action->perk_level]->action = $action;
+				$perks[$action->perk_id]->levels[$action->perk_level??0]->action = $action;
 			});
 		$this->db->table("perk_level AS pl")
 			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")

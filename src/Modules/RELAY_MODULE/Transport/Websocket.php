@@ -47,6 +47,7 @@ class Websocket implements TransportInterface, StatusProvider {
 	protected string $uri;
 	protected ?string $authorization;
 
+	/** @var ?callable */
 	protected $initCallback;
 
 	protected WebsocketClient $client;
@@ -83,6 +84,9 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function processMessage(WebsocketCallback $event): void {
+		if (!is_string($event->data)) {
+			return;
+		}
 		$msg = new RelayMessage();
 		$msg->packages = [$event->data];
 		$this->relay->receiveFromTransport($msg);
@@ -90,7 +94,7 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	public function processError(WebsocketCallback $event): void {
 		$this->logger->log("ERROR", "[{$this->uri}] [Code $event->code] $event->data");
-		$this->status = new RelayStatus(RelayStatus::INIT, $event->data);
+		$this->status = new RelayStatus(RelayStatus::INIT, $event->data??"Unknown state");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
 				$this->timer->callLater(30, [$this->client, 'connect']);

@@ -3,12 +3,42 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Illuminate\Database\Query\JoinClause;
+use Nadybot\Core\BuddylistManager;
+use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
-use Nadybot\Core\Registry;
+use Nadybot\Core\SettingManager;
+use Nadybot\Core\Text;
+use Nadybot\Core\Util;
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 class AltInfo {
+	/** @Inject */
+	public OnlineController $onlineController;
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public BuddylistManager $buddylistManager;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public Util $util;
+
 	/** The main char of this character */
 	public string $main;
 
@@ -55,6 +85,7 @@ class AltInfo {
 	/**
 	 * Get a list of all validated alts
 	 * @return string[]
+	 * @psalm-return list<string>
 	 */
 	public function getAllValidatedAlts(): array {
 		$alts = [];
@@ -72,10 +103,8 @@ class AltInfo {
 	 */
 	public function getAllMainUnvalidatedAlts(bool $onlyMine=true): array {
 		$alts = [];
-		/** @var Nadybot */
-		$chatBot = Registry::getInstance('chatBot');
 		foreach ($this->alts as $alt => $status) {
-			if ($onlyMine && $status->added_via !== $chatBot->vars["name"]) {
+			if ($onlyMine && $status->added_via !== $this->chatBot->char->name) {
 				continue;
 			}
 			if (!$status->validated_by_main) {
@@ -96,22 +125,17 @@ class AltInfo {
 			return "No registered alts.";
 		}
 
-		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
-		$playerManager = Registry::getInstance('playerManager');
-
-		$player = $playerManager->getByName($this->main);
+		$player = $this->playerManager->getByName($this->main);
 		return $this->getAltsBlobForPlayer($player, $firstPageOnly);
 	}
 
+	/** @psalm-param callable(string|list<string>) $callback */
 	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
 		if (count($this->alts) === 0) {
 			$callback("No registered alts.");
 		}
 
-		/** @var \Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager */
-		$playerManager = Registry::getInstance('playerManager');
-
-		$playerManager->getByNameAsync(
+		$this->playerManager->getByNameAsync(
 			function (?Player $player) use ($firstPageOnly, $callback): void {
 				$callback($this->getAltsBlobForPlayer($player, $firstPageOnly));
 			},
@@ -119,30 +143,24 @@ class AltInfo {
 		);
 	}
 
+	/** @return string|string[] */
 	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly) {
 		if (!isset($player)) {
 			return "Main character not found.";
 		}
-		/** @var \Nadybot\Core\DB */
-		$db = Registry::getInstance('db');
-		/** @var \Nadybot\Core\SettingManager */
-		$settingManager = Registry::getInstance('settingManager');
-		/** @var \Nadybot\Core\BuddylistManager */
-		$buddylistManager = Registry::getInstance('buddylistManager');
-		/** @var \Nadybot\Core\Text */
-		$text = Registry::getInstance('text');
-		/** @var \Nadybot\Core\Util */
-		$util = Registry::getInstance('util');
 
-		$profDisplay = $settingManager->getInt('alts_profession_display');
+		$profDisplay = $this->settingManager->getInt('alts_profession_display')??1;
 
-		$online = $buddylistManager->isOnline($this->main);
-		$blob  = $text->alignNumber($player->level, 3, "highlight");
+		$online = $this->buddylistManager->isOnline($this->main);
+		$blob  = $this->text->alignNumber($player->level, 3, "highlight");
 		$blob .= " ";
-		$blob .= $text->alignNumber($player->ai_level, 2, "green");
+		$blob .= $this->text->alignNumber($player->ai_level, 2, "green");
 		$blob .= " ";
 		if ($profDisplay & 1 && $player->profession !== null) {
-			$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($player->profession)."> ";
+			$profId = $this->onlineController->getProfessionId($player->profession);
+			if (isset($profId)) {
+				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
+			}
 		} elseif ($profDisplay & 1) {
 			$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 		}
@@ -150,14 +168,14 @@ class AltInfo {
 
 		$extraInfo = [];
 		if ($profDisplay & 2 && $player->profession !== null) {
-			$extraInfo []= $util->getProfessionAbbreviation($player->profession);
+			$extraInfo []= $this->util->getProfessionAbbreviation($player->profession);
 		}
 		if ($profDisplay & 4 && $player->profession !== null) {
 			$extraInfo []= $player->profession;
 		}
-		if ($settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
+		if ($this->settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
 			$factionColor = strtolower($player->faction);
-			$orgName = strlen($player->guild) ? $player->guild : $player->faction;
+			$orgName = strlen($player->guild??"") ? $player->guild : $player->faction;
 			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 		}
 		if (count($extraInfo)) {
@@ -166,42 +184,45 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		$query = $db->table("alts AS a")
-			->leftJoin("players AS p", function(JoinClause $table) use ($db) {
+		$query = $this->db->table("alts AS a")
+			->leftJoin("players AS p", function(JoinClause $table) {
 				$table->on("a.alt", "p.name");
-				$table->where("p.dimension", $db->getDim());
+				$table->where("p.dimension", $this->db->getDim());
 			})
 			->where("a.main", $this->main)
 			->select("a.alt", "a.main", "a.validated_by_main", "a.validated_by_alt", "p.*");
-		if ($settingManager->get('alts_sort') === 'level') {
+		if ($this->settingManager->get('alts_sort') === 'level') {
 			$query->orderByDesc("p.level");
 			$query->orderByDesc("p.ai_level");
 			$query->orderBy("p.name");
-		} elseif ($settingManager->get('alts_sort') === 'name') {
+		} elseif ($this->settingManager->get('alts_sort') === 'name') {
 			$query->orderBy("p.name");
 		}
 		$data = $query->asObj(Alt::class)->toArray();
 		$count = count($data) + 1;
 		foreach ($data as $row) {
-			$online = $buddylistManager->isOnline($row->alt);
-			$blob .= $text->alignNumber((int)$row->level, 3, "highlight");
+			$online = $this->buddylistManager->isOnline($row->alt);
+			$blob .= $this->text->alignNumber((int)$row->level, 3, "highlight");
 			$blob .= " ";
-			$blob .= $text->alignNumber((int)$row->ai_level, 2, "green");
+			$blob .= $this->text->alignNumber((int)$row->ai_level, 2, "green");
 			$blob .= " ";
 			if ($profDisplay & 1 && $row->profession !== null) {
-				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".Registry::getInstance('onlineController')->getProfessionId($row->profession)."> ";
+				$profId = $this->onlineController->getProfessionId($row->profession);
+				if (isset($profId)) {
+					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
+				}
 			} elseif ($profDisplay & 1) {
 				$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			$extraInfo = [];
 			if ($profDisplay & 2 && $row->profession !== null) {
-				$extraInfo []= $util->getProfessionAbbreviation($row->profession);
+				$extraInfo []= $this->util->getProfessionAbbreviation($row->profession);
 			}
 			if ($profDisplay & 4 && $row->profession !== null) {
 				$extraInfo []= $row->profession;
 			}
-			if ($settingManager->getBool('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
+			if ($this->settingManager->getBool('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->faction);
 				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
@@ -217,7 +238,7 @@ class AltInfo {
 			$blob .= "\n";
 		}
 
-		$msg = $text->makeBlob("Alts of {$this->main} ($count)", $blob);
+		$msg = $this->text->makeBlob("Alts of {$this->main} ($count)", $blob);
 
 		if ($firstPageOnly && is_array($msg)) {
 			return $msg[0];
@@ -231,14 +252,13 @@ class AltInfo {
 	 */
 	public function getOnlineAlts(): array {
 		$online_list = [];
-		$buddylistManager = Registry::getInstance('buddylistManager');
 
-		if ($buddylistManager->isOnline($this->main)) {
+		if ($this->buddylistManager->isOnline($this->main)) {
 			$online_list []= $this->main;
 		}
 
 		foreach ($this->alts as $name => $validated) {
-			if ($buddylistManager->isOnline($name)) {
+			if ($this->buddylistManager->isOnline($name)) {
 				$online_list []= $name;
 			}
 		}
@@ -274,8 +294,7 @@ class AltInfo {
 
 	public function formatCharName(string $name, ?bool $online): string {
 		if ($online) {
-			$text = Registry::getInstance('text');
-			return $text->makeChatcmd($name, "/tell $name");
+			return $this->text->makeChatcmd($name, "/tell $name");
 		}
 		return $name;
 	}

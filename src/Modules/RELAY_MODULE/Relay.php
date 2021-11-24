@@ -39,7 +39,10 @@ class Relay implements MessageReceiver {
 	/** Name of this relay */
 	protected string $name;
 
-	/** @var RelayLayerInterface[] */
+	/**
+	 * @var RelayLayerInterface[]
+	 * @psalm-var list<RelayLayerInterface>
+	 */
 	protected array $stack = [];
 
 	/**
@@ -57,6 +60,8 @@ class Relay implements MessageReceiver {
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
+	public bool $registerAsReceiver = true;
+	public bool $registerAsEmitter = true;
 
 	public function __construct(string $name) {
 		$this->name = $name;
@@ -113,7 +118,7 @@ class Relay implements MessageReceiver {
 	public function setClientOffline(string $clientId): void {
 		foreach ($this->onlineChars as $where => &$characters) {
 			foreach ($characters as $name => $player) {
-				if (!isset($player) || !isset($player->source) || $player->source !== $clientId) {
+				if (($player->source??null) === null || $player->source !== $clientId) {
 					continue;
 				}
 				unset($this->onlineChars[$where][$name]);
@@ -156,7 +161,7 @@ class Relay implements MessageReceiver {
 		TransportInterface $transport,
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
-	) {
+	): void {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
@@ -164,9 +169,12 @@ class Relay implements MessageReceiver {
 
 	public function deinit(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
-			$this->messageHub
-				->unregisterMessageEmitter($this->getChannelName())
-				->unregisterMessageReceiver($this->getChannelName());
+			if ($this->registerAsEmitter) {
+				$this->messageHub->unregisterMessageEmitter($this->getChannelName());
+			}
+			if ($this->registerAsReceiver) {
+				$this->messageHub->unregisterMessageReceiver($this->getChannelName());
+			}
 		}
 		/** @var RelayStackArraySenderInterface[] */
 		$layers = [
@@ -197,9 +205,12 @@ class Relay implements MessageReceiver {
 		$this->initialized = false;
 		$this->onlineChars = [];
 		$this->initStep = $index;
-		$this->messageHub
-			->registerMessageEmitter($this)
-			->registerMessageReceiver($this);
+		if ($this->registerAsEmitter) {
+			$this->messageHub->registerMessageEmitter($this);
+		}
+		if ($this->registerAsReceiver) {
+			$this->messageHub->registerMessageReceiver($this);
+		}
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;

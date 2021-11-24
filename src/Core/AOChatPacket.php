@@ -78,60 +78,98 @@ define('AOCP_ADM_MUX_INFO',          1100);
 define('AOCP_GROUP_JOIN',		AOCP_GROUP_ANNOUNCE); // compat
 
 class AOChatPacket {
+	public const LOGIN_SEED =         0;
+	public const LOGIN_REQUEST =      2;
+	public const LOGIN_SELECT =       3;
+	public const LOGIN_OK =           5;
+	public const LOGIN_ERROR =        6;
+	public const LOGIN_CHARLIST =     7;
+	public const CLIENT_UNKNOWN =    10;
+	public const CLIENT_NAME =       20;
+	public const CLIENT_LOOKUP =     21;
+	public const MSG_PRIVATE =       30;
+	public const MSG_VICINITY =      34;
+	public const MSG_VICINITYA =     35;
+	public const MSG_SYSTEM =        36;
+	public const CHAT_NOTICE =       37;
+	public const BUDDY_ADD =         40;
+	public const BUDDY_REMOVE =      41;
+	public const ONLINE_SET =        42;
+	public const PRIVGRP_INVITE =    50;
+	public const PRIVGRP_KICK =      51;
+	public const PRIVGRP_JOIN =      52;
+	public const PRIVGRP_PART =      53;
+	public const PRIVGRP_KICKALL =   54;
+	public const PRIVGRP_CLIJOIN =   55;
+	public const PRIVGRP_CLIPART =   56;
+	public const PRIVGRP_MESSAGE =   57;
+	public const PRIVGRP_REFUSE =    58;
+	public const GROUP_ANNOUNCE =    60;
+	public const GROUP_PART =        61;
+	public const GROUP_DATA_SET =    64;
+	public const GROUP_MESSAGE =     65;
+	public const GROUP_CM_SET =      66;
+	public const CLIENTMODE_GET =    70;
+	public const CLIENTMODE_SET =    71;
+	public const PING =             100;
+	public const FORWARD =          110;
+	public const CC =               120;
+	public const ADM_MUX_INFO =    1100;
+
 	/**
 	 * @var array<string,array<int,array<string,string>>>
 	 */
 	private static array $packet_map = [
 		"in" => [
-			AOCP_LOGIN_SEED       => ["name" => "Login Seed",                  "args" => "S"],
-			AOCP_LOGIN_OK         => ["name" => "Login Result OK",             "args" => ""],
-			AOCP_LOGIN_ERROR      => ["name" => "Login Result Error",          "args" => "S"],
-			AOCP_LOGIN_CHARLIST   => ["name" => "Login CharacterList",         "args" => "isii"],
-			AOCP_CLIENT_UNKNOWN   => ["name" => "Client Unknown",              "args" => "I"],
-			AOCP_CLIENT_NAME      => ["name" => "Client Name",                 "args" => "IS"],
-			AOCP_CLIENT_LOOKUP    => ["name" => "Lookup Result",               "args" => "IS"],
-			AOCP_MSG_PRIVATE      => ["name" => "Message Private",             "args" => "ISS"],
-			AOCP_MSG_VICINITY     => ["name" => "Message Vicinity",            "args" => "ISS"],
-			AOCP_MSG_VICINITYA    => ["name" => "Message Anon Vicinity",       "args" => "SSS"],
-			AOCP_MSG_SYSTEM       => ["name" => "Message System",              "args" => "S"],
-			AOCP_CHAT_NOTICE      => ["name" => "Chat Notice",                 "args" => "IIIS"],
-			AOCP_BUDDY_ADD        => ["name" => "Buddy Added",                 "args" => "IIS"],
-			AOCP_BUDDY_REMOVE     => ["name" => "Buddy Removed",               "args" => "I"],
-			AOCP_PRIVGRP_INVITE   => ["name" => "Privategroup Invited",        "args" => "I"],
-			AOCP_PRIVGRP_KICK     => ["name" => "Privategroup Kicked",         "args" => "I"],
-			AOCP_PRIVGRP_PART     => ["name" => "Privategroup Part",           "args" => "I"],
-			AOCP_PRIVGRP_CLIJOIN  => ["name" => "Privategroup Client Join",    "args" => "II"],
-			AOCP_PRIVGRP_CLIPART  => ["name" => "Privategroup Client Part",    "args" => "II"],
-			AOCP_PRIVGRP_MESSAGE  => ["name" => "Privategroup Message",        "args" => "IISS"],
-			AOCP_PRIVGRP_REFUSE   => ["name" => "Privategroup Refuse Invite",  "args" => "II"],
-			AOCP_GROUP_ANNOUNCE   => ["name" => "Group Announce",              "args" => "GSIS"],
-			AOCP_GROUP_PART       => ["name" => "Group Part",                  "args" => "G"],
-			AOCP_GROUP_MESSAGE    => ["name" => "Group Message",               "args" => "GISS"],
-			AOCP_PING             => ["name" => "Pong",                        "args" => "S"],
-			AOCP_FORWARD          => ["name" => "Forward",                     "args" => "IM"],
-			AOCP_ADM_MUX_INFO     => ["name" => "Adm Mux Info",                "args" => "iii"],
+			self::LOGIN_SEED       => ["name" => "Login Seed",                  "args" => "S"],
+			self::LOGIN_OK         => ["name" => "Login Result OK",             "args" => ""],
+			self::LOGIN_ERROR      => ["name" => "Login Result Error",          "args" => "S"],
+			self::LOGIN_CHARLIST   => ["name" => "Login CharacterList",         "args" => "isii"],
+			self::CLIENT_UNKNOWN   => ["name" => "Client Unknown",              "args" => "I"],
+			self::CLIENT_NAME      => ["name" => "Client Name",                 "args" => "IS"],
+			self::CLIENT_LOOKUP    => ["name" => "Lookup Result",               "args" => "IS"],
+			self::MSG_PRIVATE      => ["name" => "Message Private",             "args" => "ISS"],
+			self::MSG_VICINITY     => ["name" => "Message Vicinity",            "args" => "ISS"],
+			self::MSG_VICINITYA    => ["name" => "Message Anon Vicinity",       "args" => "SSS"],
+			self::MSG_SYSTEM       => ["name" => "Message System",              "args" => "S"],
+			self::CHAT_NOTICE      => ["name" => "Chat Notice",                 "args" => "IIIS"],
+			self::BUDDY_ADD        => ["name" => "Buddy Added",                 "args" => "IIS"],
+			self::BUDDY_REMOVE     => ["name" => "Buddy Removed",               "args" => "I"],
+			self::PRIVGRP_INVITE   => ["name" => "Privategroup Invited",        "args" => "I"],
+			self::PRIVGRP_KICK     => ["name" => "Privategroup Kicked",         "args" => "I"],
+			self::PRIVGRP_PART     => ["name" => "Privategroup Part",           "args" => "I"],
+			self::PRIVGRP_CLIJOIN  => ["name" => "Privategroup Client Join",    "args" => "II"],
+			self::PRIVGRP_CLIPART  => ["name" => "Privategroup Client Part",    "args" => "II"],
+			self::PRIVGRP_MESSAGE  => ["name" => "Privategroup Message",        "args" => "IISS"],
+			self::PRIVGRP_REFUSE   => ["name" => "Privategroup Refuse Invite",  "args" => "II"],
+			self::GROUP_ANNOUNCE   => ["name" => "Group Announce",              "args" => "GSIS"],
+			self::GROUP_PART       => ["name" => "Group Part",                  "args" => "G"],
+			self::GROUP_MESSAGE    => ["name" => "Group Message",               "args" => "GISS"],
+			self::PING             => ["name" => "Pong",                        "args" => "S"],
+			self::FORWARD          => ["name" => "Forward",                     "args" => "IM"],
+			self::ADM_MUX_INFO     => ["name" => "Adm Mux Info",                "args" => "iii"],
 		],
 		"out" => [
-			AOCP_LOGIN_REQUEST    => ["name" => "Login Response GetCharLst",   "args" => "ISS"],
-			AOCP_LOGIN_SELECT     => ["name" => "Login Select Character",      "args" => "I"],
-			AOCP_CLIENT_LOOKUP    => ["name" => "Name Lookup",                 "args" => "S"],
-			AOCP_MSG_PRIVATE      => ["name" => "Message Private",             "args" => "ISS"],
-			AOCP_BUDDY_ADD        => ["name" => "Buddy Add",                   "args" => "IS"],
-			AOCP_BUDDY_REMOVE     => ["name" => "Buddy Remove",                "args" => "I"],
-			AOCP_ONLINE_SET       => ["name" => "Onlinestatus Set",            "args" => "I"],
-			AOCP_PRIVGRP_INVITE   => ["name" => "Privategroup Invite",         "args" => "I"],
-			AOCP_PRIVGRP_KICK     => ["name" => "Privategroup Kick",           "args" => "I"],
-			AOCP_PRIVGRP_JOIN     => ["name" => "Privategroup Join",           "args" => "I"],
-			AOCP_PRIVGRP_PART     => ["name" => "Privategroup Part",           "args" => "I"],
-			AOCP_PRIVGRP_KICKALL  => ["name" => "Privategroup Kickall",        "args" => ""],
-			AOCP_PRIVGRP_MESSAGE  => ["name" => "Privategroup Message",        "args" => "ISS"],
-			AOCP_GROUP_DATA_SET   => ["name" => "Group Data Set",              "args" => "GIS"],
-			AOCP_GROUP_MESSAGE    => ["name" => "Group Message",               "args" => "GSS"],
-			AOCP_GROUP_CM_SET     => ["name" => "Group Clientmode Set",        "args" => "GIIII"],
-			AOCP_CLIENTMODE_GET   => ["name" => "Clientmode Get",              "args" => "IG"],
-			AOCP_CLIENTMODE_SET   => ["name" => "Clientmode Set",              "args" => "IIII"],
-			AOCP_PING             => ["name" => "Ping",                        "args" => "S"],
-			AOCP_CC               => ["name" => "CC",                          "args" => "s"],
+			self::LOGIN_REQUEST    => ["name" => "Login Response GetCharLst",   "args" => "ISS"],
+			self::LOGIN_SELECT     => ["name" => "Login Select Character",      "args" => "I"],
+			self::CLIENT_LOOKUP    => ["name" => "Name Lookup",                 "args" => "S"],
+			self::MSG_PRIVATE      => ["name" => "Message Private",             "args" => "ISS"],
+			self::BUDDY_ADD        => ["name" => "Buddy Add",                   "args" => "IS"],
+			self::BUDDY_REMOVE     => ["name" => "Buddy Remove",                "args" => "I"],
+			self::ONLINE_SET       => ["name" => "Onlinestatus Set",            "args" => "I"],
+			self::PRIVGRP_INVITE   => ["name" => "Privategroup Invite",         "args" => "I"],
+			self::PRIVGRP_KICK     => ["name" => "Privategroup Kick",           "args" => "I"],
+			self::PRIVGRP_JOIN     => ["name" => "Privategroup Join",           "args" => "I"],
+			self::PRIVGRP_PART     => ["name" => "Privategroup Part",           "args" => "I"],
+			self::PRIVGRP_KICKALL  => ["name" => "Privategroup Kickall",        "args" => ""],
+			self::PRIVGRP_MESSAGE  => ["name" => "Privategroup Message",        "args" => "ISS"],
+			self::GROUP_DATA_SET   => ["name" => "Group Data Set",              "args" => "GIS"],
+			self::GROUP_MESSAGE    => ["name" => "Group Message",               "args" => "GSS"],
+			self::GROUP_CM_SET     => ["name" => "Group Clientmode Set",        "args" => "GIIII"],
+			self::CLIENTMODE_GET   => ["name" => "Clientmode Get",              "args" => "IG"],
+			self::CLIENTMODE_SET   => ["name" => "Clientmode Set",              "args" => "IIII"],
+			self::PING             => ["name" => "Ping",                        "args" => "S"],
+			self::CC               => ["name" => "CC",                          "args" => "s"],
 		]
 	];
 
@@ -141,7 +179,7 @@ class AOChatPacket {
 	public array $args=[];
 
 	/**
-	 * The package type as in AOCP_LOGIN_REQUEST or AOCP_PRIVGROUP_JOIN
+	 * The package type as in LOGIN_REQUEST or PRIVGROUP_JOIN
 	 */
 	public int $type;
 
@@ -158,7 +196,7 @@ class AOChatPacket {
 	/**
 	 * Create a new packet, either for parsing incoming or encoding outgoing ones
 	 *
-	 * @param string|mixed[] $data Either the data to decode (if $type == "in")
+	 * @param mixed|mixed[] $data Either the data to decode (if $type == "in")
 	 *                             or the data to encode(if $type == "out")
 	 */
 	public function __construct(string $dir, int $type, $data) {
@@ -182,12 +220,14 @@ class AOChatPacket {
 				$sa = $pmap["args"][$i];
 				switch ($sa) {
 					case "I":
-						$res  = array_pop(unpack("N", $data));
+						$unp  = unpack("N", $data);
+						$res  = array_pop($unp);
 						$data = substr($data, 4);
 						break;
 
 					case "S":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$res  = substr($data, 2, $len);
 						$data = substr($data, 2 + $len);
 						break;
@@ -198,17 +238,20 @@ class AOChatPacket {
 						break;
 
 					case "i":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$res  = array_values(unpack("N" . $len, substr($data, 2)));
 						$data = substr($data, 2 + 4 * $len);
 						break;
 
 					case "s":
-						$len  = array_pop(unpack("n", $data));
+						$unp  = unpack("n", $data);
+						$len  = array_pop($unp);
 						$data = substr($data, 2);
 						$res  = [];
 						while ($len--) {
-							$slen  = array_pop(unpack("n", $data));
+							$unp   = unpack("n", $data);
+							$slen  = array_pop($unp);
 							$res[] = substr($data, 2, $slen);
 							$data  = substr($data, 2+$slen);
 						}

@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	CommandReply,
 	Text,
 };
 use Nadybot\Core\DBSchema\CommandListEntry;
@@ -100,6 +99,7 @@ class CommandlistController {
 				$cmd = $row->cmd;
 			}
 
+			$links = "";
 			if ($this->accessManager->checkAccess($context->char->name, 'moderator')) {
 				$onLink = "<black>ON<end>";
 				if ($row->guild_status === 0 || $row->msg_status === 0 || $row->priv_status === 0) {

@@ -31,7 +31,7 @@ class BuddylistController {
 	 * Name of the module.
 	 * Set automatically by module loader.
 	 */
-	public $moduleName;
+	public string $moduleName;
 
 	/** @Inject */
 	public Nadybot $chatBot;
@@ -44,9 +44,10 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action (clear|clean)
 	 */
-	public function buddylistShowCommand(CmdContext $context, ?string $clean="clean"): void {
-		$cleanup = isset($clean);
+	public function buddylistShowCommand(CmdContext $context, ?string $action): void {
+		$cleanup = isset($action);
 
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -95,8 +96,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action add
 	 */
-	public function buddylistAddCommand(CmdContext $context, string $add="add", PCharacter $who, PWord $type): void {
+	public function buddylistAddCommand(CmdContext $context, string $action, PCharacter $who, PWord $type): void {
 		$name = $who();
 
 		if ($this->buddylistManager->add($name, $type())) {
@@ -110,8 +112,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $all all
 	 */
-	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all="all"): void {
+	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
@@ -148,8 +151,9 @@ class BuddylistController {
 
 	/**
 	 * @HandlesCommand("buddylist")
+	 * @Mask $action search
 	 */
-	public function buddylistSearchCommand(CmdContext $context, string $action="search", string $search): void {
+	public function buddylistSearchCommand(CmdContext $context, string $action, string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
 			$context->reply($msg);
@@ -177,8 +181,8 @@ class BuddylistController {
 	 */
 	public function getSortedBuddyList(): array {
 		$buddylist = $this->buddylistManager->buddyList;
-		usort($buddylist, function (BuddylistEntry $entry1, BuddylistEntry $entry2) {
-			return $entry1->name > $entry2->name;
+		usort($buddylist, function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {
+			return strnatcmp($entry1->name, $entry2->name);
 		});
 		return $buddylist;
 	}

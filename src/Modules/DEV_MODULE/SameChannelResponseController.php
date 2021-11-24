@@ -35,7 +35,6 @@ class SameChannelResponseController {
 
 	/**
 	 * @HandlesCommand("demo")
-	 * @Matches("/^demo (.+)$/si")
 	 */
 	public function demoCommand(CmdContext $context, string $commandString): void {
 		$context->sendto = new DemoResponseCommandReply($context->channel, $context->sendto, $this->chatBot->char->name);

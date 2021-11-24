@@ -76,7 +76,7 @@ class Preferences {
 	 * @ApiResult(code=204, desc='No value stored')
 	 */
 	public function apiSettingGetEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->get($request->authenticatedAs, $key);
+		$result = $this->get($request->authenticatedAs??"_", $key);
 		if ($result === null) {
 			return new Response(Response::NO_CONTENT);
 		}
@@ -94,14 +94,14 @@ class Preferences {
 	 * @RequestBody(class='string', desc='The data you want to store', required=true)
 	 */
 	public function apiSettingPostEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->get($request->authenticatedAs, $key);
+		$result = $this->get($request->authenticatedAs??"_", $key);
 		if ($result !== null) {
-			return new Response(Response::CONFLICT, ['Content-type: text/plain'], "The given setting already exists");
+			return new Response(Response::CONFLICT, ['Content-type' => 'text/plain'], "The given setting already exists");
 		}
 		if (!is_string($request->decodedBody)) {
-			return new Response(Response::UNSUPPORTED_MEDIA_TYPE, ['Content-type: text/plain'], "Only plain strings supported");
+			return new Response(Response::UNSUPPORTED_MEDIA_TYPE, ['Content-type' => 'text/plain'], "Only plain strings supported");
 		}
-		$this->save($request->authenticatedAs, $key, $request->decodedBody);
+		$this->save($request->authenticatedAs??"_", $key, $request->decodedBody);
 		return new Response(Response::CREATED);
 	}
 
@@ -118,7 +118,7 @@ class Preferences {
 		if (!is_string($request->decodedBody)) {
 			return new Response(Response::UNSUPPORTED_MEDIA_TYPE, [], "Only plain strings supported");
 		}
-		$this->save($request->authenticatedAs, $key, $request->decodedBody);
+		$this->save($request->authenticatedAs??"_", $key, $request->decodedBody);
 		return new Response(Response::NO_CONTENT);
 	}
 
@@ -131,9 +131,9 @@ class Preferences {
 	 * @ApiResult(code=409, desc='No setting found for that key')
 	 */
 	public function apiSettingDeleteEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->delete($request->authenticatedAs, $key);
+		$result = $this->delete($request->authenticatedAs??"_", $key);
 		if (!$result) {
-			return new Response(Response::CONFLICT, ['Content-type: text/plain'], "The given setting doesn't exist");
+			return new Response(Response::CONFLICT, ['Content-type' => 'text/plain'], "The given setting doesn't exist");
 		}
 		return new Response(Response::NO_CONTENT);
 	}

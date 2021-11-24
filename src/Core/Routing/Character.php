@@ -14,7 +14,9 @@ class Character {
 	public function __construct(string $name, ?int $id=null, ?int $dimension=null) {
 		$this->name = $name;
 		$this->id = $id;
-		$dimension ??= (int)Registry::getInstance("chatBot")->vars["dimension"];
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance("chatBot");
+		$dimension ??= (int)$chatBot->vars["dimension"];
 		$this->dimension = $dimension;
 	}
 }

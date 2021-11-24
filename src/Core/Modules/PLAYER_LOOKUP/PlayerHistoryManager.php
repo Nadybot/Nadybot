@@ -20,7 +20,7 @@ class PlayerHistoryManager {
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
-		$cb = function($data) {
+		$cb = function(?string $data): bool {
 			return isset($data) && $data !== "[]";
 		};
 
@@ -44,7 +44,7 @@ class PlayerHistoryManager {
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
-		$cb = function($data) {
+		$cb = function(?string $data): bool {
 			return isset($data) && $data !== "[]";
 		};
 
@@ -61,8 +61,7 @@ class PlayerHistoryManager {
 	}
 
 	public function handleCacheResult(?CacheResult $cacheResult, string $name, callable $callback, ...$args): void {
-
-		if ($cacheResult->success !== true) {
+		if (!isset($cacheResult) || $cacheResult->success !== true) {
 			$callback(null, ...$args);
 			return;
 		}
@@ -70,7 +69,7 @@ class PlayerHistoryManager {
 		$obj->name = $name;
 		$obj->data = [];
 		try {
-			$history = json_decode($cacheResult->data, false, 512, JSON_THROW_ON_ERROR);
+			$history = json_decode($cacheResult->data??"[]", false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);
 			return;

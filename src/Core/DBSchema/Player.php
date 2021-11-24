@@ -128,20 +128,20 @@ class Player extends DBRow {
 	public ?int $last_update;
 
 	public function getPronoun(): string {
-		if (strtolower($this->gender??"") === "female") {
+		if (strtolower($this->gender) === "female") {
 			return "she";
 		}
-		if (strtolower($this->gender??"") === "male") {
+		if (strtolower($this->gender) === "male") {
 			return "he";
 		}
 		return "they";
 	}
 
 	public function getIsAre(): string {
-		if (strtolower($this->gender??"") === "female") {
+		if (strtolower($this->gender) === "female") {
 			return "is";
 		}
-		if (strtolower($this->gender??"") === "male") {
+		if (strtolower($this->gender) === "male") {
 			return "is";
 		}
 		return "are";
@@ -178,7 +178,7 @@ class Player extends DBRow {
 				'are' => 'is',
 			],
 		];
-		$gender = strtolower($this->gender??"");
+		$gender = strtolower($this->gender);
 		$text = preg_replace_callback(
 			"/%([a-z:_A-Z]+)%/",
 			function (array $matches) use ($pronouns, $gender): string {

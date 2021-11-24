@@ -6,6 +6,7 @@ use Closure;
 use LoggerConfiguratorDefault;
 use Logger;
 use ErrorException;
+use Exception;
 use Nadybot\Core\Modules\SETUP\Setup;
 use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 use ReflectionClass;
@@ -73,7 +74,7 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function($num, $str, $file, $line) {
+		set_error_handler(function(int $num, string $str, string $file, int $line) {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
@@ -188,9 +189,10 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 		];
-		if (strlen($this->configFile->getVar('amqp_server')??"")
-			&& strlen($this->configFile->getVar('amqp_user')??"")
-			&& strlen($this->configFile->getVar('amqp_password')??"")
+		$configFile = $this->getConfigFile();
+		if (strlen($configFile->getVar('amqp_server')??"")
+			&& strlen($configFile->getVar('amqp_user')??"")
+			&& strlen($configFile->getVar('amqp_password')??"")
 		) {
 			$requiredModules []= "mbstring";
 		}
@@ -296,7 +298,7 @@ class BotRunner {
 		$chatBot->init($this, $vars);
 
 		// connect to ao chat server
-		$chatBot->connectAO($vars['login'], $vars['password'], $server, $port);
+		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
 
 		// clear login credentials
 		unset($vars['login']);
@@ -453,6 +455,9 @@ class BotRunner {
 	private function connectToDatabase(): void {
 		global $vars;
 		$db = Registry::getInstance('db');
+		if (!isset($db)) {
+			throw new Exception("Cannot find DB instance.");
+		}
 		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
 	}
 

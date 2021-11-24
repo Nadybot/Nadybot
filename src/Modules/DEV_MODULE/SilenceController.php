@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	CommandManager,
 	Event,
 	CommandReply,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Text,
 };
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
@@ -65,9 +67,8 @@ class SilenceController {
 
 	/**
 	 * @HandlesCommand("silence")
-	 * @Matches("/^silence$/i")
 	 */
-	public function silenceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function silenceCommand(CmdContext $context): void {
 		/** @var Collection<SilenceCmd> */
 		$data = $this->db->table(self::DB_TABLE)
 			->orderBy("cmd")
@@ -75,24 +76,23 @@ class SilenceController {
 			->asObj(SilenceCmd::class);
 		if ($data->count() === 0) {
 			$msg = "No commands have been silenced.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = $data->reduce(function(string $blob, SilenceCmd $row) {
 			$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence $row->cmd $row->channel");
-			return "{$blob}<highlight>$row->cmd<end> ($row->channel) - $unsilenceLink\n";
+			return "{$blob}<highlight>{$row->cmd}<end> ({$row->channel}) - {$unsilenceLink}\n";
 		}, '');
 		$msg = $this->text->makeBlob("Silenced Commands", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("silence")
-	 * @Matches("/^silence (.+) (.+)$/i")
 	 */
-	public function silenceAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$command = strtolower($args[1]);
-		$channel = strtolower($args[2]);
+	public function silenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+		$command = strtolower($command);
+		$channel = strtolower($channel());
 		if ($channel === "org") {
 			$channel = "guild";
 		} elseif ($channel === "tell") {
@@ -100,7 +100,7 @@ class SilenceController {
 		}
 
 		$data = $this->commandManager->get($command, $channel);
-		if (count($data) == 0) {
+		if (count($data) === 0) {
 			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
 		} elseif ($this->isSilencedCommand($data[0])) {
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has already been silenced.";
@@ -108,16 +108,15 @@ class SilenceController {
 			$this->addSilencedCommand($data[0]);
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been silenced.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("unsilence")
-	 * @Matches("/^unsilence (.+) (.+)$/i")
 	 */
-	public function unsilenceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$command = strtolower($args[1]);
-		$channel = strtolower($args[2]);
+	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+		$command = strtolower($command);
+		$channel = strtolower($channel());
 		if ($channel === "org") {
 			$channel = "guild";
 		} elseif ($channel === "tell") {
@@ -133,14 +132,14 @@ class SilenceController {
 			$this->removeSilencedCommand($data[0]);
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been unsilenced.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	public function nullCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->logger->log('DEBUG', "Silencing command '$message' for channel '$channel'");
+	public function nullCommand(CmdContext $context): void {
+		$this->logger->log('DEBUG', "Silencing command '{$context->message}' for channel '{$context->channel}'");
 	}
 
-	public function addSilencedCommand(CmdCfg $row) {
+	public function addSilencedCommand(CmdCfg $row): void {
 		$this->commandManager->activate($row->type, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		$this->db->table(self::DB_TABLE)
 			->insert([
@@ -156,7 +155,7 @@ class SilenceController {
 			->exists();
 	}
 
-	public function removeSilencedCommand(CmdCfg $row) {
+	public function removeSilencedCommand(CmdCfg $row): void {
 		$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
 		$this->db->table(self::DB_TABLE)
 			->where("cmd", $row->cmd)

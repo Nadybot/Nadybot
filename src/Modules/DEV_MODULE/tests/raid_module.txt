@@ -33,6 +33,7 @@
 !bh ewfjwelfi
 !raid notin
 !raid check
+!raid notinkick
 !raid start another test raid
 !raid desc Changing things
 !runas Nady raid join
@@ -82,4 +83,5 @@
 !member rem Nanyta
 !raidleader rem Nady
 !member del Nady
+!raid stop
 /text End RAID_MODULE

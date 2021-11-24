@@ -30,29 +30,32 @@ abstract class SettingHandler {
 	 */
 	public function displayValue(string $sender): string {
 		if (!isset($this->row->intoptions) || $this->row->intoptions === "") {
-			return "<highlight>" . htmlspecialchars($this->row->value) . "<end>";
+			return "<highlight>" . htmlspecialchars($this->row->value??"<empty>") . "<end>";
 		}
 		$options = explode(";", $this->row->options ?? "");
-		$intoptions = explode(";", $this->row->intoptions ?? "");
+		$intoptions = explode(";", $this->row->intoptions);
 		$intoptions2 = array_flip($intoptions);
+		if (!isset($this->row->value)) {
+			return "<highlight>&lt;empty&gt;<end>";
+		}
 		$key = $intoptions2[$this->row->value];
-		return "<highlight>{$options[$key]}<end>";
+		return "<highlight>" . ($options[$key] ?? "&lt;empty&gt;") . "<end>";
 	}
 
 	/**
 	 * Get all options for this setting or false if no options are available
 	 */
 	public function getOptions(): ?string {
-		if ($this->row->options != '') {
-			$options = explode(";", $this->row->options);
+		if (strlen($this->row->options??'')) {
+			$options = explode(";", $this->row->options??"");
 		}
-		if ($this->row->intoptions != '') {
-			$intoptions = explode(";", $this->row->intoptions);
-			$options_map = array_combine($intoptions, $options);
+		if (strlen($this->row->intoptions??'')) {
+			$intoptions = explode(";", $this->row->intoptions??"");
+			$options_map = array_combine($intoptions, $options??[]);
 		}
-		if ($options) {
-			$msg = "Predefined Options:\n";
-			if ($intoptions) {
+		if (!empty($options)) {
+			$msg = "<header2>Predefined Options<end>\n";
+			if (isset($options_map)) {
 				foreach ($options_map as $key => $label) {
 					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
 					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> ({$save_link})\n";
@@ -64,7 +67,7 @@ abstract class SettingHandler {
 				}
 			}
 		}
-		return $msg;
+		return $msg??"";
 	}
 
 	/**

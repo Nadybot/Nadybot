@@ -123,7 +123,7 @@ class MessageHub {
 	/**
 	 * Get a fully configured event modifier or null if not possible
 	 * @param string $name Name of the modifier
-	 * @param array<string,string> $params The parameters of the modifier
+	 * @param array<string,string|string[]> $params The parameters of the modifier
 	 */
 	public function getEventModifier(string $name, array $params): ?EventModifier {
 		$name = strtolower($name);
@@ -138,22 +138,22 @@ class MessageHub {
 			if (isset($value)) {
 				switch ($parameter->type) {
 					case $parameter::TYPE_BOOL:
-						if (!in_array($value, ["true", "false"])) {
+						if (!is_string($value) || !in_array($value, ["true", "false"])) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be 'true' or 'false', ".
-								"<highlight>'{$value}'<end> given."
+								"<highlight>'" . join(", ", (array)$value) . "'<end> given."
 							);
 						}
 						$arguments []= $value === "true";
 						unset($params[$parameter->name]);
 						break;
 					case $parameter::TYPE_INT:
-						if (!preg_match("/^[+-]?\d+/", $value)) {
+						if (!is_string($value) || !preg_match("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be a number, ".
-								"<highlight>'{$value}'<end> given."
+								"<highlight>'" . join(", ", (array)$value) . "'<end> given."
 							);
 						}
 						$arguments []= (int)$value;
@@ -165,7 +165,9 @@ class MessageHub {
 						unset($params[$parameter->name]);
 						break;
 					default:
-						$arguments []= (string)$value;
+						foreach ((array)$value as $v) {
+							$arguments []= (string)$v;
+						}
 						unset($params[$parameter->name]);
 				}
 			} elseif ($parameter->required) {
@@ -199,6 +201,9 @@ class MessageHub {
 			);
 		}
 		$class = $spec->class;
+		if (!is_subclass_of($class, EventModifier::class)) {
+			throw new Exception("{$class} is registered as an EventModifier, but not a subclass of it.");
+		}
 		try {
 			$obj = new $class(...$arguments);
 			Registry::injectDependencies($obj);
@@ -409,7 +414,10 @@ class MessageHub {
 		$lastHop = null;
 		$hops = $event->getPath();
 		$hopPos = array_search($source, $hops, true);
-		$lastHop = ($hopPos === false || $hopPos === 0) ? null : $hops[$hopPos-1];
+		if ($hopPos === false) {
+			return null;
+		}
+		$lastHop = ($hopPos === 0) ? null : $hops[(int)$hopPos-1];
 		$name = $source->render($lastHop);
 		if (!isset($name)) {
 			return null;
@@ -646,7 +654,7 @@ class MessageHub {
 		$hop = $path[count($path)-1] ?? null;
 		if (empty($event->char) || $event->char->id === $this->chatBot->char->id) {
 			if (!isset($hop) || $hop->type !== Source::SYSTEM) {
-				$sysColor = $this->settingManager->getString("default_routed_sys_color");
+				$sysColor = $this->settingManager->getString("default_routed_sys_color")??"";
 				return $sysColor;
 			}
 		}

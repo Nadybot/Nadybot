@@ -85,14 +85,14 @@ class SettingManager {
 		?string $accessLevel='mod',
 		?string $help=''
 	): void {
-		$value = $this->getHardcoded($name, $value);
+		$value = $this->getHardcoded($name) ?? $value;
 		$name = strtolower($name);
 		$type = strtolower($type);
 
 		if ($accessLevel == '') {
 			$accessLevel = 'mod';
 		}
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
 
 		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank'])) {
 			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
@@ -125,7 +125,7 @@ class SettingManager {
 			$setting->type        = $type;
 			$setting->verify      = 1;
 			$setting->value       = (string)$value;
-			if (array_key_exists($name, $this->chatBot->existing_settings ?? []) || $this->exists($name)) {
+			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
 				$this->db->table(self::DB_TABLE)
 					->where("name", $name)
 					->update([
@@ -177,7 +177,7 @@ class SettingManager {
 	 * Gets the value of a setting
 	 *
 	 * @param string $name name of the setting to read
-	 * @return string|int|false the value of the setting, or false if a setting with that name does not exist
+	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
 	public function get(string $name) {
 		$name = strtolower($name);
@@ -188,6 +188,9 @@ class SettingManager {
 		return false;
 	}
 
+	/**
+	 * @return int|bool|string|null
+	 */
 	public function getTyped(string $name) {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
@@ -258,10 +261,10 @@ class SettingManager {
 		$event->type = "setting({$name})";
 		$event->oldValue = $this->settings[$name];
 		$event->newValue = clone $event->oldValue;
-		$event->newValue->value = $value;
+		$event->newValue->value = (string)$value;
 		$this->eventManager->fireEvent($event);
 
-		$this->settings[$name]->value = $value;
+		$this->settings[$name]->value = (string)$value;
 		$this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->update([
@@ -337,8 +340,11 @@ class SettingManager {
 			$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
 			return null;
 		}
-		$handler = new $handler($row);
-		Registry::injectDependencies($handler);
-		return $handler;
+		$handlerObj = new $handler($row);
+		if (!is_subclass_of($handlerObj, SettingHandler::class)) {
+			throw new Exception("Invalid SettingHandler {$handler}.");
+		}
+		Registry::injectDependencies($handlerObj);
+		return $handlerObj;
 	}
 }

@@ -22,6 +22,8 @@ class JSONDataModel {
 			}
 			if ($type instanceof ReflectionNamedType) {
 				$typeName = $type->getName();
+			} else {
+				continue;
 			}
 			if ($typeName === "array") {
 				if (($docComment = $refProp->getDocComment()) === false) {
@@ -39,6 +41,7 @@ class JSONDataModel {
 					$refProp->setValue($this, null);
 					if (isset($data->{$propName})) {
 						$values = array_map(
+							/** @param string|int|float $v */
 							function($v) {
 								return DateTime::createFromFormat("U", (string)floor((float)$v));
 							},
@@ -49,8 +52,9 @@ class JSONDataModel {
 				} else {
 					if (isset($data->{$propName})) {
 						$values = array_map(
-							function($v) use ($class) {
+							function(object $v) use ($class) {
 								if (class_exists($class, true) &&is_subclass_of($class, self::class)) {
+									/** @psalm-suppress UnsafeInstantiation */
 									$ret = new $class();
 									$ret->fromJSON($v);
 									return $ret;

@@ -20,7 +20,7 @@ class ModifierExpressionParser {
 		return $this->parser;
 	}
 
-	public function getExpressionDefinition() {
+	public function getExpressionDefinition(): string {
 		return '
 			start   :=> modifierList.
 			modifierList :=> modifier
@@ -46,7 +46,7 @@ class ModifierExpressionParser {
 		$parser = $this->getParser();
 		$expr = $parser->parse($input);
 		if ($expr === false) {
-			$error = $parser->getError($input);
+			$error = $parser->getError();
 			$posData = $this->parser::getLineAndCharacterFromOffset($input, $error['index']);
 
 			$expected = implode('<end> or <highlight>', $this->parser->generalizeErrors($error['expected']));

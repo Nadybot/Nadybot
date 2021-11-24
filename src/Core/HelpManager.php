@@ -130,7 +130,7 @@ class HelpManager {
 	/**
 	 * Return all help topics a character has access to
 	 *
-	 * @param string $char Name of the char
+	 * @param null|string $char Name of the char
 	 * @return HelpTopic[] Help topics
 	 */
 	public function getAllHelpTopics($char): array {
@@ -165,11 +165,11 @@ class HelpManager {
 		$topics = [];
 		$added = [];
 		foreach ($data as $row) {
-			$key = ($row->module??"").($row->name??"").($row->description??"");
+			$key = $row->module.$row->name.$row->description;
 			if (isset($added[$key])) {
 				continue;
 			}
-			if ($char === null || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
+			if ($char === null || $this->checkAccessLevels($accessLevel??"all", explode(",", $row->admin_list))) {
 				$obj = new HelpTopic();
 				$obj->module = $row->module;
 				$obj->name = $row->name;

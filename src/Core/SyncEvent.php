@@ -7,6 +7,9 @@ class SyncEvent extends Event {
 	public int $sourceDimension;
 	public bool $forceSync = false;
 
+	final public function __construct() {
+	}
+
 	public static function fromSyncEvent(SyncEvent $event): self {
 		$obj = new static();
 		foreach ($event as $key => $value) {
@@ -19,8 +22,10 @@ class SyncEvent extends Event {
 		if (!isset($this->sourceBot) || !isset($this->sourceDimension)) {
 			return true;
 		}
-		$myName = Registry::getInstance("chatBot")->char->name;
-		$myDim = (int)Registry::getInstance("chatBot")->vars['dimension'];
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance("chatBot");
+		$myName = $chatBot->char->name;
+		$myDim = (int)$chatBot->vars['dimension'];
 		return $this->sourceBot === $myName
 			&& $this->sourceDimension === $myDim;
 	}

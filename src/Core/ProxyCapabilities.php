@@ -80,6 +80,6 @@ class ProxyCapabilities extends ProxyReply {
 
 	/** Check if the proxy supports a command */
 	public function supportsCommand(string $command): bool {
-		return in_array($command, $this->supported_cmds??[], true);
+		return in_array($command, $this->supported_cmds, true);
 	}
 }

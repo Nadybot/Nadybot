@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use DateTime;
+use JsonException;
 use ReflectionClass;
 
 class JsonExporter {
@@ -56,12 +57,16 @@ class JsonExporter {
 		return true;
 	}
 
-	protected static function jsonEncode($data) {
-		return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES);
+	protected static function jsonEncode($data): string {
+		try {
+			return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+		} catch (JsonException $e) {
+			return "";
+		}
 	}
 
 	public static function encode($data): string {
-		if ($data === null || is_resource($data) || $data instanceof \Socket) {
+		if ($data === null || is_resource($data) || (is_object($data) && get_class($data) === "Socket")) {
 			return 'null';
 		}
 		if (is_scalar($data)) {

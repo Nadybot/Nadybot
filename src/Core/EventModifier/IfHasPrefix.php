@@ -60,6 +60,7 @@ class IfHasPrefix implements EventModifier {
 		$this->trim = $trim;
 		$this->forRelays = $forRelays;
 		$this->forEvents = $forEvents;
+		$this->inverse = $inverse;
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
@@ -75,14 +76,19 @@ class IfHasPrefix implements EventModifier {
 			$hasPrefix = isset($message) && (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
 			if ($hasPrefix === $this->inverse) {
 				$event = clone $event;
-				$event->data->message = null;
+				if (is_object($event->data)) {
+					$event->data->message = null;
+				}
 				return $event;
 			}
 			if (!$hasPrefix || !$this->trim) {
 				return $event;
 			}
 			$event = clone $event;
-			$event->data->message = ltrim(substr($message, strlen($this->prefix)));
+			if (is_object($event->data)) {
+				/** @psalm-suppress PossiblyNullArgument */
+				$event->data->message = ltrim(substr($message, strlen($this->prefix)));
+			}
 			return $event;
 		}
 		$fromRelay = isset($event->path[0]) && $event->path[0]->type === Source::RELAY;

@@ -158,8 +158,15 @@ class ConfigController {
 	 * This command handler turns a channel of all modules on or off.
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $cmd cmd
+	 * @Mask $channel (all|guild|priv|msg)
 	 */
-	public function toggleChannelOfAllModulesCommand(CmdContext $context, string $cmd="cmd", bool $status, string $channel="(all|guild|priv|msg)"): void {
+	public function toggleChannelOfAllModulesCommand(
+		CmdContext $context,
+		string $cmd,
+		bool $status,
+		string $channel
+	): void {
 		$updQuery = $this->db->table(CommandManager::DB_TABLE)
 			->whereIn("cmdevent", ["cmd", "subcmd"])
 			->where("cmd", "!=", "config");
@@ -199,8 +206,16 @@ class ConfigController {
 	 * This command handler turns one or all channels of a single module on or off
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $action mod
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleModuleChannelCommand(CmdContext $context, string $action="mod", string $module, bool $enable, string $channel="(priv|msg|guild|all)"): void {
+	public function toggleModuleChannelCommand(
+		CmdContext $context,
+		string $action,
+		string $module,
+		bool $enable,
+		string $channel
+	): void {
 		$channel = strtolower($channel);
 		if (!$this->toggleModule($module, $channel, $enable)) {
 			if ($channel === "all") {
@@ -225,8 +240,16 @@ class ConfigController {
 	 * This command handler turns one or all channels of a single command on or off
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $type (cmd|subcmd)
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleCommandChannelCommand(CmdContext $context, string $type="(cmd|subcmd)", string $cmd, bool $enable, string $channel="(priv|msg|guild|all)"): void {
+	public function toggleCommandChannelCommand(
+		CmdContext $context,
+		string $type,
+		string $cmd,
+		bool $enable,
+		string $channel
+	): void {
 		$type = strtolower($type);
 		$channel = strtolower($channel);
 		try {
@@ -268,8 +291,16 @@ class ConfigController {
 	 * This command handler turns one or all channels of a single event on or off
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $type event
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleEventCommand(CmdContext $context, string $type="event", string $event, bool $enable, string $channel="(priv|msg|guild|all)"): void {
+	public function toggleEventCommand(
+		CmdContext $context,
+		string $type,
+		string $event,
+		bool $enable,
+		string $channel
+	): void {
 		$channel = strtolower($channel);
 		$temp = explode(" ", $event);
 		$eventType = strtolower($temp[0]);
@@ -411,7 +442,7 @@ class ConfigController {
 			if ($enable) {
 				$this->commandManager->activate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
 			} else {
-				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd);
 			}
 		}
 	}
@@ -421,13 +452,16 @@ class ConfigController {
 	 * Note: This handler has not been not registered, only activated.
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $category (subcmd|cmd)
+	 * @Mask $admin admin
+	 * @Mask $channel (msg|priv|guild|all)
 	 */
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		string $category="(subcmd|cmd)",
+		string $category,
 		string $cmd,
-		string $admin="admin",
-		string $channel="(msg|priv|guild|all)",
+		string $admin,
+		string $channel,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
@@ -537,8 +571,9 @@ class ConfigController {
 	 * each channel.
 	 *
 	 * @HandlesCommand("config")
+	 * @Mask $action cmd
 	 */
-	public function configCommandCommand(CmdContext $context, string $action="cmd", PWord $cmd): void {
+	public function configCommandCommand(CmdContext $context, string $action, PWord $cmd): void {
 		$cmd = strtolower($cmd());
 
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
@@ -672,9 +707,9 @@ class ConfigController {
 		}
 
 		foreach ($data as $row) {
-			$blob .= "<tab>" . $row->getData()->description ?? "";
+			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
-			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin)) {
+			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
 				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
 			}
 
@@ -694,6 +729,7 @@ class ConfigController {
 			$priv = '';
 			$msg = '';
 
+			$cmdNameLink = "";
 			if ($row->cmdevent === 'cmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");
@@ -830,7 +866,7 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given subcommand.
 	 */
-	private function getSubCommandInfo($cmd, $type) {
+	private function getSubCommandInfo($cmd, $type): string {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
 		$data = $this->db->table(CommandManager::DB_TABLE)

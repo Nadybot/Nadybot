@@ -148,8 +148,9 @@ class ProfileController {
 
 	/**
 	 * @HandlesCommand("profile")
+	 * @Mask $action view
 	 */
-	public function profileViewCommand(CmdContext $context, string $action="view", PFilename $profileName): void {
+	public function profileViewCommand(CmdContext $context, string $action, PFilename $profileName): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -166,8 +167,9 @@ class ProfileController {
 
 	/**
 	 * @HandlesCommand("profile")
+	 * @Mask $action save
 	 */
-	public function profileSaveCommand(CmdContext $context, string $action="save", PFilename $fileName): void {
+	public function profileSaveCommand(CmdContext $context, string $action, PFilename $fileName): void {
 		$fileName = $fileName();
 		try {
 			$this->saveProfile($fileName);
@@ -283,8 +285,9 @@ class ProfileController {
 
 	/**
 	 * @HandlesCommand("profile")
+	 * @Mask $action load
 	 */
-	public function profileLoadCommand(CmdContext $context, string $action="load", PFilename $fileName): void {
+	public function profileLoadCommand(CmdContext $context, string $action, PFilename $fileName): void {
 		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
 
@@ -360,7 +363,7 @@ class ProfileController {
 				} elseif (substr($line, 0, 11) === "!alias rem ") {
 					$alias = explode(" ", $line, 3)[2];
 					if (preg_match("/^!alias add \Q$alias\E (.+)$/", $lines[$profileRow+1], $parts)) {
-						/** @var CmdAlias $data */
+						/** @var ?CmdAlias $data */
 						$data = $this->db->table(CommandAlias::DB_TABLE)
 							->where("status", 1)
 							->where("alias", $alias)

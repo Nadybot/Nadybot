@@ -3,9 +3,12 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	EventManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Util,
@@ -88,13 +91,13 @@ class ChatAssistController {
 		$this->lastCallers []= $backup;
 		$this->lastCallers = array_slice(
 			$this->lastCallers,
-			-1 * $this->settingManager->getInt('callers_undo_steps')
+			-1 * ($this->settingManager->getInt('callers_undo_steps')??5)
 		);
 	}
 
 	/**
 	 * Save the last callers configuration
-	 * @return array<string,CallerList>
+	 * @return CallerBackup
 	 */
 	public function backupCallers(string $sender, string $command): CallerBackup {
 		$lastCallers = [];
@@ -168,28 +171,25 @@ class ChatAssistController {
 
 	/**
 	 * @HandlesCommand("assist")
-	 * @Matches("/^assist$/i")
 	 */
-	public function assistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function assistCommand(CmdContext $context): void {
 		if (empty($this->callers)) {
 			$msg = "No callers have been set yet.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$sendto->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
+		$context->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
 	}
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist rem (.+)$/i")
 	 */
-	public function assistRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistRemCommand(CmdContext $context, PRemove $action, string $toRemove): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-		$toRemove = $args[1];
-		$parts = explode(".", $args[1], 2);
+		$parts = explode(".", $toRemove, 2);
 		$group = null;
 		if (count($parts) === 2) {
 			$toRemove = ucfirst(strtolower($parts[1]));
@@ -198,7 +198,7 @@ class ChatAssistController {
 			$toRemove = ucfirst(strtolower($toRemove));
 		}
 		$removed = false;
-		$backup = $this->backupCallers($sender, $args[0]);
+		$backup = $this->backupCallers($context->char->name, $context->message);
 		foreach ($this->callers as $name => $list) {
 			if (isset($group) && $group !== $name) {
 				continue;
@@ -214,54 +214,55 @@ class ChatAssistController {
 		}
 		if (!$removed) {
 			$msg = "<highlight>{$toRemove}<end> is not in the list of callers.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$this->storeBackup($backup);
 		$this->cleanupEmptyLists();
 		$msg = "Removed <highlight>{$toRemove}<end> from the list of callers.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist clear (.*)$/i")
+	 * @Mask $action clear
+	 * @Mask $groupKey (.*)
 	 */
-	public function assistClearListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistClearListCommand(CmdContext $context, string $action, string $groupKey): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$backup = $this->backupCallers($sender, $args[0]);
+		$backup = $this->backupCallers($context->char->name, $context->message);
 		$countBefore = $this->countCallers();
-		$groupKey = strtolower($args[1]);
-		if ($args[1] === '' || isset($this->callers[$groupKey])) {
+		$groupKey = strtolower($groupKey);
+		if ($groupKey === '' || isset($this->callers[$groupKey])) {
 			$name = $this->callers[$groupKey]->name;
 			unset($this->callers[$groupKey]);
-			if ($args[1] === '') {
+			if ($groupKey === '') {
 				$msg = "Global callers have been cleared";
 			} else {
 				$msg = "Callers for <highlight>{$name}<end> have been cleared";
 			}
-		} elseif ($args[1] === "mine") {
+		} elseif ($groupKey === "mine") {
 			foreach ($this->callers as $list) {
-				$list->removeCallersAddedBy($sender, false, false);
+				$list->removeCallersAddedBy($context->char->name, false, false);
 			}
 			$msg = "All your callers have been cleared";
-		} elseif ($args[1] === "notmine") {
+		} elseif ($groupKey === "notmine") {
 			foreach ($this->callers as $list) {
-				$list->removeCallersAddedBy($sender, false, true);
+				$list->removeCallersAddedBy($context->char->name, false, true);
 			}
 			$msg = "All callers not added by you have been cleared.";
 		} else {
 			$removed = [];
 			foreach ($this->callers as $list) {
-				array_push($removed, ...$list->removeCallersAddedBy($args[1], true, false));
+				array_push($removed, ...$list->removeCallersAddedBy($groupKey, true, false));
 			}
 			$addedBy = array_unique(array_column($removed, "addedBy"));
 			if (!count($addedBy)) {
-				$sendto->reply("No callers found that were added by <highlight>{$args[1]}<end>.");
+				$context->reply("No callers found that were added by <highlight>{$groupKey}<end>.");
 				return;
 			}
 			$addedBy = $this->text->arraySprintf("<highlight>%s<end>", ...$addedBy);
@@ -270,7 +271,7 @@ class ChatAssistController {
 		}
 		$countAfter = $this->countCallers();
 		$msg .= " (" . ($countBefore - $countAfter) . "/{$countBefore})";
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$this->cleanupEmptyLists();
 		$this->storeBackup($backup);
 
@@ -281,15 +282,15 @@ class ChatAssistController {
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist clear$/i")
+	 * @Mask $action clear
 	 */
-	public function assistClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistClearCommand(CmdContext $context, string $action): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-		$this->clearCallers($sender, $args[0]);
-		$sendto->reply("Callers have been cleared.");
+		$this->clearCallers($context->char->name, $context->message);
+		$context->reply("Callers have been cleared.");
 	}
 
 	/**
@@ -310,62 +311,60 @@ class ChatAssistController {
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist set (.+)$/i")
+	 * @Mask $action set
 	 */
-	public function assistSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistSetCommand(CmdContext $context, string $action, PWord ...$callers): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
-
-		$nameArray = preg_split("/\s+|\s*,\s*/", $args[1]);
-
 		$errors = [];
-		$callers = [];
+		$newCallers = [];
 		$groupName = "";
-		for ($i = 0; $i < count($nameArray); $i++) {
-			$name = ucfirst(strtolower($nameArray[$i]));
+		for ($i = 0; $i < count($callers); $i++) {
+			$name = ucfirst(strtolower($callers[$i]()));
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>$name<end> does not exist.";
-			} elseif ($channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
+			} elseif ($context->channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
 				$errors []= "Character <highlight>$name<end> is not in this bot.";
 			} else {
-				$callers []= $name;
+				$newCallers []= $name;
 			}
 			if (count($errors) && $i === 0) {
-				$groupName = $nameArray[$i];
+				$groupName = $callers[$i]();
 				$errors = [];
 			}
 		}
 		if (count($errors)) {
-			$sendto->reply(join("\n", $errors));
+			$context->reply(join("\n", $errors));
 			return;
 		}
 
 		// reverse array so that the first character will be the primary assist, and so on
-		$callers = array_map(
-			function(string $name) use ($sender): Caller {
-				return new Caller($name, $sender);
+		$newCallers = array_map(
+			function(string $name) use ($context): Caller {
+				return new Caller($name, $context->char->name);
 			},
-			array_reverse($callers)
+			array_reverse($newCallers)
 		);
-		$backup = $this->backupCallers($sender, $args[0]);
+		$backup = $this->backupCallers($context->char->name, $context->message);
 		$groupKey = strtolower($groupName);
 		$this->callers[$groupKey] = new CallerList();
-		$this->callers[$groupKey]->creator = $sender;
+		$this->callers[$groupKey]->creator = $context->char->name;
 		$this->callers[$groupKey]->name = $groupName;
-		$this->callers[$groupKey]->callers = $callers;
+		$this->callers[$groupKey]->callers = $newCallers;
 		$this->storeBackup($backup);
 
-		if ($groupName === "") {
-			$msg = "Callers set, here is the ".
-				$this->text->makeBlob("list of callers", $this->getAssistMessage());
-		} else {
-			$msg = "Callers set for <highlight>$groupName<end>, here is the ".
-				$this->text->makeBlob("list of callers", $this->getAssistMessage());
+		$blob = (array)$this->text->makeBlob("list of callers", $this->getAssistMessage());
+		foreach ($blob as &$page) {
+			if ($groupName === "") {
+				$page = "Callers set, here is the {$page}";
+			} else {
+				$page = "Callers set for <highlight>$groupName<end>, here is the {$page}";
+			}
 		}
-		$sendto->reply($msg);
+		$context->reply($blob);
 		$event = new AssistEvent();
 		$event->type = "assist(set)";
 		$event->lists = array_values($this->callers);
@@ -374,21 +373,16 @@ class ChatAssistController {
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist add ([^ ]+) (.+)$/i")
-	 * @Matches("/^assist add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function assistAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistAddCommand(CmdContext $context, string $action, ?PWord $groupName, PCharacter $caller): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		$groupName = "";
-		$name = $args[1];
-		if (count($args) === 3) {
-			$groupName = $args[1];
-			$name = $args[2];
-		}
+		$groupName = isset($groupName) ? $groupName() : "";
+		$name = $caller();
 		$groupKey = strtolower($groupName);
 		$event = new AssistEvent();
 		$event->type = "assist(add)";
@@ -396,28 +390,28 @@ class ChatAssistController {
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
 		if (!$uid) {
-			$sendto->reply("Character <highlight>$name<end> does not exist.");
+			$context->reply("Character <highlight>$name<end> does not exist.");
 			return;
-		} elseif ($channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
-			$sendto->reply("Character <highlight>$name<end> is not in this bot.");
+		} elseif ($context->channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
+			$context->reply("Character <highlight>$name<end> is not in this bot.");
 			return;
 		}
-		$backup = $this->backupCallers($sender, $args[0]);
+		$backup = $this->backupCallers($context->char->name, $context->message);
 		if (!isset($this->callers[$groupKey])) {
 			$this->callers[$groupKey] = new CallerList();
-			$this->callers[$groupKey]->creator = $sender;
+			$this->callers[$groupKey]->creator = $context->char->name;
 			$this->callers[$groupKey]->name = $groupName;
-			$this->callers[$groupKey]->callers = [new Caller($name, $sender)];
+			$this->callers[$groupKey]->callers = [new Caller($name, $context->char->name)];
 			$msg = "Added <highlight>{$name}<end> to the new list of callers";
 			if (strlen($groupName)) {
 				$msg .= " \"<highlight>{$groupName}<end>\"";
 			}
 		} else {
 			if ($this->callers[$groupKey]->isInList($name)) {
-				$sendto->reply("<highlight>{$name}<end> is already in the list of callers.");
+				$context->reply("<highlight>{$name}<end> is already in the list of callers.");
 				return;
 			}
-			array_unshift($this->callers[$groupKey]->callers, new Caller($name, $sender));
+			array_unshift($this->callers[$groupKey]->callers, new Caller($name, $context->char->name));
 			$msg = "Added <highlight>{$name}<end> to the list of callers";
 			if (strlen($groupName)) {
 				$msg .= " \"<highlight>{$groupName}<end>\"";
@@ -426,35 +420,40 @@ class ChatAssistController {
 		$this->storeBackup($backup);
 
 		$blob = $this->getAssistMessage();
-		$msg .= ". " . $this->text->makeBlob("List of callers", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->blobWrap(
+			"{$msg}. ",
+			$this->text->makeBlob("List of callers", $blob)
+		);
+		$context->reply($msg);
 		$event->lists = array_values($this->callers);
 		$this->eventManager->fireEvent($event);
 	}
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist undo$/i")
-	 * @Matches("/^assist undo (\d+)$/i")
+	 * @Mask $action undo
 	 */
-	public function assistUndoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistUndoCommand(CmdContext $context, string $action, ?int $steps): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 		if (empty($this->lastCallers)) {
-			$sendto->reply("No last caller configuration found.");
+			$context->reply("No last caller configuration found.");
 			return;
 		}
-		$undo = (int)($args[1] ?? 1);
-		$this->callers = array_splice($this->lastCallers, -1 * $undo)[0]->callers;
+		$steps ??= 1;
+		$this->callers = array_splice($this->lastCallers, -1 * $steps)[0]->callers;
 		$msg = "Callers configuration restored. ";
 		if (count($this->callers) > 0) {
-			$msg .= $this->text->makeBlob("List of callers", $this->getAssistMessage());
+			$msg = $this->text->blobWrap(
+				$msg,
+				$this->text->makeBlob("List of callers", $this->getAssistMessage())
+			);
 		} else {
 			$msg .= "No callers set.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new AssistEvent();
 		$event->type = "assist(set)";
 		$event->lists = array_values($this->callers);
@@ -463,15 +462,15 @@ class ChatAssistController {
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist history$/i")
+	 * @Mask $action history
 	 */
-	public function assistHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function assistHistoryCommand(CmdContext $context, string $action): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 		if (empty($this->lastCallers)) {
-			$sendto->reply("No last caller configuration found.");
+			$context->reply("No last caller configuration found.");
 			return;
 		}
 		$undo = $count = count($this->lastCallers);
@@ -488,21 +487,25 @@ class ChatAssistController {
 				"<tab><highlight><symbol>{$backup->command}<end> ({$backup->changer})\n";
 		}
 		$msg = $this->text->makeBlob("Caller history ({$count})", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("assist .+")
-	 * @Matches("/^assist ([^ ]{4,12})$/i")
 	 */
-	public function assistOnceCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
+	public function assistOnceCommand(CmdContext $context, PCharacter $char): void {
+		$name = $char();
 		if (!$this->chatBot->get_uid($name)) {
-			$sendto->reply("No player named <highlight>{$name}<end> found.");
+			$context->reply("No player named <highlight>{$name}<end> found.");
 			return;
 		}
 		$blob = "<header2>Assist macro<end>\n".
 			"<tab>" . $this->text->makeChatcmd("Click me for a macro", "/macro {$name} /assist {$name}");
-		$sendto->reply("Please all " . $this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}"));
+		$context->reply(
+			$this->text->blobWrap(
+				"Please all ",
+				$this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}")
+			)
+		);
 	}
 }

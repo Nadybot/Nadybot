@@ -5,11 +5,13 @@ namespace Nadybot\Modules\NOTES_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
@@ -61,78 +63,74 @@ class LinksController {
 
 	/**
 	 * @HandlesCommand("links")
-	 * @Matches("/^links$/i")
 	 */
-	public function linksListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function linksListCommand(CmdContext $context): void {
 		/** @var Collection<Link> */
 		$links = $this->db->table("links")
 			->orderBy("name")
 			->asObj(Link::class);
 		if ($links->count() === 0) {
 			$msg = "No links found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$blob = "<header2>All my links<end>\n";
 		foreach ($links as $link) {
-			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> links rem $link->id");
+			$remove = $this->text->makeChatcmd('remove', "/tell <myname> links rem {$link->id}");
 			if ($this->settingManager->getBool('showfullurls')) {
-				$website = $this->text->makeChatcmd($link->website, "/start $link->website");
+				$website = $this->text->makeChatcmd($link->website, "/start {$link->website}");
 			} else {
-				$website = $this->text->makeChatcmd('[Link]', "/start $link->website");
+				$website = "[" . $this->text->makeChatcmd('visit', "/start {$link->website}") . "]";
 			}
-			$blob .= "<tab>$website <highlight>$link->comments<end> [$link->name] $remove\n";
+			$blob .= "<tab>{$website} <highlight>{$link->comments}<end> (by {$link->name}) [{$remove}]\n";
 		}
 
 		$msg = $this->text->makeBlob('Links', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("links")
-	 * @Matches("/^links add ([^ ]+) (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function linksAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$website = htmlspecialchars($args[1]);
-		$comments = $args[2];
+	public function linksAddCommand(CmdContext $context, string $action, PWord $url, string $comments): void {
+		$website = htmlspecialchars($url());
 		if (filter_var($website, FILTER_VALIDATE_URL) === false) {
 			$msg = "<highlight>$website<end> is not a valid URL.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$this->db->table("links")
 			->insert([
-				"name" => $sender,
+				"name" => $context->char->name,
 				"website" => $website,
 				"comments" => $comments,
 				"dt" => time(),
 			]);
 		$msg = "Link added successfully.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("links")
-	 * @Matches("/^links rem (\d+)$/i")
 	 */
-	public function linksRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function linksRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Link */
 		$obj = $this->db->table("links")
 			->where("id", $id)
 			->asObj(Link::class)
 			->first();
 		if ($obj === null) {
-			$msg = "Link with ID <highlight>$id<end> could not be found.";
-		} elseif ($obj->name == $sender || $this->accessManager->compareCharacterAccessLevels($sender, $obj->name) > 0) {
+			$msg = "Link with ID <highlight>{$id}<end> could not be found.";
+		} elseif ($obj->name == $context->char->name
+			|| $this->accessManager->compareCharacterAccessLevels($context->char->name, $obj->name) > 0) {
 			$this->db->table("links")->delete($id);
-			$msg = "Link with ID <highlight>$id<end> deleted successfully.";
+			$msg = "Link with ID <highlight>{$id}<end> deleted successfully.";
 		} else {
 			$msg = "You do not have permission to delete links added by <highlight>{$obj->name}<end>";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

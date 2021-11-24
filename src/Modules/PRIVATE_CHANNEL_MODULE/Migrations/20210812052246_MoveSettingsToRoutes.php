@@ -54,12 +54,12 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 
 		if (isset($ignoreSenders) && strlen($ignoreSenders->value??"") > 0) {
-			$toIgnore = explode(",", $ignoreSenders->value);
+			$toIgnore = explode(",", $ignoreSenders->value??"");
 			$this->ignoreSenders($db, $route->id, ...$toIgnore);
 		}
 
 		if (isset($relayFilter) && strlen($relayFilter->value??"") > 0) {
-			$this->addRegExpFilter($db, $route->id, $relayFilter->value);
+			$this->addRegExpFilter($db, $route->id, $relayFilter->value??"");
 		}
 	}
 

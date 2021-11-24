@@ -15,6 +15,7 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use ReflectionClass;
 use ReflectionNamedType;
+use ReflectionParameter;
 
 /**
  * @Instance
@@ -90,11 +91,11 @@ class CommandManager implements MessageEmitter {
 	 * Registers a command
 	 *
 	 * @param string   $module        The module that wants to register a new command
-	 * @param string[] $channel       The communication channels for which this command is available.
+	 * @param null|string $channelName The communication channels for which this command is available.
 	 *                                Any combination of "msg", "priv" or "guild" can be chosen.
 	 * @param string   $filename      A comma-separated list of "classname.method" handling $command
 	 * @param string   $command       The command to be registered
-	 * @param string   $accessLevel   The required access level to call this comnand. Valid values are:
+	 * @param string   $accessLevelStr The required access level to call this comnand. Valid values are:
 	 *                                "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
 	 *                                "mod", "guild", "member", "rl", "all"
 	 * @param string   $description   A short description what this command is for
@@ -102,11 +103,12 @@ class CommandManager implements MessageEmitter {
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, ?string $channel, string $filename, string $command, string $accessLevel, string $description, ?string $help='', $defaultStatus=null): void {
+	public function register(string $module, ?string $channelName, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
 
+		$channel = $channelName;
 		if (!$this->chatBot->processCommandArgs($channel, $accessLevel)) {
 			$this->logger->log('ERROR', "Invalid args for $module:command($command). Command not registered.");
 			return;
@@ -139,6 +141,7 @@ class CommandManager implements MessageEmitter {
 			$status = $defaultStatus;
 		}
 
+		/** @var string[] $channel */
 		for ($i = 0; $i < count($channel); $i++) {
 			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
 			try {
@@ -177,7 +180,7 @@ class CommandManager implements MessageEmitter {
 	 *                            "mod", "guild", "member", "rl", "all"
 	 * @return void
 	 */
-	public function activate(string $channel, string $filename, string $command, ?string $accessLevel='all'): void {
+	public function activate(string $channel, string $filename, string $command, string $accessLevel='all'): void {
 		$command = strtolower($command);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$channel = strtolower($channel);
@@ -252,7 +255,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach ($data as $row) {
 			if ($status === 1) {
-				$this->activate($row->type, $row->file, $row->cmd, $admin);
+				$this->activate($row->type, $row->file, $row->cmd, $admin??"all");
 			} elseif ($status === 0) {
 				$this->deactivate($row->type, $row->file, $row->cmd);
 			}
@@ -388,7 +391,7 @@ class CommandManager implements MessageEmitter {
 
 		try {
 			// record usage stats (in try/catch block in case there is an error)
-			if ($this->settingManager->getBool('record_usage_stats')) {
+			if ($this->settingManager->getBool('record_usage_stats') && isset($handler)) {
 				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
@@ -465,34 +468,48 @@ class CommandManager implements MessageEmitter {
 						for ($i = 1; $i < count($params); $i++) {
 							$var = $params[$i]->getName();
 							if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
-								$args []= null;
+								if (!$params[$i]->isVariadic()) {
+									$args []= null;
+								}
 								continue;
 							}
 							$type = $params[$i]->getType();
-							if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+							if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
 								$args []= null;
 								continue;
 							}
-							if ($type instanceof ReflectionNamedType) {
-								switch ($type->getName()) {
-									case "int":
-										$args []= (int)$context->args[$var];
-										break;
-									case "bool":
-										$args []= in_array(strtolower($context->args[$var]), ["yes", "true", "1", "on", "enable", "enabled"]);
-										break;
-									case "float":
-										$args []= (float)$context->args[$var];
-										break;
-									default:
-										if (is_subclass_of($type->getName(), Base::class)) {
-											$class = $type->getName();
-											$args []= new $class($context->args[$var]);
-										} else {
-											$args []= $context->args[$var];
+							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
+								$context->args[$var] = $context->args[$var][0];
+							}
+							switch ($type->getName()) {
+								case "int":
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= (int)$val;
+									}
+									break;
+								case "bool":
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
+									}
+									break;
+								case "float":
+									foreach ((array)$context->args[$var] as $val) {
+										$args []= (float)$val;
+									}
+									break;
+								default:
+									if (is_subclass_of($type->getName(), Base::class)) {
+										$class = $type->getName();
+										foreach ((array)$context->args[$var] as $val) {
+											/** @psalm-suppress UnsafeInstantiation */
+											$args []= new $class($val);
 										}
-										break;
-								}
+									} else {
+										foreach ((array)$context->args[$var] as $val) {
+											$args []= $val;
+										}
+									}
+									break;
 							}
 						}
 						$syntaxError = $instance->$method($context, ...$args) === false;
@@ -578,7 +595,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Check if a received message matches the stored Regexp handler of a method
 	 *
-	 * @return string[]|bool true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
+	 * @return string[]|bool|array<string,string[]> true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
 	 */
 	public function checkMatches(object $instance, string $method, string $message) {
 		try {
@@ -592,7 +609,12 @@ class CommandManager implements MessageEmitter {
 
 		if (count($regexes) > 0) {
 			foreach ($regexes as $regex) {
-				if (preg_match($regex, $message, $arr)) {
+				if (preg_match($regex->match, $message, $arr)) {
+					if (isset($regex->variadicMatch)) {
+						if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
+							$arr = $arr2;
+						}
+					}
 					return $arr;
 				}
 			}
@@ -604,19 +626,19 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get all stored regular expression Matches for a function
 	 *
-	 * @return string[]
+	 * @return CommandRegexp[]
 	 */
 	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
 		$regexes = [];
 		if ($reflectedMethod->hasAnnotation('Matches')) {
 			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
-				$regexes []= preg_replace_callback(
+				$regexes []= new CommandRegexp(preg_replace_callback(
 					"/:([A-Z]+)/",
 					function (array $matches): string {
 						return $this->matchClasses[$matches[1]] ?? ":{$matches[1]}";
 					},
 					$annotation->value
-				);
+				));
 			}
 		} elseif ($reflectedMethod->hasAnnotation('HandlesCommand')) {
 			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
@@ -624,6 +646,78 @@ class CommandManager implements MessageEmitter {
 		return $regexes;
 	}
 
+	protected function getParamRegexp(ReflectionParameter $param, string $comment): ?CommandRegexp {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		$varName = $param->getName();
+		if ($type->isBuiltin()) {
+			switch ($type->getName()) {
+				case "string":
+					$new = "(?<{$varName}>.+)";
+					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+						$default = $masks[1];
+					} elseif ($param->isDefaultValueAvailable()) {
+						$default = $param->getDefaultValue();
+					} else {
+						break;
+					}
+					if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
+						$new = "(?<{$varName}>" . substr($default, 1);
+					} else {
+						$new = "(?<{$varName}>" . preg_quote($default) . ")";
+					}
+					break;
+				case "int":
+					$mask = '\d+';
+					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
+						$mask = $masks[1];
+					}
+					$new = "(?<{$varName}>{$mask})";
+					break;
+				case "bool":
+					$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
+					break;
+				case "float":
+					$new  = "(?<{$varName}>\d*\.?\d+)";
+					break;
+			}
+		} else {
+			$new = "(?:" . [$type->getName(), "getPreRegExp"]().
+				"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
+		}
+		if (!isset($new)) {
+			return null;
+		}
+		if (preg_match('/@SpaceOptional\s+\$\Q' . $varName . '\E(?:\s+\*\/)?$/m', $comment)) {
+			$regexp = new CommandRegexp("\\s*{$new}");
+		} else {
+			$regexp = new CommandRegexp("\\s+{$new}");
+		}
+		if ($param->allowsNull()) {
+			if ($param->isVariadic()) {
+				$regexp->variadicMatch = $regexp->match;
+				$regexp->match = "(?:{$regexp->match})*";
+			} else {
+				$regexp->match = "(?:{$regexp->match})?";
+			}
+		} elseif ($param->isVariadic()) {
+			$regexp->variadicMatch = $regexp->match;
+			$regexp->match = "(?:{$regexp->match})+";
+		}
+		return $regexp;
+	}
+
+	/**
+	 * @return CommandRegexp[]
+	 */
 	public function getRegexpFromCharClass(ReflectionAnnotatedMethod $method): array {
 		$params = $method->getParameters();
 		if (count($params) === 0
@@ -647,56 +741,24 @@ class CommandManager implements MessageEmitter {
 				$regexp []= "(?:" . join("|", $commands) . ")";
 			}
 		}
+		$comment = $method->getDocComment();
+		$variadic = null;
 		for ($i = 1; $i < count($params); $i++) {
-			$new = null;
-			if (!$params[$i]->hasType()) {
+			$regex = $this->getParamRegexp($params[$i], $comment);
+			if ($regex === null) {
 				return [];
 			}
-			$type = $params[$i]->getType();
-			if (!($type instanceof ReflectionNamedType)) {
-				return [];
+			if (isset($regex->variadicMatch)) {
+				$variadic = ["(?:^", ...$regexp, "|\\G)"];
+				$variadic []= $regex->variadicMatch;
 			}
-			if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-				return [];
-			}
-			$varName = $params[$i]->getName();
-			if ($type->isBuiltin()) {
-				switch ($type->getName()) {
-					case "string":
-						try {
-							$default = $params[$i]->getDefaultValue();
-							if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
-								$new = "(?<{$varName}>" . substr($default, 1);
-							} else {
-								$new = "(?<{$varName}>" . preg_quote($default) . ")";
-							}
-						} catch (ReflectionException $e) {
-							$new = "(?<{$varName}>.+)";
-						}
-						break;
-					case "int":
-						$new = "(?<{$varName}>\d+)";
-						break;
-					case "bool":
-						$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
-						break;
-					case "float":
-						$new  = "(?<{$varName}>\d*\.\d+|\d)";
-						break;
-				}
-			} else {
-				$new = "(?:" . [$type->getName(), "getPreRegExp"]().
-					"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
-			}
-			if (isset($new)) {
-				if ($params[$i]->allowsNull()) {
-					$regexp []= "(?:\\s+{$new})?";
-				} else {
-					$regexp []= "\\s+{$new}";
-				}
-			}
+			$regexp []= $regex->match;
 		}
-		$result = [chr(1) . "^" . join("", $regexp) . '$' . chr(1) . "is"];
+		$regexp = new CommandRegexp(chr(1) . "^" . join("", $regexp) . '$' . chr(1) . "is");
+		if (isset($variadic)) {
+			$regexp->variadicMatch = chr(1) . join("", $variadic) . chr(1) . "is";
+		}
+		$result = [$regexp];
 		return $result;
 	}
 

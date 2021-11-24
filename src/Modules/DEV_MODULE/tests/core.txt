@@ -79,7 +79,30 @@
 !checkaccess nadydoesnotexist
 
 !mod add nady
+!mod del nady
+!mod add nady
+!admin add nady
+!admin rem nady
 !admin add nady
 !mod add nady
+
+!adminlist
+!adminlist all
+!adminlist error
+
+!ban Rikoltanto
+!orgban add 874502 for being here to be banned
+!banlist
+!orgban
+!orgban rem 874502
+!banlist
+!banlist error
+!unban Rikoltanto
+!ban Rikoltanto 1d
+!unban Rikoltanto
+!ban Rikoltanto 1d for being a tester
+
+!audit
+!audit test
 
 !orgmembers 1

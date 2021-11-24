@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Exception;
+
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
 *
@@ -96,12 +98,47 @@ define('AOEM_AI_HQ_REMOVE_INIT',      0x35);
 define('AOEM_AI_HQ_REMOVE',           0x36);
 
 class AOChat {
+	public const AOC_GROUP_NOWRITE = 0x00000002;
+	public const AOC_GROUP_NOASIAN = 0x00000020;
+	public const AOC_GROUP_MUTE =    0x01010000;
+	public const AOC_GROUP_LOG =     0x02020000;
+	public const AOC_FLOOD_LIMIT =            5;
+	public const AOC_FLOOD_INC =              2;
+	public const AOEM_UNKNOWN =            0xFF;
+	public const AOEM_ORG_JOIN =           0x10;
+	public const AOEM_ORG_KICK =           0x11;
+	public const AOEM_ORG_LEAVE =          0x12;
+	public const AOEM_ORG_DISBAND =        0x13;
+	public const AOEM_ORG_FORM =           0x14;
+	public const AOEM_ORG_VOTE =           0x15;
+	public const AOEM_ORG_STRIKE =         0x16;
+	public const AOEM_NW_ATTACK =          0x20;
+	public const AOEM_NW_ABANDON =         0x21;
+	public const AOEM_NW_OPENING =         0x22;
+	public const AOEM_NW_TOWER_ATT_ORG =   0x23;
+	public const AOEM_NW_TOWER_ATT =       0x24;
+	public const AOEM_NW_TOWER =           0x25;
+	public const AOEM_AI_CLOAK =           0x30;
+	public const AOEM_AI_RADAR =           0x31;
+	public const AOEM_AI_ATTACK =          0x32;
+	public const AOEM_AI_REMOVE_INIT =     0x33;
+	public const AOEM_AI_REMOVE =          0x34;
+	public const AOEM_AI_HQ_REMOVE_INIT =  0x35;
+	public const AOEM_AI_HQ_REMOVE =       0x36;
+
 	/**
 	 * A lookup cache for character name => id and id => character name
 	 *
 	 * @var array<int|string,int|string> $id
 	 */
 	public array $id;
+
+	/**
+	 * A temporary lookup cache for character name => id and id => character name
+	 *
+	 * @var array<int|string,int|string> $id
+	 */
+	public array $tempId = [];
 
 	public array $pendingIdLookups = [];
 
@@ -121,7 +158,7 @@ class AOChat {
 	/**
 	 * The currently logged in character or null if not logged in
 	 */
-	public ?AOChatChar $char;
+	public AOChatChar $char;
 
 	/**
 	 * An associative array where each group's status (muted, etc) is tracked
@@ -137,7 +174,7 @@ class AOChat {
 	/**
 	 * The socket with which we are connected to the chat server
 	 *
-	 * @var \Socket|resource $socket
+	 * @var null|false|\Socket|resource $socket
 	 */
 	public $socket;
 
@@ -168,7 +205,7 @@ class AOChat {
 
 	public function __construct() {
 		$this->disconnect();
-		$this->mmdbParser = new MMDBParser('data/text.mdb');
+		$this->mmdbParser = new MMDBParser();
 		$this->logger = new LoggerWrapper('AOChat');
 	}
 
@@ -176,11 +213,12 @@ class AOChat {
 	 * Disconnect from the chat server (if connected) and init variables
 	 */
 	public function disconnect(): void {
-		if (is_resource($this->socket) || $this->socket instanceof \Socket) {
+		if (isset($this->socket) && $this->socket !== false) {
+			/** @psalm-suppress PossiblyInvalidArgument */
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
-		$this->char        = null;
+		unset($this->char);
 		$this->last_packet = 0;
 		$this->last_ping   = 0;
 		$this->id          = [];
@@ -193,7 +231,7 @@ class AOChat {
 	/**
 	 * Connect to the chatserver $server on port $port
 	 *
-	 * @return resource|null null if we cannot connect, otherwise the connected socket
+	 * @return bool false we cannot connect, otherwise true
 	 */
 	public function connect(string $server, int $port) {
 		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -210,12 +248,12 @@ class AOChat {
 		if (@socket_connect($this->socket, $server, $port) === false) {
 			$this->logger->log('error', "Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
 			$this->disconnect();
-			return null;
+			return false;
 		}
 
 		$this->chatqueue = new LeakyBucket(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
 
-		return $this->socket;
+		return true;
 	}
 
 	/**
@@ -243,7 +281,7 @@ class AOChat {
 	 * Returns the packet if one arrived or null if none arrived in $time seconds.
 	 *
 	 * @param integer $time The  amount of seconds to wait for
-	 * @return \Nadybot\Core\AOChatPacket|false|null The received package or null if none arrived or false if we couldn't parse it
+	 * @return \Nadybot\Core\AOChatPacket|null The received package or null if none arrived or false if we couldn't parse it
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
@@ -251,6 +289,7 @@ class AOChat {
 		$a = [$this->socket];
 		$b = [];
 		$c = [];
+		/** @psalm-suppress InvalidArgument */
 		if (!socket_select($a, $b, $c, $time)) {
 			return null;
 		}
@@ -264,6 +303,7 @@ class AOChat {
 		$data = "";
 		$rlen = $len;
 		while ($rlen > 0) {
+			/** @psalm-suppress InvalidArgument */
 			if (($tmp = socket_read($this->socket, $rlen)) === false) {
 				$last_error = socket_strerror(socket_last_error($this->socket));
 				$this->logger->log('error', "Read error: $last_error");
@@ -290,21 +330,21 @@ class AOChat {
 
 		[, $type, $len] = unpack("n2", $head);
 
-		$data = $this->readData($len);
+		$data = $this->readData((int)$len);
 
-		$packet = new AOChatPacket("in", $type, $data);
+		$packet = new AOChatPacket("in", (int)$type, $data);
 
 		if ($this->logger->isEnabledFor('debug')) {
 			$this->logger->log('debug', print_r($packet, true));
 		}
 
 		switch ($type) {
-			case AOCP_CLIENT_NAME:
-			case AOCP_CLIENT_LOOKUP:
+			case AOChatPacket::CLIENT_NAME:
+			case AOChatPacket::CLIENT_LOOKUP:
 				[$id, $name] = $packet->args;
 				$uid = (string)$id;
-				$name = ucfirst(strtolower($name));
-				$this->id[$uid]   = $name;
+				$name = ucfirst(strtolower((string)$name));
+				$this->id[$uid]  = $name;
 				$this->id[$name] = $uid;
 				if (isset($this->pendingIdLookups[$name])) {
 					foreach ($this->pendingIdLookups[$name]->callbacks as $cb) {
@@ -319,21 +359,21 @@ class AOChat {
 				unset($this->pendingIdLookups[$name]);
 				break;
 
-			case AOCP_GROUP_ANNOUNCE:
+			case AOChatPacket::GROUP_ANNOUNCE:
 				[$gid, $name, $status] = $packet->args;
 				$this->grp[$gid] = $status;
 				$this->gid[$gid] = $name;
 				$this->gid[strtolower($name)] = $gid;
 				break;
 
-			case AOCP_GROUP_MESSAGE:
+			case AOChatPacket::GROUP_MESSAGE:
 				/* Hack to support extended messages */
 				if ($packet->args[1] === 0 && substr($packet->args[2], 0, 2) == "~&") {
 					$packet->args[2] = $this->readExtMsg($packet->args[2]);
 				}
 				break;
 
-			case AOCP_CHAT_NOTICE:
+			case AOChatPacket::CHAT_NOTICE:
 				$category_id = 20000;
 				$packet->args[4] = $this->mmdbParser->getMessageString($category_id, $packet->args[2]);
 				if ($packet->args[4] !== null) {
@@ -358,8 +398,10 @@ class AOChat {
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
+		// $this->logger->log('INFO', "> {$packet->type}");
 		$this->logger->log('debug', $data);
 
+		/** @psalm-suppress InvalidArgument */
 		socket_write($this->socket, $data, strlen($data));
 		return true;
 	}
@@ -369,16 +411,16 @@ class AOChat {
 	 */
 	public function authenticate(string $username, string $password): ?array {
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOCP_LOGIN_SEED) {
+		if ($packet === null || $packet->type != AOChatPacket::LOGIN_SEED) {
 			return null;
 		}
 		$serverseed = $packet->args[0];
 
 		$key = $this->generateLoginKey($serverseed, $username, $password);
-		$pak = new AOChatPacket("out", AOCP_LOGIN_REQUEST, [0, $username, $key]);
+		$pak = new AOChatPacket("out", AOChatPacket::LOGIN_REQUEST, [0, $username, $key]);
 		$this->sendPacket($pak);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOCP_LOGIN_CHARLIST) {
+		if ($packet === null || $packet->type != AOChatPacket::LOGIN_CHARLIST) {
 			return null;
 		}
 
@@ -391,8 +433,6 @@ class AOChat {
 
 			$this->chars []= $char;
 		}
-
-		$this->username = $username;
 
 		return $this->chars;
 	}
@@ -418,10 +458,10 @@ class AOChat {
 			return false;
 		}
 
-		$loginSelect = new AOChatPacket("out", AOCP_LOGIN_SELECT, $char->id);
+		$loginSelect = new AOChatPacket("out", AOChatPacket::LOGIN_SELECT, $char->id);
 		$this->sendPacket($loginSelect);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOCP_LOGIN_OK) {
+		if ($packet === null || $packet->type !== AOChatPacket::LOGIN_OK) {
 			return false;
 		}
 
@@ -433,14 +473,14 @@ class AOChat {
 	/**
 	 * Lookup the user id for a username or vice versa
 	 *
-	 * @param string $u
+	 * @param null|int|string $u
 	 * @return string|int|false The user id or false if not found
 	 */
 	public function lookup_user($u) {
 		if (is_string($u)) {
 			$u = ucfirst(strtolower($u));
 		}
-		if ($u === null || $u === '') {
+		if (!isset($u) || $u === '') {
 			return false;
 		}
 
@@ -449,7 +489,6 @@ class AOChat {
 		}
 
 		$this->sendLookupPacket((string)$u);
-		// $this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $u));
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
 			$packet = $this->waitForPacket(1);
@@ -462,6 +501,10 @@ class AOChat {
 	}
 
 
+	/**
+	 * @param mixed $args
+	 * @psalm-param null|callable(?int,mixed...) $callback
+	 */
 	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
 		$time = time();
 		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
@@ -473,13 +516,13 @@ class AOChat {
 		if (isset($callback)) {
 			$this->pendingIdLookups[$userName]->callbacks []= [$callback, $args];
 		}
-		$this->sendPacket(new AOChatPacket("out", AOCP_CLIENT_LOOKUP, $userName));
+		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));
 	}
 
 	/**
 	 * Get the user id of a username and handle special cases, such as $user already being a user id.
 	 *
-	 * @param string $user The name of the user to lookup
+	 * @param int|string $user The name of the user to lookup
 	 * @return int|false false on error, otherwise the UID
 	 */
 	public function get_uid($user) {
@@ -487,7 +530,7 @@ class AOChat {
 			return $this->fixunsigned((int)$user);
 		}
 
-		$uid = $this->lookup_user($user);
+		$uid = $this->lookup_user((string)$user);
 
 		if ($uid === false || $uid == 0 || $uid == -1 || $uid == 0xffffffff || !$this->isReallyNumeric($uid)) {
 			return false;
@@ -496,6 +539,10 @@ class AOChat {
 		return (int)$uid;
 	}
 
+	/**
+	 * @param mixed $args
+	 * @psalm-param callable(?int, mixed...) $callback
+	 */
 	public function getUid(string $user, callable $callback, ...$args): void {
 		if ($this->isReallyNumeric($user)) {
 			$callback($this->fixunsigned((int)$user), ...$args);
@@ -508,8 +555,13 @@ class AOChat {
 			return;
 		}
 
-		if (isset($this->id[$user])) {
-			$callback((int)$this->id[$user], ...$args);
+		$uid = $this->id[$user] ?? null;
+		if (isset($uid)) {
+			if ($uid === 0xFFFFFFFF || $uid === "4294967295") {
+				$callback(null, ...$args);
+			} else {
+				$callback((int)$uid, ...$args);
+			}
 			return;
 		}
 
@@ -530,6 +582,8 @@ class AOChat {
 
 	/**
 	 * Check if $num only consists of digits
+	 *
+	 * @param mixed $num
 	 */
 	public function isReallyNumeric($num): bool {
 		return is_int($num) || preg_match("/^-?\d+$/", (string)$num);
@@ -538,14 +592,15 @@ class AOChat {
 	/**
 	 * Lookup the group id of a group
 	 *
+	 * @param int|string $arg
 	 * @return null|int|string
 	 */
 	public function lookup_group($arg, int $type=0) {
-		if ($type && ($is_gid = (strlen($arg) === 5 && (ord($arg[0])&~0x80) < 0x10))) {
+		if ($type && ($is_gid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
-		if (!$is_gid) {
-			$arg = strtolower($arg);
+		if (!isset($is_gid) || !$is_gid) {
+			$arg = strtolower((string)$arg);
 		}
 		return $this->gid[$arg] ?? null;
 	}
@@ -553,8 +608,8 @@ class AOChat {
 	/**
 	 * Get the group id of a group
 	 *
-	 * @param string $arg Name of the group
-	 * @return int|false Either the group id or false if not found
+	 * @param string $g Name of the group
+	 * @return int|string|false Either the group id or false if not found
 	 */
 	public function get_gid(string $g) {
 		return $this->lookup_group($g, 1) ?? false;
@@ -563,8 +618,8 @@ class AOChat {
 	/**
 	 * Get the group name of a group id
 	 *
-	 * @param int $g The group id
-	 * @return string|false The group name or false if not found
+	 * @param int|string $g The group id
+	 * @return int|string|false The group name or false if not found
 	 */
 	public function get_gname($g) {
 		if (($gid = $this->lookup_group($g, 1)) === null) {
@@ -578,20 +633,22 @@ class AOChat {
 	 */
 	public function sendPing(): bool {
 		$this->last_ping = time();
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PING, "AOChat.php"));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PING, "AOChat.php"));
 	}
 
 	/**
 	 * Send a tell to a user
 	 *
-	 * @param string|int $user     user name or user id
+	 * @param int|string $user user name or user id
 	 */
-	public function send_tell($user, string $msg, $blob="\0", ?int $priority=null): bool {
+	public function send_tell($user, string $msg, string $blob="\0", ?int $priority=null): bool {
 		if (($uid = $this->get_uid($user)) === false) {
 			return false;
 		}
-		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_MSG_PRIVATE, [$uid, $msg, $blob]));
+		$priority ??= QueueInterface::PRIORITY_MED;
+		if (isset($this->chatqueue)) {
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::MSG_PRIVATE, [$uid, $msg, $blob]));
+		}
 		$this->iteration();
 		return true;
 	}
@@ -599,7 +656,7 @@ class AOChat {
 	/**
 	 * Send a message to the guild channel
 	 */
-	public function send_guild(string $msg, $blob="\0", int $priority=null): bool {
+	public function send_guild(string $msg, string $blob="\0", int $priority=null): bool {
 		$guild_gid = false;
 		foreach ($this->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) == 3) {
@@ -610,8 +667,10 @@ class AOChat {
 		if (!$guild_gid) {
 			return false;
 		}
-		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
+		$priority ??= QueueInterface::PRIORITY_MED;
+		if (isset($this->chatqueue)) {
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
+		}
 		$this->iteration();
 		return true;
 	}
@@ -619,15 +678,17 @@ class AOChat {
 	/**
 	 * Send a message to a channel
 	 *
-	 * @param int|string $group    The channel id or channel name to send to
+	 * @param string $group    The channel id or channel name to send to
 	 */
-	public function send_group($group, string $msg, $blob="\0", int $priority=null): bool {
+	public function send_group(string $group, string $msg, string $blob="\0", int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === false) {
 			$this->logger->log('WARN', "Trying to send into unknown group \"{$group}\".");
 			return false;
 		}
-		$priority ??= AOC_PRIORITY_MED;
-		$this->chatqueue->push($priority, new AOChatPacket("out", AOCP_GROUP_MESSAGE, [$gid, $msg, "\0"]));
+		$priority ??= QueueInterface::PRIORITY_MED;
+		if (isset($this->chatqueue)) {
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$gid, $msg, "\0"]));
+		}
 		$this->iteration();
 		return true;
 	}
@@ -635,40 +696,40 @@ class AOChat {
 	/**
 	 * Join a channel
 	 *
-	 * @param int|string $group Channel id or channel name to join
+	 * @param string $group Channel id or channel name to join
 	 */
-	public function group_join($group): bool {
+	public function group_join(string $group): bool {
 		if (($gid = $this->get_gid($group)) === false) {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, [$gid, $this->grp[$gid] & ~AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
 	 * Leave a channel
 	 *
-	 * @param int|string $group Channel id or channel name to leave
+	 * @param string $group Channel id or channel name to leave
 	 */
-	public function group_leave($group): bool {
+	public function group_leave(string $group): bool {
 		if (($gid = $this->get_gid($group)) === false) {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_GROUP_DATA_SET, [$gid, $this->grp[$gid] | AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
 	 * Get a channel's status (log, more, noasian, nowrite)
 	 *
-	 * @param int|string $group The group id or group name
+	 * @param string $group The group id or group name
 	 */
-	public function group_status($group): ?int {
+	public function group_status(string $group): ?int {
 		if (($gid = $this->get_gid($group)) === false) {
 			return null;
 		}
 
-		return $this->grp[$gid];
+		return $this->grp[(int)$gid];
 	}
 
 	/**
@@ -676,14 +737,13 @@ class AOChat {
 	 *
 	 * @param int|string $group The group id or group name to send to
 	 * @param string     $msg   The message to send
-	 * @param string     $blob  Ignored
 	 * @return bool false if the channel doesn't exist, true otherwise
 	 */
 	public function send_privgroup($group, string $msg): bool {
 		if (($gid = $this->get_uid($group)) === false) {
 			return false;
 		}
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_MESSAGE, [$gid, $msg, "\0"]));
 	}
 
 	/**
@@ -696,7 +756,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_JOIN, $gid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_JOIN, $gid));
 	}
 
 	/**
@@ -709,7 +769,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_INVITE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_INVITE, $uid));
 	}
 
 	/**
@@ -722,7 +782,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_KICK, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_KICK, $uid));
 	}
 
 	/**
@@ -735,25 +795,25 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_PART, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_PART, $uid));
 	}
 
 	/**
 	 * Kick everyone from this bot's private group
 	 */
 	public function privategroup_kick_all(): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOCP_PRIVGRP_KICKALL, ""));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_KICKALL, ""));
 	}
 
 	/**
 	 * Add someone to our friend list
 	 */
 	public function buddy_add(int $uid, string $payload="\1"): bool {
-		if ($uid === $this->char->id) {
+		if ($uid === $this->char->id??null) {
 			return false;
 		}
 		$this->buddyQueue []= $uid;
-		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_ADD, [$uid, $payload]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::BUDDY_ADD, [$uid, $payload]));
 	}
 
 	/**
@@ -762,14 +822,14 @@ class AOChat {
 	 * @param int $uid The user id to remove
 	 */
 	public function buddy_remove($uid): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOCP_BUDDY_REMOVE, $uid));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::BUDDY_REMOVE, $uid));
 	}
 
 	/**
 	 * Remove unknown users from our friend list
 	 */
 	public function buddy_remove_unknown(): bool {
-		return $this->sendPacket(new AOChatPacket("out", AOCP_CC, [["rembuddy", "?"]]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::CC, [["rembuddy", "?"]]));
 	}
 
 	/**
@@ -801,6 +861,9 @@ class AOChat {
 	 * Convert a decimal value to HEX
 	 */
 	public function bigdechex(string $x): string {
+		if (!is_numeric($x)) {
+			throw new Exception("Invalid numeric string encountered: {$x}");
+		}
 		$r = "";
 		while ($x !== "0") {
 			$r = dechex((int)bcmod($x, "16")) . $r;
@@ -816,6 +879,9 @@ class AOChat {
 		$base = $this->bighexdec($base);
 		$exp  = $this->bighexdec($exp);
 		$mod  = $this->bighexdec($mod);
+		if (!is_numeric($base) || !is_numeric($exp) || !is_numeric($mod)) {
+			throw new Exception("Invalid numeric string encountered: {$base}^{$exp}%{$mod}");
+		}
 
 		$r = bcpowmod($base, $exp, $mod);
 		return $this->bigdechex($r);
@@ -833,7 +899,7 @@ class AOChat {
 	public function negativeToUnsigned(float $value): string {
 		$strValue = (string)$value;
 		if (bccomp($strValue, "0") !== -1) {
-			return $value;
+			return $strValue;
 		}
 
 		$strValue = bcmul($strValue, "-1");
@@ -887,6 +953,9 @@ class AOChat {
 		// If its negative, lets go positive ... its easier to do everything as positive.
 		if (bccomp($strValue, "0") === -1) {
 			$strValue = $this->negativeToUnsigned($value);
+		}
+		if (!is_numeric($strValue)) {
+			throw new Exception("Invalid numeric string encountered: {$strValue}");
 		}
 
 		$bit32  = (string)0x80000000;
@@ -964,7 +1033,7 @@ class AOChat {
 	 */
 	public function aoChatCrypt(string $key, string $str): string {
 		if (strlen($key) !== 32 || strlen($str) % 8 !== 0) {
-			return false;
+			throw new Exception("Invalid key or string received.");
 		}
 
 		$ret    = "";
@@ -974,8 +1043,10 @@ class AOChat {
 
 		$prev = [0, 0];
 		for ($i = 1; $i <= count($dataarr); $i += 2) {
-			$now[0] = $this->reduceTo32Bit($dataarr[$i]) ^ $this->reduceTo32Bit($prev[0]);
-			$now[1] = $this->reduceTo32Bit($dataarr[$i+1]) ^ $this->reduceTo32Bit($prev[1]);
+			$now = [
+				$this->reduceTo32Bit($dataarr[$i]) ^ $this->reduceTo32Bit($prev[0]),
+				$this->reduceTo32Bit($dataarr[$i+1]) ^ $this->reduceTo32Bit($prev[1])
+			];
 			$prev   = $this->aoCryptPermute($now, $keyarr);
 
 			$ret .= $this->safeDecHexReverseEndian($prev[0]);
@@ -997,7 +1068,7 @@ class AOChat {
 		$a = $x[0];
 		$b = $x[1];
 		$c = 0;
-		$d = (int)0x9e3779b9;
+		$d = 0x9e3779b9;
 		for ($i = 32; $i-- > 0;) {
 			$c  = $this->reduceTo32Bit($c + $d);
 			$a += $this->reduceTo32Bit(
@@ -1143,10 +1214,11 @@ class AOChat {
 			$obj->category = $this->b85g($msg);
 			$obj->instance = $this->b85g($msg);
 
-			$obj->args = $this->parseExtParams($msg);
-			if ($obj->args === null) {
+			$args = $this->parseExtParams($msg);
+			if ($args === null) {
 				$this->logger->log('warn', "Error parsing parameters for category: '$obj->category' instance: '$obj->instance' string: '$msg'");
 			} else {
+				$obj->args = $args;
 				$obj->message_string = $this->mmdbParser->getMessageString($obj->category, $obj->instance);
 				if ($obj->message_string !== null) {
 					$message .= trim(vsprintf($obj->message_string, $obj->args));

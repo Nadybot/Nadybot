@@ -62,7 +62,7 @@ class SettingsController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->upload();
 	}
 
@@ -79,10 +79,10 @@ class SettingsController {
 		$currentModule = '';
 		foreach ($data as $row) {
 			if ($row->module !== $currentModule) {
-				$blob .= "\n<pagebreak><header2>".str_replace("_", " ", $row->module)."<end>\n";
+				$blob .= "\n<pagebreak><header2>".str_replace("_", " ", $row->module??"")."<end>\n";
 				$currentModule = $row->module;
 			}
-			$blob .= "<tab>" . $row->description;
+			$blob .= "<tab>" . ($row->description??"No description given");
 
 			if ($row->mode === "edit") {
 				$editLink = $this->text->makeChatcmd('Modify', "/tell <myname> settings change {$row->name}");
@@ -102,10 +102,11 @@ class SettingsController {
 
 	/**
 	 * @HandlesCommand("settings")
+	 * @Mask $action change
 	 */
-	public function changeCommand(CmdContext $context, string $action="change", PWord $setting): void {
+	public function changeCommand(CmdContext $context, string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
-		/** @var Setting $row */
+		/** @var ?Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $settingName)
 			->asObj(Setting::class)
@@ -126,7 +127,7 @@ class SettingsController {
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
 		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($context->char->name) . "\n\n";
 		$blob .= $settingHandler->getDescription();
-		$blob .= $settingHandler->getOptions();
+		$blob .= $settingHandler->getOptions()??"";
 
 		// show help topic if there is one
 		$help = $this->helpManager->find($settingName, $context->char->name);
@@ -141,8 +142,9 @@ class SettingsController {
 
 	/**
 	 * @HandlesCommand("settings")
+	 * @Mask $action save
 	 */
-	public function saveCommand(CmdContext $context, string $action="save", PWord $setting, string $newValue): void {
+	public function saveCommand(CmdContext $context, string $action, PWord $setting, string $newValue): void {
 		$name = strtolower($setting());
 		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
@@ -154,12 +156,17 @@ class SettingsController {
 			$context->reply($msg);
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin)) {
+		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin??"superadmin")) {
 			$msg = "You don't have the necessary rights to change this setting.";
 			$context->reply($msg);
 			return;
 		}
 		$settingHandler = $this->settingManager->getSettingHandler($setting);
+		if (!isset($settingHandler)) {
+			$msg = "The setting <highlight>{$setting->name}<end> uses an unsupported type.";
+			$context->reply($msg);
+			return;
+		}
 		try {
 			$newValueToSave = $settingHandler->save($newValue);
 			if ($this->settingManager->save($name, $newValueToSave)) {

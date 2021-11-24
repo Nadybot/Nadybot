@@ -157,8 +157,15 @@ class BanController {
 	 * This command handler bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
+	 * @Mask $for (for|reason)
 	 */
-	public function banPlayerWithTimeAndReasonCommand(CmdContext $context, PCharacter $who, PDuration $duration, string $for="(for|reason)", string $reason): void {
+	public function banPlayerWithTimeAndReasonCommand(
+		CmdContext $context,
+		PCharacter $who,
+		PDuration $duration,
+		string $for,
+		string $reason
+	): void {
 		$who = $who();
 		$length = $duration->toSecs();
 
@@ -206,8 +213,14 @@ class BanController {
 	 * This command handler permanently bans a player from this bot.
 	 *
 	 * @HandlesCommand("ban")
+	 * @Mask $for (for|reason)
 	 */
-	public function banPlayerWithReasonCommand(CmdContext $context, PCharacter $who, string $for="(for|reason)", string $reason): void {
+	public function banPlayerWithReasonCommand(
+		CmdContext $context,
+		PCharacter $who,
+		string $for,
+		string $reason
+	): void {
 		$who = $who();
 
 		if (!$this->banPlayer($who, $context->char->name, null, $reason, $context)) {
@@ -263,7 +276,9 @@ class BanController {
 		$bans = [];
 		foreach ($banlist as $ban) {
 			$blob = "<header2>{$ban->name}<end>\n";
-			$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
+			if (isset($ban->time)) {
+				$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
+			}
 			$blob .= "<tab>By: <highlight>{$ban->admin}<end>\n";
 			if (isset($ban->banend) && $ban->banend !== 0) {
 				$blob .= "<tab>Ban ends: <highlight>" . $this->util->unixtimeToReadable($ban->banend - time(), false) . "<end>\n";
@@ -288,8 +303,9 @@ class BanController {
 	 *  - name of one of the player's characters
 	 *
 	 * @HandlesCommand("unban")
+	 * @Mask $all all
 	 */
-	public function unbanAllCommand(CmdContext $context, string $all="all", PCharacter $who): void {
+	public function unbanAllCommand(CmdContext $context, string $all, PCharacter $who): void {
 		$who = $who();
 
 		$charId = $this->chatBot->get_uid($who);
@@ -463,7 +479,11 @@ class BanController {
 
 		$audit = new Audit();
 		$audit->actor = $sender;
-		$audit->actee = $this->chatBot->lookup_user($charId);
+		$charName = $this->chatBot->lookup_user($charId);
+		if (!is_string($charName)) {
+			$charName = (string)$charId;
+		}
+		$audit->actee = $charName;
 		$audit->action = $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN;
 		$audit->value = $reason;
 		$this->accessManager->addAudit($audit);
@@ -534,7 +554,11 @@ class BanController {
 		return isset($this->banlist[$charId]);
 	}
 
-	/** Call either the notbanned ort banned callback for $charId */
+	/**
+	 * Call either the notbanned ort banned callback for $charId
+	 * @psalm-suppress MissingClosureReturnType
+	 * @psalm-suppress TooManyArguments
+	 */
 	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
 		$notBanned ??= fn() => null;
 		$banned ??= fn() => null;
@@ -550,7 +574,7 @@ class BanController {
 			$banned($charId, ...$args);
 			return;
 		}
-		$player = $this->chatBot->id[$charId];
+		$player = (string)$this->chatBot->id[$charId];
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($charId, $notBanned, $banned, $args): void {
 				if (!isset($whois) || !isset($whois->guild_id)) {
@@ -613,8 +637,17 @@ class BanController {
 
 	/**
 	 * @HandlesCommand("orgban")
+	 * @Mask $add add
+	 * @Mask $for (for|reason|because)
 	 */
-	public function orgbanAddByIdCommand(CmdContext $context, string $add="add", int $orgId, ?PDuration $duration, string $for="(for|reason|because)", string $reason): void {
+	public function orgbanAddByIdCommand(
+		CmdContext $context,
+		string $add,
+		int $orgId,
+		?PDuration $duration,
+		string $for,
+		string $reason
+	): void {
 		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason, $context);
 	}
 
@@ -626,7 +659,7 @@ class BanController {
 	public function formatOrgsToBan(array $orgs, ?string $duration, string $reason): string {
 		$blob = '';
 		$banCmd = "/tell <myname> orgban add %d reason {$reason}";
-		if (isset($banCmd)) {
+		if (isset($duration)) {
 			$banCmd = "/tell <myname> orgban add %d {$duration} reason {$reason}";
 		}
 		foreach ($orgs as $org) {

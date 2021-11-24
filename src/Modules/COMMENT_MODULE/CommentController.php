@@ -6,8 +6,8 @@ use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	LoggerWrapper,
 	Nadybot,
@@ -17,6 +17,9 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -119,8 +122,8 @@ class CommentController {
 			"text",
 			"comment_categories_<myname>",
 		);
-		$this->db->registerTableName("comments", $sm->getString("table_name_comments"));
-		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories"));
+		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
+		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
 		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 	}
@@ -198,8 +201,8 @@ class CommentController {
 		} catch (SQLException $e) {
 			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage(), $e);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable);
-			$this->db->registerTableName("comment_categories", $oldCategoryTable);
+			$this->db->registerTableName("comments", $oldCommentTable??"");
+			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
 			throw new Exception("There was an error copying the comments in the database");
 		}
 		$this->db->commit();
@@ -239,14 +242,13 @@ class CommentController {
 	 * Command to list all categories
 	 *
 	 * @HandlesCommand("commentcategories")
-	 * @Matches("/^commentcategories$/i")
 	 */
-	public function listCategoriesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function listCategoriesCommand(CmdContext $context): void {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
 			->asObj(CommentCategory::class)->toArray();
 		if (count($categories) === 0) {
-			$sendto->reply("There are currently no comment categories defined.");
+			$context->reply("There are currently no comment categories defined.");
 			return;
 		}
 		$blob = "";
@@ -272,38 +274,36 @@ class CommentController {
 			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob("Comment categories (" . count($categories) . ")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * Command to delete a category
 	 *
 	 * @HandlesCommand("commentcategories")
-	 * @Matches("/^commentcategories (?:delete|del|rem|rm) (.+)$/i")
 	 */
-	public function deleteCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$category = $args[1];
+	public function deleteCategoryCommand(CmdContext $context, PRemove $action, string $category): void {
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
 			if ($cat->user_managed === false) {
-				$sendto->reply("You cannot delete the built-in category <highlight>{$category}<end>.");
+				$context->reply("You cannot delete the built-in category <highlight>{$category}<end>.");
 				return;
 			}
-			$senderAl = $this->accessManager->getAccessLevelForCharacter($sender);
+			$senderAl = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 			if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
 				|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
-				$sendto->reply(
+				$context->reply(
 					"You can only delete categories to which you have read and write access."
 				);
 				return;
 			}
 		} else {
-			$sendto->reply("The comment category <highlight>{$category}<end> does not exist.");
+			$context->reply("The comment category <highlight>{$category}<end> does not exist.");
 			return;
 		}
 		$deleted = $this->deleteCategory($category);
 		if ($deleted === null) {
-			$sendto->reply("The comment category <highlight>{$category}<end> does not exist.");
+			$context->reply("The comment category <highlight>{$category}<end> does not exist.");
 			return;
 		}
 		$msg = "Successfully deleted the comment category <highlight>{$category}<end>";
@@ -314,42 +314,45 @@ class CommentController {
 		} else {
 			$msg .= " and <highlight>{$deleted} comments<end> in that category.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * Command to add a new category
 	 *
 	 * @HandlesCommand("commentcategories")
-	 * @Matches("/^commentcategories\s+(?:add|create|new|edit|change)\s+(\w+)\s+(\w+)\s*$/i")
-	 * @Matches("/^commentcategories\s+(?:add|create|new|edit|change)\s+(\w+)\s+(\w+)\s+(\w+)\s*$/i")
+	 * @Mask $action (add|create|new|edit|change)
 	 */
-	public function addCategoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$category = $args[1];
-		$alForReading = $args[2];
-		$alForWriting = (count($args) > 3) ? $args[3] : $alForReading;
+	public function addCategoryCommand(
+		CmdContext $context,
+		string $action,
+		PWord $category,
+		PWord $alForReading,
+		?PWord $alForWriting
+	): void {
+		$alForWriting ??= $alForReading;
 		try {
-			$alForReading = $this->accessManager->getAccessLevel($alForReading);
-			$alForWriting = $this->accessManager->getAccessLevel($alForWriting);
+			$alForReading = $this->accessManager->getAccessLevel($alForReading());
+			$alForWriting = $this->accessManager->getAccessLevel($alForWriting());
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
-		$cat = $this->getCategory($category);
+		$cat = $this->getCategory($category());
 		if ($cat === null) {
 			$cat = new CommentCategory();
-			$cat->created_by = $sender;
-			$cat->name = $category;
+			$cat->created_by = $context->char->name;
+			$cat->name = $category();
 			$cat->min_al_read = $alForReading;
 			$cat->min_al_write = $alForWriting;
 			$this->saveCategory($cat);
-			$sendto->reply("Category <highlight>{$category}<end> successfully created.");
+			$context->reply("Category <highlight>{$category}<end> successfully created.");
 			return;
 		}
-		$alOfSender = $this->accessManager->getAccessLevelForCharacter($sender);
+		$alOfSender = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		if ($this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_read) <0
 			|| $this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_write) <0) {
-			$sendto->reply(
+			$context->reply(
 				"You can only change the required access levels of categories ".
 				"to which you have read and write access."
 			);
@@ -358,54 +361,59 @@ class CommentController {
 		$cat->min_al_read = $alForReading;
 		$cat->min_al_write = $alForWriting;
 		$this->db->update("<table:comment_categories>", "name", $cat);
-		$sendto->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
+		$context->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
 	}
 
 	/**
 	 * Command to add a new comment
 	 *
 	 * @HandlesCommand("comment")
-	 * @Matches("/^comment\s+(?:add|create|new)\s+(\w+)\s+(\w+)\s+(.+)$/i")
+	 * @Mask $action (add|create|new)
 	 */
-	public function addCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$character = ucfirst(strtolower($args[1]));
-		$category = $args[2];
-		$commentText = $args[3];
+	public function addCommentCommand(
+		CmdContext $context,
+		string $action,
+		PCharacter $char,
+		PWord $category,
+		string $commentText
+	): void {
+		$character = $char();
+		$category = $category();
 
 		$cat = $this->getCategory($category);
 		if ($cat === null) {
-			$sendto->reply("The category <highlight>{$category}<end> does not exist.");
+			$context->reply("The category <highlight>{$category}<end> does not exist.");
 			return;
 		}
 		if (!$this->chatBot->get_uid($character)) {
-			$sendto->reply("No player named <highlight>{$character}<end> found.");
+			$context->reply("No player named <highlight>{$character}<end> found.");
 			return;
 		}
-		if (!$this->accessManager->checkAccess($sender, $cat->min_al_write)) {
-			$sendto->reply(
+		if (!$this->accessManager->checkAccess($context->char->name, $cat->min_al_write)) {
+			$context->reply(
 				"You don't have the required access level to create comments of type ".
 				"<highlight>{$category}<end>."
 			);
 			return;
 		}
-		if ($this->altsController->getAltInfo($sender)->main === $this->altsController->getAltInfo($character)->main) {
-			$sendto->reply("You cannot comment on yourself.");
+		if ($this->altsController->getAltInfo($context->char->name)->main === $this->altsController->getAltInfo($character)->main) {
+			$context->reply("You cannot comment on yourself.");
 			return;
 		}
 		$comment = new Comment();
 		$comment->category = $cat->name;
 		$comment->character = $character;
 		$comment->comment = trim($commentText);
-		$comment->created_by = $sender;
+		$comment->created_by = $context->char->name;
 		$cooldown = $this->saveComment($comment);
 		if ($cooldown > 0) {
-			$sendto->reply(
+			$context->reply(
 				"You have to wait <highlight>" . $this->util->unixtimeToReadable($cooldown) . "<end> ".
 				"before posting another comment about <highlight>{$character}<end>."
 			);
 			return;
 		}
-		$sendto->reply("Comment about <highlight>{$character}<end> successfully saved.");
+		$context->reply("Comment about <highlight>{$character}<end> successfully saved.");
 	}
 
 	/**
@@ -416,7 +424,7 @@ class CommentController {
 		if ($comment->created_by === $this->chatBot->vars["name"]) {
 			return 0;
 		}
-		$cooldown = $this->settingManager->getInt("comment_cooldown");
+		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
 		// Get all comments about that same character
 		$comments = $this->getComments(null, $comment->character);
 		// Only keep those that were created by the same person creating one now
@@ -430,7 +438,7 @@ class CommentController {
 		);
 		// They are sorted by time, so last element is the newest
 		$lastComment = end($ownComments);
-		if (!isset($lastComment)) {
+		if ($lastComment === false) {
 			return 0;
 		}
 		// If the age of the last comment is less than the cooldown, return the remaining cooldown
@@ -458,26 +466,29 @@ class CommentController {
 	 * Command to read comments about a player
 	 *
 	 * @HandlesCommand("comment")
-	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)$/i")
-	 * @Matches("/^comment\s+(?:get|search|find)\s+(\w+)\s+(\w+)$/i")
+	 * @Mask $action (get|search|find)
 	 */
-	public function searchCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$character = ucfirst(strtolower($args[1]));
+	public function searchCommentCommand(
+		CmdContext $context,
+		string $action,
+		PCharacter $char,
+		?PWord $category
+	): void {
+		$character = $char();
 		if (!$this->chatBot->get_uid($character)) {
-			$sendto->reply("No player named <highlight>{$character}<end> found.");
+			$context->reply("No player named <highlight>{$character}<end> found.");
 			return;
 		}
 
-		$category = null;
-		if (count($args) > 2) {
-			$categoryName = $args[2];
+		if (isset($category)) {
+			$categoryName = $category();
 			$category = $this->getCategory($categoryName);
 			if ($category === null) {
-				$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
+				$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
 				return;
 			}
-			if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
-				$sendto->reply(
+			if (!$this->accessManager->checkAccess($context->char->name, $category->min_al_read)) {
+				$context->reply(
 					"You don't have the required access level to read comments of type ".
 					"<highlight>{$categoryName}<end>."
 				);
@@ -486,11 +497,11 @@ class CommentController {
 		}
 		/** @var Comment[] */
 		$comments = $this->getComments($category, $character);
-		$comments = $this->filterInaccessibleComments($comments, $sender);
+		$comments = $this->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {
 			$msg = "No comments found for <highlight>{$character}<end>".
 			(isset($category) ? " in category <highlight>{$category->name}<end>." : ".");
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$formatted = $this->formatComments($comments, false, !isset($category));
@@ -498,24 +509,23 @@ class CommentController {
 			(isset($category) ? " in category {$category->name}" : "").
 			" (" . count($comments) . ")";
 		$msg = $this->text->makeBlob($msg, $formatted->blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * Command to read comments about a player
 	 *
 	 * @HandlesCommand("comment")
-	 * @Matches("/^comment\s+list\s+(\w+)$/i")
+	 * @Mask $action list
 	 */
-	public function listCommentsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$categoryName = $args[1];
-		$category = $this->getCategory($categoryName);
+	public function listCommentsCommand(CmdContext $context, string $action, PWord $categoryName): void {
+		$category = $this->getCategory($categoryName());
 		if ($category === null) {
-			$sendto->reply("The category <highlight>{$categoryName}<end> does not exist.");
+			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
 			return;
 		}
-		if (!$this->accessManager->checkAccess($sender, $category->min_al_read)) {
-			$sendto->reply(
+		if (!$this->accessManager->checkAccess($context->char->name, $category->min_al_read)) {
+			$context->reply(
 				"You don't have the required access level to read comments of type ".
 				"<highlight>{$categoryName}<end>."
 			);
@@ -528,14 +538,14 @@ class CommentController {
 			->asObj(Comment::class)->toArray();
 		if (!count($comments)) {
 			$msg = "No comments found in category <highlight>{$categoryName}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$formatted = $this->formatComments($comments, false, false);
 		$msg = "Comments in {$categoryName} ".
 			"(" . count($comments) . ")";
 		$msg = $this->text->makeBlob($msg, $formatted->blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -552,7 +562,10 @@ class CommentController {
 						return $accessCache[$comment->category];
 					}
 					$cat = $this->getCategory($comment->category);
-					$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+					$canRead = false;
+					if (isset($cat)) {
+						$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+					}
 					return $accessCache[$comment->category] = $canRead;
 				}
 			)
@@ -614,32 +627,30 @@ class CommentController {
 	 * Command to delete a comment about a player
 	 *
 	 * @HandlesCommand("comment")
-	 * @Matches("/^comment\s+(?:delete|del|rem|rm)\s+(\d+)$/i")
 	 */
-	public function deleteCommentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function deleteCommentCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Comment */
 		$comment = $this->db->table("<table:comments>")
 			->where("id", $id)
 			->asObj(Comment::class)
 			->first();
 		if (!isset($comment)) {
-			$sendto->reply("The comment <highlight>#{$id}<end> does not exist.");
+			$context->reply("The comment <highlight>#{$id}<end> does not exist.");
 			return;
 		}
 		$cat = $this->getCategory($comment->category);
 		if (!isset($cat)) {
-			$sendto->reply("The category <highlight>{$comment->category}<end> does not exist.");
+			$context->reply("The category <highlight>{$comment->category}<end> does not exist.");
 			return;
 		}
-		if ($this->accessManager->checkAccess($sender, $cat->min_al_write) < 0) {
-			$sendto->reply("You don't have the necessary access level to delete this comment.");
+		if ($this->accessManager->checkAccess($context->char->name, $cat->min_al_write) < 0) {
+			$context->reply("You don't have the necessary access level to delete this comment.");
 			return;
 		}
 		$this->db->table("<table:comments>")
 			->where("id", $id)
 			->delete();
-		$sendto->reply("Comment deleted.");
+		$context->reply("Comment deleted.");
 	}
 
 	/**
@@ -666,7 +677,7 @@ class CommentController {
 	/**
 	 * Count all comments about a list of players or their alts/main, optionally limited to a category
 	 *
-	 * @return Comment[]
+	 * @return int
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");

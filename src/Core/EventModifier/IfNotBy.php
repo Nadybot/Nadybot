@@ -34,11 +34,14 @@ class IfNotBy implements EventModifier {
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
+		if (!isset($event)) {
+			return $event;
+		}
 		// We only require prefixes for messages, the rest is passed through
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
-		$matches = isset($char) && in_array(strtolower($event->char->name), $this->senders);
+		$matches = isset($event->char) && in_array(strtolower($event->char->name), $this->senders);
 		if ($matches === $this->inverse) {
 			return $event;
 		}

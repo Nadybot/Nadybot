@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
@@ -47,73 +47,74 @@ class StopwatchController {
 	 * Start a new stopwatch
 	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch\s+start$/i")
+	 * @Mask $action start
 	 */
-	public function startStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (array_key_exists($sender, $this->stopwatches)) {
+	public function startStopwatchCommand(CmdContext $context, string $action): void {
+		if (array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You already have a stopwatch running. ".
 				"Use <highlight><symbol>stopwatch stop<end> to stop it.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$this->stopwatches[$sender] = new Stopwatch();
+		$this->stopwatches[$context->char->name] = new Stopwatch();
 		$msg = "Stopwatch started.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * Stop a user's stopwatch
 	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch\s+stop$/i")
+	 * @Mask $action stop
 	 */
-	public function stopStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!array_key_exists($sender, $this->stopwatches)) {
+	public function stopStopwatchCommand(CmdContext $context, string $action): void {
+		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$stopwatch = $this->stopwatches[$sender];
+		$stopwatch = $this->stopwatches[$context->char->name];
 		$stopwatch->end = time();
-		unset($this->stopwatches[$sender]);
+		unset($this->stopwatches[$context->char->name]);
 		$msg = $stopwatch->toString();
-		$sendto->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n$msg");
 	}
 
 	/**
 	 * Command to add a lap to the stopwatch
 	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch\s+lap$/i")
-	 * @Matches("/^stopwatch\s+lap(\s+.+)$/i")
+	 * @Mask $action lap
 	 */
-	public function stopwatchLapCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!array_key_exists($sender, $this->stopwatches)) {
+	public function stopwatchLapCommand(CmdContext $context, string $action, ?string $lapName): void {
+		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$lapName = count($args) > 1 ? $args[1] : "";
-		$this->stopwatches[$sender]->laps[] = new StopwatchLap(trim($lapName));
-		$msg = "Lap<highlight>{$lapName}<end> added.";
-		$sendto->reply($msg);
+		$lapName ??= "";
+		$this->stopwatches[$context->char->name]->laps[] = new StopwatchLap(trim($lapName));
+		$msg = "Lap added.";
+		if (strlen($lapName)) {
+			$msg = "Lap <highlight>{$lapName}<end> added.";
+		}
+		$context->reply($msg);
 	}
 
 	/**
 	 * Show a user's stopwatch
 	 *
 	 * @HandlesCommand("stopwatch")
-	 * @Matches("/^stopwatch\s+view$/i")
-	 * @Matches("/^stopwatch\s+show$/i")
+	 * @Mask $action (view|show)
 	 */
-	public function showStopwatchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!array_key_exists($sender, $this->stopwatches)) {
+	public function showStopwatchCommand(CmdContext $context, string $action): void {
+		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$stopwatch = $this->stopwatches[$sender];
+		$stopwatch = $this->stopwatches[$context->char->name];
 		$msg = $stopwatch->toString();
-		$sendto->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n$msg");
 	}
 }

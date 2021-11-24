@@ -5,5 +5,5 @@ namespace Nadybot\Core\Annotations;
 use Addendum\Annotation;
 
 class HttpPut extends Annotation {
-	public $type = "put";
+	public string $type = "put";
 }

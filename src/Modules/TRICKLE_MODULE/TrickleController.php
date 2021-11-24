@@ -4,7 +4,7 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Text,
 	Util,
@@ -53,18 +53,17 @@ class TrickleController {
 	 * View trickle skills
 	 *
 	 * @HandlesCommand("trickle")
-	 * @Matches("/^trickle( ([a-zA-Z]+) ([0-9]+)){1,6}$/i")
+	 * @Mask $pairs (\w+\s+\d+(\s+\w+\s+\d+){0,5})
 	 */
-	public function trickle1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function trickle1Command(CmdContext $context, string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $message);
-		array_shift($array);
+		$array = preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$ability = $this->util->getAbility($array[$i]);
 			if ($ability === null) {
 				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 
@@ -72,26 +71,25 @@ class TrickleController {
 		}
 
 		$msg = $this->processAbilities($abilities);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * View trickle skills
 	 *
 	 * @HandlesCommand("trickle")
-	 * @Matches("/^trickle( ([0-9]+) ([a-zA-Z]+)){1,6}$/i")
+	 * @Mask $pairs (\d+\s+\w+(\s+\d+\s+\w+){0,5})
 	 */
-	public function trickle2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function trickle2Command(CmdContext $context, string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $message);
-		array_shift($array);
+		$array = preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$shortAbility = $this->util->getAbility($array[1 + $i]);
 			if ($shortAbility === null) {
 				$i++;
 				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				return;
 			}
 
@@ -99,16 +97,13 @@ class TrickleController {
 		}
 
 		$msg = $this->processAbilities($abilities);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("trickle")
-	 * @Matches("/^trickle (.+)$/i")
 	 */
-	public function trickleSkillCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
+	public function trickleSkillCommand(CmdContext $context, string $search): void {
 		/** @var Collection<Trickle> */
 		$data = $this->db->table("trickle")
 			->whereIlike("name", "%" . str_replace(" ", "%", $search) . "%")
@@ -117,40 +112,43 @@ class TrickleController {
 		if ($count === 0) {
 			$msg = "Could not find any skills for search '$search'";
 		} elseif ($count === 1) {
-			$msg = $this->getTrickleAmounts($data[0]);
+			$msg = "To trickle 1 skill point into <highlight>{$data[0]->name}<end>, ".
+				"you need " . $this->getTrickleAmounts($data[0]);
 		} else {
-			$blob = "";
+			$blob = "<header2>Required to increase skill by 1<end>\n";
 			foreach ($data as $row) {
-				$blob .= $this->getTrickleAmounts($row) . "\n";
+				$blob .= "<tab><highlight>{$row->name}<end>: ".
+					$this->getTrickleAmounts($row) . "\n";
 			}
 			$msg = $this->text->makeBlob("Trickle Info: $search", $blob);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getTrickleAmounts(Trickle $row): string {
 		$arr = ['agi', 'int', 'psy', 'sta', 'str', 'sen'];
-		$msg = "<highlight>{$row->name}<end> ";
+		$reqs = [];
 		foreach ($arr as $ability) {
 			$fieldName = "amount" . ucfirst($ability);
 			if ($row->$fieldName > 0) {
 				$abilityName = $this->util->getAbility($ability, true);
 				$value = round(4 / ($row->$fieldName), 2);
-				$msg .= "($abilityName: ${value}) ";
+				$reqs []= "{$value} {$abilityName}";
 			}
 		}
+		$msg = (new Collection($reqs))->join(", ", " or ");
 		return $msg;
 	}
 
 	/**
 	 * @return string[]
 	 */
-	private function processAbilities(AbilityConfig $abilities): ?array {
+	private function processAbilities(AbilityConfig $abilities): array {
 		$headerParts = [];
 		foreach ($abilities as $short => $bonus) {
 			if ($bonus > 0) {
-				$headerParts []= $this->util->getAbility($short, true).
+				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
 					": <highlight>$bonus<end>";
 			}
 		}
@@ -193,7 +191,7 @@ class TrickleController {
 				$msg .= "\n<header2>$groupName<end>\n";
 			}
 
-			$amount = $result->amount / 4;
+			$amount = ($result->amount??0) / 4;
 			$amountInt = (int)floor($amount);
 			$msg .= "<tab>" . $this->text->alignNumber($amountInt, 3, "highlight").
 				".<highlight>" . substr(number_format($amount-$amountInt, 2), 2) . "<end> ".

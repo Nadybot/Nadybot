@@ -50,7 +50,7 @@ class RaffleSlot {
 	}
 
 	/**
-	 * @return string[];
+	 * @return string[]
 	 */
 	public function getWinnerNames(): array {
 		return array_values(

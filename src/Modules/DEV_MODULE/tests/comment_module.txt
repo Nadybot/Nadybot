@@ -16,6 +16,7 @@
 !reputation 0 all
 !reputation Nadyita
 !reputation Nadyita all
+!reputation
 
 !comment categories
 !comment categories add test member
@@ -23,6 +24,8 @@
 !comment categories rem test
 !comment categories add test member member
 !comment add Nadyita test Stupid comment
+!comment get Nadyita
+!comment get Nadyita test
 !settings save share_comments 0
 !settings save share_comments 1
 !settings save share_comments 0

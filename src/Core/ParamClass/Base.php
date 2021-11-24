@@ -10,6 +10,7 @@ abstract class Base {
 
 	abstract public function __toString(): string;
 
+	/** @return mixed */
 	abstract public function __invoke();
 
 	public static function getRegexp(): string {
@@ -18,5 +19,9 @@ abstract class Base {
 
 	public static function getPreRegexp(): string {
 		return static::$preRegExp;
+	}
+
+	public static function matches(string $string): bool {
+		return preg_match(chr(1) . "^(?" . static::$preRegExp . ")(" . static::$regExp . ")\$" . chr(1) . "is", $string) > 0;
 	}
 }

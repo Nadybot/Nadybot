@@ -7,7 +7,7 @@ use DOMElement;
 use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
-	CommandReply,
+	CmdContext,
 	DBRow,
 	Http,
 	HttpResponse,
@@ -52,6 +52,9 @@ class AOUController {
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 
 	public function isValidXML(?string $data): bool {
+		if (!isset($data)) {
+			return false;
+		}
 		try {
 			$dom = new DOMDocument();
 			return $dom->loadXML($data) !== false;
@@ -64,11 +67,8 @@ class AOUController {
 	 * View an AO-U guide.
 	 *
 	 * @HandlesCommand("aou")
-	 * @Matches("/^aou (\d+)$/i")
 	 */
-	public function aouView(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$guideId = (int)$args[1];
-
+	public function aouView(CmdContext $context, int $guideId): void {
 		$params = [
 			'mode' => 'view',
 			'id' => $guideId
@@ -82,12 +82,12 @@ class AOUController {
 			false,
 			[$this, "displayAOUGuide"],
 			$guideId,
-			$sendto
+			$context
 		);
 	}
 
-	public function displayAOUGuide(CacheResult $result, int $guideId, CommandReply $sendto): void {
-		if (!$result->success) {
+	public function displayAOUGuide(CacheResult $result, int $guideId, CmdContext $sendto): void {
+		if (!$result->success || !isset($result->data)) {
 			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
 			$sendto->reply($msg);
 			return;
@@ -131,27 +131,22 @@ class AOUController {
 	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
 	 *
 	 * @HandlesCommand("aou")
-	 * @Matches("/^aou all (.+)$/i")
+	 * @Mask $action all
 	 */
-	public function aouAllSearch(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
-		$this->searchAndShowAOUGuide($search, true, $sendto);
+	public function aouAllSearch(CmdContext $context, string $action, string $search): void {
+		$this->searchAndShowAOUGuide($search, true, $context);
 	}
 
 	/**
 	 * Search for an AO-U guide.
 	 *
 	 * @HandlesCommand("aou")
-	 * @Matches("/^aou (.+)$/i")
 	 */
-	public function aouSearch(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
-		$this->searchAndShowAOUGuide($search, false, $sendto);
+	public function aouSearch(CmdContext $context, string $search): void {
+		$this->searchAndShowAOUGuide($search, false, $context);
 	}
 
-	public function searchAndShowAOUGuide(string $search, bool $searchGuideText, CommandReply $sendto): void {
+	public function searchAndShowAOUGuide(string $search, bool $searchGuideText, CmdContext $context): void {
 		$params = [
 			'mode' => 'search',
 			'search' => $search
@@ -160,15 +155,16 @@ class AOUController {
 			->get(self::AOU_URL)
 			->withQueryParams($params)
 			->withCallback(
-				function(HttpResponse $response) use ($sendto, $searchGuideText, $search) {
-					$this->showAOUSearchResult($response, $searchGuideText, $search, $sendto);
+				function(HttpResponse $response) use ($context, $searchGuideText, $search) {
+					$this->showAOUSearchResult($response, $searchGuideText, $search, $context);
 				}
 			);
 	}
-	public function showAOUSearchResult(HttpResponse $response, bool $searchGuideText, string $search, CommandReply $sendto) {
-		if ($response->headers["status-code"] != "200") {
+
+	public function showAOUSearchResult(HttpResponse $response, bool $searchGuideText, string $search, CmdContext $context): void {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			$msg = "An error occurred while trying to talk to AOU Universe.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$searchTerms = explode(" ", $search);
@@ -219,7 +215,7 @@ class AOUController {
 				$msg .= " Try including all results with <highlight>!aou all $search<end>.";
 			}
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -272,12 +268,13 @@ class AOUController {
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
+		$wp = [];
 		foreach ($params as $param) {
 			[$name, $value] = explode("=", $param);
-			$$name = $value;
+			$wp[$name] = $value;
 		}
 
-		return $this->text->makeChatcmd($label . " ({$x}x{$y})", "/waypoint $x $y $pf");
+		return $this->text->makeChatcmd($label . " ({$wp['x']}x{$wp['y']})", "/waypoint {$wp['x']} {$wp['y']} {$wp['pf']}");
 	}
 
 	private function replaceGuideLinks(array $arr): string {
@@ -328,7 +325,7 @@ class AOUController {
 				return "\n";
 		}
 
-		if ($tag[0] == '[') {
+		if ($tag[0] === '[') {
 			return "";
 		}
 
@@ -337,11 +334,11 @@ class AOUController {
 
 	private function generateItemMarkup(string $type, DBRow $obj): string {
 		$output = '';
-		if ($type == "item" || $type == "itemicon") {
+		if ($type === "item" || $type === "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);
 		}
 
-		if ($type == "item" || $type == "itemname") {
+		if ($type === "item" || $type === "itemname") {
 			$output .= $this->text->makeItem($obj->lowid, $obj->highid, $obj->highql, $obj->name);
 		}
 

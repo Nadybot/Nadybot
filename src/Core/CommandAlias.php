@@ -104,7 +104,7 @@ class CommandAlias {
 				array_pop($params);
 			}
 		}
-		if ($row === null) {
+		if (!isset($row)) {
 			return false;
 		}
 		$tokens = explode(' ', $context->message, count($params)+1);

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandReply,
 	DB,
 	Nadybot,
@@ -13,6 +14,8 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
@@ -68,10 +71,8 @@ class GuildRankController {
 	/** @Inject */
 	public Text $text;
 
-	/**
-	 * @Setup
-	 */
-	public function setup() {
+	/** @Setup */
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
 
 		$this->settingManager->add(
@@ -110,11 +111,10 @@ class GuildRankController {
 
 	/**
 	 * @HandlesCommand("maprank")
-	 * @Matches("/^maprank$/i")
 	 */
-	public function maprankListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+	public function maprankListCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
-			$sendto->reply("The bot must be in an org.");
+			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
@@ -122,11 +122,15 @@ class GuildRankController {
 			null,
 			false,
 			[$this, "displayRankMappings"],
-			$sendto
+			$context
 		);
 	}
 
-	public function displayRankMappings(?Guild $guild, CommandReply $sendto): void {
+	public function displayRankMappings(?Guild $guild, CmdContext $context): void {
+		if (!isset($guild)) {
+			$context->reply("Unable to find information about organization. Maybe PORK is down.");
+			return;
+		}
 		$maps = $this->getMappings();
 		$mapKeys = array_reduce(
 			$maps,
@@ -138,7 +142,7 @@ class GuildRankController {
 		);
 		$ranks = $this->orglistController->getOrgRanks($guild->governing_form);
 		if (!count($maps)) {
-			$sendto->reply("There are currently no org rank to bot rank mappings defined.");
+			$context->reply("There are currently no org rank to bot rank mappings defined.");
 			return;
 		}
 		$blob = "<header2>Mapped ranks<end>\n";
@@ -155,16 +159,16 @@ class GuildRankController {
 			$blob .= "\n";
 		}
 		$msg = $this->text->makeBlob("Defined mappings (" . count($maps) . ")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("maprank")
-	 * @Matches("/^maprank (\d+)(?: to)? (.+)$/i")
+	 * @Mask $to to
 	 */
-	public function maprankCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+	public function maprankCommand(CmdContext $context, int $rank, ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
-			$sendto->reply("The bot must be in an org.");
+			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
@@ -172,10 +176,10 @@ class GuildRankController {
 			null,
 			false,
 			[$this, "setRankMapping"],
-			(int)$args[1],
-			$args[2],
-			$sender,
-			$sendto
+			$rank,
+			$accessLevel(),
+			$context->char->name,
+			$context
 		);
 	}
 
@@ -245,11 +249,10 @@ class GuildRankController {
 
 	/**
 	 * @HandlesCommand("maprank")
-	 * @Matches("/^maprank\s+(?:del|delete|rem|remove)\s+(\d+)$/i")
 	 */
-	public function maprankDelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
-			$sendto->reply("The bot must be in an org.");
+			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
@@ -257,20 +260,20 @@ class GuildRankController {
 			null,
 			false,
 			[$this, "delRankMapping"],
-			(int)$args[1],
-			$sender,
-			$sendto
+			$rankId,
+			$context->char->name,
+			$context
 		);
 	}
 
-	public function delRankMapping(?Guild $guild, int $rank, string $sender, CommandReply $sendto): void {
+	public function delRankMapping(?Guild $guild, int $rank, string $sender, CmdContext $context): void {
 		if (!isset($guild)) {
-			$sendto->reply("This org's governing form cannot be determined.");
+			$context->reply("This org's governing form cannot be determined.");
 			return;
 		}
 		$ranks = $this->orglistController->getOrgRanks($guild->governing_form);
 		if (!isset($ranks[$rank])) {
-			$sendto->reply("{$guild->governing_form} doesn't have a rank #{$rank}.");
+			$context->reply("{$guild->governing_form} doesn't have a rank #{$rank}.");
 			return;
 		}
 		/** @var ?OrgRankMapping */
@@ -279,19 +282,19 @@ class GuildRankController {
 			->asObj(OrgRankMapping::class)
 			->first();
 		if (!isset($oldEntry)) {
-			$sendto->reply("You haven't defined any access level for <highlight>{$ranks[$rank]}<end>.");
+			$context->reply("You haven't defined any access level for <highlight>{$ranks[$rank]}<end>.");
 			return;
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
 		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $oldEntry->access_level) > 0;
 		if ($senderAL !== "superadmin" && !$senderHasHigherAL) {
-			$sendto->reply("You can only manage access levels below your own.");
+			$context->reply("You can only manage access levels below your own.");
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
 			->where("min_rank", $rank)
 			->delete();
-		$sendto->reply(
+		$context->reply(
 			"The access level mapping <highlight>{$ranks[$rank]}<end> to ".
 			"<highlight>" . $this->accessManager->getDisplayName($oldEntry->access_level) . "<end> ".
 			"was deleted successfully."
@@ -300,11 +303,10 @@ class GuildRankController {
 
 	/**
 	 * @HandlesCommand("ranks")
-	 * @Matches("/^ranks$/i")
 	 */
-	public function ranksCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
+	public function ranksCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
-			$sendto->reply("The bot must be in an org.");
+			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
@@ -312,7 +314,7 @@ class GuildRankController {
 			null,
 			false,
 			[$this, "displayGuildRanks"],
-			$sendto
+			$context
 		);
 	}
 

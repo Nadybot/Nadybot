@@ -92,7 +92,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		$guild = $guilds[$channel->guild_id] ?? null;
 		$rMessage->prependPath(new Source(
 			Source::DISCORD_PRIV,
-			$channel->name,
+			$channel->name ?? $channel->id,
 			null,
 			isset($guild) ? (int)$guild->id : null
 		));

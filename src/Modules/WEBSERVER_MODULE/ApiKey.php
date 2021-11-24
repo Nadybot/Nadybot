@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
+namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use DateTime;
 use Nadybot\Core\DBRow;

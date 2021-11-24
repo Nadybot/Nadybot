@@ -18,6 +18,7 @@ class EventCommandReply implements CommandReply {
 		$this->uuid = $uuid;
 	}
 
+	/** @param string|string[] $msg */
 	public function reply($msg): void {
 		$event = new CommandReplyEvent();
 		$event->msgs = $this->webChatConverter->convertMessages((array)$msg);

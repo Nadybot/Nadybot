@@ -7,7 +7,8 @@
 !testlogoff error
 !track error
 !track add nadyita
-!track nadyita
+!track show nadyita
+!track show error
 !testlogon nadyita
 !track online
 !track

@@ -2,16 +2,10 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\DBRow;
-
-class ImplantRequirements extends DBRow {
-	public int $ql;
+class ImplantRequirements {
 	public int $treatment;
-	public int $ability;
-	public int $abilityShiny;
-	public int $abilityBright;
-	public int $abilityFaded;
-	public int $skillShiny;
-	public int $skillBright;
-	public int $skillFaded;
+
+	public int $abilities;
+
+	public int $titleLevel;
 }

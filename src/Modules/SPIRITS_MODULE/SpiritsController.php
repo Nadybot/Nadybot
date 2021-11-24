@@ -3,10 +3,13 @@
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Text,
 };
+use Nadybot\Core\ParamClass\PNonNumber;
+use Nadybot\Core\ParamClass\PNumRange;
+use Nadybot\Modules\IMPLANT_MODULE\PImplantSlot;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 /**
@@ -26,7 +29,6 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
  *	)
  */
 class SpiritsController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -49,139 +51,183 @@ class SpiritsController {
 
 	/**
 	 * @HandlesCommand("spirits")
-	 * @Matches("/^spirits (.+)$/i")
 	 */
-	public function spiritsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function spiritsSlotAndRangeCommand(CmdContext $context, PImplantSlot $slot, PNumRange $qlRange): void {
+		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsRangeAndSlotCommand(CmdContext $context, PNumRange $qlRange, PImplantSlot $slot): void {
+		$lowQL = $qlRange->low;
+		$highQL = $qlRange->high;
+		$slot = ucfirst($slot());
+		$title = "$slot Spirits QL $lowQL to $highQL";
+		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
+			$msg = "Invalid Ql range specified.";
+			$context->reply($msg);
+			return;
+		}
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->where("spot", $slot)
+			->where("ql", ">=", $lowQL)
+			->where("ql", "<=", $highQL)
+			->orderBy("ql")
+			->asObj(Spirit::class)
+			->toArray();
+		if (empty($data)) {
+			$context->reply("No {$slot} spirits found in ql {$lowQL} to {$highQL}.");
+			return;
+		}
+		$spirits = $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits", $spirits, $title);
+		$context->reply($spirits);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsCommandTypeAndSlot(CmdContext $context, PNonNumber $name, PImplantSlot $slot): void {
+		$this->spiritsCommandSlotAndType($context, $slot, $name);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsCommandSlotAndType(CmdContext $context, PImplantSlot $slot, PNonNumber $name): void {
+		$name = ucwords(strtolower($name()));
+		$slot = ucfirst($slot());
+		$title = "Spirits Database for $name $slot";
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->whereIlike("name", "%{$name}%")
+			->where("spot", $slot)
+			->orderBy("level")
+			->asObj(Spirit::class)
+			->toArray();
+		if (empty($data)) {
+			$context->reply("No {$slot} implants found matching '<highlight>{$name}<end>'.");
+			return;
+		}
+		$spirits = $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits (" . count($data) . ")", $spirits, $title);
+		$context->reply($spirits);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsQLCommand(CmdContext $context, int $ql): void {
+		if ($ql < 1 or $ql > 300) {
+			$msg = "Invalid QL specified.";
+			$context->reply($msg);
+			return;
+		}
+		$title = "Spirits QL $ql";
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->where("ql", $ql)
+			->asObj(Spirit::class)
+			->toArray();
+		if (empty($data)) {
+			$context->reply("No spirits found in ql {$ql}.");
+			return;
+		}
+		$spirits = $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits (" . count($data) . ")", $spirits, $title);
+		$context->reply($spirits);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsCommandQLRange(CmdContext $context, PNumRange $qlRange): void {
 		$spirits = "";
-		if (preg_match("/^spirits ([^0-9,]+)$/i", $message, $arr)) {
-			$name = $arr[1];
-			$name = ucwords(strtolower($name));
-			$title = "Spirits Database for $name";
-			/** @var Spirit[] */
-			$data = $this->db->table("spiritsdb")
-				->whereIlike("name", "%{$name}%")
-				->orWhereIlike("spot", "%{$name}%")
-				->orderBy("level")
-				->asObj(Spirit::class)
-				->toArray();
-			if (count($data) === 0) {
-				$spirits .= "There were no matches found for <highlight>$name<end>.\n".
-					"Try putting a comma between search values.\n\n";
-				$spirits .= $this->getValidSlotTypes();
-			} else {
-				$spirits .= $this->formatSpiritOutput($data);
-			}
-			//If searched by name and slot
-		} elseif (preg_match("/^spirits ([^0-9]+),([^0-9]+)$/i", $message, $arr)) {
-			if (preg_match("/(chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist)/i", $arr[1])) {
-				$slot = $arr[1];
-				$name = $arr[2];
-				$title = "Spirits Database for $name $slot";
-			} elseif (preg_match("/(chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist)/i", $arr[2])) {
-				$name = $arr[1];
-				$slot = $arr[2];
-				$title = "Spirits Database for $name $slot";
-			} else {
-				$name = $arr[1];
-				$slot = $arr[2];
-				$spirits .= "No matches were found for <highlight>$name $slot<highlight>.\n\n";
-				$spirits .= $this->getValidSlotTypes();
-			}
-			$name = ucwords(strtolower($name));
-			$name = trim($name);
-			$slot = ucwords(strtolower($slot));
-			$slot = trim($slot);
-			/** @var Spirit[] */
-			$data = $this->db->table("spiritsdb")
-				->whereIlike("name", "%{$name}%")
-				->where("spot", $slot)
-				->orderBy("level")
-				->asObj(Spirit::class)
-				->toArray();
-			$spirits .= $this->formatSpiritOutput($data);
-			// If searched by ql
-		} elseif (preg_match("/^spirits ([0-9]+)$/i", $message, $arr)) {
-			$ql = (int)$arr[1];
-			if ($ql < 1 or $ql > 300) {
-				$msg = "Invalid QL specified.";
-				$sendto->reply($msg);
-				return;
-			}
-			$title = "Spirits QL $ql";
-			/** @var Spirit[] */
-			$data = $this->db->table("spiritsdb")
-				->where("ql", $ql)
-				->asObj(Spirit::class)
-				->toArray();
-			$spirits .= $this->formatSpiritOutput($data);
-			// If searched by ql range
-		} elseif (preg_match("/^spirits ([0-9]+)-([0-9]+)$/i", $message, $arr)) {
-			$qllorange = (int)$arr[1];
-			$qlhirange = (int)$arr[2];
-			if ($qllorange < 1 or $qlhirange > 300 or $qllorange >= $qlhirange) {
-				$msg = "Invalid Ql range specified.";
-				$sendto->reply($msg);
-				return;
-			}
-			$title = "Spirits QL $qllorange to $qlhirange";
-			/** @var Spirit[] */
-			$data = $this->db->table("spiritsdb")
-				->where("ql", ">=", $qllorange)
-				->where("ql", "<=", $qlhirange)
-				->orderBy("ql")
-				->asObj(Spirit::class)
-				->toArray();
-			$spirits .= $this->formatSpiritOutput($data);
-			// If searched by ql and slot
-		} elseif (preg_match("/^spirits ([0-9]+) (.+)$/i", $message, $arr)) {
-			$ql = (int)$arr[1];
-			$slot = ucwords(strtolower($arr[2]));
-			$title = "$slot Spirits QL $ql";
-			if ($ql < 1 or $ql > 300) {
-				$msg = "Invalid Ql specified.";
-				$sendto->reply($msg);
-				return;
-			} elseif (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
-				$spirits .= "Invalid Input\n\n";
-				$spirits .= $this->getValidSlotTypes();
-			} else {
-				/** @var Spirit[] */
-				$data = $this->db->table("spiritsdb")
-					->where("spot", $slot)
-					->where("ql", $ql)
-					->asObj(Spirit::class)
-					->toArray();
-				$spirits .= $this->formatSpiritOutput($data);
-			}
-			// If searched by ql range and slot
-		} elseif (preg_match("/^spirits (\d+)-(\d+) (.+)$/i", $message, $arr)) {
-			$qllorange = (int)$arr[1];
-			$qlhirange = (int)$arr[2];
-			$slot = ucwords(strtolower($arr[3]));
-			$title = "$slot Spirits QL $qllorange to $qlhirange";
-			if ($qllorange < 1 or $qlhirange > 300 or $qllorange >= $qlhirange) {
-				$msg = "Invalid Ql range specified.";
-				$sendto->reply($msg);
-				return;
-			} elseif (preg_match("/[^chest|ear|eye|feet|head|larm|legs|lhand|lwrist|rarm|rhand|rwrist|waist]/i", $slot)) {
-				$spirits .= "Invalid Input\n\n";
-				$spirits .= $this->getValidSlotTypes();
-			} else {
-				/** @var Spirit[] */
-				$data = $this->db->table("spiritsdb")
-					->where("spot", $slot)
-					->where("ql", ">=", $qllorange)
-					->where("ql", "<=", $qlhirange)
-					->orderBy("ql")
-					->asObj(Spirit::class)
-					->toArray();
-				$spirits .= $this->formatSpiritOutput($data);
-			}
+		$lowQL = $qlRange->low;
+		$highQL = $qlRange->high;
+		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
+			$msg = "Invalid Ql range specified.";
+			$context->reply($msg);
+			return;
 		}
-		if ($spirits) {
-			$spirits = $this->text->makeBlob("Spirits", $spirits, $title);
-			$sendto->reply($spirits);
+		$title = "Spirits QL $lowQL to $highQL";
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->where("ql", ">=", $lowQL)
+			->where("ql", "<=", $highQL)
+			->orderBy("ql")
+			->asObj(Spirit::class)
+			->toArray();
+		if (empty($data)) {
+			$context->reply("No spirits found in ql {$lowQL} to {$highQL}.");
+			return;
 		}
+		$spirits .= $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits (" . count($data) . ")", $spirits, $title);
+		$context->reply($spirits);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsTypeAndQlCommand(CmdContext $context, PImplantSlot $slot, int $ql): void {
+		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsQlAndTypeCommand(CmdContext $context, int $ql, PImplantSlot $slot): void {
+		$slot = ucfirst($slot());
+		$title = "$slot Spirits QL $ql";
+		if ($ql < 1 or $ql > 300) {
+			$msg = "Invalid Ql specified.";
+			$context->reply($msg);
+			return;
+		}
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->where("spot", $slot)
+			->where("ql", $ql)
+			->asObj(Spirit::class)
+			->toArray();
+		if (empty($data)) {
+			$context->reply("No {$slot} spirits found in ql {$ql}.");
+			return;
+		}
+		$spirits = $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits (" . count($data) . ")", $spirits, $title);
+		$context->reply($spirits);
+	}
+
+	/**
+	 * @HandlesCommand("spirits")
+	 */
+	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
+		$name = ucwords(strtolower($search()));
+		$title = "Spirits Database for $name";
+		if (PImplantSlot::matches($name)) {
+			$name = (new PImplantSlot($name))();
+		}
+		/** @var Spirit[] */
+		$data = $this->db->table("spiritsdb")
+			->whereIlike("name", "%{$name}%")
+			->orWhereIlike("spot", "%{$name}%")
+			->orderBy("level")
+			->asObj(Spirit::class)
+			->toArray();
+		if (count($data) === 0) {
+			$msg = "There were no matches found for <highlight>$name<end>. ".
+				"Try putting a comma between search values. ".
+				$this->getValidSlotTypes();
+			$context->reply($msg);
+			return;
+		}
+		$spirits = $this->formatSpiritOutput($data);
+		$spirits = $this->text->makeBlob("Spirits (" . count($data) . ")", $spirits, $title);
+		$context->reply($spirits);
 	}
 
 	/**
@@ -214,20 +260,8 @@ class SpiritsController {
 	}
 
 	public function getValidSlotTypes(): string {
-		$output = "<header2>Valid slots for spirits<end>\n";
-		$output .= "<tab>Head\n";
-		$output .= "<tab>Eye\n";
-		$output .= "<tab>Ear\n";
-		$output .= "<tab>Chest\n";
-		$output .= "<tab>Larm\n";
-		$output .= "<tab>Rarm\n";
-		$output .= "<tab>Waist\n";
-		$output .= "<tab>Lwrist\n";
-		$output .= "<tab>Rwrist\n";
-		$output .= "<tab>Legs\n";
-		$output .= "<tab>Lhand\n";
-		$output .= "<tab>Rhand\n";
-		$output .= "<tab>Feet\n";
+		$output = "Valid slots for spirits are: Head, Eye, Ear, Chest, Larm, ".
+			"Rarm, Waist, Lwrist, Rwrist, Legs, Lhand, Rhand and Feet";
 
 		return $output;
 	}
