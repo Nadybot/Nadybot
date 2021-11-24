@@ -603,7 +603,11 @@ class DB {
 	 */
 	public function commit(): void {
 		$this->logger->log('DEBUG', "Committing transaction");
-		$this->sql->commit();
+		try {
+			$this->sql->commit();
+		} catch (PDOException $e) {
+			$this->logger->log('DEBUG', "No active transaction to commit");
+		}
 	}
 
 	/**

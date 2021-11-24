@@ -217,6 +217,9 @@ class Nadybot extends AOChat {
 			} else {
 				$this->callSetupMethod($name, $instance);
 			}
+			if (!$this->db->inTransaction()) {
+				$this->db->beginTransaction();
+			}
 		}
 		$this->db->commit();
 
