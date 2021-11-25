@@ -111,18 +111,18 @@ class ConfigController {
 	 */
 	public function configCommand(CmdContext $context): void {
 		$blob = "<header2>Quick config<end>\n".
-			"<tab>Org Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable guild') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable guild') . "\n" .
-			"<tab>Private Channel Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable priv') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable priv') . "\n" .
-			"<tab>Private Message Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable msg') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable msg') . "\n" .
-			"<tab>ALL Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable all') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable all') . "\n\n\n";
+			"<tab>Org Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable guild') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable guild') . "]\n" .
+			"<tab>Private Channel Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable priv') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable priv') . "]\n" .
+			"<tab>Private Message Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable msg') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable msg') . "]\n" .
+			"<tab>ALL Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable all') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable all') . "]\n\n\n";
 		$modules = $this->getModules();
 
 		foreach ($modules as $module) {
@@ -136,17 +136,17 @@ class ConfigController {
 				$a = "<red>Disabled<end>";
 			}
 
-			$c = $this->text->makeChatcmd("Configure", "/tell <myname> config $module->name");
+			$c = "[" . $this->text->makeChatcmd("configure", "/tell <myname> config $module->name") . "]";
 
-			$on = "<black>On<end>";
+			$on = "<black>[ON]<end>";
 			if ($numDisabled > 0) {
-				$on = $this->text->makeChatcmd("On", "/tell <myname> config mod $module->name enable all");
+				$on = "[" . $this->text->makeChatcmd("ON", "/tell <myname> config mod $module->name enable all") . "]";
 			}
-			$off = "<black>Off<end>";
+			$off = "<black>[OFF]<end>";
 			if ($numEnabled > 0) {
-				$off = $this->text->makeChatcmd("Off", "/tell <myname> config mod $module->name disable all");
+				$off = "[" . $this->text->makeChatcmd("OFF", "/tell <myname> config mod $module->name disable all") . "]";
 			}
-			$blob .= "($on / $off / $c) " . strtoupper($module->name) . " ($a)\n";
+			$blob .= "$on $off $c " . strtoupper($module->name) . " ($a)\n";
 		}
 
 		$count = count($modules);
@@ -683,10 +683,10 @@ class ConfigController {
 		$module = strtoupper($module());
 		$found = false;
 
-		$on = $this->text->makeChatcmd("Enable", "/tell <myname> config mod {$module} enable all");
-		$off = $this->text->makeChatcmd("Disable", "/tell <myname> config mod {$module} disable all");
+		$on = $this->text->makeChatcmd("enable", "/tell <myname> config mod {$module} enable all");
+		$off = $this->text->makeChatcmd("disable", "/tell <myname> config mod {$module} disable all");
 
-		$blob = "Enable/disable entire module: ($on/$off)\n";
+		$blob = "Enable/disable entire module: [$on] [$off]\n";
 		$description = $this->getModuleDescription($module);
 		if (isset($description)) {
 			$description = implode("<br><tab>", explode("\n", $description));
@@ -710,7 +710,7 @@ class ConfigController {
 			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
 			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
-				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
+				$blob .= " [" . $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $row->getData()->name) . "]";
 			}
 
 			$blob .= ": " . $row->displayValue($context->char->name) . "\n";
@@ -840,9 +840,9 @@ class ConfigController {
 		}
 
 		$msg .= "$status (Access: $row->admin) \n";
-		$msg .= "Set status: ";
-		$msg .= $this->text->makeChatcmd("Enabled", "/tell <myname> config cmd {$cmd} enable {$type}") . "  ";
-		$msg .= $this->text->makeChatcmd("Disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "\n";
+		$msg .= "Set status: [";
+		$msg .= $this->text->makeChatcmd("enabled", "/tell <myname> config cmd {$cmd} enable {$type}") . "] [";
+		$msg .= $this->text->makeChatcmd("disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "]\n";
 
 		$msg .= "Set access level: ";
 		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
@@ -894,9 +894,9 @@ class ConfigController {
 			}
 
 			$subcmd_list .= "<tab>Current Status: $status (Access: $row->admin) \n";
-			$subcmd_list .= "<tab>Set status: ";
-			$subcmd_list .= $this->text->makeChatcmd("Enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "  ";
-			$subcmd_list .= $this->text->makeChatcmd("Disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "\n";
+			$subcmd_list .= "<tab>Set status: [";
+			$subcmd_list .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "] [";
+			$subcmd_list .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "]\n";
 
 			$subcmd_list .= "<tab>Set access level: ";
 			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {

@@ -57,13 +57,13 @@ abstract class SettingHandler {
 			$msg = "<header2>Predefined Options<end>\n";
 			if (isset($options_map)) {
 				foreach ($options_map as $key => $label) {
-					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$key}");
-					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> ({$save_link})\n";
+					$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
+					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
 				}
 			} else {
 				foreach ($options as $char) {
-					$save_link = $this->text->makeChatcmd('Select', "/tell <myname> settings save {$this->row->name} {$char}");
-					$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> ({$save_link})\n";
+					$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
+					$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> [{$saveLink}]\n";
 				}
 			}
 		}
