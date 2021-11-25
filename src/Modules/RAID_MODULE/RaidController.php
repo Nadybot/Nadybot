@@ -192,6 +192,19 @@ class RaidController {
 			'1;0',
 			'raid_admin_2'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_kick_notin_on_lock',
+			'Locking the raid kicks players not in the raid',
+			'edit',
+			'options',
+			'0',
+			"Kick everyone not in the raid".
+				";Kick all, except those who've been in the raid before".
+				";Don't kick on raid lock",
+			'2;1;0',
+			'raid_admin_2'
+		);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Raid");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
 	}
@@ -477,6 +490,10 @@ class RaidController {
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
+		$notInKick = $this->settingManager->getInt('raid_kick_notin_on_lock')??0;
+		if ($notInKick !== 0) {
+			$this->raidMemberController->kickNotInRaid($this->raid, $notInKick === 2);
+		}
 	}
 
 	/**
