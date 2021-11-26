@@ -123,7 +123,7 @@ class WorldBossController {
 
 	/** @Logger */
 	public LoggerWrapper $logger;
-	public const WORLDBOSS_API = "https://timers.aobots.org/bosses";
+	public const WORLDBOSS_API = "https://timers.aobots.org/api/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
 
