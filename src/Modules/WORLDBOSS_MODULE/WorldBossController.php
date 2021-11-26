@@ -88,42 +88,7 @@ use Nadybot\Core\{
  *	@ProvidesEvent(value="sync(worldboss-delete)", desc="Triggered when the timer for a worldboss is deleted")
  */
 class WorldBossController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
-	public Text $text;
-
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
-	public CommandAlias $commandAlias;
-
-	/** @Inject */
-	public EventManager $eventManager;
-
-	/** @Inject */
-	public Http $http;
-
-	/** @Inject */
-	public Util $util;
-
-	/** @Inject */
-	public DB $db;
-
-	/** @Inject */
-	public GauntletBuffController $gauntletBuffController;
-
-	/** @Inject */
-	public MessageHub $messageHub;
-
-	/** @Logger */
-	public LoggerWrapper $logger;
-	public const WORLDBOSS_API = "https://timers.aobots.org/api/bosses";
+	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
 
@@ -164,6 +129,42 @@ class WorldBossController {
 	public const SPAWN_SHOW = 1;
 	public const SPAWN_SHOULD = 2;
 	public const SPAWN_EVENT = 3;
+
+	/**
+	 * Name of the module.
+	 * Set automatically by module loader.
+	 */
+	public string $moduleName;
+
+	/** @Inject */
+	public Text $text;
+
+	/** @Inject */
+	public SettingManager $settingManager;
+
+	/** @Inject */
+	public CommandAlias $commandAlias;
+
+	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
+	public Http $http;
+
+	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
+	public DB $db;
+
+	/** @Inject */
+	public GauntletBuffController $gauntletBuffController;
+
+	/** @Inject */
+	public MessageHub $messageHub;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/**
 	 * @var WorldBossTimer[]
