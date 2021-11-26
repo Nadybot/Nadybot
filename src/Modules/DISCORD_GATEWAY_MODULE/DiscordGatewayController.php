@@ -864,6 +864,10 @@ class DiscordGatewayController {
 
 	protected function handleVoiceChannelJoin(VoiceState $voiceState): void {
 		if (isset($voiceState->user_id)) {
+			$oldState = $this->getCurrentVoiceState($voiceState->user_id);
+			if (isset($oldState) && $oldState->channel_id === $voiceState->channel_id) {
+				return;
+			}
 			$this->removeFromVoice($voiceState->user_id);
 		}
 		if (!isset($voiceState->guild_id)) {
