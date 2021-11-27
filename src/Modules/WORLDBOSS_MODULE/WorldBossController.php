@@ -104,7 +104,7 @@ class WorldBossController {
 		self::TARA => "tara",
 		self::REAPER => "reaper",
 		self::LOREN => "loren",
-		self::VIZARESH => "gauntlet",
+		self::VIZARESH => "vizaresh",
 	];
 
 	public const BOSS_DATA = [
@@ -265,6 +265,7 @@ class WorldBossController {
 	protected function handleApiTimer(ApiSpawnData $timer): void {
 		$this->logger->log('DEBUG', "Received timer information for {$timer->name}.");
 		$map = array_flip(static::BOSS_MAP);
+		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$timer->name] ?? null;
 		if (!isset($mobName)) {
 			$this->logger->log('WARN', "Received timer information for unknown boss {$timer->name}.");
@@ -507,6 +508,7 @@ class WorldBossController {
 
 	protected function getMobFromContext(CmdContext $context): string {
 		$mobs = array_flip(static::BOSS_MAP);
+		$mobs["gauntlet"] = $mobs["vizaresh"];
 		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
@@ -663,6 +665,7 @@ class WorldBossController {
 			return;
 		}
 		$map = array_flip(static::BOSS_MAP);
+		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
@@ -686,6 +689,7 @@ class WorldBossController {
 			return;
 		}
 		$map = array_flip(static::BOSS_MAP);
+		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
