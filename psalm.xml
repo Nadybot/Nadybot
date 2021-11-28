@@ -2,7 +2,7 @@
 <psalm
     phpVersion="8.1"
     errorLevel="8"
-    findUnusedPsalmSuppress="true"
+    findUnusedPsalmSuppress="false"
     resolveFromConfigFile="true"
     allowStringToStandInForClass="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
