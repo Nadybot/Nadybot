@@ -290,7 +290,7 @@ class RaidRankController {
 	}
 
 	/** Check if $sender can change $who's raid rank (to $newRank or in general) */
-	public function canChangeRaidRank(string $sender, string $who, ?string $newRank=null, CommandReply $sendto): bool {
+	public function canChangeRaidRank(string $sender, string $who, ?string $newRank, CommandReply $sendto): bool {
 		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
 			return false;

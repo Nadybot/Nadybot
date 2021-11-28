@@ -1876,7 +1876,7 @@ class TowerController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	protected function attacksCommandHandler(?int $pageLabel=null, ?Closure $where, string $cmd, CommandReply $sendto): void {
+	protected function attacksCommandHandler(?int $pageLabel, ?Closure $where, string $cmd, CommandReply $sendto): void {
 		if ($pageLabel === null) {
 			$pageLabel = 1;
 		} elseif ($pageLabel < 1) {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use DateTime;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
@@ -74,7 +75,7 @@ class StopwatchController {
 			return;
 		}
 		$stopwatch = $this->stopwatches[$context->char->name];
-		$stopwatch->end = time();
+		$stopwatch->end = new DateTime();
 		unset($this->stopwatches[$context->char->name]);
 		$msg = $stopwatch->toString();
 		$context->reply("Your stopwatch times:\n$msg");

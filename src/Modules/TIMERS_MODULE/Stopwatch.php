@@ -2,37 +2,39 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use DateTime;
+
 /**
  * An object representing a running stopwatch
  *
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 class Stopwatch {
-	public int $start;
+	public DateTime $start;
 
 	/** @var StopwatchLap[] */
 	public array $laps = [];
 
-	public int $end;
+	public ?DateTime $end = null;
 
 	public function __construct() {
-		$this->start = time();
+		$this->start = new DateTime();
 	}
 
 	/**
 	 * Get a textual representation of the timer
 	 */
 	public function toString(): string {
-		$descr = "Start:    " . strftime('%Y-%m-%d %H:%M:%S', $this->start) . "\n";
+		$descr = "Start:    " . $this->start->format('Y-M-d H:i:s T') . "\n";
 		$last = $this->start;
 		foreach ($this->laps as $lap) {
 			$descr .= $lap->toString($last);
 			$last = $lap->time;
 		}
 		if (isset($this->end)) {
-			$descr .= "End:    +" . strftime('%M:%S', $this->end - $last) . "\n";
+			$descr .= "End:    +" . $this->end->diff($last)->format("%I:%S");
 		} else {
-			$descr .= "Now:   +" . strftime('%M:%S', time() - $last) . "\n";
+			$descr .= "Now:   +" . (new DateTime())->diff($last)->format('%I:%S');
 		}
 		return $descr;
 	}

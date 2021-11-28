@@ -42,6 +42,8 @@ class Patcher {
 			static::patchAddendum($vendorDir, $package);
 		} elseif ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
+		} elseif ($package->getName() === 'apache/log4php') {
+			static::patchLog4Php($vendorDir, $package);
 		}
 	}
 
@@ -80,6 +82,21 @@ EOD;
 			$oldContent
 		);
 		file_put_contents($file, $data);
+
+		foreach ([
+			"ReflectionAnnotatedClass.php",
+			"ReflectionAnnotatedProperty.php",
+			"ReflectionAnnotatedMethod.php"
+		] as $file) {
+			$file = $vendorDir . '/' . $package->getName() . '/lib/Addendum/' . $file;
+			$oldContent = file_get_contents($file);
+			$newContent = str_replace(
+				'public function',
+				"#[\\ReturnTypeWillChange]\n    public function",
+				$oldContent
+			);
+			file_put_contents($file, $newContent);
+		}
 	}
 
 	/**
@@ -97,5 +114,47 @@ EOD;
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
 		file_put_contents($newFile, $data);
+	}
+
+	/**
+	 * Patch Apache LoggerAppenderConsole
+	 *
+	 * @param string $vendorDir The installation basepath
+	 * @param \Composer\Package\Package $package The package being installed
+	 * @return void
+	 */
+	public static function patchLog4Php($vendorDir, Package $package) {
+		$file = $vendorDir . '/' . $package->getName() . '/src/main/php/appenders/LoggerAppenderConsole.php';
+		$oldContent = file_get_contents($file);
+		$newContent = str_replace(
+			[
+				'fwrite($this->fp, $this->layout->getHeader());',
+				'fwrite($this->fp, $this->layout->getFooter());',
+			],
+			[
+				'fwrite($this->fp, $this->layout->getHeader()??"");',
+				'fwrite($this->fp, $this->layout->getFooter()??"");',
+			],
+			$oldContent
+		);
+		file_put_contents($file, $newContent);
+
+		$file = $vendorDir . '/' . $package->getName() . '/src/main/php/appenders/LoggerAppenderDailyFile.php';
+		$oldContent = file_get_contents($file);
+		$newContent = str_replace(
+			'return date($this->datePattern, $timestamp);',
+			'return date($this->datePattern, (int)floor($timestamp));',
+			$oldContent
+		);
+		file_put_contents($file, $newContent);
+
+		$file = $vendorDir . '/' . $package->getName() . '/src/main/php/appenders/LoggerAppenderFile.php';
+		$oldContent = file_get_contents($file);
+		$newContent = str_replace(
+			'fwrite($this->fp, $string)',
+			'fwrite($this->fp, $string??"")',
+			$oldContent
+		);
+		file_put_contents($file, $newContent);
 	}
 }

@@ -4,4 +4,4 @@ parameters:
     - src
   parallel:
     maximumNumberOfProcesses: 6
-  phpVersion: 80000
+  phpVersion: 80100
