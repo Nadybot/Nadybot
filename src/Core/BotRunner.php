@@ -171,6 +171,26 @@ class BotRunner {
 			sleep(5);
 			exit(1);
 		}
+		$racFile = dirname(dirname(__DIR__)) . "/vendor/niktux/addendum/lib/Addendum/ReflectionAnnotatedClass.php";
+		if (version_compare(PHP_VERSION, '8.1.0') >= 0 && @file_exists($racFile)) {
+			$racContent = file_get_contents($racFile);
+			if ($racContent !== false && strpos($racContent, "ReturnTypeWillChange") === false) {
+				fwrite(
+					STDERR,
+					"Nadybot cannot find properly patched versions of the modules\n".
+					"it requires in 'vendor'.\n".
+					"Please run 'composer reinstall niktux/addendum apache/log4php'\n".
+					"to apply all required patches or download one of the Nadybot\n".
+					"bundles and copy the 'vendor' directory from the zip-file into\n".
+					"the Nadybot main directory.\n".
+					"\n".
+					"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
+					"for more information.\n"
+				);
+				sleep(5);
+				exit(1);
+			}
+		}
 	}
 
 	public function checkRequiredModules(): void {

@@ -11,7 +11,10 @@ use Exception;
  * composer packages.
  *
  * - For Addendum, we need to patch it to support multi-line annotations
- * - PHP Codesniffer gets a default config to use the Nadybot styleguide
+ *   and be PHP 8.1 compatible without deprecation warnings.
+ * - PHP Codesniffer gets a default config to use the Nadybot styleguide.
+ * - Apache log4php needs to be PHP 8.1  compatible without throwing
+ *   deprecation warnings.
  */
 class Patcher {
 	/**
@@ -90,6 +93,9 @@ EOD;
 		] as $file) {
 			$file = $vendorDir . '/' . $package->getName() . '/lib/Addendum/' . $file;
 			$oldContent = file_get_contents($file);
+			if ($oldContent === false || strpos($oldContent, "ReturnTypeWillChange") !== false) {
+				continue;
+			}
 			$newContent = str_replace(
 				'public function',
 				"#[\\ReturnTypeWillChange]\n    public function",
