@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <psalm
-    phpVersion="7.4"
+    phpVersion="8.1"
     errorLevel="8"
-    findUnusedPsalmSuppress="true"
+    findUnusedPsalmSuppress="false"
     resolveFromConfigFile="true"
     allowStringToStandInForClass="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

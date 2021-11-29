@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
+use DateTime;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -192,7 +193,7 @@ class WhatLocksController {
 	 *               The prettified duration string
 	 */
 	public function prettyDuration(int $duration, int $cutAway=0): array {
-		$short = strftime("%jd, %Hh %Mm %Ss", $duration);
+		$short = (new DateTime())->setTimestamp($duration)->format("j\\d, H\\h i\\m s\\s");
 		// Decrease days by 1, because the first day of the year is 1, but for
 		// duration reasons, it must be 0
 		$short = preg_replace_callback(

@@ -542,7 +542,7 @@ class TimerController implements MessageEmitter {
 	/**
 	 * @param Alert[] $alerts
 	 */
-	public function add(string $name, string $owner, ?string $mode=null, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
+	public function add(string $name, string $owner, ?string $mode, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
 		usort($alerts, function(Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
