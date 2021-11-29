@@ -6,13 +6,7 @@
           v-for="module in modules"
           :key="module.name"
           @click="selectModule(module)"
-          class="
-            list-group-item
-            d-flex
-            justify-content-between
-            align-items-center
-            module-item
-          "
+          class="list-group-item d-flex justify-content-between align-items-center module-item"
           :class="{ active: selected && module.name == selected.name }"
           :title="module.description ? module.description.split('.')[0] : ''"
         >
@@ -90,9 +84,7 @@
                 />
                 <div
                   v-if="setting.type == 'bool'"
-                  class="
-                    form-check form-switch form-switch-md form-switch-right
-                  "
+                  class="form-check form-switch form-switch-md form-switch-right"
                 >
                   <input
                     class="form-check-input mt-0"
@@ -178,13 +170,7 @@
           <div class="card-header">Events</div>
           <ul class="list-group list-group-flush">
             <li
-              class="
-                list-group-item
-                d-flex
-                justify-content-between
-                align-items-center
-                event-item
-              "
+              class="list-group-item d-flex justify-content-between align-items-center event-item"
               v-for="event in selected_events"
               :key="event.event"
             >
@@ -193,10 +179,7 @@
                 <span class="custom-muted ml-5">{{ event.event }}</span></span
               >
               <div
-                class="
-                  form-check form-switch form-switch-md form-switch-right
-                  mb-0
-                "
+                class="form-check form-switch form-switch-md form-switch-right mb-0"
               >
                 <input
                   class="form-check-input mt-0"
