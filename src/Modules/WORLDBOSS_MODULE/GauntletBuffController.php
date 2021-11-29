@@ -4,10 +4,13 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
 use Exception;
+use JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	EventManager,
+	Http,
+	HttpResponse,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -41,6 +44,7 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
  */
 class GauntletBuffController implements MessageEmitter {
 	public const SIDE_NONE = 'none';
+	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
 
 	/**
 	 * Name of the module.
@@ -62,6 +66,9 @@ class GauntletBuffController implements MessageEmitter {
 
 	/** @Inject */
 	public EventManager $eventManager;
+
+	/** @Inject */
+	public Http $http;
 
 	/** @Inject */
 	public Util $util;
@@ -119,6 +126,73 @@ class GauntletBuffController implements MessageEmitter {
 		$this->settingManager->registerChangeListener(
 			"gaubuff_times",
 			[$this, "validateGaubuffTimes"]
+		);
+	}
+
+	/**
+	 * @Event("connect")
+	 * @Description("Get active Gauntlet buffs from API")
+	 */
+	public function loadGauntletBuffsFromAPI(): void {
+		$this->http->get(static::GAUNTLET_API)
+			->withCallback([$this, "handleGauntletBuffsFromApi"]);
+	}
+
+	/**
+	 * Parse the Gauntlet buff timer API result and handle each running buff
+	 */
+	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+			$this->logger->log('ERROR', 'Gauntlet buff API did not send correct data.');
+			return;
+		}
+		/** @var ApiGauntletBuff[] */
+		$buffs = [];
+		try {
+			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			if (!is_array($data)) {
+				throw new JsonException();
+			}
+			foreach ($data as $gauntletData) {
+				$buffs []= new ApiGauntletBuff($gauntletData);
+			}
+		} catch (JsonException $e) {
+			$this->logger->log('ERROR', "Gauntlet buff API sent invalid json.");
+			return;
+		}
+		foreach ($buffs as $buff) {
+			$this->handleApiGauntletBuff($buff);
+		}
+	}
+
+	/**
+	 * Check if the given Gauntlet buff is valid and set or update a timer for it
+	 */
+	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
+		$this->logger->log('DEBUG', "Received gauntlet information for {$buff->faction}.");
+		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
+			$this->logger->log('WARN', "Received timer information for unknown faction {$buff->faction}.");
+			return;
+		}
+		if ($buff->expires < time()) {
+			$this->logger->log('WARN', "Received expired timer information for {$buff->faction} Gauntlet buff.");
+			return;
+		}
+		$timer = $this->timerController->get("Gaubuff_{$buff->faction}");
+		if (isset($timer) && abs($buff->expires-($timer->endtime??0)) < 10) {
+			$this->logger->log(
+				'DEBUG',
+				"Already existing {$buff->faction} buff recent enough. Difference: ".
+				abs($buff->expires-($timer->endtime??0)) . "s"
+			);
+			return;
+		}
+		$this->logger->log("DEBUG", "Updating {$buff->faction} buff from API");
+		$this->setGaubuff(
+			strtolower($buff->faction),
+			$buff->expires,
+			$this->chatBot->char->name,
+			time()
 		);
 	}
 
