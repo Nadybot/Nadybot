@@ -2035,25 +2035,36 @@ class TowerController {
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
-		$inner = $this->db->table("tower_site")
+		$zoneSites = $this->db->table("tower_site")
 			->where("playfield_id", $playfieldID)
-			->select("*");
-		$xDist = $inner->grammar->wrap("x_distance");
-		$yDist = $inner->grammar->wrap("y_distance");
-		$xCoord = $inner->grammar->wrap("x_coord");
-		$yCoord = $inner->grammar->wrap("y_coord");
-		$inner->selectRaw("({$xCoord} - ?) AS {$xDist}", [$xCoords]);
-		$inner->selectRaw("({$yCoord} - ?) AS {$yDist}", [$yCoords]);
-		$query = $this->db->fromSub($inner, "t")
-			->orderBy("radius")
-			->limit(1)
-			->select("*");
-		$query->selectRaw(
-			"(({$xDist} * {$xDist}) + ({$yDist}  * {$yDist})) AS ".
-			$query->grammar->wrap("radius")
-		);
-
-		return $query->asObj(TowerSite::class)->first();
+			->select("*")
+			->asObj(TowerSite::class);
+		if ($zoneSites->isEmpty()) {
+			return null;
+		}
+		/**
+		 * @return array<string,int|TowerSite>
+		 * @psalm-return array{"site": TowerSite, "distance": float}
+		 */
+		$distances = $zoneSites->map(function (TowerSite $site) use ($xCoords, $yCoords): array {
+			$result = ["site" => $site];
+			if (!isset($site->x_coord1) || !isset($site->x_coord2) || !isset($site->y_coord1) || !isset($site->y_coord2)) {
+				$distanceX = abs($xCoords - $site->x_coord);
+				$distanceY = abs($yCoords - $site->y_coord);
+				$result["distance"] = sqrt(pow($distanceX, 2) + pow($distanceY, 2));
+			} elseif ($xCoords < min($site->x_coord1, $site->x_coord2)
+				|| $xCoords > max($site->x_coord1, $site->x_coord2)
+				|| $yCoords < min($site->y_coord1, $site->y_coord2)
+				|| $yCoords > max($site->y_coord1, $site->y_coord2)
+			) {
+				$result["distance"] = 99999999.0;
+			} else {
+				$result["distance"] = 0.0;
+			}
+			return $result;
+		});
+		$closestSite = $distances->sortBy("distance")->first()["site"];
+		return $closestSite;
 	}
 
 	protected function getLastAttack(string $attackFaction, string $attackOrgName, string $defendFaction, string $defendOrgName, int $playfieldID): ?TowerAttack {
