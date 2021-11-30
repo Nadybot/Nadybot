@@ -424,7 +424,7 @@ class TowerController {
 	}
 
 	/**
-	 * This command handler shows all towerfields of a single org
+	 * This command handler shows all unplanted towerfields
 	 *
 	 * @HandlesCommand("sites")
 	 */
@@ -447,13 +447,27 @@ class TowerController {
 			$sendto->reply("Invalid data received from the tower API. Try again later.");
 			return;
 		}
-		if ($result->count === 0) {
+		// Remove all sites for which we have local scout data
+		$sites = array_values(
+			array_filter($result->results, function (ApiSite $site): bool {
+				$query = $this->getScoutPlusQuery()
+					->where("s.playfield_id", $site->playfield_id)
+					->where("s.site_number", $site->site_number);
+				/** @var ?ScoutInfoPlus */
+				$scoutedInfo = $query->asObj(ScoutInfoPlus::class)->first();
+				if (!isset($scoutedInfo) || !isset($scoutedInfo->ql)) {
+					return true;
+				}
+				return false;
+			})
+		);
+		if (empty($sites)) {
 			$sendto->reply("No unplanted sites found.");
 			return;
 		}
 		$blob = '';
 		$totalQL = 0;
-		foreach ($result->results as $site) {
+		foreach ($sites as $site) {
 			$totalQL += $site->ql ?? 0;
 			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
 		}
