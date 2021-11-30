@@ -271,7 +271,7 @@ class DB {
 				$this->logger->log("INFO", "Database connection re-established");
 			}
 		} else {
-			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
+			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
 		/** @psalm-suppress TooManyArguments */
