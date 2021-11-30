@@ -7,7 +7,6 @@ use DateTime;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
@@ -17,7 +16,6 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	Http,
-	HttpResponse,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -188,9 +186,6 @@ class TowerController {
 	/** @var AttackListener[] */
 	protected array $attackListeners = [];
 
-	/** @var array<string,array<int,?string>> */
-	protected array $lcOwningFactions = [];
-
 	public int $lastDiscordNotify = 0;
 
 	public const TIMER_NAME = "Towerbattles";
@@ -212,6 +207,7 @@ class TowerController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site_bounds.csv');
 
 		$this->settingManager->add(
 			$this->moduleName,
@@ -311,17 +307,6 @@ class TowerController {
 			->delete();
 	}
 
-	/**
-	 * @Event("timer(30min)")
-	 * @Description("Download factions owning towers")
-	 */
-	public function downloadFactionsOwningTowerSites(): void {
-		$this->http
-				->get('http://echtedomain.club/lc.php')
-				->withTimeout(20)
-				->withCallback([$this, 'parseFactionsOwningTowerSites']);
-	}
-
 	public function readTowerSiteById(int $pfId, int $siteId): ?TowerSite {
 		/** @var ?TowerSite */
 		$site = $this->db->table("tower_site AS t")
@@ -330,28 +315,6 @@ class TowerController {
 			->asObj(SiteInfo::class)
 			->first();
 		return $site;
-	}
-
-	public function parseFactionsOwningTowerSites(HttpResponse $response): void {
-		if (isset($response->error) || !isset($response->body)) {
-			return;
-		}
-		try {
-			$sites = @json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
-		} catch (JsonException $e) {
-			return;
-		}
-		if (!is_array($sites)) {
-			return;
-		}
-		foreach ($sites as $pf => $lcs) {
-			$this->lcOwningFactions[$pf] = [];
-			foreach ($lcs as $num => $faction) {
-				if (isset($faction)) {
-					$this->lcOwningFactions[$pf][(int)substr($num, 1)] = ucfirst(strtolower($faction));
-				}
-			}
-		}
 	}
 
 	/**
@@ -1946,10 +1909,14 @@ class TowerController {
 
 			if ($row->att_profession == 'Unknown') {
 				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_faction})\n";
-			} elseif ($row->att_guild_name == '') {
-				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) ({$row->att_faction})\n";
+			} elseif (!isset($row->att_guild_name) || $row->att_guild_name === '') {
+				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end>";
+				if (isset($row->att_level)) {
+					$blob .= " ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession})";
+				}
+				$blob .= "\n";
 			} else {
-				$blob .= "Attacker: {$row->att_player} ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end> ({$row->att_faction})\n";
+				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end>\n";
 			}
 
 			$base = $this->text->makeChatcmd("{$row->short_name} {$row->site_number}", "/tell <myname> lc {$row->short_name} {$row->site_number}");
@@ -2049,25 +2016,35 @@ class TowerController {
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
-		$inner = $this->db->table("tower_site")
+		$bbMatch = $this->db->table("tower_site_bounds")
 			->where("playfield_id", $playfieldID)
-			->select("*");
-		$xDist = $inner->grammar->wrap("x_distance");
-		$yDist = $inner->grammar->wrap("y_distance");
-		$xCoord = $inner->grammar->wrap("x_coord");
-		$yCoord = $inner->grammar->wrap("y_coord");
-		$inner->selectRaw("({$xCoord} - ?) AS {$xDist}", [$xCoords]);
-		$inner->selectRaw("({$yCoord} - ?) AS {$yDist}", [$yCoords]);
-		$query = $this->db->fromSub($inner, "t")
-			->orderBy("radius")
-			->limit(1)
-			->select("*");
-		$query->selectRaw(
-			"(({$xDist} * {$xDist}) + ({$yDist}  * {$yDist})) AS ".
-			$query->grammar->wrap("radius")
-		);
+			->where("x_coord1", "<=", $xCoords)
+			->where("x_coord2", ">=", $xCoords)
+			->where("y_coord1", ">=", $yCoords)
+			->where("y_coord2", "<=", $yCoords)
+			->select("site_number")
+			->asObj()
+			->first();
+		if (isset($bbMatch)) {
+			return $this->getTowerInfo($playfieldID, $bbMatch->site_number);
+		}
+		$zoneSites = $this->db->table("tower_site")
+			->where("playfield_id", $playfieldID)
+			->select("*")
+			->asObj(TowerSite::class);
+		if ($zoneSites->isEmpty()) {
+			return null;
+		}
 
-		return $query->asObj(TowerSite::class)->first();
+		return $zoneSites->sort(
+			function(TowerSite $site1, TowerSite $site2) use ($xCoords, $yCoords): int {
+				return pow(abs($site1->x_coord - $xCoords), 2)
+					+ pow(abs($site1->y_coord - $yCoords), 2)
+					<=>
+					pow(abs($site2->x_coord - $xCoords), 2)
+					+ pow(abs($site2->y_coord - $yCoords), 2);
+			}
+		)->first();
 	}
 
 	protected function getLastAttack(string $attackFaction, string $attackOrgName, string $defendFaction, string $defendOrgName, int $playfieldID): ?TowerAttack {
