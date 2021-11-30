@@ -11,10 +11,6 @@ class TowerSite extends DBRow {
 	public int $max_ql;
 	public int $x_coord;
 	public int $y_coord;
-	public ?int $x_coord1 = null;
-	public ?int $x_coord2 = null;
-	public ?int $y_coord1 = null;
-	public ?int $y_coord2 = null;
 	public string $site_name;
 
 	/**
