@@ -1,4 +1,11 @@
 *****************************
+	Version 5.3.0 beta 3
+*****************************
+Other:
+- Removed "!lc import"
+- Users tracked via "!track addorg" don't show on "!track" anymore
+
+*****************************
 	Version 5.3.0 beta 2
 *****************************
 Features:
