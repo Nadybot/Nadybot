@@ -1,4 +1,56 @@
 *****************************
+	Version 5.3.0 beta 2
+*****************************
+Features:
+- Nadybot will now automatically receive events like world bosses spawning
+  or Gauntlet buffs being popped and set the timers accordingly.
+  This is done by connecting to the public highway server and joining a
+  room that sends these events. Option can be turned off in the RELAY_MODULE
+- Automatically fetch the current worldboss and gauntlet timers
+  from our API when connecting. No more need for manual timers.
+- Add option to autokick players not in the raid on raid lock
+- Speed up the "!orglist" command by skipping the UID lookup and
+  instead using the UID the org roster contains
+- Show channel class in "!system"
+- Add "!db3" command to show DB3 loot
+- Merge the IMPQL_MODULE into the IMPLANT_MODULE
+- Make the rank required to cancel another player's raffle a setting
+
+Bugfixes:
+- Tower attacks should now always be assigned to the correct tower field
+  by using boundary boxes from Tyrbot
+- Commands longer than 20 chars won't throw errors in the usage module anymore
+- A fake attacker will now show up properly in "!attacks"
+- "!sites" now considers local scout data to be newer than API data
+- Don't treat mute/unmute and deafen/undeafen as joining a Discord channel
+- When sharing database with other bots, don't share their online lists
+  via relays
+- Discord reconnects won't forget the channels anymore
+  This will prevent the bot from stopping to relay from discord after a reconnect.
+- Fix a rare condition where the event loop would just hang and throw errors
+- To help 32bit systems, convert some Discord data types from int to string
+- Fix setting the bot's timezone with "!timezone"
+- Now all syntax variants of the SPIRITS_MODULE work as expected
+- Running "!whatbuffsfroob <slot>" no longer throws an exception
+- Running "!arulsaba <type> 6 left" no longer throws an exception
+- Running "!lookup <uid>" will now run an actual lookup and display the data
+
+Other:
+- The whole code base is now PHP 8.1 compatible
+- Converted all commands to new command parser
+- Also explain that postgresql is a valid database type
+- Fix all possible undefined and type errors by utilizing
+  2 static code analyzers phpstan and psalm
+- Upgrade to latest illuminate/database version
+- Convert all text files from DOS to UNIX line ending
+- Reword the SKILL_MODULE help files
+- Add loads of parameter classes for things like implant slots, items or faction
+- More consistent "!config" and "!settings" layout
+- Make running tests non-blocking
+- "!trickle <skill>" output changed so it's easier to understand
+- Remove PvP rank from "!whois" as it's a fixed value
+
+*****************************
 	Version 5.3.0 beta
 *****************************
 Features:
