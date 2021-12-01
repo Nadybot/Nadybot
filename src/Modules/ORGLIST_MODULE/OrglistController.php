@@ -358,7 +358,7 @@ class OrglistController {
 			$offlinelist = "<tab>";
 			$olcount = 0;
 			$rank_online = 0;
-			$rank_total = count($newlist[$rankid]);
+			$rank_total = count($newlist[$rankid]??[]);
 
 			if ($rank_total > 0) {
 				sort($newlist[$rankid]);
