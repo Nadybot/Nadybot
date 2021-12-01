@@ -320,70 +320,44 @@ class TestController {
 		$this->timer->callLater(0, [$this, __FUNCTION__], $commands, $context, $logFile);
 	}
 
-	/**
-	 * @HandlesCommand("testorgjoin")
-	 */
-	public function testOrgJoinCommand(CmdContext $context, PCharacter $char): void {
+	protected function sendOrgMsg(string $message): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
 		if (!$gid) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
 			$this->chatBot->gid["Org Msg"] = 'sicrit';
 			$gid = 'sicrit';
 		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
-			"{$context->char->name} invited {$char} to your organization.",
-		];
+		$testArgs = [$gid, (int)0xFFFFFFFF, $message];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
 		$this->chatBot->process_packet($packet);
+	}
+
+	/**
+	 * @HandlesCommand("testorgjoin")
+	 */
+	public function testOrgJoinCommand(CmdContext $context, PCharacter $char): void {
+		$this->sendOrgMsg(
+			"{$context->char->name} invited {$char} to your organization."
+		);
 	}
 
 	/**
 	 * @HandlesCommand("testorgkick")
 	 */
 	public function testOrgKickCommand(CmdContext $context, PCharacter $char): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
-			"{$context->char->name} kicked {$char} from your organization.",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+		$this->sendOrgMsg(
+			"{$context->char->name} kicked {$char} from your organization."
+		);
 	}
 
 	/**
 	 * @HandlesCommand("testorgleave")
 	 */
 	public function testOrgLeaveCommand(CmdContext $context, PCharacter $char): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
-			"{$char} just left your organization.",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+		$this->sendOrgMsg("{$char} just left your organization.");
 	}
 
 	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
@@ -396,6 +370,21 @@ class TestController {
 			return null;
 		}
 		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
+	}
+
+	protected function sendTowerMsg(string $msg): void {
+		$gid = $this->chatBot->get_gid('All Towers');
+		if (!$gid) {
+			$this->chatBot->gid["sicrit"] = 'All Towers';
+			$this->chatBot->gid["All Towers"] = 'sicrit';
+			$gid = 'sicrit';
+		}
+		$testArgs = [$gid, 0, $msg];
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
+		$packet->args = $testArgs;
+
+		$this->chatBot->process_packet($packet);
 	}
 
 	/**
@@ -415,14 +404,11 @@ class TestController {
 			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
 			return;
 		}
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = -1;
-		$eventObj->channel = "All Towers";
-		$eventObj->message = "The {$attFaction} organization {$attOrg} just ".
+		$this->sendTowerMsg(
+			"The {$attFaction} organization {$attOrg} just ".
 			"entered a state of war! {$attChar} attacked the ".
-			"{$defFaction} organization {$defOrg}'s tower in {$towerLocation}.";
-		$eventObj->type = 'towers';
-		$this->eventManager->fireEvent($eventObj);
+			"{$defFaction} organization {$defOrg}'s tower in {$towerLocation}."
+		);
 	}
 
 	/**
@@ -440,13 +426,10 @@ class TestController {
 			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
 			return;
 		}
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = -1;
-		$eventObj->channel = "All Towers";
-		$eventObj->message = "{$attChar} just attacked the {$defFaction} ".
-			"organization {$defOrg}'s tower in {$towerLocation}.";
-		$eventObj->type = 'towers';
-		$this->eventManager->fireEvent($eventObj);
+		$this->sendTowerMsg(
+			"{$attChar} just attacked the {$defFaction} ".
+			"organization {$defOrg}'s tower in {$towerLocation}."
+		);
 	}
 
 	/**
@@ -463,62 +446,33 @@ class TestController {
 			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
 			return;
 		}
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = (string)0xFFFFFFFF;
-		$eventObj->channel = "Tower Battle Outcome";
-		$eventObj->message = "Notum Wars Update: The {$faction->lower} ".
-			"organization {$orgName} lost their base in {$pf->long_name}.";
-		$eventObj->type = 'towers';
-		$this->eventManager->fireEvent($eventObj);
+		$this->sendTowerMsg(
+			"Notum Wars Update: The {$faction->lower} ".
+			"organization {$orgName} lost their base in {$pf->long_name}."
+		);
 	}
 
 	/**
 	 * @HandlesCommand("testorgattack")
 	 */
 	public function testOrgAttackCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
+		$this->sendOrgMsg(
 			"The tower Control Tower - Neutral in Broken Shores was just ".
 			"reduced to 75 % health by {$attName} from the {$orgName} ".
-			"organization!",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+			"organization!"
+		);
 	}
 
 	/**
 	 * @HandlesCommand("testorgattackprep")
 	 */
 	public function testOrgAttackPrepCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
+		$this->sendOrgMsg(
 			"Your controller tower in Southern Forest of Xzawkaz in ".
 			"Deep Artery Valley has had its defense shield disabled by ".
 			"{$attName} (clan).The attacker is a member of the ".
-			"organization {$orgName}.",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+			"organization {$orgName}."
+		);
 	}
 
 	/**
@@ -537,36 +491,20 @@ class TestController {
 			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
 			return;
 		}
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = (string)0xFFFFFFFF;
-		$eventObj->channel = "Tower Battle Outcome";
-		$eventObj->message = "The {$attFaction} organization {$attOrg} ".
+		$this->sendTowerMsg(
+			"The {$attFaction} organization {$attOrg} ".
 			"attacked the {$defFaction} {$defOrg} at their base in ".
-			"{$pf->long_name}. The attackers won!!";
-		$eventObj->type = 'towers';
-		$this->eventManager->fireEvent($eventObj);
+			"{$pf->long_name}. The attackers won!!"
+		);
 	}
 
 	/**
 	 * @HandlesCommand("testos")
 	 */
 	public function testOSCommand(CmdContext $context, PCharacter $launcher): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [
-			$gid,
-			(int)0xFFFFFFFF,
-			"Blammo! {$launcher} has launched an orbital attack!",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+		$this->sendOrgMsg(
+			"Blammo! {$launcher} has launched an orbital attack!"
+		);
 	}
 
 	/**
