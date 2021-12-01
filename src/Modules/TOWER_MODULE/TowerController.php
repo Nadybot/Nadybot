@@ -565,70 +565,6 @@ class TowerController {
 	}
 
 	/**
-	 * This command handler imports API data into scouted
-	 *
-	 * @HandlesCommand("lc")
-	 * @Mask $action import
-	 */
-	public function lcImportCommand(CmdContext $context, string $action, PPlayfield $pf): void {
-		$playfieldName = $pf();
-		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
-			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
-
-		/** @var Collection<SiteInfo> */
-		$data = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "t.playfield_id", "p.id")
-			->where("t.playfield_id", $playfield->id)
-			->asObj(SiteInfo::class);
-		if ($data->isEmpty()) {
-			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
-			$context->reply($msg);
-			return;
-		}
-		$params = ["enabled" => "1", "playfield_id" => $playfield->id];
-		$this->towerApiController->call(
-			$params,
-			[$this, "importArea"],
-			$context
-		);
-	}
-
-	/** Import the API-result of a whole playfield into scouted data*/
-	public function importArea(?ApiResult $result, CommandReply $sendto): void {
-		if ($result === null) {
-			$sendto->reply("Invalid data received from the tower API. Try again later.");
-			return;
-		}
-		if ($result->count === 0) {
-			$sendto->reply("The API has no tower data for this playfield.");
-			return;
-		}
-		/** @var Collection<ScoutInfo> */
-		$localSites = $this->db->table("scout_info")
-			->where("playfield_id", $result->results[0]->playfield_id)
-			->asObj(ScoutInfo::class);
-		$sitesTotal = $result->count;
-		$sitesUpdated = 0;
-		foreach ($result->results as $site) {
-			/** @var ?ScoutInfo */
-			$localSite = $localSites->where("site_number", $site->site_number)->first();
-			if (!isset($localSite) || ($site->created_at > $localSite->scouted_on) || !isset($localSite->scouted_on)) {
-				$this->addScoutSite(ScoutInfo::fromApiSite($site));
-				$sitesUpdated++;
-			}
-		}
-		if ($sitesUpdated === 0) {
-			$sendto->reply("All your scouted data in {$result->results[0]->playfield_short_name} is <highlight>already up-to-date<end>.");
-			return;
-		}
-		$sendto->reply("Updated {$sitesUpdated} / {$sitesTotal} sites.");
-	}
-
-	/**
 	 * This command handler shows status of all tower sites in a zone.
 	 *
 	 * @HandlesCommand("lc")
@@ -995,8 +931,7 @@ class TowerController {
 			);
 			return $siteLink;
 		})->join(", ");
-		$importLink = $this->text->makeChatcmd("from API", "/tell <myname> lc import {$shortName}");
-		return "<pagebreak><header2>{$siteGroup[0]->long_name} [{$importLink}]<end>\n".
+		return "<pagebreak><header2>{$siteGroup[0]->long_name}<end>\n".
 			"<tab>{$siteLinks}";
 	}
 
