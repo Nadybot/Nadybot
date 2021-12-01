@@ -31,7 +31,6 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
     php8-fileinfo \
 	tini \
     && \
-    ln -s /usr/bin/php8 /usr/bin/php && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
 
 COPY --chown=nadybot:nadybot . /nadybot
