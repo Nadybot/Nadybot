@@ -256,19 +256,6 @@ class TowerController {
 
 		$this->settingManager->add(
 			$this->moduleName,
-			"tower_api_automerge",
-			"When to automatically merge API results into scouted data",
-			"edit",
-			"options",
-			"1",
-			"Never;Do not merge, just remove scouting data when API-data is newer;When API-data is newer;When API-data is newer or no scouted data exists",
-			"0;1;2;3",
-			"mod",
-			"tower_api_automerge.txt"
-		);
-
-		$this->settingManager->add(
-			$this->moduleName,
 			"discord_notify_org_attacks",
 			"Message for system(tower-attack-own) when the own field is being attacked",
 			"edit",
@@ -1147,17 +1134,11 @@ class TowerController {
 			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
 		}
 		/** @var array<int,array<int,ApiSite>> $apiSites */
-		$mergeStrategy = $this->settingManager->getInt('tower_api_automerge');
 		foreach ($local as $localSite) {
 			/** @var ?ApiSite */
 			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
 			if (isset($apiSite) && $this->isApiVersionNewer($apiSite, $localSite)) {
-				if ($mergeStrategy === 1) {
-					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
-				} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
-					|| $mergeStrategy === 3) {
-					$this->addScoutSite(ScoutInfo::fromApiSite($apiSite));
-				}
+				$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
 				continue;
 			}
 			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
@@ -1173,12 +1154,7 @@ class TowerController {
 					->asObj(ScoutInfo::class)
 					->first();
 				if ($this->isApiVersionNewer($apiSite, $localSite)) {
-					if ($mergeStrategy === 1) {
-						$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
-					} elseif (($mergeStrategy === 2 && isset($localSite->scouted_on))
-						|| $mergeStrategy === 3) {
-						$this->addScoutSite(ScoutInfo::fromApiSite($apiSite));
-					}
+					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
 				}
 			}
 		}
