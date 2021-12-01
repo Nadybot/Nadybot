@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
-	CommandReply,
 	DB,
 	DBSchema\Player,
 	Event,
@@ -463,13 +462,9 @@ class TrackerController implements MessageEmitter {
 	 * @HandlesCommand("track")
 	 */
 	public function trackListCommand(CmdContext $context): void {
-		$orgUsers = $this->db->table(self::DB_ORG, "o")
-			->join(self::DB_ORG_MEMBER . " AS m", "o.org_id", "=", "m.org_id")
-			->select("o.added_dt", "o.added_by", "m.name", "m.uid");
 		/** @var Collection<TrackedUser> */
 		$users = $this->db->table(self::DB_TABLE)
 			->select("added_dt", "added_by", "name", "uid")
-			->union($orgUsers)
 			->asObj(TrackedUser::class)
 			->sortBy("name");
 		$numrows = $users->count();
