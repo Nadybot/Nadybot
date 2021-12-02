@@ -4,7 +4,7 @@
 			"console": {
 				"type": "line",
 				"options": {
-					"format": "[%level_name%] %message% %context% %extra%\n",
+					"format": "[%level_name%] %message%\n",
 					"dateFormat": "c",
 					"allowInlineLineBreaks": true,
 					"ignoreEmptyContextAndExtra": true
@@ -17,6 +17,24 @@
 					"dateFormat": "Y-m-d H:i:s.v",
 					"allowInlineLineBreaks": true,
 					"ignoreEmptyContextAndExtra": true
+				},
+				"calls": {
+					"includeStacktraces": {
+						"include": true
+					}
+				}
+			},
+			"json": {
+				"type": "json",
+				"options": {
+					"batchMode": 1,
+					"appendNewline": true,
+					"ignoreEmptyContextAndExtra": true
+				},
+				"calls": {
+					"includeStacktraces": {
+						"include": true
+					}
 				}
 			}
 		},
@@ -37,8 +55,8 @@
 					"maxFiles": 0,
 					"level": "notice"
 				},
-				"extraArgs": {
-					"filenameFormat": {
+				"calls": {
+					"setFilenameFormat": {
 						"filenameFormat": "{filename}_{date}",
 						"dateFormat": "Y-m"
 					}

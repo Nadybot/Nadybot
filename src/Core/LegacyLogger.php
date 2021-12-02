@@ -15,6 +15,19 @@ class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
 
+	/** @return array<string,Logger> */
+	public static function getLoggers(?string $mask): array {
+		if (!isset($mask)) {
+			return static::$loggers;
+		}
+		return array_filter(
+			static::$loggers,
+			function(Logger $logger) use ($mask): bool {
+				return fnmatch($mask, $logger->getName(), FNM_CASEFOLD);
+			}
+		);
+	}
+
 	/**
 	 * Log a message according to log settings
 	 */
@@ -106,9 +119,8 @@ class LegacyLogger {
 			}
 			/** @var AbstractProcessingHandler */
 			$obj = new $class(...array_values($config["options"]));
-			foreach ($config["extraArgs"]??[] as $func => $params) {
-				$funcName = "set" . ucfirst($func);
-				$obj->{$funcName}(...array_values($params));
+			foreach ($config["calls"]??[] as $func => $params) {
+				$obj->{$func}(...array_values($params));
 			}
 			if (isset($config["formatter"])) {
 				if (!isset($formatters[$config["formatter"]])) {
@@ -133,6 +145,9 @@ class LegacyLogger {
 			$class = "Monolog\\Formatter\\" . static::toClass($config["type"]) . "Formatter";
 			/** @var FormatterInterface */
 			$obj = new $class(...array_values($config["options"]));
+			foreach ($config["calls"]??[] as $func => $params) {
+				$obj->{$func}(...array_values($params));
+			}
 			$result[$name] = $obj;
 		}
 		return $result;

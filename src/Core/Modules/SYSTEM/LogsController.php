@@ -3,15 +3,19 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
+use Monolog\Handler\AbstractHandler;
+use Monolog\Logger;
 use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
+	LegacyLogger,
 	LoggerWrapper,
 	SettingManager,
 	Text,
 	Util,
 };
 use Nadybot\Core\ParamClass\PFilename;
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
@@ -23,6 +27,12 @@ use Nadybot\Core\ParamClass\PFilename;
  *		command       = 'logs',
  *		accessLevel   = 'admin',
  *		description   = 'View bot logs',
+ *		help          = 'logs.txt'
+ *	)
+ *	@DefineCommand(
+ *		command       = 'loglevel',
+ *		accessLevel   = 'admin',
+ *		description   = 'Change loglevel for debugging',
  *		help          = 'logs.txt'
  *	)
  */
@@ -113,6 +123,40 @@ class LogsController {
 		} catch (Exception $e) {
 			$msg = "Error: " . $e->getMessage();
 		}
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("loglevel")
+	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
+	 */
+	public function loglevelFileCommand(
+		CmdContext $context,
+		?PWord $mask,
+		string $loglevel
+	): void {
+		$loggers = LegacyLogger::getLoggers($mask ? $mask() : null);
+		$names = [];
+		foreach ($loggers as $logger) {
+			foreach ($logger->getHandlers() as $handler) {
+				if ($handler instanceof AbstractHandler) {
+					$handler->setLevel(Logger::toMonologLevel($loglevel));
+					$names[$logger->getName()] = true;
+				}
+			}
+		}
+		ksort($names);
+		$numChanged = count($names);
+		$blob = "<header2>Loggers changed<end>\n".
+			"<tab>- " . join("\n<tab>- ", array_keys($names));
+		$msg = $this->text->blobWrap(
+			"Changed ",
+			$this->text->makeBlob(
+				"{$numChanged} " . $this->text->pluralize("logger", $numChanged),
+				$blob
+			),
+			$mask ? " matching <highlight>'{$mask}'<end>." : ""
+		);
 		$context->reply($msg);
 	}
 }

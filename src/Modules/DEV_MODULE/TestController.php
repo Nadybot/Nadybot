@@ -759,7 +759,11 @@ class TestController {
 	 * @HandlesCommand("testsleep")
 	 */
 	public function testSleepCommand(CmdContext $context, int $duration): void {
-		$this->logger->error("Test", ['Exception' => new Exception("OMG!")]);
+		try {
+			throw new Exception("OMG");
+		} catch (Exception $e) {
+			$this->logger->error("Test", ['exception' => $e]);
+		}
 		sleep($duration);
 	}
 }
