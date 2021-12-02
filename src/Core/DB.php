@@ -68,7 +68,8 @@ class DB {
 	private array $meta = [];
 	private array $metaTypes = [];
 
-	private LoggerWrapper $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	protected array $sqlReplacements = [];
 	protected array $sqlRegexpReplacements = [];
@@ -84,10 +85,6 @@ class DB {
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
 	public const MSSQL = 'mssql';
-
-	public function __construct() {
-		$this->logger = new LoggerWrapper('SQL');
-	}
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {

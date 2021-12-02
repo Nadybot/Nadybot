@@ -87,7 +87,7 @@ class LogsController {
 			$trace = [];
 			foreach ($lines as $line) {
 				if (isset($search) && !preg_match(chr(1) . $search . chr(1) ."i", $line)) {
-					if (preg_match("/^#\d+\s/", $line)) {
+					if (preg_match("/^(#\d+\s|\[stacktrace\])/", $line)) {
 						array_unshift($trace, "<tab>$line");
 					} else {
 						$trace = [];

@@ -72,7 +72,7 @@ class ProfileController {
 	/** @Inject */
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @Inject */

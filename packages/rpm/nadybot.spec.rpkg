@@ -119,7 +119,7 @@ find vendor -type f -exec install -m 644 \{\} %{buildroot}/opt/nadybot/\{\} \;
 install -m 644 main.php %{buildroot}/opt/nadybot/main.php
 install -m 644 data/text.mdb %{buildroot}/opt/nadybot/data/text.mdb
 install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/config.php
-install -m 644 conf/log4php.xml %{buildroot}/opt/nadybot/conf/log4php.xml
+install -m 644 conf/logging.json %{buildroot}/opt/nadybot/conf/logging.json
 install -D -m 644 packages/nadybot.service %{buildroot}%{_unitdir}/nadybot.service
 install -D -m 644 packages/nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
 install -D -m 755 packages/nadybot %{buildroot}%{_bindir}/nadybot

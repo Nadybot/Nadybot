@@ -13,7 +13,7 @@ class MMDBParser {
 	private LoggerWrapper $logger;
 
 	public function __construct() {
-		$this->logger = new LoggerWrapper('MMDBParser');
+		$this->logger = new LoggerWrapper('Core/MMDBParser');
 	}
 
 	public function getMessageString(int $categoryId, int $instanceId): ?string {

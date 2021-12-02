@@ -8,9 +8,16 @@ class Registry {
 	/** @var array<string,object> */
 	private static array $repo = [];
 
+	protected static ?LoggerWrapper $logger = null;
+
+	protected static function getLogger(): LoggerWrapper {
+		static::$logger ??= new LoggerWrapper("Core/Registry");
+		return static::$logger;
+	}
+
 	public static function setInstance(string $name, object $obj): void {
 		$name = strtolower($name);
-		LegacyLogger::log("DEBUG", "Registry", "Adding instance '$name'");
+		static::getLogger()->info("Adding instance '$name'");
 		static::$repo[$name] = $obj;
 	}
 
@@ -37,11 +44,11 @@ class Registry {
 	 */
 	public static function getInstance(string $name, bool $reload=false): ?object {
 		$name = strtolower($name);
-		LegacyLogger::log("DEBUG", "Registry", "Requesting instance for '$name'");
+		static::getLogger()->info("Requesting instance for '$name'");
 
 		$instance = Registry::$repo[$name]??null;
 		if ($instance === null) {
-			LegacyLogger::log("WARN", "Registry", "Could not find instance for '$name'");
+			static::getLogger()->warning("Could not find instance for '$name'");
 		}
 
 		return $instance;
@@ -62,8 +69,8 @@ class Registry {
 					$dependencyName = $property->name;
 				}
 				$dependency = Registry::getInstance($dependencyName);
-				if ($dependency == null) {
-					LegacyLogger::log("WARN", "Registry", "Could resolve dependency '$dependencyName'");
+				if ($dependency === null) {
+					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
 				} else {
 					$instance->{$property->name} = $dependency;
 				}
@@ -72,7 +79,7 @@ class Registry {
 					$tag = $property->getAnnotation('Logger')->value;
 				} else {
 					$array = explode("\\", $reflection->name);
-					$tag = array_pop($array);
+					$tag = join("/", array_slice($array, -2));
 				}
 				$instance->{$property->name} = new LoggerWrapper($tag);
 			}

@@ -6,7 +6,6 @@ use DateTime;
 use Exception;
 use Nadybot\Core\{
 	EventManager,
-	LegacyLogger,
 	LoggerWrapper,
 	SettingManager,
 	Socket\AsyncSocket,
@@ -482,6 +481,8 @@ class HttpProtocolWrapper {
 	}
 
 	public function __destruct() {
-		LegacyLogger::log('TRACE', 'HttpProtocolWrapper', get_class() . ' destroyed');
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
 	}
 }

@@ -1,0 +1,52 @@
+{
+	"monolog": {
+		"formatters": {
+			"console": {
+				"type": "line",
+				"options": {
+					"format": "[%level_name%] %message% %context% %extra%\n",
+					"dateFormat": "c",
+					"allowInlineLineBreaks": true,
+					"ignoreEmptyContextAndExtra": true
+				}
+			},
+			"file": {
+				"type": "line",
+				"options": {
+					"format": "%datetime% %level_name%  %message% %context% %extra%\n",
+					"dateFormat": "Y-m-d H:i:s.v",
+					"allowInlineLineBreaks": true,
+					"ignoreEmptyContextAndExtra": true
+				}
+			}
+		},
+		"handlers": {
+			"console": {
+				"type": "stream",
+				"formatter": "console",
+				"options": {
+					"stream": "php://stderr",
+					"level": "notice"
+				}
+			},
+			"logs": {
+				"type": "rotating_file",
+				"formatter": "file",
+				"options": {
+					"fileName": "nadybot.log",
+					"maxFiles": 0,
+					"level": "notice"
+				},
+				"extraArgs": {
+					"filenameFormat": {
+						"filenameFormat": "{filename}_{date}",
+						"dateFormat": "Y-m"
+					}
+				}
+			}
+		},
+		"channels": {
+			"*": "notice"
+		}
+	}
+}

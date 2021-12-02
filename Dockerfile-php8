@@ -52,8 +52,9 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     sudo -u nadybot composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
     sudo -u nadybot composer clear-cache && \
     rm -f /usr/bin/composer && \
+    jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
+    mv conf/logging.json.2 conf/logging.json && \
     apk del --no-cache sudo php8-xml jq && \
-    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi

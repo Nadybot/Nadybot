@@ -206,7 +206,7 @@ class AOChat {
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser();
-		$this->logger = new LoggerWrapper('AOChat');
+		$this->logger = new LoggerWrapper('Core/AOChat');
 	}
 
 	/**

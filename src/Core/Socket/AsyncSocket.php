@@ -5,7 +5,6 @@ namespace Nadybot\Core\Socket;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
-	LegacyLogger,
 	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,
@@ -448,6 +447,8 @@ class AsyncSocket {
 	}
 
 	public function __destruct() {
-		LegacyLogger::log('TRACE', 'AsyncSocket', get_class() . ' destroyed');
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
 	}
 }

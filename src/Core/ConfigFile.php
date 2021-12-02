@@ -116,7 +116,7 @@ class ConfigFile {
 		}
 		$templatePath = __DIR__ . '/../../conf/config.template.php';
 		if (copy($templatePath, $this->filePath) === false) {
-			LegacyLogger::log('ERROR', 'StartUp', "could not create config file: {$this->filePath}");
+			LegacyLogger::log('ERROR', 'Core/ConfigFile', "could not create config file: {$this->filePath}");
 		}
 	}
 }

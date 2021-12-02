@@ -88,7 +88,7 @@ class Nadybot extends AOChat {
 	/** @Inject */
 	public MessageHub $messageHub;
 
-	/** @Logger("Core") */
+	/** @Logger */
 	public LoggerWrapper $logger;
 
 	public BotRunner $runner;

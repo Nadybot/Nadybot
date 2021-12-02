@@ -38,7 +38,7 @@ RUN apk --no-cache add \
 
 COPY --chown=nadybot:nadybot . /nadybot
 
-RUN apk --no-cache add composer && \
+RUN apk --no-cache add composer jq && \
     cd /nadybot && \
     composer install --no-dev --no-suggest --no-interaction --no-progress && \
     rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
@@ -46,8 +46,9 @@ RUN apk --no-cache add composer && \
     composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
     composer clear-cache && \
     chown -R nadybot:nadybot vendor && \
-    apk del --no-cache composer && \
-    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
+    jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
+    mv conf/logging.json.2 conf/logging.json && \
+    apk del --no-cache composer jq && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi
