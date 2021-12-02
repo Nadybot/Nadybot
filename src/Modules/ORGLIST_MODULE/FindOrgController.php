@@ -215,7 +215,7 @@ class FindOrgController {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 		} catch (Exception $e) {
-			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
 			$this->ready = true;
 		}

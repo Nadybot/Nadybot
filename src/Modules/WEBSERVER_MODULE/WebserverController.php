@@ -723,7 +723,7 @@ class WebserverController {
 		try {
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
-			$this->logger->error('JWT: ' . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error('JWT: ' . $e->getMessage(), ["exception" => $e]);
 			return null;
 		}
 		if ($payload->exp??time() <= time()) {

@@ -133,7 +133,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					$this->logger->error(
 						"Unable to encode the relay data into highway protocol: ".
 							$e->getMessage(),
-						["Exception" => $e]
+						["exception" => $e]
 					);
 					continue;
 				}

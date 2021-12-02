@@ -47,7 +47,7 @@ class EventLoop {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		}
 	}
 

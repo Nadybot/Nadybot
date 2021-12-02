@@ -203,7 +203,7 @@ class TimerController implements MessageEmitter {
 				try {
 					$instance->{$method}($timer, $alert);
 				} catch (Exception $e) {
-					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), ["Exception" => $e]);
+					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), ["exception" => $e]);
 				}
 				if (empty($timer->alerts)) {
 					$event = new TimerEvent();

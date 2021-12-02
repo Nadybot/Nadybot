@@ -56,7 +56,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				$this->logger->error(
 					"Unable to encode the relay data into tyr-relay protocol: ".
 						$e->getMessage(),
-					["Exception" => $e]
+					["exception" => $e]
 				);
 				continue;
 			}

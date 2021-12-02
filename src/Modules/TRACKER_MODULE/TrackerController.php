@@ -791,7 +791,7 @@ class TrackerController implements MessageEmitter {
 			});
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->error("Error adding org members for {$org->orgname}: " . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error("Error adding org members for {$org->orgname}: " . $e->getMessage(), ["exception" => $e]);
 			return;
 		}
 		$this->db->commit();

@@ -72,7 +72,7 @@ class NadyNative implements RelayProtocolInterface {
 			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
 				$e->getMessage(),
-				["Exception" => $e]
+				["exception" => $e]
 			);
 			return [];
 		}
@@ -89,7 +89,7 @@ class NadyNative implements RelayProtocolInterface {
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol: ' . $serialized,
-				["Exception" => $e]
+				["exception" => $e]
 			);
 			return null;
 		}
@@ -155,7 +155,7 @@ class NadyNative implements RelayProtocolInterface {
 				return;
 			}
 		} catch (Throwable $e) {
-			$this->logger->error("Invalid sync-event received: " . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error("Invalid sync-event received: " . $e->getMessage(), ["exception" => $e]);
 			return;
 		}
 		if (!$this->relay->allowIncSyncEvent($sEvent)) {

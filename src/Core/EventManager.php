@@ -123,7 +123,7 @@ class EventManager {
 						"help" => $help,
 					]);
 		} catch (SQLException $e) {
-			$this->logger->error("Error registering method $filename for event type $type: " . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error("Error registering method $filename for event type $type: " . $e->getMessage(), ["exception" => $e]);
 		}
 	}
 
@@ -522,7 +522,7 @@ class EventManager {
 		} catch (Exception $e) {
 			$this->logger->error(
 				"Error calling event handler '$handler': " . $e->getMessage(),
-				["Exception" => $e]
+				["exception" => $e]
 			);
 		}
 	}

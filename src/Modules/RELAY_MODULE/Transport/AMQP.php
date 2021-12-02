@@ -324,7 +324,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			return null;
 		} catch (AMQPProtocolChannelException $e) {
 			$this->status = new RelayStatus(RelayStatus::ERROR, $e->getMessage());
-			$this->logger->notice('AMQP error: ' . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->notice('AMQP error: ' . $e->getMessage(), ["exception" => $e]);
 			return null;
 		} catch (ErrorException $e) {
 			$this->status = new RelayStatus(

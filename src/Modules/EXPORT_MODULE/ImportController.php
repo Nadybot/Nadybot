@@ -260,7 +260,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -304,7 +304,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -336,7 +336,7 @@ class ImportController {
 				$numImported++;
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -361,7 +361,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -386,7 +386,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -469,7 +469,7 @@ class ImportController {
 			}
 			$this->raidRankController->uploadRaidRanks();
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -508,7 +508,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -544,7 +544,7 @@ class ImportController {
 				]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -590,7 +590,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -614,7 +614,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -641,7 +641,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -672,7 +672,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -744,7 +744,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -770,7 +770,7 @@ class ImportController {
 				$this->db->insert(RaidPointsController::DB_TABLE, $entry, null);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -803,7 +803,7 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -872,7 +872,7 @@ class ImportController {
 				$timerNum++;
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -913,7 +913,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -946,7 +946,7 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
@@ -985,7 +985,7 @@ class ImportController {
 				$this->db->insert("<table:comments>", $entry);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;

@@ -163,7 +163,7 @@ class CommandManager implements MessageEmitter {
 						["module", "verify", "file", "description", "help"]
 					);
 			} catch (SQLException $e) {
-				$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["Exception" => $e]);
+				$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["exception" => $e]);
 			}
 		}
 	}
@@ -375,13 +375,13 @@ class CommandManager implements MessageEmitter {
 			$event->type = "command(error)";
 			throw $e;
 		} catch (SQLException $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$context->reply("There was an SQL error executing your command.");
 			$event->type = "command(error)";
 		} catch (Throwable $e) {
 			$this->logger->error(
 				"Error executing '{$context->message}': " . $e->getMessage(),
-				["Exception" => $e]
+				["exception" => $e]
 			);
 			$context->reply("There was an error executing your command: " . $e->getMessage());
 			$event->type = "command(error)";
@@ -394,7 +394,7 @@ class CommandManager implements MessageEmitter {
 				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
-			$this->logger->error($e->getMessage(), ["Exception" => $e]);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		}
 	}
 

@@ -159,7 +159,7 @@ class SettingManager {
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->error("Error in registering Setting $module:setting($name): " . $e->getMessage(), ["Exception" => $e]);
+			$this->logger->error("Error in registering Setting $module:setting($name): " . $e->getMessage(), ["exception" => $e]);
 		}
 	}
 

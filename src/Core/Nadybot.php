@@ -637,7 +637,7 @@ class Nadybot extends AOChat {
 					break;
 			}
 		} catch (StopExecutionException $e) {
-			$this->logger->info('Execution stopped prematurely', ["Exception" => $e]);
+			$this->logger->info('Execution stopped prematurely', ["exception" => $e]);
 		}
 	}
 

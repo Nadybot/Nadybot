@@ -287,7 +287,7 @@ class DiscordGatewayController {
 		} catch (JsonException $e) {
 			$this->logger->error(
 				"Invalid JSON data received from Discord: " . $e->getMessage(),
-				["Exception" => $e]
+				["exception" => $e]
 			);
 			if (isset($this->client)) {
 				$this->client->close(4002);

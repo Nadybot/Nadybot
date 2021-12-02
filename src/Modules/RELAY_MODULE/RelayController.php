@@ -153,7 +153,7 @@ class RelayController {
 					$this->logger->notice("Relay " . $relay->getName() . " initialized");
 				});
 			} catch (Exception $e) {
-				$this->logger->error($e->getMessage(), ["Exception" => $e]);
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
 			}
 		}
 	}
