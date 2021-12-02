@@ -1515,7 +1515,7 @@ class TowerController {
 
 		$playfield = $this->playfieldController->getPlayfieldByName($attack->playfieldName);
 		if ($playfield === null) {
-			$this->logger->log('error', "ERROR! Could not find Playfield \"{$attack->playfieldName}\"");
+			$this->logger->error("ERROR! Could not find Playfield \"{$attack->playfieldName}\"");
 			return;
 		}
 		$closestSite = $this->getClosestSite($playfield->id, $attack->xCoords, $attack->yCoords);
@@ -1532,12 +1532,12 @@ class TowerController {
 		}
 
 		if ($closestSite === null) {
-			$this->logger->log('error', "ERROR! Could not find closest site: ({$attack->playfieldName}) '{$playfield->id}' '{$attack->xCoords}' '{$attack->yCoords}'");
+			$this->logger->error("ERROR! Could not find closest site: ({$attack->playfieldName}) '{$playfield->id}' '{$attack->xCoords}' '{$attack->yCoords}'");
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
 			$this->recordAttack($whois, $attack, $closestSite);
 			$this->towerApiController->wipeApiCache();
-			$this->logger->log('debug', "Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
+			$this->logger->info("Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
 
 			// Beginning of the 'more' window
 			$link = "";
@@ -1704,7 +1704,7 @@ class TowerController {
 
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$this->logger->log('error', "Could not find playfield for name '$playfieldName'");
+			$this->logger->error("Could not find playfield for name '$playfieldName'");
 			return;
 		}
 

@@ -291,7 +291,7 @@ class SystemController implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 
 		$this->chatBot->disconnect();
-		$this->logger->log('INFO', "The Bot is restarting.");
+		$this->logger->notice("The Bot is restarting.");
 		exit(-1);
 	}
 
@@ -306,7 +306,7 @@ class SystemController implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 
 		$this->chatBot->disconnect();
-		$this->logger->log('INFO', "The Bot is shutting down.");
+		$this->logger->notice("The Bot is shutting down.");
 		exit(10);
 	}
 
@@ -538,7 +538,7 @@ class SystemController implements MessageEmitter {
 	 */
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
-		$this->logger->log('DEBUG', "Pinging database");
+		$this->logger->info("Pinging database");
 		$this->db->table(SettingManager::DB_TABLE)
 			->limit(1)
 			->asObj(Setting::class)

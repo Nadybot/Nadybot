@@ -268,11 +268,11 @@ class RaidPointsController {
 				"raid_id" =>    $raid->raid_id ?? null,
 			]);
 		if ($inserted === false) {
-			$this->logger->log('ERROR', "Error logging the change of {$delta} points for {$pointsChar}.");
+			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");
 			throw new Exception("Error recording the points delta of {$delta} for {$pointsChar}.");
 		}
 		if (!$this->giveRaidPoints($pointsChar, $delta)) {
-			$this->logger->log('ERROR', "Error giving {$delta} points to {$pointsChar}.");
+			$this->logger->error("Error giving {$delta} points to {$pointsChar}.");
 			throw new Exception("Error giving {$delta} points to {$pointsChar}.");
 		}
 		return $pointsChar;
@@ -684,8 +684,7 @@ class RaidPointsController {
 			return;
 		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			"Adding {$event->alt} as an alt of {$event->main} requires us to merge their raid points. ".
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
@@ -706,15 +705,13 @@ class RaidPointsController {
 				->delete();
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				'There was an error combining these points: ' . $e->getMessage()
 			);
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			'Raid points merged successfully to a new total of ' . $newPoints
 		);
 	}
@@ -857,7 +854,7 @@ class RaidPointsController {
 		$this->db->table(self::DB_TABLE)
 			->where("username", $event->alt)
 			->delete();
-		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
 	}
 
 	/**

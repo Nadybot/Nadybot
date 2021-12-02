@@ -34,14 +34,14 @@ class HelpManager {
 	 * @description: Registers a help command
 	 */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
-		$this->logger->log('DEBUG', "Registering $module:help($command) Helpfile:($filename)");
+		$this->logger->info("Registering $module:help($command) Helpfile:($filename)");
 
 		$command = strtolower($command);
 
 		// Check if the file exists
 		$actual_filename = $this->util->verifyFilename($module . '/' . $filename);
 		if ($actual_filename == '') {
-			$this->logger->log('ERROR', "Error in registering the File $filename for Help command $module:help($command). The file doesn't exist!");
+			$this->logger->error("Error in registering the File $filename for Help command $module:help($command). The file doesn't exist!");
 			return;
 		}
 
@@ -122,7 +122,7 @@ class HelpManager {
 	public function checkForHelpFile(string $module, string $file): string {
 		$actualFilename = $this->util->verifyFilename($module . DIRECTORY_SEPARATOR . $file);
 		if ($actualFilename == '') {
-			$this->logger->log('WARN', "Error in registering the help file {$module}/{$file}. The file doesn't exist!");
+			$this->logger->warning("Error in registering the help file {$module}/{$file}. The file doesn't exist!");
 		}
 		return $actualFilename;
 	}

@@ -129,7 +129,7 @@ class BosslootController {
 			->asObj(BossLootdb::class);
 		foreach ($data as $row2) {
 			if (!isset($row2->icon)) {
-				$this->logger->log('ERROR', "Missing item in AODB: {$row2->itemname}.");
+				$this->logger->error("Missing item in AODB: {$row2->itemname}.");
 				continue;
 			}
 			$blob .= "<tab>" . $this->text->makeImage($row2->icon) . "\n";

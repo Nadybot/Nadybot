@@ -237,7 +237,7 @@ class AOChat {
 		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if ($this->socket === false) {
 			$this->socket = null;
-			$this->logger->log('error', "Could not create socket");
+			$this->logger->error("Could not create socket");
 			die();
 		}
 
@@ -246,7 +246,7 @@ class AOChat {
 		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
 
 		if (@socket_connect($this->socket, $server, $port) === false) {
-			$this->logger->log('error', "Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
+			$this->logger->error("Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
 			$this->disconnect();
 			return false;
 		}
@@ -306,11 +306,11 @@ class AOChat {
 			/** @psalm-suppress InvalidArgument */
 			if (($tmp = socket_read($this->socket, $rlen)) === false) {
 				$last_error = socket_strerror(socket_last_error($this->socket));
-				$this->logger->log('error', "Read error: $last_error");
+				$this->logger->error("Read error: $last_error");
 				die();
 			}
 			if ($tmp === "") {
-				$this->logger->log('error', "Read error: EOF - (Someone else logged in on to same account?)");
+				$this->logger->error("Read error: EOF - (Someone else logged in on to same account?)");
 				die();
 			}
 			$data .= $tmp;
@@ -335,7 +335,7 @@ class AOChat {
 		$packet = new AOChatPacket("in", (int)$type, $data);
 
 		if ($this->logger->isEnabledFor('debug')) {
-			$this->logger->log('debug', print_r($packet, true));
+			$this->logger->info(print_r($packet, true));
 		}
 
 		switch ($type) {
@@ -381,7 +381,7 @@ class AOChat {
 					if ($packet->args[5] !== null) {
 						$packet->args[6] = vsprintf($packet->args[4], $packet->args[5]);
 					} else {
-						$this->logger->log('error', "Could not parse chat notice: " . print_r($packet, true));
+						$this->logger->error("Could not parse chat notice: " . print_r($packet, true));
 					}
 				}
 				break;
@@ -398,8 +398,8 @@ class AOChat {
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
-		// $this->logger->log('INFO', "> {$packet->type}");
-		$this->logger->log('debug', $data);
+		// $this->logger->notice("> {$packet->type}");
+		$this->logger->info($data);
 
 		/** @psalm-suppress InvalidArgument */
 		socket_write($this->socket, $data, strlen($data));
@@ -454,7 +454,7 @@ class AOChat {
 		}
 
 		if (!($char instanceof AOChatChar)) {
-			$this->logger->log('error', "AOChat: no valid character to login");
+			$this->logger->error("AOChat: no valid character to login");
 			return false;
 		}
 
@@ -682,7 +682,7 @@ class AOChat {
 	 */
 	public function send_group(string $group, string $msg, string $blob="\0", int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === false) {
-			$this->logger->log('WARN', "Trying to send into unknown group \"{$group}\".");
+			$this->logger->warning("Trying to send into unknown group \"{$group}\".");
 			return false;
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
@@ -1154,7 +1154,7 @@ class AOChat {
 					break 2;
 
 				default:
-					$this->logger->log('warn', "Unknown argument type '$data_type'");
+					$this->logger->warning("Unknown argument type '$data_type'");
 					return null;
 			}
 		}
@@ -1216,7 +1216,7 @@ class AOChat {
 
 			$args = $this->parseExtParams($msg);
 			if ($args === null) {
-				$this->logger->log('warn', "Error parsing parameters for category: '$obj->category' instance: '$obj->instance' string: '$msg'");
+				$this->logger->warning("Error parsing parameters for category: '$obj->category' instance: '$obj->instance' string: '$msg'");
 			} else {
 				$obj->args = $args;
 				$obj->message_string = $this->mmdbParser->getMessageString($obj->category, $obj->instance);

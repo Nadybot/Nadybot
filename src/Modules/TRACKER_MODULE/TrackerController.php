@@ -244,7 +244,7 @@ class TrackerController implements MessageEmitter {
 	 * @Description("Download all tracked orgs' information")
 	 */
 	public function downloadOrgRostersEvent(Event $eventObj): void {
-		$this->logger->log('INFO', "Starting Tracker Roster update");
+		$this->logger->notice("Starting Tracker Roster update");
 		/** @var Collection<TrackingOrg> */
 		$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
 
@@ -259,7 +259,7 @@ class TrackerController implements MessageEmitter {
 				[$this, "updateRosterForOrg"],
 				function() use (&$i) {
 					if (--$i === 0) {
-						$this->logger->log('INFO', "Finished Tracker Roster update");
+						$this->logger->notice("Finished Tracker Roster update");
 					}
 				}
 			);
@@ -725,12 +725,12 @@ class TrackerController implements MessageEmitter {
 	public function updateRosterForOrg(?Guild $org, ?callable $callback, ...$args): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
-			$this->logger->log('ERROR', "Error downloading the guild roster JSON file");
+			$this->logger->error("Error downloading the guild roster JSON file");
 			return;
 		}
 
 		if (count($org->members) === 0) {
-			$this->logger->log('ERROR', "The organisation {$org->orgname} has no members. Not changing its roster");
+			$this->logger->error("The organisation {$org->orgname} has no members. Not changing its roster");
 			return;
 		}
 
@@ -791,7 +791,7 @@ class TrackerController implements MessageEmitter {
 			});
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->log("ERROR", "Error adding org members for {$org->orgname}: " . $e->getMessage(), $e);
+			$this->logger->error("Error adding org members for {$org->orgname}: " . $e->getMessage(), ["Exception" => $e]);
 			return;
 		}
 		$this->db->commit();

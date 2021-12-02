@@ -20,7 +20,7 @@ class MockCommandReply implements CommandReply {
 	public function reply($msg): void {
 		foreach ((array)$msg as $result) {
 			if (isset($this->logger)) {
-				$this->logger->log('INFO', $result);
+				$this->logger->notice($result);
 			}
 			$result = preg_replace("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "1970-01-01 00:00:00\\1", $result);
 			$result = preg_replace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00:00\\1", $result);

@@ -103,8 +103,7 @@ class WebserverController {
 	protected function receiveAoAuthPubkey(HttpResponse $response): void {
 		if (isset($response->error) || $response->headers['status-code'] !== "200") {
 			if (isset($response->request)) {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					'Error downloading aoauth pubkey from'.
 					$response->request->getURI() . ": ".
 					($response->error ?? $response->headers['status-code'] ?? "")
@@ -112,7 +111,7 @@ class WebserverController {
 			}
 			return;
 		}
-		$this->logger->log('INFO', 'New aoauth pubkey downloaded.');
+		$this->logger->notice('New aoauth pubkey downloaded.');
 		$this->aoAuthPubKey = $response->body;
 	}
 
@@ -320,7 +319,7 @@ class WebserverController {
 		if (!isset($this->routes[$method][$route])) {
 			$this->routes[$method][$route] = [];
 		}
-		$this->logger->log('DEBUG', "Adding route to {$path}");
+		$this->logger->info("Adding route to {$path}");
 		$this->routes[$method][$route] []= $callback;
 		// Longer routes must be handled first, because they are more specific
 		uksort(
@@ -367,12 +366,12 @@ class WebserverController {
 		if ($newSocket === false) {
 			return;
 		}
-		$this->logger->log('DEBUG', 'New client connected from ' . $peerName);
+		$this->logger->info('New client connected from ' . $peerName);
 		$wrapper = $this->socket->wrap($newSocket);
 		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
 /*
 		if ($this->settingManager->getBool('webserver_tls')) {
-			$this->logger->log("DEBUG", "Queueing TLS handshake");
+			$this->logger->info("Queueing TLS handshake");
 			$wrapper->writeClosureInterface(new TlsServerStart());
 		}
 */
@@ -385,7 +384,7 @@ class WebserverController {
 	 * Handle client disconnects / being disconnected
 	 */
 	public function handleClientDisconnect(AsyncSocket $scket): void {
-		$this->logger->log("DEBUG", "Webserver: Client disconnected.");
+		$this->logger->info("Webserver: Client disconnected.");
 	}
 
 	/**
@@ -417,7 +416,7 @@ class WebserverController {
 
 		if ($serverSocket === false) {
 			$error = "Could not listen on {$addr} port {$port}: {$errstr} ({$errno})";
-			$this->logger->log('ERROR', $error);
+			$this->logger->error($error);
 			return false;
 		}
 		$this->serverSocket = $serverSocket;
@@ -427,7 +426,7 @@ class WebserverController {
 		$wrapper->on(AsyncSocket::DATA, [$this, "clientConnected"]);
 		$this->asyncSocket = $wrapper;
 
-		$this->logger->log('INFO', "HTTP server listening on port {$port}");
+		$this->logger->notice("HTTP server listening on port {$port}");
 		return true;
 	}
 
@@ -444,7 +443,7 @@ class WebserverController {
 		} else {
 			@fclose($this->serverSocket);
 		}
-		$this->logger->log('INFO', "Webserver shutdown");
+		$this->logger->notice("Webserver shutdown");
 		return true;
 	}
 
@@ -456,7 +455,7 @@ class WebserverController {
 		if (@file_exists("/tmp/server.pem")) {
 			return "/tmp/server.pem";
 		}
-		$this->logger->log('INFO', 'Generating new SSL certificate for ' . gethostname());
+		$this->logger->notice('Generating new SSL certificate for ' . gethostname());
 		$pemfile = '/tmp/server.pem';
 		$dn = [
 			"countryName" => "XX",
@@ -718,13 +717,13 @@ class WebserverController {
 	public function checkJWTAuthentication(string $token): ?string {
 		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
 		if (!isset($aoAuthPubKey)) {
-			$this->logger->log('ERROR', 'No public key found to validate JWT');
+			$this->logger->error('No public key found to validate JWT');
 			return null;
 		}
 		try {
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
-			$this->logger->log('ERROR', 'JWT: ' . $e->getMessage(), $e);
+			$this->logger->error('JWT: ' . $e->getMessage(), ["Exception" => $e]);
 			return null;
 		}
 		if ($payload->exp??time() <= time()) {

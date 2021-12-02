@@ -127,7 +127,7 @@ class WebsocketController {
 		$websocketHandler->on(WebsocketServer::ON_CLOSE, [$this, "clientDisconnected"]);
 		$websocketHandler->on(WebsocketServer::ON_ERROR, [$this, "clientError"]);
 
-		$this->logger->log("DEBUG", "Upgrading connection to WebSocket");
+		$this->logger->info("Upgrading connection to WebSocket");
 		$packet = new WebsocketCommand();
 		$packet->command = "uuid";
 		$packet->data = $websocketHandler->getUUID();
@@ -150,11 +150,11 @@ class WebsocketController {
 		$clientRequestedWebsocket = isset($request->headers["upgrade"])
 			&& strtolower($request->headers["upgrade"]) === "websocket";
 		if (!$clientRequestedWebsocket) {
-			$this->logger->log('DEBUG', 'Client accessed WebSocket endpoint without requesting upgrade');
+			$this->logger->info('Client accessed WebSocket endpoint without requesting upgrade');
 			return $errorResponse;
 		}
 		if (!isset($request->headers["sec-websocket-key"])) {
-			$this->logger->log('DEBUG', 'WebSocket client did not give key');
+			$this->logger->info('WebSocket client did not give key');
 			return new Response(Response::BAD_REQUEST);
 		}
 		$key = $request->headers["sec-websocket-key"];
@@ -177,17 +177,17 @@ class WebsocketController {
 	}
 
 	public function clientConnected(WebsocketCallback $event): void {
-		$this->logger->log("DEBUG", "New Websocket connection from ".
+		$this->logger->info("New Websocket connection from ".
 			($event->websocket->getPeer() ?? "unknown"));
 	}
 
 	public function clientDisconnected(WebsocketCallback $event): void {
-		$this->logger->log("DEBUG", "Closed Websocket connection from ".
+		$this->logger->info("Closed Websocket connection from ".
 			($event->websocket->getPeer() ?? "unknown"));
 	}
 
 	public function clientError(WebsocketCallback $event): void {
-		$this->logger->log("DEBUG", "Websocket client error from ".
+		$this->logger->info("Websocket client error from ".
 			($event->websocket->getPeer() ?? "unknown"));
 		$event->websocket->close();
 	}
@@ -196,7 +196,7 @@ class WebsocketController {
 	 * Handle the Websocket client sending data
 	 */
 	public function clientSentData(WebsocketCallback $event): void {
-		$this->logger->log("DEBUG", "[Data inc.] {$event->data}");
+		$this->logger->info("[Data inc.] {$event->data}");
 		try {
 			if (!is_string($event->data)) {
 				throw new Exception();
@@ -243,7 +243,7 @@ class WebsocketController {
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
 			$server->subscribe(...$event->data->events);
-			$this->logger->log('DEBUG', 'Websocket subscribed to ' . join(",", $event->data->events));
+			$this->logger->info('Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
 			if (isset($event->websocket)) {
 				$event->websocket->close(4002);
@@ -286,7 +286,7 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->log('DEBUG', "Sending {$class} to Websocket client");
+					$this->logger->info("Sending {$class} to Websocket client");
 				}
 			}
 		}

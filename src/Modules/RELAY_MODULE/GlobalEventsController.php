@@ -51,7 +51,7 @@ class GlobalEventsController {
 		$relay->setStack($transportLayer, $protocolLayer, $highwayLayer);
 		$this->relay = $relay;
 		$relay->init(function(): void {
-			$this->logger->log("INFO", "Global timer events connected.");
+			$this->logger->notice("Global timer events connected.");
 		});
 	}
 }

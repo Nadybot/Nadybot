@@ -404,7 +404,7 @@ class TradebotController {
 		if (!is_string($sender) || !$this->isTradebot($sender)) {
 			return;
 		}
-		$this->logger->log('INFO', "Joining {$sender}'s private channel.");
+		$this->logger->notice("Joining {$sender}'s private channel.");
 		if ($this->chatBot->privategroup_join($sender)) {
 			$this->messageHub->registerMessageEmitter(
 				new TradebotChannel($sender . "-*")

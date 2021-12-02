@@ -311,7 +311,7 @@ class TestController {
 		if ($this->settingManager->getBool('show_test_commands')) {
 			$this->chatBot->sendTell($line, $context->char->name);
 		} else {
-			$this->logger->log('INFO', $line);
+			$this->logger->notice($line);
 			$testContext->sendto = new MockCommandReply($line, $logFile);
 			$testContext->sendto->logger = $this->logger;
 		}

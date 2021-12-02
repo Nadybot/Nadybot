@@ -133,8 +133,7 @@ class WebsocketBase {
 			);
 			return;
 		}
-		$this->logger->log(
-			"TRACE",
+		$this->logger->debug(
 			"No data received for " . (time() - ($this->lastReadTime??0)) . "s".
 			($this->pendingPingTime
 				? ",ping pending since " . (time() - $this->pendingPingTime) . "s"
@@ -186,13 +185,13 @@ class WebsocketBase {
 	}
 
 	protected function write(string $data): bool {
-		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName)."] Writing " . strlen($data) . " bytes of data to WebSocket");
+		$this->logger->info("[" . ($this->uri ?? $this->peerName)."] Writing " . strlen($data) . " bytes of data to WebSocket");
 		if (strlen($data) === 0 || !is_resource($this->socket)) {
 			return true;
 		}
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
-			$this->logger->log("ERROR", "Error sending data");
+			$this->logger->error("Error sending data");
 			$length = strlen($data);
 			@fclose($this->socket);
 			$this->throwError(
@@ -202,7 +201,7 @@ class WebsocketBase {
 			);
 			return false;
 		}
-		$this->logger->log("TRACE", "{$written} bytes sent to " . ($this->uri ?? $this->peerName).".");
+		$this->logger->debug("{$written} bytes sent to " . ($this->uri ?? $this->peerName).".");
 		$data = substr($data, $written);
 		if (strlen($data)) {
 			array_unshift($this->sendQueue, $data);
@@ -219,7 +218,7 @@ class WebsocketBase {
 		$packet = array_shift($this->sendQueue);
 		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($packet)) {
-			$this->logger->log('ERROR', "Illegal item found in send queue: " . var_export($packet, true));
+			$this->logger->error("Illegal item found in send queue: " . var_export($packet, true));
 			return;
 		}
 		$this->write($packet);
@@ -234,11 +233,10 @@ class WebsocketBase {
 		$this->receiveBuffer .= $response[0];
 		// Not a complete package yet
 		if (!$response[1]) {
-			$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName) . "] fragment received");
+			$this->logger->info("[" . ($this->uri ?? $this->peerName) . "] fragment received");
 			return;
 		}
-		$this->logger->log(
-			"DEBUG",
+		$this->logger->info(
 			"[" . ($this->uri ?? $this->peerName) . "] last fragment received, package completed"
 		);
 		$event = $this->getEvent();
@@ -265,7 +263,7 @@ class WebsocketBase {
 			return [null, true];
 		}
 		$opcode = $opcodeValueToName[$opcodeValue];
-		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName) . "] $opcode received");
+		$this->logger->info("[" . ($this->uri ?? $this->peerName) . "] $opcode received");
 
 		if ($opcodeValue !== static::OP_CONTINUATION) {
 			$this->lastOpcode = $opcode;
@@ -311,7 +309,7 @@ class WebsocketBase {
 			$this->send($payload, 'pong');
 			return [$payload, $final];
 		} elseif ($opcode === 'pong') {
-			$this->logger->log("TRACE", "Pong received by " . ($this->uri ?? $this->peerName).".");
+			$this->logger->debug("Pong received by " . ($this->uri ?? $this->peerName).".");
 			$this->pendingPingTime = null;
 		}
 
@@ -365,7 +363,7 @@ class WebsocketBase {
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
 					@fclose($this->socket);
-					$this->logger->log("DEBUG", "Socket closed with status " . ($this->closeStatus ?? "<unknown>"));
+					$this->logger->info("Socket closed with status " . ($this->closeStatus ?? "<unknown>"));
 					$this->socket = null;
 					$event = $this->getEvent("close");
 					$event->code = $this->closeStatus;
@@ -377,7 +375,7 @@ class WebsocketBase {
 			}
 			$data .= $buffer;
 			$this->lastReadTime = time();
-			$this->logger->log("TRACE", strlen($buffer) . " bytes of websocket data read FROM " . ($this->uri ?? $this->peerName).".");
+			$this->logger->debug(strlen($buffer) . " bytes of websocket data read FROM " . ($this->uri ?? $this->peerName).".");
 		}
 		return $data;
 	}
@@ -389,18 +387,18 @@ class WebsocketBase {
 		$statusString = pack("n", $status);
 		$this->isClosing = true;
 		$this->send($statusString . $message, 'close');
-		$this->logger->log("DEBUG", "Closing with status: {$status}.");
+		$this->logger->info("Closing with status: {$status}.");
 	}
 
 	public function send(string $data, string $opcode='text'): void {
 		if (!$this->isConnected()) {
 			$this->connect();
 		}
-		$this->logger->log("TRACE", "Sending {$opcode} to websocket " . ($this->uri ?? $this->peerName).".");
+		$this->logger->debug("Sending {$opcode} to websocket " . ($this->uri ?? $this->peerName).".");
 		if ($opcode === 'ping') {
 			$this->pendingPingTime = time();
 		}
-		$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName) . "] Queueing packet");
+		$this->logger->info("[" . ($this->uri ?? $this->peerName) . "] Queueing packet");
 
 		if (!isset(static::ALLOWED_OPCODES[$opcode])) {
 			throw new Exception("Bad opcode '$opcode'.");
@@ -419,7 +417,7 @@ class WebsocketBase {
 			$this->sendQueue []= $frame;
 
 			$opcode = 'continuation';
-			$this->logger->log("DEBUG", "[" . ($this->uri ?? $this->peerName) . "] Queueing frame of packet");
+			$this->logger->info("[" . ($this->uri ?? $this->peerName) . "] Queueing frame of packet");
 		}
 		$this->listenForReadWrite();
 	}

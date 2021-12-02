@@ -150,10 +150,10 @@ class RelayController {
 				$relay = $this->createRelayFromDB($relayConf);
 				$this->addRelay($relay);
 				$relay->init(function() use ($relay) {
-					$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
+					$this->logger->notice("Relay " . $relay->getName() . " initialized");
 				});
 			} catch (Exception $e) {
-				$this->logger->log('ERROR', $e->getMessage(), $e);
+				$this->logger->error($e->getMessage(), ["Exception" => $e]);
 			}
 		}
 	}
@@ -533,7 +533,7 @@ class RelayController {
 			$this->db->commit();
 		}
 		$relay->init(function() use ($relay) {
-			$this->logger->log('INFO', "Relay " . $relay->getName() . " initialized");
+			$this->logger->notice("Relay " . $relay->getName() . " initialized");
 		});
 		return $relay;
 	}
@@ -576,7 +576,7 @@ class RelayController {
 			return false;
 		}
 		$liveRelay->deinit(function(Relay $relay) {
-			$this->logger->log('INFO', "Relay " . $relay->getName() . " destroyed");
+			$this->logger->notice("Relay " . $relay->getName() . " destroyed");
 			unset($relay);
 		});
 		return true;

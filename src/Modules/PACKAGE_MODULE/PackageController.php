@@ -560,11 +560,11 @@ class PackageController {
 		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
 		$path = realpath($modulePath);
 		if ($path === false) {
-			$this->logger->log('ERROR', "Cannot determine absolute path of {$modulePath}");
+			$this->logger->error("Cannot determine absolute path of {$modulePath}");
 			$context->reply("Something is wrong with the path of this module.");
 			return;
 		}
-		$this->logger->log('DEBUG', "Removing {$modulePath} ({$path}) recursively");
+		$this->logger->info("Removing {$modulePath} ({$path}) recursively");
 		$dirIterator = new RecursiveDirectoryIterator($path);
 		$iterator = new RecursiveIteratorIterator(
 			$dirIterator,
@@ -573,25 +573,25 @@ class PackageController {
 
 		$toDelete = [];
 		foreach ($iterator as $file) {
-			$this->logger->log('DEBUG', "Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
+			$this->logger->info("Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
 			/** @var SplFileInfo $file */
 			if (in_array($file->getFilename(), [".", ".."], true)) {
-				$this->logger->log('DEBUG', "Skipping, because . or ..");
+				$this->logger->info("Skipping, because . or ..");
 				continue;
 			}
 			$relPath = substr($file->getPathname(), strlen($path) + 1);
 			if (substr($relPath, 0, 2) === "..") {
-				$this->logger->log('DEBUG', "Skipping, because . or ..");
+				$this->logger->info("Skipping, because . or ..");
 				continue;
 			}
-			$this->logger->log('DEBUG', "Adding as " . $file->getRealPath());
+			$this->logger->info("Adding as " . $file->getRealPath());
 			$realPath = $file->getRealPath();
 			if ($realPath !== false) {
 				$toDelete []= $realPath;
 			}
 		}
 		$toDelete []= $path;
-		$this->logger->log('DEBUG', "Sorting by path length descending");
+		$this->logger->info("Sorting by path length descending");
 		usort(
 			$toDelete,
 			function (string $file1, string $file2): int {
@@ -600,14 +600,14 @@ class PackageController {
 		);
 		$baseDir = dirname($path) . "/";
 		foreach ($toDelete as $file) {
-			$this->logger->log('DEBUG', "Removing {$file}");
+			$this->logger->info("Removing {$file}");
 			$relFile = substr($file, strlen($baseDir));
 			if (!@file_exists($file)) {
-				$this->logger->log('DEBUG', "{$file} does not exist");
+				$this->logger->info("{$file} does not exist");
 				continue;
 			}
 			if (is_dir($file)) {
-				$this->logger->log("INFO", "rmdir {$relFile}");
+				$this->logger->notice("rmdir {$relFile}");
 				if (!@rmdir($file)) {
 					$context->reply(
 						"Error deleting directory {$relFile}: " . (error_get_last()["message"]??"unknown error")
@@ -615,7 +615,7 @@ class PackageController {
 					return;
 				}
 			} else {
-				$this->logger->log("INFO", "del {$relFile}");
+				$this->logger->notice("del {$relFile}");
 				if (!@unlink($file)) {
 					$context->reply(
 						"Error deleting {$relFile}: " . (error_get_last()["message"]??"unknown error")
@@ -624,7 +624,7 @@ class PackageController {
 				}
 			}
 		}
-		$this->logger->log('DEBUG', "Deleting done");
+		$this->logger->info("Deleting done");
 		$context->reply(
 			"<highlight>{$package}<end> uninstalled. Restart the bot ".
 			"for the changes to take effect."
@@ -815,14 +815,14 @@ class PackageController {
 			return;
 		}
 
-		$this->logger->log("INFO", "Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
+		$this->logger->notice("Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
 		if (!@file_exists("{$targetDir}/{$cmd->package}/")) {
 			if (!@mkdir("{$targetDir}/{$cmd->package}", 0700, true)) {
 				$cmd->sendto->reply(
 					"There was an error creating ".
 					"<highlight>{$targetDir}/{$cmd->package}<end>."
 				);
-				$this->logger->log("ERROR", "Error on mkdir of {$targetDir}/{$cmd->package}: " .
+				$this->logger->error("Error on mkdir of {$targetDir}/{$cmd->package}: " .
 					(error_get_last()["message"]??"unknown error"));
 				return;
 			}
@@ -868,10 +868,10 @@ class PackageController {
 				continue;
 			}
 			if (@is_dir($fullFilename)) {
-				$this->logger->log("INFO", "rmdir {$fullFilename}");
+				$this->logger->notice("rmdir {$fullFilename}");
 				@rmdir($fullFilename);
 			} else {
-				$this->logger->log("INFO", "del {$fullFilename}");
+				$this->logger->notice("del {$fullFilename}");
 				@unlink($fullFilename);
 			}
 		}
@@ -895,7 +895,7 @@ class PackageController {
 					$cmd->sendto->reply(
 						"There was an error creating <highlight>{$targetFile}<end>."
 					);
-					$this->logger->log("ERROR", "Error on mkdir of {$targetFile}: ".
+					$this->logger->error("Error on mkdir of {$targetFile}: ".
 						(error_get_last()["message"]??"unknown error"));
 					return false;
 				}
@@ -905,12 +905,12 @@ class PackageController {
 					$cmd->sendto->reply(
 						"There was an error extracting <highlight>{$targetFile}<end>."
 					);
-					$this->logger->log("ERROR", "Error on extraction of {$targetFile}: ".
+					$this->logger->error("Error on extraction of {$targetFile}: ".
 						(error_get_last()["message"]??"unknown error"));
 					return false;
 				}
 			}
-			$this->logger->log("INFO", "unzip -> {$targetFile}");
+			$this->logger->notice("unzip -> {$targetFile}");
 			$this->db->table(self::DB_TABLE)
 				->insert([
 					"module" => $cmd->package,

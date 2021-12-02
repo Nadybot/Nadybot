@@ -184,7 +184,7 @@ class AsyncHttp {
 			$this->setupStreamNotify();
 		}
 
-		$this->logger->log('DEBUG', "Sending request: {$this->request->getData()}");
+		$this->logger->info("Sending request: {$this->request->getData()}");
 	}
 
 	/**
@@ -216,7 +216,7 @@ class AsyncHttp {
 	 */
 	private function setError(string $errorString): void {
 		$this->errorString = $errorString;
-		$this->logger->log('ERROR', $errorString);
+		$this->logger->error($errorString);
 	}
 
 	/**
@@ -305,7 +305,7 @@ class AsyncHttp {
 			return false;
 		}
 		stream_set_blocking($this->stream, false);
-		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
+		$this->logger->info("Stream for {$streamUri} created");
 		return true;
 	}
 
@@ -341,7 +341,7 @@ class AsyncHttp {
 	}
 
 	public function handleTlsHandshake(): void {
-		$this->logger->log('DEBUG', "Activating TLS");
+		$this->logger->info("Activating TLS");
 		if (!isset($this->stream) || !is_resource($this->stream)) {
 			return;
 		}
@@ -350,7 +350,7 @@ class AsyncHttp {
 			if (isset($this->notifier)) {
 				$this->socketManager->removeSocketNotifier($this->notifier);
 			}
-			$this->logger->log('DEBUG', "TLS crypto activated successfully");
+			$this->logger->info("TLS crypto activated successfully");
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
 			$this->abortWithMessage(

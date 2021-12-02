@@ -43,14 +43,14 @@ class SubcommandManager {
 		$module = strtoupper($module);
 
 		if (!$this->chatBot->processCommandArgs($channel, $admin)) {
-			$this->logger->log('ERROR', "Invalid args for $module:subcommand($command)");
+			$this->logger->error("Invalid args for $module:subcommand($command)");
 			return;
 		}
 		/** @var string[] $channel */
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
-			$this->logger->log('ERROR', "Error registering method $filename for subcommand $command.  Could not find instance '$name'.");
+			$this->logger->error("Error registering method $filename for subcommand $command.  Could not find instance '$name'.");
 			return;
 		}
 
@@ -65,7 +65,7 @@ class SubcommandManager {
 		}
 
 		for ($i = 0; $i < count($channel); $i++) {
-			$this->logger->log('DEBUG', "Adding Subcommand to list:($command) File:($filename) Rights:(" . join(", ", (array)$admin).") Channel:({$channel[$i]})");
+			$this->logger->info("Adding Subcommand to list:($command) File:($filename) Rights:(" . join(", ", (array)$admin).") Channel:({$channel[$i]})");
 
 			if ($this->chatBot->existing_subcmds[$channel[$i]][$command] == true) {
 				$this->db->table(CommandManager::DB_TABLE)
@@ -103,7 +103,7 @@ class SubcommandManager {
 	 * @description: Loads the active subcommands into memory and activates them
 	 */
 	public function loadSubcommands(): void {
-		$this->logger->log('DEBUG', "Loading enabled subcommands");
+		$this->logger->info("Loading enabled subcommands");
 
 		$this->subcommands = [];
 

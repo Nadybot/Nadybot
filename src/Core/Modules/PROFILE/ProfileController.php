@@ -398,7 +398,7 @@ class ProfileController {
 			}
 			return $profileSendTo->result;
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Could not load profile: " . $e->getMessage(), $e);
+			$this->logger->error("Could not load profile: " . $e->getMessage(), ["Exception" => $e]);
 			$this->db->rollback();
 			return null;
 		}

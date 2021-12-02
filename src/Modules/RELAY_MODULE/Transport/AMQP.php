@@ -229,7 +229,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->exchanges[$exchange->name] = $exchange;
 			return false;
 		}
-		$this->logger->log("INFO", "Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
+		$this->logger->notice("Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
 		return true;
 	}
 
@@ -250,7 +250,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		} catch (Exception $e) {
 			return false;
 		}
-		$this->logger->log("INFO", "No longer listening for AMQP messages on exchange {$exchange}.");
+		$this->logger->notice("No longer listening for AMQP messages on exchange {$exchange}.");
 		return true;
 	}
 
@@ -281,15 +281,14 @@ class AMQP implements TransportInterface, StatusProvider {
 				RelayStatus::ERROR,
 				'Connection to AMQP server failed: ' . $e->getMessage()
 			);
-			$this->logger->log('INFO', $this->status->text);
+			$this->logger->notice($this->status->text);
 			return null;
 		} catch (Throwable $e) {
 			$this->status = new RelayStatus(
 				RelayStatus::ERROR,
 				'Connection to AMQP server failed: ' . $e->getMessage()
 			);
-			$this->logger->log(
-				'INFO',
+			$this->logger->notice(
 				'Connection to AMQP server failed (' . get_class($e) . '): '.
 				$e->getMessage()
 			);
@@ -310,36 +309,36 @@ class AMQP implements TransportInterface, StatusProvider {
 				} else {
 					$channel->queue_bind($this->queueName??"", $exchangeName);
 				}
-				$this->logger->log("INFO", "Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
+				$this->logger->notice("Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
 			}
 		} catch (AMQPTimeoutException $e) {
 			$this->status = new RelayStatus(
 				RelayStatus::ERROR,
 				'Connection to AMQP server timed out'
 			);
-			$this->logger->log('INFO', $this->status->text);
+			$this->logger->notice($this->status->text);
 			return null;
 		} catch (AMQPIOException $e) {
 			$this->status = new RelayStatus(RelayStatus::ERROR, 'Connection to AMQP server interrupted');
-			$this->logger->log('INFO', $this->status->text);
+			$this->logger->notice($this->status->text);
 			return null;
 		} catch (AMQPProtocolChannelException $e) {
 			$this->status = new RelayStatus(RelayStatus::ERROR, $e->getMessage());
-			$this->logger->log('INFO', 'AMQP error: ' . $e->getMessage(), $e);
+			$this->logger->notice('AMQP error: ' . $e->getMessage(), ["Exception" => $e]);
 			return null;
 		} catch (ErrorException $e) {
 			$this->status = new RelayStatus(
 				RelayStatus::ERROR,
 				'Error Connecting to AMQP server: ' . $e->getMessage()
 			);
-			$this->logger->log('INFO', $this->status->text);
+			$this->logger->notice($this->status->text);
 			return null;
 		}
 		$this->status = new RelayStatus(
 			RelayStatus::READY,
 			"Connected to AMQP server {$this->server}:{$this->port}"
 		);
-		$this->logger->log('INFO', $this->status->text);
+		$this->logger->notice($this->status->text);
 		$this->channel = $channel;
 		$this->listenForMessages();
 
@@ -382,7 +381,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		/** @phpstan-ignore-next-line */
 		if (isset($e)) {
 			if (isset($this->status)) {
-				$this->logger->log('INFO', $this->status->text);
+				$this->logger->notice($this->status->text);
 			}
 			$this->channel = null;
 			$this->connection = null;
@@ -396,7 +395,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			});
 			return false;
 		}
-		$this->logger->log("DEBUG", "AMQP[{$exchange}]: {$text}");
+		$this->logger->info("AMQP[{$exchange}]: {$text}");
 		return true;
 	}
 
@@ -421,7 +420,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			false, // no wait
 			[$this, 'handleIncomingMessage']
 		);
-		$this->logger->log('INFO', 'Listening for AMQP messages on queue ' . ($this->queueName??""));
+		$this->logger->notice('Listening for AMQP messages on queue ' . ($this->queueName??""));
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			unset($this->initCallback);
@@ -438,7 +437,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		$sender = $message->delivery_info['routing_key'];
 		$exchange = $message->delivery_info['exchange'];
 		if ($sender === $this->chatBot->char->name) {
-			$this->logger->log('DEBUG', 'Own AMQP Message received: ' . $message->body);
+			$this->logger->info('Own AMQP Message received: ' . $message->body);
 			return;
 		}
 		$this->logger->logChat('Inc. AMQP Msg.', $sender, $message->body);
@@ -495,7 +494,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			}
 			if (isset($e)) {
 				if (isset($this->status)) {
-					$this->logger->log('INFO', $this->status->text);
+					$this->logger->notice($this->status->text);
 				}
 				$this->channel = null;
 				$this->connection = null;

@@ -195,12 +195,11 @@ class DiscordAPIClient {
 	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, ...$args): Closure {
 		return function(HttpResponse $response) use ($o, $callback, $args) {
 			if (isset($response->error)) {
-				$this->logger->log('ERROR', $response->error);
+				$this->logger->error($response->error);
 				return;
 			}
 			if (substr($response->headers['status-code'], 0, 1) !== "2") {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					'Error received while sending message to Discord. Status-Code: '.
 					$response->headers['status-code'].
 					', Content: '.($response->body ?? '') . ", URL: ".(
@@ -215,8 +214,7 @@ class DiscordAPIClient {
 				return;
 			}
 			if ($response->headers['content-type'] !== 'application/json') {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					'Non-JSON reply received from Discord Server. Content-Type: '.
 					$response->headers['content-type']
 				);
@@ -225,11 +223,10 @@ class DiscordAPIClient {
 			try {
 				$reply = json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					'Error decoding JSON response from Discord-Server: '.
 					$e->getMessage(),
-					$e
+					["Exception" => $e]
 				);
 				return;
 			}

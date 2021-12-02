@@ -77,16 +77,16 @@ class EventManager {
 	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?int $defaultStatus=null): void {
 		$type = strtolower($type);
 
-		$this->logger->log('DEBUG', "Registering event Type:($type) Handler:($filename) Module:($module)");
+		$this->logger->info("Registering event Type:($type) Handler:($filename) Module:($module)");
 
 		if (!$this->isValidEventType($type) && $this->getTimerEventTime($type) === 0) {
-			$this->logger->log('ERROR', "Error registering event Type $type, Handler $filename in Module $module: The type is not a recognized event type!");
+			$this->logger->error("Error registering event Type $type, Handler $filename in Module $module: The type is not a recognized event type!");
 			return;
 		}
 
 		[$name, $method] = explode(".", $filename);
 		if (!Registry::instanceExists($name)) {
-			$this->logger->log('ERROR', "Error registering method $filename for event type $type.  Could not find instance '$name'.");
+			$this->logger->error("Error registering method $filename for event type $type.  Could not find instance '$name'.");
 			return;
 		}
 
@@ -123,7 +123,7 @@ class EventManager {
 						"help" => $help,
 					]);
 		} catch (SQLException $e) {
-			$this->logger->log('ERROR', "Error registering method $filename for event type $type: " . $e->getMessage(), $e);
+			$this->logger->error("Error registering method $filename for event type $type: " . $e->getMessage(), ["Exception" => $e]);
 		}
 	}
 
@@ -133,11 +133,11 @@ class EventManager {
 	public function activate(string $type, string $filename): void {
 		$type = strtolower($type);
 
-		$this->logger->log('DEBUG', "Activating event Type:($type) Handler:($filename)");
+		$this->logger->info("Activating event Type:($type) Handler:($filename)");
 
 		[$name, $method] = explode(".", $filename);
 		if (!Registry::instanceExists($name)) {
-			$this->logger->log('ERROR', "Error activating method $filename for event type $type.  Could not find instance '$name'.");
+			$this->logger->error("Error activating method $filename for event type $type.  Could not find instance '$name'.");
 			return;
 		}
 
@@ -150,7 +150,7 @@ class EventManager {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
 			} elseif ($this->chatBot->isReady()) {
-				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). Event already activated!");
+				$this->logger->error("Error activating event Type:($type) Handler:($filename). Event already activated!");
 			}
 		} else {
 			$time = $this->getTimerEventTime($type);
@@ -159,10 +159,10 @@ class EventManager {
 				if ($key === null) {
 					$this->cronevents[] = ['nextevent' => 0, 'filename' => $filename, 'time' => $time];
 				} else {
-					$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). Event already activated!");
+					$this->logger->error("Error activating event Type:($type) Handler:($filename). Event already activated!");
 				}
 			} else {
-				$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($filename). The type is not a recognized event type!");
+				$this->logger->error("Error activating event Type:($type) Handler:($filename). The type is not a recognized event type!");
 			}
 		}
 	}
@@ -184,9 +184,9 @@ class EventManager {
 		} else {
 			$time = $this->getTimerEventTime($type);
 			if ($time > 0) {
-				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+				$this->logger->error("Dynamic timers are currently not supported");
 			} else {
-				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
+				$this->logger->error("Error activating event Type $type. The type is not a recognized event type!");
 			}
 		}
 	}
@@ -215,9 +215,9 @@ class EventManager {
 		} else {
 			$time = $this->getTimerEventTime($type);
 			if ($time > 0) {
-				$this->logger->log('ERROR', "Dynamic timers are currently not supported");
+				$this->logger->error("Dynamic timers are currently not supported");
 			} else {
-				$this->logger->log('ERROR', "Error activating event Type $type. The type is not a recognized event type!");
+				$this->logger->error("Error activating event Type $type. The type is not a recognized event type!");
 			}
 		}
 	}
@@ -239,7 +239,7 @@ class EventManager {
 	public function deactivate(string $type, string $filename): void {
 		$type = strtolower($type);
 
-		$this->logger->log('debug', "Deactivating event Type:($type) Handler:($filename)");
+		$this->logger->info("Deactivating event Type:($type) Handler:($filename)");
 
 		if ($this->isValidEventType($type)) {
 			if (in_array($filename, $this->events[$type]??[])) {
@@ -256,13 +256,13 @@ class EventManager {
 					unset($this->cronevents[$key]);
 				}
 			} else {
-				$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($filename). The type is not a recognized event type!");
+				$this->logger->error("Error deactivating event Type:($type) Handler:($filename). The type is not a recognized event type!");
 				return;
 			}
 		}
 
 		if (!($found??false)) {
-			$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($filename). The event is not active or doesn't exist!");
+			$this->logger->error("Error deactivating event Type:($type) Handler:($filename). The event is not active or doesn't exist!");
 		}
 	}
 
@@ -276,7 +276,7 @@ class EventManager {
 			$call = $filename . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
 			if ($type === null) {
-				$this->logger->log('ERROR', "Could not find event for '$call'");
+				$this->logger->error("Could not find event for '$call'");
 				return;
 			}
 			if ($this->isValidEventType($type)) {
@@ -293,7 +293,7 @@ class EventManager {
 						$this->cronevents[] = ['nextevent' => 0, 'filename' => $call, 'time' => $time];
 					}
 				} else {
-					$this->logger->log('ERROR', "Error activating event Type:($type) Handler:($call). The type is not a recognized event type!");
+					$this->logger->error("Error activating event Type:($type) Handler:($call). The type is not a recognized event type!");
 				}
 			}
 		}
@@ -308,7 +308,7 @@ class EventManager {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
 			if ($type === null) {
-				$this->logger->log('ERROR', "Could not find event for '$call'");
+				$this->logger->error("Could not find event for '$call'");
 				return;
 			}
 			if ($this->isValidEventType($type)) {
@@ -330,7 +330,7 @@ class EventManager {
 						}
 					}
 				} else {
-					$this->logger->log('ERROR', "Error deactivating event Type:($type) Handler:($call). The type is not a recognized event type!");
+					$this->logger->error("Error deactivating event Type:($type) Handler:($call). The type is not a recognized event type!");
 				}
 			}
 		}
@@ -357,7 +357,7 @@ class EventManager {
 	 * Loads the active events into memory and activates them
 	 */
 	public function loadEvents(): void {
-		$this->logger->log('DEBUG', "Loading enabled events");
+		$this->logger->info("Loading enabled events");
 
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
@@ -384,10 +384,10 @@ class EventManager {
 		}
 		$this->lastCronTime = $time;
 
-		$this->logger->log('DEBUG', "Executing cron events at '$time'");
+		$this->logger->info("Executing cron events at '$time'");
 		foreach ($this->cronevents as $key => $event) {
 			if ($this->cronevents[$key]['nextevent'] <= $time) {
-				$this->logger->log('DEBUG', "Executing cron event '${event['filename']}'");
+				$this->logger->info("Executing cron event '${event['filename']}'");
 
 				$eventObj = new Event();
 				$eventObj->type = strtolower((string)$event['time']);
@@ -408,7 +408,7 @@ class EventManager {
 		}
 		$this->areConnectEventsFired = true;
 
-		$this->logger->log('DEBUG', "Executing connected events");
+		$this->logger->info("Executing connected events");
 		$this->messageHubController->loadRouting();
 
 		$eventObj = new Event();
@@ -503,13 +503,13 @@ class EventManager {
 	 * @throws StopExecutionException
 	 */
 	public function callEventHandler(Event $eventObj, string $handler, array $args): void {
-		$this->logger->log('DEBUG', "Executing handler '$handler' for event type '$eventObj->type'");
+		$this->logger->info("Executing handler '$handler' for event type '$eventObj->type'");
 
 		try {
 			[$name, $method] = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
-				$this->logger->log('ERROR', "Could not find instance for name '$name' in '$handler' for event type '$eventObj->type'");
+				$this->logger->error("Could not find instance for name '$name' in '$handler' for event type '$eventObj->type'");
 			} else {
 				$refMeth = new ReflectionMethod($instance, $method);
 				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
@@ -520,10 +520,9 @@ class EventManager {
 		} catch (StopExecutionException $e) {
 			throw $e;
 		} catch (Exception $e) {
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				"Error calling event handler '$handler': " . $e->getMessage(),
-				$e
+				["Exception" => $e]
 			);
 		}
 	}
@@ -535,7 +534,7 @@ class EventManager {
 		$eventType = strtolower($eventType);
 
 		if (isset($this->eventTypes[$eventType])) {
-			$this->logger->log('WARN', "Event type already registered: '$eventType'");
+			$this->logger->warning("Event type already registered: '$eventType'");
 			return false;
 		}
 		$this->eventTypes[$eventType] = new EventType();

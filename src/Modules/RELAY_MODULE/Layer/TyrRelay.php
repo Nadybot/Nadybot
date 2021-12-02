@@ -53,11 +53,10 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 			try {
 				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					"Unable to encode the relay data into tyr-relay protocol: ".
 						$e->getMessage(),
-					$e
+					["Exception" => $e]
 				);
 				continue;
 			}
@@ -74,7 +73,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 					RelayStatus::ERROR,
 					"Unable to decode tyr-relay message: " . $e->getMessage()
 				);
-				$this->logger->log('ERROR', $this->status->text);
+				$this->logger->error($this->status->text);
 				$data = null;
 				continue;
 			}
@@ -86,7 +85,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 					RelayStatus::ERROR,
 					'Received tyr-relay message without type'
 				);
-				$this->logger->log('ERROR', $this->status->text);
+				$this->logger->error($this->status->text);
 				$data = null;
 				continue;
 			}
@@ -106,7 +105,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 					RelayStatus::ERROR,
 					'Received tyr-relay message without payload'
 				);
-				$this->logger->log('ERROR', $this->status->text);
+				$this->logger->error($this->status->text);
 				$data = null;
 				continue;
 			}

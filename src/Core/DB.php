@@ -141,13 +141,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the MySQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -156,7 +154,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->sql->exec("SET time_zone = '+00:00'");
@@ -169,8 +167,7 @@ class DB {
 			}
 			if (!@file_exists($dbName)) {
 				if (!touch($dbName)) {
-					$this->logger->log(
-						'ERROR',
+					$this->logger->error(
 						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
 						"exists and is writable by the current user."
 					);
@@ -217,13 +214,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -232,7 +227,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 		} elseif ($this->type === self::MSSQL) {
 			do {
@@ -250,13 +245,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the MSSQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -265,7 +258,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 		} else {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
@@ -457,11 +450,7 @@ class DB {
 					$row->{$colName} = $values[$col];
 				}
 			} catch (Throwable $e) {
-				$this->logger->log(
-					'ERROR',
-					$e->getMessage(),
-					$e
-				);
+				$this->logger->error($e->getMessage(), ["Exception" => $e]);
 				throw $e;
 			}
 		}
@@ -517,11 +506,10 @@ class DB {
 				$ps = $this->executeQuery($sql, $args);
 				return $ps->rowCount();
 			} catch (SQLException $e) {
-				$this->logger->log(
-					"WARN",
+				$this->logger->warning(
 					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
 					"consider upgrading to the latest MariaDB or use SQLite.",
-					$e
+					["Exception" => $e]
 				);
 				return 1;
 			}
@@ -552,7 +540,7 @@ class DB {
 	private function executeQuery(string $sql, array $params): PDOStatement {
 		// $sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
-		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
+		$this->logger->info($sql . " - " . print_r($params, true));
 
 		try {
 			$ps = $this->sql->prepare($sql);
@@ -576,8 +564,7 @@ class DB {
 				return $this->executeQuery($sql, $params);
 			}
 			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
-				$this->logger->log(
-					'WARNING',
+				$this->logger->warning(
 					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
 				);
 				call_user_func($this->reconnect);
@@ -591,7 +578,7 @@ class DB {
 	 * Start a transaction
 	 */
 	public function beginTransaction(): void {
-		$this->logger->log('DEBUG', "Starting transaction");
+		$this->logger->info("Starting transaction");
 		$this->sql->beginTransaction();
 	}
 
@@ -599,11 +586,11 @@ class DB {
 	 * Commit a transaction
 	 */
 	public function commit(): void {
-		$this->logger->log('DEBUG', "Committing transaction");
+		$this->logger->info("Committing transaction");
 		try {
 			$this->sql->commit();
 		} catch (PDOException $e) {
-			$this->logger->log('DEBUG', "No active transaction to commit");
+			$this->logger->info("No active transaction to commit");
 		}
 	}
 
@@ -611,7 +598,7 @@ class DB {
 	 * Roll back a transaction
 	 */
 	public function rollback(): void {
-		$this->logger->log('DEBUG', "Rolling back transaction");
+		$this->logger->info("Rolling back transaction");
 		$this->sql->rollback();
 	}
 
@@ -669,7 +656,7 @@ class DB {
 		// only letters, numbers, underscores are allowed
 		if (!preg_match('/^[a-z0-9_]+$/i', $name)) {
 			$msg = "Invalid SQL file name: '$name' for module: '$module'!  Only numbers, letters, and underscores permitted!";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 
@@ -678,7 +665,7 @@ class DB {
 		$dir = $this->util->verifyFilename($module);
 		if (empty($dir)) {
 			$msg = "Could not find module '$module'.";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 		$d = dir($dir);
@@ -713,7 +700,7 @@ class DB {
 
 		if ($file === false) {
 			$msg = "No SQL file found with name '$name' in module '$module'!";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 
@@ -722,13 +709,13 @@ class DB {
 
 		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
 			$msg = "'$name' database already up to date! version: '$currentVersion'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 			return $msg;
 		}
 		$handle = @fopen("$dir/$file", "r");
 		if ($handle === false) {
 			$msg = "Could not load SQL file: '$dir/$file'";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 		try {
@@ -753,14 +740,14 @@ class DB {
 
 			if ($maxFileVersion != 0) {
 				$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
-				$this->logger->log('DEBUG', $msg);
+				$this->logger->info($msg);
 			} else {
 				$msg = "Updated '$name' database";
-				$this->logger->log('DEBUG', $msg);
+				$this->logger->info($msg);
 			}
 		} catch (SQLException $e) {
 			$msg = "Error loading sql file '$file': " . $e->getMessage();
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 		}
 
 		return $msg;
@@ -937,8 +924,7 @@ class DB {
 			} else {
 				$log = 'Your database is being initialized.';
 			}
-			$this->logger->log(
-				'INFO',
+			$this->logger->notice(
 				$log . ' ' . 'This can take a while; please be patient.'
 			);
 			$infoShown = true;
@@ -994,7 +980,7 @@ class DB {
 		try {
 			require_once $file;
 		} catch (Throwable $e) {
-			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage(), $e);
+			$this->logger->error("Cannot parse $file: " . $e->getMessage(), ["Exception" => $e]);
 			return;
 		}
 		$new = array_diff(get_declared_classes(), $old);
@@ -1008,14 +994,13 @@ class DB {
 			$obj = new $class();
 			Registry::injectDependencies($obj);
 			try {
-				$this->logger->log('DEBUG', "Running migration {$class}");
+				$this->logger->info("Running migration {$class}");
 				$obj->migrate($this->logger, $this);
 			} catch (Throwable $e) {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					"Error executing {$class}::migrate(): ".
 						$e->getMessage(),
-					$e
+					["Exception" => $e]
 				);
 				continue;
 			}
@@ -1086,10 +1071,10 @@ class DB {
 
 		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
 			$msg = "'{$table}' database already up to date! version: '$currentVersion'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 			return false;
 		}
-		$this->logger->log('DEBUG', "Inserting {$file}");
+		$this->logger->info("Inserting {$file}");
 		$csv = new Reader($file);
 		$items = [];
 		$itemCount = 0;
@@ -1111,17 +1096,17 @@ class DB {
 				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
-			$this->logger->log('ERROR', $e->getMessage(), $e);
+			$this->logger->error($e->getMessage(), ["Exception" => $e]);
 			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);
 
 		if ($version !== 0) {
 			$msg = "Updated '{$table}' database from '{$currentVersion}' to '{$version}'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 		} else {
 			$msg = "Updated '{$table}' database";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 		}
 		return true;
 	}

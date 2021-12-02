@@ -236,7 +236,7 @@ class WorldBossController {
 	 */
 	public function handleTimersFromApi(HttpResponse $response): void {
 		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
-			$this->logger->log('ERROR', 'Worldboss API did not send correct data.');
+			$this->logger->error('Worldboss API did not send correct data.');
 			return;
 		}
 		/** @var ApiSpawnData[] */
@@ -250,7 +250,7 @@ class WorldBossController {
 				$timers []= new ApiSpawnData($timerData);
 			}
 		} catch (JsonException $e) {
-			$this->logger->log('ERROR', "Worldboss API sent invalid json.");
+			$this->logger->error("Worldboss API sent invalid json.");
 			return;
 		}
 		foreach ($timers as $timer) {
@@ -263,12 +263,12 @@ class WorldBossController {
 	 * information, and if so, update our database and timers.
 	 */
 	protected function handleApiTimer(ApiSpawnData $timer): void {
-		$this->logger->log('DEBUG', "Received timer information for {$timer->name}.");
+		$this->logger->info("Received timer information for {$timer->name}.");
 		$map = array_flip(static::BOSS_MAP);
 		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$timer->name] ?? null;
 		if (!isset($mobName)) {
-			$this->logger->log('WARN', "Received timer information for unknown boss {$timer->name}.");
+			$this->logger->warning("Received timer information for unknown boss {$timer->name}.");
 			return;
 		}
 		$ourTimer = $this->getWorldBossTimer($mobName);
@@ -276,7 +276,7 @@ class WorldBossController {
 		if (isset($ourTimer) && $apiTimer->next_spawn <= $ourTimer->next_spawn) {
 			return;
 		}
-		$this->logger->log('DEBUG', "Updating {$mobName} timer from API");
+		$this->logger->info("Updating {$mobName} timer from API");
 		$this->worldBossUpdate(
 			new Character("Timer-API"),
 			$mobName,
@@ -669,7 +669,7 @@ class WorldBossController {
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
-			$this->logger->log('WARN', "Received timer update for unknown boss {$event->boss}.");
+			$this->logger->warning("Received timer update for unknown boss {$event->boss}.");
 			return;
 		}
 		if ($event->vulnerable === 0) {
@@ -693,7 +693,7 @@ class WorldBossController {
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
-			$this->logger->log('WARN', "Received timer update for unknown boss {$event->boss}.");
+			$this->logger->warning("Received timer update for unknown boss {$event->boss}.");
 			return;
 		}
 		$this->worldBossDeleteCommand(new Character($event->sender), $mobName);

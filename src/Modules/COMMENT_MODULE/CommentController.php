@@ -132,7 +132,7 @@ class CommentController {
 		if ($oldValue === $newValue) {
 			return;
 		}
-		$this->logger->log("DEBUG", "Comment sharing changed");
+		$this->logger->info("Comment sharing changed");
 		$oldCommentTable = $this->settingManager->getString("table_name_comments");
 		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
 		$this->db->beginTransaction();
@@ -147,7 +147,7 @@ class CommentController {
 				$newCommentTable = "comments";
 				$newCategoryTable = "comment_categories";
 				if (!$this->db->schema()->hasTable("comments")) {
-					$this->logger->log('INFO', 'Creating table comments');
+					$this->logger->notice('Creating table comments');
 					$this->db->schema()->create("comments", function(Blueprint $table) {
 						$table->id();
 						$table->string("character", 15)->index();
@@ -175,9 +175,9 @@ class CommentController {
 			$this->db->registerTableName("comments", $newCommentTable);
 			$this->db->registerTableName("comment_categories", $newCategoryTable);
 			// make sure own table schema exists
-			$this->logger->log("INFO", "Ensuring new tables and indexes exist");
+			$this->logger->notice("Ensuring new tables and indexes exist");
 			// copy all categories and comments to the shared table if they do not exist already
-			$this->logger->log("INFO", "Copying comment categories from {$oldCategoryTable} to {$newCategoryTable}.");
+			$this->logger->notice("Copying comment categories from {$oldCategoryTable} to {$newCategoryTable}.");
 			foreach ($cats as $cat) {
 				$exists = $this->db->table("<table:comment_categories>")
 					->where("name", $cat->name)->exists();
@@ -185,7 +185,7 @@ class CommentController {
 					$this->db->insert("<table:comment_categories>", $cat, null);
 				}
 			}
-			$this->logger->log("INFO", "Copying comments from {$oldCommentTable} to {$newCommentTable}.");
+			$this->logger->notice("Copying comments from {$oldCommentTable} to {$newCommentTable}.");
 			foreach ($comments as $comment) {
 				$exists = $this->db->table("<table:comments>")
 					->where("category", $comment->category)
@@ -199,7 +199,7 @@ class CommentController {
 				}
 			}
 		} catch (SQLException $e) {
-			$this->logger->log("ERROR", "Error changing comment tables: " . $e->getMessage(), $e);
+			$this->logger->error("Error changing comment tables: " . $e->getMessage(), ["Exception" => $e]);
 			$this->db->rollback();
 			$this->db->registerTableName("comments", $oldCommentTable??"");
 			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
@@ -208,7 +208,7 @@ class CommentController {
 		$this->db->commit();
 		$this->settingManager->save("table_name_comments", $newCommentTable);
 		$this->settingManager->save("table_name_comment_categories", $newCategoryTable);
-		$this->logger->log("INFO", "All comments and categories copied successfully");
+		$this->logger->notice("All comments and categories copied successfully");
 	}
 
 	/** Read a single category by its name */
