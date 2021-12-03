@@ -35,6 +35,12 @@ use Nadybot\Core\ParamClass\PWord;
  *		description   = 'Change loglevel for debugging',
  *		help          = 'logs.txt'
  *	)
+ *	@DefineCommand(
+ *		command       = 'debug',
+ *		accessLevel   = 'admin',
+ *		description   = 'Create debug logs for a command',
+ *		help          = 'logs.txt'
+ *	)
  */
 class LogsController {
 
@@ -230,5 +236,30 @@ class LogsController {
 			($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : ""
 		);
 		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("debug")
+	 */
+	public function debugCommand(
+		CmdContext $context,
+		string $command
+	): void {
+		$newContext = clone $context;
+		$newContext->message = $command;
+		$loggers = LegacyLogger::getLoggers();
+		LegacyLogger::tempLogLevelOrderride("*", "debug");
+		foreach ($loggers as $logger) {
+			LegacyLogger::assignLogLevel($logger);
+		}
+		$context->registerShutdownFunction(function(): void {
+			$loggers = LegacyLogger::getLoggers();
+			LegacyLogger::getConfig(true);
+			foreach ($loggers as $logger) {
+				LegacyLogger::assignLogLevel($logger);
+			}
+		});
+
+		$this->commandManager->processCmd($newContext);
 	}
 }
