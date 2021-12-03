@@ -79,7 +79,13 @@ class Registry {
 					$tag = $property->getAnnotation('Logger')->value;
 				} else {
 					$array = explode("\\", $reflection->name);
-					$tag = join("/", array_slice($array, -2));
+					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {
+						$tag = join("/", array_slice($array, 2));
+					} elseif (preg_match("/^Nadybot\\\\User\\\\Modules\\\\/", $reflection->name)) {
+						$tag = join("/", array_slice($array, 3));
+					} else {
+						$tag = join("/", array_slice($array, -2));
+					}
 				}
 				$instance->{$property->name} = new LoggerWrapper($tag);
 			}

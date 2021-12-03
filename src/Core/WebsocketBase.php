@@ -191,7 +191,7 @@ class WebsocketBase {
 		}
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
-			$this->logger->error("Error sending data");
+			$this->logger->error("Error sending data", ["uri" => $this->uri]);
 			$length = strlen($data);
 			@fclose($this->socket);
 			$this->throwError(

@@ -39,7 +39,7 @@ class AsyncSocket {
 	/** @Inject */
 	public Timer $timer;
 
-	/** @Logger */
+	/** @Logger("Core/AsyncSocket") */
 	public LoggerWrapper $logger;
 
 	protected array $writeQueue = [];
