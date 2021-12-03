@@ -128,34 +128,106 @@ class LogsController {
 
 	/**
 	 * @HandlesCommand("loglevel")
-	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
 	 */
-	public function loglevelFileCommand(
-		CmdContext $context,
-		?PWord $mask,
-		string $loglevel
-	): void {
-		$loggers = LegacyLogger::getLoggers($mask ? $mask() : null);
+	public function loglevelCommand(CmdContext $context): void {
+		$loggers = LegacyLogger::getLoggers();
 		$names = [];
 		foreach ($loggers as $logger) {
 			foreach ($logger->getHandlers() as $handler) {
 				if ($handler instanceof AbstractHandler) {
-					$handler->setLevel(Logger::toMonologLevel($loglevel));
-					$names[$logger->getName()] = true;
+					$names[$logger->getName()] = $logger->getLevelName($handler->getLevel());
 				}
 			}
 		}
+		if (empty($names)) {
+			$context->reply("No loggers configured.");
+			return;
+		}
+		ksort($names);
+		$blob = "<header2>Configured loggers<end>";
+		foreach ($names as $name => $logLevel) {
+			$blob .= "\n<tab>- {$name}: <highlight>{$logLevel}<end>";
+		}
+		$msg = $this->text->makeBlob(
+			"Configured loggers (" . count($names) . ")",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("loglevel")
+	 * @Mask $action reset
+	 */
+	public function loglevelResetCommand(
+		CmdContext $context,
+		string $action
+	): void {
+		$loggers = LegacyLogger::getLoggers();
+		LegacyLogger::getConfig(true);
+		$names = [];
+		foreach ($loggers as $logger) {
+			$changes = LegacyLogger::assignLogLevel($logger);
+			if (isset($changes)) {
+				$names[$logger->getName()] = $changes;
+			}
+		}
+		if (empty($names)) {
+			$context->reply("No loggers needed changing.");
+			return;
+		}
 		ksort($names);
 		$numChanged = count($names);
-		$blob = "<header2>Loggers changed<end>\n".
-			"<tab>- " . join("\n<tab>- ", array_keys($names));
+		$blob = "<header2>Loggers changed<end>";
+		foreach ($names as $name => $changes) {
+			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
+		}
+		$msg = $this->text->blobWrap(
+			"Changed ",
+			$this->text->makeBlob(
+				"{$numChanged} " . $this->text->pluralize("logger", $numChanged),
+				$blob
+			)
+		);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("loglevel")
+	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
+	 */
+	public function loglevelFileCommand(
+		CmdContext $context,
+		PWord $mask,
+		string $logLevel
+	): void {
+		$logLevel = strtoupper($logLevel);
+		$loggers = LegacyLogger::getLoggers();
+		LegacyLogger::tempLogLevelOrderride($mask(), $logLevel);
+		$names = [];
+		foreach ($loggers as $logger) {
+			$changes = LegacyLogger::assignLogLevel($logger);
+			if (isset($changes)) {
+				$names[$logger->getName()] = $changes;
+			}
+		}
+		if (empty($names)) {
+			$context->reply("No loggers matching <highlight>'{$mask}'<end> that need changing.");
+			return;
+		}
+		ksort($names);
+		$numChanged = count($names);
+		$blob = "<header2>Loggers changed<end>";
+		foreach ($names as $name => $changes) {
+			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
+		}
 		$msg = $this->text->blobWrap(
 			"Changed ",
 			$this->text->makeBlob(
 				"{$numChanged} " . $this->text->pluralize("logger", $numChanged),
 				$blob
 			),
-			$mask ? " matching <highlight>'{$mask}'<end>." : ""
+			($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : ""
 		);
 		$context->reply($msg);
 	}

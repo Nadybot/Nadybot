@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use JsonException;
 use Monolog\Formatter\FormatterInterface;
+use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use RuntimeException;
@@ -15,8 +16,17 @@ class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
 
+	public static array $config = [];
+
+	/**
+	 * Configuration which log channels log what
+	 * @var array<array<string>>
+	 * @psalm-var list<array{0:string, 1:string}>
+	 */
+	public static array $logLevels = [];
+
 	/** @return array<string,Logger> */
-	public static function getLoggers(?string $mask): array {
+	public static function getLoggers(?string $mask=null): array {
 		if (!isset($mask)) {
 			return static::$loggers;
 		}
@@ -60,9 +70,9 @@ class LegacyLogger {
 		return Logger::NOTICE;
 	}
 
-	public static function fromConfig(string $channel): Logger {
-		if (isset(static::$loggers[$channel])) {
-			return static::$loggers[$channel];
+	public static function getConfig(bool $noCache=false): array {
+		if (!empty(static::$config) && !$noCache) {
+			return static::$config;
 		}
 		$json = file_get_contents("./conf/logging.json");
 		if ($json === false) {
@@ -76,26 +86,67 @@ class LegacyLogger {
 		if (!isset($logStruct["monolog"])) {
 			throw new RuntimeException("Invalid logging config, missing \"monolog\" key");
 		}
-		$logStruct = $logStruct["monolog"];
-		$formatters = static::parseFormattersConfig($logStruct["formatters"]??[]);
-		$handlers = static::parseHandlersConfig($logStruct["handlers"]??[], $formatters);
-		$channels = $logStruct["channels"] ?? [];
+		static::$config = $logStruct["monolog"];
+
+		// Convert the log level configuration into an ordered format
+		$channels = static::$config["channels"] ?? [];
 		uksort(
 			$channels,
 			function(string $s1, string $s2): int {
 				return strlen($s2) <=> strlen($s1);
 			}
 		);
-		foreach ($channels as $channelMask => $level) {
-			if (fnmatch($channelMask, $channel, FNM_CASEFOLD)) {
-				foreach ($handlers as $name => $handler) {
-					$handler->setLevel($level);
-				}
-				break;
-			}
+		static::$logLevels = [];
+		foreach ($channels as $channel => $logLevel) {
+			static::$logLevels []= [(string)$channel, (string)$logLevel];
 		}
+		return static::$config;
+	}
 
+	public static function tempLogLevelOrderride(string $mask, string $logLevel): void {
+		array_unshift(static::$logLevels, [$mask, $logLevel]);
+	}
+
+	/**
+	 * Re-calculate the loglevel for $logger, assign it and return old
+	 * and new log level for that logger, or null if unchanged.
+	 *
+	 * @return array<int,string>|null
+	 * @psalm-return null|array{0:string,1:string}
+	 */
+	public static function assignLogLevel(Logger $logger): ?array {
+		$handlers = $logger->getHandlers();
+		$oldLevel = null;
+		$setLevel = null;
+		foreach (static::$logLevels as $logLevelConf) {
+			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
+				continue;
+			}
+			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
+			foreach ($handlers as $name => $handler) {
+				if ($handler instanceof AbstractHandler) {
+					$oldLevel = $logger->getLevelName($handler->getLevel());
+					$handler->setLevel($newLevel);
+					$setLevel = $logger->getLevelName($newLevel);
+				}
+			}
+			if (!isset($oldLevel) || !isset($setLevel) || $oldLevel === $setLevel) {
+				return null;
+			}
+			return [$oldLevel, $setLevel];
+		}
+		return null;
+	}
+
+	public static function fromConfig(string $channel): Logger {
+		if (isset(static::$loggers[$channel])) {
+			return static::$loggers[$channel];
+		}
+		$logStruct = static::getConfig();
+		$formatters = static::parseFormattersConfig($logStruct["formatters"]??[]);
+		$handlers = static::parseHandlersConfig($logStruct["handlers"]??[], $formatters);
 		$logger = new Logger($channel, array_values($handlers));
+		static::assignLogLevel($logger);
 		return static::$loggers[$channel] = $logger;
 	}
 
