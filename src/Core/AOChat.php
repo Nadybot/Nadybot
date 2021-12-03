@@ -334,8 +334,20 @@ class AOChat {
 
 		$packet = new AOChatPacket("in", (int)$type, $data);
 
-		if ($this->logger->isEnabledFor('debug')) {
-			$this->logger->info(print_r($packet, true));
+		if ($this->logger->isEnabledFor('trace')) {
+			$refClass = new \ReflectionClass($packet);
+			$constants = $refClass->getConstants();
+			$codeToConst = array_flip($constants);
+			$packName = $codeToConst[$packet->type] ?? null;
+			if (isset($packName)) {
+				$packName = "$packName ({$packet->type})";
+			} else {
+				$packName = $packet->type;
+			}
+			$this->logger->debug(
+				"Received package {$packName}",
+				["data" => join(" ", str_split(bin2hex($head.$data), 2))]
+			);
 		}
 
 		switch ($type) {
@@ -398,8 +410,21 @@ class AOChat {
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
-		// $this->logger->notice("> {$packet->type}");
-		$this->logger->info($data);
+		if ($this->logger->isEnabledFor('trace')) {
+			$refClass = new \ReflectionClass($packet);
+			$constants = $refClass->getConstants();
+			$codeToConst = array_flip($constants);
+			$packName = $codeToConst[$packet->type] ?? null;
+			if (isset($packName)) {
+				$packName = "$packName ({$packet->type})";
+			} else {
+				$packName = $packet->type;
+			}
+			$this->logger->info(
+				"Sending package {$packName}",
+				["data" => join(" ", str_split(bin2hex($data), 2))]
+			);
+		}
 
 		/** @psalm-suppress InvalidArgument */
 		socket_write($this->socket, $data, strlen($data));
