@@ -44,7 +44,6 @@ class Registry {
 	 */
 	public static function getInstance(string $name, bool $reload=false): ?object {
 		$name = strtolower($name);
-		static::getLogger()->info("Requesting instance for '$name'");
 
 		$instance = Registry::$repo[$name]??null;
 		if ($instance === null) {

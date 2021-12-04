@@ -1,0 +1,11 @@
+To view the current loglevels:
+<tab><highlight><symbol>loglevel<end>
+
+To temporary change the loglevel(s):
+<tab><highlight><symbol>loglevel 'channel' 'loglevel'<end>
+
+To reset your loglevels to your configuration:
+<tab><highlight><symbol>loglevel reset<end>
+
+To debug a single command execution and upload logs for inspection:
+<tab><highlight><symbol>debug 'command with params'<end>

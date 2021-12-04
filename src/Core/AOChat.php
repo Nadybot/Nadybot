@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Monolog\Logger;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -334,7 +335,7 @@ class AOChat {
 
 		$packet = new AOChatPacket("in", (int)$type, $data);
 
-		if ($this->logger->isEnabledFor('trace')) {
+		if ($this->logger->isHandling(Logger::DEBUG)) {
 			$refClass = new \ReflectionClass($packet);
 			$constants = $refClass->getConstants();
 			$codeToConst = array_flip($constants);
@@ -410,7 +411,7 @@ class AOChat {
 	public function sendPacket(AOChatPacket $packet): bool {
 		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
-		if ($this->logger->isEnabledFor('trace')) {
+		if ($this->logger->isHandling(Logger::DEBUG)) {
 			$refClass = new \ReflectionClass($packet);
 			$constants = $refClass->getConstants();
 			$codeToConst = array_flip($constants);
@@ -420,7 +421,7 @@ class AOChat {
 			} else {
 				$packName = $packet->type;
 			}
-			$this->logger->info(
+			$this->logger->debug(
 				"Sending package {$packName}",
 				["data" => join(" ", str_split(bin2hex($data), 2))]
 			);

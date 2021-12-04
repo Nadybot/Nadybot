@@ -3,15 +3,22 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\AbstractHandler;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Monolog\Processor\IntrospectionProcessor;
 use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
+	Http,
+	HttpResponse,
 	LegacyLogger,
 	LoggerWrapper,
+	Nadybot,
 	SettingManager,
 	Text,
+	Timer,
 	Util,
 };
 use Nadybot\Core\ParamClass\PFilename;
@@ -33,13 +40,13 @@ use Nadybot\Core\ParamClass\PWord;
  *		command       = 'loglevel',
  *		accessLevel   = 'admin',
  *		description   = 'Change loglevel for debugging',
- *		help          = 'logs.txt'
+ *		help          = 'debug.txt'
  *	)
  *	@DefineCommand(
  *		command       = 'debug',
  *		accessLevel   = 'admin',
  *		description   = 'Create debug logs for a command',
- *		help          = 'logs.txt'
+ *		help          = 'debug.txt'
  *	)
  */
 class LogsController {
@@ -55,6 +62,15 @@ class LogsController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public Nadybot $chatBot;
+
+	/** @Inject */
+	public Http $http;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Inject */
 	public Text $text;
@@ -248,18 +264,69 @@ class LogsController {
 		$newContext = clone $context;
 		$newContext->message = $command;
 		$loggers = LegacyLogger::getLoggers();
-		LegacyLogger::tempLogLevelOrderride("*", "debug");
+		$formatter = new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, true, true);
+		$formatter->includeStacktraces(true);
+		$debugFile = sys_get_temp_dir() . "/{$this->chatBot->char->name}.debug.json";
+		@unlink($debugFile);
+		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
+		$handler->setFormatter($formatter);
+		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
+		$handler->pushProcessor($processor);
 		foreach ($loggers as $logger) {
-			LegacyLogger::assignLogLevel($logger);
+			$logger->pushHandler($handler);
 		}
-		$context->registerShutdownFunction(function(): void {
+		$newContext->registerShutdownFunction(function() use ($context, $debugFile): void {
 			$loggers = LegacyLogger::getLoggers();
-			LegacyLogger::getConfig(true);
 			foreach ($loggers as $logger) {
-				LegacyLogger::assignLogLevel($logger);
+				$logger->popHandler();
 			}
+			$this->timer->callLater(0, [$this, "uploadDebugLog"], $context, $debugFile);
 		});
 
 		$this->commandManager->processCmd($newContext);
+	}
+
+	public function uploadDebugLog(CmdContext $context, string $filename): void {
+		$content = file_get_contents($filename);
+		$boundary = '--------------------------'.microtime(true);
+		if ($content === false) {
+			$context->reply("Unable to open <highlight>{$filename}<end>.");
+			return;
+		}
+		$this->http->post("https://debug.nadybot.org")
+			->withHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ==")
+			->withHeader("Content-Type", "multipart/form-data; boundary={$boundary}")
+			->withPostData(
+				"--{$boundary}\r\n".
+				"Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($filename) . "\"\r\n".
+				"Content-Type: application/json\r\n\r\n".
+				$content . "\r\n".
+				"--{$boundary}--\r\n"
+			)
+			->withCallback([$this, "handleDebugLogUpload"], $context);
+			@unlink($filename);
+	}
+
+	public function handleDebugLogUpload(HttpResponse $response, CmdContext $context): void {
+		if (isset($response->error)) {
+			$context->reply("Error uploading debug file: {$response->error}");
+			return;
+		}
+		if ($response->headers["status-code"] !== "200") {
+			$context->reply(
+				"Error uploading debug file. ".
+				"Code {$response->headers['status-code']} (".
+				($response->headers["status-message"] ?? "Unknown") . ")"
+			);
+			return;
+		}
+		if (!isset($response->body)) {
+			$context->reply("The file was uploaded successfully, but we did receive a storage link.");
+			return;
+		}
+		$url = trim($response->body);
+		$context->reply(
+			"The debug log has been uploaded successfully to <highlight>{$url}<end>."
+		);
 	}
 }

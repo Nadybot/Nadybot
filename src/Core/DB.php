@@ -540,7 +540,7 @@ class DB {
 	private function executeQuery(string $sql, array $params): PDOStatement {
 		// $sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
-		$this->logger->info($sql . " - " . print_r($params, true));
+		$this->logger->info($sql, ["params" => $params]);
 
 		try {
 			$ps = $this->sql->prepare($sql);
