@@ -16,7 +16,7 @@ class PlayerHistoryManager {
 
 	public function asyncLookup(string $name, int $dimension, callable $callback, ...$args): void {
 		$name = ucfirst(strtolower($name));
-		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
+		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
@@ -40,7 +40,7 @@ class PlayerHistoryManager {
 
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
-		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
+		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
