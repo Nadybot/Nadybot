@@ -8,6 +8,7 @@ use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\IntrospectionProcessor;
+use Monolog\Processor\PsrLogMessageProcessor;
 use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
@@ -272,6 +273,8 @@ class LogsController {
 		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
+		$handler->pushProcessor($processor);
+		$processor = new PsrLogMessageProcessor(null, true);
 		$handler->pushProcessor($processor);
 		foreach ($loggers as $logger) {
 			$logger->pushHandler($handler);

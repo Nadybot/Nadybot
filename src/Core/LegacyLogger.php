@@ -7,6 +7,7 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
+use Monolog\Processor\PsrLogMessageProcessor;
 use RuntimeException;
 
 /**
@@ -179,6 +180,7 @@ class LegacyLogger {
 				}
 				$obj->setFormatter($formatters[$config["formatter"]]);
 			}
+			$obj->pushProcessor(new PsrLogMessageProcessor(null, true));
 			$result[$name] = $obj;
 		}
 		return $result;

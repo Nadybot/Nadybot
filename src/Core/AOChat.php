@@ -247,7 +247,15 @@ class AOChat {
 		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
 
 		if (@socket_connect($this->socket, $server, $port) === false) {
-			$this->logger->error("Could not connect to the AO Chat server ($server:$port): " . trim(socket_strerror(socket_last_error($this->socket))));
+			$this->logger->error(
+				"Could not connect to the AO Chat server ({server}:{port}): {error}",
+				[
+					"server" => $server,
+					"port" => $port,
+					"error" => trim(socket_strerror(socket_last_error($this->socket)))
+				]
+			);
+
 			$this->disconnect();
 			return false;
 		}

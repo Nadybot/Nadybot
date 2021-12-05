@@ -295,7 +295,16 @@ class BotRunner {
 		$this->setWindowTitle();
 
 		$version = self::getVersion();
-		$this->logger->notice("Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()." and {$vars['DB Type']}...");
+		$this->logger->notice(
+			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
+			[
+				"name" => $vars['name'],
+				"version" => $version,
+				"dimension" => $vars['dimension'],
+				"phpVersion" => phpversion(),
+				"dbType" => $vars['DB Type'],
+			]
+		);
 
 		$this->classLoader = new ClassLoader($vars['module_load_paths']);
 		Registry::injectDependencies($this->classLoader);
