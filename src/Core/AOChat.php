@@ -347,7 +347,10 @@ class AOChat {
 			}
 			$this->logger->debug(
 				"Received package {$packName}",
-				["data" => join(" ", str_split(bin2hex($head.$data), 2))]
+				[
+					"data" => join(" ", str_split(bin2hex($head.$data), 2)),
+					"packet" => $packet,
+				]
 			);
 		}
 
