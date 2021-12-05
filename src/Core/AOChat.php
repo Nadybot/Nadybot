@@ -348,8 +348,8 @@ class AOChat {
 			$this->logger->debug(
 				"Received package {$packName}",
 				[
-					"data" => join(" ", str_split(bin2hex($head.$data), 2)),
-					"packet" => $packet,
+					"raw" => join(" ", str_split(bin2hex($head.$data), 2)),
+					"data" => $packet->args,
 				]
 			);
 		}
@@ -426,7 +426,10 @@ class AOChat {
 			}
 			$this->logger->debug(
 				"Sending package {$packName}",
-				["data" => join(" ", str_split(bin2hex($data), 2))]
+				[
+					"raw" => join(" ", str_split(bin2hex($data), 2)),
+					"data" => ["args" => $packet->args],
+				]
 			);
 		}
 
