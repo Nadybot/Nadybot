@@ -189,6 +189,13 @@ class WebsocketBase {
 		if (strlen($data) === 0 || !is_resource($this->socket)) {
 			return true;
 		}
+		$this->logger->debug(
+			"Writing data to websocket",
+			[
+				"raw" => join(" ", str_split(bin2hex($data), 2)),
+				"uri" => $this->uri ?? $this->peerName,
+			]
+		);
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
 			$this->logger->error("Error sending data", ["uri" => $this->uri]);
