@@ -13,6 +13,7 @@ use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -266,6 +267,18 @@ class DB {
 		$this->capsule->setAsGlobal();
 		/** @psalm-suppress TooManyArguments */
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
+		$this->capsule->getConnection()->beforeExecuting(
+			function(string $query, array $bindings, Connection $connection): void {
+				$this->logger->debug(
+					$query,
+					[
+						"params" => $bindings,
+						"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
+						"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
+					]
+				);
+			}
+		);
 	}
 
 	/**
@@ -538,9 +551,12 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
-		// $sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
-		$this->logger->info($sql, ["params" => $params]);
+		$this->logger->debug($sql, [
+			"params" => $params,
+			"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
+			"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
+		]);
 
 		try {
 			$ps = $this->sql->prepare($sql);
@@ -920,9 +936,9 @@ class DB {
 				continue;
 			}
 			if ($this->schema()->hasTable(AdminManager::DB_TABLE)) {
-				$log = 'Your database is migrating to a new schema.';
+				$log = 'Migrating database to a new schema.';
 			} else {
-				$log = 'Your database is being initialized.';
+				$log = 'Initializing database.';
 			}
 			$this->logger->notice(
 				$log . ' ' . 'This can take a while; please be patient.'

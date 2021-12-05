@@ -156,7 +156,7 @@ class BotRunner {
 
 	public function checkRequiredPackages(): void {
 		try {
-			new ReflectionClass(\ParserGenerator\Parser::class);
+			new ReflectionClass("Monolog\\Logger");
 		} catch (ReflectionException $e) {
 			fwrite(
 				STDERR,

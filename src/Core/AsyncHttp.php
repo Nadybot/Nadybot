@@ -341,8 +341,8 @@ class AsyncHttp {
 	}
 
 	public function handleTlsHandshake(): void {
-		$this->logger->debug("Activating TLS", ["uri" => $this->uri]);
 		if (!isset($this->stream) || !is_resource($this->stream)) {
+			$this->logger->info("Activating TLS not possible for closed stream", ["uri" => $this->uri]);
 			return;
 		}
 		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);

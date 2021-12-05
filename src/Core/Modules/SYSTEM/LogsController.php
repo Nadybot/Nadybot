@@ -9,6 +9,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\IntrospectionProcessor;
 use Nadybot\Core\{
+	BotRunner,
 	CmdContext,
 	CommandManager,
 	Http,
@@ -288,11 +289,12 @@ class LogsController {
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
 		$content = file_get_contents($filename);
-		$boundary = '--------------------------'.microtime(true);
 		if ($content === false) {
 			$context->reply("Unable to open <highlight>{$filename}<end>.");
 			return;
 		}
+		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
+		$boundary = '--------------------------'.microtime(true);
 		$this->http->post("https://debug.nadybot.org")
 			->withHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ==")
 			->withHeader("Content-Type", "multipart/form-data; boundary={$boundary}")
