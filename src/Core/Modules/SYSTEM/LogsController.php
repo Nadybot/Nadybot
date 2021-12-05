@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
+	DedupHandler,
 	Http,
 	HttpResponse,
 	LegacyLogger,
@@ -274,14 +275,16 @@ class LogsController {
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
 		$handler->pushProcessor($processor);
-		$processor = new PsrLogMessageProcessor(null, true);
+		$processor = new PsrLogMessageProcessor(null, false);
 		$handler->pushProcessor($processor);
 		foreach ($loggers as $logger) {
 			$logger->pushHandler($handler);
+			$logger->pushHandler(new DedupHandler());
 		}
 		$newContext->registerShutdownFunction(function() use ($context, $debugFile): void {
 			$loggers = LegacyLogger::getLoggers();
 			foreach ($loggers as $logger) {
+				$logger->popHandler();
 				$logger->popHandler();
 			}
 			$this->timer->callLater(0, [$this, "uploadDebugLog"], $context, $debugFile);

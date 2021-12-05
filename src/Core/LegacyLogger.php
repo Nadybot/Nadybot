@@ -146,7 +146,8 @@ class LegacyLogger {
 		$logStruct = static::getConfig();
 		$formatters = static::parseFormattersConfig($logStruct["formatters"]??[]);
 		$handlers = static::parseHandlersConfig($logStruct["handlers"]??[], $formatters);
-		$logger = new Logger($channel, array_values($handlers));
+		$deDuper = new DedupHandler();
+		$logger = new Logger($channel, [$deDuper, ...array_values($handlers)]);
 		static::assignLogLevel($logger);
 		return static::$loggers[$channel] = $logger;
 	}
