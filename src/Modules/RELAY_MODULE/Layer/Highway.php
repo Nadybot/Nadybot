@@ -123,6 +123,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	public function send(array $data): array {
 		$encoded = [];
+		$this->logger->debug("Encoding packets on {relay} to highway", [
+			"relay" => $this->relay->getName(),
+			"packets" => $data,
+		]);
 		foreach ($data as $packet) {
 			foreach ($this->rooms as $room) {
 				$json = (object)[
@@ -142,13 +146,20 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				}
 			}
 		}
+		$this->logger->debug(
+			"Encoding packets on {relay} to highway finished successfully",
+			[
+				"relay" => $this->relay->getName(),
+				"encoded" => $encoded,
+			]
+		);
 		return $encoded;
 	}
 
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$this->logger->debug("Received highway message on relay {relay}: {message}", [
+				$this->logger->debug("Received highway message on relay {relay}", [
 					"relay" => $this->relay->getName(),
 					"message" => $data,
 				]);
@@ -236,6 +247,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			$data = $json->body;
 		}
 		$msg->packages = array_values(array_filter($msg->packages));
+		$this->logger->debug("Decoding highway message on relay {relay} done", [
+			"relay" => $this->relay->getName(),
+			"message" => $msg,
+		]);
 		return $msg;
 	}
 }

@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	LoggerWrapper,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -65,6 +66,9 @@ class StartpageController {
 
 	/** @Inject */
 	public Nadybot $chatBot;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** @Inject */
 	public AccessManager $accessManager;
@@ -301,9 +305,9 @@ class StartpageController {
 		return $tiles;
 	}
 
-	protected function createTileCallback(callable $callback, int $numCall): Closure {
-		return function(?string $text) use ($callback, $numCall): void {
-			$callback($numCall, $text);
+	protected function createTileCallback(callable $callback, string $name, int $numCall): Closure {
+		return function(?string $text) use ($callback, $numCall, $name): void {
+			$callback($numCall, $text, $name);
 		};
 	}
 
@@ -329,11 +333,16 @@ class StartpageController {
 		}
 		$callResults = [];
 		$callNum = 0;
-		$callback = function(int $numCall, ?string $text) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
+		$callback = function(int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
 			$callResults[$numCall] = isset($text) ? trim($text) : null;
+			$this->logger->debug("Callback for {name} received", [
+				"name" => $name,
+				"data" => $text,
+			]);
 			if (count($callResults) < count($tiles)) {
 				return;
 			}
+			$this->logger->info("All start callbacks finished");
 			ksort($callResults, SORT_NUMERIC);
 			$dataParts = array_filter(array_values($callResults));
 			if (empty($dataParts)) {
@@ -347,7 +356,10 @@ class StartpageController {
 			$sendto->reply($msg);
 		};
 		foreach ($tiles as $name => $tile) {
-			$tile->call($sender, $this->createTileCallback($callback, $callNum++));
+			$this->logger->info("Calling callback of {tile}", [
+				"tile" => $name,
+			]);
+			$tile->call($sender, $this->createTileCallback($callback, $name, $callNum++));
 		}
 	}
 

@@ -311,6 +311,9 @@ class Relay implements MessageReceiver {
 				return;
 			}
 		}
+		if (empty($data->packages)) {
+			return;
+		}
 		$event = $this->relayProtocol->receive($data);
 		if (!isset($event)) {
 			return;

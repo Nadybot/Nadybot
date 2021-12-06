@@ -57,6 +57,10 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function send(RoutableEvent $event): array {
+		$this->logger->debug("Relay {relay} received event to route", [
+			"relay" => $this->relay->getName(),
+			"event" => $event,
+		]);
 		$event = clone $event;
 		if (is_object($event->data)) {
 			$event->data->renderPath = true;
@@ -80,6 +84,10 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
+		$this->logger->debug("Relay {relay} received message to route", [
+			"relay" => $this->relay->getName(),
+			"message" => $message,
+		]);
 		if (empty($message->packages)) {
 			return null;
 		}
@@ -88,8 +96,11 @@ class NadyNative implements RelayProtocolInterface {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$this->logger->error(
-				'Invalid data received via Nadynative protocol: ' . $serialized,
-				["exception" => $e]
+				'Invalid data received via Nadynative protocol',
+				[
+					"exception" => $e,
+					"data" => $serialized
+				]
 			);
 			return null;
 		}
@@ -133,15 +144,27 @@ class NadyNative implements RelayProtocolInterface {
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
+			$this->logger->debug("Received online event for {relay}", [
+				"relay" => $this->relay->getName(),
+				"event" => $event,
+			]);
 			$this->handleOnlineEvent($message->sender, $event);
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_object($event->data)
 			&& fnmatch("sync(*)", $event->data->type, FNM_CASEFOLD)
 		) {
+			$this->logger->debug("Received sync event for {relay}", [
+				"relay" => $this->relay->getName(),
+				"event" => $event,
+			]);
 			$this->handleExtSyncEvent($event->data);
 			return null;
 		}
+		$this->logger->debug("Received routable event for {relay}", [
+			"relay" => $this->relay->getName(),
+			"event" => $event,
+		]);
 		return $event;
 	}
 
