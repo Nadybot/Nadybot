@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	LoggerWrapper,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -40,6 +41,9 @@ class PlayerManager {
 
 	/** @Inject */
 	public Http $http;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
 
@@ -184,12 +188,25 @@ class PlayerManager {
 	}
 
 	public function findInDb(string $name, int $dimension): ?Player {
-		return $this->db->table("players")
+		$player = $this->db->table("players")
 			->whereIlike("name", $name)
 			->where("dimension", $dimension)
 			->limit(1)
 			->asObj(Player::class)
 			->first();
+		if (isset($player)) {
+			$this->logger->info("Found cached information found about {character} on RK{dimension}", [
+				"character" => $name,
+				"dimension" => $dimension,
+				"data" => $player,
+			]);
+		} else {
+			$this->logger->info("No cached information found about {character} on RK{dimension}", [
+				"character" => $name,
+				"dimension" => $dimension,
+			]);
+		}
+		return  $player;
 	}
 
 	public function lookup(string $name, int $dimension): ?Player {
@@ -199,6 +216,10 @@ class PlayerManager {
 			$obj->dimension = $dimension;
 			return $obj;
 		}
+		$this->logger->info("No char information found about {character} on RK{dimension}", [
+			"character" => $name,
+			"dimension" => $dimension,
+		]);
 
 		return null;
 	}
@@ -211,6 +232,11 @@ class PlayerManager {
 				if (isset($player) && $player->name === $name) {
 					$player->source = 'people.anarchy-online.com';
 					$player->dimension = $dimension;
+				} else {
+					$this->logger->info("No char information found about {character} on RK{dimension}", [
+						"character" => $name,
+						"dimension" => $dimension,
+					]);
 				}
 				$callback($player, ...$args);
 			}

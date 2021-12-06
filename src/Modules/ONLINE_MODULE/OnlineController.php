@@ -611,8 +611,21 @@ class OnlineController {
 		}
 		$result = [];
 		foreach ($this->relayController->relays as $name => $relay) {
+			$this->logger->info("Getting online list for relay {relay}", [
+				"relay" => $relay->getName(),
+			]);
 			$online = $relay->getOnlineList();
+			$this->logger->info("Got {numOnline} characters online in total on {relay}", [
+				"numOnline" => array_sum(array_map("count", array_values($online))),
+				"relay" => $relay->getName(),
+			]);
 			foreach ($online as $chanName => $onlineChars) {
+				$this->logger->info("{numOnline} characters online in {relay}.{channel}", [
+					"relay" => $relay->getName(),
+					"channel" => $chanName,
+					"numOnline" => count($onlineChars),
+					"characters" => $onlineChars,
+				]);
 				$key = "";
 				if ($groupBy === self::GROUP_BY_ORG) {
 					$key = $chanName;
@@ -760,13 +773,13 @@ class OnlineController {
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
 		switch ($accessLevel) {
 			case 'superadmin':
-				  return " $fancyColon <red>SuperAdmin<end>";
+				return " $fancyColon <red>SuperAdmin<end>";
 			case 'admin':
-				  return " $fancyColon <red>Admin<end>";
+				return " $fancyColon <red>Admin<end>";
 			case 'mod':
-				  return " $fancyColon <green>Mod<end>";
+				return " $fancyColon <green>Mod<end>";
 			case 'rl':
-				  return " $fancyColon <orange>RL<end>";
+				return " $fancyColon <orange>RL<end>";
 		}
 		if (substr($accessLevel, 0, 5) === "raid_") {
 			$setName = $this->settingManager->getString("name_{$accessLevel}");

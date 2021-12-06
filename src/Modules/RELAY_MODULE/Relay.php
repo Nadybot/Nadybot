@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\{
 	DBSchema\Player,
+	LoggerWrapper,
 	MessageHub,
 	MessageReceiver,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -35,6 +36,9 @@ class Relay implements MessageReceiver {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	/** Name of this relay */
 	protected string $name;
@@ -77,10 +81,21 @@ class Relay implements MessageReceiver {
 	}
 
 	public function clearOnline(string $where): void {
+		$this->logger->info("Cleaning online chars for {relay}.{where}", [
+			"relay" => $this->name,
+			"where" => $where
+		]);
 		unset($this->onlineChars[$where]);
 	}
 
 	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+		$this->logger->info("Marking {name} online on {relay}.{where}", [
+			"name" => $character,
+			"where" => $where,
+			"relay" => $this->name,
+			"dimension" => $dimension,
+			"uid" => $uid,
+		]);
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
@@ -111,19 +126,40 @@ class Relay implements MessageReceiver {
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
 		$character = ucfirst(strtolower($character));
+		$this->logger->info("Marking {name} offline on {relay}.{where}", [
+			"name" => $character,
+			"where" => $where,
+			"relay" => $this->name,
+			"dimension" => $dimension,
+			"uid" => $uid,
+		]);
 		$this->onlineChars[$where] ??= [];
 		unset($this->onlineChars[$where][$character]);
 	}
 
 	public function setClientOffline(string $clientId): void {
+		$this->logger->info("Client {clientId} is offline, marking all characters offline", [
+			"relay" => $this->name,
+			"clientId" => $clientId,
+		]);
+		$skipped = [];
+		$offline = [];
 		foreach ($this->onlineChars as $where => &$characters) {
 			foreach ($characters as $name => $player) {
 				if (($player->source??null) === null || $player->source !== $clientId) {
+					$skipped []= $name;
 					continue;
 				}
+				$offline []= $name;
 				unset($this->onlineChars[$where][$name]);
 			}
 		}
+		$this->logger->info("Marked {numOffline} character(s) offline on {relay}", [
+			"relay" => $this->name,
+			"numOffline" => count($offline),
+			"offline" => $offline,
+			"skipped" => $skipped,
+		]);
 	}
 
 	public function getStatus(): RelayStatus {
@@ -169,6 +205,9 @@ class Relay implements MessageReceiver {
 
 	public function deinit(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
+			$this->logger->info("Deinitializing relay {relay}", [
+				"relay" => $this->name,
+			]);
 			if ($this->registerAsEmitter) {
 				$this->messageHub->unregisterMessageEmitter($this->getChannelName());
 			}
@@ -184,11 +223,18 @@ class Relay implements MessageReceiver {
 		];
 		$layer = $layers[$index] ?? null;
 		if (!isset($layer)) {
+			$this->logger->info("Relay {relay} fully deinitialized", [
+				"relay" => $this->name,
+			]);
 			if (isset($callback)) {
 				$callback($this);
 			}
 			return;
 		}
+		$this->logger->info("Deinitializing layer {layer} on relay {relay}", [
+			"layer" => get_class($layer),
+			"relay" => $this->name,
+		]);
 		$data = $layer->deinit(
 			function() use ($callback, $index): void {
 				$this->deinit($callback, $index+1);
@@ -202,6 +248,11 @@ class Relay implements MessageReceiver {
 	}
 
 	public function init(?callable $callback=null, int $index=0): void {
+		if ($index === 0) {
+			$this->logger->info("Initializing relay {relay}", [
+				"relay" => $this->name,
+			]);
+		}
 		$this->initialized = false;
 		$this->onlineChars = [];
 		$this->initStep = $index;
@@ -216,12 +267,19 @@ class Relay implements MessageReceiver {
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
 			$this->initialized = true;
+			$this->logger->info("Relay {relay} fully initialized", [
+				"relay" => $this->name,
+			]);
 			if (isset($callback)) {
 				$callback();
 			}
 			return;
 		}
 		$element->setRelay($this);
+		$this->logger->info("Initializing layer {layer} on relay {relay}", [
+			"layer" => get_class($element),
+			"relay" => $this->name,
+		]);
 		$data = $element->init(
 			function() use ($callback, $index): void {
 				$this->init($callback, $index+1);
