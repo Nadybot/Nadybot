@@ -235,10 +235,12 @@ class AOChat {
 	 * @return bool false we cannot connect, otherwise true
 	 */
 	public function connect(string $server, int $port) {
-		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		$this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if ($this->socket === false) {
 			$this->socket = null;
-			$this->logger->error("Could not create socket");
+			$this->logger->error("Could not create socket: {error}", [
+				"error" => trim(socket_strerror(socket_last_error())),
+			]);
 			die();
 		}
 
@@ -315,7 +317,7 @@ class AOChat {
 			/** @psalm-suppress InvalidArgument */
 			if (($tmp = socket_read($this->socket, $rlen)) === false) {
 				$last_error = socket_strerror(socket_last_error($this->socket));
-				$this->logger->error("Read error: $last_error");
+				$this->logger->error("Read error: {error}", ["error" => $last_error]);
 				die();
 			}
 			if ($tmp === "") {
@@ -354,8 +356,9 @@ class AOChat {
 				$packName = $packet->type;
 			}
 			$this->logger->debug(
-				"Received package {$packName}",
+				"Received package {packName}",
 				[
+					"packName" => $packName,
 					"raw" => join(" ", str_split(bin2hex($head.$data), 2)),
 					"data" => $packet->args,
 				]
@@ -405,7 +408,9 @@ class AOChat {
 					if ($packet->args[5] !== null) {
 						$packet->args[6] = vsprintf($packet->args[4], $packet->args[5]);
 					} else {
-						$this->logger->error("Could not parse chat notice: " . print_r($packet, true));
+						$this->logger->error("Could not parse chat notice", [
+							"packet" => $packet,
+						]);
 					}
 				}
 				break;
@@ -433,8 +438,9 @@ class AOChat {
 				$packName = $packet->type;
 			}
 			$this->logger->debug(
-				"Sending package {$packName}",
+				"Sending package {packName}",
 				[
+					"packName" => $packName,
 					"raw" => join(" ", str_split(bin2hex($data), 2)),
 					"data" => ["args" => $packet->args],
 				]
@@ -494,7 +500,10 @@ class AOChat {
 		}
 
 		if (!($char instanceof AOChatChar)) {
-			$this->logger->error("AOChat: no valid character to login");
+			$this->logger->error("AOChat: no valid character to login", [
+				"chars" => $this->chars,
+				"char" => $char,
+			]);
 			return false;
 		}
 
