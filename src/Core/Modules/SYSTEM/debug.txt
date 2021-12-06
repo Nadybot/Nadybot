@@ -4,8 +4,15 @@ To view the current loglevels:
 To temporary change the loglevel(s):
 <tab><highlight><symbol>loglevel 'channel' 'loglevel'<end>
 
-To reset your loglevels to your configuration:
+'channel' also accepts wildcars. So These all work:
+<tab><highlight><symbol>loglevel * warning<end>
+<tab><highlight><symbol>loglevel RELAY_MODULE/* debug<end>
+<tab><highlight><symbol>loglevel RELAY_MODULE/RelayProtocol/* debug<end>
+<tab><highlight><symbol>loglevel Core/* info<end>
+
+To reset your temporarily changed loglevels back to your configuration:
 <tab><highlight><symbol>loglevel reset<end>
 
 To debug a single command execution and upload logs for inspection:
 <tab><highlight><symbol>debug 'command with params'<end>
+<tab>e.g. <highlight><symbol>debug whois Nady<end>
