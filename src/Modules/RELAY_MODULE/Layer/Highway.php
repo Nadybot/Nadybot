@@ -49,6 +49,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	/** @var ?callable */
 	protected $initCallback = null;
 
+	/** @var ?callable */
+	protected $deInitCallback = null;
+
 	public function __construct(array $rooms) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {
@@ -112,7 +115,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$this->logger->error($this->status->text);
 				return [];
 			}
-			$this->initCallback = $callback;
+			$this->deInitCallback = $callback;
 			$cmd []= $encoded;
 		}
 		return $cmd;
@@ -145,13 +148,21 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
+				$this->logger->debug("Received highway message on relay {relay}: {message}", [
+					"relay" => $this->relay->getName(),
+					"message" => $data,
+				]);
 				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to decode highway message: " . $e->getMessage()
 				);
-				$this->logger->error($this->status->text);
+				$this->logger->error("Unable to decode highway message on {relay}: {message}", [
+					"relay" => $this->relay->getName(),
+					"message" => $e->getMessage(),
+					"exception" => $e,
+				]);
 				$data = null;
 				continue;
 			}
@@ -163,7 +174,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					RelayStatus::INIT,
 					'Received highway message without type'
 				);
-				$this->logger->warning($this->status->text);
+				$this->logger->warning("Received highway message without type on  {relay}", [
+					"relay" => $this->relay->getName(),
+					"message" => $json,
+				]);
 				$data = null;
 				continue;
 			}
@@ -175,8 +189,18 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
+			if ($json->type === static::TYPE_SUCCESS && isset($this->deInitCallback)) {
+				$callback = $this->deInitCallback;
+				unset($this->deInitCallback);
+				$callback();
+				$data = null;
+				continue;
+			}
 			if ($json->type === static::TYPE_ERROR) {
-				$this->logger->error("Highway: {$json->message}");
+				$this->logger->error("Highway error on {relay}: {message}", [
+					"relay" => $this->relay->getName(),
+					"message" => $json->message,
+				]);
 				$this->status = new RelayStatus(RelayStatus::ERROR, $json->message);
 				$data = null;
 				continue;
@@ -202,7 +226,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					RelayStatus::INIT,
 					'Received highway message without body'
 				);
-				$this->logger->error($this->status->text);
+				$this->logger->error("Received highway message without body on {relay}", [
+					"relay" => $this->relay->getName(),
+					"message" => $json
+				]);
 				$data = null;
 				continue;
 			}
