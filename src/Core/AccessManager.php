@@ -116,7 +116,13 @@ class AccessManager {
 	 * and if it has been validated as an alt.
 	 */
 	public function checkAccess(string $sender, string $accessLevel): bool {
-		$this->logger->log("DEBUG", "Checking access level '$accessLevel' against character '$sender'");
+		$this->logger->info(
+			"Checking access level '{checkLevel}' against character '{sender}'",
+			[
+				"checkLevel" => $accessLevel,
+				"sender" => $sender,
+			]
+		);
 
 		$returnVal = $this->checkSingleAccess($sender, $accessLevel);
 
@@ -128,7 +134,14 @@ class AccessManager {
 			// otherwise just return the result
 			$altInfo = $this->altsController->getAltInfo($sender);
 			if ($sender !== $altInfo->main && $altInfo->isValidated($sender)) {
-				$this->logger->log("DEBUG", "Checking access level '$accessLevel' against the main of '$sender' which is '$altInfo->main'");
+				$this->logger->info(
+					"Checking access level '{accessLevel}' against the main of '{sender}' which is '{main}'",
+					[
+						"accessLevel" => $accessLevel,
+						"sender" => $sender,
+						"main" => $altInfo->main
+					]
+				);
 				$returnVal = $this->checkSingleAccess($altInfo->main, $accessLevel);
 			}
 		}

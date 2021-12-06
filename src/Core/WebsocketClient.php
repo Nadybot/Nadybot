@@ -170,7 +170,7 @@ class WebsocketClient extends WebsocketBase {
 	 */
 	public function upgradeToWebsocket(): void {
 		$this->connected = true;
-		$this->logger->log("DEBUG", "Connected to {$this->uri}");
+		$this->logger->info("Connected to {$this->uri}");
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
@@ -213,7 +213,7 @@ class WebsocketClient extends WebsocketBase {
 		$header = "GET $path HTTP/1.1\r\n" . implode("\r\n", $headerStrings) . "\r\n\r\n";
 
 		$this->write($header);
-		$this->logger->log("DEBUG", "Headers sent");
+		$this->logger->info("Headers sent");
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -264,7 +264,7 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
-		$this->logger->log("DEBUG", "connection upgraded to websocket on {$this->uri}");
+		$this->logger->info("connection upgraded to websocket on {$this->uri}");
 		unset($this->notifier);
 		$this->listenForRead();
 		$event = $this->getEvent("connect");

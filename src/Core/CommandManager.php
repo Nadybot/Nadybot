@@ -110,19 +110,19 @@ class CommandManager implements MessageEmitter {
 
 		$channel = $channelName;
 		if (!$this->chatBot->processCommandArgs($channel, $accessLevel)) {
-			$this->logger->log('ERROR', "Invalid args for $module:command($command). Command not registered.");
+			$this->logger->error("Invalid args for $module:command($command). Command not registered.");
 			return;
 		}
 
 		if (empty($filename)) {
-			$this->logger->log('ERROR', "Error registering $module:command($command).  Handler is blank.");
+			$this->logger->error("Error registering $module:command($command).  Handler is blank.");
 			return;
 		}
 
 		foreach (explode(',', $filename) as $handler) {
 			$name = explode(".", $handler)[0];
 			if (!Registry::instanceExists($name)) {
-				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
+				$this->logger->error("Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
 				return;
 			}
 		}
@@ -143,7 +143,7 @@ class CommandManager implements MessageEmitter {
 
 		/** @var string[] $channel */
 		for ($i = 0; $i < count($channel); $i++) {
-			$this->logger->log('debug', "Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
+			$this->logger->info("Adding Command to list:($command) File:($filename) Admin:({$accessLevel[$i]}) Channel:({$channel[$i]})");
 			try {
 				$this->db->table(self::DB_TABLE)
 					->upsert(
@@ -163,7 +163,7 @@ class CommandManager implements MessageEmitter {
 						["module", "verify", "file", "description", "help"]
 					);
 			} catch (SQLException $e) {
-				$this->logger->log('ERROR', "Error registering method '$handler' for command '$command': " . $e->getMessage(), $e);
+				$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["exception" => $e]);
 			}
 		}
 	}
@@ -185,12 +185,12 @@ class CommandManager implements MessageEmitter {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$channel = strtolower($channel);
 
-		$this->logger->log('DEBUG', "Activate Command:($command) Admin Type:($accessLevel) File:($filename) Channel:($channel)");
+		$this->logger->info("Activate Command:($command) Admin Type:($accessLevel) File:($filename) Channel:($channel)");
 
 		foreach (explode(',', $filename) as $handler) {
 			[$name, $method] = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
-				$this->logger->log('ERROR', "Error activating method $handler for command $command.  Could not find instance '$name'.");
+				$this->logger->error("Error activating method $handler for command $command.  Could not find instance '$name'.");
 				return;
 			}
 		}
@@ -213,7 +213,7 @@ class CommandManager implements MessageEmitter {
 		$command = strtolower($command);
 		$channel = strtolower($channel);
 
-		$this->logger->log('DEBUG', "Deactivate Command:($command) File:($filename) Channel:($channel)");
+		$this->logger->info("Deactivate Command:($command) File:($filename) Channel:($channel)");
 
 		unset($this->commands[$channel][$command]);
 	}
@@ -268,7 +268,7 @@ class CommandManager implements MessageEmitter {
 	 * Loads the active command into memory and activates them
 	 */
 	public function loadCommands(): void {
-		$this->logger->log('DEBUG', "Loading enabled commands");
+		$this->logger->info("Loading enabled commands");
 
 		/** @var CmdCfg[] */
 		$data = $this->db->table(self::DB_TABLE)
@@ -375,14 +375,13 @@ class CommandManager implements MessageEmitter {
 			$event->type = "command(error)";
 			throw $e;
 		} catch (SQLException $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			$context->reply("There was an SQL error executing your command.");
 			$event->type = "command(error)";
 		} catch (Throwable $e) {
-			$this->logger->log(
-				"ERROR",
+			$this->logger->error(
 				"Error executing '{$context->message}': " . $e->getMessage(),
-				$e
+				["exception" => $e]
 			);
 			$context->reply("There was an error executing your command: " . $e->getMessage());
 			$event->type = "command(error)";
@@ -395,7 +394,7 @@ class CommandManager implements MessageEmitter {
 				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		}
 	}
 
@@ -448,7 +447,7 @@ class CommandManager implements MessageEmitter {
 			[$name, $method] = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
-				$this->logger->log('ERROR', "Could not find instance for name '$name'");
+				$this->logger->error("Could not find instance for name '$name'");
 			} else {
 				$arr = $this->checkMatches($instance, $method, $context->message);
 				if ($arr !== false) {

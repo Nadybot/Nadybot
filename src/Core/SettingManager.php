@@ -95,14 +95,14 @@ class SettingManager {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
 
 		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank'])) {
-			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
+			$this->logger->error("Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
 		}
 
 		if ($type == 'time') {
 			$oldvalue = $value;
 			$value = $this->util->parseTime($value);
 			if ($value < 1) {
-				$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
+				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
 				return;
 			}
 		}
@@ -159,7 +159,7 @@ class SettingManager {
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name): " . $e->getMessage(), $e);
+			$this->logger->error("Error in registering Setting $module:setting($name): " . $e->getMessage(), ["exception" => $e]);
 		}
 	}
 
@@ -184,7 +184,7 @@ class SettingManager {
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
 		}
-		$this->logger->log("ERROR", "Could not retrieve value for setting '$name' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return false;
 	}
 
@@ -196,7 +196,7 @@ class SettingManager {
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
 		}
-		$this->logger->log("ERROR", "Could not retrieve value for setting '$name' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return null;
 	}
 
@@ -206,7 +206,7 @@ class SettingManager {
 			return (int)$value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
 		return null;
 	}
 
@@ -216,7 +216,7 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'bool', got '$type'");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'bool', got '$type'");
 		return null;
 	}
 
@@ -226,7 +226,7 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'string', got '$type'");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'string', got '$type'");
 		return null;
 	}
 
@@ -241,7 +241,7 @@ class SettingManager {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
-			$this->logger->log("ERROR", "Could not save value '$value' for setting '$name' because setting does not exist");
+			$this->logger->error("Could not save value '$value' for setting '$name' because setting does not exist");
 			return false;
 		}
 		if ($this->getHardcoded($name, null) !== null) {
@@ -310,7 +310,7 @@ class SettingManager {
 	 */
 	public function registerChangeListener(string $settingName, callable $callback, $data=null): void {
 		if (!is_callable($callback)) {
-			$this->logger->log('ERROR', 'Given callback is not valid.');
+			$this->logger->error('Given callback is not valid.');
 			return;
 		}
 		$settingName = strtolower($settingName);
@@ -337,7 +337,7 @@ class SettingManager {
 	public function getSettingHandler(Setting $row): ?SettingHandler {
 		$handler = $this->settingHandlers[$row->type] ?? null;
 		if (!isset($handler)) {
-			$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
+			$this->logger->error("Could not find setting handler for setting type: '$row->type'");
 			return null;
 		}
 		$handlerObj = new $handler($row);

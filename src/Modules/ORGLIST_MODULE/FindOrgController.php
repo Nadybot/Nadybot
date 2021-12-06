@@ -181,7 +181,7 @@ class FindOrgController {
 
 		try {
 			preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
-			$this->logger->log("DEBUG", "Updating orgs starting with $search");
+			$this->logger->info("Updating orgs starting with $search");
 			$inserts = [];
 			foreach ($arr as $match) {
 				$obj = new Organization();
@@ -203,7 +203,7 @@ class FindOrgController {
 			$this->db->commit();
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
-				$this->logger->log("INFO", "Finished downloading orglists");
+				$this->logger->notice("Finished downloading orglists");
 				$this->ready = true;
 				return;
 			}
@@ -215,7 +215,7 @@ class FindOrgController {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Error downloading orgs: " . $e->getMessage(), $e);
+			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
 			$this->ready = true;
 		}
@@ -235,7 +235,7 @@ class FindOrgController {
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
-		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
+		$this->logger->info("Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http
 				->get($url)

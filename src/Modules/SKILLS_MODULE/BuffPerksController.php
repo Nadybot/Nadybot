@@ -91,7 +91,7 @@ class BuffPerksController {
 		if (($mtime === false || $dbVersion >= $mtime) && !$applied) {
 			return;
 		}
-		$this->logger->log("INFO", "(Re)building perk database...");
+		$this->logger->notice("(Re)building perk database...");
 
 		$perkInfo = $this->getPerkInfo();
 
@@ -482,7 +482,7 @@ class BuffPerksController {
 
 			$parts = explode("|", $line);
 			if (count($parts) < 7) {
-				$this->logger->log("ERROR", "Illegal perk entry: {$line}");
+				$this->logger->error("Illegal perk entry: {$line}");
 				continue;
 			}
 			[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;

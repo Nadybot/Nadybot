@@ -228,7 +228,7 @@ class LimitsController {
 	}
 
 	public function handleAccessError(string $sender, string $message, string $msg): void {
-		$this->logger->log('Info', "$sender denied access to bot due to: $msg");
+		$this->logger->notice("$sender denied access to bot due to: $msg");
 
 		$this->handleLimitCheckFail($msg, $sender);
 
@@ -416,7 +416,7 @@ class LimitsController {
 		if ($action & 1) {
 			if (isset($this->chatBot->chatlist[$event->sender])) {
 				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
-				$this->logger->log('INFO', "Kicking {$event->sender} from private channel.");
+				$this->logger->notice("Kicking {$event->sender} from private channel.");
 				$this->chatBot->privategroup_kick($event->sender);
 				$audit = new Audit();
 				$audit->actor = (string)$event->sender;
@@ -428,12 +428,12 @@ class LimitsController {
 		if ($action & 2) {
 			$uid = $this->chatBot->get_uid($event->sender);
 			if (is_int($uid)) {
-				$this->logger->log('INFO', "Blocking {$event->sender} for {$blockadeLength}s.");
+				$this->logger->notice("Blocking {$event->sender} for {$blockadeLength}s.");
 				$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
 			}
 		}
 		if ($action & 4) {
-			$this->logger->log('INFO', "Ignoring {$event->sender} for {$blockadeLength}s.");
+			$this->logger->notice("Ignoring {$event->sender} for {$blockadeLength}s.");
 			$this->ignore((string)$event->sender, $blockadeLength);
 		}
 	}
@@ -444,7 +444,7 @@ class LimitsController {
 	 */
 	public function ignore(string $sender, int $duration): bool {
 		$this->ignoreList[$sender] = time() + $duration;
-		$this->logger->log('INFO', "Ignoring {$sender} for {$duration}s.");
+		$this->logger->notice("Ignoring {$sender} for {$duration}s.");
 		return true;
 	}
 
@@ -466,7 +466,7 @@ class LimitsController {
 		foreach ($this->ignoreList as $name => $expires) {
 			if ($expires < $now) {
 				unset($this->ignoreList[$name]);
-				$this->logger->log('INFO', "Unignoring {$name} again.");
+				$this->logger->notice("Unignoring {$name} again.");
 			}
 		}
 	}

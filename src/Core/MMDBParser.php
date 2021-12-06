@@ -13,7 +13,7 @@ class MMDBParser {
 	private LoggerWrapper $logger;
 
 	public function __construct() {
-		$this->logger = new LoggerWrapper('MMDBParser');
+		$this->logger = new LoggerWrapper('Core/MMDBParser');
 	}
 
 	public function getMessageString(int $categoryId, int $instanceId): ?string {
@@ -31,7 +31,7 @@ class MMDBParser {
 		// find the category
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
-			$this->logger->log('error', "Could not find categoryID: '{$categoryId}'");
+			$this->logger->error("Could not find categoryID: '{$categoryId}'");
 			fclose($in);
 			return null;
 		}
@@ -39,7 +39,7 @@ class MMDBParser {
 		// find the instance
 		$instance = $this->findEntry($in, $instanceId, $category['offset']);
 		if ($instance === null) {
-			$this->logger->log('error', "Could not find instance id: '{$instanceId}' for categoryId: '{$categoryId}'");
+			$this->logger->error("Could not find instance id: '{$instanceId}' for categoryId: '{$categoryId}'");
 			fclose($in);
 			return null;
 		}
@@ -66,7 +66,7 @@ class MMDBParser {
 		// find the category
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
-			$this->logger->log('error', "Could not find categoryID: '{$categoryId}'");
+			$this->logger->error("Could not find categoryID: '{$categoryId}'");
 			fclose($in);
 			return null;
 		}
@@ -123,14 +123,14 @@ class MMDBParser {
 	private function openFile(string $filename="data/text.mdb") {
 		$in = fopen($filename, 'rb');
 		if ($in === false) {
-			$this->logger->log('error', "Could not open file: '{$filename}'");
+			$this->logger->error("Could not open file: '{$filename}'");
 			return null;
 		}
 
 		// make sure first 4 chars are 'MMDB'
 		$entry = $this->readEntry($in);
 		if ($entry['id'] !== 1111772493) {
-			$this->logger->log('error', "Not an mmdb file: '{$filename}'");
+			$this->logger->error("Not an mmdb file: '{$filename}'");
 			fclose($in);
 			return null;
 		}

@@ -131,7 +131,7 @@ class Tyrbot implements RelayProtocolInterface {
 		try {
 			$data = $this->jsonEncode($packet);
 		} catch (JsonException $e) {
-			$this->logger->log('ERROR', "Error ecoding Tyrbot message: " . $e->getMessage(), $e);
+			$this->logger->error("Error ecoding Tyrbot message: " . $e->getMessage(), ["exception" => $e]);
 			return [];
 		}
 		return [$data];
@@ -142,23 +142,21 @@ class Tyrbot implements RelayProtocolInterface {
 			return null;
 		}
 		$serialized = array_shift($message->packages);
-		$this->logger->log('DEBUG', "[Tyrbot] {$serialized}");
+		$this->logger->info("[Tyrbot] {$serialized}");
 		try {
 			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				"Invalid data received via Tyrbot protocol: {$serialized}",
-				$e
+				["exception" => $e]
 			);
 			return null;
 		} catch (Throwable $e) {
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				"Invalid Tyrbot-package received: {$serialized}",
-				$e
+				["exception" => $e]
 			);
 			return null;
 		}
@@ -183,7 +181,7 @@ class Tyrbot implements RelayProtocolInterface {
 				$this->handleOnlineList($sender, new OnlineList($data));
 				return null;
 			default:
-				$this->logger->log("INFO", "Received unknown Tyrbot packet: {$identify->type}");
+				$this->logger->notice("Received unknown Tyrbot packet: {$identify->type}");
 		}
 		return null;
 	}

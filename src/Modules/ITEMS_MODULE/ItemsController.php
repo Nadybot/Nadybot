@@ -485,7 +485,7 @@ class ItemsController {
 	public function getItem(string $name, ?int $ql=null): ?string {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
-			$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
+			$this->logger->warning("Could not find item '$name' at QL '$ql'");
 			return null;
 		}
 		$ql ??= $row->highql;
@@ -496,10 +496,10 @@ class ItemsController {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
 			if (isset($ql)) {
-				$this->logger->log("WARN", "Could not find item '$name' at QL '$ql'");
+				$this->logger->warning("Could not find item '$name' at QL '$ql'");
 				return "{$name}@{$ql}";
 			}
-			$this->logger->log("WARN", "Could not find item '$name'");
+			$this->logger->warning("Could not find item '$name'");
 			return $name;
 		}
 		$ql ??= $row->highql;

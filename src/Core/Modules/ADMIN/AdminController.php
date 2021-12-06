@@ -287,6 +287,6 @@ class AdminController {
 		}
 		$this->adminManager->removeFromLists($event->alt, $event->main);
 		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
-		$this->logger->log('INFO', "Moved {$event->alt}'s admin rank to {$event->main}.");
+		$this->logger->notice("Moved {$event->alt}'s admin rank to {$event->main}.");
 	}
 }

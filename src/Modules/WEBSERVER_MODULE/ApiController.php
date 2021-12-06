@@ -297,7 +297,7 @@ class ApiController {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
-			$this->logger->log('DEBUG', "Adding route to {$path}");
+			$this->logger->info("Adding route to {$path}");
 			$handler->path = $path;
 			$handler->route = $route;
 			$handler->allowedMethods = $methods;

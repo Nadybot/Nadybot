@@ -269,6 +269,7 @@ class AOChatPacket {
 			} else {
 				$args = $data;
 			}
+			$this->args = $args;
 			$data = "";
 
 			for ($i = 0; $i < strlen($pmap["args"]); $i++) {

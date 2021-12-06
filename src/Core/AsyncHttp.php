@@ -184,7 +184,7 @@ class AsyncHttp {
 			$this->setupStreamNotify();
 		}
 
-		$this->logger->log('DEBUG', "Sending request: {$this->request->getData()}");
+		$this->logger->info("Sending request: {$this->request->getData()}", ["uri" => $this->uri]);
 	}
 
 	/**
@@ -216,7 +216,7 @@ class AsyncHttp {
 	 */
 	private function setError(string $errorString): void {
 		$this->errorString = $errorString;
-		$this->logger->log('ERROR', $errorString);
+		$this->logger->error($errorString, ["uri" => $this->uri]);
 	}
 
 	/**
@@ -305,7 +305,7 @@ class AsyncHttp {
 			return false;
 		}
 		stream_set_blocking($this->stream, false);
-		$this->logger->log('DEBUG', "Stream for {$streamUri} created");
+		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
 		return true;
 	}
 
@@ -341,8 +341,9 @@ class AsyncHttp {
 	}
 
 	public function handleTlsHandshake(): void {
-		$this->logger->log('DEBUG', "Activating TLS");
+		$this->logger->info("Trying to activate TLS", ["uri" => $this->uri]);
 		if (!isset($this->stream) || !is_resource($this->stream)) {
+			$this->logger->info("Activating TLS not possible for closed stream", ["uri" => $this->uri]);
 			return;
 		}
 		$sslResult = stream_socket_enable_crypto($this->stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
@@ -350,7 +351,7 @@ class AsyncHttp {
 			if (isset($this->notifier)) {
 				$this->socketManager->removeSocketNotifier($this->notifier);
 			}
-			$this->logger->log('DEBUG', "TLS crypto activated successfully");
+			$this->logger->info("TLS crypto activated successfully", ["uri" => $this->uri]);
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
 			$this->abortWithMessage(
@@ -513,6 +514,11 @@ class AsyncHttp {
 			if (strlen($chunk) === 0) {
 				break; // nothing to read, stop looping
 			}
+			$this->logger->debug("{count} bytes read from {uri}", [
+				"count" => strlen($chunk),
+				"uri" => $this->uri,
+				"data" => $chunk,
+			]);
 			$data .= $chunk;
 		}
 
@@ -562,6 +568,10 @@ class AsyncHttp {
 		if (!isset($this->stream) || !is_resource($this->stream)) {
 			throw new Exception("Trying to write to closed stream.");
 		}
+		$this->logger->debug("Trying to write {count} bytes to {uri}", [
+			"count" => strlen($this->requestData),
+			"uri" => $this->uri,
+		]);
 		$written = fwrite($this->stream, $this->requestData);
 		if ($written === false) {
 			if ($this->retriesLeft--) {
@@ -574,6 +584,11 @@ class AsyncHttp {
 				$this->abortWithMessage("Cannot write request headers to stream");
 			}
 		} elseif ($written > 0) {
+			$this->logger->debug("{count} bytes written to {uri}", [
+				"count" => $written,
+				"uri" => $this->uri,
+				"data" => substr($this->requestData, 0, $written)
+			]);
 			$this->requestData = substr($this->requestData, $written);
 
 			// since data was written, reset timeout

@@ -13,12 +13,13 @@ errorMessage() {
 [ -z "$CONFIG_DB_TYPE" ] && errorMessage "You have to specify the database type by setting \$CONFIG_DB_TYPE to sqlite or mysql"
 [ -z "$CONFIG_DB_NAME" ] && errorMessage "You have to specify the name of the database by setting \$CONFIG_DB_NAME"
 [ -z "$CONFIG_DB_HOST" ] && errorMessage "You have to specify the host/socket/directory of the database by setting \$CONFIG_DB_HOST"
-[ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -E '^(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)$' ) && errorMessage "You have specified an invalid \$CONFIG_LOG_LEVEL. Allowed values are TRACE, DEBUG, INFO, WARN, ERROR and FATAL."
+[ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -i -E '^(DEBUG|INFO|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY)$' ) && errorMessage "You have specified an invalid \$CONFIG_LOG_LEVEL. Allowed values are DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT and EMERGENCY."
 
 cd /nadybot || exit
 cat > /tmp/config.php << DONE
 <?php declare(strict_types=1);
 
+\$vars = [];
 \$vars['login']      = "$CONFIG_LOGIN";
 \$vars['password']   = "$CONFIG_PASSWORD";
 \$vars['name']       = "$CONFIG_BOTNAME";
@@ -55,7 +56,7 @@ cat > /tmp/config.php << DONE
 \$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
 DONE
 
-sed -i -e "s/<level value=\"INFO\"/<level value=\"${CONFIG_LOG_LEVEL:-INFO}\"/" conf/log4php.xml
+sed -i -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/" conf/logging.json
 
 PHP=$(which php8 php7 php | head -n 1)
 PARAMS=""

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -39,6 +40,9 @@ class AgcrProtocol implements RelayProtocolInterface {
 	/** @Inject */
 	public Text $text;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
 	protected string $command = "agcr";
 	protected string $prefix = "!";
 	protected bool $forceSingleHop = false;
@@ -52,8 +56,17 @@ class AgcrProtocol implements RelayProtocolInterface {
 	}
 
 	public function send(RoutableEvent $event): array {
+		$this->logger->debug("Relay {relay} received event to route", [
+			"relay" => $this->relay->getName(),
+			"event" => $event,
+		]);
 		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
-			return $this->renderMessage($event);
+			$packages = $this->renderMessage($event);
+			$this->logger->debug("Event encoded successfully on {relay}", [
+				"relay" => $this->relay->getName(),
+				"packages" => $packages
+			]);
+			return $packages;
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
 			if (!is_object($event->data) || !strlen($event->data->message??"")) {
@@ -61,8 +74,16 @@ class AgcrProtocol implements RelayProtocolInterface {
 			}
 			$event2 = clone $event;
 			$event2->setData($event->data->message);
-			return $this->renderMessage($event2);
+			$packages = $this->renderMessage($event2);
+			$this->logger->debug("Event encoded successfully on {relay}", [
+				"relay" => $this->relay->getName(),
+				"packages" => $packages
+			]);
+			return $packages;
 		}
+		$this->logger->debug("Relay {relay} dropped agcr packet", [
+			"relay" => $this->relay->getName(),
+		]);
 		return [];
 	}
 
@@ -79,12 +100,17 @@ class AgcrProtocol implements RelayProtocolInterface {
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
+		$this->logger->debug("Relay {relay} received message to route", [
+			"relay" => $this->relay->getName(),
+			"message" => $message,
+		]);
 		if (empty($message->packages)) {
 			return null;
 		}
 		$command = preg_quote($this->command, "/");
 		$data = array_shift($message->packages);
 		if (!preg_match("/^.?{$command}\s+(.+)/s", $data, $matches)) {
+			$this->logger->debug("Relay {relay} dropped message that was not a command");
 			return null;
 		}
 		$data = $matches[1];
@@ -105,6 +131,10 @@ class AgcrProtocol implements RelayProtocolInterface {
 			$data = $matches[2];
 		}
 		$message->setData($data);
+		$this->logger->debug("Relay {relay} decoded agcr message successfully", [
+			"relay" => $this->relay->getName(),
+			"message" => $message,
+		]);
 		return $message;
 	}
 

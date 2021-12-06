@@ -219,7 +219,7 @@ class MessageHub {
 	public function registerMessageReceiver(MessageReceiver $messageReceiver): self {
 		$channel = $messageReceiver->getChannelName();
 		$this->receivers[strtolower($channel)] = $messageReceiver;
-		$this->logger->log('DEBUG', "Registered new event receiver for {$channel}");
+		$this->logger->info("Registered new event receiver for {$channel}");
 		return $this;
 	}
 
@@ -229,7 +229,7 @@ class MessageHub {
 	public function registerMessageEmitter(MessageEmitter $messageEmitter): self {
 		$channel = $messageEmitter->getChannelName();
 		$this->emitters[strtolower($channel)] = $messageEmitter;
-		$this->logger->log('DEBUG', "Registered new event emitter for {$channel}");
+		$this->logger->info("Registered new event emitter for {$channel}");
 		return $this;
 	}
 
@@ -238,7 +238,7 @@ class MessageHub {
 	 */
 	public function unregisterMessageReceiver(string $channel): self {
 		unset($this->receivers[strtolower($channel)]);
-		$this->logger->log('DEBUG', "Removed event receiver for {$channel}");
+		$this->logger->info("Removed event receiver for {$channel}");
 		return $this;
 	}
 
@@ -247,7 +247,7 @@ class MessageHub {
 	 */
 	public function unregisterMessageEmitter(string $channel): self {
 		unset($this->emitters[strtolower($channel)]);
-		$this->logger->log('DEBUG', "Removed event emitter for {$channel}");
+		$this->logger->info("Removed event emitter for {$channel}");
 		return $this;
 	}
 
@@ -331,16 +331,15 @@ class MessageHub {
 	 * Submit an event to be routed according to the configured connections
 	 */
 	public function handle(RoutableEvent $event): int {
-		$this->logger->log('DEBUG', "Received event to route");
+		$this->logger->info("Received event to route");
 		$path = $event->getPath();
 		if (empty($path)) {
-			$this->logger->log('DEBUG', "Discarding event without path");
+			$this->logger->info("Discarding event without path");
 			return static::EVENT_NOT_ROUTED;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
 		try {
-			$this->logger->log(
-				'DEBUG',
+			$this->logger->info(
 				"Trying to route {$type} - ".
 				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
 			);
@@ -358,17 +357,17 @@ class MessageHub {
 			foreach ($dest as $destName => $routes) {
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
-					$this->logger->log('DEBUG', "No receiver registered for {$destName}");
+					$this->logger->info("No receiver registered for {$destName}");
 					continue;
 				}
 				foreach ($routes as $route) {
 					$modifiedEvent = $route->modifyEvent($event);
 					if (!isset($modifiedEvent)) {
-						$this->logger->log('DEBUG', "Event filtered away for {$destName}");
+						$this->logger->info("Event filtered away for {$destName}");
 						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
-					$this->logger->log('DEBUG', "Event routed to {$destName}");
+					$this->logger->info("Event routed to {$destName}");
 					$destination = $route->getDest();
 					if (preg_match("/\((.+)\)$/", $destination, $matches)) {
 						$destination = $matches[1];

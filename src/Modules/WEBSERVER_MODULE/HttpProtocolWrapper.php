@@ -6,7 +6,6 @@ use DateTime;
 use Exception;
 use Nadybot\Core\{
 	EventManager,
-	LegacyLogger,
 	LoggerWrapper,
 	SettingManager,
 	Socket\AsyncSocket,
@@ -54,7 +53,7 @@ class HttpProtocolWrapper {
 	 * Wrap an AsyncSocket with a HttpProtocolWrapper
 	 */
 	public function wrapAsyncSocket(AsyncSocket $asyncSocket): self {
-		$this->logger->log('DEBUG', 'New AsyncSocket socket assigned to HttpProtocolWrapper');
+		$this->logger->info('New AsyncSocket socket assigned to HttpProtocolWrapper');
 		$this->request = new Request();
 		$this->asyncSocket = $asyncSocket;
 		$this->asyncSocket->on(AsyncSocket::DATA, [$this, "handleIncomingData"]);
@@ -81,7 +80,7 @@ class HttpProtocolWrapper {
 	 * @throws Exception on unknown state
 	 */
 	public function handleIncomingData(AsyncSocket $socket): void {
-		$this->logger->log('TRACE', 'Data available for read');
+		$this->logger->debug('Data available for read');
 		$sock = $socket->getSocket();
 		if (!isset($sock) || !is_resource($sock)) {
 			throw new Exception("Webserver out-of-sync");
@@ -92,15 +91,15 @@ class HttpProtocolWrapper {
 		}
 		switch ($this->nextPart) {
 			case self::EXPECT_REQUEST:
-				$this->logger->log('TRACE', 'Expecting REQUEST line');
+				$this->logger->debug('Expecting REQUEST line');
 				$this->readRequestLine($socket);
 				break;
 			case self::EXPECT_HEADER:
-				$this->logger->log('TRACE', 'Expecting HEADER line');
+				$this->logger->debug('Expecting HEADER line');
 				$this->readHeaderLine($socket);
 				break;
 			case self::EXPECT_BODY:
-				$this->logger->log('TRACE', 'Expecting BODY data');
+				$this->logger->debug('Expecting BODY data');
 				$this->readBody($socket);
 				break;
 			case self::EXPECT_IGNORE:
@@ -112,7 +111,7 @@ class HttpProtocolWrapper {
 				throw new Exception("Invalid state {$this->nextPart} encountered.");
 		}
 		if ($this->nextPart === static::EXPECT_DONE) {
-				$this->logger->log('DEBUG', 'Request fully received');
+				$this->logger->info('Request fully received');
 				$this->handleRequest();
 		}
 	}
@@ -125,26 +124,25 @@ class HttpProtocolWrapper {
 	protected function readSocketLine(AsyncSocket $socket): ?string {
 		$lowSocket = $socket->getSocket();
 		if (!isset($lowSocket) || !is_resource($lowSocket)) {
-			$this->logger->log('DEBUG', 'Error reading a line from socket: ' . (error_get_last()["message"]??""));
+			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
 			$socket->close();
 			return null;
 		}
 		$buffer = fgets($lowSocket, 4098);
 		if ($buffer === false) {
-			$this->logger->log('DEBUG', 'Error reading a line from socket: ' . (error_get_last()["message"]??""));
+			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
 			$socket->close();
 			return null;
 		}
 		$trimmedData = rtrim($buffer);
 		// This can be cost intensive to calculate, so only do it if really needed
 		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->log(
-				'TRACE',
+			$this->logger->debug(
 				'Read data: ' . $this->dataToLogString($buffer)
 			);
 		}
 		if (strlen($buffer) > 4096) {
-			$this->logger->log('DEBUG', 'Line was longer than the allowed length of 4096 bytes');
+			$this->logger->info('Line was longer than the allowed length of 4096 bytes');
 			$this->httpError(new Response(Response::REQUEST_HEADER_FIELDS_TOO_LARGE));
 			return null;
 		}
@@ -178,14 +176,14 @@ class HttpProtocolWrapper {
 	 * Send a response back to the connected client
 	 */
 	public function sendResponse(Response $response, bool $forceClose=false): void {
-		$this->logger->log('DEBUG', 'Received a ' . $response->code . ' (' . $response->codeString . ') response');
+		$this->logger->info('Received a ' . $response->code . ' (' . $response->codeString . ') response');
 		if (isset($this->request->replied)) {
-			$this->logger->log('DEBUG', 'Not sending response, because already responded to');
+			$this->logger->info('Not sending response, because already responded to');
 			return;
 		}
 		$dataChanged = $this->checkIfResponseDataChanged($response);
 		if ($dataChanged === false) {
-			$this->logger->log('DEBUG', 'Client already has the latest version');
+			$this->logger->info('Client already has the latest version');
 			if (in_array($this->request->method, [Request::GET, Request::HEAD], true)) {
 				$response->code = Response::NOT_MODIFIED;
 				unset($response->headers['Content-Length']);
@@ -195,11 +193,11 @@ class HttpProtocolWrapper {
 				$response->headers['Content-Length'] = "0";
 			}
 			$response->codeString = Response::DEFAULT_RESPONSE_TEXT[$response->code];
-			$this->logger->log('DEBUG', "Changing reply to {$response->code} ({$response->codeString})");
+			$this->logger->info("Changing reply to {$response->code} ({$response->codeString})");
 			$response->body = null;
 		}
 		if (isset($this->request->method) && $this->request->method === Request::HEAD) {
-			$this->logger->log('DEBUG', 'Removing body, because we received a HEAD request');
+			$this->logger->info('Removing body, because we received a HEAD request');
 			$response->body = null;
 			if ($response->code !== $response::OK) {
 				$response->headers["Content-Length"] = null;
@@ -218,14 +216,14 @@ class HttpProtocolWrapper {
 			}
 		} else {
 			$response->headers['Connection'] = 'Close';
-			$this->logger->log('DEBUG', 'Not allowing keep-alives for this client/response.');
+			$this->logger->info('Not allowing keep-alives for this client/response.');
 		}
-		$this->logger->log('DEBUG', 'Sending response');
+		$this->logger->info('Sending response');
 		$responseString = $response->toString($this->request);
 		$this->asyncSocket->write($responseString);
 		$this->request->replied = microtime(true);
 		if ($requiresClose) {
-			$this->logger->log('DEBUG', 'Closing socket connection');
+			$this->logger->info('Closing socket connection');
 			$this->asyncSocket->close();
 		}
 	}
@@ -269,7 +267,7 @@ class HttpProtocolWrapper {
 		}
 		// Try to detect raw SSL data in case the server is not running SSL/TLS
 		if (strlen($line) > 5 && ord($line[0]) === 0x16 && ord($line[5]) === 0x01) {
-			$this->logger->log('DEBUG', "SSL connection for non-SSL socket detected");
+			$this->logger->info("SSL connection for non-SSL socket detected");
 			// Empty the socket data, send a close and ignore all further replies
 			@fread($sock, 4096);
 			$socket->close();
@@ -356,16 +354,16 @@ class HttpProtocolWrapper {
 	public function readBody(AsyncSocket $socket): void {
 		$toRead = (int)$this->request->headers['content-length'] - strlen($this->request->body ?? "");
 		$readChunk = min(4096, $toRead);
-		$this->logger->log('TRACE', "Reading {$readChunk} bytes");
+		$this->logger->debug("Reading {$readChunk} bytes");
 		$sock = $socket->getSocket();
 		if (!is_resource($sock)) {
-			$this->logger->log('DEBUG', "Error reading from closed socket: " . (error_get_last()["message"]??""));
+			$this->logger->info("Error reading from closed socket: " . (error_get_last()["message"]??""));
 			$socket->close();
 			return;
 		}
 		$buffer = fread($sock, $readChunk);
 		if ($buffer === false) {
-			$this->logger->log('DEBUG', "Error reading body from socket: " . (error_get_last()["message"]??""));
+			$this->logger->info("Error reading body from socket: " . (error_get_last()["message"]??""));
 			$socket->close();
 			return;
 		}
@@ -374,10 +372,9 @@ class HttpProtocolWrapper {
 		if ($toRead === strlen($buffer)) {
 			$this->nextPart = static::EXPECT_DONE;
 			$this->request->received = microtime(true);
-			$this->logger->log('TRACE', 'Body fully read');
+			$this->logger->debug('Body fully read');
 			if ($this->logger->isEnabledFor('TRACE')) {
-				$this->logger->log(
-					'TRACE',
+				$this->logger->debug(
 					'Read data: ' . $this->dataToLogString($this->request->body)
 				);
 			}
@@ -442,7 +439,7 @@ class HttpProtocolWrapper {
 		}
 		$event->request = $this->request;
 		$event->type = "http(" . strtolower($this->request->method) . ")";
-		$this->logger->log("DEBUG", "Firing {$event->type} event");
+		$this->logger->info("Firing {$event->type} event");
 		$this->eventManager->fireEvent($event, $this);
 		$this->request = new Request();
 		$this->nextPart = static::EXPECT_REQUEST;
@@ -482,6 +479,8 @@ class HttpProtocolWrapper {
 	}
 
 	public function __destruct() {
-		LegacyLogger::log('TRACE', 'HttpProtocolWrapper', get_class() . ' destroyed');
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
 	}
 }

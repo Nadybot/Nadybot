@@ -143,7 +143,7 @@ class GauntletBuffController implements MessageEmitter {
 	 */
 	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
 		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
-			$this->logger->log('ERROR', 'Gauntlet buff API did not send correct data.');
+			$this->logger->error('Gauntlet buff API did not send correct data.');
 			return;
 		}
 		/** @var ApiGauntletBuff[] */
@@ -157,7 +157,7 @@ class GauntletBuffController implements MessageEmitter {
 				$buffs []= new ApiGauntletBuff($gauntletData);
 			}
 		} catch (JsonException $e) {
-			$this->logger->log('ERROR', "Gauntlet buff API sent invalid json.");
+			$this->logger->error("Gauntlet buff API sent invalid json.");
 			return;
 		}
 		foreach ($buffs as $buff) {
@@ -169,25 +169,24 @@ class GauntletBuffController implements MessageEmitter {
 	 * Check if the given Gauntlet buff is valid and set or update a timer for it
 	 */
 	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
-		$this->logger->log('DEBUG', "Received gauntlet information for {$buff->faction}.");
+		$this->logger->info("Received gauntlet information for {$buff->faction}.");
 		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
-			$this->logger->log('WARN', "Received timer information for unknown faction {$buff->faction}.");
+			$this->logger->warning("Received timer information for unknown faction {$buff->faction}.");
 			return;
 		}
 		if ($buff->expires < time()) {
-			$this->logger->log('WARN', "Received expired timer information for {$buff->faction} Gauntlet buff.");
+			$this->logger->warning("Received expired timer information for {$buff->faction} Gauntlet buff.");
 			return;
 		}
 		$timer = $this->timerController->get("Gaubuff_{$buff->faction}");
 		if (isset($timer) && abs($buff->expires-($timer->endtime??0)) < 10) {
-			$this->logger->log(
-				'DEBUG',
+			$this->logger->info(
 				"Already existing {$buff->faction} buff recent enough. Difference: ".
 				abs($buff->expires-($timer->endtime??0)) . "s"
 			);
 			return;
 		}
-		$this->logger->log("DEBUG", "Updating {$buff->faction} buff from API");
+		$this->logger->info("Updating {$buff->faction} buff from API");
 		$this->setGaubuff(
 			strtolower($buff->faction),
 			$buff->expires,

@@ -125,9 +125,9 @@ class BuddylistManager {
 	public function addId(int $uid, string $type): bool {
 		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
-			$this->logger->log('debug', "$name buddy added");
+			$this->logger->info("$name buddy added");
 			if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
-				$this->logger->log('error', "Error adding '$name' to buddy list--buddy list is full");
+				$this->logger->error("Error adding '$name' to buddy list--buddy list is full");
 			}
 			$this->chatBot->buddy_add($uid);
 			// Initialize with an unconfirmed entry
@@ -138,7 +138,7 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->log('debug', "$name buddy added (type: $type)");
+			$this->logger->info("$name buddy added (type: $type)");
 		}
 
 		return true;
@@ -177,11 +177,11 @@ class BuddylistManager {
 		}
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
-			$this->logger->log('debug', "$name buddy type removed (type: $type)");
+			$this->logger->info("$name buddy type removed (type: $type)");
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->log('debug', "$name buddy removed");
+			$this->logger->info("$name buddy removed");
 			$this->chatBot->buddy_remove($uid);
 		}
 

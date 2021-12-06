@@ -224,7 +224,7 @@ class DiscordGatewayController {
 	 */
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
-			$this->logger->log("INFO", "Closing Discord gateway connection.");
+			$this->logger->notice("Closing Discord gateway connection.");
 			$this->client->close();
 		}
 		if ($newValue !== "" && $newValue !== 'off') {
@@ -266,12 +266,12 @@ class DiscordGatewayController {
 		}
 		$this->lastHeartbeat = time();
 		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
-		$this->logger->log("DEBUG", "Sending heartbeat");
+		$this->logger->info("Sending heartbeat");
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
 	public function processWebsocketError(WebsocketCallback $event): void {
-		$this->logger->log("ERROR", "[$event->code] $event->data");
+		$this->logger->error("[$event->code] $event->data");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		}
@@ -285,17 +285,16 @@ class DiscordGatewayController {
 			}
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
-			$this->logger->log(
-				"ERROR",
+			$this->logger->error(
 				"Invalid JSON data received from Discord: " . $e->getMessage(),
-				$e
+				["exception" => $e]
 			);
 			if (isset($this->client)) {
 				$this->client->close(4002);
 			}
 			return;
 		}
-		$this->logger->log("DEBUG", "Received packet op " . $payload->op);
+		$this->logger->info("Received packet op " . $payload->op);
 		if (isset($payload->s)) {
 			$this->lastSequenceNumber = $payload->s;
 		}
@@ -316,7 +315,7 @@ class DiscordGatewayController {
 		/** @var object $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
 		$this->timer->callLater($this->heartbeatInterval, [$this, "sendWebsocketHeartbeat"]);
-		$this->logger->log('DEBUG', "Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
+		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
 		$this->lastHeartbeat = time();
 
 		if ($this->sessionId !== null && $this->lastSequenceNumber !== null) {
@@ -328,7 +327,7 @@ class DiscordGatewayController {
 
 	protected function sendIdentify(): void {
 		$this->guilds = [];
-		$this->logger->log("INFO", "Logging into Discord gateway");
+		$this->logger->notice("Logging into Discord gateway");
 		$identify = new IdentifyPacket();
 		$identify->token = $this->settingManager->getString('discord_bot_token') ?? "off";
 		$identify->intents = Intent::GUILD_MESSAGES
@@ -344,11 +343,11 @@ class DiscordGatewayController {
 	}
 
 	protected function sendResume(): void {
-		$this->logger->log("INFO", "Trying to resume old Discord gateway session");
+		$this->logger->notice("Trying to resume old Discord gateway session");
 		$resume = new ResumePacket();
 		$resume->token = $this->settingManager->getString('discord_bot_token') ?? "off";
 		if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
-			$this->logger->log("ERROR", "Cannot result session, because no previous session found.");
+			$this->logger->error("Cannot result session, because no previous session found.");
 			return;
 		}
 		$resume->session_id = $this->sessionId;
@@ -374,7 +373,7 @@ class DiscordGatewayController {
 		$newEvent = new DiscordGatewayEvent();
 		$newEvent->payload = $payload;
 		$newEvent->type = strtolower("discord({$payload->t})");
-		$this->logger->log("DEBUG", "New event: discord({$payload->t})");
+		$this->logger->info("New event: discord({$payload->t})");
 		$this->eventManager->fireEvent($newEvent);
 	}
 
@@ -384,7 +383,7 @@ class DiscordGatewayController {
 	 * @DefaultStatus("1")
 	 */
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
-		$this->logger->log("DEBUG", "Discord Gateway requests reconnect");
+		$this->logger->info("Discord Gateway requests reconnect");
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 1;
 		if (isset($this->client)) {
@@ -401,11 +400,11 @@ class DiscordGatewayController {
 		$payload = $event->payload;
 		/** @var bool $payload->d */
 		if ($payload->d === true) {
-			$this->logger->log("DEBUG", "Session invalid, trying to resume");
+			$this->logger->info("Session invalid, trying to resume");
 			$this->sendResume();
 			return;
 		}
-		$this->logger->log("DEBUG", "Session invalid, trying to start new one");
+		$this->logger->info("Session invalid, trying to start new one");
 		$this->sendIdentify();
 	}
 
@@ -454,7 +453,7 @@ class DiscordGatewayController {
 			(($event->code ?? null) === 1000 && $this->mustReconnect)
 			|| $this->shouldReconnect($event->code ?? null)
 		) {
-			$this->logger->log("INFO", "Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
+			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
 			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
@@ -669,7 +668,7 @@ class DiscordGatewayController {
 			return;
 		}
 		if (!isset($this->guilds[$channel->guild_id])) {
-			$this->logger->log("ERROR", "Received channel info for unknown guild");
+			$this->logger->error("Received channel info for unknown guild");
 			return;
 		}
 		$channels = &$this->guilds[$channel->guild_id]->channels;
@@ -737,8 +736,7 @@ class DiscordGatewayController {
 		$user = new DiscordUser();
 		$user->fromJSON($payload->d->user);
 		$this->me = $user;
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			"Successfully logged into Discord Gateway as ".
 			$user->username . "#" . $user->discriminator
 		);
@@ -754,8 +752,7 @@ class DiscordGatewayController {
 		if (!isset($this->me)) {
 			return;
 		}
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			"Session successfully resumed as ".
 			$this->me->username . "#" . $this->me->discriminator
 		);

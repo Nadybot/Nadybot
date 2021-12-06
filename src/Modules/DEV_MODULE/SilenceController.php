@@ -136,7 +136,7 @@ class SilenceController {
 	}
 
 	public function nullCommand(CmdContext $context): void {
-		$this->logger->log('DEBUG', "Silencing command '{$context->message}' for channel '{$context->channel}'");
+		$this->logger->info("Silencing command '{$context->message}' for channel '{$context->channel}'");
 	}
 
 	public function addSilencedCommand(CmdCfg $row): void {

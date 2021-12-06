@@ -134,7 +134,7 @@ class WebUiController implements MessageEmitter {
 			if ($sendto) {
 				$sendto->reply($msg);
 			}
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return null;
 		}
 		return $response;
@@ -183,7 +183,7 @@ class WebUiController implements MessageEmitter {
 			if ($sendto) {
 				$sendto->reply($msg);
 			}
-			$this->logger->log('WARNING', $msg);
+			$this->logger->warning($msg);
 			$lastModified = new DateTime();
 		}
 		$dlVersion = $lastModified->getTimestamp();
@@ -191,7 +191,7 @@ class WebUiController implements MessageEmitter {
 			if ($sendto) {
 				$sendto->reply("You are already using the latest version (" . $lastModified->format("Y-m-d H:i:s") . ").");
 			} else {
-				$this->logger->log("INFO", "Already using the latest version of NadyUI");
+				$this->logger->notice("Already using the latest version of NadyUI");
 			}
 			if ($this->chatBot->getUptime() < 120) {
 				$this->createAdminLogin();
@@ -206,7 +206,7 @@ class WebUiController implements MessageEmitter {
 			if ($sendto) {
 				$sendto->reply($msg);
 			}
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return;
 		}
 		if ($currentVersion === 0) {
@@ -236,16 +236,13 @@ class WebUiController implements MessageEmitter {
 		$port = $this->settingManager->getInt('webserver_port');
 		$superUser = $this->chatBot->vars['SuperAdmin'];
 		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
-		$this->logger->log(
-			"INFO",
+		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
 		);
-		$this->logger->log(
-			"INFO",
+		$this->logger->notice(
 			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
 		);
-		$this->logger->log(
-			"INFO",
+		$this->logger->notice(
 			">>> Use the " . ($this->settingManager->getString('symbol')??"!").
 				"webauth command to create a new password after this expired"
 		);

@@ -95,7 +95,7 @@ class MessageHubController {
 					$msgRoute = $this->messageHub->createMessageRoute($route);
 					$this->messageHub->addRoute($msgRoute);
 				} catch (Exception $e) {
-					$this->logger->log('ERROR', $e->getMessage(), $e);
+					$this->logger->error($e->getMessage(), ["exception" => $e]);
 				}
 			});
 	}

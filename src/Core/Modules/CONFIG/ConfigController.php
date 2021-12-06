@@ -826,7 +826,7 @@ class ConfigController {
 		if (count($data) == 0) {
 			$msg .= "<red>Unused<end>\n";
 		} elseif (count($data) > 1) {
-			$this->logger->log("ERROR", "Multiple rows exists for cmd: '$cmd' and type: '$type'");
+			$this->logger->error("Multiple rows exists for cmd: '$cmd' and type: '$type'");
 			return $msg;
 		}
 		$row = $data[0];

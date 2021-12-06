@@ -566,6 +566,6 @@ class RaidRankController {
 		}
 		$this->removeFromLists($event->alt, $event->main);
 		$this->addToLists($event->main, $event->alt, $oldRank->rank);
-		$this->logger->log('INFO', "Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
 	}
 }

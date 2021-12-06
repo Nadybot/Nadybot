@@ -36,10 +36,9 @@ class BossTimers implements RelayProtocolInterface {
 				throw new Exception("Incomplete data received.");
 			}
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				'Invalid data received via bosstimer protocol: ' . ($data??"null"),
-				$e
+				["exception" => $e]
 			);
 			return null;
 		}

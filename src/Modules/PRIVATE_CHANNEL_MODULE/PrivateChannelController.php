@@ -1149,7 +1149,7 @@ class PrivateChannelController {
 			} else {
 				$error = "";
 			}
-			$this->logger->log('ERROR', "Error reading {$dataPath}/welcome.txt{$error}");
+			$this->logger->error("Error reading {$dataPath}/welcome.txt{$error}");
 			return;
 		}
 		$msg = $this->settingManager->getString("welcome_msg_string")??"<link>Welcome</link>!";

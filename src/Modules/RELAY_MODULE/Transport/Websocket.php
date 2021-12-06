@@ -93,7 +93,7 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function processError(WebsocketCallback $event): void {
-		$this->logger->log("ERROR", "[{$this->uri}] [Code $event->code] $event->data");
+		$this->logger->error("[{$this->uri}] [Code $event->code] $event->data");
 		$this->status = new RelayStatus(RelayStatus::INIT, $event->data??"Unknown state");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
@@ -106,7 +106,7 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function processClose(WebsocketCallback $event): void {
-		$this->logger->log("INFO", "Reconnecting to Websocket {$this->uri} in 10s.");
+		$this->logger->notice("Reconnecting to Websocket {$this->uri} in 10s.");
 		if (isset($this->initCallback)) {
 			$this->status = new RelayStatus(
 				RelayStatus::INIT,
@@ -121,7 +121,7 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function processConnect(WebsocketCallback $event): void {
-		$this->logger->log("INFO", "Connected to Websocket {$this->uri}.");
+		$this->logger->notice("Connected to Websocket {$this->uri}.");
 		if (!isset($this->initCallback)) {
 			return;
 		}

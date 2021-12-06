@@ -71,7 +71,7 @@ class CacheManager {
 	 */
 	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
 		if (empty($groupName)) {
-			$this->logger->log("ERROR", "Cache group name cannot be empty");
+			$this->logger->error("Cache group name cannot be empty");
 			return;
 		}
 
@@ -96,10 +96,10 @@ class CacheManager {
 	 */
 	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, ...$args): void {
 		if ($response->error) {
-			$this->logger->log("WARN", $response->error);
+			$this->logger->warning($response->error);
 		}
 		if (!isset($response->body) && isset($response->request)) {
-			$this->logger->log("WARN", "Empty reply received from " . $response->request->getURI());
+			$this->logger->warning("Empty reply received from " . $response->request->getURI());
 		}
 		if (empty($response->error)
 			&& isset($response->body)

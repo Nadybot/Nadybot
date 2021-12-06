@@ -72,7 +72,7 @@ class ProfileController {
 	/** @Inject */
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @Inject */
@@ -398,7 +398,7 @@ class ProfileController {
 			}
 			return $profileSendTo->result;
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Could not load profile: " . $e->getMessage(), $e);
+			$this->logger->error("Could not load profile: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
 			return null;
 		}

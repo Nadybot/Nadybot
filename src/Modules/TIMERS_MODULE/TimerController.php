@@ -197,13 +197,13 @@ class TimerController implements MessageEmitter {
 				[$name, $method] = explode(".", $timer->callback);
 				$instance = Registry::getInstance($name);
 				if ($instance === null) {
-					$this->logger->log('ERROR', "Error calling callback method '$timer->callback' for timer '$timer->name': Could not find instance '$name'.");
+					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': Could not find instance '$name'.");
 					continue;
 				}
 				try {
 					$instance->{$method}($timer, $alert);
 				} catch (Exception $e) {
-					$this->logger->log("ERROR", "Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), $e);
+					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), ["exception" => $e]);
 				}
 				if (empty($timer->alerts)) {
 					$event = new TimerEvent();

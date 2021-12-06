@@ -475,7 +475,7 @@ class GuildController {
 		if (!$this->isGuildBot()) {
 			return;
 		}
-		$this->logger->log('INFO', "Starting Roster update");
+		$this->logger->notice("Starting Roster update");
 
 		// Get the guild info
 		$this->guildManager->getByIdAsync(
@@ -491,12 +491,12 @@ class GuildController {
 	public function updateRosterForGuild(?Guild $org, ?callable $callback, ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
-			$this->logger->log('ERROR', "Error downloading the guild roster xml file");
+			$this->logger->error("Error downloading the guild roster xml file");
 			return;
 		}
 
 		if (count($org->members) === 0) {
-			$this->logger->log('ERROR', "Guild xml file has no members! Aborting roster update.");
+			$this->logger->error("Guild xml file has no members! Aborting roster update.");
 			return;
 		}
 		$dbEntries = [];
@@ -574,7 +574,7 @@ class GuildController {
 			}
 		}
 
-		$this->logger->log('INFO', "Finished Roster update");
+		$this->logger->notice("Finished Roster update");
 
 		if ($restart === true) {
 			$this->loadGuildMembers();
@@ -812,13 +812,13 @@ class GuildController {
 			return;
 		}
 		if (empty($this->chatBot->vars["my_guild_id"])) {
-			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
+			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
 			return;
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->chatBot->vars["my_guild_id"]);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
 		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
-			$this->logger->log('warn', "Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
+			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
 

@@ -129,12 +129,12 @@ class ConsoleController {
 			return;
 		}
 		if (BotRunner::isWindows()) {
-			$this->logger->log('WARN', 'Console not available on Windows');
+			$this->logger->warning('Console not available on Windows');
 			return;
 		}
 		$this->useReadline = function_exists('readline_callback_handler_install');
 		if (!$this->useReadline) {
-			$this->logger->log('WARN', 'readline not supported on this platform, using basic console');
+			$this->logger->warning('readline not supported on this platform, using basic console');
 			$callback = [$this, "processStdin"];
 		} else {
 			$callback = function(): void {
@@ -149,7 +149,7 @@ class ConsoleController {
 			$callback,
 		);
 		$this->timer->callLater(1, function(): void {
-			$this->logger->log('INFO', "StdIn console activated, accepting commands");
+			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {
 				readline_callback_handler_install('> ', [$this, 'processLine']);
