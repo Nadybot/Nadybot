@@ -273,6 +273,7 @@ class ArbiterController {
 			}
 		);
 		if (!$upcomingEvents[0]->isActiveOn(time())) {
+			$callback(null);
 			return;
 		}
 		$currentEvent = array_shift($upcomingEvents);
