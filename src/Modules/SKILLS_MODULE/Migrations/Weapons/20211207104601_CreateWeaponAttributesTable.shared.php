@@ -12,9 +12,9 @@ class CreateWeaponAttributesTable implements SchemaMigration {
 		$table = "weapon_attributes";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->integer("id")->nullable();
-			$table->integer("attack_time")->nullable();
-			$table->integer("recharge_time")->nullable();
+			$table->integer("id")->primary();
+			$table->integer("attack_time");
+			$table->integer("recharge_time");
 			$table->integer("full_auto")->nullable();
 			$table->integer("burst")->nullable();
 			$table->tinyInteger("fling_shot");

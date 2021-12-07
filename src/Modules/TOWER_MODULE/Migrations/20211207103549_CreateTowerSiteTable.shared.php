@@ -12,14 +12,17 @@ class CreateTowerSiteTable implements SchemaMigration {
 		$table = "tower_site";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->integer("playfield_id");
-			$table->smallInteger("site_number");
+			$table->integer("playfield_id")->index();
+			$table->smallInteger("site_number")->index();
 			$table->smallInteger("min_ql");
 			$table->smallInteger("max_ql");
 			$table->integer("x_coord");
 			$table->integer("y_coord");
-			$table->string("site_name", 50);
+			$table->string("site_name", 32);
+			$table->unsignedSmallInteger("timing")->default(0);
+			$table->unsignedSmallInteger("enabled")->default(1)->index();
 			$table->primary(["playfield_id", "site_number"]);
+			$table->index(["playfield_id", "enabled"]);
 		});
 	}
 }

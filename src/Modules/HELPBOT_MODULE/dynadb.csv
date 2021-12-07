@@ -1,4 +1,4 @@
-playfield_id,mob,minQl,maxQl,cX,cY
+playfield_id,mob,min_ql,max_ql,x_coord,y_coord
 585,Blubbags,20,24,1741,1938
 585,Fleas,30,35,1422,2620
 585,Blubbags,31,35,1713,1719

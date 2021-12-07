@@ -72,11 +72,11 @@ class HelpbotController {
 		/** @var DynaDB[] */
 		$data = $this->db->table("dynadb AS d")
 			->join("playfields AS p", "d.playfield_id", "p.id")
-			->where("maxQl", ">=", $range1)
-			->where("minQl", "<=", $range2)
+			->where("max_ql", ">=", $range1)
+			->where("min_ql", "<=", $range2)
 			->orderBy("p.long_name")
-			->orderBy("minQl")
-			->asObj(DynaDB::class)->toArray();
+			->orderBy("min_ql")
+			->asObj(DynaDBSearch::class)->toArray();
 		$count = count($data);
 		if (!$count) {
 			$context->reply(
@@ -104,7 +104,7 @@ class HelpbotController {
 			->whereIlike("long_name", "%{$search}%")
 			->orWhereIlike("short_name", "%{$search}%")
 			->orWhereIlike("mob", "%{$search}%")
-			->asObj()->toArray();
+			->asObj(DynaDBSearch::class)->toArray();
 		$count = count($data);
 
 		if (!$count) {
@@ -121,6 +121,7 @@ class HelpbotController {
 
 	/**
 	 * Format the dynacamp results as a blob for a popup
+	 * @param DynaDBSearch[] $data
 	 */
 	private function formatResults(array $data): string {
 		$blob = '';
@@ -133,12 +134,15 @@ class HelpbotController {
 				$blob .= "<pagebreak><header2>{$row->long_name}<end>\n";
 				$lastPF = $row->long_name;
 			}
-			$coordLink = $this->text->makeChatcmd("{$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
-			$range = "{$row->minQl}-{$row->maxQl}";
+			$coordLink = $this->text->makeChatcmd(
+				"{$row->x_coord}x{$row->y_coord}",
+				"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
+			);
+			$range = "{$row->min_ql}-{$row->max_ql}";
 			if (strlen($range) < 7) {
 				$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
 			}
-			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at $coordLink\n";
+			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 		}
 		return $blob;
 	}

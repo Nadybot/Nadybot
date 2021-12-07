@@ -12,12 +12,12 @@ class CreateDynadbTable implements SchemaMigration {
 		$table = "dynadb";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->integer("playfield_id");
-			$table->string("mob", 200)->nullable();
-			$table->integer("minQl")->nullable();
-			$table->integer("maxQl")->nullable();
-			$table->integer("cX")->nullable();
-			$table->integer("cY")->nullable();
+			$table->unsignedInteger("playfield_id")->index();
+			$table->string("mob", 20)->index();
+			$table->unsignedInteger("min_ql")->index();
+			$table->unsignedInteger("max_ql")->index();
+			$table->unsignedInteger("x_coord");
+			$table->unsignedInteger("y_coord");
 		});
 	}
 }

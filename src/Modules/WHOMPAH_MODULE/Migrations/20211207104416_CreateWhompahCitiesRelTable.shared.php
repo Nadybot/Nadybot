@@ -12,8 +12,8 @@ class CreateWhompahCitiesRelTable implements SchemaMigration {
 		$table = "whompah_cities_rel";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->integer("city1_id");
-			$table->integer("city2_id");
+			$table->integer("city1_id")->index();
+			$table->integer("city2_id")->index();
 		});
 	}
 }
