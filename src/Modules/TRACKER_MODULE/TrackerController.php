@@ -848,10 +848,10 @@ class TrackerController implements MessageEmitter {
 		$data = $sql
 			->union($data2)
 			->asObj(OnlinePlayer::class)
-			->each(function (OnlinePlayer $player) {
+			->each(function (OnlinePlayer $player): void {
 				$player->afk = "";
 				$player->online = true;
-			})->filter(function(OnlinePlayer $player) {
+			})->filter(function(OnlinePlayer $player): bool {
 				return $this->buddylistManager->isOnline($player->name) === true;
 			})->toArray();
 		if (!count($data)) {
@@ -934,6 +934,9 @@ class TrackerController implements MessageEmitter {
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(array $players, int $groupBy, bool $edit): string {
+		usort($players, function(OnlinePlayer $p1, OnlinePlayer $p2): int {
+			return strnatcmp($p1->name, $p2->name);
+		});
 		return "<tab>" . join(
 			"\n<tab>",
 			array_map(
