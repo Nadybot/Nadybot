@@ -6,9 +6,9 @@ use Nadybot\Core\DBRow;
 
 class DynaDB extends DBRow {
 	public int $playfield_id;
-	public ?string $mob;
-	public ?int $minQl;
-	public ?int $maxQl;
-	public ?int $cX;
-	public ?int $cY;
+	public string $mob;
+	public int $min_ql;
+	public int $max_ql;
+	public int $x_coord;
+	public int $y_coord;
 }

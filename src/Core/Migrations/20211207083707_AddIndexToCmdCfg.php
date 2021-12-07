@@ -1,20 +1,19 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\TOWER_MODULE\Migrations;
+namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Nadybot\Core\CommandManager;
 use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\SchemaMigration;
 
-class AddTimingColumn implements SchemaMigration {
+class AddIndexToCmdCfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$table = "tower_site";
-		if ($db->schema()->hasColumn($table, "timing")) {
-			return;
-		}
+		$table = CommandManager::DB_TABLE;
 		$db->schema()->table($table, function(Blueprint $table) {
-			$table->unsignedSmallInteger("timing")->default(0);
+			$table->index(["cmdevent"]);
+			$table->index(["module", "status"]);
 		});
 	}
 }

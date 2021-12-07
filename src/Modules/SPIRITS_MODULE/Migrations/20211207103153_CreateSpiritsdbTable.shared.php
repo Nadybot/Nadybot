@@ -12,13 +12,14 @@ class CreateSpiritsdbTable implements SchemaMigration {
 		$table = "spiritsdb";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->unsignedInteger("id")->nullable();
-			$table->string("name", 255)->nullable();
-			$table->unsignedSmallInteger("ql")->nullable();
-			$table->string("spot", 25)->nullable();
-			$table->unsignedSmallInteger("level")->nullable();
-			$table->unsignedSmallInteger("agility")->nullable();
-			$table->unsignedSmallInteger("sense")->nullable();
+			$table->unsignedInteger("id")->primary();
+			$table->string("name", 45);
+			$table->unsignedSmallInteger("ql")->index();
+			$table->string("spot", 6)->index();
+			$table->unsignedSmallInteger("level")->index();
+			$table->unsignedSmallInteger("agility")->index();
+			$table->unsignedSmallInteger("sense")->index();
+			$table->index(["spot", "ql"]);
 		});
 	}
 }

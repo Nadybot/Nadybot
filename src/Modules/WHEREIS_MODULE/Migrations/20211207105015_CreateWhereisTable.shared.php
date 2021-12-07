@@ -13,10 +13,10 @@ class CreateWhereisTable implements SchemaMigration {
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
 				$table->integer("id")->primary();
-				$table->string("name", 255)->nullable();
-				$table->text("answer")->nullable();
+				$table->string("name", 100);
+				$table->text("answer");
 				$table->text("keywords")->nullable();
-				$table->integer("playfield_id");
+				$table->integer("playfield_id")->index();
 				$table->integer("xcoord");
 				$table->integer("ycoord");
 		});
