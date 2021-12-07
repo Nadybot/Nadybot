@@ -1,4 +1,25 @@
 *****************************
+	Version 5.3.0 RC 1
+*****************************
+Features:
+- New command "!loglevel" to temporary change the loglevel
+- New command "!debug" to debug a single command and upload the logs
+- Lots of logging added for better debugging
+
+Bugfixes:
+- Highway didn't properly deinit its relay stack, leading to
+  lingering websocket connections.
+- Fix the arbiter tile when there is no arbiter.
+- PHP8 fix when "!orglist" had an unused org rank
+
+Other:
+- Replaced the logging framework from log4php with monolog
+- Added missing table indices
+- Switched to the new history API
+- Reduce tracker SQL queries to speed up "!orglist" for large orgs
+- Sort the "!track online" characters by name in their group
+
+*****************************
 	Version 5.3.0 beta 3
 *****************************
 Other:
