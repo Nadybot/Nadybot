@@ -138,8 +138,8 @@ class WhompahController {
 			->select("w2.*")
 			->asObj(WhompahCity::class)->toArray();
 
-		$msg = "From <highlight>{$city->city_name}<end> you can get to\n- " .
-			implode("\n- ", $this->getColoredNamelist($cities));
+		$msg = "From <highlight>{$city->city_name}<end> ({$city->short_name}) you can get to\n- " .
+			implode("\n- ", $this->getColoredNamelist($cities, true));
 
 		$context->reply($msg);
 	}
@@ -148,13 +148,17 @@ class WhompahController {
 	 * @param WhompahCity[] $cities
 	 * @return string[]
 	 */
-	protected function getColoredNamelist(array $cities): array {
-		return array_map(function(WhompahCity $city) {
+	protected function getColoredNamelist(array $cities, bool $addShort=false): array {
+		return array_map(function(WhompahCity $city) use ($addShort): string {
 			$faction = strtolower($city->faction);
 			if ($faction === 'neutral') {
 				$faction = 'green';
 			}
-			return "<$faction>$city->city_name<end>";
+			$coloredName = "<{$faction}>{$city->city_name}<end>";
+			if ($addShort) {
+				$coloredName .= " ({$city->short_name})";
+			}
+			return $coloredName;
 		}, $cities);
 	}
 
