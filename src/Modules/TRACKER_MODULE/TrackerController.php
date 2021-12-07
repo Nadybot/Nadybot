@@ -323,8 +323,11 @@ class TrackerController implements MessageEmitter {
 			return;
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->doesntExist()
-			&& $this->db->table(self::DB_ORG_MEMBER)->where("uid", $uid)->doesntExist()
+		if ($uid === false) {
+			return;
+		}
+		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
+			&& !$this->buddylistManager->buddyHasType($uid, static::REASON_ORG_TRACKER)
 		) {
 			return;
 		}
@@ -407,8 +410,11 @@ class TrackerController implements MessageEmitter {
 			return;
 		}
 		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->doesntExist()
-			&& $this->db->table(self::DB_ORG_MEMBER)->where("uid", $uid)->doesntExist()
+		if ($uid === false) {
+			return;
+		}
+		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
+			&& !$this->buddylistManager->buddyHasType($uid, static::REASON_ORG_TRACKER)
 		) {
 			return;
 		}

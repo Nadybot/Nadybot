@@ -113,7 +113,7 @@ class BuddylistManager {
 	 */
 	public function add(string $name, string $type): bool {
 		$uid = $this->chatBot->get_uid($name);
-		if ($uid === false ||  $type == '') {
+		if ($uid === false || $type == '') {
 			return false;
 		}
 		return $this->addId($uid, $type);
@@ -208,5 +208,13 @@ class BuddylistManager {
 	 */
 	public function updateRemoved(int $uid): void {
 		unset($this->buddyList[$uid]);
+	}
+
+	/**
+	 * Check if a given UID is on the buddylist for a given type
+	 */
+	public function buddyHasType(int $uid, string $type): bool {
+		$buddy = $this->buddyList[$uid] ?? null;
+		return isset($buddy) && $buddy->hasType($type);
 	}
 }
