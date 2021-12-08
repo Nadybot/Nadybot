@@ -243,7 +243,7 @@ class UpdateCSVFilesController {
 	 * @psalm-param callable(string,string|bool):void $callback
 	 */
 	public function updateCsvFile(HttpResponse $response, callable $callback, string $module, string $file, DateTime $gitModified): void {
-		if ($response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			$callback($file, "Couldn't download {$file} from GitHub.");
 			return;
 		}
