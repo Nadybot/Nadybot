@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
@@ -52,5 +53,22 @@ class RulesController {
 		}
 		$msg = $this->text->makeBlob("<myname>'s rules", $content);
 		$context->reply($msg);
+	}
+
+	/**
+	 * @Event("joinPriv")
+	 * @Description("If you defined rules, send them to people joining the private channel")
+	 */
+	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
+		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		if (
+			!is_string($eventObj->sender)
+			|| !@file_exists("{$dataPath}/rules.txt")
+			|| ($content = @file_get_contents("{$dataPath}/rules.txt")) === false
+		) {
+			return;
+		}
+		$msg = $this->text->makeBlob("<myname>'s rules", $content);
+		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 }
