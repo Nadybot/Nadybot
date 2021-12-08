@@ -384,7 +384,7 @@ class Util {
 	public function genRandomString(int $length=10, string $characters='0123456789abcdefghijklmnopqrstuvwxyz'): string {
 		$string = '';
 		for ($p = 0; $p < $length; $p++) {
-			$string .= $characters[mt_rand(0, strlen($characters))];
+			$string .= $characters[mt_rand(0, strlen($characters)-1)];
 		}
 		return $string;
 	}
