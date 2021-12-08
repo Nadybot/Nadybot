@@ -316,8 +316,8 @@ class AOChat {
 		while ($rlen > 0) {
 			/** @psalm-suppress InvalidArgument */
 			if (($tmp = socket_read($this->socket, $rlen)) === false) {
-				$last_error = socket_strerror(socket_last_error($this->socket));
-				$this->logger->error("Read error: {error}", ["error" => $last_error]);
+				$lastError = socket_strerror(socket_last_error($this->socket));
+				$this->logger->error("Read error: {error}", ["error" => $lastError]);
 				die();
 			}
 			if ($tmp === "") {
@@ -401,8 +401,8 @@ class AOChat {
 				break;
 
 			case AOChatPacket::CHAT_NOTICE:
-				$category_id = 20000;
-				$packet->args[4] = $this->mmdbParser->getMessageString($category_id, $packet->args[2]);
+				$categoryId = 20000;
+				$packet->args[4] = $this->mmdbParser->getMessageString($categoryId, $packet->args[2]);
 				if ($packet->args[4] !== null) {
 					$packet->args[5] = $this->parseExtParams($packet->args[3]);
 					if ($packet->args[5] !== null) {
@@ -645,10 +645,10 @@ class AOChat {
 	 * @return null|int|string
 	 */
 	public function lookup_group($arg, int $type=0) {
-		if ($type && ($is_gid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
+		if ($type && ($isGid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
-		if (!isset($is_gid) || !$is_gid) {
+		if (!isset($isGid) || !$isGid) {
 			$arg = strtolower((string)$arg);
 		}
 		return $this->gid[$arg] ?? null;
@@ -706,19 +706,19 @@ class AOChat {
 	 * Send a message to the guild channel
 	 */
 	public function send_guild(string $msg, string $blob="\0", int $priority=null): bool {
-		$guild_gid = false;
+		$guildGid = false;
 		foreach ($this->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) == 3) {
-				$guild_gid = $gid;
+				$guildGid = $gid;
 				break;
 			}
 		}
-		if (!$guild_gid) {
+		if (!$guildGid) {
 			return false;
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
-			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$guild_gid, $msg, "\0"]));
+			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$guildGid, $msg, "\0"]));
 		}
 		$this->iteration();
 		return true;
@@ -1147,9 +1147,9 @@ class AOChat {
 	public function parseExtParams(string &$msg): ?array {
 		$args = [];
 		while ($msg !== '') {
-			$data_type = $msg[0];
+			$dataType = $msg[0];
 			$msg = substr($msg, 1); // skip the data type id
-			switch ($data_type) {
+			switch ($dataType) {
 				case "S":
 					$len = ord($msg[0]) * 256 + ord($msg[1]);
 					$str = substr($msg, 2, $len);
@@ -1203,7 +1203,7 @@ class AOChat {
 					break 2;
 
 				default:
-					$this->logger->warning("Unknown argument type '$data_type'");
+					$this->logger->warning("Unknown argument type '$dataType'");
 					return null;
 			}
 		}
