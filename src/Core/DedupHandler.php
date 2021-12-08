@@ -16,7 +16,7 @@ class DedupHandler extends AbstractHandler {
 	public function handle(array $record): bool {
 		$rec = $record;
 		unset($rec["datetime"]);
-		$serialized = serialize($rec);
+		$serialized = var_export($rec, true);
 		if (isset($this->lastLog) && $this->lastLog === $serialized) {
 			return true;
 		}
