@@ -170,7 +170,9 @@ class WebsocketClient extends WebsocketBase {
 	 */
 	public function upgradeToWebsocket(): void {
 		$this->connected = true;
-		$this->logger->info("Connected to {$this->uri}");
+		$this->logger->info("[Websocket {uri}] Connected", [
+			"uri" => $this->uri,
+		]);
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
@@ -213,7 +215,10 @@ class WebsocketClient extends WebsocketBase {
 		$header = "GET $path HTTP/1.1\r\n" . implode("\r\n", $headerStrings) . "\r\n\r\n";
 
 		$this->write($header);
-		$this->logger->info("Headers sent");
+		$this->logger->debug("[Websocket {uri}] Headers sent", [
+			"uri" => $this->uri,
+			"header" => $header,
+		]);
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -221,6 +226,7 @@ class WebsocketClient extends WebsocketBase {
 				$this->validateWebsocketUpgradeReply($key);
 			}
 		);
+		$this->lastReadTime = time();
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
@@ -240,6 +246,10 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
+		$this->logger->debug("[Websocket {uri}] Received reply", [
+			"uri" => $this->uri,
+			"reply" => $response,
+		]);
 
 		$urlParts = parse_url($this->uri);
 		$path = ($urlParts["path"] ?? "/").
@@ -264,7 +274,9 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
-		$this->logger->info("connection upgraded to websocket on {$this->uri}");
+		$this->logger->info("[Websocket {uri}] connection upgraded to websocket", [
+			"uri" => $this->uri,
+		]);
 		unset($this->notifier);
 		$this->listenForRead();
 		$event = $this->getEvent("connect");

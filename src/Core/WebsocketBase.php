@@ -103,7 +103,7 @@ class WebsocketBase {
 	}
 
 	protected function getEvent($eventName=null): WebsocketCallback {
-		$eventName ??= $this->lastOpcode;
+		$eventName ??= $this->lastOpcode ?? "unknown";
 		$event = new WebsocketCallback();
 		$event->eventName = $eventName;
 		$event->websocket = $this;
@@ -210,6 +210,9 @@ class WebsocketBase {
 		);
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
+			if ((!is_resource($this->socket) || feof($this->socket)) && $this->isClosing) {
+				return true;
+			}
 			$this->logger->error("[Websocket {uri}] Error sending data", [
 				"uri" => $this->uri,
 			]);
@@ -387,6 +390,7 @@ class WebsocketBase {
 		if ($this->isClosing) {
 			$this->isClosing = false;
 		} else {
+			$this->isClosing = true;
 			$this->send($statusBin . 'Close acknowledged: ' . $status, 'close');
 		}
 
@@ -468,8 +472,9 @@ class WebsocketBase {
 		if ($opcode === 'ping') {
 			$this->pendingPingTime = time();
 		}
-		$this->logger->info("[Websocket {uri}] Queueing packet", [
+		$this->logger->info("[Websocket {uri}] Queueing {opcode} packet", [
 			"uri" => $uri,
+			"opcode" => $opcode,
 			"packet" => $data,
 		]);
 
