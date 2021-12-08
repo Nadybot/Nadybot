@@ -39,13 +39,11 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     chmod +x /usr/bin/composer && \
     apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
         sudo \
-        php8-xml \
         jq \
     && \
     cd /nadybot && \
     sudo -u nadybot jq 'del(."require-dev")' composer.json > composer.php8.json && \
     mv composer.php8.json composer.json && \
-    sudo -u nadybot composer update --no-dev && \
     sudo -u nadybot composer install --no-dev && \
     rm -rf "$(sudo -u nadybot composer config vendor-dir)/niktux/addendum/Tests" && \
     rm -f "$(sudo -u nadybot composer config vendor-dir)/niktux/addendum/composer.phar" && \
@@ -54,7 +52,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     rm -f /usr/bin/composer && \
     jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \
-    apk del --no-cache sudo php8-xml jq && \
+    apk del --no-cache sudo jq && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi
