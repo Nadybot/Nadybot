@@ -347,6 +347,9 @@ class Relay implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
+		if (!$this->initialized) {
+			return false;
+		}
 		$this->prependMainHop($event);
 		$data = $this->relayProtocol->send($event);
 		for ($i = count($this->stack); $i--;) {
