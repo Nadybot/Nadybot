@@ -122,6 +122,8 @@ class Tyrbot implements RelayProtocolInterface {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
 		} elseif (is_object($event->data) && is_string($event->data->message)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		} else {
+			return [];
 		}
 		$packet = [
 			"type" => "message",
