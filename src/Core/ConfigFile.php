@@ -31,8 +31,8 @@ class ConfigFile {
 	 */
 	public function load(): void {
 		$this->copyFromTemplateIfNeeded();
+		$vars = [];
 		require $this->filePath;
-		/** @phpstan-ignore-next-line */
 		$this->vars = $vars;
 	}
 
