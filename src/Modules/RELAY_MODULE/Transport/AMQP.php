@@ -434,8 +434,7 @@ class AMQP implements TransportInterface, StatusProvider {
 	 */
 	public function handleIncomingMessage(AMQPMessage $message): void {
 		$this->lastWaitReceivedMessage = true;
-		$sender = $message->delivery_info['routing_key'];
-		$exchange = $message->delivery_info['exchange'];
+		$sender = $message->get('routing_key');
 		if ($sender === $this->chatBot->char->name) {
 			$this->logger->info('Own AMQP Message received: ' . $message->body);
 			return;
