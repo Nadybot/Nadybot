@@ -1,4 +1,23 @@
 *****************************
+	Version 5.3.0 RC 2
+*****************************
+Bugfixes:
+- The logline deduplicator threw exceptions when exceptions were logged
+- Race condition for the shared online list fixed, which lead to players
+  shown as online when they already logged off
+- Fixed tyrbot() protocol errors when relaying only with a prefix
+- Fix genRandomString() from sometimes returning less chars than requested
+  This also fixes Sec-WebSocket-Key from being non-standard sometimes
+- If there are rules defined, send them to the players when they join the bot
+- PHP 8.1 fix for AMQP relays
+- Fix building the PHP  7.4 docker image
+- Make websockets more robust, testing against autobahn testsuite
+- Don't try to relay messages to uninitialized arrays
+
+Other:
+- Upgraded all required packages to latest version and resolved issues
+
+*****************************
 	Version 5.3.0 RC 1
 *****************************
 Features:
