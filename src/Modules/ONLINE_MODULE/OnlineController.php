@@ -55,6 +55,7 @@ class OnlineController {
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
 	protected const GROUP_BY_PROFESSION = 2;
+	protected const GROUP_BY_FACTION = 3;
 
 	protected const RELAY_OFF = 0;
 	protected const RELAY_YES = 1;
@@ -195,8 +196,8 @@ class OnlineController {
 			"edit",
 			"options",
 			"1",
-			"do not group;player;profession",
-			"0;1;2"
+			"do not group;player;profession;faction",
+			"0;1;2;3"
 		);
 		$this->settingManager->add(
 			$this->moduleName,
@@ -845,6 +846,14 @@ class OnlineController {
 			return $list;
 		}
 		$groupBy ??= $this->settingManager->getInt('online_group_by');
+		$factions = [];
+		if ($groupBy === static::GROUP_BY_FACTION) {
+			foreach ($players as $player) {
+				$player->faction = $player->faction ?: "Neutral";
+				$factions[$player->faction] ??= 0;
+				$factions[$player->faction]++;
+			}
+		}
 		foreach ($players as $player) {
 			if ($groupBy === static::GROUP_BY_MAIN) {
 				if ($currentGroup !== $player->pmain) {
@@ -861,6 +870,13 @@ class OnlineController {
 					}
 					$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
 					$currentGroup = $player->profession;
+				}
+			} elseif ($groupBy === static::GROUP_BY_FACTION) {
+				$list->countMains++;
+				if ($currentGroup !== $player->faction) {
+					$list->blob .= "\n<pagebreak><" . strtolower($player->faction) . ">".
+						$player->faction . " (" . ($factions[$player->faction]??1) . ")<end>\n";
+					$currentGroup = $player->faction;
 				}
 			} else {
 				$list->countMains++;
@@ -913,6 +929,8 @@ class OnlineController {
 				"COALESCE(" . $query->grammar->wrap("p.profession") . ", ?) asc",
 				['Unknown']
 			)->orderBy("o.name");
+		} elseif ($groupBy === static::GROUP_BY_FACTION) {
+			$query->orderBy("p.faction")->orderBy("o.name");
 		} else {
 			$query->orderByRaw("o.name");
 		}
