@@ -136,14 +136,14 @@ class JWT {
 	 *
 	 * @param string            $msg        The original message (header and body)
 	 * @param string            $signature  The original signature
-	 * @param string|resource   $key        For HS*, a string key works. for RS*, must be a resource of an openssl public key
+	 * @param string            $key        For HS*, a string key works. for RS*, must be a resource of an openssl public key
 	 * @param string            $alg        The algorithm
 	 *
 	 * @return bool
 	 *
 	 * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
 	 */
-	private static function verify($msg, $signature, $key, $alg) {
+	private static function verify(string $msg, string $signature, string $key, $alg) {
 		if (empty(static::$supported_algs[$alg])) {
 			throw new DomainException('Algorithm not supported');
 		}
