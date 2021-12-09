@@ -110,13 +110,13 @@ class Relay implements MessageReceiver {
 		$this->onlineChars[$where][$character] = $player;
 		$this->playerManager->getByNameCallback(
 			function(?Player $player) use ($where, $character, $clientId): void {
-				if (!isset($player)) {
+				if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
 					return;
 				}
+				$player->source = $clientId;
 				foreach ($player as $key => $value) {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
-				$this->onlineChars[$where][$character]->source = $clientId;
 			},
 			false,
 			$character,
@@ -138,22 +138,26 @@ class Relay implements MessageReceiver {
 	}
 
 	public function setClientOffline(string $clientId): void {
-		$this->logger->info("Client {clientId} is offline, marking all characters offline", [
+		$this->logger->info("Client {clientId} is offline on {relay}, marking all characters offline", [
 			"relay" => $this->name,
 			"clientId" => $clientId,
 		]);
 		$skipped = [];
 		$offline = [];
-		foreach ($this->onlineChars as $where => &$characters) {
+		$newList = [];
+		foreach ($this->onlineChars as $where => $characters) {
 			foreach ($characters as $name => $player) {
-				if (($player->source??null) === null || $player->source !== $clientId) {
-					$skipped []= $name;
+				if ($player->source === $clientId) {
+					$offline []= "{$where}.{$name}";
 					continue;
 				}
-				$offline []= $name;
-				unset($this->onlineChars[$where][$name]);
+				$newList[$where] ??= [];
+				$newList[$where][$name] = $player;
+				$skipped []= "{$where}.{$name}";
+				continue;
 			}
 		}
+		$this->onlineChars = $newList;
 		$this->logger->info("Marked {numOffline} character(s) offline on {relay}", [
 			"relay" => $this->name,
 			"numOffline" => count($offline),
