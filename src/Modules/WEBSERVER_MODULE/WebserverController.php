@@ -292,7 +292,7 @@ class WebserverController {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
 				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $attrName) {
-					$attrs = $method->getAttributes("\\Nadybot\\Core\\Attributes\\$attrName");
+					$attrs = $method->getAttributes("Nadybot\\Core\\Attributes\\$attrName");
 					if (empty($attrs)) {
 						continue;
 					}

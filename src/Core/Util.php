@@ -615,7 +615,7 @@ class Util {
 
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
 		$reflection = new ReflectionClass($class);
-		$attrs = $reflection->getAttributes("\\Nadybot\\Core\\Attributes\\$attrName");
+		$attrs = $reflection->getAttributes("Nadybot\\Core\\Attributes\\$attrName");
 		if (empty($attrs)) {
 			return null;
 		}
