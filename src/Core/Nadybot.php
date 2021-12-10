@@ -1298,20 +1298,34 @@ class Nadybot extends AOChat {
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getProperties() as $property) {
 			$settingAttrs = $property->getAttributes(AttributesSetting::class);
-			if (count($settingAttrs)) {
-				$this->settingManager->add(
-					$moduleName,
-					$settingAttrs[0]->newInstance()->value,
-					$property->getAttributes(Description::class)[0]->newInstance()->value,
-					$property->getAttributes(Visibility::class)[0]->newInstance()->value,
-					$property->getAttributes(Type::class)[0]->newInstance()->value,
-					$obj->{$property->name},
-					$property->getAttributes(Options::class)[0]->newInstance()->value,
-					$property->getAttributes(Intoptions::class)[0]->newInstance()->value,
-					$property->getAttributes(AccessLevel::class)[0]->newInstance()->value,
-					$property->getAttributes(Help::class)[0]->newInstance()->value,
+			if (empty($settingAttrs)) {
+				continue;
+			}
+			$descrAttrs = $property->getAttributes(Description::class);
+			$visibilityAttrs = $property->getAttributes(Visibility::class);
+			$typeAttrs = $property->getAttributes(Type::class);
+			if (empty($descrAttrs) || empty($visibilityAttrs) || empty($typeAttrs)) {
+				throw new Exception(
+					"The setting {$obj->{$property->name}} is missing the ".
+					"Description, Visibility or Type attribute"
 				);
 			}
+			$optionsAttrs = $property->getAttributes(Options::class);
+			$intoptionsAttrs = $property->getAttributes(Intoptions::class);
+			$alAttrs = $property->getAttributes(AccessLevel::class);
+			$helpAttrs = $property->getAttributes(Help::class);
+			$this->settingManager->add(
+				$moduleName,
+				$settingAttrs[0]->newInstance()->value,
+				$descrAttrs[0]->newInstance()->value,
+				$visibilityAttrs[0]->newInstance()->value,
+				$typeAttrs[0]->newInstance()->value,
+				$obj->{$property->name},
+				$optionsAttrs ? $optionsAttrs[0]->newInstance()->value : "",
+				$intoptionsAttrs ? $intoptionsAttrs[0]->newInstance()->value : "",
+				$alAttrs ? $alAttrs[0]->newInstance()->value : null,
+				$helpAttrs ? $helpAttrs[0]->newInstance()->value : null,
+			);
 		}
 
 		// register commands, subcommands, and events annotated on the class
