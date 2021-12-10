@@ -70,13 +70,21 @@ class JSONDataModel {
 				}
 			} elseif ($type->isBuiltin() === true) {
 				if ($typeName === "string") {
-					$refProp->setValue($this, (string)$data->{$propName});
+					if ($data->{$propName} === null) {
+						$refProp->setValue($this, null);
+					} else {
+						$refProp->setValue($this, (string)$data->{$propName});
+					}
 				} else {
 					$refProp->setValue($this, $data->{$propName});
 				}
 			} elseif ($typeName === "DateTime") {
 				if (isset($data->{$propName})) {
-					$refProp->setValue($this, DateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
+					if (is_numeric($data->{$propName})) {
+						$refProp->setValue($this, DateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
+					} else {
+						$refProp->setValue($this, new DateTime($data->{$propName}));
+					}
 				} else {
 					$refProp->setValue($this, null);
 				}
