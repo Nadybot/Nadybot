@@ -278,6 +278,7 @@ class DiscordGatewayController {
 	}
 
 	public function processWebsocketMessage(WebsocketCallback $event): void {
+		$this->logger->debug("Received discord message", ["message" => $event->data]);
 		$payload = new Payload();
 		try {
 			if (!isset($event->data)) {
@@ -285,16 +286,34 @@ class DiscordGatewayController {
 			}
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
-			$this->logger->error(
-				"Invalid JSON data received from Discord: " . $e->getMessage(),
-				["exception" => $e]
-			);
+			$this->logger->error("Invalid JSON data received from Discord: {error}", [
+				"error" => $e->getMessage(),
+				"data" => $event->data,
+				"exception" => $e
+			]);
 			if (isset($this->client)) {
 				$this->client->close(4002);
 			}
 			return;
 		}
-		$this->logger->info("Received packet op " . $payload->op);
+		$opcodeToName = [
+			 0 => "Dispatch",
+			 1 => "Heartbeat",
+			 2 => "Identify",
+			 3 => "Presence Update",
+			 4 => "Voice State Update",
+			 6 => "Resume",
+			 7 => "Reconnect",
+			 8 => "Request Guild Members",
+			 9 => "Invalid Session",
+			10 => "Hello",
+			11 => "Heartbeat ACK",
+		];
+		$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
+			"opcode" => $payload->op,
+			"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
+			"data" => $payload->d,
+		]);
 		if (isset($payload->s)) {
 			$this->lastSequenceNumber = $payload->s;
 		}
@@ -471,13 +490,16 @@ class DiscordGatewayController {
 		$message = new DiscordMessageIn();
 		/** @var stdClass $event->payload->d */
 		$message->fromJSON($event->payload->d);
+		$this->logger->debug("Processing incoming discord message", [
+			"message" => $message,
+		]);
+		if (!isset($message->author)) {
+			return;
+		}
 		if ($message->author->id === $this->me->id ?? null) {
 			return;
 		}
 
-		if (!isset($message->author)) {
-			return;
-		}
 		$this->discordAPIClient->cacheUser($message->author);
 		$name = $message->author->username . "#" . $message->author->discriminator;
 		$member = null;
@@ -487,7 +509,9 @@ class DiscordGatewayController {
 			if (isset($message->guild_id)) {
 				$this->discordAPIClient->cacheGuildMember($message->guild_id, $member);
 			}
-			$name = $message->member->nick ?? $name;
+			if (!empty($message->member->nick)) {
+				$name = $message->member->nick;
+			}
 		}
 		$channel = $this->getChannel($message->channel_id);
 		$channelName = $channel ? ($channel->name??"DM") : "thread";
