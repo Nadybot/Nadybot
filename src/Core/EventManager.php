@@ -3,8 +3,8 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Addendum\ReflectionAnnotatedMethod;
 use Closure;
+use Nadybot\Core\Attributes\Event as EventAttr;
 use Nadybot\Core\DBSchema\EventCfg;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
@@ -337,9 +337,9 @@ class EventManager {
 	}
 
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
-		$method = new ReflectionAnnotatedMethod($obj, $methodName);
-		if ($method->hasAnnotation('Event')) {
-			return strtolower($method->getAnnotation('Event')->value);
+		$method = new ReflectionMethod($obj, $methodName);
+		foreach ($method->getAttributes(EventAttr::class) as $event) {
+			return strtolower($event->newInstance()->value);
 		}
 		return null;
 	}

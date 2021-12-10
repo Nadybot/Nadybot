@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Nadybot\Core\Attributes\HandlesCommand;
 use Throwable;
 use ReflectionException;
-use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
@@ -14,6 +14,7 @@ use Nadybot\Core\ParamClass\Base;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 
@@ -598,7 +599,7 @@ class CommandManager implements MessageEmitter {
 	 */
 	public function checkMatches(object $instance, string $method, string $message) {
 		try {
-			$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
+			$reflectedMethod = new ReflectionMethod($instance, $method);
 		} catch (ReflectionException $e) {
 			// method doesn't exist (probably handled dynamically)
 			return true;
@@ -627,19 +628,9 @@ class CommandManager implements MessageEmitter {
 	 *
 	 * @return CommandRegexp[]
 	 */
-	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
+	public function retrieveRegexes(ReflectionMethod $reflectedMethod): array {
 		$regexes = [];
-		if ($reflectedMethod->hasAnnotation('Matches')) {
-			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
-				$regexes []= new CommandRegexp(preg_replace_callback(
-					"/:([A-Z]+)/",
-					function (array $matches): string {
-						return $this->matchClasses[$matches[1]] ?? ":{$matches[1]}";
-					},
-					$annotation->value
-				));
-			}
-		} elseif ($reflectedMethod->hasAnnotation('HandlesCommand')) {
+		if (count($reflectedMethod->getAttributes(HandlesCommand::class))) {
 			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
 		}
 		return $regexes;
@@ -717,7 +708,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * @return CommandRegexp[]
 	 */
-	public function getRegexpFromCharClass(ReflectionAnnotatedMethod $method): array {
+	public function getRegexpFromCharClass(ReflectionMethod $method): array {
 		$params = $method->getParameters();
 		if (count($params) === 0
 			|| !$params[0]->hasType() ) {
@@ -729,10 +720,11 @@ class CommandManager implements MessageEmitter {
 			return [];
 		}
 		$regexp = [];
-		if ($method->hasAnnotation('HandlesCommand')) {
+		$cmds = $method->getAttributes(HandlesCommand::class);
+		if (count($cmds)) {
 			$commands = [];
-			foreach ($method->getAllAnnotations("HandlesCommand") as $command) {
-				$commands []= explode(" ", $command->value)[0];
+			foreach ($cmds as $command) {
+				$commands []= explode(" ", $command->newInstance()->value)[0];
 			}
 			if (count($commands) === 1) {
 				$regexp = $commands;

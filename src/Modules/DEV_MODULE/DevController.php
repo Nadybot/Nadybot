@@ -2,20 +2,20 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Addendum\ReflectionAnnotatedMethod;
+use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
-	CommandReply,
 	DB,
 	Registry,
 	SubcommandManager,
 	Text,
 	Util,
 };
+use Nadybot\Core\Attributes\HandlesCommand;
 use ReflectionException;
 
 /**
@@ -131,12 +131,16 @@ class DevController {
 		foreach ($calls as $call) {
 			[$name, $method] = explode(".", $call);
 			$instance = Registry::getInstance($name);
+			if (!isset($instance)) {
+				continue;
+			}
 			try {
-				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-				$command = $reflectedMethod->getAnnotation("HandlesCommand")->value;
-				if (!isset($command)) {
+				$reflectedMethod = new ReflectionMethod($instance, $method);
+				$commands = $reflectedMethod->getAttributes(HandlesCommand::class);
+				if (empty($commands)) {
 					continue;
 				}
+				$command = $commands[0]->newInstance()->value;
 				$command = explode(" ", $command)[0];
 				$regexes[$command] ??= [];
 				$regexes[$command] = array_merge($regexes[$command], $this->commandManager->retrieveRegexes($reflectedMethod));

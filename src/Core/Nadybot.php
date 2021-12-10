@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
-use Nadybot\Core\Annotations\DefineCommand;
+use ReflectionClass;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
@@ -17,6 +16,21 @@ use Nadybot\Core\DBSchema\{
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
 use InvalidArgumentException;
+use Nadybot\Core\Attributes\AccessLevel;
+use Nadybot\Core\Attributes\DefaultStatus;
+use Nadybot\Core\Attributes\DefineCommand as AttributesDefineCommand;
+use Nadybot\Core\Attributes\Description;
+use Nadybot\Core\Attributes\Event;
+use Nadybot\Core\Attributes\HandlesCommand;
+use Nadybot\Core\Attributes\Help;
+use Nadybot\Core\Attributes\Intoptions;
+use Nadybot\Core\Attributes\Options;
+use Nadybot\Core\Attributes\ProvidesEvent;
+use Nadybot\Core\Attributes\Setting as AttributesSetting;
+use Nadybot\Core\Attributes\SettingHandler;
+use Nadybot\Core\Attributes\Setup;
+use Nadybot\Core\Attributes\Type;
+use Nadybot\Core\Attributes\Visibility;
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\Channels\PrivateChannel;
 use Nadybot\Core\Channels\PublicChannel;
@@ -1248,13 +1262,12 @@ class Nadybot extends AOChat {
 	}
 
 	public function registerEvents(string $class): void {
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('ProvidesEvent')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
-			$this->eventManager->addEventType($eventAnnotation->value, $eventAnnotation->desc??null);
+		foreach ($reflection->getAttributes(ProvidesEvent::class) as $eventAttr) {
+			/** @var ProvidesEvent */
+			$eventObj = $eventAttr->newInstance();
+			$this->eventManager->addEventType($eventObj->value, $eventObj->desc);
 		}
 	}
 
@@ -1262,13 +1275,12 @@ class Nadybot extends AOChat {
 		if (!is_subclass_of($class, SettingHandler::class)) {
 			return;
 		}
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('SettingHandler')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('SettingHandler') as $settingAnnotation) {
-			$this->settingManager->registerSettingHandler($settingAnnotation->value, $class);
+		foreach ($reflection->getAttributes(SettingHandler::class) as $settingAttr) {
+			/** @var SettingHandler */
+			$AttrObj = $settingAttr->newInstance();
+			$this->settingManager->registerSettingHandler($AttrObj->value, $class);
 		}
 	}
 
@@ -1283,21 +1295,21 @@ class Nadybot extends AOChat {
 		$moduleName = $obj->moduleName;
 
 		// register settings annotated on the class
-		$reflection = new ReflectionAnnotatedClass($obj);
+		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Setting')) {
+			$settingAttrs = $property->getAttributes(AttributesSetting::class);
+			if (count($settingAttrs)) {
 				$this->settingManager->add(
 					$moduleName,
-					$property->getAnnotation('Setting')->value,
-					$property->getAnnotation('Description')->value,
-					$property->getAnnotation('Visibility')->value,
-					$property->getAnnotation('Type')->value,
+					$settingAttrs[0]->newInstance()->value,
+					$property->getAttributes(Description::class)[0]->newInstance()->value,
+					$property->getAttributes(Visibility::class)[0]->newInstance()->value,
+					$property->getAttributes(Type::class)[0]->newInstance()->value,
 					$obj->{$property->name},
-					@$property->getAnnotation('Options')->value,
-					@$property->getAnnotation('Intoptions')->value,
-					@$property->getAnnotation('AccessLevel')->value,
-					@$property->getAnnotation('Help')->value
+					$property->getAttributes(Options::class)[0]->newInstance()->value,
+					$property->getAttributes(Intoptions::class)[0]->newInstance()->value,
+					$property->getAttributes(AccessLevel::class)[0]->newInstance()->value,
+					$property->getAttributes(Help::class)[0]->newInstance()->value,
 				);
 			}
 		}
@@ -1305,65 +1317,70 @@ class Nadybot extends AOChat {
 		// register commands, subcommands, and events annotated on the class
 		$commands = [];
 		$subcommands = [];
-		foreach ($reflection->getAllAnnotations() as $annotation) {
-			if ($annotation instanceof DefineCommand) {
-				if (!isset($annotation->command)) {
-					$this->logger->warning("Cannot parse @DefineCommand annotation in '$name'.");
-					continue;
-				}
-				$command = $annotation->command;
-				$definition = [
-					'channels'      => $annotation->channels,
-					'defaultStatus' => $annotation->defaultStatus,
-					'accessLevel'   => $annotation->accessLevel??"mod",
-					'description'   => $annotation->description,
-					'help'          => $annotation->help,
-					'handlers'      => []
-				];
-				[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
-				if ($subCommand !== "") {
-					$definition['parentCommand'] = $parentCommand;
-					$subcommands[$command] = $definition;
-				} else {
-					$commands[$command] = $definition;
-				}
-				// register command alias if defined
-				if ($annotation->alias) {
-					$this->commandAlias->register($moduleName, $command, $annotation->alias);
-				}
+		foreach ($reflection->getAttributes(AttributesDefineCommand::class) as $attribute) {
+			/** @var AttributesDefineCommand */
+			$attribute = $attribute->newInstance();
+			$command = $attribute->command;
+			$definition = [
+				'channels'      => $attribute->channels,
+				'defaultStatus' => $attribute->defaultStatus,
+				'accessLevel'   => $attribute->accessLevel??"mod",
+				'description'   => $attribute->description,
+				'help'          => $attribute->help,
+				'handlers'      => []
+			];
+			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+			if ($subCommand !== "") {
+				$definition['parentCommand'] = $parentCommand;
+				$subcommands[$command] = $definition;
+			} else {
+				$commands[$command] = $definition;
+			}
+			// register command alias if defined
+			if ($attribute->alias) {
+				$this->commandAlias->register($moduleName, $command, $attribute->alias);
 			}
 		}
 
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
+			if (count($method->getAttributes(Setup::class))) {
 				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}
-			} elseif ($method->hasAnnotation('HandlesCommand')) {
-				foreach ($method->getAllAnnotations('HandlesCommand') as $command) {
-					$commandName = $command->value;
-					$handlerName = "{$name}.{$method->name}";
-					if (isset($commands[$commandName])) {
-						$commands[$commandName]['handlers'][] = $handlerName;
-					} elseif (isset($subcommands[$commandName])) {
-						$subcommands[$commandName]['handlers'][] = $handlerName;
-					} else {
-						$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
-					}
+			}
+			foreach ($method->getAttributes(HandlesCommand::class) as $command) {
+				/** @var HandlesCommand */
+				$command = $command->newInstance();
+				$commandName = $command->value;
+				$handlerName = "{$name}.{$method->name}";
+				if (isset($commands[$commandName])) {
+					$commands[$commandName]['handlers'][] = $handlerName;
+				} elseif (isset($subcommands[$commandName])) {
+					$subcommands[$commandName]['handlers'][] = $handlerName;
+				} else {
+					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
 				}
-			} elseif ($method->hasAnnotation('Event')) {
-				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
-					$defaultStatus = @$method->getAnnotation('DefaultStatus')->value;
-					$this->eventManager->register(
-						$moduleName,
-						$eventAnnotation->value,
-						$name . '.' . $method->name,
-						@$method->getAnnotation('Description')->value ?? "none",
-						@$method->getAnnotation('Help')->value,
-						isset($defaultStatus) ? (int)$defaultStatus : null
-					);
+			}
+			foreach ($method->getAttributes(Event::class) as $eventAnnotation) {
+				/** @var Event */
+				$event = $eventAnnotation->newInstance();
+				if (count($defStatusAttrs = $method->getAttributes(DefaultStatus::class))) {
+					$defaultStatus = $defStatusAttrs[0]->newInstance()->value;
 				}
+				if (count($descrAttrs = $method->getAttributes(Description::class))) {
+					$description = $descrAttrs[0]->newInstance()->value;
+				}
+				if (count($helpAttrs = $method->getAttributes(Help::class))) {
+					$help = $helpAttrs[0]->newInstance()->value;
+				}
+				$this->eventManager->register(
+					$moduleName,
+					$event->value,
+					$name . '.' . $method->name,
+					isset($description) ? $description : "none",
+					isset($help) ? $help : null,
+					isset($defaultStatus) ? (int)$defaultStatus : null
+				);
 			}
 		}
 
@@ -1407,10 +1424,9 @@ class Nadybot extends AOChat {
 	 * Call the setup method for an object
 	 */
 	public function callSetupMethod(string $name, object $obj): void {
-		$reflection = new ReflectionAnnotatedClass($obj);
+		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
+			if (count($method->getAttributes(Setup::class))) {
 				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
+use ReflectionClass;
 use DateTime;
 use Exception;
 use Nadybot\Core\Annotations\HttpGet;
@@ -289,20 +289,22 @@ class WebserverController {
 	public function scanRouteAnnotations(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$reflection = new ReflectionAnnotatedClass($instance);
+			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var \Addendum\ReflectionAnnotatedMethod $method */
-				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $annoName) {
-					if (!$method->hasAnnotation($annoName)) {
+				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $attrName) {
+					$attrs = $method->getAttributes("\\Nadybot\\Core\\Attributes\\$attrName");
+					if (empty($attrs)) {
 						continue;
 					}
-					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $annotation */
-						if (isset($annotation->value)) {
-							$closure = $method->getClosure($instance);
-							if (isset($closure)) {
-								$this->addRoute($annotation->type, $annotation->value, $closure);
-							}
+					foreach ($attrs as $attribute) {
+						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $anntrObj */
+						$attrObj = $attribute->newInstance();
+						if (!isset($attrObj->value)) {
+							continue;
+						}
+						$closure = $method->getClosure($instance);
+						if (isset($closure)) {
+							$this->addRoute($attrObj->type, $attrObj->value, $closure);
 						}
 					}
 				}

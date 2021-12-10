@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use Nadybot\Core\Attributes\Instance;
+use ReflectionClass;
 
 class ClassLoader {
 	/** @Logger */
@@ -155,13 +156,16 @@ class ClassLoader {
 
 		$newInstances = [];
 		foreach ($new as $className) {
-			$reflection = new ReflectionAnnotatedClass($className);
-			if ($reflection->hasAnnotation('Instance')) {
+			$reflection = new ReflectionClass($className);
+			$instanceAnnos = $reflection->getAttributes(Instance::class);
+			if (count($instanceAnnos)) {
 				$instance = new ClassInstance();
 				$instance->className = $className;
-				if ($reflection->getAnnotation('Instance')->value !== null) {
-					$name = $reflection->getAnnotation('Instance')->value;
-					$instance->overwrite = $reflection->getAnnotation('Instance')->overwrite ?? false;
+				/** @var Instance */
+				$instanceAnno = $instanceAnnos[0]->newInstance();
+				if ($instanceAnno->value !== null) {
+					$name = $instanceAnno->value;
+					$instance->overwrite = $instanceAnno->overwrite;
 				} else {
 					$name = Registry::formatName($className);
 				}

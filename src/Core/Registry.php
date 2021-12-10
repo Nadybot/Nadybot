@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use Nadybot\Core\Attributes\Inject;
+use Nadybot\Core\Attributes\Logger;
+use ReflectionClass;
 
 class Registry {
 	/** @var array<string,object> */
@@ -58,24 +60,28 @@ class Registry {
 	 */
 	public static function injectDependencies(object $instance): void {
 		// inject other instances that are annotated with @Inject
-		$reflection = new ReflectionAnnotatedClass($instance);
+		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Inject')) {
-				if ($property->getAnnotation('Inject')->value != '') {
-					$dependencyName = $property->getAnnotation('Inject')->value;
-				} else {
-					$dependencyName = $property->name;
-				}
+			$injectAttrs = $property->getAttributes(Inject::class);
+			if (count($injectAttrs)) {
+				/** @var Inject */
+				$injectAttr = $injectAttrs[0]->newInstance();
+				$dependencyName = $injectAttr->value ?? $property->name;
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
 					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
 				} else {
 					$instance->{$property->name} = $dependency;
 				}
-			} elseif ($property->hasAnnotation('Logger')) {
-				if (@$property->getAnnotation('Logger')->value != '') {
-					$tag = $property->getAnnotation('Logger')->value;
+				continue;
+			}
+
+			$loggerAttrs = $property->getAttributes(Logger::class);
+			if (count($loggerAttrs)) {
+				/** @var Logger */
+				$loggerAttr = $loggerAttrs[0]->newInstance();
+				if (isset($loggerAttr->value)) {
+					$tag = $loggerAttr->value;
 				} else {
 					$array = explode("\\", $reflection->name);
 					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {

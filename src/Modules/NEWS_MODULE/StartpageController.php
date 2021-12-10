@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
-use Addendum\ReflectionAnnotatedMethod;
+use ReflectionClass;
 use Closure;
 use DateInterval;
 use DateTime;
@@ -26,6 +25,9 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\Attributes\Description;
+use Nadybot\Core\Attributes\Example;
+use Nadybot\Core\Attributes\NewsTile as NewsTileAttr;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -89,32 +91,27 @@ class StartpageController {
 	 * Parse a method for NewsTile annotations and add the tiles
 	 *
 	 * @param object $instance The object instance we're processing
-	 * @param \Addendum\ReflectionAnnotatedMethod $method The method we're scanning
+	 * @param ReflectionMethod $method The method we're scanning
 	 */
-	protected function parseRefMethod(object $instance, ReflectionAnnotatedMethod $method): void {
-		if (!$method->hasAnnotation('NewsTile')) {
+	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
+		$newsTileAttrs = $method->getAttributes(NewsTileAttr::class);
+		if (empty($newsTileAttrs)) {
 			return;
 		}
 		$className = get_class($instance);
 		$funcName = "{$className}::" . $method->getName() . "()";
-		$name = $method->getAnnotation("NewsTile")->value;
-		if (!isset($name)) {
-			throw new InvalidArgumentException(
-				"{$funcName} has an invalid @NewsTile annotation."
-			);
-		}
-		$descr = $method->getAnnotation("Description");
-		if (!isset($descr) || $descr === false) {
+		/** @var NewsTileAttr */
+		$attrObj = $newsTileAttrs[0]->newInstance();
+		$name = $attrObj->value;
+		$descrAttrs = $method->getAttributes(Description::class);
+		if (empty($descrAttrs)) {
 			throw new InvalidArgumentException(
 				"{$funcName} has no @Description annotation."
 			);
 		}
-		$descr = $descr->value;
-		if (!isset($descr)) {
-			throw new InvalidArgumentException(
-				"{$funcName} has an invalid @Description annotation."
-			);
-		}
+		/** @var Description */
+		$descrObj = $descrAttrs[0]->newInstance();
+		$descr = $descrObj->value;
 		$closure = $method->getClosure($instance);
 		if (!isset($closure)) {
 			throw new InvalidArgumentException(
@@ -123,9 +120,11 @@ class StartpageController {
 		}
 		$tile = new NewsTile($name, $closure);
 		$tile->description = $descr;
-		$example = $method->getAnnotation("Example");
-		if (isset($example) && $example !== false) {
-			$tile->example = $example->value;
+		$exampleAttrs = $method->getAttributes(Example::class);
+		if (!empty($exampleAttrs)) {
+			/** @var Example */
+			$attrObj = $exampleAttrs[0]->newInstance();
+			$tile->example = $attrObj->value;
 		}
 		$this->registerNewsTile($tile);
 	}
@@ -136,7 +135,7 @@ class StartpageController {
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$class = new ReflectionAnnotatedClass($instance);
+			$class = new ReflectionClass($instance);
 			foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
 				$this->parseRefMethod($instance, $method);
 			}
