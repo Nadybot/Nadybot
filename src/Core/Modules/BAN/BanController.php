@@ -539,6 +539,15 @@ class BanController {
 				if (isset($guild)) {
 					$ban->org_name = $guild->orgname;
 				}
+				if (!isset($this->orgbanlist[$ban->org_id])) {
+					if (isset($sendto)) {
+						$sendto->reply(
+							"Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
+							"because they were unbanned before we finished looking up data."
+						);
+					}
+					return;
+				}
 				$this->orgbanlist[$ban->org_id] = $ban;
 				if (isset($sendto)) {
 					$sendto->reply("Added <highlight>{$ban->org_name}<end> to the banlist.");
@@ -692,6 +701,7 @@ class BanController {
 		$ban->start = time();
 		$ban->end = $endDate;
 		$ban->reason = $reason;
+		$ban->org_name = "org #{$ban->org_id}";
 		$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
 		$this->addOrgToBanlist($ban, $sendto);
 		return true;
