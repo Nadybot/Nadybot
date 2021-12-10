@@ -40,7 +40,6 @@ COPY --chown=nadybot:nadybot . /nadybot
 
 RUN apk --no-cache add composer jq php7-tokenizer php7-xmlwriter && \
     cd /nadybot && \
-    composer update --no-dev --no-interaction --no-progress && \
     composer install --no-dev --no-interaction --no-progress && \
     rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
     rm -f "$(composer config vendor-dir)/niktux/addendum/composer.phar" && \
