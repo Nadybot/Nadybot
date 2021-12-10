@@ -733,6 +733,9 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 		$comment = $method->getDocComment();
+		if ($comment === false) {
+			$comment = "";
+		}
 		$variadic = null;
 		for ($i = 1; $i < count($params); $i++) {
 			$regex = $this->getParamRegexp($params[$i], $comment);
