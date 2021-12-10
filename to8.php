@@ -4,6 +4,8 @@ namespace Nadybot;
 
 use Addendum\ReflectionAnnotatedClass;
 use Addendum\ReflectionAnnotatedProperty;
+use Nadybot\Core\Annotations\Inject;
+use Nadybot\Core\Annotations\Instance;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -28,12 +30,25 @@ class Migrator {
 
 		$classes = array_values(array_diff($newClasses, $oldClasses));
 		foreach ($classes as $class) {
+			if ($class !== \Nadybot\Core\ClassLoader::class) {
+				// continue;
+			}
 			$code = $this->convertClass($class);
 			$code = $this->convertProperties($class, $code);
 			$code = $this->convertMethods($class, $code);
 			$ref = new ReflectionClass($class);
 			file_put_contents($ref->getFileName(), $code);
 		}
+	}
+
+	private function addUse(string $code): string {
+		if (strpos($code, "Attributes as NCA") === false) {
+			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
+		}
+		if (strpos($code, "Attributes as NCA") === false) {
+			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
+		}
+		return $code;
 	}
 
 	private function convertClass(string $class): string {
@@ -47,7 +62,7 @@ class Migrator {
 		foreach ($annotations as $annotation) {
 			$annoName = class_basename($annotation);
 			$code = preg_replace(
-				"/(\n[ \t]*\*[ \t]*)?@" . $annoName . "([ \t]*(?=\n)|\(.*?\)(?=\n)|\(.*?\)(?= \*\/))/s",
+				"/(\n[ \t]*\*[ \t]*)@" . $annoName . "([ \t]*(?=\n)|\(.*?\)(?=\n)|\(.*?\)(?= \*\/))/s",
 				"",
 				$code
 			);
@@ -82,12 +97,7 @@ class Migrator {
 		}
 		$classSearch = "\nclass " . class_basename($class);
 		$code = str_replace($classSearch, "\n{$attrString}{$classSearch}", $code);
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
-		}
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
-		}
+		$code = $this->addUse($code);
 		$code = preg_replace("/\n\/\*\*\s*\*\//", "", $code);
 		return $code;
 	}
@@ -111,8 +121,8 @@ class Migrator {
 				$changed = true;
 				$annoName = class_basename($annotation);
 				$code = preg_replace(
-					"/[ \t]@" . $annoName . "([ \t]*(?=\n)|(\(.*?\))?(?=\n| \*\/))/s",
-					"",
+					"/\*[ \t]+@" . $annoName . "([ \t]*(?=\n)|(\(.*?\))?(?=\n| \*\/))/s",
+					"*",
 					$code,
 					1
 				);
@@ -155,12 +165,7 @@ class Migrator {
 		if (!$changed) {
 			return $code;
 		}
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
-		}
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
-		}
+		$code = $this->addUse($code);
 		$code = preg_replace("/\n[ \t]*\/\*\*[\s*]*\*\//", "", $code);
 		return $code;
 	}
@@ -181,11 +186,17 @@ class Migrator {
 			}
 			$attribs = [];
 			foreach ($annotations as $annotation) {
+				if ($annotation instanceof Instance) {
+					continue;
+				}
+				if ($annotation instanceof Inject) {
+					continue;
+				}
 				$changed = true;
 				$annoName = class_basename($annotation);
 				$code = preg_replace(
-					"/[ \t]@" . $annoName . "([ \t]*(?=\n)|(\(.*?\))?(?=\n| \*\/))/s",
-					"",
+					"/\*[ \t]+@" . $annoName . "([ \t]*(?=\n)|(\(.*?\))?(?=\n| \*\/))/s",
+					"*",
 					$code,
 					1
 				);
@@ -211,6 +222,9 @@ class Migrator {
 					$attribs []= "NCA\\$annoName(" . join(", ", $params) . ")";
 				}
 			}
+			if (empty($attribs)) {
+				continue;
+			}
 			if (count($attribs) === 1) {
 				$attrString = "#[{$attribs[0]}]";
 			} else {
@@ -228,12 +242,7 @@ class Migrator {
 		if (!$changed) {
 			return $code;
 		}
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
-		}
-		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
-		}
+		$code = $this->addUse($code);
 		$code = preg_replace("/\n[ \t]*\/\*\*[\s*]*\*\//s", "", $code);
 		$code = preg_replace("/(\n[ \t]*\*[ \t]*)+(\n[ \t]*\*\/)/s", "$2", $code);
 		$code = preg_replace("/(\n[ \t]*\*[ \t]*){2,}/s", "$1", $code);
