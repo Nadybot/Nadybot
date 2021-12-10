@@ -31,7 +31,8 @@ class Migrator {
 			$code = $this->convertClass($class);
 			$code = $this->convertProperties($class, $code);
 			$code = $this->convertMethods($class, $code);
-			var_dump($code);
+			$ref = new ReflectionClass($class);
+			file_put_contents($ref->getFileName(), $code);
 		}
 	}
 
@@ -82,7 +83,10 @@ class Migrator {
 		$classSearch = "\nclass " . class_basename($class);
 		$code = str_replace($classSearch, "\n{$attrString}{$classSearch}", $code);
 		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\Attributes as NCA;\nuse ", $code, 1);
+			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
+		}
+		if (strpos($code, "Attributes as NCA") === false) {
+			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
 		}
 		$code = preg_replace("/\n\/\*\*\s*\*\//", "", $code);
 		return $code;
@@ -152,7 +156,10 @@ class Migrator {
 			return $code;
 		}
 		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\Attributes as NCA;\nuse ", $code, 1);
+			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
+		}
+		if (strpos($code, "Attributes as NCA") === false) {
+			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
 		}
 		$code = preg_replace("/\n[ \t]*\/\*\*[\s*]*\*\//", "", $code);
 		return $code;
@@ -222,7 +229,10 @@ class Migrator {
 			return $code;
 		}
 		if (strpos($code, "Attributes as NCA") === false) {
-			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\Attributes as NCA;\nuse ", $code, 1);
+			$code = preg_replace("/\nuse /s", "\nuse Nadybot\\Core\\Attributes as NCA;\nuse ", $code, 1);
+		}
+		if (strpos($code, "Attributes as NCA") === false) {
+			$code = preg_replace("/\nnamespace.+?\n/s", "$0\nuse Nadybot\\Core\\Attributes as NCA;\n", $code, 1);
 		}
 		$code = preg_replace("/\n[ \t]*\/\*\*[\s*]*\*\//s", "", $code);
 		$code = preg_replace("/(\n[ \t]*\*[ \t]*)+(\n[ \t]*\*\/)/s", "$2", $code);
