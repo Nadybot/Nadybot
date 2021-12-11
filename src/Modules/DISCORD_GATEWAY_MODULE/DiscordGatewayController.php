@@ -44,6 +44,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	UpdateStatus,
 	VoiceState,
 };
+use stdClass;
 
 /**
  * @author Nadyita (RK5)
@@ -153,6 +154,7 @@ class DiscordGatewayController {
 		return null;
 	}
 
+	/** @param mixed $args */
 	public function lookupChannel(string $channelId, callable $callback, ...$args): void {
 		$channel = $this->getChannel($channelId);
 		if (isset($channel)) {
@@ -161,6 +163,7 @@ class DiscordGatewayController {
 		}
 		$this->discordAPIClient->getChannel(
 			$channelId,
+			/** @param mixed $args */
 			function(DiscordChannel $channel, callable $callback, ...$args): void {
 				$guildId = $channel->guild_id;
 				if (!isset($guildId) || !isset($this->guilds[$guildId])) {
@@ -221,7 +224,7 @@ class DiscordGatewayController {
 	 */
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
-			$this->logger->log("INFO", "Closing Discord gateway connection.");
+			$this->logger->notice("Closing Discord gateway connection.");
 			$this->client->close();
 		}
 		if ($newValue !== "" && $newValue !== 'off') {
@@ -263,31 +266,54 @@ class DiscordGatewayController {
 		}
 		$this->lastHeartbeat = time();
 		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
-		$this->logger->log("DEBUG", "Sending heartbeat");
+		$this->logger->info("Sending heartbeat");
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
 	public function processWebsocketError(WebsocketCallback $event): void {
-		$this->logger->log("ERROR", "[$event->code] $event->data");
+		$this->logger->error("[$event->code] $event->data");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		}
 	}
 
 	public function processWebsocketMessage(WebsocketCallback $event): void {
+		$this->logger->debug("Received discord message", ["message" => $event->data]);
 		$payload = new Payload();
 		try {
+			if (!isset($event->data)) {
+				throw new JsonException("null message received.");
+			}
 			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
-			$this->logger->log(
-				"ERROR",
-				"Invalid JSON data received from Discord: " . $e->getMessage(),
-				$e
-			);
-			$this->client->close(4002);
+			$this->logger->error("Invalid JSON data received from Discord: {error}", [
+				"error" => $e->getMessage(),
+				"data" => $event->data,
+				"exception" => $e
+			]);
+			if (isset($this->client)) {
+				$this->client->close(4002);
+			}
 			return;
 		}
-		$this->logger->log("DEBUG", "Received packet op " . $payload->op);
+		$opcodeToName = [
+			 0 => "Dispatch",
+			 1 => "Heartbeat",
+			 2 => "Identify",
+			 3 => "Presence Update",
+			 4 => "Voice State Update",
+			 6 => "Resume",
+			 7 => "Reconnect",
+			 8 => "Request Guild Members",
+			 9 => "Invalid Session",
+			10 => "Hello",
+			11 => "Heartbeat ACK",
+		];
+		$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
+			"opcode" => $payload->op,
+			"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
+			"data" => $payload->d,
+		]);
 		if (isset($payload->s)) {
 			$this->lastSequenceNumber = $payload->s;
 		}
@@ -305,9 +331,10 @@ class DiscordGatewayController {
 	 */
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
+		/** @var object $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
 		$this->timer->callLater($this->heartbeatInterval, [$this, "sendWebsocketHeartbeat"]);
-		$this->logger->log('DEBUG', "Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
+		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
 		$this->lastHeartbeat = time();
 
 		if ($this->sessionId !== null && $this->lastSequenceNumber !== null) {
@@ -317,10 +344,11 @@ class DiscordGatewayController {
 		}
 	}
 
-	protected function sendIdentify() {
-		$this->logger->log("INFO", "Logging into Discord gateway");
+	protected function sendIdentify(): void {
+		$this->guilds = [];
+		$this->logger->notice("Logging into Discord gateway");
 		$identify = new IdentifyPacket();
-		$identify->token = $this->settingManager->getString('discord_bot_token');
+		$identify->token = $this->settingManager->getString('discord_bot_token') ?? "off";
 		$identify->intents = Intent::GUILD_MESSAGES
 			| Intent::DIRECT_MESSAGES
 			| Intent::GUILDS
@@ -328,19 +356,27 @@ class DiscordGatewayController {
 		$login = new Payload();
 		$login->op = Opcode::IDENTIFY;
 		$login->d = $identify;
-		$this->client->send(json_encode($login));
+		if (isset($this->client)) {
+			$this->client->send(json_encode($login));
+		}
 	}
 
-	protected function sendResume() {
-		$this->logger->log("INFO", "Trying to resume old Discord gateway session");
+	protected function sendResume(): void {
+		$this->logger->notice("Trying to resume old Discord gateway session");
 		$resume = new ResumePacket();
-		$resume->token = $this->settingManager->getString('discord_bot_token');
+		$resume->token = $this->settingManager->getString('discord_bot_token') ?? "off";
+		if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
+			$this->logger->error("Cannot result session, because no previous session found.");
+			return;
+		}
 		$resume->session_id = $this->sessionId;
 		$resume->seq = $this->lastSequenceNumber;
 		$payload = new Payload();
 		$payload->op = Opcode::RESUME;
 		$payload->d = $resume;
-		$this->client->send(json_encode($payload));
+		if (isset($this->client)) {
+			$this->client->send(json_encode($payload));
+		}
 	}
 
 	/**
@@ -356,7 +392,7 @@ class DiscordGatewayController {
 		$newEvent = new DiscordGatewayEvent();
 		$newEvent->payload = $payload;
 		$newEvent->type = strtolower("discord({$payload->t})");
-		$this->logger->log("DEBUG", "New event: discord({$payload->t})");
+		$this->logger->info("New event: discord({$payload->t})");
 		$this->eventManager->fireEvent($newEvent);
 	}
 
@@ -366,10 +402,12 @@ class DiscordGatewayController {
 	 * @DefaultStatus("1")
 	 */
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
-		$this->logger->log("DEBUG", "Discord Gateway requests reconnect");
+		$this->logger->info("Discord Gateway requests reconnect");
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 1;
-		$this->client->close(1000);
+		if (isset($this->client)) {
+			$this->client->close(1000);
+		}
 	}
 
 	/**
@@ -379,12 +417,13 @@ class DiscordGatewayController {
 	 */
 	public function processGatewayInvalidSession(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
+		/** @var bool $payload->d */
 		if ($payload->d === true) {
-			$this->logger->log("DEBUG", "Session invalid, trying to resume");
+			$this->logger->info("Session invalid, trying to resume");
 			$this->sendResume();
 			return;
 		}
-		$this->logger->log("DEBUG", "Session invalid, trying to start new one");
+		$this->logger->info("Session invalid, trying to start new one");
 		$this->sendIdentify();
 	}
 
@@ -429,15 +468,16 @@ class DiscordGatewayController {
 			$this->lastSequenceNumber = null;
 			$this->sessionId = null;
 		}
-		$this->guilds = [];
 		if (
 			(($event->code ?? null) === 1000 && $this->mustReconnect)
 			|| $this->shouldReconnect($event->code ?? null)
 		) {
-			$this->logger->log("INFO", "Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
+			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
 			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+		} else {
+			$this->guilds = [];
 		}
 	}
 
@@ -448,19 +488,30 @@ class DiscordGatewayController {
 	 */
 	public function processDiscordMessage(DiscordGatewayEvent $event): void {
 		$message = new DiscordMessageIn();
+		/** @var stdClass $event->payload->d */
 		$message->fromJSON($event->payload->d);
+		$this->logger->debug("Processing incoming discord message", [
+			"message" => $message,
+		]);
+		if (!isset($message->author)) {
+			return;
+		}
 		if ($message->author->id === $this->me->id ?? null) {
 			return;
 		}
 
 		$this->discordAPIClient->cacheUser($message->author);
 		$name = $message->author->username . "#" . $message->author->discriminator;
-		$this->idToName[$message->author->id] = $name;
+		$member = null;
 		if (isset($message->member)) {
 			$member = $message->member;
 			$member->user ??= $message->author;
-			$this->discordAPIClient->cacheGuildMember($message->guild_id, $member);
-			$name = $message->member->nick ?? $name;
+			if (isset($message->guild_id)) {
+				$this->discordAPIClient->cacheGuildMember($message->guild_id, $member);
+			}
+			if (!empty($message->member->nick)) {
+				$name = $message->member->nick;
+			}
 		}
 		$channel = $this->getChannel($message->channel_id);
 		$channelName = $channel ? ($channel->name??"DM") : "thread";
@@ -534,10 +585,10 @@ class DiscordGatewayController {
 				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
 					$blob;
 			}
-			$msg = $this->text->makeBlob(
+			$msg = ((array)$this->text->makeBlob(
 				DiscordRelayController::formatMessage($embed->title),
 				$blob
-			);
+			))[0];
 		} else {
 			$msg = $blob;
 		}
@@ -563,7 +614,7 @@ class DiscordGatewayController {
 				$guildId,
 				$matches[1],
 				function(GuildMember $member, string $guildId, string $message, callable $callback) {
-					$message = preg_replace("/(?:<|&lt;)@!?" . $member->user->id . "(?:>|&gt;)/", "@" . $member->getName(), $message);
+					$message = preg_replace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
 					$this->resolveDiscordMentions($guildId, $message, $callback);
 				},
 				$guildId,
@@ -576,7 +627,7 @@ class DiscordGatewayController {
 			$matches[1],
 			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
 				$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
-				$this->resolveDiscordMentions($guildId, $message, $callback);
+				$this->resolveDiscordMentions(isset($guildId) ? (string)$guildId : null, $message, $callback);
 			},
 			$guildId,
 			$message,
@@ -592,9 +643,13 @@ class DiscordGatewayController {
 	 */
 	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
 		$guild = new Guild();
+		/** @var object $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[(string)$guild->id] = $guild;
 		foreach ($guild->voice_states as $voiceState) {
+			if (!isset($voiceState->user_id)) {
+				continue;
+			}
 			$this->discordAPIClient->getGuildMember(
 				(string)$guild->id,
 				$voiceState->user_id,
@@ -605,7 +660,7 @@ class DiscordGatewayController {
 			);
 		}
 		foreach ($guild->channels as $channel) {
-			if ($channel->type !== $channel::GUILD_TEXT) {
+			if ($channel->type !== $channel::GUILD_TEXT || !isset($channel->name)) {
 				continue;
 			}
 			$dc = new RoutedChannel($channel->name, $channel->id);
@@ -630,19 +685,20 @@ class DiscordGatewayController {
 	 */
 	public function processDiscordChannelMessages(DiscordGatewayEvent $event): void {
 		$channel = new DiscordChannel();
+		/** @var object $event->payload->d */
 		$channel->fromJSON($event->payload->d);
 		// Not a guild-channel? Must be a DM channel which we don't cache anyway
 		if (!isset($channel->guild_id)) {
 			return;
 		}
 		if (!isset($this->guilds[$channel->guild_id])) {
-			$this->logger->log("ERROR", "Received channel info for unknown guild");
+			$this->logger->error("Received channel info for unknown guild");
 			return;
 		}
 		$channels = &$this->guilds[$channel->guild_id]->channels;
 		if ($event->payload->t === "CHANNEL_CREATE") {
 			$channels []= $channel;
-			if ($channel->type !== $channel::GUILD_TEXT) {
+			if ($channel->type !== $channel::GUILD_TEXT || !isset($channel->name)) {
 				return;
 			}
 			$dc = new RoutedChannel($channel->name, $channel->id);
@@ -683,7 +739,7 @@ class DiscordGatewayController {
 				->unregisterMessageEmitter($fullName)
 				->unregisterMessageReceiver($fullName);
 
-			$dc = new RoutedChannel($channel->name, $channel->id);
+			$dc = new RoutedChannel($channel->name??(string)$channel->id, $channel->id);
 			Registry::injectDependencies($dc);
 			$this->messageHub
 				->registerMessageReceiver($dc)
@@ -699,12 +755,12 @@ class DiscordGatewayController {
 	 */
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
+		/** @var object $payload->d */
 		$this->sessionId = $payload->d->session_id;
 		$user = new DiscordUser();
 		$user->fromJSON($payload->d->user);
 		$this->me = $user;
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			"Successfully logged into Discord Gateway as ".
 			$user->username . "#" . $user->discriminator
 		);
@@ -717,8 +773,10 @@ class DiscordGatewayController {
 	 * @DefaultStatus("1")
 	 */
 	public function processDiscordResumed(DiscordGatewayEvent $event): void {
-		$this->logger->log(
-			'INFO',
+		if (!isset($this->me)) {
+			return;
+		}
+		$this->logger->notice(
 			"Session successfully resumed as ".
 			$this->me->username . "#" . $this->me->discriminator
 		);
@@ -729,11 +787,12 @@ class DiscordGatewayController {
 	 * @Description("Keep track of people in the voice chat")
 	 * @DefaultStatus("1")
 	 */
-	public function trackVoiceStateChanges(Event $event) {
+	public function trackVoiceStateChanges(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		$voiceState = new VoiceState();
+		/** @var object $payload->d */
 		$voiceState->fromJSON($payload->d);
-		if (!isset($voiceState->channel_id)) {
+		if (!isset($voiceState->channel_id) || $voiceState->channel_id === "") {
 			$this->handleVoiceChannelLeave($voiceState);
 		} else {
 			$this->handleVoiceChannelJoin($voiceState);
@@ -745,7 +804,7 @@ class DiscordGatewayController {
 	 */
 	protected function removeFromVoice(string $userId): ?VoiceState {
 		$oldState = $this->getCurrentVoiceState($userId);
-		if ($oldState === null) {
+		if ($oldState === null || !isset($oldState->guild_id)) {
 			return null;
 		}
 		$this->guilds[$oldState->guild_id]->voice_states = array_values(
@@ -760,14 +819,19 @@ class DiscordGatewayController {
 	}
 
 	protected function handleVoiceChannelLeave(VoiceState $voiceState): void {
+		if (!isset($voiceState->user_id)) {
+			return;
+		}
 		$oldState = $this->removeFromVoice($voiceState->user_id);
 		if ($oldState === null) {
 			return;
 		}
 		$guildId = $voiceState->guild_id ?? null;
-		if (!isset($guildId)) {
+		if (!isset($guildId) && isset($oldState->channel_id)) {
 			$channel = $this->getChannel($oldState->channel_id);
-			$guildId = $channel->guild_id;
+			if (isset($channel->guild_id)) {
+				$guildId = $channel->guild_id;
+			}
 		}
 		if (!isset($guildId) || !isset($voiceState->user_id)) {
 			return;
@@ -776,9 +840,16 @@ class DiscordGatewayController {
 			$guildId,
 			$voiceState->user_id,
 			function (GuildMember $member) use ($oldState) {
+				if (!isset($oldState->channel_id)) {
+					return;
+				}
 				$event = new DiscordVoiceEvent();
 				$event->type = "discord_voice_leave";
-				$event->discord_channel = $this->getChannel($oldState->channel_id);
+				$discordChannel = $this->getChannel($oldState->channel_id);
+				if (!isset($discordChannel)) {
+					return;
+				}
+				$event->discord_channel = $discordChannel;
 				$event->member = $member;
 				$this->eventManager->fireEvent($event);
 			}
@@ -786,13 +857,20 @@ class DiscordGatewayController {
 	}
 
 	/**
-	 * @return array<string,array<string,array<string>>>
+	 * @return array<string,array<string,array<?string>>>
+	 * @psalm-return array<string,array<string,list<?string>>>
 	 */
 	public function getPlayersInVoiceChannels(): array {
 		$channels = [];
 		foreach ($this->guilds as $guildId => $guild) {
 			foreach ($guild->voice_states as $voiceState) {
+				if (!isset($voiceState->channel_id)) {
+					continue;
+				}
 				$channel = $this->getChannel($voiceState->channel_id);
+				if (!isset($channel) || !isset($channel->name)) {
+					continue;
+				}
 				$channels[$guild->name] ??= [];
 				if (!isset($voiceState->member)) {
 					continue;
@@ -806,16 +884,24 @@ class DiscordGatewayController {
 	}
 
 	protected function handleVoiceChannelJoin(VoiceState $voiceState): void {
-		$this->removeFromVoice($voiceState->user_id);
+		if (isset($voiceState->user_id)) {
+			$oldState = $this->getCurrentVoiceState($voiceState->user_id);
+			if (isset($oldState) && $oldState->channel_id === $voiceState->channel_id) {
+				return;
+			}
+			$this->removeFromVoice($voiceState->user_id);
+		}
 		if (!isset($voiceState->guild_id)) {
 			return;
 		}
 		$this->guilds[$voiceState->guild_id]->voice_states []= $voiceState;
-		$this->lookupChannel(
-			$voiceState->channel_id,
-			[$this, "handleAsyncVoiceChannelJoin"],
-			$voiceState
-		);
+		if (isset($voiceState->channel_id)) {
+			$this->lookupChannel(
+				$voiceState->channel_id,
+				[$this, "handleAsyncVoiceChannelJoin"],
+				$voiceState
+			);
+		}
 	}
 
 	public function handleAsyncVoiceChannelJoin(DiscordChannel $channel, VoiceState $voiceState): void {
@@ -842,19 +928,19 @@ class DiscordGatewayController {
 	 * @Description("Announce if people join or leave voice chat")
 	 */
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
-		$showChanges = $this->settingManager->getInt('discord_notify_voice_changes');
+		$showChanges = $this->settingManager->getInt('discord_notify_voice_changes') ?? 0;
 		if ($showChanges === 0) {
 			return;
 		}
 		if ($event->type === 'discord_voice_leave') {
 			$msg = $event->member->getName().
 				" has left the voice channel <highlight>".
-				$event->discord_channel->name.
+				($event->discord_channel->name ?? $event->discord_channel->id).
 				"<end>.";
 		} else {
 			$msg = $event->member->getName().
 				" has entered the voice channel <highlight>".
-				$event->discord_channel->name.
+				($event->discord_channel->name ?? $event->discord_channel->id).
 				"<end>.";
 		}
 		if ($showChanges & 1) {

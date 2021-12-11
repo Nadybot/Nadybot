@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\DBSchema\Setting;
 
 /**
@@ -37,6 +38,25 @@ class SettingManager {
 	/** @var array<string,ChangeListener[]> $changeListeners */
 	private array $changeListeners = [];
 
+	/** @var array<string,string> */
+	private array $settingHandlers = [];
+
+	/**
+	 * Return the hardcoded value for a setting or a given default
+	 */
+	public function getHardcoded(string $setting, $default=null): ?string {
+		$value = $this->chatBot->vars["settings"][$setting]??$default;
+		if (is_bool($value)) {
+			return $value ? "1" : "0";
+		} elseif (is_int($value)) {
+			return (string)$value;
+		} elseif (is_string($value)) {
+			return $value;
+		} else {
+			return null;
+		}
+	}
+
 	/**
 	 * Register a setting for a module
 	 *
@@ -54,34 +74,35 @@ class SettingManager {
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
 	public function add(
-		 string $module,
-		 string $name,
-		 string $description,
-		 string $mode,
-		 string $type,
-		 $value,
-		 ?string $options='',
-		 ?string $intoptions='',
-		 ?string $accessLevel='mod',
-		 ?string $help=''
+		string $module,
+		string $name,
+		string $description,
+		string $mode,
+		string $type,
+		$value,
+		?string $options='',
+		?string $intoptions='',
+		?string $accessLevel='mod',
+		?string $help=''
 	): void {
+		$value = $this->getHardcoded($name) ?? $value;
 		$name = strtolower($name);
 		$type = strtolower($type);
 
 		if ($accessLevel == '') {
 			$accessLevel = 'mod';
 		}
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
 
 		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank'])) {
-			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
+			$this->logger->error("Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
 		}
 
 		if ($type == 'time') {
 			$oldvalue = $value;
 			$value = $this->util->parseTime($value);
 			if ($value < 1) {
-				$this->logger->log('ERROR', "Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
+				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
 				return;
 			}
 		}
@@ -104,7 +125,7 @@ class SettingManager {
 			$setting->type        = $type;
 			$setting->verify      = 1;
 			$setting->value       = (string)$value;
-			if (array_key_exists($name, $this->chatBot->existing_settings ?? []) || $this->exists($name)) {
+			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
 				$this->db->table(self::DB_TABLE)
 					->where("name", $name)
 					->update([
@@ -138,7 +159,7 @@ class SettingManager {
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->log('ERROR', "Error in registering Setting $module:setting($name): " . $e->getMessage(), $e);
+			$this->logger->error("Error in registering Setting $module:setting($name): " . $e->getMessage(), ["exception" => $e]);
 		}
 	}
 
@@ -156,23 +177,26 @@ class SettingManager {
 	 * Gets the value of a setting
 	 *
 	 * @param string $name name of the setting to read
-	 * @return string|int|false the value of the setting, or false if a setting with that name does not exist
+	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
 	public function get(string $name) {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
 		}
-		$this->logger->log("ERROR", "Could not retrieve value for setting '$name' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return false;
 	}
 
+	/**
+	 * @return int|bool|string|null
+	 */
 	public function getTyped(string $name) {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
 		}
-		$this->logger->log("ERROR", "Could not retrieve value for setting '$name' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return null;
 	}
 
@@ -182,7 +206,7 @@ class SettingManager {
 			return (int)$value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
 		return null;
 	}
 
@@ -192,7 +216,7 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'bool', got '$type'");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'bool', got '$type'");
 		return null;
 	}
 
@@ -202,7 +226,7 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->log("ERROR", "Wrong type for setting '$name' requested. Expected 'string', got '$type'");
+		$this->logger->error("Wrong type for setting '$name' requested. Expected 'string', got '$type'");
 		return null;
 	}
 
@@ -217,8 +241,11 @@ class SettingManager {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
-			$this->logger->log("ERROR", "Could not save value '$value' for setting '$name' because setting does not exist");
+			$this->logger->error("Could not save value '$value' for setting '$name' because setting does not exist");
 			return false;
+		}
+		if ($this->getHardcoded($name, null) !== null) {
+			throw new Exception("<highlight>{$name}<end> is immutable.");
 		}
 		if ($this->settings[$name]->value === $value) {
 			return true;
@@ -234,10 +261,10 @@ class SettingManager {
 		$event->type = "setting({$name})";
 		$event->oldValue = $this->settings[$name];
 		$event->newValue = clone $event->oldValue;
-		$event->newValue->value = $value;
+		$event->newValue->value = (string)$value;
 		$this->eventManager->fireEvent($event);
 
-		$this->settings[$name]->value = $value;
+		$this->settings[$name]->value = (string)$value;
 		$this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->update([
@@ -257,6 +284,7 @@ class SettingManager {
 		/** @var Setting[] $data */
 		$data = $this->db->table(self::DB_TABLE)->asObj(Setting::class)->toArray();
 		foreach ($data as $row) {
+			$row->value = $this->getHardcoded($row->name, $row->value);
 			$this->settings[$row->name] = new SettingValue($row);
 		}
 	}
@@ -282,7 +310,7 @@ class SettingManager {
 	 */
 	public function registerChangeListener(string $settingName, callable $callback, $data=null): void {
 		if (!is_callable($callback)) {
-			$this->logger->log('ERROR', 'Given callback is not valid.');
+			$this->logger->error('Given callback is not valid.');
 			return;
 		}
 		$settingName = strtolower($settingName);
@@ -297,40 +325,26 @@ class SettingManager {
 	}
 
 	/**
+	 * Registers a new setting type $name that's implemented by $class
+	 */
+	public function registerSettingHandler(string $name, string $class): void {
+		$this->settingHandlers[$name] = $class;
+	}
+
+	/**
 	 * Get the handler for a setting
 	 */
 	public function getSettingHandler(Setting $row): ?SettingHandler {
-		$handler = null;
-		switch ($row->type) {
-			case 'color':
-				$handler = new ColorSettingHandler($row);
-				break;
-			case 'text':
-				$handler = new TextSettingHandler($row);
-				break;
-			case 'number':
-				$handler = new NumberSettingHandler($row);
-				break;
-			case 'options':
-				$handler = new OptionsSettingHandler($row);
-				break;
-			case 'time':
-				$handler = new TimeSettingHandler($row);
-				break;
-			case 'discord_channel':
-				$handler = new DiscordChannelSettingHandler($row);
-				break;
-			case 'discord_bot_token':
-				$handler = new DiscordBotTokenSettingHandler($row);
-				break;
-			case 'rank':
-				$handler = new AccessLevelSettingHandler($row);
-				break;
-			default:
-				$this->logger->log('ERROR', "Could not find setting handler for setting type: '$row->type'");
-				return null;
+		$handler = $this->settingHandlers[$row->type] ?? null;
+		if (!isset($handler)) {
+			$this->logger->error("Could not find setting handler for setting type: '$row->type'");
+			return null;
 		}
-		Registry::injectDependencies($handler);
-		return $handler;
+		$handlerObj = new $handler($row);
+		if (!is_subclass_of($handlerObj, SettingHandler::class)) {
+			throw new Exception("Invalid SettingHandler {$handler}.");
+		}
+		Registry::injectDependencies($handlerObj);
+		return $handlerObj;
 	}
 }

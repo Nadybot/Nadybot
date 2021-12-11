@@ -34,15 +34,15 @@
 		"ext-date": "*",
 		"ext-reflection": "*",
 		"ext-dom": "*",
-		"apache/log4php": "2.3.0",
-		"php-amqplib/php-amqplib": "2.11.3",
+		"php-amqplib/php-amqplib": "^3.1.0",
 		"niktux/addendum": "0.4.4",
 		"swaggest/json-schema": "^0.12.31",
-		"illuminate/database": "^8.37",
+		"illuminate/database": "^8.64",
 		"doctrine/dbal": "^3.0",
 		"kelvinmo/fernet-php": "^1.0",
 		"farafiri/php-parsing-tool": "^2.0",
-		"spatie/data-transfer-object": "^2.8"
+		"spatie/data-transfer-object": "^2.8",
+		"monolog/monolog": "^2.3"
 	},
 	"autoload": {
 		"psr-4": {
@@ -54,8 +54,10 @@
 		"vendor-dir": "vendor"
 	},
 	"require-dev": {
-		"squizlabs/php_codesniffer": "^3.5",
-		"composer/composer": "^1.10.23"
+		"squizlabs/php_codesniffer": "^3.6",
+		"composer/composer": "^1.10.23",
+		"phpstan/phpstan": "^1.1",
+		"vimeo/psalm": "^4.12"
 	},
 	"scripts": {
 		"post-package-install": [

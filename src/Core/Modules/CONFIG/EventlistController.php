@@ -3,9 +3,9 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\{
+	CmdContext,
 	Text,
 	DB,
-	CommandReply,
 	EventManager,
 };
 use Nadybot\Core\DBSchema\EventCfg;
@@ -35,24 +35,22 @@ class EventlistController {
 	 * Additionally, event type can be provided to show only events of that type.
 	 *
 	 * @HandlesCommand("eventlist")
-	 * @Matches("/^eventlist$/i")
-	 * @Matches("/^eventlist (.+)$/i")
 	 */
-	public function eventlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function eventlistCommand(CmdContext $context, ?string $type): void {
 		$query = $this->db->table(EventManager::DB_TABLE)
 			->select("type", "description", "module", "file", "status")
 			->orderBy("type")
 			->orderBy("module");
-		if (count($args) > 1) {
-			$query->whereIlike("type", "%{$args[1]}%");
+		if (isset($type)) {
+			$query->whereIlike("type", "%{$type}%");
 		}
 		/** @var EventCfg[] $data */
 		$data = $query->asObj(EventCfg::class)->toArray();
 		$count = count($data);
 
 		if ($count === 0) {
-			$msg = "No events of type <highlight>{$args[1]}<end> found.";
-			$sendto->reply($msg);
+			$msg = "No events of type <highlight>{$type}<end> found.";
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -78,6 +76,6 @@ class EventlistController {
 		}
 
 		$msg = $this->text->makeBlob("Event List ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

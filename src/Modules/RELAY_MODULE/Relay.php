@@ -2,19 +2,29 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\ONLINE_MODULE\OnlinePlayer;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
-use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
+use Nadybot\Core\{
+	DBSchema\Player,
+	LoggerWrapper,
+	MessageHub,
+	MessageReceiver,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+	SyncEvent,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlinePlayer,
+	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
+	RELAY_MODULE\Transport\TransportInterface,
+};
 
 class Relay implements MessageReceiver {
+	public const ALLOW_NONE = 0;
+	public const ALLOW_IN = 1;
+	public const ALLOW_OUT = 2;
+
 	/** @Inject */
 	public MessageHub $messageHub;
 
@@ -27,10 +37,25 @@ class Relay implements MessageReceiver {
 	/** @Inject */
 	public PlayerManager $playerManager;
 
+	/** @Logger */
+	public LoggerWrapper $logger;
+
+	/** Name of this relay */
 	protected string $name;
-	/** @var RelayLayerInterface[] */
+
+	/**
+	 * @var RelayLayerInterface[]
+	 * @psalm-var list<RelayLayerInterface>
+	 */
 	protected array $stack = [];
+
+	/**
+	 * Events that this relay sends and/or receives
+	 * @var array<string,RelayEvent>
+	 */
 	protected array $events = [];
+
+	/** The transport  */
 	protected TransportInterface $transport;
 	protected RelayProtocolInterface $relayProtocol;
 
@@ -39,6 +64,8 @@ class Relay implements MessageReceiver {
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
+	public bool $registerAsReceiver = true;
+	public bool $registerAsEmitter = true;
 
 	public function __construct(string $name) {
 		$this->name = $name;
@@ -54,10 +81,21 @@ class Relay implements MessageReceiver {
 	}
 
 	public function clearOnline(string $where): void {
+		$this->logger->info("Cleaning online chars for {relay}.{where}", [
+			"relay" => $this->name,
+			"where" => $where
+		]);
 		unset($this->onlineChars[$where]);
 	}
 
 	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+		$this->logger->info("Marking {name} online on {relay}.{where}", [
+			"name" => $character,
+			"where" => $where,
+			"relay" => $this->name,
+			"dimension" => $dimension,
+			"uid" => $uid,
+		]);
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
@@ -72,13 +110,13 @@ class Relay implements MessageReceiver {
 		$this->onlineChars[$where][$character] = $player;
 		$this->playerManager->getByNameCallback(
 			function(?Player $player) use ($where, $character, $clientId): void {
-				if (!isset($player)) {
+				if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
 					return;
 				}
+				$player->source = $clientId;
 				foreach ($player as $key => $value) {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
-				$this->onlineChars[$where][$character]->source = $clientId;
 			},
 			false,
 			$character,
@@ -88,19 +126,44 @@ class Relay implements MessageReceiver {
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
 		$character = ucfirst(strtolower($character));
+		$this->logger->info("Marking {name} offline on {relay}.{where}", [
+			"name" => $character,
+			"where" => $where,
+			"relay" => $this->name,
+			"dimension" => $dimension,
+			"uid" => $uid,
+		]);
 		$this->onlineChars[$where] ??= [];
 		unset($this->onlineChars[$where][$character]);
 	}
 
 	public function setClientOffline(string $clientId): void {
-		foreach ($this->onlineChars as $where => &$characters) {
+		$this->logger->info("Client {clientId} is offline on {relay}, marking all characters offline", [
+			"relay" => $this->name,
+			"clientId" => $clientId,
+		]);
+		$skipped = [];
+		$offline = [];
+		$newList = [];
+		foreach ($this->onlineChars as $where => $characters) {
 			foreach ($characters as $name => $player) {
-				if (!isset($player) || !isset($player->source) || $player->source !== $clientId) {
+				if ($player->source === $clientId) {
+					$offline []= "{$where}.{$name}";
 					continue;
 				}
-				unset($this->onlineChars[$where][$name]);
+				$newList[$where] ??= [];
+				$newList[$where][$name] = $player;
+				$skipped []= "{$where}.{$name}";
+				continue;
 			}
 		}
+		$this->onlineChars = $newList;
+		$this->logger->info("Marked {numOffline} character(s) offline on {relay}", [
+			"relay" => $this->name,
+			"numOffline" => count($offline),
+			"offline" => $offline,
+			"skipped" => $skipped,
+		]);
 	}
 
 	public function getStatus(): RelayStatus {
@@ -135,10 +198,10 @@ class Relay implements MessageReceiver {
 	 * Set the stack members that make up the stack
 	 */
 	public function setStack(
-		 TransportInterface $transport,
-		 RelayProtocolInterface $relayProtocol,
-		 RelayLayerInterface ...$stack
-	) {
+		TransportInterface $transport,
+		RelayProtocolInterface $relayProtocol,
+		RelayLayerInterface ...$stack
+	): void {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
@@ -146,9 +209,15 @@ class Relay implements MessageReceiver {
 
 	public function deinit(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
-			$this->messageHub
-				->unregisterMessageEmitter($this->getChannelName())
-				->unregisterMessageReceiver($this->getChannelName());
+			$this->logger->info("Deinitializing relay {relay}", [
+				"relay" => $this->name,
+			]);
+			if ($this->registerAsEmitter) {
+				$this->messageHub->unregisterMessageEmitter($this->getChannelName());
+			}
+			if ($this->registerAsReceiver) {
+				$this->messageHub->unregisterMessageReceiver($this->getChannelName());
+			}
 		}
 		/** @var RelayStackArraySenderInterface[] */
 		$layers = [
@@ -158,11 +227,18 @@ class Relay implements MessageReceiver {
 		];
 		$layer = $layers[$index] ?? null;
 		if (!isset($layer)) {
+			$this->logger->info("Relay {relay} fully deinitialized", [
+				"relay" => $this->name,
+			]);
 			if (isset($callback)) {
 				$callback($this);
 			}
 			return;
 		}
+		$this->logger->info("Deinitializing layer {layer} on relay {relay}", [
+			"layer" => get_class($layer),
+			"relay" => $this->name,
+		]);
 		$data = $layer->deinit(
 			function() use ($callback, $index): void {
 				$this->deinit($callback, $index+1);
@@ -176,23 +252,38 @@ class Relay implements MessageReceiver {
 	}
 
 	public function init(?callable $callback=null, int $index=0): void {
+		if ($index === 0) {
+			$this->logger->info("Initializing relay {relay}", [
+				"relay" => $this->name,
+			]);
+		}
 		$this->initialized = false;
 		$this->onlineChars = [];
 		$this->initStep = $index;
-		$this->messageHub
-			->registerMessageEmitter($this)
-			->registerMessageReceiver($this);
+		if ($this->registerAsEmitter) {
+			$this->messageHub->registerMessageEmitter($this);
+		}
+		if ($this->registerAsReceiver) {
+			$this->messageHub->registerMessageReceiver($this);
+		}
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
 			$this->initialized = true;
+			$this->logger->info("Relay {relay} fully initialized", [
+				"relay" => $this->name,
+			]);
 			if (isset($callback)) {
 				$callback();
 			}
 			return;
 		}
 		$element->setRelay($this);
+		$this->logger->info("Initializing layer {layer} on relay {relay}", [
+			"layer" => get_class($element),
+			"relay" => $this->name,
+		]);
 		$data = $element->init(
 			function() use ($callback, $index): void {
 				$this->init($callback, $index+1);
@@ -205,8 +296,13 @@ class Relay implements MessageReceiver {
 		}
 	}
 
-	public function getEventConfig(string $event): int {
-		return $this->events[$event] ?? 0;
+	public function getEventConfig(string $eventName): RelayEvent {
+		$event = $this->events[$eventName] ?? null;
+		if (!isset($event)) {
+			$event = new RelayEvent();
+			$event->event = $eventName;
+		}
+		return $event;
 	}
 
 	/**
@@ -218,6 +314,9 @@ class Relay implements MessageReceiver {
 			if (!isset($data)) {
 				return;
 			}
+		}
+		if (empty($data->packages)) {
+			return;
 		}
 		$event = $this->relayProtocol->receive($data);
 		if (!isset($event)) {
@@ -252,6 +351,9 @@ class Relay implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
+		if (!$this->initialized) {
+			return false;
+		}
 		$this->prependMainHop($event);
 		$data = $this->relayProtocol->send($event);
 		for ($i = count($this->stack); $i--;) {
@@ -273,5 +375,33 @@ class Relay implements MessageReceiver {
 			$data = $this->stack[$j]->send($data);
 		}
 		$this->transport->send($data);
+	}
+
+	public function allowIncSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->incoming;
+	}
+
+	public function allowOutSyncEvent(SyncEvent $event): bool {
+		$allow = $this->events[$event->type] ?? null;
+		if (!isset($allow)) {
+			return false;
+		}
+		return $allow->outgoing;
+	}
+
+	public function setEvents(array $events): void {
+		$this->events = [];
+		foreach ($events as $event) {
+			$this->events[$event->event] = $event;
+		}
+	}
+
+	/** Check id the relay protocol supports a certain feature */
+	public function protocolSupportsFeature(int $feature): bool {
+		return $this->relayProtocol->supportsFeature($feature);
 	}
 }

@@ -23,7 +23,7 @@ class ModuleSetting {
 
 	/**
 	 * The current value
-	 * @var int|string|bool
+	 * @var null|int|string|bool
 	 */
 	public $value = null;
 
@@ -43,10 +43,10 @@ class ModuleSetting {
 
 	public function __construct(Setting $setting) {
 		$this->editable = $setting->mode === 'edit';
-		$this->description = $setting->description;
+		$this->description = $setting->description??"No description given";
 		$this->name = $setting->name;
 		if (strlen($setting->options??"")) {
-			$options = explode(";", $setting->options);
+			$options = explode(";", $setting->options??"");
 			$values = $options;
 			if (isset($setting->intoptions) && strlen($setting->intoptions)) {
 				$values = array_map('intval', explode(";", $setting->intoptions));
@@ -62,7 +62,7 @@ class ModuleSetting {
 				}
 			}
 		}
-		$this->description = $setting->description;
+		$this->description = $setting->description??"No description given";
 		switch ($setting->type) {
 			case 'number':
 				$this->type = static::TYPE_NUMBER;
@@ -90,7 +90,7 @@ class ModuleSetting {
 				} else {
 					$this->type = static::TYPE_OPTIONS;
 					$this->value = (string)$setting->value;
-					if (strlen($setting->intoptions)) {
+					if (strlen($setting->intoptions??"")) {
 						$this->type = static::TYPE_INT_OPTIONS;
 						$this->value = (int)$setting->value;
 					}

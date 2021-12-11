@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\DBSchema\Setting;
 
 class SettingValue {
-	public string $value;
+	public ?string $value;
 
 	public string $type;
 
@@ -17,10 +17,13 @@ class SettingValue {
 				$this->type = "bool";
 			}
 		} else {
-			$this->type = $setting->type;
+			$this->type = $setting->type ?? "string";
 		}
 	}
 
+	/**
+	 * @return null|bool|int|string
+	 */
 	public function typed() {
 		if (in_array($this->type, ['number', 'time'])) {
 			return (int)$this->value;

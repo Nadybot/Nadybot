@@ -8,7 +8,7 @@ class ClassSpec {
 	public string $class;
 
 	/** @var FunctionParameter[] */
-	public array $params;
+	public array $params = [];
 
 	public ?string $description = null;
 
@@ -29,7 +29,7 @@ class ClassSpec {
 
 	public function getSecrets(): array {
 		$secrets = [];
-		foreach ($this->params??[] as $param) {
+		foreach ($this->params as $param) {
 			if ($param->type === $param::TYPE_SECRET) {
 				$secrets []= $param->name;
 			}

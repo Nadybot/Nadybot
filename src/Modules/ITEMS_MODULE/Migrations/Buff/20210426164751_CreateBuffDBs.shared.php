@@ -29,12 +29,6 @@ class CreateBuffDBs implements SchemaMigration {
 			$table->string("name", 50);
 		});
 
-		$db->schema()->dropIfExists("item_types");
-		$db->schema()->create("item_types", function(Blueprint $table) {
-			$table->integer('item_id')->index();
-			$table->string("item_type", 50);
-		});
-
 		$db->schema()->dropIfExists("buffs");
 		$db->schema()->create("buffs", function(Blueprint $table) {
 			$table->integer("id")->primary();

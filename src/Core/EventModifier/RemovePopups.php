@@ -28,6 +28,9 @@ class RemovePopups implements EventModifier {
 	}
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
+		if (!isset($event)) {
+			return $event;
+		}
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			$message = $event->getData()->message??null;
 			if (!isset($message)) {
@@ -35,7 +38,9 @@ class RemovePopups implements EventModifier {
 			}
 			$message = $this->text->removePopups($message, $this->removeLinks);
 			$modifiedEvent = clone $event;
-			$modifiedEvent->data->message = $message;
+			if (is_object($modifiedEvent->data)) {
+				$modifiedEvent->data->message = $message;
+			}
 			return $modifiedEvent;
 		}
 		$message = $event->getData();

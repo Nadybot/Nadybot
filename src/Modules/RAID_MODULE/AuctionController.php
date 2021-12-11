@@ -3,7 +3,9 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use DateTime;
+use Exception;
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -16,6 +18,7 @@ use Nadybot\Core\{
 	TimerEvent,
 	Util,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
@@ -69,7 +72,7 @@ class AuctionController {
 	public RaidPointsController $raidPointsController;
 
 	/** @Inject */
-	public RaidBLockController $raidBlockController;
+	public RaidBlockController $raidBlockController;
 
 	/** @Inject */
 	public EventManager $eventManager;
@@ -213,32 +216,32 @@ class AuctionController {
 
 	/**
 	 * @HandlesCommand("auction")
-	 * @Matches("/^auction start (.+)$/i")
+	 * @Mask $action start
 	 */
-	public function bidStartCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bidStartCommand(CmdContext $context, string $action, string $item): void {
 		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
-			$sendto->reply(RaidController::ERR_NO_RAID);
+			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
 		if (isset($this->auction)) {
-			$sendto->reply("There's already an auction running.");
+			$context->reply("There's already an auction running.");
 			return;
 		}
 		$auction = new Auction();
 		$auction->item = new RaffleItem();
-		$auction->item->fromString($args[1]);
-		$auction->auctioneer = $sender;
-		$auction->end = time() + $this->settingManager->getInt('auction_duration');
+		$auction->item->fromString($item);
+		$auction->auctioneer = $context->char->name;
+		$auction->end = time() + ($this->settingManager->getInt('auction_duration') ?? 50);
 		$this->startAuction($auction);
 	}
 
 	/**
 	 * @HandlesCommand("auction")
-	 * @Matches("/^auction cancel$/i")
+	 * @Mask $action cancel
 	 */
-	public function bidCancelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bidCancelCommand(CmdContext $context, string $action): void {
 		if (!isset($this->auction)) {
-			$sendto->reply(static::ERR_NO_AUCTION);
+			$context->reply(static::ERR_NO_AUCTION);
 			return;
 		}
 		if (isset($this->auctionTimer)) {
@@ -254,24 +257,22 @@ class AuctionController {
 
 	/**
 	 * @HandlesCommand("auction")
-	 * @Matches("/^auction end$/i")
+	 * @Mask $action end
 	 */
-	public function bidEndCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bidEndCommand(CmdContext $context, string $action): void {
 		if (!isset($this->auction)) {
-			$sendto->reply(static::ERR_NO_AUCTION);
+			$context->reply(static::ERR_NO_AUCTION);
 			return;
 		}
-		$this->endAuction($sender);
+		$this->endAuction($context->char->name);
 	}
 
 	/**
 	 * @HandlesCommand("auction reimburse .+")
-	 * @Matches("/^auction reimburse (.+)$/i")
-	 * @Matches("/^auction payback (.+)$/i")
-	 * @Matches("/^auction refund (.+)$/i")
+	 * @Mask $action (reimburse|payback|refund)
 	 */
-	public function bidReimburseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$winner = ucfirst(strtolower($args[1]));
+	public function bidReimburseCommand(CmdContext $context, string $action, PCharacter $winner): void {
+		$winner = $winner();
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
 			->where("winner", $winner)
@@ -279,15 +280,15 @@ class AuctionController {
 			->limit(1)
 			->asObj(DBAuction::class)->first();
 		if ($lastAuction === null) {
-			$sendto->reply(
+			$context->reply(
 				"<highlight>{$winner}<end> haven't won any auction ".
 				"that they could be reimbursed for."
 			);
 			return;
 		}
-		$maxAge = $this->settingManager->getInt('auction_refund_max_time');
+		$maxAge = $this->settingManager->getInt('auction_refund_max_time') ?? 3600;
 		if (time() - $lastAuction->end > $maxAge) {
-			$sendto->reply(
+			$context->reply(
 				"<highlight>{$lastAuction->item}<end> was auctioned longer than ".
 				$this->util->unixtimeToReadable($maxAge) . " ".
 				"ago and can no longer be reimbursed."
@@ -295,29 +296,29 @@ class AuctionController {
 			return;
 		}
 		if ($lastAuction->reimbursed) {
-			$sendto->reply(
+			$context->reply(
 				"<highlight>{$lastAuction->winner}<end> was already ".
 				"reimbursed for {$lastAuction->item}."
 			);
 			return;
 		}
-		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax');
-		$maxPenalty = $this->settingManager->getInt('auction_refund_max_tax');
-		$penalty = $this->settingManager->getInt('auction_refund_tax');
-		$percentualPenalty = (int)ceil($lastAuction->cost * $penalty / 100);
+		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax')??0;
+		$maxPenalty = $this->settingManager->getInt('auction_refund_max_tax')??0;
+		$penalty = $this->settingManager->getInt('auction_refund_tax')??10;
+		$percentualPenalty = (int)ceil(($lastAuction->cost??0) * $penalty / 100);
 		if ($maxPenalty > 0) {
 			$giveBack = max(
-				$lastAuction->cost - min($maxPenalty, max($minPenalty, $percentualPenalty, 0)),
+				($lastAuction->cost??0) - min($maxPenalty, max($minPenalty, $percentualPenalty, 0)),
 				0
 			);
 		} else {
 			$giveBack = max(
-				$lastAuction->cost - max($minPenalty, $percentualPenalty, 0),
+				($lastAuction->cost??0) - max($minPenalty, $percentualPenalty, 0),
 				0
 			);
 		}
 		if ($minPenalty > 0 && $lastAuction->cost <= $minPenalty) {
-			$sendto->reply(
+			$context->reply(
 				"The minimum penalty for a refund is {$minPenalty} points. ".
 				"So if the cost of {$lastAuction->item} is {$lastAuction->cost} points, ".
 				"0 points would be given back."
@@ -325,10 +326,14 @@ class AuctionController {
 			return;
 		}
 		if ($giveBack === 0) {
-			$sendto->reply(
+			$context->reply(
 				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? "s" : "").
 				" minus the {$penalty}% penalty would result in 0 points given back."
 			);
+			return;
+		}
+		if (!isset($lastAuction->winner)) {
+			$context->reply("Somehow, the last auction I found didn't have a winner.");
 			return;
 		}
 		$raid = $this->raidController->raid ?? null;
@@ -337,7 +342,7 @@ class AuctionController {
 			$giveBack,
 			true,
 			"Refund for " . $lastAuction->item,
-			$sender,
+			$context->char->name,
 			$raid
 		);
 		$this->db->table(self::DB_TABLE)
@@ -366,19 +371,18 @@ class AuctionController {
 
 	/**
 	 * @HandlesCommand("bid")
-	 * @Matches("/^bid (\d+)$/i")
 	 */
-	public function bidCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== "msg") {
-			$sendto->reply("<red>The <symbol>bid command only works in tells<end>.");
+	public function bidCommand(CmdContext $context, int $bid): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
 			return;
 		}
 		if (!isset($this->auction)) {
-			$sendto->reply(static::ERR_NO_AUCTION);
+			$context->reply(static::ERR_NO_AUCTION);
 			return;
 		}
-		if ($this->raidBlockController->isBlocked($sender, RaidBlockController::AUCTION_BIDS)) {
-			$sendto->reply(
+		if ($this->raidBlockController->isBlocked($context->char->name, RaidBlockController::AUCTION_BIDS)) {
+			$context->reply(
 				"You are currently blocked from ".
 				$this->raidBlockController->blockToString(RaidBlockController::AUCTION_BIDS).
 				"."
@@ -388,31 +392,30 @@ class AuctionController {
 		if (
 			$this->settingManager->getBool('auctions_only_for_raid')
 			&& (
-				!isset($this->raidController->raid->raiders[$sender])
-				|| isset($this->raidController->raid->raiders[$sender]->left)
+				!isset($this->raidController->raid->raiders[$context->char->name])
+				|| isset($this->raidController->raid->raiders[$context->char->name]->left)
 			)
 		) {
-			$sendto->reply("This auction is for the members of the current raid only.");
+			$context->reply("This auction is for the members of the current raid only.");
 			return;
 		}
-		$myBid = (int)$args[1];
-		$myPoints = $this->raidPointsController->getRaidPoints($sender);
+		$myPoints = $this->raidPointsController->getRaidPoints($context->char->name);
 		if ($myPoints === null) {
-			$sendto->reply("You haven't earned any raid points yet.");
+			$context->reply("You haven't earned any raid points yet.");
 			return;
 		}
-		if ($myPoints < $myBid) {
-			$sendto->reply("You only have <highlight>{$myPoints}<end> raid points.");
+		if ($myPoints < $bid) {
+			$context->reply("You only have <highlight>{$myPoints}<end> raid points.");
 			return;
 		}
-		$this->bid($sender, $myBid, $sendto);
+		$this->bid($context->char->name, $bid, $context);
 	}
 
 	/**
 	 * @HandlesCommand("bid")
-	 * @Matches("/^bid history$/i")
+	 * @Mask $action history
 	 */
-	public function bidHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bidHistoryCommand(CmdContext $context, string $action): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
 			->orderByDesc("id")
@@ -420,10 +423,10 @@ class AuctionController {
 			->asObj(DBAuction::class)
 			->toArray();
 		if (!count($items)) {
-			$sendto->reply("No auctions have ever been started on this bot.");
+			$context->reply("No auctions have ever been started on this bot.");
 			return;
 		}
-		$sendto->reply(
+		$context->reply(
 			$this->text->makeBlob(
 				"Last auctions (" . count($items) . ")",
 				$this->renderAuctionList($items)
@@ -433,9 +436,9 @@ class AuctionController {
 
 	/**
 	 * @HandlesCommand("bid")
-	 * @Matches("/^bid history (.+)$/i")
+	 * @Mask $action history
 	 */
-	public function bidHistorySearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bidHistorySearchCommand(CmdContext $context, string $action, string $search): void {
 		$shortcuts = [
 			"boc"  => ["%Burden of Competence%"],
 			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],
@@ -446,16 +449,16 @@ class AuctionController {
 			"nac" => ["%Notum Amplification Coil%"],
 			"ape" => ["%Action Probability Estimator%"],
 		];
-		$quickSearch = $shortcuts[strtolower($args[1])] ?? [];
+		$quickSearch = $shortcuts[strtolower($search)] ?? [];
 		$query = $this->db->table(self::DB_TABLE);
 		if (count($quickSearch)) {
-			foreach ($quickSearch as $search) {
-				$query->orWhereIlike("item", $search);
+			foreach ($quickSearch as $searchTerm) {
+				$query->orWhereIlike("item", $searchTerm);
 			}
 		} else {
 			$this->db->addWhereFromParams(
 				$query,
-				preg_split('/\s+/', $args[1]),
+				preg_split('/\s+/', $search),
 				'item'
 			);
 		}
@@ -465,7 +468,7 @@ class AuctionController {
 			->limit(40)
 			->asObj(DBAuction::class)->toArray();
 		if (!count($items)) {
-			$sendto->reply("Nothing matched <highlight>{$args[1]}<end>.");
+			$context->reply("Nothing matched <highlight>{$search}<end>.");
 			return;
 		}
 		/** @var DBAuction */
@@ -480,14 +483,14 @@ class AuctionController {
 		$text = "<header2>Most expensive result<end>\n".
 			"<tab>On " . DateTime::createFromFormat("U", (string)$mostExpensiveItem->end)->format("Y-m-d").
 			", <highlight>{$mostExpensiveItem->winner}<end> paid ".
-			"<highlight>" . number_format($mostExpensiveItem->cost) . "<end> raid points ".
+			"<highlight>" . number_format($mostExpensiveItem->cost??0) . "<end> raid points ".
 			"for " . preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $mostExpensiveItem->item) . "\n\n".
 		$text = "<header2>Average cost<end>\n".
 			"<tab>Total: <highlight>" . number_format($avgCost, 1) . "<end>\n".
 			"<tab>Last 10: <highlight>" . number_format($avgCostLastTen, 1) . "<end>\n\n".
 			$this->renderAuctionList($items);
-		$blob = $this->text->makeBlob("Auction history results for {$args[1]}", $text);
-		$sendto->reply($blob);
+		$blob = $this->text->makeBlob("Auction history results for {$search}", $text);
+		$context->reply($blob);
 	}
 
 	public function renderAuctionList(array $items): string {
@@ -517,6 +520,10 @@ class AuctionController {
 	 * @return void
 	 */
 	public function bid(string $sender, int $offer, CommandReply $sendto): void {
+		if (!isset($this->auction)) {
+			$sendto->reply(self::ERR_NO_AUCTION);
+			return;
+		}
 		if ($offer <= $this->auction->bid) {
 			$sendto->reply("You have to bid more than the current offer of {$this->auction->bid}.");
 			return;
@@ -560,14 +567,16 @@ class AuctionController {
 			$sendto->reply("You are now the top bidder.");
 		}
 
-		$minTime = $this->settingManager->getInt('auction_min_time_after_bid');
+		$minTime = $this->settingManager->getInt('auction_min_time_after_bid') ?? 5;
 		// When something changes, make sure people have at least
 		// $minTime seconds to place new bids
-		if ($this->auctionTimer->time - time() < $minTime) {
-			$this->auctionTimer->delay = $minTime;
-			$this->timer->restartEvent($this->auctionTimer);
+		if (isset($this->auctionTimer)) {
+			if ($this->auctionTimer->time - time() < $minTime) {
+				$this->auctionTimer->delay = $minTime;
+				$this->timer->restartEvent($this->auctionTimer);
+			}
+			$this->auction->end = $this->auctionTimer->time;
 		}
-		$this->auction->end = $this->auctionTimer->time;
 
 		$event = new AuctionEvent();
 		$event->auction = $this->auction;
@@ -614,7 +623,7 @@ class AuctionController {
 			$event->sender = $sender;
 		}
 		$this->recordAuctionInDB($auction);
-		if (isset($auction->bid) && $auction->bid > 0) {
+		if (isset($auction->bid) && $auction->bid > 0 && isset($auction->top_bidder)) {
 			$this->raidPointsController->modifyRaidPoints(
 				$auction->top_bidder,
 				$auction->bid * -1,
@@ -647,8 +656,8 @@ class AuctionController {
 			"To place a bid, use\n".
 			"<tab><highlight>/tell " . $this->chatBot->vars["name"] . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
-			"The auction ends after " . $this->settingManager->getInt('auction_duration').
-			"s, or " . $this->settingManager->getInt('auction_min_time_after_bid') . "s after ".
+			"The auction ends after " . ($this->settingManager->getInt('auction_duration')??50).
+			"s, or " . ($this->settingManager->getInt('auction_min_time_after_bid')??5) . "s after ".
 			"the last bid was placed.\n\n".
 			"<header2>How it works<end>\n".
 			"Bidding works like ebay: You bid the maximum number of points you would like ".
@@ -695,7 +704,7 @@ class AuctionController {
 	public function getAuctionAnnouncement(Auction $auction): string {
 		[$top, $bottom] = $this->getAnnouncementBorders();
 		$item = $auction->item->toString();
-		$bidInfo = $this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid");
+		$bidInfo = ((array)$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid"))[0];
 		$secondsLeft = ($auction->end - time());
 		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
@@ -723,7 +732,7 @@ class AuctionController {
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
-		$layout = $this->settingManager->getInt('auction_winner_announcement');
+		$layout = $this->settingManager->getInt('auction_winner_announcement') ?? 1;
 		$msg = sprintf(
 			$this->getAuctionWinnerLayout($layout),
 			$event->auction->top_bidder,
@@ -744,6 +753,9 @@ class AuctionController {
 			"EE82EE",
 		];
 		$chars = str_split($text, $length);
+		if ($chars === false) {
+			throw new Exception("Unknown error drawing a rainbow.");
+		}
 		$result = "";
 		for ($i = 0; $i < count($chars); $i++) {
 			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
@@ -794,7 +806,7 @@ class AuctionController {
 		}
 		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? "s" : "") . ". ".
 			"Auction ends in <highlight>" . ($auction->end - time()) . " seconds<end> :: ".
-			$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid");
+			((array)$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid"))[0];
 		return $msg;
 	}
 

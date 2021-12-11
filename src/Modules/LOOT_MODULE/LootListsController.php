@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	DB,
 	Nadybot,
 	SettingManager,
@@ -46,6 +47,12 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *		command     = 'db2',
  *		accessLevel = 'all',
  *		description = 'Shows possible DB2 Armor',
+ *		help        = 'dbloot.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'db3',
+ *		accessLevel = 'all',
+ *		description = 'Shows possible DB3 Loot',
  *		help        = 'dbloot.txt'
  *	)
  *	@DefineCommand(
@@ -140,7 +147,6 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  *	)
  */
 class LootListsController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -220,65 +226,71 @@ class LootListsController {
 	 * @author Chachy (RK2)
 	 *
 	 * @HandlesCommand("alb")
-	 * @Matches("/^alb$/i")
 	 */
-	public function albCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories', $sender);
-		$blob .= $this->findRaidLoot('Albtraum', 'Ancients', $sender);
-		$blob .= $this->findRaidLoot('Albtraum', 'Samples', $sender);
-		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units', $sender);
-		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals', $sender);
+	public function albCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories', $context);
+		$blob .= $this->findRaidLoot('Albtraum', 'Ancients', $context);
+		$blob .= $this->findRaidLoot('Albtraum', 'Samples', $context);
+		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units', $context);
+		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals', $context);
 		$msg = $this->text->makeBlob("Albtraum Loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("db1")
-	 * @Matches("/^db1$/i")
 	 */
-	public function db1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $sender);
-		$blob .= $this->findRaidLoot('DustBrigade', 'DB1', $sender);
+	public function db1Command(CmdContext $context): void {
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB1', $context);
 		$msg = $this->text->makeBlob("DB1 Loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("db2")
-	 * @Matches("/^db2$/i")
 	 */
-	public function db2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $sender);
-		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $sender);
+	public function db2Command(CmdContext $context): void {
+		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
+		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $context);
 		$msg = $this->text->makeBlob("DB2 Loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @author Nadyita (RK5)
+	 *
+	 * @HandlesCommand("db3")
+	 */
+	public function db3Command(CmdContext $context): void {
+		$blob = $this->findRaidLoot('DustBrigade', 'DB3', $context);
+		$msg = $this->text->makeBlob("DB3 Loot", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("7")
-	 * @Matches("/^7$/i")
 	 */
-	public function apf7Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function apf7Command(CmdContext $context): void {
 		$raid = "Sector 7";
-		$blob = $this->findRaidLoot($raid, "Misc", $sender);
-		$blob .= $this->findRaidLoot($raid, "NCU", $sender);
-		$blob .= $this->findRaidLoot($raid, "Weapons", $sender);
-		$blob .= $this->findRaidLoot($raid, "Viralbots", $sender);
+		$blob = $this->findRaidLoot($raid, "Misc", $context);
+		$blob .= $this->findRaidLoot($raid, "NCU", $context);
+		$blob .= $this->findRaidLoot($raid, "Weapons", $context);
+		$blob .= $this->findRaidLoot($raid, "Viralbots", $context);
 		$msg = $this->text->makeBlob("$raid Loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("13")
-	 * @Matches("/^13$/i")
 	 */
-	public function apf13Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function apf13Command(CmdContext $context): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
@@ -287,11 +299,10 @@ class LootListsController {
 
 	/**
 	 * @HandlesCommand("28")
-	 * @Matches("/^28$/i")
 	 */
-	public function apf28Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function apf28Command(CmdContext $context): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
@@ -300,11 +311,10 @@ class LootListsController {
 
 	/**
 	 * @HandlesCommand("35")
-	 * @Matches("/^35$/i")
 	 */
-	public function apf35Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function apf35Command(CmdContext $context): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
@@ -323,11 +333,14 @@ class LootListsController {
 
 	/**
 	 * @HandlesCommand("apf")
-	 * @Matches("/^apf (7|13|28|35)$/i")
+	 * @Mask $sector 7
 	 */
-	public function apfCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sector = (int)$args[1];
+	public function apfSevenCommand(CmdContext $context, string $sector): void {
+		$this->apf7Command($context);
+	}
 
+	protected function getApfItems(): array {
+		$itemlink = [];
 		$itemlink["ICE"] = $this->text->makeItem(257968, 257968, 1, "Hacker ICE-Breaker Source");
 		$itemlink["BOARD"] = $this->text->makeItem(257706, 257706, 1, "Kyr'Ozch Helmet");
 		$itemlink["APE"] = $this->text->makeItem(257960, 257960, 250, "Action Probability Estimator");
@@ -367,203 +380,225 @@ class LootListsController {
 		$itemlink["SSSS"] = $this->text->makeItem(257141, 257141, 300, "Scoped Salabim Shotgun Supremo");
 		$itemlink["EPP"] = $this->text->makeItem(258345, 258345, 300, "Explosif's Polychromatic Pillows");
 		$itemlink["VNGW"] = $this->text->makeItem(257123, 257123, 300, "Vektor ND Grand Wyrm");
-		$list = '';
-
-		switch ($sector) {
-			case "7":
-				$this->apf7Command($message, $channel, $sender, $sendto, $args);
-				return;
-			case "13":
-				//CRU
-				$list .= $this->text->makeImage(257196) . "\n";
-				$list .= "Name: {$itemlink["ICE"]}\n";
-				$list .= "Purpose: {$itemlink["ICEU"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
-
-				//Token Credit Items
-				$list .= $this->text->makeImage(218775) . "\n";
-				$list .= "Name: {$itemlink["KBAP"]}\n";
-				$list .= $this->text->makeImage(218758) . "\n";
-				$list .= "Name: {$itemlink["KVPU"]}\n";
-				$list .= $this->text->makeImage(218768) . "\n";
-				$list .= "Name: {$itemlink["KRI"]}\n";
-				$list .= "Purpose: ".
-					"<highlight>Kyr'Ozch Rank Identification, ".
-					"Kyr'Ozch Video Processing Unit ".
-					"and Kyr'Ozch Battlesuit Audio Processor ".
-					"can be traded at your faction vendor at the Alien Playfield Bar ".
-					"for Tokens or Credits.<end>\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
-
-				//Token Board
-				$list .= $this->text->makeImage(230855) . "\n";
-				$list .= "Name: {$itemlink["BOARD"]}\n";
-				$list .= "Purpose: - {$itemlink["OTAE"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
-
-				//Action Probability Estimator
-				$list .= $this->text->makeImage(203502) . "\n";
-				$list .= "Name: {$itemlink["APE"]}\n";
-				$list .= "Purpose: - {$itemlink["EMCH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["CKCNH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["SKCGH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["BCOH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["GCCH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["HCSH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["OCPH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["SCMH"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["YCSH"]}\n\n";
-
-				//Dynamic Gas Redistribution Valves
-				$list .= $this->text->makeImage(205508) . "\n";
-				$list .= "Name: {$itemlink["DGRV"]}\n";
-				$list .= "Purpose: - {$itemlink["HLOA"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["SKR2"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["SKR3"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["ASC"]}\n\n";
-				break;
-			case "28":
-				//CRU
-				$list .= $this->text->makeImage(257196) . "\n";
-				$list .= "Name: {$itemlink["ICE"]}\n";
-				$list .= "Purpose: {$itemlink["ICEU"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
-
-				//Token Credit Items
-				$list .= $this->text->makeImage(218775) . "\n";
-				$list .= "Name: {$itemlink["KBAP"]}\n";
-				$list .= $this->text->makeImage(218758) . "\n";
-				$list .= "Name: {$itemlink["KVPU"]}\n";
-				$list .= $this->text->makeImage(218768) . "\n";
-				$list .= "Name: {$itemlink["KRI"]}\n";
-				$list .= "Purpose: ".
-					"<highlight>Kyr'Ozch Rank Identification, ".
-					"Kyr'Ozch Video Processing Unit ".
-					"and Kyr'Ozch Battlesuit Audio Processor ".
-					"can be traded at your faction vendor at the Alien Playfield Bar ".
-					"for Tokens or Credits.<end>\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfields from the Boss (one from each type).<end>\n\n";
-
-				//Token Board
-				$list .= $this->text->makeImage(230855) . "\n";
-				$list .= "Name: {$itemlink["BOARD"]}\n";
-				$list .= "Purpose: - {$itemlink["OTAE"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
-
-				//APF Belt
-				$list .= $this->text->makeImage(11618) . "\n";
-				$list .= "Name: {$itemlink["IAPU"]}\n";
-				$list .= "Purpose: - {$itemlink["HVBCP"]}\n\n";
-
-				//Notum coil
-				$list .= $this->text->makeImage(257195) . "\n";
-				$list .= "Name: {$itemlink["NAC"]}\n";
-				$list .= "Purpose: - {$itemlink["TAHSC"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["ONC"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["AKC12"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["AKC13"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["AKC5"]}\n\n";
-				break;
-			case "35":
-				//CRU
-				$list .= $this->text->makeImage(257196) . "\n";
-				$list .= "Name: {$itemlink["ICE"]}\n";
-				$list .= "Purpose: {$itemlink["ICEU"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
-
-				//Token Credit Items
-				$list .= $this->text->makeImage(218775) . "\n";
-				$list .= "Name: {$itemlink["KBAP"]}\n";
-				$list .= $this->text->makeImage(218758) . "\n";
-				$list .= "Name: {$itemlink["KVPU"]}\n";
-				$list .= $this->text->makeImage(218768) . "\n";
-				$list .= "Name: {$itemlink["KRI"]}\n";
-				$list .= "Purpose: ".
-					"<highlight>Kyr'Ozch Rank Identification, ".
-					"Kyr'Ozch Video Processing Unit ".
-					"and Kyr'Ozch Battlesuit Audio Processor ".
-					"can be traded at your faction vendor at the Alien Playfield Bar ".
-					"for Tokens or Credits.<end>\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
-
-				//Token Board
-				$list .= $this->text->makeImage(230855) . "\n";
-				$list .= "Name:{$itemlink["BOARD"]}\n";
-				$list .= "Purpose: - {$itemlink["OTAE"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
-				$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
-
-				//Energy Redistribution Unit
-				$list .= $this->text->makeImage(257197) . "\n";
-				$list .= "Name: {$itemlink["ERU"]}\n";
-				$list .= "Purpose: - {$itemlink["BOB"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["DVLPR"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["VNGW"]}\n\n";
-
-				//Visible Light Remodulation Device
-				$list .= $this->text->makeImage(235270) . "\n";
-				$list .= "Name: {$itemlink["VLRD"]}\n";
-				$list .= "Purpose: - {$itemlink["DVRPR"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["SSSS"]}\n";
-				$list .= "<tab><tab>     - {$itemlink["EPP"]}\n\n";
-				break;
-		}
-
-		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
-
-		$sendto->reply($msg);
+		return $itemlink;
 	}
 
 	/**
-	 * @HandlesCommand("beast")
-	 * @Matches("/^beast$/i")
+	 * @HandlesCommand("apf")
+	 * @Mask $sector 13
 	 */
-	public function beastCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Pande', 'Beast Armor', $sender);
-		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons', $sender);
-		$blob .= $this->findRaidLoot('Pande', 'Stars', $sender);
-		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds', $sender);
+	public function apfThirteenCommand(CmdContext $context, string $sector): void {
+		$itemlink = $this->getApfItems();
+		$list = '';
+		//CRU
+		$list .= $this->text->makeImage(257196) . "\n";
+		$list .= "Name: {$itemlink["ICE"]}\n";
+		$list .= "Purpose: {$itemlink["ICEU"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
+
+		//Token Credit Items
+		$list .= $this->text->makeImage(218775) . "\n";
+		$list .= "Name: {$itemlink["KBAP"]}\n";
+		$list .= $this->text->makeImage(218758) . "\n";
+		$list .= "Name: {$itemlink["KVPU"]}\n";
+		$list .= $this->text->makeImage(218768) . "\n";
+		$list .= "Name: {$itemlink["KRI"]}\n";
+		$list .= "Purpose: ".
+			"<highlight>Kyr'Ozch Rank Identification, ".
+			"Kyr'Ozch Video Processing Unit ".
+			"and Kyr'Ozch Battlesuit Audio Processor ".
+			"can be traded at your faction vendor at the Alien Playfield Bar ".
+			"for Tokens or Credits.<end>\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
+
+		//Token Board
+		$list .= $this->text->makeImage(230855) . "\n";
+		$list .= "Name: {$itemlink["BOARD"]}\n";
+		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
+
+		//Action Probability Estimator
+		$list .= $this->text->makeImage(203502) . "\n";
+		$list .= "Name: {$itemlink["APE"]}\n";
+		$list .= "Purpose: - {$itemlink["EMCH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["CKCNH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["SKCGH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["BCOH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["GCCH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["HCSH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["OCPH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["SCMH"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["YCSH"]}\n\n";
+
+		//Dynamic Gas Redistribution Valves
+		$list .= $this->text->makeImage(205508) . "\n";
+		$list .= "Name: {$itemlink["DGRV"]}\n";
+		$list .= "Purpose: - {$itemlink["HLOA"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["SKR2"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["SKR3"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["ASC"]}\n\n";
+
+		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("apf")
+	 * @Mask $sector 28
+	 */
+	public function apfTwentyEightCommand(CmdContext $context, string $sector): void {
+		$itemlink = $this->getApfItems();
+		$list = '';
+		//CRU
+		$list .= $this->text->makeImage(257196) . "\n";
+		$list .= "Name: {$itemlink["ICE"]}\n";
+		$list .= "Purpose: {$itemlink["ICEU"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
+
+		//Token Credit Items
+		$list .= $this->text->makeImage(218775) . "\n";
+		$list .= "Name: {$itemlink["KBAP"]}\n";
+		$list .= $this->text->makeImage(218758) . "\n";
+		$list .= "Name: {$itemlink["KVPU"]}\n";
+		$list .= $this->text->makeImage(218768) . "\n";
+		$list .= "Name: {$itemlink["KRI"]}\n";
+		$list .= "Purpose: ".
+			"<highlight>Kyr'Ozch Rank Identification, ".
+			"Kyr'Ozch Video Processing Unit ".
+			"and Kyr'Ozch Battlesuit Audio Processor ".
+			"can be traded at your faction vendor at the Alien Playfield Bar ".
+			"for Tokens or Credits.<end>\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfields from the Boss (one from each type).<end>\n\n";
+
+		//Token Board
+		$list .= $this->text->makeImage(230855) . "\n";
+		$list .= "Name: {$itemlink["BOARD"]}\n";
+		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
+
+		//APF Belt
+		$list .= $this->text->makeImage(11618) . "\n";
+		$list .= "Name: {$itemlink["IAPU"]}\n";
+		$list .= "Purpose: - {$itemlink["HVBCP"]}\n\n";
+
+		//Notum coil
+		$list .= $this->text->makeImage(257195) . "\n";
+		$list .= "Name: {$itemlink["NAC"]}\n";
+		$list .= "Purpose: - {$itemlink["TAHSC"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["ONC"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["AKC12"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["AKC13"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["AKC5"]}\n\n";
+
+		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("apf")
+	 * @Mask $sector 35
+	 */
+	public function apfThirtyFiveCommand(CmdContext $context, string $sector): void {
+		$itemlink = $this->getApfItems();
+		$list = '';
+
+		//CRU
+		$list .= $this->text->makeImage(257196) . "\n";
+		$list .= "Name: {$itemlink["ICE"]}\n";
+		$list .= "Purpose: {$itemlink["ICEU"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
+
+		//Token Credit Items
+		$list .= $this->text->makeImage(218775) . "\n";
+		$list .= "Name: {$itemlink["KBAP"]}\n";
+		$list .= $this->text->makeImage(218758) . "\n";
+		$list .= "Name: {$itemlink["KVPU"]}\n";
+		$list .= $this->text->makeImage(218768) . "\n";
+		$list .= "Name: {$itemlink["KRI"]}\n";
+		$list .= "Purpose: ".
+			"<highlight>Kyr'Ozch Rank Identification, ".
+			"Kyr'Ozch Video Processing Unit ".
+			"and Kyr'Ozch Battlesuit Audio Processor ".
+			"can be traded at your faction vendor at the Alien Playfield Bar ".
+			"for Tokens or Credits.<end>\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
+
+		//Token Board
+		$list .= $this->text->makeImage(230855) . "\n";
+		$list .= "Name:{$itemlink["BOARD"]}\n";
+		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
+		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
+
+		//Energy Redistribution Unit
+		$list .= $this->text->makeImage(257197) . "\n";
+		$list .= "Name: {$itemlink["ERU"]}\n";
+		$list .= "Purpose: - {$itemlink["BOB"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["DVLPR"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["VNGW"]}\n\n";
+
+		//Visible Light Remodulation Device
+		$list .= $this->text->makeImage(235270) . "\n";
+		$list .= "Name: {$itemlink["VLRD"]}\n";
+		$list .= "Purpose: - {$itemlink["DVRPR"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["SSSS"]}\n";
+		$list .= "<tab><tab>     - {$itemlink["EPP"]}\n\n";
+
+		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+
+		$context->reply($msg);
+	}
+
+
+	/**
+	 * @HandlesCommand("beast")
+	 */
+	public function beastCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Pande', 'Beast Armor', $context);
+		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons', $context);
+		$blob .= $this->findRaidLoot('Pande', 'Stars', $context);
+		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds', $context);
 		$msg = $this->text->makeBlob("Beast Loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Nadyita (RK5)
 	 *
 	 * @HandlesCommand("pande")
-	 * @Matches("/^pande (.+)$/i")
 	 */
-	public function pandeSubCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getPandemoniumLoot('Pande', $args[1], $sender);
+	public function pandeSubCommand(CmdContext $context, string $mob): void {
+		$msg = $this->getPandemoniumLoot('Pande', $mob, $context);
 		if (empty($msg)) {
-			$sendto->reply("No loot found for <highlight>{$args[1]}<end>.");
+			$context->reply("No loot found for <highlight>{$mob}<end>.");
 			return;
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getPandemoniumLoot(string $raid, string $category, string $sender) {
+	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context) {
 		$category = ucwords(strtolower($category));
-		$blob = $this->findRaidLoot($raid, $category, $sender);
+		$blob = $this->findRaidLoot($raid, $category, $context);
 		if (empty($blob)) {
 			return null;
 		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return $this->text->makeBlob("$raid \"$category\" Loot", $blob);
+		return $this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
 	}
 
 	/**
 	 * @author Marinerecon (RK2)
 	 *
 	 * @HandlesCommand("pande")
-	 * @Matches("/^pande$/i")
 	 */
-	public function pandeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function pandeCommand(CmdContext $context): void {
 		$list  = "<header2>The Beast<end>\n";
 		$list .= "<tab>".$this->text->makeChatcmd("All Beast Loot (long)\n", "/tell <myname> beast");
 		$list .= "<tab>".$this->text->makeChatcmd("Beast Armor\n", "/tell <myname> beastarmor");
@@ -594,101 +629,94 @@ class LootListsController {
 		$list .= "\n\nPandemonium Loot By Marinerecon (RK2)";
 
 		$msg = $this->text->makeBlob("Pandemonium Loot", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("vortexx")
-	 * @Matches("/^vortexx$/i")
 	 */
-	public function xanVortexxCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Vortexx', 'General', $sender);
-		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants', $sender);
-		$blob .= $this->findRaidLoot('Vortexx', 'Spirits', $sender);
+	public function xanVortexxCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Vortexx', 'General', $context);
+		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants', $context);
+		$blob .= $this->findRaidLoot('Vortexx', 'Spirits', $context);
 		$msg = $this->text->makeBlob("Vortexx loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("mitaar")
-	 * @Matches("/^mitaar$/i")
 	 */
-	public function xanMitaarCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Mitaar', 'General', $sender);
-		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants', $sender);
-		$blob .= $this->findRaidLoot('Mitaar', 'Spirits', $sender);
+	public function xanMitaarCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Mitaar', 'General', $context);
+		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants', $context);
+		$blob .= $this->findRaidLoot('Mitaar', 'Spirits', $context);
 		$msg = $this->text->makeBlob("Mitaar loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @author Morgo (RK2)
 	 *
 	 * @HandlesCommand("12m")
-	 * @Matches("/^12m$/i")
 	 */
-	public function xan12mCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('12Man', 'General', $sender);
-		$blob .= $this->findRaidLoot('12Man', 'Symbiants', $sender);
-		$blob .= $this->findRaidLoot('12Man', 'Spirits', $sender);
-		$blob .= $this->findRaidLoot('12Man', 'Profession Gems', $sender);
+	public function xan12mCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('12Man', 'General', $context);
+		$blob .= $this->findRaidLoot('12Man', 'Symbiants', $context);
+		$blob .= $this->findRaidLoot('12Man', 'Spirits', $context);
+		$blob .= $this->findRaidLoot('12Man', 'Profession Gems', $context);
 		$msg = $this->text->makeBlob("12-Man loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("poh")
-	 * @Matches("/^poh$/i")
 	 */
-	public function pohCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Pyramid of Home', 'General', $sender);
-		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU', $sender);
-		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons', $sender);
+	public function pohCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Pyramid of Home', 'General', $context);
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU', $context);
+		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons', $context);
 		$msg = $this->text->makeBlob("Pyramid of Home Loot", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("totw")
-	 * @Matches("/^totw$/i")
 	 */
-	public function totwCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor', $sender);
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants', $sender);
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc', $sender);
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU', $sender);
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons', $sender);
-		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings', $sender);
+	public function totwCommand(CmdContext $context): void {
+		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor', $context);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants', $context);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Misc', $context);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU', $context);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons', $context);
+		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings', $context);
 		$msg = $this->text->makeBlob("Temple of the Three Winds Loot", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("subway")
-	 * @Matches("/^subway$/i")
 	 */
-	public function subwayCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob  = $this->findRaidLoot('Subway', 'Armor', $sender);
-		$blob .= $this->findRaidLoot('Subway', 'Weapons', $sender);
-		$blob .= $this->findRaidLoot('Subway', 'Belt', $sender);
-		$blob .= $this->findRaidLoot('Subway', 'Rings', $sender);
-		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils', $sender);
+	public function subwayCommand(CmdContext $context): void {
+		$blob  = $this->findRaidLoot('Subway', 'Armor', $context);
+		$blob .= $this->findRaidLoot('Subway', 'Weapons', $context);
+		$blob .= $this->findRaidLoot('Subway', 'Belt', $context);
+		$blob .= $this->findRaidLoot('Subway', 'Rings', $context);
+		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils', $context);
 		$msg = $this->text->makeBlob("Subway Loot", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("halloween")
-	 * @Matches("/^halloween$/i")
 	 */
-	public function halloweenCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function halloweenCommand(CmdContext $context): void {
 		$guph = "Griefing Uncle Pumpkin-Heads can be found at the following locations:\n".
 			"<tab>- Level <black>0<end>10-<black>0<end>50: ".
 			$this->text->makeChatcmd("Holes in the Wall", "/waypoint 504 306 791") . "\n".
@@ -703,18 +731,19 @@ class LootListsController {
 			"<tab>- Level 200-250: ".
 			$this->text->makeChatcmd("Broken Shores along the river", "/waypoint 1266 1889 665") . "\n".
 			"<tab>- Level <black>00<end>1-300: Notum Mining Area\n";
-		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $sender));
-		$blob .= "\n<header2>Ganking Uncle Pumpkin-Head<end>\n\n".
+		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $context));
+		$blob .= "\n<pagebreak><header2>Ganking Uncle Pumpkin-Head<end>\n\n".
 			"They drop the same loot as the GUPHs, but have a higher chance to drop the rare items.\n";
 		$huph = "They are only spawned by ARKs on Halloween events ".
 			"and cannot be found anywhere else.\n";
-		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $sender));
-		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $sender);
+		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
+		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $context);
 		$msg = $this->text->makeBlob("Halloween loot", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	public function findRaidLoot(string $raid, string $category, string $sender): ?string {
+	public function findRaidLoot(string $raid, string $category, CmdContext $context): string {
+		$sender = $context->char->name;
 		$query2 = $this->db->table("raid_loot AS r")
 					->join("aodb AS a", "r.aoid", "a.highid")
 					->whereNotNull("r.aoid")
@@ -735,7 +764,7 @@ class LootListsController {
 		$data = $query->asObj();
 
 		if ($data->count() === 0) {
-			return null;
+			throw new Exception("No loot for type {$raid} found in the database");
 		}
 		$auctionsEnabled = true;
 		$auctionCommands = $this->commandManager->get('auction', 'msg');
@@ -804,26 +833,25 @@ class LootListsController {
 	 * @author Nadyita
 	 *
 	 * @HandlesCommand("lox")
-	 * @Matches("/^lox$/i")
 	 */
-	public function loxCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$list  = $this->text->makeChatcmd("Ground Chief Vortexx\n", "/tell <myname> vortexx");
-		$list .= "<tab>- Eye\n";
+	public function loxCommand(CmdContext $context): void {
+		$list  = $this->text->makeChatcmd("Ground Chief Vortexx", "/tell <myname> vortexx");
+		$list .= "\n<tab>- Eye\n";
 		$list .= "<tab>- Left Arm\n";
 		$list .= "<tab>- Right Wrist\n";
 		$list .= "<tab>- Waist\n\n";
-		$list .= $this->text->makeChatcmd("The Xan (aka 12-man)\n", "/tell <myname> 12m");
-		$list .= "<tab>- Ear\n";
+		$list .= $this->text->makeChatcmd("The Xan (aka 12-man)", "/tell <myname> 12m");
+		$list .= "\n<tab>- Ear\n";
 		$list .= "<tab>- Right Arm\n";
 		$list .= "<tab>- Right Hand\n";
 		$list .= "<tab>- Thigh\n";
 		$list .= "<tab>- Feet\n\n";
-		$list .= $this->text->makeChatcmd("The Alien Threat (aka Mitaar)\n", "/tell <myname> mitaar");
-		$list .= "<tab>- Brain\n";
+		$list .= $this->text->makeChatcmd("The Alien Threat (aka Mitaar)", "/tell <myname> mitaar");
+		$list .= "\n<tab>- Brain\n";
 		$list .= "<tab>- Chest\n";
 		$list .= "<tab>- Left Wrist\n";
 		$list .= "<tab>- Left Hand\n";
 		$msg = $this->text->makeBlob("LoX Hub Loot", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

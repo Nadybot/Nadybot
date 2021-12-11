@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use JsonException;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Http;
 use Nadybot\Core\HttpResponse;
 use Nadybot\Core\Text;
@@ -31,16 +31,15 @@ class HttpRequestController {
 
 	/**
 	 * @HandlesCommand("httprequest")
-	 * @Matches("/^httprequest (.+)$/i")
 	 */
-	public function httprequestCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$parts = parse_url(html_entity_decode($args[1]));
+	public function httprequestCommand(CmdContext $context, string $url): void {
+		$parts = parse_url(html_entity_decode($url));
 		if (!is_array($parts)) {
-			$sendto->reply("<highlight>{$args[1]}<end> is not a valid URL.");
+			$context->reply("<highlight>{$url}<end> is not a valid URL.");
 			return;
 		}
-		$client = $this->http->get($parts["scheme"] . "://" . $parts["host"] . ($parts["path"]??""));
-		if (isset($params["query"])) {
+		$client = $this->http->get(($parts["scheme"]??"http") . "://" . ($parts["host"]??"127.0.0.1") . ($parts["path"]??""));
+		if (isset($parts["query"])) {
 			$params = [];
 			$groups = explode("&", $parts["query"]);
 			foreach ($groups as $group) {
@@ -53,16 +52,17 @@ class HttpRequestController {
 			}
 			$client->withQueryParams($params);
 		}
-		$client->withCallback([$this, "handleResponse"], $sendto);
+		$client->withCallback([$this, "handleResponse"], $context);
 	}
 
-	public function handleResponse(?HttpResponse $response, CommandReply $sendto): void {
+	public function handleResponse(?HttpResponse $response, CmdContext $context): void {
 		if (!isset($response)) {
-			$sendto->reply("No response received");
+			$context->reply("No response received");
 			return;
 		}
 		if ($response->error) {
-			$sendto->reply("Error received: <highlight>{$response->error}<end>.");
+			$context->reply("Error received: <highlight>{$response->error}<end>.");
+			return;
 		}
 		$blob = "<header2>Headers<end>\n";
 		foreach ($response->headers as $header => $value) {
@@ -84,6 +84,6 @@ class HttpRequestController {
 			}
 		}
 		$msg = $this->text->makeBlob("Reply received", $blob, "Server reply");
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

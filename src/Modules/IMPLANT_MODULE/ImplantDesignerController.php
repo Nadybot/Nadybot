@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	CmdContext,
+	DB,
+	DBRow,
+	ParamClass\PAttribute,
+	Text,
+	Util,
+};
 use stdClass;
 
 /**
@@ -20,11 +23,10 @@ use stdClass;
  *		accessLevel = 'all',
  *		description = 'Implant Designer',
  *		help        = 'implantdesigner.txt',
- *		alias		= 'impdesign'
+ *		alias       = 'impdesign'
  *	)
  */
 class ImplantDesignerController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -43,13 +45,11 @@ class ImplantDesignerController {
 	/** @Inject */
 	public ImplantController $implantController;
 
-	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-	private $grades = ['shiny', 'bright', 'faded'];
+	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
+	private array $grades = ['shiny', 'bright', 'faded'];
 
 	/** @Setup */
-	public function setup() {
-		$this->design = new stdClass;
-
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Designer");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Ability.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Cluster.csv");
@@ -68,12 +68,11 @@ class ImplantDesignerController {
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner$/i")
 	 */
-	public function implantdesignerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->getImplantDesignerBuild($sender);
+	public function implantdesignerCommand(CmdContext $context): void {
+		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	private function getImplantDesignerBuild(string $sender): string {
@@ -152,25 +151,24 @@ class ImplantDesignerController {
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner clear$/i")
+	 * @Mask $action clear
 	 */
-	public function implantdesignerClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->saveDesign($sender, '@', new stdClass());
+	public function implantdesignerClearCommand(CmdContext $context, string $action): void {
+		$this->saveDesign($context->char->name, '@', new stdClass());
 		$msg = "Implant Designer has been cleared.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 
 		// send results
-		$blob = $this->getImplantDesignerBuild($sender);
+		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet)$/i")
 	 */
-	public function implantdesignerSlotCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
+	public function implantdesignerSlotCommand(CmdContext $context, PImplantSlot $slot): void {
+		$slot = $slot();
 
 		$blob  = $this->text->makeChatcmd("See Build", "/tell <myname> implantdesigner");
 		$blob .= "<tab>";
@@ -185,7 +183,7 @@ class ImplantDesignerController {
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
 		$blob .= "\n-------------------------\n\n";
 
-		$design = $this->getDesign($sender, '@');
+		$design = $this->getDesign($context->char->name, '@');
 		$slotObj = $design->$slot;
 
 		if ($slotObj->symb !== null) {
@@ -223,7 +221,7 @@ class ImplantDesignerController {
 
 		$msg = $this->text->makeBlob("Implant Designer ($slot)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	private function getSymbiantsLinks(string $slot): string {
@@ -252,17 +250,20 @@ class ImplantDesignerController {
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (shiny|bright|faded|symb) (.+)$/i")
 	 */
-	public function implantdesignerSlotAddClusterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
-		$type = strtolower($args[2]);
-		$item = $args[3];
-
-		$design = $this->getDesign($sender, '@');
+	public function implantdesignerSlotAddClusterCommand(
+		CmdContext $context,
+		PImplantSlot $slot,
+		PClusterSlot $type,
+		string $item
+	): void {
+		$slot = $slot();
+		$type = $type();
+		$design = $this->getDesign($context->char->name, '@');
+		$design->$slot ??= new stdClass();
 		$slotObj = &$design->$slot;
 
-		if ($type == 'symb') {
+		if ($type === 'symb') {
 			$symbRow = $this->db->table("Symbiant AS s")
 				->join("ImplantType AS i", "s.SlotID", "i.ImplantTypeID")
 				->where("i.ShortName", $slot)
@@ -315,69 +316,79 @@ class ImplantDesignerController {
 			}
 		}
 
-		$this->saveDesign($sender, '@', $design);
+		$this->saveDesign($context->char->name, '@', $design);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 
 		// send results
-		$blob = $this->getImplantDesignerBuild($sender);
+		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) (\d+)$/i")
 	 */
-	public function implantdesignerSlotQLCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
-		$ql = (int)$args[2];
+	public function implantdesignerSlotQLCommand(
+		CmdContext $context,
+		PImplantSlot $slot,
+		int $ql
+	): void {
+		$slot = $slot();
 
-		$design = $this->getDesign($sender, '@');
+		$design = $this->getDesign($context->char->name, '@');
 		$slotObj = $design->$slot;
 		unset($slotObj->symb);
 		$slotObj->ql = $ql;
-		$this->saveDesign($sender, '@', $design);
+		$this->saveDesign($context->char->name, '@', $design);
 
-		$msg = "<highlight>$slot<end> has been set to QL <highlight>$ql<end>.";
+		$msg = "<highlight>{$slot}<end> has been set to QL <highlight>{$ql}<end>.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 
 		// send results
-		$blob = $this->getImplantDesignerBuild($sender);
+		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) clear$/i")
+	 * @Mask $action clear
 	 */
-	public function implantdesignerSlotClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
+	public function implantdesignerSlotClearCommand(
+		CmdContext $context,
+		PImplantSlot $slot,
+		string $action
+	): void {
+		$slot = $slot();
 
-		$design = $this->getDesign($sender, '@');
+		$design = $this->getDesign($context->char->name, '@');
 		unset($design->$slot);
-		$this->saveDesign($sender, '@', $design);
+		$this->saveDesign($context->char->name, '@', $design);
 
 		$msg = "<highlight>$slot<end> has been cleared.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 
 		// send results
-		$blob = $this->getImplantDesignerBuild($sender);
+		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) require$/i")
+	 * @Mask $action require
 	 */
-	public function implantdesignerSlotRequireCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
+	public function implantdesignerSlotRequireCommand(
+		CmdContext $context,
+		PImplantSlot $slot,
+		string $action
+	): void {
+		$slot = $slot();
 
-		$design = $this->getDesign($sender, '@');
+		$design = $this->getDesign($context->char->name, '@');
 		$slotObj = $design->$slot;
 		if (empty($slotObj)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
@@ -403,18 +414,23 @@ class ImplantDesignerController {
 			$msg = $this->text->makeBlob("Implant Designer Require Ability ($slot)", $blob);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (head|eye|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs|lhand|feet) require (agility|intelligence|psychic|sense|strength|stamina)$/i")
+	 * @Mask $action require
 	 */
-	public function implantdesignerSlotRequireAbilityCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$slot = strtolower($args[1]);
-		$ability = ucfirst(strtolower($args[2]));
+	public function implantdesignerSlotRequireAbilityCommand(
+		CmdContext $context,
+		PImplantSlot $slot,
+		string $action,
+		PAttribute $ability
+	): void {
+		$slot = $slot();
+		$ability = $ability();
 
-		$design = $this->getDesign($sender, '@');
+		$design = $this->getDesign($context->char->name, '@');
 		$slotObj = $design->$slot;
 		if (empty($slotObj)) {
 			$msg = "You must have at least one cluster filled to require an ability.";
@@ -487,19 +503,19 @@ class ImplantDesignerController {
 			$msg = $this->text->makeBlob("Implant Designer Require $ability ($slot) ($count)", $blob);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("implantdesigner")
-	 * @Matches("/^implantdesigner (result|results)$/i")
+	 * @Mask $action (result|results)
 	 */
-	public function implantdesignerResultCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$blob = $this->getImplantDesignerResults($sender);
+	public function implantdesignerResultCommand(CmdContext $context, string $action): void {
+		$blob = $this->getImplantDesignerResults($context->char->name);
 
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getImplantDesignerResults(string $name): string {
@@ -546,10 +562,10 @@ class ImplantDesignerController {
 
 				// add reqs
 				$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
-				if ($implant->Treatment > $reqs['Treatment']) {
+				if (isset($implant) && $implant->Treatment > $reqs['Treatment']) {
 					$reqs['Treatment'] = $implant->Treatment;
 				}
-				if ($implant->Ability > $reqs[$implant->AbilityName]) {
+				if (isset($implant) && $implant->Ability > $reqs[$implant->AbilityName]) {
 					$reqs[$implant->AbilityName] = $implant->Ability;
 				}
 

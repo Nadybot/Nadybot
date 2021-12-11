@@ -7,7 +7,8 @@ use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
- * Class to represent a setting with a text value for BudaBot
+ * Class to represent a discord bot token setting
+ * @SettingHandler("discord_bot_token")
  */
 class DiscordBotTokenSettingHandler extends SettingHandler {
 
@@ -59,7 +60,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		if ($newValue === "off") {
 			return "<highlight>{$newValue}<end>";
 		}
-		if (!$this->accessManager->checkAccess($sender, $this->row->admin)) {
+		if (!$this->accessManager->checkAccess($sender, $this->row->admin??"all")) {
 			return "<highlight>*********<end>";
 		}
 		return "<highlight>{$newValue}<end>";

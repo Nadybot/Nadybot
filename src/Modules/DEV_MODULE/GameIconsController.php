@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
+	CmdContext,
 	Text,
-	CommandReply,
 };
 
 /**
@@ -32,9 +32,8 @@ class GameIconsController {
 
 	/**
 	 * @HandlesCommand("gameicons")
-	 * @Matches("/^gameicons$/i")
 	 */
-	public function gameIconsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function gameIconsCommand(CmdContext $context): void {
 		$icons = [
 			"GFX_FONT_CHAT9",
 			"GFX_FONT_GAMESHELL12",
@@ -832,6 +831,6 @@ class GameIconsController {
 			$blob .= "<pagebreak>Icon: <img src=tdb://id:$icon> $icon\n";
 		}
 		$msg = $this->text->makeBlob("All game icons", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

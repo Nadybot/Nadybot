@@ -5,5 +5,5 @@ namespace Nadybot\Core\Annotations;
 use Addendum\Annotation;
 
 class HttpGet extends Annotation {
-	public $type = "get";
+	public string $type = "get";
 }

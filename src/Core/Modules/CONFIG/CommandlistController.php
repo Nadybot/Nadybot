@@ -5,9 +5,9 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
 	DB,
-	CommandReply,
 	Text,
 };
 use Nadybot\Core\DBSchema\CommandListEntry;
@@ -39,19 +39,17 @@ class CommandlistController {
 
 	/**
 	 * @HandlesCommand("cmdlist")
-	 * @Matches("/^cmdlist$/i")
-	 * @Matches("/^cmdlist (.+)$/i")
 	 */
-	public function cmdlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cmdlistCommand(CmdContext $context, ?string $al): void {
 		$query = $this->db->table(CommandManager::DB_TABLE, "c")
 			->whereIn("c.cmdevent", ["cmd", "subcmd"])
 			->groupBy("c.cmd", "c.cmdevent", "c.description", "c.module", "file", "dependson")
 			->orderBy("cmd");
-		if (count($args) > 1) {
+		if (isset($al)) {
 			try {
-				$query->whereIlike("c.admin", $this->accessManager->getAccessLevel($args[1]));
+				$query->whereIlike("c.admin", $this->accessManager->getAccessLevel($al));
 			} catch (Exception $e) {
-				$sendto->reply($e->getMessage());
+				$context->reply($e->getMessage());
 				return;
 			}
 		}
@@ -90,7 +88,7 @@ class CommandlistController {
 
 		if ($count === 0) {
 			$msg = "No commands were found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -101,7 +99,8 @@ class CommandlistController {
 				$cmd = $row->cmd;
 			}
 
-			if ($this->accessManager->checkAccess($sender, 'moderator')) {
+			$links = "";
+			if ($this->accessManager->checkAccess($context->char->name, 'moderator')) {
 				$onLink = "<black>ON<end>";
 				if ($row->guild_status === 0 || $row->msg_status === 0 || $row->priv_status === 0) {
 					$onLink = $this->text->makeChatcmd('ON', "/tell <myname> config cmd $cmd enable all");
@@ -139,6 +138,6 @@ class CommandlistController {
 		}
 
 		$msg = $this->text->makeBlob("Command List ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

@@ -6,23 +6,25 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	EventManager,
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
+	Modules\DISCORD\DiscordController,
 	Nadybot,
 	Registry,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SettingObject,
 	SQLException,
 	Text,
 	Util,
-	Modules\DISCORD\DiscordController,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\ParamClass\PDuration;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
@@ -46,6 +48,7 @@ use Nadybot\Core\Routing\Source;
  * @ProvidesEvent("timer(start)")
  * @ProvidesEvent("timer(end)")
  * @ProvidesEvent("timer(del)")
+ * @ProvidesEvent(value="sync(timer)", desc="Triggered when a new timer is created with the timer command")
  */
 class TimerController implements MessageEmitter {
 
@@ -194,13 +197,13 @@ class TimerController implements MessageEmitter {
 				[$name, $method] = explode(".", $timer->callback);
 				$instance = Registry::getInstance($name);
 				if ($instance === null) {
-					$this->logger->log('ERROR', "Error calling callback method '$timer->callback' for timer '$timer->name': Could not find instance '$name'.");
+					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': Could not find instance '$name'.");
 					continue;
 				}
 				try {
 					$instance->{$method}($timer, $alert);
 				} catch (Exception $e) {
-					$this->logger->log("ERROR", "Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), $e);
+					$this->logger->error("Error calling callback method '$timer->callback' for timer '$timer->name': " . $e->getMessage(), ["exception" => $e]);
 				}
 				if (empty($timer->alerts)) {
 					$event = new TimerEvent();
@@ -248,7 +251,7 @@ class TimerController implements MessageEmitter {
 				return;
 			}
 		}
-		$mode = strlen($timer->mode??"") ? explode(",", $timer->mode) : [];
+		$mode = (isset($timer->mode) && strlen($timer->mode)) ? explode(",", $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {
 			if ($sendMode === "priv") {
@@ -265,7 +268,7 @@ class TimerController implements MessageEmitter {
 		if ($sent) {
 			return;
 		}
-		if (preg_match("/^(discordmsg|console)/", $timer->origin??"")) {
+		if (isset($timer->origin) && preg_match("/^(discordmsg|console)/", $timer->origin)) {
 			$receiver = $this->messageHub->getReceiver($timer->origin);
 			if (isset($receiver) && $receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
 				return;
@@ -278,57 +281,68 @@ class TimerController implements MessageEmitter {
 	 * This command handler adds a repeating timer.
 	 *
 	 * @HandlesCommand("rtimer")
-	 * @Matches("/^(rtimer add|rtimer) ([a-z0-9]+) ([a-z0-9]+) (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function rtimerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$initialTimeString = $args[2];
-		$timeString = $args[3];
-		$timerName = $args[4];
+	public function rtimerCommand(
+		CmdContext $context,
+		?string $action,
+		PDuration $initial,
+		PDuration $interval,
+		string $name
+	): void {
+		$alertChannel = $this->getTimerAlertChannel($context->channel);
 
-		$alertChannel = $this->getTimerAlertChannel($channel);
-
-		$timer = $this->get($timerName);
+		$timer = $this->get($name);
 		if ($timer !== null) {
-			$msg = "A timer with the name <highlight>$timerName<end> is already running.";
-			$sendto->reply($msg);
+			$msg = "A timer with the name <highlight>{$name}<end> is already running.";
+			$context->reply($msg);
 			return;
 		}
 
-		$initialRunTime = $this->util->parseTime($initialTimeString);
-		$runTime = $this->util->parseTime($timeString);
+		$initialRunTime = $initial->toSecs();
+		$runTime = $interval->toSecs();
 
 		if ($runTime < 1) {
 			$msg = "You must enter a valid time parameter for the run time.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		if ($initialRunTime < 1) {
 			$msg = "You must enter a valid time parameter for the initial run time.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$endTime = time() + $initialRunTime;
 
-		$alerts = $this->generateAlerts($sender, $timerName, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
 
+		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
-		$this->add($timerName, $sender, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime, $origin);
+		$this->add($name, $context->char->name, $alertChannel, $alerts, "timercontroller.repeatingTimerCallback", (string)$runTime, $origin);
 
 		$initialTimerSet = $this->util->unixtimeToReadable($initialRunTime);
 		$timerSet = $this->util->unixtimeToReadable($runTime);
-		$msg = "Repeating timer <highlight>$timerName<end> will go off in $initialTimerSet and repeat every $timerSet.";
+		$msg = "Repeating timer <highlight>$name<end> will go off in $initialTimerSet and repeat every $timerSet.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
+
+		$sTimer = new SyncTimerEvent();
+		$sTimer->name = $name;
+		$sTimer->endtime = $endTime;
+		$sTimer->settime = time();
+		$sTimer->interval = $runTime;
+		$sTimer->owner = $context->char->name;
+		$sTimer->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($sTimer);
 	}
 
 	/**
 	 * @HandlesCommand("timers")
-	 * @Matches("/^timers view (.+)$/i")
+	 * @Mask $action view
 	 */
-	public function timersViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = $args[1];
+	public function timersViewCommand(CmdContext $context, string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (preg_match("/^\d+$/", $id)) {
@@ -336,26 +350,27 @@ class TimerController implements MessageEmitter {
 			} else {
 				$msg = "Could not find a timer named <highlight>{$id}<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
+		$timeLeft = "an unknown amount of time";
+		if (isset($timer->endtime)) {
+			$timeLeft = $this->util->unixtimeToReadable($timer->endtime - time());
+		}
 		$name = $timer->name;
 
-		$msg = "Timer <highlight>{$name}<end> has <highlight>{$time_left}<end> left.";
-		$sendto->reply($msg);
+		$msg = "Timer <highlight>{$name}<end> has <highlight>{$timeLeft}<end> left.";
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("timers")
-	 * @Matches("/^timers (rem|del) (\d+)$/i")
 	 */
-	public function timersRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)strtolower($args[2]);
+	public function timersRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			$msg = "Could not find timer <highlight>#{$id}<end>.";
-		} elseif ($timer->owner !== $sender && !$this->accessManager->checkAccess($sender, "mod")) {
+		} elseif ($timer->owner !== $context->char->name && !$this->accessManager->checkAccess($context->char->name, "mod")) {
 			$msg = "You must own this timer or have moderator access in order to remove it.";
 		} else {
 			$event = new TimerEvent();
@@ -365,7 +380,7 @@ class TimerController implements MessageEmitter {
 			$this->remove($id);
 			$msg = "Removed timer <highlight>$timer->name<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	protected function getTimerAlertChannel(string ...$channels): string {
@@ -378,38 +393,44 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("timers")
-	 * @Matches("/^(timers add|timers) ([a-z0-9]+)$/i")
-	 * @Matches("/^(timers add|timers) ([a-z0-9]+) (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function timersAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$timeString = $args[2];
-		$name = $sender;
-		if (count($args) > 3) {
-			$name = $args[3];
-		}
+	public function timersAddCommand(
+		CmdContext $context,
+		?string $action,
+		PDuration $duration,
+		?string $name
+	): void {
+		$name ??= $context->char->name;
 
-		if (preg_match("/^\\d+$/", $timeString)) {
-			$runTime = $args[2] * 60;
-		} else {
-			$runTime = $this->util->parseTime($timeString);
-		}
-		$alertChannel = $this->getTimerAlertChannel($channel);
+		$runTime = $duration->toSecs();
+		$alertChannel = $this->getTimerAlertChannel($context->channel);
 
+		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
-		$msg = $this->addTimer($sender, $name, $runTime, $alertChannel, null, $origin);
+		$msg = $this->addTimer($context->char->name, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
+		if (preg_match("/has been set for/", $msg)) {
+			$sTimer = new SyncTimerEvent();
+			$sTimer->name = $name;
+			$sTimer->endtime = time() + $runTime;
+			$sTimer->settime = time();
+			$sTimer->interval;
+			$sTimer->owner = $context->char->name;
+			$sTimer->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($sTimer);
+		}
 	}
 
 	/**
 	 * @HandlesCommand("timers")
-	 * @Matches("/^timers$/i")
 	 */
-	public function timersListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function timersListCommand(CmdContext $context): void {
 		$timers = $this->getAllTimers();
 		$count = count($timers);
 		if ($count === 0) {
 			$msg = "No timers currently running.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -418,7 +439,10 @@ class TimerController implements MessageEmitter {
 			return $a->endtime <=> $b->endtime;
 		});
 		foreach ($timers as $timer) {
-			$time_left = $this->util->unixtimeToReadable($timer->endtime - time());
+			$timeLeft = "&lt;unknown&gt;";
+			if (isset($timer->endtime)) {
+				$timeLeft = $this->util->unixtimeToReadable($timer->endtime - time());
+			}
 			$name = $timer->name;
 			$owner = $timer->owner;
 
@@ -431,11 +455,11 @@ class TimerController implements MessageEmitter {
 			}
 
 			$blob .= "Name: <highlight>$name<end> {$remove_link}\n";
-			$blob .= "Time left: <highlight>$time_left<end> $repeatingInfo\n";
+			$blob .= "Time left: <highlight>$timeLeft<end> $repeatingInfo\n";
 			$blob .= "Set by: <highlight>$owner<end>\n\n";
 		}
 		$msg = $this->text->makeBlob("Timers ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -518,7 +542,7 @@ class TimerController implements MessageEmitter {
 	/**
 	 * @param Alert[] $alerts
 	 */
-	public function add(string $name, string $owner, ?string $mode=null, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
+	public function add(string $name, string $owner, ?string $mode, array $alerts, string $callback, string $data=null, ?string $origin=null): int {
 		usort($alerts, function(Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
@@ -551,9 +575,6 @@ class TimerController implements MessageEmitter {
 				"alerts" => json_encode($alerts),
 			]);
 
-		if (!isset($timer->id)) {
-			throw new Exception("Unable to save the timer.");
-		}
 		$this->timers[strtolower($name)] = $timer;
 		$this->eventManager->fireEvent($event);
 		return $timer->id;
@@ -597,5 +618,28 @@ class TimerController implements MessageEmitter {
 	 */
 	public function getAllTimers(): array {
 		return $this->timers;
+	}
+
+	/**
+	 * @Event("sync(timer)")
+	 * @Description("Sync external timers to local timers")
+	 */
+	public function syncExtTimers(SyncTimerEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$timerName = $event->name;
+		$i = 1;
+		while ($this->get($timerName) !== null) {
+			$timerName = $event->name . "-" . (++$i);
+		}
+		$event->name = $timerName;
+
+		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->setting->timer_alert_times));
+		if (isset($event->interval)) {
+			$this->add($event->name, $event->owner, null, $alerts, "timercontroller.repeatingTimerCallback", (string)$event->interval);
+		} else {
+			$this->add($event->name, $event->owner, null, $alerts, 'timercontroller.timerCallback');
+		}
 	}
 }

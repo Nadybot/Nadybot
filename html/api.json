@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.2.2"
+		"version": "5.3.0"
 	},
 	"servers": [
 		{
@@ -16,6 +16,134 @@
 	],
 	"components": {
 		"schemas": {
+			"SettingOption": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of this option for displaying"
+					},
+					"value": {
+						"oneOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "string"
+							}
+						],
+						"nullable": true,
+						"description": "Which value does this option represent?"
+					}
+				}
+			},
+			"ModuleAccessLevel": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/SettingOption"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"numeric_value": {
+								"type": "integer",
+								"description": "Higher value means fewer rights. Use this to sort on"
+							},
+							"enabled": {
+								"type": "boolean",
+								"description": "Some ranks only work if a module is enabled"
+							}
+						}
+					}
+				]
+			},
+			"Audit": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"description": "ID of this audit entry"
+					},
+					"actor": {
+						"type": "string",
+						"description": "The person doing something"
+					},
+					"actee": {
+						"type": "string",
+						"nullable": true,
+						"description": "The person the actor is interacting with. Not set if not applicable"
+					},
+					"action": {
+						"type": "string",
+						"description": "What did the actor do"
+					},
+					"value": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional value for the action"
+					},
+					"time": {
+						"type": "integer",
+						"description": "time when it happened"
+					}
+				}
+			},
+			"RouteHopColor": {
+				"type": "object",
+				"properties": {
+					"hop": {
+						"type": "string",
+						"description": "The hop mask (discord, *, aopriv, ...)"
+					},
+					"where": {
+						"type": "string",
+						"nullable": true,
+						"description": "The channel for which to apply these colors or null for all"
+					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply this color if the event was routed via this hop"
+					},
+					"tag_color": {
+						"type": "string",
+						"nullable": true,
+						"description": "The 6 hex digits of the tag color, like FFFFFF"
+					},
+					"text_color": {
+						"type": "string",
+						"nullable": true,
+						"description": "The 6 hex digits of the text color, like FFFFFF"
+					}
+				}
+			},
+			"RouteHopFormat": {
+				"type": "object",
+				"properties": {
+					"hop": {
+						"type": "string",
+						"description": "The hop mask (discord, *, aopriv, ...)"
+					},
+					"where": {
+						"type": "string",
+						"nullable": true,
+						"description": "The channel for which to apply these, or null for all"
+					},
+					"via": {
+						"type": "string",
+						"nullable": true,
+						"description": "Only apply these settings if the event was routed via this hop"
+					},
+					"render": {
+						"type": "boolean",
+						"description": "Whether to render this tag or not"
+					},
+					"format": {
+						"type": "string",
+						"description": "The format what the text of the tag should look like"
+					}
+				}
+			},
 			"ConfigModule": {
 				"type": "object",
 				"properties": {
@@ -123,24 +251,24 @@
 					}
 				]
 			},
-			"SettingOption": {
+			"ModuleEventConfig": {
 				"type": "object",
 				"properties": {
-					"name": {
+					"event": {
 						"type": "string",
-						"description": "Name of this option for displaying"
+						"description": "The event for this module"
 					},
-					"value": {
-						"oneOf": [
-							{
-								"type": "integer"
-							},
-							{
-								"type": "string"
-							}
-						],
-						"nullable": true,
-						"description": "Which value does this option represent?"
+					"handler": {
+						"type": "string",
+						"description": "The function handling this event"
+					},
+					"description": {
+						"type": "string",
+						"description": "What is supposed to happed when this event occurs?"
+					},
+					"enabled": {
+						"type": "boolean",
+						"description": "Is the event handler turned on?"
 					}
 				}
 			},
@@ -157,6 +285,9 @@
 					},
 					"value": {
 						"oneOf": [
+							{
+								"type": "null"
+							},
 							{
 								"type": "integer"
 							},
@@ -191,131 +322,375 @@
 					}
 				}
 			},
-			"ModuleEventConfig": {
+			"NewNews": {
 				"type": "object",
 				"properties": {
-					"event": {
-						"type": "string",
-						"description": "The event for this module"
+					"time": {
+						"type": "integer",
+						"description": "Unix timestamp when this was created"
 					},
-					"handler": {
+					"name": {
 						"type": "string",
-						"description": "The function handling this event"
+						"description": "Name of the character who created the entry"
 					},
-					"description": {
+					"news": {
 						"type": "string",
-						"description": "What is supposed to happed when this event occurs?"
+						"description": "Text of these news"
 					},
-					"enabled": {
+					"sticky": {
 						"type": "boolean",
-						"description": "Is the event handler turned on?"
+						"description": "Set to true if this is pinned above all unpinned news"
+					},
+					"deleted": {
+						"type": "boolean",
+						"description": "Set to true if this is actually deleted"
 					}
 				}
 			},
-			"ModuleAccessLevel": {
+			"News": {
 				"allOf": [
 					{
-						"$ref": "#/components/schemas/SettingOption"
+						"$ref": "#/components/schemas/NewNews"
 					},
 					{
 						"type": "object",
 						"properties": {
-							"numeric_value": {
+							"id": {
 								"type": "integer",
-								"description": "Higher value means fewer rights. Use this to sort on"
-							},
-							"enabled": {
-								"type": "boolean",
-								"description": "Some ranks only work if a module is enabled"
+								"description": "The internal ID of this news entry"
 							}
 						}
 					}
 				]
 			},
-			"RouteHopColor": {
+			"Player": {
 				"type": "object",
 				"properties": {
-					"hop": {
-						"type": "string",
-						"description": "The hop mask (discord, *, aopriv, ...)"
+					"charid": {
+						"type": "integer",
+						"description": "The character ID as used by Anarchy Online"
 					},
-					"where": {
+					"first_name": {
+						"type": "string",
+						"description": "The character's first name (the name before $name)"
+					},
+					"name": {
+						"type": "string",
+						"description": "The character's name as it appears in the game"
+					},
+					"last_name": {
+						"type": "string",
+						"description": "The character's last name (the name after $name)"
+					},
+					"level": {
+						"type": "integer",
+						"nullable": true,
+						"description": "What level (1-220) is the character or null if unknown"
+					},
+					"breed": {
+						"type": "string",
+						"description": "Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown"
+					},
+					"gender": {
+						"type": "string",
+						"description": "Male, Female, Neuter or an empty string if unknown"
+					},
+					"faction": {
+						"type": "string",
+						"description": "Omni, Clan, Neutral or an empty string if unknown"
+					},
+					"profession": {
 						"type": "string",
 						"nullable": true,
-						"description": "The channel for which to apply these colors or null for all"
+						"description": "The long profession name (e.g. \"Enforcer\", not \"enf\" or \"enfo\") or an empty string if unknown"
 					},
-					"via": {
+					"prof_title": {
+						"type": "string",
+						"description": "The title-level title for the profession of this player For example \"The man\", \"Don\" or empty if unknown."
+					},
+					"ai_rank": {
+						"type": "string",
+						"description": "The name of the ai_level as a rank or empty string if unknown"
+					},
+					"ai_level": {
+						"type": "integer",
+						"nullable": true,
+						"description": "AI level of this player or null if unknown"
+					},
+					"org_id": {
+						"type": "integer",
+						"nullable": true,
+						"description": "The id of the org this player is in or null if none or unknown"
+					},
+					"org": {
 						"type": "string",
 						"nullable": true,
-						"description": "Only apply this color if the event was routed via this hop"
+						"description": "The name of the org this player is in or null if none/unknown"
 					},
-					"tag_color": {
+					"org_rank": {
 						"type": "string",
 						"nullable": true,
-						"description": "The 6 hex digits of the tag color, like FFFFFF"
+						"description": "The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown"
 					},
-					"text_color": {
+					"org_rank_id": {
+						"type": "integer",
+						"nullable": true,
+						"description": "The numeric rank of the player in their org or null if not in an org/unknown"
+					},
+					"dimension": {
+						"type": "integer",
+						"nullable": true,
+						"description": "In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19"
+					},
+					"head_id": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Which head is the player using"
+					},
+					"pvp_rating": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Numeric PvP-rating of the player (1-7) or null if unknown"
+					},
+					"pvp_title": {
 						"type": "string",
 						"nullable": true,
-						"description": "The 6 hex digits of the text color, like FFFFFF"
+						"description": "Name of the player's PvP title derived from their $pvp_rating or null if unknown"
+					},
+					"last_update": {
+						"type": "integer",
+						"nullable": true,
+						"description": "Unix timestamp of the last update of these data"
 					}
-				}
+				},
+				"description": "This represents the data the bot stores about a player in the cache and database"
 			},
-			"RouteHopFormat": {
+			"OnlinePlayer": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/Player"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"afk_message": {
+								"type": "string",
+								"description": "The AFK message of the player or an empty string"
+							},
+							"main_character": {
+								"type": "string",
+								"description": "The name of the main character, or the same as $name if this is the main character of the player"
+							},
+							"online": {
+								"type": "boolean",
+								"description": "True if this player is currently online, false otherwise"
+							}
+						},
+						"description": "This represents a single player in the online list"
+					}
+				]
+			},
+			"OnlinePlayers": {
 				"type": "object",
 				"properties": {
-					"hop": {
-						"type": "string",
-						"description": "The hop mask (discord, *, aopriv, ...)"
+					"org": {
+						"type": "array",
+						"description": "All players online in the org",
+						"items": {
+							"$ref": "#/components/schemas/OnlinePlayer"
+						}
 					},
-					"where": {
-						"type": "string",
-						"nullable": true,
-						"description": "The channel for which to apply these, or null for all"
-					},
-					"via": {
-						"type": "string",
-						"nullable": true,
-						"description": "Only apply these settings if the event was routed via this hop"
-					},
-					"render": {
-						"type": "boolean",
-						"description": "Whether to render this tag or not"
-					},
-					"format": {
-						"type": "string",
-						"description": "The format what the text of the tag should look like"
+					"private_channel": {
+						"type": "array",
+						"description": "All players online in the private channel",
+						"items": {
+							"$ref": "#/components/schemas/OnlinePlayer"
+						}
 					}
-				}
+				},
+				"description": "This is the list of all players considered to be online by the bot"
 			},
-			"Audit": {
+			"OrgHistory": {
 				"type": "object",
 				"properties": {
 					"id": {
 						"type": "integer",
-						"description": "ID of this audit entry"
+						"description": "Internal ID of this history entry"
 					},
 					"actor": {
 						"type": "string",
-						"description": "The person doing something"
+						"nullable": true,
+						"description": "The person doing the action"
 					},
 					"actee": {
 						"type": "string",
 						"nullable": true,
-						"description": "The person the actor is interacting with. Not set if not applicable"
+						"description": "Optional, the person the actor is acting on"
 					},
 					"action": {
 						"type": "string",
-						"description": "What did the actor do"
+						"nullable": true,
+						"description": "The action the actor is doing"
 					},
-					"value": {
+					"organization": {
 						"type": "string",
 						"nullable": true,
-						"description": "Optional value for the action"
+						"description": "Name of the organization this action was done in"
 					},
 					"time": {
 						"type": "integer",
-						"description": "time when it happened"
+						"nullable": true,
+						"description": "Timestamp when the action happened"
+					}
+				}
+			},
+			"EventType": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of the event"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"description": "The optional description, explaining when it occurs"
+					}
+				}
+			},
+			"FunctionParameter": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
+					"required": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ClassSpec": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"class": {
+						"type": "string"
+					},
+					"params": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/FunctionParameter"
+						}
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"RelayLayerArgument": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of the argument"
+					},
+					"value": {
+						"type": "string",
+						"description": "The value of the argument"
+					}
+				}
+			},
+			"RelayLayer": {
+				"type": "object",
+				"properties": {
+					"layer": {
+						"type": "string",
+						"description": "Which relay stack layer does this represent?"
+					},
+					"arguments": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RelayLayerArgument"
+						}
+					}
+				}
+			},
+			"RelayEvent": {
+				"type": "object",
+				"properties": {
+					"event": {
+						"type": "string",
+						"description": "Which event is this for?"
+					},
+					"incoming": {
+						"type": "boolean",
+						"description": "Allow sending the event via this relay?"
+					},
+					"outgoing": {
+						"type": "boolean",
+						"description": "Allow receiving the event via this relay?"
+					}
+				}
+			},
+			"RelayConfig": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of this relay"
+					},
+					"layers": {
+						"type": "array",
+						"description": "The individual layers that make up this relay",
+						"items": {
+							"$ref": "#/components/schemas/RelayLayer"
+						}
+					},
+					"events": {
+						"type": "array",
+						"description": "A list of events this relay allows in- and/or outbound",
+						"items": {
+							"$ref": "#/components/schemas/RelayEvent"
+						}
+					}
+				}
+			},
+			"RelayStatus": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					}
+				}
+			},
+			"NewsTile": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name of this news tile"
+					},
+					"description": {
+						"type": "string",
+						"description": "A description what this news tile shows"
+					},
+					"example": {
+						"type": "string",
+						"nullable": true,
+						"description": "An example what this could look like if there was data"
 					}
 				}
 			},
@@ -542,6 +917,10 @@
 					"id": {
 						"type": "integer",
 						"description": "The ID the game uses for this channel"
+					},
+					"class": {
+						"type": "integer",
+						"description": "The class of the channel (OOC, towers, etc.)"
 					}
 				}
 			},
@@ -576,321 +955,6 @@
 						}
 					}
 				}
-			},
-			"OrgHistory": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"description": "Internal ID of this history entry"
-					},
-					"actor": {
-						"type": "string",
-						"nullable": true,
-						"description": "The person doing the action"
-					},
-					"actee": {
-						"type": "string",
-						"nullable": true,
-						"description": "Optional, the person the actor is acting on"
-					},
-					"action": {
-						"type": "string",
-						"nullable": true,
-						"description": "The action the actor is doing"
-					},
-					"organization": {
-						"type": "string",
-						"nullable": true,
-						"description": "Name of the organization this action was done in"
-					},
-					"time": {
-						"type": "integer",
-						"nullable": true,
-						"description": "Timestamp when the action happened"
-					}
-				}
-			},
-			"NewNews": {
-				"type": "object",
-				"properties": {
-					"time": {
-						"type": "integer",
-						"description": "Unix timestamp when this was created"
-					},
-					"name": {
-						"type": "string",
-						"description": "Name of the character who created the entry"
-					},
-					"news": {
-						"type": "string",
-						"description": "Text of these news"
-					},
-					"sticky": {
-						"type": "boolean",
-						"description": "Set to true if this is pinned above all unpinned news"
-					},
-					"deleted": {
-						"type": "boolean",
-						"description": "Set to true if this is actually deleted"
-					}
-				}
-			},
-			"News": {
-				"allOf": [
-					{
-						"$ref": "#/components/schemas/NewNews"
-					},
-					{
-						"type": "object",
-						"properties": {
-							"id": {
-								"type": "integer",
-								"description": "The internal ID of this news entry"
-							}
-						}
-					}
-				]
-			},
-			"Player": {
-				"type": "object",
-				"properties": {
-					"charid": {
-						"type": "integer",
-						"description": "The character ID as used by Anarchy Online"
-					},
-					"first_name": {
-						"type": "string",
-						"description": "The character's first name (the name before $name)"
-					},
-					"name": {
-						"type": "string",
-						"description": "The character's name as it appears in the game"
-					},
-					"last_name": {
-						"type": "string",
-						"description": "The character's last name (the name after $name)"
-					},
-					"level": {
-						"type": "integer",
-						"nullable": true,
-						"description": "What level (1-220) is the character or null if unknown"
-					},
-					"breed": {
-						"type": "string",
-						"description": "Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown"
-					},
-					"gender": {
-						"type": "string",
-						"description": "Male, Female, Neuter or an empty string if unknown"
-					},
-					"faction": {
-						"type": "string",
-						"description": "Omni, Clan, Neutral or an empty string if unknown"
-					},
-					"profession": {
-						"type": "string",
-						"nullable": true,
-						"description": "The long profession name (e.g. \"Enforcer\", not \"enf\" or \"enfo\") or an empty string if unknown"
-					},
-					"prof_title": {
-						"type": "string",
-						"description": "The title-level title for the profession of this player For example \"The man\", \"Don\" or empty if unknown."
-					},
-					"ai_rank": {
-						"type": "string",
-						"description": "The name of the ai_level as a rank or empty string if unknown"
-					},
-					"ai_level": {
-						"type": "integer",
-						"nullable": true,
-						"description": "AI level of this player or null if unknown"
-					},
-					"org_id": {
-						"type": "integer",
-						"nullable": true,
-						"description": "The id of the org this player is in or null if none or unknown"
-					},
-					"org": {
-						"type": "string",
-						"nullable": true,
-						"description": "The name of the org this player is in or null if none/unknown"
-					},
-					"org_rank": {
-						"type": "string",
-						"nullable": true,
-						"description": "The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown"
-					},
-					"org_rank_id": {
-						"type": "integer",
-						"nullable": true,
-						"description": "The numeric rank of the player in their org or null if not in an org/unknown"
-					},
-					"dimension": {
-						"type": "integer",
-						"nullable": true,
-						"description": "In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19"
-					},
-					"head_id": {
-						"type": "integer",
-						"nullable": true,
-						"description": "Which head is the player using"
-					},
-					"pvp_rating": {
-						"type": "integer",
-						"nullable": true,
-						"description": "Numeric PvP-rating of the player (1-7) or null if unknown"
-					},
-					"pvp_title": {
-						"type": "string",
-						"nullable": true,
-						"description": "Name of the player's PvP title derived from their $pvp_rating or null if unknown"
-					},
-					"last_update": {
-						"type": "integer",
-						"nullable": true,
-						"description": "Unix timestamp of the last update of these data"
-					}
-				},
-				"description": "This represents the data the bot stores about a player in the cache and database"
-			},
-			"OnlinePlayer": {
-				"allOf": [
-					{
-						"$ref": "#/components/schemas/Player"
-					},
-					{
-						"type": "object",
-						"properties": {
-							"afk_message": {
-								"type": "string",
-								"description": "The AFK message of the player or an empty string"
-							},
-							"main_character": {
-								"type": "string",
-								"description": "The name of the main character, or the same as $name if this is the main character of the player"
-							},
-							"online": {
-								"type": "boolean",
-								"description": "True if this player is currently online, false otherwise"
-							}
-						},
-						"description": "This represents a single player in the online list"
-					}
-				]
-			},
-			"OnlinePlayers": {
-				"type": "object",
-				"properties": {
-					"org": {
-						"type": "array",
-						"description": "All players online in the org",
-						"items": {
-							"$ref": "#/components/schemas/OnlinePlayer"
-						}
-					},
-					"private_channel": {
-						"type": "array",
-						"description": "All players online in the private channel",
-						"items": {
-							"$ref": "#/components/schemas/OnlinePlayer"
-						}
-					}
-				},
-				"description": "This is the list of all players considered to be online by the bot"
-			},
-			"FunctionParameter": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"type": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string",
-						"nullable": true
-					},
-					"required": {
-						"type": "boolean"
-					}
-				}
-			},
-			"ClassSpec": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"class": {
-						"type": "string"
-					},
-					"params": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/FunctionParameter"
-						}
-					},
-					"description": {
-						"type": "string",
-						"nullable": true
-					}
-				}
-			},
-			"RelayLayerArgument": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "The name of the argument"
-					},
-					"value": {
-						"type": "string",
-						"description": "The value of the argument"
-					}
-				}
-			},
-			"RelayLayer": {
-				"type": "object",
-				"properties": {
-					"layer": {
-						"type": "string",
-						"description": "Which relay stack layer does this represent?"
-					},
-					"arguments": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/RelayLayerArgument"
-						}
-					}
-				}
-			},
-			"RelayConfig": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "The name of this relay"
-					},
-					"layers": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/RelayLayer"
-						}
-					}
-				}
-			},
-			"RelayStatus": {
-				"type": "object",
-				"properties": {
-					"type": {
-						"type": "string"
-					},
-					"text": {
-						"type": "string"
-					}
-				}
 			}
 		},
 		"securitySchemes": {
@@ -901,652 +965,7 @@
 		}
 	},
 	"paths": {
-		"/module": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of available modules to configure",
-				"responses": {
-					"200": {
-						"description": "A list of modules to configure",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ConfigModule"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/events/{event}/{handler}": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "event",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "handler",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate an event",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					},
-					"404": {
-						"description": "Module or Event not found"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			},
-			"put": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate an event",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					},
-					"404": {
-						"description": "Module or Event not found"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/settings/{setting}": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "setting",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Change a setting's value",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"404": {
-						"description": "Wrong module or setting"
-					},
-					"422": {
-						"description": "Invalid value given"
-					}
-				},
-				"requestBody": {
-					"description": "New value for the setting",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"oneOf": [
-									{
-										"type": "string"
-									},
-									{
-										"type": "boolean"
-									},
-									{
-										"type": "integer"
-									}
-								]
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			},
-			"put": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Change a setting's value",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"404": {
-						"description": "Wrong module or setting"
-					},
-					"422": {
-						"description": "Invalid value given"
-					}
-				},
-				"requestBody": {
-					"description": "New value for the setting",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"oneOf": [
-									{
-										"type": "string"
-									},
-									{
-										"type": "boolean"
-									},
-									{
-										"type": "integer"
-									}
-								]
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/commands/{command}/{channel}": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "command",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "channel",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a Command",
-				"responses": {
-					"200": {
-						"description": "operation applied successfully",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ModuleCommand"
-								}
-							}
-						}
-					},
-					"422": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Parameters to change",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ModuleSubcommandChannel"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			},
-			"put": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a Command",
-				"responses": {
-					"200": {
-						"description": "operation applied successfully",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ModuleCommand"
-								}
-							}
-						}
-					},
-					"422": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Parameters to change",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ModuleSubcommandChannel"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/commands/{command}": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "command",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a command",
-				"responses": {
-					"200": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			},
-			"put": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a command",
-				"responses": {
-					"200": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				},
-				{
-					"name": "channel",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Either \"msg\", \"priv\", \"guild\" or \"all\""
-				}
-			],
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a module",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			},
-			"put": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Activate or deactivate a module",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					}
-				},
-				"requestBody": {
-					"description": "Either \"enable\" or \"disable\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/description": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get the description of a module",
-				"responses": {
-					"200": {
-						"description": "A description of the module",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "string"
-								}
-							}
-						}
-					},
-					"204": {
-						"description": "No description set"
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/settings": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of available settings for a module",
-				"responses": {
-					"200": {
-						"description": "A list of all settings for this module",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ModuleSetting"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/events": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of available events for a module",
-				"responses": {
-					"200": {
-						"description": "A list of all events and their status for this module",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ModuleEventConfig"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
-		"/module/{module}/commands": {
-			"parameters": [
-				{
-					"name": "module",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of available commands for a module",
-				"responses": {
-					"200": {
-						"description": "A list of all command and possible subcommands this module provides",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ModuleCommand"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"config"
-				]
-			}
-		},
 		"/access_levels": {
-			"parameters": [],
 			"get": {
 				"security": [
 					{
@@ -1572,10 +991,179 @@
 				"tags": [
 					"config"
 				]
-			}
+			},
+			"parameters": []
+		},
+		"/audit": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Query entries from the audit log",
+				"responses": {
+					"200": {
+						"description": "The audit log entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Audit"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"security",
+					"audit"
+				]
+			},
+			"parameters": [
+				{
+					"name": "limit",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "offset",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "How many entries to skip before beginning to return entries"
+				},
+				{
+					"name": "actor",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries of this actor"
+				},
+				{
+					"name": "actee",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this actee"
+				},
+				{
+					"name": "action",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this action"
+				},
+				{
+					"name": "before",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from before the given timestamp"
+				},
+				{
+					"name": "after",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from after the given timestamp"
+				}
+			]
+		},
+		"/chat/web": {
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Send a message to the org chat",
+				"responses": {
+					"204": {
+						"description": "Message sent"
+					}
+				},
+				"requestBody": {
+					"description": "The text to send",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"tags": [
+					"webserver"
+				]
+			},
+			"parameters": []
+		},
+		"/execute/{uuid}": {
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Execute a command, result is sent via websocket",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Invalid UUID provided"
+					},
+					"422": {
+						"description": "Unparseable data received"
+					}
+				},
+				"requestBody": {
+					"description": "The command to execute as typed in",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"tags": [
+					"webserver"
+				]
+			},
+			"parameters": [
+				{
+					"name": "uuid",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
 		},
 		"/hop/color": {
-			"parameters": [],
 			"get": {
 				"security": [
 					{
@@ -1601,10 +1189,10 @@
 				"tags": [
 					"messages"
 				]
-			}
+			},
+			"parameters": []
 		},
 		"/hop/format": {
-			"parameters": [],
 			"get": {
 				"security": [
 					{
@@ -1630,19 +1218,1433 @@
 				"tags": [
 					"messages"
 				]
-			}
+			},
+			"parameters": []
 		},
-		"/setting/{key}": {
+		"/module": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available modules to configure",
+				"responses": {
+					"200": {
+						"description": "A list of modules to configure",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ConfigModule"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": []
+		},
+		"/module/{module}": {
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a module",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a module",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
 			"parameters": [
 				{
-					"name": "key",
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "channel",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Either \"msg\", \"priv\", \"guild\" or \"all\""
+				}
+			]
+		},
+		"/module/{module}/commands": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available commands for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all command and possible subcommands this module provides",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleCommand"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
 					"required": true,
 					"in": "path",
 					"schema": {
 						"type": "string"
 					}
 				}
-			],
+			]
+		},
+		"/module/{module}/commands/{command}": {
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a command",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a command",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "command",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/commands/{command}/{channel}": {
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a Command",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ModuleCommand"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Parameters to change",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModuleSubcommandChannel"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate a Command",
+				"responses": {
+					"200": {
+						"description": "operation applied successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ModuleCommand"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Wrong or no operation given"
+					}
+				},
+				"requestBody": {
+					"description": "Parameters to change",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModuleSubcommandChannel"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "command",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "channel",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/description": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get the description of a module",
+				"responses": {
+					"200": {
+						"description": "A description of the module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"204": {
+						"description": "No description set"
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/events": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available events for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all events and their status for this module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleEventConfig"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/events/{event}/{handler}": {
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate an event",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Module or Event not found"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Activate or deactivate an event",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Module or Event not found"
+					}
+				},
+				"requestBody": {
+					"description": "Either \"enable\" or \"disable\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "event",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "handler",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/settings": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of available settings for a module",
+				"responses": {
+					"200": {
+						"description": "A list of all settings for this module",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ModuleSetting"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/module/{module}/settings/{setting}": {
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a setting's value",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Wrong module or setting"
+					},
+					"422": {
+						"description": "Invalid value given"
+					}
+				},
+				"requestBody": {
+					"description": "New value for the setting",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "boolean"
+									},
+									{
+										"type": "integer"
+									}
+								]
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a setting's value",
+				"responses": {
+					"204": {
+						"description": "operation applied successfully"
+					},
+					"404": {
+						"description": "Wrong module or setting"
+					},
+					"422": {
+						"description": "Invalid value given"
+					}
+				},
+				"requestBody": {
+					"description": "New value for the setting",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "boolean"
+									},
+									{
+										"type": "integer"
+									}
+								]
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "module",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "setting",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/news": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of all news",
+				"responses": {
+					"200": {
+						"description": "A list of news items",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/News"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new news item",
+				"responses": {
+					"204": {
+						"description": "The news item was created successfully"
+					}
+				},
+				"requestBody": {
+					"description": "The item to create",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/NewNews"
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"parameters": []
+		},
+		"/news/{id}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single news item by id",
+				"responses": {
+					"200": {
+						"description": "The requested news item",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/News"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Given news id not found"
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify an existing news item",
+				"responses": {
+					"200": {
+						"description": "The news item it is now",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/News"
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"description": "The new data for the item",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/NewNews"
+							}
+						}
+					}
+				},
+				"tags": [
+					"news"
+				]
+			},
+			"parameters": [
+				{
+					"name": "id",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "integer"
+					}
+				}
+			]
+		},
+		"/online": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of all people online in all linked channels",
+				"responses": {
+					"200": {
+						"description": "A list of online players",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OnlinePlayers"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"online"
+				]
+			},
+			"parameters": []
+		},
+		"/org/history": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Query entries from the org history log",
+				"responses": {
+					"200": {
+						"description": "The org history log entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/OrgHistory"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"guild",
+					"audit"
+				]
+			},
+			"parameters": [
+				{
+					"name": "limit",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "offset",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "How many entries to skip before beginning to return entries"
+				},
+				{
+					"name": "actor",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries of this actor"
+				},
+				{
+					"name": "actee",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this actee"
+				},
+				{
+					"name": "action",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"description": "Show only entries with this action"
+				},
+				{
+					"name": "before",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from before the given timestamp"
+				},
+				{
+					"name": "after",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Show only entries from after the given timestamp"
+				}
+			]
+		},
+		"/profile": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of saved profiles",
+				"responses": {
+					"200": {
+						"description": "A list of saved profiled",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"parameters": []
+		},
+		"/profile/{profile}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "View a profile",
+				"responses": {
+					"200": {
+						"description": "Profile found and shown",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile saved successfully"
+					},
+					"409": {
+						"description": "Profile already exists"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Load a profile",
+				"responses": {
+					"204": {
+						"description": "Profile load successfully"
+					},
+					"402": {
+						"description": "Wrong or no operation given"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"requestBody": {
+					"description": "Must be \"load\"",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Operation"
+							}
+						}
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete a profile",
+				"responses": {
+					"204": {
+						"description": "Profile successfully deleted"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				},
+				"tags": [
+					"profile"
+				]
+			},
+			"parameters": [
+				{
+					"name": "profile",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/relay-component/event": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay layers",
+				"responses": {
+					"200": {
+						"description": "The available non-routable relay events",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/EventType"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": []
+		},
+		"/relay-component/layer": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay layers",
+				"responses": {
+					"200": {
+						"description": "The available generic relay layers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": []
+		},
+		"/relay-component/protocol": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay protocols",
+				"responses": {
+					"200": {
+						"description": "The available relay protocols",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": []
+		},
+		"/relay-component/transport": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relay transports",
+				"responses": {
+					"200": {
+						"description": "The available relay transport layers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClassSpec"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": []
+		},
+		"/relay": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "List all relays",
+				"responses": {
+					"200": {
+						"description": "The configured relays",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RelayConfig"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new relay",
+				"responses": {
+					"204": {
+						"description": "Relay created successfully"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": []
+		},
+		"/relay/{relay}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single relay",
+				"responses": {
+					"200": {
+						"description": "The configured relay",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RelayConfig"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete a relay",
+				"responses": {
+					"204": {
+						"description": "The relay was deleted"
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": [
+				{
+					"name": "relay",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/relay/{relay}/events": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single relay's event config",
+				"responses": {
+					"200": {
+						"description": "The configured relay events",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RelayEvent"
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single relay's event config",
+				"responses": {
+					"204": {
+						"description": "The event configuration was set"
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"requestBody": {
+					"description": "The event configuration",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/RelayEvent"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a single relay's event config",
+				"responses": {
+					"204": {
+						"description": "The event configuration was set"
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"requestBody": {
+					"description": "The changed event configuration for one event",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RelayEvent"
+							}
+						}
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": [
+				{
+					"name": "relay",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/relay/{relay}/status": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a relay's status",
+				"responses": {
+					"200": {
+						"description": "The status message of the relay",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RelayStatus"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Relay not found"
+					}
+				},
+				"tags": [
+					"relay"
+				]
+			},
+			"parameters": [
+				{
+					"name": "relay",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/setting/{key}": {
 			"get": {
 				"security": [
 					{
@@ -1750,20 +2752,29 @@
 				"tags": [
 					"preferences"
 				]
-			}
+			},
+			"parameters": [
+				{
+					"name": "key",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
 		},
-		"/profile": {
-			"parameters": [],
+		"/startpage/layout": {
 			"get": {
 				"security": [
 					{
 						"basicAuth": []
 					}
 				],
-				"description": "Get a list of saved profiles",
+				"description": "Get the currently configured startpage layout",
 				"responses": {
 					"200": {
-						"description": "A list of saved profiled",
+						"description": "The order of the tiles",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -1777,97 +2788,7 @@
 					}
 				},
 				"tags": [
-					"profile"
-				]
-			}
-		},
-		"/profile/{profile}": {
-			"parameters": [
-				{
-					"name": "profile",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "View a profile",
-				"responses": {
-					"200": {
-						"description": "Profile found and shown",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "string"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Profile not found"
-					}
-				},
-				"tags": [
-					"profile"
-				]
-			},
-			"delete": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Delete a profile",
-				"responses": {
-					"204": {
-						"description": "Profile successfully deleted"
-					},
-					"404": {
-						"description": "Profile not found"
-					}
-				},
-				"tags": [
-					"profile"
-				]
-			},
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Load a profile",
-				"responses": {
-					"204": {
-						"description": "Profile load successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					},
-					"404": {
-						"description": "Profile not found"
-					}
-				},
-				"requestBody": {
-					"description": "Must be \"load\"",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Operation"
-							}
-						}
-					}
-				},
-				"tags": [
-					"profile"
+					"news"
 				]
 			},
 			"put": {
@@ -1876,126 +2797,49 @@
 						"basicAuth": []
 					}
 				],
-				"description": "Load a profile",
+				"description": "List all news tiles",
 				"responses": {
 					"204": {
-						"description": "Profile load successfully"
-					},
-					"402": {
-						"description": "Wrong or no operation given"
-					},
-					"404": {
-						"description": "Profile not found"
+						"description": "New layout saved"
 					}
 				},
 				"requestBody": {
-					"description": "Must be \"load\"",
+					"description": "The new order for the tiles",
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/Operation"
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
 							}
 						}
 					}
 				},
 				"tags": [
-					"profile"
+					"news"
 				]
 			},
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Load a profile",
-				"responses": {
-					"204": {
-						"description": "Profile saved successfully"
-					},
-					"409": {
-						"description": "Profile already exists"
-					}
-				},
-				"tags": [
-					"profile"
-				]
-			}
+			"parameters": []
 		},
-		"/audit": {
-			"parameters": [
-				{
-					"name": "limit",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "No more than this amount of entries will be returned. Default is 50"
-				},
-				{
-					"name": "actor",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries of this actor"
-				},
-				{
-					"name": "actee",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries with this actee"
-				},
-				{
-					"name": "action",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries with this action"
-				},
-				{
-					"name": "before",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "Show only entries from before the given timestamp"
-				},
-				{
-					"name": "after",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "Show only entries from after the given timestamp"
-				}
-			],
+		"/startpage/tiles": {
 			"get": {
 				"security": [
 					{
 						"basicAuth": []
 					}
 				],
-				"description": "Query entries from the audit log",
+				"description": "List all news tiles",
 				"responses": {
 					"200": {
-						"description": "The audit log entries",
+						"description": "List of all news items",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "array",
 									"items": {
-										"$ref": "#/components/schemas/Audit"
+										"$ref": "#/components/schemas/NewsTile"
 									}
 								}
 							}
@@ -2003,13 +2847,12 @@
 					}
 				},
 				"tags": [
-					"security",
-					"audit"
+					"news"
 				]
-			}
+			},
+			"parameters": []
 		},
 		"/sysinfo": {
-			"parameters": [],
 			"get": {
 				"security": [
 					{
@@ -2032,548 +2875,8 @@
 				"tags": [
 					"system"
 				]
-			}
-		},
-		"/org/history": {
-			"parameters": [
-				{
-					"name": "limit",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "No more than this amount of entries will be returned. Default is 50"
-				},
-				{
-					"name": "actor",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries of this actor"
-				},
-				{
-					"name": "actee",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries with this actee"
-				},
-				{
-					"name": "action",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "string"
-					},
-					"description": "Show only entries with this action"
-				},
-				{
-					"name": "before",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "Show only entries from before the given timestamp"
-				},
-				{
-					"name": "after",
-					"required": false,
-					"in": "query",
-					"schema": {
-						"type": "integer"
-					},
-					"description": "Show only entries from after the given timestamp"
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Query entries from the org history log",
-				"responses": {
-					"200": {
-						"description": "The org history log entries",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/OrgHistory"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"guild",
-					"audit"
-				]
-			}
-		},
-		"/news": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of all news",
-				"responses": {
-					"200": {
-						"description": "A list of news items",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/News"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"news"
-				]
 			},
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Create a new news item",
-				"responses": {
-					"204": {
-						"description": "The news item was created successfully"
-					}
-				},
-				"requestBody": {
-					"description": "The item to create",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/NewNews"
-							}
-						}
-					}
-				},
-				"tags": [
-					"news"
-				]
-			}
-		},
-		"/news/{id}": {
-			"parameters": [
-				{
-					"name": "id",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "integer"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a single news item by id",
-				"responses": {
-					"200": {
-						"description": "The requested news item",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/News"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Given news id not found"
-					}
-				},
-				"tags": [
-					"news"
-				]
-			},
-			"patch": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Modify an existing news item",
-				"responses": {
-					"200": {
-						"description": "The news item it is now",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/News"
-								}
-							}
-						}
-					}
-				},
-				"requestBody": {
-					"description": "The new data for the item",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/NewNews"
-							}
-						}
-					}
-				},
-				"tags": [
-					"news"
-				]
-			}
-		},
-		"/online": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a list of all people online in all linked channels",
-				"responses": {
-					"200": {
-						"description": "A list of online players",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/OnlinePlayers"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"online"
-				]
-			}
-		},
-		"/relay-component/transport": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "List all relay transports",
-				"responses": {
-					"200": {
-						"description": "The available relay transport layers",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ClassSpec"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/relay-component/layer": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "List all relay layers",
-				"responses": {
-					"200": {
-						"description": "The available generic relay layers",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ClassSpec"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/relay-component/protocol": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "List all relay protocols",
-				"responses": {
-					"200": {
-						"description": "The available relay protocols",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/ClassSpec"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/relay": {
-			"parameters": [],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "List all relays",
-				"responses": {
-					"200": {
-						"description": "The configured relays",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/RelayConfig"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			},
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Create a new relay",
-				"responses": {
-					"204": {
-						"description": "Relay created successfully"
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/relay/{relay}": {
-			"parameters": [
-				{
-					"name": "relay",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a single relay",
-				"responses": {
-					"200": {
-						"description": "The configured relay",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/RelayConfig"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Relay not found"
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			},
-			"delete": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Delete a relay",
-				"responses": {
-					"204": {
-						"description": "The relay was deleted"
-					},
-					"404": {
-						"description": "Relay not found"
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/relay/{relay}/status": {
-			"parameters": [
-				{
-					"name": "relay",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"get": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Get a relay's status",
-				"responses": {
-					"200": {
-						"description": "The status message of the relay",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/RelayStatus"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Relay not found"
-					}
-				},
-				"tags": [
-					"relay"
-				]
-			}
-		},
-		"/execute/{uuid}": {
-			"parameters": [
-				{
-					"name": "uuid",
-					"required": true,
-					"in": "path",
-					"schema": {
-						"type": "string"
-					}
-				}
-			],
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Execute a command, result is sent via websocket",
-				"responses": {
-					"204": {
-						"description": "operation applied successfully"
-					},
-					"404": {
-						"description": "Invalid UUID provided"
-					},
-					"422": {
-						"description": "Unparseable data received"
-					}
-				},
-				"requestBody": {
-					"description": "The command to execute as typed in",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				},
-				"tags": [
-					"webserver"
-				]
-			}
-		},
-		"/chat/web": {
-			"parameters": [],
-			"post": {
-				"security": [
-					{
-						"basicAuth": []
-					}
-				],
-				"description": "Send a message to the org chat",
-				"responses": {
-					"204": {
-						"description": "Message sent"
-					}
-				},
-				"requestBody": {
-					"description": "The text to send",
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				},
-				"tags": [
-					"webserver"
-				]
-			}
+			"parameters": []
 		}
 	}
 }

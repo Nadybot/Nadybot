@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandManager,
-	CommandReply,
 	DB,
 	SQLException,
 	Text,
@@ -50,10 +50,9 @@ class SQLController {
 
 	/**
 	 * @HandlesCommand("executesql")
-	 * @Matches("/^executesql (.*)$/i")
 	 */
-	public function executesqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = htmlspecialchars_decode($args[1]);
+	public function executesqlCommand(CmdContext $context, string $sql): void {
+		$sql = htmlspecialchars_decode($sql);
 
 		try {
 			$num_rows = $this->db->exec($sql);
@@ -61,15 +60,14 @@ class SQLController {
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("querysql")
-	 * @Matches("/^querysql (.*)$/si")
 	 */
-	public function querysqlCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$sql = htmlspecialchars_decode($args[1]);
+	public function querysqlCommand(CmdContext $context, string $sql): void {
+		$sql = htmlspecialchars_decode($sql);
 
 		try {
 			$data = $this->db->query($sql);
@@ -87,6 +85,6 @@ class SQLController {
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

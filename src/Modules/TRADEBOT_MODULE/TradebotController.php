@@ -4,10 +4,11 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AOChatEvent,
 	BuddylistManager,
+	CmdContext,
 	ColorSettingHandler,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Event,
 	LoggerWrapper,
@@ -18,6 +19,9 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PColor;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -36,7 +40,7 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
  *	)
  */
 class TradebotController {
-
+	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
 
 	/**
@@ -97,8 +101,8 @@ class TradebotController {
 			"Name of the bot whose channel to join",
 			"edit",
 			"text",
-			"None",
-			"None;" . implode(';', array_keys(self::BOT_DATA)),
+			static::NONE,
+			static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
 			'',
 			"mod",
 			"tradebot.txt"
@@ -159,7 +163,7 @@ class TradebotController {
 	 * @Description("Add active tradebots to buddylist")
 	 */
 	public function addTradebotsAsBuddies(): void {
-		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot'));
+		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
 		foreach ($activeBots as $botName) {
 			$this->buddylistManager->add($botName, "tradebot");
 		}
@@ -180,7 +184,7 @@ class TradebotController {
 					strtolower($botNames)
 				)
 			),
-			['', 'None']
+			['', static::NONE]
 		);
 	}
 
@@ -204,7 +208,7 @@ class TradebotController {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['leave'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
+					$this->chatBot->send_tell($botName, $cmd, "\0");
 					$this->chatBot->privategroup_leave($botName);
 				}
 				$this->buddylistManager->remove($botName, "tradebot");
@@ -214,7 +218,7 @@ class TradebotController {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['join'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0", AOC_PRIORITY_MED);
+					$this->chatBot->send_tell($botName, $cmd, "\0");
 				}
 				if ($this->buddylistManager->isOnline($botName)) {
 					$this->joinPrivateChannel($botName);
@@ -242,7 +246,7 @@ class TradebotController {
 	 * @Description("Join tradebot private channels")
 	 */
 	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
-		if ($this->isTradebot($eventObj->sender)) {
+		if (is_string($eventObj->sender) && $this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
 		}
 	}
@@ -251,14 +255,14 @@ class TradebotController {
 	protected function joinPrivateChannel(string $botName): void {
 		$cmd = "!join";
 		$this->logger->logChat("Out. Msg.", $botName, $cmd);
-		$this->chatBot->send_tell($botName, $cmd, AOC_PRIORITY_MED);
+		$this->chatBot->send_tell($botName, $cmd);
 	}
 
 	/**
 	 * Check if the given name is one of the configured tradebots
 	 */
 	public function isTradebot(string $botName): bool {
-		$tradebotNames = $this->normalizeBotNames($this->settingManager->getString('tradebot'));
+		$tradebotNames = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
 		foreach ($tradebotNames as $tradebotName) {
 			if (preg_match("/^\Q$tradebotName\E\d*$/", $botName)) {
 				return true;
@@ -273,8 +277,9 @@ class TradebotController {
 	 *
 	 * @throws StopExecutionException
 	 */
-	public function receiveRelayMessageExtPrivEvent(Event $eventObj): void {
+	public function receiveRelayMessageExtPrivEvent(AOChatEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
+			|| !is_string($eventObj->sender)
 			|| !$this->isTradebot($eventObj->sender)) {
 			return;
 		}
@@ -286,8 +291,8 @@ class TradebotController {
 	 * @Event("msg")
 	 * @Description("Relay incoming tells from the tradebots to org/private channel")
 	 */
-	public function receiveMessageEvent(Event $eventObj): void {
-		if (!$this->isTradebot($eventObj->sender)) {
+	public function receiveMessageEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender) || !$this->isTradebot($eventObj->sender)) {
 			return;
 		}
 		$this->processIncomingTradebotMessage($eventObj->sender, $eventObj->message);
@@ -313,7 +318,7 @@ class TradebotController {
 	 * Relay incoming priv-messages of tradebots to org/priv chat,
 	 * but filter out join- and leave-messages of people.
 	 */
-	public function processIncomingTradeMessage(string $sender, string $message) {
+	public function processIncomingTradeMessage(string $sender, string $message): void {
 		// Only relay messages starting with something in square brackets
 		$match = self::BOT_DATA[$sender]["match"];
 		if (!preg_match($match, strip_tags($message), $matches)
@@ -369,7 +374,7 @@ class TradebotController {
 		$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
 		$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
 			" if you have the necessary access level.";
-		$message .= " [" . $this->text->makeBlob($comText, $blob) . "]";
+		$message .= " [" . ((array)$this->text->makeBlob($comText, $blob))[0] . "]";
 		return $message;
 	}
 
@@ -377,8 +382,8 @@ class TradebotController {
 	 * Check if the message is from a tradenet channel that we are subscribed to
 	 */
 	protected function isSubscribedTo(string $channel): bool {
-		$channelString = $this->settingManager->getString('tradebot_channels');
-		if ($channelString === 'None') {
+		$channelString = $this->settingManager->getString('tradebot_channels') ?? "*";
+		if ($channelString === static::NONE) {
 			return false;
 		}
 		$subbed = explode(",", $channelString);
@@ -394,12 +399,12 @@ class TradebotController {
 	 * @Event("extJoinPrivRequest")
 	 * @Description("Accept private channel join invitation from the trade bots")
 	 */
-	public function acceptPrivJoinEvent(Event $eventObj): void {
+	public function acceptPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->isTradebot($sender)) {
+		if (!is_string($sender) || !$this->isTradebot($sender)) {
 			return;
 		}
-		$this->logger->log('INFO', "Joining {$sender}'s private channel.");
+		$this->logger->notice("Joining {$sender}'s private channel.");
 		if ($this->chatBot->privategroup_join($sender)) {
 			$this->messageHub->registerMessageEmitter(
 				new TradebotChannel($sender . "-*")
@@ -409,16 +414,15 @@ class TradebotController {
 
 	/**
 	 * @HandlesCommand("tradecolor")
-	 * @Matches("/^tradecolor$/i")
 	 */
-	public function listTradecolorsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function listTradecolorsCommand(CmdContext $context): void {
 		/** @var Collection<TradebotColors> */
 		$colors = $this->db->table(self::DB_TABLE)
 			->orderBy("tradebot")
 			->orderBy("id")
 			->asObj(TradebotColors::class);
 		if ($colors->isEmpty()) {
-			$sendto->reply("No colors have been defined yet.");
+			$context->reply("No colors have been defined yet.");
 			return;
 		}
 		/** @var array<string,TradebotColors[]> */
@@ -444,50 +448,47 @@ class TradebotController {
 			"Tradebot colors (" . count($colors) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("tradecolor")
-	 * @Matches("/^tradecolor\s+(?:rem|del|remove|delete|rm)\s+(\d+)$/i")
 	 */
-	public function remTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
+	public function remTradecolorCommand(CmdContext $context, PRemove $action, int $id): void {
 		if (!$this->db->table(self::DB_TABLE)->delete($id)) {
-			$sendto->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
+			$context->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
 			return;
 		}
-		$sendto->reply("Tradebot color <highlight>#{$id}<end> deleted.");
+		$context->reply("Tradebot color <highlight>#{$id}<end> deleted.");
 	}
 
 	/**
 	 * @HandlesCommand("tradecolor")
-	 * @Matches("/^tradecolor\s+(?:add|set)\s+([^ ]+)\s+(.+)\s+#?([0-9a-f]{6})$/i")
+	 * @Mask $action (add|set)
 	 */
-	public function addTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$tradeBot = ucfirst(strtolower($args[1]));
-		$tag = strtolower($args[2]);
-		$color = strtoupper($args[3]);
-		if (!array_key_exists($tradeBot, self::BOT_DATA)) {
-			$sendto->reply("<highlight>{$tradeBot}<end> is not a supported tradebot.");
+	public function addTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
+		$tag = strtolower($tag);
+		$color = $color->getCode();
+		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
+			$context->reply("<highlight>{$tradeBot}<end> is not a supported tradebot.");
 			return;
 		}
 		if (strlen($tag) > 25) {
-			$sendto->reply("Your tag is longer than the supported 25 characters.");
+			$context->reply("Your tag is longer than the supported 25 characters.");
 			return;
 		}
 		$colorDef = new TradebotColors();
 		$colorDef->channel = $tag;
-		$colorDef->tradebot = $tradeBot;
+		$colorDef->tradebot = $tradeBot();
 		$colorDef->color = $color;
-		$oldValue = $this->getTagColor($tradeBot, $tag);
+		$oldValue = $this->getTagColor($tradeBot(), $tag);
 		if (isset($oldValue) && $oldValue->channel === $colorDef->channel) {
 			$colorDef->id = $oldValue->id;
 			$this->db->update(self::DB_TABLE, "id", $colorDef);
 		} else {
 			$colorDef->id = $this->db->insert(self::DB_TABLE, $colorDef);
 		}
-		$sendto->reply(
+		$context->reply(
 			"Color for <highlight>{$tradeBot} &gt; [{$tag}]<end> set to ".
 			"<font color='#{$color}'>#{$color}</font>."
 		);
@@ -495,28 +496,27 @@ class TradebotController {
 
 	/**
 	 * @HandlesCommand("tradecolor")
-	 * @Matches("/^tradecolor\s+(?:pick)\s+([^ ]+)\s+(.+)$/i")
+	 * @Mask $action pick
 	 */
-	public function pickTradecolorCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$tradeBot = ucfirst(strtolower($args[1]));
-		$tag = strtolower($args[2]);
-		if (!array_key_exists($tradeBot, self::BOT_DATA)) {
-			$sendto->reply("{$tradeBot} is not a supported tradebot.");
+	public function pickTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag): void {
+		$tag = strtolower($tag);
+		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
+			$context->reply("{$tradeBot} is not a supported tradebot.");
 			return;
 		}
 		if (strlen($tag) > 25) {
-			$sendto->reply("Your tag name is too long.");
+			$context->reply("Your tag name is too long.");
 			return;
 		}
 		$colorList = ColorSettingHandler::getExampleColors();
 		$blob = "<header2>Pick a color for {$tradeBot} &gt; [{$tag}]<end>\n";
 		foreach ($colorList as $color => $name) {
-			$blob .= "<tab>[<a href='chatcmd:///tell <myname> tradecolor set {$tradeBot} {$tag} {$color}'>Pick this onet</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
+			$blob .= "<tab>[<a href='chatcmd:///tell <myname> tradecolor set {$tradeBot} {$tag} {$color}'>Pick this one</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
 		}
 		$msg = $this->text->makeBlob(
 			"Choose from colors (" . count($colorList) . ")",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

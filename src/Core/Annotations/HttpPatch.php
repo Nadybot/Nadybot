@@ -5,5 +5,5 @@ namespace Nadybot\Core\Annotations;
 use Addendum\Annotation;
 
 class HttpPatch extends Annotation {
-	public $type = "patch";
+	public string $type = "patch";
 }

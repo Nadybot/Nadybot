@@ -3,9 +3,10 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\AOChatEvent;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
-use Nadybot\Core\Event;
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -48,21 +49,16 @@ class OrgHistoryController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/History");
 	}
 
 	/**
 	 * @HandlesCommand("orghistory")
-	 * @Matches("/^orghistory$/i")
-	 * @Matches("/^orghistory (\d+)$/i")
 	 */
-	public function orgHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function orgHistoryCommand(CmdContext $context, ?int $page): void {
+		$page ??= 1;
 		$pageSize = 40;
-		$page = 1;
-		if (count($args) == 2) {
-			$page = (int)$args[1];
-		}
 
 		$startingRecord = max(0, ($page - 1) * $pageSize);
 
@@ -76,7 +72,7 @@ class OrgHistoryController {
 			->asObj(OrgHistory::class);
 		if ($data->count() === 0) {
 			$msg = "No org history has been recorded.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		foreach ($data as $row) {
@@ -85,15 +81,14 @@ class OrgHistoryController {
 
 		$msg = $this->text->makeBlob('Org History', $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("orghistory")
-	 * @Matches("/^orghistory (.+)$/i")
 	 */
-	public function orgHistoryPlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$player = ucfirst(strtolower($args[1]));
+	public function orgHistoryPlayerCommand(CmdContext $context, PCharacter $char): void {
+		$player = $char();
 
 		$blob = '';
 
@@ -121,21 +116,25 @@ class OrgHistoryController {
 
 		$msg = $this->text->makeBlob("Org History for $player", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function formatOrgAction(OrgHistory $row): string {
-		if ($row->action === "left") {
-			return "<highlight>$row->actor<end> $row->action. [$row->organization] " . $this->util->date($row->time) . "\n";
+		$time = "Unknown time";
+		if (isset($row->time)) {
+			$time = $this->util->date($row->time);
 		}
-		return"<highlight>$row->actor<end> $row->action <highlight>$row->actee<end>. [$row->organization] " . $this->util->date($row->time) . "\n";
+		if ($row->action === "left") {
+			return "<highlight>$row->actor<end> $row->action. [$row->organization] {$time}\n";
+		}
+		return"<highlight>$row->actor<end> $row->action <highlight>$row->actee<end>. [$row->organization] {$time}\n";
 	}
 
 	/**
 	 * @Event("orgmsg")
 	 * @Description("Capture Org Invite/Kick/Leave messages for orghistory")
 	 */
-	public function captureOrgMessagesEvent(Event $eventObj): void {
+	public function captureOrgMessagesEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (
 			preg_match("/^(?<actor>.+) just (?<action>left) your organization.$/", $message, $arr)
@@ -159,7 +158,7 @@ class OrgHistoryController {
 	 * @Api("/org/history")
 	 * @GET
 	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries, required=false)
+	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries', required=false)
 	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
 	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
 	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)

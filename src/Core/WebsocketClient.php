@@ -21,7 +21,7 @@ class WebsocketClient extends WebsocketBase {
 	public LoggerWrapper $logger;
 
 	public function __destruct() {
-		if ($this->isConnected()) {
+		if ($this->isConnected() && is_resource($this->socket)) {
 			@fclose($this->socket);
 		}
 		$this->socket = null;
@@ -72,7 +72,7 @@ class WebsocketClient extends WebsocketBase {
 		$event = $this->getEvent("error");
 		$event->code = $code;
 		$event->data = $message;
-		if ($this->isConnected()) {
+		if ($this->isConnected() && is_resource($this->socket)) {
 			@fclose($this->socket);
 			$this->resetClient();
 		}
@@ -111,7 +111,7 @@ class WebsocketClient extends WebsocketBase {
 		$errno = null;
 		$errstr = null;
 		$this->timeoutChecker = $this->timer->callLater($this->timeout, [$this, "checkTimeout"]);
-		$this->socket = @stream_socket_client(
+		$socket = @stream_socket_client(
 			"$streamUri:$port",
 			$errno,
 			$errstr,
@@ -119,13 +119,14 @@ class WebsocketClient extends WebsocketBase {
 			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
 			$context
 		);
-		if (!isset($this->socket) || $this->socket === false) {
+		if ($socket === false) {
 			$this->throwError(
 				WebsocketError::CONNECT_ERROR,
 				$errstr
 			);
 			return false;
 		}
+		$this->socket = $socket;
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_WRITE,
@@ -147,7 +148,7 @@ class WebsocketClient extends WebsocketBase {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
-		if (!isset($this->socket)) {
+		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
 		$result = stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
@@ -169,10 +170,14 @@ class WebsocketClient extends WebsocketBase {
 	 */
 	public function upgradeToWebsocket(): void {
 		$this->connected = true;
-		$this->logger->log("DEBUG", "Connected to {$this->uri}");
-		$this->socketManager->removeSocketNotifier($this->notifier);
+		$this->logger->info("[Websocket {uri}] Connected", [
+			"uri" => $this->uri,
+		]);
+		if (isset($this->notifier)) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+		}
 		$urlParts = parse_url($this->uri);
-		$port = $urlParts['port'] ?? ($urlParts["scheme"] === 'wss' ? 443 : 80);
+		$port = $urlParts['port'] ?? (($urlParts["scheme"]??null) === 'wss' ? 443 : 80);
 		$path = ($urlParts["path"] ?? "/").
 			(isset($urlParts["query"]) ? "?" . $urlParts["query"] : "").
 			(isset($urlParts["fragment"]) ? "#" . $urlParts["fragment"] : "");
@@ -185,7 +190,7 @@ class WebsocketClient extends WebsocketBase {
 		);
 
 		$headers = [
-			'Host'                  => $urlParts["host"] . ":" . $port,
+			'Host'                  => ($urlParts["host"]??"127.0.0.1") . ":" . $port,
 			'User-Agent'            => 'Nadybot ' . BotRunner::getVersion(),
 			'Connection'            => 'Upgrade',
 			'Upgrade'               => 'websocket',
@@ -210,7 +215,10 @@ class WebsocketClient extends WebsocketBase {
 		$header = "GET $path HTTP/1.1\r\n" . implode("\r\n", $headerStrings) . "\r\n\r\n";
 
 		$this->write($header);
-		$this->logger->log("DEBUG", "Headers sent");
+		$this->logger->debug("[Websocket {uri}] Headers sent", [
+			"uri" => $this->uri,
+			"header" => $header,
+		]);
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -218,11 +226,17 @@ class WebsocketClient extends WebsocketBase {
 				$this->validateWebsocketUpgradeReply($key);
 			}
 		);
+		$this->lastReadTime = time();
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	public function validateWebsocketUpgradeReply($key) {
-		$this->socketManager->removeSocketNotifier($this->notifier);
+	public function validateWebsocketUpgradeReply($key): bool {
+		if (isset($this->notifier)) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+		}
+		if (!is_resource($this->socket)) {
+			return false;
+		}
 		// Server response headers must be terminated with double CR+LF
 		$response = stream_get_line($this->socket, 4096, "\r\n\r\n");
 		if ($response === false) {
@@ -232,13 +246,17 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
+		$this->logger->debug("[Websocket {uri}] Received reply", [
+			"uri" => $this->uri,
+			"reply" => $response,
+		]);
 
 		$urlParts = parse_url($this->uri);
 		$path = ($urlParts["path"] ?? "/").
 			(isset($urlParts["query"]) ? "?" . $urlParts["query"] : "").
 			(isset($urlParts["fragment"]) ? "#" . $urlParts["fragment"] : "");
 		if (!preg_match('/Sec-WebSocket-Accept:\s*(.+)$/mUi', $response, $matches)) {
-			$address = $urlParts["scheme"] . '://' . $urlParts["host"] . $path;
+			$address = ($urlParts["scheme"]??"ws") . '://' . ($urlParts["host"]??"127.0.0.1") . $path;
 			$this->throwError(
 				WebsocketError::WEBSOCKETS_NOT_SUPPORTED,
 				"Server at {$address} does not seem to support websockets: {$response}"
@@ -256,7 +274,9 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
-		$this->logger->log("DEBUG", "connection upgraded to websocket on {$this->uri}");
+		$this->logger->info("[Websocket {uri}] connection upgraded to websocket", [
+			"uri" => $this->uri,
+		]);
 		unset($this->notifier);
 		$this->listenForRead();
 		$event = $this->getEvent("connect");

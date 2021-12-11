@@ -16,11 +16,11 @@ class PlayerHistoryManager {
 
 	public function asyncLookup(string $name, int $dimension, callable $callback, ...$args): void {
 		$name = ucfirst(strtolower($name));
-		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
+		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
-		$cb = function($data) {
+		$cb = function(?string $data): bool {
 			return isset($data) && $data !== "[]";
 		};
 
@@ -40,11 +40,11 @@ class PlayerHistoryManager {
 
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
-		$url = "http://pork.budabot.jkbff.com/pork/history.php?server=$dimension&name=$name";
+		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
 		$filename = "$name.$dimension.history.json";
 		$maxCacheAge = 86400;
-		$cb = function($data) {
+		$cb = function(?string $data): bool {
 			return isset($data) && $data !== "[]";
 		};
 
@@ -61,8 +61,7 @@ class PlayerHistoryManager {
 	}
 
 	public function handleCacheResult(?CacheResult $cacheResult, string $name, callable $callback, ...$args): void {
-
-		if ($cacheResult->success !== true) {
+		if (!isset($cacheResult) || $cacheResult->success !== true) {
 			$callback(null, ...$args);
 			return;
 		}
@@ -70,7 +69,7 @@ class PlayerHistoryManager {
 		$obj->name = $name;
 		$obj->data = [];
 		try {
-			$history = json_decode($cacheResult->data, false, 512, JSON_THROW_ON_ERROR);
+			$history = json_decode($cacheResult->data??"[]", false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);
 			return;

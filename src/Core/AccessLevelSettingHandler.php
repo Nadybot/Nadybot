@@ -7,6 +7,7 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 
 /**
  * Class to represent a setting with an access level value for NadyBot
+ * @SettingHandler("rank")
  */
 class AccessLevelSettingHandler extends SettingHandler {
 
@@ -46,7 +47,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 	}
 
 	public function displayValue(string $sender): string {
-		$value = $this->row->value;
+		$value = $this->row->value ?? "all";
 		$rank = ucfirst(strtolower($this->accessManager->getDisplayName($value)));
 		return "<highlight>{$rank}<end>";
 	}

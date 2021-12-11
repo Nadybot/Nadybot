@@ -11,7 +11,9 @@ use Exception;
  * composer packages.
  *
  * - For Addendum, we need to patch it to support multi-line annotations
- * - PHP Codesniffer gets a default config to use the Nadybot styleguide
+ *   and be PHP 8.1 compatible without deprecation warnings.
+ * - PHP Codesniffer gets a default config to use the Nadybot styleguide.
+ *   deprecation warnings.
  */
 class Patcher {
 	/**
@@ -80,6 +82,24 @@ EOD;
 			$oldContent
 		);
 		file_put_contents($file, $data);
+
+		foreach ([
+			"ReflectionAnnotatedClass.php",
+			"ReflectionAnnotatedProperty.php",
+			"ReflectionAnnotatedMethod.php"
+		] as $file) {
+			$file = $vendorDir . '/' . $package->getName() . '/lib/Addendum/' . $file;
+			$oldContent = file_get_contents($file);
+			if ($oldContent === false || strpos($oldContent, "ReturnTypeWillChange") !== false) {
+				continue;
+			}
+			$newContent = str_replace(
+				'public function',
+				"#[\\ReturnTypeWillChange]\n    public function",
+				$oldContent
+			);
+			file_put_contents($file, $newContent);
+		}
 	}
 
 	/**

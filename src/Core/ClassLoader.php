@@ -38,7 +38,7 @@ class ClassLoader {
 		$this->loadCoreModules();
 		$this->loadUserModules();
 
-		$this->logger->log('DEBUG', "Inject dependencies for all instances");
+		$this->logger->info("Inject dependencies for all instances");
 		foreach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
 		}
@@ -49,7 +49,7 @@ class ClassLoader {
 	 */
 	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
-		$this->logger->log('INFO', "Loading CORE modules...");
+		$this->logger->notice("Loading CORE modules...");
 		$core_modules = [
 			'MESSAGES', 'CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS',
 			'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE',
@@ -64,17 +64,21 @@ class ClassLoader {
 	 * Parse and load all user modules
 	 */
 	private function loadUserModules(): void {
-		$this->logger->log('INFO', "Loading USER modules...");
+		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->log('DEBUG', "Loading modules in path '$path'");
-			if (@file_exists($path) && $d = dir($path)) {
-				while (false !== ($moduleName = $d->read())) {
-					if ($this->isModuleDir($path, $moduleName)) {
-						$this->registerModule($path, $moduleName);
-					}
-				}
-				$d->close();
+			$this->logger->info("Loading modules in path '$path'");
+			if (!@file_exists($path) || ($d = dir($path)) === false || $d === null) {
+				continue;
 			}
+			while (false !== ($moduleName = $d->read())) {
+				if (in_array($moduleName, ["BIGBOSS_MODULE", "GAUNTLET_MODULE"])) {
+					continue;
+				}
+				if ($this->isModuleDir($path, $moduleName)) {
+					$this->registerModule($path, $moduleName);
+				}
+			}
+			$d->close();
 		}
 	}
 
@@ -106,7 +110,7 @@ class ClassLoader {
 				$minimum = $entries["minimum_php_version"];
 				$current = phpversion();
 				if (strnatcmp($minimum, $current) > 0) {
-					$this->logger->log('WARN', "Could not load module"
+					$this->logger->warning("Could not load module"
 					." {$moduleName} as it requires at least PHP version '$minimum',"
 					." but current PHP version is '$current'");
 					return;
@@ -120,13 +124,13 @@ class ClassLoader {
 			$obj = new $className();
 			$obj->moduleName = $moduleName;
 			if (Registry::instanceExists($name) && !$class->overwrite) {
-				$this->logger->log('WARN', "Instance with name '$name' already registered--replaced with new instance");
+				$this->logger->warning("Instance with name '$name' already registered--replaced with new instance");
 			}
 			Registry::setInstance($name, $obj);
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->log('ERROR', "Could not load module {$moduleName}. No classes found with @Instance annotation!");
+			$this->logger->error("Could not load module {$moduleName}. No classes found with @Instance annotation!");
 			return;
 		}
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";

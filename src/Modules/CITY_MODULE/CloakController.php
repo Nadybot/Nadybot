@@ -4,7 +4,8 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	AOChatEvent,
+	CmdContext,
 	DB,
 	Event,
 	EventManager,
@@ -12,12 +13,13 @@ use Nadybot\Core\{
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
+	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -36,7 +38,6 @@ use Nadybot\Core\Routing\Source;
  *	@ProvidesEvent("cloak(lower)")
  */
 class CloakController implements MessageEmitter {
-
 	public const DB_TABLE = "org_city_<myname>";
 
 	/**
@@ -68,6 +69,9 @@ class CloakController implements MessageEmitter {
 
 	/** @Inject */
 	public AltsController $altsController;
+
+	/** @Inject */
+	public CityWaveController $cityWaveController;
 
 	/**
 	 * @Setup
@@ -104,9 +108,8 @@ class CloakController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("cloak")
-	 * @Matches("/^cloak$/i")
 	 */
-	public function cloakCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cloakCommand(CmdContext $context): void {
 		/** @var Collection<OrgCity> */
 		$data = $this->db->table(self::DB_TABLE)
 			->whereIn("action", ["on", "off"])
@@ -115,7 +118,7 @@ class CloakController implements MessageEmitter {
 			->asObj(OrgCity::class);
 		if ($data->count() === 0) {
 			$msg = "Unknown status on cloak!";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		/** @var OrgCity $row */
@@ -131,6 +134,8 @@ class CloakController implements MessageEmitter {
 			$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "on") {
 			$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
+		} else {
+			$msg = "The cloaking device is in an unknown state.";
 		}
 
 		$list = "Time: <highlight>" . $this->util->date($row->time) . "<end>\n";
@@ -142,15 +147,18 @@ class CloakController implements MessageEmitter {
 			$list .= "Action: <highlight>Cloaking device turned " . $row->action . "<end>\n";
 			$list .= "Character: <highlight>" . $row->player . "<end>\n\n";
 		}
-		$msg .= " " . $this->text->makeBlob("Cloak History", $list);
-		$sendto->reply($msg);
+		$blob = (array)$this->text->makeBlob("Cloak History", $list);
+		foreach ($blob as &$page) {
+			$page = "{$msg} {$page}";
+		}
+		$context->reply($blob);
 	}
 
 	/**
 	 * @HandlesCommand("cloak")
-	 * @Matches("/^cloak (raise|on)$/i")
+	 * @Mask $action (raise|on)
 	 */
-	public function cloakRaiseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function cloakRaiseCommand(CmdContext $context, string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 
@@ -161,15 +169,15 @@ class CloakController implements MessageEmitter {
 				->insert([
 					"time" => time(),
 					"action" => "on",
-					"player" => "{$sender}*",
+					"player" => "{$context->char->name}*",
 				]);
 			$msg = "The cloaking device has been manually enabled in the bot (you must still enable the cloak if it's disabled).";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 		$event = new CloakEvent();
 		$event->type = "cloak(raise)";
-		$event->player = $sender;
+		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -177,7 +185,7 @@ class CloakController implements MessageEmitter {
 	 * @Event("guild")
 	 * @Description("Records when the cloak is raised or lowered")
 	 */
-	public function recordCloakChangesEvent(Event $eventObj): void {
+	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
 			|| !preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)
 		) {
@@ -227,7 +235,7 @@ class CloakController implements MessageEmitter {
 		if ($row->action === "off") {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
-			$interval = $this->settingManager->getInt('cloak_reminder_interval');
+			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
@@ -278,43 +286,74 @@ class CloakController implements MessageEmitter {
 	 * @Event("logOn")
 	 * @Description("Show cloak status to guild members logging in")
 	 */
-	public function cityGuildLogonEvent(Event $eventObj): void {
+	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !is_string($eventObj->sender)
 		) {
 			return;
 		}
-		$row = $this->getLastOrgEntry(true);
 
-		if ($row === null) {
+		$data = $this->getCloakStatus();
+		if (!isset($data)) {
 			return;
 		}
-		$timeSinceChange = time() - $row->time;
-		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
-
-		$case = 0;
-		if ($timeSinceChange >= 60*60 && $row->action === "off") {
-			$case = 1;
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible to enable it.";
-		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
-			$case = 1;
-			$msg = "<red>RAID IN PROGRESS!  DO NOT ENTER CITY!</red>";
-		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
-			$msg = "Cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
-			$case = 1;
-		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
-			$case = 2;
-		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
-			$case = 2;
-		} else {
-			$msg = "Unknown status on city cloak!";
-			$case = 1;
-		}
+		[$case, $msg] = $data;
 
 		if ($case <= $this->settingManager->getInt("showcloakstatus")) {
 			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
+	}
+
+	protected function getCloakStatus(): ?array {
+		$row = $this->getLastOrgEntry(true);
+
+		if ($row === null) {
+			return null;
+		}
+		$timeSinceChange = time() - $row->time;
+		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
+
+		if ($timeSinceChange >= 60*60 && $row->action === "off") {
+			return [1, "The cloaking device is <orange>disabled<end>. ".
+				"It is possible to enable it."];
+		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
+			$msg = "RAID IN PROGRESS, <red>DO NOT ENTER CITY!<end>";
+			$wave = $this->cityWaveController->getWave();
+			if ($wave === 9) {
+				$msg .= " - Waiting for <highlight>General<end>.";
+			} elseif (isset($wave)) {
+				$msg .= " - Waiting for <highlight>wave {$wave}<end>.";
+			}
+			return [1, $msg];
+		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
+			return [1, "Cloaking device is <orange>disabled<end>. ".
+				"It is possible in <highlight>$timeString<end> to enable it."];
+		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
+			return [2, "The cloaking device is <green>enabled<end>. ".
+				"It is possible to disable it."];
+		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
+			return [2, "The cloaking device is <green>enabled<end>. ".
+				"It is possible in <highlight>$timeString<end> to disable it."];
+		}
+		return [1, "Unknown status on city cloak!"];
+	}
+
+	/**
+	 * @NewsTile("cloak-status")
+	 * @Description("Shows the current status of the city cloak, if and when
+	 * new raids can be initiated")
+	 * @Example("<header2>City<end>
+	 * <tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
+	 */
+	public function cloakStatusTile(string $sender, callable $callback): void {
+		$data = $this->getCloakStatus();
+		if (!isset($data)) {
+			$callback(null);
+			return;
+		}
+		[$case, $msg] = $data;
+		$msg = "<header2>City<end>\n<tab>{$msg}";
+		$callback($msg);
 	}
 }

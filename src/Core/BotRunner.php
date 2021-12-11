@@ -3,9 +3,8 @@
 namespace Nadybot\Core;
 
 use Closure;
-use LoggerConfiguratorDefault;
-use Logger;
 use ErrorException;
+use Exception;
 use Nadybot\Core\Modules\SETUP\Setup;
 use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 use ReflectionClass;
@@ -16,7 +15,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.2.2";
+	public const VERSION = "5.3.0";
 
 	/**
 	 * The command line arguments
@@ -32,6 +31,8 @@ class BotRunner {
 	protected static ?string $latestTag = null;
 
 	protected static ?string $calculatedVersion = null;
+
+	protected LoggerWrapper $logger;
 
 	/**
 	 * Create a new instance
@@ -73,7 +74,7 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function($num, $str, $file, $line) {
+		set_error_handler(function(int $num, string $str, string $file, int $line) {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
@@ -155,7 +156,7 @@ class BotRunner {
 
 	public function checkRequiredPackages(): void {
 		try {
-			new ReflectionClass(\ParserGenerator\Parser::class);
+			new ReflectionClass("Monolog\\Logger");
 		} catch (ReflectionException $e) {
 			fwrite(
 				STDERR,
@@ -169,6 +170,26 @@ class BotRunner {
 			);
 			sleep(5);
 			exit(1);
+		}
+		$racFile = dirname(dirname(__DIR__)) . "/vendor/niktux/addendum/lib/Addendum/ReflectionAnnotatedClass.php";
+		if (version_compare(PHP_VERSION, '8.1.0') >= 0 && @file_exists($racFile)) {
+			$racContent = file_get_contents($racFile);
+			if ($racContent !== false && strpos($racContent, "ReturnTypeWillChange") === false) {
+				fwrite(
+					STDERR,
+					"Nadybot cannot find properly patched versions of the modules\n".
+					"it requires in 'vendor'.\n".
+					"Please run 'composer reinstall niktux/addendum'\n".
+					"to apply all required patches or download one of the Nadybot\n".
+					"bundles and copy the 'vendor' directory from the zip-file into\n".
+					"the Nadybot main directory.\n".
+					"\n".
+					"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
+					"for more information.\n"
+				);
+				sleep(5);
+				exit(1);
+			}
 		}
 	}
 
@@ -188,9 +209,10 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 		];
-		if (strlen($this->configFile->getVar('amqp_server')??"")
-			&& strlen($this->configFile->getVar('amqp_user')??"")
-			&& strlen($this->configFile->getVar('amqp_password')??"")
+		$configFile = $this->getConfigFile();
+		if (strlen($configFile->getVar('amqp_server')??"")
+			&& strlen($configFile->getVar('amqp_user')??"")
+			&& strlen($configFile->getVar('amqp_password')??"")
 		) {
 			$requiredModules []= "mbstring";
 		}
@@ -214,7 +236,7 @@ class BotRunner {
 	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
 	protected function installCtrlCHandler(): Closure {
 		$signalHandler = function (int $sigNo): void {
-			LegacyLogger::log('INFO', 'StartUp', 'Shutdown requested.');
+			$this->logger->notice('Shutdown requested.');
 			exit;
 		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
@@ -224,7 +246,7 @@ class BotRunner {
 			pcntl_signal(SIGTERM, $signalHandler);
 			pcntl_async_signals(true);
 		} else {
-			LegacyLogger::log('ERROR', 'Startup', 'You need to have the pcntl extension on Linux');
+			$this->logger->error('You need to have the pcntl extension on Linux');
 			exit(1);
 		}
 		return $signalHandler;
@@ -265,16 +287,24 @@ class BotRunner {
 		$logFolderName = "{$logFolderName}/{$vars['name']}.{$vars['dimension']}";
 
 		$this->setErrorHandling($logFolderName);
+		$this->logger = new LoggerWrapper("Core/BotRunner");
 
 		$this->showSetupDialog();
 		$this->canonicalizeBotCharacterName();
 
-		$this->configureLogger($logFolderName);
-
 		$this->setWindowTitle();
 
 		$version = self::getVersion();
-		LegacyLogger::log('INFO', 'StartUp', "Starting {$vars['name']} {$version} on RK{$vars['dimension']} using PHP ".phpversion()." and {$vars['DB Type']}...");
+		$this->logger->notice(
+			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
+			[
+				"name" => $vars['name'],
+				"version" => $version,
+				"dimension" => $vars['dimension'],
+				"phpVersion" => phpversion(),
+				"dbType" => $vars['DB Type'],
+			]
+		);
 
 		$this->classLoader = new ClassLoader($vars['module_load_paths']);
 		Registry::injectDependencies($this->classLoader);
@@ -296,7 +326,7 @@ class BotRunner {
 		$chatBot->init($this, $vars);
 
 		// connect to ao chat server
-		$chatBot->connectAO($vars['login'], $vars['password'], $server, $port);
+		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
 
 		// clear login credentials
 		unset($vars['login']);
@@ -402,7 +432,7 @@ class BotRunner {
 		}
 		$setup = new Setup($this->getConfigFile());
 		$setup->showIntro();
-		LegacyLogger::log('INFO', 'StartUp', "Reloading configuration and testing your settings.");
+		$this->logger->notice("Reloading configuration and testing your settings.");
 		unset($this->configFile);
 		global $vars;
 		$vars = $this->getConfigVars();
@@ -425,18 +455,6 @@ class BotRunner {
 	}
 
 	/**
-	 * Configure log files to be separate for each bot
-	 */
-	private function configureLogger(string $logFolderName): void {
-		$configurator = new LoggerConfiguratorDefault();
-		$config = $configurator->parse('conf/log4php.xml');
-		$file = $config['appenders']['defaultFileAppender']['params']['file'];
-		$file = str_replace("./logs/", "{$logFolderName}/", $file);
-		$config['appenders']['defaultFileAppender']['params']['file'] = $file;
-		Logger::configure($config);
-	}
-
-	/**
 	 * Set the title of the command prompt window in Windows
 	 */
 	private function setWindowTitle(): void {
@@ -453,6 +471,9 @@ class BotRunner {
 	private function connectToDatabase(): void {
 		global $vars;
 		$db = Registry::getInstance('db');
+		if (!isset($db)) {
+			throw new Exception("Cannot find DB instance.");
+		}
 		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
 	}
 
@@ -495,7 +516,7 @@ class BotRunner {
 			$server = "chat.d1.funcom.com";
 			$port = 7106;
 		} else {
-			LegacyLogger::log('ERROR', 'StartUp', "No valid server to connect with! Available dimensions are 4, 5, and 6.");
+			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
 			die();
 		}
 		return [$server, $port];

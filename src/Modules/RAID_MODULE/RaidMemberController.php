@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{
+	AOChatEvent,
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -15,6 +17,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -168,11 +171,11 @@ class RaidMemberController {
 		if ($raid->locked && $sender === $player && !$force) {
 			$msg = "The raid is currently <red>locked<end>.";
 			if ($channel === 'priv') {
-				$msg .= " [" . $this->text->makeBlob(
+				$msg .= " [" . ((array)$this->text->makeBlob(
 					"admin",
 					$this->text->makeChatcmd("Add {$player} to the raid", "/tell <myname> raid add {$player}"),
 					"Admin controls"
-				) . "]";
+				))[0] . "]";
 			}
 			return $msg;
 		}
@@ -192,7 +195,7 @@ class RaidMemberController {
 				"joined" => time(),
 			]);
 		if ($force) {
-			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
+			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc') ?? 3;
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
 			}
@@ -205,11 +208,11 @@ class RaidMemberController {
 		} else {
 			$this->chatBot->sendPrivate(
 				"<highlight>{$player}<end> has <green>joined<end> the raid :: ".
-				$this->text->makeBlob(
+				((array)$this->text->makeBlob(
 					"click to join",
 					$this->raidController->getRaidJoinLink(),
 					"Raid information"
-				)
+				))[0]
 			);
 			$this->chatBot->sendMassTell("You have <highlight>joined<end> the raid.", $player);
 		}
@@ -238,7 +241,7 @@ class RaidMemberController {
 			->whereNull("left")
 			->update(["left" => $raid->raiders[$player]->left]);
 		if ($sender !== $player) {
-			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc');
+			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc') ?? 3;
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
 			}
@@ -258,53 +261,53 @@ class RaidMemberController {
 
 	/**
 	 * @HandlesCommand("raid (join|leave)")
-	 * @Matches("/^raid join$/i")
+	 * @Mask $action join
 	 */
-	public function raidJoinCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->joinRaid($sender, $sender, $channel, false);
+	public function raidJoinCommand(CmdContext $context, string $action): void {
+		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->channel, false);
 		if ($reply !== null) {
-			if ($channel === "msg") {
-				$this->chatBot->sendMassTell($reply, $sender);
+			if ($context->isDM()) {
+				$this->chatBot->sendMassTell($reply, $context->char->name);
 			} else {
-				$sendto->reply($reply);
+				$context->reply($reply);
 			}
 		}
 	}
 
 	/**
 	 * @HandlesCommand("raid (join|leave)")
-	 * @Matches("/^raid leave$/i")
+	 * @Mask $action leave
 	 */
-	public function raidLeaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->leaveRaid($sender, $sender);
+	public function raidLeaveCommand(CmdContext $context, string $action): void {
+		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
-			if ($channel === "msg") {
-				$this->chatBot->sendMassTell($reply, $sender);
+			if ($context->isDM()) {
+				$this->chatBot->sendMassTell($reply, $context->char->name);
 			} else {
-				$sendto->reply($reply);
+				$context->reply($reply);
 			}
 		}
 	}
 
 	/**
 	 * @HandlesCommand("raidmember")
-	 * @Matches("/^raidmember add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function raidAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->joinRaid($sender, ucfirst(strtolower($args[1])), $channel, true);
+	public function raidAddCommand(CmdContext $context, string $action, PCharacter $char): void {
+		$reply = $this->joinRaid($context->char->name, $char(), $context->channel, true);
 		if ($reply !== null) {
-			$sendto->reply($reply);
+			$context->reply($reply);
 		}
 	}
 
 	/**
 	 * @HandlesCommand("raidmember")
-	 * @Matches("/^raidmember (?:rem|del|kick) (.+)$/i")
+	 * @Mask $action (rem|del|kick)
 	 */
-	public function raidKickCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reply = $this->leaveRaid($sender, ucfirst(strtolower($args[1])));
+	public function raidKickCommand(CmdContext $context, string $action, PCharacter $char): void {
+		$reply = $this->leaveRaid($context->char->name, $char());
 		if ($reply !== null) {
-			$sendto->reply($reply);
+			$context->reply($reply);
 		}
 	}
 
@@ -339,13 +342,34 @@ class RaidMemberController {
 		foreach ($notInRaid as $player) {
 			$this->chatBot->sendMassTell(
 				"::: <red>Attention<end> ::: <highlight>You are not in the running raid!<end> :: ".
-				$this->text->makeBlob(
+				((array)$this->text->makeBlob(
 					"click to join",
 					$this->raidController->getRaidJoinLink(),
 					"Raid information"
-				),
+				))[0],
 				$player
 			);
+		}
+		return $notInRaid;
+	}
+
+	/**
+	 * kick everyone on the private channel who's not in the raid $raid
+	 *
+	 * @return string[]
+	 */
+	public function kickNotInRaid(Raid $raid, bool $all): array {
+		/** @var string[] */
+		$notInRaid = [];
+		foreach ($this->chatBot->chatlist as $player => $online) {
+			if (isset($raid->raiders[$player])) {
+				// Is or was in the running raid. Could still rejoin
+				if (!$all || !isset($raid->raiders[$player]->left)) {
+					continue;
+				}
+			}
+			$this->chatBot->privategroup_kick($player);
+			$notInRaid []= $player;
 		}
 		return $notInRaid;
 	}
@@ -432,7 +456,7 @@ class RaidMemberController {
 				continue;
 			}
 			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-				$this->onlineController->getProfessionId($pInfo->profession).">";
+				($this->onlineController->getProfessionId($pInfo->profession??"unknown")??0).">";
 			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
 				"{$pInfo->level}/{$pInfo->ai_level} ".
 				"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
@@ -470,7 +494,10 @@ class RaidMemberController {
 	 * @Event("leavePriv")
 	 * @Description("Remove players from the raid when they leave the channel")
 	 */
-	public function leavePrivateChannelMessageEvent(Event $eventObj): void {
+	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+		if (!is_string($eventObj->sender)) {
+			return;
+		}
 		$this->leaveRaid(null, $eventObj->sender);
 	}
 }

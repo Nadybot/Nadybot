@@ -6,7 +6,7 @@ use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	DBSchema\Audit,
 	QueryBuilder,
@@ -150,21 +150,20 @@ class AuditController {
 
 	/**
 	 * @HandlesCommand("audit")
-	 * @Matches("/^audit(.*)$/i")
 	 */
-	public function auditListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function auditListCommand(CmdContext $context, ?string $filter): void {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")
 			->orderByDesc("id");
 		$params = [];
-		$error = $this->parseParams($query, $args[1], $params);
+		$error = $this->parseParams($query, $filter??"", $params);
 		if (isset($error)) {
-			$sendto->reply($error);
+			$context->reply($error);
 			return;
 		}
 		$data = $query->asObj(Audit::class);
 		if ($data->isEmpty()) {
-			$sendto->reply("No audit data found.");
+			$context->reply("No audit data found.");
 			return;
 		}
 
@@ -186,7 +185,7 @@ class AuditController {
 		}
 		$msg = "Audit entries (" . $lines->count() . ")";
 		$msg = $this->text->makeBlob($msg, $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -194,7 +193,7 @@ class AuditController {
 	 * @Api("/audit")
 	 * @GET
 	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries, required=false)
+	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries', required=false)
 	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
 	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
 	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)

@@ -28,7 +28,7 @@ class CommandAlias {
 	 * Loads active aliases into memory to activate them
 	 */
 	public function load(): void {
-		$this->logger->log('DEBUG', "Loading enabled command aliases");
+		$this->logger->info("Loading enabled command aliases");
 
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
@@ -46,7 +46,7 @@ class CommandAlias {
 		$command = strtolower($command);
 		$alias = strtolower($alias);
 
-		$this->logger->log('DEBUG', "Registering alias: '{$alias}' for command: '$command'");
+		$this->logger->info("Registering alias: '{$alias}' for command: '$command'");
 
 		$row = $this->get($alias);
 		if ($row !== null) {
@@ -73,7 +73,7 @@ class CommandAlias {
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->log('DEBUG', "Activate Command Alias command:($command) alias:($alias)");
+		$this->logger->info("Activate Command Alias command:($command) alias:($alias)");
 
 		$this->commandManager->activate('msg', self::ALIAS_HANDLER, $alias, 'all');
 		$this->commandManager->activate('priv', self::ALIAS_HANDLER, $alias, 'all');
@@ -86,7 +86,7 @@ class CommandAlias {
 	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->log('DEBUG', "Deactivate Command Alias:($alias)");
+		$this->logger->info("Deactivate Command Alias:($alias)");
 
 		$this->commandManager->deactivate('msg', self::ALIAS_HANDLER, $alias);
 		$this->commandManager->deactivate('priv', self::ALIAS_HANDLER, $alias);
@@ -96,24 +96,24 @@ class CommandAlias {
 	/**
 	 * Check incoming commands if they are aliases for commands and execute them
 	 */
-	public function process(string $message, string $channel, string $sender, CommandReply $sendto): bool {
-		$params = explode(' ', $message);
+	public function process(CmdContext $context): bool {
+		$params = explode(' ', $context->message);
 		while (count($params) && !isset($row)) {
 			$row = $this->get(strtolower(join(' ', $params)));
 			if (!isset($row)) {
 				array_pop($params);
 			}
 		}
-		if ($row === null) {
+		if (!isset($row)) {
 			return false;
 		}
-		$tokens = explode(' ', $message, count($params)+1);
+		$tokens = explode(' ', $context->message, count($params)+1);
 		if (count($tokens) > count($params)) {
 			$params = $tokens[count($params)];
 		} else {
 			$params = "";
 		}
-		$this->logger->log('DEBUG', "Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
+		$this->logger->info("Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
 		$cmd = $row->cmd;
 
 		// Determine highest placeholder and don't split more than that so that the
@@ -151,7 +151,8 @@ class CommandAlias {
 		if (preg_match("/\{\\d+(:.*?)?\}/", $cmd)) {
 			return false;
 		}
-		$this->commandManager->process($channel, $cmd, $sender, $sendto);
+		$context->message = $cmd;
+		$this->commandManager->processCmd($context);
 		return true;
 	}
 
@@ -159,7 +160,7 @@ class CommandAlias {
 	 * Adds a command alias to the db
 	 */
 	public function add(object $row): int {
-		$this->logger->log('DEBUG', "Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
+		$this->logger->info("Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 		return $this->db->table(self::DB_TABLE)->insert([
 			"module" => $row->module,
 			"cmd" => $row->cmd,
@@ -172,7 +173,7 @@ class CommandAlias {
 	 * Updates a command alias in the db
 	 */
 	public function update(object $row): int {
-		$this->logger->log('DEBUG', "Updating alias :($row->alias)");
+		$this->logger->info("Updating alias :($row->alias)");
 		return $this->db->table(self::DB_TABLE)
 			->where("alias", $row->alias)
 			->update([

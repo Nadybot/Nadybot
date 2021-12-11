@@ -22,15 +22,38 @@ class JsonImporter {
 		return null;
 	}
 
-	public static function matchesType(string $type, &$value): bool {
-		if ($type === null) {
+	protected static function isAssocArray($value): bool {
+		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
+	}
+
+	protected static function hasIntervalType(string $checkType, $value): bool {
+		if ($checkType === "string" && is_string($value)) {
 			return true;
 		}
+		if ($checkType === "int" && is_int($value)) {
+			return true;
+		}
+		if ($checkType === "float" && is_float($value)) {
+			return true;
+		}
+		if ($checkType === "array" && is_array($value)) {
+			return true;
+		}
+		if ($checkType === "bool" && is_bool($value)) {
+			return true;
+		}
+		return false;
+	}
+
+	public static function matchesType(string $type, &$value): bool {
 		if (substr($type, 0, 1) === "?") {
 			if ($value === null) {
 				return true;
 			}
 			$type = substr($type, 1);
+		}
+		if (preg_match("/^([a-zA-Z_]+)\[\]$/", $type, $matches)) {
+			$type = "array<{$matches[1]}>";
 		}
 		if (preg_match_all("/\??(array<(?R),(?:(?R)(?:\|(?R))*)>|array<(?:(?R)(?:\|(?R))*)>|[a-zA-Z_]+)/", $type, $types, PREG_OFFSET_CAPTURE) === false) {
 			throw new Exception("Illegal type definition: {$type}");
@@ -42,19 +65,7 @@ class JsonImporter {
 			}
 			$checkType = $typeMatch[0];
 
-			if ($checkType === "string" && is_string($value)) {
-				return true;
-			}
-			if ($checkType === "int" && is_int($value)) {
-				return true;
-			}
-			if ($checkType === "float" && is_float($value)) {
-				return true;
-			}
-			if ($checkType === "array" && is_array($value)) {
-				return true;
-			}
-			if ($checkType === "bool" && is_bool($value)) {
+			if (static::hasIntervalType($checkType, $value)) {
 				return true;
 			}
 			if (preg_match("/^[a-zA-Z_0-9]+$/", $checkType) && is_object($value)) {
@@ -138,7 +149,7 @@ class JsonImporter {
 		// Support string[], int[] and the likes for simple types
 		if (preg_match("/^(.+?)\[\]$/", $type, $matches) && is_array($obj->{$name})) {
 			foreach ($obj->{$name} as $value) {
-				if (!static::matchesType($type, $value)) {
+				if (!static::matchesType($matches[1], $value)) {
 					throw new Exception("Invalid type found: {$type}");
 				}
 				$className = static::expandClassname($matches[1]);

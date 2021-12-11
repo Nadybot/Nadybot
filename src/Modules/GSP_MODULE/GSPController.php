@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Event,
 	EventManager,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
+	UserStateEvent,
 };
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
@@ -126,7 +127,7 @@ class GSPController implements MessageEmitter {
 	 */
 	public function getNotificationMessage(): string {
 		$msg = sprintf(
-			"GSP is now running <highlight>%s<end>. Location: <highlight>%s<end>.",
+			"GSP is now running <highlight>%s<end>.\nLocation: <highlight>%s<end>.",
 			$this->showName,
 			$this->showLocation
 		);
@@ -202,13 +203,14 @@ class GSPController implements MessageEmitter {
 	 * @Event("logOn")
 	 * @Description("Announce running shows on logon")
 	 */
-	public function gspShowLogonEvent(Event $eventObj): void {
+	public function gspShowLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$sender])
 			|| !$this->settingManager->getBool('gsp_show_logon')
 			|| !$this->showRunning
+			|| !is_string($sender)
 		) {
 			return;
 		}
@@ -218,15 +220,14 @@ class GSPController implements MessageEmitter {
 
 	/**
 	 * @HandlesCommand("radio")
-	 * @Matches("/^radio$/i")
 	 */
-	public function radioCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function radioCommand(CmdContext $context): void {
 		$this->http
 				->get(static::GSP_URL)
 				->withTimeout(5)
-				->withCallback(function(HttpResponse $response) use ($sendto) {
+				->withCallback(function(HttpResponse $response) use ($context) {
 					$msg = $this->renderPlaylist($response);
-					$sendto->reply($msg);
+					$context->reply($msg);
 				});
 	}
 
@@ -260,7 +261,7 @@ class GSPController implements MessageEmitter {
 			);
 		}
 		$blob .= join("\n<tab>", $streams);
-		return " - ".$this->text->makeBlob("tune in", $blob, "Choose your stream quality");
+		return " - " . ((array)$this->text->makeBlob("tune in", $blob, "Choose your stream quality"))[0];
 	}
 
 	/**
@@ -342,12 +343,70 @@ class GSPController implements MessageEmitter {
 
 		$songs = $this->getPlaylistInfos($show->history);
 		$showInfos = $this->getShowInfos($show);
-		$lastSongsPage = $this->text->makeBlob(
+		$lastSongsPage = ((array)$this->text->makeBlob(
 			"last songs",
 			$showInfos."<header2><u>Time         Song                                                                     </u><end>\n".join("\n", $songs),
 			"Last played songs (all times in UTC)",
-		);
+		))[0];
 		$msg = $currentlyPlaying." - ".$lastSongsPage.$this->renderTuneIn($show);
 		return $msg;
+	}
+
+	/**
+	 * @NewsTile("gsp-show")
+	 * @Description("Show the currently running GSP show and location - if any")
+	 * @Example("<header2>GSP<end>
+	 * <tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>.")
+	 */
+	public function gspShowTile(string $sender, callable $callback): void {
+		if (!$this->showRunning) {
+			$callback(null);
+			return;
+		}
+		$msg = "<header2>GSP<end>\n".
+			"<tab>" . $this->getNotificationMessage();
+		$callback($msg);
+	}
+
+	/**
+	 * @NewsTile("gsp")
+	 * @Description("Show what's currently playing on GSP.
+	 * If there's a show, it also shows which one and its location.")
+	 * @Example("<header2>GSP<end>
+	 * <tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]
+	 * <tab>Current show: <highlight>The Odd End /w DJ Shigy<end>
+	 * <tab>Location: <highlight>Borealis west of the wompahs (AO)<end>")
+	 */
+	public function gspTile(string $sender, callable $callback): void {
+		$this->http
+				->get(static::GSP_URL)
+				->withTimeout(5)
+				->withCallback([$this, "renderForGspTile"], $callback);
+	}
+
+	public function renderForGspTile(HttpResponse $response, callable $callback): void {
+		if (!isset($response->body) || $response->error) {
+			$callback(null);
+			return;
+		}
+		$show = new Show();
+		try {
+			$show->fromJSON(json_decode($response->body));
+		} catch (JsonException $e) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>GSP<end>\n<tab>";
+		if (empty($show->history)) {
+			$callback($blob . "GSP is currently not playing any music.");
+			return;
+		}
+		$song = array_shift($show->history);
+		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
+		$showInfos = $this->getShowInfos($show);
+		if (strlen($showInfos)) {
+			$showInfos = "\n<tab>" . join("\n<tab>", explode("\n", $showInfos));
+		}
+		$callback("{$blob}{$currentlyPlaying}{$showInfos}");
 	}
 }

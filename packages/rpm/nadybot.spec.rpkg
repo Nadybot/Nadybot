@@ -119,7 +119,7 @@ find vendor -type f -exec install -m 644 \{\} %{buildroot}/opt/nadybot/\{\} \;
 install -m 644 main.php %{buildroot}/opt/nadybot/main.php
 install -m 644 data/text.mdb %{buildroot}/opt/nadybot/data/text.mdb
 install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/config.php
-install -m 644 conf/log4php.xml %{buildroot}/opt/nadybot/conf/log4php.xml
+install -m 644 conf/logging.json %{buildroot}/opt/nadybot/conf/logging.json
 install -D -m 644 packages/nadybot.service %{buildroot}%{_unitdir}/nadybot.service
 install -D -m 644 packages/nadybot@.service %{buildroot}%{_unitdir}/nadybot@.service
 install -D -m 755 packages/nadybot %{buildroot}%{_bindir}/nadybot
@@ -173,7 +173,134 @@ exit 0
 %endif
 
 %changelog
-* Web Oct 20 2021 Nadyita <nadyita@hodorraid.org> 5.2.2-1
+* Sat Dec 11 2021 Nadyita <nadyita@hodorraid.org> 5.3.0-1
+- Fix discord relay sometimes not showing the name of the
+  person saying something on Discord
+- Fix a race condition where quickly banning and unbanning an org
+  resulted in an error.
+- Race condition for the shared online list fixed, which lead to players
+  shown as online when they already logged off
+- Fixed tyrbot() protocol errors when relaying only with a prefix
+- Fix genRandomString() from sometimes returning less chars than requested
+  This also fixes Sec-WebSocket-Key from being non-standard sometimes
+- Make websockets more robust, testing against autobahn testsuite
+- Don't try to relay messages to uninitialized arrays
+- Highway didn't properly deinit its relay stack, leading to
+  lingering websocket connections.
+- PHP8 fix when "!orglist" had an unused org rank
+- Tower attacks should now always be assigned to the correct tower field
+  by using boundary boxes from Tyrbot
+- Commands longer than 20 chars won't throw errors in the usage module anymore
+- A fake attacker will now show up properly in "!attacks"
+- "!sites" now considers local scout data to be newer than API data
+- Don't treat mute/unmute and deafen/undeafen as joining a Discord channel
+- When sharing database with other bots, don't share their online lists
+  via relays
+- Discord reconnects won't forget the channels anymore
+  This will prevent the bot from stopping to relay from discord after a reconnect.
+- Fix a rare condition where the event loop would just hang and throw errors
+- To help 32bit systems, convert some Discord data types from int to string
+- Fix setting the bot's timezone with "!timezone"
+- Now all syntax variants of the SPIRITS_MODULE work as expected
+- Running "!whatbuffsfroob <slot>" no longer throws an exception
+- Running "!arulsaba <type> 6 left" no longer throws an exception
+- Running "!lookup <uid>" will now run an actual lookup and display the data
+- !hot command honors first argument again
+- !test commands work again as expected
+- Fixed race condition of the orglist test
+- sync-online=false now behaves as expected for nadynative()
+  It will still route online events when you route org- and private
+  channels to the relay. Filter these events if you don't want that.
+- Convert all Aria tables to InnoDB as it doesn't support
+  transactions.
+- Fix displaying of route modifiers with <, > or "
+- Fix the if-matches() modifier
+- Allow the use of @here for people allowed to use mentions and
+  messages from the bot itself
+- Fix for old SQLite versions that do not support adding
+  new non-null columns to the database without default
+- Fix for discord roles with too many permissions
+- Fixed some errors in the tracker and orglist module
+- Fix migration of tower data from pre-5.2.2 release
+- New WORLDBOSS_MODULE to track tara, vizaresh, etc. as well
+  as the gauntlet buff. This obsolete's the old external
+  GAUNTLET_MODULE and BIGBOSS_MODULE. The old "!bb" is now "!wb"
+- Add an option to group the online list by faction
+- New command "!loglevel" to temporary change the loglevel
+- New command "!debug" to debug a single command and upload the logs
+- Lots of logging added for better debugging
+- Nadybot will now automatically receive events like world bosses spawning
+  or Gauntlet buffs being popped and set the timers accordingly.
+  This is done by connecting to the public highway server and joining a
+  room that sends these events. Option can be turned off in the RELAY_MODULE
+- Automatically fetch the current worldboss and gauntlet timers
+  from our API when connecting. No more need for manual timers.
+- Add option to autokick players not in the raid on raid lock
+- Speed up the "!orglist" command by skipping the UID lookup and
+  instead using the UID the org roster contains
+- Show channel class in "!system"
+- Add "!db3" command to show DB3 loot
+- Merge the IMPQL_MODULE into the IMPLANT_MODULE
+- Make the rank required to cancel another player's raffle a setting
+- Add ability to define immutable values for any setting in the config file
+- Add separate kill message when using worldboss kill or kill sync
+- Add raid statistics to "!leaders" command
+- Display event descriptions with "!relay config" command
+- Non-routable events can now be relayed via supporting protocols
+  (currently only nadynative). Non-routable events are a special
+  type of event that are shared via nadynative relays. These
+  include tower scouting, tara spawn, timers, countdown, etc.
+- New command "!raid notinkick" to kick every character on the
+  private channel who's not in the raid.
+- New event modifier "change-message()" that allows you to modify
+  messages with prefixes (like @here) and search & replace
+- New customizable "news" page that can be shown on login. This
+  one can be made up from individual "tiles", so you have a single
+  start/welcome message displaying multiple tiles, like gauntlet
+  buff, current arbiter, actual unread news, tara spawn, etc.
+  The content of this page can be customized with "!startpage"
+- Upgraded all required packages to latest version and resolved issues
+- Replaced the logging framework from log4php with monolog
+- Added missing table indices
+- Switched to the new history API
+- Reduce tracker SQL queries to speed up "!orglist" for large orgs
+- Sort the "!track online" characters by name in their group
+- Removed "!lc import"
+- Users tracked via "!track addorg" don't show on "!track" anymore
+- The whole code base is now PHP 8.1 compatible
+- Converted all commands to new command parser
+- Also explain that postgresql is a valid database type
+- Fix all possible undefined and type errors by utilizing
+  2 static code analyzers phpstan and psalm
+- Upgrade to latest illuminate/database version
+- Convert all text files from DOS to UNIX line ending
+- Reword the SKILL_MODULE help files
+- Add loads of parameter classes for things like implant slots, items or faction
+- More consistent "!config" and "!settings" layout
+- Make running tests non-blocking
+- "!trickle <skill>" output changed so it's easier to understand
+- Remove PvP rank from "!whois" as it's a fixed value
+- Support relay events properly via the API
+- Allow dynamically added events to have a description
+- Support custom setting handlers with new "@SettingHandler()"
+  annotation. This allows modules to have their own custom setting
+  types.
+- Group subcommands below their commands in "!config"
+- The alignment in tower pop-up messages is now colorized
+- New syntax for writing commands
+  The old way was to write a function and declare the command
+  it was for and a regular expression that needs to match for this
+  function to be used. Then the function was given 5 well-defined
+  arguments, so you could not easily add new parameters to those.
+  The new way just gives one parameter, a CmdContext instance that
+  contains everything the old parameters had, but is more extensible.
+  You also no longer define a regular expression that needs to match,
+  but give the parameters your command needs as additional parameters
+  to your function.
+  The old syntax will still be supported until at least 7.0 release.
+  See the WIKI for details.
+
+* Wed Oct 20 2021 Nadyita <nadyita@hodorraid.org> 5.2.2-2
 - Rewritten tower module to support Tyrence's tower API as well
   as manual scouting and mixed mode.
 - New commands !lock/!unlock to lock/unlock the private channel

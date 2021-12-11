@@ -33,6 +33,7 @@ class DiscordMessageIn extends JSONDataModel {
 	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
 	public ?array $reactions = null;
+	/** @var mixed */
 	public $nonce = null;
 	public bool $pinned = false;
 	public ?string $webhook_id = null;

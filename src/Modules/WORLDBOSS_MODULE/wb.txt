@@ -1,0 +1,9 @@
+Show all upcoming world boss spawn timers in the correct order:
+<tab><highlight><symbol>wb<end>
+
+<header2>Example<end>
+
+<tab><highlight><symbol>wb<end>
+<tab>I'm currently monitoring the following bosses:
+<tab>Tarasque spawned and will be vulnerable in <highlight>19 mins 35 secs<end>.
+<tab>Loren Warr spawns in <highlight>8 hrs 59 mins 59 secs<end>.

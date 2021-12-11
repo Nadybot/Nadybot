@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Text,
 	Util,
@@ -65,23 +65,21 @@ class HelpbotController {
 
 	/**
 	 * @HandlesCommand("dyna")
-	 * @Matches("/^dyna ([0-9]+)$/i")
 	 */
-	public function dynaLevelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
+	public function dynaLevelCommand(CmdContext $context, int $search): void {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
 		/** @var DynaDB[] */
 		$data = $this->db->table("dynadb AS d")
 			->join("playfields AS p", "d.playfield_id", "p.id")
-			->where("maxQl", ">=", $range1)
-			->where("minQl", "<=", $range2)
+			->where("max_ql", ">=", $range1)
+			->where("min_ql", "<=", $range2)
 			->orderBy("p.long_name")
-			->orderBy("minQl")
-			->asObj(DynaDB::class)->toArray();
+			->orderBy("min_ql")
+			->asObj(DynaDBSearch::class)->toArray();
 		$count = count($data);
 		if (!$count) {
-			$sendto->reply(
+			$context->reply(
 				"No dynacamps found between level <highlight>{$range1}<end> ".
 				"and <highlight>{$range2}<end>."
 			);
@@ -93,37 +91,37 @@ class HelpbotController {
 		$blob .= $this->formatResults($data);
 
 		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("dyna")
-	 * @Matches("/^dyna (.+)$/i")
 	 */
-	public function dynaNameCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = str_replace(" ", "%", $args[1]);
+	public function dynaNameCommand(CmdContext $context, string $dyna): void {
+		$search = str_replace(" ", "%", $dyna);
 		$data = $this->db->table("dynadb AS d")
 			->join("playfields AS p", "d.playfield_id", "p.id")
 			->whereIlike("long_name", "%{$search}%")
 			->orWhereIlike("short_name", "%{$search}%")
 			->orWhereIlike("mob", "%{$search}%")
-			->asObj()->toArray();
+			->asObj(DynaDBSearch::class)->toArray();
 		$count = count($data);
 
 		if (!$count) {
-			$sendto->reply("No dyna names or locations matched <highlight>{$args[1]}<end>.");
+			$context->reply("No dyna names or locations matched <highlight>{$dyna}<end>.");
 			return;
 		}
-		$blob = "Results of Dynacamp Search for <highlight>{$args[1]}<end>\n\n";
+		$blob = "Results of Dynacamp Search for <highlight>{$dyna}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
 
 		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * Format the dynacamp results as a blob for a popup
+	 * @param DynaDBSearch[] $data
 	 */
 	private function formatResults(array $data): string {
 		$blob = '';
@@ -136,22 +134,23 @@ class HelpbotController {
 				$blob .= "<pagebreak><header2>{$row->long_name}<end>\n";
 				$lastPF = $row->long_name;
 			}
-			$coordLink = $this->text->makeChatcmd("{$row->cX}x{$row->cY}", "/waypoint $row->cX $row->cY $row->playfield_id");
-			$range = "{$row->minQl}-{$row->maxQl}";
+			$coordLink = $this->text->makeChatcmd(
+				"{$row->x_coord}x{$row->y_coord}",
+				"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
+			);
+			$range = "{$row->min_ql}-{$row->max_ql}";
 			if (strlen($range) < 7) {
 				$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
 			}
-			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at $coordLink\n";
+			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 		}
 		return $blob;
 	}
 
 	/**
 	 * @HandlesCommand("oe")
-	 * @Matches("/^oe ([0-9]+)$/i")
 	 */
-	public function oeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$oe = (int)$args[1];
+	public function oeCommand(CmdContext $context, int $oe): void {
 		$oe100 = (int)floor($oe / 0.8);
 		$lowOE100 = (int)floor($oe * 0.8);
 		$oe75 = (int)floor($oe / 0.6);
@@ -175,24 +174,25 @@ class HelpbotController {
 			"<black>0<end>0%: <highlight>$oe25<end> or higher\n\n".
 			"WARNING: May be plus/minus 1 point!";
 
-		$msg = "<highlight>{$lowOE100}<end> - {$oe} - <highlight>{$oe100}<end> ".
-			$this->text->makeBlob('More info', $blob, 'Over-equipped Calculation');
+		$msg = $this->text->blobWrap(
+			"<highlight>{$lowOE100}<end> - {$oe} - <highlight>{$oe100}<end> ",
+			$this->text->makeBlob('More info', $blob, 'Over-equipped Calculation')
+		);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("calc")
-	 * @Matches("/^calc (.+)$/i")
 	 */
-	public function calcCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$calc = strtolower($args[1]);
+	public function calcCommand(CmdContext $context, string $param): void {
+		$calc = strtolower($param);
 
 		// check if the calc string includes not allowed chars
 		$numValidChars = strspn($calc, "0123456789.+^-*%()/\\ ");
 
 		if ($numValidChars !== strlen($calc)) {
-			$sendto->reply("Cannot compute.");
+			$context->reply("Cannot compute.");
 			return;
 		}
 		$calc = str_replace("^", "**", $calc);
@@ -204,15 +204,15 @@ class HelpbotController {
 			$result = preg_replace("/\.?0+$/", "", number_format(round($result, 4), 4));
 			$result = str_replace(",", "<end>,<highlight>", $result);
 		} catch (ParseError $e) {
-			$sendto->reply("Cannot compute.");
+			$context->reply("Cannot compute.");
 			return;
 		}
-		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $args[1], $matches);
+		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $param, $matches);
 		$expression = join(" ", $matches[1]);
 		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
 		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);
 
 		$msg ="{$expression} = <highlight>{$result}<end>";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

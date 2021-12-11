@@ -4,12 +4,14 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	CommandReply,
 	DB,
 	SettingManager,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Tyrence (RK2)
@@ -55,7 +57,7 @@ class BankController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
@@ -79,13 +81,17 @@ class BankController {
 
 	/**
 	 * @HandlesCommand("bank")
-	 * @Matches("/^bank browse$/i")
+	 * @Mask $action browse
 	 */
-	public function bankBrowseCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function bankBrowseCommand(CmdContext $context, string $action): void {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
 			->asObj()->pluck("player");
+		if ($characters->isEmpty()) {
+			$context->reply("No bank characters found.");
+			return;
+		}
 		$blob = "<header2>Available characters<end>\n";
 		foreach ($characters as $character) {
 			$characterLink = $this->text->makeChatcmd($character, "/tell <myname> bank browse {$character}");
@@ -93,15 +99,15 @@ class BankController {
 		}
 
 		$msg = $this->text->makeBlob('Bank Characters', $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("bank")
-	 * @Matches("/^bank browse ([a-z0-9-]+)$/i")
+	 * @Mask $action browse
 	 */
-	public function bankBrowsePlayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
+	public function bankBrowsePlayerCommand(CmdContext $context, string $action, PCharacter $char): void {
+		$name = $char();
 
 		$data = $this->db->table("bank")
 			->where("player", $name)
@@ -110,7 +116,7 @@ class BankController {
 			->asObj();
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Containers on $name<end>\n";
@@ -120,17 +126,16 @@ class BankController {
 		}
 
 		$msg = $this->text->makeBlob("Containers for $name", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("bank")
-	 * @Matches("/^bank browse ([a-z0-9-]+) (\d+)$/i")
+	 * @Mask $action browse
 	 */
-	public function bankBrowseContainerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$containerId = $args[2];
-		$limit = $this->settingManager->getInt('max_bank_items');
+	public function bankBrowseContainerCommand(CmdContext $context, string $action, PCharacter $char, int $containerId): void {
+		$name = $char();
+		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 
 		$data = $this->db->table("bank")
 			->where("player", $name)
@@ -142,7 +147,7 @@ class BankController {
 
 		if ($data->count() === 0) {
 			$msg = "Could not find container with id <highlight>{$containerId}</highlight> on bank character <highlight>{$name}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '<header2>Items in ' . $data[0]->container . "<end>\n";
@@ -151,18 +156,18 @@ class BankController {
 			$blob .= "<tab>{$item_link} (QL {$row->ql})\n";
 		}
 
-		$msg = $this->text->makeBlob("Contents of $row->container", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("Contents of {$data[0]->container}", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("bank")
-	 * @Matches("/^bank search (.+)$/i")
+	 * @Mask $action search
 	 */
-	public function bankSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = htmlspecialchars_decode($args[1]);
+	public function bankSearchCommand(CmdContext $context, string $action, string $search): void {
+		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
-		$limit = $this->settingManager->getInt('max_bank_items');
+		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 		$query = $this->db->table("bank")
 			->orderBy("name")
 			->orderBy("ql")
@@ -174,8 +179,8 @@ class BankController {
 
 		$blob = '';
 		if ($foundItems->count() === 0) {
-			$msg = "Could not find any search results for <highlight>{$args[1]}<end>.";
-			$sendto->reply($msg);
+			$msg = "Could not find any search results for <highlight>{$search}<end>.";
+			$context->reply($msg);
 			return;
 		}
 		foreach ($foundItems as $item) {
@@ -183,20 +188,20 @@ class BankController {
 			$blob .= "{$itemLink} (QL {$item->ql}) in <highlight>{$item->player} &gt; {$item->container}<end>\n";
 		}
 
-		$msg = $this->text->makeBlob("Bank Search Results for {$args[1]}", $blob);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("Bank Search Results for {$search}", $blob);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("bank update")
-	 * @Matches("/^bank update$/i")
+	 * @Mask $action update
 	 */
-	public function bankUpdateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$lines = @file($this->settingManager->get('bank_file_location'));
+	public function bankUpdateCommand(CmdContext $context, string $action): void {
+		$lines = @file($this->settingManager->getString('bank_file_location')??"");
 
 		if ($lines === false) {
-			$msg = "Could not open file: '" . $this->settingManager->get('bank_file_location') . "'";
-			$sendto->reply($msg);
+			$msg = "Could not open file: '" . ($this->settingManager->getString('bank_file_location')??"") . "'";
+			$context->reply($msg);
 			return;
 		}
 
@@ -232,6 +237,6 @@ class BankController {
 		$this->db->commit();
 
 		$msg = "The bank database has been updated.";
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

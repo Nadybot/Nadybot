@@ -50,6 +50,19 @@ class BuddylistManager {
 	}
 
 	/**
+	 * Check if a friend is online
+	 *
+	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 */
+	public function isUidOnline(int $uid): ?bool {
+		if ($this->chatBot->char->id === $uid) {
+			return true;
+		}
+		$buddy = $this->buddyList[$uid] ?? null;
+		return $buddy ? $buddy->online : null;
+	}
+
+	/**
 	 * Get how many friends are really on the buddylist
 	 * This ignores the ones that are only queued up for addition
 	 */
@@ -100,7 +113,7 @@ class BuddylistManager {
 	 */
 	public function add(string $name, string $type): bool {
 		$uid = $this->chatBot->get_uid($name);
-		if ($uid === false || $type === null || $type == '') {
+		if ($uid === false || $type == '') {
 			return false;
 		}
 		return $this->addId($uid, $type);
@@ -110,11 +123,11 @@ class BuddylistManager {
 	 * Add a user id to the bot's friendlist for a given purpose
 	 */
 	public function addId(int $uid, string $type): bool {
-		$name = $this->chatBot->id[$uid] ?? (string)$uid;
+		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
-			$this->logger->log('debug', "$name buddy added");
+			$this->logger->info("$name buddy added");
 			if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
-				$this->logger->log('error', "Error adding '$name' to buddy list--buddy list is full");
+				$this->logger->error("Error adding '$name' to buddy list--buddy list is full");
 			}
 			$this->chatBot->buddy_add($uid);
 			// Initialize with an unconfirmed entry
@@ -125,7 +138,7 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->log('debug', "$name buddy added (type: $type)");
+			$this->logger->info("$name buddy added (type: $type)");
 		}
 
 		return true;
@@ -164,11 +177,11 @@ class BuddylistManager {
 		}
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
-			$this->logger->log('debug', "$name buddy type removed (type: $type)");
+			$this->logger->info("$name buddy type removed (type: $type)");
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->log('debug', "$name buddy removed");
+			$this->logger->info("$name buddy removed");
 			$this->chatBot->buddy_remove($uid);
 		}
 
@@ -195,5 +208,13 @@ class BuddylistManager {
 	 */
 	public function updateRemoved(int $uid): void {
 		unset($this->buddyList[$uid]);
+	}
+
+	/**
+	 * Check if a given UID is on the buddylist for a given type
+	 */
+	public function buddyHasType(int $uid, string $type): bool {
+		$buddy = $this->buddyList[$uid] ?? null;
+		return isset($buddy) && $buddy->hasType($type);
 	}
 }

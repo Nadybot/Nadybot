@@ -31,6 +31,22 @@ class Text {
 	}
 
 	/**
+	 * Wraps a block in a before and after part
+	 *
+	 * @param string $before String before the link
+	 * @param string|string[] $blob The blob to wrap
+	 * @param string|null $after The optional string after the blob
+	 * @return string[]
+	 */
+	public function blobWrap(string $before, $blob, ?string $after=""): array {
+		$blob = (array)$blob;
+		foreach ($blob as &$page) {
+			$page = "{$before}{$page}{$after}";
+		}
+		return $blob;
+	}
+
+	/**
 	 * Creates an info window, supporting pagination
 	 *
 	 * @param string $name The text part of the clickable link
@@ -56,20 +72,20 @@ class Text {
 			$content = ' ';
 		}
 
-		$pageSize = $this->settingManager->getInt("max_blob_size") - strlen($permanentHeader ?? "");
+		$pageSize = ($this->settingManager->getInt("max_blob_size")??0) - strlen($permanentHeader);
 		$pages = $this->paginate($content, $pageSize, ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 
 		if ($num === 1) {
 			$page = $pages[0];
 			$headerMarkup = "<header>$header<end>\n\n$permanentHeader";
-			$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$headerMarkup.$page."\">$name</a>";
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a>";
 			return $page;
 		} else {
 			$i = 1;
 			foreach ($pages as $key => $page) {
 				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n$permanentHeader";
-				$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
+				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
 				$pages[$key] = $page;
 				$i++;
 			}
@@ -90,12 +106,12 @@ class Text {
 
 		// $content = $this->formatMessage($content);
 
-		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size"), ["<pagebreak>", "\n", " "]);
+		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size")??0, ["<pagebreak>", "\n", " "]);
 		$num = count($pages);
 
 		if ($num == 1) {
 			$page = $pages[0];
-			$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$page."\">$name</a>";
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$page."\">$name</a>";
 			return $page;
 		} else {
 			$i = 1;
@@ -105,7 +121,7 @@ class Text {
 				} else {
 					$header = '';
 				}
-				$page = "<a href=\"text://".$this->settingManager->get("default_window_color").$header.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
+				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$header.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
 				$pages[$key] = $page;
 				$i++;
 			}
@@ -123,7 +139,7 @@ class Text {
 	 */
 	public function paginate(string $input, int $maxLength, array $symbols): array {
 		if (count($symbols) == 0) {
-			$this->logger->log('ERROR', "Could not successfully page blob due to lack of paging symbols");
+			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
 			return (array)$input;
 		}
 
@@ -147,7 +163,7 @@ class Text {
 					$pageSize = 0;
 				}
 
-				$newResult = $this->paginate($line, (int)$maxLength, $symbols);
+				$newResult = $this->paginate($line, $maxLength, $symbols);
 				$result = array_merge($result, $newResult);
 			} elseif ($pageSize + $lineLength < $maxLength) {
 				$currentPage .= $line;
@@ -175,6 +191,7 @@ class Text {
 	 * @return string The link
 	 */
 	public function makeChatcmd(string $name, string $content, ?string $style=""): string {
+		$style ??= "";
 		if ($style !== "") {
 			$style .= " ";
 		}
@@ -231,9 +248,9 @@ class Text {
 	 */
 	public function formatMessage(string $message): string {
 		$array = [
-			"<header>" => str_replace("'", "", $this->settingManager->get('default_header_color')),
-			"<header2>" => str_replace("'", "", $this->settingManager->get('default_header2_color')),
-			"<highlight>" => str_replace("'", "", $this->settingManager->get('default_highlight_color')),
+			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
+			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
+			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
 			"<black>" => "<font color=#000000>",
 			"<white>" => "<font color=#FFFFFF>",
 			"<yellow>" => "<font color=#FFFF00>",
@@ -245,16 +262,16 @@ class Text {
 			"<cyan>" => "<font color=#00FFFF>",
 			"<violet>" => "<font color=#8F00FF>",
 
-			"<neutral>" => $this->settingManager->get('default_neut_color'),
-			"<omni>" => $this->settingManager->get('default_omni_color'),
-			"<clan>" => $this->settingManager->get('default_clan_color'),
-			"<unknown>" => $this->settingManager->get('default_unknown_color'),
+			"<neutral>" => $this->settingManager->getString('default_neut_color')??"",
+			"<omni>" => $this->settingManager->getString('default_omni_color')??"",
+			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
+			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
 
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
 			"<tab>" => "    ",
 			"<end>" => "</font>",
-			"<symbol>" => $this->settingManager->get("symbol"),
+			"<symbol>" => $this->settingManager->getString("symbol")??"!",
 			"<br>" => "\n"
 		];
 
@@ -274,7 +291,7 @@ class Text {
 	 */
 	public function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
 		if ($number === null) {
-			return sprintf("<black>%0{$digits}d<end>", $number);
+			return sprintf("<black>%0{$digits}d<end>", 0);
 		}
 		$prefixedNumber = sprintf("%0${digits}d", $number);
 		if ($grouping) {

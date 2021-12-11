@@ -74,27 +74,27 @@ class PlayerLookupJob {
 		}
 		$this->toUpdate = $this->getMissingAlts()
 			->concat($this->getOudatedCharacters());
-		$this->logger->log('DEBUG', $this->toUpdate->count() . " missing / outdated characters found.");
+		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
 		for ($i = 0; $i < $numJobs; $i++) {
 			$this->numActiveThreads++;
-			$this->logger->log('DEBUG', 'Spawning lookup thread #' . $this->numActiveThreads);
+			$this->logger->info('Spawning lookup thread #' . $this->numActiveThreads);
 			$this->startThread($i+1, $callback, ...$args);
 		}
 	}
 
 	public function startThread(int $threadNum, callable $callback, ...$args): void {
 		if ($this->toUpdate->isEmpty()) {
-			$this->logger->log('TRACE', "[Thread #{$threadNum}] Queue empty, stopping thread.");
+			$this->logger->debug("[Thread #{$threadNum}] Queue empty, stopping thread.");
 			$this->numActiveThreads--;
 			if ($this->numActiveThreads === 0) {
-				$this->logger->log('DEBUG', "[Thread #{$threadNum}] All threads stopped, calling callback.");
+				$this->logger->info("[Thread #{$threadNum}] All threads stopped, calling callback.");
 				$callback(...$args);
 			}
 			return;
 		}
 		/** @var Player */
 		$todo = $this->toUpdate->shift();
-		$this->logger->log('TRACE', "[Thread #{$threadNum}] Looking up " . $todo->name);
+		$this->logger->debug("[Thread #{$threadNum}] Looking up " . $todo->name);
 		$this->chatBot->getUid(
 			$todo->name,
 			[$this, "asyncPlayerLookup"],
@@ -107,15 +107,14 @@ class PlayerLookupJob {
 
 	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, ...$args): void {
 		if ($uid === null) {
-			$this->logger->log('TRACE', "[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
+			$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
 			$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);
 			return;
 		}
-		$this->logger->log('TRACE', "[Thread #{$threadNum}] Player " . $todo->name . ' is active, querying PORK.');
+		$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is active, querying PORK.');
 		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($callback, $args, $todo, $threadNum): void {
-				$this->logger->log(
-					'TRACE',
+				$this->logger->debug(
 					"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
 					(isset($player) ? 'data updated' : 'no data found')
 				);

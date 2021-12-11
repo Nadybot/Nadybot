@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	QueryBuilder,
 	Text,
@@ -45,8 +45,6 @@ class PremadeImplantController {
 	/** @Inject */
 	public Util $util;
 
-	private $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-
 	/**
 	 * @Setup
 	 */
@@ -57,31 +55,29 @@ class PremadeImplantController {
 
 	/**
 	 * @HandlesCommand("premade")
-	 * @Matches("/^premade (.*)$/i")
 	 */
-	public function premadeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$searchTerms = strtolower($args[1]);
+	public function premadeCommand(CmdContext $context, string $search): void {
+		$searchTerms = strtolower($search);
 		$results = null;
 
 		$profession = $this->util->getProfessionName($searchTerms);
 		if ($profession !== '') {
 			$searchTerms = $profession;
 			$results = $this->searchByProfession($profession);
-		} elseif (in_array($searchTerms, $this->slots)) {
-			$results = $this->searchBySlot($searchTerms);
+		} elseif (PImplantSlot::matches($searchTerms)) {
+			$results = $this->searchBySlot((new PImplantSlot($searchTerms))());
 		} else {
 			$results = $this->searchByModifier($searchTerms);
 		}
 
 		if (!empty($results)) {
-			$blob = $this->formatResults($results);
-			$blob .= "\n\nWritten by Tyrence (RK2)";
+			$blob = trim($this->formatResults($results));
 			$msg = $this->text->makeBlob("Implant Search Results for '$searchTerms'", $blob);
 		} else {
 			$msg = "No results found.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	protected function getBaseQuery(): QueryBuilder {

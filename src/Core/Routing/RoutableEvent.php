@@ -12,6 +12,7 @@ class RoutableEvent extends Event {
 	public ?Character $char = null;
 	/** @var Source[] */
 	public array $path = [];
+
 	/** @var string|Base|null */
 	public $data = null;
 
@@ -48,6 +49,7 @@ class RoutableEvent extends Event {
 		return $this;
 	}
 
+	/** @return mixed */
 	public function getData() {
 		return $this->data;
 	}

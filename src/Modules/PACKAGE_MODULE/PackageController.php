@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	BotRunner,
 	CacheManager,
 	CacheResult,
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -13,6 +14,7 @@ use Nadybot\Core\{
 	HttpResponse,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PWord,
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
@@ -152,6 +154,9 @@ class PackageController {
 	}
 
 	public function isValidJSON(?string $data): bool {
+		if (!isset($data)) {
+			return false;
+		}
 		try {
 			$data = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
@@ -215,6 +220,7 @@ class PackageController {
 				return $package->bot_type === "Nadybot";
 			}
 		));
+		/** @var Package[] $packages */
 		foreach ($packages as $package) {
 			$package->compatible = $this->isVersionCompatible($package->bot_version);
 			$package->state = $this->getInstalledModuleType($package->name);
@@ -224,22 +230,22 @@ class PackageController {
 
 	/**
 	 * @HandlesCommand("package")
-	 * @Matches("/^packages?\s+list$/i")
+	 * @Mask $action list
 	 */
-	public function listPackagesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->getPackages([$this, "displayPackages"], $sender, $sendto);
+	public function listPackagesCommand(CmdContext $context, string $action): void {
+		$this->getPackages([$this, "displayPackages"], $context);
 	}
 
-	public function displayPackages(?array $packages, string $sender, CommandReply $sendto): void {
+	public function displayPackages(?array $packages, CmdContext $context): void {
 		if (!isset($packages)) {
-			$sendto->reply("There was an error retrieving the list of available packages.");
+			$context->reply("There was an error retrieving the list of available packages.");
 			return;
 		}
 		/** @var array<string,PackageGroup> */
 		$groupedPackages = [];
 		/** @var Package[] $packages */
 		if (!count($packages)) {
-			$sendto->reply("There are currently no packages available for Nadybot.");
+			$context->reply("There are currently no packages available for Nadybot.");
 			return;
 		}
 		foreach ($packages as $package) {
@@ -258,18 +264,21 @@ class PackageController {
 		ksort($groupedPackages);
 		foreach ($groupedPackages as $pName => $pGroup) {
 			$package = $pGroup->highest;
+			if (!isset($package)) {
+				continue;
+			}
 			$infoLink = $this->text->makeChatcmd("details", "/tell <myname> package info {$package->name}");
 			$installLink = "";
 			$installedVersion = null;
 			if ($package->state === static::EXTRA) {
 				$query = $this->db->table(self::DB_TABLE)
 					->where("module", $package->name);
-				$query->selectRaw($query->colFunc("MAX", "version", "cur"));
+				$query->selectRaw($query->colFunc("MAX", "version", "cur")->getValue());
 				$res = $query->asObj()->first();
 				$installedVersion = $res->cur;
 			}
 			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
-				if ($pGroup->highest_supported && ($installedVersion??"") !== "") {
+				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== "") {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
 						$installLink = "[" . $this->text->makeChatcmd(
 							"update",
@@ -288,9 +297,9 @@ class PackageController {
 			$blob = "<pagebreak><header2>{$package->name}<end>\n".
 				"<tab>Description: <highlight>{$package->short_description}<end>\n".
 				"<tab>Newest version: <highlight>{$package->version}<end> [{$infoLink}]";
-			if ($pGroup->highest_supported->version === $package->version) {
+			if (is_object($pGroup->highest_supported) && $pGroup->highest_supported->version === $package->version) {
 				$blob .= " {$installLink}";
-			} else {
+			} elseif (isset($pGroup->highest)) {
 				$blob .= "\n<tab>Highest compatible version: ".
 					($pGroup->highest_supported
 						? "<highlight>{$pGroup->highest_supported->version}"
@@ -314,33 +323,33 @@ class PackageController {
 			"Available Packages (" . count($groupedPackages) . ")",
 			join("\n", $blobs)
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("package")
-	 * @Matches("/^packages?\s+info\s+(.+)$/i")
+	 * @Mask $action info
 	 */
-	public function packageInfoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->getPackage($args[1], [$this, "displayPackageDetail"], $args[1], $sender, $sendto);
+	public function packageInfoCommand(CmdContext $context, string $action, string $package): void {
+		$this->getPackage($package, [$this, "displayPackageDetail"], $package, $context);
 	}
 
 	/**
 	 * @param Package[]|null $packages
 	 */
-	public function displayPackageDetail(?array $packages, string $packageName, string $sender, CommandReply $sendto): void {
+	public function displayPackageDetail(?array $packages, string $packageName, CmdContext $context): void {
 		if (!isset($packages)) {
-			$sendto->reply("There was an error retrieving information about {$packageName}.");
+			$context->reply("There was an error retrieving information about {$packageName}.");
 			return;
 		}
 		if (!count($packages)) {
-			$sendto->reply("{$packageName} is not compatible with Nadybot.");
+			$context->reply("{$packageName} is not compatible with Nadybot.");
 			return;
 		}
 		if ($packages[0]->state === static::EXTRA) {
 			$query = $this->db->table(self::DB_TABLE)
 				->where("module", $packages[0]->name);
-			$query->selectRaw($query->colFunc("MAX", "version", "cur"));
+			$query->selectRaw($query->colFunc("MAX", "version", "cur")->getValue());
 			$res = $query->asObj()->first();
 			$installedVersion = $res->cur;
 		}
@@ -372,9 +381,10 @@ class PackageController {
 						"update",
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
-					if (($installedVersion??"") !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
+					$installedVersion ??= "";
+					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
 						$blob .= " [{$updateLink}]";
-					} elseif (($installedVersion??"") !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
+					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
 						$blob .= " <i>Installed</i>";
 					} elseif ($installedVersion === "") {
 						$blob .= " [{$installLink}]";
@@ -386,7 +396,7 @@ class PackageController {
 			}
 		}
 		$msg = $this->text->makeBlob("Details for {$packageName}", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/** Try to render the API's HTML into AOML */
@@ -469,67 +479,79 @@ class PackageController {
 
 	/**
 	 * @HandlesCommand("package")
-	 * @Matches("/^packages?\s+install\s+([a-z_0-9-]+)$/i")
-	 * @Matches("/^packages?\s+install\s+([a-z_0-9-]+)\s+(.+)$/i")
+	 * @Mask $action install
 	 */
-	public function packageInstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function packageInstallCommand(
+		CmdContext $context,
+		string $action,
+		PWord $package,
+		?string $version
+	): void {
 		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
-			$sendto->reply(
+			$context->reply(
 				"In order to be allowed to install modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
 			return;
 		}
-		$cmd = new PackageAction($args[1], PackageAction::INSTALL);
-		$cmd->version = $args[2] ? new SemanticVersion($args[2]) : null;
-		$cmd->sender = $sender;
-		$cmd->sendto = $sendto;
-		$this->getPackage($args[1], [$this, "checkAndInstall"], $cmd);
+		$cmd = new PackageAction($package(), PackageAction::INSTALL);
+		$cmd->version = $version ? new SemanticVersion($version) : null;
+		$cmd->sender = $context->char->name;
+		$cmd->sendto = $context;
+		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
 	/**
 	 * @HandlesCommand("package")
-	 * @Matches("/^packages?\s+update\s+([a-z_0-9-]+)$/i")
-	 * @Matches("/^packages?\s+update\s+([a-z_0-9-]+)\s+(.+)$/i")
+	 * @Mask $action update
 	 */
-	public function packageUpdateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function packageUpdateCommand(
+		CmdContext $context,
+		string $action,
+		PWord $package,
+		?string $version
+	): void {
 		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
-			$sendto->reply(
+			$context->reply(
 				"In order to be allowed to update modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
 			return;
 		}
-		$cmd = new PackageAction($args[1], PackageAction::UPGRADE);
-		$cmd->version = $args[2] ? new SemanticVersion($args[2]) : null;
-		$cmd->sender = $sender;
-		$cmd->sendto = $sendto;
-		$this->getPackage($args[1], [$this, "checkAndInstall"], $cmd);
+		$cmd = new PackageAction($package(), PackageAction::UPGRADE);
+		$cmd->version = $version ? new SemanticVersion($version) : null;
+		$cmd->sender = $context->char->name;
+		$cmd->sendto = $context;
+		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
 	/**
 	 * @HandlesCommand("package")
-	 * @Matches("/^packages?\s+(?:uninstall|delete|remove|erase|del|rm)\s+(.+)$/i")
+	 * @Mask $action (uninstall|delete|remove|erase|del|rm)
 	 */
-	public function packageUninstallCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function packageUninstallCommand(
+		CmdContext $context,
+		string $action,
+		string $package
+	): void {
 		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
-			$sendto->reply(
+			$context->reply(
 				"In order to be allowed to uninstall modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
 			return;
 		}
-		$module = strtoupper($args[1]);
+		$module = strtoupper($package);
 		$instType = $this->getInstalledModuleType($module);
 		if ($instType === static::UNINST) {
-			$sendto->reply("<highlight>{$module}<end> is not installed.");
+			$context->reply("<highlight>{$module}<end> is not installed.");
 			return;
 		}
 		if ($instType === static::BUILT_INT) {
-			$sendto->reply(
+			$context->reply(
 				"<highlight>{$module}<end> is a built-in Nadybot module and ".
 				"cannot be uninstalled."
 			);
@@ -537,7 +559,12 @@ class PackageController {
 		}
 		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
 		$path = realpath($modulePath);
-		$this->logger->log('DEBUG', "Removing {$modulePath} ({$path}) recursively");
+		if ($path === false) {
+			$this->logger->error("Cannot determine absolute path of {$modulePath}");
+			$context->reply("Something is wrong with the path of this module.");
+			return;
+		}
+		$this->logger->info("Removing {$modulePath} ({$path}) recursively");
 		$dirIterator = new RecursiveDirectoryIterator($path);
 		$iterator = new RecursiveIteratorIterator(
 			$dirIterator,
@@ -546,57 +573,60 @@ class PackageController {
 
 		$toDelete = [];
 		foreach ($iterator as $file) {
-			$this->logger->log('DEBUG', "Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
+			$this->logger->info("Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
 			/** @var SplFileInfo $file */
 			if (in_array($file->getFilename(), [".", ".."], true)) {
-				$this->logger->log('DEBUG', "Skipping, because . or ..");
+				$this->logger->info("Skipping, because . or ..");
 				continue;
 			}
 			$relPath = substr($file->getPathname(), strlen($path) + 1);
 			if (substr($relPath, 0, 2) === "..") {
-				$this->logger->log('DEBUG', "Skipping, because . or ..");
+				$this->logger->info("Skipping, because . or ..");
 				continue;
 			}
-			$this->logger->log('DEBUG', "Adding as " . $file->getRealPath());
-			$toDelete []= $file->getRealPath();
+			$this->logger->info("Adding as " . $file->getRealPath());
+			$realPath = $file->getRealPath();
+			if ($realPath !== false) {
+				$toDelete []= $realPath;
+			}
 		}
 		$toDelete []= $path;
-		$this->logger->log('DEBUG', "Sorting by path length descending");
+		$this->logger->info("Sorting by path length descending");
 		usort(
 			$toDelete,
-			function (string $file1, $file2): int {
+			function (string $file1, string $file2): int {
 				return strlen($file2) <=> strlen($file1);
 			}
 		);
 		$baseDir = dirname($path) . "/";
 		foreach ($toDelete as $file) {
-			$this->logger->log('DEBUG', "Removing {$file}");
+			$this->logger->info("Removing {$file}");
 			$relFile = substr($file, strlen($baseDir));
 			if (!@file_exists($file)) {
-				$this->logger->log('DEBUG', "{$file} does not exist");
+				$this->logger->info("{$file} does not exist");
 				continue;
 			}
 			if (is_dir($file)) {
-				$this->logger->log("INFO", "rmdir {$relFile}");
+				$this->logger->notice("rmdir {$relFile}");
 				if (!@rmdir($file)) {
-					$sendto->reply(
-						"Error deleting directory {$relFile}:" . error_get_last()["message"]
+					$context->reply(
+						"Error deleting directory {$relFile}: " . (error_get_last()["message"]??"unknown error")
 					);
 					return;
 				}
 			} else {
-				$this->logger->log("INFO", "del {$relFile}");
+				$this->logger->notice("del {$relFile}");
 				if (!@unlink($file)) {
-					$sendto->reply(
-						"Error deleting {$relFile}:" . error_get_last()["message"]
+					$context->reply(
+						"Error deleting {$relFile}: " . (error_get_last()["message"]??"unknown error")
 					);
 					return;
 				}
 			}
 		}
-		$this->logger->log('DEBUG', "Deleting done");
-		$sendto->reply(
-			"<highlight>{$args[1]}<end> uninstalled. Restart the bot ".
+		$this->logger->info("Deleting done");
+		$context->reply(
+			"<highlight>{$package}<end> uninstalled. Restart the bot ".
 			"for the changes to take effect."
 		);
 		unset($this->chatBot->runner->classLoader->registeredModules[$module]);
@@ -737,7 +767,7 @@ class PackageController {
 		$temp = tempnam(sys_get_temp_dir(), "nadybot-module");
 		if (@file_put_contents($temp, $response->body) === false) {
 			$cmd->sendto->reply(
-				"Error writing to temporary file: " . error_get_last()["message"]
+				"Error writing to temporary file: " . (error_get_last()["message"]??"unknown error")
 			);
 			return null;
 		}
@@ -785,15 +815,15 @@ class PackageController {
 			return;
 		}
 
-		$this->logger->log("INFO", "Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
+		$this->logger->notice("Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
 		if (!@file_exists("{$targetDir}/{$cmd->package}/")) {
 			if (!@mkdir("{$targetDir}/{$cmd->package}", 0700, true)) {
 				$cmd->sendto->reply(
 					"There was an error creating ".
 					"<highlight>{$targetDir}/{$cmd->package}<end>."
 				);
-				$this->logger->log("ERROR", "Error on mkdir of {$targetDir}/{$cmd->package}: " .
-					error_get_last()["message"]);
+				$this->logger->error("Error on mkdir of {$targetDir}/{$cmd->package}: " .
+					(error_get_last()["message"]??"unknown error"));
 				return;
 			}
 		}
@@ -838,10 +868,10 @@ class PackageController {
 				continue;
 			}
 			if (@is_dir($fullFilename)) {
-				$this->logger->log("INFO", "rmdir {$fullFilename}");
+				$this->logger->notice("rmdir {$fullFilename}");
 				@rmdir($fullFilename);
 			} else {
-				$this->logger->log("INFO", "del {$fullFilename}");
+				$this->logger->notice("del {$fullFilename}");
 				@unlink($fullFilename);
 			}
 		}
@@ -865,8 +895,8 @@ class PackageController {
 					$cmd->sendto->reply(
 						"There was an error creating <highlight>{$targetFile}<end>."
 					);
-					$this->logger->log("ERROR", "Error on mkdir of {$targetFile}: ".
-						error_get_last()["message"]);
+					$this->logger->error("Error on mkdir of {$targetFile}: ".
+						(error_get_last()["message"]??"unknown error"));
 					return false;
 				}
 			} else {
@@ -875,12 +905,12 @@ class PackageController {
 					$cmd->sendto->reply(
 						"There was an error extracting <highlight>{$targetFile}<end>."
 					);
-					$this->logger->log("ERROR", "Error on extraction of {$targetFile}: ".
-						error_get_last()["message"]);
+					$this->logger->error("Error on extraction of {$targetFile}: ".
+						(error_get_last()["message"]??"unknown error"));
 					return false;
 				}
 			}
-			$this->logger->log("INFO", "unzip -> {$targetFile}");
+			$this->logger->notice("unzip -> {$targetFile}");
 			$this->db->table(self::DB_TABLE)
 				->insert([
 					"module" => $cmd->package,
@@ -895,6 +925,10 @@ class PackageController {
 	 * Check if the action in $cmd can be done version-wise
 	 */
 	public function canInstallVersion(PackageAction $cmd): bool {
+		if (!isset($cmd->version)) {
+			$cmd->sendto->reply("<highlight>{$cmd->package}<end> is not installed and doesn't provide proper version info.");
+			return false;
+		}
 		if (!isset($cmd->oldVersion) && $cmd->action === $cmd::UPGRADE) {
 			$cmd->sendto->reply("<highlight>{$cmd->package}<end> is not installed, nothing to upgrade.");
 			return false;

@@ -15,9 +15,9 @@ class SocketManager {
 	];
 
 	public function checkMonitoredSockets(): bool {
-		$read   = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ];
-		$write  = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE];
-		$except = $this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR];
+		$read   = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] ?? [], "is_resource");
+		$write  = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] ?? [], "is_resource");
+		$except = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] ?? [], "is_resource");
 		if (empty($read) && empty($write) && empty($except)) {
 			return false;
 		}
@@ -31,10 +31,10 @@ class SocketManager {
 			if (in_array($socket, $read) && $type & SocketNotifier::ACTIVITY_READ) {
 				$notifier->notify(SocketNotifier::ACTIVITY_READ);
 			}
-			if (in_array($socket, $write) && $type & SocketNotifier::ACTIVITY_WRITE) {
+			if (isset($write) && in_array($socket, $write) && $type & SocketNotifier::ACTIVITY_WRITE) {
 				$notifier->notify(SocketNotifier::ACTIVITY_WRITE);
 			}
-			if (in_array($socket, $except) && $type & SocketNotifier::ACTIVITY_ERROR) {
+			if (isset($except) && in_array($socket, $except) && $type & SocketNotifier::ACTIVITY_ERROR) {
 				$notifier->notify(SocketNotifier::ACTIVITY_ERROR);
 			}
 		}
@@ -64,10 +64,6 @@ class SocketManager {
 	 * Removes given socket notifier from list of sockets being monitored.
 	 */
 	public function removeSocketNotifier(SocketNotifier $socketNotifier): void {
-		if (is_object($socketNotifier) === false) {
-			return;
-		}
-
 		$this->removeOne($this->socketNotifiers, $socketNotifier);
 
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_READ) {

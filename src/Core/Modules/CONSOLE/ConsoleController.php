@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
 	BotRunner,
+	CmdContext,
 	CommandManager,
 	LoggerWrapper,
 	MessageHub,
@@ -49,6 +50,10 @@ class ConsoleController {
 
 	public SocketNotifier $notifier;
 
+	/**
+	 * @var resource
+	 * @psalm-var resource|closed-resource
+	 */
 	public $socket;
 
 	public bool $useReadline = false;
@@ -124,12 +129,12 @@ class ConsoleController {
 			return;
 		}
 		if (BotRunner::isWindows()) {
-			$this->logger->log('WARN', 'Console not available on Windows');
+			$this->logger->warning('Console not available on Windows');
 			return;
 		}
 		$this->useReadline = function_exists('readline_callback_handler_install');
 		if (!$this->useReadline) {
-			$this->logger->log('WARN', 'readline not supported on this platform, using basic console');
+			$this->logger->warning('readline not supported on this platform, using basic console');
 			$callback = [$this, "processStdin"];
 		} else {
 			$callback = function(): void {
@@ -144,7 +149,7 @@ class ConsoleController {
 			$callback,
 		);
 		$this->timer->callLater(1, function(): void {
-			$this->logger->log('INFO', "StdIn console activated, accepting commands");
+			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {
 				readline_callback_handler_install('> ', [$this, 'processLine']);
@@ -158,6 +163,9 @@ class ConsoleController {
 	 * Handle data arriving on stdin
 	 */
 	public function processStdin(): void {
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			@fclose($this->socket);
@@ -184,8 +192,15 @@ class ConsoleController {
 		if ($this->useReadline) {
 			readline_add_history($line);
 			$this->saveHistory();
+			readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
-		$handler = new ConsoleCommandReply($this->chatBot);
-		$this->commandManager->process("msg", $line, $this->chatBot->vars["SuperAdmin"], $handler);
+		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
+		$context->channel = "msg";
+		$context->message = $line;
+		$context->sendto = new ConsoleCommandReply($this->chatBot);
+		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->processCmd($context);
+		}, $context);
 	}
 }

@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	CmdContext,
 	Event,
 	CommandReply,
 	DB,
@@ -31,7 +32,6 @@ use Nadybot\Core\{
  *	)
  */
 class FindOrgController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -61,7 +61,7 @@ class FindOrgController {
 
 	protected bool $ready = false;
 
-	private $searches = [
+	private array $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'others'
@@ -97,14 +97,12 @@ class FindOrgController {
 
 	/**
 	 * @HandlesCommand("findorg")
-	 * @Matches("/^findorg (.+)$/i")
 	 */
-	public function findOrgCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
-			$this->sendNotReadyError($sendto);
+			$this->sendNotReadyError($context);
 			return;
 		}
-		$search = $args[1];
 
 		$orgs = $this->lookupOrg($search);
 		$count = count($orgs);
@@ -115,7 +113,7 @@ class FindOrgController {
 		} else {
 			$msg = "No matches found.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -163,7 +161,7 @@ class FindOrgController {
 			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
 			return;
 		}
-		if ($response === null || $response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			$this->ready = true;
 			return;
 		}
@@ -183,7 +181,7 @@ class FindOrgController {
 
 		try {
 			preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
-			$this->logger->log("DEBUG", "Updating orgs starting with $search");
+			$this->logger->info("Updating orgs starting with $search");
 			$inserts = [];
 			foreach ($arr as $match) {
 				$obj = new Organization();
@@ -205,7 +203,7 @@ class FindOrgController {
 			$this->db->commit();
 			$searchIndex++;
 			if ($searchIndex >= count($this->searches)) {
-				$this->logger->log("INFO", "Finished downloading orglists");
+				$this->logger->notice("Finished downloading orglists");
 				$this->ready = true;
 				return;
 			}
@@ -217,7 +215,7 @@ class FindOrgController {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Error downloading orgs: " . $e->getMessage(), $e);
+			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
 			$this->ready = true;
 		}
@@ -237,7 +235,7 @@ class FindOrgController {
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
-		$this->logger->log("DEBUG", "Downloading all orgs from '$url'");
+		$this->logger->info("Downloading all orgs from '$url'");
 			$searchIndex = 0;
 			$this->http
 				->get($url)

@@ -27,6 +27,9 @@ class RouteModifier extends DBRow {
 			},
 			$this->arguments
 		);
+		if ($asLink) {
+			$arguments = array_map("htmlspecialchars", $arguments);
+		}
 		$modName = $this->modifier;
 		if ($asLink) {
 			$modName = "<a href='chatcmd:///tell <myname> route list mod {$modName}'>{$modName}</a>";
@@ -35,7 +38,7 @@ class RouteModifier extends DBRow {
 	}
 
 	/**
-	 * @return array<string,string>
+	 * @return array<string,string|string[]>
 	 */
 	public function getKVArguments(): array {
 		return array_reduce(

@@ -1,4 +1,4 @@
-FROM quay.io/nadyita/alpine:latest
+FROM quay.io/nadyita/alpine:3.14
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
@@ -10,7 +10,7 @@ ENTRYPOINT ["/sbin/tini", "-g", "--"]
 CMD ["/nadybot/docker-entrypoint.sh"]
 
 
-RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ add \
+RUN apk --no-cache add \
     php7-cli \
     php7-sqlite3 \
     php7-iconv \
@@ -38,16 +38,17 @@ RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/communit
 
 COPY --chown=nadybot:nadybot . /nadybot
 
-RUN apk --no-cache add composer && \
+RUN apk --no-cache add composer jq php7-tokenizer php7-xmlwriter && \
     cd /nadybot && \
-    composer install --no-dev --no-suggest && \
+    composer install --no-dev --no-interaction --no-progress && \
     rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
     rm -f "$(composer config vendor-dir)/niktux/addendum/composer.phar" && \
-    composer dumpautoload --no-dev --optimize && \
+    composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
     composer clear-cache && \
     chown -R nadybot:nadybot vendor && \
-    apk del --no-cache composer && \
-    sed -i -e '/<appender_ref ref="defaultFileAppender" \/>/d' conf/log4php.xml && \
+    jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
+    mv conf/logging.json.2 conf/logging.json && \
+    apk del --no-cache composer jq php7-tokenizer php7-xmlwriter && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi

@@ -1,0 +1,5 @@
+The <highlight>gaubuff_times<end> setting takes a list of budatime (see <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a>) values to indicate when tara alerts should be displayed.
+
+For example: <highlight>2h 1h 30m 10m<end> (the default value) indicates that the alert for first announcement is 2h before tara and so on.
+
+The times must be valid budatime values and must be separated by a single space.

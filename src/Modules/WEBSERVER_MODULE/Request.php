@@ -13,6 +13,7 @@ class Request {
 	/** @var array<string,string> */
 	public array $headers = [];
 	public ?string $body = null;
+	/** @var null|int|string|array|object|bool */
 	public $decodedBody = null;
 	public array $query = [];
 	public string $method;

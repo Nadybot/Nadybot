@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
-use Nadybot\Core\CommandReply;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
@@ -60,9 +60,8 @@ class PlayfieldController {
 
 	/**
 	 * @HandlesCommand("playfields")
-	 * @Matches("/^playfields$/i")
 	 */
-	public function playfieldListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function playfieldListCommand(CmdContext $context): void {
 		$blob = $this->db->table("playfields")
 			->orderBy("long_name")
 			->asObj(Playfield::class)
@@ -71,15 +70,14 @@ class PlayfieldController {
 			}, "");
 
 		$msg = $this->text->makeBlob("Playfields", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("playfields")
-	 * @Matches("/^playfields (.+)$/i")
 	 */
-	public function playfieldShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = strtolower(trim($args[1]));
+	public function playfieldShowCommand(CmdContext $context, string $search): void {
+		$search = strtolower($search);
 		$query = $this->db->table("playfields");
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'long_name');
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'short_name', "or");
@@ -92,24 +90,28 @@ class PlayfieldController {
 		if ($count > 1) {
 			$blob = "<header2>Result of Playfield Search for \"$search\"<end>\n";
 			foreach ($data as $row) {
-				$blob .= "<tab>[<highlight>$row->id<end>] $row->long_name\n";
+				$blob .= "<tab>[<highlight>{$row->id}<end>] $row->long_name\n";
 			}
 
-			$msg = $this->text->makeBlob("Playfields ($count)", $blob);
+			$msg = $this->text->makeBlob("Playfields ({$count})", $blob);
 		} elseif ($count == 1) {
 			$row = $data[0];
 			$msg = "[<highlight>$row->id<end>] $row->long_name";
 		} else {
 			$msg = "There were no matches for your search.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("waypoint")
-	 * @Matches("/^waypoint Pos: ([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)/i")
+	 * @Mask $action Pos:
 	 */
-	public function waypoint1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function waypoint1Command(CmdContext $context, string $action, string $pos): void {
+		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $pos, $args)) {
+			$context->reply("Wrong waypoint format.");
+			return;
+		}
 		//Pos: ([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: (.+)
 		$xCoords = $args[1];
 		$yCoords = $args[2];
@@ -118,73 +120,58 @@ class PlayfieldController {
 
 		$playfield = $this->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$sendto->reply("Could not find playfield '$playfieldName'.");
+			$context->reply("Could not find playfield '$playfieldName'.");
 			return;
 		}
-		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name, $playfield->id));
+		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name??"UNKNOWN", $playfield->id));
 	}
 
 	/**
 	 * @HandlesCommand("waypoint")
-	 * @Matches("/^waypoint \(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i")
 	 */
-	public function waypoint2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$xCoords = $args[1];
-		$yCoords = $args[2];
-		$playfieldId = (int)$args[4];
-
-		$playfield = $this->getPlayfieldById($playfieldId);
-		if ($playfield === null) {
-			$playfieldName = (string)$playfieldId;
+	public function waypoint2Command(CmdContext $context, string $pos): void {
+		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pos, $args)) {
+			$xCoords = $args[1];
+			$yCoords = $args[2];
+			$playfieldId = (int)$args[4];
+		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pos, $args)) {
+			$xCoords = $args[1];
+			$yCoords = $args[3];
+			$playfieldId = (int)$args[5];
+		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pos, $args)) {
+			$xCoords = $args[1];
+			$yCoords = $args[3];
+			$playfieldName = $args[5];
 		} else {
-			$playfieldName = $playfield->short_name;
+			$context->reply("Wrong waypoint format.");
+			return;
 		}
 
-		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
-	}
-
-	/**
-	 * @HandlesCommand("waypoint")
-	 * @Matches("/^waypoint ([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i")
-	 */
-	public function waypoint3Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$xCoords = $args[1];
-		$yCoords = $args[3];
-		$playfieldId = (int)$args[5];
-
-		$playfield = $this->getPlayfieldById($playfieldId);
-		if ($playfield === null) {
-			$playfieldName = (string)$playfieldId;
-		} else {
-			$playfieldName = $playfield->short_name;
-		}
-
-		$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
-	}
-
-	/**
-	 * @HandlesCommand("waypoint")
-	 * @Matches("/^waypoint ([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i")
-	 */
-	public function waypoint4Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$xCoords = $args[1];
-		$yCoords = $args[3];
-		$playfieldName = $args[5];
-
-		$playfield = $this->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
-			$sendto->reply("Could not find playfield '$playfieldName'.");
-		} else {
+		if (isset($playfieldId)) {
+			$playfield = $this->getPlayfieldById($playfieldId);
+			if (isset($playfield)) {
+				$playfieldName = $playfield->short_name;
+			}
+		} elseif (isset($playfieldName)) {
+			$playfield = $this->getPlayfieldByName($playfieldName);
+			if (!isset($playfield)) {
+				$context->reply("Unknown playfield {$playfieldName}");
+				return;
+			}
 			$playfieldId = $playfield->id;
 			$playfieldName = $playfield->short_name;
-			$sendto->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId));
+		} else {
+			$context->reply("Wrong waypoint format.");
+			return;
 		}
+
+		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName??(string)$playfieldId, $playfieldId));
 	}
 
-	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): string {
+	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
 		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: $link";
-		return $this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
+		return (array)$this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
 	}
 
 	public function getPlayfieldByName(string $playfieldName): ?Playfield {

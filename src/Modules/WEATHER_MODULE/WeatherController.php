@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEATHER_MODULE;
 
 use JsonException;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	Http,
 	HttpResponse,
 	Text,
@@ -39,17 +39,16 @@ class WeatherController {
 
 	/**
 	 * @HandlesCommand("weather")
-	 * @Matches("/^weather (.+)$/i")
 	 */
-	public function weatherCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$location = $args[1];
-		$this->lookupLocation($location, [$this, "getWeatherForLocationResponse"], $sendto);
+	public function weatherCommand(CmdContext $context, string $location): void {
+		$this->lookupLocation($location, [$this, "getWeatherForLocationResponse"], $context);
 	}
 
 	/**
 	 * Lookup the coordinates of a location
+	 * @psalm-param callable(HttpResponse, CmdContext, mixed...) $callback
 	 */
-	public function lookupLocation(string $location, callable $callback, CommandReply $sendto): void {
+	public function lookupLocation(string $location, callable $callback, CmdContext $context): void {
 		$apiEndpoint = "https://nominatim.openstreetmap.org/search?";
 		$apiEndpoint .= http_build_query([
 			"format" => "jsonv2",
@@ -63,47 +62,47 @@ class WeatherController {
 			->get($apiEndpoint)
 			->withTimeout(10)
 			->withHeader('accept-language', 'en')
-			->withCallback($callback, $sendto);
+			->withCallback($callback, $context);
 	}
 
-	public function getWeatherForLocationResponse(HttpResponse $response, CommandReply $sendto): void {
-		if ($response === null) {
-			$sendto->reply("No answer from Location provider. Please try again later.");
+	public function getWeatherForLocationResponse(HttpResponse $response, CmdContext $context): void {
+		if ($response->headers["status-code"] !== "200") {
+			$context->reply("Error received from Location provider.");
 			return;
 		}
-		if ($response->headers["status-code"] !== "200") {
-			$sendto->reply("Error received from Location provider.");
+		if (!isset($response->body)) {
+			$context->reply("No answer from Location provider. Please try again later.");
 			return;
 		}
 		try {
 			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$sendto->reply(
+			$context->reply(
 				"Invalid JSON received from Location provider: ".
 				"<highlight>{$response->body}<end>."
 			);
 			return;
 		}
 		if (!is_array($data)) {
-			$sendto->reply(
+			$context->reply(
 				"Invalid answer received from Location provider: ".
 				"<highlight>" . print_r($data, true) . "<end>."
 			);
 			return;
 		}
 		if (!count($data)) {
-			$sendto->reply("Location not found");
+			$context->reply("Location not found");
 			return;
 		}
 		$nominatim = new Nominatim();
 		$nominatim->fromJSON($data[0]);
-		$this->lookupWeather($nominatim, $sendto);
+		$this->lookupWeather($nominatim, $context);
 	}
 
 	/**
 	 * Lookup the weather for a location
 	 */
-	public function lookupWeather(Nominatim $nom, CommandReply $sendto): void {
+	public function lookupWeather(Nominatim $nom, CmdContext $context): void {
 		$apiEndpoint = "https://api.met.no/weatherapi/locationforecast/2.0/compact?";
 		$apiEndpoint .= http_build_query([
 			"lat" => sprintf("%.4f", $nom->lat),
@@ -113,29 +112,29 @@ class WeatherController {
 			->get($apiEndpoint)
 			->withTimeout(10)
 			->withHeader('accept-language', 'en')
-			->withCallback([$this, "processWeatherResult"], $nom, $sendto);
+			->withCallback([$this, "processWeatherResult"], $nom, $context);
 	}
 
-	public function processWeatherResult(HttpResponse $response, Nominatim $nominatim, CommandReply $sendto): void {
-		if ($response === null) {
-			$sendto->reply("No answer from Weather provider. Please try again later.");
+	public function processWeatherResult(HttpResponse $response, Nominatim $nominatim, CmdContext $context): void {
+		if ($response->headers["status-code"] !== "200") {
+			$context->reply("Error received from Weather provider.");
 			return;
 		}
-		if ($response->headers["status-code"] !== "200") {
-			$sendto->reply("Error received from Weather provider.");
+		if (!isset($response->body)) {
+			$context->reply("No answer from Location provider. Please try again later.");
 			return;
 		}
 		try {
 			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$sendto->reply(
+			$context->reply(
 				"Invalid JSON received from Weather provider: ".
 				"<highlight>{$response->body}<end>."
 			);
 			return;
 		}
 		if (!is_object($data)) {
-			$sendto->reply(
+			$context->reply(
 				"Invalid answer received from Weather provider: ".
 				"<highlight>" . print_r($data, true) . "<end>."
 			);
@@ -143,10 +142,10 @@ class WeatherController {
 		}
 		$weather = new Weather();
 		$weather->fromJSON($data);
-		$this->showWeater($nominatim, $weather, $sendto);
+		$this->showWeater($nominatim, $weather, $context);
 	}
 
-	protected function showWeater(Nominatim $nominatim, Weather $weather, CommandReply $sendto): void {
+	protected function showWeater(Nominatim $nominatim, Weather $weather, CmdContext $context): void {
 		$blob = $this->renderWeather($nominatim, $weather);
 		$placeParts = explode(", ", $nominatim->display_name);
 		$locationName = $placeParts[0];
@@ -166,9 +165,13 @@ class WeatherController {
 		$tempUnit = $this->nameToDegree($weather->properties->meta->units->air_temperature);
 		$blob = $this->text->makeBlob("details", $blob, strip_tags($header));
 
-		$msg = "$header: <highlight>{$currentTemp}{$tempUnit}<end>, ".
-			"<highlight>{$currentSummary}<end> [{$blob}]";
-		$sendto->reply($msg);
+		$msg = $this->text->blobWrap(
+			"$header: <highlight>{$currentTemp}{$tempUnit}<end>, ".
+			"<highlight>{$currentSummary}<end> [",
+			$blob,
+			"]"
+		);
+		$context->reply($msg);
 	}
 
 	/**
@@ -210,19 +213,19 @@ class WeatherController {
 	 */
 	public function getWindStrength(float $speed): string {
 		$beaufortScale = [
-			32.7 => 'hurricane',
-			28.5 => 'violent storm',
-			24.5 => 'storm',
-			20.8 => 'strong gale',
-			17.2 => 'gale',
-			13.9 => 'high wind',
-			10.8 => 'strong breeze',
-			 8.0 => 'fresh breeze',
-			 5.5 => 'moderate breeze',
-			 3.4 => 'gentle breeze',
-			 1.6 => 'light breeze',
-			 0.5 => 'light air',
-			 0.0 => 'calm',
+			'32.7' => 'hurricane',
+			'28.5' => 'violent storm',
+			'24.5' => 'storm',
+			'20.8' => 'strong gale',
+			'17.2' => 'gale',
+			'13.9' => 'high wind',
+			'10.8' => 'strong breeze',
+			 '8.0' => 'fresh breeze',
+			 '5.5' => 'moderate breeze',
+			 '3.4' => 'gentle breeze',
+			 '1.6' => 'light breeze',
+			 '0.5' => 'light air',
+			 '0.0' => 'calm',
 		];
 		foreach ($beaufortScale as $windSpeed => $windStrength) {
 			if ($speed >= $windSpeed) {
@@ -293,7 +296,7 @@ class WeatherController {
 		$windStrength = $this->getWindStrength($currentWeather->wind_speed);
 		$osmLicence = preg_replace_callback(
 			"/(http[^ ]+)/",
-			function($matched) {
+			function(array $matched) {
 				return $this->text->makeChatcmd($matched[1], "/start ".$matched[1]);
 			},
 			lcfirst($nominatim->licence)

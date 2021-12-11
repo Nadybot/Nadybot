@@ -5,7 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 
 /**
- * Class to represent a setting with a color value for BudaBot
+ * Class to represent a setting with a color value for NadyBot
+ * @SettingHandler("color")
  */
 class ColorSettingHandler extends SettingHandler {
 
@@ -13,7 +14,7 @@ class ColorSettingHandler extends SettingHandler {
 	 * Get a displayable representation of the setting
 	 */
 	public function displayValue(string $sender): string {
-		return $this->row->value . htmlspecialchars($this->row->value) . "</font>";
+		return ($this->row->value??"<font>") . htmlspecialchars($this->row->value??"") . "</font>";
 	}
 
 	/**

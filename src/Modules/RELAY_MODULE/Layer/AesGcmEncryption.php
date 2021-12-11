@@ -53,8 +53,8 @@ class AesGcmEncryption implements RelayLayerInterface {
 		return [];
 	}
 
-	public function send(array $packets): array {
-		return array_map([$this, "encode"], $packets);
+	public function send(array $data): array {
+		return array_map([$this, "encode"], $data);
 	}
 
 	public function receive(RelayMessage $msg): ?RelayMessage {
@@ -71,8 +71,16 @@ class AesGcmEncryption implements RelayLayerInterface {
 	}
 
 	protected function decode(string $text): ?string {
+		$this->logger->debug("Decoding AES-GCM encrypted message for relay {relay}", [
+			"relay" => $this->relay->getName(),
+			"data" => $text,
+		]);
 		$ivLength = $this->ivLength;
-		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+		if (
+			function_exists('sodium_crypto_aead_aes256gcm_is_available')
+			&& sodium_crypto_aead_aes256gcm_is_available()
+			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
+		) {
 			$rawString = sodium_base642bin($text, SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
 			$rawString = base64_decode($text);
@@ -81,6 +89,9 @@ class AesGcmEncryption implements RelayLayerInterface {
 		$tag = substr($rawString, $ivLength, $tagLength = 16);
 		$ciphertextRaw = substr($rawString, $ivLength + $tagLength);
 		if (strlen($ciphertextRaw) === 0) {
+			$this->logger->debug("The encrypted data was empty for relay {relay}", [
+				"relay" => $this->relay->getName(),
+			]);
 			return null;
 		}
 		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
@@ -89,23 +100,44 @@ class AesGcmEncryption implements RelayLayerInterface {
 			$originalText = openssl_decrypt($ciphertextRaw, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
 		}
 		if ($originalText === false) {
+			$this->logger->info("Unable to decode the AES-GCM encrypted message for relay {relay}", [
+				"relay" => $this->relay->getName(),
+			]);
 			return null;
 		}
+		$this->logger->debug("Successfully decoded AES-GCM encrypted message for relay {relay}", [
+			"relay" => $this->relay->getName(),
+			"decrypted" => $originalText,
+		]);
 		return $originalText;
 	}
 
 	public function encode(string $text): string {
+		$this->logger->debug("Encoding message for relay {relay} with AES-GCM", [
+			"relay" => $this->relay->getName(),
+			"data" => $text,
+		]);
 		$ivLength = $this->ivLength;
 		[$micro, $secs] = explode(" ", microtime());
-		$iv = pack("NN", $secs, $micro*100000000);
+		$iv = pack("NN", $secs, (float)$micro*100000000);
 		$iv .= random_bytes($ivLength - strlen($iv));
-		if (function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()) {
+		if (
+			function_exists('sodium_crypto_aead_aes256gcm_is_available')
+			&& sodium_crypto_aead_aes256gcm_is_available()
+			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
+		) {
 			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, "", $iv, $this->password);
 			$ciphertextRaw = substr($enc, 0, -16);
 			$tag = substr($enc, -16);
-			return sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
+			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
+		} else {
+			$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+			$encrypted = base64_encode($iv . $tag . $ciphertextRaw);
 		}
-		$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
-		return base64_encode($iv . $tag . $ciphertextRaw);
+		$this->logger->debug("Successfully encoded message for relay {relay} with AES-GCM", [
+			"relay" => $this->relay->getName(),
+			"encrypted" => $encrypted,
+		]);
+		return $encrypted;
 	}
 }

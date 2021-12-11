@@ -3,9 +3,9 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -23,6 +23,8 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
+use Nadybot\Core\ParamClass\PFilename;
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -70,7 +72,7 @@ class ProfileController {
 	/** @Inject */
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	/** @Logger */
 	public LoggerWrapper $logger;
 
 	/** @Inject */
@@ -118,13 +120,12 @@ class ProfileController {
 
 	/**
 	 * @HandlesCommand("profile")
-	 * @Matches("/^profile$/i")
 	 */
-	public function profileListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function profileListCommand(CmdContext $context): void {
 		try {
 			$profileList = $this->getProfileList();
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
 
@@ -142,40 +143,41 @@ class ProfileController {
 		} else {
 			$msg = "No profiles available.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("profile")
-	 * @Matches("/^profile view ([a-z0-9_-]+)$/i")
+	 * @Mask $action view
 	 */
-	public function profileViewCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profileName = $args[1];
+	public function profileViewCommand(CmdContext $context, string $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
-			$msg = "Profile <highlight>$profileName<end> does not exist.";
-			$sendto->reply($msg);
+			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
+			$context->reply($msg);
 			return;
 		}
 		$blob = htmlspecialchars(file_get_contents($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
 		$msg = $this->text->makeBlob("Profile $profileName", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("profile")
-	 * @Matches("/^profile save ([a-z0-9_-]+)$/i")
+	 * @Mask $action save
 	 */
-	public function profileSaveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function profileSaveCommand(CmdContext $context, string $action, PFilename $fileName): void {
+		$fileName = $fileName();
 		try {
-			$this->saveProfile($args[1]);
+			$this->saveProfile($fileName);
 		} catch (Exception $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 		}
-		$msg = "Profile <highlight>{$args[1]}<end> has been saved.";
-		$sendto->reply($msg);
+		$msg = "Profile <highlight>{$fileName}<end> has been saved.";
+		$context->reply($msg);
 	}
 
 	public function saveProfile(string $profileName): bool {
@@ -264,45 +266,44 @@ class ProfileController {
 
 	/**
 	 * @HandlesCommand("profile")
-	 * @Matches("/^profile (rem|remove|del|delete) ([a-z0-9_-]+)$/i")
 	 */
-	public function profileRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profileName = $args[2];
+	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $fileName): void {
+		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
-			$msg = "Profile <highlight>$profileName<end> does not exist.";
-			$sendto->reply($msg);
+			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
+			$context->reply($msg);
 			return;
 		}
 		if (@unlink($filename) === false) {
-			$msg = "Unable to delete the profile <highlight>$profileName<end>.";
+			$msg = "Unable to delete the profile <highlight>{$profileName}<end>.";
 		} else {
-			$msg = "Profile <highlight>$profileName<end> has been deleted.";
+			$msg = "Profile <highlight>{$profileName}<end> has been deleted.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("profile")
-	 * @Matches("/^profile load ([a-z0-9_-]+)$/i")
+	 * @Mask $action load
 	 */
-	public function profileLoadCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$profileName = $args[1];
+	public function profileLoadCommand(CmdContext $context, string $action, PFilename $fileName): void {
+		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
 
 		if (!@file_exists($filename)) {
-			$msg = "Profile <highlight>$profileName<end> does not exist.";
-			$sendto->reply($msg);
+			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
+			$context->reply($msg);
 			return;
 		}
-		$sendto->reply("Loading profile <highlight>$profileName<end>...");
-		$output = $this->loadProfile($filename, $sender);
+		$context->reply("Loading profile <highlight>{$profileName}<end>...");
+		$output = $this->loadProfile($filename, $context->char->name);
 		if ($output === null) {
 			$msg = "There was an error loading the profile <highlight>$profileName<end>.";
 		} else {
 			$msg = $this->text->makeBlob("Profile Results: $profileName", $output);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getFilename(string $profileName): string {
@@ -315,6 +316,10 @@ class ProfileController {
 		$this->db->beginTransaction();
 		try {
 			$profileSendTo = new ProfileCommandReply();
+			$context = new CmdContext($sender);
+			$context->char->id = $this->chatBot->get_uid($sender) ?: null;
+			$context->sendto = $profileSendTo;
+			$context->channel = "msg";
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];
@@ -358,7 +363,7 @@ class ProfileController {
 				} elseif (substr($line, 0, 11) === "!alias rem ") {
 					$alias = explode(" ", $line, 3)[2];
 					if (preg_match("/^!alias add \Q$alias\E (.+)$/", $lines[$profileRow+1], $parts)) {
-						/** @var CmdAlias $data */
+						/** @var ?CmdAlias $data */
 						$data = $this->db->table(CommandAlias::DB_TABLE)
 							->where("status", 1)
 							->where("alias", $alias)
@@ -379,7 +384,8 @@ class ProfileController {
 				if ($line[0] === "!") {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
-					$this->commandManager->process("msg", $line, $sender, $profileSendTo);
+					$context->message = $line;
+					$this->commandManager->processCmd($context);
 					$profileSendTo->reply("");
 				} else {
 					$numSkipped++;
@@ -392,7 +398,7 @@ class ProfileController {
 			}
 			return $profileSendTo->result;
 		} catch (Exception $e) {
-			$this->logger->log("ERROR", "Could not load profile: " . $e->getMessage(), $e);
+			$this->logger->error("Could not load profile: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
 			return null;
 		}

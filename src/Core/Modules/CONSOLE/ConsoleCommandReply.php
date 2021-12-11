@@ -192,7 +192,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		);
 	}
 
-	public function formatMsg(string $message) {
+	public function formatMsg(string $message): string {
 		$array = [
 			"<myname>" => $this->chatBot->vars["name"],
 			"<myguild>" => $this->chatBot->vars["my_guild"],
@@ -220,11 +220,11 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			$message
 		);
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s[^>]*href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
+		$message = preg_replace("/<a\s+href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
+		$message = preg_replace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
+		$message = preg_replace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
 		$message = preg_replace("/<p\s*>/is", "\n", $message);
 		$message = preg_replace("/<\/p\s*>/is", "", $message);
 		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>\n/s", "\n", $message);
@@ -236,7 +236,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$parts = [];
 		$message = html_entity_decode(
 			preg_replace_callback(
-				"/<a\s[^>]*href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/s",
+				"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/s",
 				function (array $matches) use (&$parts): string {
 					$parts[] = html_entity_decode($this->handleColors($matches[2], true), ENT_QUOTES);
 					return $this->handleColors("<link>{$matches[3]}</link>", false);
@@ -286,9 +286,9 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$text = $this->replaceColorNamesWithCodes($text);
 		$sm = $this->chatBot->settingManager;
 		$array = [
-			"<header>" => str_replace("'", "", $sm->get('default_header_color')),
-			"<header2>" => str_replace("'", "", $sm->get('default_header2_color')),
-			"<highlight>" => str_replace("'", "", $sm->get('default_highlight_color')),
+			"<header>" => str_replace("'", "", $sm->getString('default_header_color')??""),
+			"<header2>" => str_replace("'", "", $sm->getString('default_header2_color')??""),
+			"<highlight>" => str_replace("'", "", $sm->getString('default_highlight_color')??""),
 			"<link>" => "\e[4m<font color=#219CFF>",
 			"</link>" => "</font>\e[24m",
 			"<black>" => "<font color=#000000>",
@@ -302,14 +302,14 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			"<cyan>" => "<font color=#00FFFF>",
 			"<violet>" => "<font color=#8F00FF>",
 
-			"<neutral>" => $sm->get('default_neut_color'),
-			"<omni>" => $sm->get('default_omni_color'),
-			"<clan>" => $sm->get('default_clan_color'),
-			"<unknown>" => $sm->get('default_unknown_color'),
+			"<neutral>" => $sm->getString('default_neut_color')??"",
+			"<omni>" => $sm->getString('default_omni_color')??"",
+			"<clan>" => $sm->getString('default_clan_color')??"",
+			"<unknown>" => $sm->getString('default_unknown_color')??"",
 
 			"<end>" => "</font>",
 		];
-		$defaultColor = $sm->get('default_priv_color');
+		$defaultColor = $sm->getString('default_priv_color')??"";
 		$text = $defaultColor . str_ireplace(array_keys($array), array_values($array), $text);
 		return $text;
 	}

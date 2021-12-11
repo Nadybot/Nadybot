@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
@@ -18,6 +19,8 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Core\Modules\ALTS\AltEvent;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @Instance
@@ -87,7 +90,7 @@ class AdminController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->adminManager->uploadAdmins();
 
 		$this->commandAlias->register($this->moduleName, "admin add", "addadmin");
@@ -98,64 +101,52 @@ class AdminController {
 
 	/**
 	 * @HandlesCommand("admin")
-	 * @Matches("/^admin add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function adminAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function adminAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
 
-		$this->add($who, $sender, $sendto, $intlevel, $rank);
+		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/**
 	 * @HandlesCommand("mod")
-	 * @Matches("/^mod add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function modAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function modAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
 
-		$this->add($who, $sender, $sendto, $intlevel, $rank);
+		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/**
 	 * @HandlesCommand("admin")
-	 * @Matches("/^admin rem (.+)$/i")
 	 */
-	public function adminRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
 
-		$this->remove($who, $sender, $sendto, $intlevel, $rank);
+		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/**
 	 * @HandlesCommand("mod")
-	 * @Matches("/^mod rem (.+)$/i")
 	 */
-	public function modRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
 
-		$this->remove($who, $sender, $sendto, $intlevel, $rank);
+		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/**
 	 * @HandlesCommand("adminlist")
-	 * @Matches("/^adminlist$/i")
-	 * @Matches("/^adminlist all$/i")
+	 * @Mask $all all
 	 */
-	public function adminlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (strtolower($message) == "adminlist all") {
-			$showOfflineAlts = true;
-		} else {
-			$showOfflineAlts = false;
-		}
-
+	public function adminlistCommand(CmdContext $context, ?string $all): void {
+		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";
 		foreach ($this->adminManager->admins as $who => $data) {
 			if ($this->adminManager->admins[$who]["level"] == 4) {
@@ -179,7 +170,7 @@ class AdminController {
 		}
 
 		$link = $this->text->makeBlob('Bot administrators', $blob);
-		$sendto->reply($link);
+		$context->reply($link);
 	}
 
 	/**
@@ -233,7 +224,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}
@@ -257,7 +248,7 @@ class AdminController {
 			return false;
 		}
 
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
 			return false;
 		}
@@ -279,7 +270,7 @@ class AdminController {
 		return $ai->main == $who;
 	}
 
-	public function checkAccessLevel(string $actor, string $actee) {
+	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
@@ -296,6 +287,6 @@ class AdminController {
 		}
 		$this->adminManager->removeFromLists($event->alt, $event->main);
 		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
-		$this->logger->log('INFO', "Moved {$event->alt}'s admin rank to {$event->main}.");
+		$this->logger->notice("Moved {$event->alt}'s admin rank to {$event->main}.");
 	}
 }

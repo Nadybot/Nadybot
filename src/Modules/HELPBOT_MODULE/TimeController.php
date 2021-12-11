@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use stdClass;
 use DateTime;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
@@ -22,7 +21,6 @@ use Nadybot\Core\Util;
  *	)
  */
 class TimeController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -37,93 +35,105 @@ class TimeController {
 
 	/**
 	 * @HandlesCommand("time")
-	 * @Matches("/^time$/i")
 	 */
-	public function timeListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function timeListCommand(CmdContext $context): void {
 		$link  = "<header2>Australia<end>\n";
 		$link .= "<tab><highlight>Western Australia<end>\n";
-		$link .= "<tab><tab>Standard Time (AWST = GMT +8:00): " . $this->getTimezone("AWST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (AWST = GMT +8:00): " . $this->safeGetTimezone("AWST")->time . "\n";
 		$link .= "<tab><highlight>Northern Territory/South Australia<end>\n";
-		$link .= "<tab><tab>Standard Time (ACST = UTC+9:30): " . $this->getTimezone("ACST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (ACDT = UTC+10:30): " . $this->getTimezone("ACDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (ACST = UTC+9:30): " . $this->safeGetTimezone("ACST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (ACDT = UTC+10:30): " . $this->safeGetTimezone("ACDT")->time . "\n";
 		$link .= "<tab><highlight>Queensland/Victoria/Tasmania<end>\n";
-		$link .= "<tab><tab>Standard Time (AEST = UTC+10): " . $this->getTimezone("AEST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (AEDT = UTC+11): " . $this->getTimezone("AEDT")->time . "\n\n";
+		$link .= "<tab><tab>Standard Time (AEST = UTC+10): " . $this->safeGetTimezone("AEST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (AEDT = UTC+11): " . $this->safeGetTimezone("AEDT")->time . "\n\n";
 
 		$link .= "<header2>Asia<end>\n";
 		$link .= "<tab><highlight>Thailand/Vietnam/Kambodscha<end>\n";
-		$link .= "<tab><tab>Standard Time (ICT = UTC+7): " . $this->getTimezone("ICT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (ICT = UTC+7): " . $this->safeGetTimezone("ICT")->time . "\n";
 		$link .= "<tab><highlight>China/Malaysia/Singapur/Indonesien<end>\n";
-		$link .= "<tab><tab>Standard Time (CST = UTC+8): " . $this->getTimezone("CCST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (CST = UTC+8): " . $this->safeGetTimezone("CCST")->time . "\n";
 		$link .= "<tab><highlight>Japan/Korea<end>\n";
-		$link .= "<tab><tab>Standard Time (JST = UTC+9): " . $this->getTimezone("JST")->time . "\n\n";
+		$link .= "<tab><tab>Standard Time (JST = UTC+9): " . $this->safeGetTimezone("JST")->time . "\n\n";
 
 		$link .= "<header2>Europe<end>\n";
 		$link .= "<tab><highlight>England,Spain,Portugal<end>\n";
-		$link .= "<tab><tab>Standard Time (GMT = UTC): " . $this->getTimezone("GMT")->time . "\n";
-		$link .= "<tab><tab>Summer Time (BST = UTC+1): " . $this->getTimezone("BST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (GMT = UTC): " . $this->safeGetTimezone("GMT")->time . "\n";
+		$link .= "<tab><tab>Summer Time (BST = UTC+1): " . $this->safeGetTimezone("BST")->time . "\n";
 		$link .= "<tab><highlight>Germany/France/Netherlands/Italy/Norway<end>\n";
-		$link .= "<tab><tab>Standard Time (CET = UTC+1): " . $this->getTimezone("CET")->time . "\n";
-		$link .= "<tab><tab>Summer Time (CEST = UTC+2): " . $this->getTimezone("CEST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (CET = UTC+1): " . $this->safeGetTimezone("CET")->time . "\n";
+		$link .= "<tab><tab>Summer Time (CEST = UTC+2): " . $this->safeGetTimezone("CEST")->time . "\n";
 		$link .= "<tab><highlight>Egypt/Bulgary/Finland/Greece<end>\n";
-		$link .= "<tab><tab>Standard Time (EET = UTC+2): " . $this->getTimezone("EET")->time . "\n";
-		$link .= "<tab><tab>Summer Time (EEST/EEDT = UTC+3): " . $this->getTimezone("EEST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (EET = UTC+2): " . $this->safeGetTimezone("EET")->time . "\n";
+		$link .= "<tab><tab>Summer Time (EEST/EEDT = UTC+3): " . $this->safeGetTimezone("EEST")->time . "\n";
 		$link .= "<tab><highlight>Bahrain/Iraq/Russia/Saudi Arabia<end>\n";
-		$link .= "<tab><tab>Standard Time (MSK = UTC+3): " . $this->getTimezone("MSK")->time . "\n";
-		$link .= "<tab><tab>Summer Time (MSD = UTC+4): " . $this->getTimezone("MSD")->time . "\n\n";
+		$link .= "<tab><tab>Standard Time (MSK = UTC+3): " . $this->safeGetTimezone("MSK")->time . "\n";
+		$link .= "<tab><tab>Summer Time (MSD = UTC+4): " . $this->safeGetTimezone("MSD")->time . "\n\n";
 
 		$link .= "<header2>West Asia<end>\n";
-		$link .= "<tab><highlight>India (UTC+5:30)<end>: " . $this->getTimezone("IST")->time . "\n";
-		$link .= "<tab><highlight>Iran (UTC+3:30)<end>: " . $this->getTimezone("IRT")->time . "\n\n";
+		$link .= "<tab><highlight>India (UTC+5:30)<end>: " . $this->safeGetTimezone("IST")->time . "\n";
+		$link .= "<tab><highlight>Iran (UTC+3:30)<end>: " . $this->safeGetTimezone("IRT")->time . "\n\n";
 
 		$link .= "<header2>North America<end>\n";
 		$link .= "<tab><highlight>Newfoundland<end>\n";
-		$link .= "<tab><tab>Standard Time (NST = GMT-3:30): " . $this->getTimezone("NST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (NDT = GMT-2:30): " . $this->getTimezone("NDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (NST = GMT-3:30): " . $this->safeGetTimezone("NST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (NDT = GMT-2:30): " . $this->safeGetTimezone("NDT")->time . "\n";
 		$link .= "<tab><highlight>Toronto<end>\n";
-		$link .= "<tab><tab>Standard Time (EDT = GMT-4): " . $this->getTimezone("EDT")->time . "\n";
-		$link .= "<tab><tab>Summer Time (AST = GMT-3): " . $this->getTimezone("AST")->time . "\n";
+		$link .= "<tab><tab>Standard Time (EDT = GMT-4): " . $this->safeGetTimezone("EDT")->time . "\n";
+		$link .= "<tab><tab>Summer Time (AST = GMT-3): " . $this->safeGetTimezone("AST")->time . "\n";
 		$link .= "<tab><highlight>Florida/Indiana/New York/Maine/New Jersey/Washington D.C./Winnipeg<end>\n";
-		$link .= "<tab><tab>Standard Time (EST = GMT-5): " . $this->getTimezone("EST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (EDT = GMT-4): " . $this->getTimezone("EDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (EST = GMT-5): " . $this->safeGetTimezone("EST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (EDT = GMT-4): " . $this->safeGetTimezone("EDT")->time . "\n";
 		$link .= "<tab><highlight>Alaska<end>\n";
-		$link .= "<tab><tab>Standard Time (AKST = GMT-9): " . $this->getTimezone("AKST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (AKDT = GMT-8): " . $this->getTimezone("AKDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (AKST = GMT-9): " . $this->safeGetTimezone("AKST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (AKDT = GMT-8): " . $this->safeGetTimezone("AKDT")->time . "\n";
 		$link .= "<tab><highlight>California/Nevada/Washington<end>\n";
-		$link .= "<tab><tab>Standard Time (PST = GMT-8): " . $this->getTimezone("PST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (PDT = GMT-7): " . $this->getTimezone("PDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (PST = GMT-8): " . $this->safeGetTimezone("PST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (PDT = GMT-7): " . $this->safeGetTimezone("PDT")->time . "\n";
 		$link .= "<tab><highlight>Colorado/Montana/New Mexico/Utah/Vancouver<end>\n";
-		$link .= "<tab><tab>Standard Time (MST = GMT-7): " . $this->getTimezone("MST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (MDT = GMT-6): " . $this->getTimezone("MDT")->time . "\n";
+		$link .= "<tab><tab>Standard Time (MST = GMT-7): " . $this->safeGetTimezone("MST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (MDT = GMT-6): " . $this->safeGetTimezone("MDT")->time . "\n";
 		$link .= "<tab><highlight>Alabama/Illinois/Iowa/Michigan/Minnesota/Oklahoma/Edmonton<end>\n";
-		$link .= "<tab><tab>Standard Time (CST = GMT-6): " . $this->getTimezone("CST")->time . "\n";
-		$link .= "<tab><tab>Summer Time (CDT = GMT-5): " . $this->getTimezone("CDT")->time . "\n\n";
+		$link .= "<tab><tab>Standard Time (CST = GMT-6): " . $this->safeGetTimezone("CST")->time . "\n";
+		$link .= "<tab><tab>Summer Time (CDT = GMT-5): " . $this->safeGetTimezone("CDT")->time . "\n\n";
 
 		$link .= "<header2>Unix time<end>\n";
 		$link .= "<tab><tab>" . time() . "\n";
 
 		$msg = "<highlight>".$this->util->date(time())."<end>";
-		$msg .= " " . $this->text->makeBlob("All Timezones", $link);
-		$sendto->reply($msg);
+		$context->reply($this->text->blobWrap(
+			"{$msg} ",
+			$this->text->makeBlob("All Timezones", $link)
+		));
 	}
 
 	/**
 	 * @HandlesCommand("time")
-	 * @Matches("/^time (.+)$/i")
 	 */
-	public function timeShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$zone = strtoupper($args[1]);
+	public function timeShowCommand(CmdContext $context, string $zone): void {
+		$zone = strtoupper($zone);
 		$timezone = $this->getTimezone($zone);
 		if ($timezone !== null) {
-			$msg = $timezone->name." is <highlight>".$timezone->time."<end>";
+			$msg = "{$timezone->name} is <highlight>{$timezone->time}<end>";
 		} else {
 			$msg = "Unknown timezone.";
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
-	public function getTimezone($tz) {
+	public function safeGetTimezone($tz): Timezone {
+		$obj = $this->getTimezone($tz);
+		if (isset($obj)) {
+			return $obj;
+		}
+		$obj = new Timezone();
+		$obj->name = $tz;
+		$obj->offset = 0;
+		$obj->time = "&lt;unknown&gt;";
+		return $obj;
+	}
+
+	public function getTimezone($tz): ?Timezone {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();
 		$time_format = "dS M, H:i";
@@ -262,7 +272,7 @@ class TimeController {
 				return null;
 		}
 
-		$obj = new stdClass;
+		$obj = new Timezone();
 		$obj->name = $name;
 		$obj->offset = $offset;
 		$obj->time = date($time_format, (int)($time + $offset));

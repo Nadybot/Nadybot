@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandManager;
-use Nadybot\Core\CommandReply;
 
 /**
  * @author Tyrence (RK2)
@@ -31,10 +31,9 @@ class HtmlDecodeController {
 
 	/**
 	 * @HandlesCommand("htmldecode")
-	 * @Matches("/^htmldecode (.+)$/is")
 	 */
-	public function htmldecodeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$command = html_entity_decode($args[1], ENT_QUOTES);
-		$this->commandManager->process($channel, $command, $sender, $sendto);
+	public function htmldecodeCommand(CmdContext $context, string $command): void {
+		$context->message = html_entity_decode($command, ENT_QUOTES);
+		$this->commandManager->processCmd($context);
 	}
 }

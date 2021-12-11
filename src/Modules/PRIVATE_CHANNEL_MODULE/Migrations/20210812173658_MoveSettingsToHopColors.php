@@ -28,7 +28,7 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		if (!isset($setting) || ($setting->value??"") === "") {
 			return null;
 		}
-		if (preg_match("/#([a-f0-9]{6})/i", $setting->value, $matches)) {
+		if (preg_match("/#([a-f0-9]{6})/i", $setting->value??"", $matches)) {
 			return $matches[1];
 		}
 		return null;

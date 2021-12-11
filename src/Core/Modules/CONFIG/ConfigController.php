@@ -2,12 +2,13 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Exception;
 use ReflectionClass;
 use Nadybot\Core\{
 	AccessManager,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	DB,
 	EventManager,
 	HelpManager,
@@ -26,8 +27,16 @@ use Nadybot\Core\DBSchema\{
 	CmdCfg,
 	Setting,
 };
+use Nadybot\Core\ParamClass\PWord;
 
 /**
+ *	@DefineCommand(
+ *		command       = 'config',
+ *		accessLevel   = 'mod',
+ *		description   = 'Configure bot settings',
+ *		help          = 'config.txt',
+ *		defaultStatus = '1'
+ *	)
  * @Instance
  */
 class ConfigController {
@@ -97,24 +106,23 @@ class ConfigController {
 
 	/**
 	 * This command handler lists list of modules which can be configured.
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config$/i")
+	 * @HandlesCommand("config")
 	 */
-	public function configCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function configCommand(CmdContext $context): void {
 		$blob = "<header2>Quick config<end>\n".
-			"<tab>Org Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable guild') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable guild') . "\n" .
-			"<tab>Private Channel Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable priv') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable priv') . "\n" .
-			"<tab>Private Message Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable msg') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable msg') . "\n" .
-			"<tab>ALL Commands - " .
-				$this->text->makeChatcmd('Enable All', '/tell <myname> config cmd enable all') . " " .
-				$this->text->makeChatcmd('Disable All', '/tell <myname> config cmd disable all') . "\n\n\n";
+			"<tab>Org Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable guild') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable guild') . "]\n" .
+			"<tab>Private Channel Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable priv') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable priv') . "]\n" .
+			"<tab>Private Message Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable msg') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable msg') . "]\n" .
+			"<tab>ALL Commands [" .
+				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable all') . "] [" .
+				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable all') . "]\n\n\n";
 		$modules = $this->getModules();
 
 		foreach ($modules as $module) {
@@ -128,156 +136,187 @@ class ConfigController {
 				$a = "<red>Disabled<end>";
 			}
 
-			$c = $this->text->makeChatcmd("Configure", "/tell <myname> config $module->name");
+			$c = "[" . $this->text->makeChatcmd("configure", "/tell <myname> config $module->name") . "]";
 
-			$on = "<black>On<end>";
+			$on = "<black>[ON]<end>";
 			if ($numDisabled > 0) {
-				$on = $this->text->makeChatcmd("On", "/tell <myname> config mod $module->name enable all");
+				$on = "[" . $this->text->makeChatcmd("ON", "/tell <myname> config mod $module->name enable all") . "]";
 			}
-			$off = "<black>Off<end>";
+			$off = "<black>[OFF]<end>";
 			if ($numEnabled > 0) {
-				$off = $this->text->makeChatcmd("Off", "/tell <myname> config mod $module->name disable all");
+				$off = "[" . $this->text->makeChatcmd("OFF", "/tell <myname> config mod $module->name disable all") . "]";
 			}
-			$blob .= "($on / $off / $c) " . strtoupper($module->name) . " ($a)\n";
+			$blob .= "$on $off $c " . strtoupper($module->name) . " ($a)\n";
 		}
 
 		$count = count($modules);
 		$msg = $this->text->makeBlob("Module Config ($count)", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler turns a channel of all modules on or off.
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config cmd (enable|disable) (all|guild|priv|msg)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $cmd cmd
+	 * @Mask $channel (all|guild|priv|msg)
 	 */
-	public function toggleChannelOfAllModulesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$status = ($args[1] == "enable" ? 1 : 0);
+	public function toggleChannelOfAllModulesCommand(
+		CmdContext $context,
+		string $cmd,
+		bool $status,
+		string $channel
+	): void {
 		$updQuery = $this->db->table(CommandManager::DB_TABLE)
-			->whereIn("cmdevent", ["cmd", "subcmd"]);
+			->whereIn("cmdevent", ["cmd", "subcmd"])
+			->where("cmd", "!=", "config");
 		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd");
+			->where("cmdevent", "cmd")
+			->where("cmd", "!=", "config");
 		$confirmString = "all";
-		if ($args[2] == "all") {
+		if ($channel === "all") {
 			$query->whereIn("type", ["guild", "priv", "msg"]);
 			$updQuery->whereIn("type", ["guild", "priv", "msg"]);
 		} else {
-			$query->where("type", $args[2]);
-			$updQuery->where("type", $args[2]);
-			$confirmString = "all " . $args[2];
+			$query->where("type", $channel);
+			$updQuery->where("type", $channel);
+			$confirmString = "all " . $channel;
 		}
 
 		$data = $query->asObj(CmdCfg::class)->toArray();
 
 		foreach ($data as $row) {
-			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
+			if (!$this->accessManager->checkAccess($context->char->name, $row->admin)) {
 				continue;
 			}
-			if ($status === 1) {
+			if ($status) {
 				$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
 			} else {
 				$this->commandManager->deactivate($row->type, $row->file, $row->cmd);
 			}
 		}
 
-		$updQuery->update(["status" => $status]);
+		$updQuery->update(["status" => (int)$status]);
 
-		$msg = "Successfully <highlight>" . ($status === 1 ? "enabled" : "disabled") . "<end> $confirmString commands.";
-		$sendto->reply($msg);
+		$msg = "Successfully <highlight>" . ($status ? "enabled" : "disabled") . "<end> $confirmString commands.";
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler turns one or all channels of a single module on or off
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config mod (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $action mod
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleModuleChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[2] = strtolower($args[2]);
-		$args[3] = strtolower($args[3]);
-		if (!$this->toggleModule($args[1], $args[3], $args[2] === "enable")) {
-			if ($args[3] === "all") {
-				$msg = "Could not find Module <highlight>{$args[1]}<end>.";
+	public function toggleModuleChannelCommand(
+		CmdContext $context,
+		string $action,
+		string $module,
+		bool $enable,
+		string $channel
+	): void {
+		$channel = strtolower($channel);
+		if (!$this->toggleModule($module, $channel, $enable)) {
+			if ($channel === "all") {
+				$msg = "Could not find Module <highlight>{$module}<end>.";
 			} else {
-				$msg = "Could not find module <highlight>{$args[1]}<end> for channel <highlight>{$args[3]}<end>.";
+				$msg = "Could not find module <highlight>{$module}<end> for channel <highlight>{$channel}<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$color = ($args[2] === "enable") ? "green" : "red";
-		if ($args[3] === "all") {
-			$msg = "Updated status of module <highlight>{$args[1]}<end> to <{$color}>{$args[2]}d<end>.";
+		$color = $enable ? "green" : "red";
+		$status = $enable ? "enable" : "disable";
+		if ($channel === "all") {
+			$msg = "Updated status of module <highlight>{$module}<end> to <{$color}>{$status}d<end>.";
 		} else {
-			$msg = "Updated status of module <highlight>{$args[1]}<end> in channel <highlight>{$args[3]}<end> to <{$color}>{$args[2]}d<end>.";
+			$msg = "Updated status of module <highlight>{$module}<end> in channel <highlight>{$channel}<end> to <{$color}>{$status}d<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler turns one or all channels of a single command on or off
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config (cmd|subcmd) (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $type (cmd|subcmd)
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleCommandChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[1] = strtolower($args[1]);
-		$args[3] = strtolower($args[3]);
-		$args[4] = strtolower($args[4]);
+	public function toggleCommandChannelCommand(
+		CmdContext $context,
+		string $type,
+		string $cmd,
+		bool $enable,
+		string $channel
+	): void {
+		$type = strtolower($type);
+		$channel = strtolower($channel);
 		try {
 			$result = $this->toggleCmd(
-				$sender,
-				$args[1] === "subcmd",
-				$args[2],
-				$args[4],
-				$args[3] === "enable"
+				$context->char->name,
+				$type === "subcmd",
+				$cmd,
+				$channel,
+				$enable
 			);
 		} catch (InsufficientAccessException $e) {
-			$sendto->reply($e->getMessage());
+			$context->reply($e->getMessage());
 			return;
 		}
-		$type = str_replace("cmd", "command", $args[1]);
+		$type = str_replace("cmd", "command", $type);
 		if (!$result) {
-			if ($args[4] !== "all") {
-				$msg = "Could not find {$type} <highlight>{$args[2]}<end> for channel <highlight>{$args[4]}<end>.";
+			if ($channel !== "all") {
+				$msg = "Could not find {$type} <highlight>{$cmd}<end> ".
+					"for channel <highlight>{$channel}<end>.";
 			} else {
-				$msg = "Could not find {$type} <highlight>{$args[2]}<end>.";
+				$msg = "Could not find {$type} <highlight>{$cmd}<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$color = ($args[3] === "enable") ? "green" : "red";
-		if ($args[4] === "all") {
-			$msg = "Updated status of {$type} <highlight>{$args[2]}<end> to <{$color}>{$args[3]}d<end>.";
+		$color = $enable ? "green" : "red";
+		$status = $enable ? "enable" : "disable";
+		if ($channel === "all") {
+			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
+				"to <{$color}>{$status}d<end>.";
 		} else {
-			$msg = "Updated status of {$type} <highlight>{$args[2]}<end> to <{$color}>{$args[3]}d<end> in channel <highlight>{$args[4]}<end>.";
+			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
+				"to <{$color}>{$status}d<end> in channel <highlight>{$channel}<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler turns one or all channels of a single event on or off
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config event (.+) (enable|disable) (priv|msg|guild|all)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $type event
+	 * @Mask $channel (priv|msg|guild|all)
 	 */
-	public function toggleEventCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$args[2] = strtolower($args[2]);
-		$args[3] = strtolower($args[3]);
-		$temp = explode(" ", $args[1]);
-		$event_type = strtolower($temp[0]);
+	public function toggleEventCommand(
+		CmdContext $context,
+		string $type,
+		string $event,
+		bool $enable,
+		string $channel
+	): void {
+		$channel = strtolower($channel);
+		$temp = explode(" ", $event);
+		$eventType = strtolower($temp[0]);
 		$file = $temp[1] ?? "";
 
-		if ( !$this->toggleEvent($event_type, $file, $args[2] === "enable") ) {
-			$msg = "Could not find event <highlight>{$event_type}<end> for handler <highlight>{$file}<end>.";
-			$sendto->reply($msg);
+		if ( !$this->toggleEvent($eventType, $file, $enable) ) {
+			$msg = "Could not find event <highlight>{$eventType}<end> for handler <highlight>{$file}<end>.";
+			$context->reply($msg);
 			return;
 		}
 
-		$color = ($args[2] === "enable") ? "green" : "red";
-		$msg = "Updated status of event <highlight>{$event_type}<end> to <{$color}>{$args[2]}d<end>.";
+		$color = $enable ? "green" : "red";
+		$status = $enable ? "enable" : "disable";
+		$msg = "Updated status of event <highlight>{$eventType}<end> to <{$color}>{$status}d<end>.";
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -287,6 +326,7 @@ class ConfigController {
 		$cmdEvent = $subCmd ? "subcmd" : "cmd";
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->where("cmd", $cmd)
+			->where("cmd", "!=", "config")
 			->where("cmdevent", $cmdEvent);
 		if ($type !== "all") {
 			$query->where("type", $type);
@@ -352,6 +392,7 @@ class ConfigController {
 	public function toggleModule(string $module, string $channel, bool $enable): bool {
 		$cmdQuery = $this->db->table(CommandManager::DB_TABLE)
 			->where("module", $module)
+			->where("cmd", "!=", "config")
 			->select("status", "type", "file", "cmd", "admin", "cmdevent");
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->where("module", $module)
@@ -401,7 +442,7 @@ class ConfigController {
 			if ($enable) {
 				$this->commandManager->activate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
 			} else {
-				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd);
 			}
 		}
 	}
@@ -410,25 +451,37 @@ class ConfigController {
 	 * This command handler sets command's access level on a particular channel.
 	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config (subcmd|cmd) (.+) admin (msg|priv|guild|all) (.+)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $category (subcmd|cmd)
+	 * @Mask $admin admin
+	 * @Mask $channel (msg|priv|guild|all)
 	 */
-	public function setAccessLevelOfChannelCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$category = strtolower($args[1]);
-		$command = strtolower($args[2]);
-		$channel = strtolower($args[3]);
-		$accessLevel = $args[4];
+	public function setAccessLevelOfChannelCommand(
+		CmdContext $context,
+		string $category,
+		string $cmd,
+		string $admin,
+		string $channel,
+		string $accessLevel
+	): void {
+		$category = strtolower($category);
+		$command = strtolower($cmd);
+		$channel = strtolower($channel);
 
 		$type = "command";
 		try {
 			if ($category === "cmd") {
-				$result = $this->changeCommandAL($sender, $command, $channel, $accessLevel);
+				$result = $this->changeCommandAL($context->char->name, $command, $channel, $accessLevel);
 			} else {
 				$type = "subcommand";
-				$result = $this->changeSubcommandAL($sender, $command, $channel, $accessLevel);
+				$result = $this->changeSubcommandAL($context->char->name, $command, $channel, $accessLevel);
 			}
 		} catch (InsufficientAccessException $e) {
 			$msg = "You do not have the required access level to change this {$type}.";
-			$sendto->reply($msg);
+			$context->reply($msg);
+			return;
+		} catch (Exception $e) {
+			$context->reply($e->getMessage());
 			return;
 		}
 
@@ -438,12 +491,12 @@ class ConfigController {
 			} else {
 				$msg = "Could not find {$type} <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($result === -1) {
 			$msg = "You may not set the access level for a {$type} above your own access level.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($channel === "all") {
@@ -451,7 +504,7 @@ class ConfigController {
 		} else {
 			$msg = "Updated access of {$type} <highlight>{$command}<end> in channel <highlight>{$channel}<end> to <highlight>{$accessLevel}<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
@@ -516,22 +569,24 @@ class ConfigController {
 	/**
 	 * This command handler shows information and controls of a command in
 	 * each channel.
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config cmd ([a-z0-9_]+)$/i")
+	 * @HandlesCommand("config")
+	 * @Mask $action cmd
 	 */
-	public function configCommandCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$cmd = strtolower($args[1]);
+	public function configCommandCommand(CmdContext $context, string $action, PWord $cmd): void {
+		$cmd = strtolower($cmd());
 
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
 		if ($aliasCmd !== null) {
 			$cmd = $aliasCmd;
 		}
 
-		$query = $this->db->table(CommandManager::DB_TABLE)->where("cmd", $cmd);
+		$query = $this->db->table(CommandManager::DB_TABLE)
+			->where("cmd", $cmd)
+			->where("cmd", "!=", "config");
 		if (!$query->exists()) {
 			$msg = "Could not find command <highlight>{$cmd}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -571,13 +626,13 @@ class ConfigController {
 			$blob .= $subcmd_list;
 		}
 
-		$help = $this->helpManager->find($cmd, $sender);
+		$help = $this->helpManager->find($cmd, $context->char->name);
 		if ($help !== null) {
 			$blob .= "<header>Help ($cmd)<end>\n\n" . $help;
 		}
 
 		$msg = $this->text->makeBlob(ucfirst($cmd)." Config", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -621,18 +676,17 @@ class ConfigController {
 
 	/**
 	 * This command handler shows configuration and controls for a single module.
-	 * Note: This handler has not been not registered, only activated.
 	 *
-	 * @Matches("/^config ([a-z0-9_]+)$/i")
+	 * @HandlesCommand("config")
 	 */
-	public function configModuleCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$module = strtoupper($args[1]);
+	public function configModuleCommand(CmdContext $context, PWord $module): void {
+		$module = strtoupper($module());
 		$found = false;
 
-		$on = $this->text->makeChatcmd("Enable", "/tell <myname> config mod {$module} enable all");
-		$off = $this->text->makeChatcmd("Disable", "/tell <myname> config mod {$module} disable all");
+		$on = $this->text->makeChatcmd("enable", "/tell <myname> config mod {$module} enable all");
+		$off = $this->text->makeChatcmd("disable", "/tell <myname> config mod {$module} disable all");
 
-		$blob = "Enable/disable entire module: ($on/$off)\n";
+		$blob = "Enable/disable entire module: [$on] [$off]\n";
 		$description = $this->getModuleDescription($module);
 		if (isset($description)) {
 			$description = implode("<br><tab>", explode("\n", $description));
@@ -653,25 +707,29 @@ class ConfigController {
 		}
 
 		foreach ($data as $row) {
-			$blob .= "<tab>" . $row->getData()->description ?? "";
+			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
-			if ($row->isEditable() && $this->accessManager->checkAccess($sender, $row->getData()->admin)) {
-				$blob .= " (" . $this->text->makeChatcmd("Modify", "/tell <myname> settings change " . $row->getData()->name) . ")";
+			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
+				$blob .= " [" . $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $row->getData()->name) . "]";
 			}
 
-			$blob .= ": " . $row->displayValue($sender) . "\n";
+			$blob .= ": " . $row->displayValue($context->char->name) . "\n";
 		}
 
 		$data = $this->getAllRegisteredCommands($module);
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
+			usort($data, function (CmdCfg $a, CmdCfg $b): int {
+				return strcmp($a->cmd, $b->cmd);
+			});
 		}
 		foreach ($data as $row) {
 			$guild = '';
 			$priv = '';
 			$msg = '';
 
+			$cmdNameLink = "";
 			if ($row->cmdevent === 'cmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");
@@ -679,7 +737,7 @@ class ConfigController {
 			} elseif ($row->cmdevent === 'subcmd') {
 				$on = $this->text->makeChatcmd("ON", "/tell <myname> config subcmd $row->cmd enable all");
 				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config subcmd $row->cmd disable all");
-				$cmdNameLink = $row->cmd;
+				$cmdNameLink = "<tab>{$row->cmd}";
 			}
 
 			$tell = "<red>T<end>";
@@ -714,6 +772,7 @@ class ConfigController {
 		$data = $this->db->table(EventManager::DB_TABLE)
 			->where("type", "!=", "setup")
 			->where("module", $module)
+			->orderBy("type")
 			->asObj(EventCfg::class)
 			->toArray();
 		if (count($data) > 0) {
@@ -742,7 +801,7 @@ class ConfigController {
 		} else {
 			$msg = "Could not find module <highlight>$module<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -767,7 +826,7 @@ class ConfigController {
 		if (count($data) == 0) {
 			$msg .= "<red>Unused<end>\n";
 		} elseif (count($data) > 1) {
-			$this->logger->log("ERROR", "Multiple rows exists for cmd: '$cmd' and type: '$type'");
+			$this->logger->error("Multiple rows exists for cmd: '$cmd' and type: '$type'");
 			return $msg;
 		}
 		$row = $data[0];
@@ -781,9 +840,9 @@ class ConfigController {
 		}
 
 		$msg .= "$status (Access: $row->admin) \n";
-		$msg .= "Set status: ";
-		$msg .= $this->text->makeChatcmd("Enabled", "/tell <myname> config cmd {$cmd} enable {$type}") . "  ";
-		$msg .= $this->text->makeChatcmd("Disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "\n";
+		$msg .= "Set status: [";
+		$msg .= $this->text->makeChatcmd("enabled", "/tell <myname> config cmd {$cmd} enable {$type}") . "] [";
+		$msg .= $this->text->makeChatcmd("disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "]\n";
 
 		$msg .= "Set access level: ";
 		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
@@ -807,7 +866,7 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given subcommand.
 	 */
-	private function getSubCommandInfo($cmd, $type) {
+	private function getSubCommandInfo($cmd, $type): string {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
 		$data = $this->db->table(CommandManager::DB_TABLE)
@@ -835,9 +894,9 @@ class ConfigController {
 			}
 
 			$subcmd_list .= "<tab>Current Status: $status (Access: $row->admin) \n";
-			$subcmd_list .= "<tab>Set status: ";
-			$subcmd_list .= $this->text->makeChatcmd("Enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "  ";
-			$subcmd_list .= $this->text->makeChatcmd("Disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "\n";
+			$subcmd_list .= "<tab>Set status: [";
+			$subcmd_list .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "] [";
+			$subcmd_list .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "]\n";
 
 			$subcmd_list .= "<tab>Set access level: ";
 			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
@@ -953,7 +1012,9 @@ class ConfigController {
 			->asObj(Setting::class)
 			->map(function (Setting $setting) {
 				return $this->settingManager->getSettingHandler($setting);
-			})->toArray();
+			})
+			->filter()
+			->toArray();
 	}
 
 	protected function getRegisteredCommandsQuery(): QueryBuilder {
@@ -989,6 +1050,7 @@ class ConfigController {
 	public function getAllRegisteredCommands(string $module): array {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
+		$query->where("cmd", "!=", "config");
 		return $query->asObj(CmdCfg::class)->toArray();
 	}
 
@@ -996,6 +1058,7 @@ class ConfigController {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
 		$query->where("cmd", $command);
+		$query->where("cmd", "!=", "config");
 		return $query->asObj(CmdCfg::class)->first();
 	}
 }

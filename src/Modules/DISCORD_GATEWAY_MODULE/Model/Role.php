@@ -13,7 +13,7 @@ class Role extends JSONDataModel {
 	public bool $hoist;
 	public int $position;
 	/** permission bit set */
-	public int $permissions;
+	public string $permissions;
 	/** whether this role is managed by an integration */
 	public bool $managed;
 	/** whether this role is mentionable */

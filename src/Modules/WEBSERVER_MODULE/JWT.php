@@ -10,7 +10,7 @@ use DomainException;
 use InvalidArgumentException;
 use UnexpectedValueException;
 use DateTime;
-use stdClass;
+use Exception;
 
 /**
  * Based on https://github.com/firebase/php-jwt
@@ -25,7 +25,7 @@ class JWT {
 	 * we want to provide some extra leeway time to
 	 * account for clock skew.
 	 */
-	public static $leeway = 0;
+	public static int $leeway = 0;
 
 	/**
 	 * Allow the current timestamp to be specified.
@@ -33,9 +33,9 @@ class JWT {
 	 *
 	 * Will default to PHP time() value if null.
 	 */
-	public static $timestamp = null;
+	public static ?int $timestamp = null;
 
-	public static $supported_algs = [
+	public static array $supported_algs = [
 		'ES384' => 'SHA384',
 		'ES256' => 'SHA256',
 		'RS256' => 'SHA256',
@@ -46,7 +46,7 @@ class JWT {
 	/**
 	 * Decodes a JWT string into a PHP object.
 	 *
-	 * @return stdClass The JWT's payload as a PHP object
+	 * @return object The JWT's payload as a PHP object
 	 *
 	 * @throws InvalidArgumentException     Provided JWT was empty
 	 * @throws UnexpectedValueException     Provided JWT was invalid
@@ -55,7 +55,7 @@ class JWT {
 	 * @throws BeforeValidException         Provided JWT is trying to be used before it's been created as defined by 'iat'
 	 * @throws ExpiredException             Provided JWT has since expired, as defined by the 'exp' claim
 	 */
-	public static function decode(string $jwt, string $key, array $allowed_algs=[]): stdClass {
+	public static function decode(string $jwt, string $key, array $allowed_algs=[]): object {
 		$timestamp = is_null(static::$timestamp) ? time() : static::$timestamp;
 
 		if (empty($key)) {
@@ -66,13 +66,9 @@ class JWT {
 			throw new UnexpectedValueException('Wrong number of segments');
 		}
 		[$headb64, $bodyb64, $cryptob64] = $tks;
-		if (null === ($header = static::jsonDecode(static::urlsafeB64Decode($headb64)))) {
-			throw new UnexpectedValueException('Invalid header encoding');
-		}
-		if (null === $payload = static::jsonDecode(static::urlsafeB64Decode($bodyb64))) {
-			throw new UnexpectedValueException('Invalid claims encoding');
-		}
-		if (false === ($sig = static::urlsafeB64Decode($cryptob64))) {
+		$header = static::jsonDecode(static::urlsafeB64Decode($headb64));
+		$payload = static::jsonDecode(static::urlsafeB64Decode($bodyb64));
+		if (null === ($sig = static::urlsafeB64Decode($cryptob64))) {
 			throw new UnexpectedValueException('Invalid signature encoding');
 		}
 		if (empty($header->alg)) {
@@ -108,18 +104,22 @@ class JWT {
 		// Check the nbf if it is defined. This is the time that the
 		// token can actually be used. If it's not yet that time, abort.
 		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
-			throw new BeforeValidException(
-				'Cannot handle token prior to ' . date(DateTime::ISO8601, $payload->nbf)
-			);
+			$date = date(DateTime::ISO8601, $payload->nbf);
+			if ($date === false) {
+				$date = "<unknown>";
+			}
+			throw new BeforeValidException("Cannot handle token prior to {$date}");
 		}
 
 		// Check that this token has been created before 'now'. This prevents
 		// using tokens that have been created for later use (and haven't
 		// correctly used the nbf claim).
 		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
-			throw new BeforeValidException(
-				'Cannot handle token prior to ' . date(DateTime::ISO8601, $payload->iat)
-			);
+			$date = date(DateTime::ISO8601, $payload->iat);
+			if ($date === false) {
+				$date = "<unknown>";
+			}
+			throw new BeforeValidException("Cannot handle token prior to {$date}");
 		}
 
 		// Check if this token has expired.
@@ -136,14 +136,14 @@ class JWT {
 	 *
 	 * @param string            $msg        The original message (header and body)
 	 * @param string            $signature  The original signature
-	 * @param string|resource   $key        For HS*, a string key works. for RS*, must be a resource of an openssl public key
+	 * @param string            $key        For HS*, a string key works. for RS*, must be a resource of an openssl public key
 	 * @param string            $alg        The algorithm
 	 *
 	 * @return bool
 	 *
 	 * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
 	 */
-	private static function verify($msg, $signature, $key, $alg) {
+	private static function verify(string $msg, string $signature, string $key, $alg) {
 		if (empty(static::$supported_algs[$alg])) {
 			throw new DomainException('Algorithm not supported');
 		}
@@ -170,7 +170,10 @@ class JWT {
 	 *
 	 * @throws DomainException Provided string was invalid JSON
 	 */
-	public static function jsonDecode($input) {
+	public static function jsonDecode(?string $input): object {
+		if (!isset($input)) {
+			throw new DomainException("Invalid JSON data received");
+		}
 		if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
 			$obj = json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
 		} else {
@@ -194,13 +197,17 @@ class JWT {
 	 *
 	 * @return string A decoded string
 	 */
-	public static function urlsafeB64Decode($input) {
+	public static function urlsafeB64Decode($input): ?string {
 		$remainder = strlen($input) % 4;
 		if ($remainder) {
 			$padlen = 4 - $remainder;
 			$input .= str_repeat('=', $padlen);
 		}
-		return base64_decode(strtr($input, '-_', '+/'));
+		$decoded = base64_decode(strtr($input, '-_', '+/'));
+		if ($decoded === false) {
+			return null;
+		}
+		return $decoded;
 	}
 
 	/**
@@ -231,9 +238,13 @@ class JWT {
 	 * @param   string $sig The ECDSA signature to convert
 	 * @return  string The encoded DER object
 	 */
-	private static function signatureToDER($sig) {
+	private static function signatureToDER($sig): string {
 		// Separate the signature into r-value and s-value
-		[$r, $s] = str_split($sig, (int) (strlen($sig) / 2));
+		$rs = str_split($sig, (int) (strlen($sig) / 2));
+		if ($rs === false) {
+			throw new Exception("Invalid r+s data found");
+		}
+		[$r, $s] = $rs;
 
 		// Trim leading zeros
 		$r = ltrim($r, "\x00");

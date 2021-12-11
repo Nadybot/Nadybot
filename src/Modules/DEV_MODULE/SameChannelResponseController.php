@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	CommandManager,
 	Nadybot,
 };
@@ -35,11 +35,10 @@ class SameChannelResponseController {
 
 	/**
 	 * @HandlesCommand("demo")
-	 * @Matches("/^demo (.+)$/si")
 	 */
-	public function demoCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args) {
-		$commandString = $args[1];
-		$customSendto = new DemoResponseCommandReply($channel, $sendto, $this->chatBot->vars["name"]);
-		$this->commandManager->process($channel, $commandString, $sender, $customSendto);
+	public function demoCommand(CmdContext $context, string $commandString): void {
+		$context->sendto = new DemoResponseCommandReply($context->channel, $context->sendto, $this->chatBot->char->name);
+		$context->message = $commandString;
+		$this->commandManager->processCmd($context);
 	}
 }

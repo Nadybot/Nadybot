@@ -16,10 +16,12 @@ class DemoResponseCommandReply implements CommandReply {
 	}
 
 	public function reply($msg): void {
-		if ($this->channel == 'priv') {
-			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g {$this->botname} <symbol>demo ", $msg);
-		} elseif ($this->channel == 'guild') {
+		if ($this->channel === 'priv') {
+			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g <myname> <symbol>demo ", $msg);
+			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///g <myname> <symbol>demo ", $msg);
+		} elseif ($this->channel === 'guild') {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///o <symbol>demo ", $msg);
+			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///o <symbol>demo ", $msg);
 		}
 		$this->sendto->reply($msg);
 	}

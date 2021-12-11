@@ -24,7 +24,7 @@ use ReflectionParameter;
 use ReflectionProperty;
 
 class ApiSpecGenerator {
-	public function loadClasses() {
+	public function loadClasses(): void {
 		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
 			require_once $file;
 		}
@@ -89,12 +89,21 @@ class ApiSpecGenerator {
 				$paths[$path] []= $method;
 			}
 		}
+		uksort(
+			$paths,
+			function (string $a, string $b): int {
+				return strcmp("{$a}/", "{$b}/");
+			}
+		);
 		return $paths;
 	}
 
 	public function getFullClass(string $className): ?string {
 		$classes = get_declared_classes();
 		foreach ($classes as $class) {
+			if (is_subclass_of($class, \Addendum\Annotation::class)) {
+				continue;
+			}
 			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q$className\E$/", $class)) {
 				return $class;
 			}
@@ -159,10 +168,10 @@ class ApiSpecGenerator {
 			if ($nameAndType[1] === 'array') {
 				$docBlock = $refProp->getDocComment();
 				if ($docBlock === false) {
-					throw new Exception("Untyped array found");
+					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				if (!preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
-					throw new Exception("Untyped array found");
+					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				$parts = explode("\\", $matches[1]);
 				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
@@ -185,6 +194,10 @@ class ApiSpecGenerator {
 		$result[$className] = $newResult;
 	}
 
+	/**
+	 * @return mixed[]
+	 * @psalm-return array{0: string, 1: string|list<string>}
+	 */
 	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
@@ -248,7 +261,7 @@ class ApiSpecGenerator {
 		];
 	}
 
-	/** @param array<string,ReflectionAnnotatedMethod> $pathMapping */
+	/** @param array<string,ReflectionAnnotatedMethod> $mapping */
 	public function getSpec(array $mapping): array {
 		$result = [
 			"openapi" => "3.0.0",
@@ -320,6 +333,9 @@ class ApiSpecGenerator {
 					if ($refParam->getName() !== $param) {
 						continue;
 					}
+				}
+				if (!isset($refParam)) {
+					continue;
 				}
 				/** @var ReflectionNamedType */
 				$refType = $refParam->getType();

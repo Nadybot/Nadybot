@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
@@ -50,10 +50,9 @@ class WhereisController {
 
 	/**
 	 * @HandlesCommand("whereis")
-	 * @Matches("/^whereis (.+)$/i")
 	 */
-	public function whereisCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = strtolower($args[1]);
+	public function whereisCommand(CmdContext $context, string $search): void {
+		$search = strtolower($search);
 		$words = explode(' ', $search);
 		$query = $this->db->table("whereis AS w")
 			->leftJoin("playfields AS p", "w.playfield_id", "p.id");
@@ -65,7 +64,7 @@ class WhereisController {
 
 		if ($count === 0) {
 			$msg = "There were no matches for your search.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "";
@@ -79,6 +78,6 @@ class WhereisController {
 		}
 
 		$msg = $this->text->makeBlob("Found $count matches for \"$search\".", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

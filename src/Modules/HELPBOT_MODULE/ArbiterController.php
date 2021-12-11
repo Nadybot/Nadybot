@@ -7,12 +7,13 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5)
@@ -128,14 +129,16 @@ class ArbiterController {
 
 	/**
 	 * @HandlesCommand("arbiter")
-	 * @Matches("/^arbiter set$/i")
-	 * @Matches("/^arbiter set (.+) (ends)$/i")
-	 * @Matches("/^arbiter set (.+)$/i")
+	 * @Mask $action set
+	 * @Mask $ends ends
 	 */
-	public function arbiterSetCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends): void {
+		if (isset($setWeek)) {
+			$setWeek = strtolower($setWeek());
+		}
 		$validTypes = [static::AI, static::BS, static::DIO];
-		if (!in_array($args[1]??null, $validTypes)) {
-			$sendto->reply(
+		if (!isset($setWeek) || !is_int($pos = array_search($setWeek, $validTypes))) {
+			$context->reply(
 				"Allowed current arbiter weeks are ".
 				$this->text->enumerate(
 					...$this->text->arraySprintf(
@@ -146,16 +149,16 @@ class ArbiterController {
 			);
 			return;
 		}
-		$pos = array_search($args[1], $validTypes);
 		$this->db->beginTransaction();
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
-		$startsToday = ($day === "7") && !isset($args[2]);
+		$startsToday = ($day === "7") && !isset($ends);
 		$start =  strtotime($startsToday ? "today" : "last sunday");
 		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
 				$arb = new ICCArbiter();
+				/** @psalm-suppress InvalidArrayOffset */
 				$arb->type = $validTypes[($pos + $i) % 3];
 				$arb->start = (new DateTime())->setTimestamp($start);
 				$arb->end = (new DateTime())->setTimestamp($end);
@@ -166,30 +169,28 @@ class ArbiterController {
 			}
 		} catch (Exception $e) {
 			$this->db->rollback();
-			$sendto->reply(
+			$context->reply(
 				"Error saving the new dates into the database: ".
 				$e->getMessage()
 			);
 			return;
 		}
 		$this->db->commit();
-		$sendto->reply(
+		$context->reply(
 			"New times saved. It's currently <highlight>".
-			strtoupper($args[1]) . "<end> week."
+			strtoupper($setWeek) . "<end> week."
 		);
 	}
 
 	/**
 	 * @HandlesCommand("arbiter")
-	 * @Matches("/^arbiter$/i")
-	 * @Matches("/^arbiter (.+)$/i")
 	 */
-	public function arbiterCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
-		if (count($args) > 1) {
-			$time = strtotime($args[1]);
+		if (isset($timeGiven)) {
+			$time = strtotime($timeGiven);
 			if ($time === false) {
-				$sendto->reply("Unable to parse <highlight>{$args[1]}<end> into a date.");
+				$context->reply("Unable to parse <highlight>{$timeGiven}<end> into a date.");
 				return;
 			}
 		}
@@ -213,7 +214,7 @@ class ArbiterController {
 			$currently = "<highlight>{$currentEvent->longName}<end> for ".
 				"<highlight>" . $this->niceTimeWithoutSecs($currentEvent->end - $time) . "<end>";
 			$blob .= "Currently: {$currently}\n\n";
-			if (count($args) > 1) {
+			if (isset($timeGiven)) {
 				$msg = "On " . ((new DateTime("@{$time}"))->format("d-M-Y")).
 					", it's <highlight>{$currentEvent->longName}<end>.";
 			} else {
@@ -223,7 +224,7 @@ class ArbiterController {
 			$currentEvent->end += static::CYCLE_LENGTH;
 			array_push($upcomingEvents, $currentEvent);
 		} else {
-			if (count($args) > 1) {
+			if (isset($timeGiven)) {
 				$msg = "On " . ((new DateTime("@{$time}"))->format("d-M-Y")) . ", the arbiter is not here.";
 			} else {
 				$msg = "The arbiter is currently not here.";
@@ -235,12 +236,84 @@ class ArbiterController {
 		}
 		$blob .= "\n\n<i>All arbiter weeks last for 8 days (Sunday 00:00 to Sunday 23:59)</i>";
 		if ($upcomingEvents[0]->isActiveOn($time)) {
-			$msg .= " " . $this->text->makeBlob("Upcoming arbiter events", $blob);
+			$msg = $this->text->blobWrap(
+				"{$msg} ",
+				$this->text->makeBlob("Upcoming arbiter events", $blob)
+			);
 		} else {
-			$msg .= " " . $this->text->makeBlob("Next arbiter event", $blob, "Upcoming arbiter events").
+			$msg = $this->text->blobWrap(
+				"{$msg} ",
+				$this->text->makeBlob("Next arbiter event", $blob, "Upcoming arbiter events"),
 				" is " . $upcomingEvents[0]->longName . " in ".
-				$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . ".";
+					$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . "."
+			);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @NewsTile("arbiter")
+	 * @Description("Shows the current ICC arbiter week - if any")
+	 * @Example("<header2>Arbiter<end>
+	 * <tab>It's currently <highlight>DIO week<end>.")
+	 */
+	public function arbiterNewsTile(string $sender, callable $callback): void {
+		/** @var ArbiterEvent[] */
+		$upcomingEvents = [
+			$this->getNextBS(),
+			$this->getNextAI(),
+			$this->getNextDIO(),
+		];
+
+		// Sort them by start date, to the next one coming up or currently on is the first
+		usort(
+			$upcomingEvents,
+			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+				return $e1->start <=> $e2->start;
+			}
+		);
+		if (!$upcomingEvents[0]->isActiveOn(time())) {
+			$callback(null);
+			return;
+		}
+		$currentEvent = array_shift($upcomingEvents);
+		$msg = "<header2>Arbiter<end>\n".
+			"<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
+		$callback($msg);
+	}
+
+	/**
+	 * @NewsTile("arbiter-force")
+	 * @Description("Shows the current ICC arbiter week or what the next one will be")
+	 * @Example("<header2>Arbiter<end>
+	 * <tab>The arbiter is currently not here.
+	 * <tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>.")
+	 */
+	public function arbiterNewsForceTile(string $sender, callable $callback): void {
+		/** @var ArbiterEvent[] */
+		$upcomingEvents = [
+			$this->getNextBS(),
+			$this->getNextAI(),
+			$this->getNextDIO(),
+		];
+
+		// Sort them by start date, to the next one coming up or currently on is the first
+		usort(
+			$upcomingEvents,
+			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+				return $e1->start <=> $e2->start;
+			}
+		);
+		$msg = "<header2>Arbiter<end>\n";
+		if (!$upcomingEvents[0]->isActiveOn(time())) {
+			$msg .= "<tab>The arbiter is currently not here.\n";
+			$nextEvent = array_shift($upcomingEvents);
+			$msg .= "<tab><highlight>{$nextEvent->longName}<end> starts in ".
+				"<highlight>" . $this->niceTimeWithoutSecs($nextEvent->start - time()) . "<end>.";
+		} else {
+			$currentEvent = array_shift($upcomingEvents);
+			$msg .= "<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
+		}
+		$callback($msg);
 	}
 }

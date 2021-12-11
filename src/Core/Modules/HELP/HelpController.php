@@ -4,9 +4,9 @@ namespace Nadybot\Core\Modules\HELP;
 
 use Nadybot\Core\{
 	BotRunner,
+	CmdContext,
 	CommandAlias,
 	CommandManager,
-	CommandReply,
 	HelpManager,
 	Text,
 };
@@ -49,7 +49,7 @@ class HelpController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->helpManager->register(
 			$this->moduleName,
 			"about",
@@ -61,6 +61,7 @@ class HelpController {
 		$this->commandAlias->register($this->moduleName, "help about", "about");
 	}
 
+	/** @return string|string[] */
 	public function getAbout() {
 		$data = file_get_contents(__DIR__ . "/about.txt");
 		$version = BotRunner::getVersion();
@@ -70,14 +71,13 @@ class HelpController {
 
 	/**
 	 * @HandlesCommand("help")
-	 * @Matches("/^help$/i")
 	 */
-	public function helpListCommand(string $message, string $channel, string $sender, CommandReply $sendto): void {
-		$data = $this->helpManager->getAllHelpTopics($sender);
+	public function helpListCommand(CmdContext $context): void {
+		$data = $this->helpManager->getAllHelpTopics($context->char->name);
 
 		if (count($data) === 0) {
 			$msg = "No help files found.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = '';
@@ -93,36 +93,35 @@ class HelpController {
 
 		$msg = $this->text->makeBlob("Help (main)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("help")
-	 * @Matches("/^help (.+)$/i")
 	 */
-	public function helpShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$helpcmd = strtolower($args[1]);
+	public function helpShowCommand(CmdContext $context, string $cmd): void {
+		$cmd = strtolower($cmd);
 
-		if ($helpcmd === 'about') {
+		if ($cmd === 'about') {
 			$msg = $this->getAbout();
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		// check for alias
-		$row = $this->commandAlias->get($helpcmd);
+		$row = $this->commandAlias->get($cmd);
 		if ($row !== null && $row->status === 1) {
-			$helpcmd = explode(' ', $row->cmd)[0];
+			$cmd = explode(' ', $row->cmd)[0];
 		}
 
-		$blob = $this->helpManager->find($helpcmd, $sender);
+		$blob = $this->helpManager->find($cmd, $context->char->name);
 		if ($blob === null) {
 			$msg = "No help found on this topic.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$helpcmd = ucfirst($helpcmd);
-		$msg = $this->text->makeBlob("Help ($helpcmd)", $blob);
-		$sendto->reply($msg);
+		$cmd = ucfirst($cmd);
+		$msg = $this->text->makeBlob("Help ($cmd)", $blob);
+		$context->reply($msg);
 	}
 }

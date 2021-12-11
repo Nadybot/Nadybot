@@ -13,6 +13,7 @@ use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -68,7 +69,8 @@ class DB {
 	private array $meta = [];
 	private array $metaTypes = [];
 
-	private LoggerWrapper $logger;
+	/** @Logger */
+	public LoggerWrapper $logger;
 
 	protected array $sqlReplacements = [];
 	protected array $sqlRegexpReplacements = [];
@@ -84,10 +86,6 @@ class DB {
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
 	public const MSSQL = 'mssql';
-
-	public function __construct() {
-		$this->logger = new LoggerWrapper('SQL');
-	}
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {
@@ -144,13 +142,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the MySQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -159,18 +155,10 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->sql->exec("SET time_zone = '+00:00'");
-			$mysqlVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
-
-			// MariaDB 10.0.12 made aria storage stable which is read-optimized
-			if (preg_match("/MariaDB-\d+:([0-9.]+)/", $mysqlVersion, $matches)) {
-				if (version_compare($matches[1], "10.0.12") >= 0) {
-					$this->sql->exec("SET default_storage_engine = aria");
-				}
-			}
 			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
@@ -180,8 +168,7 @@ class DB {
 			}
 			if (!@file_exists($dbName)) {
 				if (!touch($dbName)) {
-					$this->logger->log(
-						'ERROR',
+					$this->logger->error(
 						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
 						"exists and is writable by the current user."
 					);
@@ -228,13 +215,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -243,7 +228,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 		} elseif ($this->type === self::MSSQL) {
 			do {
@@ -261,13 +246,11 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (Throwable $e) {
 					if (!$errorShown) {
-						$this->logger->log(
-							"ERROR",
+						$this->logger->error(
 							"Cannot connect to the MSSQL db at {$host}: ".
 							trim($e->errorInfo[2])
 						);
-						$this->logger->log(
-							"INFO",
+						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
 						);
 						$errorShown = true;
@@ -276,13 +259,26 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->log("INFO", "Database connection re-established");
+				$this->logger->notice("Database connection re-established");
 			}
 		} else {
-			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "' or '" . self::SQLITE . "'.");
+			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
+		/** @psalm-suppress TooManyArguments */
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
+		$this->capsule->getConnection()->beforeExecuting(
+			function(string $query, array $bindings, Connection $connection): void {
+				$this->logger->debug(
+					$query,
+					[
+						"params" => $bindings,
+						"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
+						"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
+					]
+				);
+			}
+		);
 	}
 
 	/**
@@ -323,14 +319,14 @@ class DB {
 			$refProp = new ReflectionProperty($row, $colMeta["name"]);
 			$refProp->setAccessible(true);
 			if ($type === "bool") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (bool)$stringValue);
 					}
 				};
 			} elseif ($type === "int") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp) {
+				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (int)$stringValue);
@@ -357,6 +353,7 @@ class DB {
 		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
 		$result = [];
 		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
+			/** @var DBRow $row */
 			$typeChangers = $this->getTypeChanger($ps, $row);
 			foreach ($typeChangers as $changer) {
 				$changer($row);
@@ -377,6 +374,10 @@ class DB {
 		$ps = $this->executeQuery($sql, $args);
 		return $ps->fetchAll(
 			PDO::FETCH_FUNC,
+			/**
+			 * @param mixed $values
+			 * @return mixed
+			 */
 			function (...$values) use ($ps, $className) {
 				return $this->convertToClass($ps, $className, $values);
 			}
@@ -387,7 +388,7 @@ class DB {
 	 * Execute an SQL statement and return the first row as an objects of the given class
 	 * @deprecated Will be removed in Nadybot 6.0
 	 */
-	public function fetch(string $className, string $sql, ...$args) {
+	public function fetch(string $className, string $sql, ...$args): ?object {
 		return $this->fetchAll(...func_get_args())[0] ?? null;
 	}
 
@@ -420,7 +421,7 @@ class DB {
 		}
 	}
 
-	public function convertToClass(PDOStatement $ps, string $className, array $values) {
+	public function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
 		$metaKey = md5($ps->queryString);
@@ -438,7 +439,8 @@ class DB {
 			if ($values[$col] === null) {
 				try {
 					$refProp = $refClass->getProperty($colName);
-					if ($refProp->getType()->allowsNull()) {
+					$refType = $refProp->getType();
+					if (isset($refType) && $refType->allowsNull()) {
 						$row->{$colName} = $values[$col];
 					}
 				} catch (ReflectionException $e) {
@@ -461,11 +463,7 @@ class DB {
 					$row->{$colName} = $values[$col];
 				}
 			} catch (Throwable $e) {
-				$this->logger->log(
-					'ERROR',
-					$e->getMessage(),
-					$e
-				);
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
 				throw $e;
 			}
 		}
@@ -512,7 +510,7 @@ class DB {
 			$indexQuery = $this->applySQLCompatFixes($indexQuery);
 			$ps = $this->executeQuery($indexQuery, [$tableName, $indexName]);
 			$indexResult = $ps->fetch(PDO::FETCH_ASSOC);
-			if ($indexResult !== null && (int)$indexResult["indexthere"] > 0) {
+			if ($indexResult !== false && (int)$indexResult["indexthere"] > 0) {
 				return 1;
 			}
 			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
@@ -521,11 +519,10 @@ class DB {
 				$ps = $this->executeQuery($sql, $args);
 				return $ps->rowCount();
 			} catch (SQLException $e) {
-				$this->logger->log(
-					"WARN",
+				$this->logger->warning(
 					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
 					"consider upgrading to the latest MariaDB or use SQLite.",
-					$e
+					["exception" => $e]
 				);
 				return 1;
 			}
@@ -554,9 +551,12 @@ class DB {
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
-		// $sql = $this->applySQLCompatFixes($sql);
 		$this->lastQuery = $sql;
-		$this->logger->log('DEBUG', $sql . " - " . print_r($params, true));
+		$this->logger->debug($sql, [
+			"params" => $params,
+			"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
+			"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
+		]);
 
 		try {
 			$ps = $this->sql->prepare($sql);
@@ -580,8 +580,7 @@ class DB {
 				return $this->executeQuery($sql, $params);
 			}
 			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
-				$this->logger->log(
-					'WARNING',
+				$this->logger->warning(
 					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
 				);
 				call_user_func($this->reconnect);
@@ -595,7 +594,7 @@ class DB {
 	 * Start a transaction
 	 */
 	public function beginTransaction(): void {
-		$this->logger->log('DEBUG', "Starting transaction");
+		$this->logger->info("Starting transaction");
 		$this->sql->beginTransaction();
 	}
 
@@ -603,15 +602,19 @@ class DB {
 	 * Commit a transaction
 	 */
 	public function commit(): void {
-		$this->logger->log('DEBUG', "Committing transaction");
-		$this->sql->commit();
+		$this->logger->info("Committing transaction");
+		try {
+			$this->sql->commit();
+		} catch (PDOException $e) {
+			$this->logger->info("No active transaction to commit");
+		}
 	}
 
 	/**
 	 * Roll back a transaction
 	 */
 	public function rollback(): void {
-		$this->logger->log('DEBUG', "Rolling back transaction");
+		$this->logger->info("Rolling back transaction");
 		$this->sql->rollback();
 	}
 
@@ -669,7 +672,7 @@ class DB {
 		// only letters, numbers, underscores are allowed
 		if (!preg_match('/^[a-z0-9_]+$/i', $name)) {
 			$msg = "Invalid SQL file name: '$name' for module: '$module'!  Only numbers, letters, and underscores permitted!";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 
@@ -678,7 +681,7 @@ class DB {
 		$dir = $this->util->verifyFilename($module);
 		if (empty($dir)) {
 			$msg = "Could not find module '$module'.";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 		$d = dir($dir);
@@ -713,7 +716,7 @@ class DB {
 
 		if ($file === false) {
 			$msg = "No SQL file found with name '$name' in module '$module'!";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 
@@ -722,13 +725,13 @@ class DB {
 
 		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
 			$msg = "'$name' database already up to date! version: '$currentVersion'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 			return $msg;
 		}
 		$handle = @fopen("$dir/$file", "r");
 		if ($handle === false) {
 			$msg = "Could not load SQL file: '$dir/$file'";
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 			return $msg;
 		}
 		try {
@@ -753,14 +756,14 @@ class DB {
 
 			if ($maxFileVersion != 0) {
 				$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
-				$this->logger->log('DEBUG', $msg);
+				$this->logger->info($msg);
 			} else {
 				$msg = "Updated '$name' database";
-				$this->logger->log('DEBUG', $msg);
+				$this->logger->info($msg);
 			}
 		} catch (SQLException $e) {
 			$msg = "Error loading sql file '$file': " . $e->getMessage();
-			$this->logger->log('ERROR', $msg);
+			$this->logger->error($msg);
 		}
 
 		return $msg;
@@ -839,6 +842,7 @@ class DB {
 	 * @return int Number of updates records
 	 */
 	public function update(string $table, $key, DBRow $row): int {
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($key) && !is_array($key)) {
 			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
 		}
@@ -904,7 +908,7 @@ class DB {
 	 *
 	 * @param  \Closure|\Illuminate\Database\Query\Builder|string  $query
 	 * @param  string  $as
-	 * @return $this
+	 * @return QueryBuilder
 	 */
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
@@ -932,12 +936,11 @@ class DB {
 				continue;
 			}
 			if ($this->schema()->hasTable(AdminManager::DB_TABLE)) {
-				$log = 'Your database is migrating to a new schema.';
+				$log = 'Migrating database to a new schema.';
 			} else {
-				$log = 'Your database is being initialized.';
+				$log = 'Initializing database.';
 			}
-			$this->logger->log(
-				'INFO',
+			$this->logger->notice(
 				$log . ' ' . 'This can take a while; please be patient.'
 			);
 			$infoShown = true;
@@ -993,7 +996,7 @@ class DB {
 		try {
 			require_once $file;
 		} catch (Throwable $e) {
-			$this->logger->log('ERROR', "Cannot parse $file: " . $e->getMessage(), $e);
+			$this->logger->error("Cannot parse $file: " . $e->getMessage(), ["exception" => $e]);
 			return;
 		}
 		$new = array_diff(get_declared_classes(), $old);
@@ -1007,14 +1010,13 @@ class DB {
 			$obj = new $class();
 			Registry::injectDependencies($obj);
 			try {
-				$this->logger->log('DEBUG', "Running migration {$class}");
+				$this->logger->info("Running migration {$class}");
 				$obj->migrate($this->logger, $this);
 			} catch (Throwable $e) {
-				$this->logger->log(
-					'ERROR',
+				$this->logger->error(
 					"Error executing {$class}::migrate(): ".
 						$e->getMessage(),
-					$e
+					["exception" => $e]
 				);
 				continue;
 			}
@@ -1085,10 +1087,10 @@ class DB {
 
 		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
 			$msg = "'{$table}' database already up to date! version: '$currentVersion'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 			return false;
 		}
-		$this->logger->log('DEBUG', "Inserting {$file}");
+		$this->logger->info("Inserting {$file}");
 		$csv = new Reader($file);
 		$items = [];
 		$itemCount = 0;
@@ -1110,17 +1112,17 @@ class DB {
 				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
-			$this->logger->log('ERROR', $e->getMessage(), $e);
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
 			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);
 
 		if ($version !== 0) {
 			$msg = "Updated '{$table}' database from '{$currentVersion}' to '{$version}'";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 		} else {
 			$msg = "Updated '{$table}' database";
-			$this->logger->log('DEBUG', $msg);
+			$this->logger->info($msg);
 		}
 		return true;
 	}
@@ -1130,10 +1132,10 @@ class DB {
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
 	 * @param string $column The table column to test against
-	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
+	 * @return void
 	 */
 	public function addWhereFromParams(QueryBuilder $query, array $params, string $column, string $boolean='and'): void {
-		$closure = function (QueryBuilder $query) use ($params, $column) {
+		$closure = function (QueryBuilder $query) use ($params, $column): void {
 			foreach ($params as $key => $value) {
 				if ($value[0] == "-" && strlen($value) > 1) {
 					$value = substr($value, 1);

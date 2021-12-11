@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Text;
 
 /**
@@ -40,17 +42,12 @@ class PlayerHistoryController {
 
 	/**
 	 * @HandlesCommand("history")
-	 * @Matches("/^history ([^ ]+) (\d)$/i")
-	 * @Matches("/^history ([^ ]+)$/i")
 	 */
-	public function playerHistoryCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$dimension = (int)$this->chatBot->vars['dimension'];
-		if (count($args) === 3) {
-			$dimension = (int)$args[2];
-		}
+	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
+		$name = $char();
+		$dimension ??= (int)$this->chatBot->vars['dimension'];
 
-		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $sendto);
+		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $context);
 	}
 
 	public function servePlayerHistory(?PlayerHistory $history, string $name, int $dimension, CommandReply $sendto): void {
@@ -65,7 +62,7 @@ class PlayerHistoryController {
 		foreach ($history->data as $entry) {
 			$date = $entry->last_changed->format("Y-m-d");
 
-			if ($entry->deleted == 1) {
+			if ($entry->deleted === "1") {
 				$blob .= "$date <highlight>|<end>   <red>DELETED<end>\n";
 				continue;
 			}
@@ -84,10 +81,13 @@ class PlayerHistoryController {
 				$faction = "<neutral>Neutral<end>  ";
 			}
 
-			if ($entry->guild_name == "") {
+			if (!isset($entry->guild_name) || $entry->guild_name == "") {
 				$guild = "Not in a guild";
 			} else {
-				$guild = $entry->guild_name . " (<highlight>" . $entry->guild_rank_name . "<end>)";
+				$guild = $entry->guild_name;
+				if (isset($entry->guild_rank_name) && strlen($entry->guild_rank_name)) {
+					$guild .= " (<highlight>{$entry->guild_rank_name}<end>)";
+				}
 			}
 			$level = $this->text->alignNumber((int)$entry->level, 3);
 

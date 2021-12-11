@@ -4,6 +4,9 @@ namespace Nadybot\Core;
 
 use Exception;
 
+/**
+ * @SettingHandler("options")
+ */
 class OptionsSettingHandler extends SettingHandler {
 
 	/**
@@ -20,7 +23,7 @@ class OptionsSettingHandler extends SettingHandler {
 	 * @throws \Exception if the option is invalid
 	 */
 	public function save(string $newValue): string {
-		$options = explode(";", $this->row->options);
+		$options = explode(";", $this->row->options??"");
 		if (isset($this->row->intoptions) && $this->row->intoptions !== '') {
 			$intoptions = explode(";", $this->row->intoptions);
 			if (in_array($newValue, $intoptions)) {

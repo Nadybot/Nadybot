@@ -86,7 +86,7 @@ class LimitsController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
 			"tell_req_lvl",
@@ -228,7 +228,7 @@ class LimitsController {
 	}
 
 	public function handleAccessError(string $sender, string $message, string $msg): void {
-		$this->logger->log('Info', "$sender denied access to bot due to: $msg");
+		$this->logger->notice("$sender denied access to bot due to: $msg");
 
 		$this->handleLimitCheckFail($msg, $sender);
 
@@ -257,7 +257,7 @@ class LimitsController {
 			$errorHandler("Error! Unable to get your character info for limit checks. Please try again later.");
 			return;
 		}
-		$tellReqFaction = $this->settingManager->get('tell_req_faction');
+		$tellReqFaction = $this->settingManager->getString('tell_req_faction')??"all";
 		$tellReqLevel = $this->settingManager->getInt('tell_req_lvl');
 
 		// check minlvl
@@ -296,6 +296,7 @@ class LimitsController {
 			$this->playerHistoryManager->asyncLookup(
 				$sender,
 				(int)$this->chatBot->vars['dimension'],
+				/** @param mixed $args */
 				function(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
 					$this->handleMinAgeRequirements($history, $errorHandler, $successHandler, ...$args);
 				},
@@ -328,13 +329,13 @@ class LimitsController {
 			$errorHandler("Error! Unable to get your character history for limit checks. Please try again later.");
 			return;
 		}
-		$minAge = time() - $this->settingManager->getInt("tell_min_player_age");
+		$minAge = time() - ($this->settingManager->getInt("tell_min_player_age")??1);
 		/** @var PlayerHistoryData */
 		$entry = array_pop($history->data);
 		// TODO check for rename
 
 		if ($entry->last_changed->getTimestamp() > $minAge) {
-			$timeString = $this->util->unixtimeToReadable($this->settingManager->getInt("tell_min_player_age"));
+			$timeString = $this->util->unixtimeToReadable($this->settingManager->getInt("tell_min_player_age")??1);
 			$errorHandler("Error! You must be at least <highlight>$timeString<end> old.");
 			return;
 		}
@@ -350,7 +351,7 @@ class LimitsController {
 		if ($event->cmdHandler && !$this->commandHandlerCounts($event->cmdHandler)) {
 			return;
 		}
-		$toCount = $this->settingManager->getInt('limits_cmd_type');
+		$toCount = $this->settingManager->getInt('limits_cmd_type')??0;
 		$isSuccess = in_array($event->type, ["command(success)"]);
 		$isFailure = !in_array($event->type, ["command(success)"]);
 		if (($isSuccess && ($toCount & static::SUCCESS) === 0)
@@ -358,10 +359,10 @@ class LimitsController {
 			return;
 		}
 		$now = time();
-		$this->limitBucket[$event->sender] ??= [];
-		$this->limitBucket[$event->sender] []= $now;
+		$this->limitBucket[(string)$event->sender] ??= [];
+		$this->limitBucket[(string)$event->sender] []= $now;
 
-		if ($this->isOverLimit($event->sender)) {
+		if ($this->isOverLimit((string)$event->sender)) {
 			$this->executeOverrateAction($event);
 		}
 	}
@@ -378,7 +379,7 @@ class LimitsController {
 		if ($this->rateIgnoreController->check($sender)) {
 			return false;
 		}
-		$timeWindow = $this->settingManager->getInt('limits_window');
+		$timeWindow = $this->settingManager->getInt('limits_window')??5;
 		$now = time();
 		// Remove all entries older than $timeWindow from the queue
 		$this->limitBucket[$sender] = array_values(
@@ -410,16 +411,15 @@ class LimitsController {
 	 * Trigger the configured action, because $event was over the allowed threshold
 	 */
 	public function executeOverrateAction(CmdEvent $event): void {
-		$action = $this->settingManager->getInt('limits_overrate_action');
-		$blockadeLength =$this->settingManager->getInt('limits_ignore_duration');
+		$action = $this->settingManager->getInt('limits_overrate_action')??4;
+		$blockadeLength =$this->settingManager->getInt('limits_ignore_duration')??300;
 		if ($action & 1) {
 			if (isset($this->chatBot->chatlist[$event->sender])) {
 				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
-				$this->logger->log('INFO', "Kicking {$event->sender} from private channel.");
+				$this->logger->notice("Kicking {$event->sender} from private channel.");
 				$this->chatBot->privategroup_kick($event->sender);
 				$audit = new Audit();
-				$audit->actor = $this->chatBot->char->name;
-				$audit->actor = $event->sender;
+				$audit->actor = (string)$event->sender;
 				$audit->action = AccessManager::KICK;
 				$audit->value = "limits exceeded";
 				$this->accessManager->addAudit($audit);
@@ -427,14 +427,14 @@ class LimitsController {
 		}
 		if ($action & 2) {
 			$uid = $this->chatBot->get_uid($event->sender);
-			if ($uid) {
-				$this->logger->log('INFO', "Blocking {$event->sender} for {$blockadeLength}s.");
-				$this->banController->add($uid, $event->sender, $blockadeLength, "Too many commands executed");
+			if (is_int($uid)) {
+				$this->logger->notice("Blocking {$event->sender} for {$blockadeLength}s.");
+				$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
 			}
 		}
 		if ($action & 4) {
-			$this->logger->log('INFO', "Ignoring {$event->sender} for {$blockadeLength}s.");
-			$this->ignore($event->sender, $blockadeLength);
+			$this->logger->notice("Ignoring {$event->sender} for {$blockadeLength}s.");
+			$this->ignore((string)$event->sender, $blockadeLength);
 		}
 	}
 
@@ -444,7 +444,7 @@ class LimitsController {
 	 */
 	public function ignore(string $sender, int $duration): bool {
 		$this->ignoreList[$sender] = time() + $duration;
-		$this->logger->log('INFO', "Ignoring {$sender} for {$duration}s.");
+		$this->logger->notice("Ignoring {$sender} for {$duration}s.");
 		return true;
 	}
 
@@ -466,7 +466,7 @@ class LimitsController {
 		foreach ($this->ignoreList as $name => $expires) {
 			if ($expires < $now) {
 				unset($this->ignoreList[$name]);
-				$this->logger->log('INFO', "Unignoring {$name} again.");
+				$this->logger->notice("Unignoring {$name} again.");
 			}
 		}
 	}
@@ -478,7 +478,7 @@ class LimitsController {
 	 */
 	public function expireBuckets(): void {
 		$now = time();
-		$timeWindow = $this->settingManager->getInt('limits_window');
+		$timeWindow = $this->settingManager->getInt('limits_window')??5;
 		foreach ($this->limitBucket as $user => &$bucket) {
 			$bucket = array_filter(
 				$bucket,

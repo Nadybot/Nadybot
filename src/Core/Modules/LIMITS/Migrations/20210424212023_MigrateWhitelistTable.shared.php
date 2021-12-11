@@ -15,7 +15,7 @@ class MigrateWhitelistTable implements SchemaMigration {
 			->select("name", "added_by", "added_dt")
 			->orderBy("added_dt")
 			->asObj()
-			->each(function($data) use ($db) {
+			->each(function(object $data) use ($db) {
 				$db->table('rateignorelist')
 					->insert(get_object_vars($data));
 			});

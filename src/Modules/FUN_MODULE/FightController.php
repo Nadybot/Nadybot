@@ -2,7 +2,8 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 
@@ -36,17 +37,16 @@ class FightController {
 
 	/**
 	 * @HandlesCommand("fight")
-	 * @Matches("/^fight (.+) vs (.+)$/i")
-	 * @Matches("/^fight (.+) (.+)$/i")
+	 * @Mask $vs vs
 	 */
-	public function fightCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$player1 = ucfirst(strtolower($args[1]));
-		$player2 = ucfirst(strtolower($args[2]));
+	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs, PCharacter $player2): void {
+		$player1 = $player1();
+		$player2 = $player2();
 
 		// Checks if user is trying to get Chuck Norris to fight another Chuck Norris
 		if ($this->isChuckNorris($player1) && $this->isChuckNorris($player2)) {
 			$msg = "There's only enough room in this world for one Chuck Norris!";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -57,7 +57,7 @@ class FightController {
 				"$player1 can't fight $player2, it may break the voids of space and time!",
 				"As much as I'd love to see $player1 punching himself/herself in the face, it just isn't theoretical..."];
 
-			$sendto->reply($this->util->randomArrayValue($twin));
+			$context->reply($this->util->randomArrayValue($twin));
 			return;
 		}
 
@@ -82,7 +82,7 @@ class FightController {
 			$msg = $this->text->makeBlob("$player1 vs $player2: It's a tie!", $list);
 		}
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getFighter($name): Fighter {

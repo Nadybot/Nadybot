@@ -3,12 +3,16 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
+	AOChatEvent,
+	CmdContext,
 	CommandReply,
 	Event,
+	EventManager,
 	Nadybot,
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
@@ -27,6 +31,8 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
  *		description = 'Sets the rally waypoint',
  *		help        = 'rally.txt'
  *	)
+ *	@ProvidesEvent(value="sync(rally-set)", desc="Triggered when a rally point is set")
+ *	@ProvidesEvent(value="sync(rally-clear)", desc="Triggered when someone clears the rally point")
  */
 class ChatRallyController {
 	public string $moduleName;
@@ -44,6 +50,9 @@ class ChatRallyController {
 	public Nadybot $chatBot;
 
 	/** @Inject */
+	public EventManager $eventManager;
+
+	/** @Inject */
 	public ChatLeaderController $chatLeaderController;
 
 	/** @Setup */
@@ -59,28 +68,31 @@ class ChatRallyController {
 	}
 
 	/**
-	 * This command handler ...
+	 * This command displays the current rally location
 	 * @HandlesCommand("rally")
-	 * @Matches("/^rally$/i")
 	 */
-	public function rallyCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->replyCurrentRally($sendto);
+	public function rallyCommand(CmdContext $context): void {
+		$this->replyCurrentRally($context);
 	}
 
 	/**
-	 * This command handler ...
+	 * This command handler clears the current rally location
 	 * @HandlesCommand("rally .+")
-	 * @Matches("/^rally clear$/i")
+	 * @Mask $action clear
 	 */
-	public function rallyClearCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function rallyClearCommand(CmdContext $context, string $action): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
 		$this->clear();
 		$msg = "Rally has been cleared.";
-		$sendto->reply($msg);
+		$context->reply($msg);
+		$rEvent = new SyncRallyClearEvent();
+		$rEvent->owner = $context->char->name;
+		$rEvent->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($rEvent);
 	}
 
 	/**
@@ -91,37 +103,45 @@ class ChatRallyController {
 	 *  - etc...
 	 *
 	 * @HandlesCommand("rally .+")
-	 * @Matches("/^rally ([0-9\.]+)([x,. ]+)([0-9\.]+)([x,. ]+)([^ ]+)$/i")
+	 * @Mask $x ([0-9.]+\s*(?:[x,.]*))
+	 * @Mask $y ([0-9.]+\s*(?:[x,.]*))
 	 */
-	public function rallySet2Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function rallySet2Command(CmdContext $context, string $x, string $y, PWord $pf): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
+		$xCoords = (float)$x;
+		$yCoords = (float)$y;
 
-		$xCoords = $args[1];
-		$yCoords = $args[3];
-
-		if (is_numeric($args[5])) {
-			$playfieldId = (int)$args[5];
+		$playfieldName = $pf();
+		if (is_numeric($pf())) {
+			$playfieldId = (int)$pf();
 			$playfieldName = (string)$playfieldId;
 
 			$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
-			if ($playfield !== null) {
+			if ($playfield !== null && isset($playfield->short_name)) {
 				$playfieldName = $playfield->short_name;
 			}
 		} else {
-			$playfieldName = $args[5];
+			$playfieldName = $pf();
 			$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 			if ($playfield === null) {
-				$sendto->reply("Could not find playfield '$playfieldName'");
+				$context->reply("Could not find playfield '{$playfieldName}'");
 				return;
 			}
 			$playfieldId = $playfield->id;
 		}
-		$this->set($playfieldName, $playfieldId, $xCoords, $yCoords);
-
-		$this->replyCurrentRally($sendto);
+		$this->set($playfieldName, $playfieldId, (string)$xCoords, (string)$yCoords);
+		$this->replyCurrentRally($context);
+		$rEvent = new SyncRallySetEvent();
+		$rEvent->x = (int)round($xCoords);
+		$rEvent->y = (int)round($yCoords);
+		$rEvent->pf = $playfieldId;
+		$rEvent->owner = $context->char->name;
+		$rEvent->name = $playfieldName;
+		$rEvent->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($rEvent);
 	}
 
 	/**
@@ -129,42 +149,71 @@ class ChatRallyController {
 	 *  - rally (10.9 30 y 20 2434234)
 	 *
 	 * @HandlesCommand("rally .+")
-	 * @Matches("/^rally (.+)$/i")
 	 */
-	public function rallySet1Command(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (!$this->chatLeaderController->checkLeaderAccess($sender)) {
-			$sendto->reply("You must be Raid Leader to use this command.");
+	public function rallySet1Command(CmdContext $context, string $input): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		if (preg_match("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $args[1], $matches)) {
+		if (preg_match("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $input, $matches)) {
 			$xCoords = $matches[1];
 			$yCoords = $matches[2];
 			$playfieldId = (int)$matches[3];
 		} else {
-			$sendto->reply("This does not look like full coordinates. Please press shift+F9 and paste the first line starting with a dash.");
+			$context->reply("This does not look like full coordinates. Please press shift+F9 and paste the first line starting with a dash.");
 			return;
 		}
 
 		$name = (string)$playfieldId;
 		$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
-		if ($playfield !== null) {
+		if ($playfield !== null && isset($playfield->short_name)) {
 			$name = $playfield->short_name;
 		}
 		$this->set($name, $playfieldId, $xCoords, $yCoords);
+		$this->replyCurrentRally($context);
 
-		$this->replyCurrentRally($sendto);
+		$rEvent = new SyncRallySetEvent();
+		$rEvent->x = (int)round((float)$xCoords);
+		$rEvent->y = (int)round((float)$yCoords);
+		$rEvent->pf = $playfieldId;
+		$rEvent->name = $name;
+		$rEvent->owner = $context->char->name;
+		$rEvent->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($rEvent);
+	}
+
+	/**
+	 * @Event("sync(rally-set)")
+	 * @Description("Handle synced rally sets")
+	 */
+	public function handleExtRallySet(SyncRallySetEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->set($event->name, $event->pf, (string)$event->x, (string)$event->y);
+	}
+
+	/**
+	 * @Event("sync(rally-clear)")
+	 * @Description("Handle synced rally clears")
+	 */
+	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->clear();
 	}
 
 	/**
 	 * @Event("joinpriv")
 	 * @Description("Sends rally to players joining the private channel")
 	 */
-	public function sendRally(Event $eventObj): void {
+	public function sendRally(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
 		$rally = $this->get();
-		if ($rally !== '') {
+		if ($rally !== '' && is_string($sender)) {
 			$this->chatBot->sendMassTell($rally, $sender);
 		}
 	}
@@ -176,7 +225,7 @@ class ChatRallyController {
 	}
 
 	public function get(): string {
-		$data = $this->settingManager->get("rally");
+		$data = $this->settingManager->getString("rally")??"";
 		if (strpos($data, ":") === false) {
 			return "";
 		}
@@ -184,7 +233,7 @@ class ChatRallyController {
 		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use rally: $link";
 		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
-		return $this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob);
+		return ((array)$this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob))[0];
 	}
 
 	public function clear(): void {
@@ -199,5 +248,23 @@ class ChatRallyController {
 			return;
 		}
 		$sendto->reply($rally);
+	}
+
+	/**
+	 * @NewsTile("rally")
+	 * @Description("Will show a waypoint-link to the current rally-point - if any")
+	 * @Example("<header2>Rally<end>
+	 * <tab>We are rallying <u>here</u>")
+	 */
+	public function rallyTile(string $sender, callable $callback): void {
+		$data = $this->settingManager->getString("rally")??"";
+		if (strpos($data, ":") === false) {
+			$callback(null);
+			return;
+		}
+		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
+		$link = $this->text->makeChatcmd("here", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
+		$msg = "<header2>Rally<end>\n<tab>We are rallying {$link}";
+		$callback($msg);
 	}
 }

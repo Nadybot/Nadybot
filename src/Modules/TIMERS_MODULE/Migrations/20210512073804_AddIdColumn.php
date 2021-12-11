@@ -13,7 +13,7 @@ class AddIdColumn implements SchemaMigration {
 		$table = TimerController::DB_TABLE;
 		$data = $db->table($table)
 			->asObj()
-			->map(function($item) {
+			->map(function(object $item) {
 				return get_object_vars($item);
 			})->toArray();
 		$db->schema()->dropIfExists($table);

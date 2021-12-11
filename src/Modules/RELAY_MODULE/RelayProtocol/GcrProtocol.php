@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Event;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -29,6 +30,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Param(name='send-logon', description='Send messages that people in your org go online or offline', type='bool', required=false)
  */
 class GcrProtocol implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
+
 	protected Relay $relay;
 
 	/** @Inject */
@@ -45,6 +48,9 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	/** @Inject */
 	public OnlineController $onlineController;
+
+	/** @Inject */
+	public Nadybot $chatBot;
 
 	protected string $command = "gcr";
 	protected string $prefix = "";
@@ -158,7 +164,10 @@ class GcrProtocol implements RelayProtocolInterface {
 			"##highlight##{$player->name}##end## ".
 			"(Lvl ##logon_level##{$player->level}##end##/".
 			"##logon_ailevel##{$player->ai_level}##end## ".
-			$player->faction . " " . $player->profession;
+			$player->faction;
+		if (isset($player->profession)) {
+			$msg .= " " . $player->profession;
+		}
 		if (strlen($player->guild??"")) {
 			$msg .= ", ##logon_organization##{$player->guild_rank} ".
 			"of {$player->guild}##end##";
@@ -167,20 +176,20 @@ class GcrProtocol implements RelayProtocolInterface {
 		return $msg;
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$data = array_shift($msg->packages);
+		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
 		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
 			if (preg_match("/^.?{$command}c (.+)/s", $data, $matches)) {
-				return $this->handleOnlineCommands($msg->sender, $matches[1]);
+				return $this->handleOnlineCommands($message->sender, $matches[1]);
 			}
 			return null;
 		}
 		if (preg_match("/##logon_log(on|off)_spam##/s", $data)) {
-			return $this->handleLogonSpam($msg->sender, $data);
+			return $this->handleLogonSpam($message->sender, $data);
 		}
 		$data = $matches[1];
 		$r = new RoutableMessage($data);
@@ -191,12 +200,14 @@ class GcrProtocol implements RelayProtocolInterface {
 					substr($matches[1], 0, -6)
 				);
 				$r->appendPath($source);
-				$source = new Source(
-					Source::PRIV,
-					$msg->sender,
-					"Guest"
-				);
-				$r->appendPath($source);
+				if (isset($message->sender)) {
+					$source = new Source(
+						Source::PRIV,
+						$message->sender,
+						"Guest"
+					);
+					$r->appendPath($source);
+				}
 			} else {
 				$source = new Source(
 					count($r->path) ? Source::PRIV : Source::ORG,
@@ -213,12 +224,14 @@ class GcrProtocol implements RelayProtocolInterface {
 					substr($matches[1], 0, -6)
 				);
 				$r->appendPath($source);
-				$source = new Source(
-					Source::PRIV,
-					$msg->sender,
-					"Guest"
-				);
-				$r->appendPath($source);
+				if (isset($message->sender)) {
+					$source = new Source(
+						Source::PRIV,
+						$message->sender,
+						"Guest"
+					);
+					$r->appendPath($source);
+				}
 			} else {
 				$source = new Source(
 					count($r->path) ? Source::PRIV : Source::ORG,
@@ -315,11 +328,11 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function getOnlineList(): ?string {
 		$chunks = [];
-		$onlineOrg = $this->onlineController->getPlayers('guild');
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},gc,{$char->guild_rank_id}";
 		}
-		$onlineOrg = $this->onlineController->getPlayers('priv');
+		$onlineOrg = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},pg";
 		}
@@ -379,7 +392,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			"clan"         => "#FF9933",
 			"neutral"      => "#FFFFFF",
 		];
-		$hlColor = $this->settingManager->getString('default_highlight_color');
+		$hlColor = $this->settingManager->getString('default_highlight_color') ?? "";
 		if (preg_match("/(#[A-F0-9]{6})/i", $hlColor, $matches)) {
 			$colors["highlight"] = $matches[1];
 		}
@@ -471,5 +484,9 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

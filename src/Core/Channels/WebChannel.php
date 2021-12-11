@@ -43,8 +43,14 @@ class WebChannel implements MessageReceiver {
 			$webEvent->color = $matches[1];
 		}
 		$webEvent->channel = "web";
-		$webEvent->sender = $event->getCharacter()->name;
-		$webEvent->message = $this->webChatConverter->convertMessage($event->getData());
+		$eventChar = $event->getCharacter();
+		if (isset($eventChar)) {
+			$webEvent->sender = $eventChar->name;
+		}
+		$eventData = $event->getData();
+		if (is_string($eventData)) {
+			$webEvent->message = $this->webChatConverter->convertMessage($eventData);
+		}
 		$webEvent->type = "chat(web)";
 
 		$this->eventManager->fireEvent($webEvent);

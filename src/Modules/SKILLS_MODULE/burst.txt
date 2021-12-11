@@ -1,11 +1,13 @@
-<symbol>burst [<orange>A<end>] [<orange>R<end>] [<orange>BD<end>] [<orange>BS<end>]
-[<orange>A<end>] = Weapon Attack Time
-[<orange>R<end>] = Weapon Recharge Time
-[<orange>BD<end>] = Your Burst Delay*
-[<orange>BS<end>] = Your Burst Skill
+To calculate your burst recharge:
+<tab><highlight><symbol>burst 'attack time' 'recharge time' 'burst delay' 'burst skill'<end>
+
+If you are lazy, just use
+<tab><highlight><symbol>weapon 'drop weapon into chat'<end>
 
 Example:
-Your weapon has an attack time of <orange>1.2<end> seconds and a recharge time of <orange>1.5<end> seconds.  Your weapon has a Burst Delay* of <orange>1600<end>.  You have <orange>900<end> Burst skill.
-<a href='chatcmd:///tell <myname> burst 1.2 1.5 1600 900'><symbol>burst 1.2 1.5 1600 900</a>
+<tab>Your weapon has an attack time of <highlight>1.2<end> seconds and a recharge time of <highlight>1.5<end> seconds.
+<tab>Your weapon has a Burst Delay of <highlight>1600<end>.
+<tab>You have <highlight>900<end> Burst skill.
+<tab><a href='chatcmd:///tell <myname> burst 1.2 1.5 1600 900'><symbol>burst 1.2 1.5 1600 900</a>
 
-* Your Burst Delay value (1600) can be found by using the <a href='chatcmd:///tell <myname> help specials'>specials</a> command or on <a href='chatcmd:///start http://www.auno.org'>auno.org</a> as Burst Cycle.
+<i>Your Burst Delay value (1600) can be found by using the <a href='chatcmd:///tell <myname> help specials'>specials</a> command or on <a href='chatcmd:///start http://www.auno.org'>auno.org</a> as Burst Cycle.</i>

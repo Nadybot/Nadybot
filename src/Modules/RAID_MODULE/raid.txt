@@ -27,6 +27,13 @@ before you step. By carefully checking for 'Cannot find &gt;player&lt;', you
 can easily spot who joined the raid but isn't here yet or was simply never
 invited.
 
+If you want to get rid of people in your private channel who are currently
+not in the raid:
+<tab><highlight><symbol>raid notinkick<end>
+
+If you also want to kick those who were in the raid, but left:
+<tab><highlight><symbol>raid notinkick all<end>
+
 If you are running a point raid, points are given with
 <tab><highlight><symbol>raid reward 'amount'<end>
 

@@ -3,15 +3,16 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use DateTime;
+use Exception;
+use Throwable;
 use Nadybot\Core\{
 	BotRunner,
-	CommandReply,
+	CmdContext,
 	DB,
 	Http,
 	HttpResponse,
 	SettingManager,
 };
-use Throwable;
 
 /**
  * @author Nadyita (RK5)
@@ -59,14 +60,14 @@ class UpdateCSVFilesController {
 
 	/**
 	 * @HandlesCommand("updatecsv")
-	 * @Matches("/^updatecsv$/i")
 	 */
-	public function updateCsvCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
+		/** @psalm-suppress ForbiddenCode */
 		$gitPath = shell_exec("{$checkCmd} git");
 		$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
 		if (!$hasGit) {
-			$sendto->reply(
+			$context->reply(
 				"In order to check if any files can be updated, you need ".
 				"to have git installed and in your path."
 			);
@@ -76,25 +77,31 @@ class UpdateCSVFilesController {
 			->withQueryParams(["recursive" => 1])
 			->withTimeout(60)
 			->withHeader("Accept", "application/vnd.github.v3+json")
-			->withCallback([$this, "updateCSVFiles"], $sendto);
+			->withCallback([$this, "updateCSVFiles"], $context);
 	}
 
-	public function updateCSVFiles(HttpResponse $response, CommandReply $sendto): void {
-		if ($response === null || $response->headers["status-code"] !== "200") {
-			$error = $response->error ?: $response->body;
+	public function updateCSVFiles(HttpResponse $response, CmdContext $context): void {
+		if ($response->headers["status-code"] !== "200") {
+			$error = $response->error ?: $response->body ?? 'null';
 			try {
 				$error = json_decode($error, false, 512, JSON_THROW_ON_ERROR);
 				$error = $error->message;
 			} catch (Throwable $e) {
 				// Ignore it if not json
 			}
-			$sendto->reply("Error downloading the file list: {$error}");
+			$context->reply("Error downloading the file list: {$error}");
 			return;
 		}
 		try {
+			if (!isset($response->body)) {
+				throw new Exception();
+			}
 			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			if (!is_object($data) || !isset($data->tree)) {
+				throw new Exception();
+			}
 		} catch (Throwable $e) {
-			$sendto->reply("Invalid data received from GitHub");
+			$context->reply("Invalid data received from GitHub");
 			return;
 		}
 
@@ -111,7 +118,8 @@ class UpdateCSVFilesController {
 			$updates[$file->path] = null;
 			$todo++;
 			$this->checkIfCanUpdateCsvFile(
-				function(string $path, $result) use (&$updates, &$todo, $sendto) {
+				/** @param string|bool $result */
+				function(string $path, $result) use (&$updates, &$todo, $context): void {
 					$updates[$path] = $result;
 					$todo--;
 					if ($todo > 0) {
@@ -129,19 +137,22 @@ class UpdateCSVFilesController {
 						}
 					}
 					if (count($msgs)) {
-						$sendto->reply(join("\n", $msgs));
+						$context->reply(join("\n", $msgs));
 					} else {
-						$sendto->reply("Your database is already up-to-date.");
+						$context->reply("Your database is already up-to-date.");
 					}
 				},
 				$file->path
 			);
 		}
 		if (count($updates) === 0) {
-			$sendto->reply("No updates available right now.");
+			$context->reply("No updates available right now.");
 		}
 	}
 
+	/**
+	 * @psalm-param callable(string,string|bool):void $callback
+	 */
 	protected function checkIfCanUpdateCsvFile(callable $callback, string $file): void {
 		$this->http->get("https://api.github.com/repos/Nadybot/Nadybot/commits")
 			->withQueryParams([
@@ -153,12 +164,18 @@ class UpdateCSVFilesController {
 			->withCallback([$this, "checkDateAndUpdateCsvFile"], $callback, $file);
 	}
 
+	/**
+	 * @psalm-param callable(string,string|bool):void $callback
+	 */
 	public function checkDateAndUpdateCsvFile(HttpResponse $response, callable $callback, string $file): void {
-		if ($response === null || $response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200") {
 			$callback($file, "Could not request last commit date for {$file}.");
 			return;
 		}
 		try {
+			if (!isset($response->body)) {
+				throw new Exception();
+			}
 			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback($file, "Error decoding the JSON data from GitHub for {$file}.");
@@ -179,8 +196,11 @@ class UpdateCSVFilesController {
 			->withCallback([$this, "checkAndUpdateCsvFile"], $callback, $file, $gitModified);
 	}
 
+	/**
+	 * @psalm-param callable(string,string|bool):void $callback
+	 */
 	public function checkAndUpdateCsvFile(HttpResponse $response, callable $callback, string $file, DateTime $gitModified): void {
-		if ($response === null || $response->headers["status-code"] !== "206") {
+		if ($response->headers["status-code"] !== "206") {
 			$callback($file, "Could not get the header of {$file} from GitHub.");
 			return;
 		}
@@ -198,7 +218,7 @@ class UpdateCSVFilesController {
 			$callback($file, false);
 			return;
 		}
-		if (preg_match("/^#\s*Requires:\s*(.+)$/m", $response->body, $matches)) {
+		if (preg_match("/^#\s*Requires:\s*(.+)$/m", $response->body??"", $matches)) {
 			if (!$this->db->hasAppliedMigration($setting->module, trim($matches[1]))) {
 				$callback(
 					$file,
@@ -219,8 +239,11 @@ class UpdateCSVFilesController {
 			->withCallback([$this, "updateCsvFile"], $callback, $setting->module, $file, $gitModified);
 	}
 
+	/**
+	 * @psalm-param callable(string,string|bool):void $callback
+	 */
 	public function updateCsvFile(HttpResponse $response, callable $callback, string $module, string $file, DateTime $gitModified): void {
-		if ($response === null || $response->headers["status-code"] !== "200") {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
 			$callback($file, "Couldn't download {$file} from GitHub.");
 			return;
 		}

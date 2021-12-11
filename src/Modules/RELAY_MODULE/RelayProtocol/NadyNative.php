@@ -3,18 +3,25 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use JsonException;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\OnlineList;
+use Nadybot\Core\{
+	EventManager,
+	LoggerWrapper,
+	Nadybot,
+	Routing\Character,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+	SyncEvent,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlineController,
+	RELAY_MODULE\Relay,
+	RELAY_MODULE\RelayMessage,
+	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
+	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
+};
+use Throwable;
 
 /**
  * @RelayProtocol("nadynative")
@@ -24,6 +31,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\OnlineList;
  * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
  */
 class NadyNative implements RelayProtocolInterface {
+	protected static int $supportedFeatures = 3;
+
 	protected Relay $relay;
 
 	/** @Logger */
@@ -38,6 +47,9 @@ class NadyNative implements RelayProtocolInterface {
 	/** @Inject */
 	public SettingManager $settingManager;
 
+	/** @Inject */
+	public EventManager $eventManager;
+
 	protected bool $syncOnline = true;
 
 	public function __construct(bool $syncOnline=true) {
@@ -45,49 +57,64 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function send(RoutableEvent $event): array {
+		$this->logger->debug("Relay {relay} received event to route", [
+			"relay" => $this->relay->getName(),
+			"event" => $event,
+		]);
 		$event = clone $event;
-		$event->data->renderPath = true;
+		if (is_object($event->data)) {
+			$event->data->renderPath = true;
+		}
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (isset($event->data) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		}
 		try {
 			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
 				$e->getMessage(),
-				$e
+				["exception" => $e]
 			);
 			return [];
 		}
 		return [$data];
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		$this->logger->debug("Relay {relay} received message to route", [
+			"relay" => $this->relay->getName(),
+			"message" => $message,
+		]);
+		if (empty($message->packages)) {
 			return null;
 		}
-		$serialized = array_shift($msg->packages);
+		$serialized = array_shift($message->packages);
 		try {
 			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			$this->logger->log(
-				'ERROR',
-				'Invalid data received via Nadynative protocol: '.$data,
-				$e
+			$this->logger->error(
+				'Invalid data received via Nadynative protocol',
+				[
+					"exception" => $e,
+					"data" => $serialized
+				]
 			);
 			return null;
 		}
 		$data->type ??= RoutableEvent::TYPE_MESSAGE;
 		switch ($data->type) {
 			case "online_list_request":
-				$this->sendOnlineList();
+				if ($this->syncOnline) {
+					$this->sendOnlineList();
+				}
 				return null;
 			case "online_list":
-				$this->handleOnlineList($msg->sender, $data);
+				if ($this->syncOnline) {
+					$this->handleOnlineList($message->sender, $data);
+				}
 				return null;
 		}
 		$event = new RoutableEvent();
@@ -112,12 +139,52 @@ class NadyNative implements RelayProtocolInterface {
 			);
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& is_object($event->data)
 			&& $event->data->type === Online::TYPE
-			&& isset($msg->sender)
+			&& isset($message->sender)
+			&& $this->syncOnline
 		) {
-			$this->handleOnlineEvent($msg->sender, $event);
+			$this->logger->debug("Received online event for {relay}", [
+				"relay" => $this->relay->getName(),
+				"event" => $event,
+			]);
+			$this->handleOnlineEvent($message->sender, $event);
 		}
+		if ($event->type === RoutableEvent::TYPE_EVENT
+			&& is_object($event->data)
+			&& fnmatch("sync(*)", $event->data->type, FNM_CASEFOLD)
+		) {
+			$this->logger->debug("Received sync event for {relay}", [
+				"relay" => $this->relay->getName(),
+				"event" => $event,
+			]);
+			$this->handleExtSyncEvent($event->data);
+			return null;
+		}
+		$this->logger->debug("Received routable event for {relay}", [
+			"relay" => $this->relay->getName(),
+			"event" => $event,
+		]);
 		return $event;
+	}
+
+	protected function handleExtSyncEvent(object $event): void {
+		try {
+			$sEvent = new SyncEvent();
+			foreach ($event as $key => $value) {
+				$sEvent->{$key} = $value;
+			}
+			if ($sEvent->isLocal()) {
+				return;
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("Invalid sync-event received: " . $e->getMessage(), ["exception" => $e]);
+			return;
+		}
+		if (!$this->relay->allowIncSyncEvent($sEvent)) {
+			return;
+		}
+		$this->eventManager->fireEvent($sEvent);
 	}
 
 	protected function sendOnlineList(): void {
@@ -177,13 +244,16 @@ class NadyNative implements RelayProtocolInterface {
 		$where = join(" ", $hops);
 		/** @var Online */
 		$llEvent = $event->data;
+		if (!isset($llEvent->char)) {
+			return;
+		}
 		$call = $llEvent->online ? [$this->relay, "setOnline"] : [$this->relay, "setOffline"];
 		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
 	}
 
 	protected function getOnlineList(): OnlineList {
 		$onlineList = new OnlineList();
-		$onlineOrg = $this->onlineController->getPlayers('guild');
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->chatBot->vars["my_guild"] ?? "") ;
 		if ($isOrg) {
 			$block = new OnlineBlock();
@@ -207,9 +277,9 @@ class NadyNative implements RelayProtocolInterface {
 		}
 
 		$privBlock = new OnlineBlock();
-		$onlinePriv = $this->onlineController->getPlayers('priv');
+		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privLabel = null;
-		if ($isOrg) {
+		if (isset($block)) {
 			$privLabel = "Guest";
 			$privBlock->path = $block->path;
 		}
@@ -231,6 +301,7 @@ class NadyNative implements RelayProtocolInterface {
 
 	public function init(callable $callback): array {
 		$callback();
+		$this->eventManager->subscribe("sync(*)", [$this, "handleSyncEvent"]);
 		if ($this->syncOnline) {
 			return [
 				$this->jsonEncode($this->getOnlineList()),
@@ -241,6 +312,7 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function deinit(callable $callback): array {
+		$this->eventManager->unsubscribe("sync(*)", [$this, "handleSyncEvent"]);
 		$callback();
 		return [];
 	}
@@ -251,5 +323,30 @@ class NadyNative implements RelayProtocolInterface {
 
 	protected function jsonEncode($data): string {
 		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+	}
+
+	public function handleSyncEvent(SyncEvent $event): void {
+		if (isset($event->sourceBot)
+			&& isset($event->sourceDimension)
+			&& ($event->sourceDimension !== (int)$this->chatBot->vars["dimension"]
+				|| $event->sourceBot !== $this->chatBot->char->name)
+		) {
+			// We don't want to relay other bot's events
+			return;
+		}
+		if (!$this->relay->allowOutSyncEvent($event) && !$event->forceSync) {
+			return;
+		}
+		$sEvent = clone $event;
+		$sEvent->sourceBot = $this->chatBot->char->name;
+		$sEvent->sourceDimension = (int)$this->chatBot->vars["dimension"];
+		$rEvent = new RoutableEvent();
+		$rEvent->setType($rEvent::TYPE_EVENT);
+		$rEvent->setData($sEvent);
+		$this->relay->receive($rEvent, "*");
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

@@ -37,7 +37,7 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		}
 		if (!isset($sysColor) || !preg_match("/#([0-9a-f]{6})/i", $sysColor->value??"", $matches)) {
 			$sysColor = "89D2E8";
-		} else {
+		} elseif (isset($matches)) {
 			$sysColor = $matches[1];
 		}
 		$sysHop = new RouteHopColor();

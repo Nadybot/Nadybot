@@ -1,0 +1,27 @@
+Startpage is an alternate attempt to present important information
+to player. It's meant as the single place to show all notifications
+and reminders when players logon or join the private channel.
+
+Note: <i>Tiles on your startpage may display information that is already
+shown to characters via tell at logon. It's your own responsibility
+to disable the events that send these tells if you don't want the
+information to be shown twice.</i>
+
+To show the currently configured startpage:
+<tab><highlight><symbol>startpage<end>
+
+To add a tile to the top of the startpage:
+<tab><highlight><symbol>startpage pick 0<end>
+
+To remove a tile from the startpage:
+<tab><highlight><symbol>startpage rem 'tile name'<end>
+
+To move a tile around on the startpage:
+<tab><highlight><symbol>startpage move 'tile name' up<end>
+<tab><highlight><symbol>startpage move 'tile name' down<end>
+
+To see your startpage:
+<tab><highlight><symbol>start<end>
+
+To customize the message that is sent with the startpage:
+<tab><a href='chatcmd:///tell <myname> settings change startpage_startmsg'><symbol>settings change startpage_startmsg</a>

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
@@ -33,9 +33,8 @@ class AlienArmorController {
 
 	/**
 	 * @HandlesCommand("aiarmor")
-	 * @Matches("/^aiarmor$/i")
 	 */
-	public function aiarmorListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function aiarmorListCommand(CmdContext $context): void {
 		$list = "Please choose from the following which armor to view information on:";
 		$list .= "\n\n<header2>Normal Armor<end>";
 		$list .= "\n<tab>" . $this->text->makeChatcmd("Strong Armor", "/tell <myname> aiarmor Strong");
@@ -52,51 +51,53 @@ class AlienArmorController {
 		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Scout's Armor", "/tell <myname> aiarmor cs");
 		$list .= "\n<tab>" . $this->text->makeChatcmd("Combined Sharpshooter's Armor", "/tell <myname> aiarmor css");
 		$msg = $this->text->makeBlob("Alien Armor List", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows tradeskill process for normal Alien Armor.
 	 *
 	 * @HandlesCommand("aiarmor")
-	 * @Matches("/^aiarmor (strong|supple|enduring|observant|arithmetic|spiritual)$/i")
-	 * @Matches("/^aiarmor (strong|supple|enduring|observant|arithmetic|spiritual) (\d+)$/i")
-	 * @Matches("/^aiarmor (\d+) (strong|supple|enduring|observant|arithmetic|spiritual)$/i")
 	 */
-	public function aiarmorNormalCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		[$armortype, $ql] = $this->extractArgs($args);
-		$armortype = ucfirst($armortype);
-		$misc_ql = (int)floor($ql * 0.8);
+	public function aiarmorNormal2Command(CmdContext $context, PBotType $armortype, int $ql): void {
+		$this->aiarmorNormalCommand($context, $ql, $armortype);
+	}
+
+	/** @HandlesCommand("aiarmor") */
+	public function aiarmorNormalCommand(CmdContext $context, ?int $ql, PBotType $armortype): void {
+		$ql ??= 300;
+		$armortype = $armortype();
+		$miscQL = (int)floor($ql * 0.8);
 
 		$list = "Note: All tradeskill processes are based on the lowest QL items usable.\n\n";
 		$list .= "<header2>You need the following items to build $armortype Armor:<end>\n";
-		$list .= "- Kyr'Ozch Viralbots (QL$misc_ql+)\n";
+		$list .= "- Kyr'Ozch Viralbots (QL$miscQL+)\n";
 		$list .= "- Kyr'Ozch Atomic Re-Structulazing Tool\n";
 		$list .= "- Solid Clump of Kyr'Ozch Biomaterial (QL$ql)\n";
-		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots (QL$misc_ql+)\n\n";
+		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots (QL$miscQL+)\n\n";
 
 		$list .= "<header2>Step 1<end>\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Viralbots", $misc_ql);
-		$list .= " QL$misc_ql+ (<highlight>Drops from Alien City Generals<end>)\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Viralbots", $miscQL);
+		$list .= " QL$miscQL+ (<highlight>Drops from Alien City Generals<end>)\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Atomic Re-Structuralizing Tool", 100);
 		$list .= " (<highlight>Drops from every Alien<end>)\n";
 		$list .= "<tab><tab>=\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Memory-Wiped Kyr'Ozch Viralbots", $misc_ql) . "\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Memory-Wiped Kyr'Ozch Viralbots", $miscQL) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= "- ".ceil($misc_ql * 4.5)." Computer Literacy\n";
-		$list .= "- ".ceil($misc_ql * 4.5)." Nano Programming\n\n";
+		$list .= "- ".ceil($miscQL * 4.5)." Computer Literacy\n";
+		$list .= "- ".ceil($miscQL * 4.5)." Nano Programming\n\n";
 
 		$list .= "<header2>Step 2<end>\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Nano Programming Interface", 1);
 		$list .= " (<highlight>Can be bought in General Shops<end>)\n";
 		$list .= "<tab><tab>+\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Memory-Wiped Kyr'Ozch Viralbots", $misc_ql) . "\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Memory-Wiped Kyr'Ozch Viralbots", $miscQL) . "\n";
 		$list .= "<tab><tab>=\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $misc_ql) . "\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $miscQL) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= "- ".ceil($misc_ql * 4.5)." Computer Literacy\n";
-		$list .= "- ".ceil($misc_ql * 6)." Nano Programming\n\n";
+		$list .= "- ".ceil($miscQL * 4.5)." Computer Literacy\n";
+		$list .= "- ".ceil($miscQL * 6)." Nano Programming\n\n";
 
 		$list .= "<header2>Step 3<end>\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Structural Analyzer", 100) . "\n";
@@ -132,7 +133,7 @@ class AlienArmorController {
 		$list .= "- ".ceil($ql * 6)." Pharma Tech\n\n";
 
 		$list .= "<header2>Step 6<end>\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $misc_ql) . "\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $miscQL) . "\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("DNA Cocktail", $ql) . "\n";
 		$list .= "<tab><tab>=\n";
@@ -198,19 +199,28 @@ class AlienArmorController {
 		$list .= "- ".floor($ql * 6)." Psychology\n\n";
 
 		$msg = $this->text->makeBlob("Building process for $ql $armortype", $list);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler shows tradeskill process for combined Alien Armor.
 	 *
 	 * @HandlesCommand("aiarmor")
-	 * @Matches("/^aiarmor (cc|cm|co|cp|cs|css|ss)$/i")
-	 * @Matches("/^aiarmor (cc|cm|co|cp|cs|css|ss) (\d+)$/i")
-	 * @Matches("/^aiarmor (\d+) (cc|cm|co|cp|cs|css|ss)$/i")
+	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
 	 */
-	public function aiarmorCombinedCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		[$armortype, $ql] = $this->extractArgs($args);
+	public function aiarmorCombinedCommand2(CmdContext $context, string $type, int $ql): void {
+		$this->aiarmorCombinedCommand($context, $ql, $type);
+	}
+
+	/**
+	 * This command handler shows tradeskill process for combined Alien Armor.
+	 *
+	 * @HandlesCommand("aiarmor")
+	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
+	 */
+	public function aiarmorCombinedCommand(CmdContext $context, ?int $ql, string $type): void {
+		$ql ??= 300;
+		$armortype = strtolower($type);
 		$targetQL = $ql;
 		$sourceQL = (int)floor($targetQL * 0.8);
 
@@ -275,6 +285,9 @@ class AlienArmorController {
 				$nameArmorTarget = "Supple Body Armor";
 				$nameTarget = "supple";
 				break;
+			default:
+				$context->reply("Unknown type selected.");
+				return;
 		}
 
 		$list = "<header2>Result<end>\n";
@@ -288,27 +301,6 @@ class AlienArmorController {
 		$list .= $this->itemsController->getItemAndIcon($nameArmorTarget, $targetQL) . " QL$targetQL";
 		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameTarget $targetQL") . ")";
 		$msg = $this->text->makeBlob("Building process for $ql $nameArmorResult", $list);
-		$sendto->reply($msg);
-	}
-
-	/**
-	 * Extracts armor type and quality from given $args regexp matches.
-	 * @return array[string,int]
-	 */
-	private function extractArgs(array $args): array {
-		$armortype = '';
-		$ql = 300;
-		// get ql and armor type from command arguments
-		for ($i = 1; $i < count($args); $i++) {
-			$value = $args[$i];
-			if (is_numeric($value)) {
-				if ($value >= 1 && $value <= 300) {
-					$ql = intval($value);
-				}
-			} else {
-				$armortype = strtolower($value);
-			}
-		}
-		return  [$armortype, $ql];
+		$context->reply($msg);
 	}
 }

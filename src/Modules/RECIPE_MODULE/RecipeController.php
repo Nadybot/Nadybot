@@ -4,8 +4,9 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
 use JsonException;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
+use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -177,11 +178,8 @@ class RecipeController {
 
 	/**
 	 * @HandlesCommand("recipe")
-	 * @Matches("/^recipe (\d+)$/i")
 	 */
-	public function recipeShowCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$id = (int)$args[1];
-
+	public function recipeShowCommand(CmdContext $context, int $id): void {
 		/** @var ?Recipe */
 		$row = $this->db->table("recipes")->where("id", $id)->asObj(Recipe::class)->first();
 
@@ -190,23 +188,22 @@ class RecipeController {
 		} else {
 			$msg = $this->createRecipeBlob($row);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @HandlesCommand("recipe")
-	 * @Matches("/^recipe (.+)$/i")
 	 */
-	public function recipeSearchCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function recipeSearchCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("recipes")
 			->orderBy("name");
-		if (preg_match("|<a href=[\"']?itemref://(\d+)/(\d+)/(\d+)[\"']?>([^<]+)</a>|", $args[1], $matches)) {
-			$search = $matches[4];
+		if (PItem::matches($search)) {
+			$item = new PItem($search);
+			$search = $item->name;
 
-			$query->whereIlike("recipe", "%{$matches[1]}%")
-				->orWhereIlike("recipe", "%{$search}%");
+			$query->whereIlike("recipe", "%{$item->lowID}%")
+				->orWhereIlike("recipe", "%{$item->name}%");
 		} else {
-			$search = $args[1];
 			$this->db->addWhereFromParams($query, explode(" ", $search), "recipe");
 		}
 		/** @var Recipe[] */
@@ -216,12 +213,12 @@ class RecipeController {
 
 		if ($count === 0) {
 			$msg = "Could not find any recipes matching your search criteria.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		if ($count === 1) {
 			$msg = $this->createRecipeBlob($data[0]);
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Recipes containing \"{$search}\"<end>\n";
@@ -231,7 +228,7 @@ class RecipeController {
 
 		$msg = $this->text->makeBlob("Recipes matching '$search' ($count)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function formatRecipeText(string $input): string {

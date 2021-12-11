@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\ALTS;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
+	CmdContext,
 	CommandReply,
 	DB,
 	DBRow,
@@ -14,12 +15,16 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Registry,
 	SettingManager,
 	SQLException,
 	Text,
 	UserStateEvent,
 };
 use Nadybot\Core\DBSchema\Audit;
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PCharacterList;
+use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
@@ -90,7 +95,7 @@ class AltsController {
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
@@ -160,35 +165,31 @@ class AltsController {
 	 * This command handler adds alt characters.
 	 *
 	 * @HandlesCommand("alts")
-	 * @Matches("/^alts add (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function addAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		/* get all names in an array */
-		$names = preg_split('/\s+/', $args[1]);
-
-		$sender = ucfirst(strtolower($sender));
-
-		$senderAltInfo = $this->getAltInfo($sender, true);
-		if (!$senderAltInfo->isValidated($sender)) {
-			$sendto->reply("You can only add alts from a main or validated alt.");
+	public function addAltCommand(CmdContext $context, string $action, PCharacterList $names): void {
+		$senderAltInfo = $this->getAltInfo($context->char->name, true);
+		if (!$senderAltInfo->isValidated($context->char->name)) {
+			$context->reply("You can only add alts from a main or validated alt.");
 			return;
 		}
+		$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
 
 		$success = 0;
 
 		// Pop a name from the array until none are left
-		foreach ($names as $name) {
+		foreach ($names->chars as $name) {
 			$name = ucfirst(strtolower($name));
-			if ($name === $sender) {
+			if ($name === $context->char->name) {
 				$msg = "You cannot add yourself as your own alt.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				continue;
 			}
 
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$msg = "Character <highlight>{$name}<end> does not exist.";
-				$sendto->reply($msg);
+				$context->reply($msg);
 				continue;
 			}
 
@@ -201,7 +202,7 @@ class AltsController {
 				} else {
 					$msg = "<highlight>{$name}<end> already requested to be added as your alt.";
 				}
-				$sendto->reply($msg);
+				$context->reply($msg);
 				continue;
 			}
 
@@ -218,11 +219,9 @@ class AltsController {
 						$msg = "Cannot add alt, because <highlight>{$name}<end> already requested to be an alt of <highlight>{$altInfo->main}<end>.";
 					}
 				}
-				$sendto->reply($msg);
+				$context->reply($msg);
 				continue;
 			}
-
-			$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
 
 			// insert into database
 			$this->addAlt($senderAltInfo->main, $name, true, $validated);
@@ -252,54 +251,54 @@ class AltsController {
 				"Make sure to confirm you as their main.";
 		}
 		// @todo Send a warning if the alt's accesslevel is higher than ours
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler adds alts to another main character.
 	 *
 	 * @HandlesCommand("alts")
-	 * @Matches("/^alts main ([a-z0-9-]+)$/i")
+	 * @Mask $action main
 	 */
-	public function addMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$newMain = ucfirst(strtolower($args[1]));
+	public function addMainCommand(CmdContext $context, string $action, PCharacter $main): void {
+		$newMain = $main();
 
-		if ($newMain === $sender) {
+		if ($newMain === $context->char->name) {
 			$msg = "You cannot add yourself as your own alt.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
-		$senderAltInfo = $this->getAltInfo($sender, true);
+		$senderAltInfo = $this->getAltInfo($context->char->name, true);
 
 		if ($senderAltInfo->main === $newMain) {
-			if ($senderAltInfo->isValidated($sender)) {
+			if ($senderAltInfo->isValidated($context->char->name)) {
 				$msg = "<highlight>{$newMain}<end> is already your main.";
 			} else {
 				$msg = "You already requested <highlight>{$newMain}<end> to become your main.";
 			}
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		if (count($senderAltInfo->alts) > 0) {
 			$msg = "You can only request to be added to a main, if you are not ".
 				"someone's alt already and don't have alts yourself - pending or not.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$uid = $this->chatBot->get_uid($newMain);
 		if (!$uid) {
 			$msg = "Character <highlight>{$newMain}<end> does not exist.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		$newMainAltInfo = $this->getAltInfo($newMain, true);
 
 		// insert into database
-		$this->addAlt($newMainAltInfo->main, $sender, false, true);
+		$this->addAlt($newMainAltInfo->main, $context->char->name, false, true);
 
 		// Try to inform a validated player from that account about new unvalidated alts
 		$sentTo = null;
@@ -307,7 +306,7 @@ class AltsController {
 		foreach ($receivers as $receiver) {
 			if ($this->buddylistManager->isOnline($receiver)) {
 				$unvalidatedByMain = $newMainAltInfo->getAllMainUnvalidatedAlts(true);
-				$this->sendMainValidationRequest($receiver, $sender, ...$unvalidatedByMain);
+				$this->sendMainValidationRequest($receiver, $context->char->name, ...$unvalidatedByMain);
 				$sentTo = $receiver;
 				break;
 			}
@@ -321,7 +320,7 @@ class AltsController {
 		$this->playerManager->getByNameAsync(function() {
 		}, $newMain);
 		$this->playerManager->getByNameAsync(function() {
-		}, $sender);
+		}, $context->char->name);
 		// @todo Send a warning if the new main's accesslevel is lower than ours
 
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".
@@ -333,19 +332,18 @@ class AltsController {
 		} else {
 			$msg .= "{$newMain}<end>.";
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler removes an alt character.
 	 *
 	 * @HandlesCommand("alts")
-	 * @Matches("/^alts (rem|del|remove|delete) ([a-z0-9-]+)$/i")
 	 */
-	public function removeAltCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[2]));
+	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
+		$name = $name();
 
-		$altInfo = $this->getAltInfo($sender, true);
+		$altInfo = $this->getAltInfo($context->char->name, true);
 
 		// You can only remove alts if you're the main or a validated alt
 		// or if you remove yourself
@@ -353,11 +351,11 @@ class AltsController {
 			$msg = "You cannot remove <highlight>{$name}<end> as your main.";
 		} elseif (!isset($altInfo->alts[$name])) {
 			$msg = "<highlight>{$name}<end> is not registered as your alt.";
-		} elseif (!$altInfo->isValidated($sender) && $name !== $sender) {
+		} elseif (!$altInfo->isValidated($context->char->name) && $name !== $context->char->name) {
 			$msg = "You must be on a validated alt to remove an alt that is not yourself.";
 		} else {
 			$this->remAlt($altInfo->main, $name);
-			if ($name !== $sender) {
+			if ($name !== $context->char->name) {
 				$msg = "<highlight>{$name}<end> has been removed as your alt.";
 			} else {
 				$msg = "You are no longer <highlight>{$altInfo->main}'s<end> alt.";
@@ -365,27 +363,28 @@ class AltsController {
 			$this->buddylistManager->remove($name, static::ALT_VALIDATE);
 			$this->removeMainFromBuddyListIfPossible($altInfo->main);
 		}
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler sets main character.
 	 *
 	 * @HandlesCommand("alts")
-	 * @Matches("/^alts setmain$/i")
+	 * @Mask $action setmain
 	 */
-	public function setMainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$altInfo = $this->getAltInfo($sender);
+	public function setMainCommand(CmdContext $context, string $action): void {
+		$newMain = $context->char->name;
+		$altInfo = $this->getAltInfo($newMain);
 
-		if ($altInfo->main === $sender) {
-			$msg = "<highlight>{$sender}<end> is already registered as your main.";
-			$sendto->reply($msg);
+		if ($altInfo->main === $newMain) {
+			$msg = "<highlight>{$newMain}<end> is already registered as your main.";
+			$context->reply($msg);
 			return;
 		}
 
-		if (!$altInfo->isValidated($sender)) {
+		if (!$altInfo->isValidated($newMain)) {
 			$msg = "You must run this command from a validated character.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
@@ -395,74 +394,67 @@ class AltsController {
 			$this->db->table("alts")->where("main", $altInfo->main)->delete();
 
 			// add current main to new main as an alt
-			$this->addAlt($sender, $altInfo->main, true, true, false);
+			$this->addAlt($newMain, $altInfo->main, true, true, false);
 
 			// add current alts to new main
 			foreach ($altInfo->alts as $alt => $validated) {
-				if ($alt !== $sender) {
-					$this->addAlt($sender, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
+				if ($alt !== $newMain) {
+					$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
 				}
 			}
 			$this->db->commit();
 		} catch (SQLException $e) {
 			$this->db->rollback();
-			$sendto->reply("There was a database error changing your main. No changes were made.");
+			$context->reply("There was a database error changing your main. No changes were made.");
 			return;
 		}
 
 		$audit = new Audit();
-		$audit->actor = $sender;
+		$audit->actor = $newMain;
 		$audit->action = AccessManager::SET_MAIN;
 		$this->accessManager->addAudit($audit);
 
 		// @todo Send a warning if the new main's accesslevel is not the highest
 		$event = new AltEvent();
-		$event->main = $sender;
+		$event->main = $newMain;
 		$event->alt = $altInfo->main;
 		$event->type = 'alt(newmain)';
 		$this->eventManager->fireEvent($event);
 
-		$msg = "Your main is now <highlight>{$sender}<end>.";
-		$sendto->reply($msg);
+		$msg = "Your main is now <highlight>{$newMain}<end>.";
+		$context->reply($msg);
 	}
 
 	/**
 	 * This command handler lists alt characters.
 	 *
 	 * @HandlesCommand("alts")
-	 * @Matches("/^alts ([a-z0-9-]+)$/i")
-	 * @Matches("/^alts$/i")
 	 */
-	public function altsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (isset($args[1])) {
-			$name = ucfirst(strtolower($args[1]));
-		} else {
-			$name = $sender;
-		}
+	public function altsCommand(CmdContext $context, ?PCharacter $name): void {
+		$name = isset($name) ? $name() : $context->char->name;
 
 		$altInfo = $this->getAltInfo($name, true);
 		if (count($altInfo->alts) === 0) {
 			$msg = "No alts are registered for <highlight>{$name}<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
-		$altInfo->getAltsBlobAsync([$sendto, "reply"]);
+		$altInfo->getAltsBlobAsync([$context, "reply"]);
 	}
 
 	/**
 	 * This command handler validates alts or mains for admin privileges.
 	 *
 	 * @HandlesCommand("altvalidate")
-	 * @Matches("/^altvalidate ([a-z0-9-]+)$/i")
 	 */
-	public function altvalidateCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$altInfo = $this->getAltInfo($sender, true);
-		$toValidate = ucfirst(strtolower($args[1]));
+	public function altvalidateCommand(CmdContext $context, PCharacter $name): void {
+		$altInfo = $this->getAltInfo($context->char->name, true);
+		$toValidate = $name();
 
-		if ($altInfo->isValidated($sender)) {
-			$this->validateAsMain($toValidate, $altInfo, $sendto);
+		if ($altInfo->isValidated($context->char->name)) {
+			$this->validateAsMain($toValidate, $altInfo, $context);
 		} else {
-			$this->validateAsAlt($toValidate, $sender, $altInfo, $sendto);
+			$this->validateAsAlt($toValidate, $context->char->name, $altInfo, $context);
 		}
 	}
 
@@ -528,16 +520,15 @@ class AltsController {
 	 * This command handler declines alt or main requests
 	 *
 	 * @HandlesCommand("altdecline")
-	 * @Matches("/^altdecline ([a-z0-9-]+)$/i")
 	 */
-	public function altDeclineCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$altInfo = $this->getAltInfo($sender, true);
-		$toDecline = ucfirst(strtolower($args[1]));
+	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
+		$altInfo = $this->getAltInfo($context->char->name, true);
+		$toDecline = $name();
 
-		if ($altInfo->isValidated($sender)) {
-			$this->declineAsMain($toDecline, $altInfo, $sendto);
+		if ($altInfo->isValidated($context->char->name)) {
+			$this->declineAsMain($toDecline, $altInfo, $context);
 		} else {
-			$this->declineAsAlt($toDecline, $sender, $altInfo, $sendto);
+			$this->declineAsAlt($toDecline, $context->char->name, $altInfo, $context);
 		}
 	}
 
@@ -606,7 +597,7 @@ class AltsController {
 	 * @Description("Reminds unvalidates alts/mains to accept or deny")
 	 */
 	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
-		if (!$this->chatBot->isReady()) {
+		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
 		$sender = $eventObj->sender;
@@ -643,7 +634,7 @@ class AltsController {
 			$this->text->makeChatcmd("no", "/tell <myname> altdecline {$altInfo->main}").
 			"]";
 		$msg = "{$altInfo->main} requested to add you as their alt :: ".
-			$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt");
+			((array)$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt"))[0];
 		$this->chatBot->sendTell($msg, $sender);
 	}
 
@@ -665,7 +656,7 @@ class AltsController {
 		}
 		$msg = "You have <highlight>" . count($alts) . "<end> unanswered ".
 			"alt request{$plural} :: ".
-			$this->text->makeBlob("decide", $blob, "Decide who is your alt");
+			((array)$this->text->makeBlob("decide", $blob, "Decide who is your alt"))[0];
 		$this->chatBot->sendTell($msg, $main);
 	}
 
@@ -678,6 +669,7 @@ class AltsController {
 		$player = ucfirst(strtolower($player));
 
 		$ai = new AltInfo();
+		Registry::injectDependencies($ai);
 		$ai->main = $player;
 		$query = $this->db->table("alts")
 			->where(function(QueryBuilder $query) use ($includePending, $player) {
@@ -696,9 +688,9 @@ class AltsController {
 		$query->asObj(Alt::class)->each(function(Alt $row) use ($ai) {
 			$ai->main = $row->main;
 			$ai->alts[$row->alt] = new AltValidationStatus();
-			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt;
-			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main;
-			$ai->alts[$row->alt]->added_via = $row->added_via;
+			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
+			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
+			$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
 		});
 
 		return $ai;
@@ -767,5 +759,66 @@ class AltsController {
 			}
 		}
 		return $deleted;
+	}
+
+	/**
+	 * @NewsTile("alts-info")
+	 * @Description("Displays basic information about your alts")
+	 * @Example("<header2>Account<end>
+	 * <tab>Your main is <highlight>Nady<end>
+	 * <tab>You have <u>15 alts</u>.")
+	 */
+	public function altsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		$altsCmdText = "no alts";
+		if (count($altInfo->getAllAlts()) === 2) {
+			$altsCmdText = "1 alt";
+		} elseif (count($altInfo->getAllAlts()) > 2) {
+			$altsCmdText = (count($altInfo->getAllAlts())-1) . " alts";
+		}
+		if ($altInfo->hasUnvalidatedAlts()) {
+			$numUnvalidated = 0;
+			foreach ($altInfo->getAllAlts() as $alt) {
+				if (!$altInfo->isValidated($alt)) {
+					$numUnvalidated++;
+				}
+			}
+			if ($numUnvalidated > 1) {
+				$altsCmdText .= ", {$numUnvalidated} need validation";
+			} else {
+				$altsCmdText .= ", {$numUnvalidated} needs validation";
+			}
+		}
+		$altsCommand = $altsCmdText;
+		if (count($altInfo->getAllAlts()) > 1) {
+			$altsCommand = $this->text->makeChatcmd($altsCmdText, "/tell <myname> alts");
+		}
+		$blob = "<header2>Account<end>\n".
+			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
+			"<tab>You have {$altsCommand}.";
+		$callback($blob);
+	}
+
+	/**
+	 * @NewsTile("alts-unvalidated")
+	 * @Description("Show a notice if char has any unvalidated alts")
+	 * @Example("<header2>Unvalidated Alts [<u>see more</u>]<end>
+	 * <tab>- Char1
+	 * <tab>- Char2")
+	 */
+	public function unvalidatedAltsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		if (!$altInfo->hasUnvalidatedAlts()) {
+			$callback(null);
+			return;
+		}
+		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
+		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
+		foreach ($altInfo->getAllAlts() as $alt) {
+			if (!$altInfo->isValidated($alt)) {
+				$blob .= "\n<tab>- {$alt}";
+			}
+		}
+		$callback($blob);
 	}
 }

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
@@ -37,7 +37,6 @@ use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
  *	)
  */
 class BosslootController {
-
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
@@ -67,10 +66,9 @@ class BosslootController {
 	 * This command handler shows bosses and their loot.
 	 *
 	 * @HandlesCommand("boss")
-	 * @Matches("/^boss (.+)$/i")
 	 */
-	public function bossCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = strtolower($args[1]);
+	public function bossCommand(CmdContext $context, string $search): void {
+		$search = strtolower($search);
 
 		$query = $this->db->table("boss_namedb");
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'bossname');
@@ -81,7 +79,7 @@ class BosslootController {
 
 		if ($count === 0) {
 			$output = "There were no matches for your search.";
-			$sendto->reply($output);
+			$context->reply($output);
 			return;
 		}
 		if ($count > 1) {
@@ -91,7 +89,7 @@ class BosslootController {
 				$blob .= $this->getBossLootOutput($row);
 			}
 			$output = $this->text->makeBlob("Boss Search Results ($count)", $blob);
-			$sendto->reply($output);
+			$context->reply($output);
 			return;
 		}
 		//If single match found, output full loot table
@@ -102,7 +100,10 @@ class BosslootController {
 			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
 			->where("name", $row->bossname)
 			->asObj(WhereisResult::class)
-			->map(function(WhereisResult $npc): string {
+			->map(function (WhereisResult $npc): string {
+				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
+					return $npc->answer;
+				}
 				return $this->text->makeChatcmd(
 					$npc->answer,
 					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
@@ -128,24 +129,23 @@ class BosslootController {
 			->asObj(BossLootdb::class);
 		foreach ($data as $row2) {
 			if (!isset($row2->icon)) {
-				$this->logger->log('ERROR', "Missing item in AODB: {$row2->itemname}.");
+				$this->logger->error("Missing item in AODB: {$row2->itemname}.");
 				continue;
 			}
 			$blob .= "<tab>" . $this->text->makeImage($row2->icon) . "\n";
 			$blob .= "<tab>" . $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
 		}
 		$output = $this->text->makeBlob($row->bossname, $blob);
-		$sendto->reply($output);
+		$context->reply($output);
 	}
 
 	/**
 	 * This command handler finds which boss drops certain loot.
 	 *
 	 * @HandlesCommand("bossloot")
-	 * @Matches("/^bossloot (.+)$/i")
 	 */
-	public function bosslootCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = strtolower($args[1]);
+	public function bosslootCommand(CmdContext $context, string $search): void {
+		$search = strtolower($search);
 
 		$blob = "Bosses that drop items matching '$search':\n\n";
 
@@ -165,7 +165,7 @@ class BosslootController {
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
 		}
-		$sendto->reply($output);
+		$context->reply($output);
 	}
 
 	public function getBossLootOutput(BossNamedb $row, ?string $search=null): string {
@@ -184,6 +184,9 @@ class BosslootController {
 			->where("name", $row->bossname)
 			->asObj(WhereisResult::class)
 			->map(function (WhereisResult $npc): string {
+				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
+					return "<highlight>{$npc->answer}<end>";
+				}
 				return $this->text->makeChatcmd(
 					$npc->answer,
 					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"

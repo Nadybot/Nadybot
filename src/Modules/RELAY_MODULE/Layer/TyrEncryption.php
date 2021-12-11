@@ -10,6 +10,6 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
  */
 class TyrEncryption extends Fernet {
 	public function __construct(string $password) {
-		parent::__construct($password, "tyrbot", "sha256", 10000, 32);
+		parent::__construct($password, "tyrbot", "sha256", 10000);
 	}
 }

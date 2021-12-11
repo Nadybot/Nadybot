@@ -3,10 +3,12 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	LoggerWrapper,
 	Nadybot,
+	QueueInterface,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Tyrence (RK2)
@@ -37,14 +39,22 @@ class SendTellController {
 
 	/**
 	 * @HandlesCommand("sendtell")
-	 * @Matches("/^sendtell ([a-z0-9-]+) (.+)$/i")
 	 */
-	public function sendtellCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = ucfirst(strtolower($args[1]));
-		$message = $args[2];
-
-		$this->logger->logChat("Out. Msg.", $name, $message);
-		$this->chatBot->send_tell($name, $message, "\0", AOC_PRIORITY_MED);
-		$sendto->reply("Message has been sent to <highlight>$name<end>.");
+	public function sendtellCommand(CmdContext $context, PCharacter $name, string $message): void {
+		$this->chatBot->getUid(
+			$name(),
+			function (?int $uid, CmdContext $context, string $name, string $message): void {
+				if (!isset($uid)) {
+					$context->reply("The character <highlight>{$name}<end> does not exist.");
+					return;
+				}
+				$this->logger->logChat("Out. Msg.", $name, $message);
+				$this->chatBot->send_tell($uid, $message, "\0", QueueInterface::PRIORITY_MED);
+				$context->reply("Message has been sent to <highlight>{$name}<end>.");
+			},
+			$context,
+			$name(),
+			$message
+		);
 	}
 }

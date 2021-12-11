@@ -4,7 +4,7 @@ namespace Nadybot\Modules\FUN_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	CommandReply,
+	CmdContext,
 	DB,
 	Util,
 };
@@ -88,7 +88,7 @@ class FunController {
 	/**
 	 * @Setup
 	 */
-	public function setup() {
+	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/brain.csv");
@@ -129,114 +129,31 @@ class FunController {
 
 	/**
 	 * @HandlesCommand("beer")
-	 * @Matches("/^beer$/i")
-	 * @Matches("/^beer (\d+)$/i")
-	 */
-	public function beerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('beer', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("brain")
-	 * @Matches("/^brain$/i")
-	 * @Matches("/^brain (\d+)$/i")
-	 *
-	 * aypwip.php - A Social Worrrrrld Domination! Module
-	 *
-	 * @author Mastura (RK2)
-	 * @author Tyrence (RK2), converted to Budabot
-	 */
-	public function brainCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('brain', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("chuck")
-	 * @Matches("/^chuck$/i")
-	 * @Matches("/^chuck (\d+)$/i")
-	 *
-	 * @author Honge (RK2)
-	 * @author Temar
-	 *
-	 * @url http://bebot.shadow-realm.org/0-3-x-customunofficial-modules/chuck-norris/
-	 */
-	public function chuckCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('chuck', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("cybor")
-	 * @Matches("/^cybor$/i")
-	 * @Matches("/^cybor (\d+)$/i")
-	 *
-	 * @author Derroylo (RK2)
-	 * @author Xenixa (RK1)
-	 */
-	public function cyborCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('cybor', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("dwight")
-	 * @Matches("/^dwight$/i")
-	 * @Matches("/^dwight (\d+)$/i")
-	 *
-	 * @author Sicarius Legion of Amra, a Age of Conan Guild on the Hyrkania server
-	 * @author Tyrence (RK2), converted to Budabot
-	 */
-	public function dwightCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('dwight', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("fc")
-	 * @Matches("/^fc$/i")
-	 * @Matches("/^fc (\d+)$/i")
-	 */
-	public function fcCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('fc', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("homer")
-	 * @Matches("/^homer$/i")
-	 * @Matches("/^homer (\d+)$/i")
-	 *
-	 * @author Derroylo (RK2)
-	 * @author MysterF aka Floryn from Band of Brothers
-	 * @url http://bebot.shadow-realm.org/generic-custom-modules/homer-social-mod-for-bebot-0-6-2
-	 */
-	public function homerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('homer', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
-	}
-
-	/**
 	 * @HandlesCommand("pirates")
-	 * @Matches("/^pirates$/i")
-	 * @Matches("/^pirates (\d+)$/i")
-	 *
-	 * @author Sicarius Legion of Amra, an Age of Conan Guild on the Hyrkania server
-	 * @author Tyrence (RK2), converted to Budabot
+	 * @HandlesCommand("compliment")
 	 */
-	public function piratesCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('pirates', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
+	public function funCommand(CmdContext $context, ?int $num): void {
+		$msg = $this->getFunItem(
+			explode(" ", $context->message)[0],
+			$context->char->name,
+			$num
+		);
+		$context->reply($msg);
 	}
 
 	/**
-	 * @HandlesCommand("compliment")
-	 * @Matches("/^compliment$/i")
-	 * @Matches("/^compliment (\d+)$/i")
+	 * @NewsTile("fun-compliment")
+	 * @Description("Gives a random motivational compliment")
+	 * @Example("» You inspire be to do good things.")
 	 */
-	public function complimentCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$msg = $this->getFunItem('compliment', $sender, isset($args[1]) ? (int)$args[1] : null);
-		$sendto->reply($msg);
+	public function complimentTile(string $sender, callable $callback): void {
+		$msg = "» " . $this->getFunItem('compliment', $sender, null);
+		$callback($msg);
 	}
 }

@@ -38,7 +38,7 @@ class GuildManager {
 	public PlayerManager $playerManager;
 
 	protected function getJsonValidator(): Closure {
-		return function($data): bool {
+		return function(?string $data): bool {
 			try {
 				if ($data === null) {
 					return false;
@@ -51,6 +51,7 @@ class GuildManager {
 		};
 	}
 
+	/** @psalm-param callable(?Guild, mixed...) $callback */
 	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= (int)$this->chatBot->vars["dimension"];
@@ -113,6 +114,7 @@ class GuildManager {
 			&& $this->chatBot->vars["my_guild_id"] === $guildId;
 	}
 
+	/** @psalm-param callable(?Guild, mixed...) $callback */
 	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, ...$args): void {
 
 		// if there is still no valid data available give an error back
@@ -121,7 +123,7 @@ class GuildManager {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data);
+		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);
@@ -150,7 +152,7 @@ class GuildManager {
 		// pre-fetch the charids...this speeds things up immensely
 		foreach ($members as $member) {
 			$name = $member->NAME;
-			if (!isset($this->chatBot->id[$name])) {
+			if (!isset($this->chatBot->id[$name]) && !isset($member->CHAR_INSTANCE)) {
 				$this->chatBot->sendLookupPacket($name);
 			}
 		}

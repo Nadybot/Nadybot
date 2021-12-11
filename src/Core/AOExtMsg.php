@@ -13,6 +13,6 @@ class AOExtMsg {
 	public array $args;
 	public int $category;
 	public int $instance;
-	public string $message_string;
+	public ?string $message_string;
 	public string $message;
 }

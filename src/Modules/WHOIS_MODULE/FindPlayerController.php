@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\CmdContext;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
@@ -39,11 +39,8 @@ class FindPlayerController {
 
 	/**
 	 * @HandlesCommand("findplayer")
-	 * @Matches("/^findplayer (.+)$/i")
 	 */
-	public function findplayerCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$search = $args[1];
-
+	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,
 			(int)$this->chatBot->vars['dimension']
@@ -52,7 +49,7 @@ class FindPlayerController {
 
 		if ($count === 0) {
 			$msg = "Could not find any players matching <highlight>$search<end>.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Results<end>\n";
@@ -61,6 +58,6 @@ class FindPlayerController {
 		}
 		$msg = $this->text->makeBlob("Search results for \"$search\" ($count)", $blob);
 
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

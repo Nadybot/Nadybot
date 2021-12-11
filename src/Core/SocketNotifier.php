@@ -14,8 +14,11 @@ namespace Nadybot\Core;
  * given callback to notify of the activity.
  */
 class SocketNotifier {
+	/** @var resource|\Socket */
 	private $socket;
 	private int $type;
+
+	/** @var callable */
 	private $callback;
 
 	public const ACTIVITY_READ  = 1;
@@ -30,6 +33,7 @@ class SocketNotifier {
 
 	/**
 	 * Returns the socket resource.
+	 * @return resource|\Socket
 	 */
 	public function getSocket() {
 		return $this->socket;
@@ -44,6 +48,7 @@ class SocketNotifier {
 
 	/**
 	 * Returns the callback
+	 * @return callable
 	 */
 	public function getCallback() {
 		return $this->callback;

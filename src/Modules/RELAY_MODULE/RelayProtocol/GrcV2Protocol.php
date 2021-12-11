@@ -22,6 +22,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
  */
 class GrcV2Protocol implements RelayProtocolInterface {
+	protected static int $supportedFeatures = self::F_NONE;
+
 	protected Relay $relay;
 
 	/** @Inject */
@@ -40,11 +42,12 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			if (!strlen($event->data->message??"")) {
+			if (!is_object($event->data) || !strlen($event->data->message??"")) {
 				return [];
 			}
-			$event = clone $event;
-			$event->setData($event->data->message);
+			$event2 = clone $event;
+			$event2->setData($event->data->message);
+			$event = $event2;
 		}
 		$path = $event->getPath();
 		$msgColor = "";
@@ -85,38 +88,38 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		];
 	}
 
-	public function receive(RelayMessage $msg): ?RoutableEvent {
-		if (empty($msg->packages)) {
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
 			return null;
 		}
-		$data = array_shift($msg->packages);
+		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
 		if (!preg_match("/^.?{$command} <v2>(.+)/s", $data, $matches)) {
 			return null;
 		}
 		$data = $matches[1];
-		$msg = new RoutableMessage($data);
+		$message = new RoutableMessage($data);
 		while (preg_match("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data, $matches)) {
 			if (strlen($matches[2])) {
 				$type = ($matches[1] === "guild") ? Source::ORG : Source::PRIV;
-				$msg->appendPath(new Source($type, $matches[2], $matches[2]));
+				$message->appendPath(new Source($type, $matches[2], $matches[2]));
 			}
 			$data = $matches[3];
 		}
 		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
+			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
-			$msg->setCharacter(new Character($matches[1]));
+			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
 		if (preg_match("/^<relay_bot_color>/s", $data)) {
-			$msg->char = null;
+			$message->char = null;
 		}
 		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
 		$data = preg_replace("/<\/end>$/s", "", $data);
-		$msg->setData(ltrim($data));
-		return $msg;
+		$message->setData(ltrim($data));
+		return $message;
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -131,5 +134,9 @@ class GrcV2Protocol implements RelayProtocolInterface {
 	public function deinit(callable $callback): array {
 		$callback();
 		return [];
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

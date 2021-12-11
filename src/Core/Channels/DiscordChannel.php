@@ -55,12 +55,12 @@ class DiscordChannel implements MessageReceiver {
 	public function receive(RoutableEvent $event, string $destination): bool {
 		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_string($event->data->message??null)) {
+			if (!is_object($event->data) || !is_string($event->data->message??null)) {
 				return false;
 			}
 			$msg = $event->data->message;
 			$renderPath = $event->data->renderPath;
-			if ($event->data->type === Online::TYPE) {
+			if (isset($msg) && $event->data->type === Online::TYPE) {
 				$msg = $this->text->removePopups($msg);
 			}
 		} else {
@@ -78,13 +78,17 @@ class DiscordChannel implements MessageReceiver {
 		$discordMsg = $this->discordController->formatMessage($message);
 
 		if (isset($event->char)) {
-			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank');
+			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? "superadmin";
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users"]
+					"parse" => ["users", "everyone"]
 				];
 			}
+		} else {
+			$discordMsg->allowed_mentions = (object)[
+				"parse" => ["everyone"]
+			];
 		}
 
 		//Relay the message to the discord channel

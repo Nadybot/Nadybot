@@ -65,7 +65,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 		$relayChannel = $this->getSetting($db, "discord_relay_channel");
 		$relayWhat = $this->getSetting($db, "discord_relay");
-		if (!isset($relayChannel) || $relayChannel->value === "off") {
+		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === "off") {
 			return;
 		}
 		if (!isset($relayWhat) || $relayWhat->value === "0") {

@@ -7,7 +7,7 @@ use Nadybot\Core\Event;
 
 class TowerAttackEvent extends Event {
 	public Player $attacker;
-	public object $defender;
+	public TowerDefender $defender;
 	public TowerSite $site;
 	public string $type = "tower(attack)";
 }

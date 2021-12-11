@@ -6,8 +6,8 @@ use DateTime;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
@@ -18,6 +18,11 @@ use Nadybot\Core\{
 	Text,
 	Timer,
 };
+use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\ParamClass\PNonNumber;
+use Nadybot\Core\ParamClass\PNonNumberWord;
+use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\PWord;
 use Throwable;
 
 /**
@@ -219,7 +224,6 @@ class RaidPointsController {
 				"delta" => 1,
 				"time" => time(),
 				"changed_by" => $this->db->getMyname(),
-				"individual" => false,
 				"reason" => "raid participation",
 				"ticker" => true,
 				"individual" => false,
@@ -263,12 +267,12 @@ class RaidPointsController {
 				"ticker" =>     false,
 				"raid_id" =>    $raid->raid_id ?? null,
 			]);
-		if ($inserted === 0) {
-			$this->logger->log('ERROR', "Error logging the change of {$delta} points for {$pointsChar}.");
+		if ($inserted === false) {
+			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");
 			throw new Exception("Error recording the points delta of {$delta} for {$pointsChar}.");
 		}
 		if (!$this->giveRaidPoints($pointsChar, $delta)) {
-			$this->logger->log('ERROR', "Error giving {$delta} points to {$pointsChar}.");
+			$this->logger->error("Error giving {$delta} points to {$pointsChar}.");
 			throw new Exception("Error giving {$delta} points to {$pointsChar}.");
 		}
 		return $pointsChar;
@@ -343,32 +347,34 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("raidpoints")
-	 * @Matches("/^raidpoints reward (\d+)$/i")
-	 * @Matches("/^raidpoints reward (\d+) (.+)$/i")
-	 * @Matches("/^raidpoints reward (.+)$/i")
+	 * @Mask $action reward
 	 */
-	public function raidRewardCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidRewardPredefCommand(CmdContext $context, string $action, PNonNumber $mob): void {
+		$reward = $this->getRaidReward($mob());
+		if (!isset($reward)) {
+			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
+			return;
+		}
+		$this->raidRewardCommand($context, $action, $reward->points, $reward->reason);
+	}
+
+	/**
+	 * @HandlesCommand("raidpoints")
+	 * @Mask $action reward
+	 */
+	public function raidRewardCommand(CmdContext $context, string $action, int $points, ?string $reason): void {
 		if (!isset($this->raidController->raid)) {
-			$sendto->reply(RaidController::ERR_NO_RAID);
+			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
 		$raid = $this->raidController->raid;
-		if (!preg_match("/^\d+$/", $args[1])) {
-			$reward = $this->getRaidReward($args[1]);
-			if (!isset($reward)) {
-				$sendto->reply("No predefined reward named <highlight>{$args[1]}<end> found.");
-				return;
-			}
-			$args[1] = $reward->points;
-			$args[2] = $reward->reason;
-		}
-		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1], $args[2] ?? null);
+		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
 		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
-		$pointsGiven = "<highlight>{$args[1]}<end> points were given";
-		if ($args[1] === '1') {
+		$pointsGiven = "<highlight>{$points}<end> points were given";
+		if ($points === 1) {
 			$pointsGiven = "<highlight>1<end> point was given";
 		}
-		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$sender} :: ";
+		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
 		foreach ($msgs as &$blob) {
 			$blob = "$pointsGiven $blob";
 		}
@@ -377,22 +383,21 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("raidpoints")
-	 * @Matches("/^raidpoints punish (\d+)$/i")
-	 * @Matches("/^raidpoints punish (\d+) (.+)$/i")
+	 * @Mask $action punish
 	 */
-	public function raidPunishCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function raidPunishCommand(CmdContext $context, string $action, int $points, ?string $reason): void {
 		if (!isset($this->raidController->raid)) {
-			$sendto->reply(RaidController::ERR_NO_RAID);
+			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
 		$raid = $this->raidController->raid;
-		$numRecipients = $this->awardRaidPoints($raid, $sender, (int)$args[1] * -1, $args[2] ?? null);
+		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points * -1, $reason);
 		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
-		$pointsGiven = "<highlight>{$args[1]} points<end> were removed";
-		if ($args[1] === '1') {
+		$pointsGiven = "<highlight>{$points} points<end> were removed";
+		if ($points === 1) {
 			$pointsGiven = "<highlight>1 point<end> was removed";
 		}
-		$pointsGiven .= " from all raiders ($numRecipients) by <highligh>{$sender}<end> :: ";
+		$pointsGiven .= " from all raiders ($numRecipients) by <highligh>{$context->char->name}<end> :: ";
 		foreach ($msgs as &$blob) {
 			$blob = "$pointsGiven $blob";
 		}
@@ -401,30 +406,29 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("points")
-	 * @Matches("/^points$/i")
 	 */
-	public function pointsCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== 'msg') {
-			$sendto->reply("<red>The <symbol>points command only works in tells<end>.");
+	public function pointsCommand(CmdContext $context): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The <symbol>points command only works in tells<end>.");
 			return;
 		}
-		$points = $this->getRaidPoints($sender) ?? 0;
-		$sendto->reply("You have <highlight>{$points}<end> raid points.");
+		$points = $this->getRaidPoints($context->char->name) ?? 0;
+		$context->reply("You have <highlight>{$points}<end> raid points.");
 	}
 
 	/**
 	 * @HandlesCommand("points top")
-	 * @Matches("/^points top$/i")
+	 * @Mask $action top
 	 */
-	public function pointsTopCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function pointsTopCommand(CmdContext $context, string $action): void {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->table(self::DB_TABLE)
 			->orderByDesc("points")
-			->limit($this->settingManager->getInt('raid_top_amount'))
+			->limit($this->settingManager->getInt('raid_top_amount')??25)
 			->asObj(RaidPoints::class)
 			->toArray();
 		if (count($topRaiders) === 0) {
-			$sendto->reply("No raiders have received any points yet.");
+			$context->reply("No raiders have received any points yet.");
 			return;
 		}
 		$blob = "<header2>Top Raiders<end>";
@@ -432,45 +436,46 @@ class RaidPointsController {
 		foreach ($topRaiders as $raider) {
 			$blob .= "\n<tab>" . $this->text->alignNumber($raider->points, $maxDigits) . "    {$raider->username}";
 		}
-		$sendto->reply(
+		$context->reply(
 			$this->text->makeBlob("Top raiders (" . count($topRaiders) . ")", $blob)
 		);
 	}
 
 	/**
 	 * @HandlesCommand("points log")
-	 * @Matches("/^points log$/i")
+	 * @Mask $action log
 	 */
-	public function pointsLogCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showraidPoints($channel, $sender, $sendto, false, ...$this->getRaidpointLogsForChar($sender));
+	public function pointsLogCommand(CmdContext $context, string $action): void {
+		$this->showraidPoints($context, false, ...$this->getRaidpointLogsForChar($context->char->name));
 	}
 
 	/**
 	 * @HandlesCommand("points log all")
-	 * @Matches("/^points log all$/i")
+	 * @Mask $action log
+	 * @Mask $all all
 	 */
-	public function pointsLogAllCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$this->showraidPoints($channel, $sender, $sendto, true, ...$this->getRaidpointLogsForAccount($sender));
+	public function pointsLogAllCommand(CmdContext $context, string $action, string $all): void {
+		$this->showraidPoints($context, true, ...$this->getRaidpointLogsForChar($context->char->name));
 	}
 
-	public function showraidPoints(string $channel, string $sender, CommandReply $sendto, bool $showUsername, RaidPointsLog ...$pointLogs): void {
-		if ($channel !== 'msg') {
-			$sendto->reply("<red>The <symbol>points log command only works in tells<end>.");
+	public function showraidPoints(CmdContext $context, bool $showUsername, RaidPointsLog ...$pointLogs): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The <symbol>points log command only works in tells<end>.");
 			return;
 		}
 		if (count($pointLogs) === 0) {
-			$sendto->reply("You have never received any raid points at <myname>.");
+			$context->reply("You have never received any raid points at <myname>.");
 			return;
 		}
 		[$header, $blob] = $this->getPointsLogBlob($pointLogs, $showUsername);
 		if ($showUsername === false) {
-			$blob .= "\n\n<i>Only showing the points of {$sender}. To include all the alts ".
+			$blob .= "\n\n<i>Only showing the points of {$context->char->name}. To include all the alts ".
 				"in the list, use ".
 				$this->text->makeChatcmd("/tell <myname> points log all", "/tell <myname> points log all").
 				".</i>";
 		}
 		$msg = $this->text->makeBlob("Your raid points log", $blob, null, $header);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	/**
@@ -481,7 +486,7 @@ class RaidPointsController {
 	protected function getRaidpointLogsForAccount(string $sender): array {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->main;
-		return $this->db->table(self::DB_TABLE_LOG, "rpl")
+		$query = $this->db->table(self::DB_TABLE_LOG, "rpl")
 			->leftJoin("alts AS a", "a.alt", "rpl.username")
 			->where(function (QueryBuilder $where) use ($main) {
 				$where->where("a.main", $main)
@@ -491,7 +496,8 @@ class RaidPointsController {
 			->orWhere("rpl.username", $main)
 			->orderByDesc("time")
 			->limit(50)
-			->asObj(RaidPointsLog::class)
+			->select("rpl.*");
+		return $query->asObj(RaidPointsLog::class)
 			->toArray();
 	}
 
@@ -512,36 +518,43 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("points .+")
-	 * @Matches("/^points (.+) log (all)$/i")
-	 * @Matches("/^points log (.+) (all)$/i")
-	 * @Matches("/^points (.+) log$/i")
-	 * @Matches("/^points log (.+)$/i")
+	 * @Mask $action log
+	 * @Mask $all all
 	 */
-	public function pointsOtherLogCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== 'msg') {
-			$sendto->reply("<red>The <symbol>points log command only works in tells<end>.");
+	public function pointsOtherLogCommand(CmdContext $context, PCharacter $char, string $action, ?string $all): void {
+		$this->pointsLogOtherCommand($context, $action, $char, $all);
+	}
+
+	/**
+	 * @HandlesCommand("points .+")
+	 * @Mask $action log
+	 * @Mask $all all
+	 */
+	public function pointsLogOtherCommand(CmdContext $context, string $action, PCharacter $char, ?string $all): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The <symbol>points log command only works in tells<end>.");
 			return;
 		}
-		$args[1] = ucfirst(strtolower($args[1]));
+		$char = $char();
 		/** @var RaidPointsLog[] */
-		if (count($args) === 3) {
-			$pointLogs = $this->getRaidpointLogsForAccount($args[1]);
+		if (isset($all)) {
+			$pointLogs = $this->getRaidpointLogsForAccount($char);
 		} else {
-			$pointLogs = $this->getRaidpointLogsForChar($args[1]);
+			$pointLogs = $this->getRaidpointLogsForChar($char);
 		}
 		if (count($pointLogs) === 0) {
-			$sendto->reply("{$args[1]} has never received any raid points at <myname>.");
+			$context->reply("{$char} has never received any raid points at <myname>.");
 			return;
 		}
-		[$header, $blob] = $this->getPointsLogBlob($pointLogs, count($args) === 3);
-		if (count($args) < 3) {
-			$blob .= "\n\n<i>Only showing the points of {$args[1]}. To include all the alts ".
+		[$header, $blob] = $this->getPointsLogBlob($pointLogs, isset($all));
+		if (!isset($all)) {
+			$blob .= "\n\n<i>Only showing the points of {$char}. To include all the alts ".
 				"in the list, use ".
-				$this->text->makeChatcmd("/tell <myname> {$message} all", "/tell <myname> {$message} all").
+				$this->text->makeChatcmd("/tell <myname> {$context->message} all", "/tell <myname> {$context->message} all").
 				".</i>";
 		}
-		$msg = $this->text->makeBlob("{$args[1]}'s raid points log", $blob, null, $header);
-		$sendto->reply($msg);
+		$msg = $this->text->makeBlob("{$char}'s raid points log", $blob, null, $header);
+		$context->reply($msg);
 	}
 
 	/**
@@ -572,84 +585,81 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("points .+")
-	 * @Matches("/^points (.+)$/i")
 	 */
-	public function pointsOtherCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($channel !== 'msg') {
-			$sendto->reply("<red>The <symbol>points command only works in tells<end>.");
+	public function pointsOtherCommand(CmdContext $context, PCharacter $char): void {
+		if (!$context->isDM()) {
+			$context->reply("<red>The <symbol>points command only works in tells<end>.");
 			return;
 		}
-		$args[1] = ucfirst(strtolower($args[1]));
-		$points = $this->getRaidPoints($args[1]);
+		$points = $this->getRaidPoints($char());
 		if ($points === null) {
-			$sendto->reply("<highlight>{$args[1]}<end> has never raided with this bot.");
+			$context->reply("<highlight>{$char}<end> has never raided with this bot.");
 			return;
 		}
-		$sendto->reply("<highlight>{$args[1]}<end> has <highlight>{$points}<end> raid points.");
+		$context->reply("<highlight>{$char}<end> has <highlight>{$points}<end> raid points.");
+	}
+	/**
+	 * @HandlesCommand("pointsmod")
+	 * @Mask $action add
+	 */
+	public function pointsAdd2Command(CmdContext $context, string $action, int $points, PCharacter $char, string $reason): void {
+		$this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
 	/**
 	 * @HandlesCommand("pointsmod")
-	 * @Matches("/^pointsmod add ([^ ]+) (\d+) (.+)$/i")
-	 * @Matches("/^pointsmod add (\d+) ([^ ]+) (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function pointsAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$receiver = $args[1];
-		$delta = $args[2];
-		if (preg_match('/^\d+$/', $args[1])) {
-			$receiver = $args[2];
-			$delta = $args[1];
-		}
-		$receiver = ucfirst(strtolower($receiver));
+	public function pointsAddCommand(CmdContext $context, string $action, PCharacter $char, int $points, string $reason): void {
+		$receiver = $char();
 		$uid = $this->chatBot->get_uid($receiver);
 		if ($uid === false) {
-			$sendto->reply("The player <highlight>{$receiver}<end> does not exist.");
+			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($args[3]) < $this->settingManager->getInt('raid_points_reason_min_length')) {
-			$sendto->reply("Please give a more detailed description.");
+		if (strlen($reason) < $this->settingManager->getInt('raid_points_reason_min_length')) {
+			$context->reply("Please give a more detailed description.");
 			return;
 		}
 		$raid = $this->raidController->raid ?? null;
-		$this->modifyRaidPoints($receiver, (int)$delta, true, $args[3], $sender, $raid);
-		$this->chatBot->sendPrivate("<highlight>{$sender}<end> added <highlight>{$delta}<end> points to ".
-			"<highlight>{$receiver}'s<end> account: <highlight>{$args[3]}<end>.");
+		$this->modifyRaidPoints($receiver, $points, true, $reason, $context->char->name, $raid);
+		$this->chatBot->sendPrivate("<highlight>{$context->char->name}<end> added <highlight>{$points}<end> points to ".
+			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>.");
 		$this->chatBot->sendTell(
-			"Added <highlight>{$delta}<end> raid points to <highlight>{$receiver}'s<end> account.",
-			$sender
+			"Added <highlight>{$points}<end> raid points to <highlight>{$receiver}'s<end> account.",
+			$context->char->name
 		);
 		$this->chatBot->sendMassTell(
-			"{$sender} added <highlight>{$delta}<end> raid points to your account.",
+			"{$context->char->name} added <highlight>{$points}<end> raid points to your account.",
 			$receiver
 		);
 	}
 
 	/**
 	 * @HandlesCommand("pointsmod")
-	 * @Matches("/^pointsmod rem ([^ ]+) (\d+) (.+)$/i")
-	 * @Matches("/^pointsmod rem (\d+) ([^ ]+) (.+)$/i")
 	 */
-	public function pointsRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$receiver = $args[1];
-		$delta = $args[2];
-		if (preg_match('/^\d+$/', $args[1])) {
-			$receiver = $args[2];
-			$delta = $args[1];
-		}
-		$receiver = ucfirst(strtolower($receiver));
+	public function pointsRem2Command(CmdContext $context, PRemove $action, int $points, PCharacter $char, string $reason): void {
+		$this->pointsRemCommand($context, $action, $char, $points, $reason);
+	}
+
+	/**
+	 * @HandlesCommand("pointsmod")
+	 */
+	public function pointsRemCommand(CmdContext $context, PRemove $action, PCharacter $char, int $points, string $reason): void {
+		$receiver = $char();
 		$uid = $this->chatBot->get_uid($receiver);
 		if ($uid === false) {
-			$sendto->reply("The player <highlight>{$receiver}<end> does not exist.");
+			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($args[3]) < $this->settingManager->getInt('raid_points_reason_min_length')) {
-			$sendto->reply("Please give a more detailed description.");
+		if (strlen($reason) < $this->settingManager->getInt('raid_points_reason_min_length')) {
+			$context->reply("Please give a more detailed description.");
 			return;
 		}
 		$raid = $this->raidController->raid ?? null;
-		$this->modifyRaidPoints($receiver, -1 * (int)$delta, true, $args[3], $sender, $raid);
-		$this->chatBot->sendPrivate("<highlight>{$sender}<end> removed <highlight>{$delta}<end> points from ".
-			"<highlight>{$receiver}'s<end> account: <highlight>{$args[3]}<end>.");
+		$this->modifyRaidPoints($receiver, -1 * $points, true, $reason, $context->char->name, $raid);
+		$this->chatBot->sendPrivate("<highlight>{$context->char->name}<end> removed <highlight>{$points}<end> points from ".
+			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>.");
 	}
 
 	/**
@@ -674,8 +684,7 @@ class RaidPointsController {
 			return;
 		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			"Adding {$event->alt} as an alt of {$event->main} requires us to merge their raid points. ".
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
@@ -696,43 +705,40 @@ class RaidPointsController {
 				->delete();
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->log(
-				'ERROR',
+			$this->logger->error(
 				'There was an error combining these points: ' . $e->getMessage()
 			);
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log(
-			'INFO',
+		$this->logger->notice(
 			'Raid points merged successfully to a new total of ' . $newPoints
 		);
 	}
 
 	/**
 	 * @HandlesCommand("reward")
-	 * @Matches("/^reward$/i")
 	 */
-	public function rewardListCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function rewardListCommand(CmdContext $context): void {
 		/** @var Collection<RaidReward> */
 		$rewards = $this->db->table(self::DB_TABLE_REWARD)
 			->orderBy("name")
 			->asObj(RaidReward::class);
 		if ($rewards->isEmpty()) {
-			$sendto->reply("There are currently no raid rewards defined.");
+			$context->reply("There are currently no raid rewards defined.");
 			return;
 		}
 		$blob = "";
 		foreach ($rewards as $reward) {
-			$remCmd = $this->text->makeChatcmd("Remove", "/tell <myname> reward rem {$reward->id}");
-			$giveCmd = $this->text->makeChatcmd("Give", "/tell <myname> raid reward {$reward->name}");
+			$remCmd = $this->text->makeChatcmd("remove", "/tell <myname> reward rem {$reward->id}");
+			$giveCmd = $this->text->makeChatcmd("give", "/tell <myname> raid reward {$reward->name}");
 			$blob .= "<header2>{$reward->name}<end>\n".
 				"<tab>Points: <highlight>{$reward->points}<end> [{$giveCmd}]\n".
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
 				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
 		$msg = $this->text->makeBlob("Raid rewards (" . count($rewards). ")", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 
 	public function getRaidReward(string $name): ?RaidReward {
@@ -743,78 +749,88 @@ class RaidPointsController {
 
 	/**
 	 * @HandlesCommand("reward .+")
-	 * @Matches("/^reward add ([^ ]+) (\d+) (.+)$/i")
+	 * @Mask $action add
 	 */
-	public function rewardAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if ($this->getRaidReward($args[1])) {
-			$sendto->reply("The raid reward <highlight>{$args[1]}<end> is already defined.");
+	public function rewardAddCommand(
+		CmdContext $context,
+		string $action,
+		PWord $name,
+		int $points,
+		string $reason
+	): void {
+		if ($this->getRaidReward($name())) {
+			$context->reply("The raid reward <highlight>{$name}<end> is already defined.");
 			return;
 		}
 		$reward = new RaidReward();
-		$reward->name = $args[1];
-		$reward->points = (int)$args[2];
-		$reward->reason = $args[3];
+		$reward->name = $name();
+		$reward->points = $points;
+		$reward->reason = $reason;
 		if (strlen($reward->name) > 20) {
-			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
+			$context->reply("The name of the reward is too long. Maximum is 20 characters.");
 			return;
 		}
 		if (strlen($reward->reason) > 100) {
-			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
+			$context->reply("The name of the log entry is too long. Maximum is 100 characters.");
 			return;
 		}
 		$this->db->insert(self::DB_TABLE_REWARD, $reward);
-		$sendto->reply("New reward <highlight>{$reward->name}<end> created.");
+		$context->reply("New reward <highlight>{$reward->name}<end> created.");
 	}
 
 	/**
 	 * @HandlesCommand("reward .+")
-	 * @Matches("/^reward (?:rem|del) (.+)$/i")
 	 */
-	public function rewardRemCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$name = $args[1];
-		if (!preg_match("/^\d+$/", $args[1])) {
-			$reward = $this->getRaidReward($args[1]);
-			if (!isset($reward)) {
-				$sendto->reply("The raid reward <highlight>{$args[1]}<end> does not exist.");
-				return;
-			}
-			$id = $reward->id;
-			$name = $reward->name;
-		} else {
-			$id = (int)$args[1];
-		}
-		$deleted = $this->db->table(self::DB_TABLE_REWARD)->delete($id);
-		if ($deleted) {
-			$sendto->reply("Raid reward <highlight>{$name}<end> successfully deleted.");
-		} else {
-			$sendto->reply("Raid reward <highlight>{$name}<end> was not found.");
-		}
-	}
-
-	/**
-	 * @HandlesCommand("reward .+")
-	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+)$/i")
-	 * @Matches("/^reward (?:change|edit|alter|mod|modify) ([^ ]+) (\d+) (.+)$/i")
-	 */
-	public function rewardChangeCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$reward = $this->getRaidReward($args[1]);
+	public function rewardRemCommand(CmdContext $context, PRemove $action, PNonNumberWord $name): void {
+		$reward = $this->getRaidReward($name());
 		if (!isset($reward)) {
-			$sendto->reply("The raid reward <highlight>{$args[1]}<end> is not yet defined.");
+			$context->reply("The raid reward <highlight>{$name}<end> does not exist.");
 			return;
 		}
-		$reward->name = $args[1];
-		$reward->points = (int)$args[2];
-		$reward->reason = $args[3] ?? $reward->reason;
+		$this->rewardRemIdCommand($context, $action, $reward->id);
+	}
+
+	/**
+	 * @HandlesCommand("reward .+")
+	 */
+	public function rewardRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
+		$deleted = $this->db->table(self::DB_TABLE_REWARD)->delete($id);
+		if ($deleted) {
+			$context->reply("Raid reward <highlight>#{$id}<end> successfully deleted.");
+		} else {
+			$context->reply("Raid reward <highlight>#{$id}<end> was not found.");
+		}
+	}
+
+	/**
+	 * @HandlesCommand("reward .+")
+	 * @Mask $action (change|edit|alter|mod|modify)
+	 */
+	public function rewardChangeCommand(
+		CmdContext $context,
+		string $action,
+		PWord $name,
+		int $points,
+		?string $reason
+	): void {
+		$reward = $this->getRaidReward($name());
+		if (!isset($reward)) {
+			$context->reply("The raid reward <highlight>{$name}<end> is not yet defined.");
+			return;
+		}
+		$reward->name = $name();
+		$reward->points = $points;
+		$reward->reason = $reason ?? $reward->reason;
 		if (strlen($reward->name) > 20) {
-			$sendto->reply("The name of the reward is too long. Maximum is 20 characters.");
+			$context->reply("The name of the reward is too long. Maximum is 20 characters.");
 			return;
 		}
 		if (strlen($reward->reason) > 100) {
-			$sendto->reply("The name of the log entry is too long. Maximum is 100 characters.");
+			$context->reply("The name of the log entry is too long. Maximum is 100 characters.");
 			return;
 		}
 		$this->db->update(self::DB_TABLE_REWARD, "id", $reward);
-		$sendto->reply("Reward <highlight>{$reward->name}<end> changed.");
+		$context->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 
 	/**
@@ -838,6 +854,33 @@ class RaidPointsController {
 		$this->db->table(self::DB_TABLE)
 			->where("username", $event->alt)
 			->delete();
-		$this->logger->log('INFO', "Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
+	}
+
+	/**
+	 * @NewsTile("raid")
+	 * @Description("Shows the player's amount of raid points and if a raid
+	 * is currently running.")
+	 * @Example("<header2>Raid<end>
+	 * <tab>You have <highlight>2222<end> raid points.
+	 * <tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]")
+	 */
+	public function raidpointsTile(string $sender, callable $callback): void {
+		$points = $this->getRaidPoints($sender);
+		$raid = $this->raidController->raid ?? null;
+		if ($points === null && $raid === null) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Raid<end>";
+		if ($points !== null) {
+			$blob .= "\n<tab>You have <highlight>{$points}<end> raid points.";
+		}
+		if ($raid !== null) {
+			$blob .= "\n<tab>" . $raid->getAnnounceMessage().
+				"[" . $this->text->makeChatcmd("join bot", "/tell <myname> join") . "] ".
+				"[" . $this->text->makeChatcmd("join raid", "/tell <myname> raid join") . "]";
+		}
+		$callback($blob);
 	}
 }

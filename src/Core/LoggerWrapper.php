@@ -2,30 +2,59 @@
 
 namespace Nadybot\Core;
 
-use Logger;
-use ReflectionProperty;
+use Monolog\Logger;
 use Throwable;
 
 /**
- * A wrapper class to log4php
+ * A wrapper class to monolog
  *
  * @Instance("logger")
  */
 class LoggerWrapper {
 	/**
-	 * The actual log4php logger
+	 * The actual Monolog logger
 	 */
 	private Logger $logger;
 
 	/**
-	 * The actual log4php logger for tag CHAT
+	 * The actual Monolog logger for tag CHAT
 	 */
-	private Logger $chatLogger;
+	private ?Logger $chatLogger = null;
 
 	public function __construct(string $tag) {
-		$this->logger = Logger::getLogger($tag);
-		$this->chatLogger = Logger::getLogger('CHAT');
-		Registry::setInstance("logger", $this);
+		$this->logger = LegacyLogger::fromConfig($tag);
+	}
+
+	public function debug(string $message, array $context=[]): void {
+		$this->logger->debug($message, $context);
+	}
+
+	public function info(string $message, array $context=[]): void {
+		$this->logger->info($message, $context);
+	}
+
+	public function notice(string $message, array $context=[]): void {
+		$this->logger->notice($message, $context);
+	}
+
+	public function warning(string $message, array $context=[]): void {
+		$this->logger->warning($message, $context);
+	}
+
+	public function error(string $message, array $context=[]): void {
+		$this->logger->error($message, $context);
+	}
+
+	public function critical(string $message, array $context=[]): void {
+		$this->logger->critical($message, $context);
+	}
+
+	public function alert(string $message, array $context=[]): void {
+		$this->logger->alert($message, $context);
+	}
+
+	public function emergency(string $message, array $context=[]): void {
+		$this->logger->emergency($message, $context);
 	}
 
 	/**
@@ -38,19 +67,11 @@ class LoggerWrapper {
 	 */
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
+		$context = [];
 		if (isset($throwable)) {
-			$extraInfo = "";
-			if (strpos($message, " in file ") === false) {
-				$extraInfo .= " in file " . ($throwable->getFile() ?? "Unknown") . ":".
-					($throwable->getLine() ?? "Unknown");
-			}
-			if (!preg_match("/^#\d+ /m", $message)) {
-				$extraInfo .= PHP_EOL . $throwable->getTraceAsString();
-			}
-			$extraInfo = str_replace(dirname(__DIR__, 2) . "/", "", $extraInfo);
-			$message .= $extraInfo;
+			$context["Exception"] = $throwable;
 		}
-		$this->logger->log($level, $message, $throwable);
+		$this->logger->log($level, $message, $context);
 	}
 
 	/**
@@ -80,30 +101,23 @@ class LoggerWrapper {
 			$line = "[$channel] $sender: $message";
 		}
 
-		$level = LegacyLogger::getLoggerLevel('INFO');
-		$this->chatLogger->log($level, $line);
+		$this->chatLogger ??= $this->logger->withName("CHAT");
+		$this->chatLogger->notice($line);
 	}
 
 	/**
 	 * Get the relative path of the directory where logs of this bot are stored
 	 */
-	public function getLoggingDirectory(): string {
-		try {
-			$fileAppender = $this->logger->getRootLogger()->getAppender("defaultFileAppender");
-			$ref = new ReflectionProperty($fileAppender, "file");
-			$ref->setAccessible(true);
-			$logFile = $ref->getValue($fileAppender);
-			return realpath(dirname($logFile));
-		} catch (Throwable $e) {
-			$logDir = dirname(ini_get('error_log'));
-			if (substr($logDir, 0, 1) !== '/') {
-				$logDir = realpath(dirname(__DIR__, 2) . '/' . $logDir);
-				if ($logDir === false) {
-					$logDir = dirname(__DIR__, 2) . '/' . $logDir;
-				}
+	public static function getLoggingDirectory(): string {
+		$logDir = dirname(ini_get('error_log'));
+		if (substr($logDir, 0, 1) !== '/') {
+			$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
+			if ($logDirNew === false) {
+				$logDirNew = dirname(__DIR__, 2) . '/' . $logDir;
 			}
-			return $logDir;
+			$logDir = $logDirNew;
 		}
+		return $logDir;
 	}
 
 	/**
@@ -114,6 +128,16 @@ class LoggerWrapper {
 	 */
 	public function isEnabledFor(string $category): bool {
 		$level = LegacyLogger::getLoggerLevel($category);
-		return $this->logger->isEnabledFor($level);
+		return $this->isHandling($level);
+	}
+
+	/**
+	 * Check if logging is enabled for a given level
+	 *
+	 * @param int $level The log level (Logger::DEBUG, etc.)
+	 * @return boolean
+	 */
+	public function isHandling(int $level): bool {
+		return $this->logger->isHandling($level);
 	}
 }

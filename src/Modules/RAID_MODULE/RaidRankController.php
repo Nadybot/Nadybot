@@ -2,21 +2,24 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
+	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
+	DBSchema\Audit,
 	LoggerWrapper,
+	Modules\ALTS\AltEvent,
+	Modules\ALTS\AltsController,
 	Nadybot,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\Modules\ALTS\AltEvent;
-use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @Instance
@@ -169,6 +172,16 @@ class RaidRankController {
 			'text',
 			'Veteran Raid Admin'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'raid_duration_recently',
+			'Duration considered "recent" in raid stats for leaders command',
+			'edit',
+			'options',
+			'2592000',
+			'Off;1 Month;3 Months;6 Months;1 Year',
+			'0;2592000;7776000;15552000;31536000'
+		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
 	}
@@ -277,12 +290,12 @@ class RaidRankController {
 	}
 
 	/** Check if $sender can change $who's raid rank (to $newRank or in general) */
-	public function canChangeRaidRank(string $sender, string $who, ?string $newRank=null, CommandReply $sendto): bool {
-		if (!$this->checkAccessLevel($sender, $who, $sendto)) {
+	public function canChangeRaidRank(string $sender, string $who, ?string $newRank, CommandReply $sendto): bool {
+		if (!$this->checkAccessLevel($sender, $who)) {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
 			return false;
 		}
-		$reqDistance = $this->settingManager->getInt('raid_rank_promotion_distance');
+		$reqDistance = $this->settingManager->getInt('raid_rank_promotion_distance') ?? 1;
 		$accessLevels = $this->accessManager->getAccessLevels();
 		$senderAccessLevel = $this->accessManager->getAccessLevel(
 			$this->accessManager->getAccessLevelForCharacter($sender)
@@ -372,88 +385,101 @@ class RaidRankController {
 
 	/**
 	 * @HandlesCommand("raidadmin")
-	 * @Matches("/^raidadmin (?:add|promote) ([^ ]+)$/i")
-	 * @Matches("/^raidadmin (?:add|promote) ([^ ]+) (\d)$/i")
+	 * @Mask $action (add|promote)
 	 */
-	public function raidAdminAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
-		$rank = 1;
-		if (count($args) > 2) {
-			$rank = (int)$args[2];
-			if ($rank < 1 || $rank > 3) {
-				$sendto->reply("The admin rank must be a number between 1 and 3");
-				return;
-			}
+	public function raidAdminAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+		$rank ??= 1;
+		if ($rank < 1 || $rank > 3) {
+			$context->reply("The admin rank must be a number between 1 and 3");
+			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_admin_$rank");
+		$rankName = $this->settingManager->getString("name_raid_admin_$rank")??"";
 
-		$this->add($who, $sender, $sendto, $rank+6, $rankName, "raid_admin_$rank");
+		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
 	/**
 	 * @HandlesCommand("raidadmin")
-	 * @Matches("/^raidadmin (?:rem|del|rm|demote) (.+)$/i")
+	 * @Mask $action (remove|rem|del|rm|demote)
 	 */
-	public function raidAdminRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function raidAdminRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$rank = 'a raid admin';
 
-		$this->remove($who, $sender, $sendto, [7, 8, 9], $rank);
+		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
 	/**
 	 * @HandlesCommand("raidleader")
-	 * @Matches("/^raidleader (?:add|promote) ([^ ]+)$/i")
-	 * @Matches("/^raidleader (?:add|promote) ([^ ]+) (\d)$/i")
+	 * @Mask $action (add|promote)
 	 */
-	public function raidLeaderAddCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
-		$rank = 1;
-		if (count($args) > 2) {
-			$rank = (int)$args[2];
-			if ($rank < 1 | $rank > 3) {
-				$sendto->reply("The leader rank must be a number between 1 and 3");
-				return;
-			}
+	public function raidLeaderAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+		$rank ??= 1;
+		if ($rank < 1 || $rank > 3) {
+			$context->reply("The leader rank must be a number between 1 and 3");
+			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_leader_$rank");
+		$rankName = $this->settingManager->getString("name_raid_leader_$rank")??"";
 
-		$this->add($who, $sender, $sendto, $rank+3, $rankName, "raid_leader_$rank");
+		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
 	/**
 	 * @HandlesCommand("raidleader")
-	 * @Matches("/^raidleader (?:rem|del|rm|demote) (.+)$/i")
+	 * @Mask $action (rem|del|rm|demote)
 	 */
-	public function raidLeaderRemoveCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		$who = ucfirst(strtolower($args[1]));
+	public function raidLeaderRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$rank = 'a raid leader';
 
-		$this->remove($who, $sender, $sendto, [4, 5, 6], $rank);
+		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
 	}
 
-	protected function renderLeaders(bool $showOfflineAlts, string ...$names): string {
+	protected function getRaidsByStarter(): Collection {
+		$query = $this->db->table(RaidController::DB_TABLE, "r")
+			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
+			->leftJoin("alts AS a", "r.started_by", "a.alt")
+			->groupBy("r.raid_id", "r.started_by", "r.started");
+		$query = $query->havingRaw("COUNT(*) >= 5")
+			->select(
+				"r.raid_id",
+				"r.started",
+				$query->colFunc("COALESCE", ["a.main", "r.started_by"], "main"),
+				$query->colFunc("COUNT", "*", "count")
+			);
+		return $query->asObj();
+	}
+
+	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
+		$raids = $stats->groupBy("main");
 		foreach ($names as $who) {
-			$output []= "<tab>$who".
-				$this->getOnlineStatus($who) . "\n".
+			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
+			if ($showStats) {
+				$myRaids = $raids->get($who, new Collection());
+				$numRaids = $myRaids->count();
+				$recentlyDuration = $this->settingManager->getInt('raid_duration_recently');
+				if ($recentlyDuration > 0) {
+					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
+				}
+				$line .= " (Raids started: {$numRaids}";
+				if (isset($numRaidsRecently)) {
+					$line .= " / {$numRaidsRecently}";
+				}
+				$line .= ")";
+			}
+			$line .= "\n".
 				$this->getAltLeaderInfo($who, $showOfflineAlts);
+			$output []= $line;
 		}
 		return join("", $output) . "\n";
 	}
 
 	/**
 	 * @HandlesCommand("leaderlist")
-	 * @Matches("/^leaderlist$/i")
-	 * @Matches("/^leaderlist (all)$/i")
+	 * @Mask $all all
 	 */
-	public function leaderlistCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
-		if (count($args) > 1) {
-			$showOfflineAlts = true;
-		} else {
-			$showOfflineAlts = false;
-		}
+	public function leaderlistCommand(CmdContext $context, ?string $all): void {
+		$showOfflineAlts = isset($all);
 
 		$blob = "";
 		$admins = array_filter(
@@ -469,18 +495,34 @@ class RaidRankController {
 			}
 		);
 
+		if (empty($leaders) && empty($admins)) {
+			$context->reply("<myname> has no raid leaders or raid admins.");
+			return;
+		}
+
+		$raidStats = $this->getRaidsByStarter();
 		if (count($admins)) {
 			$blob .= "<header2>Raid admins<end>\n".
-				$this->renderLeaders($showOfflineAlts, ...array_keys($admins));
+				$this->renderLeaders(
+					$this->accessManager->checkSingleAccess($context->char->name, "raid_leader_2"),
+					$showOfflineAlts,
+					$raidStats,
+					...array_keys($admins)
+				);
 		}
 
 		if (count($leaders)) {
 			$blob .= "<header2>Raid leaders<end>\n".
-				$this->renderLeaders($showOfflineAlts, ...array_keys($leaders));
+				$this->renderLeaders(
+					$this->accessManager->checkSingleAccess($context->char->name, "raid_admin_2"),
+					$showOfflineAlts,
+					$raidStats,
+					...array_keys($leaders)
+				);
 		}
 
 		$link = $this->text->makeBlob('Raid leaders/admins', $blob);
-		$sendto->reply($link);
+		$context->reply($link);
 	}
 
 	/**
@@ -524,6 +566,6 @@ class RaidRankController {
 		}
 		$this->removeFromLists($event->alt, $event->main);
 		$this->addToLists($event->main, $event->alt, $oldRank->rank);
-		$this->logger->log('INFO', "Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
 	}
 }

@@ -7,7 +7,7 @@ use Swaggest\JsonSchema\Schema;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
-	CommandReply,
+	CmdContext,
 	DB,
 	LoggerWrapper,
 	Modules\BAN\BanController,
@@ -38,11 +38,11 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
-	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
+use Nadybot\Core\ParamClass\PFilename;
 use Throwable;
 
 /**
@@ -96,12 +96,12 @@ class ImportController {
 	/** @Inject */
 	public RaidRankController $raidRankController;
 
-	protected function loadAndParseExportFile(string $fileName, CommandReply $sendto): ?object {
+	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
 		if (!@file_exists($fileName)) {
 			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
 			return null;
 		}
-		$this->logger->log("INFO", "Decoding the JSON data");
+		$this->logger->notice("Decoding the JSON data");
 		try {
 			$import = json_decode(file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
@@ -112,9 +112,9 @@ class ImportController {
 			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
 			return null;
 		}
-		$this->logger->log("INFO", "Loading schema data");
+		$this->logger->notice("Loading schema data");
 		$schema = Schema::import("https://hodorraid.org/export-schema.json");
-		$this->logger->log("INFO", "Validating import data against the schema");
+		$this->logger->notice("Validating import data against the schema");
 		$sendto->reply("Validating the import data. This could take a while.");
 		try {
 			$schema->in($import);
@@ -127,39 +127,39 @@ class ImportController {
 
 	/**
 	 * @HandlesCommand("import")
-	 * @Matches("/^import (.+?)((?: \w+=\w+)*)$/i")
+	 * @Mask $mappings (\w+=\w+)
 	 */
-	public function importCommand(string $message, string $channel, string $sender, CommandReply $sendto, array $args): void {
+	public function importCommand(CmdContext $context, PFilename $file, ?string ...$mappings): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
-		$fileName = "{$dataPath}/export/" . basename($args[1]);
+		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
 		if (!@file_exists($fileName)) {
-			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
+			$context->reply("No export file <highlight>{$fileName}<end> found.");
 			return;
 		}
-		$import = $this->loadAndParseExportFile($fileName, $sendto);
+		$import = $this->loadAndParseExportFile($fileName, $context);
 		if (!isset($import)) {
 			return;
 		}
 		$usedRanks = $this->getRanks($import);
-		$rankMapping = $this->parseRankMapping($args[2]);
+		$rankMapping = $this->parseRankMapping(array_filter($mappings));
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
-				$sendto->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
+				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
 			} else {
 				try {
 					$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
 				} catch (Exception $e) {
-					$sendto->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
+					$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
 					return;
 				}
 			}
 		}
-		$this->logger->log("INFO", "Starting import");
-		$sendto->reply("Starting import...");
+		$this->logger->notice("Starting import");
+		$context->reply("Starting import...");
 		$importMap = $this->getImportMapping();
 		foreach ($importMap as $key => $func) {
 			if (!isset($import->{$key})) {
@@ -167,8 +167,8 @@ class ImportController {
 			}
 			$func($import->{$key}, $rankMapping);
 		}
-		$this->logger->log("INFO", "Import done");
-		$sendto->reply("The import finished successfully.");
+		$this->logger->notice("Import done");
+		$context->reply("The import finished successfully.");
 	}
 
 	protected function getImportMapping(): array {
@@ -195,11 +195,13 @@ class ImportController {
 		];
 	}
 
-	protected function parseRankMapping(string $input): array {
+	/**
+	 * @param string[] $mappings
+	 * @return array<string,string>
+	 */
+	protected function parseRankMapping(array $mappings): array {
 		$mapping = [];
-		$input = trim($input);
-		$parts = preg_split("/\s+/", $input);
-		foreach ($parts as $part) {
+		foreach ($mappings as $part) {
 			[$key, $value] = explode("=", $part);
 			$mapping[$key] = $value;
 		}
@@ -236,17 +238,17 @@ class ImportController {
 		}
 		$name = $char->name ?? $this->chatBot->lookupID($char->id);
 		if (!isset($name)) {
-			$this->logger->log("INFO", "Unable to find a name for UID {$char->id}");
+			$this->logger->notice("Unable to find a name for UID {$char->id}");
 		}
 		return $name;
 	}
 
 	public function importAlts(array $alts): void {
-		$this->logger->log("INFO", "Importing alts for " . count($alts) . " character(s)");
+		$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
 		$numImported = 0;
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all alts");
+			$this->logger->notice("Deleting all alts");
 			$this->db->table("alts")->truncate();
 			foreach ($alts as $altData) {
 				$mainName = $this->characterToName($altData->main);
@@ -258,13 +260,13 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "{$numImported} alt(s) imported");
+		$this->logger->notice("{$numImported} alt(s) imported");
 	}
 
 	protected function importAlt(string $mainName, object $alt): int {
@@ -284,17 +286,17 @@ class ImportController {
 	}
 
 	public function importAuctions(array $auctions): void {
-		$this->logger->log("INFO", "Importing " . count($auctions) . " auction(s)");
+		$this->logger->notice("Importing " . count($auctions) . " auction(s)");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all auctions");
+			$this->logger->notice("Deleting all auctions");
 			$this->db->table(AuctionController::DB_TABLE)->truncate();
 			foreach ($auctions as $auction) {
 				$this->db->table(AuctionController::DB_TABLE)
 					->insert([
 						"raid_id" => $auction->raidId ?? null,
 						"item" => $auction->item,
-						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->vars["name"],
+						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->char->name,
 						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost, 0) : null,
 						"winner" => $this->characterToName($auction->winner??null),
 						"end" => $auction->timeEnd ?? time(),
@@ -302,21 +304,21 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All auctions imported");
+		$this->logger->notice("All auctions imported");
 	}
 
 	public function importBanlist(array $banlist): void {
 		$numImported = 0;
-		$this->logger->log("INFO", "Importing " . count($banlist) . " ban(s)");
+		$this->logger->notice("Importing " . count($banlist) . " ban(s)");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all bans");
+			$this->logger->notice("Deleting all bans");
 			$this->db->table(BanController::DB_TABLE)->truncate();
 			foreach ($banlist as $ban) {
 				$id = $ban->character->id ?? $this->chatBot->get_uid($ban->character->name);
@@ -326,7 +328,7 @@ class ImportController {
 				$this->db->table(BanController::DB_TABLE)
 				->insert([
 					"charid" => $id,
-					"admin" => $this->characterToName($ban->bannedBy ?? null) ?? $this->chatBot->vars["name"],
+					"admin" => $this->characterToName($ban->bannedBy ?? null) ?? $this->chatBot->char->name,
 					"time" => $ban->banStart ?? time(),
 					"reason" => $ban->banReason ?? "None given",
 					"banend" => $ban->banEnd ?? 0,
@@ -334,63 +336,63 @@ class ImportController {
 				$numImported++;
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
 		$this->banController->uploadBanlist();
-		$this->logger->log("INFO", "{$numImported} bans successfully imported");
+		$this->logger->notice("{$numImported} bans successfully imported");
 	}
 
 	public function importCloak(array $cloakActions): void {
-		$this->logger->log("INFO", "Importing " . count($cloakActions) . " cloak action(s)");
+		$this->logger->notice("Importing " . count($cloakActions) . " cloak action(s)");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all cloak actions");
+			$this->logger->notice("Deleting all cloak actions");
 			$this->db->table(CloakController::DB_TABLE)->truncate();
 			foreach ($cloakActions as $action) {
 				$this->db->table(CloakController::DB_TABLE)
 					->insert([
 						"time" => $action->time ?? null,
 						"action" => $action->cloakOn ? "on" : "off",
-						"player" => $this->characterToName($action->character??null) ?? $this->chatBot->vars["name"],
+						"player" => $this->characterToName($action->character??null) ?? $this->chatBot->char->name,
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All cloak actions imported");
+		$this->logger->notice("All cloak actions imported");
 	}
 
 	public function importLinks(array $links): void {
-		$this->logger->log("INFO", "Importing " . count($links) . " links");
+		$this->logger->notice("Importing " . count($links) . " links");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all links");
+			$this->logger->notice("Deleting all links");
 			$this->db->table("links")->truncate();
 			foreach ($links as $link) {
 				$this->db->table("links")
 					->insert([
-						"name" => $this->characterToName($link->createdBy??null) ?? $this->chatBot->vars["name"],
+						"name" => $this->characterToName($link->createdBy??null) ?? $this->chatBot->char->name,
 						"website" => $link->url,
 						"comments" => $link->description ?? "",
 						"dt" => $link->creationTime ?? null,
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All links imported");
+		$this->logger->notice("All links imported");
 	}
 
 	protected function getMappedRank(array $mapping, string $rank): ?string {
@@ -399,10 +401,10 @@ class ImportController {
 
 	public function importMembers(array $members, array $rankMap=[]): void {
 		$numImported = 0;
-		$this->logger->log("INFO", "Importing " . count($members) . " member(s)");
+		$this->logger->notice("Importing " . count($members) . " member(s)");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all members");
+			$this->logger->notice("Deleting all members");
 			$this->db->table(PrivateChannelController::DB_TABLE)->truncate();
 			$this->db->table(GuildController::DB_TABLE)->truncate();
 			$this->db->table(AdminManager::DB_TABLE)->truncate();
@@ -441,13 +443,13 @@ class ImportController {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 3
+							"rank" => (int)$matches[1] + 3
 						]);
 				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
-							"rank" => $matches[1] + 6
+							"rank" => (int)$matches[1] + 6
 						]);
 				} elseif (in_array($newRank, ["rl", "all"])) {
 					// Nothing, we just ignore that
@@ -467,27 +469,27 @@ class ImportController {
 			}
 			$this->raidRankController->uploadRaidRanks();
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "{$numImported} members successfully imported");
+		$this->logger->notice("{$numImported} members successfully imported");
 	}
 
 	public function importNews(array $news): void {
-		$this->logger->log("INFO", "Importing " . count($news) . " news");
+		$this->logger->notice("Importing " . count($news) . " news");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all news");
+			$this->logger->notice("Deleting all news");
 			$this->db->table("news_confirmed")->truncate();
 			$this->db->table("news")->truncate();
 			foreach ($news as $item) {
 				$newsId = $this->db->table("news")
 				->insertGetId([
 					"time" => $item->addedTime ?? time(),
-					"name" => $this->characterToName($item->author ?? null) ?? $this->chatbot->vars["name"],
+					"name" => $this->characterToName($item->author ?? null) ?? $this->chatBot->char->name,
 					"news" => $item->news,
 					"sticky" => $item->pinned ?? false,
 					"deleted" => $item->deleted ?? false,
@@ -506,20 +508,20 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All news imported");
+		$this->logger->notice("All news imported");
 	}
 
 	public function importNotes(array $notes): void {
-		$this->logger->log("INFO", "Importing " . count($notes) . " notes");
+		$this->logger->notice("Importing " . count($notes) . " notes");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all notes");
+			$this->logger->notice("Deleting all notes");
 			$this->db->table("notes")->truncate();
 			foreach ($notes as $note) {
 				$owner = $this->characterToName($note->owner??null);
@@ -542,26 +544,26 @@ class ImportController {
 				]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All notes imported");
+		$this->logger->notice("All notes imported");
 	}
 
 	public function importPolls(array $polls): void {
-		$this->logger->log("INFO", "Importing " . count($polls) . " polls");
+		$this->logger->notice("Importing " . count($polls) . " polls");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all polls");
+			$this->logger->notice("Deleting all polls");
 			$this->db->table(VoteController::DB_VOTES)->truncate();
 			$this->db->table(VoteController::DB_POLLS)->truncate();
 			foreach ($polls as $poll) {
 				$pollId = $this->db->table(VoteController::DB_POLLS)
 					->insertGetId([
-						"author" => $this->characterToName($poll->author??null) ?? $this->chatbot->vars["name"],
+						"author" => $this->characterToName($poll->author??null) ?? $this->chatBot->char->name,
 						"question" => $poll->question,
 						"possible_answers" => json_encode(
 							array_map(
@@ -588,44 +590,44 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All polls imported");
+		$this->logger->notice("All polls imported");
 	}
 
 	public function importQuotes(array $quotes): void {
-		$this->logger->log("INFO", "Importing " . count($quotes) . " quotes");
+		$this->logger->notice("Importing " . count($quotes) . " quotes");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all quotes");
+			$this->logger->notice("Deleting all quotes");
 			$this->db->table("quote")->truncate();
 			foreach ($quotes as $quote) {
 				$this->db->table("quote")
 					->insert([
-						"poster" => $this->characterToName($quote->contributor??null) ?? $this->chatBot->vars["name"],
+						"poster" => $this->characterToName($quote->contributor??null) ?? $this->chatBot->char->name,
 						"dt" => $quote->time??time(),
 						"msg" => $quote->quote,
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All quotes imported");
+		$this->logger->notice("All quotes imported");
 	}
 
 	public function importRaffleBonus(array $bonuses): void {
-		$this->logger->log("INFO", "Importing " . count($bonuses) . " raffle bonuses");
+		$this->logger->notice("Importing " . count($bonuses) . " raffle bonuses");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raffle bonuses");
+			$this->logger->notice("Deleting all raffle bonuses");
 			$this->db->table(RaffleController::DB_TABLE)->truncate();
 			foreach ($bonuses as $bonus) {
 				$name = $this->characterToName($bonus->character??null);
@@ -639,20 +641,20 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raffle bonuses imported");
+		$this->logger->notice("All raffle bonuses imported");
 	}
 
 	public function importRaidBlocks(array $blocks): void {
-		$this->logger->log("INFO", "Importing " . count($blocks) . " raid blocks");
+		$this->logger->notice("Importing " . count($blocks) . " raid blocks");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raid blocks");
+			$this->logger->notice("Deleting all raid blocks");
 			$this->db->table(RaidBlockController::DB_TABLE)->truncate();
 			foreach ($blocks as $block) {
 				$name = $this->characterToName($block->character??null);
@@ -663,27 +665,27 @@ class ImportController {
 					->insert([
 						"player" => $name,
 						"blocked_from" => $block->blockedFrom,
-						"blocked_by" => $this->characterToName($block->blockedBy??null) ?? $this->chatBot->vars["name"],
+						"blocked_by" => $this->characterToName($block->blockedBy??null) ?? $this->chatBot->char->name,
 						"reason" => $block->blockedReason ?? "No reason given",
 						"time" => $block->blockStart ?? time(),
 						"expiration" => $block->blockEnd ?? null,
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raid blocks imported");
+		$this->logger->notice("All raid blocks imported");
 	}
 
 	public function importRaids(array $raids): void {
-		$this->logger->log("INFO", "Importing " . count($raids) . " raids");
+		$this->logger->notice("Importing " . count($raids) . " raids");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raids");
+			$this->logger->notice("Deleting all raids");
 			$this->db->table(RaidController::DB_TABLE)->truncate();
 			$this->db->table(RaidController::DB_TABLE_LOG)->truncate();
 			$this->db->table(RaidMemberController::DB_TABLE)->truncate();
@@ -703,9 +705,9 @@ class ImportController {
 				$historyEntry->announce_interval = $entry->announce_interval = $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval');
 				$historyEntry->locked = $entry->locked = $raid->raidLocked ?? false;
 				$entry->started = $raid->time ?? time();
-				$entry->started_by = $this->chatBot->vars["name"];
+				$entry->started_by = $this->chatBot->char->name;
 				$entry->stopped = $lastEntry ? $lastEntry->time : $entry->started;
-				$entry->stopped_by = $this->chatBot->vars["name"];
+				$entry->stopped_by = $this->chatBot->char->name;
 				$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, "raid_id");
 				$historyEntry->raid_id = $raidId;
 				foreach ($raid->raiders??[] as $raider) {
@@ -742,20 +744,20 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raids imported");
+		$this->logger->notice("All raids imported");
 	}
 
 	public function importRaidPoints(array $points): void {
-		$this->logger->log("INFO", "Importing " . count($points) . " raid points");
+		$this->logger->notice("Importing " . count($points) . " raid points");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raid points");
+			$this->logger->notice("Deleting all raid points");
 			$this->db->table(RaidPointsController::DB_TABLE)->truncate();
 			foreach ($points as $point) {
 				$name = $this->characterToName($point->character??null);
@@ -768,20 +770,20 @@ class ImportController {
 				$this->db->insert(RaidPointsController::DB_TABLE, $entry, null);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raid points imported");
+		$this->logger->notice("All raid points imported");
 	}
 
 	public function importRaidPointsLog(array $points): void {
-		$this->logger->log("INFO", "Importing " . count($points) . " raid point logs");
+		$this->logger->notice("Importing " . count($points) . " raid point logs");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all raid point logs");
+			$this->logger->notice("Deleting all raid point logs");
 			$this->db->table(RaidPointsController::DB_TABLE_LOG)->truncate();
 			foreach ($points as $point) {
 				$name = $this->characterToName($point->character??null);
@@ -793,7 +795,7 @@ class ImportController {
 						"username" => $name,
 						"delta" => $point->raidPoints,
 						"time" => $point->time ?? time(),
-						"changed_by" => $this->characterToName($point->givenBy ??null) ?? $this->chatBot->vars["name"],
+						"changed_by" => $this->characterToName($point->givenBy ??null) ?? $this->chatBot->char->name,
 						"individual" => $point->givenIndividually ?? true,
 						"raid_id" => $point->raidId ?? null,
 						"reason" => $point->reason ?? "Raid participation",
@@ -801,13 +803,13 @@ class ImportController {
 					]);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raid point logs imported");
+		$this->logger->notice("All raid point logs imported");
 	}
 
 	protected function channelsToMode(array $channels): string {
@@ -829,18 +831,18 @@ class ImportController {
 
 	public function importTimers(array $timers): void {
 		$table = Registry::getInstance("timercontroller")::DB_TABLE;
-		$this->logger->log("INFO", "Importing " . count($timers) . " timers");
+		$this->logger->notice("Importing " . count($timers) . " timers");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all timers");
+			$this->logger->notice("Deleting all timers");
 			$this->db->table($table)->truncate();
 			$timerNum = 1;
 			foreach ($timers as $timer) {
 				$entry = new Timer();
-				$entry->owner = $this->characterToName($timer->createdBy??null) ?? $this->chatBot->vars["name"];
+				$entry->owner = $this->characterToName($timer->createdBy??null) ?? $this->chatBot->char->name;
 				$entry->data = $timer->repeatInterval ? (string)$timer->repeatInterval : null;
 				$entry->mode = $this->channelsToMode($timer->channels??[]);
-				$entry->name = $timer->timerName ?? $this->characterToName($timer->createdBy??null) ?? $this->chatBot->vars["name"] . "-{$timerNum}";
+				$entry->name = $timer->timerName ?? $this->characterToName($timer->createdBy??null) ?? $this->chatBot->char->name . "-{$timerNum}";
 				$entry->endtime = $timer->endTime;
 				$entry->callback = $entry->data ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
 				$entry->alerts = [];
@@ -870,20 +872,20 @@ class ImportController {
 				$timerNum++;
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All timers imported");
+		$this->logger->notice("All timers imported");
 	}
 
 	public function importTrackedCharacters(array $trackedUsers): void {
-		$this->logger->log("INFO", "Importing " . count($trackedUsers) . " tracked users");
+		$this->logger->notice("Importing " . count($trackedUsers) . " tracked users");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all tracked users");
+			$this->logger->notice("Deleting all tracked users");
 			$this->db->table(TrackerController::DB_TABLE)->truncate();
 			foreach ($trackedUsers as $trackedUser) {
 				$name = $this->characterToName($trackedUser->character??null);
@@ -898,7 +900,7 @@ class ImportController {
 					->insert([
 						"uid" => $id,
 						"name" => $name,
-						"added_by" => $this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->vars["name"],
+						"added_by" => $this->characterToName($trackedUser->addedBy??null) ?? $this->chatBot->char->name,
 						"added_dt" => $trackedUser->addedTime ?? time(),
 					]);
 				foreach ($trackedUser->events??[] as $event) {
@@ -911,20 +913,20 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All raid blocks imported");
+		$this->logger->notice("All raid blocks imported");
 	}
 
 	public function importCommentCategories(array $categories, array $rankMap): void {
-		$this->logger->log("INFO", "Importing " . count($categories) . " comment categories");
+		$this->logger->notice("Importing " . count($categories) . " comment categories");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all user-managed comment categories");
+			$this->logger->notice("Deleting all user-managed comment categories");
 			$this->db->table("<table:comment_categories>")
 				->where("user_managed", true)
 				->delete();
@@ -932,7 +934,7 @@ class ImportController {
 				$oldEntry = $this->commentController->getCategory($category->name);
 				$entry = new CommentCategory();
 				$entry->name = $category->name;
-				$entry->created_by = $this->characterToName($category->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_by = $this->characterToName($category->createdBy ??null) ?? $this->chatBot->char->name;
 				$entry->created_at = $category->createdAt ?? time();
 				$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? "mod";
 				$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? "admin";
@@ -944,20 +946,20 @@ class ImportController {
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All comment categories imported");
+		$this->logger->notice("All comment categories imported");
 	}
 
 	public function importComments(array $comments): void {
-		$this->logger->log("INFO", "Importing " . count($comments) . " comment(s)");
+		$this->logger->notice("Importing " . count($comments) . " comment(s)");
 		$this->db->beginTransaction();
 		try {
-			$this->logger->log("INFO", "Deleting all comments");
+			$this->logger->notice("Deleting all comments");
 			$this->db->table("<table:comments>")->truncate();
 			foreach ($comments as $comment) {
 				$name = $this->characterToName($comment->targetCharacter);
@@ -967,13 +969,13 @@ class ImportController {
 				$entry = new Comment();
 				$entry->comment = $comment->comment;
 				$entry->character = $name;
-				$entry->created_by = $this->characterToName($comment->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_by = $this->characterToName($comment->createdBy ??null) ?? $this->chatBot->char->name;
 				$entry->created_at = $comment->createdAt ?? time();
 				$entry->category = $comment->category ?? "admin";
 				if ($this->commentController->getCategory($entry->category) === null) {
 					$cat = new CommentCategory();
 					$cat->name = $entry->category;
-					$cat->created_by = $this->chatBot->vars["name"];
+					$cat->created_by = $this->chatBot->char->name;
 					$cat->created_at = time();
 					$cat->min_al_read = "mod";
 					$cat->min_al_write = "admin";
@@ -983,12 +985,12 @@ class ImportController {
 				$this->db->insert("<table:comments>", $entry);
 			}
 		} catch (Throwable $e) {
-			$this->logger->log("ERROR", $e->getMessage(), $e);
-			$this->logger->log("INFO", "Rolling back changes");
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->notice("Rolling back changes");
 			$this->db->rollback();
 			return;
 		}
 		$this->db->commit();
-		$this->logger->log("INFO", "All comments imported");
+		$this->logger->notice("All comments imported");
 	}
 }

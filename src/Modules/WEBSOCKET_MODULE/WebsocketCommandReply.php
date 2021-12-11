@@ -41,7 +41,11 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	}
 
 	public function reply($msg): void {
-		foreach ((array)$msg as $text) {
+		$msg = (array)$msg;
+		if (empty($msg)) {
+			return;
+		}
+		foreach ($msg as $text) {
 			$rMessage = new RoutableMessage($text);
 			$rMessage->setCharacter(new Character(
 				$this->chatBot->char->name,
@@ -52,7 +56,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			];
 			$this->messageHub->handle($rMessage);
 		}
-		$msgs = $this->webChatConverter->convertMessages((array)$msg);
+		$msgs = $this->webChatConverter->convertMessages($msg);
 		foreach ($msgs as $msg) {
 			$xmlMessage = new AOChatEvent();
 			$xmlMessage->message = $msg;
@@ -69,7 +73,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			} else {
 				$xmlMessage->path[0]->color = "";
 			}
-			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color"), $matches)) {
+			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>", $matches)) {
 				$xmlMessage->color = $matches[1];
 			}
 			$this->eventManager->fireEvent($xmlMessage);

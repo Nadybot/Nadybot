@@ -5,7 +5,6 @@ namespace Nadybot\Core\Socket;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
-	LegacyLogger,
 	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,
@@ -28,8 +27,11 @@ class AsyncSocket {
 	public const STATE_CLOSING = 2;
 	public const STATE_CLOSED = 3;
 
-	/** @var resource */
-	protected $socket;
+	/**
+	 * @var ?resource
+	 * @psalm-var null|resource|closed-resource
+	 */
+	protected $socket = null;
 
 	/** @Inject */
 	public SocketManager $socketManager;
@@ -37,7 +39,7 @@ class AsyncSocket {
 	/** @Inject */
 	public Timer $timer;
 
-	/** @Logger */
+	/** @Logger("Core/AsyncSocket") */
 	public LoggerWrapper $logger;
 
 	protected array $writeQueue = [];
@@ -69,7 +71,8 @@ class AsyncSocket {
 
 	/**
 	 * Get the low level socket
-	 * @return resource
+	 * @return null|resource
+	 * @psalm-return null|resource|closed-resource
 	 */
 	public function getSocket() {
 		return $this->socket;
@@ -81,7 +84,7 @@ class AsyncSocket {
 
 	public function setTimeout(int $timeout): self {
 		$this->timeout = $timeout;
-		if ($timeout > 0) {
+		if ($timeout > 0 && is_resource($this->socket)) {
 			stream_set_timeout($this->socket, $timeout);
 		}
 		return $this;
@@ -98,7 +101,7 @@ class AsyncSocket {
 	/**
 	 * Reset the timeout, because there was stream activity
 	 */
-	protected function refreshTimeout() {
+	protected function refreshTimeout(): void {
 		if ($this->timeout <=0) {
 			return;
 		}
@@ -119,10 +122,12 @@ class AsyncSocket {
 		if ($this->state === static::STATE_CLOSED) {
 			return;
 		}
-		$this->logger->log('DEBUG', 'Connection timeout');
+		$this->logger->info('Connection timeout');
 		if ($this->state === static::STATE_CLOSING) {
-			$this->logger->log('DEBUG', 'Forcefully closing socket');
-			@fclose($this->socket);
+			$this->logger->info('Forcefully closing socket');
+			if (is_resource($this->socket)) {
+				@fclose($this->socket);
+			}
 			$this->destroy();
 			return;
 		}
@@ -137,14 +142,14 @@ class AsyncSocket {
 	 */
 	protected function socketCallback(int $type): void {
 		if ($type === SocketNotifier::ACTIVITY_READ) {
-			$this->logger->log('TRACE', 'Socket ready for READ');
+			$this->logger->debug('Socket ready for READ');
 			$this->lastRead = microtime(true);
 			$this->refreshTimeout();
-			if (feof($this->socket)) {
+			if (is_resource($this->socket) && feof($this->socket)) {
 				if ($this->state === static::STATE_CLOSING) {
-					$this->logger->log('DEBUG', 'Endpoint confirmed close.');
+					$this->logger->info('Endpoint confirmed close.');
 				} else {
-					$this->logger->log('DEBUG', 'Endpoint closed connection');
+					$this->logger->info('Endpoint closed connection');
 					$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
 				}
 				$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
@@ -157,7 +162,7 @@ class AsyncSocket {
 				$this->trigger(static::DATA);
 			}
 		} elseif ($type === SocketNotifier::ACTIVITY_WRITE) {
-			$this->logger->log('TRACE', 'Socket ready for WRITE');
+			$this->logger->debug('Socket ready for WRITE');
 			$this->processQueue();
 		} elseif ($type === SocketNotifier::ACTIVITY_ERROR) {
 			throw new Exception("Unhandled OOB data");
@@ -187,7 +192,7 @@ class AsyncSocket {
 		if (isset($this->callbacks[$event])) {
 			$this->callbacks[$event] []= $callback;
 		}
-		if ($event === static::DATA) {
+		if ($event === self::DATA) {
 			$mayListenToReads = !count($this->writeQueue) || !($this->writeQueue[0] instanceof WriteClosureInterface) || $this->writeQueue[0]->allowReading();
 			if ($mayListenToReads) {
 				$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
@@ -203,13 +208,13 @@ class AsyncSocket {
 		foreach ($this->callbacks[$event] as $callback) {
 			$callback($this, ...$params);
 		}
-		if ($event === static::CLOSE) {
+		if ($event === self::CLOSE) {
 			$this->destroy();
 		}
 	}
 
 	public function destroy(): void {
-		$this->logger->log('TRACE', 'Destroying ' . get_class());
+		$this->logger->debug('Destroying ' . get_class());
 		$this->callbacks = [];
 		$this->socket = null;
 		if (isset($this->notifier)) {
@@ -236,8 +241,8 @@ class AsyncSocket {
 	}
 
 	protected function forceClose(): void {
-		$this->logger->log('DEBUG', 'Force closing connection');
-		if ((!is_resource($this->socket) && !($this->socket instanceof \Socket)) || $this->state === static::STATE_CLOSED) {
+		$this->logger->info('Force closing connection');
+		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
 		@fclose($this->socket);
@@ -251,10 +256,10 @@ class AsyncSocket {
 	 * Async close the socket gracefully
 	 */
 	public function close(): bool {
-		if ($this->state === static::STATE_CLOSED) {
+		if ($this->state === self::STATE_CLOSED) {
 			return true;
 		}
-		if ($this->state === static::STATE_CLOSING) {
+		if ($this->state === self::STATE_CLOSING) {
 			$this->forceClose();
 			return true;
 		}
@@ -283,8 +288,7 @@ class AsyncSocket {
 		if (($this->notifier->getType() & $type) === $type) {
 			return;
 		}
-		$this->logger->log(
-			'DEBUG',
+		$this->logger->info(
 			'Subscribing to socket event ' . $type . ' ('.
 			(($type === SocketNotifier::ACTIVITY_READ) ? 'read' : 'write').
 			')'
@@ -306,8 +310,7 @@ class AsyncSocket {
 		if (!isset($this->socketManager) || !isset($this->notifier) || (($this->notifier->getType() & $type) === 0)) {
 			return;
 		}
-		$this->logger->log(
-			'DEBUG',
+		$this->logger->info(
 			'Unsubscribing from socket event ' . $type . ' ('.
 			(($type === SocketNotifier::ACTIVITY_READ) ? 'read' : 'write').
 			')'
@@ -327,23 +330,23 @@ class AsyncSocket {
 	 */
 	protected function processQueue(): void {
 		if (empty($this->writeQueue)) {
-			$this->logger->log('DEBUG', 'writeQueue empty');
+			$this->logger->info('writeQueue empty');
 			$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
 			return;
 		}
 		$data = array_shift($this->writeQueue);
 		if (is_string($data)) {
-			$this->logger->log('DEBUG', 'Writing data');
+			$this->logger->info('Writing data');
 			$this->writeData($data);
 		} elseif ($data instanceof WriteClosureInterface) {
-			$this->logger->log('DEBUG', 'Writing closure');
+			$this->logger->info('Writing closure');
 			$this->writeClosure($data);
 		} elseif ($data instanceof ShutdownRequest) {
 			if ($this->state !== static::STATE_READY) {
 				return;
 			}
-			$this->logger->log('DEBUG', 'Closing socket');
-			if (@stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
+			$this->logger->info('Closing socket');
+			if (!is_resource($this->socket) || @stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
 				$this->forceClose();
 				return;
 			}
@@ -354,7 +357,7 @@ class AsyncSocket {
 			$this->refreshTimeout();
 		}
 		if (empty($this->writeQueue)) {
-			$this->logger->log('DEBUG', 'writeQueue empty');
+			$this->logger->info('writeQueue empty');
 			$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
 		}
 	}
@@ -365,17 +368,17 @@ class AsyncSocket {
 	protected function writeClosure(WriteClosureInterface $callback): bool {
 		$result = $callback->exec($this);
 		if ($result === true) {
-			$this->logger->log('DEBUG', 'Closure returned success');
+			$this->logger->info('Closure returned success');
 			$this->lastWrite = microtime(true);
 			$this->refreshTimeout();
 			$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 			return true;
 		}
 		if ($result === false) {
-			$this->logger->log('WARNING', 'Writing closure failed: ' . error_get_last()['message']);
+			$this->logger->warning('Writing closure failed: ' . (error_get_last()['message'] ?? "unknown error"));
 			$this->trigger(
-				static::ERROR,
-				static::ERROR_CALLBACK,
+				self::ERROR,
+				self::ERROR_CALLBACK,
 				"Callback returned failure."
 			);
 			$this->forceClose();
@@ -395,8 +398,7 @@ class AsyncSocket {
 		}
 		// This can be cost intensive to calculate, so only do it if really needed
 		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->log(
-				'TRACE',
+			$this->logger->debug(
 				'Writing "'.
 				preg_replace_callback(
 					"/[^\32-\126]/",
@@ -414,7 +416,7 @@ class AsyncSocket {
 				'"'
 			);
 		}
-		$written = fwrite($this->socket, $data, 4096);
+		$written = is_resource($this->socket) ? fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();
 			return false;
@@ -442,6 +444,8 @@ class AsyncSocket {
 	}
 
 	public function __destruct() {
-		LegacyLogger::log('TRACE', 'AsyncSocket', get_class() . ' destroyed');
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
 	}
 }
