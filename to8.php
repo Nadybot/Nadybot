@@ -180,6 +180,9 @@ class Migrator {
 		}
 		$changed = false;
 		foreach ($methods as $method) {
+			if (in_array($method->getName(), ["scanApiAnnotations", "scanRouteAnnotations"])) {
+				continue;
+			}
 			$annotations = $method->getAllAnnotations();
 			if (empty($annotations)) {
 				continue;
