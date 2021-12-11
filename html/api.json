@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.3.0-rc.2"
+		"version": "5.3.0"
 	},
 	"servers": [
 		{
@@ -285,6 +285,9 @@
 					},
 					"value": {
 						"oneOf": [
+							{
+								"type": "null"
+							},
 							{
 								"type": "integer"
 							},
@@ -914,6 +917,10 @@
 					"id": {
 						"type": "integer",
 						"description": "The ID the game uses for this channel"
+					},
+					"class": {
+						"type": "integer",
+						"description": "The class of the channel (OOC, towers, etc.)"
 					}
 				}
 			},
@@ -1024,6 +1031,15 @@
 						"type": "integer"
 					},
 					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "offset",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "How many entries to skip before beginning to return entries"
 				},
 				{
 					"name": "actor",
@@ -2040,6 +2056,15 @@
 						"type": "integer"
 					},
 					"description": "No more than this amount of entries will be returned. Default is 50"
+				},
+				{
+					"name": "offset",
+					"required": false,
+					"in": "query",
+					"schema": {
+						"type": "integer"
+					},
+					"description": "How many entries to skip before beginning to return entries"
 				},
 				{
 					"name": "actor",

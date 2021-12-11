@@ -1,4 +1,20 @@
 *****************************
+	Version 5.3.0
+*****************************
+5.3.x This is the last version support PHP7.
+
+Bugfixes:
+- Fix discord relay sometimes not showing the name of the
+  person saying something on Discord
+- Fix a race condition where quickly banning and unbanning an org
+  resulted in an error.
+- Build composer.lock with PHP 7.4 again, so the provided release
+  bundle (ZIP-file) will run on 7.4
+
+Features:
+- Add an option to group the online list by faction
+
+*****************************
 	Version 5.3.0 RC 2
 *****************************
 Bugfixes:
