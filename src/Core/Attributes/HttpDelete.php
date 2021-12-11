@@ -5,9 +5,6 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class HttpDelete {
+class HttpDelete extends HttpVerb {
 	public string $type = "delete";
-
-	public function __construct(public string $value) {
-	}
 }

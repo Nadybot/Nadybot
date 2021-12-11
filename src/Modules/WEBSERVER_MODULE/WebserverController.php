@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	Timer,
 	Socket\AsyncSocket,
 };
+use ReflectionAttribute;
 
 /**
  * Commands this controller contains:
@@ -290,24 +291,19 @@ class WebserverController {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				foreach ([
-					NCA\HttpGet::class, NCA\HttpPost::class, NCA\HttpPut::class,
-					NCA\HttpDelete::class, NCA\HttpPatch::class
-				] as $attrName) {
-					$attrs = $method->getAttributes($attrName);
-					if (empty($attrs)) {
+				$attrs = $method->getAttributes(NCA\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
+				if (empty($attrs)) {
+					continue;
+				}
+				foreach ($attrs as $attribute) {
+					/** @var NCA\HttpVerb */
+					$attrObj = $attribute->newInstance();
+					if (!isset($attrObj->value)) {
 						continue;
 					}
-					foreach ($attrs as $attribute) {
-						/** @var NCA\HttpGet|NCA\HttpPost|NCA\HttpPut|NCA\HttpDelete|NCA\HttpPatch $attrObj */
-						$attrObj = $attribute->newInstance();
-						if (!isset($attrObj->value)) {
-							continue;
-						}
-						$closure = $method->getClosure($instance);
-						if (isset($closure)) {
-							$this->addRoute($attrObj->type, $attrObj->value, $closure);
-						}
+					$closure = $method->getClosure($instance);
+					if (isset($closure)) {
+						$this->addRoute($attrObj->type, $attrObj->value, $closure);
 					}
 				}
 			}

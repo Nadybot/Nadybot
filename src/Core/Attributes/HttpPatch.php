@@ -5,9 +5,6 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class HttpPatch {
+class HttpPatch extends HttpVerb {
 	public string $type = "patch";
-
-	public function __construct(public string $value) {
-	}
 }
