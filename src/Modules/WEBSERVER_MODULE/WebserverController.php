@@ -290,8 +290,11 @@ class WebserverController {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $attrName) {
-					$attrs = $method->getAttributes("NCA\\$attrName");
+				foreach ([
+					NCA\HttpGet::class, NCA\HttpPost::class, NCA\HttpPut::class,
+					NCA\HttpDelete::class, NCA\HttpPatch::class
+				] as $attrName) {
+					$attrs = $method->getAttributes($attrName);
 					if (empty($attrs)) {
 						continue;
 					}
