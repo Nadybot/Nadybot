@@ -16,21 +16,7 @@ use Nadybot\Core\DBSchema\{
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\AccessLevel;
-use Nadybot\Core\Attributes\DefaultStatus;
-use Nadybot\Core\Attributes\DefineCommand as AttributesDefineCommand;
-use Nadybot\Core\Attributes\Description;
-use Nadybot\Core\Attributes\Event;
-use Nadybot\Core\Attributes\HandlesCommand;
-use Nadybot\Core\Attributes\Help;
-use Nadybot\Core\Attributes\Intoptions;
-use Nadybot\Core\Attributes\Options;
-use Nadybot\Core\Attributes\ProvidesEvent;
-use Nadybot\Core\Attributes\Setting as AttributesSetting;
-use Nadybot\Core\Attributes\SettingHandler;
-use Nadybot\Core\Attributes\Setup;
-use Nadybot\Core\Attributes\Type;
-use Nadybot\Core\Attributes\Visibility;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\Channels\PrivateChannel;
 use Nadybot\Core\Channels\PublicChannel;
@@ -38,6 +24,7 @@ use Nadybot\Core\Channels\PrivateMessage;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Core\SettingHandler as CoreSettingHandler;
 use Throwable;
 
 /**
@@ -1264,21 +1251,21 @@ class Nadybot extends AOChat {
 	public function registerEvents(string $class): void {
 		$reflection = new ReflectionClass($class);
 
-		foreach ($reflection->getAttributes(ProvidesEvent::class) as $eventAttr) {
-			/** @var ProvidesEvent */
+		foreach ($reflection->getAttributes(NCA\ProvidesEvent::class) as $eventAttr) {
+			/** @var NCA\ProvidesEvent */
 			$eventObj = $eventAttr->newInstance();
 			$this->eventManager->addEventType($eventObj->value, $eventObj->desc);
 		}
 	}
 
 	public function registerSettingHandlers(string $class): void {
-		if (!is_subclass_of($class, SettingHandler::class)) {
+		if (!is_subclass_of($class, CoreSettingHandler::class)) {
 			return;
 		}
 		$reflection = new ReflectionClass($class);
 
-		foreach ($reflection->getAttributes(SettingHandler::class) as $settingAttr) {
-			/** @var SettingHandler */
+		foreach ($reflection->getAttributes(NCA\SettingHandler::class) as $settingAttr) {
+			/** @var NCA\SettingHandler */
 			$AttrObj = $settingAttr->newInstance();
 			$this->settingManager->registerSettingHandler($AttrObj->value, $class);
 		}
@@ -1297,23 +1284,23 @@ class Nadybot extends AOChat {
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getProperties() as $property) {
-			$settingAttrs = $property->getAttributes(AttributesSetting::class);
+			$settingAttrs = $property->getAttributes(NCA\Setting::class);
 			if (empty($settingAttrs)) {
 				continue;
 			}
-			$descrAttrs = $property->getAttributes(Description::class);
-			$visibilityAttrs = $property->getAttributes(Visibility::class);
-			$typeAttrs = $property->getAttributes(Type::class);
+			$descrAttrs = $property->getAttributes(NCA\Description::class);
+			$visibilityAttrs = $property->getAttributes(NCA\Visibility::class);
+			$typeAttrs = $property->getAttributes(NCA\Type::class);
 			if (empty($descrAttrs) || empty($visibilityAttrs) || empty($typeAttrs)) {
 				throw new Exception(
 					"The setting {$obj->{$property->name}} is missing the ".
 					"Description, Visibility or Type attribute"
 				);
 			}
-			$optionsAttrs = $property->getAttributes(Options::class);
-			$intoptionsAttrs = $property->getAttributes(Intoptions::class);
-			$alAttrs = $property->getAttributes(AccessLevel::class);
-			$helpAttrs = $property->getAttributes(Help::class);
+			$optionsAttrs = $property->getAttributes(NCA\Options::class);
+			$intoptionsAttrs = $property->getAttributes(NCA\Intoptions::class);
+			$alAttrs = $property->getAttributes(NCA\AccessLevel::class);
+			$helpAttrs = $property->getAttributes(NCA\Help::class);
 			$this->settingManager->add(
 				$moduleName,
 				$settingAttrs[0]->newInstance()->value,
@@ -1331,7 +1318,7 @@ class Nadybot extends AOChat {
 		// register commands, subcommands, and events annotated on the class
 		$commands = [];
 		$subcommands = [];
-		foreach ($reflection->getAttributes(AttributesDefineCommand::class) as $attribute) {
+		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
 			/** @var AttributesDefineCommand */
 			$attribute = $attribute->newInstance();
 			$command = $attribute->command;
@@ -1357,13 +1344,13 @@ class Nadybot extends AOChat {
 		}
 
 		foreach ($reflection->getMethods() as $method) {
-			if (count($method->getAttributes(Setup::class))) {
+			if (count($method->getAttributes(NCA\Setup::class))) {
 				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}
 			}
-			foreach ($method->getAttributes(HandlesCommand::class) as $command) {
-				/** @var HandlesCommand */
+			foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
+				/** @var NCA\HandlesCommand */
 				$command = $command->newInstance();
 				$commandName = $command->value;
 				$handlerName = "{$name}.{$method->name}";
@@ -1375,16 +1362,16 @@ class Nadybot extends AOChat {
 					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
 				}
 			}
-			foreach ($method->getAttributes(Event::class) as $eventAnnotation) {
-				/** @var Event */
+			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
+				/** @var NCA\Event */
 				$event = $eventAnnotation->newInstance();
-				if (count($defStatusAttrs = $method->getAttributes(DefaultStatus::class))) {
+				if (count($defStatusAttrs = $method->getAttributes(NCA\DefaultStatus::class))) {
 					$defaultStatus = $defStatusAttrs[0]->newInstance()->value;
 				}
-				if (count($descrAttrs = $method->getAttributes(Description::class))) {
+				if (count($descrAttrs = $method->getAttributes(NCA\Description::class))) {
 					$description = $descrAttrs[0]->newInstance()->value;
 				}
-				if (count($helpAttrs = $method->getAttributes(Help::class))) {
+				if (count($helpAttrs = $method->getAttributes(NCA\Help::class))) {
 					$help = $helpAttrs[0]->newInstance()->value;
 				}
 				$this->eventManager->register(
@@ -1440,7 +1427,7 @@ class Nadybot extends AOChat {
 	public function callSetupMethod(string $name, object $obj): void {
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
-			if (count($method->getAttributes(Setup::class))) {
+			if (count($method->getAttributes(NCA\Setup::class))) {
 				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}

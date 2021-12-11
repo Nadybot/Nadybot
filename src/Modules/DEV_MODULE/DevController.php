@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\Attributes\HandlesCommand;
+use Nadybot\Core\Attributes as NCA;
 use ReflectionException;
 
 /**
@@ -136,7 +136,7 @@ class DevController {
 			}
 			try {
 				$reflectedMethod = new ReflectionMethod($instance, $method);
-				$commands = $reflectedMethod->getAttributes(HandlesCommand::class);
+				$commands = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
 				if (empty($commands)) {
 					continue;
 				}

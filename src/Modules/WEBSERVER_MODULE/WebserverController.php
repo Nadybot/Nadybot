@@ -5,8 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use ReflectionClass;
 use DateTime;
 use Exception;
-use Nadybot\Core\Annotations\HttpGet;
-use Nadybot\Core\Annotations\HttpPost;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AsyncHttp,
 	CmdContext,
@@ -292,12 +291,12 @@ class WebserverController {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
 				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $attrName) {
-					$attrs = $method->getAttributes("Nadybot\\Core\\Attributes\\$attrName");
+					$attrs = $method->getAttributes("NCA\\$attrName");
 					if (empty($attrs)) {
 						continue;
 					}
 					foreach ($attrs as $attribute) {
-						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $anntrObj */
+						/** @var NCA\HttpGet|NCA\HttpPost|NCA\HttpPut|NCA\HttpDelete|NCA\HttpPatch $attrObj */
 						$attrObj = $attribute->newInstance();
 						if (!isset($attrObj->value)) {
 							continue;

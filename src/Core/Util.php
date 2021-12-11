@@ -4,8 +4,7 @@ namespace Nadybot\Core;
 
 use ReflectionClass;
 use Exception;
-use Nadybot\Core\Attributes\Description;
-use Nadybot\Core\Attributes\Param;
+use Nadybot\Core\Attributes as NCA;
 
 /**
  * @Instance
@@ -615,21 +614,21 @@ class Util {
 
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
 		$reflection = new ReflectionClass($class);
-		$attrs = $reflection->getAttributes("Nadybot\\Core\\Attributes\\$attrName");
+		$attrs = $reflection->getAttributes("NCA\\$attrName");
 		if (empty($attrs)) {
 			return null;
 		}
 		$attrObj = $attrs[0]->newInstance();
 		$name = $attrObj->value;
-		$descriptionAttr = $reflection->getAttributes(Description::class);
+		$descriptionAttr = $reflection->getAttributes(NCA\Description::class);
 		if (!empty($descriptionAttr)) {
 			$description = $descriptionAttr[0]->newInstance()->value;
 		}
 		/** @var FunctionParameter[] */
 		$params = [];
 		$i = 1;
-		foreach ($reflection->getAttributes(Param::class) as $paramAttr) {
-			/** @var Param */
+		foreach ($reflection->getAttributes(NCA\Param::class) as $paramAttr) {
+			/** @var NCA\Param */
 			$paramObj = $paramAttr->newInstance();
 			$param = new FunctionParameter();
 			$param->name = $paramObj->name;

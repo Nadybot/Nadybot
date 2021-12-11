@@ -25,9 +25,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Attributes\Description;
-use Nadybot\Core\Attributes\Example;
-use Nadybot\Core\Attributes\NewsTile as NewsTileAttr;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -94,22 +92,22 @@ class StartpageController {
 	 * @param ReflectionMethod $method The method we're scanning
 	 */
 	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
-		$newsTileAttrs = $method->getAttributes(NewsTileAttr::class);
+		$newsTileAttrs = $method->getAttributes(NCA\NewsTile::class);
 		if (empty($newsTileAttrs)) {
 			return;
 		}
 		$className = get_class($instance);
 		$funcName = "{$className}::" . $method->getName() . "()";
-		/** @var NewsTileAttr */
+		/** @var NCA\NewsTile */
 		$attrObj = $newsTileAttrs[0]->newInstance();
 		$name = $attrObj->value;
-		$descrAttrs = $method->getAttributes(Description::class);
+		$descrAttrs = $method->getAttributes(NCA\Description::class);
 		if (empty($descrAttrs)) {
 			throw new InvalidArgumentException(
-				"{$funcName} has no @Description annotation."
+				"{$funcName} has no #[Description] attribute."
 			);
 		}
-		/** @var Description */
+		/** @var NCA\Description */
 		$descrObj = $descrAttrs[0]->newInstance();
 		$descr = $descrObj->value;
 		$closure = $method->getClosure($instance);
@@ -120,9 +118,9 @@ class StartpageController {
 		}
 		$tile = new NewsTile($name, $closure);
 		$tile->description = $descr;
-		$exampleAttrs = $method->getAttributes(Example::class);
+		$exampleAttrs = $method->getAttributes(NCA\Example::class);
 		if (!empty($exampleAttrs)) {
-			/** @var Example */
+			/** @var NCA\Example */
 			$attrObj = $exampleAttrs[0]->newInstance();
 			$tile->example = $attrObj->value;
 		}

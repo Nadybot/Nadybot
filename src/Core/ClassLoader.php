@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes\Instance;
+use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
 class ClassLoader {
@@ -157,11 +157,11 @@ class ClassLoader {
 		$newInstances = [];
 		foreach ($new as $className) {
 			$reflection = new ReflectionClass($className);
-			$instanceAnnos = $reflection->getAttributes(Instance::class);
+			$instanceAnnos = $reflection->getAttributes(NCA\Instance::class);
 			if (count($instanceAnnos)) {
 				$instance = new ClassInstance();
 				$instance->className = $className;
-				/** @var Instance */
+				/** @var NCA\Instance */
 				$instanceAnno = $instanceAnnos[0]->newInstance();
 				if ($instanceAnno->value !== null) {
 					$name = $instanceAnno->value;

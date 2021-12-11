@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes\Inject;
-use Nadybot\Core\Attributes\Logger;
+use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
 class Registry {
@@ -62,9 +61,9 @@ class Registry {
 		// inject other instances that are annotated with @Inject
 		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
-			$injectAttrs = $property->getAttributes(Inject::class);
+			$injectAttrs = $property->getAttributes(NCA\Inject::class);
 			if (count($injectAttrs)) {
-				/** @var Inject */
+				/** @var NCA\Inject */
 				$injectAttr = $injectAttrs[0]->newInstance();
 				$dependencyName = $injectAttr->value ?? $property->name;
 				$dependency = Registry::getInstance($dependencyName);
@@ -76,9 +75,9 @@ class Registry {
 				continue;
 			}
 
-			$loggerAttrs = $property->getAttributes(Logger::class);
+			$loggerAttrs = $property->getAttributes(NCA\Logger::class);
 			if (count($loggerAttrs)) {
-				/** @var Logger */
+				/** @var NCA\Logger */
 				$loggerAttr = $loggerAttrs[0]->newInstance();
 				if (isset($loggerAttr->value)) {
 					$tag = $loggerAttr->value;

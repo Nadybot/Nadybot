@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use Exception;
 use Closure;
-use Nadybot\Core\Attributes\Event as EventAttr;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\EventCfg;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
@@ -338,7 +338,7 @@ class EventManager {
 
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
 		$method = new ReflectionMethod($obj, $methodName);
-		foreach ($method->getAttributes(EventAttr::class) as $event) {
+		foreach ($method->getAttributes(NCA\Event::class) as $event) {
 			return strtolower($event->newInstance()->value);
 		}
 		return null;

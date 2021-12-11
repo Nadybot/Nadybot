@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Attributes\HandlesCommand;
+use Nadybot\Core\Attributes as NCA;
 use Throwable;
 use ReflectionException;
 use Nadybot\Core\DBSchema\CmdCfg;
@@ -630,7 +630,7 @@ class CommandManager implements MessageEmitter {
 	 */
 	public function retrieveRegexes(ReflectionMethod $reflectedMethod): array {
 		$regexes = [];
-		if (count($reflectedMethod->getAttributes(HandlesCommand::class))) {
+		if (count($reflectedMethod->getAttributes(NCA\HandlesCommand::class))) {
 			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
 		}
 		return $regexes;
@@ -720,7 +720,7 @@ class CommandManager implements MessageEmitter {
 			return [];
 		}
 		$regexp = [];
-		$cmds = $method->getAttributes(HandlesCommand::class);
+		$cmds = $method->getAttributes(NCA\HandlesCommand::class);
 		if (count($cmds)) {
 			$commands = [];
 			foreach ($cmds as $command) {
