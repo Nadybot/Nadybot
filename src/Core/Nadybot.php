@@ -1283,37 +1283,6 @@ class Nadybot extends AOChat {
 
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);
-		foreach ($reflection->getProperties() as $property) {
-			$settingAttrs = $property->getAttributes(NCA\Setting::class);
-			if (empty($settingAttrs)) {
-				continue;
-			}
-			$descrAttrs = $property->getAttributes(NCA\Description::class);
-			$visibilityAttrs = $property->getAttributes(NCA\Visibility::class);
-			$typeAttrs = $property->getAttributes(NCA\Type::class);
-			if (empty($descrAttrs) || empty($visibilityAttrs) || empty($typeAttrs)) {
-				throw new Exception(
-					"The setting {$obj->{$property->name}} is missing the ".
-					"Description, Visibility or Type attribute"
-				);
-			}
-			$optionsAttrs = $property->getAttributes(NCA\Options::class);
-			$intoptionsAttrs = $property->getAttributes(NCA\Intoptions::class);
-			$alAttrs = $property->getAttributes(NCA\AccessLevel::class);
-			$helpAttrs = $property->getAttributes(NCA\Help::class);
-			$this->settingManager->add(
-				$moduleName,
-				$settingAttrs[0]->newInstance()->value,
-				$descrAttrs[0]->newInstance()->value,
-				$visibilityAttrs[0]->newInstance()->value,
-				$typeAttrs[0]->newInstance()->value,
-				$obj->{$property->name},
-				$optionsAttrs ? $optionsAttrs[0]->newInstance()->value : "",
-				$intoptionsAttrs ? $intoptionsAttrs[0]->newInstance()->value : "",
-				$alAttrs ? $alAttrs[0]->newInstance()->value : null,
-				$helpAttrs ? $helpAttrs[0]->newInstance()->value : null,
-			);
-		}
 
 		// register commands, subcommands, and events annotated on the class
 		$commands = [];
