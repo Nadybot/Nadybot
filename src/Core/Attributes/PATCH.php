@@ -5,7 +5,5 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class PATCH {
-	public function __construct() {
-	}
+class PATCH extends VERB {
 }

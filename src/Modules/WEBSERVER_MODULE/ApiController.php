@@ -3,18 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Addendum\ReflectionAnnotatedClass;
-use Addendum\ReflectionAnnotatedMethod;
 use Closure;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Annotations\{
-	DELETE,
-	GET,
-	POST,
-	PUT,
-	PATCH,
-	RequestBody,
-};
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -34,9 +24,11 @@ use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Throwable;
+use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -245,44 +237,44 @@ class ApiController {
 	}
 
 	/**
-	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
-	 * @return void
+	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 */
 	public function scanApiAnnotations(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$reflection = new ReflectionAnnotatedClass($instance);
+			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var ReflectionAnnotatedMethod $method */
-				if (!$method->hasAnnotation("Api")) {
+				$apiAttrs = $method->getAttributes(NCA\Api::class);
+				if (empty($apiAttrs)) {
 					continue;
 				}
 				$routes = [];
-				foreach ($method->getAllAnnotations("Api") as $annotation) {
-					if (isset($annotation->value)) {
-						$routes []= $annotation->value;
+				foreach ($apiAttrs as $apiAttr) {
+					$apiObj = $apiAttr->newInstance();
+					if (isset($apiObj->value)) {
+						$routes []= $apiObj->value;
 					}
 				}
 				$accessLevelFrom = null;
 				$accessLevel = null;
-				if ($method->hasAnnotation("AccessLevelFrom")) {
-					$accessLevelFrom = $method->getAnnotation("AccessLevelFrom")->value;
-				} elseif ($method->hasAnnotation("AccessLevel")) {
-					$accessLevel = $method->getAnnotation("AccessLevel")->value;
+				$alFromAttribs = $method->getAttributes(NCA\AccessLevelFrom::class);
+				$alAttribs = $method->getAttributes(NCA\AccessLevel::class);
+				if (count($alFromAttribs)) {
+					$accessLevelFrom = $alFromAttribs[0]->newInstance()->value;
+				} elseif (count($alAttribs)) {
+					$accessLevel = $alAttribs[0]->newInstance()->value;
 				}
-				foreach (["GET", "POST", "PUT", "DELETE", "PATCH"] as $annoName) {
-					if (!$method->hasAnnotation($annoName)) {
-						continue;
-					}
-					$methods = [];
-					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var GET|POST|PUT|DELETE|PATCH $annotation */
-						$methods []= strtolower($annoName);
-					}
-					$closure = $method->getClosure($instance);
-					if (isset($closure)) {
-						$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
-					}
+				$verbAttrs = $method->getAttributes(NCA\VERB::class, ReflectionAttribute::IS_INSTANCEOF);
+				if (empty($verbAttrs)) {
+					continue;
+				}
+				$methods = [];
+				foreach ($verbAttrs as $verbAttr) {
+					$methods []= strtolower(class_basename($verbAttr->getName()));
+				}
+				$closure = $method->getClosure($instance);
+				if (isset($closure)) {
+					$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
 				}
 			}
 		}
@@ -292,7 +284,7 @@ class ApiController {
 	/**
 	 * Add a HTTP route handler for a path
 	 */
-	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionAnnotatedMethod $refMet): void {
+	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
@@ -398,11 +390,12 @@ class ApiController {
 		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
 			return true;
 		}
-		if (!$apiHandler->reflectionMethod->hasAnnotation("RequestBody")) {
+		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
+		if (empty($rqBodyAttrs)) {
 			return true;
 		}
-		/** @var RequestBody */
-		$reqBody = $apiHandler->reflectionMethod->getAnnotation("RequestBody");
+		/** @var NCA\RequestBody */
+		$reqBody = $rqBodyAttrs[0]->newInstance();
 		if ($request->decodedBody === null) {
 			if (!$reqBody->required) {
 				return true;

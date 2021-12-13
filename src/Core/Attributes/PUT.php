@@ -5,7 +5,5 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class PUT {
-	public function __construct() {
-	}
+class PUT extends VERB {
 }
