@@ -30,7 +30,7 @@ class ApiSpecGenerator {
 	}
 
 	/**
-	 * Return an array of [instancename => full class name] for all @Instances
+	 * Return an array of [instancename => full class name] for all #[Instance]s
 	 * @return array<string,string>
 	 */
 	public function getInstances(): array {
@@ -387,24 +387,14 @@ class ApiSpecGenerator {
 		foreach ($method->getAttributes() as $attr) {
 			$attr = $attr->newInstance();
 			if ($attr instanceof NCA\ApiResult) {
-				if (!isset($attr->code)) {
-					throw new Exception("{$method->class}::{$method->name}() has invalid @ApiResult annotation");
-				}
+				/** @var NCA\ApiResult $attr */
 				$doc->responses[$attr->code] = $attr;
 			} elseif ($attr instanceof NCA\ApiTag) {
 				$doc->tags []= $attr->tag;
 			} elseif ($attr instanceof NCA\RequestBody) {
 				$doc->requestBody = $attr;
-			} elseif ($attr instanceof NCA\GET) {
-				$doc->methods []= "get";
-			} elseif ($attr instanceof NCA\POST) {
-				$doc->methods []= "post";
-			} elseif ($attr instanceof NCA\PUT) {
-				$doc->methods []= "put";
-			} elseif ($attr instanceof NCA\DELETE) {
-				$doc->methods []= "delete";
-			} elseif ($attr instanceof NCA\PATCH) {
-				$doc->methods []= "patch";
+			} elseif ($attr instanceof NCA\VERB) {
+				$doc->methods []= strtolower(class_basename($attr));
 			}
 		}
 		return $doc;

@@ -11,7 +11,7 @@ class PathDoc {
 	public array $tags = [];
 	/** @var string[] */
 	public array $methods = [];
-	/** @var NCA\ApiResult[] */
+	/** @var array<int,NCA\ApiResult> */
 	public array $responses = [];
 	public ?NCA\RequestBody $requestBody = null;
 	public ReflectionMethod $phpMethod;

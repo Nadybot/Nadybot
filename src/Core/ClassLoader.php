@@ -28,7 +28,7 @@ class ClassLoader {
 	}
 
 	/**
-	 * Load all classes that provide an @Instance
+	 * Load all classes that provide an #[Instance]
 	 */
 	public function loadInstances(): void {
 		$newInstances = $this->getNewInstancesInDir(__DIR__);
@@ -131,14 +131,14 @@ class ClassLoader {
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {$moduleName}. No classes found with @Instance annotation!");
+			$this->logger->error("Could not load module {$moduleName}. No classes found with #[Instance] attribute!");
 			return;
 		}
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
 	}
 
 	/**
-	 * Get a list of all module which provide an @Instance for a directory
+	 * Get a list of all module which provide an #[Instance] for a directory
 	 *
 	 * @return array<string,ClassInstance> A mapping [module name => class info]
 	 */

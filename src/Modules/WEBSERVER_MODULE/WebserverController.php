@@ -282,7 +282,7 @@ class WebserverController {
 	}
 
 	/**
-	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
+	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 * @return void
 	 */
 	public function scanRouteAttributes(): void {
@@ -297,12 +297,9 @@ class WebserverController {
 				foreach ($attrs as $attribute) {
 					/** @var NCA\HttpVerb */
 					$attrObj = $attribute->newInstance();
-					if (!isset($attrObj->value)) {
-						continue;
-					}
 					$closure = $method->getClosure($instance);
 					if (isset($closure)) {
-						$this->addRoute($attrObj->type, $attrObj->value, $closure);
+						$this->addRoute($attrObj->type, $attrObj->path, $closure);
 					}
 				}
 			}

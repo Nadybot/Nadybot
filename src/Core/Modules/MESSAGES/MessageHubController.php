@@ -143,7 +143,7 @@ class MessageHubController {
 			$context->reply("Unknown target <highlight>{$to}<end>.");
 			return;
 		}
-		/** @Collection<MessageEmitter> */
+		/** @var Collection<MessageEmitter> */
 		$senders = new Collection($this->messageHub->getEmitters());
 		$hasSender = $senders->first(function(MessageEmitter $e) use ($from) {
 			return fnmatch($e->getChannelName(), $from, FNM_CASEFOLD)

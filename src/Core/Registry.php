@@ -55,10 +55,10 @@ class Registry {
 	}
 
 	/**
-	 * Inject all fields marked with \@Inject in an object with the corresponding object instances
+	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 */
 	public static function injectDependencies(object $instance): void {
-		// inject other instances that are annotated with @Inject
+		// inject other instances that have the #[Inject] attribute
 		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
 			$injectAttrs = $property->getAttributes(NCA\Inject::class);

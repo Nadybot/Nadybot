@@ -8,6 +8,6 @@ use Attribute;
 class HttpVerb {
 	public string $type = "none";
 
-	public function __construct(public string $value) {
+	public function __construct(public string $path) {
 	}
 }
