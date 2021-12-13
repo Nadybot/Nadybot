@@ -110,28 +110,6 @@ class BanController {
 	private $orgbanlist = [];
 
 	/**
-	 * @Setting("notify_banned_player")
-	 * @Description("Notify character when banned from bot")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultNotifyBannedPlayer = "1";
-
-	/**
-	 * @Setting("ban_all_alts")
-	 * @Description("Always ban all alts, not just 1 char")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultBanAllAlts = "0";
-
-	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
@@ -140,6 +118,31 @@ class BanController {
 		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "notify_banned_player",
+			description: "Notify character when banned from bot",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1"
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "ban_all_alts",
+			description: "Always ban all alts, not just 1 char",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "0"
+		);
+
 		$this->uploadOrgBanlist();
 	}
 

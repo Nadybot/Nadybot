@@ -74,7 +74,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
  *		accessLevel   = 'admin',
  *		description   = 'Restart the bot',
  *		help          = 'system.txt',
- *      defaultStatus = '1'
+ *		defaultStatus = '1'
  *	)
  *	@DefineCommand(
  *		command       = 'shutdown',
@@ -138,123 +138,6 @@ class SystemController implements MessageEmitter {
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setting("symbol")
-	 * @Description("Command prefix symbol")
-	 * @Visibility("edit")
-	 * @Type("text")
-	 * @Options("!;#;*;@;$;+;-")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultSymbol = "!";
-
-	/**
-	 * @Setting("max_blob_size")
-	 * @Description("Max chars for a window")
-	 * @Visibility("edit")
-	 * @Type("number")
-	 * @Options("4500;6000;7500;9000;10500;12000")
-	 * @AccessLevel("mod")
-	 * @Help("max_blob_size.txt")
-	 */
-	public string $defaultMaxBlobSize = "7500";
-
-	/**
-	 * @Setting("http_timeout")
-	 * @Description("Max time to wait for response from making http queries")
-	 * @Visibility("edit")
-	 * @Type("time")
-	 * @Options("1s;2s;5s;10s;30s")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultHttpTimeout = "10s";
-
-	/**
-	 * @Setting("guild_channel_status")
-	 * @Description("Enable the guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelStatus = "1";
-
-	/**
-	 * @Setting("guild_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelCmdFeedback = "1";
-
-	/**
-	 * @Setting("private_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in private channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultPrivateChannelCmdFeedback = "1";
-
-	/**
-	 * @Setting("version")
-	 * @Description("Database version")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultVersion = "0";
-
-	/**
-	 * @Setting("allow_mass_tells")
-	 * @Description("When using the proxy, allow sending tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $allowMassTells = "1";
-
-	/**
-	 * @Setting("force_mass_tells")
-	 * @Description("When using the proxy, always send tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $forceMassTells = "0";
-
-	/**
-	 * @Setting("reply_on_same_worker")
-	 * @Description("When using the proxy, always reply via the worker that sent the tell")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $replyOnSameWorker = "0";
-
-	/**
-	 * @Setting("paging_on_same_worker")
-	 * @Description("When using the proxy, always send multi-page replies via one worker ")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $pagingOnSameWorker = "1";
-
-	/**
 	 * @Setup
 	 * This handler is called on bot startup.
 	 */
@@ -265,14 +148,143 @@ class SystemController implements MessageEmitter {
 
 		$name = $this->chatBot->vars['name'];
 		$this->settingManager->add(
-			$this->moduleName,
-			"default_private_channel",
-			"Private channel to process commands from",
-			"edit",
-			"text",
-			$name,
-			$name
+			module: $this->moduleName,
+			name: "default_private_channel",
+			description: "Private channel to process commands from",
+			mode: "edit",
+			type: "text",
+			value: $name,
+			options: $name
 		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "symbol",
+			description: "Command prefix symbol",
+			mode: "edit",
+			type: "text",
+			options: "!;#;*;@;$;+;-",
+			accessLevel: "mod",
+			value: "!",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "max_blob_size",
+			description: "Max chars for a window",
+			mode: "edit",
+			type: "number",
+			options: "4500;6000;7500;9000;10500;12000",
+			accessLevel: "mod",
+			help: "max_blob_size.txt",
+			value: "7500",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "http_timeout",
+			description: "Max time to wait for response from making http queries",
+			mode: "edit",
+			type: "time",
+			options: "1s;2s;5s;10s;30s",
+			accessLevel: "mod",
+			value: "10s",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "guild_channel_status",
+			description: "Enable the guild channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "guild_channel_cmd_feedback",
+			description: "Show message on invalid command in guild channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "private_channel_cmd_feedback",
+			description: "Show message on invalid command in private channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "version",
+			description: "Database version",
+			mode: "noedit",
+			type: "text",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "allow_mass_tells",
+			description: "When using the proxy, allow sending tells via the workers",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "force_mass_tells",
+			description: "When using the proxy, always send tells via the workers",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "reply_on_same_worker",
+			description: "When using the proxy, always reply via the worker that sent the tell",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "paging_on_same_worker",
+			description: "When using the proxy, always send multi-page replies via one worker ",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
 		$this->messageHub->registerMessageEmitter($this);
 	}
 

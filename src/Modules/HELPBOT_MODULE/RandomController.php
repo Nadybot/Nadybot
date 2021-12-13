@@ -61,20 +61,21 @@ class RandomController {
 	public CommandAlias $commandAlias;
 
 	/**
-	 * @Setting("time_between_rolls")
-	 * @Description("How much time is required between rolls from the same person")
-	 * @Visibility("edit")
-	 * @Type("time")
-	 * @Options("10s;30s;60s;90s")
-	 */
-	public string $defaultTimeBetweenRolls = "30s";
-
-	/**
 	 * This handler is called on bot startup.
 	 * @Setup
 	 */
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Roll");
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "time_between_rolls",
+			description: "How much time is required between rolls from the same person",
+			mode: "edit",
+			type: "time",
+			options: "10s;30s;60s;90s",
+			value: "30s",
+		);
 
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
 	}
