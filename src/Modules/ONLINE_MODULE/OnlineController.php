@@ -455,9 +455,9 @@ class OnlineController {
 	#[
 		NCA\Event(
 			name: "priv",
-			description: "Afk check"
+			description: "Afk check",
+			help: "afk"
 		),
-		NCA\Help("afk")
 	]
 	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
@@ -466,9 +466,9 @@ class OnlineController {
 	#[
 		NCA\Event(
 			name: "guild",
-			description: "Afk check"
+			description: "Afk check",
+			help: "afk"
 		),
-		NCA\Help("afk")
 	]
 	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
@@ -477,9 +477,9 @@ class OnlineController {
 	#[
 		NCA\Event(
 			name: "priv",
-			description: "Sets a member afk"
+			description: "Sets a member afk",
+			help: "afk"
 		),
-		NCA\Help("afk")
 	]
 	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
@@ -491,9 +491,9 @@ class OnlineController {
 	#[
 		NCA\Event(
 			name: "guild",
-			description: "Sets a member afk"
+			description: "Sets a member afk",
+			help: "afk"
 		),
-		NCA\Help("afk")
 	]
 	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {

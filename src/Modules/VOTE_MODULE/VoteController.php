@@ -550,11 +550,14 @@ class VoteController implements MessageEmitter {
 	}
 
 	#[
-		NCA\NewsTile("polls"),
-		NCA\Description("Shows currently running polls - if any"),
-		NCA\Example("<header2>Polls<end>\n".
-			"<tab>Shall we use startpage instead of news? [<u>show</u>]\n".
-			"<tab>New logo for Discord [<u>show</u>]")
+		NCA\NewsTile(
+			name: "polls",
+			description: "Shows currently running polls - if any",
+			example:
+				"<header2>Polls<end>\n".
+				"<tab>Shall we use startpage instead of news? [<u>show</u>]\n".
+				"<tab>New logo for Discord [<u>show</u>]"
+		)
 	]
 	public function pollsNewsTile(string $sender, callable $callback): void {
 		/** @var Poll[] */

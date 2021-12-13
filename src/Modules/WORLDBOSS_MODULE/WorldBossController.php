@@ -707,12 +707,15 @@ class WorldBossController {
 	}
 
 	#[
-		NCA\NewsTile("boss-timers"),
-		NCA\Description("A list of upcoming boss spawn timers"),
-		NCA\Example("<header2>Boss timers<end>\n".
-			"<tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.\n".
-			"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.\n".
-			"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
+		NCA\NewsTile(
+			name: "boss-timers",
+			description: "A list of upcoming boss spawn timers",
+			example:
+				"<header2>Boss timers<end>\n".
+				"<tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.\n".
+				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
+		)
 	]
 	public function bossTimersNewsTile(string $sender, callable $callback): void {
 		$timers = $this->getWorldBossTimers();
@@ -728,10 +731,13 @@ class WorldBossController {
 	}
 
 	#[
-		NCA\NewsTile("tara-timer"),
-		NCA\Description("The current tara timer"),
-		NCA\Example("<header2>Tara timer<end>\n".
-			"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.")
+		NCA\NewsTile(
+			name: "tara-timer",
+			description: "The current tara timer",
+			example:
+				"<header2>Tara timer<end>\n".
+				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>."
+		)
 	]
 	public function taraTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::TARA);
@@ -745,10 +751,13 @@ class WorldBossController {
 	}
 
 	#[
-		NCA\NewsTile("gauntlet-timer"),
-		NCA\Description("Show when Vizaresh spawns/is vulnerable"),
-		NCA\Example("<header2>Gauntlet<end>\n".
-			"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
+		NCA\NewsTile(
+			name: "gauntlet-timer",
+			description: "Show when Vizaresh spawns/is vulnerable",
+			example:
+				"<header2>Gauntlet<end>\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
+		)
 	]
 	public function gauntletTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
@@ -762,11 +771,14 @@ class WorldBossController {
 	}
 
 	#[
-		NCA\NewsTile("gauntlet"),
-		NCA\Description("Show when Vizaresh spawns/is vulnerable"),
-		NCA\Example("<header2>Gauntlet<end>\n".
-			"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.\n".
-			"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
+		NCA\NewsTile(
+			name: "gauntlet",
+			description: "Show when Vizaresh spawns/is vulnerable",
+			example:
+				"<header2>Gauntlet<end>\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.\n".
+				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
+		)
 	]
 	public function gauntletNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);

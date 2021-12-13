@@ -425,7 +425,6 @@ class ApiController {
 		NCA\HttpPut("/api/%s"),
 		NCA\HttpDelete("/api/%s"),
 		NCA\HttpPatch("/api/%s"),
-		NCA\Description("Handle API requests")
 	]
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
 		if (!$this->settingManager->getBool('api')) {

@@ -147,9 +147,11 @@ class FunController {
 	}
 
 	#[
-		NCA\NewsTile("fun-compliment"),
-		NCA\Description("Gives a random motivational compliment"),
-		NCA\Example("\u00bb You inspire be to do good things.")
+		NCA\NewsTile(
+			name: "fun-compliment",
+			description: "Gives a random motivational compliment",
+			example: "» You inspire be to do good things."
+		)
 	]
 	public function complimentTile(string $sender, callable $callback): void {
 		$msg = "» " . $this->getFunItem('compliment', $sender, null);

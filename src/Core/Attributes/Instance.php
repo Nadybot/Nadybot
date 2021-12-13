@@ -7,7 +7,7 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 class Instance {
 	public function __construct(
-		public ?string $value=null,
+		public ?string $name=null,
 		public bool $overwrite=false
 	) {
 	}

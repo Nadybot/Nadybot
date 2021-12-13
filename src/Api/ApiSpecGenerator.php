@@ -44,7 +44,7 @@ class ApiSpecGenerator {
 			}
 			/** @var NCA\Instance */
 			$instanceObj = $instanceAttrs[0]->newInstance();
-			$name = $instanceObj->value ?? Registry::formatName($className);
+			$name = $instanceObj->name ?? Registry::formatName($className);
 			$instances[$name] = $className;
 		}
 		return $instances;
@@ -392,7 +392,7 @@ class ApiSpecGenerator {
 				}
 				$doc->responses[$attr->code] = $attr;
 			} elseif ($attr instanceof NCA\ApiTag) {
-				$doc->tags []= $attr->value;
+				$doc->tags []= $attr->tag;
 			} elseif ($attr instanceof NCA\RequestBody) {
 				$doc->requestBody = $attr;
 			} elseif ($attr instanceof NCA\GET) {

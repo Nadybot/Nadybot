@@ -406,10 +406,13 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	#[
-		NCA\NewsTile("gauntlet-buff"),
-		NCA\Description("Show the remaining time of the currently popped Gauntlet buff(s) - if any"),
-		NCA\Example("<header2>Gauntlet buff<end>\n".
-			"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
+		NCA\NewsTile(
+			name: "gauntlet-buff",
+			description: "Show the remaining time of the currently popped Gauntlet buff(s) - if any",
+			example:
+				"<header2>Gauntlet buff<end>\n".
+				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
+		)
 	]
 	public function gauntletBuffNewsTile(string $sender, callable $callback): void {
 		$buffLine = $this->getGauntletBuffLine();

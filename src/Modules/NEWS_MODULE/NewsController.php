@@ -491,10 +491,13 @@ class NewsController {
 	}
 
 	#[
-		NCA\NewsTile("news"),
-		NCA\Description("Show excerpts of unread news"),
-		NCA\Example("<header2>News [<u>see more</u>]<end>\n".
-			"<tab><highlight>2021-Oct-18<end>: We have a new tower site...")
+		NCA\NewsTile(
+			name: "news",
+			description: "Show excerpts of unread news",
+			example:
+				"<header2>News [<u>see more</u>]<end>\n".
+				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
+		)
 	]
 	public function newsTile(string $sender, callable $callback): void {
 		$thirtyDays = time() - (86400 * 30);

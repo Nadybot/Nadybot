@@ -108,7 +108,6 @@ class WebsocketController {
 
 	#[
 		NCA\HttpGet("/events"),
-		NCA\DefaultStatus("1")
 	]
 	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
 		if (!$this->settingManager->getBool('websocket')) {

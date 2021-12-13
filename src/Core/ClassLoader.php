@@ -162,10 +162,10 @@ class ClassLoader {
 				$instance = new ClassInstance();
 				$instance->className = $className;
 				/** @var NCA\Instance */
-				$instanceAnno = $instanceAnnos[0]->newInstance();
-				if ($instanceAnno->value !== null) {
-					$name = $instanceAnno->value;
-					$instance->overwrite = $instanceAnno->overwrite;
+				$instanceAttr = $instanceAnnos[0]->newInstance();
+				if ($instanceAttr->name !== null) {
+					$name = $instanceAttr->name;
+					$instance->overwrite = $instanceAttr->overwrite;
 				} else {
 					$name = Registry::formatName($className);
 				}

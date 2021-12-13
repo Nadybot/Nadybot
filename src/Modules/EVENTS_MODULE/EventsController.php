@@ -403,10 +403,13 @@ class EventsController {
 	 * @psalm-param callable(?string) $callback
 	 */
 	#[
-		NCA\NewsTile("events"),
-		NCA\Description("Shows upcoming events - if any"),
-		NCA\Example("<header2>Events [<u>see more</u>]<end>\n".
-			"<tab>2021-10-31 <highlight>GSP Halloween Party<end>")
+		NCA\NewsTile(
+			name: "events",
+			description: "Shows upcoming events - if any",
+			example:
+				"<header2>Events [<u>see more</u>]<end>\n".
+				"<tab>2021-10-31 <highlight>GSP Halloween Party<end>"
+		)
 	]
 	public function eventsTile(string $sender, callable $callback): void {
 		/** @var Collection<EventModel> */

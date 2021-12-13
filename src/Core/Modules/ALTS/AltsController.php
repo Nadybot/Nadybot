@@ -756,11 +756,14 @@ class AltsController {
 	}
 
 	#[
-		NCA\NewsTile("alts-info"),
-		NCA\Description("Displays basic information about your alts"),
-		NCA\Example("<header2>Account<end>\n".
-			"<tab>Your main is <highlight>Nady<end>\n".
-			"<tab>You have <u>15 alts</u>.")
+		NCA\NewsTile(
+			name: "alts-info",
+			description: "Displays basic information about your alts",
+			example:
+				"<header2>Account<end>\n".
+				"<tab>Your main is <highlight>Nady<end>\n".
+				"<tab>You have <u>15 alts</u>."
+		)
 	]
 	public function altsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);
@@ -794,11 +797,14 @@ class AltsController {
 	}
 
 	#[
-		NCA\NewsTile("alts-unvalidated"),
-		NCA\Description("Show a notice if char has any unvalidated alts"),
-		NCA\Example("<header2>Unvalidated Alts [<u>see more</u>]<end>\n".
+		NCA\NewsTile(
+			name: "alts-unvalidated",
+			description: "Show a notice if char has any unvalidated alts",
+			example:
+				"<header2>Unvalidated Alts [<u>see more</u>]<end>\n".
 			"<tab>- Char1\n".
-			"<tab>- Char2")
+			"<tab>- Char2"
+		)
 	]
 	public function unvalidatedAltsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);

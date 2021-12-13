@@ -350,10 +350,13 @@ class GSPController implements MessageEmitter {
 	}
 
 	#[
-		NCA\NewsTile("gsp-show"),
-		NCA\Description("Show the currently running GSP show and location - if any"),
-		NCA\Example("<header2>GSP<end>\n".
-			"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>.")
+		NCA\NewsTile(
+			name: "gsp-show",
+			description: "Show the currently running GSP show and location - if any",
+			example:
+				"<header2>GSP<end>\n".
+				"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>."
+		)
 	]
 	public function gspShowTile(string $sender, callable $callback): void {
 		if (!$this->showRunning) {
@@ -366,13 +369,17 @@ class GSPController implements MessageEmitter {
 	}
 
 	#[
-		NCA\NewsTile("gsp"),
-		NCA\Description("Show what's currently playing on GSP.\n".
-			"If there's a show, it also shows which one and its location."),
-		NCA\Example("<header2>GSP<end>\n".
-			"<tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]\n".
-			"<tab>Current show: <highlight>The Odd End /w DJ Shigy<end>\n".
-			"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>")
+		NCA\NewsTile(
+			name: "gsp",
+			description:
+				"Show what's currently playing on GSP.\n".
+				"If there's a show, it also shows which one and its location.",
+			example:
+				"<header2>GSP<end>\n".
+				"<tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]\n".
+				"<tab>Current show: <highlight>The Odd End /w DJ Shigy<end>\n".
+				"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>"
+		)
 	]
 	public function gspTile(string $sender, callable $callback): void {
 		$this->http

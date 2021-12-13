@@ -257,10 +257,13 @@ class ChatRallyController {
 	}
 
 	#[
-		NCA\NewsTile("rally"),
-		NCA\Description("Will show a waypoint-link to the current rally-point - if any"),
-		NCA\Example("<header2>Rally<end>\n".
-			"<tab>We are rallying <u>here</u>")
+		NCA\NewsTile(
+			name: "rally",
+			description: "Will show a waypoint-link to the current rally-point - if any",
+			example:
+				"<header2>Rally<end>\n".
+				"<tab>We are rallying <u>here</u>"
+		)
 	]
 	public function rallyTile(string $sender, callable $callback): void {
 		$data = $this->settingManager->getString("rally")??"";

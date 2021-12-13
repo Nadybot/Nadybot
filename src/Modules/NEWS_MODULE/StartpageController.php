@@ -100,16 +100,7 @@ class StartpageController {
 		$funcName = "{$className}::" . $method->getName() . "()";
 		/** @var NCA\NewsTile */
 		$attrObj = $newsTileAttrs[0]->newInstance();
-		$name = $attrObj->value;
-		$descrAttrs = $method->getAttributes(NCA\Description::class);
-		if (empty($descrAttrs)) {
-			throw new InvalidArgumentException(
-				"{$funcName} has no #[Description] attribute."
-			);
-		}
-		/** @var NCA\Description */
-		$descrObj = $descrAttrs[0]->newInstance();
-		$descr = $descrObj->value;
+		$name = $attrObj->name;
 		$closure = $method->getClosure($instance);
 		if (!isset($closure)) {
 			throw new InvalidArgumentException(
@@ -117,13 +108,8 @@ class StartpageController {
 			);
 		}
 		$tile = new NewsTile($name, $closure);
-		$tile->description = $descr;
-		$exampleAttrs = $method->getAttributes(NCA\Example::class);
-		if (!empty($exampleAttrs)) {
-			/** @var NCA\Example */
-			$attrObj = $exampleAttrs[0]->newInstance();
-			$tile->example = $attrObj->value;
-		}
+		$tile->description = $attrObj->description;
+		$tile->example = $attrObj->example;
 		$this->registerNewsTile($tile);
 	}
 
@@ -234,10 +220,13 @@ class StartpageController {
 	}
 
 	#[
-		NCA\NewsTile("time"),
-		NCA\Description("Shows the current date and time in UTC and game"),
-		NCA\Example("<header2>Time<end>\n".
-			"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)")
+		NCA\NewsTile(
+			name: "time",
+			description: "Shows the current date and time in UTC and game",
+			example:
+				"<header2>Time<end>\n".
+				"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)"
+		)
 	]
 	public function timeTile(string $sender, callable $callback): void {
 		$seeMoreLink = $this->text->makeChatcmd("see more", "/tell <myname> time");

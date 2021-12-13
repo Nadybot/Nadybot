@@ -251,10 +251,13 @@ class ArbiterController {
 	}
 
 	#[
-		NCA\NewsTile("arbiter"),
-		NCA\Description("Shows the current ICC arbiter week - if any"),
-		NCA\Example("<header2>Arbiter<end>\n".
-			"<tab>It's currently <highlight>DIO week<end>.")
+		NCA\NewsTile(
+			name: "arbiter",
+			description: "Shows the current ICC arbiter week - if any",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>It's currently <highlight>DIO week<end>."
+		)
 	]
 	public function arbiterNewsTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */
@@ -282,11 +285,14 @@ class ArbiterController {
 	}
 
 	#[
-		NCA\NewsTile("arbiter-force"),
-		NCA\Description("Shows the current ICC arbiter week or what the next one will be"),
-		NCA\Example("<header2>Arbiter<end>\n".
-			"<tab>The arbiter is currently not here.\n".
-			"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>.")
+		NCA\NewsTile(
+			name: "arbiter-force",
+			description: "Shows the current ICC arbiter week or what the next one will be",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>The arbiter is currently not here.\n".
+				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
+		)
 	]
 	public function arbiterNewsForceTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */

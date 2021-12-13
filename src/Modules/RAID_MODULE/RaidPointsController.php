@@ -838,12 +838,16 @@ class RaidPointsController {
 	}
 
 	#[
-		NCA\NewsTile("raid"),
-		NCA\Description("Shows the player's amount of raid points and if a raid\n".
-			"is currently running."),
-		NCA\Example("<header2>Raid<end>\n".
-			"<tab>You have <highlight>2222<end> raid points.\n".
-			"<tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]")
+		NCA\NewsTile(
+			name: "raid",
+			description:
+				"Shows the player's amount of raid points and if a raid\n".
+				"is currently running.",
+			example:
+				"<header2>Raid<end>\n".
+				"<tab>You have <highlight>2222<end> raid points.\n".
+				"<tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]"
+		)
 	]
 	public function raidpointsTile(string $sender, callable $callback): void {
 		$points = $this->getRaidPoints($sender);

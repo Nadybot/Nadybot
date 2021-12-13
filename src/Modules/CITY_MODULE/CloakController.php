@@ -337,11 +337,15 @@ class CloakController implements MessageEmitter {
 	}
 
 	#[
-		NCA\NewsTile("cloak-status"),
-		NCA\Description("Shows the current status of the city cloak, if and when\n".
-			"new raids can be initiated"),
-		NCA\Example("<header2>City<end>\n".
-			"<tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
+		NCA\NewsTile(
+			name: "cloak-status",
+			description:
+				"Shows the current status of the city cloak, if and when\n".
+				"new raids can be initiated",
+			example:
+				"<header2>City<end>\n".
+				"<tab>The cloaking device is <green>enabled<end>. It is possible to disable it."
+		)
 	]
 	public function cloakStatusTile(string $sender, callable $callback): void {
 		$data = $this->getCloakStatus();

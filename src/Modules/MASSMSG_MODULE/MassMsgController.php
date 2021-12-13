@@ -290,12 +290,16 @@ class MassMsgController {
 	}
 
 	#[
-		NCA\NewsTile("massmsg-settings"),
-		NCA\Description("Shows your current settings for mass messages and -invites\n".
-			"as well with links to change these"),
-		NCA\Example("<header2>Mass messages<end>\n".
-			"<tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages\n".
-			"<tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites")
+		NCA\NewsTile(
+			name: "massmsg-settings",
+			description:
+				"Shows your current settings for mass messages and -invites\n".
+				"as well with links to change these",
+			example:
+				"<header2>Mass messages<end>\n".
+				"<tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages\n".
+				"<tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites"
+		)
 	]
 	public function massMsgNewsTile(string $sender, callable $callback): void {
 		$msgs = $this->preferences->get($sender, static::PREF_MSGS);

@@ -374,13 +374,16 @@ class UsageController {
 	}
 
 	#[
-		NCA\NewsTile("popular-commands"),
-		NCA\Description("A player's 4 most used commands in the last 7 days"),
-		NCA\Example("<header2>Popular commands<end>\n".
-			"<tab>hot\n".
-			"<tab>startpage\n".
-			"<tab>config\n".
-			"<tab>time")
+		NCA\NewsTile(
+			name: "popular-commands",
+			description: "A player's 4 most used commands in the last 7 days",
+			example:
+				"<header2>Popular commands<end>\n".
+				"<tab>hot\n".
+				"<tab>startpage\n".
+				"<tab>config\n".
+				"<tab>time"
+		)
 	]
 	public function usageNewsTile(string $sender, callable $callback): void {
 		$data = $this->db->table(self::DB_TABLE)

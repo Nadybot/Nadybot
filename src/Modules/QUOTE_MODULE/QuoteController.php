@@ -261,10 +261,13 @@ class QuoteController {
 	}
 
 	#[
-		NCA\NewsTile("quote"),
-		NCA\Description("Displays a random quote from your quote database"),
-		NCA\Example("\u00bb [Team] This is a random quote from Player 1\n".
-			"\u00bb [Team] And a witty response from Player 2")
+		NCA\NewsTile(
+			name: "quote",
+			description: "Displays a random quote from your quote database",
+			example:
+				"» [Team] This is a random quote from Player 1\n".
+				"» [Team] And a witty response from Player 2"
+		)
 	]
 	public function quoteTile(string $sender, callable $callback): void {
 		/** @var ?Quote */

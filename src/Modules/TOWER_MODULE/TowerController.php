@@ -2330,11 +2330,15 @@ class TowerController {
 	}
 
 	#[
-		NCA\NewsTile("tower-own"),
-		NCA\Description("Show the last 5 attacks on your org's towers from the last 3\n".
-			"days - or nothing, if no attacks occurred."),
-		NCA\Example("<header2>Notum Wars [<u>see more</u>]<end>\n".
-			"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):")
+		NCA\NewsTile(
+			name: "tower-own",
+			description:
+				"Show the last 5 attacks on your org's towers from the last 3\n".
+				"days - or nothing, if no attacks occurred.",
+			example:
+				"<header2>Notum Wars [<u>see more</u>]<end>\n".
+				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
+		)
 	]
 	public function towerOwnTile(string $sender, callable $callback): void {
 		$this->playerManager->getByNameAsync(
