@@ -4,6 +4,7 @@ namespace Nadybot;
 
 use Addendum\ReflectionAnnotatedClass;
 use Addendum\ReflectionAnnotatedProperty;
+use Nadybot\Core\Annotations\Event;
 use Nadybot\Core\Annotations\Inject;
 use Nadybot\Core\Annotations\Instance;
 use RecursiveDirectoryIterator;
@@ -221,6 +222,8 @@ class Migrator {
 					$attribs []= "NCA\\$annoName";
 				} elseif ($keys === ["value"]) {
 					$attribs []= "NCA\\$annoName(" . str_replace("\\n", "\\n\".\n\t\"", json_encode($annotation->value, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_LINE_TERMINATORS)) . ")";
+				} elseif ($annotation instanceof Event) {
+					$attribs []= "NCA\\$annoName(\n\t" . join(",\n\t", $params) . "\n)";
 				} else {
 					$attribs []= "NCA\\$annoName(" . join(", ", $params) . ")";
 				}
@@ -229,7 +232,9 @@ class Migrator {
 				continue;
 			}
 			if (count($attribs) === 1) {
-				$attrString = "#[{$attribs[0]}]";
+				$attrString = "#[".
+					join(",\n\t", array_map(fn($a) => join("\n\t", explode("\n", $a)), $attribs)).
+					"]";
 			} else {
 				$attrString = "#[\n\t\t".
 					join(",\n\t\t", array_map(fn($a) => join("\n\t\t", explode("\n", $a)), $attribs)).
